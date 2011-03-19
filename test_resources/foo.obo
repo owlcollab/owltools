@@ -1,0 +1,21 @@
+format-version: 1.2
+date: 24:06:2010 12:33
+default-namespace: caro
+pairwise-disjoint: true
+treat-xrefs-as-equivalent: GO
+
+[Term]
+id: X:1
+name: simple columnar epithelium cell
+intersection_of: CL:1
+intersection_of: part_of CARO:0000068
+
+[Term]
+id: CL:1
+name: cell
+
+[Typedef]
+id: part_of
+name: part_of
+is_transitive: true
+

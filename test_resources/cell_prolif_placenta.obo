@@ -1,0 +1,186 @@
+format-version: 1.2
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_goa "GOA and proteome slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+subsetdef: unvetted "unvetted"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+
+[Term]
+id: GO:0001701
+name: in utero embryonic development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of the embryo in the uterus over time, from formation of the zygote in the oviduct, to birth. An example of this process is found in Mus musculus." [GOC:go_curators, GOC:mtg_sensu]
+is_a: GO:0043009  ! chordate embryonic development
+
+[Term]
+id: GO:0001890
+name: placenta development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of the placenta over time, from its formation to the mature structure. The placenta is an organ of metabolic interchange between fetus and mother, partly of embryonic origin and partly of maternal origin." [GOC:add, ISBN:068340007X]
+synonym: "placental development" EXACT []
+synonym: "placentation" EXACT [GOC:dph, GOC:tb]
+is_a: GO:0048513  ! organ development
+
+[Term]
+id: GO:0001892
+name: embryonic placenta development
+namespace: biological_process
+def: "The embryonically driven process whose specific outcome is the progression of the placenta over time, from its formation to the mature structure. The placenta is an organ of metabolic interchange between fetus and mother, partly of embryonic origin and partly of maternal origin." [GOC:add, ISBN:068340007X]
+synonym: "fetal placenta development" EXACT [GOC:dph]
+is_a: GO:0048568  ! embryonic organ development
+relationship: part_of GO:0001701 ! in utero embryonic development
+relationship: part_of GO:0001890 ! placenta development
+
+[Term]
+id: GO:0007275
+name: multicellular organismal development
+namespace: biological_process
+def: "The biological process whose specific outcome is the progression of a multicellular organism over time from an initial condition (e.g. a zygote or a young adult) to a later condition (e.g. a multicellular animal or an aged adult)." [GOC:dph, GOC:ems, GOC:isa_complete, GOC:tb]
+comment: Note that this term was 'developmental process'.
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_plant  ! Plant GO slim
+is_a: GO:0032501  ! multicellular organismal process
+is_a: GO:0032502  ! developmental process
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "biological process" EXACT []
+synonym: "biological process unknown" NARROW []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+disjoint_from: GO:0003674  ! molecular_function
+disjoint_from: GO:0005575  ! cellular_component
+
+[Term]
+id: GO:0008283
+name: cell proliferation
+namespace: biological_process
+def: "The multiplication or reproduction of cells, resulting in the expansion of a cell population." [GOC:mah, GOC:mb]
+comment: This term was moved out from being a child of 'cellular process' because it is a cell population-level process, and cellular processes are restricted to those processes that involve individual cells.
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0009790
+name: embryo development
+namespace: biological_process
+alt_id: GO:0009795
+def: "The process whose specific outcome is the progression of an embryo from its formation until the end of its embryonic life stage. The end of the embryonic stage is organism-specific. For example, for mammals, the process would begin with zygote formation and end with birth. For insects, the process would begin at zygote formation and end with larval hatching. For plant zygotic embryos, this would be from zygote formation to the end of seed dormancy. For plant vegetative embryos, this would be from the initial determination of the cell or group of cells to form an embryo until the point when the embryo becomes independent of the parent plant." [GOC:go_curators, GOC:isa_complete, GOC:mtg_sensu]
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_plant  ! Plant GO slim
+synonym: "embryogenesis" EXACT []
+synonym: "embryogenesis and morphogenesis" BROAD []
+synonym: "embryonal development" EXACT []
+xref: Wikipedia:Embryogenesis
+is_a: GO:0032502  ! developmental process
+relationship: part_of GO:0007275 ! multicellular organismal development
+
+[Term]
+id: GO:0009792
+name: embryo development ending in birth or egg hatching
+namespace: biological_process
+def: "The process whose specific outcome is the progression of an embryo over time, from zygote formation until the end of the embryonic life stage. The end of the embryonic life stage is organism-specific and may be somewhat arbitrary; for mammals it is usually considered to be birth, for insects the hatching of the first instar larva from the eggshell." [GOC:go_curators, GOC:isa_complete, GOC:mtg_sensu]
+synonym: "embryogenesis" BROAD []
+is_a: GO:0009790  ! embryo development
+
+[Term]
+id: GO:0032501
+name: multicellular organismal process
+namespace: biological_process
+alt_id: GO:0050874
+def: "Any biological process, occurring at the level of a multicellular organism, pertinent to its function." [GOC:curators, GOC:dph, GOC:isa_complete, GOC:tb]
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_pir  ! PIR GO slim
+synonym: "organismal physiological process" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0032502
+name: developmental process
+namespace: biological_process
+def: "A biological process whose specific outcome is the progression of an integrated living unit: an anatomical structure (which may be a subcellular structure, cell, tissue, or organ), or organism over time from an initial condition to a later condition." [GOC:isa_complete]
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "development" NARROW []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0043009
+name: chordate embryonic development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of the embryo over time, from zygote formation through a stage including a notochord and neural tube until birth or egg hatching." [GOC:mtg_sensu]
+is_a: GO:0009792  ! embryo development ending in birth or egg hatching
+
+[Term]
+id: GO:0048513
+name: organ development
+namespace: biological_process
+def: "Development of a tissue or tissues that work together to perform a specific function or functions. Development pertains to the process whose specific outcome is the progression of a structure over time, from its formation to the mature structure. Organs are commonly observed as visibly distinct structures, but may also exist as loosely associated clusters of cells that work together to perform a specific function or functions." [GOC:dph, GOC:jid]
+synonym: "development of an organ" EXACT []
+synonym: "organogenesis" EXACT []
+xref: Wikipedia:Organogenesis
+is_a: GO:0048856  ! anatomical structure development
+relationship: part_of GO:0048731 ! system development
+
+[Term]
+id: GO:0048568
+name: embryonic organ development
+namespace: biological_process
+def: "Development, taking place during the embryonic phase, of a tissue or tissues that work together to perform a specific function or functions. Development pertains to the process whose specific outcome is the progression of a structure over time, from its formation to the mature structure. Organs are commonly observed as visibly distinct structures, but may also exist as loosely associated clusters of cells that work together to perform a specific function or functions." [GOC:jid]
+synonym: "embryonic organogenesis" EXACT []
+is_a: GO:0048513  ! organ development
+relationship: part_of GO:0009790 ! embryo development
+
+[Term]
+id: GO:0048731
+name: system development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of an organismal system over time, from its formation to the mature structure. A system is a regularly interacting or interdependent group of organs or tissues that work together to carry out a given biological process." [GOC:dph, GOC:jid]
+is_a: GO:0048856  ! anatomical structure development
+relationship: part_of GO:0007275 ! multicellular organismal development
+
+[Term]
+id: GO:0048856
+name: anatomical structure development
+namespace: biological_process
+def: "The biological process whose specific outcome is the progression of an anatomical structure from an initial condition to its mature state. This process begins with the formation of the structure and ends with the mature structure, whatever form that may be including its natural destruction. An anatomical structure is any biological entity that occupies space and is distinguished from its surroundings. Anatomical structures can be macroscopic such as a carpel, or microscopic such as an acrosome." [GO_REF:0000021, GOC:mtg_15jun06]
+comment: This term was added by GO_REF:0000021.
+synonym: "development of an anatomical structure" EXACT []
+is_a: GO:0032502  ! developmental process
+
+[Term]
+id: GO:0060722
+name: cell proliferation involved in embryonic placenta development
+namespace: biological_process
+def: "The multiplication or reproduction of cells, resulting in the expansion of the population in the embryonic placenta." [GOC:dph]
+is_a: GO:0008283  ! cell proliferation
+relationship: part_of GO:0001892 ! embryonic placenta development
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: gene_ontology
+is_transitive: true
+xref: OBO_REL:part_of
+

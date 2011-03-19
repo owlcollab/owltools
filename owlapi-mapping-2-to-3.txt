@@ -1,0 +1,211 @@
+AddAxiom 	
+AxiomType 	
+DataRangeType 	DatarangeType
+DefaultChangeBroadcastStrategy 	
+DescriptionType 	ClassExpressionType
+ImmutableOWLOntologyChangeException 	
+MissingImportEvent 	
+MissingImportListener 	
+NamespaceManager 	PrefixManager
+OWLAnnotation 	
+OWLAnnotationAxiom 	
+OWLAnnotationVisitor 	
+OWLAnnotationVisitorEx 	
+OWLAnonymousDescription 	OWLAnonymousClassExpression
+OWLAnonymousIndividual 	
+OWLAntiSymmetricObjectPropertyAxiom 	OWLAsymmetricObjectPropertyAxiom
+OWLAxiom 	
+OWLAxiomAnnotationAxiom 	
+OWLAxiomChange 	
+OWLAxiomVisitor 	
+OWLAxiomVisitorEx 	
+OWLBooleanDescription 	OWLBooleanClassExpression
+OWLCardinalityRestriction 	
+OWLClass 	
+OWLClassAssertionAxiom 	
+OWLClassAxiom 	
+OWLCommentAnnotation 	Use an annotation with rdfs:comment as the property
+OWLCompositeOntologyChange 	
+OWLConstant 	OWLLiteral
+OWLConstantAnnotation 	
+OWLDataAllRestriction 	OWLDataAllValuesFrom
+OWLDataCardinalityRestriction 	
+OWLDataComplementOf 	
+OWLDataExactCardinalityRestriction 	OWLDataExactCardinality
+OWLDataFactory 	
+OWLDataMaxCardinalityRestriction 	OWLDataMaxCardinality
+OWLDataMinCardinalityRestriction 	OWLDataMinCardinality
+OWLDataOneOf 	
+OWLDataProperty 	
+OWLDataPropertyAssertionAxiom 	
+OWLDataPropertyAxiom 	
+OWLDataPropertyCharacteristicAxiom 	
+OWLDataPropertyDomainAxiom 	
+OWLDataPropertyExpression 	
+OWLDataPropertyRangeAxiom 	
+OWLDataRange 	
+OWLDataRangeFacetRestriction 	OWLFacetRestriction
+OWLDataRangeRestriction 	OWLDatatypeRestriction
+OWLDataSomeRestriction 	OWLDataSomeValiesFrom
+OWLDataSubPropertyAxiom 	OWLSubDataPropertyOfAxiom
+OWLDataType 	OWLDatatype
+OWLDataValueRestriction 	OWLDataHasValue
+OWLDataVisitor 	
+OWLDataVisitorEx 	
+OWLDeclarationAxiom 	
+OWLDeprecatedClassAxiom 	Deprecation on IRIs is done using a built in annotation
+OWLDeprecatedDataPropertyAxiom 	Deprecation on IRIs is done using a built in annotation
+OWLDeprecatedObjectPropertyAxiom 	Deprecation on IRIs is done using a built in annotation
+OWLDescription 	OWLClassExpression
+OWLDescriptionVisitor 	OWLClassExpressionVisitor
+OWLDescriptionVisitorEx 	OWLClassExpressionVisitorEx
+OWLDifferentIndividualsAxiom 	
+OWLDisjointClassesAxiom 	
+OWLDisjointDataPropertiesAxiom 	
+OWLDisjointObjectPropertiesAxiom 	
+OWLDisjointUnionAxiom 	
+OWLEntity 	
+OWLEntityAnnotationAxiom 	OWLAnnotationAssertionAxiom
+OWLEntityVisitor 	
+OWLEntityVisitorEx 	
+OWLEquivalentClassesAxiom 	
+OWLEquivalentDataPropertiesAxiom 	
+OWLEquivalentObjectPropertiesAxiom 	
+OWLException 	
+OWLFunctionalDataPropertyAxiom 	
+OWLFunctionalObjectPropertyAxiom 	
+OWLImportsDeclaration 	This is no longer an axiom
+OWLIndividual 	OWLNamedIndividual
+OWLIndividualAxiom 	
+OWLInverseFunctionalObjectPropertyAxiom 	
+OWLInverseObjectPropertiesAxiom 	
+OWLIrreflexiveObjectPropertyAxiom 	
+OWLLabelAnnotation 	Use an annotation with rdfs:label as the property
+OWLLogicalAxiom 	
+OWLMutableOntology 	
+OWLNamedObject 	
+OWLNamedObjectVisitor 	
+OWLNamedObjectVisitorEx 	
+OWLNaryBooleanDescription 	OWLNaryBooleanClassExpression
+OWLNaryClassAxiom 	
+OWLNaryIndividualAxiom 	
+OWLNaryPropertyAxiom 	
+OWLNegativeDataPropertyAssertionAxiom 	
+OWLNegativeObjectPropertyAssertionAxiom 	
+OWLObject 	
+OWLObjectAllRestriction 	OWLObjectAllValuesFrom
+OWLObjectAnnotation 	
+OWLObjectCardinalityRestriction 	
+OWLObjectComplementOf 	
+OWLObjectExactCardinalityRestriction 	OWLObjectExactCardinality
+OWLObjectIntersectionOf 	
+OWLObjectMaxCardinalityRestriction 	OWLObjectMaxCardinality
+OWLObjectMinCardinalityRestriction 	OWLObjectMinCardinality
+OWLObjectOneOf 	
+OWLObjectProperty 	
+OWLObjectPropertyAssertionAxiom 	
+OWLObjectPropertyAxiom 	
+OWLObjectPropertyChainSubPropertyAxiom 	OWLSubPropertyChainOfAxiom
+OWLObjectPropertyCharacteristicAxiom 	
+OWLObjectPropertyDomainAxiom 	
+OWLObjectPropertyExpression 	
+OWLObjectPropertyInverse 	
+OWLObjectPropertyRangeAxiom 	
+OWLObjectSelfRestriction 	OWLObjectHasSelf
+OWLObjectSomeRestriction 	OWLObjectSomeValuesFrom
+OWLObjectSubPropertyAxiom 	OWLSubObjectPropertyOfAxiom
+OWLObjectUnionOf 	
+OWLObjectValueRestriction 	OWLObjectHasValue
+OWLObjectVisitor 	
+OWLObjectVisitorEx 	
+OWLOntology 	
+OWLOntologyAnnotationAxiom 	Ontology annotations are now stored directly in an ontology and not as axioms in an ontology
+OWLOntologyChange 	
+OWLOntologyChangeBroadcastStrategy 	
+OWLOntologyChangeException 	
+OWLOntologyChangeListener 	
+OWLOntologyChangeVetoException 	
+OWLOntologyChangeVisitor 	
+OWLOntologyCreationException 	
+OWLOntologyFactory 	
+OWLOntologyFactoryNotFoundException 	
+OWLOntologyFormat 	
+OWLOntologyLoaderListener 	
+OWLOntologyManager 	
+OWLOntologyManagerProperties 	
+OWLOntologyResourceAccessException 	
+OWLOntologySetProvider 	
+OWLOntologyStorageException 	
+OWLOntologyStorer 	
+OWLOntologyStorerNotFoundException 	
+OWLOntologyURIMapper 	OWLOntologyIRIMapper
+OWLOntologyURIMappingNotFoundException 	OWLOntologyIRIMappingNotFoundException
+OWLProperty 	
+OWLPropertyAssertionAxiom 	
+OWLPropertyAxiom 	
+OWLPropertyDomainAxiom 	
+OWLPropertyExpression 	
+OWLPropertyExpressionVisitor 	
+OWLPropertyExpressionVisitorEx 	
+OWLPropertyRange 	
+OWLPropertyRangeAxiom 	
+OWLQuantifiedRestriction 	
+OWLReflexiveObjectPropertyAxiom 	
+OWLRestriction 	
+OWLRuntimeException 	
+OWLSameIndividualsAxiom 	OWLSameIndividualAxiom
+OWLSubClassAxiom 	OWLSubClassOfAxiom
+OWLSubPropertyAxiom 	OWLSubPropertyOfAxiom
+OWLSymmetricObjectPropertyAxiom 	
+OWLTransitiveObjectPropertyAxiom 	
+OWLTypedConstant 	OWLTypedLiteral
+OWLUnaryPropertyAxiom 	
+OWLUntypedConstant 	OWLStringLiteral
+OWLValueRestriction 	OWLHasValueRestriction
+RemoveAxiom 	
+SWRLAtom 	
+SWRLAtomConstantObject 	SWRLLiteralArgument
+SWRLAtomDObject 	SWRLDArgument
+SWRLAtomDVariable 	SWRLVariable
+SWRLAtomIObject 	SWRLObjectArgument
+SWRLAtomIVariable 	SWRLVariable
+SWRLAtomIndividualObject 	SWRLIndividualArgument
+SWRLAtomObject 	SWRLArgument
+SWRLAtomVariable 	SWRLVariable
+SWRLBinaryAtom 	
+SWRLBuiltInAtom 	
+SWRLClassAtom 	
+SWRLDataFactory 	
+SWRLDataRangeAtom 	
+SWRLDataValuedPropertyAtom 	SWRLDataPropertyAtom
+SWRLDifferentFromAtom 	SWRLDifferentIndividualsAtom
+SWRLObject 	
+SWRLObjectPropertyAtom 	
+SWRLObjectVisitor 	
+SWRLObjectVisitorEx 	
+SWRLRule 	
+SWRLSameAsAtom 	SWRLSameIndividualAtom
+SWRLUnaryAtom 	
+SetOntologyURI 	SetOntologyID
+SpecificOntologyChangeBroadcastStrategy 	
+MonitorableOWLReasoner 	Set an OWLReasonerProgressMonitor in the reasoner configuration at reasoner creation time
+MonitorableOWLReasonerAdapter 	
+NullReasoner 	
+NullReasonerFactory 	
+OWLClassReasoner 	OWLReasoner
+OWLConsistencyChecker 	OWLReasoner
+OWLInconsistentOntologyException 	
+OWLIndividualReasoner 	OWLReasoner
+OWLPropertyReasoner 	OWLReasoner
+OWLReasoner 	
+OWLReasonerAdapter 	OWLReasoner
+OWLReasonerBase 	OWLReasoner
+OWLReasonerException 	
+OWLReasonerFactory 	
+OWLReasonerManager 	
+OWLReasonerManagerEvent 	
+OWLReasonerManagerImpl 	
+OWLReasonerManagerListener 	
+OWLSatisfiabilityChecker 	OWLReasoner
+UndefinedEntityException 	
+UnsupportedReasonerOperationException 

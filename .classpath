@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/owlapi-bin.jar" sourcepath="/owlapi-v3/trunk"/>
+	<classpathentry kind="lib" path="lib/runlibs/FaCTpp-OWLAPI-v1.4.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/org.semanticweb.HermiT.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/oboformat.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry kind="lib" path="lib/runlibs/GraphDraw-20100831-1335.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/GraphDraw.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/mail.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/ant.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/pellet-core.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/pellet-owlapi.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/pellet-owlapiv3.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/aterm-java-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/pellet-rules.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/pellet-datatypes.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/pellet-el.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/commons-math-2.1.jar"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>

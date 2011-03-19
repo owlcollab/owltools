@@ -1,0 +1,323 @@
+<?xml version="1.0"?>
+<Ontology xmlns="http://www.w3.org/2002/07/owl#"
+     xml:base="http://www.w3.org/2002/07/owl#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace">
+    <Prefix name="rdf" IRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>
+    <Prefix name="rdfs" IRI="http://www.w3.org/2000/01/rdf-schema#"/>
+    <Prefix name="xsd" IRI="http://www.w3.org/2001/XMLSchema#"/>
+    <Prefix name="owl" IRI="http://www.w3.org/2002/07/owl#"/>
+    <Declaration>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_15355"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_33429"/>
+    </Declaration>
+     <Declaration>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_30151"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="http://purl.obolibrary.org/obo/X_1"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="http://purl.obolibrary.org/obo/X_2"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="http://purl.obolibrary.org/obo/R_1"/>
+    </Declaration>
+    <Declaration>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Declaration>
+    <Declaration>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+    </Declaration>
+    <Declaration>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_id"/>
+    </Declaration>
+    <Declaration>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_namespace"/>
+    </Declaration>
+    <Declaration>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+    </Declaration>
+    <Declaration>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+    </Declaration>
+    <SubClassOf>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_15355"/>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_35287"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_15355"/>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_47622"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_30151"/>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_33429"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_30151"/>
+        <Class IRI="http://purl.obolibrary.org/obo/CHEBI_33627"/>
+    </SubClassOf>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ANON:ANON</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000115"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">Actylcholine is an ester of acetic acid and choline, which acts as a neurotransmitter.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">IUPAC:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">2-acetyloxy-N,N,N-trimethylethanaminium</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">MSDchem:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ACETYLCHOLINE</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChemIDplus:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ACh</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">KEGG COMPOUND:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">Acetylcholine</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChEBI:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">Azetylcholin</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">KEGG COMPOUND:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">C7H16NO2</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChEBI:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">CC(=O)OCC[N+](C)(C)C</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChEBI:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">InChI=1/C7H16NO2/c1-7(9)10-6-5-8(2,3)4/h5-6H2,1-4H3/q+1</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChEBI:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">InChIKey=OIPILFWXSMYKGL-UHFFFAOYAY</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">KEGG COMPOUND:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">O-Acetylcholine</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChemIDplus:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">choline acetate</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_id"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">CHEBI:15355</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_namespace"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">chebi_ontology</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_15355</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">acetylcholine</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string"></Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000115"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">A monoatomic aluminium that has formula Al.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChEBI:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">Al</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">IUPAC:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">Al(-)</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">NIST Chemistry WebBook:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">Aluminum anion</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChEBI:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">InChI=1/Al/q-1</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChEBI:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">InChIKey=SBLSYFIUPXRQRY-UHFFFAOYAW</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">ChEBI:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">[Al-]</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">IUPAC:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">aluminide(-I)</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <Annotation>
+            <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+            <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">IUPAC:</Literal>
+        </Annotation>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_0000118"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">aluminide(1-)</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_id"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">CHEBI:30151</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_xref"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">NIST Chemistry WebBook:22325-47-9</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://purl.obolibrary.org/obo/CHEBI_30151</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">aluminide(1-)</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_id"/>
+        <IRI>http://purl.obolibrary.org/obo/R_1</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">R:1</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://purl.obolibrary.org/obo/R_1</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">r1</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_id"/>
+        <IRI>http://purl.obolibrary.org/obo/X_1</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">X:1</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_namespace"/>
+        <IRI>http://purl.obolibrary.org/obo/X_1</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">test</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://purl.obolibrary.org/obo/X_1</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">x1</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty IRI="http://purl.obolibrary.org/obo/IAO_id"/>
+        <IRI>http://purl.obolibrary.org/obo/X_2</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">X:2</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>http://purl.obolibrary.org/obo/X_2</IRI>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#string">x2</Literal>
+    </AnnotationAssertion>
+</Ontology>
+
+
+
+<!-- Generated by the OWL API (version 3.0.0.1413) http://owlapi.sourceforge.net -->
+
