@@ -1,1 +1,15 @@
 owltools
+owltools.cli
+owltools.gfx
+owltools.gfx.test
+owltools.graph
+owltools.graph.test
+owltools.io
+owltools.mooncat
+owltools.mooncat.test
+owltools.ontologyrelease
+owltools.phenolog
+owltools.sim
+owltools.sim.test
+owltools.test
+owltools.util
