@@ -332,12 +332,17 @@ public class CommandLineInterface {
 				showEdges(edges);
 			}
 			else if (opts.nextEq("--ancestors-with-ic")) {
-				opts.info("LABEL", "list edges in graph closure to root nodes, with the IC of the target node");
+				opts.info("LABEL [-p COMPARISON_PROPERTY_URI]", "list edges in graph closure to root nodes, with the IC of the target node");
+				SimEngine se = new SimEngine(g);
+				if (opts.nextEq("-p")) {
+					se.comparisonProperty =  g.getOWLObjectProperty(opts.nextOpt());
+				}
+
 				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity(g, opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj);
-				SimEngine se = new SimEngine(g);
+
 				for (OWLGraphEdge e : edges) {
 					System.out.println(e);
 					System.out.println("  TARGET IC:"+se.getInformationContent(e.getTarget()));

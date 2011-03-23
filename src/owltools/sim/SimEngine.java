@@ -254,9 +254,16 @@ public class SimEngine {
 		int n = 0;
 		for (OWLObject x : graph.getAllOWLObjects()) {
 			if (x instanceof OWLIndividual) {
-				n++;
+				// exclude individuals that have no attributes from corpus.
+				// note: comparisonProperty should be set
+				int numAtts = getAttributesFor(x).size();
+				if (numAtts > 0) {
+					//LOG.info("  num atts["+x+"] = "+numAtts);
+					n++;
+				}
 			}
 		}
+		LOG.info("corpus size:"+n);
 		corpusSize = n;
 		return n;
 	}

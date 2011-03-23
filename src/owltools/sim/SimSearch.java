@@ -26,7 +26,7 @@ public class SimSearch {
 	private static Logger LOG = Logger.getLogger(SimSearch.class);
 
 	protected Double minScore;
-	protected Double minIC = 3.5; // note that with test datasets this is too strict
+	protected Double minIC = 2.5; // note that with test datasets this is too strict
 	protected SimEngine simEngine;
 	protected BloomFilter<OWLObject> bloomFilter;
 	protected int maxHits = 300;
@@ -49,6 +49,13 @@ public class SimSearch {
 
 
 
+	/**
+	 * Given a query object (e.g. organism, disorder, gene), find candidate hit objects based
+	 * on simple attribute overlap
+	 * 
+	 * @param queryObj
+	 * @return
+	 */
 	public List<OWLObject> search(OWLObject queryObj) {
 		List<OWLObject> hits = new ArrayList<OWLObject>(maxHits);
 		System.out.println("gettings atts for "+queryObj+" -- "+simEngine.comparisonProperty);
@@ -115,6 +122,13 @@ public class SimSearch {
 	}
 	
 
+	/**
+	 * Return the subset of attributes that are significant, where non-significant attributes are:
+	 * (1) those explicitly designated as such (see {@link SimEngine.isExcludedFromAnalysis})
+	 * (2) those with IC equal to or below minIC
+	 * @param atts
+	 * @return
+	 */
 	private Set<OWLObject> filterNonSignificantAttributes(Set<OWLObject> atts) {
 		Set<OWLObject> fAtts = new HashSet<OWLObject>();
 		for (OWLObject att : atts) {
