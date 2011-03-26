@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -39,6 +40,13 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
+
+import de.derivo.sparqldlapi.Query;
+import de.derivo.sparqldlapi.QueryEngine;
+import de.derivo.sparqldlapi.QueryResult;
+import de.derivo.sparqldlapi.exceptions.QueryEngineException;
+import de.derivo.sparqldlapi.exceptions.QueryParserException;
+import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
 
 import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphEdge;
@@ -200,6 +208,9 @@ public class CommandLineInterface {
 				reasonerClassName = "org.semanticweb.HermiT.Reasoner";
 				reasonerName = "hermit";
 			}
+			else if (opts.nextEq("--reasoner")) {
+				reasonerName = opts.nextOpt();
+			}
 			else if (opts.nextEq("--no-reasoner")) {
 				reasonerClassName = "";
 				reasonerName = "";
@@ -269,6 +280,47 @@ public class CommandLineInterface {
 				GraphClosureWriter gcw = new GraphClosureWriter(opts.nextOpt());
 				gcw.serializeClosure(g);
 			}
+			else if (opts.nextEq("--sparql-dl")) {
+				opts.info("\"QUERY-TEXT\"", "executes a SPARQL-DL query using the reasoner");
+
+				OWLReasoner reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				String q = opts.nextOpt();
+				System.out.println("Q="+q);
+				try {
+					QueryEngine engine;
+					Query query = Query.create(q);
+					engine = QueryEngine.create(g.getManager(), reasoner, true);
+					QueryResult result = engine.execute(query);
+					if(query.isAsk()) {
+						System.out.print("Result: ");
+						if(result.ask()) {
+							System.out.println("yes");
+						}
+						else {
+							System.out.println("no");
+						}
+					}
+					else {
+						if(!result.ask()) {
+							System.out.println("Query has no solution.\n");
+						}
+						else {
+							System.out.println("Results:");
+							System.out.print(result);
+							System.out.println("-------------------------------------------------");
+							System.out.println("Size of result set: " + result.size());
+						}
+					}
+
+				} catch (QueryParserException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (QueryEngineException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
 			else if (opts.nextEq("--run-reasoner")) {
 				opts.info("[-r reasonername]", "infer new relationships");
 				if (opts.hasOpts()) {
@@ -276,34 +328,50 @@ public class CommandLineInterface {
 						reasonerName = opts.nextOpt();
 					}
 				}
+				
+				boolean isQueryProcessed = false;
 				OWLReasoner reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
-				if (removedSubClassOfAxioms != null) {
-					System.out.println("attempting to recapitulate "+removedSubClassOfAxioms.size()+" axioms");
-					for (OWLSubClassOfAxiom a : removedSubClassOfAxioms) {
-						OWLClassExpression sup = a.getSuperClass();
-						if (sup instanceof OWLClass) {
-							boolean has = false;
-							for (Node<OWLClass> isup : reasoner.getSuperClasses(a.getSubClass(),true)) {
-								if (isup.getEntities().contains(sup)) {
-									has = true;
-									break;
-								}
+				if (opts.hasOpts()) {
+					if (opts.nextEq("-i")) {
+						OWLClass qc = (OWLClass)resolveEntity(g, opts);
+						System.out.println("Getting individuals of class: "+qc);
+						for (Node<OWLNamedIndividual> ni : reasoner.getInstances(qc, false)) {
+							for (OWLNamedIndividual i : ni.getEntities()) {
+								System.out.println(i);
 							}
-							System.out.print(has ? "POSITIVE: " : "NEGATIVE: ");
-							System.out.println(a);
 						}
+						isQueryProcessed = true;
 					}
 				}
-				System.out.println("all inferences");
-				for (OWLObject obj : g.getAllOWLObjects()) {
-					if (obj instanceof OWLClass) {
-						for (Node<OWLClass> sup : reasoner.getSuperClasses((OWLClassExpression) obj, true)) {
-							System.out.println(obj+" SubClassOf "+sup);
+				if (!isQueryProcessed) {
+					if (removedSubClassOfAxioms != null) {
+						System.out.println("attempting to recapitulate "+removedSubClassOfAxioms.size()+" axioms");
+						for (OWLSubClassOfAxiom a : removedSubClassOfAxioms) {
+							OWLClassExpression sup = a.getSuperClass();
+							if (sup instanceof OWLClass) {
+								boolean has = false;
+								for (Node<OWLClass> isup : reasoner.getSuperClasses(a.getSubClass(),true)) {
+									if (isup.getEntities().contains(sup)) {
+										has = true;
+										break;
+									}
+								}
+								System.out.print(has ? "POSITIVE: " : "NEGATIVE: ");
+								System.out.println(a);
+							}
 						}
-						Node<OWLClass> ecs = reasoner.getEquivalentClasses(((OWLClassExpression) obj));
-						System.out.println(obj+" EquivalentTo "+ecs);
+					}
+					System.out.println("all inferences");
+					for (OWLObject obj : g.getAllOWLObjects()) {
+						if (obj instanceof OWLClass) {
+							for (Node<OWLClass> sup : reasoner.getSuperClasses((OWLClassExpression) obj, true)) {
+								System.out.println(obj+" SubClassOf "+sup);
+							}
+							Node<OWLClass> ecs = reasoner.getEquivalentClasses(((OWLClassExpression) obj));
+							System.out.println(obj+" EquivalentTo "+ecs);
 
 
+						}
 					}
 				}
 
@@ -825,13 +893,18 @@ public class CommandLineInterface {
 	private static OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 
 			OWLOntologyManager manager) {
 		OWLReasonerFactory reasonerFactory = null;
+		LOG.info("Creating reasoner:"+reasonerName);
 		if (reasonerName == null || reasonerName.equals("factpp"))
 			reasonerFactory = new FaCTPlusPlusReasonerFactory();
 		else if (reasonerName.equals("pellet"))
 			reasonerFactory = new PelletReasonerFactory();
 		else if (reasonerName.equals("hermit")) {
 			//return new org.semanticweb.HermiT.Reasoner.ReasonerFactory().createReasoner(ont);
-			//reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
+			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
+		}
+		else if (reasonerName.equals("jcel")) {
+			System.out.println("making jcel reasoner with:"+ont);
+			return new JcelReasoner(ont);		
 		}
 		else
 			System.out.println("no such reasoner: "+reasonerName);
