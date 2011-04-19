@@ -1408,10 +1408,10 @@ public class OWLGraphWrapper {
 	 * @param c could OWLClass or OWLObjectProperty
 	 * @return
 	 */
-	public String getSubset(OWLObject c) {
+	public String[] getSubsets(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_SUBSET.getTag());
 
-		return getAnnotationValue(c, lap);
+		return getAnnotationValues(c, lap);
 	}
 
 	/**
@@ -1491,10 +1491,10 @@ public class OWLGraphWrapper {
 	 * @param c
 	 * @return
 	 */
-	public String getAltId(OWLObject c) {
+	public String[] getAltId(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_ALT_ID.getTag());
 
-		return getAnnotationValue(c, lap);
+		return getAnnotationValues(c, lap);
 	}
 
 	/**
