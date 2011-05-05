@@ -204,7 +204,7 @@ public class SimEngine {
 
 	// todo - place this in a separate class
 	public Set<OWLObject> getAttributesFor(OWLObject x) {
-		Set<OWLObject> ancs = getAttributesFor(x);
+		Set<OWLObject> ancs = getAttributesForWithRedundant(x);
 		makeNonRedundant(ancs);
 		return ancs;
 	}
@@ -223,7 +223,7 @@ public class SimEngine {
 		}
 		if (comparisonProperty != null) {
 
-			// may either be directly linked, or may be an instance of something direcly linked
+			// may either be directly linked, or may be an instance of something directly linked
 			for (OWLGraphEdge e : g.getPrimitiveOutgoingEdges(x)) {
 				OWLObject t = e.getTarget();
 				OWLQuantifiedProperty qp = e.getSingleQuantifiedProperty();

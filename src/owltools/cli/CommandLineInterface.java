@@ -925,6 +925,9 @@ public class CommandLineInterface {
 				System.out.println("tabfile: "+f);
 				ttac.parse(f);
 			}
+			else if (opts.nextEq("--report-profile")) {
+				g.getProfiler().report();
+			}
 			else if (opts.nextEq("--no-cache")) {
 				g.getConfig().isCacheClosure = false;
 			}

@@ -65,6 +65,7 @@ import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
+import owltools.profile.Profiler;
 import owltools.sim.DisjunctiveSetSimilarity;
 
 /**
@@ -110,6 +111,8 @@ public class OWLGraphWrapper {
 	// used to store mappings child->parent, where
 	// parent = UnionOf( ..., child, ...)
 	private Map<OWLObject,Set<OWLObject>> extraSubClassOfEdges = null;
+	
+	private Profiler profiler = new Profiler();
 
 
 	/**
@@ -229,6 +232,14 @@ public class OWLGraphWrapper {
 	}
 
 
+
+	public Profiler getProfiler() {
+		return profiler;
+	}
+
+	public void setProfiler(Profiler profiler) {
+		this.profiler = profiler;
+	}
 
 	/**
 	 * all operations are over a set of ontologies - the source ontology plus
@@ -364,6 +375,7 @@ public class OWLGraphWrapper {
 	 * @return
 	 */
 	public Set<OWLGraphEdge> getPrimitiveOutgoingEdges(OWLObject s) {
+		profiler.startTaskNotify("getPrimitiveOutgoingEdges");
 		Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
 		for (OWLOntology o : getAllOntologies()) {
 			if (s instanceof OWLClass) {
@@ -408,6 +420,8 @@ public class OWLGraphWrapper {
 		}
 
 		filterEdges(edges);
+		profiler.endTaskNotify("getPrimitiveOutgoingEdges");
+
 		return edges;
 	}
 
@@ -687,6 +701,8 @@ public class OWLGraphWrapper {
 				return new HashSet<OWLGraphEdge>(inferredEdgeBySource.get(s));
 			}
 		}
+		profiler.startTaskNotify("getOutgoingEdgesClosure");
+		
 		Stack<OWLGraphEdge> edgeStack = new Stack<OWLGraphEdge>();
 		Set<OWLGraphEdge> closureSet = new HashSet<OWLGraphEdge>();
 		Set<OWLGraphEdge> visitedSet = new HashSet<OWLGraphEdge>();
@@ -754,6 +770,7 @@ public class OWLGraphWrapper {
 		if (config.isCacheClosure) {
 			inferredEdgeBySource.put(s, new HashSet<OWLGraphEdge>(closureSet));
 		}
+		profiler.endTaskNotify("getOutgoingEdgesClosure");
 		return closureSet;
 	}
 
@@ -792,6 +809,7 @@ public class OWLGraphWrapper {
 	}
 
 	public Set<OWLObject> queryDescendants(OWLGraphEdge e) {
+		profiler.startTaskNotify("queryDescendants");
 		Set<OWLObject> results = new HashSet<OWLObject>();
 		// reflexivity
 		results.add(this.edgeToTargetExpression(e));
@@ -808,6 +826,7 @@ public class OWLGraphWrapper {
 				}
 			}
 		}
+		profiler.endTaskNotify("queryDescendants");
 		return results;
 	}
 
@@ -963,6 +982,7 @@ public class OWLGraphWrapper {
 				return new HashSet<OWLGraphEdge>(inferredEdgeByTarget.get(t));
 			}
 		}
+		profiler.startTaskNotify("getIncomingEdgesClosure");
 
 		Stack<OWLGraphEdge> edgeStack = new Stack<OWLGraphEdge>();
 		Set<OWLGraphEdge> closureSet = new HashSet<OWLGraphEdge>();
@@ -1013,7 +1033,7 @@ public class OWLGraphWrapper {
 		if (config.isCacheClosure) {
 			inferredEdgeByTarget.put(t, new HashSet<OWLGraphEdge>(closureSet));
 		}
-
+		profiler.endTaskNotify("getIncomingEdgesClosure");
 		return closureSet;
 	}
 

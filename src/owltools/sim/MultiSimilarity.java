@@ -114,6 +114,7 @@ public class MultiSimilarity extends Similarity {
 		bBest = new HashMap<OWLObject,Similarity>();
 		int ia = 0;
 
+		LOG.info("INIT: Calculating all by all for attributes of object pair...");
 		// all by all comparison of each attribute in each feature
 		for (OWLObject aAtt : aAtts) {
 			LOG.debug(" aAtt="+aAtt+" "+ia+"/"+aAtts.size());
@@ -140,6 +141,7 @@ public class MultiSimilarity extends Similarity {
 				}
 			}
 		} // DONE all-by-all
+		LOG.info("DONE: Calculating all by all for attributes of object pair...");
 
 		// now calculate score based on BEST of each
 		double totalSc = 0.0;
@@ -217,6 +219,15 @@ public class MultiSimilarity extends Similarity {
 		this.score = totalSc / n;
 	}
 
+	/**
+	 * uses deepSimMethod to calculate similarity between attributes a and b
+	 * 
+	 * @param deepSimMethod
+	 * @param a
+	 * @param b
+	 * @return
+	 * @throws SimilarityAlgorithmException
+	 */
 	private Similarity getDeepSim(String deepSimMethod, OWLObject a, OWLObject b) throws SimilarityAlgorithmException {
 		Similarity s = simEngine.getSimilarityAlgorithm(deepSimMethod);
 		s.calculate(simEngine, a, b);

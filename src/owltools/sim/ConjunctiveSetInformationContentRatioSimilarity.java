@@ -43,6 +43,7 @@ public class ConjunctiveSetInformationContentRatioSimilarity extends Similarity 
 		this.simEngine = simEngine;
 		this.a = a;
 		this.b = b;
+		LOG.info("Fetching LCS of "+a+" vs "+b);
 		lcsIntersectionSet = simEngine.getLeastCommonSubsumers(a, b);
 		LOG.info("LCSs:"+lcsIntersectionSet.size());
 		score = simEngine.getInformationContent(lcsIntersectionSet);
