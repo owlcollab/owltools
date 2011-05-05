@@ -294,6 +294,8 @@ public class SimEngine {
 				n++;
 			}
 		}
+		LOG.info("descendants of "+obj+" #= "+n);
+
 		return n;
 		//return graph.getDescendants(obj).size();	
 	}
