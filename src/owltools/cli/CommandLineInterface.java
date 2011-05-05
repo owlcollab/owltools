@@ -16,11 +16,15 @@ import java.util.Vector;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.obolibrary.oboformat.model.FrameMergeException;
+import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
+import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -28,11 +32,13 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -319,7 +325,7 @@ public class CommandLineInterface {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 			}
 			else if (opts.nextEq("--run-reasoner")) {
 				opts.info("[-r reasonername]", "infer new relationships");
@@ -328,7 +334,7 @@ public class CommandLineInterface {
 						reasonerName = opts.nextOpt();
 					}
 				}
-				
+
 				boolean isQueryProcessed = false;
 				OWLReasoner reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
 				if (opts.hasOpts()) {
@@ -416,6 +422,18 @@ public class CommandLineInterface {
 					System.out.println("  TARGET IC:"+se.getInformationContent(e.getTarget()));
 				}
 			}
+			else if (opts.nextEq("--get-ic")) {
+				opts.info("LABEL [-p COMPARISON_PROPERTY_URI]", "calculate information content for class");
+				SimEngine se = new SimEngine(g);
+				if (opts.nextEq("-p")) {
+					se.comparisonProperty =  g.getOWLObjectProperty(opts.nextOpt());
+				}
+
+				//System.out.println("i= "+i);
+				OWLObject obj = resolveEntity(g, opts);
+				System.out.println(obj+ " "+" // IC:"+se.getInformationContent(obj));
+
+			}
 			else if (opts.nextEq("--ancestor-nodes")) {
 				opts.info("LABEL", "list nodes in graph closure to root nodes");
 				//System.out.println("i= "+i);
@@ -494,6 +512,71 @@ public class CommandLineInterface {
 				Set<OWLObject> ds = g.queryDescendants((OWLClass)obj);
 				for (OWLObject d : ds)
 					System.out.println(d);
+			}
+			else if (opts.nextEq("--lcsx")) {
+				opts.info("LABEL", "anonymous class expression 1");
+				OWLObject a = resolveEntity(g, opts);
+
+				opts.info("LABEL", "anonymous class expression 2");
+				OWLObject b = resolveEntity(g, opts);
+				System.out.println(a+ " "+a.getClass());
+				System.out.println(b+ " "+b.getClass());
+
+				SimEngine se = new SimEngine(g);
+				OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
+
+				System.out.println(lcs);
+			}
+			else if (opts.nextEq("--lcsx-all")) {
+				opts.info("LABEL", "ont 1");
+				String ont1 = opts.nextOpt();
+
+				opts.info("LABEL", "ont 2");
+				String ont2 = opts.nextOpt();
+
+				if (simOnt == null) {
+					simOnt = g.getManager().createOntology();
+				}
+
+				SimEngine se = new SimEngine(g);
+				
+				Set <OWLObject> objs1 = new HashSet<OWLObject>();
+				Set <OWLObject> objs2 = new HashSet<OWLObject>();
+
+				System.out.println(ont1+" -vs- "+ont2);
+				for (OWLObject x : g.getAllOWLObjects()) {
+					if (! (x instanceof OWLClass))
+						continue;
+					String id = g.getIdentifier(x);
+					if (id.startsWith(ont1)) {
+						objs1.add(x);
+					}
+					if (id.startsWith(ont2)) {
+						objs2.add(x);
+					}
+				}
+				Set lcsh = new HashSet<OWLClassExpression>();
+				for (OWLObject a : objs1) {
+					for (OWLObject b : objs2) {
+						OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
+						if (lcs instanceof OWLAnonymousClassExpression) {
+							if (lcsh.contains(lcs))
+								continue;
+							lcsh.add(lcs);
+							IRI iri = IRI.create("http://purl.obolibrary.org/obo/U_"+
+								g.getIdentifier(a).replaceAll(":", "_")+"_" 
+								+"_"+g.getIdentifier(b).replaceAll(":", "_"));
+							OWLClass namedClass = g.getDataFactory().getOWLClass(iri);
+							// TODO - use java obol to generate meaningful names
+							OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(namedClass , lcs);
+							g.getManager().addAxiom(simOnt, ax);
+							LOG.info("Finding LCSX for:"+a+" -vs- "+b+" = "+ax);
+
+						}
+					}					
+				}
+
+				
 			}
 			else if (opts.nextEq("-d") || opts.nextEq("--draw")) {
 				opts.info("LABEL", "generates a file tmp.png made using QuickGO code");
@@ -753,7 +836,17 @@ public class CommandLineInterface {
 			}
 			else if (opts.nextEq("-o|--output")) {
 				opts.info("FILE", "writes source ontology -- specified as IRI, e.g. file://`pwd`/foo.owl");
-				pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
+				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
+				if (opts.nextEq("-f")) {
+					String ofmtname = opts.nextOpt();
+					if (ofmtname.equals("functional")) {
+						ofmt = new OWLFunctionalSyntaxOntologyFormat();
+					}
+
+				}
+
+				pw.saveOWL(g.getSourceOntology(), ofmt, opts.nextOpt());
+				//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
 			}
 			else if (opts.nextEq("--save-sim")) {
 				opts.info("FILE", "saves similarity results as an OWL ontology. Use after --sim or --sim-all");
@@ -893,6 +986,7 @@ public class CommandLineInterface {
 	private static OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 
 			OWLOntologyManager manager) {
 		OWLReasonerFactory reasonerFactory = null;
+		OWLReasoner reasoner;
 		LOG.info("Creating reasoner:"+reasonerName);
 		if (reasonerName == null || reasonerName.equals("factpp"))
 			reasonerFactory = new FaCTPlusPlusReasonerFactory();
@@ -902,14 +996,32 @@ public class CommandLineInterface {
 			//return new org.semanticweb.HermiT.Reasoner.ReasonerFactory().createReasoner(ont);
 			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
 		}
+		else if (reasonerName.equals("cb")) {
+			Class<?> rfc;
+			try {
+				rfc = Class.forName("org.semanticweb.cb.owlapi.CBReasonerFactory");
+				reasonerFactory =(OWLReasonerFactory) rfc.newInstance();			
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		else if (reasonerName.equals("jcel")) {
 			System.out.println("making jcel reasoner with:"+ont);
-			return new JcelReasoner(ont);		
+			reasoner = new JcelReasoner(ont);
+			reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+			return reasoner;
 		}
 		else
 			System.out.println("no such reasoner: "+reasonerName);
 
-		OWLReasoner reasoner = reasonerFactory.createReasoner(ont);
+		reasoner = reasonerFactory.createReasoner(ont);
 		return reasoner;
 	}
 

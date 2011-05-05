@@ -1283,6 +1283,7 @@ public class OWLGraphWrapper {
 	public Set<OWLGraphEdge> getMinimalEdgesFromSubset(Set<OWLObject> objs) {
 		return null;
 	}
+	
 
 	// ----------------------------------------
 	// BASIC WRAPPER UTILITIES
@@ -1741,7 +1742,7 @@ public class OWLGraphWrapper {
 
 
 	public String getOntologyId(){
-		return Owl2Obo.getOntologyId(this.ontology);
+		return Owl2Obo.getOntologyId(this.getSourceOntology());
 	}
 
 

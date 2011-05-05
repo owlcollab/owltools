@@ -7,19 +7,29 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLQuantifiedObjectRestriction;
+import org.semanticweb.owlapi.model.OWLQuantifiedRestriction;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -55,7 +65,7 @@ public class SimEngine {
 
 	public OWLClass comparisonClass = null;
 	public OWLObjectProperty comparisonProperty = null;
-	
+
 
 	// -------------------------------------
 	// Constructions
@@ -76,17 +86,17 @@ public class SimEngine {
 	public void setGraph(OWLGraphWrapper graph) {
 		this.graph = graph;
 	}
-	
-        /**
-         * any class whose label matches any of the strings returned
-         * here will be excluded from any analysis.
-         *
-         * the set of excluded labels is controlled by loading an
-         * ontology with an entity PhenoSim_0000001 where all
-         * the literals associated with this are excluded.
-         * (note that this method may change in future)
-         *
-         */
+
+	/**
+	 * any class whose label matches any of the strings returned
+	 * here will be excluded from any analysis.
+	 *
+	 * the set of excluded labels is controlled by loading an
+	 * ontology with an entity PhenoSim_0000001 where all
+	 * the literals associated with this are excluded.
+	 * (note that this method may change in future)
+	 *
+	 */
 	public Set<String> getExcludedLabels() {
 		if (excludedLabels != null)
 			return excludedLabels;
@@ -100,7 +110,7 @@ public class SimEngine {
 		}
 		return excludedLabels;
 	}
-	
+
 	/**
 	 * A class is excluded from the analysis if:
 	 * 
@@ -122,7 +132,7 @@ public class SimEngine {
 						return true;
 				}
 			}
-			*/
+			 */
 			return false;
 		}
 		String label = getGraph().getLabelOrDisplayId(att);
@@ -191,8 +201,16 @@ public class SimEngine {
 		}
 		return ancs;
 	}
+
 	// todo - place this in a separate class
 	public Set<OWLObject> getAttributesFor(OWLObject x) {
+		Set<OWLObject> ancs = getAttributesFor(x);
+		makeNonRedundant(ancs);
+		return ancs;
+	}
+
+	// does not filter redundant
+	private Set<OWLObject> getAttributesForWithRedundant(OWLObject x) {
 		OWLGraphWrapper g = getGraph();
 		Set<OWLObject> ancs = new HashSet<OWLObject>();
 		if (comparisonClass != null) {
@@ -237,10 +255,9 @@ public class SimEngine {
 			}
 			 */
 		}
-		makeNonRedundant(ancs);
 		return ancs;
 	}
-	
+
 
 	// -------------------------------------
 	// Statistics
@@ -252,11 +269,12 @@ public class SimEngine {
 			return corpusSize;
 		// TODO - option for individuals; for now this is hardcoded
 		int n = 0;
+		LOG.info("calculating corpus size:");
 		for (OWLObject x : graph.getAllOWLObjects()) {
 			if (x instanceof OWLIndividual) {
 				// exclude individuals that have no attributes from corpus.
 				// note: comparisonProperty should be set
-				int numAtts = getAttributesFor(x).size();
+				int numAtts = getAttributesForWithRedundant(x).size();
 				if (numAtts > 0) {
 					//LOG.info("  num atts["+x+"] = "+numAtts);
 					n++;
@@ -279,7 +297,7 @@ public class SimEngine {
 		return n;
 		//return graph.getDescendants(obj).size();	
 	}
-	
+
 	/**
 	 * as getFrequency(obj), treats objs as a conjunction
 	 * @param objs
@@ -300,7 +318,7 @@ public class SimEngine {
 		return results.size();
 	}
 
-	
+
 	/**
 	 * The IC of an OWLObject is
 	 * 
@@ -318,8 +336,10 @@ public class SimEngine {
 			return cacheObjectIC.get(obj);
 		}
 		Double ic = null;
-		if (getFrequency(obj) > 0) {
-			ic = -Math.log(((double) (getFrequency(obj)) / getCorpusSize())) / Math.log(2);
+		int freq = getFrequency(obj);
+		if (freq > 0) {
+			LOG.info("freq of "+obj+" is: "+freq);
+			ic = -Math.log(((double) (freq) / getCorpusSize())) / Math.log(2);
 		}
 		cacheObjectIC.put(obj, ic);
 		return ic;
@@ -354,7 +374,7 @@ public class SimEngine {
 		}
 		return nonSignificantObjectSet;
 	}
-	
+
 	public void filterObjects(Set<OWLObject> objs) {
 		objs.removeAll(nonSignificantObjects());
 		Set<OWLObject> rmSet = new HashSet<OWLObject>();
@@ -366,7 +386,7 @@ public class SimEngine {
 		}
 		objs.removeAll(rmSet);
 	}
-	
+
 	public Set<OWLObject> getUnionSubsumers(OWLObject a, OWLObject b) {
 		Set<OWLObject> s1 = getGraph().getAncestorsReflexive(a);
 		s1.addAll(getGraph().getAncestorsReflexive(b));
@@ -415,23 +435,38 @@ public class SimEngine {
 	 * @return
 	 */
 	public Set<OWLObject> makeNonRedundant(Set<OWLObject> objs) {
+		return makeNonRedundant(objs, true);
+	}
+
+	public Set<OWLObject> makeNonRedundant(Set<OWLObject> objs, boolean prioritizeNamedClasses) {
 		// redundant set
 		Set<OWLObject> rs = new HashSet<OWLObject>();
-		
+
 		// check each object to see if it's redundant
 		for (OWLObject obj : objs) {
 			Set<OWLObject> ancs = getAncestors(obj);
 			ancs.retainAll(objs);
 			ancs.remove(obj);
-			
+
 			for (OWLObject anc : ancs) {
 				// we know that obj<anc,
 				// anc is therefore redundant
 				// (if it appears in the original set)
-				
+
 				// the exception is for cycles
-				if (!getAncestors(anc).contains(obj)) {
-					// not a cycle
+				if (getAncestors(anc).contains(obj)) {
+					// we have a cycle: anc subsumed by obj via the directly preceding test;
+					//                  obj subsumed by anc via the getAncestors call
+
+					// for cycles, keep both unless we want to prioritize named classes
+					if (prioritizeNamedClasses) {
+						if (anc instanceof OWLAnonymousClassExpression && obj instanceof OWLNamedObject) {
+							rs.add(anc);
+						}
+					}
+				}
+				else {
+					// not a cycle - schedule redundant class for removal
 					rs.add(anc);
 				}
 			}
@@ -440,10 +475,194 @@ public class SimEngine {
 		return objs;
 	}
 
+	/*
+	public Set<OWLObject> makeNonRedundantOrEquivalent(Set<OWLObject> objs) {
+		// redundant set
+		Set<OWLObject> rs = new HashSet<OWLObject>();
+		Set<OWLObject> unions = new HashSet<OWLObject>();
+		Map<OWLObject,Set<OWLObject>> amap = new HashMap<OWLObject,Set<OWLObject>>();
+		for (OWLObject obj : objs) {
+			amap.put(obj, getAncestors(obj));
+			amap.get(obj).retainAll(objs);
+			amap.get(obj).remove(obj);
+		}
+		for (OWLObject x : objs) {
+			for (OWLObject y : objs) {
+				if (x.equals(y))
+					continue;
+				if (amap.get(y).contains(x)) {
+					rs.add(x);
+					if (amap.get(x).contains(y)) {
+						// reciprocal == equiv
+						rs.add(y);
+
+					}
+					break;
+				}
+			}
+		}
+
+		objs.removeAll(rs);
+		return objs;
+	}
+	 */
+
 	private Set<OWLObject> getAncestors(OWLObject obj) {
 		// TODO configurable
 		return getGraph().getAncestorsReflexive(obj);
 	}
+
+	public OWLClassExpression makeIntersectionPair(OWLClassExpression a, OWLClassExpression b) {
+		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
+		ces.add((OWLClassExpression) a);
+		ces.add((OWLClassExpression) b);
+		OWLClassExpression ce =
+			graph.getDataFactory().getOWLObjectIntersectionOf(ces);
+		return ce;		
+	}
+
+	public OWLClassExpression makeUnionPair(OWLClassExpression a, OWLClassExpression b) {
+		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
+		ces.add((OWLClassExpression) a);
+		ces.add((OWLClassExpression) b);
+		OWLClassExpression ce =
+			graph.getDataFactory().getOWLObjectUnionOf(ces);
+		return ce;		
+	}
+
+	// ----------------------------------------
+	// ANONYMOUS LCS
+	// ----------------------------------------
+
+	public OWLClassExpression getLeastCommonSubsumerSimpleClassExpression(OWLObject a, OWLObject b) {
+		
+		if (a.equals(b)) {
+			return (OWLClassExpression) a;
+		}
+		
+		Set<OWLObject> ancsA = graph.getAncestorsReflexive(a);
+		Set<OWLObject> ancsB = graph.getAncestorsReflexive(b);
+
+		boolean isASubsumesB = ancsB.contains(a);		
+		boolean isBSubsumesA = ancsA.contains(b);
+
+		if (isASubsumesB && isBSubsumesA) {
+			return makeIntersectionPair((OWLClassExpression)a,(OWLClassExpression)b);
+		}
+
+		if (isASubsumesB) {
+			return (OWLClassExpression) a;
+		}
+		if (isBSubsumesA) {
+			return (OWLClassExpression) b;
+		}
+
+		Set<OWLObject> csl = new HashSet<OWLObject>(ancsA);
+		csl.retainAll(ancsB);
+		filterObjects(csl);
+		makeNonRedundant(csl);
+
+
+		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
+		for (OWLObject x : csl) {
+			Set<OWLGraphEdge> edgesA = graph.getEdgesBetween(a, x);
+			Set<OWLGraphEdge> edgesB = graph.getEdgesBetween(b, x);
+			for (OWLGraphEdge ea : edgesA) {
+				for (OWLGraphEdge eb : edgesB) {
+					if (ea.getQuantifiedPropertyList().equals(eb.getQuantifiedPropertyList())) {
+						OWLClassExpression ce = (OWLClassExpression) graph.edgeToTargetExpression(ea);
+						ces.add(ce);
+					}
+				}
+			}
+		}
+		if (ces.size() == 0) {
+			return null; // TODO - owl:Thing
+		}
+		else if (ces.size() == 1) {
+			return ces.iterator().next();
+		}
+		else {
+			OWLClassExpression lcs =
+				graph.getDataFactory().getOWLObjectIntersectionOf(ces);
+
+			return lcs;
+		}
+	}
+
+	/**
+	 * makes a reduced union expression.
+	 * 
+	 * Uses the following two reduction rules:
+	 * 
+	 * (r1 some X) U (r2 some Y) ==> lcs(r1,r2) some MakeUnionOf(X,Y)
+	 * (r1 some X) U X ==> reflexive-version-of-r1 some X
+	 * 
+	 * TODO: test for (r some r some X) u (r some X) cases. needs to be done over final expression.
+	 *  
+	 * if a reduced form cannot be made, returns null
+	 * 
+	 * @param xa
+	 * @param xb
+	 * @return
+	 */
+	// TODO - DRY with DTS
+	/*
+	private OWLClassExpression makeUnionUsingReflexiveProperty(OWLClassExpression xa, OWLClassExpression xb, boolean forceReflexivePropertyCreation) {
+		LOG.info("testing if there is a more compact union expression for "+xa+" ++ "+xb);
+		OWLDataFactory df = graph.getDataFactory();
+		if (xa instanceof OWLQuantifiedRestriction) {
+			// TODO - check before casting
+			OWLObjectProperty prop = (OWLObjectProperty) ((OWLQuantifiedRestriction) xa).getProperty();
+			OWLClassExpression xaRest = (OWLClassExpression) ((OWLQuantifiedRestriction)xa).getFiller();
+			if (xb instanceof OWLQuantifiedRestriction) {
+				OWLObjectPropertyExpression p2 =
+					propertySubsumer(prop, 
+						((OWLQuantifiedObjectRestriction) xb).getProperty());
+
+				if (p2 != null) {
+					OWLClassExpression xbRest = (OWLClassExpression) ((OWLQuantifiedRestriction)xb).getFiller();
+					OWLClassExpression x = makeUnionWithReduction(xaRest,xbRest);
+					// todo - mixing some and all
+					if (xa instanceof OWLObjectSomeValuesFrom)
+						return df.getOWLObjectSomeValuesFrom(p2,x);
+					else if (xa instanceof OWLObjectAllValuesFrom)
+						return df.getOWLObjectAllValuesFrom(p2, x);
+				}
+			}
+			LOG.info("  test: "+xaRest+" == "+xb);
+
+
+			if (xaRest.equals(xb)) {
+				LOG.info("     TRUE: "+xaRest+" == "+xb);
+
+				OWLObjectProperty rprop = null;
+				if (graph.getIsReflexive(prop)) {
+					rprop = prop;
+				}
+				if (forceReflexivePropertyCreation) {
+					OWLOntologyManager manager = graph.getManager();
+					OWLOntology ont = graph.getSourceOntology();
+					rprop = 
+						df.getOWLObjectProperty(IRI.create(prop.getIRI().toString()+"_reflexive"));
+					manager.applyChange(new AddAxiom(ont, df.getOWLSubObjectPropertyOfAxiom(prop, rprop)));
+					manager.applyChange(new AddAxiom(ont, df.getOWLTransitiveObjectPropertyAxiom(rprop)));
+					LOG.info("  reflexive prop:"+rprop);
+
+				}
+				if (rprop != null) {
+					if (xa instanceof OWLObjectSomeValuesFrom)
+						return df.getOWLObjectSomeValuesFrom(rprop,xb);
+					else if (xa instanceof OWLObjectAllValuesFrom)
+						return df.getOWLObjectAllValuesFrom(rprop, xb);
+				}
+
+			}
+		}
+		return null;
+	}
+	 */
+
 
 
 	public Double calculateSimilarityScore(Similarity m, OWLObject a, OWLObject b) throws SimilarityAlgorithmException {
@@ -531,7 +750,7 @@ public class SimEngine {
 			}
 		}
 	}
-	
+
 	public String label(OWLObject x) {
 		String label = graph.getLabel(x);
 		if (label == null)
@@ -571,7 +790,7 @@ public class SimEngine {
 			return xu;
 		}
 	}
-	
+
 	public OWLClassExpression edgeSetToExpression(Set<OWLGraphEdge> edges) {
 		Set<OWLClassExpression> xs = new HashSet<OWLClassExpression>();
 		for (OWLGraphEdge e : edges) {
