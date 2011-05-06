@@ -128,7 +128,7 @@ public class OWLGraphWrapper {
 		public boolean isFollowComplementOfInClosure = false;
 
 		public boolean isCacheClosure = true;
-		public boolean isMonitorMemory = true;
+		public boolean isMonitorMemory = false;
 
 		// if set to non-null, this constrains graph traversal. TODO
 		public Set<OWLQuantifiedProperty> graphEdgeIncludeSet = null;

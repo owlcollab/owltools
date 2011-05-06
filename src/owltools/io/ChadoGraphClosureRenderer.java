@@ -57,22 +57,18 @@ public class ChadoGraphClosureRenderer extends AbstractClosureRenderer implement
 		else {
 			return;
 		}
-		print(e.getSource());
+		stream.print(graph.getIdentifier(e.getSource()));
 		sep();
 		int n = 0;
 		stream.print(rel);
 		sep();
 		stream.print(e.getDistance());
 		sep();
-		print(e.getTarget());
+		stream.print(graph.getIdentifier(e.getTarget()));
 		nl();
 
 	}
 
-	@Override
-	protected void print(OWLNamedObject obj) {
-		stream.print(graph.getIdentifier(obj));
-	}
 
 
 

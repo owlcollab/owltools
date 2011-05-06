@@ -117,6 +117,11 @@ public abstract class AbstractClosureRenderer implements GraphRenderer {
 	protected void print(OWLClassExpression obj) {
 		stream.print(obj.toString());
 	}
+	
+	protected void print(String s) {
+		stream.print(s);
+	}
+
 
 	protected void sep() {
 		stream.print("\t");
