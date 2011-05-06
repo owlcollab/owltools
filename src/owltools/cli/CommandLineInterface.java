@@ -44,6 +44,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
@@ -403,7 +404,7 @@ public class CommandLineInterface {
 				OWLObject obj = resolveEntity(g, opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj);
-				showEdges(edges);
+				showEdges(g, edges);
 			}
 			else if (opts.nextEq("--ancestors-with-ic")) {
 				opts.info("LABEL [-p COMPARISON_PROPERTY_URI]", "list edges in graph closure to root nodes, with the IC of the target node");
@@ -448,7 +449,7 @@ public class CommandLineInterface {
 				OWLObject obj = resolveEntity(g, opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getOutgoingEdges(obj);
-				showEdges(edges);
+				showEdges(g, edges);
 			}
 			else if (opts.nextEq("--parents")) {
 				opts.info("LABEL", "list direct outgoing edges");
@@ -456,7 +457,7 @@ public class CommandLineInterface {
 				OWLObject obj = resolveEntity(g, opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getPrimitiveOutgoingEdges(obj);
-				showEdges(edges);
+				showEdges(g, edges);
 			}
 			else if (opts.nextEq("--grandparents")) {
 				opts.info("LABEL", "list direct outgoing edges and their direct outgoing edges");
@@ -486,14 +487,14 @@ public class CommandLineInterface {
 				OWLObject obj = resolveEntity(g, opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getIncomingEdges(obj);
-				showEdges(edges);
+				showEdges(g, edges);
 			}
 			else if (opts.nextEq("--descendant-edges")) {
 				opts.info("LABEL", "list edges in graph closure to leaf nodes");
 				OWLObject obj = resolveEntity(g, opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getIncomingEdgesClosure(obj);
-				showEdges(edges);
+				showEdges(g, edges);
 			}
 			else if (opts.nextEq("--descendants")) {
 				opts.info("LABEL", "show all descendant nodes");
@@ -556,6 +557,8 @@ public class CommandLineInterface {
 					}
 				}
 				Set lcsh = new HashSet<OWLClassExpression>();
+				owlpp = new OWLPrettyPrinter(g);
+				owlpp.hideIds();
 				for (OWLObject a : objs1) {
 					for (OWLObject b : objs2) {
 						OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
@@ -563,6 +566,7 @@ public class CommandLineInterface {
 							if (lcsh.contains(lcs))
 								continue;
 							lcsh.add(lcs);
+							String label = owlpp.render(lcs);
 							IRI iri = IRI.create("http://purl.obolibrary.org/obo/U_"+
 								g.getIdentifier(a).replaceAll(":", "_")+"_" 
 								+"_"+g.getIdentifier(b).replaceAll(":", "_"));
@@ -570,6 +574,11 @@ public class CommandLineInterface {
 							// TODO - use java obol to generate meaningful names
 							OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(namedClass , lcs);
 							g.getManager().addAxiom(simOnt, ax);
+							g.getManager().addAxiom(simOnt,
+									g.getDataFactory().getOWLAnnotationAssertionAxiom(
+											g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
+											iri,
+											g.getDataFactory().getOWLLiteral(label)));
 							LOG.info("Finding LCSX for:"+a+" -vs- "+b+" = "+ax);
 
 						}
@@ -588,7 +597,7 @@ public class CommandLineInterface {
 				r.addObject(obj);
 				r.renderImage("png", new FileOutputStream("tmp.png"));
 				Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj);
-				showEdges(edges);
+				showEdges(g, edges);
 			}
 			else if (opts.nextEq("--draw-all")) {
 				opts.info("", "draws ALL objects in the ontology (caution: small ontologies only)");
@@ -1061,9 +1070,13 @@ public class CommandLineInterface {
 		m.mergeOntologies();
 	}
 
-	private static void showEdges(Set<OWLGraphEdge> edges) {
+	private static void showEdges(OWLGraphWrapper g, Set<OWLGraphEdge> edges) {
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
 		for (OWLGraphEdge e : edges) {
-			System.out.println(e);
+			System.out.println(
+					owlpp.render(e.getSource()) + 
+					" "+e.getQuantifiedPropertyList() +" " + 
+					owlpp.render(e.getTarget()));
 		}
 	}
 

@@ -1,44 +1,68 @@
 package owltools.io;
 
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClassExpression;
+
+import org.semanticweb.owlapi.io.OWLObjectRenderer;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.util.ShortFormProvider;
+import org.semanticweb.owlapi.util.SimpleRenderer;
 
 import owltools.graph.OWLGraphWrapper;
 
 public class OWLPrettyPrinter {
 	OWLGraphWrapper graph;
+	
+	OWLObjectRenderer renderer;
+	ShortFormProvider shortFormProvider;
 
 	public OWLPrettyPrinter(OWLGraphWrapper graph) {
 		super();
 		this.graph = graph;
-	}
-	
-	public void print(OWLAxiom ax) {
-		if (ax instanceof OWLSubClassOfAxiom) {
-			print(((OWLSubClassOfAxiom)ax).getSubClass());
-			print(" SubClassOf ");
-			print(((OWLSubClassOfAxiom)ax).getSuperClass());
-			print("\n");
-		}
-		else {
-			print(ax.toString());
-		}
+		shortFormProvider = new LabelProvider(graph);
+		renderer = new SimpleRenderer();
+		renderer.setShortFormProvider(shortFormProvider);
 		
 	}
-
-	private void print(OWLObject obj) {
-		String label = graph.getLabel(obj);
-		if (label == null) {
-			print(obj);
-		}
-		else {
-			print(label+" ("+obj+")");
-		}
+	
+	public String render(OWLObject obj) {
+		return renderer.render(obj);
+	}
+	
+	public void print(OWLObject obj) {
+		print(render(obj));
 	}
 	
 	public void print(String s) {
 		System.out.println(s);
+	}
+	
+	public void hideIds() {
+		((LabelProvider)shortFormProvider).hideIds = true;
+	}
+	
+	public class LabelProvider implements ShortFormProvider  {
+		
+		OWLGraphWrapper graph;
+		boolean hideIds = false;
+		
+
+		public LabelProvider(OWLGraphWrapper graph) {
+			super();
+			this.graph = graph;
+		}
+
+		public String getShortForm(OWLEntity entity) {
+			if (hideIds) {
+				return graph.getLabel(entity);
+			}
+			else {
+				return graph.getIdentifier(entity) + " \""+ graph.getLabel(entity) + "\"";				
+			}
+		}
+
+		public void dispose() {
+			
+		}
+		
 	}
 }
