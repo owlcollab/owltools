@@ -60,7 +60,8 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
-import owltools.io.GraphClosureWriter;
+import owltools.io.ChadoGraphClosureRenderer;
+import owltools.io.GraphClosureRenderer;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
@@ -280,12 +281,12 @@ public class CommandLineInterface {
 				}
 			}
 			else if (opts.nextEq("--save-closure")) {
-				GraphClosureWriter gcw = new GraphClosureWriter(opts.nextOpt());
-				gcw.saveClosure(g);				
+				GraphClosureRenderer gcw = new GraphClosureRenderer(opts.nextOpt());
+				gcw.render(g);				
 			}
-			else if (opts.nextEq("--serialize-closure")) {
-				GraphClosureWriter gcw = new GraphClosureWriter(opts.nextOpt());
-				gcw.serializeClosure(g);
+			else if (opts.nextEq("--save-closure-for-chado")) {
+				ChadoGraphClosureRenderer gcw = new ChadoGraphClosureRenderer(opts.nextOpt());
+				gcw.render(g);				
 			}
 			else if (opts.nextEq("--sparql-dl")) {
 				opts.info("\"QUERY-TEXT\"", "executes a SPARQL-DL query using the reasoner");
@@ -579,7 +580,9 @@ public class CommandLineInterface {
 											g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
 											iri,
 											g.getDataFactory().getOWLLiteral(label)));
-							LOG.info("Finding LCSX for:"+a+" -vs- "+b+" = "+ax);
+							LOG.info("LCSX:"+owlpp.render(a)+" -vs- "+owlpp.render(b)+" = "+label);
+							//LOG.info("  Adding:"+owlpp.render(ax));
+							LOG.info("  Adding:"+ax);
 
 						}
 					}					

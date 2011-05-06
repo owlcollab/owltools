@@ -355,9 +355,9 @@ public class OboOntologyReleaseRunner {
 		System.out
 				.println("\t\t (-reasoner pellet) This option provides name of reasoner to be used to build inference computation.");
 		System.out
-				.println("\t\t (--asserted) This uniary option produces ontology without inferred assertions");
+				.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
 		System.out
-				.println("\t\t (--simple) This uniary option produces ontology without included/supported ontologies");
+				.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
 	}
 
 	private static void addVersion(OWLOntology ontology, String version,

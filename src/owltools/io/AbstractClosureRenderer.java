@@ -17,19 +17,38 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 
-public class GraphClosureWriter {
+/**
+ * 
+ * 
+ * @author cjm
+ *
+ */
+public abstract class AbstractClosureRenderer implements GraphRenderer {
 
+	protected OWLGraphWrapper graph;
 	protected PrintStream stream;
-	
-	
 
-	public GraphClosureWriter(PrintStream stream) {
+	public AbstractClosureRenderer(PrintStream stream) {
 		super();
 		this.stream = stream;
 	}
 
-	public GraphClosureWriter(String file) {
+	public AbstractClosureRenderer(String file) {
 		super();
+		setStream(file);
+	}
+	
+	
+	
+	public PrintStream getStream() {
+		return stream;
+	}
+
+	public void setStream(PrintStream stream) {
+		this.stream = stream;
+	}
+	
+	public void setStream(String file) {
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(file);
@@ -39,17 +58,10 @@ public class GraphClosureWriter {
 			e.printStackTrace();
 		}
 	}
-	
-	public void serializeClosure(OWLGraphWrapper g) throws IOException {
-		//FileOutputStream fos = new FileOutputStream(filename);
-		ObjectOutputStream out = new ObjectOutputStream(stream);
-		for (OWLObject obj : g.getAllOWLObjects()) {
-			g.getOutgoingEdgesClosure(obj);
-		}
-		out.writeObject(g.inferredEdgeBySource);
-	}
 
-	public void saveClosure(OWLGraphWrapper g) {
+
+	public void render(OWLGraphWrapper g) {
+		graph = g;
 		g.getConfig().isCacheClosure = false;
 		int i = 0;
 		for (OWLObject obj : g.getAllOWLObjects()) {
@@ -65,38 +77,16 @@ public class GraphClosureWriter {
 				}
 			}
 			i++;
-			//System.err.println(obj);
 			for (OWLGraphEdge e : g.getOutgoingEdgesClosure(obj)) {
-				//System.err.println("  E:"+e);
-				print(obj);
-				sep();
-				//stream.print("[");
-				int n = 0;
-				for (OWLQuantifiedProperty qp : e.getQuantifiedPropertyList()) {
-					if (n>0) {
-						stream.print(", ");
-					}
-					if (qp.hasProperty()) {
-						print(qp.getProperty());
-						stream.print(" ");
-					}
-					stream.print(qp.getQuantifier());
-
-					n++;
-				}
-				//stream.print("]");
-				sep();
-				if (!(e.getTarget() instanceof OWLNamedObject)) {
-					//System.err.println("undefined behavior: "+e.getTarget());
-					continue;
-				}
-				print(e.getTarget());
-				nl();
+				render(e);
 			}
 		}
 		stream.close();
 	}
+	
 
+	public abstract void render(OWLGraphEdge e);
+	
 	protected void print(OWLObject obj) {
 		if (obj instanceof OWLNamedObject) {
 			OWLNamedObject nobj = (OWLNamedObject)obj;
@@ -114,6 +104,7 @@ public class GraphClosureWriter {
 	}
 
 
+
 	protected void print(OWLNamedObject obj) {
 		// TODO: prefixes
 		if (obj.getIRI().toString() == null || obj.getIRI().toString().equals("")) {
@@ -121,6 +112,7 @@ public class GraphClosureWriter {
 		}
 		stream.print(obj.getIRI().toString());
 	}
+	
 
 	protected void print(OWLClassExpression obj) {
 		stream.print(obj.toString());
@@ -133,4 +125,6 @@ public class GraphClosureWriter {
 	protected void nl() {
 		stream.print("\n");
 	}
+
 }
+

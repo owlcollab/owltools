@@ -54,6 +54,7 @@ public class Mooncat {
 	Set<OWLOntology> referencedOntologies = new HashSet<OWLOntology>();
 	Set<OWLOntology> allOntologies = null;
 	OWLGraphWrapper graph;
+	Set<String> sourceOntologyPrefixes = null;
 
 	public Mooncat(OWLOntologyManager manager, OWLDataFactory dataFactory,
 			OWLOntology ontology) {
@@ -146,17 +147,35 @@ public class Mooncat {
 
 
 	/**
-	 * @return set of entities that belong to a support ontology that are referenced in the source ontology
+	 * @return set of entities that belong to a referenced ontology that are referenced in the source ontology
 	 */
 	public Set<OWLEntity> getExternalReferencedEntities() {
 		OWLOntology ont = graph.getSourceOntology();
 		Set<OWLEntity> objs = ont.getSignature(false);
 		Set<OWLEntity> refObjs = new HashSet<OWLEntity>();
-		for (OWLEntity obj :objs) {
+		for (OWLEntity obj : objs) {
 			for (OWLOntology refOnt : getReferencedOntologies()) {
-				if (refOnt.getDeclarationAxioms(obj).size() > 0) {
-					refObjs.add(obj);
-					continue;
+				// a reference ontology may have entities from the source ontology MIREOTed in..
+				// allow a configuration with the URI prefix specified
+				if (sourceOntologyPrefixes != null) {
+					String iri = obj.getIRI().toString();
+					boolean isSrc = false;
+					for (String prefix : sourceOntologyPrefixes) {
+						if (iri.startsWith(prefix)) {
+							isSrc = true;
+							break;
+						}
+					}
+					if (!isSrc) {
+						refObjs.add(obj);
+						continue;
+					}
+				}
+				else {
+					if (refOnt.getDeclarationAxioms(obj).size() > 0) {
+						refObjs.add(obj);
+						continue;
+					}
 				}
 			}
 		}
