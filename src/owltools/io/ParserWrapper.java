@@ -66,6 +66,7 @@ public class ParserWrapper {
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = null;
 		for (String f : files) {
+			LOG.info("Parsing file " +f);
 			if (obodoc == null)
 				obodoc = p.parse(f);
 			else {

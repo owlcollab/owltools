@@ -44,6 +44,16 @@ public class InferenceBuilder{
 	}
 	
 	
+	private OWLReasoner getReasoner(OWLOntology ontology){
+		if(reasoner == null){
+			PelletReasonerFactory factory = new PelletReasonerFactory();
+			reasoner = factory.createReasoner(ontology);
+		}
+		
+		return reasoner;
+	}
+	
+	
 	public List<OWLAxiom> buildInferences() {
 		List<OWLAxiom> sedges = new ArrayList<OWLAxiom>();
 
@@ -52,11 +62,8 @@ public class InferenceBuilder{
 		OWLDataFactory dataFactory = graph.getDataFactory();
 		
 		OWLOntology ontology = graph.getSourceOntology();
-		
-		if(reasoner == null){
-			PelletReasonerFactory factory = new PelletReasonerFactory();
-			reasoner = factory.createReasoner(ontology);
-		}
+
+		reasoner = getReasoner(ontology);
 		
 		Set<OWLClass> nrClasses = new HashSet<OWLClass>();
 
@@ -128,6 +135,48 @@ public class InferenceBuilder{
 		sedges.addAll(eedges);
 		return sedges;
 
+	}
+	
+	
+	public List<String> performConsistencyChecks(){
+
+		List<String> errors = new ArrayList<String>();
+		
+		if(graph == null){
+			errors.add("The ontology is not set.");
+			return errors;
+		}
+		
+		OWLOntology ont = graph.getSourceOntology();
+		reasoner = getReasoner(ont);
+		long t1 = System.currentTimeMillis();
+		
+		System.out.println("Consistency check started............");
+		boolean consistent = reasoner.isConsistent();
+
+		System.out.println("Is the ontology consistent ....................." + consistent + ", " + (System.currentTimeMillis()-t1)/100);
+		
+		if(!consistent){
+			errors.add("The ontology '" + graph.getOntologyId() + " ' is not consistent");
+		}
+		
+		// We can easily get a list of unsatisfiable classes.  (A class is unsatisfiable if it
+		// can't possibly have any instances).  Note that the getunsatisfiableClasses method
+		// is really just a convenience method for obtaining the classes that are equivalent
+		// to owl:Nothing.
+		Node<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses();
+		if (unsatisfiableClasses.getSize() > 0) {
+			for(OWLClass cls : unsatisfiableClasses) {
+				System.out.println(cls.getIRI());
+				if (cls.toString().endsWith(":Nothing"))
+					continue;
+				errors.add ("unsatisfiable: " + graph.getIdentifier(cls) + " : " + graph.getLabel(cls));
+			}
+		}
+		
+		
+		return errors;
+		
 	}
 	
 	public Set<Set<OWLAxiom>> getExplaination(String c1, String c2, Quantifier quantifier){
