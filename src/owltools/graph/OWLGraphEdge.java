@@ -1,18 +1,12 @@
 package owltools.graph;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Vector;
 
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLProperty;
 import org.semanticweb.owlapi.model.OWLNamedObject;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLRestriction;
 
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
@@ -161,10 +155,23 @@ public class OWLGraphEdge {
 	}
 
 	public String toString() {
-		return "["+source+" "+getQuantifiedPropertyList()+" " + " "+target+"]";
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		sb.append(source);
+		sb.append(" ");
+		sb.append(getQuantifiedPropertyList());
+		sb.append(" ");
+		sb.append(" ");
+		sb.append(target);
+		sb.append("]");
+		return sb.toString();
 	}
 	
 	public int hashCode() {
+		// TODO use an explicit function here. Do not rely on toString()
+		// TODO cache the hashcode (calculation is expensive): 
+		//      Requires control over the input parameters, e.g.
+		//      invalidate current hashcode when they are changed! 
 		return toString().hashCode();
 	}
 	

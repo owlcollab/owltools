@@ -125,6 +125,7 @@ public class OWLQuantifiedProperty {
 	}
 	
 	public boolean equals(Object e) {
+		// TODO overwrite hashcode method, otherwise behavior for hashing is not predictable
 		if(e == null && !(e instanceof OWLQuantifiedProperty))
 			return false;
 		
