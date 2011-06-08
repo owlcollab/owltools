@@ -168,11 +168,14 @@ public class OWLGraphEdge {
 	}
 	
 	public int hashCode() {
-		// TODO use an explicit function here. Do not rely on toString()
-		// TODO cache the hashcode (calculation is expensive): 
-		//      Requires control over the input parameters, e.g.
-		//      invalidate current hashcode when they are changed! 
-		return toString().hashCode();
+		// TODO remove usage of toString() for owlQuantifiedProperties in hashcode calculation
+		final int prime = 31;
+		int result = 1;
+		List<OWLQuantifiedProperty> owlQuantifiedProperties = getQuantifiedPropertyList();
+		result = prime * result + ((owlQuantifiedProperties == null) ? 0 : owlQuantifiedProperties.toString().hashCode());
+		result = prime * result + ((source == null) ? 0 : source.hashCode());
+		result = prime * result + ((target == null) ? 0 : target.hashCode());
+		return result;
 	}
 	
 	public boolean isEq(Object a, Object b) {
