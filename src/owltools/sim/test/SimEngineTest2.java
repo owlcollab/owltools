@@ -9,7 +9,7 @@ import owltools.sim.Similarity;
 public class SimEngineTest2 extends AsbtractSimEngineTest {
 
 	public static void testCARO() throws Exception{
-		OWLGraphWrapper  wrapper =  getOntologyWrapper("file:test_resources/lctest1.owl");
+		OWLGraphWrapper  wrapper =  getOntologyWrapper("file:test_resources/lcstest1.owl");
 		Similarity sa = 
 			new MaximumInformationContentSimilarity();
 		OWLObject a = wrapper.getOWLObjectByIdentifier("http://example.org#o1");
