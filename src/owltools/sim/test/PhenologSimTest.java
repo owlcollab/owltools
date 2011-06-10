@@ -10,9 +10,10 @@ import owltools.sim.Similarity;
 
 public class PhenologSimTest extends AsbtractSimEngineTest {
 
+	// TODO - takes a long time, add to separate test suite
 	public static void testSim() throws Exception{
 		OWLGraphWrapper  wrapper = 
-			getOntologyWrapper("file:///Users/cjm/Dropbox/Phenolog/mice_human_hpo/mp-hp-ext-merged-uberon.owl");
+			getOntologyWrapper("http://obo.svn.sourceforge.net/viewvc/obo/phenotype-commons/ontology/mp-hp-ext-merged-uberon.owl?revision=3905");
 		DescriptionTreeSimilarity sa = 
 			new DescriptionTreeSimilarity();
 		OWLObject a = wrapper.getOWLObject("http://purl.obolibrary.org/obo/MP_0005391");
