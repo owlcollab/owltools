@@ -87,6 +87,5 @@ The command 'bin/ontology-release-runner' builds an ontology release. This tool 
 from the location where a particular ontology release are to be maintained. 
 In the process of producing a particular release this tool labels the release with a auto generated version id. 
 The version id is maintained in the VERSION-INFO file. All files produced for a particular release are assembled in the directory of name
-by the date of the release.
-
+by the date of the release. Run the 'bin/ontology-release-runner --h' tool with the --h option to get help which parameter to pass the tool.
 

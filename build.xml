@@ -81,9 +81,9 @@
 	
 	<target name="library_jars">
 		<mkdir dir="${runtimedir}" />
-		<sync todir="${runtimedir}">
+	<!--	<sync todir="${runtimedir}">
 			<fileset refid="library_jars" />
-		</sync>
+		</sync>-->
 	</target>
 
 	<target name="buildnum">
@@ -162,7 +162,8 @@
 		
 </target>	
 	
-	<target name="ontology-release-jar" depends="classes, ontology-release-jarmanifest, checkjar" unless="main_jar_current" description="Generate jar file">
+	<target name="ontology-release-jar" depends="classes, ontology-release-jarmanifest, checkjar"  description="Generate jar file">
+	
 		<jar destfile="${ontologyreleasejarfile}" manifest="${main_jar_manifest}">
 			<fileset refid="main_jar_contents" />
 		</jar>

@@ -214,7 +214,7 @@ public class OboOntologyReleaseRunner {
 			System.out.println("Creating Inferences");
 			if (reasoner != null) {
 				// buildInferredOntology(simpleOnt, manager, reasoner);
-				buildInferences(mooncat.getGraph());
+				buildInferences(mooncat.getGraph(), mooncat.getManager());
 
 			}
 			System.out.println("Inferences creation completed");
@@ -289,7 +289,7 @@ public class OboOntologyReleaseRunner {
 
 		System.out.println("Creating inferences");
 		if (reasoner != null)
-			buildInferences(mooncat.getGraph());
+			buildInferences(mooncat.getGraph(), mooncat.getManager());
 		// ontology= buildInferredOntology(ontology, manager, reasoner);
 
 		System.out.println("Inferences creation completed");
@@ -335,10 +335,15 @@ public class OboOntologyReleaseRunner {
 
 	}
 
-	private static List<OWLAxiom> buildInferences(OWLGraphWrapper graph) {
+	private static List<OWLAxiom> buildInferences(OWLGraphWrapper graph, OWLOntologyManager manager) {
 		InferenceBuilder infBuilder = new InferenceBuilder(graph);
 
-		return infBuilder.buildInferences();
+		List<OWLAxiom> axioms = infBuilder.buildInferences();;
+		
+		for(OWLAxiom ax: axioms){
+			manager.applyChange(new AddAxiom(graph.getSourceOntology(), ax));
+		}		
+		return axioms;
 	}
 
 	private static void usage() {
