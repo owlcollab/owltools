@@ -21,5 +21,11 @@
 	<classpathentry kind="lib" path="lib/runlibs/pellet-datatypes.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/pellet-el.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/commons-math-2.1.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/de.tudresden.inf.lat.jcel.core-0.13.0.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/de.tudresden.inf.lat.jcel.owlapi-0.13.0.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/sparqldl-api.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/jpaul-2.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/jdom.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/org.semanticweb.CB.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
