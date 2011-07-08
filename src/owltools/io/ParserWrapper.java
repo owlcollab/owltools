@@ -87,7 +87,7 @@ public class ParserWrapper {
 	}
 	
 	public OWLOntology parseOWL(IRI iri) throws OWLOntologyCreationException {
-		LOG.info("parsing"+iri.toString());
+		LOG.info("parsing: "+iri.toString());
 		OWLOntology ont = manager.loadOntologyFromOntologyDocument(iri);
 		return ont;
 	}
