@@ -1,20 +1,15 @@
 package owltools.mooncat;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
-import java.util.Stack;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
-import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAxiom;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -25,7 +20,6 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
 import owltools.graph.OWLGraphWrapper;
 
@@ -46,6 +40,8 @@ import owltools.graph.OWLGraphWrapper;
  *
  */
 public class Mooncat {
+	
+	private final static Logger logger = Logger.getLogger(Mooncat.class);
 
 	OWLOntologyManager manager;
 	OWLDataFactory dataFactory;
@@ -267,7 +263,7 @@ public class Mooncat {
 			else {
 				for (OWLEntity e : a.getSignature()) {
 					if (!objs.contains(e)) {
-						System.out.println("removing:"+a+" -- E:"+e);
+						logger.info("removing:"+a+" -- E:"+e);
 						includeThis = false;
 						break;
 					}
@@ -286,8 +282,9 @@ public class Mooncat {
 	public void mergeOntologies() {
 		OWLOntology srcOnt = graph.getSourceOntology();
 		Set<OWLAxiom> axioms = getClosureAxiomsOfExternalReferencedEntities();
-		for (OWLAxiom a : axioms)
-			System.out.println("Adding:"+a);
+		for (OWLAxiom a : axioms) {
+			logger.info("Adding:"+a);
+		}
 		manager.addAxioms(srcOnt, axioms);
 	}
 
