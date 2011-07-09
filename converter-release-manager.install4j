@@ -240,9 +240,7 @@
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent">
                   <void property="labelText">
-                    <string>Because ${compiler:sys.fullName} is a Java application, it cannot use an arbitrary amount of system memory like a native application. 
-Instead, you must set a fixed maximum amount of memory that ${compiler:sys.fullName} can use. 
-
+                    <string>Because ${compiler:sys.fullName} is a Java application, it cannot use an arbitrary amount of system memory like a native application.  Instead, you must set a fixed maximum amount of memory that ${compiler:sys.fullName} can use. 
 Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MAC OS. For 32-bit Windows Java the limit is 1200M.</string>
                   </void>
                 </object>
@@ -275,7 +273,10 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                 </object>
               </java>
             </serializedBean>
-            <initScript />
+            <initScript>Integer val;
+val = new Integer((int) Math.max(1024,
+(Math.round(SystemInfo.getPhysicalMemory() * 0.6 / 1024 / 1024) / 128) *128));
+configurationObject.setValue(val);</initScript>
           </formComponent>
         </formComponents>
       </screen>
@@ -343,7 +344,7 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                 </object>
               </java>
             </serializedBean>
-            <condition>context.getVariable("oboedit.memoryAlloc") != null</condition>
+            <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
           </action>
           <action name="" id="27" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not set memory for java vm">
             <serializedBean>
@@ -362,7 +363,7 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                 </object>
               </java>
             </serializedBean>
-            <condition>context.getVariable("oboedit.memoryAlloc") != null</condition>
+            <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
           </action>
           <action name="" id="1325" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
             <serializedBean>
@@ -381,7 +382,7 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                 </object>
               </java>
             </serializedBean>
-            <condition>context.getVariable("oboedit.memoryAlloc") != null</condition>
+            <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
           </action>
           <action name="" id="1326" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
             <serializedBean>
@@ -400,7 +401,7 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                 </object>
               </java>
             </serializedBean>
-            <condition>context.getVariable("oboedit.memoryAlloc") != null</condition>
+            <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
           </action>
           <action name="" id="1327" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
             <serializedBean>
@@ -419,7 +420,7 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                 </object>
               </java>
             </serializedBean>
-            <condition>context.getVariable("oboedit.memoryAlloc") != null</condition>
+            <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
           </action>
           <action name="" id="23" beanClass="com.install4j.runtime.beans.actions.desktop.CreateDesktopLinkAction" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
             <serializedBean>
