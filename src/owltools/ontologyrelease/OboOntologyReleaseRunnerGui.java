@@ -1,6 +1,9 @@
 package owltools.ontologyrelease;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -20,6 +23,17 @@ public class OboOntologyReleaseRunnerGui {
 
 	public static void main(String[] args) {
 		
+		// SimpleDateFormat is NOT thread safe
+		// encapsulate as thread local
+		final ThreadLocal<DateFormat> df = new ThreadLocal<DateFormat>(){
+
+			@Override
+			protected DateFormat initialValue() {
+				return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+			}
+			
+		};
+		
 		Logger rootLogger = Logger.getRootLogger();
 		final BlockingQueue<String> logQueue =  new ArrayBlockingQueue<String>(100);
 		
@@ -36,7 +50,7 @@ public class OboOntologyReleaseRunnerGui {
 			@Override
 			protected void append(LoggingEvent event) {
 				String message = event.getRenderedMessage();
-				logQueue.add(message);
+				logQueue.add(df.get().format(new Date(event.timeStamp))+"  "+message);
 			}
 		});
 		
@@ -50,7 +64,7 @@ public class OboOntologyReleaseRunnerGui {
 
 			@Override
 			protected void executeRelease(OboOntologyReleaseRunnerParameters parameters) {
-
+				logger.info("Starting release manager process");
 				try {
 					OWLOntologyFormat format = parameters.getFormat();
 					String reasoner = parameters.getReasoner();

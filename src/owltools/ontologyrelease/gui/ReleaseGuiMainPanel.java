@@ -270,8 +270,12 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	}
 	
 	private void setOutputNames(File folder, String name) {
-		String absolutePath = folder.getAbsolutePath();
-		outputFolderTextField.setText(absolutePath);
+		try {
+			String absolutePath = folder.getCanonicalPath();
+			outputFolderTextField.setText(absolutePath);
+		} catch (IOException e) {
+			LOGGER.error("Can't convert file to pathname", e);
+		}
 	}
 
 	private String lastAddedFile = null;
