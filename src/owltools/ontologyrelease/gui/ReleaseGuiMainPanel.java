@@ -126,12 +126,7 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		rdfXmlRadioButton = new JRadioButton("RDF XML");
 		
 		// output folder
-		String canonicalPath = null;
-		try {
-			canonicalPath = defaultBase.getCanonicalPath();
-		} catch (IOException e) {
-			LOGGER.debug("Problem converting path to canonical representation for path: "+defaultBase.getAbsolutePath(), e);
-		}
+		String canonicalPath = getCanonicalPath(defaultBase);
 		outputFolderTextField = createTextField(canonicalPath);
 		
 		setLayout(new GridBagLayout());
@@ -173,7 +168,10 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		if (lastAddedFile != null) {
 			File latestFile = files.get(lastAddedFile);
 			if (latestFile != null) {
-				defaultInputFolder = latestFile.getParentFile().getAbsolutePath();
+				String canonicalPath = getCanonicalPath(latestFile.getParentFile());
+				if (canonicalPath != null) {
+					defaultInputFolder = canonicalPath;
+				}
 			}
 		}
 		fc.setCurrentDirectory(new File(defaultInputFolder));
@@ -192,10 +190,13 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = fc.getSelectedFile();
-					File old = files.put(file.getAbsolutePath(), file);
-					// only update the model, if the file was not there before
-					if (old == null) {
-						updateInputFileData(inputFileJList, files);
+					String path = getCanonicalPath(file);
+					if (path != null) {
+						File old = files.put(path, file);
+						// only update the model, if the file was not there before
+						if (old == null) {
+							updateInputFileData(inputFileJList, files);
+						}
 					}
 				}
 			}
@@ -353,5 +354,14 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		add(new JLabel("Ontology Format"), pos.nextRow());
 		add(rdfXmlRadioButton, pos.nextRow().nextCol());
 		rdfXmlRadioButton.setSelected(true);
+	}
+	
+	private static String getCanonicalPath(File file) {
+		try {
+			return file.getCanonicalPath();
+		} catch (IOException e) {
+			LOGGER.error("Unable to get canonical path for file: "+file.getAbsolutePath(), e);
+		}
+		return null;
 	}
 }
