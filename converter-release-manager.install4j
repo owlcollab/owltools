@@ -248,15 +248,32 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
             </serializedBean>
             <initScript />
           </formComponent>
-          <formComponent name="" id="48" beanClass="com.install4j.runtime.beans.formcomponents.NumberSpinnerComponent" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+          <formComponent name="" id="1339" beanClass="com.install4j.runtime.beans.formcomponents.SpacerComponent" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.formcomponents.SpacerComponent" />
+              </java>
+            </serializedBean>
+            <initScript />
+          </formComponent>
+          <formComponent name="" id="1342" beanClass="com.install4j.runtime.beans.formcomponents.LabelComponent" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.formcomponents.LabelComponent">
+                  <void property="labelText">
+                    <string>Maximum Memory for ${compiler:sys.fullName}  (in MBytes)</string>
+                  </void>
+                </object>
+              </java>
+            </serializedBean>
+            <initScript />
+          </formComponent>
+          <formComponent name="" id="48" beanClass="com.install4j.runtime.beans.formcomponents.NumberSpinnerComponent" insetTop="5" insetLeft="50" insetBottom="" insetRight="" resetInitOnPrevious="false">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.formcomponents.NumberSpinnerComponent">
                   <void property="initialValue">
                     <int>1024</int>
-                  </void>
-                  <void property="labelText">
-                    <string>Maximum Memory for ${compiler:sys.fullName}  (in MBytes)</string>
                   </void>
                   <void property="maxValue">
                     <int>4096</int>
@@ -273,10 +290,21 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                 </object>
               </java>
             </serializedBean>
-            <initScript>Integer val;
-val = new Integer((int) Math.max(1024,
-(Math.round(SystemInfo.getPhysicalMemory() * 0.6 / 1024 / 1024) / 128) *128));
-configurationObject.setValue(val);</initScript>
+            <initScript>int step = 128;
+long maxMemMB = SystemInfo.getPhysicalMemory() / 1024 / 1024;
+int maxMemMBInt = new Integer((int) maxMemMB);
+int value = (int) Math.min(1024, (Math.round(maxMemMB * 0.6) / step) *step);
+int min = 256;
+SpinnerNumberModel model = new SpinnerNumberModel(value, min, maxMemMBInt, step);
+configurationObject.setModel(model);</initScript>
+          </formComponent>
+          <formComponent name="" id="1340" beanClass="com.install4j.runtime.beans.formcomponents.SpacerComponent" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.formcomponents.SpacerComponent" />
+              </java>
+            </serializedBean>
+            <initScript />
           </formComponent>
         </formComponents>
       </screen>
