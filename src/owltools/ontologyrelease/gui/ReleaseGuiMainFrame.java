@@ -20,8 +20,6 @@ import javax.swing.ListModel;
 import org.apache.log4j.Logger;
 import org.obolibrary.gui.GuiLogPanel;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
-
 
 /**
  * GUI main frame, calls all constructors for the sub components.
@@ -218,13 +216,13 @@ public class ReleaseGuiMainFrame extends JFrame {
 	private SizedJPanel getMainPanel()
 	{
 		if (mainPanel == null) {
-			OWLOntologyFormat defaultFormat = parameters.getFormat();
-			String defaultReasoner = parameters.getReasoner();
-			boolean defaultIsAsserted = parameters.isAsserted();
-			boolean defaultIsSimple = parameters.isSimple();
-			Vector<String> defaultPaths = parameters.getPaths();
-			File defaultBase = parameters.getBase();
-			mainPanel = new ReleaseGuiMainPanel(defaultFormat, defaultReasoner, defaultIsAsserted, defaultIsSimple, defaultPaths, defaultBase);
+			mainPanel = new ReleaseGuiMainPanel(this, 
+					parameters.getFormat(), 
+					parameters.getReasoner(), 
+					parameters.isAsserted(), 
+					parameters.isSimple(), 
+					parameters.getPaths(), 
+					parameters.getBase());
 		}
 		return mainPanel;
 	}
