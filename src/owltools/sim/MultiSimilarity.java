@@ -192,8 +192,8 @@ public class MultiSimilarity extends Similarity {
 
 		int nA = 0;
 		int nB = 0;
-		aScore = 0.0; // highest when phenotypess of a are subsumed by phenotypes of b
-		bScore = 0.0; // highest when phenotypess of b are subsumed by phenotypes of a
+		aScore = 0.0; // highest when phenotypes of a are subsumed by phenotypes of b
+		bScore = 0.0; // highest when phenotypes of b are subsumed by phenotypes of a
 		for (OWLObject att : aAtts) {
 			double s =  aBest.get(att).getScore();
 			totalSc += s;
