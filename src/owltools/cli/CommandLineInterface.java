@@ -61,7 +61,11 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.io.ChadoGraphClosureRenderer;
+import owltools.io.CompactGraphClosureReader;
+import owltools.io.CompactGraphClosureRenderer;
 import owltools.io.GraphClosureRenderer;
+import owltools.io.GraphReader;
+import owltools.io.GraphRenderer;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
@@ -160,7 +164,8 @@ public class CommandLineInterface {
 		}
 
 		public void fail() {
-			// TODO Auto-generated method stub
+			System.err.println("cannot process: "+args[i]);
+			System.exit(1);
 
 		}
 
@@ -281,8 +286,22 @@ public class CommandLineInterface {
 				}
 			}
 			else if (opts.nextEq("--save-closure")) {
-				GraphClosureRenderer gcw = new GraphClosureRenderer(opts.nextOpt());
+				opts.info("[-c] FILENAME", "write out closure of graph");
+				GraphRenderer gcw;
+				if (opts.nextEq("-c")) {
+					gcw = new CompactGraphClosureRenderer(opts.nextOpt());					
+				}
+				else {
+					gcw = new GraphClosureRenderer(opts.nextOpt());
+				}
 				gcw.render(g);				
+			}
+			else if (opts.nextEq("--read-closure")) {
+				opts.info("FILENAME", "reads closure previously saved using --save-closure (compact format only)");
+				GraphReader gr = new CompactGraphClosureReader(g);
+				gr.read(opts.nextOpt());	
+				LOG.info("RESTORED CLOSURE CACHE");
+				LOG.info("size="+g.inferredEdgeBySource.size());
 			}
 			else if (opts.nextEq("--save-closure-for-chado")) {
 				ChadoGraphClosureRenderer gcw = new ChadoGraphClosureRenderer(opts.nextOpt());
@@ -330,10 +349,21 @@ public class CommandLineInterface {
 
 			}
 			else if (opts.nextEq("--run-reasoner")) {
-				opts.info("[-r reasonername]", "infer new relationships");
-				if (opts.hasOpts()) {
+				opts.info("[-r reasonername] [--assert-implied]", "infer new relationships");
+				boolean isAssertImplied = false;
+				boolean isDirect = true;
+				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
 						reasonerName = opts.nextOpt();
+					}
+					else if (opts.nextEq("--assert-implied")) {
+						isAssertImplied = true;
+					}
+					else if (opts.nextEq("--indirect")) {
+						isDirect = false;
+					}
+					else {
+						break;
 					}
 				}
 
@@ -372,8 +402,12 @@ public class CommandLineInterface {
 					System.out.println("all inferences");
 					for (OWLObject obj : g.getAllOWLObjects()) {
 						if (obj instanceof OWLClass) {
-							for (Node<OWLClass> sup : reasoner.getSuperClasses((OWLClassExpression) obj, true)) {
+							for (Node<OWLClass> sup : reasoner.getSuperClasses((OWLClassExpression) obj, isDirect)) {
 								System.out.println(obj+" SubClassOf "+sup);
+								if (isAssertImplied) {
+									OWLSubClassOfAxiom sca = g.getDataFactory().getOWLSubClassOfAxiom((OWLClass)obj, sup.getRepresentativeElement());
+									g.getManager().addAxiom(g.getSourceOntology(), sca);
+								}
 							}
 							Node<OWLClass> ecs = reasoner.getEquivalentClasses(((OWLClassExpression) obj));
 							System.out.println(obj+" EquivalentTo "+ecs);
@@ -847,8 +881,10 @@ public class CommandLineInterface {
 				}
 			}
 			else if (opts.nextEq("-o|--output")) {
-				opts.info("FILE", "writes source ontology -- specified as IRI, e.g. file://`pwd`/foo.owl");
+				opts.info("FILE", "writes source ontology -- MUST BE specified as IRI, e.g. file://`pwd`/foo.owl");
 				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
+				String ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
+				System.out.println("saving:"+ontURIStr);
 				if (opts.nextEq("-f")) {
 					String ofmtname = opts.nextOpt();
 					if (ofmtname.equals("functional")) {
@@ -1045,21 +1081,26 @@ public class CommandLineInterface {
 		"        See Mooncat docs");
 		Mooncat m = new Mooncat(g);
 		ParserWrapper pw = new ParserWrapper();
-		if (opts.hasOpts()) {
+		while (opts.hasOpts()) {
 			//String opt = opts.nextOpt();
 			if (opts.nextEq("-r") || opts.nextEq("--ref-ont")) {
+				LOG.error("DEPRECATED - list all ref ontologies on main command line");
 				String f = opts.nextOpt();
 				m.addReferencedOntology(pw.parseOWL(f));
 			}
 			else if (opts.nextEq("-s") || opts.nextEq("--src-ont")) {
 				m.setOntology(pw.parseOWL(opts.nextOpt()));
 			}
+			else if (opts.nextEq("-p") || opts.nextEq("--prefix")) {
+				m.addSourceOntologyPrefix(opts.nextOpt());
+			}
 			else if (opts.nextEq("-i") || opts.nextEq("--use-imports")) {
 				System.out.println("using everything in imports closure");
 				g.addSupportOntologiesFromImportsClosure();
 			}
 			else {
-				opts.fail();
+				break;
+				//opts.fail();
 			}
 		}
 		if (m.getReferencedOntologies().size() == 0) {
@@ -1071,6 +1112,7 @@ public class CommandLineInterface {
 		}
 
 		m.mergeOntologies();
+		m.removeDanglingAxioms();
 	}
 
 	private static void showEdges(OWLGraphWrapper g, Set<OWLGraphEdge> edges) {
