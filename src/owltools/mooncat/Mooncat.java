@@ -43,6 +43,8 @@ public class Mooncat {
 	
 	private final static Logger logger = Logger.getLogger(Mooncat.class);
 
+	private static Logger LOG = Logger.getLogger(Mooncat.class);
+
 	OWLOntologyManager manager;
 	OWLDataFactory dataFactory;
 	Set<OWLAxiom> mAxioms = new HashSet<OWLAxiom>();
@@ -65,11 +67,29 @@ public class Mooncat {
 	public Mooncat(OWLGraphWrapper g) {
 		super();
 		this.ontology = g.getSourceOntology();
+		this.referencedOntologies = g.getSupportOntologySet();
 		this.manager = OWLManager.createOWLOntologyManager();
 		this.dataFactory = manager.getOWLDataFactory();
 		this.graph = g;
 	}
 
+
+
+	public Set<String> getSourceOntologyPrefixes() {
+		return sourceOntologyPrefixes;
+	}
+
+
+
+	public void setSourceOntologyPrefixes(Set<String> sourceOntologyPrefixes) {
+		this.sourceOntologyPrefixes = sourceOntologyPrefixes;
+	}
+
+	public void addSourceOntologyPrefix(String prefix) {
+		if (sourceOntologyPrefixes == null) 
+			sourceOntologyPrefixes = new HashSet<String>();
+		sourceOntologyPrefixes.add(prefix);
+	}
 
 
 	/**
@@ -97,10 +117,10 @@ public class Mooncat {
 	 * @throws OWLOntologyCreationException 
 	 */
 	public void addReferencedOntology(OWLOntology refOnt) throws OWLOntologyCreationException {
-				// TODO - imports
+		// TODO - imports
 		graph.addSupportOntology(refOnt);
 	}
-	
+
 
 	public OWLOntologyManager getManager() {
 		return manager;
@@ -150,35 +170,43 @@ public class Mooncat {
 		Set<OWLEntity> objs = ont.getSignature(false);
 		Set<OWLEntity> refObjs = new HashSet<OWLEntity>();
 		for (OWLEntity obj : objs) {
-			for (OWLOntology refOnt : getReferencedOntologies()) {
-				// a reference ontology may have entities from the source ontology MIREOTed in..
-				// allow a configuration with the URI prefix specified
-				if (sourceOntologyPrefixes != null) {
-					String iri = obj.getIRI().toString();
-					boolean isSrc = false;
-					for (String prefix : sourceOntologyPrefixes) {
-						if (iri.startsWith(prefix)) {
-							isSrc = true;
-							break;
-						}
-					}
-					if (!isSrc) {
-						refObjs.add(obj);
-						continue;
+			//LOG.info("considering: "+obj);
+			// a reference ontology may have entities from the source ontology MIREOTed in..
+			// allow a configuration with the URI prefix specified
+			if (sourceOntologyPrefixes != null) {
+				//LOG.info("  prefixes: "+sourceOntologyPrefixes);
+				String iri = obj.getIRI().toString();
+				boolean isSrc = false;
+				for (String prefix : sourceOntologyPrefixes) {
+					if (iri.startsWith(prefix)) {
+						isSrc = true;
+						break;
 					}
 				}
-				else {
+				if (!isSrc) {
+					refObjs.add(obj);
+					LOG.info("  refObj: "+obj);
+					continue;
+				}
+			}
+			else {
+				// estimate by ref ontologies
+				for (OWLOntology refOnt : getReferencedOntologies()) {
+					//LOG.info("  refOnt: "+refOnt);
 					if (refOnt.getDeclarationAxioms(obj).size() > 0) {
 						refObjs.add(obj);
+						LOG.info("  refObj: "+obj);
 						continue;
 					}
 				}
 			}
 		}
+		LOG.info("#refObjs: "+refObjs.size());
+
 		return refObjs;
 
 	}
-	
+
 	/**
 	 * finds the full closure of all external referenced entities
 	 * @return
@@ -186,12 +214,15 @@ public class Mooncat {
 	public Set<OWLObject> getClosureOfExternalReferencedEntities() {
 		Set<OWLObject> objs = new HashSet<OWLObject>();
 		Set<OWLEntity> refs = getExternalReferencedEntities();
+		LOG.info("direct external referenced entities: "+refs.size());
 		for (OWLEntity ref : refs) {
 			// todo - allow per-relation control
 			// todo - make more efficient, allow passing of set of entities
+			// todo - include object properties
 			Set<OWLObject> ancs = graph.getAncestorsReflexive(ref);
 			objs.addAll(ancs);
 		}
+		LOG.info("closure of direct external referenced entities: "+objs.size());
 		return objs;
 	}
 
@@ -222,16 +253,24 @@ public class Mooncat {
 	 * @return
 	 */
 	public Set<OWLAxiom> getAxiomsForSubset(Set<OWLObject> objs) {
-		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-
+		Set<OWLAxiom> finalAxioms = new HashSet<OWLAxiom>();
+		LOG.info("inputObjs:"+objs.size());
 		// first get a set of all candidate axioms;
 		// we will later filter these
 		for (OWLOntology refOnt : getReferencedOntologies()) {
+			LOG.info("refOnt:"+refOnt);
+			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 			for (OWLObject obj : objs) {
 				if (!(obj instanceof OWLEntity))
 					continue;
-				
-				if (obj instanceof OWLClass) {     
+
+				if (belongsToSource((OWLEntity) obj)) {
+					LOG.info(obj+" declared in source; source axioms will take priority");
+					continue;
+				}
+
+				if (obj instanceof OWLClass) {
+					LOG.info("class:"+obj);
 					// includes SubClassOf(obj,?), disjoints, equivalents, ..
 					axioms.addAll(refOnt.getAxioms((OWLClass) obj));
 				}
@@ -249,18 +288,23 @@ public class Mooncat {
 				}
 				axioms.addAll(((OWLEntity) obj).getAnnotationAssertionAxioms(refOnt));
 			}
+			finalAxioms.addAll(axioms);
+			LOG.info("closure axioms:"+axioms.size());
 		}
-		
-		// filter axioms, such that the full signature must be in the source ontology
+
+		// filter axioms, such that the full signature must be in the set of input entities
+		// (i.e. no "dangling references")
+		// TODO - prevent MIREOT clashes..
 		Set<OWLAxiom> filteredAxioms = new HashSet<OWLAxiom>();
-		for (OWLAxiom a : axioms) {
+		for (OWLAxiom a : finalAxioms) {
 			boolean includeThis = true;
-			
+
 			// make this configurable
 			if (a instanceof OWLAnnotationAssertionAxiom) {
 				// include by default
 			}
 			else {
+				
 				for (OWLEntity e : a.getSignature()) {
 					if (!objs.contains(e)) {
 						logger.info("removing:"+a+" -- E:"+e);
@@ -288,7 +332,52 @@ public class Mooncat {
 		manager.addAxioms(srcOnt, axioms);
 	}
 
+	
+	// -----------------------
+	// UTIL METHODS
+	// -----------------------
 
 
+	public boolean belongsToSource(OWLEntity obj) {
+		if (getOntology().getDeclarationAxioms((OWLEntity) obj).size() > 0) {
+			if (!isDangling(getOntology(),obj)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Here a dangling entity is one that has no annotation assertions
+	 * 
+	 * @param ont
+	 * @param obj
+	 * @return
+	 */
+	public boolean isDangling(OWLOntology ont, OWLEntity obj) {
+		if (obj.getAnnotationAssertionAxioms(ont).size()  == 0 ) {
+			// in future also consider logical axioms
+			return true;
+		}		
+		return false;
+	}
+
+	public void removeDanglingAxioms(OWLOntology ont) {
+		Set<OWLClass> danglers = new HashSet<OWLClass>();
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLClass obj : ont.getClassesInSignature()) {
+			LOG.info("testing "+obj);
+			if (isDangling(ont, obj)) {
+				danglers.add(obj);
+				rmAxioms.addAll(ont.getReferencingAxioms(obj));
+			}
+		}
+		LOG.info("Removing "+rmAxioms.size()+" dangling axioms");
+		graph.getManager().removeAxioms(ont, rmAxioms);
+	}
+
+	public void removeDanglingAxioms() {
+		removeDanglingAxioms(getOntology());
+	}
 
 }
