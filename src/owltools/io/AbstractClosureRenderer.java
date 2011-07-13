@@ -18,7 +18,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 
 /**
- * 
+ * Renders the graph closure - i.e. the inferred paths emanating from all named entities
  * 
  * @author cjm
  *
@@ -26,6 +26,7 @@ import owltools.graph.OWLQuantifiedProperty;
 public abstract class AbstractClosureRenderer implements GraphRenderer {
 
 	protected OWLGraphWrapper graph;
+	protected OWLPrettyPrinter prettyPrinter;
 	protected PrintStream stream;
 
 	public AbstractClosureRenderer(PrintStream stream) {
@@ -62,6 +63,7 @@ public abstract class AbstractClosureRenderer implements GraphRenderer {
 
 	public void render(OWLGraphWrapper g) {
 		graph = g;
+		prettyPrinter = new OWLPrettyPrinter(g);
 		g.getConfig().isCacheClosure = false;
 		int i = 0;
 		for (OWLObject obj : g.getAllOWLObjects()) {
@@ -88,34 +90,7 @@ public abstract class AbstractClosureRenderer implements GraphRenderer {
 	public abstract void render(OWLGraphEdge e);
 	
 	protected void print(OWLObject obj) {
-		if (obj instanceof OWLNamedObject) {
-			OWLNamedObject nobj = (OWLNamedObject)obj;
-			if (nobj.getIRI().toString() == null || nobj.getIRI().toString().equals("")) {
-				System.err.println("uh oh:"+nobj);
-			}
-			stream.print(nobj.getIRI().toString());
-		}
-		else if (obj instanceof OWLClassExpression) {
-			stream.print(obj.toString());
-		}
-		else {
-
-		}
-	}
-
-
-
-	protected void print(OWLNamedObject obj) {
-		// TODO: prefixes
-		if (obj.getIRI().toString() == null || obj.getIRI().toString().equals("")) {
-			System.err.println("uh oh:"+obj);
-		}
-		stream.print(obj.getIRI().toString());
-	}
-	
-
-	protected void print(OWLClassExpression obj) {
-		stream.print(obj.toString());
+		stream.print(prettyPrinter.render(obj));
 	}
 	
 	protected void print(String s) {

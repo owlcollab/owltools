@@ -53,6 +53,8 @@ public class GraphClosureRenderer extends AbstractClosureRenderer implements Gra
 			n++;
 		}
 		sep();
+		stream.print(e.getDistance());
+		sep();
 		print(e.getTarget());
 		nl();
 
