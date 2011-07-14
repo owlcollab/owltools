@@ -71,7 +71,7 @@ public class ParserWrapper {
 				obodoc = p.parse(f);
 			else {
 				OBODoc obodoc2 = p.parse(f);
-				obodoc.importContents(obodoc2);
+				obodoc.mergeContents(obodoc2);
 			}
 		}
 
