@@ -11,7 +11,6 @@ import java.util.Stack;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
@@ -33,7 +32,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLFunctionalDataPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLFunctionalObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
@@ -53,8 +51,6 @@ import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLPropertyRange;
-import org.semanticweb.owlapi.model.OWLQuantifiedRestriction;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -1759,7 +1755,172 @@ public class OWLGraphWrapper {
 		}
 		return list.toArray(new String[list.size()]);
 	}
+	
+	/**
+	 * It returns array of synonyms as encoded by OBO2OWL.
+	 * 
+	 * @param c
+	 * @return list of synonyms
+	 */
+	public List<Synonym> getOBOSynonyms(OWLObject c) {
+		OWLEntity e;
+		if (c instanceof OWLEntity) {
+			e = (OWLEntity) c;
+		}
+		else {
+			return null;
+		}
+		List<Synonym> synonyms = null;
+		
+		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym));
+		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasExactSynonym));
+		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasNarrowSynonym));
+		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasRelatedSynonym));
+		
+		return synonyms;
+	}
+	
+	private <T> List<T> merge(List<T> list1, List<T> list2) {
+		if (list1 == null || list1.isEmpty()) {
+			return list2;
+		}
+		if (list2 == null || list2.isEmpty()) {
+			return list1;
+		}
+		List<T> synonyms = new ArrayList<T>(list1.size() + list2.size());
+		synonyms.addAll(list1);
+		synonyms.addAll(list2);
+		return synonyms;
+	}
+	
+	private List<Synonym> getOBOSynonyms(OWLEntity e, Obo2OWLVocabulary vocabulary) {
+		OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(vocabulary.getIRI());
+		Set<OWLAnnotation> anns = e.getAnnotations(sourceOntology, property);
+		Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms = e.getAnnotationAssertionAxioms(sourceOntology);
+		if (anns != null && !anns.isEmpty()) {
+			ArrayList<Synonym> list = new ArrayList<Synonym>(anns.size());
+			for (OWLAnnotation a : anns) {
+				if (a.getValue() instanceof OWLLiteral) {
+					OWLLiteral val = (OWLLiteral) a.getValue();
+					String label = val.getLiteral();
+					if (label != null && label.length() > 0) {
+						Set<String> xrefs = getOBOSynonymXrefs(annotationAssertionAxioms, val, property);
+						Synonym s = new Synonym(label, vocabulary.getMappedTag(), null, xrefs);
+						list.add(s);
+					}
+				}
+			}
+			if (!list.isEmpty()) {
+				return list;
+			}
+		}
+		return null;
+	}
+	
+	private Set<String> getOBOSynonymXrefs(Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms, OWLLiteral val, OWLAnnotationProperty property) {
+		
+		if (annotationAssertionAxioms == null || annotationAssertionAxioms.isEmpty()) {
+			return null;
+		}
+		Set<String> xrefs = new HashSet<String>();
+		for (OWLAnnotationAssertionAxiom annotationAssertionAxiom : annotationAssertionAxioms) {
+			// check if it is the correct property
+			if (!property.equals(annotationAssertionAxiom.getProperty())) {
+				continue;
+			}
+			
+			// check if its is the corresponding value
+			if (!val.equals(annotationAssertionAxiom.getValue())) {
+				continue;
+			}
+			Set<OWLAnnotation> annotations = annotationAssertionAxiom.getAnnotations();
+			for (OWLAnnotation owlAnnotation : annotations) {
+				if (owlAnnotation.getValue() instanceof OWLLiteral) {
+					OWLLiteral xrefLiteral = (OWLLiteral) owlAnnotation.getValue();
+					String xref = xrefLiteral.getLiteral();
+					xrefs.add(xref);
+				}
+			}
+		}
+		if (!xrefs.isEmpty()) {
+			return xrefs;
+		}
+		return null;
+	}
 
+	public static class Synonym {
+		private String label;
+		private String scope;
+		private String category;
+		private Set<String>  xrefs;
+		
+		/**
+		 * @param label
+		 * @param scope
+		 * @param category
+		 * @param xrefs
+		 */
+		public Synonym(String label, String scope, String category, Set<String> xrefs) {
+			super();
+			this.label = label;
+			this.scope = scope;
+			this.category = category;
+			this.xrefs = xrefs;
+		}
+
+		/**
+		 * @return the label
+		 */
+		public String getLabel() {
+			return label;
+		}
+
+		/**
+		 * @return the scope
+		 */
+		public String getScope() {
+			return scope;
+		}
+
+		/**
+		 * @return the category
+		 */
+		public String getCategory() {
+			return category;
+		}
+
+		/**
+		 * @return the xrefs
+		 */
+		public Set<String> getXrefs() {
+			return xrefs;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("Synonym [");
+			builder.append("label=");
+			builder.append(label);
+			if (scope != null) {
+				builder.append(", scope=");
+				builder.append(scope);
+			}
+			if (category != null) {
+				builder.append(", category=");
+				builder.append(category);
+			}
+			if (xrefs != null) {
+				builder.append(", xrefs=");
+				builder.append(xrefs);
+			}
+			builder.append("]");
+			return builder.toString();
+		}
+	}
 
 	public String getOntologyId(){
 		return Owl2Obo.getOntologyId(this.getSourceOntology());
