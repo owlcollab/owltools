@@ -12,12 +12,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
+
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
-import org.obolibrary.oboformat.parser.OBOFormatDanglingReferenceException;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
+import org.obolibrary.oboformat.parser.OBOFormatDanglingReferenceException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -30,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
@@ -224,7 +226,7 @@ public class OboOntologyReleaseRunner {
 
 			logger.info("Creating Inferences");
 			if (reasoner != null) {
-				// buildInferredOntology(simpleOnt, manager, reasoner);
+				//buildInferredOntology(simpleOnt, manager, reasoner);
 				buildInferences(mooncat.getGraph(), mooncat.getManager());
 
 			}
@@ -350,7 +352,9 @@ public class OboOntologyReleaseRunner {
 
 		List<OWLAxiom> axioms = infBuilder.buildInferences();;
 		
+		// TODO: ensure there is a subClassOf axiom for ALL classes that have an equivalence axiom
 		for(OWLAxiom ax: axioms){
+			logger.info("New axiom:"+ax);
 			manager.applyChange(new AddAxiom(graph.getSourceOntology(), ax));
 		}		
 		return axioms;
@@ -384,6 +388,13 @@ public class OboOntologyReleaseRunner {
 		OWLAnnotation ann = fac
 				.getOWLAnnotation(ap, fac.getOWLLiteral(version));
 
+		if (ontology == null ||
+				ontology.getOntologyID() == null ||
+				ontology.getOntologyID().getOntologyIRI() == null) {
+			// TODO: shahid - can you add a proper error mechanism
+			System.err.println("Please set your ontology ID. \n"+
+					"In obo-format this should be the same as your ID-space, all in lower case");
+		}
 		OWLAxiom ax = fac.getOWLAnnotationAssertionAxiom(ontology
 				.getOntologyID().getOntologyIRI(), ann);
 
@@ -440,5 +451,6 @@ public class OboOntologyReleaseRunner {
 				}
 		}
 	}
+	
 
 }
