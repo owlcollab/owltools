@@ -1927,15 +1927,15 @@ public class OWLGraphWrapper {
 	}
 
 
-	private final Owl2Obo owl2Obo = new Owl2Obo();
+	//private final Owl2Obo owl2Obo = new Owl2Obo();
 
 	public String getIdentifier(OWLObject owlObject) {
-		return owl2Obo.getIdentifier(owlObject);
+		return Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology);
 	}
 
 
 	public String getIdentifier(IRI iriId) {
-		return owl2Obo.getIdentifier(iriId);
+		return Owl2Obo.getIdentifier(iriId);
 	}
 
 	@Deprecated

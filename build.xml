@@ -112,7 +112,7 @@
 		</javac>
 	</target>
 
-	<target name="jarmanifest" depends="library_jars, checkjar, buildnum" unless="main_jar_current">
+	<target name="jarmanifest" depends="library_jars, checkjar, buildnum">
 			<echo message="Rebuilding jar manifest" />
 			<copy file="${main_jar_manifest_template}" tofile="${main_jar_manifest}" overwrite="true" />
 			<pathconvert property="runtime_classpath" pathsep=" ">
@@ -122,7 +122,7 @@
 						<include name="**/*.jar" />
 					</fileset>
 				</path>
-				<!--<map from="${runtimedir}/" to="" />-->
+			<map from="${runtimedir}/" to="" />
 			</pathconvert>
 			<replace file="${main_jar_manifest}">
 				<replacefilter token="$BUILDNUM$" value="${build.number}" />
@@ -132,7 +132,7 @@
 			</replace>
 		</target>
 
-	<target name="jar" depends="classes, jarmanifest, checkjar" unless="main_jar_current" description="Generate jar file">
+	<target name="jar" depends="classes, jarmanifest, checkjar" description="Generate jar file">
 		<jar destfile="${jarfile}" manifest="${main_jar_manifest}">
 			<fileset refid="main_jar_contents" />
 		</jar>
@@ -151,7 +151,7 @@
 					<include name="**/*.jar" />
 				</fileset>
 			</path>
-			<!--<map from="${runtimedir}/" to="" />-->
+			<map from="${runtimedir}/" to="" />
 		</pathconvert>
 		<replace file="${main_jar_manifest}">
 			<replacefilter token="$BUILDNUM$" value="${build.number}" />
