@@ -219,6 +219,38 @@ public class OboOntologyReleaseRunner {
 
 		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
 
+		
+		if (asserted) {
+			logger.info("Creating Asserted Ontology");
+
+			String outputURI = new File(base, ontologyId + "-asserted.owl")
+					.getAbsolutePath();
+
+			logger.info("saving to " + outputURI);
+			FileOutputStream os = new FileOutputStream(new File(outputURI));
+			mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
+			os.close();
+
+			Owl2Obo owl2obo = new Owl2Obo();
+			OBODoc doc = owl2obo.convert(mooncat.getOntology());
+
+			outputURI = new File(base, ontologyId + "-asserted.obo")
+					.getAbsolutePath();
+			logger.info("saving to " + outputURI);
+
+			OBOFormatWriter writer = new OBOFormatWriter();
+
+			BufferedWriter bwriter = new BufferedWriter(new FileWriter(
+					new File(outputURI)));
+
+			writer.write(doc, bwriter);
+
+			bwriter.close();
+
+			logger.info("Asserted Ontolog Creationg Completed");
+		}
+		
+		
 		if (simple) {
 
 			logger.info("Creating simple ontology");
@@ -266,38 +298,6 @@ public class OboOntologyReleaseRunner {
 		mooncat.mergeOntologies();
 		
 		
-		if (asserted) {
-			logger.info("Creating Asserted Ontology");
-
-			String outputURI = new File(base, ontologyId + "-asserted.owl")
-					.getAbsolutePath();
-
-			logger.info("saving to " + outputURI);
-			FileOutputStream os = new FileOutputStream(new File(outputURI));
-			mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
-			os.close();
-
-			Owl2Obo owl2obo = new Owl2Obo();
-			OBODoc doc = owl2obo.convert(mooncat.getOntology());
-
-			outputURI = new File(base, ontologyId + "-asserted.obo")
-					.getAbsolutePath();
-			logger.info("saving to " + outputURI);
-
-			OBOFormatWriter writer = new OBOFormatWriter();
-
-			BufferedWriter bwriter = new BufferedWriter(new FileWriter(
-					new File(outputURI)));
-
-			writer.write(doc, bwriter);
-
-			bwriter.close();
-
-			logger.info("Asserted Ontolog Creationg Completed");
-		}
-
-
-
 		logger.info("Creating basic ontology");
 
 		logger.info("Creating inferences");
