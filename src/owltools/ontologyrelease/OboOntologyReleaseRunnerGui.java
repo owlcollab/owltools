@@ -25,18 +25,17 @@ public class OboOntologyReleaseRunnerGui {
 
 	private final static Logger logger = Logger.getLogger(OboOntologyReleaseRunnerGui.class);
 	
-	public static void main(String[] args) {
-		
-		// SimpleDateFormat is NOT thread safe
-		// encapsulate as thread local
-		final ThreadLocal<DateFormat> df = new ThreadLocal<DateFormat>(){
+	// SimpleDateFormat is NOT thread safe
+	// encapsulate as thread local
+	private final static ThreadLocal<DateFormat> df = new ThreadLocal<DateFormat>(){
 
-			@Override
-			protected DateFormat initialValue() {
-				return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			}
-			
-		};
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		}
+	};
+	
+	public static void main(String[] args) {
 		
 		Logger rootLogger = Logger.getRootLogger();
 		final BlockingQueue<String> logQueue =  new ArrayBlockingQueue<String>(100);
@@ -83,38 +82,32 @@ public class OboOntologyReleaseRunnerGui {
 		@Override
 		protected void executeRelease(final OboOntologyReleaseRunnerParameters parameters) {
 			logger.info("Starting release manager process");
-			try {
-				Thread t = new Thread() {
-					@Override
-					public void run() {
-						try {
-							ReleaseGuiMainFrameRunner.this.disableReleaseButton();
-							OWLOntologyFormat format = parameters.getFormat();
-							String reasoner = parameters.getReasoner();
-							boolean asserted = parameters.isAsserted();
-							boolean simple = parameters.isSimple();
-							Vector<String> paths = parameters.getPaths();
-							File base = parameters.getBase();
-							OboOntologyReleaseRunner.createRelease(format, reasoner, asserted, simple, paths, base);
-							logger.info("Finished release manager process");
-							JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, "Finished making the release.");
-						} catch (Exception e) {
-							logger.error("Internal error: "+ e.getMessage(), e);
-						} catch (Throwable e) {
-							logger.fatal("Internal error: "+ e.getMessage(), e);
-						}
-						finally {
-							ReleaseGuiMainFrameRunner.this.enableReleaseButton();
-						}
+			disableReleaseButton();
+			// execute the release in a separate Thread, otherwise the GUI might be blocked.
+			Thread t = new Thread() {
+				@Override
+				public void run() {
+					try {
+						OWLOntologyFormat format = parameters.getFormat();
+						String reasoner = parameters.getReasoner();
+						boolean asserted = parameters.isAsserted();
+						boolean simple = parameters.isSimple();
+						Vector<String> paths = parameters.getPaths();
+						File base = parameters.getBase();
+						OboOntologyReleaseRunner.createRelease(format, reasoner, asserted, simple, paths, base);
+						logger.info("Finished release manager process");
+						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, "Finished making the release.");
+					} catch (Exception e) {
+						logger.error("Internal error: "+ e.getMessage(), e);
+					} catch (Throwable e) {
+						logger.fatal("Internal error: "+ e.getMessage(), e);
 					}
-				};
-				t.start();
-			} catch (Exception e) {
-				logger.error("Internal error: "+ e.getMessage(), e);
-			} catch (Throwable e) {
-				logger.fatal("Internal error: "+ e.getMessage(), e);
-			}
-			
+					finally {
+						enableReleaseButton();
+					}
+				}
+			};
+			t.start();
 		}
 	}
 }

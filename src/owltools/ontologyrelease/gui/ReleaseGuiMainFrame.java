@@ -18,7 +18,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 
-import org.apache.log4j.Logger;
 import org.obolibrary.gui.GuiLogPanel;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
 
@@ -28,8 +27,6 @@ import owltools.InferenceBuilder;
  * GUI main frame, calls all constructors for the sub components.
  */
 public class ReleaseGuiMainFrame extends JFrame {
-	
-	private static final Logger LOGGER = Logger.getLogger(ReleaseGuiMainFrame.class);
 	
 	// generated
 	private static final long serialVersionUID = 6955854898081677364L;
@@ -121,13 +118,6 @@ public class ReleaseGuiMainFrame extends JFrame {
 				if (success) {
 					// switch to log tab
 					tabbedPane.setSelectedComponent(logPanel);
-//					try {
-//						// sleep for 10 milli seconds
-//						// This should allow the tab switch to become visible.
-//						Thread.sleep(10L);
-//					} catch (InterruptedException exception) {
-//						LOGGER.error("Interruped during sleep: "+exception.getMessage(),exception);
-//					}
 					SwingUtilities.invokeLater(new Runnable() {
 						
 						@Override
