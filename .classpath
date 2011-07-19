@@ -26,5 +26,6 @@
 	<classpathentry kind="lib" path="lib/runlibs/sparqldl-api.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/jpaul-2.5.1.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/jdom.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/jgrapht-jdk1.5.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
