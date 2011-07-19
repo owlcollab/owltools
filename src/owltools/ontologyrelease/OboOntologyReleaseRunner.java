@@ -259,7 +259,7 @@ public class OboOntologyReleaseRunner {
 			logger.info("Creating Inferences");
 			if (reasoner != null) {
 				//buildInferredOntology(simpleOnt, manager, reasoner);
-				buildInferences(mooncat.getGraph(), mooncat.getManager());
+				buildInferences(mooncat.getGraph(), mooncat.getManager(), reasoner);
 
 			}
 			logger.info("Inferences creation completed");
@@ -302,7 +302,7 @@ public class OboOntologyReleaseRunner {
 
 		logger.info("Creating inferences");
 		if (reasoner != null)
-			buildInferences(mooncat.getGraph(), mooncat.getManager());
+			buildInferences(mooncat.getGraph(), mooncat.getManager(), reasoner);
 		// ontology= buildInferredOntology(ontology, manager, reasoner);
 
 		logger.info("Inferences creation completed");
@@ -347,10 +347,10 @@ public class OboOntologyReleaseRunner {
 		}
 	}
 
-	private static List<OWLAxiom> buildInferences(OWLGraphWrapper graph, OWLOntologyManager manager) {
-		InferenceBuilder infBuilder = new InferenceBuilder(graph);
+	private static List<OWLAxiom> buildInferences(OWLGraphWrapper graph, OWLOntologyManager manager, String reasoner) {
+		InferenceBuilder infBuilder = new InferenceBuilder(graph, reasoner);
 
-		List<OWLAxiom> axioms = infBuilder.buildInferences();;
+		List<OWLAxiom> axioms = infBuilder.buildInferences();
 		
 		// TODO: ensure there is a subClassOf axiom for ALL classes that have an equivalence axiom
 		for(OWLAxiom ax: axioms){

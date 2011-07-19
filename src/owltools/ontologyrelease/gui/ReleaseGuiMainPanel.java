@@ -274,7 +274,6 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		reasonerPanel.add(jcelRadioButton);
 		
 		pelletRadioButton.setSelected(true);
-		hermitRadioButton.setEnabled(false);
 		factppRadioButton.setEnabled(false);
 		jcelRadioButton.setEnabled(false);
 		

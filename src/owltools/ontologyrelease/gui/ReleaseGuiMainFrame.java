@@ -145,7 +145,12 @@ public class ReleaseGuiMainFrame extends JFrame {
 		// currently only one ontology format, do nothing
 		
 		// reasoner
-		// currently only one reasoner, do nothing
+		if (mainPanel.pelletRadioButton.isSelected()) {
+			parameters.setReasoner("pellet");
+		}
+		else if (mainPanel.hermitRadioButton.isSelected()) {
+			parameters.setReasoner("hermit");
+		}
 		
 		// asserted
 		parameters.setAsserted(mainPanel.assertedCheckBox.isSelected());

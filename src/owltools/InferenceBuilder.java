@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -13,11 +15,13 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.vocab.OWLDataFactoryVocabulary;
 
-import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
+
+import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
 /**
  * This class build inferred axioms of an ontology.
@@ -26,10 +30,31 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
  */
 public class InferenceBuilder{
 
-
-	private OWLReasoner reasoner;
-
+	private final OWLReasonerFactory factory;
+	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
+
+	public InferenceBuilder(OWLGraphWrapper graph){
+		this(graph, new PelletReasonerFactory());
+	}
+	
+	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName){
+		this.graph = graph;
+		// TODO decide if this should be done here, 
+		// or if we want just the constructor with the factory
+		if ("pellet".equals(reasonerName)) {
+			this.factory = new PelletReasonerFactory();
+		}
+		else if ("hermit".equals(reasonerName)) {
+			this.factory = new Reasoner.ReasonerFactory();
+		}
+		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
+	}
+	
+	public InferenceBuilder(OWLGraphWrapper graph, OWLReasonerFactory factory){
+		this.factory = factory;
+		this.graph = graph;
+	}
 
 	public OWLGraphWrapper getOWLGraphWrapper(){
 		return this.graph;
@@ -37,21 +62,13 @@ public class InferenceBuilder{
 
 	public void setOWLGraphWrapper(OWLGraphWrapper g){
 		this.reasoner = null;
-		this.graph =g;
+		this.graph = g;
 	}
 
-
-	public InferenceBuilder(OWLGraphWrapper graph){
-		this.graph = graph;
-	}
-
-
-	private OWLReasoner getReasoner(OWLOntology ontology){
+	private synchronized OWLReasoner getReasoner(OWLOntology ontology){
 		if(reasoner == null){
-			PelletReasonerFactory factory = new PelletReasonerFactory();
 			reasoner = factory.createReasoner(ontology);
 		}
-
 		return reasoner;
 	}
 
