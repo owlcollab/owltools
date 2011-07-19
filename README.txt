@@ -1,4 +1,9 @@
-OWLTools/OWLGraph/OWLSim/OboOntologyRelease
+
+For full documentation, see the Wiki:
+
+ * http://code.google.com/p/owltools
+
+== Use Cases ==
 
 At this time, this library is intended to satisfy a number of different use cases, including:
 
@@ -80,14 +85,4 @@ we want to determine the semantic similarity between these individuals based on 
 We can use a variety of metrics - jacard similarity, maximum information content of LCS, average IC
 of all elements of LCS as considered independent....
 
-* Obo Ontology Release Manager
-
-It is an ant based command line tool which produces ontologies versions releases. 
-The command 'bin/ontology-release-runner' builds an ontology release. This tool is supposed to be run 
-from the location where a particular ontology release are to be maintained. 
-In the process of producing a particular release this tool labels the release with a auto generated version id. 
-The version id is maintained in the VERSION-INFO file. All files produced for a particular release are assembled in the directory of name
-by the date of the release. Run the 'bin/ontology-release-runner --h' tool with the --h option to get help which parameter to pass the tool.
-To build the latest jar for the ontology release manager run the  'ant ontology-release-jar' ant command.
-'
 

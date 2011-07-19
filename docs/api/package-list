@@ -8,7 +8,10 @@ owltools.io
 owltools.mooncat
 owltools.mooncat.test
 owltools.ontologyrelease
+owltools.ontologyrelease.gui
 owltools.phenolog
+owltools.profile
+owltools.reasoner
 owltools.sim
 owltools.sim.test
 owltools.test
