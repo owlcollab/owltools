@@ -53,9 +53,14 @@ public class OboOntologyReleaseRunnerGui {
 			
 			@Override
 			protected void append(LoggingEvent event) {
-				String message = event.getRenderedMessage();
 				try {
-					logQueue.put(df.get().format(new Date(event.timeStamp))+"  "+message);
+					StringBuilder sb = new StringBuilder();
+					sb.append(df.get().format(new Date(event.timeStamp)));
+					sb.append(' ');
+					sb.append(event.getLevel());
+					sb.append(' ');
+					sb.append(event.getRenderedMessage());
+					logQueue.put(sb.toString());
 				} catch (InterruptedException e) {
 					logger.fatal("Interruped during wait for writing to the message panel.", e);
 				}
