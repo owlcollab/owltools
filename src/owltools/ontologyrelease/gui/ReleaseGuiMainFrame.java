@@ -125,6 +125,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 					}
 					// do work
 					executeRelease(parameters);
+					
+					LOGGER.info("Finished making the release.");
+					JOptionPane.showMessageDialog(allPanel, "Finished making the release.");
 				}
 			}
 		});
