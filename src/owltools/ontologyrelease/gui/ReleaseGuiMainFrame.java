@@ -16,10 +16,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListModel;
+import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.gui.GuiLogPanel;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
+
+import owltools.InferenceBuilder;
 
 /**
  * GUI main frame, calls all constructors for the sub components.
@@ -38,6 +41,8 @@ public class ReleaseGuiMainFrame extends JFrame {
 	private final OboOntologyReleaseRunnerParameters parameters;
 
 	private JTabbedPane tabbedPane;
+
+	private JButton releaseButton;
 	
 	/**
 	 * Default constructor, required only for testing the GUI as bean.
@@ -108,30 +113,33 @@ public class ReleaseGuiMainFrame extends JFrame {
 	private JPanel createControlPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 10));
-		JButton button = new JButton("Make Release");
-		button.addActionListener(new ActionListener() {
+		releaseButton = new JButton("Make Release");
+		releaseButton.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
 				boolean success = getParametersFromGUI();
 				if (success) {
 					// switch to log tab
 					tabbedPane.setSelectedComponent(logPanel);
-					try {
-						// sleep for 10 milli seconds
-						// This should allow the tab switch to become visible.
-						Thread.sleep(10L);
-					} catch (InterruptedException exception) {
-						LOGGER.error("Interruped during sleep: "+exception.getMessage(),exception);
-					}
-					// do work
-					executeRelease(parameters);
-					
-					LOGGER.info("Finished making the release.");
-					JOptionPane.showMessageDialog(allPanel, "Finished making the release.");
+//					try {
+//						// sleep for 10 milli seconds
+//						// This should allow the tab switch to become visible.
+//						Thread.sleep(10L);
+//					} catch (InterruptedException exception) {
+//						LOGGER.error("Interruped during sleep: "+exception.getMessage(),exception);
+//					}
+					SwingUtilities.invokeLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							// do work
+							executeRelease(parameters);
+						}
+					});
 				}
 			}
 		});
-		panel.add(button, BorderLayout.LINE_END);
+		panel.add(releaseButton, BorderLayout.LINE_END);
 		return panel;
 	}
 
@@ -146,10 +154,10 @@ public class ReleaseGuiMainFrame extends JFrame {
 		
 		// reasoner
 		if (mainPanel.pelletRadioButton.isSelected()) {
-			parameters.setReasoner("pellet");
+			parameters.setReasoner(InferenceBuilder.REASONER_PELLET);
 		}
 		else if (mainPanel.hermitRadioButton.isSelected()) {
-			parameters.setReasoner("hermit");
+			parameters.setReasoner(InferenceBuilder.REASONER_HERMIT);
 		}
 		
 		// asserted
@@ -246,5 +254,13 @@ public class ReleaseGuiMainFrame extends JFrame {
 			logPanel = new GuiLogPanel(logQueue);
 		}
 		return logPanel;
+	}
+	
+	protected void disableReleaseButton() {
+		releaseButton.setEnabled(false);
+	}
+	
+	protected void enableReleaseButton() {
+		releaseButton.setEnabled(true);
 	}
 } 

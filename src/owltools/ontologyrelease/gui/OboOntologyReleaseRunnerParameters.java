@@ -12,8 +12,8 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 public class OboOntologyReleaseRunnerParameters {
 	private OWLOntologyFormat format = new RDFXMLOntologyFormat();
 	private String reasoner = "pellet";
-	private boolean asserted = false;
-	private boolean simple = false;
+	private boolean asserted = true; // set selected as default (different from the CLI parameter!)
+	private boolean simple = true; // set selected as default (different from the CLI parameter!)
 	private Vector<String> paths;
 	private File base = new File(".");
 

@@ -30,6 +30,9 @@ import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
  */
 public class InferenceBuilder{
 
+	public static final String REASONER_PELLET = "pellet";
+	public static final String REASONER_HERMIT = "hermit";
+	
 	private final OWLReasonerFactory factory;
 	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
@@ -42,13 +45,15 @@ public class InferenceBuilder{
 		this.graph = graph;
 		// TODO decide if this should be done here, 
 		// or if we want just the constructor with the factory
-		if ("pellet".equals(reasonerName)) {
+		if (REASONER_PELLET.equals(reasonerName)) {
 			this.factory = new PelletReasonerFactory();
 		}
-		else if ("hermit".equals(reasonerName)) {
+		else if (REASONER_HERMIT.equals(reasonerName)) {
 			this.factory = new Reasoner.ReasonerFactory();
 		}
-		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
+		else {
+			throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
+		}
 	}
 	
 	public InferenceBuilder(OWLGraphWrapper graph, OWLReasonerFactory factory){

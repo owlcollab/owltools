@@ -107,7 +107,7 @@ public class OboOntologyReleaseRunner {
 
 		OWLOntologyFormat format = new RDFXMLOntologyFormat();
 		// String outPath = ".";
-		String reasoner = "pellet";
+		String reasoner = InferenceBuilder.REASONER_PELLET;
 		boolean asserted = false;
 		boolean simple = false;
 		String baseDirectory = ".";
