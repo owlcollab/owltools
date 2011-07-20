@@ -49,8 +49,13 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		
 		// options
 		createOptionPanel(pos, 
-				"new name for Asserted", "Long description for asserted",defaultIsAsserted, 
-				"simple", "Description for simple, do we want to keep it in the GUI? If not what is the default value?", defaultIsSimple);
+				"Make original", 
+				"<html><p>Also make original ontology in obo and owl.</p>" +
+				"<p>Creates from file 'X' the additional files named 'X-non-classified'</p></html>",
+				defaultIsAsserted, 
+				"simple", 
+				"Enter Description for simple here, e.g., which new files are generated with which content",
+				defaultIsSimple);
 		addRowGap(this, pos, 20);
 		
 		// reasoner
@@ -71,21 +76,21 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 			String simpleLabel, String simpleDesc, boolean defaultIsSimple) {
 		add(new JLabel("Options"), pos.nextRow().indentLeft(DEFAULT_INDENT));
 		
-		add(assertedCheckBox, pos.nextRow().nextCol());
-		add(new JLabel(assertedLabel), pos.nextCol().expandW());
-		addRowGap(this, pos.nextRow(), 2);
-		add(new JLabel(assertedDesc), pos.nextCol().nextCol());
+		createFancyCheckBox(pos, assertedLabel, assertedDesc, defaultIsAsserted, assertedCheckBox);
 		
 		addRowGap(this, pos.nextRow(), 5);
 		
-		add(simpleCheckBox, pos.nextRow().nextCol());
-		add(new JLabel(simpleLabel), pos.nextCol().expandW());
-		addRowGap(this, pos.nextRow(), 2);
-		add(new JLabel(simpleDesc), pos.nextCol().nextCol());
-		
-		// set default value for buttons
-		assertedCheckBox.setSelected(defaultIsAsserted);
-		simpleCheckBox.setSelected(defaultIsSimple);
+		createFancyCheckBox(pos, simpleLabel, simpleDesc, defaultIsSimple, simpleCheckBox);
+	}
+	
+	private void createFancyCheckBox(GBHelper pos, String label, String desc, boolean defaultValue, JCheckBox checkBox) {
+		add(checkBox, pos.nextRow().nextCol());
+		add(new JLabel(label), pos.nextCol().expandW());
+		if (desc != null) {
+			addRowGap(this, pos.nextRow(), 2);
+			add(new JLabel(desc), pos.nextCol().nextCol().expandW().fill());
+		}
+		checkBox.setSelected(defaultValue);
 	}
 
 	/**
