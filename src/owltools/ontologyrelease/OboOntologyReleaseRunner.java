@@ -17,8 +17,10 @@ import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
+import org.obolibrary.oboformat.parser.InvalidXrefMapException;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatDanglingReferenceException;
+import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -181,6 +183,9 @@ public class OboOntologyReleaseRunner {
 			OWLOntologyStorageException 
 	{
 		String path = null;
+	
+		// TODO - make this an option
+		boolean isExportBridges = false;
 		
 		File releases = new File(base, "releases");
 		makeDir(releases);
@@ -220,6 +225,21 @@ public class OboOntologyReleaseRunner {
 		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
 		ontologyId = ontologyId.replaceAll(".obo$", "");
 
+		if (isExportBridges) {
+			logger.info("Creating Bridge Ontologies");
+			
+			// Note that this introduces a dependency on the oboformat-specific portion
+			// of the oboformat code. Ideally we would like to make everything run
+			// independent of obo
+			XrefExpander xe;
+			try {
+				xe = new XrefExpander(parser.getOBOdoc());
+				xe.expandXrefs();
+			} catch (InvalidXrefMapException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
 		if (asserted) {
 			logger.info("Creating Asserted Ontology");
@@ -295,7 +315,6 @@ public class OboOntologyReleaseRunner {
 		}		
 		
 		logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
-
 		mooncat.mergeOntologies();
 		
 		

@@ -32,7 +32,7 @@ public class ParserWrapper {
 	private static Logger LOG = Logger.getLogger(DescriptionTreeSimilarity.class);
 	OWLOntologyManager manager = OWLManager.createOWLOntologyManager(); // persist?
 	String defaultOntology;
-
+	OBODoc obodoc;
 
 
 	public OWLOntologyManager getManager() {
@@ -56,7 +56,7 @@ public class ParserWrapper {
 
 	private OWLOntology parseOBO(String iri) throws IOException, OWLOntologyCreationException {
 		OBOFormatParser p = new OBOFormatParser();
-		OBODoc obodoc = p.parse(iri);
+		obodoc = p.parse(iri);
 
 		if (defaultOntology != null) {
 			obodoc.addDefaultOntologyHeader(defaultOntology);
@@ -116,5 +116,10 @@ public class ParserWrapper {
 	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file) throws OWLOntologyStorageException {
 		manager.saveOntology(ont, owlFormat, IRI.create(file));
 	}
+	public OBODoc getOBOdoc() {
+		return obodoc;
+	}
+	
+	
 
 }
