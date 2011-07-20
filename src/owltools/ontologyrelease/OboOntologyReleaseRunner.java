@@ -233,12 +233,19 @@ public class OboOntologyReleaseRunner {
 			// independent of obo
 			XrefExpander xe;
 			try {
-				xe = new XrefExpander(parser.getOBOdoc());
+				// TODO - make this configurable
+				xe = new XrefExpander(parser.getOBOdoc(), ontologyId+"=bridge-to-");
 				xe.expandXrefs();
+				for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
+					// TODO - save both obo and owl;
+					// do this in a generic way, Don't Repeat Yourself..
+				}
 			} catch (InvalidXrefMapException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			// TODO - macro expansions
 		}
 		
 		if (asserted) {
