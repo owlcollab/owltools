@@ -1,5 +1,6 @@
 package owltools.io;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -27,11 +28,12 @@ import owltools.sim.DescriptionTreeSimilarity;
  *
  */
 public class ParserWrapper {
-	
+
 	private static Logger LOG = Logger.getLogger(DescriptionTreeSimilarity.class);
 	OWLOntologyManager manager = OWLManager.createOWLOntologyManager(); // persist?
-	
-	
+	String defaultOntology;
+
+
 
 	public OWLOntologyManager getManager() {
 		return manager;
@@ -51,17 +53,24 @@ public class ParserWrapper {
 			return parseOBO(iriString);
 		return parseOWL(iriString);		
 	}
-	
+
 	private OWLOntology parseOBO(String iri) throws IOException, OWLOntologyCreationException {
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(iri);
+
+		if (defaultOntology != null) {
+			obodoc.addDefaultOntologyHeader(defaultOntology);
+		}
+		else {
+			obodoc.addDefaultOntologyHeader(iri);
+		}
 
 		Obo2Owl bridge = new Obo2Owl();
 		OWLOntologyManager manager = bridge.getManager();
 		OWLOntology ontology = bridge.convert(obodoc);
 		return ontology;
 	}
-	
+
 	public OWLOntology parseOBOFiles(List<String> files) throws IOException, OWLOntologyCreationException, FrameMergeException {
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = null;
@@ -81,11 +90,19 @@ public class ParserWrapper {
 	}
 
 	public OWLOntology parseOWL(String iriString) throws OWLOntologyCreationException {
-		IRI iri = IRI.create(iriString);
+		IRI iri;
+		LOG.info("parsing: "+iriString);
+		if (iriString.startsWith("file:") || iriString.startsWith("http:") || iriString.startsWith("https:")) {
+		}
+		else {
+			File f = new File(iriString);		
+			iriString = f.toURI().toString();
+		}
+		iri = IRI.create(iriString);
 		return parseOWL(iri);
 
 	}
-	
+
 	public OWLOntology parseOWL(IRI iri) throws OWLOntologyCreationException {
 		LOG.info("parsing: "+iri.toString());
 		OWLOntology ont = manager.loadOntologyFromOntologyDocument(iri);
