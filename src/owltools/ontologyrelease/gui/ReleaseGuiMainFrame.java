@@ -64,7 +64,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 		this.setSize(800, 500);
 		// put the all panel in a scrollpane
 		this.setContentPane(new JScrollPane(getAllPanel()));
-		this.setTitle("OBOFormatConverter");
+		this.setTitle("OBO Release Manager");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
 	}
