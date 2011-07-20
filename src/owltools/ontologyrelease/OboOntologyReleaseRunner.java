@@ -218,6 +218,7 @@ public class OboOntologyReleaseRunner {
 		}
 
 		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
+		ontologyId = ontologyId.replaceAll(".obo$", "");
 
 		
 		if (asserted) {
@@ -293,7 +294,7 @@ public class OboOntologyReleaseRunner {
 
 		}		
 		
-		logger.info("Merging Ontologies");
+		logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 
 		mooncat.mergeOntologies();
 		

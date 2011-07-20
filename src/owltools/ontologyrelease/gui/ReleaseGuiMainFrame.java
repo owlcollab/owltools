@@ -120,7 +120,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 					tabbedPane.setSelectedComponent(logPanel);
 					SwingUtilities.invokeLater(new Runnable() {
 						
-						@Override
+//						@Override
 						public void run() {
 							// do work
 							executeRelease(parameters);

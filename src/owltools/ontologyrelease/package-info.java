@@ -15,6 +15,10 @@
    the ontology release manager run the 'ant ontology-release-jar' ant
    command.  '
 
+   <h3>Specification</h3>
+
+   https://docs.google.com/document/d/1VzlfrF29NpWonRLcUT3JZLEH5PoWa-wJxsrJstMKV8M/edit?hl=en_US&authkey=COeH6vMP
+
    <h3>Building the release manager</h3>
 
    Eventually this will have its own installer.
