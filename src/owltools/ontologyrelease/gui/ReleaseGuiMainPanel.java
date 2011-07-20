@@ -45,14 +45,8 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	private final Frame frame;
 	
 	final JList inputFileJList;
-	final JCheckBox assertedCheckBox;
-	final JCheckBox simpleCheckBox;
-	final JTextField outputFolderTextField;
 	
-	final JRadioButton pelletRadioButton;
-	final JRadioButton hermitRadioButton;
-	final JRadioButton factppRadioButton;
-	final JRadioButton jcelRadioButton;
+	final JTextField outputFolderTextField;
 	
 	final JRadioButton rdfXmlRadioButton;
 
@@ -61,14 +55,10 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	 * 
 	 * @param frame
 	 * @param defaultFormat
-	 * @param defaultReasoner
-	 * @param defaultIsAsserted
-	 * @param defaultIsSimple
 	 * @param defaultPaths
 	 * @param defaultBase
 	 */
 	public ReleaseGuiMainPanel(Frame frame, OWLOntologyFormat defaultFormat, 
-			String defaultReasoner, boolean defaultIsAsserted, boolean defaultIsSimple,
 			Vector<String> defaultPaths, File defaultBase)
 	{
 		super();
@@ -85,16 +75,6 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 			}
 		}
 		inputFileJList = new JList(inputFilesDataModel);
-		
-		// options flags
-		assertedCheckBox = new JCheckBox("asserted");
-		simpleCheckBox = new JCheckBox("simple");
-		
-		// reasoner radio buttons
-		pelletRadioButton = new JRadioButton("Pellet");
-		hermitRadioButton = new JRadioButton("HermiT");
-		factppRadioButton = new JRadioButton("Fact++");
-		jcelRadioButton = new JRadioButton("JCEL");
 		
 		// output format buttons
 		rdfXmlRadioButton = new JRadioButton("RDF XML");
@@ -113,18 +93,10 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		// output panel
 		createOutputPanel(pos);
 		addRowGap(this, pos, 10);
-		
-		// options
-		createOptionPanel(pos, defaultIsAsserted, defaultIsSimple);
-		addRowGap(this, pos, 10);
-		
-		// reasoner
-		createReasonerPanel(pos, defaultReasoner);
-		addRowGap(this, pos, 10);
-		
+
 //		// format
 //		createFormatPanel(pos, defaultFormat);
-//		addRowGap(this, pos, 10);
+//		addRowGap(this, pos, 10);		
 	}
 	
 	/**
@@ -180,10 +152,9 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		addRowGap(this, pos, 10);
 		
 		add(new JLabel("Ontology Files"), pos.nextRow());
-		add(scrollPane, pos.nextCol().expandW().expandH().anchorCenter().height(4).fill());
+		add(scrollPane, pos.nextCol().indentLeft(10).expandW().expandH().anchorCenter().height(4).fill());
 		add(fileDialogAddButton, pos.nextCol().indentLeft(10));
-		pos.nextRow();
-		add(fileRemoveButton, pos.nextCol().nextCol().indentLeft(10));
+		add(fileRemoveButton, pos.nextRow().nextCol().nextCol().indentLeft(10));
 		pos.nextRow();
 		pos.nextRow();
 	}
@@ -216,7 +187,7 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		addRowGap(this, pos, 10);
 		
 		add(new JLabel("Folder"),pos.nextRow());
-		add(outputFolderTextField,pos.nextCol().expandW().anchorCenter().fill());
+		add(outputFolderTextField,pos.nextCol().indentLeft(10).expandW().anchorCenter().fill());
 		add(folderButton, pos.nextCol().indentLeft(10));
 		addRowGap(this, pos, 2);
 	}
@@ -233,51 +204,6 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 			listModel.addElement(name);
 		}
 		fileList.setModel(listModel);
-	}
-
-	/**
-	 * Create layout for ontology release option flags
-	 * 
-	 * @param pos
-	 * @param defaultIsAsserted
-	 * @param defaultIsSimple
-	 */
-	private void createOptionPanel(GBHelper pos, boolean defaultIsAsserted, boolean defaultIsSimple) {
-		add(new JLabel("Options"), pos.nextRow());
-		add(assertedCheckBox, pos.nextRow().nextCol());
-		add(simpleCheckBox, pos.nextRow().nextCol());
-		
-		// set default value for buttons
-		assertedCheckBox.setSelected(defaultIsAsserted);
-		simpleCheckBox.setSelected(defaultIsSimple);
-	}
-
-	/**
-	 * Create layout for reasoner selection
-	 * 
-	 * @param pos
-	 * @param defaultReasoner
-	 */
-	private void createReasonerPanel(GBHelper pos, String defaultReasoner) {
-		add(new JLabel("Reasoner"), pos.nextRow());
-		
-		ButtonGroup reasonerGroup = new ButtonGroup();
-		reasonerGroup.add(pelletRadioButton);
-		reasonerGroup.add(hermitRadioButton);
-		reasonerGroup.add(factppRadioButton);
-		reasonerGroup.add(jcelRadioButton);
-		
-		JPanel reasonerPanel = new JPanel(new GridLayout(2, 2, 20, 5));
-		reasonerPanel.add(pelletRadioButton);
-		reasonerPanel.add(hermitRadioButton);
-		reasonerPanel.add(factppRadioButton);
-		reasonerPanel.add(jcelRadioButton);
-		
-		pelletRadioButton.setSelected(true);
-		factppRadioButton.setEnabled(false);
-		jcelRadioButton.setEnabled(false);
-		
-		add(reasonerPanel, pos.nextCol());
 	}
 
 	/**

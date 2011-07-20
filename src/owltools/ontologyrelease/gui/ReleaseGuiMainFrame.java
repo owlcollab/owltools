@@ -33,6 +33,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	
 	private JPanel allPanel;
 	private ReleaseGuiMainPanel mainPanel;
+	private ReleaseGuiAdvancedPanel advancedPanel;
 	private GuiLogPanel logPanel;
 	private final BlockingQueue<String> logQueue;
 	private final OboOntologyReleaseRunnerParameters parameters;
@@ -97,6 +98,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 		if (tabbedPane == null) {
 			tabbedPane = new JTabbedPane();
 			addTab(tabbedPane, "Input/Output", getMainPanel());
+			addTab(tabbedPane, "Advanced", getAdvancedPanel());
 			addTab(tabbedPane, "Logs", getLogPanel());
 		}
 		return tabbedPane;
@@ -143,18 +145,18 @@ public class ReleaseGuiMainFrame extends JFrame {
 		// currently only one ontology format, do nothing
 		
 		// reasoner
-		if (mainPanel.pelletRadioButton.isSelected()) {
+		if (advancedPanel.pelletRadioButton.isSelected()) {
 			parameters.setReasoner(InferenceBuilder.REASONER_PELLET);
 		}
-		else if (mainPanel.hermitRadioButton.isSelected()) {
+		else if (advancedPanel.hermitRadioButton.isSelected()) {
 			parameters.setReasoner(InferenceBuilder.REASONER_HERMIT);
 		}
 		
 		// asserted
-		parameters.setAsserted(mainPanel.assertedCheckBox.isSelected());
+		parameters.setAsserted(advancedPanel.assertedCheckBox.isSelected());
 		
 		// simple
-		parameters.setSimple(mainPanel.simpleCheckBox.isSelected());
+		parameters.setSimple(advancedPanel.simpleCheckBox.isSelected());
 		
 		// paths
 		ListModel inputFileModel = mainPanel.inputFileJList.getModel();
@@ -219,18 +221,29 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * 
 	 * @return main panel
 	 */
-	private SizedJPanel getMainPanel()
-	{
+	private SizedJPanel getMainPanel() {
 		if (mainPanel == null) {
 			mainPanel = new ReleaseGuiMainPanel(this, 
 					parameters.getFormat(), 
-					parameters.getReasoner(), 
-					parameters.isAsserted(), 
-					parameters.isSimple(), 
 					parameters.getPaths(), 
 					parameters.getBase());
 		}
 		return mainPanel;
+	}
+	
+	/**
+	 * Retrieve advanced panel, create new if it not exists.
+	 * 
+	 * @return advanced panel
+	 */
+	private SizedJPanel getAdvancedPanel() {
+		if (advancedPanel == null) {
+			advancedPanel = new ReleaseGuiAdvancedPanel(
+					parameters.getReasoner(), 
+					parameters.isAsserted(), 
+					parameters.isSimple());
+		}
+		return advancedPanel;
 	}
 
 	/**
@@ -238,8 +251,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * 
 	 * @return log panel
 	 */
-	private SizedJPanel getLogPanel()
-	{
+	private SizedJPanel getLogPanel() {
 		if (logPanel == null) {
 			logPanel = new GuiLogPanel(logQueue);
 		}

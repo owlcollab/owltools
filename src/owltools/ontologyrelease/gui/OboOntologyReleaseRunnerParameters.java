@@ -6,12 +6,14 @@ import java.util.Vector;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
+import owltools.InferenceBuilder;
+
 /**
  * Simple wrapper for the parameters for the release manager.
  */
 public class OboOntologyReleaseRunnerParameters {
 	private OWLOntologyFormat format = new RDFXMLOntologyFormat();
-	private String reasoner = "pellet";
+	private String reasoner = InferenceBuilder.REASONER_HERMIT;
 	private boolean asserted = true; // set selected as default (different from the CLI parameter!)
 	private boolean simple = true; // set selected as default (different from the CLI parameter!)
 	private Vector<String> paths;
