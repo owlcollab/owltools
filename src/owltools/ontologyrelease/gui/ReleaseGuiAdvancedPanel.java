@@ -14,6 +14,9 @@ import org.obolibrary.gui.GuiTools.SizedJPanel;
 
 import owltools.InferenceBuilder;
 
+/**
+ * Panel containing advanced options for the release manager.
+ */
 public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 
 	// generated
@@ -29,6 +32,13 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	final JRadioButton factppRadioButton;
 	final JRadioButton jcelRadioButton;
 	
+	/**
+	 * Create the panel with the given default values.
+	 * 
+	 * @param defaultReasoner
+	 * @param defaultIsAsserted
+	 * @param defaultIsSimple
+	 */
 	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, boolean defaultIsSimple) {
 		super();
 		
@@ -65,10 +75,14 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	}
 	
 	/**
-	 * Create layout for ontology release option flags
+	 * Create layout for the option flags
 	 * 
 	 * @param pos
+	 * @param assertedLabel
+	 * @param assertedDesc
 	 * @param defaultIsAsserted
+	 * @param simpleLabel
+	 * @param simpleDesc
 	 * @param defaultIsSimple
 	 */
 	private void createOptionPanel(GBHelper pos, 
@@ -83,6 +97,17 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		createFancyCheckBox(pos, simpleLabel, simpleDesc, defaultIsSimple, simpleCheckBox);
 	}
 	
+	/**
+	 * Create a more complex check box with a label and description. 
+	 * Use the existing {@link GridBagLayout} to align the components.
+	 * The description is optional.
+	 * 
+	 * @param pos
+	 * @param label
+	 * @param desc
+	 * @param defaultValue
+	 * @param checkBox
+	 */
 	private void createFancyCheckBox(GBHelper pos, String label, String desc, boolean defaultValue, JCheckBox checkBox) {
 		add(checkBox, pos.nextRow().nextCol());
 		add(new JLabel(label), pos.nextCol().expandW());

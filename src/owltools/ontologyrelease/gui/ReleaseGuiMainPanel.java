@@ -6,7 +6,6 @@ import static org.obolibrary.gui.GuiTools.createTextField;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -15,13 +14,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -33,7 +29,8 @@ import org.obolibrary.gui.SelectDialog;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 /**
- * GUI component for the minimum number of configurations required for the conversion.
+ * GUI component for the minimum number of configurations
+ * required for the release manager.
  */
 public class ReleaseGuiMainPanel extends SizedJPanel {
 
@@ -207,17 +204,27 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	}
 
 	/**
-	 * Create layout for ontology format selection
+	 * Create layout for ontology format selection.
+	 * 
+	 * INFO: Currently unused. This method is implemented for 
+	 * potential later use for exporting to different OWL formats.
 	 * 
 	 * @param pos
 	 * @param defaultFormat
 	 */
+	@SuppressWarnings("unused")
 	private void createFormatPanel(GBHelper pos, OWLOntologyFormat defaultFormat) {
 		add(new JLabel("Ontology Format"), pos.nextRow());
 		add(rdfXmlRadioButton, pos.nextRow().nextCol());
 		rdfXmlRadioButton.setSelected(true);
 	}
 	
+	/**
+	 * Helper method to extract the canonical path from a file.
+	 * 
+	 * @param file
+	 * @return canonical path
+	 */
 	private static String getCanonicalPath(File file) {
 		try {
 			return file.getCanonicalPath();
