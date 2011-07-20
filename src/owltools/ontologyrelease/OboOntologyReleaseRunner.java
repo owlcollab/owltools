@@ -251,7 +251,7 @@ public class OboOntologyReleaseRunner {
 		if (asserted) {
 			logger.info("Creating Asserted Ontology");
 
-			String outputURI = new File(base, ontologyId + "-asserted.owl")
+			String outputURI = new File(base, ontologyId + "-non-classified.owl")
 					.getAbsolutePath();
 
 			logger.info("saving to " + outputURI);
@@ -262,7 +262,7 @@ public class OboOntologyReleaseRunner {
 			Owl2Obo owl2obo = new Owl2Obo();
 			OBODoc doc = owl2obo.convert(mooncat.getOntology());
 
-			outputURI = new File(base, ontologyId + "-asserted.obo")
+			outputURI = new File(base, ontologyId + "-non-classified.obo")
 					.getAbsolutePath();
 			logger.info("saving to " + outputURI);
 
