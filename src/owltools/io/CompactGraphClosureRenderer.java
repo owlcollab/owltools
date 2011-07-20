@@ -36,7 +36,7 @@ public class CompactGraphClosureRenderer extends AbstractClosureRenderer impleme
 	}
 
 	public void render(OWLGraphWrapper g) {
-		g.getConfig().isCacheClosure = false;
+		g.getConfig().isCacheClosure = false; // ensure fresh cache
 		int i = 0;
 		for (OWLObject obj : g.getAllOWLObjects()) {
 			if (!(obj instanceof OWLNamedObject)) {

@@ -549,13 +549,16 @@ public class SimEngine {
 		boolean isBSubsumesA = ancsA.contains(b);
 
 		if (isASubsumesB && isBSubsumesA) {
+			LOG.info("A and B mutually subsume");
 			return makeIntersectionPair((OWLClassExpression)a,(OWLClassExpression)b);
 		}
 
 		if (isASubsumesB) {
+			LOG.info("A subsumes B");
 			return (OWLClassExpression) a;
 		}
 		if (isBSubsumesA) {
+			LOG.info("B subsumes A");
 			return (OWLClassExpression) b;
 		}
 

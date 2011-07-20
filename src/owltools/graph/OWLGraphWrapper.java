@@ -611,6 +611,9 @@ public class OWLGraphWrapper {
 			Iterator<OWLQuantifiedProperty> qpi, OWLObject t) {
 		if (qpi.hasNext()) {
 			OWLQuantifiedProperty qp = qpi.next();
+			if (qp == null) {
+				System.err.println("");
+			}
 			OWLObject x = edgeToTargetExpression(qpi,t);
 			OWLClassExpression t2;
 			if (!(x instanceof OWLClassExpression)) {
@@ -1927,7 +1930,7 @@ public class OWLGraphWrapper {
 	}
 
 
-	//private final Owl2Obo owl2Obo = new Owl2Obo();
+	private final Owl2Obo owl2Obo = new Owl2Obo();
 
 	public String getIdentifier(OWLObject owlObject) {
 		return Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology);
@@ -1935,7 +1938,7 @@ public class OWLGraphWrapper {
 
 
 	public String getIdentifier(IRI iriId) {
-		return Owl2Obo.getIdentifier(iriId);
+		return owl2Obo.getIdentifier(iriId);
 	}
 
 	@Deprecated

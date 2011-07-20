@@ -897,6 +897,8 @@ public class Main {
 
             Collections.sort(phenolist1);
             Collections.sort(phenolist2);
+            
+            System.out.println("iter="+iter);
 
             cutoff1[iter] = phenolist1.get((int) Math.ceil(phenolist1.size() * 0.05));
             cutoff2[iter] = phenolist2.get((int) Math.ceil(phenolist2.size() * 0.05));

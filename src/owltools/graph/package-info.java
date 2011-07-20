@@ -180,7 +180,6 @@ SUBCLASS_OF o P only              &rarr; P only
 P only      o SUBCLASS_OF         &rarr; P only
 P1 some     o P2 some             &rarr; P some  <i>on condition:</i> TransitiveProperty(P) and subPropertyOf(P1 P) and subPropertyOf(P2 P)[*]
 P1 some o P2 some o ... o Pn some &rarr; P some  <i>on condition:</i> subObjectPropertyOf( PropertyChain(P1 .. Pn) P)[**]
-P card(a,b) o P card(c,d)         &rarr; P card(a+c,b+d)
 
 [*] assumes inferred subPropertyOf has been calculated - recall this is reflexive.
     if this condition is true for multiple values of the property P, the most specific property is chosen.

@@ -22,6 +22,12 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 
+/**
+ * Note that the ontology must be loaded prior to restored a closure table
+ * 
+ * @author cjm
+ *
+ */
 public class CompactGraphClosureReader extends AbstractClosureReader {
 
 	public CompactGraphClosureReader(OWLGraphWrapper g) {
@@ -60,7 +66,7 @@ public class CompactGraphClosureReader extends AbstractClosureReader {
 		int len = vals.length;
 		OWLObject tgt = getObject(vals[len-2]);	
 		int dist = Integer.parseInt(vals[len-1]);
-		OWLQuantifiedProperty[] qpa = new OWLQuantifiedProperty[len-1];
+		OWLQuantifiedProperty[] qpa = new OWLQuantifiedProperty[len-2];
 		for (int i=0; i<len-2; i++) {
 			OWLQuantifiedProperty qp = parseQP(vals[i]);
 			qpa[i] = qp;

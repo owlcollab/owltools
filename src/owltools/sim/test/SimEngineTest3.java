@@ -26,7 +26,24 @@ public class SimEngineTest3 extends AsbtractSimEngineTest {
 		//pp.print(lcs);
 		//sa.print();
 		
+	}
+	
+	public static void testHippocampusLCS() throws Exception{
+		OWLGraphWrapper  g =  getOntologyWrapper("file:test_resources/lcstest3.owl");
+		SimEngine se = new SimEngine(g);
+		
+		OWLObject a = g.getOWLObject("http://example.org#axon_terminals_degenerated_in_ca2");
+		OWLObject b = g.getOWLObject("http://example.org#axon_terminals_degenerated_in_ca3");
+		
+		OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
+		
+		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
+		System.out.println("LCS:"+lcs);
+		//pp.print(lcs);
+		//sa.print();
+		
 	}	
+
 	
 	public static void testSimEq() throws Exception{
 		OWLGraphWrapper  g =  getOntologyWrapper("file:test_resources/lcstest3.owl");
