@@ -25,9 +25,7 @@
           <entry location=".svn" launcher="false" />
         </exclude>
       </dirEntry>
-      <dirEntry mountPoint="20" file="./runtime" overwrite="4" shared="false" mode="644" uninstallMode="0" excludeSuffixes=".svn" dirMode="755">
-        <exclude />
-      </dirEntry>
+      <fileEntry mountPoint="20" file="./runtime/owltools.jar" overwrite="1" shared="false" mode="644" uninstallMode="2" />
     </entries>
     <components>
       <component name="OBO-OWL converter" id="18" displayDescription="false" selected="true" mandatory="false" downloadable="false">
