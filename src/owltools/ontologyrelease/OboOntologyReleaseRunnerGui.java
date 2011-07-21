@@ -99,9 +99,13 @@ public class OboOntologyReleaseRunnerGui {
 						logger.info("Finished release manager process");
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, "Finished making the release.");
 					} catch (Exception e) {
-						logger.error("Internal error: "+ e.getMessage(), e);
+						String message = "Internal error: "+ e.getMessage();
+						logger.error(message, e);
+						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message, "Error", JOptionPane.ERROR_MESSAGE);
 					} catch (Throwable e) {
-						logger.fatal("Internal error: "+ e.getMessage(), e);
+						String message = "Internal error: "+ e.getMessage();
+						logger.fatal(message, e);
+						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message, "FatalError", JOptionPane.ERROR_MESSAGE);
 					}
 					finally {
 						enableReleaseButton();
