@@ -84,11 +84,11 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		GBHelper pos = new GBHelper();
 		
 		// input panel
-		createInputPanel(pos);
+		createInputPanel(pos, canonicalPath);
 		addRowGap(this, pos, 10);
 		
 		// output panel
-		createOutputPanel(pos);
+		createOutputPanel(pos, canonicalPath);
 		addRowGap(this, pos, 10);
 
 //		// format
@@ -101,7 +101,7 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	 * 
 	 * @param pos
 	 */
-	private void createInputPanel(GBHelper pos) {
+	private void createInputPanel(GBHelper pos, String defaultFolder) {
 		// store the files in linked hash map, advantage: maintains insert order
 		final LinkedHashMap<String, File> files = new LinkedHashMap<String, File>();
 		
@@ -110,7 +110,12 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		inputFileJList.setPreferredSize(new Dimension(350, 60));
 		
 		// use file chooser dialog for select input files
-		final SelectDialog fileDialog = SelectDialog.getFileSelector(frame, "Input ontology file choose dialog", "OBO & OWL files", "obo","owl");
+		final SelectDialog fileDialog = SelectDialog.getFileSelector(frame, 
+				SelectDialog.LOAD,
+				defaultFolder,
+				"Input ontology file choose dialog", 
+				"OBO & OWL files", 
+				new String[]{"obo","owl"});
 		
 		// add listener for adding a file to the list model
 		fileDialogAddButton.addActionListener(new ActionListener() {
@@ -161,10 +166,10 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	 * 
 	 * @param pos
 	 */
-	private void createOutputPanel(GBHelper pos) {
+	private void createOutputPanel(GBHelper pos, String defaultFolder) {
 		// file chooser for folders
 		final SelectDialog folderDialog = 
-			SelectDialog.getFolderSelector(frame, "Work directory choose dialog");
+			SelectDialog.getFolderSelector(frame, defaultFolder, "Work directory choose dialog");
 		
 		final JButton folderButton = new JButton("Select");
 		
