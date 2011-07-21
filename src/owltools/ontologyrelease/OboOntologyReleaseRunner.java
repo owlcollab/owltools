@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -57,8 +58,15 @@ public class OboOntologyReleaseRunner {
 	protected final static Logger logger = Logger
 	.getLogger(OboOntologyReleaseRunner.class);
 
-	private static SimpleDateFormat dtFormat = new SimpleDateFormat(
-	"yyyy-MM-dd");
+	// SimpleDateFormat is not thread safe
+	private static ThreadLocal<DateFormat> dtFormat = new ThreadLocal<DateFormat>(){
+
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("yyyy-MM-dd");
+		}
+		
+	};
 
 	// TODO - make this an option
 	boolean isExportBridges = false;
@@ -88,7 +96,7 @@ public class OboOntologyReleaseRunner {
 
 		Properties prop = new Properties();
 
-		String version = dtFormat.format(Calendar.getInstance().getTime());
+		String version = dtFormat.get().format(Calendar.getInstance().getTime());
 
 		prop.setProperty("version", version);
 
@@ -207,7 +215,7 @@ public class OboOntologyReleaseRunner {
 
 		cleanBase(base);
 
-		File todayRelease = new File(releases, dtFormat.format(Calendar
+		File todayRelease = new File(releases, dtFormat.get().format(Calendar
 				.getInstance().getTime()));
 		todayRelease = todayRelease.getCanonicalFile();
 		makeDir(todayRelease);
