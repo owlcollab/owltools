@@ -36,6 +36,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.RemoveAxiom;
 
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
@@ -57,7 +58,17 @@ public class OboOntologyReleaseRunner {
 	.getLogger(OboOntologyReleaseRunner.class);
 
 	private static SimpleDateFormat dtFormat = new SimpleDateFormat(
-			"yyyy-MM-dd");
+	"yyyy-MM-dd");
+
+	// TODO - make this an option
+	boolean isExportBridges = false;
+
+	ParserWrapper parser;
+	Mooncat mooncat;
+	InferenceBuilder infBuilder;
+	OWLPrettyPrinter owlpp;
+
+
 
 
 	private static void makeDir(File path) {
@@ -176,20 +187,20 @@ public class OboOntologyReleaseRunner {
 			throw new IOException("Cann't write in the base directory "
 					+ baseDirectory);
 
-		createRelease(format, reasoner, asserted, simple, paths, base);
+		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner();
+		oorr.createRelease(format, reasoner, asserted, simple, paths, base);
 
 	}
 
-	public static void createRelease(OWLOntologyFormat format,
+	public void createRelease(OWLOntologyFormat format,
 			String reasoner, boolean asserted, boolean simple,
-			Vector<String> paths, File base) throws IOException,
-			OWLOntologyCreationException, FileNotFoundException,
-			OWLOntologyStorageException 
-			{
+			Vector<String> paths, File base) 
+	throws IOException,
+	OWLOntologyCreationException, FileNotFoundException,
+	OWLOntologyStorageException 
+	{
 		String path = null;
 
-		// TODO - make this an option
-		boolean isExportBridges = false;
 
 		File releases = new File(base, "releases");
 		makeDir(releases);
@@ -214,8 +225,9 @@ public class OboOntologyReleaseRunner {
 
 		logger.info("Processing Ontologies: " + paths);
 
-		ParserWrapper parser = new ParserWrapper();
-		Mooncat mooncat = new Mooncat(parser.parseToOWLGraph(path));
+		parser = new ParserWrapper();
+		mooncat = new Mooncat(parser.parseToOWLGraph(path));
+		owlpp = new OWLPrettyPrinter(mooncat.getGraph());
 
 		for (int k = 1; k < paths.size(); k++) {
 			String p = getPathIRI(paths.get(k));
@@ -291,7 +303,7 @@ public class OboOntologyReleaseRunner {
 		// Main (asserted plus non-redundant inferred links)
 		// ----------------------------------------
 		// this is the same as ASSERTED, with certain axiom ADDED
-		
+
 		// this is always on by default
 		//  at some point we may wish to make this optional,
 		//  but a user would rarely choose to omit the main ontology
@@ -303,13 +315,23 @@ public class OboOntologyReleaseRunner {
 
 			logger.info("Creating basic ontology");
 
-			logger.info("Creating inferences");
-			if (reasoner != null)
-				buildInferences(mooncat.getGraph(), mooncat.getManager(), reasoner);
-			// ontology= buildInferredOntology(ontology, manager, reasoner);
+			if (reasoner != null) {
+				infBuilder = new InferenceBuilder(mooncat.getGraph(), reasoner);
 
-			logger.info("Inferences creation completed");
+				logger.info("Creating inferences");
+				buildInferences();
+				logger.info("Inferences creation completed");
 
+				logger.info("Finding redundant axioms");
+
+				for (OWLAxiom ax : infBuilder.getRedundantAxioms()) {
+					// TODO - in future do not remove axioms that are annotated
+					logger.info("Removing redundant axiom:"+ax+" // " + owlpp.render(ax));
+					mooncat.getManager().applyChange(new RemoveAxiom(mooncat.getOntology(), ax));					
+				}
+
+				logger.info("Redundant axioms removed");
+			}
 			String outputURI = new File(base, ontologyId + ".owl")
 			.getAbsolutePath();
 
@@ -354,13 +376,13 @@ public class OboOntologyReleaseRunner {
 
 			}
 			logger.info("Inferences creation completed");
-			*/
-			
+			 */
+
 			Owl2Obo owl2obo = new Owl2Obo();
 
-			
+
 			logger.info("Guessing core ontology (in future this can be overridden)");
-			
+
 			Set<OWLClass> coreSubset = new HashSet<OWLClass>();
 			for (OWLClass c : mooncat.getOntology().getClassesInSignature()) {
 				String idSpace = owl2obo.getIdentifier(c).replaceAll(":.*", "").toLowerCase();
@@ -368,7 +390,7 @@ public class OboOntologyReleaseRunner {
 					coreSubset.add(c);
 				}
 			}
-			
+
 			logger.info("Estimated core ontology number of classes: "+coreSubset.size());
 			if (coreSubset.size() == 0) {
 				// TODO - make the core subset configurable
@@ -377,7 +399,7 @@ public class OboOntologyReleaseRunner {
 			else {
 				mooncat.removeSubsetComplementClasses(coreSubset, true);
 			}
-			
+
 
 			String outputURI = new File(base, ontologyId + "-simple.owl")
 			.getAbsolutePath();
@@ -423,7 +445,7 @@ public class OboOntologyReleaseRunner {
 
 				copy(f.getCanonicalFile(), todayRelease);
 		}
-			}
+	}
 
 	/**
 	 * Uses reasoner to obtained inferred subclass axioms, and then adds the non-redundant
@@ -434,16 +456,16 @@ public class OboOntologyReleaseRunner {
 	 * @param reasoner
 	 * @return
 	 */
-	private static List<OWLAxiom> buildInferences(OWLGraphWrapper graph, OWLOntologyManager manager, String reasoner) {
-		InferenceBuilder infBuilder = new InferenceBuilder(graph, reasoner);
+	private List<OWLAxiom> buildInferences() {
+
+		OWLGraphWrapper graph = mooncat.getGraph();
 
 		List<OWLAxiom> axioms = infBuilder.buildInferences();
-		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
 
 		// TODO: ensure there is a subClassOf axiom for ALL classes that have an equivalence axiom
 		for(OWLAxiom ax: axioms){
 			logger.info("New axiom:"+ax+" // " + owlpp.render(ax));
-			manager.applyChange(new AddAxiom(graph.getSourceOntology(), ax));
+			mooncat.getManager().applyChange(new AddAxiom(graph.getSourceOntology(), ax));
 		}		
 		return axioms;
 	}
