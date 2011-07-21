@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -14,6 +15,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLRestriction;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -22,6 +24,7 @@ import org.semanticweb.owlapi.vocab.OWLDataFactoryVocabulary;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
+import owltools.ontologyrelease.OboOntologyReleaseRunner;
 import sun.util.logging.resources.logging;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
@@ -33,12 +36,17 @@ import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
  */
 public class InferenceBuilder{
 
+	protected final static Logger logger = Logger
+	.getLogger(InferenceBuilder.class);
+
+
 	public static final String REASONER_PELLET = "pellet";
 	public static final String REASONER_HERMIT = "hermit";
 
 	private final OWLReasonerFactory factory;
 	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
+	List<OWLAxiom> redundantAxioms = new ArrayList<OWLAxiom>();
 
 	public InferenceBuilder(OWLGraphWrapper graph){
 		this(graph, new PelletReasonerFactory());
@@ -75,9 +83,14 @@ public class InferenceBuilder{
 
 	private synchronized OWLReasoner getReasoner(OWLOntology ontology){
 		if(reasoner == null){
+			logger.info("Creating reasoner using:"+factory);
 			reasoner = factory.createReasoner(ontology);
 		}
 		return reasoner;
+	}
+
+	public List<OWLAxiom> getRedundantAxioms() {
+		return redundantAxioms;
 	}
 
 	public List<OWLAxiom> buildInferences() {
@@ -110,7 +123,7 @@ public class InferenceBuilder{
 		Set<OWLClass> nrClasses = new HashSet<OWLClass>();
 
 		for (OWLClass cls : ontology.getClassesInSignature()) {
-			
+
 			for (OWLClassExpression ec : cls.getEquivalentClasses(ontology)) {
 				//System.out.println(cls+"=EC="+ec);
 				if (alwaysAssertSuperClasses) {
@@ -190,11 +203,41 @@ public class InferenceBuilder{
 					if (!isAsserted) {						
 						sedges.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
 					}
+
 				}
 			}
 		}
 
+		// CHECK FOR REDUNDANCY - HERE?? TODO
+
+		redundantAxioms = new ArrayList<OWLAxiom>();
+		for (OWLClass cls : ontology.getClassesInSignature()) {
+			Set<OWLClassExpression> supers = cls.getSuperClasses(ontology);
+			for (OWLAxiom ax : sedges) {
+				if (ax instanceof OWLSubClassOfAxiom) {
+					OWLSubClassOfAxiom sax = (OWLSubClassOfAxiom)ax;
+					if (sax.getSubClass().equals(cls)) {
+						supers.add(sax.getSuperClass());
+					}
+				}
+			}
+			for (OWLClassExpression sup : supers) {
+				if (sup instanceof OWLClass) {
+					for (Node<OWLClass> supNode : reasoner.getSuperClasses(sup,false)) {
+						for (OWLClass sup2 : supNode.getEntities()) {
+							if (supers.contains(sup2)) {
+								redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup2) );
+							}
+						}
+					}
+				}
+			}
+		}		
+
 		sedges.addAll(eedges);
+
+
+
 		return sedges;
 
 	}
