@@ -10,8 +10,10 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -20,6 +22,7 @@ import org.semanticweb.owlapi.vocab.OWLDataFactoryVocabulary;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
+import sun.util.logging.resources.logging;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
@@ -32,7 +35,7 @@ public class InferenceBuilder{
 
 	public static final String REASONER_PELLET = "pellet";
 	public static final String REASONER_HERMIT = "hermit";
-	
+
 	private final OWLReasonerFactory factory;
 	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
@@ -40,7 +43,7 @@ public class InferenceBuilder{
 	public InferenceBuilder(OWLGraphWrapper graph){
 		this(graph, new PelletReasonerFactory());
 	}
-	
+
 	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName){
 		this.graph = graph;
 		// TODO decide if this should be done here, 
@@ -55,7 +58,7 @@ public class InferenceBuilder{
 			throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
 		}
 	}
-	
+
 	public InferenceBuilder(OWLGraphWrapper graph, OWLReasonerFactory factory){
 		this.factory = factory;
 		this.graph = graph;
@@ -78,10 +81,22 @@ public class InferenceBuilder{
 	}
 
 	public List<OWLAxiom> buildInferences() {
-		return buildInferences(false);
+		return buildInferences(true);
 	}
 
-	public List<OWLAxiom> buildInferences(boolean treatEquivalenceAxiomsAsAssertions) {
+	/**
+	 * if alwaysAssertSuperClasses then ensure
+	 * that superclasses are always asserted for every equivalence
+	 * axiom, except in the case where a more specific superclass is already
+	 * in the set of inferences.
+	 * 
+	 * this is because applications - particularly obof-centered ones -
+	 * ignore equivalence axioms by default
+	 * 
+	 * @param treatEquivalenceAxiomsAsAssertions
+	 * @return
+	 */
+	public List<OWLAxiom> buildInferences(boolean alwaysAssertSuperClasses) {
 		List<OWLAxiom> sedges = new ArrayList<OWLAxiom>();
 
 		List<OWLAxiom> eedges = new ArrayList<OWLAxiom>();
@@ -95,6 +110,23 @@ public class InferenceBuilder{
 		Set<OWLClass> nrClasses = new HashSet<OWLClass>();
 
 		for (OWLClass cls : ontology.getClassesInSignature()) {
+			
+			for (OWLClassExpression ec : cls.getEquivalentClasses(ontology)) {
+				//System.out.println(cls+"=EC="+ec);
+				if (alwaysAssertSuperClasses) {
+					if (ec instanceof OWLObjectIntersectionOf) {
+						for (OWLClassExpression x : ((OWLObjectIntersectionOf)ec).getOperands()) {
+							// TODO: turn into subclass axiom and add
+							if (x instanceof OWLRestriction) {
+								eedges.add(dataFactory.getOWLSubClassOfAxiom(cls, x));
+							}
+						}
+					}
+				}
+			}
+
+		}
+		for (OWLClass cls : ontology.getClassesInSignature()) {
 			if (nrClasses.contains(cls))
 				continue; // do not report these
 
@@ -103,8 +135,9 @@ public class InferenceBuilder{
 				if (nrClasses.contains(ec))
 					continue; // do not report these
 
-				if (cls.toString().equals(ec.toString()))
+				if (cls.equals(ec))
 					continue;
+
 
 				if (cls.toString().compareTo(ec.toString()) > 0) // equivalence
 					// is
@@ -123,10 +156,10 @@ public class InferenceBuilder{
 			for (Node<OWLClass> scSet : scs) {
 				for (OWLClass sc : scSet) {
 					if (sc.equals(OWLDataFactoryVocabulary.OWLThing)) {
-						continue;
+						continue; // do not report subclasses of owl:Thing
 					}
 					if (nrClasses.contains(sc))
-						continue; // do not report subclasses of owl:Thing
+						continue; 
 
 					// we do not want to report inferred subclass links
 					// if they are already asserted in the ontology
@@ -138,7 +171,7 @@ public class InferenceBuilder{
 						}
 					}
 
-					if (treatEquivalenceAxiomsAsAssertions) {
+					if (!alwaysAssertSuperClasses) {
 						// when generating obo, we do NOT want equivalence axioms treated as
 						// assertions
 						for (OWLClassExpression ec : cls

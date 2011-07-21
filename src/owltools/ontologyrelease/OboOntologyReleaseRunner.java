@@ -9,8 +9,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -27,6 +29,7 @@ import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -36,6 +39,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
 
@@ -50,12 +54,12 @@ import owltools.mooncat.Mooncat;
 public class OboOntologyReleaseRunner {
 
 	protected final static Logger logger = Logger
-			.getLogger(OboOntologyReleaseRunner.class);
+	.getLogger(OboOntologyReleaseRunner.class);
 
 	private static SimpleDateFormat dtFormat = new SimpleDateFormat(
 			"yyyy-MM-dd");
 
-	
+
 	private static void makeDir(File path) {
 		if (!path.exists())
 			path.mkdir();
@@ -80,7 +84,7 @@ public class OboOntologyReleaseRunner {
 		FileOutputStream propFile = new FileOutputStream(versionInfo);
 
 		prop.store(propFile,
-				"Auto Generate Version Number. Please do not edit it");
+		"Auto Generate Version Number. Please do not edit it");
 
 		return version;
 	}
@@ -97,15 +101,15 @@ public class OboOntologyReleaseRunner {
 				f.delete();
 		}*/
 	}
-	
+
 	private static String getPathIRI(String path){
-		
+
 		return path;
 	}
 
 	public static void main(String[] args) throws IOException,
-			OWLOntologyCreationException, OWLOntologyStorageException,
-			OBOFormatDanglingReferenceException {
+	OWLOntologyCreationException, OWLOntologyStorageException,
+	OBOFormatDanglingReferenceException {
 
 		OWLOntologyFormat format = new RDFXMLOntologyFormat();
 		// String outPath = ".";
@@ -128,9 +132,9 @@ public class OboOntologyReleaseRunner {
 				usage();
 				System.exit(0);
 			}
-			
-			 else if (opt.equals("-outdir")) { baseDirectory = args[i]; i++; }
-			 
+
+			else if (opt.equals("-outdir")) { baseDirectory = args[i]; i++; }
+
 			/*
 			 * else if (opt.equals("-owlversion")) { version = args[i]; i++; }
 			 */
@@ -181,12 +185,12 @@ public class OboOntologyReleaseRunner {
 			Vector<String> paths, File base) throws IOException,
 			OWLOntologyCreationException, FileNotFoundException,
 			OWLOntologyStorageException 
-	{
+			{
 		String path = null;
-	
+
 		// TODO - make this an option
 		boolean isExportBridges = false;
-		
+
 		File releases = new File(base, "releases");
 		makeDir(releases);
 
@@ -212,7 +216,7 @@ public class OboOntologyReleaseRunner {
 
 		ParserWrapper parser = new ParserWrapper();
 		Mooncat mooncat = new Mooncat(parser.parseToOWLGraph(path));
-		
+
 		for (int k = 1; k < paths.size(); k++) {
 			String p = getPathIRI(paths.get(k));
 			mooncat.addReferencedOntology(parser.parseOWL(p));
@@ -223,11 +227,11 @@ public class OboOntologyReleaseRunner {
 		}
 
 		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
-		ontologyId = ontologyId.replaceAll(".obo$", "");
+		ontologyId = ontologyId.replaceAll(".obo$", ""); // temp workaround
 
 		if (isExportBridges) {
 			logger.info("Creating Bridge Ontologies");
-			
+
 			// Note that this introduces a dependency on the oboformat-specific portion
 			// of the oboformat code. Ideally we would like to make everything run
 			// independent of obo
@@ -244,15 +248,20 @@ public class OboOntologyReleaseRunner {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 			// TODO - macro expansions
 		}
-		
+
+		// ----------------------------------------
+		// Asserted (non-classified)
+		// ----------------------------------------
+
+
 		if (asserted) {
 			logger.info("Creating Asserted Ontology");
 
 			String outputURI = new File(base, ontologyId + "-non-classified.owl")
-					.getAbsolutePath();
+			.getAbsolutePath();
 
 			logger.info("saving to " + outputURI);
 			FileOutputStream os = new FileOutputStream(new File(outputURI));
@@ -263,7 +272,7 @@ public class OboOntologyReleaseRunner {
 			OBODoc doc = owl2obo.convert(mooncat.getOntology());
 
 			outputURI = new File(base, ontologyId + "-non-classified.obo")
-					.getAbsolutePath();
+			.getAbsolutePath();
 			logger.info("saving to " + outputURI);
 
 			OBOFormatWriter writer = new OBOFormatWriter();
@@ -275,26 +284,38 @@ public class OboOntologyReleaseRunner {
 
 			bwriter.close();
 
-			logger.info("Asserted Ontolog Creationg Completed");
+			logger.info("Asserted Ontology Creation Completed");
 		}
+
+		// ----------------------------------------
+		// Main (asserted plus non-redundant inferred links)
+		// ----------------------------------------
+		// this is the same as ASSERTED, with certain axiom ADDED
 		
-		
-		if (simple) {
+		// this is always on by default
+		//  at some point we may wish to make this optional,
+		//  but a user would rarely choose to omit the main ontology
+		if (true) {
 
-			logger.info("Creating simple ontology");
+			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
+			mooncat.mergeOntologies();
 
 
-			logger.info("Creating Inferences");
-			if (reasoner != null) {
-				//buildInferredOntology(simpleOnt, manager, reasoner);
+			logger.info("Creating basic ontology");
+
+			logger.info("Creating inferences");
+			if (reasoner != null)
 				buildInferences(mooncat.getGraph(), mooncat.getManager(), reasoner);
+			// ontology= buildInferredOntology(ontology, manager, reasoner);
 
-			}
 			logger.info("Inferences creation completed");
 
-			String outputURI = new File(base, ontologyId + "-simple.owl")
-					.getAbsolutePath();
+			String outputURI = new File(base, ontologyId + ".owl")
+			.getAbsolutePath();
 
+			// IRI outputStream = IRI.create(outputURI);
+			// format = new OWLXMLOntologyFormat();
+			// OWLXMLOntologyFormat owlFormat = new OWLXMLOntologyFormat();
 			logger.info("saving to " + ontologyId + "," + outputURI
 					+ " via " + format);
 			FileOutputStream os = new FileOutputStream(new File(outputURI));
@@ -304,8 +325,73 @@ public class OboOntologyReleaseRunner {
 			Owl2Obo owl2obo = new Owl2Obo();
 			OBODoc doc = owl2obo.convert(mooncat.getOntology());
 
+			outputURI = new File(base, ontologyId + ".obo").getAbsolutePath();
+			logger.info("saving to " + outputURI);
+
+			OBOFormatWriter writer = new OBOFormatWriter();
+
+			BufferedWriter bwriter = new BufferedWriter(new FileWriter(new File(
+					outputURI)));
+
+			writer.write(doc, bwriter);
+
+			bwriter.close();
+		}
+
+		// ----------------------------------------
+		// Simple (no MIREOTs, no imports)
+		// ----------------------------------------
+		// this is the same as MAIN, with certain axiom REMOVED
+		if (simple) {
+
+			logger.info("Creating simple ontology");
+
+			/*
+			logger.info("Creating Inferences");
+			if (reasoner != null) {
+				//buildInferredOntology(simpleOnt, manager, reasoner);
+				buildInferences(mooncat.getGraph(), mooncat.getManager(), reasoner);
+
+			}
+			logger.info("Inferences creation completed");
+			*/
+			
+			Owl2Obo owl2obo = new Owl2Obo();
+
+			
+			logger.info("Guessing core ontology (in future this can be overridden)");
+			
+			Set<OWLClass> coreSubset = new HashSet<OWLClass>();
+			for (OWLClass c : mooncat.getOntology().getClassesInSignature()) {
+				String idSpace = owl2obo.getIdentifier(c).replaceAll(":.*", "").toLowerCase();
+				if (idSpace.equals(ontologyId)) {
+					coreSubset.add(c);
+				}
+			}
+			
+			logger.info("Estimated core ontology number of classes: "+coreSubset.size());
+			if (coreSubset.size() == 0) {
+				// TODO - make the core subset configurable
+				logger.error("cannot determine core subset - simple file will include everything");
+			}
+			else {
+				mooncat.removeSubsetComplementClasses(coreSubset, true);
+			}
+			
+
+			String outputURI = new File(base, ontologyId + "-simple.owl")
+			.getAbsolutePath();
+
+			logger.info("saving to " + ontologyId + "," + outputURI
+					+ " via " + format);
+			FileOutputStream os = new FileOutputStream(new File(outputURI));
+			mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
+			os.close();
+
+			OBODoc doc = owl2obo.convert(mooncat.getOntology());
+
 			outputURI = new File(base, ontologyId + "-simple.obo")
-					.getAbsolutePath();
+			.getAbsolutePath();
 			logger.info("saving to " + outputURI);
 
 			OBOFormatWriter writer = new OBOFormatWriter();
@@ -320,46 +406,11 @@ public class OboOntologyReleaseRunner {
 			logger.info("Creating simple ontology completed");
 
 		}		
-		
-		logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
-		mooncat.mergeOntologies();
-		
-		
-		logger.info("Creating basic ontology");
 
-		logger.info("Creating inferences");
-		if (reasoner != null)
-			buildInferences(mooncat.getGraph(), mooncat.getManager(), reasoner);
-		// ontology= buildInferredOntology(ontology, manager, reasoner);
 
-		logger.info("Inferences creation completed");
-
-		String outputURI = new File(base, ontologyId + ".owl")
-				.getAbsolutePath();
-
-		// IRI outputStream = IRI.create(outputURI);
-		// format = new OWLXMLOntologyFormat();
-		// OWLXMLOntologyFormat owlFormat = new OWLXMLOntologyFormat();
-		logger.info("saving to " + ontologyId + "," + outputURI
-				+ " via " + format);
-		FileOutputStream os = new FileOutputStream(new File(outputURI));
-		mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
-		os.close();
-
-		Owl2Obo owl2obo = new Owl2Obo();
-		OBODoc doc = owl2obo.convert(mooncat.getOntology());
-
-		outputURI = new File(base, ontologyId + ".obo").getAbsolutePath();
-		logger.info("saving to " + outputURI);
-
-		OBOFormatWriter writer = new OBOFormatWriter();
-
-		BufferedWriter bwriter = new BufferedWriter(new FileWriter(new File(
-				outputURI)));
-
-		writer.write(doc, bwriter);
-
-		bwriter.close();
+		// ----------------------------------------
+		// End of export file creation
+		// ----------------------------------------
 
 		logger.info("Copying files to release "
 				+ todayRelease.getAbsolutePath());
@@ -370,18 +421,28 @@ public class OboOntologyReleaseRunner {
 					|| (f.isDirectory() && f.getName().equals("subsets"))
 					|| (f.isDirectory() && f.getName().equals("extensions")))
 
-				 copy(f.getCanonicalFile(), todayRelease);
+				copy(f.getCanonicalFile(), todayRelease);
 		}
-	}
+			}
 
+	/**
+	 * Uses reasoner to obtained inferred subclass axioms, and then adds the non-redundant
+	 * ones to he ontology
+	 * 
+	 * @param graph
+	 * @param manager
+	 * @param reasoner
+	 * @return
+	 */
 	private static List<OWLAxiom> buildInferences(OWLGraphWrapper graph, OWLOntologyManager manager, String reasoner) {
 		InferenceBuilder infBuilder = new InferenceBuilder(graph, reasoner);
 
 		List<OWLAxiom> axioms = infBuilder.buildInferences();
-		
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
+
 		// TODO: ensure there is a subClassOf axiom for ALL classes that have an equivalence axiom
 		for(OWLAxiom ax: axioms){
-			logger.info("New axiom:"+ax);
+			logger.info("New axiom:"+ax+" // " + owlpp.render(ax));
 			manager.applyChange(new AddAxiom(graph.getSourceOntology(), ax));
 		}		
 		return axioms;
@@ -389,21 +450,21 @@ public class OboOntologyReleaseRunner {
 
 	private static void usage() {
 		System.out.println("This utility builds an ontology release. This tool is supposed to be run " +
-				"from the location where a particular ontology releases are to be maintained.");
+		"from the location where a particular ontology releases are to be maintained.");
 		System.out.println("\n");
 		System.out.println("bin/ontology-release-runner [OPTIONAL OPTIONS] ONTOLOGIES-FILES");
 		System.out
-				.println("Multiple obo or owl files are separated by a space character in the place of the ONTOLOGIES-FILES arguments.");
+		.println("Multiple obo or owl files are separated by a space character in the place of the ONTOLOGIES-FILES arguments.");
 		System.out.println("\n");
 		System.out.println("OPTIONS:");
 		System.out
-				.println("\t\t (-outdir ~/work/myontology) The path where the release will be produced.");
+		.println("\t\t (-outdir ~/work/myontology) The path where the release will be produced.");
 		System.out
-				.println("\t\t (-reasoner pellet) This option provides name of reasoner to be used to build inference computation.");
+		.println("\t\t (-reasoner pellet) This option provides name of reasoner to be used to build inference computation.");
 		System.out
-				.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
+		.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
 		System.out
-				.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
+		.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
 	}
 
 	private static void addVersion(OWLOntology ontology, String version,
@@ -413,14 +474,14 @@ public class OboOntologyReleaseRunner {
 		OWLAnnotationProperty ap = fac.getOWLAnnotationProperty(Obo2Owl
 				.trTagToIRI(OboFormatTag.TAG_REMARK.getTag()));
 		OWLAnnotation ann = fac
-				.getOWLAnnotation(ap, fac.getOWLLiteral(version));
+		.getOWLAnnotation(ap, fac.getOWLLiteral(version));
 
 		if (ontology == null ||
 				ontology.getOntologyID() == null ||
 				ontology.getOntologyID().getOntologyIRI() == null) {
 			// TODO: shahid - can you add a proper error mechanism
 			System.err.println("Please set your ontology ID. \n"+
-					"In obo-format this should be the same as your ID-space, all in lower case");
+			"In obo-format this should be the same as your ID-space, all in lower case");
 		}
 		OWLAxiom ax = fac.getOWLAnnotationAssertionAxiom(ontology
 				.getOntologyID().getOntologyIRI(), ann);
@@ -429,7 +490,7 @@ public class OboOntologyReleaseRunner {
 
 	}
 
-	
+
 	/**
 	 * Copies file/directory to destination from source.
 	 * @param fromFile
@@ -440,19 +501,19 @@ public class OboOntologyReleaseRunner {
 
 		if (toFile.isDirectory())
 			toFile = new File(toFile, fromFile.getName());
-		
+
 		if(fromFile.isDirectory()){
 			makeDir(toFile);
 			for(File f: fromFile.listFiles()){
 				if(f.getName().equals(".") || f.getName().equals(".."))
 					continue;
-				
+
 				copy(f, toFile);
 			}
-			
+
 			return;
 		}
-		
+
 		FileInputStream from = null;
 		FileOutputStream to = null;
 		try {
@@ -470,14 +531,14 @@ public class OboOntologyReleaseRunner {
 				} catch (IOException e) {
 					;
 				}
-			if (to != null)
-				try {
-					to.close();
-				} catch (IOException e) {
-					;
-				}
+				if (to != null)
+					try {
+						to.close();
+					} catch (IOException e) {
+						;
+					}
 		}
 	}
-	
+
 
 }

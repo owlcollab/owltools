@@ -204,7 +204,6 @@ public class Mooncat {
 		LOG.info("#refObjs: "+refObjs.size());
 
 		return refObjs;
-
 	}
 
 	/**
@@ -319,6 +318,7 @@ public class Mooncat {
 		return filteredAxioms;
 	}
 	
+	
 	/**
 	 * merge minimal subset of referenced ontologies into the source ontology
 	 * 
@@ -356,7 +356,8 @@ public class Mooncat {
 	 */
 	public boolean isDangling(OWLOntology ont, OWLEntity obj) {
 		if (obj.getAnnotationAssertionAxioms(ont).size()  == 0 ) {
-			// in future also consider logical axioms
+			// in future also consider logical axioms;
+			/// problematic - e.g. for symmetric axioms like disjointWith
 			return true;
 		}		
 		return false;
@@ -379,5 +380,33 @@ public class Mooncat {
 	public void removeDanglingAxioms() {
 		removeDanglingAxioms(getOntology());
 	}
+	
+	/**
+	 * Remove all classes *not* in subset.
+	 * 
+	 * This means:
+	 *   * remove all annotation assertions for that class
+	 *   * remove all logical axioms about that class
+	 *   
+	 *   If removeDangling is true, also remove all axioms that reference this class
+	 * 
+	 * @param subset
+	 * @param removeDangling
+	 */
+	public void removeSubsetComplementClasses(Set<OWLClass> subset, boolean removeDangling) {
+		OWLOntology o = getOntology();
+		Set<OWLClass> rmSet = o.getClassesInSignature();
+		rmSet.removeAll(subset);
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLClass c : rmSet) {
+			rmAxioms.addAll(c.getAnnotationAssertionAxioms(o));
+			rmAxioms.addAll(o.getAxioms(c));
+		}
+		graph.getManager().removeAxioms(o, rmAxioms);
+		if (removeDangling) {
+			removeDanglingAxioms(o);
+		}
+	}
+
 
 }
