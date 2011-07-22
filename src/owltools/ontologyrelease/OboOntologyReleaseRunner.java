@@ -65,7 +65,7 @@ public class OboOntologyReleaseRunner {
 		protected DateFormat initialValue() {
 			return new SimpleDateFormat("yyyy-MM-dd");
 		}
-		
+
 	};
 
 
@@ -78,7 +78,7 @@ public class OboOntologyReleaseRunner {
 	boolean simple = false;
 	// TODO - make this an option
 	boolean isExportBridges = false;
-	
+
 
 	private static void makeDir(File path) {
 		if (!path.exists())
@@ -126,8 +126,8 @@ public class OboOntologyReleaseRunner {
 
 		return path;
 	}
-	
-	
+
+
 
 	public String getReasonerName() {
 		return reasonerName;
@@ -294,12 +294,15 @@ public class OboOntologyReleaseRunner {
 			try {
 				// TODO - make this configurable.
 				// currently uses the name "MAIN-bridge-to-EXT" for all
-				xe = new XrefExpander(parser.getOBOdoc(), ontologyId+"=bridge-to-");
+				xe = new XrefExpander(parser.getOBOdoc(), ontologyId+"-bridge-to");
 				xe.expandXrefs();
 				for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
-					logger.info("TDOC:"+tdoc);
-					tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY);
-					
+					String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
+					logger.info("TDOC:"+tOntId);
+					Obo2Owl obo2owl = new Obo2Owl();
+					OWLOntology tOnt = obo2owl.convert(tdoc);
+					saveOntologyInAllFormats(base, tOntId, format, tOnt);
+
 					// TODO - save both obo and owl;
 					// do this in a generic way, Don't Repeat Yourself..
 				}
@@ -443,21 +446,25 @@ public class OboOntologyReleaseRunner {
 		}		
 		return axioms;
 	}
-	
+
 	private void saveInAllFormats(File base, String ontologyId, OWLOntologyFormat format, String ext) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
+		saveOntologyInAllFormats(base, ontologyId, format, mooncat.getOntology());
+	}
+
+	private void saveOntologyInAllFormats(File base, String fn, OWLOntologyFormat format, OWLOntology ontologyToSave) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
 		logger.info("Saving: "+fn);
-		
+
 		String outputURI = new File(base, fn +".owl").getAbsolutePath();
 
 		logger.info("saving to " + outputURI);
 		FileOutputStream os = new FileOutputStream(new File(outputURI));
-		mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
+		mooncat.getManager().saveOntology(ontologyToSave, format, os);
 		os.close();
 
 		Owl2Obo owl2obo = new Owl2Obo();
-		OBODoc doc = owl2obo.convert(mooncat.getOntology());
+		OBODoc doc = owl2obo.convert(ontologyToSave);
 
 		outputURI = new File(base, fn +".obo").getAbsolutePath();
 		logger.info("saving to " + outputURI);
