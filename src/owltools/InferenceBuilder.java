@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.vocab.OWLDataFactoryVocabulary;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.ontologyrelease.OboOntologyReleaseRunner;
+import owltools.reasoner.PlaceholderJcelFactory;
 import sun.util.logging.resources.logging;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
@@ -42,6 +43,7 @@ public class InferenceBuilder{
 
 	public static final String REASONER_PELLET = "pellet";
 	public static final String REASONER_HERMIT = "hermit";
+	public static final String REASONER_JCEL = "jcel";
 
 	private final OWLReasonerFactory factory;
 	private volatile OWLReasoner reasoner = null;
@@ -61,6 +63,9 @@ public class InferenceBuilder{
 		}
 		else if (REASONER_HERMIT.equals(reasonerName)) {
 			this.factory = new Reasoner.ReasonerFactory();
+		}
+		else if (REASONER_JCEL.equals(reasonerName)) {
+			this.factory = new PlaceholderJcelFactory();
 		}
 		else {
 			throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
@@ -85,6 +90,7 @@ public class InferenceBuilder{
 		if(reasoner == null){
 			logger.info("Creating reasoner using:"+factory);
 			reasoner = factory.createReasoner(ontology);
+			logger.info("Created reasoner: "+reasoner);
 		}
 		return reasoner;
 	}
@@ -122,6 +128,7 @@ public class InferenceBuilder{
 
 		Set<OWLClass> nrClasses = new HashSet<OWLClass>();
 
+		logger.info("Finding inferred equivalencies...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 
 			for (OWLClassExpression ec : cls.getEquivalentClasses(ontology)) {
@@ -139,6 +146,7 @@ public class InferenceBuilder{
 			}
 
 		}
+		logger.info("Finding inferred superclasses...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 			if (nrClasses.contains(cls))
 				continue; // do not report these
@@ -208,8 +216,8 @@ public class InferenceBuilder{
 			}
 		}
 
-		// CHECK FOR REDUNDANCY - HERE?? TODO
-
+		// CHECK FOR REDUNDANCY
+		logger.info("Checking for redundant assertions caused by inferences");
 		redundantAxioms = new ArrayList<OWLAxiom>();
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 			Set<OWLClassExpression> supers = cls.getSuperClasses(ontology);

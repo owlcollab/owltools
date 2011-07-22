@@ -65,7 +65,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 				"<p>This is the version does <i>not</i> have the reasoner-inferred links asserted</p></html>",
 				defaultIsAsserted, 
 				"simple", 
-				"In addition the generating the main ontology, this will make a version with all external classes and references to them removed",
+				"<p>In addition the generating the main ontology, this will make a version</p><p> with all external classes and references to them removed</p>",
 				defaultIsSimple);
 		addRowGap(this, pos, 20);
 		
@@ -157,7 +157,6 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 			hermitRadioButton.setSelected(true);
 		}
 		factppRadioButton.setEnabled(false);
-		jcelRadioButton.setEnabled(false);
 	}
 	
 }

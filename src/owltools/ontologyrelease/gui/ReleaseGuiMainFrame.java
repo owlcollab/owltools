@@ -151,6 +151,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 		else if (advancedPanel.hermitRadioButton.isSelected()) {
 			parameters.setReasoner(InferenceBuilder.REASONER_HERMIT);
 		}
+		else if (advancedPanel.jcelRadioButton.isSelected()) {
+			parameters.setReasoner(InferenceBuilder.REASONER_JCEL);
+		}
 		
 		// asserted
 		parameters.setAsserted(advancedPanel.assertedCheckBox.isSelected());
