@@ -65,7 +65,8 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 				"<p>This is the version does <i>not</i> have the reasoner-inferred links asserted</p></html>",
 				defaultIsAsserted, 
 				"simple", 
-				"<p>In addition the generating the main ontology, this will make a version</p><p> with all external classes and references to them removed</p>",
+				"<html><p>In addition the generating the main ontology, this will make a version</p>" +
+				"<p> with all external classes and references to them removed</p></html>",
 				defaultIsSimple);
 		addRowGap(this, pos, 20);
 		
