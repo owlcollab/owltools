@@ -95,7 +95,10 @@ public class OboOntologyReleaseRunnerGui {
 						Vector<String> paths = parameters.getPaths();
 						File base = parameters.getBase();
 						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner();
-						oorr.createRelease(format, reasoner, asserted, simple, paths, base);
+						oorr.setReasonerName(reasoner);
+						oorr.setAsserted(asserted);
+						oorr.setSimple(simple);
+						oorr.createRelease(format, paths, base);
 						logger.info("Finished release manager process");
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, "Finished making the release.");
 					} catch (Exception e) {

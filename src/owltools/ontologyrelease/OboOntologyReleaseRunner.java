@@ -68,16 +68,17 @@ public class OboOntologyReleaseRunner {
 		
 	};
 
-	// TODO - make this an option
-	boolean isExportBridges = false;
 
 	ParserWrapper parser;
 	Mooncat mooncat;
 	InferenceBuilder infBuilder;
 	OWLPrettyPrinter owlpp;
-
-
-
+	String reasonerName = InferenceBuilder.REASONER_HERMIT;
+	boolean asserted = false;
+	boolean simple = false;
+	// TODO - make this an option
+	boolean isExportBridges = false;
+	
 
 	private static void makeDir(File path) {
 		if (!path.exists())
@@ -125,6 +126,40 @@ public class OboOntologyReleaseRunner {
 
 		return path;
 	}
+	
+	
+
+	public String getReasonerName() {
+		return reasonerName;
+	}
+
+	public void setReasonerName(String reasonerName) {
+		this.reasonerName = reasonerName;
+	}
+
+	public boolean isAsserted() {
+		return asserted;
+	}
+
+	public void setAsserted(boolean asserted) {
+		this.asserted = asserted;
+	}
+
+	public boolean isSimple() {
+		return simple;
+	}
+
+	public void setSimple(boolean simple) {
+		this.simple = simple;
+	}
+
+	public boolean isExportBridges() {
+		return isExportBridges;
+	}
+
+	public void setExportBridges(boolean isExportBridges) {
+		this.isExportBridges = isExportBridges;
+	}
 
 	public static void main(String[] args) throws IOException,
 	OWLOntologyCreationException, OWLOntologyStorageException,
@@ -132,10 +167,9 @@ public class OboOntologyReleaseRunner {
 
 		OWLOntologyFormat format = new RDFXMLOntologyFormat();
 		// String outPath = ".";
-		String reasoner = InferenceBuilder.REASONER_HERMIT;
-		boolean asserted = false;
-		boolean simple = false;
 		String baseDirectory = ".";
+
+		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner();
 
 		int i = 0;
 		Vector<String> paths = new Vector<String>();
@@ -158,7 +192,7 @@ public class OboOntologyReleaseRunner {
 			 * else if (opt.equals("-owlversion")) { version = args[i]; i++; }
 			 */
 			else if (opt.equals("-reasoner")) {
-				reasoner = args[i];
+				oorr.reasonerName = args[i];
 				i++;
 			}
 			/*
@@ -166,11 +200,14 @@ public class OboOntologyReleaseRunner {
 			 * i++; }
 			 */
 			else if (opt.equals("--asserted")) {
-				asserted = true;
-			} else if (opt.equals("--simple")) {
-				simple = true;
+				oorr.asserted = true;
 			}
-
+			else if (opt.equals("--simple")) {
+				oorr.simple = true;
+			}
+			else if (opt.equals("--bridges")) {
+				oorr.isExportBridges = true;
+			}
 			else {
 
 				String tokens[] = opt.split(" ");
@@ -195,13 +232,11 @@ public class OboOntologyReleaseRunner {
 			throw new IOException("Cann't write in the base directory "
 					+ baseDirectory);
 
-		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner();
-		oorr.createRelease(format, reasoner, asserted, simple, paths, base);
+		oorr.createRelease(format, paths, base);
 
 	}
 
 	public void createRelease(OWLOntologyFormat format,
-			String reasoner, boolean asserted, boolean simple,
 			Vector<String> paths, File base) 
 	throws IOException,
 	OWLOntologyCreationException, FileNotFoundException,
@@ -257,10 +292,14 @@ public class OboOntologyReleaseRunner {
 			// independent of obo
 			XrefExpander xe;
 			try {
-				// TODO - make this configurable
+				// TODO - make this configurable.
+				// currently uses the name "MAIN-bridge-to-EXT" for all
 				xe = new XrefExpander(parser.getOBOdoc(), ontologyId+"=bridge-to-");
 				xe.expandXrefs();
 				for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
+					logger.info("TDOC:"+tdoc);
+					tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY);
+					
 					// TODO - save both obo and owl;
 					// do this in a generic way, Don't Repeat Yourself..
 				}
@@ -279,31 +318,7 @@ public class OboOntologyReleaseRunner {
 
 		if (asserted) {
 			logger.info("Creating Asserted Ontology");
-
-			String outputURI = new File(base, ontologyId + "-non-classified.owl")
-			.getAbsolutePath();
-
-			logger.info("saving to " + outputURI);
-			FileOutputStream os = new FileOutputStream(new File(outputURI));
-			mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
-			os.close();
-
-			Owl2Obo owl2obo = new Owl2Obo();
-			OBODoc doc = owl2obo.convert(mooncat.getOntology());
-
-			outputURI = new File(base, ontologyId + "-non-classified.obo")
-			.getAbsolutePath();
-			logger.info("saving to " + outputURI);
-
-			OBOFormatWriter writer = new OBOFormatWriter();
-
-			BufferedWriter bwriter = new BufferedWriter(new FileWriter(
-					new File(outputURI)));
-
-			writer.write(doc, bwriter);
-
-			bwriter.close();
-
+			saveInAllFormats(base, ontologyId, format, "non-classified");
 			logger.info("Asserted Ontology Creation Completed");
 		}
 
@@ -320,11 +335,10 @@ public class OboOntologyReleaseRunner {
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();
 
-
 			logger.info("Creating basic ontology");
 
-			if (reasoner != null) {
-				infBuilder = new InferenceBuilder(mooncat.getGraph(), reasoner);
+			if (reasonerName != null) {
+				infBuilder = new InferenceBuilder(mooncat.getGraph(), reasonerName);
 
 				logger.info("Creating inferences");
 				buildInferences();
@@ -340,32 +354,8 @@ public class OboOntologyReleaseRunner {
 
 				logger.info("Redundant axioms removed");
 			}
-			String outputURI = new File(base, ontologyId + ".owl")
-			.getAbsolutePath();
+			saveInAllFormats(base, ontologyId, format, null);
 
-			// IRI outputStream = IRI.create(outputURI);
-			// format = new OWLXMLOntologyFormat();
-			// OWLXMLOntologyFormat owlFormat = new OWLXMLOntologyFormat();
-			logger.info("saving to " + ontologyId + "," + outputURI
-					+ " via " + format);
-			FileOutputStream os = new FileOutputStream(new File(outputURI));
-			mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
-			os.close();
-
-			Owl2Obo owl2obo = new Owl2Obo();
-			OBODoc doc = owl2obo.convert(mooncat.getOntology());
-
-			outputURI = new File(base, ontologyId + ".obo").getAbsolutePath();
-			logger.info("saving to " + outputURI);
-
-			OBOFormatWriter writer = new OBOFormatWriter();
-
-			BufferedWriter bwriter = new BufferedWriter(new FileWriter(new File(
-					outputURI)));
-
-			writer.write(doc, bwriter);
-
-			bwriter.close();
 		}
 
 		// ----------------------------------------
@@ -408,31 +398,7 @@ public class OboOntologyReleaseRunner {
 				mooncat.removeSubsetComplementClasses(coreSubset, true);
 			}
 
-
-			String outputURI = new File(base, ontologyId + "-simple.owl")
-			.getAbsolutePath();
-
-			logger.info("saving to " + ontologyId + "," + outputURI
-					+ " via " + format);
-			FileOutputStream os = new FileOutputStream(new File(outputURI));
-			mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
-			os.close();
-
-			OBODoc doc = owl2obo.convert(mooncat.getOntology());
-
-			outputURI = new File(base, ontologyId + "-simple.obo")
-			.getAbsolutePath();
-			logger.info("saving to " + outputURI);
-
-			OBOFormatWriter writer = new OBOFormatWriter();
-
-			BufferedWriter bwriter = new BufferedWriter(new FileWriter(
-					new File(outputURI)));
-
-			writer.write(doc, bwriter);
-
-			bwriter.close();
-
+			saveInAllFormats(base, ontologyId, format, "simple");
 			logger.info("Creating simple ontology completed");
 
 		}		
@@ -476,6 +442,35 @@ public class OboOntologyReleaseRunner {
 			mooncat.getManager().applyChange(new AddAxiom(graph.getSourceOntology(), ax));
 		}		
 		return axioms;
+	}
+	
+	private void saveInAllFormats(File base, String ontologyId, OWLOntologyFormat format, String ext) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
+
+		logger.info("Saving: "+fn);
+		
+		String outputURI = new File(base, fn +".owl").getAbsolutePath();
+
+		logger.info("saving to " + outputURI);
+		FileOutputStream os = new FileOutputStream(new File(outputURI));
+		mooncat.getManager().saveOntology(mooncat.getOntology(), format, os);
+		os.close();
+
+		Owl2Obo owl2obo = new Owl2Obo();
+		OBODoc doc = owl2obo.convert(mooncat.getOntology());
+
+		outputURI = new File(base, fn +".obo").getAbsolutePath();
+		logger.info("saving to " + outputURI);
+
+		OBOFormatWriter writer = new OBOFormatWriter();
+
+		BufferedWriter bwriter = new BufferedWriter(new FileWriter(
+				new File(outputURI)));
+
+		writer.write(doc, bwriter);
+
+		bwriter.close();
+
 	}
 
 	private static void usage() {
