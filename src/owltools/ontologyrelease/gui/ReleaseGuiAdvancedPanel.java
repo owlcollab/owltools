@@ -141,18 +141,22 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		add(pelletRadioButton, pos.nextRow().nextCol());
 		add(new JLabel("Pellet"), pos.nextCol());
 		
-		add(factppRadioButton, pos.nextRow().nextCol());
-		add(new JLabel("Fact++"), pos.nextCol());
-		
 		add(jcelRadioButton, pos.nextRow().nextCol());
 		add(new JLabel("JCEL"), pos.nextCol());
+
+		add(factppRadioButton, pos.nextRow().nextCol());
+		add(new JLabel("Fact++"), pos.nextCol());
 		
 		addRowGap(this, pos.nextRow(), 10);
 		add(new JLabel("(Both Hermit and Pellet should give the same results, Hermit is typically faster)"), 
 				pos.nextRow().indentLeft(DEFAULT_INDENT).width(3).fill().expandW());
 		
+		// set default, if nothing matches use Hermit
 		if (InferenceBuilder.REASONER_PELLET.equals(defaultReasoner)) {
 			pelletRadioButton.setSelected(true);
+		}
+		else if (InferenceBuilder.REASONER_JCEL.equals(defaultReasoner)) {
+			jcelRadioButton.setSelected(true);
 		}
 		else {
 			hermitRadioButton.setSelected(true);
