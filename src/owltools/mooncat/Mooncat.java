@@ -351,7 +351,14 @@ public class Mooncat {
 	}
 
 	/**
-	 * Here a dangling entity is one that has no annotation assertions
+	 * Here a dangling entity is one that has no annotation assertions;
+	 * 
+	 * this is not a perfect test, as conceivable a class could lack
+	 * assertions; however, this would not be the case for any ontology
+	 * following obo library principles.
+	 * 
+	 * this is probably the most reliable test - simply checking
+	 * for declarations is insufficient as the owlapi may infer declarations
 	 * 
 	 * @param ont
 	 * @param obj
@@ -366,11 +373,17 @@ public class Mooncat {
 		return false;
 	}
 
+	/**
+	 * Removes any axiom from ont if that axiom contains a dangling
+	 * reference - i.e. a reference a class in another ontology
+	 * 
+	 * @param ont
+	 */
 	public void removeDanglingAxioms(OWLOntology ont) {
 		Set<OWLClass> danglers = new HashSet<OWLClass>();
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLClass obj : ont.getClassesInSignature()) {
-			LOG.info("testing "+obj);
+			//LOG.info("testing "+obj);
 			if (isDangling(ont, obj)) {
 				danglers.add(obj);
 				rmAxioms.addAll(ont.getReferencingAxioms(obj));

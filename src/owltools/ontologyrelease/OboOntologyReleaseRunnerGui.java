@@ -109,7 +109,7 @@ public class OboOntologyReleaseRunnerGui {
 						oorr.setReasonerName(parameters.getReasoner());
 						oorr.setAsserted(parameters.isAsserted());
 						oorr.setSimple(parameters.isSimple());
-						oorr.setExportBridges(parameters.isExpandXrefs());
+						oorr.setExpandXrefs(parameters.isExpandXrefs());
 						oorr.setAllowFileOverWrite(parameters.isAllowOverwrite());
 						oorr.createRelease(format, paths, base);
 						logger.info("Finished release manager process");

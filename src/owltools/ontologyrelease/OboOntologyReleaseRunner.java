@@ -83,7 +83,7 @@ public class OboOntologyReleaseRunner {
 	boolean simple = false;
 	boolean allowFileOverWrite = false;
 	// TODO - make this an option
-	boolean isExportBridges = false;
+	boolean isExpandXrefs = false;
 	boolean isRecreateMireot = false;
 	boolean isExpandMacros = false;
 	boolean isCheckConsistency = true;
@@ -210,12 +210,12 @@ public class OboOntologyReleaseRunner {
 		this.simple = simple;
 	}
 
-	public boolean isExportBridges() {
-		return isExportBridges;
+	public boolean isExpandXrefs() {
+		return isExpandXrefs;
 	}
 
-	public void setExportBridges(boolean isExportBridges) {
-		this.isExportBridges = isExportBridges;
+	public void setExpandXrefs(boolean isExportBridges) {
+		this.isExpandXrefs = isExportBridges;
 	}
 	
 	
@@ -272,8 +272,8 @@ public class OboOntologyReleaseRunner {
 			else if (opt.equals("--simple")) {
 				oorr.simple = true;
 			}
-			else if (opt.equals("--bridges")) {
-				oorr.isExportBridges = true;
+			else if (opt.equals("--expand-xrefs")) {
+				oorr.isExpandXrefs = true;
 			}
 			else if (opt.equals("--re-mireot")) {
 				oorr.isRecreateMireot = true;
@@ -281,7 +281,7 @@ public class OboOntologyReleaseRunner {
 			else if (opt.equals("--expand-macros")) {
 				oorr.isExpandMacros = true;
 			}
-			else if (opt.equals("--allowOverwrite")) {
+			else if (opt.equals("--allow-overwrite")) {
 				oorr.allowFileOverWrite = true;
 			}
 			else {
@@ -379,7 +379,7 @@ public class OboOntologyReleaseRunner {
 		// ----------------------------------------
 		// Bridge files
 		// ----------------------------------------
-		if (isExportBridges) {
+		if (isExpandXrefs) {
 			logger.info("Creating Bridge Ontologies");
 
 			// Note that this introduces a dependency on the oboformat-specific portion
