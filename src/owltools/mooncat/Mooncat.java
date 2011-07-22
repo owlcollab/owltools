@@ -48,7 +48,7 @@ public class Mooncat {
 	OWLOntologyManager manager;
 	OWLDataFactory dataFactory;
 	Set<OWLAxiom> mAxioms = new HashSet<OWLAxiom>();
-	OWLOntology ontology;
+	//OWLOntology ontology; // delegate instead
 	Set<OWLOntology> referencedOntologies = new HashSet<OWLOntology>();
 	Set<OWLOntology> allOntologies = null;
 	OWLGraphWrapper graph;
@@ -59,14 +59,14 @@ public class Mooncat {
 		super();
 		this.manager = manager;
 		this.dataFactory = dataFactory;
-		this.ontology = ontology;
+		//this.ontology = ontology;
 	}
 
 
 
 	public Mooncat(OWLGraphWrapper g) {
 		super();
-		this.ontology = g.getSourceOntology();
+		//this.ontology = g.getSourceOntology();
 		this.referencedOntologies = g.getSupportOntologySet();
 		this.manager = OWLManager.createOWLOntologyManager();
 		this.dataFactory = manager.getOWLDataFactory();
@@ -145,17 +145,20 @@ public class Mooncat {
 
 
 	public OWLOntology getOntology() {
-		return ontology;
+		//
+		return graph.getSourceOntology();
 	}
 
 	public void setOntology(OWLOntology ontology) {
-		this.ontology = ontology;
+		//this.ontology = ontology;
+		graph.setSourceOntology(ontology);
 	}
 
 	@Deprecated
 	public void addImport(String importedIRIString) {
 		OWLImportsDeclaration iax = dataFactory.getOWLImportsDeclaration(IRI.create(importedIRIString));
-		AddImport addAx = new AddImport(ontology, iax);
+		//AddImport addAx = new AddImport(ontology, iax);
+		AddImport addAx = new AddImport(getOntology(), iax);
 		manager.applyChange(addAx);
 	}
 

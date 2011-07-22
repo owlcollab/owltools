@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
@@ -68,6 +69,10 @@ public class OboOntologyReleaseRunner {
 
 	};
 
+	public enum MacroStrategy {
+		NO_EXPANSION, GCI 
+	}
+
 
 	ParserWrapper parser;
 	Mooncat mooncat;
@@ -79,6 +84,9 @@ public class OboOntologyReleaseRunner {
 	boolean allowFileOverWrite = false;
 	// TODO - make this an option
 	boolean isExportBridges = false;
+	boolean isRecreateMireot = false;
+	boolean isExpandMacros = false;
+	boolean isCheckConsistency = true;
 
 
 	private static void makeDir(File path) {
@@ -209,6 +217,8 @@ public class OboOntologyReleaseRunner {
 	public void setExportBridges(boolean isExportBridges) {
 		this.isExportBridges = isExportBridges;
 	}
+	
+	
 
 	public boolean isAllowFileOverWrite() {
 		return allowFileOverWrite;
@@ -265,6 +275,12 @@ public class OboOntologyReleaseRunner {
 			else if (opt.equals("--bridges")) {
 				oorr.isExportBridges = true;
 			}
+			else if (opt.equals("--re-mireot")) {
+				oorr.isRecreateMireot = true;
+			}
+			else if (opt.equals("--expand-macros")) {
+				oorr.isExpandMacros = true;
+			}
 			else if (opt.equals("--allowOverwrite")) {
 				oorr.allowFileOverWrite = true;
 			}
@@ -305,6 +321,9 @@ public class OboOntologyReleaseRunner {
 		String path = null;
 
 
+		// ----------------------------------------
+		// Set up directories
+		// ----------------------------------------
 		File releases = new File(base, "releases");
 		makeDir(releases);
 
@@ -344,6 +363,22 @@ public class OboOntologyReleaseRunner {
 		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
 		ontologyId = ontologyId.replaceAll(".obo$", ""); // temp workaround
 
+		// ----------------------------------------
+		// Bridge files
+		// ----------------------------------------
+		if (isExpandMacros) {
+			OWLOntology ont = mooncat.getOntology();
+			MacroExpansionVisitor mev = 
+				new MacroExpansionVisitor(mooncat.getManager().getOWLDataFactory(), 
+						ont, mooncat.getManager());
+			ont = mev.expandAll();		
+			mooncat.setOntology(ont);
+
+		}
+			
+		// ----------------------------------------
+		// Bridge files
+		// ----------------------------------------
 		if (isExportBridges) {
 			logger.info("Creating Bridge Ontologies");
 
@@ -358,7 +393,7 @@ public class OboOntologyReleaseRunner {
 				xe.expandXrefs();
 				for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
 					String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
-					logger.info("TDOC:"+tOntId);
+					logger.info("Generating bridge ontology:"+tOntId);
 					Obo2Owl obo2owl = new Obo2Owl();
 					OWLOntology tOnt = obo2owl.convert(tdoc);
 					saveOntologyInAllFormats(base, tOntId, format, tOnt);
@@ -406,7 +441,18 @@ public class OboOntologyReleaseRunner {
 				logger.info("Creating inferences");
 				buildInferences();
 				logger.info("Inferences creation completed");
-
+				
+				if (this.isCheckConsistency) {
+					logger.info("Checking consistency");
+					List<String> incs = infBuilder.performConsistencyChecks();
+					if (incs.size() > 0) {
+						for (String inc  : incs) {
+							logger.error(inc);
+						}
+					}
+					logger.info("Checking consistency completed");
+				}
+				
 				logger.info("Finding redundant axioms");
 
 				for (OWLAxiom ax : infBuilder.getRedundantAxioms()) {

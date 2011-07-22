@@ -161,6 +161,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 		// simple
 		parameters.setSimple(advancedPanel.simpleCheckBox.isSelected());
 		
+		// expandXrefs
+		parameters.setExpandXrefs(advancedPanel.expandXrefsCheckBox.isSelected());
+		
 		// allowOverwrite
 		parameters.setAllowOverwrite(advancedPanel.allowOverwrite.isSelected());
 		
@@ -248,6 +251,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 					parameters.getReasoner(), 
 					parameters.isAsserted(), 
 					parameters.isSimple(),
+					parameters.isExpandXrefs(),
 					parameters.isAllowOverwrite());
 		}
 		return advancedPanel;

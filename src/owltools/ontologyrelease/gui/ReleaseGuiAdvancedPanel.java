@@ -26,6 +26,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 
 	final JCheckBox assertedCheckBox;
 	final JCheckBox simpleCheckBox;
+	final JCheckBox expandXrefsCheckBox;
 	
 	final JCheckBox allowOverwrite;
 	
@@ -40,13 +41,15 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param defaultReasoner
 	 * @param defaultIsAsserted
 	 * @param defaultIsSimple
+	 * @param defaultExpandXrefs 
 	 */
-	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, boolean defaultIsSimple, boolean defaultAllowOverwrite) {
+	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, boolean defaultIsSimple, boolean defaultExpandXrefs, boolean defaultAllowOverwrite) {
 		super();
 		
 		// options flags
 		assertedCheckBox = new JCheckBox();
 		simpleCheckBox = new JCheckBox();
+		expandXrefsCheckBox = new JCheckBox();
 		allowOverwrite = new JCheckBox();
 		
 		// reasoner radio buttons
@@ -71,6 +74,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 				"<html><p>In addition the generating the main ontology, this will make a version</p>" +
 				"<p> with all external classes and references to them removed</p></html>",
 				defaultIsSimple,
+				defaultExpandXrefs,
 				defaultAllowOverwrite);
 		addRowGap(this, pos, 20);
 		
@@ -95,7 +99,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 */
 	private void createOptionPanel(GBHelper pos, 
 			String assertedLabel, String assertedDesc, boolean defaultIsAsserted, 
-			String simpleLabel, String simpleDesc, boolean defaultIsSimple,
+			String simpleLabel, String simpleDesc, boolean defaultIsSimple, boolean defaultExpandXrefs,
 			boolean defaultAllowOverwrite) {
 		add(new JLabel("Options"), pos.nextRow().indentLeft(DEFAULT_INDENT));
 		
@@ -105,6 +109,10 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		
 		createFancyCheckBox(pos, simpleLabel, simpleDesc, defaultIsSimple, simpleCheckBox);
 		
+		addRowGap(this, pos.nextRow(), 15);
+		
+		createFancyCheckBox(pos, "Expand Xref Macros (advanced)", null, defaultExpandXrefs, expandXrefsCheckBox);
+
 		addRowGap(this, pos.nextRow(), 15);
 		
 		createFancyCheckBox(pos, "Allow overwriting of existing release files", null, defaultAllowOverwrite, allowOverwrite);

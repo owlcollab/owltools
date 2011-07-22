@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.vocab.OWLDataFactoryVocabulary;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
@@ -262,10 +263,10 @@ public class InferenceBuilder{
 		reasoner = getReasoner(ont);
 		long t1 = System.currentTimeMillis();
 
-		System.out.println("Consistency check started............");
+		logger.info("Consistency check started............");
 		boolean consistent = reasoner.isConsistent();
 
-		System.out.println("Is the ontology consistent ....................." + consistent + ", " + (System.currentTimeMillis()-t1)/100);
+		logger.info("Is the ontology consistent ....................." + consistent + ", " + (System.currentTimeMillis()-t1)/100);
 
 		if(!consistent){
 			errors.add("The ontology '" + graph.getOntologyId() + " ' is not consistent");
@@ -275,12 +276,15 @@ public class InferenceBuilder{
 		// can't possibly have any instances).  Note that the getunsatisfiableClasses method
 		// is really just a convenience method for obtaining the classes that are equivalent
 		// to owl:Nothing.
+		OWLClass nothing = graph.getDataFactory().getOWLNothing();
 		Node<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses();
 		if (unsatisfiableClasses.getSize() > 0) {
-			for(OWLClass cls : unsatisfiableClasses) {
-				System.out.println(cls.getIRI());
-				if (cls.toString().endsWith(":Nothing"))
+			for(OWLClass cls : unsatisfiableClasses.getEntities()) {
+				logger.info("unsat: "+cls.getIRI());
+				if (cls.equals(nothing)) {
+					// nothing to see here, move along
 					continue;
+				}
 				errors.add ("unsatisfiable: " + graph.getIdentifier(cls) + " : " + graph.getLabel(cls));
 			}
 		}

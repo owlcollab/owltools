@@ -16,9 +16,18 @@ public class OboOntologyReleaseRunnerParameters {
 	private String reasoner = InferenceBuilder.REASONER_HERMIT;
 	private boolean asserted = true; // set selected as default (different from the CLI parameter!)
 	private boolean simple = true; // set selected as default (different from the CLI parameter!)
+	private boolean expandXrefs = false; // set selected as default (different from the CLI parameter!)
 	private Vector<String> paths;
 	private File base = new File(".");
 	private boolean allowOverwrite = false;
+
+	public boolean isExpandXrefs() {
+		return expandXrefs;
+	}
+
+	public void setExpandXrefs(boolean expandXrefs) {
+		this.expandXrefs = expandXrefs;
+	}
 
 	/**
 	 * @return the format
