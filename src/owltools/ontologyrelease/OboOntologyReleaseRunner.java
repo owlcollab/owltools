@@ -394,7 +394,7 @@ public class OboOntologyReleaseRunner {
 			Set<OWLClass> coreSubset = new HashSet<OWLClass>();
 			for (OWLClass c : mooncat.getOntology().getClassesInSignature()) {
 				String idSpace = owl2obo.getIdentifier(c).replaceAll(":.*", "").toLowerCase();
-				if (idSpace.equals(ontologyId)) {
+				if (idSpace.equals(ontologyId.toLowerCase())) {
 					coreSubset.add(c);
 				}
 			}

@@ -61,10 +61,11 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		createOptionPanel(pos, 
 				"Make original", 
 				"<html><p>Also make original ontology in obo and owl.</p>" +
-				"<p>Creates from file 'X' the additional files named 'X-non-classified'</p></html>",
+				"<p>In addition to creating the main ontology file <X>, will make a file '<X>-non-classified'</p>" +
+				"<p>This is the version does <i>not</i> have the reasoner-inferred links asserted</p></html>",
 				defaultIsAsserted, 
 				"simple", 
-				"Enter Description for simple here, e.g., which new files are generated with which content",
+				"In addition the generating the main ontology, this will make a version with all external classes and references to them removed",
 				defaultIsSimple);
 		addRowGap(this, pos, 20);
 		
@@ -146,7 +147,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		add(new JLabel("JCEL"), pos.nextCol());
 		
 		addRowGap(this, pos.nextRow(), 10);
-		add(new JLabel("Do you want a long description for the reasoner and what is does?"), 
+		add(new JLabel("(Both Hermit and Pellet should give the same results, Hermit is typically faster)"), 
 				pos.nextRow().indentLeft(DEFAULT_INDENT).width(3).fill().expandW());
 		
 		if (InferenceBuilder.REASONER_PELLET.equals(defaultReasoner)) {
