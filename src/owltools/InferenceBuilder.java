@@ -24,9 +24,7 @@ import org.semanticweb.owlapi.vocab.OWLDataFactoryVocabulary;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
-import owltools.ontologyrelease.OboOntologyReleaseRunner;
 import owltools.reasoner.PlaceholderJcelFactory;
-import sun.util.logging.resources.logging;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
@@ -88,9 +86,9 @@ public class InferenceBuilder{
 
 	private synchronized OWLReasoner getReasoner(OWLOntology ontology){
 		if(reasoner == null){
-			logger.info("Creating reasoner using:"+factory);
+			logger.info("Creating reasoner using:"+factory.getReasonerName());
 			reasoner = factory.createReasoner(ontology);
-			logger.info("Created reasoner: "+reasoner);
+			logger.info("Created reasoner: "+reasoner.getReasonerName());
 		}
 		return reasoner;
 	}

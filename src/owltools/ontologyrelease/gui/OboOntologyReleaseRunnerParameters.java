@@ -18,6 +18,7 @@ public class OboOntologyReleaseRunnerParameters {
 	private boolean simple = true; // set selected as default (different from the CLI parameter!)
 	private Vector<String> paths;
 	private File base = new File(".");
+	private boolean allowOverwrite = false;
 
 	/**
 	 * @return the format
@@ -103,6 +104,20 @@ public class OboOntologyReleaseRunnerParameters {
 		this.base = base;
 	}
 
+	/**
+	 * @return the allowOverwrite
+	 */
+	public boolean isAllowOverwrite() {
+		return allowOverwrite;
+	}
+
+	/**
+	 * @param allowOverwrite the allowOverwrite to set
+	 */
+	public void setAllowOverwrite(boolean allowOverwrite) {
+		this.allowOverwrite = allowOverwrite;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -121,6 +136,9 @@ public class OboOntologyReleaseRunnerParameters {
 		builder.append(asserted);
 		builder.append(", simple=");
 		builder.append(simple);
+		builder.append(", ");
+		builder.append(", allowOverwrite=");
+		builder.append(allowOverwrite);
 		builder.append(", ");
 		if (paths != null) {
 			builder.append("paths=");

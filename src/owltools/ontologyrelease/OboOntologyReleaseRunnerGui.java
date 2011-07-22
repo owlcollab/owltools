@@ -1,6 +1,7 @@
 package owltools.ontologyrelease;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -89,15 +90,26 @@ public class OboOntologyReleaseRunnerGui {
 				public void run() {
 					try {
 						OWLOntologyFormat format = parameters.getFormat();
-						String reasoner = parameters.getReasoner();
-						boolean asserted = parameters.isAsserted();
-						boolean simple = parameters.isSimple();
 						Vector<String> paths = parameters.getPaths();
 						File base = parameters.getBase();
-						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner();
-						oorr.setReasonerName(reasoner);
-						oorr.setAsserted(asserted);
-						oorr.setSimple(simple);
+						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner() {
+
+							@Override
+							protected boolean allowFileOverwrite(File file) throws IOException {
+								String message = "The release manager tried to overwrite existing files. Do you want to allow this?";
+								String title = "Allow file overwrite?";
+								int answer = JOptionPane.showConfirmDialog(ReleaseGuiMainFrameRunner.this, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+								boolean allowOverwrite = answer == JOptionPane.YES_OPTION;
+								ReleaseGuiMainFrameRunner.this.getAdvancedPanel().setAllowOverwrite(allowOverwrite);
+								this.allowFileOverWrite = allowOverwrite;
+								return allowOverwrite;
+							}
+							
+						};
+						oorr.setReasonerName(parameters.getReasoner());
+						oorr.setAsserted(parameters.isAsserted());
+						oorr.setSimple(parameters.isSimple());
+						oorr.setAllowFileOverWrite(parameters.isAllowOverwrite());
 						oorr.createRelease(format, paths, base);
 						logger.info("Finished release manager process");
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, "Finished making the release.");

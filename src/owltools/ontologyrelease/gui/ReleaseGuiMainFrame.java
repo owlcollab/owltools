@@ -161,6 +161,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 		// simple
 		parameters.setSimple(advancedPanel.simpleCheckBox.isSelected());
 		
+		// allowOverwrite
+		parameters.setAllowOverwrite(advancedPanel.allowOverwrite.isSelected());
+		
 		// paths
 		ListModel inputFileModel = mainPanel.inputFileJList.getModel();
 		Vector<String> paths = new Vector<String>();
@@ -239,12 +242,13 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * 
 	 * @return advanced panel
 	 */
-	private SizedJPanel getAdvancedPanel() {
+	protected ReleaseGuiAdvancedPanel getAdvancedPanel() {
 		if (advancedPanel == null) {
 			advancedPanel = new ReleaseGuiAdvancedPanel(
 					parameters.getReasoner(), 
 					parameters.isAsserted(), 
-					parameters.isSimple());
+					parameters.isSimple(),
+					parameters.isAllowOverwrite());
 		}
 		return advancedPanel;
 	}

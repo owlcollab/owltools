@@ -76,6 +76,7 @@ public class OboOntologyReleaseRunner {
 	String reasonerName = InferenceBuilder.REASONER_HERMIT;
 	boolean asserted = false;
 	boolean simple = false;
+	boolean allowFileOverWrite = false;
 	// TODO - make this an option
 	boolean isExportBridges = false;
 
@@ -88,12 +89,12 @@ public class OboOntologyReleaseRunner {
 	/**
 	 * Build Ontology version id for a particular release.
 	 * @param base
-	 * @return
+	 * @return version
 	 * @throws IOException
 	 */
-	private static String buildVersionInfo(File base) throws IOException {
+	private String buildVersionInfo(File base) throws IOException {
 
-		File versionInfo = new File(base, "VERSION-INFO");
+		File versionInfo = checkNew(new File(base, "VERSION-INFO"));
 
 		Properties prop = new Properties();
 
@@ -101,12 +102,60 @@ public class OboOntologyReleaseRunner {
 
 		prop.setProperty("version", version);
 
-		FileOutputStream propFile = new FileOutputStream(versionInfo);
-
-		prop.store(propFile,
-		"Auto Generate Version Number. Please do not edit it");
+		FileOutputStream propFile = null;
+		try {
+			propFile = new FileOutputStream(versionInfo);
+			prop.store(propFile,
+				"Auto Generate Version Number. Please do not edit it");
+		}
+		finally {
+			if (propFile != null) {
+				try {
+					propFile.close();
+				} catch (Exception e) {
+					logger.warn("Could not clouse output stream for file: "+versionInfo.getAbsolutePath(), e);
+				}
+			}
+		}
 
 		return version;
+	}
+	
+	/**
+	 * Check whether the file is new. Throw an {@link IOException}, 
+	 * if the file already exists and {@link #allowFileOverWrite} 
+	 * is not set to true.
+	 * 
+	 * @param file
+	 * @return file return the same file to allow chaining with other operations
+	 * @throws IOException
+	 */
+	private File checkNew(File file) throws IOException {
+		if (!allowFileOverWrite && file.exists() && file.isFile()) {
+			boolean allow = allowFileOverwrite(file);
+			if (!allow) {
+				throw new IOException("Trying to overwrite an existing file: "
+						+ file.getAbsolutePath());
+			}	
+		}
+		return file;
+	}
+	
+	/**
+	 *  Hook method to handle an unexpected file overwrite request.
+	 *  Returns true, if the overwrite is allowed.
+	 * 
+	 * @param file
+	 * @return boolean 
+	 * @throws IOException
+	 */
+	protected boolean allowFileOverwrite(File file) throws IOException {
+		/* 
+		 * For the command line version this is always false. If the user 
+		 * wants to override file the command-line flag '--allowOverwrite' 
+		 * has to be used.
+		 */
+		return false;
 	}
 
 	private static void cleanBase(File base) {
@@ -161,6 +210,14 @@ public class OboOntologyReleaseRunner {
 		this.isExportBridges = isExportBridges;
 	}
 
+	public boolean isAllowFileOverWrite() {
+		return allowFileOverWrite;
+	}
+
+	public void setAllowFileOverWrite(boolean allowFileOverWrite) {
+		this.allowFileOverWrite = allowFileOverWrite;
+	}
+
 	public static void main(String[] args) throws IOException,
 	OWLOntologyCreationException, OWLOntologyStorageException,
 	OBOFormatDanglingReferenceException {
@@ -207,6 +264,9 @@ public class OboOntologyReleaseRunner {
 			}
 			else if (opt.equals("--bridges")) {
 				oorr.isExportBridges = true;
+			}
+			else if (opt.equals("--allowOverwrite")) {
+				oorr.allowFileOverWrite = true;
 			}
 			else {
 
@@ -449,14 +509,14 @@ public class OboOntologyReleaseRunner {
 
 	private void saveInAllFormats(File base, String ontologyId, OWLOntologyFormat format, String ext) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
-		saveOntologyInAllFormats(base, ontologyId, format, mooncat.getOntology());
+		saveOntologyInAllFormats(base, fn, format, mooncat.getOntology());
 	}
 
 	private void saveOntologyInAllFormats(File base, String fn, OWLOntologyFormat format, OWLOntology ontologyToSave) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
 		logger.info("Saving: "+fn);
 
-		String outputURI = new File(base, fn +".owl").getAbsolutePath();
+		String outputURI = checkNew(new File(base, fn +".owl")).getAbsolutePath();
 
 		logger.info("saving to " + outputURI);
 		FileOutputStream os = new FileOutputStream(new File(outputURI));
@@ -466,7 +526,7 @@ public class OboOntologyReleaseRunner {
 		Owl2Obo owl2obo = new Owl2Obo();
 		OBODoc doc = owl2obo.convert(ontologyToSave);
 
-		outputURI = new File(base, fn +".obo").getAbsolutePath();
+		outputURI = checkNew(new File(base, fn +".obo")).getAbsolutePath();
 		logger.info("saving to " + outputURI);
 
 		OBOFormatWriter writer = new OBOFormatWriter();
@@ -529,7 +589,7 @@ public class OboOntologyReleaseRunner {
 	 * @param toFile
 	 * @throws IOException
 	 */
-	public static void copy(File fromFile, File toFile) throws IOException {
+	public void copy(File fromFile, File toFile) throws IOException {
 
 		if (toFile.isDirectory())
 			toFile = new File(toFile, fromFile.getName());
@@ -539,13 +599,14 @@ public class OboOntologyReleaseRunner {
 			for(File f: fromFile.listFiles()){
 				if(f.getName().equals(".") || f.getName().equals(".."))
 					continue;
-
+				
 				copy(f, toFile);
 			}
 
 			return;
 		}
 
+		checkNew(toFile);
 		FileInputStream from = null;
 		FileOutputStream to = null;
 		try {
@@ -561,14 +622,15 @@ public class OboOntologyReleaseRunner {
 				try {
 					from.close();
 				} catch (IOException e) {
-					;
+					logger.warn("Could not close file input stream: "+fromFile.getAbsolutePath(),e);
 				}
-				if (to != null)
-					try {
-						to.close();
-					} catch (IOException e) {
-						;
-					}
+
+			if (to != null)
+				try {
+					to.close();
+				} catch (IOException e) {
+					logger.warn("Could not close file output stream: "+toFile.getAbsolutePath(),e);
+				}
 		}
 	}
 

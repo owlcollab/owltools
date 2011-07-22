@@ -27,6 +27,8 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox assertedCheckBox;
 	final JCheckBox simpleCheckBox;
 	
+	final JCheckBox allowOverwrite;
+	
 	final JRadioButton pelletRadioButton;
 	final JRadioButton hermitRadioButton;
 	final JRadioButton factppRadioButton;
@@ -39,12 +41,13 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param defaultIsAsserted
 	 * @param defaultIsSimple
 	 */
-	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, boolean defaultIsSimple) {
+	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, boolean defaultIsSimple, boolean defaultAllowOverwrite) {
 		super();
 		
 		// options flags
 		assertedCheckBox = new JCheckBox();
 		simpleCheckBox = new JCheckBox();
+		allowOverwrite = new JCheckBox();
 		
 		// reasoner radio buttons
 		pelletRadioButton = new JRadioButton();
@@ -67,8 +70,11 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 				"simple", 
 				"<html><p>In addition the generating the main ontology, this will make a version</p>" +
 				"<p> with all external classes and references to them removed</p></html>",
-				defaultIsSimple);
+				defaultIsSimple,
+				defaultAllowOverwrite);
 		addRowGap(this, pos, 20);
+		
+		
 		
 		// reasoner
 		createReasonerPanel(pos, defaultReasoner);
@@ -89,7 +95,8 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 */
 	private void createOptionPanel(GBHelper pos, 
 			String assertedLabel, String assertedDesc, boolean defaultIsAsserted, 
-			String simpleLabel, String simpleDesc, boolean defaultIsSimple) {
+			String simpleLabel, String simpleDesc, boolean defaultIsSimple,
+			boolean defaultAllowOverwrite) {
 		add(new JLabel("Options"), pos.nextRow().indentLeft(DEFAULT_INDENT));
 		
 		createFancyCheckBox(pos, assertedLabel, assertedDesc, defaultIsAsserted, assertedCheckBox);
@@ -97,6 +104,12 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(this, pos.nextRow(), 5);
 		
 		createFancyCheckBox(pos, simpleLabel, simpleDesc, defaultIsSimple, simpleCheckBox);
+		
+		addRowGap(this, pos.nextRow(), 15);
+		
+		createFancyCheckBox(pos, "Allow overwriting of existing release files", null, defaultAllowOverwrite, allowOverwrite);
+		
+		addRowGap(this, pos.nextRow(), 5);
 	}
 	
 	/**
@@ -163,5 +176,8 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		}
 		factppRadioButton.setEnabled(false);
 	}
-	
+
+	public void setAllowOverwrite(boolean allowOverwrite) {
+		this.allowOverwrite.setSelected(allowOverwrite);
+	}
 }
