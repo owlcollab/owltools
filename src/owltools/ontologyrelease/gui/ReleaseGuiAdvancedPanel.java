@@ -3,10 +3,12 @@ package owltools.ontologyrelease.gui;
 import static org.obolibrary.gui.GuiTools.addRowGap;
 
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import org.obolibrary.gui.GuiTools.GBHelper;
@@ -61,7 +63,6 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		// Layout
 		setLayout(new GridBagLayout());
 		GBHelper pos = new GBHelper();
-		addRowGap(this, pos, 20);
 		
 		// options
 		createOptionPanel(pos, 
@@ -156,17 +157,18 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		reasonerGroup.add(factppRadioButton);
 		reasonerGroup.add(jcelRadioButton);
 		
-		add(hermitRadioButton, pos.nextRow().nextCol());
-		add(new JLabel("HermiT"), pos.nextCol());
+		JPanel panel = new JPanel(new GridLayout(2, 2, 20, 2));
+		panel.add(hermitRadioButton);
+		panel.add(jcelRadioButton);
+		panel.add(pelletRadioButton);
+		panel.add(factppRadioButton);
 		
-		add(pelletRadioButton, pos.nextRow().nextCol());
-		add(new JLabel("Pellet"), pos.nextCol());
+		add(panel, pos.nextRow().nextCol().width(2));
 		
-		add(jcelRadioButton, pos.nextRow().nextCol());
-		add(new JLabel("JCEL"), pos.nextCol());
-
-		add(factppRadioButton, pos.nextRow().nextCol());
-		add(new JLabel("Fact++"), pos.nextCol());
+		hermitRadioButton.setText("HermiT");
+		pelletRadioButton.setText("Pellet");
+		jcelRadioButton.setText("JCEL");
+		factppRadioButton.setText("Fact++");
 		
 		addRowGap(this, pos.nextRow(), 10);
 		add(new JLabel("(Both Hermit and Pellet should give the same results, Hermit is typically faster)"), 
