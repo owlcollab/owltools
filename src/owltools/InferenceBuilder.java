@@ -48,6 +48,7 @@ public class InferenceBuilder{
 	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
 	List<OWLAxiom> redundantAxioms = new ArrayList<OWLAxiom>();
+	List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = new ArrayList<OWLEquivalentClassesAxiom>();
 
 	public InferenceBuilder(OWLGraphWrapper graph){
 		this(graph, new PelletReasonerFactory());
@@ -97,6 +98,12 @@ public class InferenceBuilder{
 	public List<OWLAxiom> getRedundantAxioms() {
 		return redundantAxioms;
 	}
+	
+	
+
+	public List<OWLEquivalentClassesAxiom> getEquivalentNamedClassPairs() {
+		return equivalentNamedClassPairs;
+	}
 
 	public List<OWLAxiom> buildInferences() {
 		return buildInferences(true);
@@ -127,7 +134,7 @@ public class InferenceBuilder{
 
 		Set<OWLClass> nrClasses = new HashSet<OWLClass>();
 
-		logger.info("Finding inferred equivalencies...");
+		logger.info("Finding asserted equivalencies...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 
 			for (OWLClassExpression ec : cls.getEquivalentClasses(ontology)) {
@@ -157,6 +164,14 @@ public class InferenceBuilder{
 
 				if (cls.equals(ec))
 					continue;
+				
+				logger.info("Inferred Equiv: "+cls+" == "+ec);
+				if (ec instanceof OWLClass && !ec.equals(cls)) {
+					OWLEquivalentClassesAxiom eca = graph.getDataFactory().getOWLEquivalentClassesAxiom(cls, ec);
+					logger.info("Equivalent Named Class Pair: "+eca);
+					equivalentNamedClassPairs.add(eca);
+				}
+
 
 
 				if (cls.toString().compareTo(ec.toString()) > 0) // equivalence

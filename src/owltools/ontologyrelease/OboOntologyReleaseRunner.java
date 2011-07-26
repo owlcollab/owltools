@@ -33,6 +33,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -451,6 +452,15 @@ public class OboOntologyReleaseRunner {
 						}
 					}
 					logger.info("Checking consistency completed");
+				}
+				
+				if (true) {
+					if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
+						logger.error("WARNING! Found equivalencies between named classes");
+						for (OWLEquivalentClassesAxiom eca : infBuilder.getEquivalentNamedClassPairs()) {
+							logger.error("Equiv:"+eca);
+						}
+					}
 				}
 				
 				logger.info("Finding redundant axioms");
