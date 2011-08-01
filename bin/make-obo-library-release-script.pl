@@ -40,9 +40,10 @@ foreach my $ns (keys %d)  {
     next if $ont eq 'lipro'; # hermit does not complete
     next unless $fmt eq 'obo' || $fmt eq 'owl';
     cmd("mkdir $ont");
-    my $srcf = "$ont/$ont-src.$fmt";
+    cmd("mkdir $ont/src");
+    my $srcf = "$ont/src/$ont.$fmt";
     cmd("wget -N --no-check-certificate $d{$ns} -O $srcf");
-    cmd("ontology-release-runner -outdir $ont -reasoner jcel --asserted --simple $srcf");
+    cmd("ontology-release-runner --allow-overwrite -outdir $ont -reasoner jcel --asserted --simple $srcf");
 }
 exit 0;    
 
