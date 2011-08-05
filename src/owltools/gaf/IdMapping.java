@@ -2,10 +2,10 @@ package owltools.gaf;
 
 public class IdMapping{
 
-	private String sourceId;
-	private String targetId;
-	private String relationship;
-	private String mappingSource;
+	protected String sourceId;
+	protected String targetId;
+	protected String relationship;
+	protected String mappingSource;
 	
 	public IdMapping(){
 	}

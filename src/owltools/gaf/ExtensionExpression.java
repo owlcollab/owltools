@@ -3,9 +3,9 @@ package owltools.gaf;
 
 public class ExtensionExpression{
 
-	private String id;
-	private String relation;
-	private String cls;
+	protected String id;
+	protected String relation;
+	protected String cls;
 	
 	
 	public ExtensionExpression(){

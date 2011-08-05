@@ -2,8 +2,8 @@ package owltools.gaf;
 
 public class CompositeQualifier {
 
-	private String id;
-	private String qualifierObj;
+	protected String id;
+	protected String qualifierObj;
 	
 	public CompositeQualifier(){
 	}

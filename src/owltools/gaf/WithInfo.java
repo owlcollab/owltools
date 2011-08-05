@@ -2,8 +2,8 @@ package owltools.gaf;
 
 public class WithInfo{
 
-	private String id;
-	private String withXref;
+	protected String id;
+	protected String withXref;
 	
 	public WithInfo(){
 	}

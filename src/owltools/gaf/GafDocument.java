@@ -11,14 +11,14 @@ public class GafDocument{
 
 	private static Logger LOG = Logger.getLogger(GafDocument.class);
 	
-	private String id;
-	private String documentPath;
+	protected String id;
+	protected String documentPath;
 	
-	private transient Hashtable<String, Bioentity> bioentities;
-	private transient Hashtable<String, List<WithInfo>> withInfos;
-	private transient Hashtable<String, List<ExtensionExpression>> extensionExpressions;
-	private transient Hashtable<String, List<CompositeQualifier>> compositeQualifiers; 
-	private transient List<GeneAnnotation> annotations;
+	protected transient Hashtable<String, Bioentity> bioentities;
+	protected transient Hashtable<String, List<WithInfo>> withInfos;
+	protected transient Hashtable<String, List<ExtensionExpression>> extensionExpressions;
+	protected transient Hashtable<String, List<CompositeQualifier>> compositeQualifiers; 
+	protected transient List<GeneAnnotation> annotations;
 	
 	
 	public GafDocument(){

@@ -11,47 +11,47 @@ import java.util.List;
  */
 public class GeneAnnotation {
 
-	private String bioentity;
-	private transient Bioentity bioentityObject;
-	private boolean isContributesTo;
-	private boolean isIntegralTo;
-	private String compositeQualifier;
-	private String cls;
-	private String referenceId;	
-	private String evidenceCls;
-	private String withExpression;
-	private String actsOnTaxonId;
-	private String lastUpdateDate; //TODO: convert it to date
-	private String assignedBy;
-	private String extensionExpression;
-	private String geneProductForm;
-	private String gafDocument;
+	protected String bioentity;
+	protected transient Bioentity bioentityObject;
+	protected boolean isContributesTo;
+	protected boolean isIntegralTo;
+	protected String compositeQualifier;
+	protected String cls;
+	protected String referenceId;	
+	protected String evidenceCls;
+	protected String withExpression;
+	protected String actsOnTaxonId;
+	protected String lastUpdateDate; //TODO: convert it to date
+	protected String assignedBy;
+	protected String extensionExpression;
+	protected String geneProductForm;
+	protected String gafDocument;
 	
-	private List<WithInfo> withInfoList;
-	private List<ExtensionExpression> extensionExpressionList;
-	private List<CompositeQualifier> compositeQualifierList;
+	protected List<WithInfo> withInfoList;
+	protected List<ExtensionExpression> extensionExpressionList;
+	protected List<CompositeQualifier> compositeQualifierList;
 
 	
-	private static List<WithInfo> withInfoEmptyList = new ArrayList<WithInfo>();
-	private static List<ExtensionExpression> extensionExpressionEmptyList = new ArrayList<ExtensionExpression>();
-	private static List<CompositeQualifier> compositeQualifierEmptyList = new ArrayList<CompositeQualifier>();
+	protected static List<WithInfo> withInfoEmptyList = new ArrayList<WithInfo>();
+	protected static List<ExtensionExpression> extensionExpressionEmptyList = new ArrayList<ExtensionExpression>();
+	protected static List<CompositeQualifier> compositeQualifierEmptyList = new ArrayList<CompositeQualifier>();
 	
-	private transient GafDocument gafDocumentObject;
+	protected transient GafDocument gafDocumentObject;
 
-	private transient AnnotationSource annotationSource;
+	protected transient AnnotationSource annotationSource;
 	
 	/**
 	 * If value of this variable is true then toString is re-calculated
 	 */
-	private boolean isChanged;
+	protected boolean isChanged;
 	
-	private String toString;
+	protected String toString;
 	
 	/**
 	 * this method generate a tab separated row of a gene annotation
 	 * @return
 	 */
-	private void buildRow(){
+	protected void buildRow(){
 		if(!isChanged)
 			return;
 		
@@ -379,8 +379,5 @@ public class GeneAnnotation {
 		this.toString = annotationSource.getRow();
 		isChanged = false;
 	}
-	
-
-	
 
 }
