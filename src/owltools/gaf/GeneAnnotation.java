@@ -12,7 +12,7 @@ import java.util.List;
 public class GeneAnnotation {
 
 	protected String bioentity;
-	protected transient Bioentity bioentityObject;
+	protected Bioentity bioentityObject;
 	protected boolean isContributesTo;
 	protected boolean isIntegralTo;
 	protected String compositeQualifier;
