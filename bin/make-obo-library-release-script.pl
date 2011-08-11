@@ -44,6 +44,8 @@ foreach my $ns (keys %d)  {
     my $srcf = "$ont/src/$ont.$fmt";
     cmd("wget -N --no-check-certificate $d{$ns} -O $srcf");
     cmd("ontology-release-runner --allow-overwrite -outdir $ont -reasoner jcel --asserted --simple $srcf");
+    cmd("cp $ont/$ont.owl ..");
+    cmd("cp $ont/$ont.obo ..");
 }
 exit 0;    
 
