@@ -20,7 +20,6 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
-import org.semanticweb.owlapi.vocab.OWLDataFactoryVocabulary;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.graph.OWLGraphWrapper;
@@ -190,7 +189,7 @@ public class InferenceBuilder{
 			NodeSet<OWLClass> scs = reasoner.getSuperClasses(cls, true);
 			for (Node<OWLClass> scSet : scs) {
 				for (OWLClass sc : scSet) {
-					if (sc.equals(OWLDataFactoryVocabulary.OWLThing)) {
+					if (sc.equals(OWLRDFVocabulary.OWL_THING)) {
 						continue; // do not report subclasses of owl:Thing
 					}
 					if (nrClasses.contains(sc))
