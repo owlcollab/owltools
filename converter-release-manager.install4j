@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="4.0.8" transformSequenceNumber="1">
   <directoryPresets config="./releases" />
-  <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}-${compiler:sys.date}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.2" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
+  <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.3.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
     <languages skipLanguageSelection="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -28,7 +28,7 @@
       <fileEntry mountPoint="20" file="./runtime/owltools.jar" overwrite="1" shared="false" mode="644" uninstallMode="2" />
     </entries>
     <components>
-      <component name="OBO-OWL converter" id="18" displayDescription="false" selected="true" mandatory="false" downloadable="false">
+      <component name="OBO-OWL converter" id="18" displayDescription="false" selected="true" mandatory="true" downloadable="false">
         <description />
         <include all="false">
           <entry location="lib/log4j-1.2.15.jar" launcher="false" />
@@ -216,7 +216,7 @@
         <actions />
         <formComponents />
       </screen>
-      <screen name="" id="46" beanClass="com.install4j.runtime.beans.screens.FormScreen" rollbackBarrier="false" backButton="2" finishScreen="false">
+      <screen name="Select Memory" id="46" beanClass="com.install4j.runtime.beans.screens.FormScreen" rollbackBarrier="false" backButton="2" finishScreen="false">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.screens.FormScreen">
@@ -291,7 +291,7 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
             <initScript>int step = 128;
 long maxMemMB = SystemInfo.getPhysicalMemory() / 1024 / 1024;
 int maxMemMBInt = new Integer((int) maxMemMB);
-int value = (int) Math.min(1024, (Math.round(maxMemMB * 0.6) / step) *step);
+int value = (int) Math.min(1024, (Math.round(maxMemMB * 0.85) / step) *step);
 int min = 256;
 SpinnerNumberModel model = new SpinnerNumberModel(value, min, maxMemMBInt, step);
 configurationObject.setModel(model);</initScript>
@@ -481,6 +481,78 @@ configurationObject.setModel(model);</initScript>
               </java>
             </serializedBean>
             <condition>context.getBooleanVariable("createDesktopLinkAction")</condition>
+          </action>
+          <action name="" id="1366" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.actions.files.DeleteFileAction">
+                  <void property="file">
+                    <object class="java.io.File">
+                      <string>obo-owl-converter.app/Contents/MacOS/JavaApplicationStub</string>
+                    </object>
+                  </void>
+                </object>
+              </java>
+            </serializedBean>
+            <condition>Util.isMacOS()</condition>
+          </action>
+          <action name="" id="1367" beanClass="com.install4j.runtime.beans.actions.files.CreateSymlinkAction" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.actions.files.CreateSymlinkAction">
+                  <void property="file">
+                    <object class="java.io.File">
+                      <string>/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub</string>
+                    </object>
+                  </void>
+                  <void property="linkFile">
+                    <object class="java.io.File">
+                      <string>obo-owl-converter.app/Contents/MacOS/JavaApplicationStub</string>
+                    </object>
+                  </void>
+                  <void property="removeOnUninstall">
+                    <boolean>false</boolean>
+                  </void>
+                </object>
+              </java>
+            </serializedBean>
+            <condition>Util.isMacOS()</condition>
+          </action>
+          <action name="" id="1370" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.actions.files.DeleteFileAction">
+                  <void property="file">
+                    <object class="java.io.File">
+                      <string>obo-release-manager.app/Contents/MacOS/JavaApplicationStub</string>
+                    </object>
+                  </void>
+                </object>
+              </java>
+            </serializedBean>
+            <condition>Util.isMacOS()</condition>
+          </action>
+          <action name="" id="1371" beanClass="com.install4j.runtime.beans.actions.files.CreateSymlinkAction" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.actions.files.CreateSymlinkAction">
+                  <void property="file">
+                    <object class="java.io.File">
+                      <string>/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub</string>
+                    </object>
+                  </void>
+                  <void property="linkFile">
+                    <object class="java.io.File">
+                      <string>obo-release-manager.app/Contents/MacOS/JavaApplicationStub</string>
+                    </object>
+                  </void>
+                  <void property="removeOnUninstall">
+                    <boolean>false</boolean>
+                  </void>
+                </object>
+              </java>
+            </serializedBean>
+            <condition>Util.isMacOS()</condition>
           </action>
         </actions>
         <formComponents />
