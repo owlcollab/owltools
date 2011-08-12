@@ -70,25 +70,72 @@ public class OboOntologyReleaseRunner {
 
 	};
 
-	public enum MacroStrategy {
-		NO_EXPANSION, GCI 
-	}
-
-
 	ParserWrapper parser;
 	Mooncat mooncat;
 	InferenceBuilder infBuilder;
 	OWLPrettyPrinter owlpp;
-	String reasonerName = InferenceBuilder.REASONER_HERMIT;
-	boolean asserted = false;
-	boolean simple = false;
-	boolean allowFileOverWrite = false;
-	// TODO - make this an option
-	boolean isExpandXrefs = false;
-	boolean isRecreateMireot = false;
-	boolean isExpandMacros = false;
-	boolean isCheckConsistency = true;
+	OortConfiguration oortConfig;
+	
+	public OboOntologyReleaseRunner(OortConfiguration oortConfig) {
+		this.oortConfig = oortConfig; 
+	}
+	
+	public static class OortConfiguration {
+		
+		public enum MacroStrategy {
+			NO_EXPANSION, GCI 
+		}
+		
+		String reasonerName = InferenceBuilder.REASONER_HERMIT;
+		boolean asserted = false;
+		boolean simple = false;
+		boolean allowFileOverWrite = false;
+		// TODO - make this an option
+		boolean isExpandXrefs = false;
+		boolean isRecreateMireot = false;
+		boolean isExpandMacros = false;
+		boolean isCheckConsistency = true;
+		
+		public String getReasonerName() {
+			return reasonerName;
+		}
 
+		public void setReasonerName(String reasonerName) {
+			this.reasonerName = reasonerName;
+		}
+
+		public boolean isAsserted() {
+			return asserted;
+		}
+
+		public void setAsserted(boolean asserted) {
+			this.asserted = asserted;
+		}
+
+		public boolean isSimple() {
+			return simple;
+		}
+
+		public void setSimple(boolean simple) {
+			this.simple = simple;
+		}
+
+		public boolean isExpandXrefs() {
+			return isExpandXrefs;
+		}
+
+		public void setExpandXrefs(boolean isExportBridges) {
+			this.isExpandXrefs = isExportBridges;
+		}
+
+		public boolean isAllowFileOverWrite() {
+			return allowFileOverWrite;
+		}
+
+		public void setAllowFileOverWrite(boolean allowFileOverWrite) {
+			this.allowFileOverWrite = allowFileOverWrite;
+		}
+	}
 
 	private static void makeDir(File path) {
 		if (!path.exists())
@@ -140,7 +187,7 @@ public class OboOntologyReleaseRunner {
 	 * @throws IOException
 	 */
 	private File checkNew(File file) throws IOException {
-		if (!allowFileOverWrite && file.exists() && file.isFile()) {
+		if (!oortConfig.allowFileOverWrite && file.exists() && file.isFile()) {
 			boolean allow = allowFileOverwrite(file);
 			if (!allow) {
 				throw new IOException("Trying to overwrite an existing file: "
@@ -187,47 +234,7 @@ public class OboOntologyReleaseRunner {
 
 
 
-	public String getReasonerName() {
-		return reasonerName;
-	}
-
-	public void setReasonerName(String reasonerName) {
-		this.reasonerName = reasonerName;
-	}
-
-	public boolean isAsserted() {
-		return asserted;
-	}
-
-	public void setAsserted(boolean asserted) {
-		this.asserted = asserted;
-	}
-
-	public boolean isSimple() {
-		return simple;
-	}
-
-	public void setSimple(boolean simple) {
-		this.simple = simple;
-	}
-
-	public boolean isExpandXrefs() {
-		return isExpandXrefs;
-	}
-
-	public void setExpandXrefs(boolean isExportBridges) {
-		this.isExpandXrefs = isExportBridges;
-	}
 	
-	
-
-	public boolean isAllowFileOverWrite() {
-		return allowFileOverWrite;
-	}
-
-	public void setAllowFileOverWrite(boolean allowFileOverWrite) {
-		this.allowFileOverWrite = allowFileOverWrite;
-	}
 
 	public static void main(String[] args) throws IOException,
 	OWLOntologyCreationException, OWLOntologyStorageException,
@@ -237,7 +244,8 @@ public class OboOntologyReleaseRunner {
 		// String outPath = ".";
 		String baseDirectory = ".";
 
-		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner();
+		OortConfiguration oortConfig = new OortConfiguration();
+		
 
 		int i = 0;
 		Vector<String> paths = new Vector<String>();
@@ -260,7 +268,7 @@ public class OboOntologyReleaseRunner {
 			 * else if (opt.equals("-owlversion")) { version = args[i]; i++; }
 			 */
 			else if (opt.equals("-reasoner")) {
-				oorr.reasonerName = args[i];
+				oortConfig.reasonerName = args[i];
 				i++;
 			}
 			/*
@@ -268,22 +276,22 @@ public class OboOntologyReleaseRunner {
 			 * i++; }
 			 */
 			else if (opt.equals("--asserted")) {
-				oorr.asserted = true;
+				oortConfig.asserted = true;
 			}
 			else if (opt.equals("--simple")) {
-				oorr.simple = true;
+				oortConfig.simple = true;
 			}
 			else if (opt.equals("--expand-xrefs")) {
-				oorr.isExpandXrefs = true;
+				oortConfig.isExpandXrefs = true;
 			}
 			else if (opt.equals("--re-mireot")) {
-				oorr.isRecreateMireot = true;
+				oortConfig.isRecreateMireot = true;
 			}
 			else if (opt.equals("--expand-macros")) {
-				oorr.isExpandMacros = true;
+				oortConfig.isExpandMacros = true;
 			}
 			else if (opt.equals("--allow-overwrite")) {
-				oorr.allowFileOverWrite = true;
+				oortConfig.allowFileOverWrite = true;
 			}
 			else {
 
@@ -292,7 +300,9 @@ public class OboOntologyReleaseRunner {
 					paths.add(token);
 			}
 		}
-
+		
+		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig);
+		
 		File base = new File(baseDirectory);
 
 		logger.info("Base directory path " + base.getAbsolutePath());
@@ -302,11 +312,11 @@ public class OboOntologyReleaseRunner {
 					+ baseDirectory + " does not exist");
 
 		if (!base.canRead())
-			throw new IOException("Cann't read the base directory at "
+			throw new IOException("Can't read the base directory at "
 					+ baseDirectory);
 
 		if (!base.canWrite())
-			throw new IOException("Cann't write in the base directory "
+			throw new IOException("Can't write in the base directory "
 					+ baseDirectory);
 
 		oorr.createRelease(format, paths, base);
@@ -367,7 +377,7 @@ public class OboOntologyReleaseRunner {
 		// ----------------------------------------
 		// Bridge files
 		// ----------------------------------------
-		if (isExpandMacros) {
+		if (oortConfig.isExpandMacros) {
 			OWLOntology ont = mooncat.getOntology();
 			MacroExpansionVisitor mev = 
 				new MacroExpansionVisitor(mooncat.getManager().getOWLDataFactory(), 
@@ -380,7 +390,7 @@ public class OboOntologyReleaseRunner {
 		// ----------------------------------------
 		// Bridge files
 		// ----------------------------------------
-		if (isExpandXrefs) {
+		if (oortConfig.isExpandXrefs) {
 			logger.info("Creating Bridge Ontologies");
 
 			// Note that this introduces a dependency on the oboformat-specific portion
@@ -415,7 +425,7 @@ public class OboOntologyReleaseRunner {
 		// ----------------------------------------
 
 
-		if (asserted) {
+		if (oortConfig.asserted) {
 			logger.info("Creating Asserted Ontology");
 			saveInAllFormats(base, ontologyId, format, "non-classified");
 			logger.info("Asserted Ontology Creation Completed");
@@ -436,14 +446,14 @@ public class OboOntologyReleaseRunner {
 
 			logger.info("Creating basic ontology");
 
-			if (reasonerName != null) {
-				infBuilder = new InferenceBuilder(mooncat.getGraph(), reasonerName);
+			if (oortConfig.reasonerName != null) {
+				infBuilder = new InferenceBuilder(mooncat.getGraph(), oortConfig.reasonerName);
 
 				logger.info("Creating inferences");
 				buildInferences();
 				logger.info("Inferences creation completed");
 				
-				if (this.isCheckConsistency) {
+				if (oortConfig.isCheckConsistency) {
 					logger.info("Checking consistency");
 					List<String> incs = infBuilder.performConsistencyChecks();
 					if (incs.size() > 0) {
@@ -481,7 +491,7 @@ public class OboOntologyReleaseRunner {
 		// Simple (no MIREOTs, no imports)
 		// ----------------------------------------
 		// this is the same as MAIN, with certain axiom REMOVED
-		if (simple) {
+		if (oortConfig.simple) {
 
 			logger.info("Creating simple ontology");
 

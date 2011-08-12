@@ -43,7 +43,8 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param defaultReasoner
 	 * @param defaultIsAsserted
 	 * @param defaultIsSimple
-	 * @param defaultExpandXrefs 
+	 * @param defaultExpandXrefs
+	 * @param defaultAllowOverwrite
 	 */
 	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, boolean defaultIsSimple, boolean defaultExpandXrefs, boolean defaultAllowOverwrite) {
 		super();

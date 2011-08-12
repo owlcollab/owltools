@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
-import owltools.ontologyrelease.gui.OboOntologyReleaseRunnerParameters;
+import owltools.ontologyrelease.gui.GUIOortConfiguration;
 import owltools.ontologyrelease.gui.ReleaseGuiMainFrame;
 
 /**
@@ -81,7 +81,7 @@ public class OboOntologyReleaseRunnerGui {
 		}
 	
 		@Override
-		protected void executeRelease(final OboOntologyReleaseRunnerParameters parameters) {
+		protected void executeRelease(final GUIOortConfiguration parameters) {
 			logger.info("Starting release manager process");
 			disableReleaseButton();
 			// execute the release in a separate Thread, otherwise the GUI might be blocked.
@@ -92,7 +92,7 @@ public class OboOntologyReleaseRunnerGui {
 						OWLOntologyFormat format = parameters.getFormat();
 						Vector<String> paths = parameters.getPaths();
 						File base = parameters.getBase();
-						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner() {
+						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(parameters) {
 
 							@Override
 							protected boolean allowFileOverwrite(File file) throws IOException {
@@ -101,16 +101,11 @@ public class OboOntologyReleaseRunnerGui {
 								int answer = JOptionPane.showConfirmDialog(ReleaseGuiMainFrameRunner.this, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 								boolean allowOverwrite = answer == JOptionPane.YES_OPTION;
 								ReleaseGuiMainFrameRunner.this.getAdvancedPanel().setAllowOverwrite(allowOverwrite);
-								this.allowFileOverWrite = allowOverwrite;
+								oortConfig.allowFileOverWrite = allowOverwrite;
 								return allowOverwrite;
 							}
 							
 						};
-						oorr.setReasonerName(parameters.getReasoner());
-						oorr.setAsserted(parameters.isAsserted());
-						oorr.setSimple(parameters.isSimple());
-						oorr.setExpandXrefs(parameters.isExpandXrefs());
-						oorr.setAllowFileOverWrite(parameters.isAllowOverwrite());
 						oorr.createRelease(format, paths, base);
 						logger.info("Finished release manager process");
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, "Finished making the release.");

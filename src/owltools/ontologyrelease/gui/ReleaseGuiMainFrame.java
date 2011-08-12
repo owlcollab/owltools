@@ -36,7 +36,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	private ReleaseGuiAdvancedPanel advancedPanel;
 	private GuiLogPanel logPanel;
 	private final BlockingQueue<String> logQueue;
-	private final OboOntologyReleaseRunnerParameters parameters;
+	private final GUIOortConfiguration parameters;
 
 	private JTabbedPane tabbedPane;
 
@@ -57,7 +57,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	public ReleaseGuiMainFrame(BlockingQueue<String> logQueue) {
 		super();
 		this.logQueue = logQueue;
-		this.parameters = new OboOntologyReleaseRunnerParameters();
+		this.parameters = new GUIOortConfiguration();
 		initialize();
 	}
 
@@ -146,13 +146,13 @@ public class ReleaseGuiMainFrame extends JFrame {
 		
 		// reasoner
 		if (advancedPanel.pelletRadioButton.isSelected()) {
-			parameters.setReasoner(InferenceBuilder.REASONER_PELLET);
+			parameters.setReasonerName(InferenceBuilder.REASONER_PELLET);
 		}
 		else if (advancedPanel.hermitRadioButton.isSelected()) {
-			parameters.setReasoner(InferenceBuilder.REASONER_HERMIT);
+			parameters.setReasonerName(InferenceBuilder.REASONER_HERMIT);
 		}
 		else if (advancedPanel.jcelRadioButton.isSelected()) {
-			parameters.setReasoner(InferenceBuilder.REASONER_JCEL);
+			parameters.setReasonerName(InferenceBuilder.REASONER_JCEL);
 		}
 		
 		// asserted
@@ -165,7 +165,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 		parameters.setExpandXrefs(advancedPanel.expandXrefsCheckBox.isSelected());
 		
 		// allowOverwrite
-		parameters.setAllowOverwrite(advancedPanel.allowOverwrite.isSelected());
+		parameters.setAllowFileOverWrite(advancedPanel.allowOverwrite.isSelected());
 		
 		// paths
 		ListModel inputFileModel = mainPanel.inputFileJList.getModel();
@@ -218,7 +218,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * 
 	 * @param config
 	 */
-	protected void executeRelease(OboOntologyReleaseRunnerParameters parameters) {
+	protected void executeRelease(GUIOortConfiguration parameters) {
 		// for tests print all parameter variables
 		StringBuilder sb = new StringBuilder("-------------------------\n");
 		sb.append(parameters.toString());
@@ -248,11 +248,11 @@ public class ReleaseGuiMainFrame extends JFrame {
 	protected ReleaseGuiAdvancedPanel getAdvancedPanel() {
 		if (advancedPanel == null) {
 			advancedPanel = new ReleaseGuiAdvancedPanel(
-					parameters.getReasoner(), 
+					parameters.getReasonerName(), 
 					parameters.isAsserted(), 
 					parameters.isSimple(),
 					parameters.isExpandXrefs(),
-					parameters.isAllowOverwrite());
+					parameters.isAllowFileOverWrite());
 		}
 		return advancedPanel;
 	}
