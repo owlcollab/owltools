@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry exported="true" kind="lib" path="lib/runlibs/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/log4j-1.2.15.jar"/>
-	<classpathentry kind="lib" path="lib/runlibs/owlapi-bin.jar" sourcepath="/owlapi-v3/trunk"/>
+	<classpathentry kind="lib" path="lib/runlibs/owlapi-bin.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/FaCTpp-OWLAPI-v1.4.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/org.semanticweb.HermiT.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/oboformat.jar"/>
@@ -27,5 +27,6 @@
 	<classpathentry kind="lib" path="lib/runlibs/jpaul-2.5.1.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/jdom.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/jgrapht-jdk1.5.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/commons-io-2.0.1.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
