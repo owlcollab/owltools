@@ -9,6 +9,7 @@ import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import org.apache.log4j.AppenderSkeleton;
@@ -92,11 +93,11 @@ public class OboOntologyReleaseRunnerGui {
 						OWLOntologyFormat format = parameters.getFormat();
 						Vector<String> paths = parameters.getPaths();
 						File base = parameters.getBase();
-						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(parameters) {
+						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(parameters, base) {
 
 							@Override
 							protected boolean allowFileOverwrite(File file) throws IOException {
-								String message = "The release manager tried to overwrite existing files. Do you want to allow this?";
+								String message = "The release manager will overwrite existing files. Do you want to allow this?";
 								String title = "Allow file overwrite?";
 								int answer = JOptionPane.showConfirmDialog(ReleaseGuiMainFrameRunner.this, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 								boolean allowOverwrite = answer == JOptionPane.YES_OPTION;
@@ -104,11 +105,29 @@ public class OboOntologyReleaseRunnerGui {
 								oortConfig.allowFileOverWrite = allowOverwrite;
 								return allowOverwrite;
 							}
+
+							@Override
+							boolean forceLock(File file) {
+								JLabel label = new JLabel("<html><p><b>WARNING:</b></p>"
+										+"<p>The release manager was not able to lock the staging directory:</p>"
+										+"<p>"+file.getAbsolutePath()+"</p><br/>"
+										+"<div align=\"center\"><b>Do you want to force this?</b></div><br/></html>");
+								String title = "Force lock for staging directory";
+								int answer = JOptionPane.showConfirmDialog(ReleaseGuiMainFrameRunner.this, label, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+								return answer == JOptionPane.YES_OPTION;
+							}
 							
 						};
-						oorr.createRelease(format, paths, base);
-						logger.info("Finished release manager process");
-						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, "Finished making the release.");
+						boolean success = oorr.createRelease(format, paths);
+						String message;
+						if (success) {
+							message = "Finished release manager process";
+						}
+						else {
+							message = "Finished release manager process, but no release was created.";
+						}
+						logger.info(message);
+						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message);
 					} catch (Exception e) {
 						String message = "Internal error: "+ e.getMessage();
 						logger.error(message, e);

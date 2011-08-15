@@ -68,7 +68,10 @@ abstract class ReleaseRunnerFileTools {
 		lockFile = new File(staging, STAGING_DIRECTORY_LOCK_FILE_NAME);
 		boolean success = lockFile.createNewFile();
 		if (!success) {
-			throw new IOException("Could not lock staging directory via lock file: "+lockFile.getAbsolutePath());
+			if (!forceLock(lockFile)) {
+				throw new IOException("Could not lock staging directory via lock file: "+lockFile.getAbsolutePath());
+			}
+			FileUtils.touch(lockFile);
 		}
 		logger.info("Using staging folder for release manager: "+staging.getAbsolutePath());
 		
@@ -81,6 +84,10 @@ abstract class ReleaseRunnerFileTools {
 
 		File extensions = new File(staging, EXTENSIONS_DIRECTORY_NAME);
 		checkFolder(extensions);
+	}
+	
+	boolean forceLock(File file) {
+		return false;
 	}
 	
 	BufferedWriter getWriter(String fileName) throws IOException {
@@ -162,68 +169,90 @@ abstract class ReleaseRunnerFileTools {
 	 */
 	abstract File checkNew(File file) throws IOException;
 	
-	void commit(String version) throws IOException {
-		File releasesFolder = new File(base, RELEASE_DIRECTORY_NAME);
-		checkFolder(releasesFolder);
-		
-		// check if staging folder content is different than the last release
-		String oldVersion = readVersionInfo();
-		File oldVersionFolder = new File(releasesFolder, oldVersion);
-		if (oldVersionFolder.exists() && oldVersionFolder.isDirectory()) {
-			// check if the files in staging and oldVersion are the same
-			// list files in staging and old-version, except lock and version
-			FileFilter filter = createIngoreFilter(STAGING_DIRECTORY_LOCK_FILE_NAME, VERSION_INFO_FILE_NAME);
-			File[] oldFiles = oldVersionFolder.listFiles(filter);
-			File[] stagingFiles = staging.listFiles(filter);
-			if (oldFiles.length == stagingFiles.length) {
-				Arrays.sort(oldFiles);
-				Arrays.sort(stagingFiles);
-				boolean equals = true;
-				for (int i = 0; i < stagingFiles.length && equals; i++) {
-					final File oldFile = oldFiles[i];
-					final File stagingFile = stagingFiles[i];
-					equals = equals && oldFile.getName().equals(stagingFile.getName());
+	/**
+	 * Create a release with the files in the staging directory.
+	 * Skip the release, if the previous release has equal content.
+	 * 
+	 * @param version
+	 * @return true, if the commit and copy was done.
+	 * @throws IOException
+	 */
+	boolean commit(String version) throws IOException {
+		try {
+			File releasesFolder = new File(base, RELEASE_DIRECTORY_NAME);
+			checkFolder(releasesFolder);
+			
+			// check if staging folder content is different than the last release
+			String oldVersion = readVersionInfo();
+			if (oldVersion != null) {
+				File oldVersionFolder = new File(releasesFolder, oldVersion);
+				if (oldVersionFolder.exists() && oldVersionFolder.isDirectory()) {
+					boolean equals = checkOldVersion(oldVersionFolder);
 					if (equals) {
-						if (!oldFile.isDirectory() && !stagingFile.isDirectory()) {
-							// TODO decide, if the binary equals is sufficient
-							// What about the embedded data version?
-							equals = FileUtils.contentEquals(oldFile, stagingFile);
+						//skip release with message
+						logger.info("Skipping release, as the newly generated files do not differ from last release.");
+						return false;
+					}
+				}
+				// overwrite base folder content (if there is any)
+				// as the user already must have allowed it, to get to this part of the code.
+			}
+			// make version specific releases sub folder
+			File versionFolder = new File(releasesFolder, version);
+			checkFolder(versionFolder);
+			
+			// copy from staging directory into version specific releases folder
+			copyContents(staging, versionFolder, STAGING_DIRECTORY_LOCK_FILE_NAME);
+			
+			// copy stuff from staging directory into the live directory
+			copyContents(staging, base, STAGING_DIRECTORY_LOCK_FILE_NAME);
+			
+			return true;
+		} finally {
+			// delete staging content, including the lock file
+			FileUtils.cleanDirectory(staging);
+		}
+	}
+	
+	private boolean checkOldVersion(File oldVersionFolder) throws IOException {
+		// list files in staging and old-version, except lock and version
+		FileFilter filter = createIngoreFilter(STAGING_DIRECTORY_LOCK_FILE_NAME,
+				VERSION_INFO_FILE_NAME);
+		File[] oldFiles = oldVersionFolder.listFiles(filter);
+		File[] stagingFiles = staging.listFiles(filter);
+		if (oldFiles.length == stagingFiles.length) {
+			Arrays.sort(oldFiles);
+			Arrays.sort(stagingFiles);
+			boolean equals = true;
+			for (int i = 0; i < stagingFiles.length && equals; i++) {
+				final File oldFile = oldFiles[i];
+				final File stagingFile = stagingFiles[i];
+				String oldName = oldFile.getName();
+				equals = oldName.equals(stagingFile.getName());
+				if (equals) {
+					if (!oldFile.isDirectory() && !stagingFile.isDirectory()) {
+						if (oldName.toLowerCase().endsWith(".owl")) {
+							// skipping owl files for now
+							// reason: owl collections are not sorted, thus
+							// equivalent collections may have different serializations
+							// --> failing equivalence test on file level
+							continue;
 						}
-						else {
-							if (oldFile.isDirectory() && stagingFile.isDirectory()) {
-								equals = equalsDirectory(oldFile, stagingFile);
-							}
-							else {
-								equals = false;
-							}
+						// TODO decide, if the binary equals is sufficient
+						// What about the embedded data version?
+						equals = FileUtils.contentEquals(oldFile, stagingFile);
+					} else {
+						if (oldFile.isDirectory() && stagingFile.isDirectory()) {
+							equals = equalsDirectory(oldFile, stagingFile);
+						} else {
+							equals = false;
 						}
 					}
 				}
-				if (equals) {
-					// check if base contains all the files from old-version
-					// TODO
-					
-					// if all is true, skip release with message that the current relase would not change anything
-					// TODO logger.info("");
-					return;
-				}
 			}
+			return equals;
 		}
-		// overwrite base folder content (if there is any)
-		// as the user already must have allowed it, to get to this part of the code.
-		
-		// make version specific releases sub folder
-		File versionFolder = new File(releasesFolder, version);
-		checkFolder(versionFolder);
-		
-		// copy from staging directory into version specific releases folder
-		copyContents(staging, versionFolder, STAGING_DIRECTORY_LOCK_FILE_NAME);
-		
-		// copy stuff from staging directory into the live directory
-		copyContents(staging, base, STAGING_DIRECTORY_LOCK_FILE_NAME);
-		
-		// delete staging content, including the lock file
-		FileUtils.cleanDirectory(staging);
+		return false;
 	}
 	
 	private boolean equalsDirectory(File directory1, File directory2) throws IOException {

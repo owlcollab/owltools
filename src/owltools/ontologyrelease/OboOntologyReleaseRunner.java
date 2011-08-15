@@ -2,17 +2,11 @@ package owltools.ontologyrelease;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
@@ -55,20 +49,9 @@ import owltools.mooncat.Mooncat;
  * @author Shahid Manzoor
  * 
  */
-public class OboOntologyReleaseRunner {
+public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
-	protected final static Logger logger = Logger
-	.getLogger(OboOntologyReleaseRunner.class);
-
-	// SimpleDateFormat is not thread safe
-	private static ThreadLocal<DateFormat> dtFormat = new ThreadLocal<DateFormat>(){
-
-		@Override
-		protected DateFormat initialValue() {
-			return new SimpleDateFormat("yyyy-MM-dd");
-		}
-
-	};
+	protected final static Logger logger = Logger .getLogger(OboOntologyReleaseRunner.class);
 
 	ParserWrapper parser;
 	Mooncat mooncat;
@@ -76,7 +59,8 @@ public class OboOntologyReleaseRunner {
 	OWLPrettyPrinter owlpp;
 	OortConfiguration oortConfig;
 	
-	public OboOntologyReleaseRunner(OortConfiguration oortConfig) {
+	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base) throws IOException {
+		super(base, logger);
 		this.oortConfig = oortConfig; 
 	}
 	
@@ -137,46 +121,6 @@ public class OboOntologyReleaseRunner {
 		}
 	}
 
-	private static void makeDir(File path) {
-		if (!path.exists())
-			path.mkdir();
-	}
-
-	/**
-	 * Build Ontology version id for a particular release.
-	 * @param base
-	 * @return version
-	 * @throws IOException
-	 */
-	private String buildVersionInfo(File base) throws IOException {
-
-		File versionInfo = checkNew(new File(base, "VERSION-INFO"));
-
-		Properties prop = new Properties();
-
-		String version = dtFormat.get().format(Calendar.getInstance().getTime());
-
-		prop.setProperty("version", version);
-
-		FileOutputStream propFile = null;
-		try {
-			propFile = new FileOutputStream(versionInfo);
-			prop.store(propFile,
-				"Auto Generate Version Number. Please do not edit it");
-		}
-		finally {
-			if (propFile != null) {
-				try {
-					propFile.close();
-				} catch (Exception e) {
-					logger.warn("Could not clouse output stream for file: "+versionInfo.getAbsolutePath(), e);
-				}
-			}
-		}
-
-		return version;
-	}
-	
 	/**
 	 * Check whether the file is new. Throw an {@link IOException}, 
 	 * if the file already exists and {@link #allowFileOverWrite} 
@@ -186,7 +130,8 @@ public class OboOntologyReleaseRunner {
 	 * @return file return the same file to allow chaining with other operations
 	 * @throws IOException
 	 */
-	private File checkNew(File file) throws IOException {
+	@Override
+	protected File checkNew(File file) throws IOException {
 		if (!oortConfig.allowFileOverWrite && file.exists() && file.isFile()) {
 			boolean allow = allowFileOverwrite(file);
 			if (!allow) {
@@ -207,41 +152,22 @@ public class OboOntologyReleaseRunner {
 	 */
 	protected boolean allowFileOverwrite(File file) throws IOException {
 		/* 
-		 * For the command line version this is always false. If the user 
-		 * wants to override file the command-line flag '--allowOverwrite' 
-		 * has to be used.
+		 * For the command line version this is always false, as no dialog 
+		 * with the user is possible. If the user wants to override file 
+		 * the command-line flag '--allowOverwrite' has to be used.
 		 */
 		return false;
 	}
 
-	private static void cleanBase(File base) {
-		/*for (File f : base.listFiles()) {
-			if (f.getName().endsWith(".obo"))
-				f.delete();
-			else if (f.getName().endsWith(".owl"))
-				f.delete();
-			else if (f.isDirectory() && f.getName().equals("subsets"))
-				f.delete();
-			else if (f.isDirectory() && f.getName().equals("extensions"))
-				f.delete();
-		}*/
-	}
-
 	private static String getPathIRI(String path){
-
 		return path;
 	}
-
-
-
-	
 
 	public static void main(String[] args) throws IOException,
 	OWLOntologyCreationException, OWLOntologyStorageException,
 	OBOFormatDanglingReferenceException {
 
 		OWLOntologyFormat format = new RDFXMLOntologyFormat();
-		// String outPath = ".";
 		String baseDirectory = ".";
 
 		OortConfiguration oortConfig = new OortConfiguration();
@@ -294,64 +220,34 @@ public class OboOntologyReleaseRunner {
 				oortConfig.allowFileOverWrite = true;
 			}
 			else {
-
 				String tokens[] = opt.split(" ");
 				for (String token : tokens)
 					paths.add(token);
 			}
 		}
 		
-		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig);
-		
 		File base = new File(baseDirectory);
-
 		logger.info("Base directory path " + base.getAbsolutePath());
-
-		if (!base.exists())
-			throw new FileNotFoundException("The base directory at "
-					+ baseDirectory + " does not exist");
-
-		if (!base.canRead())
-			throw new IOException("Can't read the base directory at "
-					+ baseDirectory);
-
-		if (!base.canWrite())
-			throw new IOException("Can't write in the base directory "
-					+ baseDirectory);
-
-		oorr.createRelease(format, paths, base);
-
+		
+		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, base);
+		
+		oorr.createRelease(format, paths);
+		boolean success = oorr.createRelease(format, paths);
+		String message;
+		if (success) {
+			message = "Finished release manager process";
+		}
+		else {
+			message = "Finished release manager process, but no release was created.";
+		}
+		logger.info(message);
 	}
 
-	public void createRelease(OWLOntologyFormat format,
-			Vector<String> paths, File base) 
-	throws IOException,
-	OWLOntologyCreationException, FileNotFoundException,
-	OWLOntologyStorageException 
+	public boolean createRelease(OWLOntologyFormat format, Vector<String> paths) 
+			throws IOException, OWLOntologyCreationException, 
+				FileNotFoundException, OWLOntologyStorageException 
 	{
 		String path = null;
-
-
-		// ----------------------------------------
-		// Set up directories
-		// ----------------------------------------
-		File releases = new File(base, "releases");
-		makeDir(releases);
-
-		cleanBase(base);
-
-		File todayRelease = new File(releases, dtFormat.get().format(Calendar
-				.getInstance().getTime()));
-		todayRelease = todayRelease.getCanonicalFile();
-		makeDir(todayRelease);
-
-		String version = buildVersionInfo(base);
-
-		File subsets = new File(base, "subsets");
-		makeDir(subsets);
-
-		File extensions = new File(base, "extensions");
-		makeDir(extensions);
 
 		if (paths.size() > 0)
 			path = getPathIRI( paths.get(0) );
@@ -367,6 +263,8 @@ public class OboOntologyReleaseRunner {
 			mooncat.addReferencedOntology(parser.parseOWL(p));
 		}
 
+		// TODO implement a way to specify an individual version or extract from the ontology 
+		String version = buildVersionInfo(null);
 		if (version != null) {
 			addVersion(mooncat.getOntology(), version, mooncat.getManager());
 		}
@@ -407,14 +305,10 @@ public class OboOntologyReleaseRunner {
 					logger.info("Generating bridge ontology:"+tOntId);
 					Obo2Owl obo2owl = new Obo2Owl();
 					OWLOntology tOnt = obo2owl.convert(tdoc);
-					saveOntologyInAllFormats(base, tOntId, format, tOnt);
-
-					// TODO - save both obo and owl;
-					// do this in a generic way, Don't Repeat Yourself..
+					saveOntologyInAllFormats(tOntId, format, tOnt);
 				}
 			} catch (InvalidXrefMapException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.info("Problem during Xref expansion: "+e.getMessage(), e);
 			}
 
 			// TODO - macro expansions
@@ -427,7 +321,7 @@ public class OboOntologyReleaseRunner {
 
 		if (oortConfig.asserted) {
 			logger.info("Creating Asserted Ontology");
-			saveInAllFormats(base, ontologyId, format, "non-classified");
+			saveInAllFormats(ontologyId, format, "non-classified");
 			logger.info("Asserted Ontology Creation Completed");
 		}
 
@@ -483,7 +377,7 @@ public class OboOntologyReleaseRunner {
 
 				logger.info("Redundant axioms removed");
 			}
-			saveInAllFormats(base, ontologyId, format, null);
+			saveInAllFormats(ontologyId, format, null);
 
 		}
 
@@ -527,7 +421,7 @@ public class OboOntologyReleaseRunner {
 				mooncat.removeSubsetComplementClasses(coreSubset, true);
 			}
 
-			saveInAllFormats(base, ontologyId, format, "simple");
+			saveInAllFormats(ontologyId, format, "simple");
 			logger.info("Creating simple ontology completed");
 
 		}		
@@ -537,17 +431,8 @@ public class OboOntologyReleaseRunner {
 		// End of export file creation
 		// ----------------------------------------
 
-		logger.info("Copying files to release "
-				+ todayRelease.getAbsolutePath());
-
-		for (File f : base.listFiles()) {
-			if (f.getName().endsWith(".obo") || f.getName().endsWith(".owl")
-					|| f.getName().equals("VERSION-INFO")
-					|| (f.isDirectory() && f.getName().equals("subsets"))
-					|| (f.isDirectory() && f.getName().equals("extensions")))
-
-				copy(f.getCanonicalFile(), todayRelease);
-		}
+		boolean success = commit(version);
+		return success;
 	}
 
 	/**
@@ -573,32 +458,25 @@ public class OboOntologyReleaseRunner {
 		return axioms;
 	}
 
-	private void saveInAllFormats(File base, String ontologyId, OWLOntologyFormat format, String ext) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveInAllFormats(String ontologyId, OWLOntologyFormat format, String ext) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
-		saveOntologyInAllFormats(base, fn, format, mooncat.getOntology());
+		saveOntologyInAllFormats(fn, format, mooncat.getOntology());
 	}
 
-	private void saveOntologyInAllFormats(File base, String fn, OWLOntologyFormat format, OWLOntology ontologyToSave) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveOntologyInAllFormats(String fn, OWLOntologyFormat format, OWLOntology ontologyToSave) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
 		logger.info("Saving: "+fn);
 
-		String outputURI = checkNew(new File(base, fn +".owl")).getAbsolutePath();
-
-		logger.info("saving to " + outputURI);
-		FileOutputStream os = new FileOutputStream(new File(outputURI));
+		OutputStream os = getOutputSteam(fn +".owl");
 		mooncat.getManager().saveOntology(ontologyToSave, format, os);
 		os.close();
 
 		Owl2Obo owl2obo = new Owl2Obo();
 		OBODoc doc = owl2obo.convert(ontologyToSave);
 
-		outputURI = checkNew(new File(base, fn +".obo")).getAbsolutePath();
-		logger.info("saving to " + outputURI);
-
 		OBOFormatWriter writer = new OBOFormatWriter();
 
-		BufferedWriter bwriter = new BufferedWriter(new FileWriter(
-				new File(outputURI)));
+		BufferedWriter bwriter = getWriter(fn +".obo");
 
 		writer.write(doc, bwriter);
 
@@ -647,58 +525,4 @@ public class OboOntologyReleaseRunner {
 		manager.applyChange(new AddAxiom(ontology, ax));
 
 	}
-
-
-	/**
-	 * Copies file/directory to destination from source.
-	 * @param fromFile
-	 * @param toFile
-	 * @throws IOException
-	 */
-	public void copy(File fromFile, File toFile) throws IOException {
-
-		if (toFile.isDirectory())
-			toFile = new File(toFile, fromFile.getName());
-
-		if(fromFile.isDirectory()){
-			makeDir(toFile);
-			for(File f: fromFile.listFiles()){
-				if(f.getName().equals(".") || f.getName().equals(".."))
-					continue;
-				
-				copy(f, toFile);
-			}
-
-			return;
-		}
-
-		checkNew(toFile);
-		FileInputStream from = null;
-		FileOutputStream to = null;
-		try {
-			from = new FileInputStream(fromFile);
-			to = new FileOutputStream(toFile);
-			byte[] buffer = new byte[4096];
-			int bytesRead;
-
-			while ((bytesRead = from.read(buffer)) != -1)
-				to.write(buffer, 0, bytesRead); // write
-		} finally {
-			if (from != null)
-				try {
-					from.close();
-				} catch (IOException e) {
-					logger.warn("Could not close file input stream: "+fromFile.getAbsolutePath(),e);
-				}
-
-			if (to != null)
-				try {
-					to.close();
-				} catch (IOException e) {
-					logger.warn("Could not close file output stream: "+toFile.getAbsolutePath(),e);
-				}
-		}
-	}
-
-
 }

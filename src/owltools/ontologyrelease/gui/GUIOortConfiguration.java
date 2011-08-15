@@ -10,7 +10,7 @@ import owltools.ontologyrelease.OboOntologyReleaseRunner;
 import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration;
 
 /**
- * Add all options and paramets for {@link OboOntologyReleaseRunner} 
+ * Add all options and parameters for {@link OboOntologyReleaseRunner} 
  * in one configuration object.
  */
 public class GUIOortConfiguration extends OortConfiguration {
