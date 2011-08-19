@@ -204,7 +204,12 @@ public class GAFParser {
 
 
 		// String message = "Importing GAF data";
-		parse(gaf_file.getAbsoluteFile());
+		try {
+			parse(gaf_file.getAbsoluteFile().toString());
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 	

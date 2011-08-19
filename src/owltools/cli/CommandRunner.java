@@ -48,6 +48,11 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import owltools.gaf.GafDocument;
+import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.inference.AnnotationPredictor;
+import owltools.gaf.inference.CompositionalClassPredictor;
+import owltools.gaf.inference.Prediction;
 import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -63,6 +68,7 @@ import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.Mooncat;
+import owltools.ontologyrelease.OntologyMetadata;
 import owltools.sim.DescriptionTreeSimilarity;
 import owltools.sim.MultiSimilarity;
 import owltools.sim.OWLObjectPair;
@@ -96,6 +102,7 @@ public class CommandRunner {
 	private static Logger LOG = Logger.getLogger(CommandRunner.class);
 
 	OWLGraphWrapper g = null;
+	GafDocument gafdoc = null;
 
 
 	public class Opts {
@@ -967,6 +974,10 @@ public class CommandRunner {
 					System.out.println("AX:"+a);
 				}
 			}
+			else if (opts.nextEq("--show-metadata")) {
+				OntologyMetadata omd = new OntologyMetadata();
+				omd.generate(g);
+			}
 			else if (opts.nextEq("--follow-subclass")) {
 				opts.info("", "follow subclass axioms (and also equivalence axioms) in graph traversal.\n"+
 				"     default is to follow ALL. if this is specified then only explicitly specified edges followed");
@@ -1030,6 +1041,19 @@ public class CommandRunner {
 				String f = opts.nextOpt();
 				System.out.println("tabfile: "+f);
 				ttac.parse(f);
+			}
+			else if (opts.nextEq("--gaf")) {
+				GafObjectsBuilder builder = new GafObjectsBuilder();
+				gafdoc = builder.buildDocument(new File(opts.nextOpt()));				
+			}
+			else if (opts.nextEq("--gaf-xp-predict")) {
+				owlpp = new OWLPrettyPrinter(g);
+				AnnotationPredictor ap = new CompositionalClassPredictor(gafdoc, g);
+				Set<Prediction> predictions = ap.getAllPredictions();
+				for (Prediction p : predictions) {
+					System.out.println(p.render(owlpp));
+				}
+				
 			}
 			else if (opts.nextEq("--report-profile")) {
 				g.getProfiler().report();

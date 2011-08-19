@@ -1,6 +1,13 @@
 package owltools.gaf;
 
 
+/**
+ * 
+ * Corresponds to col16 in GAF2.0
+ * 
+ * @author cjm
+ *
+ */
 public class ExtensionExpression{
 
 	protected String id;

@@ -1,3 +1,4 @@
+
 package owltools.gaf.test;
 
 import java.io.File;
@@ -14,6 +15,7 @@ public class GAFParserTest extends TestCase {
 		p.parse(new File("test_resources/test_gene_association_mgi.gaf"));
 		
 		while(p.next()){
+			System.out.println(p.toString());
 			System.out.println(p.getDb() + "\t" + p.getTaxon());
 		}
 	}

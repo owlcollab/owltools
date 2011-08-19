@@ -2,6 +2,7 @@ package owltools.gaf;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +74,12 @@ public class GafDocument{
 	}
 	
 	public Set<GeneAnnotation> getGeneAnnotations(String bioentity){
-		return null;
+		Set<GeneAnnotation> anns = new HashSet<GeneAnnotation>();
+		for (GeneAnnotation ann : this.getGeneAnnotations()) {
+			if (ann.getBioentity().equals(bioentity))
+				anns.add(ann);
+		}
+		return anns;
 	}
 	
 	public Set<GeneAnnotation> getGeneAnnotationsByGoCls(String cls){

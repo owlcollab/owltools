@@ -35,6 +35,11 @@ public class OWLPrettyPrinter {
 	public String render(OWLObject obj) {
 		return obj == null ? "-" : renderer.render(obj);
 	}
+	
+	public String renderId(String id) {
+		return render(graph.getOWLObjectByIdentifier(id));
+	}
+
 
 	public String render(OWLAxiom a) {
 		return renderer.render(a);

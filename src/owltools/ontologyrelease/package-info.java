@@ -1,5 +1,5 @@
 /**
-   <h2>OBO Release Manager<h2>
+   <h2>OBO Release Manager</h2>
 
    This is an ant based command line tool which produces ontologies
    versions releases.  The command 'bin/ontology-release-runner'
@@ -14,6 +14,10 @@
    help which parameter to pass the tool.  To build the latest jar for
    the ontology release manager run the 'ant ontology-release-jar' ant
    command.  '
+
+   <h3>GUI</h3>
+
+   http://code.google.com/p/owltools/wiki/OBOReleaseManagerGUIDocumentation
 
    <h3>Specification</h3>
 

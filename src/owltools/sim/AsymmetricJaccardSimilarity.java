@@ -6,6 +6,12 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 
+/**
+ * 
+ * 
+ * @author cjm
+ *
+ */
 public class AsymmetricJaccardSimilarity extends Similarity {
 
 	int ci;
