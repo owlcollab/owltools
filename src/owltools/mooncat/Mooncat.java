@@ -8,10 +8,12 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -20,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import owltools.graph.OWLGraphWrapper;
 
@@ -248,7 +251,10 @@ public class Mooncat {
 	 * 
 	 * Steps:
 	 * (1) for each class in subset, add axioms that are about this class
-	 * (2) filter these axioms such that the classes in the signature are in the subset
+	 * (2) filter these axioms such that all the classes in the axiom signature are in the subset
+	 * 
+	 * For example, if O contains the axiom [A SubClassOf R some B] and A in S and B not in S,
+	 * then this axiom will not be added for the set S
 	 * 
 	 * 
 	 * @param objs
@@ -270,11 +276,18 @@ public class Mooncat {
 					LOG.info(obj+" declared in source; source axioms will take priority");
 					continue;
 				}
+				
+				if (obj instanceof OWLEntity) {
+					OWLDeclarationAxiom da = dataFactory.getOWLDeclarationAxiom((OWLEntity)obj);
+					axioms.add(da);
+				}
 
 				if (obj instanceof OWLClass) {
 					LOG.info("class:"+obj);
 					// includes SubClassOf(obj,?), disjoints, equivalents, ..
 					axioms.addAll(refOnt.getAxioms((OWLClass) obj));
+					
+					axioms.addAll(refOnt.getDeclarationAxioms((OWLClass) obj));
 				}
 				else if (obj instanceof OWLObjectProperty) {
 					axioms.addAll(refOnt.getAxioms((OWLObjectProperty) obj));
@@ -301,6 +314,7 @@ public class Mooncat {
 		for (OWLAxiom a : finalAxioms) {
 			boolean includeThis = true;
 
+			
 			// make this configurable
 			if (a instanceof OWLAnnotationAssertionAxiom) {
 				// include by default
@@ -308,8 +322,18 @@ public class Mooncat {
 			else {
 				
 				for (OWLEntity e : a.getSignature()) {
-					if (!objs.contains(e)) {
-						logger.info("removing:"+a+" -- E:"+e);
+
+					if (e.getIRI().toURI().equals(OWL2Datatype.XSD_STRING.getURI())) {
+						// datatypes are included in the signature - ignore these for filtering purposes
+						// TODO: handle this more elegantly 
+					}
+					else if (!objs.contains(e)) {
+						if (e instanceof OWLAnnotationProperty) {
+							// TODO: we should ensure that these get declared in the subset ontology;
+							// rely on the fact that the OWLAPI will infer this for now
+							continue;
+						}
+						logger.info("removing:"+a+" because signature does not include:"+e+" // "+e.getIRI().toURI());
 						includeThis = false;
 						break;
 					}
@@ -323,7 +347,11 @@ public class Mooncat {
 	
 	
 	/**
-	 * merge minimal subset of referenced ontologies into the source ontology
+	 * merge minimal subset of referenced ontologies into the source ontology.
+	 * 
+	 * This is the main entry method for this class.
+	 * 
+	 * 
 	 * 
 	 */
 	public void mergeOntologies() {

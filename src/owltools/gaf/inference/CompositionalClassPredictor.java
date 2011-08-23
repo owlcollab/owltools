@@ -74,29 +74,28 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 			}
 		}
 		LOG.info("  aClasses: "+aClasses);
-		
-			Set<OWLClass> ancs = new HashSet<OWLClass>();
-			
-			for (OWLClass aClass : aClasses) {
-				if (ancs.contains(aClass)) {
-					continue;
-				}
-				for (OWLObject a : getGraph().getAncestorsReflexive(aClass)) {
-					if (a instanceof OWLClass) {
-						// TODO - include class expressions
-						ancs.add((OWLClass) a);
-					}
+
+		Set<OWLClass> ancs = new HashSet<OWLClass>();
+
+		for (OWLClass aClass : aClasses) {
+			if (ancs.contains(aClass)) {
+				continue;
+			}
+			for (OWLObject a : getGraph().getAncestorsReflexive(aClass)) {
+				if (a instanceof OWLClass) {
+					// TODO - include class expressions
+					ancs.add((OWLClass) a);
 				}
 			}
-			LOG.info("     ancs: "+ancs);
+		}
+		LOG.info("     ancs: "+ancs);
 
-		
+
 		// naively iterate through every class that has a logical definition;
 		// note this means we waste time testing C when we already know C', and C' is subsumed by C
 		for (OWLClass c : simpleDefMap.keySet()) {
 			// can we infer bioentity to be of type c?
 			boolean allConditionsSatisfied = true;
-			String with = null;
 
 			// every single one of the conjunctive conditions must be satisfied
 			for (OWLClassExpression x : simpleDefMap.get(c)) {
@@ -104,38 +103,26 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 					allConditionsSatisfied = false;
 					break;
 				}
-				// todo - use actual annotate class
-				String withCls = getGraph().getIdentifier(x);
-				if (with == null) {
-					with = withCls;
-				}
-				else {
-					with = with + "|" + withCls;
-				}
-
-				/*
-				boolean thisConditionSatisfied = false;
-				for (OWLClass aClass : aClasses) {
-					if (getGraph().getAncestorsReflexive(aClass).contains(x)) {
-						thisConditionSatisfied = true;
-						String withCls = getGraph().getIdentifier(aClass);
-						if (with == null) {
-							with = withCls;
-						}
-						else {
-							with = with + "|" + withCls;
-						}
-						break;
-					}
-				}
-				if (!thisConditionSatisfied) {
-					allConditionsSatisfied = false;
-					break;
-				}
-				*/
 			}
 			if (allConditionsSatisfied) {
-				predictions.add(getPrediction(c, bioentity, with));
+				// build evidence
+				StringBuilder with = null;
+				for (OWLClassExpression x : simpleDefMap.get(c)) {
+					// todo - use actual annotate class
+					for (OWLClass aClass : aClasses) {
+						if (getGraph().getAncestorsReflexive(aClass).contains(x)) {
+							String withCls = getGraph().getIdentifier(aClass);
+							if (with == null) {
+								with = new StringBuilder(withCls);
+							}
+							else {
+								with.append("|"+withCls);
+							}
+						}
+					}
+
+				}
+				predictions.add(getPrediction(c, bioentity, with.toString()));
 			}
 		}
 		this.setAndFilterRedundantPredictions(predictions, aClasses);
