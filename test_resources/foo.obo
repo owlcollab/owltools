@@ -1,21 +1,24 @@
-format-version: 1.2
-date: 24:06:2010 12:33
-default-namespace: caro
-pairwise-disjoint: true
-treat-xrefs-as-equivalent: GO
 
 [Term]
-id: X:1
-name: simple columnar epithelium cell
-intersection_of: CL:1
-intersection_of: part_of CARO:0000068
+id: test:1234
+name: A
 
 [Term]
-id: CL:1
-name: cell
+id: test:2234
+name: B
+intersection_of: test:1234 ! A  
+intersection_of: rtest:1234 test:3234 ! part_of C
+
+[Term]
+id: test:3234
+name: C
+
+[Term]
+id: test:4234
+name: D
+is_a: test:1234 ! A
+relationship: rtest:1234 test:3234 ! part_of C
 
 [Typedef]
-id: part_of
+id: rtest:1234
 name: part_of
-is_transitive: true
-
