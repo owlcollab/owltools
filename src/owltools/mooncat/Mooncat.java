@@ -78,6 +78,10 @@ public class Mooncat {
 
 
 
+	/**
+	 * E.g. go, cl
+	 * @return
+	 */
 	public Set<String> getSourceOntologyPrefixes() {
 		return sourceOntologyPrefixes;
 	}
@@ -96,6 +100,8 @@ public class Mooncat {
 
 
 	/**
+	 * delegates to OWLGraphWrapper support ontologies
+	 * 
 	 * @return all support ontologies
 	 */
 	public Set<OWLOntology> getReferencedOntologies() {
@@ -109,7 +115,7 @@ public class Mooncat {
 		return graph.getAllOntologies();
 	}
 
-
+	@Deprecated
 	public void setReferencedOntologies(Set<OWLOntology> referencedOntologies) {
 		this.referencedOntologies = referencedOntologies;
 	}
@@ -126,10 +132,12 @@ public class Mooncat {
 
 
 	public OWLOntologyManager getManager() {
+		// TODO - delegate?
 		return manager;
 	}
 
 	public void setManager(OWLOntologyManager manager) {
+		// TODO - delegate?
 		this.manager = manager;
 	}
 
@@ -147,8 +155,10 @@ public class Mooncat {
 
 
 
+	/**
+	 * @return source ontology (delegated to OWLGraphWrapper)
+	 */
 	public OWLOntology getOntology() {
-		//
 		return graph.getSourceOntology();
 	}
 
@@ -165,11 +175,45 @@ public class Mooncat {
 		manager.applyChange(addAx);
 	}
 
+	// ----------------------------
+	// CORE METHODS
+	// ----------------------------
+	
+	/**
+	 * 
+	 * merge minimal subset of referenced ontologies into the source ontology.
+	 * 
+	 * This is the main entry method for this class.
+	 * 
+	 * finds all external ontology axioms required to make a sub-ontology such that the source is
+	 * "graph-complete", then add these axioms to source ontology
+	 */
+	public void mergeOntologies() {
+		OWLOntology srcOnt = graph.getSourceOntology();
+		Set<OWLAxiom> axioms = getClosureAxiomsOfExternalReferencedEntities();
+		for (OWLAxiom a : axioms) {
+			logger.info("Adding:"+a);
+		}
+		manager.addAxioms(srcOnt, axioms);
+	}
 
 
 
 	/**
-	 * @return set of entities that belong to a referenced ontology that are referenced in the source ontology
+	 * 
+	 * returns set of entities that belong to a referenced ontology that are referenced in the source ontology.
+	 * 
+	 * If the source ontology is not explicitly declared, then all entities that are referenced in the source
+	 * ontology and declared in a reference ontology are returned.
+	 * 
+	 * Example: if the source ontology is cl, and cl contains axioms that reference go:1, go:2, ...
+	 * and go is in the set of referenced ontologies, then {go:1,go:2,...} will be in the returned set.
+	 * It is irrelevant whether go:1, ... is declared in the source (e.g. MIREOTED)
+	 * 
+	 * Note this only returns direct references. See
+	 * {@link getClosureOfExternalReferencedEntities} for closure of references
+	 * 
+	 * @return all objects referenced by source ontology
 	 */
 	public Set<OWLEntity> getExternalReferencedEntities() {
 		OWLOntology ont = graph.getSourceOntology();
@@ -213,8 +257,13 @@ public class Mooncat {
 	}
 
 	/**
-	 * finds the full closure of all external referenced entities
-	 * @return
+	 * finds the full closure of all external referenced entities.
+	 * 
+	 * calls {@link getExternalReferencedEntities} and then finds all reflexive ancestors of this set.
+	 * 
+	 * to configure the travsersal, see {@link OWLGraphhWrapper}
+	 * 
+	 * @return closure of all external referenced entities
 	 */
 	public Set<OWLObject> getClosureOfExternalReferencedEntities() {
 		Set<OWLObject> objs = new HashSet<OWLObject>();
@@ -235,11 +284,20 @@ public class Mooncat {
 	 * find all axioms in closure of external referenced entities.
 	 * 
 	 * Steps:
-	 * (1) find all referenced entities
-	 * (2) find all axioms about these entities
-	 * (3) filter these axioms such that the classes in the signature are in the subset
+	 * <ul>
+	 *  <li> find all referenced entities and their closure
+	 *  <li> find all axioms about these entities
+	 *  <li> filter these axioms such that the classes in the signature are in the subset
+	 * </ul>
 	 * 
-	 * @return
+	 * The first step is carried out by {@link getClosureOfExternalReferencedEntities}
+	 * The second and third steps by {@link getAxiomsForSubset}
+	 * 
+	 * Example: if the source is cl, and cl references go classes, and go is in the set of referenced 
+	 * ontologies, then this will return a collection of axioms constituting a sub-ontology of go
+	 * such that the graph closure of cl is complete.
+	 * 
+	 * @return axioms for sub-ontology
 	 */
 	public Set<OWLAxiom> getClosureAxiomsOfExternalReferencedEntities() {
 		Set<OWLObject> objs = getClosureOfExternalReferencedEntities();
@@ -247,18 +305,24 @@ public class Mooncat {
 	}
 	
 	/**
-	 * Given a subset (e.g. GO slim), find axioms
+	 * "slim down" an ontology.
+	 * 
+	 * Given a set of objects (e.g. a GO slim), find axioms constituting sub-ontology
 	 * 
 	 * Steps:
-	 * (1) for each class in subset, add axioms that are about this class
-	 * (2) filter these axioms such that all the classes in the axiom signature are in the subset
+	 * <ul>
+	 *  <li> for each class in subset, add axioms that are about this class
+	 *  <li> filter these axioms such that all the classes in the axiom signature are in the subset
+	 * </ul>
 	 * 
-	 * For example, if O contains the axiom [A SubClassOf R some B] and A in S and B not in S,
-	 * then this axiom will not be added for the set S
+	 * For example, if O contains the axiom [A SubClassOf R some B] and A &isin; S and B &notin; S,
+	 * then this axiom will *not* be added for the set S
+	 * 
+	 * Currently, all annotation assertions about an object are added by default
 	 * 
 	 * 
-	 * @param objs
-	 * @return
+	 * @param objsInSubset
+	 * @return axioms in subontology
 	 */
 	public Set<OWLAxiom> getAxiomsForSubset(Set<OWLObject> objs) {
 		Set<OWLAxiom> finalAxioms = new HashSet<OWLAxiom>();
@@ -277,6 +341,7 @@ public class Mooncat {
 					continue;
 				}
 				
+				// explicitly add entity declarations
 				if (obj instanceof OWLEntity) {
 					OWLDeclarationAxiom da = dataFactory.getOWLDeclarationAxiom((OWLEntity)obj);
 					axioms.add(da);
@@ -346,22 +411,6 @@ public class Mooncat {
 	}
 	
 	
-	/**
-	 * merge minimal subset of referenced ontologies into the source ontology.
-	 * 
-	 * This is the main entry method for this class.
-	 * 
-	 * 
-	 * 
-	 */
-	public void mergeOntologies() {
-		OWLOntology srcOnt = graph.getSourceOntology();
-		Set<OWLAxiom> axioms = getClosureAxiomsOfExternalReferencedEntities();
-		for (OWLAxiom a : axioms) {
-			logger.info("Adding:"+a);
-		}
-		manager.addAxioms(srcOnt, axioms);
-	}
 
 	
 	// -----------------------

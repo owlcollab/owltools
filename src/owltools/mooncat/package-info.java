@@ -7,7 +7,8 @@
  * owltools http://purl.obolibrary.org/obo/mp.owl --merge file:mp-equivalence-axioms.owl --mcat -r http://purl.obolibrary.org/obo/ma.owl -o file://`pwd`/mp-mcat.owl
  * </code>
  * <p>
- * See {@link Mooncat}
+ * 
+ * The main class in {@link Moocat}
  * 
  * */
 package owltools.mooncat;
