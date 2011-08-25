@@ -1,27 +1,20 @@
 package owltools.sim.test;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
 
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
-import owltools.sim.MaximumInformationContentSimilarity;
 import owltools.sim.SimEngine;
 import owltools.sim.Similarity;
+import owltools.test.OWLToolsTestBasics;
 
-import junit.framework.TestCase;
+public abstract class AsbtractSimEngineTest extends OWLToolsTestBasics {
 
-public class AsbtractSimEngineTest extends TestCase {
-
-	public static void run(OWLGraphWrapper  wrapper, Similarity sa, OWLObject a, OWLObject b) throws Exception{
+	protected void run(OWLGraphWrapper  wrapper, Similarity sa, OWLObject a, OWLObject b) throws Exception{
 		SimEngine se = new SimEngine(wrapper);
 		System.out.println("Comparing "+a+" -vs- "+b);
 		for (OWLObject x : wrapper.getDescendantsReflexive(a)) {
@@ -34,13 +27,16 @@ public class AsbtractSimEngineTest extends TestCase {
 		}
 		
 	}
-
 	
-	protected static OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException, IOException {
+	protected OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException, IOException {
 		ParserWrapper pw = new ParserWrapper();
-		return pw.parseToOWLGraph(file);
+		return pw.parseToOWLGraph(getResourceIRIString(file));
 	}
 	
+	protected OWLGraphWrapper getOntologyWrapperFromURL(String url) throws OWLOntologyCreationException, IOException {
+		ParserWrapper pw = new ParserWrapper();
+		return pw.parseToOWLGraph(url);
+	}
 	
 	
 }

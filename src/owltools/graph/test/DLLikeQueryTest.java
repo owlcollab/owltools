@@ -1,26 +1,24 @@
 package owltools.graph.test;
 
-import java.io.File;
+import static junit.framework.Assert.*;
+
+import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLRestriction;
 
-import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapper.Config;
+import owltools.test.OWLToolsTestBasics;
 
-import junit.framework.TestCase;
+public class DLLikeQueryTest extends OWLToolsTestBasics {
 
-public class DLLikeQueryTest extends TestCase {
-
-	public static void testQuery() throws Exception {
+	@Test
+	public void testQuery() throws Exception {
 		OWLGraphWrapper g = getOntologyWrapper();
 		OWLClass obj = g.getOWLClass("http://example.org#probe_3");
 		boolean ok = false;
@@ -28,10 +26,11 @@ public class DLLikeQueryTest extends TestCase {
 			System.out.println(e);
 				ok = true;
 		}
-		assertTrue(g.queryDescendants(obj).size() == 3);
+		assertEquals(3, g.queryDescendants(obj).size());
 	}
 	
-	public static void testIntersectionsReturnedInClosure() throws Exception {
+	@Test
+	public void testIntersectionsReturnedInClosure() throws Exception {
 		OWLGraphWrapper g = getOntologyWrapper();
 		OWLClass obj = g.getOWLClass("http://example.org#probe_4");
 		boolean ok = false;
@@ -39,10 +38,11 @@ public class DLLikeQueryTest extends TestCase {
 			System.out.println(e);
 				ok = true;
 		}
-		assertTrue(g.queryDescendants(obj).size() == 3);
+		assertEquals(3, g.queryDescendants(obj).size());
 	}
 	
-	public static void testRestrictionQuery() throws Exception {
+	@Test
+	public void testRestrictionQuery() throws Exception {
 		OWLGraphWrapper g = getOntologyWrapper();
 		OWLClass c = g.getOWLClass("http://example.org#degenerated");
 		OWLObjectProperty p = g.getOWLObjectProperty("http://example.org#has_quality");
@@ -52,11 +52,12 @@ public class DLLikeQueryTest extends TestCase {
 			System.out.println("R:"+x);
 			ok = true;
 		}
-		assertTrue(g.queryDescendants(obj).size() == 5);
+		assertEquals(5, g.queryDescendants(obj).size());
 		assertTrue(ok);
 	}
 
-	public static void testRestrictionQuery2() throws Exception {
+	@Test
+	public void testRestrictionQuery2() throws Exception {
 		OWLGraphWrapper g = getOntologyWrapper();
 		OWLClass c = g.getOWLClass("http://example.org#axon_terminals_degenerated");
 		OWLObjectProperty p = g.getOWLObjectProperty("http://example.org#has_part");
@@ -68,19 +69,14 @@ public class DLLikeQueryTest extends TestCase {
 			ok = true;
 		}
 		assertTrue(ok);
-		assertTrue(g.queryDescendants(obj).size() == 10);
+		assertEquals(10, g.queryDescendants(obj).size());
 	}
 
 
-
-
-	private static OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
+	private OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		return new OWLGraphWrapper( 
-				manager.loadOntologyFromOntologyDocument(
-						new File("test_resources/lcstest2.owl")));
+		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(getResource("lcstest2.owl"));
+		return new OWLGraphWrapper(ontology);
 	}
-		
-	
 	
 }

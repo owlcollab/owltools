@@ -1,24 +1,23 @@
 package owltools.graph.test;
 
-import java.io.File;
+import static junit.framework.Assert.*;
+
+import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLRestriction;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapper.Config;
+import owltools.test.OWLToolsTestBasics;
 
-import junit.framework.TestCase;
+public class AncestorsTest extends OWLToolsTestBasics {
 
-public class AncestorsTest extends TestCase {
-
-	public static void testDescendants() throws Exception {
+	@Test
+	public void testDescendants() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLClass c = g.getOWLClass("http://purl.obolibrary.org/obo/NCBITaxon_10090");
 		OWLObject i = g.getOWLObject("http://purl.obolibrary.org/obo/MGI_101761");
@@ -33,7 +32,9 @@ public class AncestorsTest extends TestCase {
 
 		assertTrue(ok);
 	}
-	public static void testDescendantsQuery() throws Exception {
+	
+	@Test
+	public void testDescendantsQuery() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLClass c = g.getOWLClass("http://purl.obolibrary.org/obo/NCBITaxon_10090");
 		OWLObject i = g.getOWLObject("http://purl.obolibrary.org/obo/MGI_101761");
@@ -46,7 +47,9 @@ public class AncestorsTest extends TestCase {
 		}
 		assertTrue(ok);
 	}
-	public static void testAncestorsQuery() throws Exception {
+	
+	@Test
+	public void testAncestorsQuery() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLClass c = g.getOWLClass("http://purl.obolibrary.org/obo/NCBITaxon_10090");
 		OWLObject i = g.getOWLObject("http://purl.obolibrary.org/obo/MGI_101761");
@@ -59,15 +62,10 @@ public class AncestorsTest extends TestCase {
 		assertTrue(ok);
 	}
 
-
-
-	private static OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
+	private OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		return new OWLGraphWrapper( 
-				manager.loadOntologyFromOntologyDocument(
-						new File("test_resources/test_phenotype.owl")));
+		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(getResource("test_phenotype.owl"));
+		return new OWLGraphWrapper(ontology);
 	}
-		
-	
 	
 }

@@ -1,14 +1,14 @@
 package owltools.graph.test;
 
+import static junit.framework.Assert.*;
+
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
-import junit.framework.TestCase;
-
+import org.junit.Test;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
@@ -21,10 +21,12 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.Synonym;
+import owltools.test.OWLToolsTestBasics;
 
-public class OWLGraphWrapperTest extends TestCase {
+public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 
-	public static void testSynonyms() throws Exception{
+	@Test
+	public void testSynonyms() throws Exception{
 		OWLGraphWrapper  wrapper =  getOntologyWrapper();
 		
 		OWLObject cls = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "CHEBI_15355");
@@ -33,7 +35,8 @@ public class OWLGraphWrapperTest extends TestCase {
 		assertTrue(s.length>0);
 	}
 	
-	public static void testDef() throws Exception{
+	@Test
+	public void testDef() throws Exception{
 		OWLGraphWrapper  wrapper =  getOntologyWrapper();
 		
 		OWLObject cls = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "CHEBI_15355");
@@ -42,7 +45,8 @@ public class OWLGraphWrapperTest extends TestCase {
 		assertTrue(s != null);
 	}
 
-	public static void testSubClassesNames() throws Exception{
+	@Test
+	public void testSubClassesNames() throws Exception{
 		OWLGraphWrapper  wrapper =  getOntologyWrapper();
 		
 		OWLClass cls =(OWLClass) wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "CHEBI_33429");
@@ -52,15 +56,15 @@ public class OWLGraphWrapperTest extends TestCase {
 	}
 
 	
-	private static OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
+	private OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		return new OWLGraphWrapper( 
-				manager.loadOntologyFromOntologyDocument(
-						new File("test_resources/test.owl")));
+		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(getResource("test.owl"));
+		return new OWLGraphWrapper(ontology);
 	}
 
-	public static void testGetOBOSynonymsWithXrefs() throws Exception{
-		OWLGraphWrapper  wrapper =  getOBO2OWLOntologyWrapper("test_resources/caro.obo");
+	@Test
+	public void testGetOBOSynonymsWithXrefs() throws Exception{
+		OWLGraphWrapper  wrapper = getOBO2OWLOntologyWrapper("caro.obo");
 		
 		OWLObject cls = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "CARO_0001001");
 		
@@ -75,8 +79,9 @@ public class OWLGraphWrapperTest extends TestCase {
 		assertEquals("FBC:DOS", synonym.getXrefs().iterator().next());
 	}
 	
-	public static void testGetOBOSynonymsMultipleScopes() throws Exception{
-		OWLGraphWrapper  wrapper =  getOBO2OWLOntologyWrapper("test_resources/ncbi_taxon_slim.obo");
+	@Test
+	public void testGetOBOSynonymsMultipleScopes() throws Exception{
+		OWLGraphWrapper wrapper = getOBO2OWLOntologyWrapper("ncbi_taxon_slim.obo");
 		
 		OWLObject cls = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "NCBITaxon_10088");
 		
@@ -101,9 +106,9 @@ public class OWLGraphWrapperTest extends TestCase {
 		assertNull(synonym2.getXrefs());
 	}
 	
-	private static OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws OWLOntologyCreationException, FileNotFoundException, IOException{
+	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws OWLOntologyCreationException, FileNotFoundException, IOException{
 		OBOFormatParser p = new OBOFormatParser();
-		OBODoc obodoc = p.parse(new BufferedReader(new FileReader(new File(file))));
+		OBODoc obodoc = p.parse(new BufferedReader(new FileReader(getResource(file))));
 		Obo2Owl bridge = new Obo2Owl();
 		OWLOntology ontology = bridge.convert(obodoc);
 		OWLGraphWrapper wrapper = new OWLGraphWrapper(ontology);

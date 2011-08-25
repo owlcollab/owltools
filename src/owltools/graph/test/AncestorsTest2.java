@@ -1,11 +1,14 @@
 package owltools.graph.test;
 
-import java.io.File;
+import static junit.framework.Assert.*;
+
+import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLRestriction;
@@ -13,12 +16,12 @@ import org.semanticweb.owlapi.model.OWLRestriction;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.Config;
+import owltools.test.OWLToolsTestBasics;
 
-import junit.framework.TestCase;
+public class AncestorsTest2 extends OWLToolsTestBasics {
 
-public class AncestorsTest2 extends TestCase {
-
-	public static void testIntersectionsReturnedInClosure() throws Exception {
+	@Test
+	public void testIntersectionsReturnedInClosure() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLObject obj = g.getOWLObject("http://example.org#o1");
 		boolean ok = false;
@@ -29,7 +32,9 @@ public class AncestorsTest2 extends TestCase {
 		}
 		assertTrue(ok);
 	}
-	public static void testRestrictionsReturnedInClosure() throws Exception {
+	
+	@Test
+	public void testRestrictionsReturnedInClosure() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLObject obj = g.getOWLObject("http://example.org#deformed_hippocampus");
 		boolean ok = false;
@@ -40,7 +45,9 @@ public class AncestorsTest2 extends TestCase {
 		}
 		assertTrue(ok);
 	}
-	public static void testExclusion() throws Exception {
+	
+	@Test
+	public void testExclusion() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		Config cfg = g.getConfig();
 		cfg.excludeProperty(g.getDataFactory().getOWLObjectProperty(IRI.create("http://example.org#has")));
@@ -53,7 +60,9 @@ public class AncestorsTest2 extends TestCase {
 		}
 		assertTrue(ok);
 	}
-	public static void testDescendants() throws Exception {
+	
+	@Test
+	public void testDescendants() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLObject c = g.getOWLObject("http://example.org#organism");
 		OWLObject i = g.getOWLObject("http://example.org#o1");
@@ -65,7 +74,9 @@ public class AncestorsTest2 extends TestCase {
 		}
 		assertTrue(ok);
 	}
-	public static void testDescendantsQuery() throws Exception {
+	
+	@Test
+	public void testDescendantsQuery() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLClass c = g.getOWLClass("http://example.org#organism");
 		OWLObject i = g.getOWLObject("http://example.org#o1");
@@ -78,15 +89,10 @@ public class AncestorsTest2 extends TestCase {
 		assertTrue(ok);
 	}
 
-
-
-	private static OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
+	private OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		return new OWLGraphWrapper( 
-				manager.loadOntologyFromOntologyDocument(
-						new File("test_resources/lcstest3.owl")));
+		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(getResource("lcstest3.owl"));
+		return new OWLGraphWrapper(ontology);
 	}
-		
-	
 	
 }

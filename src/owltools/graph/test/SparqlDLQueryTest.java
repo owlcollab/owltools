@@ -1,12 +1,12 @@
 package owltools.graph.test;
 
-import junit.framework.TestCase;
 import de.derivo.sparqldlapi.Query;
 import de.derivo.sparqldlapi.QueryEngine;
 import de.derivo.sparqldlapi.QueryResult;
 import de.derivo.sparqldlapi.exceptions.QueryEngineException;
 import de.derivo.sparqldlapi.exceptions.QueryParserException;
 
+import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -28,13 +28,14 @@ import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 * @author Mario Volke
 * @author Thorsten Liebig
 */
-public class SparqlDLQueryTest extends TestCase {
+public class SparqlDLQueryTest {
 	private static QueryEngine engine;
 
 	/**
 	 * @param args
 	 */
-	public static void testQuery() 
+	@Test
+	public void testQuery() 
 	{
 		try {
 			// Create an ontology manager
@@ -127,7 +128,7 @@ public class SparqlDLQueryTest extends TestCase {
      }
 	}
 	
-	public static void processQuery(String q)
+	private void processQuery(String q)
 	{
 		try {
 			long startTime = System.currentTimeMillis();

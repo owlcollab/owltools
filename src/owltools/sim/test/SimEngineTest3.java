@@ -1,5 +1,6 @@
 package owltools.sim.test;
 
+import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -12,8 +13,9 @@ import owltools.sim.Similarity;
 
 public class SimEngineTest3 extends AsbtractSimEngineTest {
 
-	public static void testSim() throws Exception{
-		OWLGraphWrapper  g =  getOntologyWrapper("file:test_resources/lcstest3.owl");
+	@Test
+	public void testSim() throws Exception{
+		OWLGraphWrapper  g =  getOntologyWrapper("lcstest3.owl");
 		SimEngine se = new SimEngine(g);
 		
 		OWLObject a = g.getOWLObject("http://example.org#o1");
@@ -28,8 +30,9 @@ public class SimEngineTest3 extends AsbtractSimEngineTest {
 		
 	}
 	
-	public static void testHippocampusLCS() throws Exception{
-		OWLGraphWrapper  g =  getOntologyWrapper("file:test_resources/lcstest3.owl");
+	@Test
+	public void testHippocampusLCS() throws Exception{
+		OWLGraphWrapper  g =  getOntologyWrapper("lcstest3.owl");
 		SimEngine se = new SimEngine(g);
 		
 		OWLObject a = g.getOWLObject("http://example.org#axon_terminals_degenerated_in_ca2");
@@ -44,9 +47,9 @@ public class SimEngineTest3 extends AsbtractSimEngineTest {
 		
 	}	
 
-	
-	public static void testSimEq() throws Exception{
-		OWLGraphWrapper  g =  getOntologyWrapper("file:test_resources/lcstest3.owl");
+	@Test
+	public void testSimEq() throws Exception{
+		OWLGraphWrapper  g =  getOntologyWrapper("lcstest3.owl");
 		SimEngine se = new SimEngine(g);
 		
 		OWLObject a = g.getOWLObject("http://example.org#atrophied_hippocampus");

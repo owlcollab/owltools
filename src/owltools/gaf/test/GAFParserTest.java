@@ -1,18 +1,20 @@
 
 package owltools.gaf.test;
 
-import java.io.File;
 import java.io.IOException;
 
+import org.junit.Test;
+
 import owltools.gaf.GAFParser;
-import junit.framework.TestCase;
+import owltools.test.OWLToolsTestBasics;
 
-public class GAFParserTest extends TestCase {
+public class GAFParserTest extends OWLToolsTestBasics {
 
-	public static void testParser() throws IOException{
+	@Test
+	public void testParser() throws IOException{
 		GAFParser p = new GAFParser();
 		
-		p.parse(new File("test_resources/test_gene_association_mgi.gaf"));
+		p.parse(getResource("test_gene_association_mgi.gaf"));
 		
 		while(p.next()){
 			System.out.println(p.toString());

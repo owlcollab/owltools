@@ -7,8 +7,7 @@
 	<classpathentry kind="lib" path="lib/runlibs/owlapi-bin.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/FaCTpp-OWLAPI-v1.4.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/org.semanticweb.HermiT.jar"/>
-	<classpathentry kind="lib" path="lib/runlibs/oboformat.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry kind="lib" path="lib/runlibs/oboformat.jar" sourcepath="/oboformat/src"/>
 	<classpathentry kind="lib" path="lib/runlibs/GraphDraw-20100831-1335.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/GraphDraw.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/mail.jar"/>
@@ -28,5 +27,6 @@
 	<classpathentry kind="lib" path="lib/runlibs/jdom.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/jgrapht-jdk1.5.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/commons-io-2.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/junit-4.8.2.jar" sourcepath="/home/hdietze/.m2/repository/junit/junit/4.8.2/junit-4.8.2-sources.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

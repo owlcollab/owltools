@@ -1,17 +1,17 @@
 package owltools.sim.test;
 
+import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim.DescriptionTreeSimilarity;
-import owltools.sim.MaximumInformationContentSimilarity;
 import owltools.sim.SimEngine;
-import owltools.sim.Similarity;
 
 public class SimEngineTest4 extends AsbtractSimEngineTest {
 
-	public static void testSim() throws Exception{
-		OWLGraphWrapper  wrapper =  getOntologyWrapper("file:test_resources/lcstest2.owl");
+	@Test
+	public void testSim() throws Exception{
+		OWLGraphWrapper  wrapper =  getOntologyWrapper("lcstest2.owl");
 		DescriptionTreeSimilarity sa = 
 			new DescriptionTreeSimilarity();
 		OWLObject a = wrapper.getOWLObject("http://example.org#o1");
@@ -22,6 +22,5 @@ public class SimEngineTest4 extends AsbtractSimEngineTest {
 		sa.print();
 		
 	}	
-
 	
 }

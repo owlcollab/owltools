@@ -1,20 +1,24 @@
 package owltools.gaf.test;
 
-import java.io.File;
+import static junit.framework.Assert.*;
+
 import java.io.IOException;
 import java.util.Set;
+
+import org.junit.Test;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.GeneAnnotation;
-import junit.framework.TestCase;
+import owltools.test.OWLToolsTestBasics;
 
-public class GafObjectsBuilderTest extends TestCase {
+public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 
-	public static void testBuildDocument() throws IOException{
+	@Test
+	public void testBuildDocument() throws IOException{
 		GafObjectsBuilder builder = new GafObjectsBuilder();
 		
-		GafDocument doc = builder.buildDocument(new File("test_resources/test_gene_association_mgi.gaf"));
+		GafDocument doc = builder.buildDocument(getResource("test_gene_association_mgi.gaf"));
 		
 		assertNotNull(doc);
 		
@@ -29,10 +33,11 @@ public class GafObjectsBuilderTest extends TestCase {
 		assertTrue(anns.size() == 3);
 	}
 	
-	public static void testSplitBuildDocument() throws IOException{
+	@Test
+	public void testSplitBuildDocument() throws IOException{
 		GafObjectsBuilder builder = new GafObjectsBuilder(50);
 		
-		GafDocument doc = builder.buildDocument(new File("test_resources/test_gene_association_mgi.gaf"));
+		GafDocument doc = builder.buildDocument(getResource("test_gene_association_mgi.gaf"));
 		
 		assertNotNull(doc);
 		

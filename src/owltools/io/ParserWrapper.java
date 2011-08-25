@@ -12,7 +12,6 @@ import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -56,8 +55,12 @@ public class ParserWrapper {
 
 	private OWLOntology parseOBO(String iri) throws IOException, OWLOntologyCreationException {
 		OBOFormatParser p = new OBOFormatParser();
-		obodoc = p.parse(iri);
-
+		if (isIRI(iri)) {
+			obodoc = p.parse(IRI.create(iri).toURI().toURL());
+		}
+		else {
+			obodoc = p.parse(iri);
+		}
 		if (defaultOntology != null) {
 			obodoc.addDefaultOntologyHeader(defaultOntology);
 		}
@@ -66,7 +69,6 @@ public class ParserWrapper {
 		}
 
 		Obo2Owl bridge = new Obo2Owl();
-		OWLOntologyManager manager = bridge.getManager();
 		OWLOntology ontology = bridge.convert(obodoc);
 		return ontology;
 	}
@@ -92,15 +94,17 @@ public class ParserWrapper {
 	public OWLOntology parseOWL(String iriString) throws OWLOntologyCreationException {
 		IRI iri;
 		LOG.info("parsing: "+iriString);
-		if (iriString.startsWith("file:") || iriString.startsWith("http:") || iriString.startsWith("https:")) {
+		if (isIRI(iriString)) {
+			iri = IRI.create(iriString);
 		}
 		else {
-			File f = new File(iriString);		
-			iriString = f.toURI().toString();
+			iri = IRI.create(new File(iriString));
 		}
-		iri = IRI.create(iriString);
 		return parseOWL(iri);
-
+	}
+	
+	private boolean isIRI(String iriString) {
+		return iriString.startsWith("file:") || iriString.startsWith("http:") || iriString.startsWith("https:");
 	}
 
 	public OWLOntology parseOWL(IRI iri) throws OWLOntologyCreationException {

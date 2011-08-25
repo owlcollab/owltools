@@ -1,7 +1,8 @@
 package owltools.test;
 
+import static junit.framework.Assert.*;
+
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -9,23 +10,25 @@ import java.util.Vector;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
-import junit.framework.TestCase;
+
+import org.junit.Before;
+import org.junit.Test;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
-public class TaxonGraphTest extends TestCase {
+public class TaxonGraphTest extends OWLToolsTestBasics {
 	
 	OWLGraphWrapper gw;
 	
-	@Override
-	public void setUp() throws Exception {
+	@Before
+	public void before() throws Exception {
 		System.out.println("Setting up: " + this);
 		List<String> files = new Vector<String>();
-		//files.add("test_resources/cell_prolif_placenta.obo");
-		files.add("test_resources/ncbi_taxon_slim.obo");
-		files.add("test_resources/taxon_union_terms.obo");
+		//files.add(getResource("cell_prolif_placenta.obo").getAbsolutePath());
+		files.add(getResource("ncbi_taxon_slim.obo").getAbsolutePath());
+		files.add(getResource("taxon_union_terms.obo").getAbsolutePath());
 
 		ParserWrapper pw = new ParserWrapper();
 
@@ -33,6 +36,7 @@ public class TaxonGraphTest extends TestCase {
 		gw = new OWLGraphWrapper(ont);
 	}
 	
+	@Test
 	public void testUnion() throws OWLOntologyCreationException, IOException, FrameMergeException {
 		OWLObject cls = gw.getOWLObjectByIdentifier("NCBITaxon:6239"); // C elegans
 		OWLObject uc = gw.getOWLObjectByIdentifier("NCBITaxon_Union:0000005"); // C elegans
@@ -45,7 +49,7 @@ public class TaxonGraphTest extends TestCase {
 			String tid = gw.getIdentifier(t);
 			System.out.println(" "+tid);
 			// Nematoda or Protostomia
-			if (tid.equals("NCBITaxon_Union:0000005")) {
+			if ("NCBITaxon_Union:0000005".equals(tid)) {
 				ok = true;
 			}
 		}
