@@ -117,12 +117,10 @@
 			<copy file="${main_jar_manifest_template}" tofile="${main_jar_manifest}" overwrite="true" />
 			<pathconvert property="runtime_classpath" pathsep=" ">
 				<path>
-					<fileset dir="${librarydir}/runlibs">
-						<include name="*.jar" />
-						<include name="**/*.jar" />
-					</fileset>
+					<fileset refid="library_jars" />
 				</path>
-			<map from="${runtimedir}/" to="" />
+				<map from="${runtimedir}/" to="" />
+				<map from="${librarydir}/runlibs" to="../lib/runlibs"/> <!-- convert to relative pathes libs -->
 			</pathconvert>
 			<replace file="${main_jar_manifest}">
 				<replacefilter token="$BUILDNUM$" value="${build.number}" />
@@ -146,12 +144,10 @@
 		<copy file="${main_jar_manifest_template}" tofile="${main_jar_manifest}" overwrite="true" />
 		<pathconvert property="runtime_classpath" pathsep=" ">
 			<path>
-				<fileset dir="${librarydir}/runlibs">
-					<include name="*.jar" />
-					<include name="**/*.jar" />
-				</fileset>
+				<fileset refid="library_jars" />
 			</path>
 			<map from="${runtimedir}/" to="" />
+			<map from="${librarydir}/runlibs" to="../lib/runlibs"/> <!-- convert to relative pathes libs -->
 		</pathconvert>
 		<replace file="${main_jar_manifest}">
 			<replacefilter token="$BUILDNUM$" value="${build.number}" />
