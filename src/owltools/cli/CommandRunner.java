@@ -1163,6 +1163,7 @@ public class CommandRunner {
 		"        See Mooncat docs");
 		Mooncat m = new Mooncat(g);
 		ParserWrapper pw = new ParserWrapper();
+		String newURI = null;
 		while (opts.hasOpts()) {
 			//String opt = opts.nextOpt();
 			if (opts.nextEq("-r") || opts.nextEq("--ref-ont")) {
@@ -1180,21 +1181,31 @@ public class CommandRunner {
 				System.out.println("using everything in imports closure");
 				g.addSupportOntologiesFromImportsClosure();
 			}
+			else if (opts.nextEq("-n") || opts.nextEq("--new-uri")) {
+				System.out.println("new URI for merged ontology");
+				newURI = opts.nextOpt();
+			}
 			else {
 				break;
 				//opts.fail();
 			}
 		}
-		if (m.getReferencedOntologies().size() == 0) {
-			m.setReferencedOntologies(g.getSupportOntologySet());
-		}
+		//if (m.getReferencedOntologies().size() == 0) {
+		//	m.setReferencedOntologies(g.getSupportOntologySet());
+		//}
 		//g.useImportClosureForQueries();
-		for (OWLAxiom ax : m.getClosureAxiomsOfExternalReferencedEntities()) {
-			System.out.println("M_AX:"+ax);
-		}
+		//for (OWLAxiom ax : m.getClosureAxiomsOfExternalReferencedEntities()) {
+		//	System.out.println("M_AX:"+ax);
+		//}
 
 		m.mergeOntologies();
 		m.removeDanglingAxioms();
+		if (newURI != null) {
+			HashSet<OWLOntology> cpOnts = new HashSet<OWLOntology>();
+			cpOnts.add(g.getSourceOntology());
+			OWLOntology newOnt = g.getManager().createOntology(IRI.create(newURI), cpOnts);
+			g.setSourceOntology(newOnt);
+		}
 	}
 
 	private void showEdges(Set<OWLGraphEdge> edges) {
