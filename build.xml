@@ -9,7 +9,7 @@
 	<property name="jarfile" location="${runtimedir}/${projectname}.jar" />
 	<property name="ontologyreleasejarfile" location="${runtimedir}/ontologyrelease.jar" />
 	<property name="main_jar_manifest" location="jar_manifest" />
-	<property name="jar_main_class" location="owltools.OWLReasonerRunner" />
+	<property name="jar_main_class" value="owltools.OWLReasonerRunner" />
 
 	<property name="outputdir" value="classes" />
 	<property name="sourcedir" value="src" />
