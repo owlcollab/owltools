@@ -27,7 +27,7 @@ public class ImportTest extends OWLToolsTestBasics {
 		OWLGraphLayoutRenderer r = new OWLGraphLayoutRenderer(g);
 		r.addAllObjects();
 		r.renderHTML();
-		for (OWLAxiom ax : g.getOntology().getAxioms()) {
+		for (OWLAxiom ax : g.getSourceOntology().getAxioms()) {
 			System.out.println("AX:"+ax);
 		}
 		boolean ok = false;
