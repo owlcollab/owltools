@@ -4,9 +4,12 @@ import static org.obolibrary.gui.GuiTools.addRowGap;
 
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -29,6 +32,8 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox assertedCheckBox;
 	final JCheckBox simpleCheckBox;
 	final JCheckBox expandXrefsCheckBox;
+	final JCheckBox recreateMireot;
+	final JCheckBox expandShortcutRelations;
 	
 	final JCheckBox allowOverwrite;
 	
@@ -36,6 +41,9 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	final JRadioButton hermitRadioButton;
 	final JRadioButton factppRadioButton;
 	final JRadioButton jcelRadioButton;
+
+	private List<JComponent> mireotFancyCheckbox;
+	private final boolean defaultRecreateMireot;
 	
 	/**
 	 * Create the panel with the given default values.
@@ -45,15 +53,22 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param defaultIsSimple
 	 * @param defaultExpandXrefs
 	 * @param defaultAllowOverwrite
+	 * @param defaultRecreateMireot
+	 * @param defaultExpandShortcutRelations
 	 */
-	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, boolean defaultIsSimple, boolean defaultExpandXrefs, boolean defaultAllowOverwrite) {
+	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, 
+			boolean defaultIsSimple, boolean defaultExpandXrefs, boolean defaultAllowOverwrite, 
+			boolean defaultRecreateMireot, boolean defaultExpandShortcutRelations) {
 		super();
+		this.defaultRecreateMireot = defaultRecreateMireot;
 		
 		// options flags
 		assertedCheckBox = new JCheckBox();
 		simpleCheckBox = new JCheckBox();
 		expandXrefsCheckBox = new JCheckBox();
 		allowOverwrite = new JCheckBox();
+		recreateMireot = new JCheckBox();
+		expandShortcutRelations = new JCheckBox();
 		
 		// reasoner radio buttons
 		pelletRadioButton = new JRadioButton();
@@ -77,14 +92,16 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 				"<p> with all external classes and references to them removed</p></html>",
 				defaultIsSimple,
 				defaultExpandXrefs,
-				defaultAllowOverwrite);
-		addRowGap(this, pos, 20);
+				defaultAllowOverwrite,
+				defaultRecreateMireot,
+				defaultExpandShortcutRelations);
+		addRowGap(this, pos, 10);
 		
 		
 		
 		// reasoner
 		createReasonerPanel(pos, defaultReasoner);
-		addRowGap(this, pos.expandH(), 10);
+		addRowGap(this, pos.expandH(), 5);
 		
 	}
 	
@@ -101,8 +118,10 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 */
 	private void createOptionPanel(GBHelper pos, 
 			String assertedLabel, String assertedDesc, boolean defaultIsAsserted, 
-			String simpleLabel, String simpleDesc, boolean defaultIsSimple, boolean defaultExpandXrefs,
-			boolean defaultAllowOverwrite) {
+			String simpleLabel, String simpleDesc, boolean defaultIsSimple, 
+			boolean defaultExpandXrefs, boolean defaultAllowOverwrite, 
+			boolean defaultRecreateMireot, boolean defaultExpandShortcutRelations)
+	{
 		add(new JLabel("Options"), pos.nextRow().indentLeft(DEFAULT_INDENT));
 		
 		createFancyCheckBox(pos, assertedLabel, assertedDesc, defaultIsAsserted, assertedCheckBox);
@@ -111,11 +130,20 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		
 		createFancyCheckBox(pos, simpleLabel, simpleDesc, defaultIsSimple, simpleCheckBox);
 		
-		addRowGap(this, pos.nextRow(), 15);
+		addRowGap(this, pos.nextRow(), 10);
 		
 		createFancyCheckBox(pos, "Expand Xref Macros (advanced)", null, defaultExpandXrefs, expandXrefsCheckBox);
 
-		addRowGap(this, pos.nextRow(), 15);
+		addRowGap(this, pos.nextRow(), 5);
+		
+		createFancyCheckBox(pos, "Expand Shortcut Relations (advanced)", null, defaultExpandShortcutRelations, expandShortcutRelations);
+
+		addRowGap(this, pos.nextRow(), 5);
+		
+		mireotFancyCheckbox = createFancyCheckBox(pos, "Recreate Mireot (advanced)", null, defaultRecreateMireot, recreateMireot);
+		setMireotButtonsEnabled(false);
+
+		addRowGap(this, pos.nextRow(), 5);
 		
 		createFancyCheckBox(pos, "Allow overwriting of existing release files", null, defaultAllowOverwrite, allowOverwrite);
 		
@@ -132,15 +160,24 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param desc
 	 * @param defaultValue
 	 * @param checkBox
+	 * 
+	 * @return List of {@link JComponent}
 	 */
-	private void createFancyCheckBox(GBHelper pos, String label, String desc, boolean defaultValue, JCheckBox checkBox) {
+	private List<JComponent> createFancyCheckBox(GBHelper pos, String label, String desc, boolean defaultValue, JCheckBox checkBox) {
 		add(checkBox, pos.nextRow().nextCol());
-		add(new JLabel(label), pos.nextCol().expandW());
+		List<JComponent> components = new ArrayList<JComponent>(3);
+		components.add(checkBox);
+		JLabel jLabel = new JLabel(label);
+		components.add(jLabel);
+		add(jLabel, pos.nextCol().expandW());
 		if (desc != null) {
 			addRowGap(this, pos.nextRow(), 2);
-			add(new JLabel(desc), pos.nextCol().nextCol().expandW().fill());
+			JLabel descJLabel = new JLabel(desc);
+			components.add(descJLabel);
+			add(descJLabel, pos.nextCol().nextCol().expandW().fill());
 		}
 		checkBox.setSelected(defaultValue);
+		return components;
 	}
 
 	/**
@@ -158,10 +195,10 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		reasonerGroup.add(factppRadioButton);
 		reasonerGroup.add(jcelRadioButton);
 		
-		JPanel panel = new JPanel(new GridLayout(2, 2, 20, 2));
+		JPanel panel = new JPanel(new GridLayout(1, 4, 20, 2));
 		panel.add(hermitRadioButton);
-		panel.add(jcelRadioButton);
 		panel.add(pelletRadioButton);
+		panel.add(jcelRadioButton);
 		panel.add(factppRadioButton);
 		
 		add(panel, pos.nextRow().nextCol().width(2));
@@ -171,7 +208,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		jcelRadioButton.setText("JCEL");
 		factppRadioButton.setText("Fact++");
 		
-		addRowGap(this, pos.nextRow(), 10);
+		addRowGap(this, pos.nextRow(), 5);
 		add(new JLabel("(Both Hermit and Pellet should give the same results, Hermit is typically faster)"), 
 				pos.nextRow().indentLeft(DEFAULT_INDENT).width(3).fill().expandW());
 		
@@ -190,5 +227,28 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 
 	public void setAllowOverwrite(boolean allowOverwrite) {
 		this.allowOverwrite.setSelected(allowOverwrite);
+	}
+	
+	/**
+	 * Enable or disable the Mireot-options check box components.
+	 * 
+	 * @param enabled
+	 */
+	void setMireotButtonsEnabled(boolean enabled) {
+//		boolean wasEnabled = recreateMireot.isEnabled();
+		for (JComponent jComponent : mireotFancyCheckbox) {
+			jComponent.setEnabled(enabled);
+		}
+//		if (enabled) {
+//			// if enabled set the default value
+//			// but only if it wasn't enabled before 
+//			if (!wasEnabled) {
+//				recreateMireot.setSelected(defaultRecreateMireot);
+//			}
+//		}
+//		else {
+//			// If disabled remove, set current value to false
+//			recreateMireot.setSelected(false);
+//		}
 	}
 }

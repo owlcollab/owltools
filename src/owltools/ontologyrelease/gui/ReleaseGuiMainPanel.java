@@ -40,6 +40,7 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	private final static Logger LOGGER = Logger.getLogger(ReleaseGuiMainPanel.class); 
 	
 	private final Frame frame;
+	private final ReleaseGuiAdvancedPanel advancedPanel;
 	
 	final JList inputFileJList;
 	
@@ -48,18 +49,20 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	final JRadioButton rdfXmlRadioButton;
 
 	/**
-	 * Constructor allows to build a panel with default values
+	 * Constructor allows to build a panel with default values.
 	 * 
 	 * @param frame
 	 * @param defaultFormat
 	 * @param defaultPaths
 	 * @param defaultBase
+	 * @param advancedPanel
 	 */
 	public ReleaseGuiMainPanel(Frame frame, OWLOntologyFormat defaultFormat, 
-			Vector<String> defaultPaths, File defaultBase)
+			Vector<String> defaultPaths, File defaultBase, ReleaseGuiAdvancedPanel advancedPanel)
 	{
 		super();
 		this.frame = frame;
+		this.advancedPanel = advancedPanel;
 
 		// create accessible fields
 		// add default values to these fields
@@ -206,6 +209,9 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 			listModel.addElement(name);
 		}
 		fileList.setModel(listModel);
+		
+		// enable the mireot option, when there is more than one file. 
+		advancedPanel.setMireotButtonsEnabled(files.size() > 1);
 	}
 
 	/**

@@ -97,7 +97,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	private JTabbedPane getTabbedPane() {
 		if (tabbedPane == null) {
 			tabbedPane = new JTabbedPane();
-			addTab(tabbedPane, "Input/Output", getMainPanel());
+			addTab(tabbedPane, "Input/Output", getMainPanel(getAdvancedPanel()));
 			addTab(tabbedPane, "Advanced", getAdvancedPanel());
 			addTab(tabbedPane, "Logs", getLogPanel());
 		}
@@ -167,6 +167,12 @@ public class ReleaseGuiMainFrame extends JFrame {
 		// allowOverwrite
 		parameters.setAllowFileOverWrite(advancedPanel.allowOverwrite.isSelected());
 		
+		// recreateMireot
+		parameters.setRecreateMireot(advancedPanel.recreateMireot.isSelected());
+		
+		// expandShortcutRelations
+		parameters.setExpandShortcutRelations(advancedPanel.expandShortcutRelations.isSelected());
+		
 		// paths
 		ListModel inputFileModel = mainPanel.inputFileJList.getModel();
 		Vector<String> paths = new Vector<String>();
@@ -230,12 +236,13 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * 
 	 * @return main panel
 	 */
-	private SizedJPanel getMainPanel() {
+	private SizedJPanel getMainPanel(ReleaseGuiAdvancedPanel advancedPanel) {
 		if (mainPanel == null) {
 			mainPanel = new ReleaseGuiMainPanel(this, 
 					parameters.getFormat(), 
 					parameters.getPaths(), 
-					parameters.getBase());
+					parameters.getBase(),
+					advancedPanel);
 		}
 		return mainPanel;
 	}
@@ -252,7 +259,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 					parameters.isAsserted(), 
 					parameters.isSimple(),
 					parameters.isExpandXrefs(),
-					parameters.isAllowFileOverWrite());
+					parameters.isAllowFileOverWrite(),
+					parameters.isRecreateMireot(),
+					parameters.isExpandShortcutRelations());
 		}
 		return advancedPanel;
 	}

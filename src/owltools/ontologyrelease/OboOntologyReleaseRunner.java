@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
@@ -22,24 +23,30 @@ import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddAxiom;
+import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.model.RemoveImport;
 
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
+import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration.MacroStrategy;
+import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
  * This class is a command line utility which builds an ontology release. The
@@ -67,7 +74,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	public static class OortConfiguration {
 
 		public enum MacroStrategy {
-			NO_EXPANSION, GCI 
+			GCI, INPLACE 
 		}
 
 		String reasonerName = InferenceBuilder.REASONER_HERMIT;
@@ -78,6 +85,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		boolean isExpandXrefs = false;
 		boolean isRecreateMireot = true;
 		boolean isExpandMacros = false;
+		MacroStrategy macroStrategy = MacroStrategy.GCI;
 		boolean isCheckConsistency = true;
 		boolean isWriteMetadata = true;
 
@@ -119,6 +127,30 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		public void setAllowFileOverWrite(boolean allowFileOverWrite) {
 			this.allowFileOverWrite = allowFileOverWrite;
+		}
+
+		public MacroStrategy getMacroStrategy() {
+			return macroStrategy;
+		}
+
+		public void setMacroStrategy(MacroStrategy macroStrategy) {
+			this.macroStrategy = macroStrategy;
+		}
+
+		public boolean isRecreateMireot() {
+			return isRecreateMireot;
+		}
+
+		public void setRecreateMireot(boolean isRecreateMireot) {
+			this.isRecreateMireot = isRecreateMireot;
+		}
+		
+		public boolean isExpandShortcutRelations() {
+			return isExpandMacros;
+		}
+		
+		public void setExpandShortcutRelations(boolean expandShortcutRelations) {
+			this.isExpandMacros = expandShortcutRelations;
 		}
 	}
 
@@ -216,6 +248,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			else if (opt.equals("--expand-macros")) {
 				oortConfig.isExpandMacros = true;
+				oortConfig.macroStrategy = MacroStrategy.GCI;
+			}
+			else if (opt.equals("--expand-macros-inplace")) {
+				oortConfig.isExpandMacros = true;
+				oortConfig.macroStrategy = MacroStrategy.INPLACE;
 			}
 			else if (opt.equals("--allow-overwrite")) {
 				oortConfig.allowFileOverWrite = true;
@@ -276,15 +313,20 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// ----------------------------------------
 		// Macro expansion
 		// ----------------------------------------
+		OWLOntology gciOntology = null;
 		if (oortConfig.isExpandMacros) {
-			// TODO: GCI option
-			OWLOntology ont = mooncat.getOntology();
-			MacroExpansionVisitor mev = 
-				new MacroExpansionVisitor(mooncat.getManager().getOWLDataFactory(), 
-						ont, mooncat.getManager());
-			ont = mev.expandAll();		
-			// TODO: save separate versions, one including imports to GCI file
-			mooncat.setOntology(ont);
+			if (oortConfig.macroStrategy == MacroStrategy.GCI) {
+				MacroExpansionGCIVisitor gciVisitor = 
+					new MacroExpansionGCIVisitor(mooncat.getOntology());
+				gciOntology = gciVisitor.createGCIOntology();
+			}
+			else {
+				OWLOntology ont = mooncat.getOntology();
+				MacroExpansionVisitor mev = 
+					new MacroExpansionVisitor(ont);
+				ont = mev.expandAll();		
+				mooncat.setOntology(ont);
+			}
 
 		}
 
@@ -308,7 +350,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					logger.info("Generating bridge ontology:"+tOntId);
 					Obo2Owl obo2owl = new Obo2Owl();
 					OWLOntology tOnt = obo2owl.convert(tdoc);
-					saveOntologyInAllFormats(tOntId, format, tOnt);
+					saveOntologyInAllFormats(tOntId, format, tOnt, null);
 				}
 			} catch (InvalidXrefMapException e) {
 				logger.info("Problem during Xref expansion: "+e.getMessage(), e);
@@ -323,7 +365,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		if (oortConfig.asserted) {
 			logger.info("Creating Asserted Ontology");
-			saveInAllFormats(ontologyId, format, "non-classified");
+			saveInAllFormats(ontologyId, format, "non-classified", gciOntology);
 			logger.info("Asserted Ontology Creation Completed");
 		}
 		
@@ -334,7 +376,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();
-			saveInAllFormats(ontologyId, format, "merged");
+			saveInAllFormats(ontologyId, format, "merged", gciOntology);
 
 			logger.info("Number of dangling classes in source (post-merge): "+mooncat.getDanglingClasses().size());
 			
@@ -391,7 +433,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 				logger.info("Redundant axioms removed");
 			}
-			saveInAllFormats(ontologyId, format, null);
+			saveInAllFormats(ontologyId, format, null, gciOntology);
 
 		}
 
@@ -435,7 +477,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				mooncat.removeSubsetComplementClasses(coreSubset, true);
 			}
 
-			saveInAllFormats(ontologyId, format, "simple");
+			saveInAllFormats(ontologyId, format, "simple", gciOntology);
 			logger.info("Creating simple ontology completed");
 
 		}		
@@ -472,18 +514,33 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return axioms;
 	}
 
-	private void saveInAllFormats(String ontologyId, OWLOntologyFormat format, String ext) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveInAllFormats(String ontologyId, OWLOntologyFormat format, String ext, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
-		saveOntologyInAllFormats(fn, format, mooncat.getOntology());
+		saveOntologyInAllFormats(fn, format, mooncat.getOntology(), gciOntology);
 	}
 
-	private void saveOntologyInAllFormats(String fn, OWLOntologyFormat format, OWLOntology ontologyToSave) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveOntologyInAllFormats(String fn, OWLOntologyFormat format, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
 		logger.info("Saving: "+fn);
 
 		OutputStream os = getOutputSteam(fn +".owl");
 		mooncat.getManager().saveOntology(ontologyToSave, format, os);
 		os.close();
+		
+		if (gciOntology != null) {
+			OWLOntologyManager gciManager = gciOntology.getOWLOntologyManager();
+			
+			// create specific import for the generated owl ontology
+			OWLImportsDeclaration importDeclaration = new OWLImportsDeclarationImpl(IRI.create(fn +".owl"));
+			AddImport addImport = new AddImport(gciOntology, importDeclaration);
+			RemoveImport removeImport = new RemoveImport(gciOntology, importDeclaration);
+			
+			gciManager.applyChange(addImport);
+			OutputStream gciOS = getOutputSteam(fn +"-aux.owl");
+			gciManager.saveOntology(gciOntology, format, gciOS);
+			
+			gciManager.applyChange(removeImport);
+		}
 
 		Owl2Obo owl2obo = new Owl2Obo();
 		OBODoc doc = owl2obo.convert(ontologyToSave);
