@@ -58,28 +58,29 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	InferenceBuilder infBuilder;
 	OWLPrettyPrinter owlpp;
 	OortConfiguration oortConfig;
-	
+
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base) throws IOException {
 		super(base, logger);
 		this.oortConfig = oortConfig; 
 	}
-	
+
 	public static class OortConfiguration {
-		
+
 		public enum MacroStrategy {
 			NO_EXPANSION, GCI 
 		}
-		
+
 		String reasonerName = InferenceBuilder.REASONER_HERMIT;
 		boolean asserted = false;
 		boolean simple = false;
 		boolean allowFileOverWrite = false;
 		// TODO - make this an option
 		boolean isExpandXrefs = false;
-		boolean isRecreateMireot = false;
+		boolean isRecreateMireot = true;
 		boolean isExpandMacros = false;
 		boolean isCheckConsistency = true;
-		
+		boolean isWriteMetadata = true;
+
 		public String getReasonerName() {
 			return reasonerName;
 		}
@@ -141,7 +142,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 		return file;
 	}
-	
+
 	/**
 	 *  Hook method to handle an unexpected file overwrite request.
 	 *  Returns true, if the overwrite is allowed.
@@ -171,7 +172,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		String baseDirectory = ".";
 
 		OortConfiguration oortConfig = new OortConfiguration();
-		
+
 
 		int i = 0;
 		Vector<String> paths = new Vector<String>();
@@ -225,12 +226,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					paths.add(token);
 			}
 		}
-		
+
 		File base = new File(baseDirectory);
 		logger.info("Base directory path " + base.getAbsolutePath());
-		
+
 		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, base);
-		
+
 		oorr.createRelease(format, paths);
 		boolean success = oorr.createRelease(format, paths);
 		String message;
@@ -244,8 +245,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	}
 
 	public boolean createRelease(OWLOntologyFormat format, Vector<String> paths) 
-			throws IOException, OWLOntologyCreationException, 
-				FileNotFoundException, OWLOntologyStorageException 
+	throws IOException, OWLOntologyCreationException, 
+	FileNotFoundException, OWLOntologyStorageException 
 	{
 		String path = null;
 
@@ -260,7 +261,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		for (int k = 1; k < paths.size(); k++) {
 			String p = getPathIRI(paths.get(k));
-			mooncat.addReferencedOntology(parser.parseOWL(p));
+			mooncat.addReferencedOntology(parser.parseToOWLGraph(p).getSourceOntology());
 		}
 
 		// TODO implement a way to specify an individual version or extract from the ontology 
@@ -273,18 +274,20 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		ontologyId = ontologyId.replaceAll(".obo$", ""); // temp workaround
 
 		// ----------------------------------------
-		// Bridge files
+		// Macro expansion
 		// ----------------------------------------
 		if (oortConfig.isExpandMacros) {
+			// TODO: GCI option
 			OWLOntology ont = mooncat.getOntology();
 			MacroExpansionVisitor mev = 
 				new MacroExpansionVisitor(mooncat.getManager().getOWLDataFactory(), 
 						ont, mooncat.getManager());
 			ont = mev.expandAll();		
+			// TODO: save separate versions, one including imports to GCI file
 			mooncat.setOntology(ont);
 
 		}
-			
+
 		// ----------------------------------------
 		// Bridge files
 		// ----------------------------------------
@@ -311,19 +314,33 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logger.info("Problem during Xref expansion: "+e.getMessage(), e);
 			}
 
-			// TODO - macro expansions
+			// TODO - option to generate imports
 		}
 
 		// ----------------------------------------
 		// Asserted (non-classified)
 		// ----------------------------------------
 
-
 		if (oortConfig.asserted) {
 			logger.info("Creating Asserted Ontology");
 			saveInAllFormats(ontologyId, format, "non-classified");
 			logger.info("Asserted Ontology Creation Completed");
 		}
+		
+		// ----------------------------------------
+		// Merge in external ontologies
+		// ----------------------------------------
+		if (oortConfig.isRecreateMireot) {
+			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
+			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
+			mooncat.mergeOntologies();
+			saveInAllFormats(ontologyId, format, "merged");
+
+			logger.info("Number of dangling classes in source (post-merge): "+mooncat.getDanglingClasses().size());
+			
+			// TODO: option to save as imports
+		}
+
 
 		// ----------------------------------------
 		// Main (asserted plus non-redundant inferred links)
@@ -334,10 +351,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		//  at some point we may wish to make this optional,
 		//  but a user would rarely choose to omit the main ontology
 		if (true) {
-
-			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
-			mooncat.mergeOntologies();
-
+		
 			logger.info("Creating basic ontology");
 
 			if (oortConfig.reasonerName != null) {
@@ -346,7 +360,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logger.info("Creating inferences");
 				buildInferences();
 				logger.info("Inferences creation completed");
-				
+
 				if (oortConfig.isCheckConsistency) {
 					logger.info("Checking consistency");
 					List<String> incs = infBuilder.performConsistencyChecks();
@@ -357,7 +371,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					}
 					logger.info("Checking consistency completed");
 				}
-				
+
 				if (true) {
 					if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
 						logger.error("WARNING! Found equivalencies between named classes");
@@ -366,7 +380,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						}
 					}
 				}
-				
+
 				logger.info("Finding redundant axioms");
 
 				for (OWLAxiom ax : infBuilder.getRedundantAxioms()) {
@@ -481,6 +495,13 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		writer.write(doc, bwriter);
 
 		bwriter.close();
+		
+		if (oortConfig.isWriteMetadata) {
+			OntologyMetadata omd = new OntologyMetadata();
+			// TODO
+			//omd.generate();
+
+		}
 
 	}
 
