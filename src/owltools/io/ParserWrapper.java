@@ -55,11 +55,15 @@ public class ParserWrapper {
 
 	private OWLOntology parseOBO(String iri) throws IOException, OWLOntologyCreationException {
 		OBOFormatParser p = new OBOFormatParser();
+		LOG.info("Parsing: "+iri);
 		if (isIRI(iri)) {
 			obodoc = p.parse(IRI.create(iri).toURI().toURL());
 		}
 		else {
 			obodoc = p.parse(iri);
+		}
+		if (obodoc == null) {
+			throw new IOException("Loading of ontology failed: "+iri);
 		}
 		if (defaultOntology != null) {
 			obodoc.addDefaultOntologyHeader(defaultOntology);
