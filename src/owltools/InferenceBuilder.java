@@ -95,7 +95,7 @@ public class InferenceBuilder{
 	 * @param graph
 	 * @return ontology limited to EL
 	 */
-	static OWLGraphWrapper enforceEL(OWLGraphWrapper graph) {
+	public static OWLGraphWrapper enforceEL(OWLGraphWrapper graph) {
 		OWL2ELProfile profile = new OWL2ELProfile();
 		OWLOntology sourceOntology = graph.getSourceOntology();
 		OWLProfileReport report = profile.checkOntology(sourceOntology);

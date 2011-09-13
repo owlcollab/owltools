@@ -79,6 +79,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		String reasonerName = InferenceBuilder.REASONER_HERMIT;
 		boolean enforceEL = false;
+		boolean writeELOntology = false;
 		boolean asserted = false;
 		boolean simple = false;
 		boolean allowFileOverWrite = false;
@@ -161,6 +162,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		public void setEnforceEL(boolean enforceEL) {
 			this.enforceEL = enforceEL;
 		}
+
+		public boolean isWriteELOntology() {
+			return writeELOntology;
+		}
+
+		public void setWriteELOntology(boolean writeELOntology) {
+			this.writeELOntology = writeELOntology;
+		}
 	}
 
 	/**
@@ -240,7 +249,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				i++;
 			}
 			else if (opt.equals("--enforceEL")) {
+				// If this option is active, the ontology is 
+				// restricted to EL before reasoning!
 				oortConfig.enforceEL = true;
+			}
+			else if (opt.equals("--makeEL")) {
+				// If this option is active, an EL restricted ontology 
+				// is written after reasoning.
+				oortConfig.writeELOntology = true;
 			}
 			/*
 			 * else if (opt.equals("-oboincludes")) { oboIncludes = args[i];
@@ -448,6 +464,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			saveInAllFormats(ontologyId, format, null, gciOntology);
 
 		}
+		
+		// write EL version
+		if(oortConfig.writeELOntology) {
+			logger.info("Creating EL ontology");
+			OWLGraphWrapper elGraph = InferenceBuilder.enforceEL(mooncat.getGraph());
+			saveInAllFormats(ontologyId, format, "el", elGraph.getSourceOntology(), gciOntology);
+			logger.info("Finished Creating EL ontology");
+		}
 
 		// ----------------------------------------
 		// Simple (no MIREOTs, no imports)
@@ -527,8 +551,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	}
 
 	private void saveInAllFormats(String ontologyId, OWLOntologyFormat format, String ext, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+		saveInAllFormats(ontologyId, format, ext, mooncat.getOntology(), gciOntology);
+	}
+	
+	private void saveInAllFormats(String ontologyId, OWLOntologyFormat format, String ext, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
-		saveOntologyInAllFormats(fn, format, mooncat.getOntology(), gciOntology);
+		saveOntologyInAllFormats(fn, format, ontologyToSave, gciOntology);
 	}
 
 	private void saveOntologyInAllFormats(String fn, OWLOntologyFormat format, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
