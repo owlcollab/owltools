@@ -15,8 +15,13 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.profiles.OWL2ELProfile;
+import org.semanticweb.owlapi.profiles.OWLProfileReport;
+import org.semanticweb.owlapi.profiles.OWLProfileViolation;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -54,8 +59,12 @@ public class InferenceBuilder{
 	public InferenceBuilder(OWLGraphWrapper graph){
 		this(graph, new PelletReasonerFactory());
 	}
-
+	
 	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName){
+		this(graph, reasonerName, false);
+	}
+
+	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName, boolean enforceEL){
 		this.graph = graph;
 		// TODO decide if this should be done here, 
 		// or if we want just the constructor with the factory
@@ -66,15 +75,64 @@ public class InferenceBuilder{
 			this.factory = new Reasoner.ReasonerFactory();
 		}
 		else if (REASONER_JCEL.equals(reasonerName)) {
-			// TODO use elvira to enforce EL
 			this.factory = new PlaceholderJcelFactory();
 		}
 		else if (REASONER_ELK.equals(reasonerName)) {
-			// TODO use elvira to enforce EL
 			this.factory = new ElkReasonerFactory();
 		}
 		else {
 			throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
+		}
+		if (enforceEL) {
+			this.graph = enforceEL(graph);
+		}
+	}
+	
+	/**
+	 * Create an ontology with EL as description logic profile. This is achieved by 
+	 * removing the non-compatible axioms.
+	 * 
+	 * @param graph
+	 * @return ontology limited to EL
+	 */
+	static OWLGraphWrapper enforceEL(OWLGraphWrapper graph) {
+		OWL2ELProfile profile = new OWL2ELProfile();
+		OWLOntology sourceOntology = graph.getSourceOntology();
+		OWLProfileReport report = profile.checkOntology(sourceOntology);
+		if (!report.isInProfile()) {
+			logger.info("Using el-vira to restrict "+graph.getOntologyId()+" to EL");
+			OWLOntologyManager manager = sourceOntology.getOWLOntologyManager();
+
+			// see el-vira (http://code.google.com/p/el-vira/) for groovy version
+			try {
+				OWLOntology infOnt = manager.createOntology();
+				List<OWLProfileViolation> violations = report.getViolations();
+				Set<OWLAxiom> ignoreSet = new HashSet<OWLAxiom>();
+				for (OWLProfileViolation violation : violations) {
+					OWLAxiom axiom = violation.getAxiom();
+					if (axiom!=null) {
+					    ignoreSet.add(axiom);
+					}
+				}
+				int count = 0;
+				for(OWLAxiom axiom : sourceOntology.getAxioms()) {
+					if (!ignoreSet.contains(axiom)) {
+						manager.addAxiom(infOnt, axiom);
+					}
+					else {
+						count += 1;
+					}
+				}
+				logger.info("enforce EL process removed "+count+" axioms");
+				return new OWLGraphWrapper(infOnt);
+			} catch (OWLOntologyCreationException e) {
+				logger.error("Could not create new Ontology for EL restriction", e);
+				throw new RuntimeException(e);
+			}
+		}
+		else {
+			logger.info("enforce EL not required for "+graph.getOntologyId());
+			return graph;
 		}
 	}
 

@@ -78,6 +78,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		String reasonerName = InferenceBuilder.REASONER_HERMIT;
+		boolean enforceEL = false;
 		boolean asserted = false;
 		boolean simple = false;
 		boolean allowFileOverWrite = false;
@@ -151,6 +152,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		
 		public void setExpandShortcutRelations(boolean expandShortcutRelations) {
 			this.isExpandMacros = expandShortcutRelations;
+		}
+
+		public boolean isEnforceEL() {
+			return enforceEL;
+		}
+
+		public void setEnforceEL(boolean enforceEL) {
+			this.enforceEL = enforceEL;
 		}
 	}
 
@@ -229,6 +238,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("-reasoner")) {
 				oortConfig.reasonerName = args[i];
 				i++;
+			}
+			else if (opt.equals("--enforceEL")) {
+				oortConfig.enforceEL = true;
 			}
 			/*
 			 * else if (opt.equals("-oboincludes")) { oboIncludes = args[i];
@@ -397,7 +409,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Creating basic ontology");
 
 			if (oortConfig.reasonerName != null) {
-				infBuilder = new InferenceBuilder(mooncat.getGraph(), oortConfig.reasonerName);
+				infBuilder = new InferenceBuilder(mooncat.getGraph(), oortConfig.reasonerName, oortConfig.enforceEL);
 
 				logger.info("Creating inferences");
 				buildInferences();
