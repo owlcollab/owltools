@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="4.0.8" transformSequenceNumber="1">
   <directoryPresets config="./releases" />
-  <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.3.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
+  <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}-${compiler:sys.date}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.3.2-beta" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
     <languages skipLanguageSelection="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -191,7 +191,108 @@
         </serializedBean>
         <condition />
         <validation />
-        <actions />
+        <actions>
+          <action name="" id="1381" beanClass="com.install4j.runtime.beans.actions.control.SetVariableAction" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.actions.control.SetVariableAction">
+                  <void property="script">
+                    <object class="com.install4j.api.beans.ScriptProperty">
+                      <void property="value">
+                        <string>int maxMemory = new Long(SystemInfo.getPhysicalMemory() / 1024 / 1024).intValue();		
+		if (Util.isMacOS()) {
+			// special case MacOS: the installer gives you too low values for max
+			// memory. Use system tools instead.
+			try {
+				// Execute command: system profiler for hardware infos
+				String cmd = "/usr/sbin/system_profiler SPHardwareDataType";
+				Process child = Runtime.getRuntime().exec(cmd);
+
+				// Get the input stream and read from it
+				java.io.InputStream in = child.getInputStream();
+				StringBuilder sb = new StringBuilder();
+				int c;
+				while ((c = in.read()) != -1) {
+					sb.append((char) c);
+				}
+				in.close();
+				java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("Memory:\\s+(\\d+)\\s*GB");
+				java.util.regex.Matcher matcher = pattern.matcher(sb);
+				if (matcher.find()) {
+					maxMemory = Integer.parseInt(matcher.group(1)) * 1024;
+				}
+			} catch (java.io.IOException e) {
+			} catch (NumberFormatException e) {
+			}	
+
+			// The MacOS 64 bit check is two part: has 64-bit java version and 64-bit ApplicationStub
+			boolean is64bitDefaultJava = false;
+			try {
+				// Check default java if it is 64-bit
+				String cmd = "java -version";
+				Process child = Runtime.getRuntime().exec(cmd);
+
+				// Get the input stream and read from it
+				java.io.InputStream in = child.getErrorStream();
+				StringBuilder sb = new StringBuilder();
+				int c;
+				while ((c = in.read()) != -1) {
+					sb.append((char) c);
+				}
+				in.close();
+				is64bitDefaultJava = sb.toString().toLowerCase().contains("64-bit");
+			} catch (java.io.IOException e) {
+			}
+			boolean is64bit = false;
+			if (is64bitDefaultJava) {
+				try {
+					// Try to call JavaApplicationstub to check, if it also is 64 bit capable
+					// Execute command file for default JavaApplicationStub
+					String cmd = "file /System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub";
+					Process child = Runtime.getRuntime().exec(cmd);
+	
+					// Get the input stream and read from it
+					java.io.InputStream in = child.getInputStream();
+					StringBuilder sb = new StringBuilder();
+					int c;
+					while ((c = in.read()) != -1) {
+						sb.append((char) c);
+					}
+					in.close();
+					is64bit = sb.toString().toLowerCase().contains("x86_64");
+				} catch (java.io.IOException e) {
+				}
+			}
+			if(!is64bit) {
+				maxMemory = Math.min(maxMemory, 1860);
+			}
+			return maxMemory;
+		} else {
+			// the 'os.arch' property gives you the bits for the running JavaVM not the OS.
+			String arch = System.getProperty("os.arch");
+			boolean is64bit = (arch != null) &amp;&amp; (arch.contains("x86_64") || arch.contains("amd64"));
+			if(!is64bit) {
+				int limit = 1860;
+				if(Util.isWindows()) {
+					// 32 bit windows JavaVM has lower limits.
+					limit = 1024;
+				}
+				maxMemory = Math.min(maxMemory, limit);
+			}
+			return maxMemory;
+		}</string>
+                      </void>
+                    </object>
+                  </void>
+                  <void property="variableName">
+                    <string>owltools.maxMemorySize</string>
+                  </void>
+                </object>
+              </java>
+            </serializedBean>
+            <condition />
+          </action>
+        </actions>
         <formComponents />
       </screen>
       <screen name="" id="2" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" rollbackBarrier="false" backButton="2" finishScreen="false">
@@ -239,7 +340,7 @@
                 <object class="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent">
                   <void property="labelText">
                     <string>Because ${compiler:sys.fullName} is a Java application, it cannot use an arbitrary amount of system memory like a native application.  Instead, you must set a fixed maximum amount of memory that ${compiler:sys.fullName} can use. 
-Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MAC OS. For 32-bit Windows Java the limit is 1200M.</string>
+Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MAC OS. For 32-bit Windows Java the limit is 1024M.</string>
                   </void>
                 </object>
               </java>
@@ -274,7 +375,7 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                     <int>1024</int>
                   </void>
                   <void property="maxValue">
-                    <int>4096</int>
+                    <int>1024</int>
                   </void>
                   <void property="minValue">
                     <int>256</int>
@@ -288,12 +389,16 @@ Unless you installed a 64-bit JVM, Java can only use 1860M on Unix, Linux, or MA
                 </object>
               </java>
             </serializedBean>
-            <initScript>int step = 128;
-long maxMemMB = SystemInfo.getPhysicalMemory() / 1024 / 1024;
-int maxMemMBInt = new Integer((int) maxMemMB);
-int value = (int) Math.min(1024, (Math.round(maxMemMB * 0.85) / step) *step);
-int min = 256;
-SpinnerNumberModel model = new SpinnerNumberModel(value, min, maxMemMBInt, step);
+            <initScript>int val;
+int maxMemory = (Integer) context.getVariable("owltools.maxMemorySize");
+if (maxMemory &lt;= 1024) {
+    val = maxMemory;
+}
+else {
+    val = (int) Math.max(((Math.round(maxMemory * 0.8) / 128) *128), 1024);
+}
+// create a new model for the spinner
+javax.swing.SpinnerNumberModel model = new javax.swing.SpinnerNumberModel(val, 256, maxMemory, 128);
 configurationObject.setModel(model);</initScript>
           </formComponent>
           <formComponent name="" id="1340" beanClass="com.install4j.runtime.beans.formcomponents.SpacerComponent" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
