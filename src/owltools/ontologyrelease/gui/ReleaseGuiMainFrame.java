@@ -154,6 +154,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 		else if (advancedPanel.jcelRadioButton.isSelected()) {
 			parameters.setReasonerName(InferenceBuilder.REASONER_JCEL);
 		}
+		else if (advancedPanel.elkRadioButton.isSelected()) {
+			parameters.setReasonerName(InferenceBuilder.REASONER_ELK);
+		}
 		
 		// asserted
 		parameters.setAsserted(advancedPanel.assertedCheckBox.isSelected());
@@ -172,6 +175,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 		
 		// expandShortcutRelations
 		parameters.setExpandShortcutRelations(advancedPanel.expandShortcutRelations.isSelected());
+		
+		// writeELOntology
+		parameters.setWriteELOntology(advancedPanel.writeELOntologyCheckBox.isSelected());
 		
 		// paths
 		ListModel inputFileModel = mainPanel.inputFileJList.getModel();
@@ -261,7 +267,8 @@ public class ReleaseGuiMainFrame extends JFrame {
 					parameters.isExpandXrefs(),
 					parameters.isAllowFileOverWrite(),
 					parameters.isRecreateMireot(),
-					parameters.isExpandShortcutRelations());
+					parameters.isExpandShortcutRelations(),
+					parameters.isWriteELOntology());
 		}
 		return advancedPanel;
 	}
