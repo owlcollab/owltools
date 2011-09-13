@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.Reasoner;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -42,6 +43,7 @@ public class InferenceBuilder{
 	public static final String REASONER_PELLET = "pellet";
 	public static final String REASONER_HERMIT = "hermit";
 	public static final String REASONER_JCEL = "jcel";
+	public static final String REASONER_ELK = "elk";
 
 	private final OWLReasonerFactory factory;
 	private volatile OWLReasoner reasoner = null;
@@ -64,7 +66,12 @@ public class InferenceBuilder{
 			this.factory = new Reasoner.ReasonerFactory();
 		}
 		else if (REASONER_JCEL.equals(reasonerName)) {
+			// TODO use elvira to enforce EL
 			this.factory = new PlaceholderJcelFactory();
+		}
+		else if (REASONER_ELK.equals(reasonerName)) {
+			// TODO use elvira to enforce EL
+			this.factory = new ElkReasonerFactory();
 		}
 		else {
 			throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
