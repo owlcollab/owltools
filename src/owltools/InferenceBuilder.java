@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.profiles.OWL2ELProfile;
 import org.semanticweb.owlapi.profiles.OWLProfileReport;
 import org.semanticweb.owlapi.profiles.OWLProfileViolation;
@@ -106,6 +107,10 @@ public class InferenceBuilder{
 			// see el-vira (http://code.google.com/p/el-vira/) for groovy version
 			try {
 				OWLOntology infOnt = manager.createOntology();
+				// Set ontology ID
+				manager.applyChange(new SetOntologyID(infOnt, sourceOntology.getOntologyID()));
+				
+				// Remove violations
 				List<OWLProfileViolation> violations = report.getViolations();
 				Set<OWLAxiom> ignoreSet = new HashSet<OWLAxiom>();
 				for (OWLProfileViolation violation : violations) {
