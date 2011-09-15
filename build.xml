@@ -8,8 +8,11 @@
 	<property name="release_path" location="releases" />
 	<property name="jarfile" location="${runtimedir}/${projectname}.jar" />
 	<property name="ontologyreleasejarfile" location="${runtimedir}/ontologyrelease.jar" />
-	<property name="main_jar_manifest" location="jar_manifest" />
+	<property name="staging_dir" location="staging" />
+	<property name="main_jar_manifest" location="${staging_dir}/jar_manifest" />
+	<property name="main_jar_manifest_ontology_release" location="${staging_dir}/jar_manifest_ontology_release" />
 	<property name="jar_main_class" value="owltools.OWLReasonerRunner" />
+	<property name="jar_ontology_release_main_class" value="owltools.ontologyrelease.OboOntologyReleaseRunner" />
 
 	<property name="outputdir" value="classes" />
 	<property name="sourcedir" value="src" />
@@ -113,34 +116,7 @@
 	</target>
 
 	<target name="jarmanifest" depends="library_jars, checkjar, buildnum">
-			<echo message="Rebuilding jar manifest" />
-			<copy file="${main_jar_manifest_template}" tofile="${main_jar_manifest}" overwrite="true" />
-			<pathconvert property="runtime_classpath" pathsep=" ">
-				<path>
-					<fileset refid="library_jars" />
-				</path>
-				<map from="${runtimedir}/" to="" />
-				<map from="${librarydir}/runlibs" to="../lib/runlibs"/> <!-- convert to relative pathes libs -->
-			</pathconvert>
-			<replace file="${main_jar_manifest}">
-				<replacefilter token="$BUILDNUM$" value="${build.number}" />
-				<replacefilter token="$BUILDDATE$" value="${build_date}" />
-				<replacefilter token="$RUNTIMECLASSPATH$" value="${runtime_classpath}" />
-				<replacefilter token="$MAINCLASS$" value="${jar_main_class}" />
-			</replace>
-		</target>
-
-	<target name="jar" depends="classes, jarmanifest, checkjar" description="Generate jar file">
-		<jar destfile="${jarfile}" manifest="${main_jar_manifest}">
-			<fileset refid="main_jar_contents" />
-		</jar>
-	</target>
-
-	
-	<target name="ontology-release-jarmanifest" depends="library_jars, checkjar, buildnum" unless="main_jar_current">
-			<echo message="Rebuilding jar manifest for ontology release manager" />
-	
-		
+		<echo message="Rebuilding jar manifest" />
 		<copy file="${main_jar_manifest_template}" tofile="${main_jar_manifest}" overwrite="true" />
 		<pathconvert property="runtime_classpath" pathsep=" ">
 			<path>
@@ -153,14 +129,39 @@
 			<replacefilter token="$BUILDNUM$" value="${build.number}" />
 			<replacefilter token="$BUILDDATE$" value="${build_date}" />
 			<replacefilter token="$RUNTIMECLASSPATH$" value="${runtime_classpath}" />
-			<replacefilter token="$MAINCLASS$" value="owltools.ontologyrelease.OboOntologyReleaseRunner" />
+			<replacefilter token="$MAINCLASS$" value="${jar_main_class}" />
 		</replace>
-		
-</target>	
+	</target>
+
+	<target name="jar" depends="classes, jarmanifest, checkjar" description="Generate jar file">
+		<jar destfile="${jarfile}" manifest="${main_jar_manifest}">
+			<fileset refid="main_jar_contents" />
+		</jar>
+	</target>
+
+	
+	<target name="ontology-release-jarmanifest" depends="library_jars, checkjar, buildnum">
+		<echo message="Building jar manifest for ontology release manager" />
+	
+		<copy file="${main_jar_manifest_template}" tofile="${main_jar_manifest_ontology_release}" overwrite="true" />
+		<pathconvert property="runtime_classpath" pathsep=" ">
+			<path>
+				<fileset refid="library_jars" />
+			</path>
+			<map from="${runtimedir}/" to="" />
+			<map from="${librarydir}/runlibs" to="../lib/runlibs"/> <!-- convert to relative pathes libs -->
+		</pathconvert>
+		<replace file="${main_jar_manifest_ontology_release}">
+			<replacefilter token="$BUILDNUM$" value="${build.number}" />
+			<replacefilter token="$BUILDDATE$" value="${build_date}" />
+			<replacefilter token="$RUNTIMECLASSPATH$" value="${runtime_classpath}" />
+			<replacefilter token="$MAINCLASS$" value="${jar_ontology_release_main_class}" />
+		</replace>
+	</target>	
 	
 	<target name="ontology-release-jar" depends="classes, ontology-release-jarmanifest, checkjar"  description="Generate jar file">
 	
-		<jar destfile="${ontologyreleasejarfile}" manifest="${main_jar_manifest}">
+		<jar destfile="${ontologyreleasejarfile}" manifest="${main_jar_manifest_ontology_release}">
 			<fileset refid="main_jar_contents" />
 		</jar>
 	</target>

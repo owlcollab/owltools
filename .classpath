@@ -28,5 +28,7 @@
 	<classpathentry kind="lib" path="lib/runlibs/jgrapht-jdk1.5.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/commons-io-2.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/junit-4.8.2.jar" sourcepath="/home/hdietze/.m2/repository/junit/junit/4.8.2/junit-4.8.2-sources.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/elk-owlapi-0.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/elk-reasoner-0.1.0.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
