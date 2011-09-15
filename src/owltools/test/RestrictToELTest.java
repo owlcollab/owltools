@@ -57,7 +57,14 @@ public class RestrictToELTest extends OWLToolsTestBasics {
 	}
 	
 	/**
-	 * Test whether the ontology still has deprecation annotations after the conversion.
+	 * Test whether the ontology still has deprecation annotations after 
+	 * the conversion.
+	 * 
+	 * 
+	 * PROBLEM: Depreciations are removed, due to the fact that the 
+	 * boolean data type is not considered EL.
+	 * Data ranges are not supported in EL and boolean in OWL is 
+	 * defined as range. 
 	 * 
 	 * @throws Exception
 	 */

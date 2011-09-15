@@ -94,6 +94,9 @@ public class InferenceBuilder{
 	 * Create an ontology with EL as description logic profile. This is achieved by 
 	 * removing the non-compatible axioms.
 	 * 
+	 * WARNING: Due to the data type restrictions of EL, all deprecation annotations 
+	 * are removed in this process.
+	 * 
 	 * @param graph
 	 * @return ontology limited to EL
 	 */
