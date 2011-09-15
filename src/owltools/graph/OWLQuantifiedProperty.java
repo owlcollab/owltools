@@ -19,6 +19,7 @@ public class OWLQuantifiedProperty {
 	private Quantifier quantifier;
 	private boolean isInverseOf = false;
 	private boolean isNegated = false;
+	private boolean isInferred = false;
 	private Integer minCardinality;
 	private Integer maxCardinality;
 
@@ -47,6 +48,14 @@ public class OWLQuantifiedProperty {
 
 	public void setInverseOf(boolean isInverseOf) {
 		this.isInverseOf = isInverseOf;
+	}
+
+	public boolean isInferred() {
+		return isInferred;
+	}
+
+	public void setInferred(boolean isInferred) {
+		this.isInferred = isInferred;
 	}
 
 	public OWLObjectProperty getProperty() {
@@ -126,7 +135,7 @@ public class OWLQuantifiedProperty {
 	
 	public boolean equals(Object e) {
 		// TODO overwrite hashcode method, otherwise behavior for hashing is not predictable
-		if(e == null && !(e instanceof OWLQuantifiedProperty))
+		if(e == null || !(e instanceof OWLQuantifiedProperty))
 			return false;
 		
 		OWLQuantifiedProperty other = (OWLQuantifiedProperty) e;

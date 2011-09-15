@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -36,13 +38,16 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
@@ -50,6 +55,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
@@ -103,7 +109,8 @@ public class CommandRunner {
 
 	OWLGraphWrapper g = null;
 	GafDocument gafdoc = null;
-
+	OWLOntology queryOntology = null;
+	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
 
 	public class Opts {
 		int i = 0;
@@ -200,7 +207,7 @@ public class CommandRunner {
 			}
 		}
 	}
-	
+
 	public List<String> parseArgString(String str) {
 		List<String> args = new ArrayList<String>();
 		int p = 0;
@@ -227,7 +234,7 @@ public class CommandRunner {
 		Opts opts = new Opts(args);
 		run(opts);
 	}
-	
+
 	public void run(Opts opts) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException {
 
 		List<String> paths = new ArrayList<String>();
@@ -269,6 +276,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--reasoner")) {
 				reasonerName = opts.nextOpt();
+				g.setReasoner(createReasoner(g.getSourceOntology(),reasonerName,g.getManager()));
 			}
 			else if (opts.nextEq("--no-reasoner")) {
 				reasonerClassName = "";
@@ -293,6 +301,26 @@ public class CommandRunner {
 				Set<OWLClass> clss = g.getSourceOntology().getClassesInSignature();
 				for (OWLClass c : clss) {
 					System.out.println(c);
+				}
+			}
+			else if (opts.nextEq("--query-ontology")) {
+				opts.info("[-m]", "specify an ontology that has classes to be used as queries");
+				boolean isMerge = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-m"))
+						isMerge = true;
+					else
+						opts.nextOpt();
+				}
+				queryOntology = pw.parse(opts.nextOpt());
+				queryExpressionMap = new HashMap<OWLClass,OWLClassExpression>();
+				for (OWLClass qc : queryOntology.getClassesInSignature()) {
+					for (OWLClassExpression ec : qc.getEquivalentClasses(queryOntology)) {
+						queryExpressionMap.put(qc, ec);
+					}
+				}
+				if (isMerge) {
+					g.mergeOntology(queryOntology);
 				}
 			}
 			else if (opts.nextEq("--merge")) {
@@ -351,8 +379,27 @@ public class CommandRunner {
 				LOG.info("size="+g.inferredEdgeBySource.size());
 			}
 			else if (opts.nextEq("--save-closure-for-chado")) {
+				opts.info("OUTPUTFILENAME",
+						"saves the graph closure in a format that is oriented towards loading into a Chado database");
 				ChadoGraphClosureRenderer gcw = new ChadoGraphClosureRenderer(opts.nextOpt());
 				gcw.render(g);				
+			}
+			else if (opts.nextEq("--query-cw")) {
+				opts.info("", "closed-world query");
+				owlpp = new OWLPrettyPrinter(g);
+
+				for (OWLClass qc : queryExpressionMap.keySet()) {
+					System.out.println(" CWQueryClass: "+qc);
+					System.out.println(" CWQueryClass: "+owlpp.render(qc)+" "+qc.getIRI().toString());
+					OWLClassExpression ec = queryExpressionMap.get(qc);
+					System.out.println(" CWQueryExpression: "+owlpp.render(ec));
+					Set<OWLObject> results = g.queryDescendants(ec);
+					for (OWLObject result : results) {
+						if (result instanceof OWLClass) {
+							System.out.println("  "+owlpp.render((OWLClass)result));
+						}
+					}
+				}
 			}
 			else if (opts.nextEq("--sparql-dl")) {
 				opts.info("\"QUERY-TEXT\"", "executes a SPARQL-DL query using the reasoner");
@@ -413,6 +460,7 @@ public class CommandRunner {
 						break;
 					}
 				}
+				owlpp = new OWLPrettyPrinter(g);
 
 				boolean isQueryProcessed = false;
 				OWLReasoner reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
@@ -428,6 +476,28 @@ public class CommandRunner {
 						isQueryProcessed = true;
 					}
 				}
+				if (queryExpressionMap != null) {
+					// Assume --query-ontontology -m ONT has been processed
+					for (OWLClass qc : queryExpressionMap.keySet()) {
+						System.out.println(" CWQueryClass: "+owlpp.render(qc)+" "+qc.getIRI().toString());
+						OWLClassExpression ec = queryExpressionMap.get(qc);
+						System.out.println(" CWQueryExpression: "+owlpp.render(ec));
+						// note jcel etc will not take class expressions
+						NodeSet<OWLClass> results = reasoner.getSubClasses(qc, false);
+						for (OWLClass result : results.getFlattened()) {
+							if (reasoner.isSatisfiable(result)) {
+								System.out.println("  "+owlpp.render(result));
+							}
+							else {
+								// will not report unsatisfiable classes, as they trivially
+								//LOG.error("unsatisfiable: "+owlpp.render(result));
+							}
+						}
+						
+					}
+					isQueryProcessed = true;
+				}
+
 				if (!isQueryProcessed) {
 					if (removedSubClassOfAxioms != null) {
 						System.out.println("attempting to recapitulate "+removedSubClassOfAxioms.size()+" axioms");
@@ -478,6 +548,15 @@ public class CommandRunner {
 				}
 				for (RemoveAxiom rmax : rmaxs) {
 					g.getManager().applyChange(rmax);
+				}
+			}
+			else if (opts.nextEq("--list-cycles")) {
+				for (OWLObject x : g.getAllOWLObjects()) {
+					for (OWLObject y : g.getAncestors(x)) {
+						if (g.getAncestors(y).contains(x)) {
+							System.out.println(x + " in-cycle-with "+y);
+						}
+					}
 				}
 			}
 			else if (opts.nextEq("-a|--ancestors")) {
@@ -622,7 +701,7 @@ public class CommandRunner {
 				}
 
 				SimEngine se = new SimEngine(g);
-				
+
 				Set <OWLObject> objs1 = new HashSet<OWLObject>();
 				Set <OWLObject> objs2 = new HashSet<OWLObject>();
 
@@ -650,8 +729,8 @@ public class CommandRunner {
 							lcsh.add(lcs);
 							String label = owlpp.render(lcs);
 							IRI iri = IRI.create("http://purl.obolibrary.org/obo/U_"+
-								g.getIdentifier(a).replaceAll(":", "_")+"_" 
-								+"_"+g.getIdentifier(b).replaceAll(":", "_"));
+									g.getIdentifier(a).replaceAll(":", "_")+"_" 
+									+"_"+g.getIdentifier(b).replaceAll(":", "_"));
 							OWLClass namedClass = g.getDataFactory().getOWLClass(iri);
 							// TODO - use java obol to generate meaningful names
 							OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(namedClass , lcs);
@@ -669,7 +748,7 @@ public class CommandRunner {
 					}					
 				}
 
-				
+
 			}
 			else if (opts.nextEq("-l") || opts.nextEq("--list-axioms")) {
 				opts.info("LABEL", "lists all axioms for entity matching LABEL");
@@ -681,7 +760,7 @@ public class CommandRunner {
 				Set<OWLAnnotationAssertionAxiom> aaxioms = g.getSourceOntology().getAnnotationAssertionAxioms(((OWLNamedObject) obj).getIRI());
 				for (OWLAxiom a : aaxioms) {
 					System.out.println(owlpp.render(a));
-					
+
 				}
 			}
 			else if (opts.nextEq("-d") || opts.nextEq("--draw")) {
@@ -948,8 +1027,10 @@ public class CommandRunner {
 			else if (opts.nextEq("-o|--output")) {
 				opts.info("FILE", "writes source ontology -- MUST BE specified as IRI, e.g. file://`pwd`/foo.owl");
 				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
-				String ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
-				System.out.println("saving:"+ontURIStr);
+				if ( g.getSourceOntology().getOntologyID() != null && g.getSourceOntology().getOntologyID().getOntologyIRI() != null) {
+					String ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
+					System.out.println("saving:"+ontURIStr);
+				}
 				if (opts.nextEq("-f")) {
 					String ofmtname = opts.nextOpt();
 					if (ofmtname.equals("functional")) {
@@ -1013,16 +1094,20 @@ public class CommandRunner {
 				g.getConfig().excludeMetaClass = c;	
 			}
 			else if (opts.nextEq("--parse-tsv")) {
-				opts.info("[-s] FILE", "parses a tabular file to OWL axioms");
+				opts.info("[-s] [-p PROPERTY] [-a AXIOMTYPE] [-t INDIVIDUALSTYPE] FILE", "parses a tabular file to OWL axioms");
 				TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 				ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-s")) {
+						opts.info("", "switch subject and object");
 						ttac.config.isSwitchSubjectObject = true;
 					}
 					else if (opts.nextEq("-l|--label")) {
 						ttac.config.setPropertyToLabel();
 						ttac.config.axiomType = AxiomType.ANNOTATION_ASSERTION;
+					}
+					else if (opts.nextEq("-m|--map-xrefs")) {
+						ttac.buildClassMap(g);
 					}
 					else if (opts.nextEq("-p|--prop")) {
 						ttac.config.property = ((OWLNamedObject) resolveEntity( opts)).getIRI();
@@ -1053,7 +1138,26 @@ public class CommandRunner {
 				for (Prediction p : predictions) {
 					System.out.println(p.render(owlpp));
 				}
-				
+			}
+			else if (opts.nextEq("--gaf-term-counts")) {
+				owlpp = new OWLPrettyPrinter(g);
+				Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
+				for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
+					OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
+					for (OWLObject x : g.getAncestorsReflexive(c)) {
+						if (!aMap.containsKey(x))
+							aMap.put(x, new HashSet<String>());
+						aMap.get(x).add(a.getBioentity());
+					}
+				}
+				for (OWLObject c : g.getAllOWLObjects()) {
+					if (c instanceof OWLClass) {
+						if (g.isObsolete(c))
+							continue;
+						System.out.println(g.getIdentifier(c)+"\t"+g.getLabel(c)+"\t"+
+								(aMap.containsKey(c) ? aMap.get(c).size() : "0"));
+					}
+				}
 			}
 			else if (opts.nextEq("--report-profile")) {
 				g.getProfiler().report();
@@ -1201,10 +1305,19 @@ public class CommandRunner {
 		m.mergeOntologies();
 		m.removeDanglingAxioms();
 		if (newURI != null) {
+			SetOntologyID soi = new SetOntologyID(g.getSourceOntology(),
+					new OWLOntologyID(IRI.create(newURI)));
+			g.getManager().applyChange(soi);
+			/*
 			HashSet<OWLOntology> cpOnts = new HashSet<OWLOntology>();
+			LOG.info("srcOnt annots:"+g.getSourceOntology().getAnnotations().size());
 			cpOnts.add(g.getSourceOntology());
 			OWLOntology newOnt = g.getManager().createOntology(IRI.create(newURI), cpOnts);
+			LOG.info("newOnt annots:"+newOnt.getAnnotations().size());
+
+			//g.getDataFactory().getOWLOn
 			g.setSourceOntology(newOnt);
+			 */
 		}
 	}
 

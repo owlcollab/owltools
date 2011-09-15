@@ -126,6 +126,10 @@ public class OWLGraphEdge {
 		return quantifiedPropertyList.get(0);
 	}
 	
+	public OWLQuantifiedProperty getFirstQuantifiedProperty() {
+		return quantifiedPropertyList.get(0);
+	}
+	
 	public OWLQuantifiedProperty getLastQuantifiedProperty() {
 		return (OWLQuantifiedProperty)quantifiedPropertyList.get(quantifiedPropertyList.size()-1);
 	}

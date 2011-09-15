@@ -5,14 +5,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
@@ -20,6 +25,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -34,34 +40,50 @@ import owltools.graph.OWLGraphWrapper;
 /**
  * reads in a table (e.g. tab-delimited table) converting each row to an OWL Axiom.
  * 
- * These could be ClassAssertion axioms, SubClassOf axioms, etc
+ * currently only reads first two columns (sub and ob)
  * 
  * @author cjm
  *
  */
 public class TableToAxiomConverter {
-	
+
+	private static Logger LOG = Logger.getLogger(TableToAxiomConverter.class);
+
+	/**
+	 * If AxiomType is ClassAssertion, then axioms will be of form
+	 * ClassAssertion(sub obj)
+	 * 
+	 * If AxiomType is SubClassOf, then axioms will be of form
+	 * SubClassOf(sub obj)
+	 * 
+	 * if a property P is specified, then obj is transformed to a class expression "P some obj'"
+	 * where obj' is the original value for obj
+	 * 
+	 * @author cjm
+	 *
+	 */
 	public class Config {
 		public boolean isOboIdentifiers = true;
 		public boolean isSwitchSubjectObject = false;
 		public AxiomType axiomType;
 		public OWLClass individualsType = null;
 		public IRI property = null;
-		
+		public Map<OWLClass,OWLClass> classMap = new HashMap<OWLClass,OWLClass>();
+
 		public void setPropertyToLabel() {
 			property = OWLRDFVocabulary.RDFS_LABEL.getIRI();
 		}
-		
+
 		public void setAxiomType(String n) {
 			axiomType = AxiomType.getAxiomType(n);
 		}
 	}
-	
+
 	public Config config = new Config();
 	public OWLGraphWrapper graph;
-	
-	
-	
+
+
+
 	public TableToAxiomConverter(OWLGraphWrapper graph) {
 		super();
 		this.graph = graph;
@@ -76,26 +98,26 @@ public class TableToAxiomConverter {
 			String[] row = line.split("\t");
 			addRow(row);
 		}
-		
+
 		if (config.individualsType != null) {
 			OWLDataFactory df = graph.getDataFactory();
-			 graph.getManager().applyChange(new AddAxiom(graph.getSourceOntology(), 
-					 df.getOWLDeclarationAxiom(config.individualsType)));
+			graph.getManager().applyChange(new AddAxiom(graph.getSourceOntology(), 
+					df.getOWLDeclarationAxiom(config.individualsType)));
 		}
 
 	}
 
 	public Set<OWLAxiom> rowToAxioms(String[] row) {
 		OWLDataFactory df = graph.getDataFactory();
-		 String sub = row[0];
-		 String obj = row[1];
+		String sub = row[0];
+		String obj = row[1];
 		if (config.isSwitchSubjectObject) {
 			sub = row[1];
 			obj = row[0];
 		}
 		Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
 		OWLAxiom ax = null;
-		
+
 		if (config.axiomType.equals(AxiomType.CLASS_ASSERTION)) {
 			OWLClass c = resolveClass(sub);
 			axs.add(df.getOWLDeclarationAxiom(c));
@@ -109,6 +131,21 @@ public class TableToAxiomConverter {
 				ax = df.getOWLClassAssertionAxiom(ce,(OWLIndividual) resolveIndividual(obj));
 			}
 		}
+		else if (config.axiomType.equals(AxiomType.SUBCLASS_OF)) {
+			OWLClass c = resolveClass(sub);
+			axs.add(df.getOWLDeclarationAxiom(c));
+			if (config.property == null) {
+				ax = df.getOWLClassAssertionAxiom(c, (OWLIndividual) resolveIndividual(obj));
+			}
+			else {		
+				// TODO - make the argument to which this applies configurable
+				OWLObjectProperty p = df.getOWLObjectProperty(config.property);
+				OWLObjectSomeValuesFrom ce = df.getOWLObjectSomeValuesFrom(p, resolveClass(obj));
+				axs.add(df.getOWLDeclarationAxiom(resolveClass(obj)));
+				//System.out.println("CA :"+ce+" "+obj);
+				ax = df.getOWLSubClassOfAxiom(c, ce);
+			}
+		}
 		else if (config.axiomType.equals(AxiomType.ANNOTATION_ASSERTION)) {
 			ax = df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(config.property), 
 					((OWLNamedObject) resolveIndividual(sub)).getIRI(), literal(obj));
@@ -118,23 +155,24 @@ public class TableToAxiomConverter {
 					resolveIndividual(sub), resolveIndividual(obj));
 		}
 		else {
-			// TODO
+			LOG.error("Cannot handle: "+config.axiomType);
 		}
-		axs.add(ax);
+		if (ax != null)
+			axs.add(ax);
 		if (config.individualsType != null) {
 			axs.add(df.getOWLClassAssertionAxiom(config.individualsType, resolveIndividual(sub)));
 		}
 		return axs;
 	}
-	
+
 	public void addRow(String[] row) {
 		addRow(graph.getSourceOntology(), row);
-		
+
 	}
 	public void addRow(OWLOntology ont, String[] row) {
-		 for (OWLAxiom ax : rowToAxioms(row)) {
-			 graph.getManager().applyChange(new AddAxiom(ont, ax));
-		 }
+		for (OWLAxiom ax : rowToAxioms(row)) {
+			graph.getManager().applyChange(new AddAxiom(ont, ax));
+		}
 	}
 
 	private OWLAnnotationValue literal(String obj) {
@@ -143,7 +181,11 @@ public class TableToAxiomConverter {
 
 	private OWLClass resolveClass(String id) {
 		if (config.isOboIdentifiers) {
-			return (OWLClass) graph.getOWLObjectByIdentifier(id);
+			OWLClass c= (OWLClass) graph.getOWLObjectByIdentifier(id);
+			if (config.classMap.containsKey(c))
+				return config.classMap.get(c);
+			else
+				return c;
 		}
 		return graph.getOWLClass(id);
 	}
@@ -153,5 +195,31 @@ public class TableToAxiomConverter {
 			return graph.getOWLIndividualByIdentifier(id);
 		}
 		return graph.getOWLIndividual(IRI.create(id));
+	}
+
+
+
+	public void buildClassMap(OWLGraphWrapper g) {
+		IRI x = Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI();
+		for (OWLOntology ont : g.getAllOntologies()) {
+			for (OWLClass c : ont.getClassesInSignature()) {
+				for (OWLAnnotationAssertionAxiom aa : c.getAnnotationAssertionAxioms(ont)) {
+					if (aa.getProperty().getIRI().equals(x)) {
+						OWLAnnotationValue v = aa.getValue();
+						if (v instanceof OWLLiteral) {
+							String xid =((OWLLiteral)v).getLiteral();
+							OWLClass xc = (OWLClass) g.getOWLObjectByIdentifier(xid);
+							if (xc == null) {
+								LOG.error("Cannot get class for: "+xid);
+							}
+							else {
+								config.classMap.put(xc, c);
+							}
+							//LOG.info(c + " ===> "+xid);
+						}
+					}					
+				}
+			}
+		}
 	}
 }

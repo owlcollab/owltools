@@ -23,7 +23,7 @@ public class LCSTestCARO extends OWLToolsTestBasics {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g =
 			pw.parseToOWLGraph(getResourceIRIString("lcstest1.owl"));
-		OWLOntology ont = g.getOntology();
+		OWLOntology ont = g.getSourceOntology();
 		OWLObject o2 = g.getOWLObject("http://example.org#o2");
 		
 		System.out.println("getting ancestors for: "+o2);

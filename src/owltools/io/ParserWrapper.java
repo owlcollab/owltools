@@ -53,7 +53,7 @@ public class ParserWrapper {
 		return parseOWL(iriString);		
 	}
 
-	private OWLOntology parseOBO(String iri) throws IOException, OWLOntologyCreationException {
+	public OWLOntology parseOBO(String iri) throws IOException, OWLOntologyCreationException {
 		OBOFormatParser p = new OBOFormatParser();
 		LOG.info("Parsing: "+iri);
 		if (isIRI(iri)) {

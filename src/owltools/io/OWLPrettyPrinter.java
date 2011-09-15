@@ -52,6 +52,9 @@ public class OWLPrettyPrinter {
 		for (OWLQuantifiedProperty qp : edge.getQuantifiedPropertyList()) {
 			if (n>0)
 				sb.append(", ");
+			if (qp.isInferred()) {
+				sb.append("[INF]");
+			}
 			sb.append(render(qp));
 			n++;
 		}

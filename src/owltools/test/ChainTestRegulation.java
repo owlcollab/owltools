@@ -19,7 +19,7 @@ public class ChainTestRegulation extends OWLToolsTestBasics {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g =
 			pw.parseToOWLGraph(getResourceIRIString("positive_regulation_of_anti_apoptosis.obo"));
-		OWLOntology ont = g.getOntology();
+		OWLOntology ont = g.getSourceOntology();
 		for (OWLClass c : ont.getClassesInSignature()) {
 			System.out.println("c="+c+" "+g.getLabel(c));
 			for (OWLGraphEdge e : g.getOutgoingEdges(c)) {

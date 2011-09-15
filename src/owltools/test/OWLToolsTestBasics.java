@@ -3,8 +3,14 @@ package owltools.test;
 import static junit.framework.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+
+import owltools.graph.OWLGraphWrapper;
+import owltools.io.ParserWrapper;
 
 public class OWLToolsTestBasics {
 	
@@ -24,5 +30,11 @@ public class OWLToolsTestBasics {
 	protected IRI getResourceIRI(String name) {
 		File file = getResource(name);
 		return IRI.create(file);
+	}
+	
+	protected OWLGraphWrapper getGraph(String filename) throws OWLOntologyCreationException, IOException {
+		ParserWrapper pw = new ParserWrapper();
+		OWLOntology obodoc = pw.parse(filename);
+		return new OWLGraphWrapper(obodoc);
 	}
 }

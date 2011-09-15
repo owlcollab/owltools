@@ -29,6 +29,12 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
     	setRelationType();
     	if (relType != null)
     		this.colour = relType.color;
+    	
+    	// TODO - use dashed lines or make configurable
+    	
+       	if (oge.getFinalQuantifiedProperty().isInferred()) {
+    		this.colour = new Color(255, 0 ,0);
+    	}
     }
     
     /**
