@@ -41,15 +41,35 @@ public class RestrictToELTest extends OWLToolsTestBasics {
 		writeOWLOntolog(gEL, "pizza-2007-02-12-el.owl");
 	}
 	
+	/**
+	 * Test whether the ontology has the same ontology id after the conversion.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testRetainOntologyId() throws Exception {
+		ParserWrapper pw = new ParserWrapper();
+		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("simple-deprecated.owl"));
+		String ontologyId = "fribble";
+		assertEquals(ontologyId, g.getOntologyId());
+		OWLGraphWrapper gEL = InferenceBuilder.enforceEL(g);
+		assertEquals(ontologyId, gEL.getOntologyId());
+	}
+	
+	/**
+	 * Test whether the ontology still has deprecation annotations after the conversion.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void testRetainDeprecated() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("simple-deprecated.owl"));
-		assertTrue(isDeprecated("X:1", g));
+		String label = "X:1";
+		assertTrue(isDeprecated(label, g));
 		OWLGraphWrapper gEL = InferenceBuilder.enforceEL(g);
-		assertEquals("fribble", gEL.getOntologyId());
 		writeOWLOntolog(gEL, "simple-deprecated-el.owl");
-		assertTrue(isDeprecated("X:1", gEL));
+		assertTrue(isDeprecated(label, gEL));
 	}
 	
 	private boolean isDeprecated(String label, OWLGraphWrapper graph) {
@@ -79,7 +99,6 @@ public class RestrictToELTest extends OWLToolsTestBasics {
 		}
 		return false;
 	}
-	
 	
 	private void writeOWLOntolog(OWLGraphWrapper gmod, String fileName) throws OWLOntologyStorageException {
 		File file = new File(FileUtils.getTempDirectory(), fileName);
