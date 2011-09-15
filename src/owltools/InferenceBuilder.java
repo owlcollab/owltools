@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -102,7 +103,7 @@ public class InferenceBuilder{
 		OWLProfileReport report = profile.checkOntology(sourceOntology);
 		if (!report.isInProfile()) {
 			logger.info("Using el-vira to restrict "+graph.getOntologyId()+" to EL");
-			OWLOntologyManager manager = sourceOntology.getOWLOntologyManager();
+			OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 
 			// see el-vira (http://code.google.com/p/el-vira/) for groovy version
 			try {
