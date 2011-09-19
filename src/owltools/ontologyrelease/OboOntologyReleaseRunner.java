@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,11 +26,8 @@ import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -39,6 +37,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
+import org.semanticweb.owlapi.model.SetOntologyID;
 
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
@@ -329,11 +328,25 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			mooncat.addReferencedOntology(parser.parseToOWLGraph(p).getSourceOntology());
 		}
 
-		// TODO implement a way to specify an individual version or extract from the ontology 
-		String version = buildVersionInfo(null);
+		String version = OntologyVersionTools.getOntologyVersion(mooncat.getOntology());
 		if (version != null) {
-			addVersion(mooncat.getOntology(), version, mooncat.getManager());
+			if (OntologyVersionTools.isOBOOntologyVersion(version)) {
+				Date versionDate = OntologyVersionTools.parseVersion(version);
+				version = OntologyVersionTools.format(versionDate);
+			}
 		}
+		else {
+			version = OntologyVersionTools.getOboInOWLVersion(mooncat.getOntology());
+		}
+		
+		if (version == null) {
+			// TODO add an option to set the version manually
+		}
+		
+		version = buildVersionInfo(version);
+		OntologyVersionTools.setOboInOWLVersion(mooncat.getOntology(), version);
+		// the versionIRI for in the ontologyID is set during write out, 
+		// as they are specific to the file name
 
 		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
 		ontologyId = ontologyId.replaceAll(".obo$", ""); // temp workaround
@@ -378,7 +391,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					logger.info("Generating bridge ontology:"+tOntId);
 					Obo2Owl obo2owl = new Obo2Owl();
 					OWLOntology tOnt = obo2owl.convert(tdoc);
-					saveOntologyInAllFormats(tOntId, format, tOnt, null);
+					saveOntologyInAllFormats(tOntId, tOntId, format, tOnt, null);
 				}
 			} catch (InvalidXrefMapException e) {
 				logger.info("Problem during Xref expansion: "+e.getMessage(), e);
@@ -556,16 +569,53 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	
 	private void saveInAllFormats(String ontologyId, OWLOntologyFormat format, String ext, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
-		saveOntologyInAllFormats(fn, format, ontologyToSave, gciOntology);
+		saveOntologyInAllFormats(ontologyId, fn, format, ontologyToSave, gciOntology);
 	}
 
-	private void saveOntologyInAllFormats(String fn, OWLOntologyFormat format, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveOntologyInAllFormats(String ontologyId, String fn, OWLOntologyFormat format, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
 		logger.info("Saving: "+fn);
 
+		final OWLOntologyManager manager = mooncat.getManager();
+		
+		// if we add a new ontology id, remember the change, to restore the original 
+		// ontology id after writing into a file.
+		SetOntologyID reset = null;
+		Date date = null;
+		
+		// check if there is an existing version
+		// if it is of unknown format do not modify
+		String version = OntologyVersionTools.getOntologyVersion(ontologyToSave);
+		if (version == null) {
+			// did not find a version in the ontology id, try OboInOwl instead
+			date = OntologyVersionTools.getOboInOWLVersionDate(ontologyToSave);
+		}
+		else if(OntologyVersionTools.isOBOOntologyVersion(version)) {
+			// try to retrieve the existing version and parse it.
+			date = OntologyVersionTools.parseVersion(version);
+			
+			// if parsing was unsuccessful, use current date
+			if (date == null) {
+				// fall back, if there was an parse error use current date.
+				date = new Date();
+			}
+		}
+		
+		if (date != null) {
+			SetOntologyID change = OntologyVersionTools.setOntologyVersion(ontologyToSave, date, ontologyId, fn);
+			// create change axiom with original id
+			reset = new SetOntologyID(ontologyToSave, change.getOriginalOntologyID());
+		}
 		OutputStream os = getOutputSteam(fn +".owl");
-		mooncat.getManager().saveOntology(ontologyToSave, format, os);
+		manager.saveOntology(ontologyToSave, format, os);
 		os.close();
+		
+		if (reset != null) {
+			// reset versionIRI
+			// the reset is required, because each owl file 
+			// has its corresponding file name in the version IRI.
+			manager.applyChange(reset);
+		}
 		
 		if (gciOntology != null) {
 			OWLOntologyManager gciManager = gciOntology.getOWLOntologyManager();
@@ -619,28 +669,5 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
 		System.out
 		.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
-	}
-
-	private static void addVersion(OWLOntology ontology, String version,
-			OWLOntologyManager manager) {
-		OWLDataFactory fac = manager.getOWLDataFactory();
-
-		OWLAnnotationProperty ap = fac.getOWLAnnotationProperty(Obo2Owl
-				.trTagToIRI(OboFormatTag.TAG_REMARK.getTag()));
-		OWLAnnotation ann = fac
-		.getOWLAnnotation(ap, fac.getOWLLiteral(version));
-
-		if (ontology == null ||
-				ontology.getOntologyID() == null ||
-				ontology.getOntologyID().getOntologyIRI() == null) {
-			// TODO: shahid - can you add a proper error mechanism
-			System.err.println("Please set your ontology ID. \n"+
-			"In obo-format this should be the same as your ID-space, all in lower case");
-		}
-		OWLAxiom ax = fac.getOWLAnnotationAssertionAxiom(ontology
-				.getOntologyID().getOntologyIRI(), ann);
-
-		manager.applyChange(new AddAxiom(ontology, ax));
-
 	}
 }
