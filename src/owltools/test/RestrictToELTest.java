@@ -82,29 +82,7 @@ public class RestrictToELTest extends OWLToolsTestBasics {
 	private boolean isDeprecated(String label, OWLGraphWrapper graph) {
 		OWLObject owlObject = graph.getOWLObjectByLabel(label);
 		assertNotNull(owlObject);
-		if (owlObject instanceof OWLNamedObject) {
-			IRI iri = ((OWLNamedObject) owlObject).getIRI();
-			OWLOntology ontology = graph.getSourceOntology();
-			Set<OWLAnnotationAssertionAxiom> assertionAxioms = ontology.getAnnotationAssertionAxioms(iri);
-			assertNotNull(assertionAxioms);
-			OWLDataFactory owlDataFactory = ontology.getOWLOntologyManager().getOWLDataFactory();
-			OWLAnnotationProperty deprecated = owlDataFactory.getOWLDeprecated();
-			for (OWLAnnotationAssertionAxiom axiom : assertionAxioms) {
-				OWLAnnotationProperty property = axiom.getProperty();
-				if (deprecated.equals(property)) {
-					OWLAnnotationValue value = axiom.getValue();
-					if (value instanceof OWLLiteral) {
-						OWLLiteral literal = (OWLLiteral) value;
-						String literalValue = literal.getLiteral();
-						if(literal.getDatatype().isBoolean()) {
-							boolean b = Boolean.parseBoolean(literalValue);
-							return b;
-						}
-					}
-				}
-			}			
-		}
-		return false;
+		return graph.isObsolete(owlObject);
 	}
 	
 	private void writeOWLOntolog(OWLGraphWrapper gmod, String fileName) throws OWLOntologyStorageException {
