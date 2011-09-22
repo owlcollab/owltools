@@ -69,6 +69,10 @@ public class OntologyCheckHandler {
 	
 	void run(OWLGraphWrapper owlGraphWrapper, Class<?> annotation) {
 		List<CheckResult> results = runner.verify(owlGraphWrapper, annotation);
+		if (results == null || results.isEmpty()) {
+			// do nothing
+			return;
+		}
 		String ontologyId = owlGraphWrapper.getOntologyId();
 		int successCount = 0;
 		int warningCount = 0;
