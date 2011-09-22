@@ -91,6 +91,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		MacroStrategy macroStrategy = MacroStrategy.GCI;
 		boolean isCheckConsistency = true;
 		boolean isWriteMetadata = true;
+		Set<String> sourceOntologyPrefixes = null;
 		boolean executeOntologyChecks = true;
 
 		OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
@@ -151,11 +152,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		public void setRecreateMireot(boolean isRecreateMireot) {
 			this.isRecreateMireot = isRecreateMireot;
 		}
-		
+
 		public boolean isExpandShortcutRelations() {
 			return isExpandMacros;
 		}
-		
+
 		public void setExpandShortcutRelations(boolean expandShortcutRelations) {
 			this.isExpandMacros = expandShortcutRelations;
 		}
@@ -175,6 +176,21 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		public void setWriteELOntology(boolean writeELOntology) {
 			this.writeELOntology = writeELOntology;
 		}
+
+		public Set<String> getSourceOntologyPrefixes() {
+			return sourceOntologyPrefixes;
+		}
+
+		public void setSourceOntologyPrefixes(Set<String> sourceOntologyPrefixes) {
+			this.sourceOntologyPrefixes = sourceOntologyPrefixes;
+		}
+
+		public void addSourceOntologyPrefix(String prefix) {
+			if (sourceOntologyPrefixes == null) 
+				sourceOntologyPrefixes = new HashSet<String>();
+			sourceOntologyPrefixes.add(prefix);
+		}
+
 
 		public boolean isExecuteOntologyChecks() {
 			return executeOntologyChecks;
@@ -251,13 +267,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				System.exit(0);
 			}
 
-			else if (opt.equals("-outdir")) { baseDirectory = args[i]; i++; }
-
+			else if (opt.equals("-outdir") || opt.equals("--outdir")) { 
+				baseDirectory = args[i]; i++; 
+			}
 			/*
 			 * else if (opt.equals("-owlversion")) { version = args[i]; i++; }
 			 */
-			else if (opt.equals("-reasoner")) {
+			else if (opt.equals("-reasoner") || opt.equals("--reasoner")) {
+				// TODO - deprecate "-reasoner"
 				oortConfig.reasonerName = args[i];
+				i++;
+			}
+			else if (opt.equals("--prefix")) {
+				oortConfig.addSourceOntologyPrefix(args[i]);
 				i++;
 			}
 			else if (opt.equals("--enforceEL")) {
@@ -340,6 +362,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		for (int k = 1; k < paths.size(); k++) {
 			String p = getPathIRI(paths.get(k));
 			mooncat.addReferencedOntology(parser.parseToOWLGraph(p).getSourceOntology());
+		}
+		if (oortConfig.sourceOntologyPrefixes != null) {
+			mooncat.setSourceOntologyPrefixes(oortConfig.sourceOntologyPrefixes);
 		}
 
 		if (oortConfig.executeOntologyChecks) {
@@ -426,7 +451,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			saveInAllFormats(ontologyId, "non-classified", gciOntology);
 			logger.info("Asserted Ontology Creation Completed");
 		}
-		
+
 		// ----------------------------------------
 		// Merge in external ontologies
 		// ----------------------------------------
@@ -437,7 +462,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			saveInAllFormats(ontologyId, "merged", gciOntology);
 
 			logger.info("Number of dangling classes in source (post-merge): "+mooncat.getDanglingClasses().size());
-			
+
 			// TODO: option to save as imports
 		}
 
@@ -454,7 +479,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		//  at some point we may wish to make this optional,
 		//  but a user would rarely choose to omit the main ontology
 		if (true) {
-		
+
 			logger.info("Creating basic ontology");
 
 			if (oortConfig.reasonerName != null) {
@@ -471,6 +496,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						for (String inc  : incs) {
 							logger.error(inc);
 						}
+						// TODO: allow --force option
+						// TODO: proper exception mechanism - delay until end?
+						throw new IOException("Will not release inconsistent ontology unless forced!");
 					}
 					logger.info("Checking consistency completed");
 				}
@@ -481,6 +509,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						for (OWLEquivalentClassesAxiom eca : infBuilder.getEquivalentNamedClassPairs()) {
 							logger.error("Equiv:"+eca);
 						}
+						if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
+							// TODO: allow --force option
+							// TODO: proper exception mechanism - delay until end?
+							throw new IOException("Will not release inconsistent ontology unless forced!");
+						}
+
 					}
 				}
 
@@ -501,7 +535,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			saveInAllFormats(ontologyId, null, gciOntology);
 
 		}
-		
+
 		// write EL version
 		if(oortConfig.writeELOntology) {
 			logger.info("Creating EL ontology");
@@ -590,7 +624,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	private void saveInAllFormats(String ontologyId, String ext, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		saveInAllFormats(ontologyId, ext, mooncat.getOntology(), gciOntology);
 	}
-	
+
 	private void saveInAllFormats(String ontologyId, String ext, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
 		saveOntologyInAllFormats(ontologyId, fn, ontologyToSave, gciOntology);
@@ -633,7 +667,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		OutputStream os = getOutputSteam(fn +".owl");
 		manager.saveOntology(ontologyToSave, oortConfig.defaultFormat, os);
 		os.close();
-		
+
 		OutputStream osxml = getOutputSteam(fn +".owx");
 		manager.saveOntology(ontologyToSave, oortConfig.owlXMLFormat, osxml);
 		osxml.close();
@@ -647,12 +681,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		
 		if (gciOntology != null) {
 			OWLOntologyManager gciManager = gciOntology.getOWLOntologyManager();
-			
+
 			// create specific import for the generated owl ontology
 			OWLImportsDeclaration importDeclaration = new OWLImportsDeclarationImpl(IRI.create(fn +".owl"));
 			AddImport addImport = new AddImport(gciOntology, importDeclaration);
 			RemoveImport removeImport = new RemoveImport(gciOntology, importDeclaration);
-			
+
 			gciManager.applyChange(addImport);
 			OutputStream gciOS = getOutputSteam(fn +"-aux.owl");
 			gciManager.saveOntology(gciOntology, oortConfig.defaultFormat, gciOS);
@@ -661,7 +695,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			OutputStream gciOSxml = getOutputSteam(fn +"-aux.owx");
 			gciManager.saveOntology(gciOntology, oortConfig.owlXMLFormat, gciOSxml);
 			gciOSxml.close();
-			
+
 			gciManager.applyChange(removeImport);
 		}
 
@@ -675,7 +709,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		writer.write(doc, bwriter);
 
 		bwriter.close();
-		
+
 		if (oortConfig.isWriteMetadata) {
 			OntologyMetadata omd = new OntologyMetadata();
 			// TODO

@@ -1,0 +1,15 @@
+;; Object ontologyrelease/
+;; SEMANTICDB Tags save file
+(semanticdb-project-database-file "ontologyrelease/"
+  :tables (list 
+   (semanticdb-table "package-info.java"
+    :major-mode 'java-mode
+    :tags '(("owltools.ontologyrelease" package nil nil [795 828]) ("owltools.ontologyrelease.OboOntologyReleaseRunner" include nil (dependency-file none) [830 887]))
+    :file "package-info.java"
+    :pointmax 888
+    )
+   )
+  :file "semantic.cache"
+  :semantic-tag-version "2.0pre4"
+  :semanticdb-version "2.0pre4"
+  )

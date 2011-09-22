@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -17,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -112,8 +114,9 @@ public class InferenceBuilder{
 			try {
 				OWLOntology infOnt = manager.createOntology();
 				// Set ontology ID
-				manager.applyChange(new SetOntologyID(infOnt, sourceOntology.getOntologyID()));
-				
+				//manager.applyChange(new SetOntologyID(infOnt, sourceOntology.getOntologyID()));
+				manager.applyChange(new SetOntologyID(infOnt, 
+						new OWLOntologyID(IRI.create(sourceOntology.getOntologyID().toString()+"-el"))));
 				// Remove violations
 				List<OWLProfileViolation> violations = report.getViolations();
 				Set<OWLAxiom> ignoreSet = new HashSet<OWLAxiom>();

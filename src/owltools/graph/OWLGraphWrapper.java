@@ -52,6 +52,7 @@ import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -136,6 +137,7 @@ public class OWLGraphWrapper {
 		public Set<OWLQuantifiedProperty> graphEdgeExcludeSet = null;
 		public OWLClass excludeMetaClass = null;
 
+		@Deprecated
 		public void excludeProperty(OWLObjectProperty p) {
 			if (graphEdgeExcludeSet == null)
 				graphEdgeExcludeSet = new HashSet<OWLQuantifiedProperty>();
@@ -971,8 +973,47 @@ public class OWLGraphWrapper {
 		}
 		return ancs;
 	}
+	public Set<OWLObject> getAncestors(OWLObject x, Set<OWLPropertyExpression> overProps) {
+		Set<OWLObject> ancs = new HashSet<OWLObject>();
+		for (OWLGraphEdge e : getOutgoingEdgesClosure(x)) {
+			boolean isAddMe = false;
+			if (overProps != null) {
+				List<OWLQuantifiedProperty> qps = e.getQuantifiedPropertyList();
+				if (qps.size() == 0) {
+					isAddMe = true;
+				}
+				else if (qps.size() == 1) {
+					OWLQuantifiedProperty qp = qps.get(0);
+					if (qp.isIdentity()) {
+						isAddMe = true;
+					}
+					else if (qp.isSubClassOf()) {
+						isAddMe = true;
+					}
+					else if (qp.isSomeValuesFrom() && overProps.contains(qp.getProperty())) {
+						isAddMe = true;
+					}
+				}
+				else {
+					// no add
+				}
+			}
+			else {
+				isAddMe = true;
+			}
+			if (isAddMe)
+				ancs.add(e.getTarget());
+		}
+		return ancs;
+	}
+
 	public Set<OWLObject> getAncestorsReflexive(OWLObject x) {
 		Set<OWLObject> ancs = getAncestors(x);
+		ancs.add(x);
+		return ancs;
+	}
+	public Set<OWLObject> getAncestorsReflexive(OWLObject x, Set<OWLPropertyExpression> overProps) {
+		Set<OWLObject> ancs = getAncestors(x, overProps);
 		ancs.add(x);
 		return ancs;
 	}

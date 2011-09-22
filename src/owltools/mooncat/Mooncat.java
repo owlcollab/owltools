@@ -191,13 +191,23 @@ public class Mooncat {
 	 * "graph-complete", then add these axioms to source ontology
 	 */
 	public void mergeOntologies() {
+		// refresh existing MIREOT set
+		logger.info("flushing external...");
+		removeExternalOntologyClasses(false);
+
 		OWLOntology srcOnt = graph.getSourceOntology();
+		logger.info("getting closure...");
 		Set<OWLAxiom> axioms = getClosureAxiomsOfExternalReferencedEntities();
+		
+		// refresh existing MIREOT set
+		logger.info("flushing external...");
+		removeExternalOntologyClasses(false);
 
 		// add ALL subannotprop axioms
 		// - this is quite geared towards obo ontologies, where
 		//   we want to preserve obo headers.
 		// TODO: make this configurable
+		logger.info("adding SAPs");
 		for (OWLOntology refOnt : this.getReferencedOntologies()) {
 			for (OWLSubAnnotationPropertyOfAxiom a : refOnt.getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
 				axioms.add(a);
@@ -208,6 +218,36 @@ public class Mooncat {
 			logger.info("Adding:"+a);
 		}
 		manager.addAxioms(srcOnt, axioms);
+	}
+
+	private boolean isInExternalOntology(OWLEntity obj) {
+		if (sourceOntologyPrefixes != null && sourceOntologyPrefixes.size() > 0) {
+			//LOG.info("  prefixes: "+sourceOntologyPrefixes);
+			String iri = obj.getIRI().toString();
+			boolean isSrc = false;
+			for (String prefix : sourceOntologyPrefixes) {
+				if (iri.startsWith(prefix)) {
+					isSrc = true;
+					break;
+				}
+			}
+			if (!isSrc) {
+				LOG.info("  refObj: "+obj+" // "+sourceOntologyPrefixes);
+				return true;
+			}
+		}
+		else {
+			// estimate by ref ontologies
+			// TODO: this is not reliable
+			for (OWLOntology refOnt : getReferencedOntologies()) {
+				//LOG.info("  refOnt: "+refOnt);
+				if (refOnt.getDeclarationAxioms(obj).size() > 0) {
+					LOG.info("  refObj: "+obj);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 
@@ -236,32 +276,9 @@ public class Mooncat {
 			//LOG.info("considering: "+obj);
 			// a reference ontology may have entities from the source ontology MIREOTed in..
 			// allow a configuration with the URI prefix specified
-			if (sourceOntologyPrefixes != null && sourceOntologyPrefixes.size() > 0) {
-				//LOG.info("  prefixes: "+sourceOntologyPrefixes);
-				String iri = obj.getIRI().toString();
-				boolean isSrc = false;
-				for (String prefix : sourceOntologyPrefixes) {
-					if (iri.startsWith(prefix)) {
-						isSrc = true;
-						break;
-					}
-				}
-				if (!isSrc) {
-					refObjs.add(obj);
-					LOG.info("  refObj: "+obj+" // "+sourceOntologyPrefixes);
-					continue;
-				}
-			}
-			else {
-				// estimate by ref ontologies
-				for (OWLOntology refOnt : getReferencedOntologies()) {
-					//LOG.info("  refOnt: "+refOnt);
-					if (refOnt.getDeclarationAxioms(obj).size() > 0) {
-						refObjs.add(obj);
-						LOG.info("  refObj: "+obj);
-						continue;
-					}
-				}
+			if (isInExternalOntology(obj)) {
+				refObjs.add(obj);
+
 			}
 		}
 		LOG.info("#refObjs: "+refObjs.size());
@@ -547,6 +564,28 @@ public class Mooncat {
 		graph.getManager().removeAxioms(o, rmAxioms);
 		if (removeDangling) {
 			removeDanglingAxioms(o);
+		}
+	}
+	
+	public void removeExternalOntologyClasses(boolean removeDangling) {
+		OWLOntology ont = graph.getSourceOntology();
+		Set<OWLEntity> objs = ont.getSignature(false);
+		Set<OWLClass> rmSet = new HashSet<OWLClass>();
+		LOG.info("RM testing "+objs.size()+" objs to see if they are contained in: "+getReferencedOntologies());
+		for (OWLEntity obj : objs) {
+			if (obj instanceof OWLClass && isInExternalOntology(obj)) {
+				rmSet.add((OWLClass) obj);
+			}
+		}
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLClass c : rmSet) {
+			rmAxioms.addAll(c.getAnnotationAssertionAxioms(ont));
+			rmAxioms.addAll(ont.getAxioms(c));
+		}
+		graph.getManager().removeAxioms(ont, rmAxioms);
+		if (removeDangling) {
+			LOG.info("removing dangling");
+			removeDanglingAxioms(ont);
 		}
 	}
 

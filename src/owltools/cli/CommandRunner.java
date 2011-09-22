@@ -324,6 +324,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--merge")) {
+				opts.info("ONT", "merges ONT into current source ontology");
 				g.mergeOntology(pw.parse(opts.nextOpt()));
 			}
 			else if (opts.nextEq("--map-iri")) {
@@ -1140,6 +1141,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--gaf-term-counts")) {
+				// TODO - ensure has_part and other relations are excluded
 				owlpp = new OWLPrettyPrinter(g);
 				Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
 				for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
@@ -1156,6 +1158,18 @@ public class CommandRunner {
 							continue;
 						System.out.println(g.getIdentifier(c)+"\t"+g.getLabel(c)+"\t"+
 								(aMap.containsKey(c) ? aMap.get(c).size() : "0"));
+					}
+				}
+			}
+			else if (opts.nextEq("--gaf-query")) {
+				opts.info("LABEL", "list edges in graph closure to root nodes");
+				//System.out.println("i= "+i);
+				OWLObject obj = resolveEntity(opts);
+				Set<OWLObject> descs = g.getDescendantsReflexive(obj);
+				for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
+					OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
+					if (descs.contains(c)) {
+						System.out.println(g.getIdentifier(c)+"\t"+a.getBioentityObject()+"\t"+a.getBioentityObject().getSymbol());
 					}
 				}
 			}
