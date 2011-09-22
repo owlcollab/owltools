@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
 import owltools.graph.OWLGraphWrapper;
 import owltools.ontologyverification.CheckResult.Status;
 import owltools.ontologyverification.annotations.AfterLoading;
-import owltools.ontologyverification.annotations.AfterMeriot;
+import owltools.ontologyverification.annotations.AfterMireot;
 import owltools.ontologyverification.annotations.AfterReasoning;
 
 /**
@@ -50,12 +50,12 @@ public class OntologyCheckHandler {
 	}
 	
 	/**
-	 * Run tests for the ontology after merioting. 
+	 * Run tests for the ontology after mireoting. 
 	 * 
 	 * @param owlGraphWrapper ontology
 	 */
-	public void afterMeriot(OWLGraphWrapper owlGraphWrapper) {
-		run(owlGraphWrapper, AfterMeriot.class);
+	public void afterMireot(OWLGraphWrapper owlGraphWrapper) {
+		run(owlGraphWrapper, AfterMireot.class);
 	}
 	
 	/**
@@ -115,11 +115,15 @@ public class OntologyCheckHandler {
 		if (hasErrors) {
 			level = Level.ERROR;
 		}
-		logger.log(level, sb.toString());
+		log(sb, level);
 		if (hasErrors) {
 			throw new RuntimeException(createExceptionMessage(ontologyId, errorCount, internalErrorCount));
 		}
 		
+	}
+
+	protected void log(StringBuilder sb, Level level) {
+		logger.log(level, sb.toString());
 	}
 
 	private String createExceptionMessage(String ontologyId, int errorCount, int internalErrorCount) {

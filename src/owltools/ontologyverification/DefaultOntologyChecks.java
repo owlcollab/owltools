@@ -2,7 +2,7 @@ package owltools.ontologyverification;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.ontologyverification.annotations.AfterLoading;
-import owltools.ontologyverification.annotations.AfterMeriot;
+import owltools.ontologyverification.annotations.AfterMireot;
 import owltools.ontologyverification.annotations.AfterReasoning;
 import owltools.ontologyverification.annotations.Check;
 
@@ -15,7 +15,7 @@ public class DefaultOntologyChecks {
 	}
 	
 	@AfterLoading
-	@AfterMeriot
+	@AfterMireot
 	@AfterReasoning
 	@Check
 	public CheckResult check2(OWLGraphWrapper owlGraphWrapper) {

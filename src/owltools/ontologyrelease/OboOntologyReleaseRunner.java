@@ -441,7 +441,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		if (oortConfig.executeOntologyChecks) {
-			OntologyCheckHandler.DEFAULT_INSTANCE.afterMeriot(mooncat.getGraph());
+			OntologyCheckHandler.DEFAULT_INSTANCE.afterMireot(mooncat.getGraph());
 		}
 		
 		// ----------------------------------------

@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 import owltools.graph.OWLGraphWrapper;
 import owltools.ontologyverification.CheckResult.Status;
 import owltools.ontologyverification.annotations.AfterLoading;
-import owltools.ontologyverification.annotations.AfterMeriot;
+import owltools.ontologyverification.annotations.AfterMireot;
 import owltools.ontologyverification.annotations.AfterReasoning;
 import owltools.ontologyverification.annotations.Check;
 
@@ -23,7 +23,7 @@ import owltools.ontologyverification.annotations.Check;
  * Identify and run ontology checks for an ontology ({@link OWLGraphWrapper}).
  * The identification uses reflection and annotations to identify suitable 
  * ontology check methods from a list of classes.<br/>
- * The relevant annotations are {@link Check}, {@link AfterLoading}, {@link AfterMeriot}, 
+ * The relevant annotations are {@link Check}, {@link AfterLoading}, {@link AfterMireot}, 
  * and {@link AfterReasoning}. 
  * The {@link Check} annotation identify a methods as an ontology check. 
  * The rest indicate the stage for each check. If no stage is specified, 
@@ -44,7 +44,7 @@ public class OntologyCheckRunner {
 	private final static Logger logger = Logger.getLogger(OntologyCheckRunner.class);
 	
 	private final Map<Method, Object> afterLoadingChecks;
-	private final Map<Method, Object> afterMeriotChecks;
+	private final Map<Method, Object> afterMireotChecks;
 	private final Map<Method, Object> afterReasoningChecks;
 	
 	/**
@@ -55,7 +55,7 @@ public class OntologyCheckRunner {
 	OntologyCheckRunner(Class<?>...classes) {
 		super();
 		afterLoadingChecks = new HashMap<Method, Object>();
-		afterMeriotChecks = new HashMap<Method, Object>();
+		afterMireotChecks = new HashMap<Method, Object>();
 		afterReasoningChecks = new HashMap<Method, Object>();
 		Set<Class<?>> done = new HashSet<Class<?>>();
 		for (Class<?> cls : classes) {
@@ -84,9 +84,9 @@ public class OntologyCheckRunner {
 					afterLoadingChecks.put(method, instance);
 					count += 1;
 				}
-				boolean hasMeriot = method.getAnnotation(AfterMeriot.class) != null;
-				if (hasMeriot) {
-					afterMeriotChecks.put(method, instance);
+				boolean hasMireot = method.getAnnotation(AfterMireot.class) != null;
+				if (hasMireot) {
+					afterMireotChecks.put(method, instance);
 					count += 1;
 				}
 				boolean hasReasoning = method.getAnnotation(AfterReasoning.class) != null;
@@ -94,7 +94,7 @@ public class OntologyCheckRunner {
 					afterReasoningChecks.put(method, instance);
 					count += 1;
 				}
-				if (!hasReasoning && !hasMeriot && !hasLoading) {
+				if (!hasReasoning && !hasMireot && !hasLoading) {
 					// default: if not target annotation is provided execute after loading
 					afterLoadingChecks.put(method, instance);
 					count += 1;
@@ -156,8 +156,8 @@ public class OntologyCheckRunner {
 		if (AfterLoading.class.equals(annotation)) {
 			return verify(afterLoadingChecks, owlGraphWrapper, AfterLoading.class.getSimpleName());
 		}
-		if (AfterMeriot.class.equals(annotation)) {
-			return verify(afterMeriotChecks, owlGraphWrapper, AfterMeriot.class.getSimpleName());
+		if (AfterMireot.class.equals(annotation)) {
+			return verify(afterMireotChecks, owlGraphWrapper, AfterMireot.class.getSimpleName());
 		}
 		if (AfterReasoning.class.equals(annotation)) {
 			return verify(afterReasoningChecks, owlGraphWrapper, AfterReasoning.class.getSimpleName());
