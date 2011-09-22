@@ -82,4 +82,26 @@ public class CheckResult {
 	public List<String> getMessages() {
 		return messages;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("CheckResult [");
+		if (checkName != null) {
+			builder.append("checkName=");
+			builder.append(checkName);
+		}
+		if (status != null) {
+			builder.append(", ");
+			builder.append("status=");
+			builder.append(status);
+		}
+		if (messages != null) {
+			builder.append(", ");
+			builder.append("messages=");
+			builder.append(messages);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
 }
