@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 import org.obolibrary.gui.GuiTools.GBHelper;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
 import org.obolibrary.gui.SelectDialog;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 /**
  * GUI component for the minimum number of configurations
@@ -52,13 +51,12 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	 * Constructor allows to build a panel with default values.
 	 * 
 	 * @param frame
-	 * @param defaultFormat
 	 * @param defaultPaths
 	 * @param defaultBase
 	 * @param advancedPanel
 	 */
-	public ReleaseGuiMainPanel(Frame frame, OWLOntologyFormat defaultFormat, 
-			Vector<String> defaultPaths, File defaultBase, ReleaseGuiAdvancedPanel advancedPanel)
+	public ReleaseGuiMainPanel(Frame frame, Vector<String> defaultPaths, 
+			File defaultBase, ReleaseGuiAdvancedPanel advancedPanel)
 	{
 		super();
 		this.frame = frame;
@@ -214,22 +212,6 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		advancedPanel.setMireotButtonsEnabled(files.size() > 1);
 	}
 
-	/**
-	 * Create layout for ontology format selection.
-	 * 
-	 * INFO: Currently unused. This method is implemented for 
-	 * potential later use for exporting to different OWL formats.
-	 * 
-	 * @param pos
-	 * @param defaultFormat
-	 */
-	@SuppressWarnings("unused")
-	private void createFormatPanel(GBHelper pos, OWLOntologyFormat defaultFormat) {
-		add(new JLabel("Ontology Format"), pos.nextRow());
-		add(rdfXmlRadioButton, pos.nextRow().nextCol());
-		rdfXmlRadioButton.setSelected(true);
-	}
-	
 	/**
 	 * Helper method to extract the canonical path from a file.
 	 * 

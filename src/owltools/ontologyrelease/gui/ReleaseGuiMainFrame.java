@@ -245,7 +245,6 @@ public class ReleaseGuiMainFrame extends JFrame {
 	private SizedJPanel getMainPanel(ReleaseGuiAdvancedPanel advancedPanel) {
 		if (mainPanel == null) {
 			mainPanel = new ReleaseGuiMainPanel(this, 
-					parameters.getFormat(), 
 					parameters.getPaths(), 
 					parameters.getBase(),
 					advancedPanel);

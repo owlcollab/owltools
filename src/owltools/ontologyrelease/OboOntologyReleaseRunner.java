@@ -22,6 +22,7 @@ import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatDanglingReferenceException;
 import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
+import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -92,6 +93,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		boolean isWriteMetadata = true;
 		boolean executeOntologyChecks = true;
 
+		OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
+		OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
+		
 		public String getReasonerName() {
 			return reasonerName;
 		}
@@ -227,7 +231,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	OWLOntologyCreationException, OWLOntologyStorageException,
 	OBOFormatDanglingReferenceException {
 
-		OWLOntologyFormat format = new RDFXMLOntologyFormat();
 		String baseDirectory = ".";
 
 		OortConfiguration oortConfig = new OortConfiguration();
@@ -309,8 +312,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, base);
 
-		oorr.createRelease(format, paths);
-		boolean success = oorr.createRelease(format, paths);
+		boolean success = oorr.createRelease(paths);
 		String message;
 		if (success) {
 			message = "Finished release manager process";
@@ -321,9 +323,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		logger.info(message);
 	}
 
-	public boolean createRelease(OWLOntologyFormat format, Vector<String> paths) 
-	throws IOException, OWLOntologyCreationException, 
-	FileNotFoundException, OWLOntologyStorageException 
+	public boolean createRelease(Vector<String> paths) throws IOException, 
+		OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException 
 	{
 		String path = null;
 
@@ -407,7 +408,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					logger.info("Generating bridge ontology:"+tOntId);
 					Obo2Owl obo2owl = new Obo2Owl();
 					OWLOntology tOnt = obo2owl.convert(tdoc);
-					saveOntologyInAllFormats(tOntId, tOntId, format, tOnt, null);
+					saveOntologyInAllFormats(tOntId, tOntId, tOnt, null);
 				}
 			} catch (InvalidXrefMapException e) {
 				logger.info("Problem during Xref expansion: "+e.getMessage(), e);
@@ -422,7 +423,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		if (oortConfig.asserted) {
 			logger.info("Creating Asserted Ontology");
-			saveInAllFormats(ontologyId, format, "non-classified", gciOntology);
+			saveInAllFormats(ontologyId, "non-classified", gciOntology);
 			logger.info("Asserted Ontology Creation Completed");
 		}
 		
@@ -433,7 +434,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();
-			saveInAllFormats(ontologyId, format, "merged", gciOntology);
+			saveInAllFormats(ontologyId, "merged", gciOntology);
 
 			logger.info("Number of dangling classes in source (post-merge): "+mooncat.getDanglingClasses().size());
 			
@@ -497,7 +498,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				OntologyCheckHandler.DEFAULT_INSTANCE.afterReasoning(mooncat.getGraph());
 			}
 			
-			saveInAllFormats(ontologyId, format, null, gciOntology);
+			saveInAllFormats(ontologyId, null, gciOntology);
 
 		}
 		
@@ -505,7 +506,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		if(oortConfig.writeELOntology) {
 			logger.info("Creating EL ontology");
 			OWLGraphWrapper elGraph = InferenceBuilder.enforceEL(mooncat.getGraph());
-			saveInAllFormats(ontologyId, format, "el", elGraph.getSourceOntology(), gciOntology);
+			saveInAllFormats(ontologyId, "el", elGraph.getSourceOntology(), gciOntology);
 			logger.info("Finished Creating EL ontology");
 		}
 
@@ -549,7 +550,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				mooncat.removeSubsetComplementClasses(coreSubset, true);
 			}
 
-			saveInAllFormats(ontologyId, format, "simple", gciOntology);
+			saveInAllFormats(ontologyId, "simple", gciOntology);
 			logger.info("Creating simple ontology completed");
 
 		}		
@@ -586,16 +587,16 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return axioms;
 	}
 
-	private void saveInAllFormats(String ontologyId, OWLOntologyFormat format, String ext, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
-		saveInAllFormats(ontologyId, format, ext, mooncat.getOntology(), gciOntology);
+	private void saveInAllFormats(String ontologyId, String ext, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+		saveInAllFormats(ontologyId, ext, mooncat.getOntology(), gciOntology);
 	}
 	
-	private void saveInAllFormats(String ontologyId, OWLOntologyFormat format, String ext, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveInAllFormats(String ontologyId, String ext, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
-		saveOntologyInAllFormats(ontologyId, fn, format, ontologyToSave, gciOntology);
+		saveOntologyInAllFormats(ontologyId, fn, ontologyToSave, gciOntology);
 	}
 
-	private void saveOntologyInAllFormats(String ontologyId, String fn, OWLOntologyFormat format, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveOntologyInAllFormats(String ontologyId, String fn, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
 		logger.info("Saving: "+fn);
 
@@ -630,8 +631,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			reset = new SetOntologyID(ontologyToSave, change.getOriginalOntologyID());
 		}
 		OutputStream os = getOutputSteam(fn +".owl");
-		manager.saveOntology(ontologyToSave, format, os);
+		manager.saveOntology(ontologyToSave, oortConfig.defaultFormat, os);
 		os.close();
+		
+		OutputStream osxml = getOutputSteam(fn +".owx");
+		manager.saveOntology(ontologyToSave, oortConfig.owlXMLFormat, osxml);
+		osxml.close();
 		
 		if (reset != null) {
 			// reset versionIRI
@@ -650,7 +655,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			
 			gciManager.applyChange(addImport);
 			OutputStream gciOS = getOutputSteam(fn +"-aux.owl");
-			gciManager.saveOntology(gciOntology, format, gciOS);
+			gciManager.saveOntology(gciOntology, oortConfig.defaultFormat, gciOS);
+			gciOS.close();
+
+			OutputStream gciOSxml = getOutputSteam(fn +"-aux.owx");
+			gciManager.saveOntology(gciOntology, oortConfig.owlXMLFormat, gciOSxml);
+			gciOSxml.close();
 			
 			gciManager.applyChange(removeImport);
 		}

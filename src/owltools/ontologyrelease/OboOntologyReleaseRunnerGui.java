@@ -15,7 +15,6 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.ontologyrelease.gui.GUIOortConfiguration;
 import owltools.ontologyrelease.gui.ReleaseGuiMainFrame;
@@ -90,7 +89,6 @@ public class OboOntologyReleaseRunnerGui {
 				@Override
 				public void run() {
 					try {
-						OWLOntologyFormat format = parameters.getFormat();
 						Vector<String> paths = parameters.getPaths();
 						File base = parameters.getBase();
 						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(parameters, base) {
@@ -118,7 +116,7 @@ public class OboOntologyReleaseRunnerGui {
 							}
 							
 						};
-						boolean success = oorr.createRelease(format, paths);
+						boolean success = oorr.createRelease(paths);
 						String message;
 						if (success) {
 							message = "Finished release manager process";

@@ -3,9 +3,6 @@ package owltools.ontologyrelease.gui;
 import java.io.File;
 import java.util.Vector;
 
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
-
 import owltools.ontologyrelease.OboOntologyReleaseRunner;
 import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration;
 
@@ -15,7 +12,6 @@ import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration;
  */
 public class GUIOortConfiguration extends OortConfiguration {
 	
-	private OWLOntologyFormat format = new RDFXMLOntologyFormat();
 	private Vector<String> paths;
 	private File base = new File(".");
 
@@ -27,20 +23,6 @@ public class GUIOortConfiguration extends OortConfiguration {
 		setExpandXrefs(false);
 	}
 	
-	/**
-	 * @return the format
-	 */
-	public OWLOntologyFormat getFormat() {
-		return format;
-	}
-
-	/**
-	 * @param format the format to set
-	 */
-	public void setFormat(OWLOntologyFormat format) {
-		this.format = format;
-	}
-
 	/**
 	 * @return the paths
 	 */
@@ -72,25 +54,7 @@ public class GUIOortConfiguration extends OortConfiguration {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("OboOntologyReleaseRunnerParameters [");
-		if (format != null) {
-			builder.append("format=");
-			builder.append(format.getClass().getSimpleName());
-			builder.append(", ");
-		}
-		if (getReasonerName() != null) {
-			builder.append("reasoner=");
-			builder.append(getReasonerName());
-			builder.append(", ");
-		}
-		builder.append("asserted=");
-		builder.append(isAsserted());
-		builder.append(", simple=");
-		builder.append(isSimple());
-		builder.append(", ");
-		builder.append(", allowOverwrite=");
-		builder.append(isAllowFileOverWrite());
-		builder.append(", ");
+		builder.append("GUIOortConfiguration [");
 		if (paths != null) {
 			builder.append("paths=");
 			builder.append(paths);
@@ -99,7 +63,36 @@ public class GUIOortConfiguration extends OortConfiguration {
 		if (base != null) {
 			builder.append("base=");
 			builder.append(base);
+			builder.append(", ");
 		}
+		if (getReasonerName() != null) {
+			builder.append("reasonerName=");
+			builder.append(getReasonerName());
+			builder.append(", ");
+		}
+		builder.append("enforceEL=");
+		builder.append(isEnforceEL());
+		builder.append(", writeELOntology=");
+		builder.append(isWriteELOntology());
+		builder.append(", asserted=");
+		builder.append(isAsserted());
+		builder.append(", simple=");
+		builder.append(isSimple());
+		builder.append(", allowFileOverWrite=");
+		builder.append(isAllowFileOverWrite());
+		builder.append(", isExpandXrefs=");
+		builder.append(isExpandXrefs());
+		builder.append(", isRecreateMireot=");
+		builder.append(isRecreateMireot());
+		builder.append(", isExpandMacros=");
+		builder.append(isExpandShortcutRelations());
+		if (getMacroStrategy() != null) {
+			builder.append(", ");
+			builder.append("macroStrategy=");
+			builder.append(getMacroStrategy());
+		}
+		builder.append(", executeOntologyChecks=");
+		builder.append(isExecuteOntologyChecks());
 		builder.append("]");
 		return builder.toString();
 	}
