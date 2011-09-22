@@ -45,6 +45,7 @@ import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
 import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration.MacroStrategy;
+import owltools.ontologyverification.OntologyCheckHandler;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
@@ -89,6 +90,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		MacroStrategy macroStrategy = MacroStrategy.GCI;
 		boolean isCheckConsistency = true;
 		boolean isWriteMetadata = true;
+		boolean executeOntologyChecks = true;
 
 		public String getReasonerName() {
 			return reasonerName;
@@ -168,6 +170,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		public void setWriteELOntology(boolean writeELOntology) {
 			this.writeELOntology = writeELOntology;
+		}
+
+		public boolean isExecuteOntologyChecks() {
+			return executeOntologyChecks;
+		}
+
+		public void setExecuteOntologyChecks(boolean executeOntologyChecks) {
+			this.executeOntologyChecks = executeOntologyChecks;
 		}
 	}
 
@@ -284,6 +294,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--allow-overwrite")) {
 				oortConfig.allowFileOverWrite = true;
 			}
+			else if (opt.equals("--skip-ontology-checks")) {
+				oortConfig.executeOntologyChecks = false;
+			}
 			else {
 				String tokens[] = opt.split(" ");
 				for (String token : tokens)
@@ -328,6 +341,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			mooncat.addReferencedOntology(parser.parseToOWLGraph(p).getSourceOntology());
 		}
 
+		if (oortConfig.executeOntologyChecks) {
+			OntologyCheckHandler.DEFAULT_INSTANCE.afterLoading(mooncat .getGraph());
+		}
 		String version = OntologyVersionTools.getOntologyVersion(mooncat.getOntology());
 		if (version != null) {
 			if (OntologyVersionTools.isOBOOntologyVersion(version)) {
@@ -424,7 +440,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			// TODO: option to save as imports
 		}
 
-
+		if (oortConfig.executeOntologyChecks) {
+			OntologyCheckHandler.DEFAULT_INSTANCE.afterMeriot(mooncat.getGraph());
+		}
+		
 		// ----------------------------------------
 		// Main (asserted plus non-redundant inferred links)
 		// ----------------------------------------
@@ -474,6 +493,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 				logger.info("Redundant axioms removed");
 			}
+			if (oortConfig.executeOntologyChecks) {
+				OntologyCheckHandler.DEFAULT_INSTANCE.afterReasoning(mooncat.getGraph());
+			}
+			
 			saveInAllFormats(ontologyId, format, null, gciOntology);
 
 		}

@@ -19,6 +19,26 @@ import owltools.ontologyverification.annotations.AfterMeriot;
 import owltools.ontologyverification.annotations.AfterReasoning;
 import owltools.ontologyverification.annotations.Check;
 
+/**
+ * Identify and run ontology checks for an ontology ({@link OWLGraphWrapper}).
+ * The identification uses reflection and annotations to identify suitable 
+ * ontology check methods from a list of classes.<br/>
+ * The relevant annotations are {@link Check}, {@link AfterLoading}, {@link AfterMeriot}, 
+ * and {@link AfterReasoning}. 
+ * The {@link Check} annotation identify a methods as an ontology check. 
+ * The rest indicate the stage for each check. If no stage is specified, 
+ * default to {@link AfterLoading}. You can add multiple stages to each method.
+ * 
+ * Requirements for check classes and methods:
+ * <ul>
+ *  <li>Each check class needs an unparameterized constructor</li>
+ *  <li>Check methods are public</li>
+ *  <li>Check methods have one parameter: {@link OWLGraphWrapper}</li>
+ *  <li>Check methods return a {@link CheckResult} or null</li>
+ *  <li>Check methods need to be thread safe, state-less</li>
+ *  <li>Check methods should not modify the ontology</li>
+ * </ul> 
+ */
 public class OntologyCheckRunner {
 	
 	private final static Logger logger = Logger.getLogger(OntologyCheckRunner.class);
@@ -27,6 +47,11 @@ public class OntologyCheckRunner {
 	private final Map<Method, Object> afterMeriotChecks;
 	private final Map<Method, Object> afterReasoningChecks;
 	
+	/**
+	 * Create a new runner instance.
+	 * 
+	 * @param classes check classes
+	 */
 	OntologyCheckRunner(Class<?>...classes) {
 		super();
 		afterLoadingChecks = new HashMap<Method, Object>();
@@ -43,22 +68,35 @@ public class OntologyCheckRunner {
 		}
 	}
 	
+	/**
+	 * Identify check methods in a class.
+	 * 
+	 * @param cls
+	 */
 	private void identifyChecks(Class<?> cls) {
 		int count = 0;
 		Object instance = createInstance(cls);
 		for(Method method : cls.getMethods()) {
 			if (method.getAnnotation(Check.class) != null) {
 				checkMethodSignature(method, cls);
-				if (method.getAnnotation(AfterLoading.class) != null) {
+				boolean hasLoading = method.getAnnotation(AfterLoading.class) != null;
+				if (hasLoading) {
 					afterLoadingChecks.put(method, instance);
 					count += 1;
 				}
-				if (method.getAnnotation(AfterMeriot.class) != null) {
+				boolean hasMeriot = method.getAnnotation(AfterMeriot.class) != null;
+				if (hasMeriot) {
 					afterMeriotChecks.put(method, instance);
 					count += 1;
 				}
-				if (method.getAnnotation(AfterReasoning.class) != null) {
+				boolean hasReasoning = method.getAnnotation(AfterReasoning.class) != null;
+				if (hasReasoning) {
 					afterReasoningChecks.put(method, instance);
+					count += 1;
+				}
+				if (!hasReasoning && !hasMeriot && !hasLoading) {
+					// default: if not target annotation is provided execute after loading
+					afterLoadingChecks.put(method, instance);
 					count += 1;
 				}
 			}
@@ -68,6 +106,13 @@ public class OntologyCheckRunner {
 		}
 	}
 	
+	/**
+	 * Check whether the method conforms to the expected methods 
+	 * signature (parameter and return type).
+	 * 
+	 * @param method
+	 * @param cls
+	 */
 	private void checkMethodSignature(Method method, Class<?> cls) {
 		Class<?> returnType = method.getReturnType();
 		if (!CheckResult.class.isAssignableFrom(returnType)) {
@@ -83,6 +128,13 @@ public class OntologyCheckRunner {
 		}
 	}
 	
+	/**
+	 * Create an instance for a given class. 
+	 * Assumes that a default constructor exists.
+	 * 
+	 * @param cls
+	 * @return instance
+	 */
 	private Object createInstance(Class<?> cls) {
 		try {
 			return cls.newInstance();
@@ -93,48 +145,54 @@ public class OntologyCheckRunner {
 		}
 	}
 
+	/**
+	 * Run checks for an ontology and given stage
+	 * 
+	 * @param owlGraphWrapper target ontology
+	 * @param annotation stage annotation class
+	 * @return list of check results
+	 */
 	List<CheckResult> verify (OWLGraphWrapper owlGraphWrapper, Class<?> annotation) {
 		if (AfterLoading.class.equals(annotation)) {
-			return afterLoading(owlGraphWrapper);
+			return verify(afterLoadingChecks, owlGraphWrapper, AfterLoading.class.getSimpleName());
 		}
 		if (AfterMeriot.class.equals(annotation)) {
-			return afterMeriot(owlGraphWrapper);
+			return verify(afterMeriotChecks, owlGraphWrapper, AfterMeriot.class.getSimpleName());
 		}
 		if (AfterReasoning.class.equals(annotation)) {
-			return afterReasoning(owlGraphWrapper);
+			return verify(afterReasoningChecks, owlGraphWrapper, AfterReasoning.class.getSimpleName());
 		}
 		throw new RuntimeException("Cannot call verify for unknown annotation: "+annotation);
 	}
 	
-	List<CheckResult> afterLoading(OWLGraphWrapper owlGraphWrapper) {
-		return verify(afterLoadingChecks, owlGraphWrapper);
-	}
-	
-	List<CheckResult> afterMeriot(OWLGraphWrapper owlGraphWrapper) {
-		return verify(afterMeriotChecks, owlGraphWrapper);
-	}
-	
-	List<CheckResult> afterReasoning(OWLGraphWrapper owlGraphWrapper) {
-		return verify(afterReasoningChecks, owlGraphWrapper);
-	}
-
-	private List<CheckResult> verify(Map<Method, Object> checks, OWLGraphWrapper owlGraphWrapper) {
+	/**
+	 * Verify an ontology with a set of check methods.
+	 * 
+	 * @param checks the checks to execute
+	 * @param owlGraphWrapper target ontology
+	 * @param type string to distinguish between the different test stages
+	 * @return list of check results
+	 */
+	private List<CheckResult> verify(Map<Method, Object> checks, OWLGraphWrapper owlGraphWrapper, String type) {
 		List<CheckResult> results = new ArrayList<CheckResult>();
 		for(Entry<Method, Object> entry : checks.entrySet()) {
 			Method method = entry.getKey();
 			Object object = entry.getValue();
 			try {
 				Object result = method.invoke(object, owlGraphWrapper);
+				String checkName = method.getName()+"-"+type;
 				if (result == null) {
 					// assume success
-					results.add(CheckResult.createSuccess(method.getName()));
+					results.add(new CheckResult(checkName, Status.Success));
 				}
 				else {
 					if (result instanceof CheckResult) {
-						results.add((CheckResult) result);
+						CheckResult checkResult = (CheckResult) result;
+						checkResult.setCheckName(checkName);
+						results.add(checkResult);
 					}
 					else {
-						results.add(new CheckResult(method.getName(), Status.InternalError, "The check did not return the expected type"));
+						results.add(new CheckResult(checkName, Status.InternalError, "The check did not return the expected type"));
 					}
 				}
 			} catch (IllegalArgumentException e) {

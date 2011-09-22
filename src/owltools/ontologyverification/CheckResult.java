@@ -5,7 +5,7 @@ import java.util.List;
 
 public class CheckResult {
 
-	private final String checkName;
+	private String checkName;
 	private final Status status;
 	private final List <String> messages;
 	
@@ -16,29 +16,28 @@ public class CheckResult {
 		InternalError
 	}
 	
-	
-	public static CheckResult createSuccess(String checkName) {
-		return new CheckResult(checkName, Status.Success);
+	public static CheckResult createSuccess() {
+		return new CheckResult(null, Status.Success);
 	}
 	
-	public static CheckResult createSuccess(String checkName, String message) {
-		return new CheckResult(checkName, Status.Success, Collections.singletonList(message));
+	public static CheckResult createSuccess(String message) {
+		return new CheckResult(null, Status.Success, Collections.singletonList(message));
 	}
 	
-	public static CheckResult createWarning(String checkName, String message) {
-		return new CheckResult(checkName, Status.Warning, Collections.singletonList(message));
+	public static CheckResult createWarning(String message) {
+		return new CheckResult(null, Status.Warning, Collections.singletonList(message));
 	}
 	
-	public static CheckResult createWarning(String checkName, List<String> messages) {
-		return new CheckResult(checkName, Status.Warning, messages);
+	public static CheckResult createWarning(List<String> messages) {
+		return new CheckResult(null, Status.Warning, messages);
 	}
 	
-	public static CheckResult createError(String checkName, String message) {
-		return new CheckResult(checkName, Status.Error, Collections.singletonList(message));
+	public static CheckResult createError(String message) {
+		return new CheckResult(null, Status.Error, Collections.singletonList(message));
 	}
 	
-	public static CheckResult createError(String checkName, List<String> messages) {
-		return new CheckResult(checkName, Status.Error, messages);
+	public static CheckResult createError(List<String> messages) {
+		return new CheckResult(null, Status.Error, messages);
 	}
 	
 	CheckResult(String checkName,  Status status, String message) {
@@ -61,6 +60,13 @@ public class CheckResult {
 	 */
 	public String getCheckName() {
 		return checkName;
+	}
+
+	/**
+	 * @param checkName the checkName to set
+	 */
+	void setCheckName(String checkName) {
+		this.checkName = checkName;
 	}
 
 	/**
