@@ -29,11 +29,12 @@ import owltools.graph.OWLQuantifiedProperty;
  */
 public class ChadoGraphClosureRenderer extends AbstractClosureRenderer implements GraphRenderer {
 
-	
+	public boolean isChain = false;
+
 	public ChadoGraphClosureRenderer(PrintStream stream) {
 		super(stream);
 	}
-	
+
 	public ChadoGraphClosureRenderer(String file) {
 		super(file);
 	}
@@ -42,24 +43,30 @@ public class ChadoGraphClosureRenderer extends AbstractClosureRenderer implement
 		if (!(e.getTarget() instanceof OWLNamedObject)) {
 			return;
 		}
-		if (e.getQuantifiedPropertyList().size() != 1) {
-			// TODO - add option to allow automatic creation of chains?
+		if (e.getQuantifiedPropertyList().size() != 1 && !isChain) {
 			return;
 		}
-		OWLQuantifiedProperty qp = e.getQuantifiedPropertyList().get(0);
-		String rel = null;
-		if (qp.isSubClassOf()) {
-			rel = "OBO_REL:is_a";
-		}
-		else if (qp.isSomeValuesFrom()) {
-			rel = graph.getIdentifier(qp.getProperty());
-		}
-		else {
-			return;
+		StringBuffer rel = new StringBuffer("");
+		int n = 0;
+		for (OWLQuantifiedProperty qp : e.getQuantifiedPropertyList()) {
+			//OWLQuantifiedProperty qp = e.getQuantifiedPropertyList().get(0);
+			if (n > 0) {
+				rel.append(",");
+			}
+			if (qp.isSubClassOf()) {
+				rel.append("OBO_REL:is_a");
+			}
+			else if (qp.isSomeValuesFrom()) {
+				rel.append(graph.getIdentifier(qp.getProperty()));
+			}
+			else {
+				return;
+			}
+			n++;
 		}
 		stream.print(graph.getIdentifier(e.getSource()));
 		sep();
-		int n = 0;
+
 		stream.print(rel);
 		sep();
 		stream.print(e.getDistance());
@@ -68,6 +75,8 @@ public class ChadoGraphClosureRenderer extends AbstractClosureRenderer implement
 		nl();
 
 	}
+
+
 
 
 
