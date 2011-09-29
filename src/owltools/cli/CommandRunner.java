@@ -382,8 +382,60 @@ public class CommandRunner {
 			else if (opts.nextEq("--save-closure-for-chado")) {
 				opts.info("OUTPUTFILENAME",
 						"saves the graph closure in a format that is oriented towards loading into a Chado database");
+				boolean isChain = opts.nextEq("--chain");
 				ChadoGraphClosureRenderer gcw = new ChadoGraphClosureRenderer(opts.nextOpt());
+				gcw.isChain = isChain;
 				gcw.render(g);				
+			}
+			else if (opts.nextEq("--make-taxon-set")) {
+				String idspace = null;
+				if (opts.nextEq("-s"))
+					idspace = opts.nextOpt();
+				owlpp = new OWLPrettyPrinter(g);
+				OWLClass tax = (OWLClass)this.resolveEntity(opts);
+				Set<OWLObject> taxAncs = g.getAncestorsReflexive(tax);
+				
+				Set<OWLClass> taxSet = new HashSet<OWLClass>();
+				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
+					String cid = g.getIdentifier(c);
+					if (idspace != null && !cid.startsWith(idspace+":"))
+						continue;
+					boolean isExcluded = false;
+					for (OWLGraphEdge e : g.getOutgoingEdgesClosure(c)) {
+						if (isExcluded)
+							break;
+						for (OWLGraphEdge te : g.getOutgoingEdges(e.getTarget())) {
+							OWLObjectProperty tp = te.getSingleQuantifiedProperty().getProperty();
+							if (tp != null) {
+								String tpl = g.getLabel(tp);
+								if (tpl == null)
+									continue;
+								OWLObject rt = te.getTarget();
+								// temp hack until RO is stable
+								if (tpl.equals("only_in_taxon") || tpl.equals("only in taxon")) {
+									if (!taxAncs.contains(rt) &&
+											!g.getAncestors(rt).contains(tax)) {
+										isExcluded = true;
+										break;
+									}
+								}
+								else if (tpl.equals("never_in_taxon") || tpl.equals("never in taxon")) {
+									if (taxAncs.contains(rt)) {
+										isExcluded = true;
+										break;
+									}
+								}
+							}
+						}
+					}
+					if (isExcluded) {
+						LOG.info("excluding: "+owlpp.render(c));
+					}
+					else {
+						taxSet.add(c);
+						System.out.println(cid);
+					}
+				}
 			}
 			else if (opts.nextEq("--query-cw")) {
 				opts.info("", "closed-world query");
