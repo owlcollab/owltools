@@ -288,6 +288,7 @@ public class Mooncat {
 
 	/**
 	 * finds the full closure of all external referenced entities.
+	 * TODO: include object properties
 	 * 
 	 * calls {@link getExternalReferencedEntities} and then finds all reflexive ancestors of this set.
 	 * 
@@ -316,6 +317,9 @@ public class Mooncat {
 					for (OWLAnnotationAssertionAxiom aaa : ((OWLEntity)obj).getAnnotationAssertionAxioms(refOnt)) {
 						extraObjs.add(aaa.getProperty());
 						extraObjs.add(aaa.getValue());
+					}
+					for (OWLAxiom ax : ((OWLEntity)obj).getReferencingAxioms(refOnt)) {
+						extraObjs.addAll(ax.getObjectPropertiesInSignature());
 					}
 				}
 			}
