@@ -162,6 +162,10 @@ public class InferenceBuilder{
 		this.graph = g;
 	}
 
+	public synchronized void setReasoner(OWLReasoner reasoner){
+		this.reasoner = reasoner;
+	}
+
 	private synchronized OWLReasoner getReasoner(OWLOntology ontology){
 		if(reasoner == null){
 			logger.info("Creating reasoner using:"+factory.getReasonerName());
