@@ -8,6 +8,8 @@ package owltools.phenolog;
 import java.util.*;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
+
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 
 /**
@@ -67,11 +69,15 @@ public class PhenoTransitiveClosure {
             HashSet<Individual> tmpi = null;
             Pheno tmp = null;
             for (Pheno p : hsp) {
+            	//System.err.println("p="+p);
                 p.setancestors(new HashSet<Pheno>());
                 tset = p.getancestors();
                 ancs = owlg.getAncestorsReflexive(owlg.getOWLObjectByIdentifier(p.getId()));
 
                 for (OWLObject c : ancs) {
+                	if (!(c instanceof OWLClass))
+                		continue;
+                	//System.err.println("  c="+c);
                     if (owlg.getIdentifier(c).equals(p.getId()) && p.getLabel()==null)
                         p.setLabel(owlg.getLabel(c));
                     if (owlg.getIdentifier(c).contains(prefix) && !(owlg.getIdentifier(c).equals(p.getId()))) {
