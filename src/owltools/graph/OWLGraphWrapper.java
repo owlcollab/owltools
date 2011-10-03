@@ -67,7 +67,6 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.profile.Profiler;
-import owltools.sim.DisjunctiveSetSimilarity;
 
 /**
  * This class provides additional capabilities on top of the OWLAPI.
@@ -1984,7 +1983,29 @@ public class OWLGraphWrapper {
 		return null;
 	}
 
-	public static class Synonym {
+	public static interface ISynonym {
+		/**
+		 * @return the label
+		 */
+		public String getLabel();
+		
+		/**
+		 * @return the scope
+		 */
+		public String getScope();
+
+		/**
+		 * @return the category
+		 */
+		public String getCategory();
+
+		/**
+		 * @return the xrefs
+		 */
+		public Set<String> getXrefs();
+	}
+	
+	public static class Synonym implements ISynonym {
 		private String label;
 		private String scope;
 		private String category;
@@ -2004,30 +2025,22 @@ public class OWLGraphWrapper {
 			this.xrefs = xrefs;
 		}
 
-		/**
-		 * @return the label
-		 */
+		@Override
 		public String getLabel() {
 			return label;
 		}
 
-		/**
-		 * @return the scope
-		 */
+		@Override
 		public String getScope() {
 			return scope;
 		}
 
-		/**
-		 * @return the category
-		 */
+		@Override
 		public String getCategory() {
 			return category;
 		}
 
-		/**
-		 * @return the xrefs
-		 */
+		@Override
 		public Set<String> getXrefs() {
 			return xrefs;
 		}
