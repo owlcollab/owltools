@@ -64,6 +64,8 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
+import owltools.idmap.IDMapPairWriter;
+import owltools.idmap.IDMappingPIRParser;
 import owltools.io.ChadoGraphClosureRenderer;
 import owltools.io.CompactGraphClosureReader;
 import owltools.io.CompactGraphClosureRenderer;
@@ -1179,6 +1181,13 @@ public class CommandRunner {
 				String f = opts.nextOpt();
 				System.out.println("tabfile: "+f);
 				ttac.parse(f);
+			}
+			else if (opts.nextEq("--idmap-extract-pairs")) {
+				IDMappingPIRParser p = new IDMappingPIRParser();
+				IDMapPairWriter h = new IDMapPairWriter();
+				h.setPair(opts.nextOpt(), opts.nextOpt());
+				p.handler = h;
+				p.parse(new File(opts.nextOpt()));				
 			}
 			else if (opts.nextEq("--gaf")) {
 				GafObjectsBuilder builder = new GafObjectsBuilder();

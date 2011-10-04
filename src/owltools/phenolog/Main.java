@@ -434,23 +434,18 @@ public class Main {
         // Calculate distance between each phenotype in Species 1 vs. each phenotype in Species 2
         // To do this, create a hashset for Species I and II, Phenotype -> Set of associated Individuals
 
-        HashSet<Pheno> ph1; // phenotypes in set 1
-        HashSet<Pheno> ph2; // phenotypes in set 2
+        HashSet<Pheno> ph1 = null; // phenotypes in set 1
+        HashSet<Pheno> ph2 = null; // phenotypes in set 2
         HashMap<String, Pheno> hm1 = new HashMap<String, Pheno>();
         HashMap<String, Pheno> hm2 = new HashMap<String, Pheno>();
-        HashSet<Individual> hs_ind;
+        HashSet<Individual> hs_ind = null;
         Individual g;
-        Pheno ph;
+        Pheno ph = null;
 
         int mval = 0;
         int nval = 0;
         int bigN = 0;
         int overlap = 0;
-
-        ph1 = null;
-        ph2 = null;
-        hs_ind = null;
-        ph = null;
 
         long start, end, total;
         Individual mem1;

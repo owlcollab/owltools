@@ -278,6 +278,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				oortConfig.reasonerName = args[i];
 				i++;
 			}
+			else if (opt.equals("--no-reasoner")) {
+				oortConfig.reasonerName = null;
+			}
 			else if (opt.equals("--prefix")) {
 				oortConfig.addSourceOntologyPrefix(args[i]);
 				i++;
