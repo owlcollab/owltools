@@ -95,7 +95,7 @@ done
 
 for ARG in "$CLASSPATH_RELATIVE"
 do
-	DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$ARG`
+	DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$ARG | grep -v ontologyrelease`
 	for CP_ENTRY in $DEREFERENCED_CLASSPATH
 	do
 		if [ -z "$CLASSPATH" ]
