@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -65,6 +66,8 @@ public class GAFParser {
 	
 	private List voilations;
 	
+	private List<GafParserListener> parserListeners;
+	
 	
 	public List getAnnotationRuleViolations(){
 		return this.voilations;
@@ -107,6 +110,10 @@ public class GAFParser {
 				}
 				return next();
 			}else{
+				
+				
+				fireParsing();
+				
 				this.currentCols = this.currentRow.split("\\t", -1);
 				if (currentCols.length != expectedNumCols) {
 
@@ -117,11 +124,9 @@ public class GAFParser {
 						+ "). The '"+lineNumber+"' row is ignored.";
 	
 					if(currentCols.length<expectedNumCols){
-						/*AnnotationRuleViolation v = new AnnotationRuleViolation(error, this.currentRow);
-						v.setRuleId("Parsing Error");
-						v.setLineNumber(getLineNumber());*/
 						String v =error;
 						voilations.add(v);
+						fireParsingError(error);
 	//					errors.add(error);
 						LOG.error(error + " : " + this.currentRow);
 						return next();
@@ -140,23 +145,53 @@ public class GAFParser {
 			
 	}
 	
+	private void fireParsing(){
+		for(GafParserListener listner: parserListeners){
+			listner.parsing(this.currentRow, lineNumber);
+		}
+	}
+	
+	
+	private void fireParsingError(String message){
+		for(GafParserListener listner: parserListeners){
+			listner.parserError(message, this.currentRow, lineNumber);
+		}
+	}
+	
 	public String getCurrentRow(){
 		return this.currentRow;
 	}
 	
 	public GAFParser(){
 		init();
+		
 	}
 	
-	private void init(){
+	public void init(){
 		this.gafVersion = 0;
 		this.reader = null;
-		//this.errors = new ArrayList<String>();
 		this.expectedNumCols = 15;
-		voilations = new ArrayList();
+		voilations = new Vector();
 		lineNumber = 0;
+		if(parserListeners == null){
+			parserListeners = new Vector<GafParserListener>();
+		}
 	}
 	
+	public void addParserListener(GafParserListener listener){
+		if(listener == null)
+			return;
+		
+		if(!parserListeners.contains(listener))
+			parserListeners.add(listener);
+	}
+	
+	public void remoteParserListener(GafParserListener listener){
+		if(listener == null)
+			return;
+		
+		parserListeners.remove(listener);
+	}
 
 	
 	public void parse(Reader reader){
@@ -183,6 +218,7 @@ public class GAFParser {
 		
 		if(file.startsWith("http://")){
 			URL url = new URL(file);
+			
 			is = url.openStream();
 		}else if(file.startsWith("file:/")){
 			is = new FileInputStream(new File(new URI(file)));

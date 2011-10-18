@@ -45,7 +45,7 @@ public class GafObjectsBuilder {
 	
 	public GafObjectsBuilder(){
 		gafDocument = new GafDocument();
-		
+		parser = new GAFParser();
 		splitSize = -1;
 	}
 	
@@ -77,7 +77,6 @@ public class GafObjectsBuilder {
 		this.docId = docId;
 		this.documentPath = path;
 
-		parser = new GAFParser();
 		parser.parse(reader);
 		
 		isSplitted = false;
@@ -104,7 +103,6 @@ public class GafObjectsBuilder {
 		gafDocument = new GafDocument(docId, this.documentPath);
 		
 		while(parser.next()){
-			
 			if(splitSize != -1){
 			
 				if( counter>= this.splitSize){
@@ -125,6 +123,7 @@ public class GafObjectsBuilder {
 		
 		
 		return gafDocument.getBioentities().size()==0?null: gafDocument;
+
 	}
 	
 	public boolean isDocumentSplitted(){
@@ -171,7 +170,7 @@ public class GafObjectsBuilder {
 	
 	private void addWithInfo(GAFParser parser){
 		if(parser.getWith().length()>0){
-			String tokens[] = parser.getWith().split("\\|");
+			String tokens[] = parser.getWith().split("[\\||,]");
 			for(String token: tokens){
 				gafDocument.addWithInfo(new WithInfo(parser.getWith(), token));
 			}
@@ -180,7 +179,7 @@ public class GafObjectsBuilder {
 	
 	private void addCompositeQualifier(GAFParser parser){
 		if(parser.getQualifier().length()>0){
-			String tokens[] = parser.getQualifier().split("\\|");
+			String tokens[] = parser.getQualifier().split("[\\||,]");
 			for(String token: tokens){
 				gafDocument.addCompositeQualifier(new CompositeQualifier(parser.getQualifier(), token));
 			}
@@ -190,7 +189,7 @@ public class GafObjectsBuilder {
 	private void addExtensionExpression(GAFParser parser){
 		if(parser.getAnnotationExtension() != null){
 			if(parser.getAnnotationExtension().length()>0){
-				String tokens[] = parser.getAnnotationExtension().split("\\|");
+				String tokens[] = parser.getAnnotationExtension().split("[\\||,]");
 				for(String token: tokens){
 					
 					int index = token.indexOf("(");
