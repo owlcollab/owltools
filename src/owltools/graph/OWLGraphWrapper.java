@@ -1897,7 +1897,7 @@ public class OWLGraphWrapper {
 	 * @param c
 	 * @return list of synonyms
 	 */
-	public List<Synonym> getOBOSynonyms(OWLObject c) {
+	public List<ISynonym> getOBOSynonyms(OWLObject c) {
 		OWLEntity e;
 		if (c instanceof OWLEntity) {
 			e = (OWLEntity) c;
@@ -1905,7 +1905,7 @@ public class OWLGraphWrapper {
 		else {
 			return null;
 		}
-		List<Synonym> synonyms = null;
+		List<ISynonym> synonyms = null;
 
 		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym));
 		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasExactSynonym));
@@ -1928,12 +1928,12 @@ public class OWLGraphWrapper {
 		return synonyms;
 	}
 
-	private List<Synonym> getOBOSynonyms(OWLEntity e, Obo2OWLVocabulary vocabulary) {
+	private List<ISynonym> getOBOSynonyms(OWLEntity e, Obo2OWLVocabulary vocabulary) {
 		OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(vocabulary.getIRI());
 		Set<OWLAnnotation> anns = e.getAnnotations(sourceOntology, property);
 		Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms = e.getAnnotationAssertionAxioms(sourceOntology);
 		if (anns != null && !anns.isEmpty()) {
-			ArrayList<Synonym> list = new ArrayList<Synonym>(anns.size());
+			ArrayList<ISynonym> list = new ArrayList<ISynonym>(anns.size());
 			for (OWLAnnotation a : anns) {
 				if (a.getValue() instanceof OWLLiteral) {
 					OWLLiteral val = (OWLLiteral) a.getValue();

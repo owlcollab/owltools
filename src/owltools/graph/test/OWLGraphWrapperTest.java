@@ -1,6 +1,9 @@
 package owltools.graph.test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -20,7 +23,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapper.Synonym;
+import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.test.OWLToolsTestBasics;
 
 public class OWLGraphWrapperTest extends OWLToolsTestBasics {
@@ -68,9 +71,9 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 		
 		OWLObject cls = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "CARO_0001001");
 		
-		List<Synonym> synonyms = wrapper.getOBOSynonyms(cls);
+		List<ISynonym> synonyms = wrapper.getOBOSynonyms(cls);
 		assertEquals(1, synonyms.size());
-		Synonym synonym = synonyms.get(0);
+		ISynonym synonym = synonyms.get(0);
 		assertEquals("nerve fiber bundle", synonym.getLabel());
 		assertEquals("EXACT", synonym.getScope());
 		assertNull(synonym.getCategory());
@@ -85,13 +88,13 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 		
 		OWLObject cls = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "NCBITaxon_10088");
 		
-		List<Synonym> synonyms = wrapper.getOBOSynonyms(cls);
+		List<ISynonym> synonyms = wrapper.getOBOSynonyms(cls);
 		assertEquals(2, synonyms.size());
-		Synonym synonym1 = synonyms.get(0);
-		Synonym synonym2 = synonyms.get(1);
+		ISynonym synonym1 = synonyms.get(0);
+		ISynonym synonym2 = synonyms.get(1);
 		// TODO what is the right order of synonyms?
 		if (synonym1.getLabel().equals("mice")) {
-			Synonym temp = synonym1;
+			ISynonym temp = synonym1;
 			synonym1 = synonym2;
 			synonym2 = temp;
 		}
