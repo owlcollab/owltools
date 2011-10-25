@@ -61,7 +61,7 @@ public class InferenceBuilder{
 	List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = new ArrayList<OWLEquivalentClassesAxiom>();
 
 	public InferenceBuilder(OWLGraphWrapper graph){
-		this(graph, new PelletReasonerFactory());
+		this(graph, new PelletReasonerFactory(), false);
 	}
 	
 	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName){
@@ -69,24 +69,28 @@ public class InferenceBuilder{
 	}
 
 	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName, boolean enforceEL){
-		this.graph = graph;
-		// TODO decide if this should be done here, 
-		// or if we want just the constructor with the factory
+		this(graph, getFactory(reasonerName), enforceEL);
+	}
+	
+	private static OWLReasonerFactory getFactory(String reasonerName) {
 		if (REASONER_PELLET.equals(reasonerName)) {
-			this.factory = new PelletReasonerFactory();
+			return new PelletReasonerFactory();
 		}
 		else if (REASONER_HERMIT.equals(reasonerName)) {
-			this.factory = new Reasoner.ReasonerFactory();
+			return new Reasoner.ReasonerFactory();
 		}
 		else if (REASONER_JCEL.equals(reasonerName)) {
-			this.factory = new PlaceholderJcelFactory();
+			return new PlaceholderJcelFactory();
 		}
 		else if (REASONER_ELK.equals(reasonerName)) {
-			this.factory = new ElkReasonerFactory();
+			return new ElkReasonerFactory();
 		}
-		else {
-			throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
-		}
+		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
+	}
+	
+	public InferenceBuilder(OWLGraphWrapper graph, OWLReasonerFactory factory, boolean enforceEL){
+		this.graph = graph;
+		this.factory = factory;
 		if (enforceEL) {
 			this.graph = enforceEL(graph);
 		}
@@ -146,11 +150,6 @@ public class InferenceBuilder{
 			logger.info("enforce EL not required for "+graph.getOntologyId());
 			return graph;
 		}
-	}
-
-	public InferenceBuilder(OWLGraphWrapper graph, OWLReasonerFactory factory){
-		this.factory = factory;
-		this.graph = graph;
 	}
 
 	public OWLGraphWrapper getOWLGraphWrapper(){
