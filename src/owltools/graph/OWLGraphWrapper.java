@@ -2025,22 +2025,22 @@ public class OWLGraphWrapper {
 			this.xrefs = xrefs;
 		}
 
-		@Override
+		//@Override
 		public String getLabel() {
 			return label;
 		}
 
-		@Override
+		//@Override
 		public String getScope() {
 			return scope;
 		}
 
-		@Override
+		//@Override
 		public String getCategory() {
 			return category;
 		}
 
-		@Override
+		//@Override
 		public Set<String> getXrefs() {
 			return xrefs;
 		}
