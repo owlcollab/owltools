@@ -36,6 +36,8 @@ import owltools.graph.OWLGraphWrapper;
  * here Path means there is some positive path
  * (TODO: include has_part?)
  * 
+ * TODO: reimplement using OWL semantics and reasoning
+ * 
  * @author cjm
  *
  */
@@ -49,11 +51,6 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		super(gafDocument, graph);
 		buildSimpleDefMap();
 	}
-
-
-
-
-
 	protected OWLClass getOWLClass(String id) {
 		return (OWLClass) getGraph().getOWLObjectByIdentifier(id);
 	}
