@@ -88,6 +88,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		boolean isExpandXrefs = false;
 		boolean isRecreateMireot = true;
 		boolean isExpandMacros = false;
+		boolean allowEquivalentNamedClassPairs = false;
 		MacroStrategy macroStrategy = MacroStrategy.GCI;
 		boolean isCheckConsistency = true;
 		boolean isWriteMetadata = true;
@@ -311,6 +312,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--re-mireot")) {
 				oortConfig.isRecreateMireot = true;
 			}
+			else if (opt.equals("--allow-equivalent-pairs")) {
+				oortConfig.allowEquivalentNamedClassPairs = true;
+			}
 			else if (opt.equals("--expand-macros")) {
 				oortConfig.isExpandMacros = true;
 				oortConfig.macroStrategy = MacroStrategy.GCI;
@@ -497,7 +501,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					List<String> incs = infBuilder.performConsistencyChecks();
 					if (incs.size() > 0) {
 						for (String inc  : incs) {
-							logger.error(inc);
+							logger.error("INCONSISTENCY:" + inc);
 						}
 						// TODO: allow --force option
 						// TODO: proper exception mechanism - delay until end?
@@ -508,14 +512,21 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 				if (true) {
 					if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
-						logger.error("WARNING! Found equivalencies between named classes");
+						logger.info("WARNING! Found equivalencies between named classes");
 						for (OWLEquivalentClassesAxiom eca : infBuilder.getEquivalentNamedClassPairs()) {
-							logger.error("Equiv:"+eca);
+							for (OWLClass c1 : eca.getClassesInSignature()) {
+								for (OWLClass c2 : eca.getClassesInSignature()) {
+									if (c1.compareTo(c2) > 0) {
+										logger.info("EQUIVALENT_CLASS_PAIR\t"+c1+"\t"+c2);
+									}
+								}
+							}
 						}
-						if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
+						if (infBuilder.getEquivalentNamedClassPairs().size() > 0 && 
+								!oortConfig.allowEquivalentNamedClassPairs) {
 							// TODO: allow --force option
 							// TODO: proper exception mechanism - delay until end?
-							throw new IOException("Will not release inconsistent ontology unless forced!");
+							throw new IOException("Will not release ontology with equivalent pairs unless forced!");
 						}
 
 					}

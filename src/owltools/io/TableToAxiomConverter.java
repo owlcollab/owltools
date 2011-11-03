@@ -68,10 +68,17 @@ public class TableToAxiomConverter {
 		public AxiomType axiomType;
 		public OWLClass individualsType = null;
 		public IRI property = null;
+		public String defaultCol1 = null;
+		public String defaultCol2 = null;
+		
 		public Map<OWLClass,OWLClass> classMap = new HashMap<OWLClass,OWLClass>();
+		public Map<Integer,String> iriPrefixMap = new HashMap<Integer,String>();
 
 		public void setPropertyToLabel() {
 			property = OWLRDFVocabulary.RDFS_LABEL.getIRI();
+		}
+		public void setPropertyToComment() {
+			property = OWLRDFVocabulary.RDFS_COMMENT.getIRI();
 		}
 
 		public void setAxiomType(String n) {
@@ -96,6 +103,14 @@ public class TableToAxiomConverter {
 		String line;
 		while ((line = reader.readLine()) != null) {
 			String[] row = line.split("\t");
+			if (config.defaultCol1 != null)
+				row[0] = config.defaultCol1;
+			if (config.defaultCol2 != null) {
+				String[] row2 = new String[2];
+				row2[0] = row[0];
+				row = row2;
+				row[1] = config.defaultCol2;
+			}
 			addRow(row);
 		}
 
@@ -109,13 +124,26 @@ public class TableToAxiomConverter {
 
 	public Set<OWLAxiom> rowToAxioms(String[] row) {
 		OWLDataFactory df = graph.getDataFactory();
+		Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
+
+		if (row.length < 2)
+			return axs;
 		String sub = row[0];
 		String obj = row[1];
+
+		if (sub.length() == 0 || obj.length() == 0)
+			return axs;
+
 		if (config.isSwitchSubjectObject) {
 			sub = row[1];
 			obj = row[0];
 		}
-		Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
+		if (config.iriPrefixMap.containsKey(1)) {
+			sub = config.iriPrefixMap.get(1) + sub;
+		}
+		if (config.iriPrefixMap.containsKey(2)) {
+			obj = config.iriPrefixMap.get(2) + obj;
+		}
 		OWLAxiom ax = null;
 
 		if (config.axiomType.equals(AxiomType.CLASS_ASSERTION)) {
@@ -135,7 +163,7 @@ public class TableToAxiomConverter {
 			OWLClass c = resolveClass(sub);
 			axs.add(df.getOWLDeclarationAxiom(c));
 			if (config.property == null) {
-				ax = df.getOWLClassAssertionAxiom(c, (OWLIndividual) resolveIndividual(obj));
+				ax = df.getOWLSubClassOfAxiom(c, resolveClass(obj));
 			}
 			else {		
 				// TODO - make the argument to which this applies configurable
@@ -145,6 +173,13 @@ public class TableToAxiomConverter {
 				//System.out.println("CA :"+ce+" "+obj);
 				ax = df.getOWLSubClassOfAxiom(c, ce);
 			}
+		}
+		else if (config.axiomType.equals(AxiomType.EQUIVALENT_CLASSES)) {
+			OWLClass c = resolveClass(sub);
+			OWLClass e = resolveClass(obj);
+			axs.add(df.getOWLDeclarationAxiom(c));
+			axs.add(df.getOWLDeclarationAxiom(e));
+			ax = df.getOWLEquivalentClassesAxiom(c, e);
 		}
 		else if (config.axiomType.equals(AxiomType.ANNOTATION_ASSERTION)) {
 			ax = df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(config.property), 
@@ -180,18 +215,18 @@ public class TableToAxiomConverter {
 	}
 
 	private OWLClass resolveClass(String id) {
-		if (config.isOboIdentifiers) {
+		if (config.isOboIdentifiers && !id.startsWith("http:")) {
 			OWLClass c= (OWLClass) graph.getOWLObjectByIdentifier(id);
 			if (config.classMap.containsKey(c))
 				return config.classMap.get(c);
 			else
 				return c;
 		}
-		return graph.getOWLClass(id);
+		return graph.getDataFactory().getOWLClass(IRI.create(id));
 	}
 
 	private OWLIndividual resolveIndividual(String id) {
-		if (config.isOboIdentifiers) {
+		if (config.isOboIdentifiers && !id.startsWith("http:/")) {
 			return graph.getOWLIndividualByIdentifier(id);
 		}
 		return graph.getOWLIndividual(IRI.create(id));

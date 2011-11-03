@@ -18,6 +18,7 @@ import java.util.Vector;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.obolibrary.oboformat.model.FrameMergeException;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -45,11 +46,13 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.SetOntologyID;
+import org.semanticweb.owlapi.reasoner.FreshEntityPolicy;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
@@ -66,6 +69,7 @@ import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.idmap.IDMapPairWriter;
 import owltools.idmap.IDMappingPIRParser;
+import owltools.idmap.UniProtIDMapParser;
 import owltools.io.ChadoGraphClosureRenderer;
 import owltools.io.CompactGraphClosureReader;
 import owltools.io.CompactGraphClosureRenderer;
@@ -209,6 +213,14 @@ public class CommandRunner {
 			}
 		}
 	}
+	
+	public class OptionException extends Exception {
+		public OptionException(String msg) {
+			super(msg);
+		}
+
+	}
+
 
 	public List<String> parseArgString(String str) {
 		List<String> args = new ArrayList<String>();
@@ -232,16 +244,17 @@ public class CommandRunner {
 		return args;
 	}
 
-	public void run(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException {
+	public void run(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException {
 		Opts opts = new Opts(args);
 		run(opts);
 	}
 
-	public void run(Opts opts) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException {
+	public void run(Opts opts) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException {
 
 		List<String> paths = new ArrayList<String>();
 
 		String reasonerClassName = "com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory";
+		OWLReasoner reasoner = null;
 		String reasonerName = "pellet";
 		boolean createNamedRestrictions = false;
 		boolean createDefaultInstances = false;
@@ -344,6 +357,13 @@ public class CommandRunner {
 					g.getManager().addAxiom(ont, a);
 				}
 				g.setSourceOntology(ont);
+			}
+			else if (opts.nextEq("--create-ontology")) {
+				String iri = opts.nextOpt();
+				if (!iri.startsWith("http:")) {
+					iri = "http://purl.obolibrary.org/obo/"+iri;
+				}
+				g = new OWLGraphWrapper(iri);
 			}
 			else if (opts.nextEq("--merge-support-ontologies")) {
 				for (OWLOntology ont : g.getSupportOntologySet())
@@ -459,7 +479,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--sparql-dl")) {
 				opts.info("\"QUERY-TEXT\"", "executes a SPARQL-DL query using the reasoner");
 
-				OWLReasoner reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
 				String q = opts.nextOpt();
 				System.out.println("Q="+q);
 				try {
@@ -497,10 +517,14 @@ public class CommandRunner {
 				}
 
 			}
+			else if (opts.nextEq("--init-reasoner")) {
+				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());			
+			}
 			else if (opts.nextEq("--run-reasoner")) {
 				opts.info("[-r reasonername] [--assert-implied]", "infer new relationships");
 				boolean isAssertImplied = false;
 				boolean isDirect = true;
+				
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
 						reasonerName = opts.nextOpt();
@@ -518,7 +542,7 @@ public class CommandRunner {
 				owlpp = new OWLPrettyPrinter(g);
 
 				boolean isQueryProcessed = false;
-				OWLReasoner reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
 				if (opts.hasOpts()) {
 					if (opts.nextEq("-i")) {
 						OWLClass qc = (OWLClass)resolveEntity(opts);
@@ -572,8 +596,11 @@ public class CommandRunner {
 						}
 					}
 					System.out.println("all inferences");
+					System.out.println("Consistent? "+reasoner.isConsistent());
 					for (OWLObject obj : g.getAllOWLObjects()) {
 						if (obj instanceof OWLClass) {
+							//System.out.println(obj+ " #subclasses:"+
+							//		reasoner.getSubClasses((OWLClassExpression) obj, false).getFlattened().size());
 							for (Node<OWLClass> sup : reasoner.getSuperClasses((OWLClassExpression) obj, isDirect)) {
 								System.out.println(obj+" SubClassOf "+sup);
 								if (isAssertImplied) {
@@ -1153,7 +1180,7 @@ public class CommandRunner {
 				TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 				ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
 				while (opts.hasOpts()) {
-					if (opts.nextEq("-s")) {
+					if (opts.nextEq("-s|--switch")) {
 						opts.info("", "switch subject and object");
 						ttac.config.isSwitchSubjectObject = true;
 					}
@@ -1161,11 +1188,39 @@ public class CommandRunner {
 						ttac.config.setPropertyToLabel();
 						ttac.config.axiomType = AxiomType.ANNOTATION_ASSERTION;
 					}
+					else if (opts.nextEq("--comment")) {
+						ttac.config.setPropertyToComment();
+						ttac.config.axiomType = AxiomType.ANNOTATION_ASSERTION;
+					}
 					else if (opts.nextEq("-m|--map-xrefs")) {
 						ttac.buildClassMap(g);
 					}
 					else if (opts.nextEq("-p|--prop")) {
-						ttac.config.property = ((OWLNamedObject) resolveEntity( opts)).getIRI();
+						ttac.config.property = ((OWLNamedObject) resolveObjectProperty( opts.nextOpt())).getIRI();
+						//ttac.config.property = g.getOWLObjectProperty().getIRI();
+					}
+					else if (opts.nextEq("--default1")) {
+						ttac.config.defaultCol1 = opts.nextOpt();
+					}
+					else if (opts.nextEq("--default2")) {
+						ttac.config.defaultCol2 = opts.nextOpt();
+					}
+					else if (opts.nextEq("--iri-prefix")) {
+						int col = 0;
+						String x = opts.nextOpt();
+						if (x.equals("1") || x.startsWith("s")) {
+							col = 1;
+						}
+						else if (x.equals("2") || x.startsWith("o")) {
+							col = 2;
+						}
+						else {
+							//
+						}
+						String pfx = opts.nextOpt();
+						if (!pfx.startsWith("http:"))
+							pfx = "http://purl.obolibrary.org/obo/" + pfx + "_";
+						ttac.config.iriPrefixMap.put(col, pfx);
 					}
 					else if (opts.nextEq("-a|--axiom-type")) {
 						ttac.config.setAxiomType(opts.nextOpt());
@@ -1175,7 +1230,7 @@ public class CommandRunner {
 						ttac.config.individualsType = resolveClass( opts.nextOpt());
 					}
 					else {
-						// TODO - other options
+						throw new OptionException(opts.nextOpt());
 					}
 				}
 				String f = opts.nextOpt();
@@ -1183,11 +1238,19 @@ public class CommandRunner {
 				ttac.parse(f);
 			}
 			else if (opts.nextEq("--idmap-extract-pairs")) {
+				opts.info("IDType1 IDType2 PIRMapFile", "extracts pairs from mapping file");
 				IDMappingPIRParser p = new IDMappingPIRParser();
 				IDMapPairWriter h = new IDMapPairWriter();
 				h.setPair(opts.nextOpt(), opts.nextOpt());
 				p.handler = h;
 				p.parse(new File(opts.nextOpt()));				
+			}
+			else if (opts.nextEq("--parser-idmap")) {
+				opts.info("UniProtIDMapFile", "...");
+				UniProtIDMapParser p = new UniProtIDMapParser();
+				p.parse(new File(opts.nextOpt()));		
+				System.out.println("Types:"+p.idMap.size());
+				// TODO...
 			}
 			else if (opts.nextEq("--gaf")) {
 				GafObjectsBuilder builder = new GafObjectsBuilder();
@@ -1307,6 +1370,15 @@ public class CommandRunner {
 		else if (reasonerName.equals("hermit")) {
 			//return new org.semanticweb.HermiT.Reasoner.ReasonerFactory().createReasoner(ont);
 			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
+		}
+		else if (reasonerName.equals("elk")) {
+			//SimpleConfiguration rconf = new SimpleConfiguration(FreshEntityPolicy.ALLOW, Long.MAX_VALUE);
+			reasonerFactory = new ElkReasonerFactory();	
+			//reasoner = reasonerFactory.createReasoner(ont, rconf);
+			reasoner = reasonerFactory.createNonBufferingReasoner(ont);
+			System.out.println(reasonerFactory+" "+reasoner+" // "+InferenceType.values());
+			reasoner.precomputeInferences(InferenceType.values());
+			return reasoner;
 		}
 		else if (reasonerName.equals("cb")) {
 			Class<?> rfc;
@@ -1437,7 +1509,9 @@ public class CommandRunner {
 		obj = g.getOWLObjectByLabel(id);
 		if (obj != null)
 			return (OWLObjectProperty) obj;
-		return g.getOWLObjectProperty(id);
+		if (id.startsWith("http:"))
+			return g.getOWLObjectProperty(id);
+		return g.getOWLObjectPropertyByIdentifier(id);
 	}
 	public OWLClass resolveClass(String id) {
 		OWLObject obj = null;

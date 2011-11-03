@@ -22,11 +22,13 @@ import java.util.zip.GZIPInputStream;
 import org.apache.log4j.Logger;
 
 /**
+ * Parses the IDMapping file available here:
+ * ftp://ftp.pir.georgetown.edu/databases/idmapping/idmapping.tb.gz
  * 
  * @author cjm
  * 
  */
-public class IDMappingPIRParser {
+public class IDMappingPIRParser extends AbstractMappingParser {
 	
 	
 
@@ -161,7 +163,7 @@ public class IDMappingPIRParser {
 	}
 	
 	public void parse(Reader reader) throws IOException{
-		init();
+//		init();
 		handler.typeMap = typeIxMap;
 		handler.init();
 	
@@ -171,53 +173,7 @@ public class IDMappingPIRParser {
 		}
 	}
 
-	/**
-	 * 
-	 * @param file is the location of the PIR file. The location
-	 *  could be http url, absolute path and uri. The could refer to a gaf file or compressed gaf (gzip fle).
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
-	public void parse(String file) throws IOException, URISyntaxException{
-		// TODO - abstract common code with GAFParser into abstract class
-		if(file == null){
-			throw new IOException("File '" + file + "' file not found");
-		}
-		
-		InputStream is = null;
-		
-		if(file.startsWith("http://")){
-			URL url = new URL(file);
-			is = url.openStream();
-		}else if(file.startsWith("file:/")){
-			is = new FileInputStream(new File(new URI(file)));
-		}else{
-			is = new FileInputStream(file);
-		}
-		
-		if(file.endsWith(".gz")){
-			is = new GZIPInputStream(is);
-		}
-		
-		parse(new InputStreamReader(is));
-		
-	}
 
-	
-	public void parse(File gaf_file)
-			throws IOException {
-
-
-		// String message = "Importing GAF data";
-		try {
-			parse(gaf_file.getAbsoluteFile().toString());
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-	}
-	
 
 	
 }
