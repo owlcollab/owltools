@@ -340,4 +340,8 @@ abstract class ReleaseRunnerFileTools {
 		}
 	}
 	
+	void deleteLockFile() {
+		FileUtils.deleteQuietly(lockFile);
+	}
+	
 }

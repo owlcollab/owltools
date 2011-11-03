@@ -341,15 +341,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, base);
 
-		boolean success = oorr.createRelease(paths);
-		String message;
-		if (success) {
-			message = "Finished release manager process";
+		try {
+			boolean success = oorr.createRelease(paths);
+			String message;
+			if (success) {
+				message = "Finished release manager process";
+			}
+			else {
+				message = "Finished release manager process, but no release was created.";
+			}
+			logger.info(message);
+		} finally {
+			oorr.deleteLockFile();
 		}
-		else {
-			message = "Finished release manager process, but no release was created.";
-		}
-		logger.info(message);
 	}
 
 	public boolean createRelease(Vector<String> paths) throws IOException, 
