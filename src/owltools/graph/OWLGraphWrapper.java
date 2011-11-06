@@ -1505,7 +1505,7 @@ public class OWLGraphWrapper {
 		return null;
 	}
 
-	public String[] getAnnotationValues(OWLObject c, OWLAnnotationProperty lap) {
+	public List<String> getAnnotationValues(OWLObject c, OWLAnnotationProperty lap) {
 		Set<OWLAnnotation>anns = new HashSet<OWLAnnotation>();
 		if (c instanceof OWLEntity) {
 			for (OWLOntology ont : getAllOntologies()) {
@@ -1522,11 +1522,14 @@ public class OWLGraphWrapper {
 				OWLLiteral val = (OWLLiteral) a.getValue();
 				list.add( val.getLiteral()); 
 			}
+			else if (a.getValue() instanceof IRI) {
+				IRI val = (IRI)a.getValue();
+				list.add( getIdentifier(val) ); 
+			}
+
 		}
 
-		String ar[] = new String[list.size()];
-
-		return list.toArray(ar);
+		return list;
 	}
 
 
@@ -1560,11 +1563,42 @@ public class OWLGraphWrapper {
 	 * @param c could OWLClass or OWLObjectProperty
 	 * @return
 	 */
-	public String[] getSubsets(OWLObject c) {
-		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_SUBSET.getTag());
-
+	// TODO - return set
+	public List<String> getSubsets(OWLObject c) {
+		//OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_SUBSET.getTag());
+		OWLAnnotationProperty lap = dataFactory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_inSubset.getIRI());
 		return getAnnotationValues(c, lap);
 	}
+	
+	/**
+	 * @return all subsets used in source ontology
+	 */
+	public Set<String> getAllUsedSubsets() {
+		Set<String> subsets = new HashSet<String>();
+		for (OWLObject x : getAllOWLObjects()) {
+			subsets.addAll(getSubsets(x));
+		}
+		return subsets;
+	}
+	
+	public Set<OWLObject> getOWLObjectsInSubset(String subset) {
+		Set<OWLObject> objs = new HashSet<OWLObject>();
+		for (OWLObject x : getAllOWLObjects()) {
+			if (getSubsets(x).contains(subset))
+				objs.add(x);
+		}
+		return objs;		
+	}
+
+	public Set<OWLClass> getOWLClassesInSubset(String subset) {
+		Set<OWLClass> objs = new HashSet<OWLClass>();
+		for (OWLObject x : getAllOWLObjects()) {
+			if (getSubsets(x).contains(subset) && x instanceof OWLClass)
+				objs.add((OWLClass) x);
+		}
+		return objs;		
+	}
+
 
 	/**
 	 * It returns the value of the domain tag
@@ -1603,7 +1637,7 @@ public class OWLGraphWrapper {
 	 * @param c could OWLClass or OWLObjectProperty
 	 * @return
 	 */
-	public String[] getReplacedBy(OWLObject c) {
+	public List<String> getReplacedBy(OWLObject c) {
 		OWLAnnotationProperty lap = dataFactory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI());
 
 		return getAnnotationValues(c, lap);
@@ -1643,7 +1677,7 @@ public class OWLGraphWrapper {
 	 * @param c
 	 * @return
 	 */
-	public String[] getAltId(OWLObject c) {
+	public List<String> getAltIds(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_ALT_ID.getTag());
 
 		return getAnnotationValues(c, lap);
