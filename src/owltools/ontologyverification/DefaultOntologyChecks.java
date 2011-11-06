@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -30,10 +31,14 @@ public class DefaultOntologyChecks {
 			Set<OWLEquivalentClassesAxiom> equivalentClassesAxioms = ontology.getEquivalentClassesAxioms(cls);
 			if (equivalentClassesAxioms != null && !equivalentClassesAxioms.isEmpty()) {
 				for (OWLEquivalentClassesAxiom owlEquivalentClassesAxiom : equivalentClassesAxioms) {
-					Set<OWLClass> classesInSignature = owlEquivalentClassesAxiom.getClassesInSignature();
-					if (classesInSignature != null && classesInSignature.contains(cls)) {
-						String id = owlGraphWrapper.getIdentifier(cls);
-						violations.add("Class "+id+" has a self reference in its logical definition.");
+					for (OWLClassExpression ex : owlEquivalentClassesAxiom.getClassExpressions()) {
+						if (ex instanceof OWLClass)
+							continue;
+						Set<OWLClass> classesInSignature = ex.getClassesInSignature();
+						if (classesInSignature != null && classesInSignature.contains(cls)) {
+							String id = owlGraphWrapper.getIdentifier(cls);
+							violations.add("Class "+id+" has a self reference in its logical definition: "+owlEquivalentClassesAxiom);
+						}
 					}
 				}
 			}
@@ -43,5 +48,5 @@ public class DefaultOntologyChecks {
 		}
 		return null;
 	}
-	
+
 }
