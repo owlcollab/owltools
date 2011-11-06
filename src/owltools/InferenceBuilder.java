@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.profiles.OWL2ELProfile;
 import org.semanticweb.owlapi.profiles.OWLProfileReport;
 import org.semanticweb.owlapi.profiles.OWLProfileViolation;
+import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -54,6 +55,7 @@ public class InferenceBuilder{
 	public static final String REASONER_JCEL = "jcel";
 	public static final String REASONER_ELK = "elk";
 
+	private static InferenceType[] precomputeInferences = null;
 	private final OWLReasonerFactory factory;
 	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
@@ -83,6 +85,7 @@ public class InferenceBuilder{
 			return new PlaceholderJcelFactory();
 		}
 		else if (REASONER_ELK.equals(reasonerName)) {
+			precomputeInferences = InferenceType.values();
 			return new ElkReasonerFactory();
 		}
 		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
@@ -170,6 +173,10 @@ public class InferenceBuilder{
 			logger.info("Creating reasoner using:"+factory.getReasonerName());
 			reasoner = factory.createReasoner(ontology);
 			logger.info("Created reasoner: "+reasoner.getReasonerName());
+			if (precomputeInferences != null) {
+				reasoner.precomputeInferences(precomputeInferences); // necessary for ELK
+				logger.info("pre-computed inferences; types: "+precomputeInferences.length);
+			}
 		}
 		return reasoner;
 	}
@@ -197,13 +204,15 @@ public class InferenceBuilder{
 	 * this is because applications - particularly obof-centered ones -
 	 * ignore equivalence axioms by default
 	 * 
+	 * side effects: sets redundantAxioms
+	 * 
 	 * @param treatEquivalenceAxiomsAsAssertions
 	 * @return
 	 */
 	public List<OWLAxiom> buildInferences(boolean alwaysAssertSuperClasses) {
-		List<OWLAxiom> sedges = new ArrayList<OWLAxiom>();
+		List<OWLAxiom> axiomsToAdd = new ArrayList<OWLAxiom>();
 
-		List<OWLAxiom> eedges = new ArrayList<OWLAxiom>();
+		List<OWLAxiom> equivAxiomsToAdd = new ArrayList<OWLAxiom>();
 
 		OWLDataFactory dataFactory = graph.getDataFactory();
 
@@ -223,7 +232,7 @@ public class InferenceBuilder{
 						for (OWLClassExpression x : ((OWLObjectIntersectionOf)ec).getOperands()) {
 							// TODO: turn into subclass axiom and add
 							if (x instanceof OWLRestriction) {
-								eedges.add(dataFactory.getOWLSubClassOfAxiom(cls, x));
+								equivAxiomsToAdd.add(dataFactory.getOWLSubClassOfAxiom(cls, x));
 							}
 						}
 					}
@@ -261,7 +270,7 @@ public class InferenceBuilder{
 					// once
 
 
-					eedges.add(dataFactory.getOWLEquivalentClassesAxiom(cls, ec));
+					equivAxiomsToAdd.add(dataFactory.getOWLEquivalentClassesAxiom(cls, ec));
 			}
 
 			// REPORT INFERRED SUBCLASSES NOT ALREADY ASSERTED
@@ -302,7 +311,7 @@ public class InferenceBuilder{
 						}
 					}
 					if (!isAsserted) {						
-						sedges.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
+						axiomsToAdd.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
 					}
 
 				}
@@ -314,7 +323,7 @@ public class InferenceBuilder{
 		redundantAxioms = new ArrayList<OWLAxiom>();
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 			Set<OWLClassExpression> supers = cls.getSuperClasses(ontology);
-			for (OWLAxiom ax : sedges) {
+			for (OWLAxiom ax : axiomsToAdd) {
 				if (ax instanceof OWLSubClassOfAxiom) {
 					OWLSubClassOfAxiom sax = (OWLSubClassOfAxiom)ax;
 					if (sax.getSubClass().equals(cls)) {
@@ -324,6 +333,10 @@ public class InferenceBuilder{
 			}
 			for (OWLClassExpression sup : supers) {
 				if (sup instanceof OWLClass) {
+					if (sup.equals(OWLRDFVocabulary.OWL_THING)) {
+						redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup));
+						continue;
+					}
 					for (Node<OWLClass> supNode : reasoner.getSuperClasses(sup,false)) {
 						for (OWLClass sup2 : supNode.getEntities()) {
 							if (supers.contains(sup2)) {
@@ -335,11 +348,11 @@ public class InferenceBuilder{
 			}
 		}		
 
-		sedges.addAll(eedges);
+		axiomsToAdd.addAll(equivAxiomsToAdd);
 
 
 
-		return sedges;
+		return axiomsToAdd;
 
 	}
 
