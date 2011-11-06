@@ -31,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -92,12 +93,13 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		MacroStrategy macroStrategy = MacroStrategy.GCI;
 		boolean isCheckConsistency = true;
 		boolean isWriteMetadata = true;
+		boolean isWriteSubsets = true;
 		Set<String> sourceOntologyPrefixes = null;
 		boolean executeOntologyChecks = true;
 
 		OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 		OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
-		
+
 		public String getReasonerName() {
 			return reasonerName;
 		}
@@ -352,12 +354,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			logger.info(message);
 		} finally {
+			logger.info("deleting lock file");
 			oorr.deleteLockFile();
 		}
+		logger.info("Done!");
+
 	}
 
 	public boolean createRelease(Vector<String> paths) throws IOException, 
-		OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException 
+	OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException 
 	{
 		String path = null;
 
@@ -391,11 +396,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		else {
 			version = OntologyVersionTools.getOboInOWLVersion(mooncat.getOntology());
 		}
-		
+
 		if (version == null) {
 			// TODO add an option to set the version manually
 		}
-		
+
 		version = buildVersionInfo(version);
 		OntologyVersionTools.setOboInOWLVersion(mooncat.getOntology(), version);
 		// the versionIRI for in the ontologyID is set during write out, 
@@ -409,10 +414,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// ----------------------------------------
 		OWLOntology gciOntology = null;
 		if (oortConfig.isExpandMacros) {
+			logger.info("expanding macros");
 			if (oortConfig.macroStrategy == MacroStrategy.GCI) {
 				MacroExpansionGCIVisitor gciVisitor = 
 					new MacroExpansionGCIVisitor(mooncat.getOntology());
 				gciOntology = gciVisitor.createGCIOntology();
+				logger.info("GCI Ontology has "+gciOntology.getAxiomCount()+" axioms");
 			}
 			else {
 				OWLOntology ont = mooncat.getOntology();
@@ -420,6 +427,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					new MacroExpansionVisitor(ont);
 				ont = mev.expandAll();		
 				mooncat.setOntology(ont);
+				logger.info("Expanded in place; Ontology has "+ont.getAxiomCount()+" axioms");
 			}
 
 		}
@@ -480,7 +488,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		if (oortConfig.executeOntologyChecks) {
 			OntologyCheckHandler.DEFAULT_INSTANCE.afterMireot(mooncat.getGraph());
 		}
-		
+
 		// ----------------------------------------
 		// Main (asserted plus non-redundant inferred links)
 		// ----------------------------------------
@@ -549,8 +557,29 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			if (oortConfig.executeOntologyChecks) {
 				OntologyCheckHandler.DEFAULT_INSTANCE.afterReasoning(mooncat.getGraph());
 			}
-			
+
 			saveInAllFormats(ontologyId, null, gciOntology);
+
+		}
+		// ----------------------------------------
+		// SUBSETS
+		// ----------------------------------------
+		// including: named subsets, profile subsets (e.g. EL), simple subsets
+
+		if (oortConfig.isWriteSubsets) {
+			// named subsets
+			logger.info("writing named subsets");
+			Set<String> subsets = mooncat.getGraph().getAllUsedSubsets();
+			for (String subset : subsets) {
+				Set<OWLClass> objs = mooncat.getGraph().getOWLClassesInSubset(subset);
+				logger.info("subset:"+subset+" #classes:"+objs.size());
+				String fn = "subsets/"+subset;
+
+				IRI iri = IRI.create("http://purl.obolibrary.org/obo/"+ontologyId+fn+".owl");
+				OWLOntology subOnt = mooncat.makeSubsetOntology(objs,iri);
+				logger.info("subOnt:"+subOnt+" #axioms:"+subOnt.getAxiomCount());
+				saveOntologyInAllFormats(ontologyId, fn, subOnt, gciOntology);
+			}
 
 		}
 
@@ -639,6 +668,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return axioms;
 	}
 
+	/**
+	 * @param ontologyId
+	 * @param ext
+	 * @param gciOntology
+	 * @throws OWLOntologyStorageException
+	 * @throws IOException
+	 * @throws OWLOntologyCreationException
+	 */
 	private void saveInAllFormats(String ontologyId, String ext, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		saveInAllFormats(ontologyId, ext, mooncat.getOntology(), gciOntology);
 	}
@@ -653,12 +690,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		logger.info("Saving: "+fn);
 
 		final OWLOntologyManager manager = mooncat.getManager();
-		
+
 		// if we add a new ontology id, remember the change, to restore the original 
 		// ontology id after writing into a file.
 		SetOntologyID reset = null;
 		Date date = null;
-		
+
 		// check if there is an existing version
 		// if it is of unknown format do not modify
 		String version = OntologyVersionTools.getOntologyVersion(ontologyToSave);
@@ -669,14 +706,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		else if(OntologyVersionTools.isOBOOntologyVersion(version)) {
 			// try to retrieve the existing version and parse it.
 			date = OntologyVersionTools.parseVersion(version);
-			
+
 			// if parsing was unsuccessful, use current date
 			if (date == null) {
 				// fall back, if there was an parse error use current date.
 				date = new Date();
 			}
 		}
-		
+
 		if (date != null) {
 			SetOntologyID change = OntologyVersionTools.setOntologyVersion(ontologyToSave, date, ontologyId, fn);
 			// create change axiom with original id
@@ -689,14 +726,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		OutputStream osxml = getOutputSteam(fn +".owx");
 		manager.saveOntology(ontologyToSave, oortConfig.owlXMLFormat, osxml);
 		osxml.close();
-		
+
 		if (reset != null) {
 			// reset versionIRI
 			// the reset is required, because each owl file 
 			// has its corresponding file name in the version IRI.
 			manager.applyChange(reset);
 		}
-		
+
 		if (gciOntology != null) {
 			OWLOntologyManager gciManager = gciOntology.getOWLOntologyManager();
 
