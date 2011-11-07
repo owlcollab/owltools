@@ -59,7 +59,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		Set<GeneAnnotation> anns = getGafDocument().getGeneAnnotations(bioentity);
 		Set<OWLClass> aClasses = new HashSet<OWLClass>();
-		LOG.info("collecting from:"+bioentity);
+		//LOG.info("collecting from:"+bioentity);
 		for (GeneAnnotation ann : anns) {
 			if (ann.getEvidenceCls().equals("ND")) {
 				continue;
@@ -70,7 +70,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 				aClasses.add(getOWLClass(ee.getCls()));
 			}
 		}
-		LOG.info("  aClasses: "+aClasses);
+		//LOG.info("  aClasses: "+aClasses);
 
 		Set<OWLClass> ancs = new HashSet<OWLClass>();
 
@@ -85,7 +85,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 				}
 			}
 		}
-		LOG.info("     ancs: "+ancs);
+		//LOG.info("     ancs: "+ancs);
 
 
 		// naively iterate through every class that has a logical definition;

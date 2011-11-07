@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URISyntaxException;
+
 import org.apache.log4j.Logger;
 
 import owltools.gaf.test.GafObjectsBuilderTest;
@@ -73,11 +75,24 @@ public class GafObjectsBuilder {
 	}
 	
 	public GafDocument buildDocument(Reader reader, String docId, String path) throws IOException{
-	
+		
 		this.docId = docId;
 		this.documentPath = path;
 
 		parser.parse(reader);
+		
+		isSplitted = false;
+		
+		return getNextSplitDocument();
+	
+	}
+
+	public GafDocument buildDocument(String fileName, String docId, String path) throws IOException, URISyntaxException{
+		
+		this.docId = docId;
+		this.documentPath = path;
+
+		parser.parse(fileName);
 		
 		isSplitted = false;
 		
@@ -137,6 +152,13 @@ public class GafObjectsBuilder {
 		return buildDocument(reader, gafFilePath.getName(), gafFilePath.getCanonicalPath());
 		
 	}
+	
+	public GafDocument buildDocument(String gafFile) throws IOException, URISyntaxException{
+		File gafFilePath = new File(gafFile);
+		return buildDocument(gafFile, gafFilePath.getName(), gafFilePath.getCanonicalPath());
+		
+	}
+
 	
 	/**
 	 * This method builds Bioentity object from the current position (row) of GafParser

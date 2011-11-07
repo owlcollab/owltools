@@ -1,6 +1,7 @@
 package owltools.cli;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.oboformat.model.FrameMergeException;
@@ -14,7 +15,7 @@ public class CommandLineInterface {
 
 	private static Logger LOG = Logger.getLogger(CommandLineInterface.class);
 	
-	public static void main(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException {
+	public static void main(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException, URISyntaxException {
 		CommandRunner cr = new CommandRunner();
 		cr.run(args);
 	}

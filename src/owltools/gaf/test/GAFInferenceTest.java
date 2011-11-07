@@ -37,14 +37,14 @@ public class GAFInferenceTest extends OWLToolsTestBasics{
 		boolean ok1 = false;
 		boolean ok2 = false;
 		for (Prediction p : predictions) {
-			System.out.println("p="+p);
 			GeneAnnotation a = p.getGeneAnnotation();
 			String b = a.getBioentity();
-			String c= a.getCls();
-			if (b.equals("FOO:1") && c.equals("GO:0032543"))
+			String c = a.getCls();
+			System.out.println("p="+p+" // "+b+"-"+c);
+			if (b.equals("FOO:f1") && c.equals("GO:0032543"))
 				ok1 = true;
-			if (b.equals("FOO:3") && c.equals("GO:0032543"))
-				ok1 = true;
+			if (b.equals("FOO:f3") && c.equals("GO:0032543"))
+				ok2 = true;
 		}
 		assertTrue(ok1);
 		assertTrue(ok2);

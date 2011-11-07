@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -244,12 +245,12 @@ public class CommandRunner {
 		return args;
 	}
 
-	public void run(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException {
+	public void run(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException, URISyntaxException {
 		Opts opts = new Opts(args);
 		run(opts);
 	}
 
-	public void run(Opts opts) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException {
+	public void run(Opts opts) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException, URISyntaxException {
 
 		List<String> paths = new ArrayList<String>();
 
@@ -1254,12 +1255,18 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--gaf")) {
 				GafObjectsBuilder builder = new GafObjectsBuilder();
-				gafdoc = builder.buildDocument(new File(opts.nextOpt()));				
+				gafdoc = builder.buildDocument(opts.nextOpt());				
+				//gafdoc = builder.buildDocument(new File(opts.nextOpt()));				
 			}
 			else if (opts.nextEq("--gaf-xp-predict")) {
 				owlpp = new OWLPrettyPrinter(g);
+				if (gafdoc == null) {
+					System.err.println("No gaf document (use '--gaf GAF-FILE') ");
+					System.exit(1);
+				}
 				AnnotationPredictor ap = new CompositionalClassPredictor(gafdoc, g);
 				Set<Prediction> predictions = ap.getAllPredictions();
+				System.out.println("Predictions:"+predictions.size());
 				for (Prediction p : predictions) {
 					System.out.println(p.render(owlpp));
 				}
