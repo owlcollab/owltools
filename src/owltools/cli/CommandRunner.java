@@ -310,6 +310,9 @@ public class CommandRunner {
 			else if (opts.nextEq("--log-debug")) {
 				Logger.getRootLogger().setLevel(Level.DEBUG);
 			}
+			else if (opts.nextEq("--no-debug")) {
+				Logger.getRootLogger().setLevel(Level.OFF);
+			}
 			else if (opts.nextEq("--monitor-memory")) {
 				g.getConfig().isMonitorMemory = true;
 			}
@@ -1314,6 +1317,16 @@ public class CommandRunner {
 				opts.info("ONT-IRI", "creates a new OWLOntology and makes it the source ontology");
 				g = new OWLGraphWrapper(opts.nextOpt());
 
+			}
+			else if (opts.nextEq("--parse-obo")) {
+				String f  = opts.nextOpt();
+				OWLOntology ont = pw.parseOBO(f);
+				if (g == null)
+					g =	new OWLGraphWrapper(ont);
+				else {
+					System.out.println("adding support ont "+ont);
+					g.addSupportOntology(ont);
+				}
 			}
 			else if (opts.hasArgs()) {
 				String f  = opts.nextOpt();
