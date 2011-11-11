@@ -29,6 +29,6 @@
 	<classpathentry kind="lib" path="lib/runlibs/junit-4.8.2.jar" sourcepath="/home/hdietze/.m2/repository/junit/junit/4.8.2/junit-4.8.2-sources.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/elk-owlapi-0.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/elk-standalone-0.2.0.jar"/>
-	<classpathentry kind="lib" path="lib/runlibs/owlapi-bin-3.2.4.jar" sourcepath="lib/runlibs/owlapi-src-3.2.4.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/owlapi-bin-3.2.4.jar" sourcepath="lib/runlibs/owlapi-src-3.2.4.zip"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
