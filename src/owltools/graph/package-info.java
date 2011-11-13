@@ -1,13 +1,50 @@
 /**
-   <h2>OWLGraph -- Graph Wrapper for OWL Ontologies<h2>
+<h2>OWLGraph -- OBO-like Graph Wrapper for OWL Ontologies</h2>
 
-       <h3>Background</h3>
+This class provides a facade onto one or more {@link
+org.semanticweb.owlapi.model.OWLOntology} objects.
+
+<h2 id="model">Basic Model</h2>
+
+<p>
+
+An OGW consists of a <b>source ontology</b>, and zero or more
+<b>support ontologies</b>. The support ontologies are generally not
+required to be connected to the source ontology via imports.
+
+  </p>
+
+<p>
+See the core {@link owltools.graph.OWLGraphWrapper} object
+</p>
+
+<h2 id="metadata">Ontology Metadata</h2>
+
+<p>
+
+An OGW provides convenience methods for looking up entities by their
+label, querying for synonyms, text definitions, OBO subsets, etc.
+
+</p>
+
+<p>
+
+It is assumed that the ontology makes use of the vocabulary specified
+in the official obo-owl mapping (i.e. a combination of IAO plus
+addition custom vocabulary elements).
+
+</p>
+
+
+<h2 id="graph">Graph Operations</h2>
+
+<h3>Background</h3>
 
 <p>
 The OWL API provides methods for querying and processing the axioms
 and expressions in an OWL ontology. The OWL API also provides a
 unified programmatic layer for accessing a variety of OWL reasoners
-(FaCT++, HermiT and Pellet).
+(Elk, FaCT++, HermiT and Pellet).
 </p>
 
 <p>
@@ -290,7 +327,6 @@ Other algorithms can be used - e.g. rule-based deduction - but this
 will not have the same computational properties. 
        </p>
 
-@see <a href="http://wiki.geneontology.org/index.php/OWLTools">OWLTools</a> for more context
  */
 package owltools.graph;
 
