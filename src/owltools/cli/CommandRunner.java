@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,8 +19,12 @@ import java.util.Vector;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.expression.OWLEntityChecker;
+import org.semanticweb.owlapi.expression.ParserException;
+import org.semanticweb.owlapi.expression.ShortFormEntityChecker;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -55,6 +60,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
+import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
+import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.GafDocument;
@@ -214,7 +221,7 @@ public class CommandRunner {
 			}
 		}
 	}
-	
+
 	public class OptionException extends Exception {
 		public OptionException(String msg) {
 			super(msg);
@@ -323,7 +330,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--query-ontology")) {
-				opts.info("[-m]", "specify an ontology that has classes to be used as queries");
+				opts.info("[-m]", "specify an ontology that has classes to be used as queries. See also: --reasoner-query");
 				boolean isMerge = false;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-m"))
@@ -407,7 +414,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--save-closure-for-chado")) {
 				opts.info("OUTPUTFILENAME",
-						"saves the graph closure in a format that is oriented towards loading into a Chado database");
+				"saves the graph closure in a format that is oriented towards loading into a Chado database");
 				boolean isChain = opts.nextEq("--chain");
 				ChadoGraphClosureRenderer gcw = new ChadoGraphClosureRenderer(opts.nextOpt());
 				gcw.isChain = isChain;
@@ -420,7 +427,7 @@ public class CommandRunner {
 				owlpp = new OWLPrettyPrinter(g);
 				OWLClass tax = (OWLClass)this.resolveEntity(opts);
 				Set<OWLObject> taxAncs = g.getAncestorsReflexive(tax);
-				
+
 				Set<OWLClass> taxSet = new HashSet<OWLClass>();
 				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
 					String cid = g.getIdentifier(c);
@@ -482,8 +489,12 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--sparql-dl")) {
 				opts.info("\"QUERY-TEXT\"", "executes a SPARQL-DL query using the reasoner");
-
-				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				/* Examples:
+				 *  SELECT * WHERE { SubClassOf(?x,?y)}
+				 */
+				if (reasoner == null) {
+					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				}
 				String q = opts.nextOpt();
 				System.out.println("Q="+q);
 				try {
@@ -522,13 +533,95 @@ public class CommandRunner {
 
 			}
 			else if (opts.nextEq("--init-reasoner")) {
+				opts.info("[-r reasonername]", "Creates a reasoner object");
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-r")) {
+						reasonerName = opts.nextOpt();
+					}
+					else {
+						break;
+					}
+				}
 				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());			
+			}
+			else if (opts.nextEq("--reasoner-query")) {
+				opts.info("[-r reasonername] [-m] CLASS-EXPRESSION", 
+				"Queries current ontology for descendants of CE using reasoner");
+				boolean isManifest = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-r")) {
+						reasonerName = opts.nextOpt();
+						if (reasonerName.toLowerCase().equals("elk"))
+							isManifest = true;
+					}
+					else if (opts.nextEq("-m")) {
+						opts.info("", 
+						"manifests the class exression as a class equivalent to query CE and uses this as a query; required for Elk");
+						isManifest = true;
+					}
+					else {
+						break;
+					}
+				}
+				String expression = opts.nextOpt();
+				owlpp = new OWLPrettyPrinter(g);
+				OWLEntityChecker entityChecker;
+				entityChecker = new ShortFormEntityChecker(
+						new BidirectionalShortFormProviderAdapter(
+								g.getManager(),
+								Collections.singleton(g.getSourceOntology()),
+								new SimpleShortFormProvider()));
+				ManchesterOWLSyntaxEditorParser parser = 
+					new ManchesterOWLSyntaxEditorParser(g.getDataFactory(), expression);
+
+				parser.setOWLEntityChecker(entityChecker);	
+				try {
+					OWLClassExpression ce = parser.parseClassExpression();
+					System.out.println("# QUERY: "+owlpp.render(ce));
+					if (isManifest) {
+						OWLClass qc = g.getDataFactory().getOWLClass(IRI.create("http://owltools.org/Q"));
+						OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(ce, qc);
+						g.getManager().addAxiom(g.getSourceOntology(), ax);
+						ce = qc;
+					}
+					if (reasoner == null) {
+						reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+					}
+					for (OWLClass r : reasoner.getSubClasses(ce, false).getFlattened()) {
+						System.out.println(owlpp.render(r));
+					}
+
+
+				} catch (ParserException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+			else if (opts.nextEq("--reasoner-ask-all")) {
+				opts.info("", "list all inferred equivalent named class pairs");
+				if (reasoner == null)
+					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				String q = opts.nextOpt().toLowerCase();
+				owlpp = new OWLPrettyPrinter(g);
+				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
+					if (q.startsWith("e")) {
+						for (OWLClass ec : reasoner.getEquivalentClasses(c)) {
+							System.out.println(owlpp.render(c)+"\t"+owlpp.render(ec));
+						}
+					}
+					else if (q.startsWith("s")) {
+						for (OWLClass ec : reasoner.getSuperClasses(c, true).getFlattened()) {
+							System.out.println(owlpp.render(c)+"\t"+owlpp.render(ec));
+						}
+					}
+				}
 			}
 			else if (opts.nextEq("--run-reasoner")) {
 				opts.info("[-r reasonername] [--assert-implied]", "infer new relationships");
 				boolean isAssertImplied = false;
 				boolean isDirect = true;
-				
+
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
 						reasonerName = opts.nextOpt();
@@ -576,7 +669,7 @@ public class CommandRunner {
 								//LOG.error("unsatisfiable: "+owlpp.render(result));
 							}
 						}
-						
+
 					}
 					isQueryProcessed = true;
 				}
@@ -850,11 +943,24 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("-d") || opts.nextEq("--draw")) {
-				opts.info("LABEL", "generates a file tmp.png made using QuickGO code");
+				opts.info("[-o FILENAME] [-f FMT] LABEL/ID", "generates a file tmp.png made using QuickGO code");
 				String imgf = "tmp.png";
-				if (opts.nextEq("-f")) {
-					opts.info("FILENAME", "name of png file to save (defaults to tmp.png)");
-					imgf = opts.nextOpt();
+				String fmt = "png";
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-o")) {
+						opts.info("FILENAME", "name of png file to save (defaults to tmp.png)");
+						imgf = opts.nextOpt();
+					}
+					else if (opts.nextEq("-f")) {
+						opts.info("FMT", "image format. See ImageIO docs for a list. Default: png");
+						fmt = opts.nextOpt();
+						if (imgf.equals("tmp.png")) {
+							imgf = "tmp."+fmt;
+						}
+					}
+					else {
+						break;
+					}
 				}
 				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
@@ -862,9 +968,9 @@ public class CommandRunner {
 				OWLGraphLayoutRenderer r = new OWLGraphLayoutRenderer(g);
 
 				r.addObject(obj);
-				r.renderImage("png", new FileOutputStream(imgf));
-				Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj);
-				showEdges( edges);
+				r.renderImage(fmt, new FileOutputStream(imgf));
+				//Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj);
+				//showEdges( edges);
 			}
 			else if (opts.nextEq("--draw-all")) {
 				opts.info("", "draws ALL objects in the ontology (caution: small ontologies only)");
@@ -1525,19 +1631,25 @@ public class CommandRunner {
 	}
 
 	public OWLObjectProperty resolveObjectProperty(String id) {
-		OWLObject obj = null;
-		obj = g.getOWLObjectByLabel(id);
-		if (obj != null)
-			return (OWLObjectProperty) obj;
-		if (id.startsWith("http:"))
-			return g.getOWLObjectProperty(id);
+		IRI i = null;
+		i = g.getIRIByLabel(id);
+		if (i == null && id.startsWith("http:")) {
+			i = IRI.create(id);
+		}
+		if (i != null) {
+			return g.getDataFactory().getOWLObjectProperty(i);
+		}
 		return g.getOWLObjectPropertyByIdentifier(id);
 	}
 	public OWLClass resolveClass(String id) {
-		OWLObject obj = null;
-		obj = g.getOWLObjectByLabel(id);
-		if (obj != null)
-			return (OWLClass) obj;
+		IRI i = null;
+		i = g.getIRIByLabel(id);
+		if (i == null && id.startsWith("http:")) {
+			i = IRI.create(id);
+		}
+		if (i != null) {
+			return g.getDataFactory().getOWLClass(i);
+		}
 		return g.getDataFactory().getOWLClass(IRI.create(id));
 	}
 

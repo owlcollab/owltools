@@ -52,7 +52,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		buildSimpleDefMap();
 	}
 	protected OWLClass getOWLClass(String id) {
-		return (OWLClass) getGraph().getOWLObjectByIdentifier(id);
+		return getGraph().getOWLClassByIdentifier(id);
 	}
 
 	public Set<Prediction> predict(String bioentity) {

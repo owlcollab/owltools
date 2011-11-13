@@ -46,10 +46,6 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 
 	}
 
-	protected OWLClass getOWLClass(String id) {
-		return (OWLClass) getGraph().getOWLObjectByIdentifier(id);
-	}
-
 	public Set<Prediction> predict(String bioentity) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		Set<GeneAnnotation> anns = getGafDocument().getGeneAnnotations(bioentity);

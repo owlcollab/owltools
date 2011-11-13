@@ -28,7 +28,7 @@ import owltools.sim.DescriptionTreeSimilarity;
  */
 public class ParserWrapper {
 
-	private static Logger LOG = Logger.getLogger(DescriptionTreeSimilarity.class);
+	private static Logger LOG = Logger.getLogger(ParserWrapper.class);
 	OWLOntologyManager manager = OWLManager.createOWLOntologyManager(); // persist?
 	String defaultOntology;
 	OBODoc obodoc;

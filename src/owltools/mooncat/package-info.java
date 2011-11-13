@@ -1,6 +1,10 @@
 /**
  * <h2>Mooncat -- Multiple OWL ONtology Catenation</h2>
  * 
+ * This package provides MIREOT-like capabilities as well as tools for working with OBO-style subsets
+ * 
+ * The main class in {@link Mooncat} - see the API docs for more details
+ *
  * Command Line Use:
  * <p>
  * <code>
@@ -8,7 +12,9 @@
  * </code>
  * <p>
  * 
- * The main class in {@link Moocat}
+ * This module is also incorporated into Oort
+ * 
+ * @see owltools.ontologyrelease
  * 
  * */
 package owltools.mooncat;
