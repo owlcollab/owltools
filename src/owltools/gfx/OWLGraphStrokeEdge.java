@@ -11,6 +11,14 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLQuantifiedProperty;
 
+/**
+ * Represents an edge in a layour graph
+ * 
+ * Adapted from QuickGO
+ * 
+ * @author cjm
+ *
+ */
 public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
 
     private static final Stroke relationStroke = new BasicStroke(2f);
@@ -38,6 +46,8 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
     }
     
     /**
+     * Sets the value of relType based on OWLGraphEdge properties
+     * 
      * TODO : this is too hacky. Make this a soft configuration, e.g. 
      * an ontology with color properties
      * 
@@ -50,6 +60,8 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      	}
      	String pid = qp.getPropertyId();
      	          	
+     	// multiple layers of indirection - first we map the relation obo ID to
+     	// the hardcoded list of relation types in QuickGO. 
        	if (pid.contains("part_of")) {
     		relType = RelationType.PARTOF;
     	}

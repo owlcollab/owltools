@@ -22,7 +22,15 @@ import java.util.Vector;
 
 import uk.ac.ebi.interpro.graphdraw.*;
 
-// todo - make a common abstract class for both of these
+
+/**
+ * IN-PROGRESS GraphViz renderer
+ * 
+ * TODO - make a common abstract class for all renderers
+ * 
+ * @author cjm
+ *
+ */
 public class OWLGraphvizRenderer extends OWLGraphLayoutRenderer {
 
 	public OWLGraphvizRenderer(OWLGraphWrapper owlGraphWrapper) {

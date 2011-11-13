@@ -5,6 +5,8 @@ import java.util.*;
 
 /**
  * hacked crudely from QuickGO
+ * 
+ * TODO: use config object to map relationship types to colors
 */
 public enum RelationType {
     ANCESTOR("?", "Ancestor","ancestor"),
