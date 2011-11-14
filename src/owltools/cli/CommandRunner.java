@@ -621,9 +621,17 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--reasoner-ask-all")) {
 				opts.info("", "list all inferred equivalent named class pairs");
+				boolean isReplaceOntology = false;
+				boolean isAddToCurrentOntology = false;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
 						reasonerName = opts.nextOpt();
+					}
+					else if (opts.nextEq("-s")) {
+						isReplaceOntology = true;
+					}
+					else if (opts.nextEq("-a")) {
+						isAddToCurrentOntology = true;
 					}
 					else {
 						break;
@@ -631,6 +639,7 @@ public class CommandRunner {
 				}
 				if (reasoner == null)
 					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				Set<OWLAxiom> iAxioms = new HashSet<OWLAxiom>();
 				String q = opts.nextOpt().toLowerCase();
 				owlpp = new OWLPrettyPrinter(g);
 				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
@@ -649,8 +658,17 @@ public class CommandRunner {
 					for (OWLNamedIndividual i : g.getSourceOntology().getIndividualsInSignature()) {
 						for (OWLClass ce : reasoner.getTypes(i, true).getFlattened()) {
 							System.out.println(owlpp.render(i)+"\t"+owlpp.render(ce));
-						}
+							iAxioms.add(g.getDataFactory().getOWLClassAssertionAxiom(ce, i));						}
 					}
+				}
+				OWLOntology ont = g.getSourceOntology();
+				if (isReplaceOntology) {
+					Set<OWLAxiom> allAxioms = ont.getAxioms();
+					g.getManager().removeAxioms(ont, allAxioms);
+					g.getManager().addAxioms(ont, iAxioms);
+				}
+				if (isAddToCurrentOntology) {
+					g.getManager().addAxioms(ont, iAxioms);
 				}
 			}
 			else if (opts.nextEq("--run-reasoner")) {
@@ -675,7 +693,9 @@ public class CommandRunner {
 				owlpp = new OWLPrettyPrinter(g);
 
 				boolean isQueryProcessed = false;
-				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				if (reasoner == null) {
+					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				}
 				if (opts.hasOpts()) {
 					if (opts.nextEq("-i")) {
 						OWLClass qc = (OWLClass)resolveEntity(opts);
