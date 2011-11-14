@@ -4,7 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry exported="true" kind="lib" path="lib/runlibs/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/log4j-1.2.15.jar"/>
-	<classpathentry kind="lib" path="lib/runlibs/FaCTpp-OWLAPI-v1.4.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/org.semanticweb.HermiT.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/oboformat.jar" sourcepath="/oboformat/src"/>
 	<classpathentry kind="lib" path="lib/runlibs/GraphDraw-20100831-1335.jar"/>
@@ -30,5 +29,6 @@
 	<classpathentry kind="lib" path="lib/runlibs/elk-owlapi-0.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/elk-standalone-0.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/owlapi-bin-3.2.4.jar" sourcepath="lib/runlibs/owlapi-src-3.2.4.zip"/>
+	<classpathentry kind="lib" path="lib/runlibs/FaCTpp-OWLAPI-3.2-v1.5.2.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
