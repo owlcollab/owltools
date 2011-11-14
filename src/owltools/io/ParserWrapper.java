@@ -2,6 +2,7 @@ package owltools.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -19,7 +20,6 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.sim.DescriptionTreeSimilarity;
 
 /**
  * Convenience class wrapping org.oboformat that abstracts away underlying details of ontology format or location
@@ -30,7 +30,6 @@ public class ParserWrapper {
 
 	private static Logger LOG = Logger.getLogger(ParserWrapper.class);
 	OWLOntologyManager manager = OWLManager.createOWLOntologyManager(); // persist?
-	String defaultOntology;
 	OBODoc obodoc;
 
 
@@ -65,12 +64,17 @@ public class ParserWrapper {
 		if (obodoc == null) {
 			throw new IOException("Loading of ontology failed: "+iri);
 		}
-		if (defaultOntology != null) {
-			obodoc.addDefaultOntologyHeader(defaultOntology);
-		}
-		else {
-			obodoc.addDefaultOntologyHeader(iri);
-		}
+		/*
+		 * This fixes an exception for ontologies without an declared id. 
+		 * 
+		 * When such ontologies are loaded on a windows platform, the file 
+		 * path may contain a colon character. This results in invalid IRIs.
+		 * 
+		 * Only by URL encoding the path it is guaranteed that a valid 
+		 * ontology id is generated.
+		 */
+		String encodedIRI = URLEncoder.encode(iri, "UTF-8");
+		obodoc.addDefaultOntologyHeader(encodedIRI);
 
 		Obo2Owl bridge = new Obo2Owl();
 		OWLOntology ontology = bridge.convert(obodoc);
