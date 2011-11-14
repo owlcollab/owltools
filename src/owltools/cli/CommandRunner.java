@@ -34,6 +34,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -532,6 +533,26 @@ public class CommandRunner {
 				}
 
 			}
+			else if (opts.nextEq("--i2c")) {
+				Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
+				OWLOntology ont = g.getSourceOntology();
+				//OWLOntology newOnt = g.getManager().createOntology(IRI.create("http://foo.org"));
+				for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
+					OWLClass c = g.getDataFactory().getOWLClass(i.getIRI());
+					for (OWLClassExpression ce : i.getTypes(ont)) {
+						axs.add(g.getDataFactory().getOWLSubClassOfAxiom(c, ce));
+					}
+					//g.getDataFactory().getOWLDe
+					for (OWLClassAssertionAxiom ax : ont.getClassAssertionAxioms(i)) {
+						g.getManager().removeAxiom(ont, ax);
+					}
+					ont.getDeclarationAxioms(i);
+					//g.getDataFactory().getOWLDeclarationAxiom(owlEntity)
+				}
+				for (OWLAxiom axiom : axs) {
+					g.getManager().addAxiom(ont, axiom);
+				}
+			}
 			else if (opts.nextEq("--init-reasoner")) {
 				opts.info("[-r reasonername]", "Creates a reasoner object");
 				while (opts.hasOpts()) {
@@ -600,6 +621,14 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--reasoner-ask-all")) {
 				opts.info("", "list all inferred equivalent named class pairs");
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-r")) {
+						reasonerName = opts.nextOpt();
+					}
+					else {
+						break;
+					}
+				}
 				if (reasoner == null)
 					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
 				String q = opts.nextOpt().toLowerCase();
@@ -613,6 +642,13 @@ public class CommandRunner {
 					else if (q.startsWith("s")) {
 						for (OWLClass ec : reasoner.getSuperClasses(c, true).getFlattened()) {
 							System.out.println(owlpp.render(c)+"\t"+owlpp.render(ec));
+						}
+					}
+				}
+				if (q.startsWith("i")) {
+					for (OWLNamedIndividual i : g.getSourceOntology().getIndividualsInSignature()) {
+						for (OWLClass ce : reasoner.getTypes(i, true).getFlattened()) {
+							System.out.println(owlpp.render(i)+"\t"+owlpp.render(ce));
 						}
 					}
 				}
