@@ -620,7 +620,7 @@ public class CommandRunner {
 
 			}
 			else if (opts.nextEq("--reasoner-ask-all")) {
-				opts.info("", "list all inferred equivalent named class pairs");
+				opts.info("[-r REASONERNAME] [-s] [-a] AXIOMTYPE", "list all inferred equivalent named class pairs");
 				boolean isReplaceOntology = false;
 				boolean isAddToCurrentOntology = false;
 				while (opts.hasOpts()) {
@@ -637,8 +637,9 @@ public class CommandRunner {
 						break;
 					}
 				}
-				if (reasoner == null)
+				if (reasoner == null) {
 					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+				}
 				Set<OWLAxiom> iAxioms = new HashSet<OWLAxiom>();
 				String q = opts.nextOpt().toLowerCase();
 				owlpp = new OWLPrettyPrinter(g);
