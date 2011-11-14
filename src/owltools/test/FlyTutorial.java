@@ -2,6 +2,7 @@ package owltools.test;
 
 import static junit.framework.Assert.*;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -25,14 +26,15 @@ import org.semanticweb.owlapi.model.OWLProperty;
 import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 
+import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.io.ParserWrapper;
 
-public class FlyTutorial  extends OWLToolsTestBasics {
+public class FlyTutorial extends OWLToolsTestBasics {
 
 	@Test
-	public void testConvertXPs() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void demo() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("FBbt.owl"));
 		OWLOntology ont = g.getSourceOntology();
@@ -105,6 +107,13 @@ public class FlyTutorial  extends OWLToolsTestBasics {
 			}
 		}
 		 */
+		
+		OWLGraphLayoutRenderer r = new OWLGraphLayoutRenderer(g);
+
+		r.addObject(c);
+		r.renderImage("png",new FileOutputStream("/tmp/neuron.png"));
+
+
 	}
 
 }
