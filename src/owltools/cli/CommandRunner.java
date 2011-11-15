@@ -1,5 +1,6 @@
 package owltools.cli;
 
+import java.awt.Color;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,6 +38,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -71,6 +73,8 @@ import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
+import owltools.gfx.GraphicsConfig;
+import owltools.gfx.GraphicsConfig.RelationConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -271,6 +275,7 @@ public class CommandRunner {
 		OWLOntology simOnt = null;
 		Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = null;
 		OWLPrettyPrinter owlpp;
+		GraphicsConfig gfxCfg = new GraphicsConfig();
 
 		//Configuration config = new PropertiesConfiguration("owltools.properties");
 
@@ -534,9 +539,18 @@ public class CommandRunner {
 
 			}
 			else if (opts.nextEq("--i2c")) {
+				opts.info("[-s]", "Converts individuals to classes");
+				boolean isReplaceOntology = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-s")) {
+						isReplaceOntology = true;
+					}
+					else {
+						break;
+					}
+				}
 				Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
 				OWLOntology ont = g.getSourceOntology();
-				//OWLOntology newOnt = g.getManager().createOntology(IRI.create("http://foo.org"));
 				for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
 					OWLClass c = g.getDataFactory().getOWLClass(i.getIRI());
 					for (OWLClassExpression ce : i.getTypes(ont)) {
@@ -546,8 +560,15 @@ public class CommandRunner {
 					for (OWLClassAssertionAxiom ax : ont.getClassAssertionAxioms(i)) {
 						g.getManager().removeAxiom(ont, ax);
 					}
-					ont.getDeclarationAxioms(i);
+					for (OWLDeclarationAxiom ax : ont.getDeclarationAxioms(i)) {
+						g.getManager().removeAxiom(ont, ax);
+					}
 					//g.getDataFactory().getOWLDeclarationAxiom(owlEntity)
+				}
+				if (isReplaceOntology) {
+					for (OWLAxiom ax : g.getSourceOntology().getAxioms()) {
+						g.getManager().removeAxiom(ont, ax);
+					}
 				}
 				for (OWLAxiom axiom : axs) {
 					g.getManager().addAxiom(ont, axiom);
@@ -1015,6 +1036,12 @@ public class CommandRunner {
 							imgf = "tmp."+fmt;
 						}
 					}
+					else if (opts.nextEq("-p")) {
+						OWLObjectProperty p = resolveObjectProperty(opts.nextOpt());
+						RelationConfig rc = gfxCfg.new RelationConfig();
+						rc.color = Color.MAGENTA;
+						gfxCfg.relationConfigMap.put(p, rc);
+					}
 					else {
 						break;
 					}
@@ -1023,6 +1050,7 @@ public class CommandRunner {
 				OWLObject obj = resolveEntity( opts);
 				System.out.println(obj);
 				OWLGraphLayoutRenderer r = new OWLGraphLayoutRenderer(g);
+				r.graphicsConfig = gfxCfg;
 
 				r.addObject(obj);
 				r.renderImage(fmt, new FileOutputStream(imgf));

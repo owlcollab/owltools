@@ -35,10 +35,14 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
     			arrow,null);
     	this.owlGraphEdge = oge;
     	setRelationType();
+    	System.out.println("RT="+relType);
     	if (relType != null)
     		this.colour = relType.color;
     	
+    	//Shape childArrow;
+		//this.setChildArrow(childArrow);
     	// TODO - use dashed lines or make configurable
+    	// need to store link to GraphicsConfig object
     	
        	if (oge.getFinalQuantifiedProperty().isInferred()) {
     		this.colour = new Color(255, 0 ,0);
@@ -59,7 +63,7 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      		return;
      	}
      	String pid = qp.getPropertyId();
-     	          	
+     	//System.out.println("PID="+pid+" // "+qp);
      	// multiple layers of indirection - first we map the relation obo ID to
      	// the hardcoded list of relation types in QuickGO. 
        	if (pid.contains("part_of")) {

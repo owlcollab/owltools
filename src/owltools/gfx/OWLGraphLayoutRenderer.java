@@ -38,6 +38,7 @@ import uk.ac.ebi.interpro.graphdraw.*;
 public class OWLGraphLayoutRenderer {
 
 	protected OWLGraphWrapper owlGraphWrapper;
+	public GraphicsConfig graphicsConfig = new GraphicsConfig();
 
 	protected StandardGraph<OWLGraphLayoutNode, OWLGraphStrokeEdge> g = 
 		new StandardGraph<OWLGraphLayoutNode, OWLGraphStrokeEdge>();
@@ -99,11 +100,13 @@ public class OWLGraphLayoutRenderer {
 
 		OWLQuantifiedProperty qr = e.getSingleQuantifiedProperty();
 
+		/*
 		// TODO : this isn't actually used yet...
 		Color color = Color.RED;
 		if (qr.isSubClassOf()) {
 			color = Color.GREEN;
 		}
+		*/
 		OWLGraphStrokeEdge ge = 
 			new OWLGraphStrokeEdge(tn, sn, e);	
 		//		new OWLGraphStrokeEdge(n1, n2, color, fatStroke,parent,child);	
