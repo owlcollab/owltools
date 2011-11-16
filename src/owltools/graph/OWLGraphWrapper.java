@@ -337,7 +337,7 @@ public class OWLGraphWrapper {
 	public void removeSupportOntology(OWLOntology o) {
 		this.supportOntologySet.remove(o);
 	}
-	
+
 	/**
 	 * Each ontology in the import closure of the source ontology is added to
 	 * the list of support ontologies
@@ -708,7 +708,7 @@ public class OWLGraphWrapper {
 	public OWLObject edgeToTargetExpression(OWLGraphEdge e) {
 		return edgeToTargetExpression(e.getQuantifiedPropertyList().iterator(),e.getTarget());
 	}
-	
+
 	private OWLObject edgeToTargetExpression(
 			Iterator<OWLQuantifiedProperty> qpi, OWLObject t) {
 		if (qpi.hasNext()) {
@@ -1139,7 +1139,7 @@ public class OWLGraphWrapper {
 		getDescendants.add(x);
 		return getDescendants;
 	}
-	
+
 	/**
 	 * return all individuals i where x is reachable from i
 	 * @param x
@@ -2373,7 +2373,7 @@ public class OWLGraphWrapper {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * fetches an OWL IRI by rdfs:label, optionally testing for uniqueness
 	 *
@@ -2430,7 +2430,7 @@ public class OWLGraphWrapper {
 		IRI iri = IRI.create(s);
 		return getOWLClass(iri);
 	}
-	
+
 	/**
 	 * Returns an OWLClass given an IRI
 	 * 
@@ -2512,15 +2512,30 @@ public class OWLGraphWrapper {
 
 	/**
 	 * Returns the OWLObject with this IRI
+	 * (where IRI is specified as a string - e.g http://purl.obolibrary.org/obo/GO_0008150)
+	 * 
+	 * @param iriString
+	 * @see getOWLObject(IRI iri)
+	 * @return
+	 */
+	public OWLObject getOWLObject(String s) {
+		return getOWLObject(IRI.create(s));
+	}
+
+	/**
+	 * Returns the OWLObject with this IRI
 	 * 
 	 * Must have been declared in one of the ontologies
 	 * 
 	 * Currently OWLObject must be one of OWLClass, OWLObjectProperty or OWLNamedIndividual
 	 * 
-	 * @param s
+	 * If the ontology employs punning and there different entities with the same IRI, then
+	 * the order of precedence is OWLClass then OWLObjectProperty then OWLNamedIndividual
+	 *
+	 * @param entityIri
 	 * @return
 	 */
-	public OWLObject getOWLObject(String s) {
+	private OWLObject getOWLObject(IRI s) {
 		OWLObject o;
 		o = getOWLClass(s);
 		if (o == null) {
@@ -2528,15 +2543,6 @@ public class OWLGraphWrapper {
 		}
 		if (o == null) {
 			o = getOWLObjectProperty(s);
-		}
-		return o;
-	}
-
-	private OWLObject getOWLObject(IRI s) {
-		OWLObject o;
-		o = getOWLClass(s);
-		if (o == null) {
-			o = getOWLIndividual(s);
 		}
 		return o;
 	}
