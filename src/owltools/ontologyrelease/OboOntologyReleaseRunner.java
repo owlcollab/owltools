@@ -1,10 +1,15 @@
 package owltools.ontologyrelease;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -26,9 +31,12 @@ import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -37,9 +45,11 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
@@ -94,8 +104,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		boolean isCheckConsistency = true;
 		boolean isWriteMetadata = true;
 		boolean isWriteSubsets = true;
+		boolean isJustifyAssertedSubclasses = false;
 		Set<String> sourceOntologyPrefixes = null;
 		boolean executeOntologyChecks = true;
+		boolean isForceRelease = false;
 
 		OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 		OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
@@ -302,6 +314,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			 * else if (opt.equals("-oboincludes")) { oboIncludes = args[i];
 			 * i++; }
 			 */
+			else if (opt.equals("--force")) {
+				oortConfig.isForceRelease = true;
+			}
 			else if (opt.equals("--asserted")) {
 				oortConfig.asserted = true;
 			}
@@ -313,6 +328,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			else if (opt.equals("--re-mireot")) {
 				oortConfig.isRecreateMireot = true;
+			}
+			else if (opt.equals("--justify")) {
+				oortConfig.isJustifyAssertedSubclasses = true;
 			}
 			else if (opt.equals("--allow-equivalent-pairs")) {
 				oortConfig.allowEquivalentNamedClassPairs = true;
@@ -409,6 +427,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
 		ontologyId = ontologyId.replaceAll(".obo$", ""); // temp workaround
 
+		List<String> reasonerReportLines = new ArrayList<String>();
+		
 		// ----------------------------------------
 		// Macro expansion
 		// ----------------------------------------
@@ -490,9 +510,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		// ----------------------------------------
-		// Main (asserted plus non-redundant inferred links)
+		// Main (asserted plus inference of non-redundant links)
 		// ----------------------------------------
-		// this is the same as ASSERTED, with certain axiom ADDED
+		// this is the same as ASSERTED, with certain axioms ADDED based on reasoner results
 
 		// this is always on by default
 		//  at some point we may wish to make this optional,
@@ -502,12 +522,86 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Creating basic ontology");
 
 			if (oortConfig.reasonerName != null) {
+				OWLDataFactory df = mooncat.getGraph().getDataFactory();
+				Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
+				Set<RemoveAxiom> removedSubClassOfAxiomChanges = new HashSet<RemoveAxiom>();
 				infBuilder = new InferenceBuilder(mooncat.getGraph(), oortConfig.reasonerName, oortConfig.enforceEL);
 
-				logger.info("Creating inferences");
-				buildInferences();
+				// optionally remove a subset of the axioms we want to attempt to recapitulate
+				if (oortConfig.isJustifyAssertedSubclasses) {
+					logger.info("Removing asserted subclasses between defined class pairs");
+					for (OWLSubClassOfAxiom a : mooncat.getOntology().getAxioms(AxiomType.SUBCLASS_OF)) {
+						OWLClassExpression subc = a.getSubClass();
+						if (!(subc instanceof OWLClass)) {
+							continue;
+						}
+						OWLClassExpression supc = a.getSuperClass();
+						if (!(supc instanceof OWLClass)) {
+							continue;
+						}
+						if (((OWLClass)subc).getEquivalentClasses(mooncat.getOntology()).size() == 0) {
+							continue;
+						}
+						if (((OWLClass)supc).getEquivalentClasses(mooncat.getOntology()).size() == 0) {
+							continue;
+						}
+						RemoveAxiom rmax = new RemoveAxiom(mooncat.getOntology(),a);
+						removedSubClassOfAxiomChanges.add(rmax);
+						removedSubClassOfAxioms.add(df.getOWLSubClassOfAxiom(a.getSubClass(),
+								a.getSuperClass()));
+					}
+					for (RemoveAxiom rmax : removedSubClassOfAxiomChanges) {
+						mooncat.getManager().applyChange(rmax);
+					}
+				}
+
+				logger.info("Creating inferences");				
+				List<OWLAxiom> axioms = infBuilder.buildInferences();
+
+				// ASSERT INFERRED LINKS
+				// TODO: ensure there is a subClassOf axiom for ALL classes that have an equivalence axiom
+				for(OWLAxiom ax: axioms) {
+					if (ax instanceof OWLSubClassOfAxiom && 
+							((OWLSubClassOfAxiom)ax).getSuperClass().equals(df.getOWLThing())) {
+						continue;
+					}
+					String ppax = owlpp.render(ax);
+					
+					mooncat.getManager().applyChange(new AddAxiom(mooncat.getOntology(), ax));
+					String info;
+					if (oortConfig.isJustifyAssertedSubclasses) {
+						if (removedSubClassOfAxioms.contains(ax)) {
+							info = "EXISTS, ENTAILED";
+						}
+						else {
+							info = "NEW, INFERRED";
+						}
+					}
+					else {
+						info = "NEW, INFERRED";
+					}
+					if (ax instanceof OWLSubClassOfAxiom && 
+							!(((OWLSubClassOfAxiom)ax).getSuperClass() instanceof OWLClass)) {
+						// because the reasoner API can only generated subclass axioms with named superclasses,
+						// we assume that any that have anonymous expressions as superclasses were generated
+						// by the inference builder in the process of translating equivalence axioms
+						// to weaker subclass axioms
+						info = "NEW, TRANSLATED";
+					}
+					String rptLine = info+"\t"+ppax;
+					reasonerReportLines.add(rptLine);
+					logger.info(rptLine);
+				}
+				if (oortConfig.isJustifyAssertedSubclasses) {
+					for (OWLSubClassOfAxiom ax : removedSubClassOfAxioms) {
+						if (!axioms.contains(ax)) {
+							reasonerReportLines.add("EXITS, NOT-ENTAILED\t"+owlpp.render(ax));
+						}
+					}
+				}
 				logger.info("Inferences creation completed");
 
+				// CONSISTENCY CHECK
 				if (oortConfig.isCheckConsistency) {
 					logger.info("Checking consistency");
 					List<String> incs = infBuilder.performConsistencyChecks();
@@ -517,11 +611,13 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						}
 						// TODO: allow --force option
 						// TODO: proper exception mechanism - delay until end?
-						throw new IOException("Will not release inconsistent ontology unless forced!");
+						if (!oortConfig.isForceRelease)
+							throw new IOException("Will not release inconsistent ontology unless forced!");
 					}
 					logger.info("Checking consistency completed");
 				}
 
+				// TEST FOR EQUIVALENT NAMED CLASS PAIRS
 				if (true) {
 					if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
 						logger.info("WARNING! Found equivalencies between named classes");
@@ -538,17 +634,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 								!oortConfig.allowEquivalentNamedClassPairs) {
 							// TODO: allow --force option
 							// TODO: proper exception mechanism - delay until end?
-							throw new IOException("Will not release ontology with equivalent pairs unless forced!");
+							if (!oortConfig.isForceRelease)
+								throw new IOException("Will not release ontology with equivalent pairs unless forced!");
 						}
 
 					}
 				}
 
+				// REDUNDANT AXIOMS
 				logger.info("Finding redundant axioms");
-
 				for (OWLAxiom ax : infBuilder.getRedundantAxioms()) {
 					// TODO - in future do not remove axioms that are annotated
 					logger.info("Removing redundant axiom:"+ax+" // " + owlpp.render(ax));
+					reasonerReportLines.add("REDUNDANT\t"+owlpp.render(ax));
 					mooncat.getManager().applyChange(new RemoveAxiom(mooncat.getOntology(), ax));					
 				}
 
@@ -559,6 +657,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 
 			saveInAllFormats(ontologyId, null, gciOntology);
+			
+			saveReasonerReport(ontologyId, reasonerReportLines);
+
 
 		}
 		// ----------------------------------------
@@ -631,6 +732,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				mooncat.removeSubsetComplementClasses(coreSubset, true);
 			}
 
+			Set<OWLEquivalentClassesAxiom> rmAxs = mooncat.getOntology().getAxioms(AxiomType.EQUIVALENT_CLASSES);
+			logger.info("Removing "+rmAxs.size()+" EquivalentClasses axioms from simple");
+			mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
+
 			saveInAllFormats(ontologyId, "simple", gciOntology);
 			logger.info("Creating simple ontology completed");
 
@@ -644,6 +749,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		boolean success = commit(version);
 		return success;
 	}
+
 
 	/**
 	 * Uses reasoner to obtained inferred subclass axioms, and then adds the non-redundant
@@ -665,6 +771,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("New axiom:"+ax+" // " + owlpp.render(ax));
 			mooncat.getManager().applyChange(new AddAxiom(graph.getSourceOntology(), ax));
 		}		
+		
+		// note: not used
 		return axioms;
 	}
 
@@ -772,6 +880,27 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		}
 
+	}
+
+	private void saveReasonerReport(String ontologyId,
+			List<String> reasonerReportLines) {
+		String fn = ontologyId + "-reasoner-report.txt";
+		OutputStream fos;
+		try {
+			fos = getOutputSteam(fn);
+			PrintStream stream = new PrintStream(new BufferedOutputStream(fos));
+			Collections.sort(reasonerReportLines);
+			for (String s : reasonerReportLines) {
+				stream.println(s);
+			}
+			stream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+		
 	}
 
 	private static void usage() {
