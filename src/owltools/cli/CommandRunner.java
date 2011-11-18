@@ -766,7 +766,7 @@ public class CommandRunner {
 									}
 								}
 								System.out.print(has ? "POSITIVE: " : "NEGATIVE: ");
-								System.out.println(a);
+								System.out.println(owlpp.render(a));
 							}
 						}
 					}
@@ -774,31 +774,52 @@ public class CommandRunner {
 					System.out.println("Consistent? "+reasoner.isConsistent());
 					for (OWLObject obj : g.getAllOWLObjects()) {
 						if (obj instanceof OWLClass) {
+							Set<OWLClassExpression> assertedSuperclasses =
+								((OWLClass) obj).getSuperClasses(g.getSourceOntology());
 							//System.out.println(obj+ " #subclasses:"+
 							//		reasoner.getSubClasses((OWLClassExpression) obj, false).getFlattened().size());
-							for (Node<OWLClass> sup : reasoner.getSuperClasses((OWLClassExpression) obj, isDirect)) {
-								System.out.println(obj+" SubClassOf "+sup);
+							for (OWLClass sup : reasoner.getSuperClasses((OWLClassExpression) obj, isDirect).getFlattened()) {
+								if (assertedSuperclasses.contains(sup)) {
+									continue;
+								}
+								System.out.println("INFERENCE: "+owlpp.render(obj)+" SubClassOf "+owlpp.render(sup));
 								if (isAssertImplied) {
-									OWLSubClassOfAxiom sca = g.getDataFactory().getOWLSubClassOfAxiom((OWLClass)obj, sup.getRepresentativeElement());
+									OWLSubClassOfAxiom sca = g.getDataFactory().getOWLSubClassOfAxiom((OWLClass)obj, sup);
 									g.getManager().addAxiom(g.getSourceOntology(), sca);
 								}
 							}
-							Node<OWLClass> ecs = reasoner.getEquivalentClasses(((OWLClassExpression) obj));
-							System.out.println(obj+" EquivalentTo "+ecs);
-
-
+							for (OWLClass ec : reasoner.getEquivalentClasses(((OWLClassExpression) obj)).getEntities()) {
+								if (!ec.equals(obj))
+									System.out.println("INFERENCE: "+owlpp.render(obj)+" EquivalentTo "+owlpp.render(ec));
+							}
 						}
 					}
 				}
-
-
 			}
 			else if (opts.nextEq("--stash-subclasses")) {
 				opts.info("", "removes all subclasses in current source ontology; after reasoning, try to re-infer these");
+				boolean isDefinedOnly = true; // TODO - option
+				
 				removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
-				System.out.println("Stashing "+removedSubClassOfAxioms.size()+" SubClassOf axioms");
+				System.out.println("Testing "+removedSubClassOfAxioms.size()+" SubClassOf axioms for stashing");
 				HashSet<RemoveAxiom> rmaxs = new HashSet<RemoveAxiom>();
 				for (OWLSubClassOfAxiom a : g.getSourceOntology().getAxioms(AxiomType.SUBCLASS_OF)) {
+					OWLClassExpression subc = a.getSubClass();
+					if (!(subc instanceof OWLClass)) {
+						continue;
+					}
+					OWLClassExpression supc = a.getSuperClass();
+					if (!(supc instanceof OWLClass)) {
+						continue;
+					}
+					if (isDefinedOnly) {
+						if (((OWLClass)subc).getEquivalentClasses(g.getSourceOntology()).size() == 0) {
+							continue;
+						}
+						if (((OWLClass)supc).getEquivalentClasses(g.getSourceOntology()).size() == 0) {
+							continue;
+						}
+					}
 					RemoveAxiom rmax = new RemoveAxiom(g.getSourceOntology(),a);
 					rmaxs.add(rmax);
 					removedSubClassOfAxioms.add(g.getDataFactory().getOWLSubClassOfAxiom(a.getSubClass(), a.getSuperClass()));
