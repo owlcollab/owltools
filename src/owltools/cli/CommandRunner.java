@@ -64,6 +64,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
+import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
@@ -276,7 +277,6 @@ public class CommandRunner {
 		Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = null;
 		OWLPrettyPrinter owlpp;
 		GraphicsConfig gfxCfg = new GraphicsConfig();
-
 		//Configuration config = new PropertiesConfiguration("owltools.properties");
 
 
@@ -360,12 +360,27 @@ public class CommandRunner {
 				g.mergeOntology(pw.parse(opts.nextOpt()));
 			}
 			else if (opts.nextEq("--map-iri")) {
-				//OWLOntologyIRIMapper iriMapper = new SimpleIRIMapper();
-
+				opts.info("OntologyIRI FILEPATH", "maps an ontology IRI to a file in your filesystem");
+				OWLOntologyIRIMapper iriMapper = 
+					new SimpleIRIMapper(IRI.create(opts.nextOpt()),
+						IRI.create(new File(opts.nextOpt())));
+				LOG.info("Adding "+iriMapper+" to "+pw.getManager());
+				pw.getManager().addIRIMapper(iriMapper);
 			}
 			else if (opts.nextEq("--auto-iri")) {
+				opts.info("[-r] ROOTDIR", "uses an AutoIRI mapper [EXPERIMENTAL]");
+				boolean isRecursive = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-r")) {
+						isRecursive = true;
+					}
+					else {
+						break;
+					}
+				}
 				File file = new File(opts.nextOpt());
-				OWLOntologyIRIMapper iriMapper = new AutoIRIMapper(file, false);
+				OWLOntologyIRIMapper iriMapper = new AutoIRIMapper(file, isRecursive);
+				LOG.info("Adding "+iriMapper+" to "+pw.getManager()+" dir:"+file+" isRecursive="+isRecursive);
 				pw.getManager().addIRIMapper(iriMapper);
 			}
 			else if (opts.nextEq("--remove-imports-declarations")) {
@@ -1541,6 +1556,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.hasArgs()) {
+				// Default is to treat argument as an ontology
 				String f  = opts.nextOpt();
 				try {
 					OWLOntology ont = pw.parse(f);
