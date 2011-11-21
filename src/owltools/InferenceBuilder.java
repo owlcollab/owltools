@@ -230,9 +230,13 @@ public class InferenceBuilder{
 				if (alwaysAssertSuperClasses) {
 					if (ec instanceof OWLObjectIntersectionOf) {
 						for (OWLClassExpression x : ((OWLObjectIntersectionOf)ec).getOperands()) {
-							// TODO: turn into subclass axiom and add
+							// Translate equivalence axioms into weaker subClassOf axioms.
 							if (x instanceof OWLRestriction) {
-								equivAxiomsToAdd.add(dataFactory.getOWLSubClassOfAxiom(cls, x));
+								// we only include restrictions - note that if the operand is
+								// an OWLClass it will be inferred as a superclass (see below)
+								OWLSubClassOfAxiom sca = dataFactory.getOWLSubClassOfAxiom(cls, x);
+								if (!ontology.containsAxiom(sca))
+									equivAxiomsToAdd.add(sca);
 							}
 						}
 					}
@@ -278,7 +282,7 @@ public class InferenceBuilder{
 			NodeSet<OWLClass> scs = reasoner.getSuperClasses(cls, true);
 			for (Node<OWLClass> scSet : scs) {
 				for (OWLClass sc : scSet) {
-					if (sc.equals(OWLRDFVocabulary.OWL_THING)) {
+					if (sc.equals(dataFactory.getOWLThing())) {
 						continue; // do not report subclasses of owl:Thing
 					}
 					if (nrClasses.contains(sc))
@@ -310,6 +314,8 @@ public class InferenceBuilder{
 							}
 						}
 					}
+					
+					// include any inferred axiom that is NOT already asserted in the ontology
 					if (!isAsserted) {						
 						axiomsToAdd.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
 					}
@@ -333,7 +339,7 @@ public class InferenceBuilder{
 			}
 			for (OWLClassExpression sup : supers) {
 				if (sup instanceof OWLClass) {
-					if (sup.equals(OWLRDFVocabulary.OWL_THING)) {
+					if (sup.equals(dataFactory.getOWLThing())) {
 						redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup));
 						continue;
 					}
@@ -346,7 +352,7 @@ public class InferenceBuilder{
 					}
 				}
 			}
-		}		
+		}
 
 		axiomsToAdd.addAll(equivAxiomsToAdd);
 

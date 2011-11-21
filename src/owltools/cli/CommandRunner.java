@@ -21,6 +21,7 @@ import java.util.Vector;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
+import org.eclipse.jetty.server.Server;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
@@ -74,6 +75,7 @@ import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
+import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
@@ -103,6 +105,7 @@ import owltools.sim.SimEngine;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
+import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
@@ -363,7 +366,7 @@ public class CommandRunner {
 				opts.info("OntologyIRI FILEPATH", "maps an ontology IRI to a file in your filesystem");
 				OWLOntologyIRIMapper iriMapper = 
 					new SimpleIRIMapper(IRI.create(opts.nextOpt()),
-						IRI.create(new File(opts.nextOpt())));
+							IRI.create(new File(opts.nextOpt())));
 				LOG.info("Adding "+iriMapper+" to "+pw.getManager());
 				pw.getManager().addIRIMapper(iriMapper);
 			}
@@ -814,7 +817,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--stash-subclasses")) {
 				opts.info("", "removes all subclasses in current source ontology; after reasoning, try to re-infer these");
 				boolean isDefinedOnly = true; // TODO - option
-				
+
 				removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
 				System.out.println("Testing "+removedSubClassOfAxioms.size()+" SubClassOf axioms for stashing");
 				HashSet<RemoveAxiom> rmaxs = new HashSet<RemoveAxiom>();
@@ -1488,6 +1491,23 @@ public class CommandRunner {
 				gafdoc = builder.buildDocument(opts.nextOpt());				
 				//gafdoc = builder.buildDocument(new File(opts.nextOpt()));				
 			}
+			else if (opts.nextEq("--gaf2owl")) {
+				GAFOWLBridge bridge;
+				if (opts.nextEq("-n")) {
+					String iri = opts.nextOpt();
+					if (!iri.startsWith("http:")) {
+						iri = "http://purl.obolibrary.org/obo/"+iri;
+					}
+					OWLOntology tgtOnt = g.getManager().createOntology(IRI.create(iri));
+
+
+					bridge = new GAFOWLBridge(g, tgtOnt);
+				}
+				else {
+					bridge = new GAFOWLBridge(g);
+				}
+				bridge.translate(gafdoc);			
+			}
 			else if (opts.nextEq("--gaf-xp-predict")) {
 				owlpp = new OWLPrettyPrinter(g);
 				if (gafdoc == null) {
@@ -1539,6 +1559,27 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--no-cache")) {
 				g.getConfig().isCacheClosure = false;
+			}
+			else if (opts.nextEq("--start-server")) {
+				int port = 9000;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p")) {
+						port = Integer.parseInt(opts.nextOpt());
+					}
+					else {
+						break;
+					}
+				}
+				Server server = new Server(port);
+				server.setHandler(new OWLServer(g));
+
+				try {
+					server.start();
+					server.join();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			else if (opts.nextEq("--create-ontology")) {
 				opts.info("ONT-IRI", "creates a new OWLOntology and makes it the source ontology");

@@ -108,6 +108,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		Set<String> sourceOntologyPrefixes = null;
 		boolean executeOntologyChecks = true;
 		boolean isForceRelease = false;
+		List<String> bridgeOntologies = new ArrayList<String>();
 
 		OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 		OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
@@ -213,6 +214,31 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		public void setExecuteOntologyChecks(boolean executeOntologyChecks) {
 			this.executeOntologyChecks = executeOntologyChecks;
+		}
+
+		public boolean isAllowEquivalentNamedClassPairs() {
+			return allowEquivalentNamedClassPairs;
+		}
+
+		public void setAllowEquivalentNamedClassPairs(
+				boolean allowEquivalentNamedClassPairs) {
+			this.allowEquivalentNamedClassPairs = allowEquivalentNamedClassPairs;
+		}
+
+		public boolean isWriteSubsets() {
+			return isWriteSubsets;
+		}
+
+		public void setWriteSubsets(boolean isWriteSubsets) {
+			this.isWriteSubsets = isWriteSubsets;
+		}
+
+		public boolean isJustifyAssertedSubclasses() {
+			return isJustifyAssertedSubclasses;
+		}
+
+		public void setJustifyAssertedSubclasses(boolean isJustifyAssertedSubclasses) {
+			this.isJustifyAssertedSubclasses = isJustifyAssertedSubclasses;
 		}
 	}
 
@@ -349,6 +375,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--skip-ontology-checks")) {
 				oortConfig.executeOntologyChecks = false;
 			}
+			else if (opt.equals("--bridge-ontology") || opt.equals("-b")) {
+				oortConfig.bridgeOntologies.add(args[i]);
+				i++;
+			}
 			else {
 				String tokens[] = opt.split(" ");
 				for (String token : tokens)
@@ -393,6 +423,18 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		mooncat = new Mooncat(parser.parseToOWLGraph(path));
 		owlpp = new OWLPrettyPrinter(mooncat.getGraph());
 
+		// A bridge ontology contains axioms connecting classes from different ontologies,
+		// but no class declarations or class metadata.
+		// Bridge ontologies are commonly used (e.g. GO, phenotype ontologies) to store
+		// logical definitions such that the core ontology includes no dangling references.
+		// Here we merge in the bridge ontologies into the core ontology
+		for (String f : oortConfig.bridgeOntologies) {
+			OWLOntology ont = parser.parse(f);
+			logger.info("Merging "+ont+" loaded from "+f);
+			mooncat.getGraph().mergeOntology(ont);
+		}
+
+
 		for (int k = 1; k < paths.size(); k++) {
 			String p = getPathIRI(paths.get(k));
 			mooncat.addReferencedOntology(parser.parseToOWLGraph(p).getSourceOntology());
@@ -428,7 +470,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		ontologyId = ontologyId.replaceAll(".obo$", ""); // temp workaround
 
 		List<String> reasonerReportLines = new ArrayList<String>();
-		
+
 		// ----------------------------------------
 		// Macro expansion
 		// ----------------------------------------
@@ -566,7 +608,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						continue;
 					}
 					String ppax = owlpp.render(ax);
-					
+
 					mooncat.getManager().applyChange(new AddAxiom(mooncat.getOntology(), ax));
 					String info;
 					if (oortConfig.isJustifyAssertedSubclasses) {
@@ -596,6 +638,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					for (OWLSubClassOfAxiom ax : removedSubClassOfAxioms) {
 						if (!axioms.contains(ax)) {
 							reasonerReportLines.add("EXITS, NOT-ENTAILED\t"+owlpp.render(ax));
+							// add it back.
+							//  note that we won't have entailments that came from this
+							mooncat.getManager().addAxiom(mooncat.getOntology(), ax);
 						}
 					}
 				}
@@ -657,7 +702,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 
 			saveInAllFormats(ontologyId, null, gciOntology);
-			
+
 			saveReasonerReport(ontologyId, reasonerReportLines);
 
 
@@ -771,7 +816,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("New axiom:"+ax+" // " + owlpp.render(ax));
 			mooncat.getManager().applyChange(new AddAxiom(graph.getSourceOntology(), ax));
 		}		
-		
+
 		// note: not used
 		return axioms;
 	}
@@ -900,7 +945,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 
-		
+
 	}
 
 	private static void usage() {

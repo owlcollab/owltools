@@ -414,6 +414,17 @@ public class OWLGraphWrapper {
 		}
 		return edges;
 	}
+	
+	public Set<OWLGraphEdge> getOutgoingEdges(OWLObject obj, boolean isClosure,boolean isReflexive) {
+		if (isClosure) {
+			if (isReflexive)
+				return getOutgoingEdgesClosureReflexive(obj);
+			else
+				return getOutgoingEdgesClosure(obj);
+		}
+		else
+			return getOutgoingEdgesClosure(obj);
+	}
 
 	private Set<OWLObject> getOutgoingEdgesViaReverseUnion(OWLObject child) {
 		if (extraSubClassOfEdges == null)
@@ -2546,5 +2557,7 @@ public class OWLGraphWrapper {
 		}
 		return o;
 	}
+
+
 }
 

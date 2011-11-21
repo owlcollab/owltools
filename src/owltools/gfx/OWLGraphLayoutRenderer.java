@@ -160,6 +160,14 @@ public class OWLGraphLayoutRenderer {
 		}
 	}
 
+	public void addObjects(Set<OWLObject> objs) {
+		// TODO - make this more efficient
+		for (OWLObject obj : objs) {
+			addObject(obj);
+		}
+		
+	}
+
 
 	/**
 	 * generates both HTML and a PNG
@@ -231,6 +239,7 @@ public class OWLGraphLayoutRenderer {
 		return sb.toString();
 
 	}
+
 
 }
 

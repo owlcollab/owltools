@@ -128,6 +128,7 @@ public class ParserWrapper {
 	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file) throws OWLOntologyStorageException {
 		manager.saveOntology(ont, owlFormat, IRI.create(file));
 	}
+	
 	public OBODoc getOBOdoc() {
 		return obodoc;
 	}
