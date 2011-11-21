@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -28,6 +29,7 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.gaf.inference.TaxonConstraintsEngine;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphEdge;
@@ -243,6 +245,34 @@ public class OWLHandler {
 		}
 	}
 
+	/**
+	 * 
+	 */
+	public void isClassApplicableForTaxonCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		headerOWL();
+		TaxonConstraintsEngine tce = new TaxonConstraintsEngine(graph);
+		Set<OWLClass> testClsSet = resolveClassList();
+		Set<OWLClass> testTaxSet = resolveClassList("taxid");
+		for (OWLClass testTax : testTaxSet) {
+			String tid = graph.getIdentifier(testTax);
+			Set<OWLObject> taxAncs = graph.getAncestorsReflexive(testTax);
+			LOG.info("Tax ancs: "+taxAncs);
+			Set<OWLClass> taxSet = new HashSet<OWLClass>();
+			for (OWLClass testCls : testClsSet) {
+				String cid = graph.getIdentifier(testCls);
+				Set<OWLGraphEdge> edges = graph.getOutgoingEdgesClosure(testCls);
+				boolean isOk = tce.isClassApplicable(testCls, testTax, edges, taxAncs);
+				// TODO - other formats
+				print(testCls);
+				print("\t");
+				print(testTax);
+				println("\t"+isOk);
+			}
+		}
+
+	}
+
+
 
 	// ----------------------------------------
 	// END OF COMMANDS
@@ -273,7 +303,11 @@ public class OWLHandler {
 	}
 
 	private Set<OWLClass> resolveClassList() {
-		String[] ids = getParams("id");
+		return resolveClassList("id");
+	}
+
+	private Set<OWLClass> resolveClassList(String p) {
+		String[] ids = getParams(p);
 		Set<OWLClass> objs = new HashSet<OWLClass>();
 		for (String id : ids) {
 			// TODO - unresolvable
@@ -324,9 +358,6 @@ public class OWLHandler {
 		response.setStatus(HttpServletResponse.SC_OK);
 	}
 
-	private void println(String s) throws IOException {
-		getWriter().println(s);
-	}
 
 
 	private void print(OWLAxiom axiom) throws IOException {
@@ -344,11 +375,19 @@ public class OWLHandler {
 		else
 			println(owlpp.render(axiom));
 	}
+	
+	private void println(String s) throws IOException {
+		getWriter().println(s);
+	}
+	private void print(String s) throws IOException {
+		getWriter().print(s);
+	}
+
 
 	private void print(OWLObject obj) throws IOException {
 		String fmt = getFormat();
-		if (fmt.equals("plain"))
-			println(obj.toString());
+		if (fmt.equals("pretty"))
+			print(owlpp.render(obj));
 		else if (fmt.equals("json")) {
 			//JSONPrinter jsonp = new JSONPrinter(response.getWriter());
 			//jsonp.render(obj);
@@ -356,10 +395,21 @@ public class OWLHandler {
 		}
 		else if (isOWLOntologyFormat()) {
 			// TODO - place objects into ontology, eg as subclass of result
-			println(obj.toString());
+			print(obj.toString());
 		}
-		else
-			println(owlpp.render(obj));
+		else {
+			// TODO - do this more generically, e.g. within owlpp
+			if (getParam("idstyle") != null && obj instanceof OWLNamedObject) {
+				if (getParam("idstyle").toLowerCase().equals("obo")) {
+					print(graph.getIdentifier(obj));
+				}
+				else {
+					print(obj.toString());
+				}
+			}
+			else 
+				print(obj.toString());
+		}
 	}
 
 	private void print(OWLGraphEdge e) throws IOException {

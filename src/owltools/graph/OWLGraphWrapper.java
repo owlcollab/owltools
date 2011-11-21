@@ -2190,7 +2190,7 @@ public class OWLGraphWrapper {
 		public Set<String> getXrefs();
 	}
 
-	// TODO - why is this static?
+
 	public static class Synonym implements ISynonym {
 		private String label;
 		private String scope;

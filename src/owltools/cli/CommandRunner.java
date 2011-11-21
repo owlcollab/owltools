@@ -75,6 +75,7 @@ import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
+import owltools.gaf.inference.TaxonConstraintsEngine;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
@@ -444,20 +445,27 @@ public class CommandRunner {
 				gcw.isChain = isChain;
 				gcw.render(g);				
 			}
+			else if (opts.nextEq("--rename-entity")) {
+				// TODO OWLEntityRenamer
+			}
 			else if (opts.nextEq("--make-taxon-set")) {
+				opts.info("[-s] TAXON","Lists all classes that are applicable for a specified taxon");
 				String idspace = null;
 				if (opts.nextEq("-s"))
 					idspace = opts.nextOpt();
 				owlpp = new OWLPrettyPrinter(g);
+				TaxonConstraintsEngine tce = new TaxonConstraintsEngine(g);
 				OWLClass tax = (OWLClass)this.resolveEntity(opts);
 				Set<OWLObject> taxAncs = g.getAncestorsReflexive(tax);
-
+				LOG.info("Tax ancs: "+taxAncs);
 				Set<OWLClass> taxSet = new HashSet<OWLClass>();
 				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
 					String cid = g.getIdentifier(c);
 					if (idspace != null && !cid.startsWith(idspace+":"))
 						continue;
-					boolean isExcluded = false;
+					Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosure(c);
+					boolean isExcluded = !tce.isClassApplicable(c, tax, edges, taxAncs);
+					/*
 					for (OWLGraphEdge e : g.getOutgoingEdgesClosure(c)) {
 						if (isExcluded)
 							break;
@@ -485,6 +493,7 @@ public class CommandRunner {
 							}
 						}
 					}
+					*/
 					if (isExcluded) {
 						LOG.info("excluding: "+owlpp.render(c));
 					}
