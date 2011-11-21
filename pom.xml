@@ -180,6 +180,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>7.5.4.v20111024</version>
+		</dependency>
 	</dependencies>
 	<distributionManagement>
 		<repository>
