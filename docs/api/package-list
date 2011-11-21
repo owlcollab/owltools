@@ -3,6 +3,7 @@ owltools.cli
 owltools.gaf
 owltools.gaf.inference
 owltools.gaf.owl
+owltools.gaf.owl.test
 owltools.gaf.test
 owltools.gfx
 owltools.gfx.test
@@ -24,3 +25,4 @@ owltools.sim
 owltools.sim.test
 owltools.test
 owltools.util
+owltools.web
