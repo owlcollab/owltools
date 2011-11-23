@@ -126,6 +126,10 @@ public class OboOntologyReleaseRunnerGui {
 						}
 						logger.info(message);
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message);
+					} catch (OboOntologyReleaseRunnerCheckException e) {
+						String message = "Stopped Release process. Reason: "+e.renderMessageString();
+						logger.error(message, e);
+						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message, "OORT Release Problem", JOptionPane.ERROR_MESSAGE);
 					} catch (Exception e) {
 						String message = "Internal error: "+ e.getMessage();
 						logger.error(message, e);

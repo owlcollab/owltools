@@ -4,7 +4,6 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -39,7 +38,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -49,7 +47,6 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
@@ -401,16 +398,18 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				message = "Finished release manager process, but no release was created.";
 			}
 			logger.info(message);
+			logger.info("Done!");
+		} catch (OboOntologyReleaseRunnerCheckException exception) {
+			logger.error("Stopped Release process. Reason: "+exception.renderMessageString());
 		} finally {
 			logger.info("deleting lock file");
 			oorr.deleteLockFile();
 		}
-		logger.info("Done!");
-
 	}
 
 	public boolean createRelease(Vector<String> paths) throws IOException, 
-	OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException 
+	OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException,
+	OboOntologyReleaseRunnerCheckException
 	{
 		String path = null;
 
@@ -657,7 +656,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						// TODO: allow --force option
 						// TODO: proper exception mechanism - delay until end?
 						if (!oortConfig.isForceRelease)
-							throw new IOException("Will not release inconsistent ontology unless forced!");
+							throw new OboOntologyReleaseRunnerCheckException("Found inconsistencies during intial checks.",incs, "Use ForceRelease option to ignore this warning.");
 					}
 					logger.info("Checking consistency completed");
 				}
@@ -665,22 +664,25 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				// TEST FOR EQUIVALENT NAMED CLASS PAIRS
 				if (true) {
 					if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
-						logger.info("WARNING! Found equivalencies between named classes");
+						logger.warn("Found equivalencies between named classes");
+						List<String> reasons = new ArrayList<String>();
 						for (OWLEquivalentClassesAxiom eca : infBuilder.getEquivalentNamedClassPairs()) {
-							for (OWLClass c1 : eca.getClassesInSignature()) {
-								for (OWLClass c2 : eca.getClassesInSignature()) {
-									if (c1.compareTo(c2) > 0) {
-										logger.info("EQUIVALENT_CLASS_PAIR\t"+c1+"\t"+c2);
-									}
-								}
-							}
+							String axiomString = owlpp.render(eca);
+							reasons.add(axiomString);
+							logger.warn("EQUIVALENT_CLASS_PAIR\t"+axiomString);
+//							for (OWLClass c1 : eca.getClassesInSignature()) {
+//								for (OWLClass c2 : eca.getClassesInSignature()) {
+//									if (c1.compareTo(c2) > 0) {
+//										logger.info("EQUIVALENT_CLASS_PAIR\t"+c1+"\t"+c2);
+//									}
+//								}
+//							}
 						}
-						if (infBuilder.getEquivalentNamedClassPairs().size() > 0 && 
-								!oortConfig.allowEquivalentNamedClassPairs) {
+						if (oortConfig.allowEquivalentNamedClassPairs == false) {
 							// TODO: allow --force option
 							// TODO: proper exception mechanism - delay until end?
 							if (!oortConfig.isForceRelease)
-								throw new IOException("Will not release ontology with equivalent pairs unless forced!");
+								throw new OboOntologyReleaseRunnerCheckException("Found equivalencies between named classes.", reasons, "Use ForceRelease option to ignore this warning.");
 						}
 
 					}
