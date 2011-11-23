@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.util.log.Log;
 import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.obo2owl.Obo2Owl;
@@ -105,6 +106,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		Set<String> sourceOntologyPrefixes = null;
 		boolean executeOntologyChecks = true;
 		boolean isForceRelease = false;
+		boolean isAutoDetectBridgingOntology = true;
 		List<String> bridgeOntologies = new ArrayList<String>();
 
 		OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
@@ -237,6 +239,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		public void setJustifyAssertedSubclasses(boolean isJustifyAssertedSubclasses) {
 			this.isJustifyAssertedSubclasses = isJustifyAssertedSubclasses;
 		}
+
+		public boolean isAutoDetectBridgingOntology() {
+			return isAutoDetectBridgingOntology;
+		}
+
+		public void setAutoDetectBridgingOntology(boolean isAutoDetectBridgingOntology) {
+			this.isAutoDetectBridgingOntology = isAutoDetectBridgingOntology;
+		}
+
 	}
 
 	/**
@@ -436,7 +447,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		for (int k = 1; k < paths.size(); k++) {
 			String p = getPathIRI(paths.get(k));
-			mooncat.addReferencedOntology(parser.parseToOWLGraph(p).getSourceOntology());
+			OWLOntology ont = parser.parse(p);
+			if (oortConfig.isAutoDetectBridgingOntology() && isBridgingOntology(ont))
+				mooncat.mergeIntoReferenceOntology(ont);
+			else
+				mooncat.addReferencedOntology(ont);
 		}
 		if (oortConfig.sourceOntologyPrefixes != null) {
 			mooncat.setSourceOntologyPrefixes(oortConfig.sourceOntologyPrefixes);
@@ -945,27 +960,46 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-
-
 	}
 
-	private static void usage() {
-		System.out.println("This utility builds an ontology release. This tool is supposed to be run " +
-		"from the location where a particular ontology releases are to be maintained.");
-		System.out.println("\n");
-		System.out.println("bin/ontology-release-runner [OPTIONAL OPTIONS] ONTOLOGIES-FILES");
-		System.out
-		.println("Multiple obo or owl files are separated by a space character in the place of the ONTOLOGIES-FILES arguments.");
-		System.out.println("\n");
-		System.out.println("OPTIONS:");
-		System.out
-		.println("\t\t (-outdir ~/work/myontology) The path where the release will be produced.");
-		System.out
-		.println("\t\t (-reasoner pellet) This option provides name of reasoner to be used to build inference computation.");
-		System.out
-		.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
-		System.out
-		.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
+	private boolean isBridgingOntology(OWLOntology ont) {
+		for (OWLClass c : ont.getClassesInSignature(true)) {
+
+			if (ont.getDeclarationAxioms(c).size() > 0) {
+				if (mooncat.getOntology().getDeclarationAxioms(c).size() >0) {
+					// class already declared in main ontology - a 2ary ontology MUST
+					// declare at least one of its own classes if it is a bone-fide non-bridging ontology
+				}
+				else if (mooncat.isDangling(ont, c)) {
+					// a dangling class has no OWL annotations.
+					// E.g. bp_xp_cl contains CL classes as dangling
+				}
+				else {
+					logger.info(c+" has declaration axioms, is not in main, and is not dangling, therefore "+ont+" is NOT a bridging ontology");
+					return false;
+				}
+				}
+			}
+			logger.info(ont+" is a bridging ontology");
+			return true;
+		}
+
+		private static void usage() {
+			System.out.println("This utility builds an ontology release. This tool is supposed to be run " +
+			"from the location where a particular ontology releases are to be maintained.");
+			System.out.println("\n");
+			System.out.println("bin/ontology-release-runner [OPTIONAL OPTIONS] ONTOLOGIES-FILES");
+			System.out
+			.println("Multiple obo or owl files are separated by a space character in the place of the ONTOLOGIES-FILES arguments.");
+			System.out.println("\n");
+			System.out.println("OPTIONS:");
+			System.out
+			.println("\t\t (-outdir ~/work/myontology) The path where the release will be produced.");
+			System.out
+			.println("\t\t (-reasoner pellet) This option provides name of reasoner to be used to build inference computation.");
+			System.out
+			.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
+			System.out
+			.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
+		}
 	}
-}

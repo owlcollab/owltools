@@ -137,6 +137,11 @@ public class Mooncat {
 		// TODO - imports
 		graph.addSupportOntology(refOnt);
 	}
+	
+	public void mergeIntoReferenceOntology(OWLOntology ont) throws OWLOntologyCreationException { 
+		LOG.info("Merging "+ont+" into reference ontology");
+		graph.mergeOntology(ont);
+	}
 
 
 	public OWLOntologyManager getManager() {
