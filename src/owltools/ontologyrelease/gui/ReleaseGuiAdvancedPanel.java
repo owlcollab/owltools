@@ -39,6 +39,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox recreateMireot;
 	final JCheckBox expandShortcutRelations;
 	final JCheckBox writeELOntologyCheckBox;
+	final JCheckBox justifyAssertedSubclasses;
 	
 	final JCheckBox allowOverwrite;
 	
@@ -66,7 +67,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, 
 			boolean defaultIsSimple, boolean defaultExpandXrefs, boolean defaultAllowOverwrite, 
 			boolean defaultRecreateMireot, boolean defaultExpandShortcutRelations,
-			boolean defaultWriteELOntology) {
+			boolean defaultWriteELOntology, boolean defaultJustifyAssertedSubclasses) {
 		super();
 		
 		this.panel = new JPanel();
@@ -86,6 +87,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		recreateMireot = new JCheckBox();
 		expandShortcutRelations = new JCheckBox();
 		writeELOntologyCheckBox = new JCheckBox();
+		justifyAssertedSubclasses = new JCheckBox();
 		
 		// reasoner radio buttons
 		pelletRadioButton = new JRadioButton();
@@ -113,7 +115,8 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 				defaultAllowOverwrite,
 				defaultRecreateMireot,
 				defaultExpandShortcutRelations,
-				defaultWriteELOntology);
+				defaultWriteELOntology,
+				defaultJustifyAssertedSubclasses);
 		addRowGap(panel, pos, 10);
 		
 		
@@ -134,13 +137,14 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param simpleLabel
 	 * @param simpleDesc
 	 * @param defaultIsSimple
+	 * @param defaultJustifyAssertedSubclasses 
 	 */
 	private void createOptionPanel(GBHelper pos, 
 			String assertedLabel, String assertedDesc, boolean defaultIsAsserted, 
 			String simpleLabel, String simpleDesc, boolean defaultIsSimple, 
 			boolean defaultExpandXrefs, boolean defaultAllowOverwrite, 
 			boolean defaultRecreateMireot, boolean defaultExpandShortcutRelations,
-			boolean defaultWriteELOntology)
+			boolean defaultWriteELOntology, boolean defaultJustifyAssertedSubclasses)
 	{
 		panel.add(new JLabel("Options"), pos.nextRow().indentLeft(DEFAULT_INDENT));
 		
@@ -170,6 +174,10 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(panel, pos.nextRow(), 5);
 		
 		createFancyCheckBox(pos, "Create OWL-EL profile ontology", null, defaultWriteELOntology, writeELOntologyCheckBox);
+		
+		addRowGap(panel, pos.nextRow(), 5);
+		
+		createFancyCheckBox(pos, "Justify Asserted Sub Classes", null, defaultJustifyAssertedSubclasses, justifyAssertedSubclasses);
 		
 		addRowGap(panel, pos.nextRow(), 10);
 	}

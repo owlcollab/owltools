@@ -179,6 +179,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 		// writeELOntology
 		parameters.setWriteELOntology(advancedPanel.writeELOntologyCheckBox.isSelected());
 		
+		// JustifyAssertedSubclasses
+		parameters.setJustifyAssertedSubclasses(advancedPanel.justifyAssertedSubclasses.isSelected());
+		
 		// paths
 		ListModel inputFileModel = mainPanel.inputFileJList.getModel();
 		Vector<String> paths = new Vector<String>();
@@ -267,7 +270,8 @@ public class ReleaseGuiMainFrame extends JFrame {
 					parameters.isAllowFileOverWrite(),
 					parameters.isRecreateMireot(),
 					parameters.isExpandShortcutRelations(),
-					parameters.isWriteELOntology());
+					parameters.isWriteELOntology(),
+					parameters.isJustifyAssertedSubclasses());
 		}
 		return advancedPanel;
 	}
