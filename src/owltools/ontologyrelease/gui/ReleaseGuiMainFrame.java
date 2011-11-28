@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -17,6 +18,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
+import org.apache.commons.io.FileUtils;
 import org.obolibrary.gui.GuiLogPanel;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
 
@@ -203,8 +205,11 @@ public class ReleaseGuiMainFrame extends JFrame {
 		File baseDirectory = new File(base);
 
 		if (!baseDirectory.exists()) {
-			renderInputError("The base directory at " + base + " does not exist");
-			return false;
+			try {
+				FileUtils.forceMkdir(baseDirectory);
+			} catch (IOException e) {
+				renderInputError("Can't create the base directory at " + baseDirectory);
+			}
 		}
 
 		if (!baseDirectory.canRead()) {

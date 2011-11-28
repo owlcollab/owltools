@@ -3,6 +3,8 @@ package owltools.ontologyrelease.gui;
 import java.io.File;
 import java.util.Vector;
 
+import org.apache.commons.io.FileUtils;
+
 import owltools.ontologyrelease.OboOntologyReleaseRunner;
 import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration;
 
@@ -13,7 +15,7 @@ import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration;
 public class GUIOortConfiguration extends OortConfiguration {
 	
 	private Vector<String> paths;
-	private File base = new File(".");
+	private File base = new File(FileUtils.getUserDirectory(),"OORT");
 
 	public GUIOortConfiguration() {
 		super();
