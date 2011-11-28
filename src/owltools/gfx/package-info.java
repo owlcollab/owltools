@@ -3,12 +3,10 @@
  * 
  * Uses QuickGO code by David Binns and Tony Sawford
  * 
- * The core class is {@link OWLGraphLayoutRenderer}
+ * The core class is {@link owltools.gfx.OWLGraphLayoutRenderer}
  * 
  * Currently the only rendering engine is the one lifted from QuickGO. In future there will
  * be a common interface and multiple alternate renderers, including GraphViz
  * 
  */
 package owltools.gfx;
-
-import owltools.gfx.OWLGraphLayoutRenderer;

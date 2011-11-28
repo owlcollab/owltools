@@ -252,7 +252,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 	/**
 	 * Check whether the file is new. Throw an {@link IOException}, 
-	 * if the file already exists and {@link #allowFileOverWrite} 
+	 * if the file already exists and {@link OortConfiguration#allowFileOverWrite} 
 	 * is not set to true.
 	 * 
 	 * @param file
@@ -817,10 +817,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	 * Uses reasoner to obtained inferred subclass axioms, and then adds the non-redundant
 	 * ones to he ontology
 	 * 
-	 * @param graph
-	 * @param manager
-	 * @param reasoner
-	 * @return
+	 * @return axioms
 	 */
 	private List<OWLAxiom> buildInferences() {
 

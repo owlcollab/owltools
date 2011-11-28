@@ -3,7 +3,7 @@
  * 
  * This package provides MIREOT-like capabilities as well as tools for working with OBO-style subsets
  * 
- * The main class in {@link Mooncat} - see the API docs for more details
+ * The main class in {@link owltools.mooncat.Mooncat} - see the API docs for more details
  *
  * Command Line Use:
  * <p>
@@ -18,5 +18,3 @@
  * 
  * */
 package owltools.mooncat;
-
-import owltools.mooncat.Mooncat;

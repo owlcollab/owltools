@@ -1,6 +1,5 @@
 package owltools.sim;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -95,7 +94,8 @@ public class SimEngine {
 	 * ontology with an entity PhenoSim_0000001 where all
 	 * the literals associated with this are excluded.
 	 * (note that this method may change in future)
-	 *
+	 * 
+	 * @return excluded labels 
 	 */
 	public Set<String> getExcludedLabels() {
 		if (excludedLabels != null)
@@ -117,7 +117,7 @@ public class SimEngine {
 	 * it is a named entity, and the label for that entity matches the exclude labels list
 	 * OR: it is a class expression, and the signature contains an excluded class
 	 * @param att
-	 * @return
+	 * @return boolean
 	 */
 	public boolean isExcludedFromAnalysis(OWLObject att) {
 		if (att instanceof OWLAnonymousClassExpression) {
@@ -151,7 +151,9 @@ public class SimEngine {
 	/**
 	 * factory class for generating a Similarity instance based on its name
 	 * 
-	 * 
+	 * @param name 
+	 * @return {@link Similarity} 
+	 * @throws SimilarityAlgorithmException 
 	 */
 	public Similarity getSimilarityAlgorithm(String name) throws SimilarityAlgorithmException {
 		Class c = null;
@@ -668,8 +670,13 @@ public class SimEngine {
 	}
 	 */
 
-
-
+	/**
+	 * @param m
+	 * @param a
+	 * @param b
+	 * @return score
+	 * @throws SimilarityAlgorithmException
+	 */
 	public Double calculateSimilarityScore(Similarity m, OWLObject a, OWLObject b) throws SimilarityAlgorithmException {
 		Similarity r = calculateSimilarity(m,a,b);
 		return r.score;
@@ -683,7 +690,7 @@ public class SimEngine {
 	 * @param m
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return similarity
 	 * @throws SimilarityAlgorithmException
 	 */
 	public Similarity calculateSimilarity(Similarity m, OWLObject a, OWLObject b) throws SimilarityAlgorithmException {

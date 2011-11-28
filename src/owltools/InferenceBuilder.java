@@ -230,10 +230,10 @@ public class InferenceBuilder{
 	 * this is because applications - particularly obof-centered ones -
 	 * ignore equivalence axioms by default
 	 * 
-	 * side effects: sets redundantAxioms
+	 * side effects: sets redundantAxioms (@see #getRedundantAxioms())
 	 * 
-	 * @param treatEquivalenceAxiomsAsAssertions
-	 * @return
+	 * @param alwaysAssertSuperClasses 
+	 * @return inferred axioms
 	 */
 	public List<OWLAxiom> buildInferences(boolean alwaysAssertSuperClasses) {
 		List<OWLAxiom> axiomsToAdd = new ArrayList<OWLAxiom>();

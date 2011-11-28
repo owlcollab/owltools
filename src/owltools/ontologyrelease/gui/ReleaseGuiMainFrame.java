@@ -15,7 +15,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 
 import org.obolibrary.gui.GuiLogPanel;
@@ -183,11 +182,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 		parameters.setJustifyAssertedSubclasses(advancedPanel.justifyAssertedSubclasses.isSelected());
 		
 		// paths
-		ListModel inputFileModel = mainPanel.inputFileJList.getModel();
 		Vector<String> paths = new Vector<String>();
-		for (int i = 0; i < inputFileModel.getSize(); i++) {
-			String path = inputFileModel.getElementAt(i).toString();
-			paths.add(path);
+		for(String source : mainPanel.sources.keySet()) {
+			paths.add(source);
 		}
 		if (paths.isEmpty()) {
 			renderInputError("Configuration error. Please specify at least one ontology file to release");
@@ -231,7 +228,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * Execute the actual release. 
 	 * Override this method to implement the call to the release methods.
 	 * 
-	 * @param config
+	 * @param parameters 
 	 */
 	protected void executeRelease(GUIOortConfiguration parameters) {
 		// for tests print all parameter variables
@@ -243,6 +240,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	/**
 	 * Retrieve main panel, create new if it not exists.
 	 * 
+	 * @param advancedPanel 
 	 * @return main panel
 	 */
 	private SizedJPanel getMainPanel(ReleaseGuiAdvancedPanel advancedPanel) {

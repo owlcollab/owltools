@@ -82,7 +82,7 @@ import owltools.profile.Profiler;
  * 
  * An instance of an OWLGraphWrapper wraps one or more {@link org.semanticweb.owlapi.model.OWLOntology} objects. One of these is designated
  * the <i>sourceOntology</i>, the others are designated <i>support ontologies</i>
- * (see {@link getSourceOntology()} and {@link getSupportOntologies()}).
+ * (see {@link #getSourceOntology()} and {@link getSupportOntologies()}).
  * The source ontology may import the support
  * ontologies, but this is optional. Most OWLGraphWrapper methods operate over the union of the source ontology
  * and support ontologies. This is particularly useful for working with OBO Library ontologies, where axioms
@@ -96,14 +96,14 @@ import owltools.profile.Profiler;
  * 
  * This wrapper provides convenience methods for fetching objects by OBO-Style IDs, IRIs or by labels.
  * Note that unlike the get* calls on {@link OWLDataFactory} objects, these only return an object if it
- * has been declaraed in either the source ontology or a support ontology.
+ * has been declared in either the source ontology or a support ontology.
  * 
  * See for example
  * 
  * <ul>
- *  <li>{@link getOWLClass(String id)}
- *  <li>{@link getOWLClassByIdentifier(String id)}
- *  <li>{@link getOWLObjectByLabel(String label)}
+ *  <li>{@link #getOWLClass(String id)}
+ *  <li>{@link #getOWLClassByIdentifier(String id)}
+ *  <li>{@link #getOWLObjectByLabel(String label)}
  * </ul>
  * <h3>OBO Metadata</h3>
  * 
@@ -113,7 +113,7 @@ import owltools.profile.Profiler;
  * 
  * See methods such as
  * <ul>
- *  <li>{@link getOWLClassByIdentifier(String id)}
+ *  <li>{@link #getOWLClassByIdentifier(String id)}
  * </ul>
  * 
  * <h4>Textual metadata</h4>
@@ -184,6 +184,9 @@ public class OWLGraphWrapper {
 
 	/**
 	 * Create a new wrapper for an OWLOntology
+	 * 
+	 * @param ontology 
+	 * 
 	 * @throws OWLOntologyCreationException 
 	 * @throws UnknownOWLOntologyException 
 	 */
@@ -195,6 +198,15 @@ public class OWLGraphWrapper {
 		manager.getOntologyFormat(ontology);
 	}
 
+	/**
+	 * Create a new wrapper for an OWLOntology
+	 * 
+	 * @param ontology
+	 * @param isMergeImportClosure
+	 * @throws UnknownOWLOntologyException
+	 * @throws OWLOntologyCreationException
+	 * @deprecated
+	 */
 	@Deprecated
 	public OWLGraphWrapper(OWLOntology ontology, boolean isMergeImportClosure) throws UnknownOWLOntologyException, OWLOntologyCreationException {
 		super();
@@ -403,7 +415,7 @@ public class OWLGraphWrapper {
 	 * e.g. if (A SubClassOf R some B) then outgoing(A) = { <A, R-some, B> }
 	 * e.g. if (A SubClassOf R some (R2 some B)) then outgoing(A) = { <A, [R-some,R2-same], B> }
 	 * 
-	 * @param source
+	 * @param cls source
 	 * @return all edges that originate from source to nearest named object target
 	 */
 	public Set<OWLGraphEdge> getOutgoingEdges(OWLObject cls) {
@@ -463,8 +475,8 @@ public class OWLGraphWrapper {
 	 * primitive edges connect any combination of named objects and expressions
 	 * 
 	 * e.g. (A SubClassOf R some B) => <A,sub,R-some-B>, <R-some-B,R-some,B>
-	 * @param source
-	 * @return
+	 * @param s source
+	 * @return set of {@link OWLGraphEdge}
 	 */
 	public Set<OWLGraphEdge> getPrimitiveOutgoingEdges(OWLObject s) {
 		profiler.startTaskNotify("getPrimitiveOutgoingEdges");
@@ -713,7 +725,7 @@ public class OWLGraphWrapper {
 	 * after feeding this edge into this method we obtain the expression
 	 *   part_of some (adjacent_to some (has_part some b))
 	 * 
-	 * @param edge
+	 * @param e edge
 	 * @return class expression equivalent to edge
 	 */
 	public OWLObject edgeToTargetExpression(OWLGraphEdge e) {
@@ -799,7 +811,7 @@ public class OWLGraphWrapper {
 	 * method edgeToTargetExpression(e). E.g. in the above the expression would be
 	 *   R some (S some C)
 	 * 
-	 * @param source
+	 * @param s source
 	 * @return closure of edges originating from source
 	 */
 	public Set<OWLGraphEdge> getOutgoingEdgesClosure(OWLObject s) {
@@ -918,8 +930,8 @@ public class OWLGraphWrapper {
 	 * if the edge consists entirely of subclass links, the the subsumers will be all
 	 * named classes.
 	 * 
-	 * @param source
-	 * @return
+	 * @param s source
+	 * @return set of {@link OWLObject}
 	 */
 	public Set<OWLObject> getSubsumersFromClosure(OWLObject s) {
 		Set<OWLObject> ts = new HashSet<OWLObject>();
@@ -957,8 +969,8 @@ public class OWLGraphWrapper {
 	 * No attempt is made to optimize the query. The engine is incomplete and currently ontology implements
 	 * queries for constructs that use AND, OR, SOME
 	 * 
-	 * @param classExpression
-	 * @return
+	 * @param t classExpression
+	 * @return set of descendants
 	 */
 	public Set<OWLObject> queryDescendants(OWLClassExpression t) {
 		return queryDescendants(t, true, true);
@@ -1024,8 +1036,8 @@ public class OWLGraphWrapper {
 	}
 
 	/**
-	 * @param source
-	 * @param target
+	 * @param s source
+	 * @param t target
 	 * @return all edges connecting source and target in the graph closure
 	 */
 
@@ -1045,7 +1057,7 @@ public class OWLGraphWrapper {
 	 * named object that can be reached from x over some path of asserted edges.
 	 * relations are ignored.
 	 * 
-	 * @param source
+	 * @param x source
 	 * @return all reachable target nodes, regardless of edges
 	 */
 	public Set<OWLObject> getAncestors(OWLObject x) {
@@ -1154,7 +1166,7 @@ public class OWLGraphWrapper {
 	/**
 	 * return all individuals i where x is reachable from i
 	 * @param x
-	 * @return
+	 * @return set of individual {@link OWLObject}s
 	 */
 	public Set<OWLObject> getIndividualDescendants(OWLObject x) {
 		Set<OWLObject> descs = new HashSet<OWLObject>();
@@ -1173,8 +1185,8 @@ public class OWLGraphWrapper {
 	 * for every s, if t is reachable from s, then include the inferred edge between s and t.
 	 * 
 	 * @see getOutgoingEdgesClosure
-	 * @param target
-	 * @return all edges connecting all descendents of target to target
+	 * @param t target
+	 * @return all edges connecting all descendants of target to target
 	 */
 	public Set<OWLGraphEdge> getIncomingEdgesClosure(OWLObject t) {
 
@@ -1300,12 +1312,11 @@ public class OWLGraphWrapper {
 	 *  
 	 *  srcEdge o tgtEdge --> returned edge
 	 *  
-	 * @see combineEdgePair(OWLObject s, OWLGraphEdge ne, OWLGraphEdge extEdge, int nextDist) 
+	 * @see #combineEdgePair(OWLObject s, OWLGraphEdge ne, OWLGraphEdge extEdge, int nextDist) 
 	 * @param tgtEdge
-	 * @param t
 	 * @param srcEdge
 	 * @param nextDist
-	 * @return
+	 * @return edge
 	 */
 	private OWLGraphEdge combineEdgePairDown(OWLGraphEdge tgtEdge, OWLGraphEdge srcEdge, int nextDist) {
 		// fill in edge label later
@@ -1345,6 +1356,9 @@ public class OWLGraphWrapper {
 	 * Edge composition rules
 	 * 
 	 * TODO - property chains of length > 2
+	 * @param x 
+	 * @param y 
+	 * @return property or null
 	 */
 	private OWLQuantifiedProperty combinedQuantifiedPropertyPair(OWLQuantifiedProperty x, OWLQuantifiedProperty y) {
 
@@ -1460,7 +1474,7 @@ public class OWLGraphWrapper {
 	 *  
 	 *  the semantics are the same as inferred ClassAssertion axioms
 	 * 
-	 * @param owlClass
+	 * @param c owlClass
 	 * @return all individuals classified here via basic graph traversal
 	 */
 	public Set<OWLIndividual> getInstancesFromClosure(OWLClass c) {
@@ -1490,7 +1504,7 @@ public class OWLGraphWrapper {
 	 * 
 	 * i has_part j, j inst_of k, k part_of some c
 	 * 
-	 * @param owlClass
+	 * @param c owlClass
 	 * @return all edges in closure between an instance and owlClass
 	 */
 	public Set<OWLGraphEdge> getInstanceChainsFromClosure(OWLClass c) {
@@ -2434,8 +2448,8 @@ public class OWLGraphWrapper {
 	 * the class must be declared in either the source ontology, or in a support ontology,
 	 * otherwise null is returned
 	 * 
-	 * @param iri
-	 * @return
+	 * @param s IRI string
+	 * @return {@link OWLClass}
 	 */
 	public OWLClass getOWLClass(String s) {
 		IRI iri = IRI.create(s);
@@ -2449,7 +2463,7 @@ public class OWLGraphWrapper {
 	 * otherwise null is returned
 	 *
 	 * @param iri
-	 * @return
+	 * @return {@link OWLClass}
 	 */
 	public OWLClass getOWLClass(IRI iri) {
 		OWLClass c = getDataFactory().getOWLClass(iri);
@@ -2463,7 +2477,7 @@ public class OWLGraphWrapper {
 
 	/**
 	 * @param x
-	 * @return
+	 * @return {@link OWLClass}
 	 */
 	public OWLClass getOWLClass(OWLObject x) {
 		return dataFactory.getOWLClass(((OWLNamedObject)x).getIRI());
@@ -2474,7 +2488,7 @@ public class OWLGraphWrapper {
 	 * Returns an OWLNamedIndividual with this IRI <b>if it has been declared</b>
 	 * in the source or support ontologies. Returns null otherwise.
 	 * @param iri
-	 * @return
+	 * @return {@link OWLNamedIndividual}
 	 */
 	public OWLNamedIndividual getOWLIndividual(IRI iri) {
 		OWLNamedIndividual c = dataFactory.getOWLNamedIndividual(iri);
@@ -2489,9 +2503,9 @@ public class OWLGraphWrapper {
 	}
 
 	/**
-	 * @see {@link getOWLIndividual(IRI)}
+	 * @see #getOWLIndividual(IRI)
 	 * @param s
-	 * @return
+	 * @return {@link OWLNamedIndividual}
 	 */
 	public OWLNamedIndividual getOWLIndividual(String s) {
 		IRI iri = IRI.create(s);
@@ -2504,7 +2518,7 @@ public class OWLGraphWrapper {
 	 * Must have been declared in one of the ontologies
 	 * 
 	 * @param iri
-	 * @return
+	 * @return {@link OWLObjectProperty}
 	 */
 	public OWLObjectProperty getOWLObjectProperty(String iri) {
 		return getOWLObjectProperty(IRI.create(iri));
@@ -2525,9 +2539,9 @@ public class OWLGraphWrapper {
 	 * Returns the OWLObject with this IRI
 	 * (where IRI is specified as a string - e.g http://purl.obolibrary.org/obo/GO_0008150)
 	 * 
-	 * @param iriString
-	 * @see getOWLObject(IRI iri)
-	 * @return
+	 * @param s IRI string
+	 * @see #getOWLObject(IRI iri)
+	 * @return {@link OWLObject}
 	 */
 	public OWLObject getOWLObject(String s) {
 		return getOWLObject(IRI.create(s));
@@ -2543,8 +2557,8 @@ public class OWLGraphWrapper {
 	 * If the ontology employs punning and there different entities with the same IRI, then
 	 * the order of precedence is OWLClass then OWLObjectProperty then OWLNamedIndividual
 	 *
-	 * @param entityIri
-	 * @return
+	 * @param s entity IRI
+	 * @return {@link OWLObject}
 	 */
 	private OWLObject getOWLObject(IRI s) {
 		OWLObject o;

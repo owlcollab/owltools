@@ -19,6 +19,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
+import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration;
+
 /**
  * Provide a staging directory for the release runners. 
  */
@@ -97,7 +99,7 @@ abstract class ReleaseRunnerFileTools {
 	 * Set the ontology version id for a particular release. 
 	 * If null, the current date is used.
 	 * 
-	 * @param version, version if available or null
+	 * @param version version if available or null
 	 * @return version
 	 * @throws IOException
 	 */
@@ -149,7 +151,7 @@ abstract class ReleaseRunnerFileTools {
 	
 	/**
 	 * Check whether the file is new. Throw an {@link IOException}, 
-	 * if the file already exists and {@link #allowFileOverWrite} 
+	 * if the file already exists and {@link OortConfiguration#allowFileOverWrite} 
 	 * is not set to true.
 	 * 
 	 * @param file
