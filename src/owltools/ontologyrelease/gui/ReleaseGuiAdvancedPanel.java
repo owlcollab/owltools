@@ -63,6 +63,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param defaultRecreateMireot
 	 * @param defaultExpandShortcutRelations
 	 * @param defaultWriteELOntology
+	 * @param defaultJustifyAssertedSubclasses 
 	 */
 	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, 
 			boolean defaultIsSimple, boolean defaultExpandXrefs, boolean defaultAllowOverwrite, 
@@ -137,6 +138,11 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param simpleLabel
 	 * @param simpleDesc
 	 * @param defaultIsSimple
+	 * @param defaultExpandXrefs 
+	 * @param defaultAllowOverwrite 
+	 * @param defaultRecreateMireot 
+	 * @param defaultExpandShortcutRelations 
+	 * @param defaultWriteELOntology 
 	 * @param defaultJustifyAssertedSubclasses 
 	 */
 	private void createOptionPanel(GBHelper pos, 
