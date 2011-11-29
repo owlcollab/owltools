@@ -30,5 +30,8 @@
 	<classpathentry kind="lib" path="lib/runlibs/elk-standalone-0.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/runlibs/owlapi-bin-3.2.4.jar" sourcepath="lib/runlibs/owlapi-src-3.2.4.zip"/>
 	<classpathentry kind="lib" path="lib/runlibs/FaCTpp-OWLAPI-3.2-v1.5.2.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/servlet-api-2.5.jar" sourcepath="/Users/cjm/.m2/repository/javax/servlet/servlet-api/2.5/servlet-api-2.5-sources.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/jetty-all-7.5.4.jar" sourcepath="/Users/cjm/.m2/repository/org/eclipse/jetty/aggregate/jetty-all/7.5.4.v20111024/jetty-all-7.5.4.v20111024-sources.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/gson-1.7.1.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
