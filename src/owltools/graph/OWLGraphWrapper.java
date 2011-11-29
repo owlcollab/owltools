@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -2301,9 +2302,14 @@ public class OWLGraphWrapper {
 		return Owl2Obo.getIdentifier(iriId);
 	}
 
-	//@Deprecated
 	// TODO - use Obo2Owl.oboIdToIRI()
 	public IRI getIRIByIdentifier(String id) {
+		// TODO - provide a static method for doing this
+		Obo2Owl b = new Obo2Owl();
+		b.setObodoc(new OBODoc());
+		return b.oboIdToIRI(id);
+		/*
+		new oboIdToIRI()
 		String[] parts = id.split(":", 2);
 		String s;
 		if (parts.length <2) {
@@ -2315,6 +2321,7 @@ public class OWLGraphWrapper {
 		}
 
 		return IRI.create(s);
+		*/
 	}
 
 	/**
