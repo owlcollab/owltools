@@ -134,7 +134,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				continue;
 
 			logger.info("processing arg: " + opt);
-			if (opt.equals("--h") || opt.equals("--help")) {
+			if (opt.equals("--h") || opt.equals("--help") || opt.equals("-h")) {
 				usage();
 				System.exit(0);
 			}
