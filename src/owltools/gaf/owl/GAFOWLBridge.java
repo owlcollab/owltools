@@ -100,6 +100,8 @@ public class GAFOWLBridge {
 		OWLObjectProperty p = getGeneAnnotationRelation(a);
 		OWLObjectSomeValuesFrom r =
 			fac.getOWLObjectSomeValuesFrom(p, t);
+		// e.g. Shh and actively_participates_in some 'heart development'
+		// todo - product
 		OWLClassExpression x =
 			fac.getOWLObjectIntersectionOf(e, r);
 		OWLObjectProperty pDescribes = getGeneAnnotationObjectProperty(Vocab.DESCRIBES);
