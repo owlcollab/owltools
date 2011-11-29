@@ -100,7 +100,7 @@ public class OboOntologyReleaseRunnerGui {
 								int answer = JOptionPane.showConfirmDialog(ReleaseGuiMainFrameRunner.this, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 								boolean allowOverwrite = answer == JOptionPane.YES_OPTION;
 								ReleaseGuiMainFrameRunner.this.getAdvancedPanel().setAllowOverwrite(allowOverwrite);
-								oortConfig.allowFileOverWrite = allowOverwrite;
+								oortConfig.setAllowFileOverWrite(allowOverwrite);
 								return allowOverwrite;
 							}
 

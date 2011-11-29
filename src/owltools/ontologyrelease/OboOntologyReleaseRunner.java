@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-import org.eclipse.jetty.util.log.Log;
 import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.obo2owl.Obo2Owl;
@@ -27,8 +26,6 @@ import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatDanglingReferenceException;
 import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -41,7 +38,6 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -54,7 +50,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
-import owltools.ontologyrelease.OboOntologyReleaseRunner.OortConfiguration.MacroStrategy;
+import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
 import owltools.ontologyverification.OntologyCheckHandler;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
@@ -81,178 +77,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		this.oortConfig = oortConfig; 
 	}
 
-	public static class OortConfiguration {
-
-		public enum MacroStrategy {
-			GCI, INPLACE 
-		}
-
-		String reasonerName = InferenceBuilder.REASONER_HERMIT;
-		boolean enforceEL = false;
-		boolean writeELOntology = false;
-		boolean asserted = false;
-		boolean simple = false;
-		boolean allowFileOverWrite = false;
-		// TODO - make this an option
-		boolean isExpandXrefs = false;
-		boolean isRecreateMireot = true;
-		boolean isExpandMacros = false;
-		boolean allowEquivalentNamedClassPairs = false;
-		MacroStrategy macroStrategy = MacroStrategy.GCI;
-		boolean isCheckConsistency = true;
-		boolean isWriteMetadata = true;
-		boolean isWriteSubsets = true;
-		boolean isJustifyAssertedSubclasses = false;
-		Set<String> sourceOntologyPrefixes = null;
-		boolean executeOntologyChecks = true;
-		boolean isForceRelease = false;
-		boolean isAutoDetectBridgingOntology = true;
-		List<String> bridgeOntologies = new ArrayList<String>();
-
-		OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
-		OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
-
-		public String getReasonerName() {
-			return reasonerName;
-		}
-
-		public void setReasonerName(String reasonerName) {
-			this.reasonerName = reasonerName;
-		}
-
-		public boolean isAsserted() {
-			return asserted;
-		}
-
-		public void setAsserted(boolean asserted) {
-			this.asserted = asserted;
-		}
-
-		public boolean isSimple() {
-			return simple;
-		}
-
-		public void setSimple(boolean simple) {
-			this.simple = simple;
-		}
-
-		public boolean isExpandXrefs() {
-			return isExpandXrefs;
-		}
-
-		public void setExpandXrefs(boolean isExportBridges) {
-			this.isExpandXrefs = isExportBridges;
-		}
-
-		public boolean isAllowFileOverWrite() {
-			return allowFileOverWrite;
-		}
-
-		public void setAllowFileOverWrite(boolean allowFileOverWrite) {
-			this.allowFileOverWrite = allowFileOverWrite;
-		}
-
-		public MacroStrategy getMacroStrategy() {
-			return macroStrategy;
-		}
-
-		public void setMacroStrategy(MacroStrategy macroStrategy) {
-			this.macroStrategy = macroStrategy;
-		}
-
-		public boolean isRecreateMireot() {
-			return isRecreateMireot;
-		}
-
-		public void setRecreateMireot(boolean isRecreateMireot) {
-			this.isRecreateMireot = isRecreateMireot;
-		}
-
-		public boolean isExpandShortcutRelations() {
-			return isExpandMacros;
-		}
-
-		public void setExpandShortcutRelations(boolean expandShortcutRelations) {
-			this.isExpandMacros = expandShortcutRelations;
-		}
-
-		public boolean isEnforceEL() {
-			return enforceEL;
-		}
-
-		public void setEnforceEL(boolean enforceEL) {
-			this.enforceEL = enforceEL;
-		}
-
-		public boolean isWriteELOntology() {
-			return writeELOntology;
-		}
-
-		public void setWriteELOntology(boolean writeELOntology) {
-			this.writeELOntology = writeELOntology;
-		}
-
-		public Set<String> getSourceOntologyPrefixes() {
-			return sourceOntologyPrefixes;
-		}
-
-		public void setSourceOntologyPrefixes(Set<String> sourceOntologyPrefixes) {
-			this.sourceOntologyPrefixes = sourceOntologyPrefixes;
-		}
-
-		public void addSourceOntologyPrefix(String prefix) {
-			if (sourceOntologyPrefixes == null) 
-				sourceOntologyPrefixes = new HashSet<String>();
-			sourceOntologyPrefixes.add(prefix);
-		}
-
-
-		public boolean isExecuteOntologyChecks() {
-			return executeOntologyChecks;
-		}
-
-		public void setExecuteOntologyChecks(boolean executeOntologyChecks) {
-			this.executeOntologyChecks = executeOntologyChecks;
-		}
-
-		public boolean isAllowEquivalentNamedClassPairs() {
-			return allowEquivalentNamedClassPairs;
-		}
-
-		public void setAllowEquivalentNamedClassPairs(
-				boolean allowEquivalentNamedClassPairs) {
-			this.allowEquivalentNamedClassPairs = allowEquivalentNamedClassPairs;
-		}
-
-		public boolean isWriteSubsets() {
-			return isWriteSubsets;
-		}
-
-		public void setWriteSubsets(boolean isWriteSubsets) {
-			this.isWriteSubsets = isWriteSubsets;
-		}
-
-		public boolean isJustifyAssertedSubclasses() {
-			return isJustifyAssertedSubclasses;
-		}
-
-		public void setJustifyAssertedSubclasses(boolean isJustifyAssertedSubclasses) {
-			this.isJustifyAssertedSubclasses = isJustifyAssertedSubclasses;
-		}
-
-		public boolean isAutoDetectBridgingOntology() {
-			return isAutoDetectBridgingOntology;
-		}
-
-		public void setAutoDetectBridgingOntology(boolean isAutoDetectBridgingOntology) {
-			this.isAutoDetectBridgingOntology = isAutoDetectBridgingOntology;
-		}
-
-	}
-
 	/**
 	 * Check whether the file is new. Throw an {@link IOException}, 
-	 * if the file already exists and {@link OortConfiguration#allowFileOverWrite} 
+	 * if the file already exists and {@link OortConfiguration#isAllowFileOverWrite} 
 	 * is not set to true.
 	 * 
 	 * @param file
@@ -261,7 +88,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	 */
 	@Override
 	protected File checkNew(File file) throws IOException {
-		if (!oortConfig.allowFileOverWrite && file.exists() && file.isFile()) {
+		if (!oortConfig.isAllowFileOverWrite() && file.exists() && file.isFile()) {
 			boolean allow = allowFileOverwrite(file);
 			if (!allow) {
 				throw new IOException("Trying to overwrite an existing file: "
@@ -296,13 +123,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	OWLOntologyCreationException, OWLOntologyStorageException,
 	OBOFormatDanglingReferenceException {
 
-		String baseDirectory = ".";
-
 		OortConfiguration oortConfig = new OortConfiguration();
 
-
 		int i = 0;
-		Vector<String> paths = new Vector<String>();
 		while (i < args.length) {
 			String opt = args[i];
 			i++;
@@ -317,18 +140,18 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 
 			else if (opt.equals("-outdir") || opt.equals("--outdir")) { 
-				baseDirectory = args[i]; i++; 
+				oortConfig.setBase(new File(args[i])); i++; 
 			}
 			/*
 			 * else if (opt.equals("-owlversion")) { version = args[i]; i++; }
 			 */
 			else if (opt.equals("-reasoner") || opt.equals("--reasoner")) {
 				// TODO - deprecate "-reasoner"
-				oortConfig.reasonerName = args[i];
+				oortConfig.setReasonerName(args[i]);
 				i++;
 			}
 			else if (opt.equals("--no-reasoner")) {
-				oortConfig.reasonerName = null;
+				oortConfig.setReasonerName(null);
 			}
 			else if (opt.equals("--prefix")) {
 				oortConfig.addSourceOntologyPrefix(args[i]);
@@ -337,70 +160,69 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--enforceEL")) {
 				// If this option is active, the ontology is 
 				// restricted to EL before reasoning!
-				oortConfig.enforceEL = true;
+				oortConfig.setEnforceEL(true);
 			}
 			else if (opt.equals("--makeEL")) {
 				// If this option is active, an EL restricted ontology 
 				// is written after reasoning.
-				oortConfig.writeELOntology = true;
+				oortConfig.setWriteELOntology(true);
 			}
 			/*
 			 * else if (opt.equals("-oboincludes")) { oboIncludes = args[i];
 			 * i++; }
 			 */
 			else if (opt.equals("--force")) {
-				oortConfig.isForceRelease = true;
+				oortConfig.setForceRelease(true);
 			}
 			else if (opt.equals("--asserted")) {
-				oortConfig.asserted = true;
+				oortConfig.setAsserted(true);
 			}
 			else if (opt.equals("--simple")) {
-				oortConfig.simple = true;
+				oortConfig.setSimple(true);
 			}
 			else if (opt.equals("--expand-xrefs")) {
-				oortConfig.isExpandXrefs = true;
+				oortConfig.setExpandXrefs(true);
 			}
 			else if (opt.equals("--re-mireot")) {
-				oortConfig.isRecreateMireot = true;
+				oortConfig.setRecreateMireot(true);
 			}
 			else if (opt.equals("--justify")) {
-				oortConfig.isJustifyAssertedSubclasses = true;
+				oortConfig.setJustifyAssertedSubclasses(true);
 			}
 			else if (opt.equals("--allow-equivalent-pairs")) {
-				oortConfig.allowEquivalentNamedClassPairs = true;
+				oortConfig.setAllowEquivalentNamedClassPairs(true);
 			}
 			else if (opt.equals("--expand-macros")) {
-				oortConfig.isExpandMacros = true;
-				oortConfig.macroStrategy = MacroStrategy.GCI;
+				oortConfig.setExpandMacros(true);
+				oortConfig.setMacroStrategy(MacroStrategy.GCI);
 			}
 			else if (opt.equals("--expand-macros-inplace")) {
-				oortConfig.isExpandMacros = true;
-				oortConfig.macroStrategy = MacroStrategy.INPLACE;
+				oortConfig.setExpandMacros(true);
+				oortConfig.setMacroStrategy(MacroStrategy.INPLACE);
 			}
 			else if (opt.equals("--allow-overwrite")) {
-				oortConfig.allowFileOverWrite = true;
+				oortConfig.setAllowFileOverWrite(true);
 			}
 			else if (opt.equals("--skip-ontology-checks")) {
-				oortConfig.executeOntologyChecks = false;
+				oortConfig.setExecuteOntologyChecks(false);
 			}
 			else if (opt.equals("--bridge-ontology") || opt.equals("-b")) {
-				oortConfig.bridgeOntologies.add(args[i]);
+				oortConfig.addBridgeOntology(args[i]);
 				i++;
 			}
 			else {
 				String tokens[] = opt.split(" ");
 				for (String token : tokens)
-					paths.add(token);
+					oortConfig.addPath(token);
 			}
 		}
 
-		File base = new File(baseDirectory);
-		logger.info("Base directory path " + base.getAbsolutePath());
+		logger.info("Base directory path " + oortConfig.getBase().getAbsolutePath());
 
-		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, base);
+		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, oortConfig.getBase());
 
 		try {
-			boolean success = oorr.createRelease(paths);
+			boolean success = oorr.createRelease(oortConfig.getPaths());
 			String message;
 			if (success) {
 				message = "Finished release manager process";
@@ -438,7 +260,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// Bridge ontologies are commonly used (e.g. GO, phenotype ontologies) to store
 		// logical definitions such that the core ontology includes no dangling references.
 		// Here we merge in the bridge ontologies into the core ontology
-		for (String f : oortConfig.bridgeOntologies) {
+		for (String f : oortConfig.getBridgeOntologies()) {
 			OWLOntology ont = parser.parse(f);
 			logger.info("Merging "+ont+" loaded from "+f);
 			mooncat.getGraph().mergeOntology(ont);
@@ -453,11 +275,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else
 				mooncat.addReferencedOntology(ont);
 		}
-		if (oortConfig.sourceOntologyPrefixes != null) {
-			mooncat.setSourceOntologyPrefixes(oortConfig.sourceOntologyPrefixes);
+		if (oortConfig.getSourceOntologyPrefixes() != null) {
+			mooncat.setSourceOntologyPrefixes(oortConfig.getSourceOntologyPrefixes());
 		}
 
-		if (oortConfig.executeOntologyChecks) {
+		if (oortConfig.isExecuteOntologyChecks()) {
 			OntologyCheckHandler.DEFAULT_INSTANCE.afterLoading(mooncat .getGraph());
 		}
 		String version = OntologyVersionTools.getOntologyVersion(mooncat.getOntology());
@@ -489,9 +311,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// Macro expansion
 		// ----------------------------------------
 		OWLOntology gciOntology = null;
-		if (oortConfig.isExpandMacros) {
+		if (oortConfig.isExpandMacros()) {
 			logger.info("expanding macros");
-			if (oortConfig.macroStrategy == MacroStrategy.GCI) {
+			if (oortConfig.getMacroStrategy() == MacroStrategy.GCI) {
 				MacroExpansionGCIVisitor gciVisitor = 
 					new MacroExpansionGCIVisitor(mooncat.getOntology());
 				gciOntology = gciVisitor.createGCIOntology();
@@ -511,7 +333,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// ----------------------------------------
 		// Bridge files
 		// ----------------------------------------
-		if (oortConfig.isExpandXrefs) {
+		if (oortConfig.isExpandXrefs()) {
 			logger.info("Creating Bridge Ontologies");
 
 			// Note that this introduces a dependency on the oboformat-specific portion
@@ -541,7 +363,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// Asserted (non-classified)
 		// ----------------------------------------
 
-		if (oortConfig.asserted) {
+		if (oortConfig.isAsserted()) {
 			logger.info("Creating Asserted Ontology");
 			saveInAllFormats(ontologyId, "non-classified", gciOntology);
 			logger.info("Asserted Ontology Creation Completed");
@@ -550,7 +372,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// ----------------------------------------
 		// Merge in external ontologies
 		// ----------------------------------------
-		if (oortConfig.isRecreateMireot) {
+		if (oortConfig.isRecreateMireot()) {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();
@@ -561,7 +383,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			// TODO: option to save as imports
 		}
 
-		if (oortConfig.executeOntologyChecks) {
+		if (oortConfig.isExecuteOntologyChecks()) {
 			OntologyCheckHandler.DEFAULT_INSTANCE.afterMireot(mooncat.getGraph());
 		}
 
@@ -577,14 +399,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 			logger.info("Creating basic ontology");
 
-			if (oortConfig.reasonerName != null) {
+			if (oortConfig.getReasonerName() != null) {
 				OWLDataFactory df = mooncat.getGraph().getDataFactory();
 				Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
 				Set<RemoveAxiom> removedSubClassOfAxiomChanges = new HashSet<RemoveAxiom>();
-				infBuilder = new InferenceBuilder(mooncat.getGraph(), oortConfig.reasonerName, oortConfig.enforceEL);
+				infBuilder = new InferenceBuilder(mooncat.getGraph(), oortConfig.getReasonerName(), oortConfig.isEnforceEL());
 
 				// optionally remove a subset of the axioms we want to attempt to recapitulate
-				if (oortConfig.isJustifyAssertedSubclasses) {
+				if (oortConfig.isJustifyAssertedSubclasses()) {
 					logger.info("Removing asserted subclasses between defined class pairs");
 					for (OWLSubClassOfAxiom a : mooncat.getOntology().getAxioms(AxiomType.SUBCLASS_OF)) {
 						OWLClassExpression subc = a.getSubClass();
@@ -625,7 +447,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 					mooncat.getManager().applyChange(new AddAxiom(mooncat.getOntology(), ax));
 					String info;
-					if (oortConfig.isJustifyAssertedSubclasses) {
+					if (oortConfig.isJustifyAssertedSubclasses()) {
 						if (removedSubClassOfAxioms.contains(ax)) {
 							info = "EXISTS, ENTAILED";
 						}
@@ -648,7 +470,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					reasonerReportLines.add(rptLine);
 					logger.info(rptLine);
 				}
-				if (oortConfig.isJustifyAssertedSubclasses) {
+				if (oortConfig.isJustifyAssertedSubclasses()) {
 					for (OWLSubClassOfAxiom ax : removedSubClassOfAxioms) {
 						if (!axioms.contains(ax)) {
 							reasonerReportLines.add("EXITS, NOT-ENTAILED\t"+owlpp.render(ax));
@@ -661,7 +483,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logger.info("Inferences creation completed");
 
 				// CONSISTENCY CHECK
-				if (oortConfig.isCheckConsistency) {
+				if (oortConfig.isCheckConsistency()) {
 					logger.info("Checking consistency");
 					List<String> incs = infBuilder.performConsistencyChecks();
 					if (incs.size() > 0) {
@@ -670,7 +492,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						}
 						// TODO: allow --force option
 						// TODO: proper exception mechanism - delay until end?
-						if (!oortConfig.isForceRelease)
+						if (!oortConfig.isForceRelease())
 							throw new OboOntologyReleaseRunnerCheckException("Found inconsistencies during intial checks.",incs, "Use ForceRelease option to ignore this warning.");
 					}
 					logger.info("Checking consistency completed");
@@ -685,18 +507,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 							String axiomString = owlpp.render(eca);
 							reasons.add(axiomString);
 							logger.warn("EQUIVALENT_CLASS_PAIR\t"+axiomString);
-//							for (OWLClass c1 : eca.getClassesInSignature()) {
-//								for (OWLClass c2 : eca.getClassesInSignature()) {
-//									if (c1.compareTo(c2) > 0) {
-//										logger.info("EQUIVALENT_CLASS_PAIR\t"+c1+"\t"+c2);
-//									}
-//								}
-//							}
 						}
-						if (oortConfig.allowEquivalentNamedClassPairs == false) {
+						if (oortConfig.isAllowEquivalentNamedClassPairs() == false) {
 							// TODO: allow --force option
 							// TODO: proper exception mechanism - delay until end?
-							if (!oortConfig.isForceRelease)
+							if (!oortConfig.isForceRelease())
 								throw new OboOntologyReleaseRunnerCheckException("Found equivalencies between named classes.", reasons, "Use ForceRelease option to ignore this warning.");
 						}
 
@@ -714,7 +529,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 				logger.info("Redundant axioms removed");
 			}
-			if (oortConfig.executeOntologyChecks) {
+			if (oortConfig.isExecuteOntologyChecks()) {
 				OntologyCheckHandler.DEFAULT_INSTANCE.afterReasoning(mooncat.getGraph());
 			}
 
@@ -729,7 +544,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// ----------------------------------------
 		// including: named subsets, profile subsets (e.g. EL), simple subsets
 
-		if (oortConfig.isWriteSubsets) {
+		if (oortConfig.isWriteSubsets()) {
 			// named subsets
 			logger.info("writing named subsets");
 			Set<String> subsets = mooncat.getGraph().getAllUsedSubsets();
@@ -747,7 +562,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		// write EL version
-		if(oortConfig.writeELOntology) {
+		if(oortConfig.isWriteELOntology()) {
 			logger.info("Creating EL ontology");
 			OWLGraphWrapper elGraph = InferenceBuilder.enforceEL(mooncat.getGraph());
 			saveInAllFormats(ontologyId, "el", elGraph.getSourceOntology(), gciOntology);
@@ -758,7 +573,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// Simple (no MIREOTs, no imports)
 		// ----------------------------------------
 		// this is the same as MAIN, with certain axiom REMOVED
-		if (oortConfig.simple) {
+		if (oortConfig.isSimple()) {
 
 			logger.info("Creating simple ontology");
 
@@ -887,11 +702,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			reset = new SetOntologyID(ontologyToSave, change.getOriginalOntologyID());
 		}
 		OutputStream os = getOutputSteam(fn +".owl");
-		manager.saveOntology(ontologyToSave, oortConfig.defaultFormat, os);
+		manager.saveOntology(ontologyToSave, oortConfig.getDefaultFormat(), os);
 		os.close();
 
 		OutputStream osxml = getOutputSteam(fn +".owx");
-		manager.saveOntology(ontologyToSave, oortConfig.owlXMLFormat, osxml);
+		manager.saveOntology(ontologyToSave, oortConfig.getOwlXMLFormat(), osxml);
 		osxml.close();
 
 		if (reset != null) {
@@ -911,11 +726,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 			gciManager.applyChange(addImport);
 			OutputStream gciOS = getOutputSteam(fn +"-aux.owl");
-			gciManager.saveOntology(gciOntology, oortConfig.defaultFormat, gciOS);
+			gciManager.saveOntology(gciOntology, oortConfig.getDefaultFormat(), gciOS);
 			gciOS.close();
 
 			OutputStream gciOSxml = getOutputSteam(fn +"-aux.owx");
-			gciManager.saveOntology(gciOntology, oortConfig.owlXMLFormat, gciOSxml);
+			gciManager.saveOntology(gciOntology, oortConfig.getOwlXMLFormat(), gciOSxml);
 			gciOSxml.close();
 
 			gciManager.applyChange(removeImport);
@@ -932,13 +747,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		bwriter.close();
 
-		if (oortConfig.isWriteMetadata) {
+		if (oortConfig.isWriteMetadata()) {
 			OntologyMetadata omd = new OntologyMetadata();
 			// TODO
 			//omd.generate();
 
 		}
-
 	}
 
 	private void saveReasonerReport(String ontologyId,
@@ -954,8 +768,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			stream.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Could not print reasoner report for ontolog: "+ontologyId, e);
 		}
 	}
 

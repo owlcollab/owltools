@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -184,15 +183,13 @@ public class ReleaseGuiMainFrame extends JFrame {
 		parameters.setJustifyAssertedSubclasses(advancedPanel.justifyAssertedSubclasses.isSelected());
 		
 		// paths
-		Vector<String> paths = new Vector<String>();
 		for(String source : mainPanel.sources.keySet()) {
-			paths.add(source);
+			parameters.addPath(source);
 		}
-		if (paths.isEmpty()) {
+		if (parameters.getPaths().isEmpty()) {
 			renderInputError("Configuration error. Please specify at least one ontology file to release");
 			return false;
 		}
-		parameters.setPaths(paths);
 		
 		// base
 		String base = mainPanel.outputFolderTextField.getText();

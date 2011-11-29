@@ -3,13 +3,13 @@
 
    <h3>Oort User Guide</h3>
 
-   {@link http://code.google.com/p/owltools/wiki/OortIntro}
+   {@link "http://code.google.com/p/owltools/wiki/OortIntro"}
 
    <h3>Building the release manager</h3>
 
    Most users should use the pre-built GUI, which has its own installer:
    
-   {@link http://code.google.com/p/owltools/wiki/OBOReleaseManagerGUIDocumentation}
+   {@link "http://code.google.com/p/owltools/wiki/OBOReleaseManagerGUIDocumentation"}
 
    Developers can use the "ontology-release-jar" ant task
 
@@ -27,5 +27,3 @@
 
  */
 package owltools.ontologyrelease;
-
-import owltools.ontologyrelease.OboOntologyReleaseRunner;
