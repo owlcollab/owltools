@@ -20,6 +20,7 @@ import org.obolibrary.gui.GuiTools.GBHelper;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
 
 import owltools.InferenceBuilder;
+import owltools.ontologyrelease.OortConfiguration;
 
 /**
  * Panel containing advanced options for the release manager.
@@ -50,29 +51,18 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	final JRadioButton elkRadioButton;
 
 	private List<JComponent> mireotFancyCheckbox;
-	private final boolean defaultRecreateMireot;
+	private boolean defaultRecreateMireot;
 	
 	/**
 	 * Create the panel with the given default values.
 	 * 
-	 * @param defaultReasoner
-	 * @param defaultIsAsserted
-	 * @param defaultIsSimple
-	 * @param defaultExpandXrefs
-	 * @param defaultAllowOverwrite
-	 * @param defaultRecreateMireot
-	 * @param defaultExpandShortcutRelations
-	 * @param defaultWriteELOntology
-	 * @param defaultJustifyAssertedSubclasses 
+	 * @param oortConfiguration 
 	 */
-	public ReleaseGuiAdvancedPanel(String defaultReasoner, boolean defaultIsAsserted, 
-			boolean defaultIsSimple, boolean defaultExpandXrefs, boolean defaultAllowOverwrite, 
-			boolean defaultRecreateMireot, boolean defaultExpandShortcutRelations,
-			boolean defaultWriteELOntology, boolean defaultJustifyAssertedSubclasses) {
+	public ReleaseGuiAdvancedPanel(OortConfiguration oortConfiguration) {
 		super();
 		
 		this.panel = new JPanel();
-		this.defaultRecreateMireot = defaultRecreateMireot;
+		this.defaultRecreateMireot = oortConfiguration.isRecreateMireot();
 		
 		this.setLayout(new BorderLayout(1, 1));
 		JScrollPane scrollPane = new JScrollPane(panel);
@@ -107,24 +97,19 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 				"<html><p>Also make original ontology in obo and owl.</p>" +
 				"<p>In addition to creating the main ontology file <X>, will make a file '<X>-non-classified'</p>" +
 				"<p>This is the version does <i>not</i> have the reasoner-inferred links asserted</p></html>",
-				defaultIsAsserted, 
 				"simple", 
 				"<html><p>In addition the generating the main ontology, this will make a version</p>" +
-				"<p> with all external classes and references to them removed</p></html>",
-				defaultIsSimple,
-				defaultExpandXrefs,
-				defaultAllowOverwrite,
-				defaultRecreateMireot,
-				defaultExpandShortcutRelations,
-				defaultWriteELOntology,
-				defaultJustifyAssertedSubclasses);
+				"<p> with all external classes and references to them removed</p></html>");
 		addRowGap(panel, pos, 10);
 		
 		
 		
 		// reasoner
-		createReasonerPanel(pos, defaultReasoner);
+		createReasonerPanel(pos);
 		addRowGap(panel, pos, 5);
+		
+		// set values
+		applyConfig(oortConfiguration);
 		
 	}
 	
@@ -134,56 +119,45 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param pos
 	 * @param assertedLabel
 	 * @param assertedDesc
-	 * @param defaultIsAsserted
 	 * @param simpleLabel
 	 * @param simpleDesc
-	 * @param defaultIsSimple
-	 * @param defaultExpandXrefs 
-	 * @param defaultAllowOverwrite 
-	 * @param defaultRecreateMireot 
-	 * @param defaultExpandShortcutRelations 
-	 * @param defaultWriteELOntology 
-	 * @param defaultJustifyAssertedSubclasses 
 	 */
 	private void createOptionPanel(GBHelper pos, 
-			String assertedLabel, String assertedDesc, boolean defaultIsAsserted, 
-			String simpleLabel, String simpleDesc, boolean defaultIsSimple, 
-			boolean defaultExpandXrefs, boolean defaultAllowOverwrite, 
-			boolean defaultRecreateMireot, boolean defaultExpandShortcutRelations,
-			boolean defaultWriteELOntology, boolean defaultJustifyAssertedSubclasses)
+			String assertedLabel, String assertedDesc, 
+			String simpleLabel, String simpleDesc)
 	{
 		panel.add(new JLabel("Options"), pos.nextRow().indentLeft(DEFAULT_INDENT));
 		
-		createFancyCheckBox(pos, assertedLabel, assertedDesc, defaultIsAsserted, assertedCheckBox);
+		createFancyCheckBox(pos, assertedLabel, assertedDesc, assertedCheckBox);
 		
 		addRowGap(panel, pos.nextRow(), 5);
 		
-		createFancyCheckBox(pos, simpleLabel, simpleDesc, defaultIsSimple, simpleCheckBox);
+		createFancyCheckBox(pos, simpleLabel, simpleDesc, simpleCheckBox);
 		
 		addRowGap(panel, pos.nextRow(), 10);
 		
-		createFancyCheckBox(pos, "Expand Xref Macros (advanced)", null, defaultExpandXrefs, expandXrefsCheckBox);
+		createFancyCheckBox(pos, "Expand Xref Macros (advanced)", null, expandXrefsCheckBox);
 
 		addRowGap(panel, pos.nextRow(), 5);
 		
-		createFancyCheckBox(pos, "Expand Shortcut Relations (advanced)", null, defaultExpandShortcutRelations, expandShortcutRelations);
+		createFancyCheckBox(pos, "Expand Shortcut Relations (advanced)", null, expandShortcutRelations);
 
 		addRowGap(panel, pos.nextRow(), 5);
 		
-		mireotFancyCheckbox = createFancyCheckBox(pos, "Recreate Mireot (advanced)", null, defaultRecreateMireot, recreateMireot);
+		mireotFancyCheckbox = createFancyCheckBox(pos, "Recreate Mireot (advanced)", null, recreateMireot);
 		setMireotButtonsEnabled(false);
 
 		addRowGap(panel, pos.nextRow(), 5);
 		
-		createFancyCheckBox(pos, "Allow overwriting of existing release files", null, defaultAllowOverwrite, allowOverwrite);
+		createFancyCheckBox(pos, "Allow overwriting of existing release files", null, allowOverwrite);
 		
 		addRowGap(panel, pos.nextRow(), 5);
 		
-		createFancyCheckBox(pos, "Create OWL-EL profile ontology", null, defaultWriteELOntology, writeELOntologyCheckBox);
+		createFancyCheckBox(pos, "Create OWL-EL profile ontology", null, writeELOntologyCheckBox);
 		
 		addRowGap(panel, pos.nextRow(), 5);
 		
-		createFancyCheckBox(pos, "Justify Asserted Sub Classes", null, defaultJustifyAssertedSubclasses, justifyAssertedSubclasses);
+		createFancyCheckBox(pos, "Justify Asserted Sub Classes", null, justifyAssertedSubclasses);
 		
 		addRowGap(panel, pos.nextRow(), 10);
 	}
@@ -196,12 +170,10 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * @param pos
 	 * @param label
 	 * @param desc
-	 * @param defaultValue
 	 * @param checkBox
-	 * 
 	 * @return List of {@link JComponent}
 	 */
-	private List<JComponent> createFancyCheckBox(GBHelper pos, String label, String desc, boolean defaultValue, JCheckBox checkBox) {
+	private List<JComponent> createFancyCheckBox(GBHelper pos, String label, String desc, JCheckBox checkBox) {
 		panel.add(checkBox, pos.nextRow().nextCol());
 		List<JComponent> components = new ArrayList<JComponent>(3);
 		components.add(checkBox);
@@ -214,7 +186,6 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 			components.add(descJLabel);
 			panel.add(descJLabel, pos.nextCol().nextCol().expandW().fill());
 		}
-		checkBox.setSelected(defaultValue);
 		return components;
 	}
 
@@ -222,9 +193,8 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * Create layout for reasoner selection
 	 * 
 	 * @param pos
-	 * @param defaultReasoner
 	 */
-	private void createReasonerPanel(GBHelper pos, String defaultReasoner) {
+	private void createReasonerPanel(GBHelper pos) {
 		panel.add(new JLabel("Reasoner"), pos.nextRow().indentLeft(DEFAULT_INDENT));
 		
 		ButtonGroup reasonerGroup = new ButtonGroup();
@@ -253,19 +223,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 		this.panel.add(new JLabel("(Both Hermit and Pellet should give the same results, Hermit is typically faster)"), 
 				pos.nextRow().indentLeft(DEFAULT_INDENT).width(3).fill().expandW());
 		
-		// set default, if nothing matches use Hermit
-		if (InferenceBuilder.REASONER_PELLET.equals(defaultReasoner)) {
-			pelletRadioButton.setSelected(true);
-		}
-		else if (InferenceBuilder.REASONER_JCEL.equals(defaultReasoner)) {
-			jcelRadioButton.setSelected(true);
-		}
-		else if (InferenceBuilder.REASONER_ELK.equals(defaultReasoner)) {
-			elkRadioButton.setSelected(true);
-		}
-		else {
-			hermitRadioButton.setSelected(true);
-		}
+		hermitRadioButton.setSelected(true);
 		factppRadioButton.setEnabled(false);
 	}
 
@@ -294,5 +252,37 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 			// If disabled remove, set current value to false
 			recreateMireot.setSelected(false);
 		}
+	}
+
+	void applyConfig(OortConfiguration configuration) {
+		
+		// options flags
+		assertedCheckBox.setSelected(configuration.isAsserted());
+		simpleCheckBox.setSelected(configuration.isSimple());
+		expandXrefsCheckBox.setSelected(configuration.isExpandXrefs());
+		allowOverwrite.setSelected(configuration.isAllowFileOverWrite());
+		boolean mireot = configuration.isRecreateMireot();
+		recreateMireot.setSelected(mireot);
+		defaultRecreateMireot = mireot;
+		if (mireot) {
+			 
+		}
+		expandShortcutRelations.setSelected(configuration.isExpandShortcutRelations());
+		writeELOntologyCheckBox.setSelected(configuration.isWriteELOntology());
+		justifyAssertedSubclasses.setSelected(configuration.isJustifyAssertedSubclasses());
+				
+		String reasoner = configuration.getReasonerName();
+		if (InferenceBuilder.REASONER_PELLET.equals(reasoner)) {
+			pelletRadioButton.setSelected(true);
+		}
+		else if (InferenceBuilder.REASONER_JCEL.equals(reasoner)) {
+			jcelRadioButton.setSelected(true);
+		}
+		else if (InferenceBuilder.REASONER_ELK.equals(reasoner)) {
+			elkRadioButton.setSelected(true);
+		}
+		else {
+			hermitRadioButton.setSelected(true);
+		}				
 	}
 }

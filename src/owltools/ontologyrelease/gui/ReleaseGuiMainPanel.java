@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
@@ -30,6 +29,8 @@ import org.obolibrary.gui.GuiTools.GBHelper;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
 import org.obolibrary.gui.SelectDialog;
 
+import owltools.ontologyrelease.OortConfiguration;
+
 /**
  * GUI component for the minimum number of configurations
  * required for the release manager.
@@ -44,22 +45,23 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	private final Frame frame;
 	private final ReleaseGuiAdvancedPanel advancedPanel;
 	
+	private final JList inputSourcesJList;
 	final JTextField outputFolderTextField;
 	
 	final JRadioButton rdfXmlRadioButton;
 
 	final LinkedHashMap<String, Object> sources;
 
+	
+
 	/**
 	 * Constructor allows to build a panel with default values.
 	 * 
 	 * @param frame
-	 * @param defaultPaths
-	 * @param defaultBase
+	 * @param configuration 
 	 * @param advancedPanel
 	 */
-	public ReleaseGuiMainPanel(Frame frame, Vector<String> defaultPaths, 
-			File defaultBase, ReleaseGuiAdvancedPanel advancedPanel)
+	public ReleaseGuiMainPanel(Frame frame, OortConfiguration configuration, ReleaseGuiAdvancedPanel advancedPanel)
 	{
 		super();
 		this.frame = frame;
@@ -69,20 +71,21 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 		// add default values to these fields
 		
 		// ontology file input files
+		inputSourcesJList = new JList(new DefaultListModel());
 		sources = new LinkedHashMap<String, Object>();
 		
 		// output format buttons
 		rdfXmlRadioButton = new JRadioButton("RDF XML");
 		
 		// output folder
-		String canonicalPath = getCanonicalPath(defaultBase);
+		String canonicalPath = getCanonicalPath(configuration.getBase());
 		outputFolderTextField = createTextField(canonicalPath);
 		
 		setLayout(new GridBagLayout());
 		GBHelper pos = new GBHelper();
 		
 		// input panel
-		createInputPanel(pos, defaultPaths, canonicalPath);
+		createInputPanel(pos, canonicalPath);
 		addRowGap(this, pos, 10);
 		
 		// output panel
@@ -92,29 +95,17 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 //		// format
 //		createFormatPanel(pos, defaultFormat);
 //		addRowGap(this, pos, 10);		
+		
+		applyConfig(configuration);
 	}
 	
 	/**
 	 * Create layout and listeners for the ontology input files to be released.
 	 * 
 	 * @param pos
-	 * @param defaultPaths
 	 * @param defaultFolder
 	 */
-	private void createInputPanel(GBHelper pos, Vector<String> defaultPaths, String defaultFolder) {
-		// ontology file input files
-		DefaultListModel inputFilesDataModel = new DefaultListModel();
-		if (defaultPaths != null) {
-			for (String inputFile : defaultPaths) {
-				Object put = sources.put(inputFile, inputFile);
-				if (put == null) {
-					inputFilesDataModel.addElement(inputFile);
-				}
-				
-			}
-		}
-		final JList inputSourcesJList = new JList(inputFilesDataModel);
-		
+	private void createInputPanel(GBHelper pos, String defaultFolder) {
 		final JButton fileDialogAddButton = new JButton("Add File");
 		final JButton urlDialogAddButton = new JButton("Add URL");
 		final JButton fileRemoveButton = new JButton("Remove");
@@ -152,7 +143,7 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 					Object old = sources.put(selected, file);
 					// only update the model, if the file was not there before
 					if (old == null) {
-						updateInputSourceData(inputSourcesJList, sources);
+						updateInputSourceData();
 					}
 				}
 			}
@@ -174,7 +165,7 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 							Object old = sources.put(str, url);
 							// only update the model, if the file was not there before
 							if (old == null) {
-								updateInputSourceData(inputSourcesJList, sources);
+								updateInputSourceData();
 							}
 						} catch (MalformedURLException exception) {
 							LOGGER.warn("Could not parse string as URL: "+str, exception);
@@ -193,7 +184,7 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 					for (Object object : values) {
 						sources.remove(object);
 					}
-					updateInputSourceData(inputSourcesJList, sources);
+					updateInputSourceData();
 				}
 			}
 		});
@@ -245,16 +236,13 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	
 	/**
 	 * Update the list model with a new list of files. 
-	 * 
-	 * @param sourceList
-	 * @param sources 
 	 */
-	private void updateInputSourceData(JList sourceList, Map<String, Object> sources) {
+	private void updateInputSourceData() {
 		DefaultListModel listModel = new DefaultListModel();
 		for (String name : sources.keySet()) {
 			listModel.addElement(name);
 		}
-		sourceList.setModel(listModel);
+		inputSourcesJList.setModel(listModel);
 		
 		// enable the mireot option, when there is more than one file. 
 		advancedPanel.setMireotButtonsEnabled(sources.size() > 1);
@@ -273,5 +261,17 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 			LOGGER.error("Unable to get canonical path for file: "+file.getAbsolutePath(), e);
 		}
 		return null;
+	}
+
+	void applyConfig(OortConfiguration configuration) {
+		sources.clear();
+		Vector<String> paths = configuration.getPaths();
+		if (paths != null) {
+			for (String path : paths) {
+				sources.put(path, path);
+			}
+		}
+		updateInputSourceData();
+		outputFolderTextField.setText(getCanonicalPath(configuration.getBase()));
 	}
 }
