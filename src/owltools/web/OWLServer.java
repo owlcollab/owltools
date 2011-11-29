@@ -75,7 +75,7 @@ public class OWLServer extends AbstractHandler
 			Method method = handler.getClass().getMethod(m + "Command", mArgs);
 			Object[] oArgs = new Object[0];
 			method.invoke(handler, oArgs);
-			handler.printCachedAxioms();
+			handler.printCachedObjects();
 		} catch (SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
