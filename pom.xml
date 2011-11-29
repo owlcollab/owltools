@@ -185,6 +185,11 @@
 			<artifactId>jetty-server</artifactId>
 			<version>7.5.4.v20111024</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>1.7.1</version>
+		</dependency>
 	</dependencies>
 	<distributionManagement>
 		<repository>
