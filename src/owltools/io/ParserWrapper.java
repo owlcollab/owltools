@@ -1,15 +1,23 @@
 package owltools.io;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URLEncoder;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.obolibrary.obo2owl.Obo2Owl;
-import org.obolibrary.oboformat.model.OBODoc;
+import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.FrameMergeException;
+import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
+import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
@@ -126,12 +134,47 @@ public class ParserWrapper {
 		saveOWL(ont, owlFormat, file);
 	}
 	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file) throws OWLOntologyStorageException {
-		manager.saveOntology(ont, owlFormat, IRI.create(file));
+		if (owlFormat instanceof OBOOntologyFormat) {
+			try {
+				FileOutputStream os = new FileOutputStream(new File(file));
+				saveOWL(ont, owlFormat, os);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else {
+			manager.saveOntology(ont, owlFormat, IRI.create(file));
+		}
+	}
+	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat,
+			OutputStream outputStream) throws OWLOntologyStorageException {
+		if (owlFormat instanceof OBOOntologyFormat) {
+			Owl2Obo bridge = new Owl2Obo();
+			OBODoc doc;
+			try {
+				doc = bridge.convert(ont);
+				OBOFormatWriter oboWriter = new OBOFormatWriter();
+				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream));
+				oboWriter.write(doc, bw);
+				bw.close();
+			} catch (OWLOntologyCreationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else {
+			manager.saveOntology(ont, owlFormat, outputStream);
+		}
 	}
 	
 	public OBODoc getOBOdoc() {
 		return obodoc;
 	}
+
 	
 	
 
