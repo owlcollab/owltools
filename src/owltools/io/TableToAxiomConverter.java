@@ -138,6 +138,7 @@ public class TableToAxiomConverter {
 			sub = row[1];
 			obj = row[0];
 		}
+		// add prefix. typically just turns this into an OBO-ID
 		if (config.iriPrefixMap.containsKey(1)) {
 			sub = config.iriPrefixMap.get(1) + sub;
 		}
@@ -182,8 +183,11 @@ public class TableToAxiomConverter {
 			ax = df.getOWLEquivalentClassesAxiom(c, e);
 		}
 		else if (config.axiomType.equals(AxiomType.ANNOTATION_ASSERTION)) {
+			if (true) {
+				axs.add(df.getOWLDeclarationAxiom(resolveClass(sub)));
+			}
 			ax = df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(config.property), 
-					((OWLNamedObject) resolveIndividual(sub)).getIRI(), literal(obj));
+					resolveIRI(sub), literal(obj));
 		}
 		else if (config.axiomType.equals(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
 			ax = df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty(config.property), 
@@ -213,26 +217,53 @@ public class TableToAxiomConverter {
 	private OWLAnnotationValue literal(String obj) {
 		return graph.getDataFactory().getOWLTypedLiteral(obj);
 	}
-
-	private OWLClass resolveClass(String id) {
-		if (config.isOboIdentifiers && !id.startsWith("http:")) {
-			OWLClass c= (OWLClass) graph.getOWLObjectByIdentifier(id);
-			if (config.classMap.containsKey(c))
-				return config.classMap.get(c);
-			else
-				return c;
-		}
-		return graph.getDataFactory().getOWLClass(IRI.create(id));
-	}
-
-	private OWLIndividual resolveIndividual(String id) {
+	
+	private IRI resolveIRI(String id) {
+		IRI iri;
 		if (config.isOboIdentifiers && !id.startsWith("http:/")) {
-			return graph.getOWLIndividualByIdentifier(id);
+			iri = graph.getIRIByIdentifier(id);
 		}
-		return graph.getOWLIndividual(IRI.create(id));
+		else {
+			iri = IRI.create(id);
+		}
+		return iri;
 	}
 
+	// translates id to IRI if required.
+	// always returns an OWLClass, even if not previously declared
+	private OWLClass resolveClass(String id) {
+		IRI iri = resolveIRI(id);
+		OWLClass c= graph.getDataFactory().getOWLClass(iri);
+		if (config.classMap.containsKey(c))
+			return config.classMap.get(c);
+		else
+			return c;
+	}
+	
+	// translates id to IRI if required.
+	// always returns an OWLIndividual, even if not previously declared
+	private OWLIndividual resolveIndividual(String id) {
+		IRI iri = resolveIRI(id);
+		OWLIndividual c= graph.getDataFactory().getOWLNamedIndividual(iri);
+		return c;
+	}
+	
 
+	/*
+	private OWLIndividual xxxresolveIndividual(String id) {
+		IRI iri;
+		if (config.isOboIdentifiers && !id.startsWith("http:/")) {
+			iri = graph.getIRIByIdentifier(id);
+		}
+		else {
+			iri = IRI.create(id);
+		}
+		OWLIndividual ind = graph.getOWLIndividual(iri);
+		if (ind == null)
+			ind = graph.getDataFactory().getOWLNamedIndividual(iri);
+		return ind;
+	}
+	*/
 
 	public void buildClassMap(OWLGraphWrapper g) {
 		IRI x = Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI();
