@@ -25,7 +25,7 @@ import owltools.ontologyrelease.OortConfiguration;
 /**
  * Panel containing advanced options for the release manager.
  */
-public class ReleaseGuiAdvancedPanel extends SizedJPanel {
+public class OortGuiAdvancedPanel extends SizedJPanel {
 
 	// generated
 	private static final long serialVersionUID = 6890664004411145411L;
@@ -58,7 +58,7 @@ public class ReleaseGuiAdvancedPanel extends SizedJPanel {
 	 * 
 	 * @param oortConfiguration 
 	 */
-	public ReleaseGuiAdvancedPanel(OortConfiguration oortConfiguration) {
+	public OortGuiAdvancedPanel(OortConfiguration oortConfiguration) {
 		super();
 		
 		this.panel = new JPanel();

@@ -11,9 +11,9 @@ import owltools.ontologyrelease.OortConfiguration;
  * Parameters for {@link OboOntologyReleaseRunnerGui} with 
  * different default values.
  */
-public class GUIOortConfiguration extends OortConfiguration {
+public class OortGuiConfiguration extends OortConfiguration {
 	
-	public GUIOortConfiguration() {
+	public OortGuiConfiguration() {
 		super();
 		// set values which are different from CLI default setting
 		setAsserted(true); 

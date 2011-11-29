@@ -35,15 +35,15 @@ import owltools.ontologyrelease.OortConfiguration;
  * GUI component for the minimum number of configurations
  * required for the release manager.
  */
-public class ReleaseGuiMainPanel extends SizedJPanel {
+public class OortGuiMainPanel extends SizedJPanel {
 
 	/// Generated
 	private static final long serialVersionUID = 1281395185956670966L;
 
-	private final static Logger LOGGER = Logger.getLogger(ReleaseGuiMainPanel.class); 
+	private final static Logger LOGGER = Logger.getLogger(OortGuiMainPanel.class); 
 	
 	private final Frame frame;
-	private final ReleaseGuiAdvancedPanel advancedPanel;
+	private final OortGuiAdvancedPanel advancedPanel;
 	
 	private final JList inputSourcesJList;
 	final JTextField outputFolderTextField;
@@ -61,7 +61,7 @@ public class ReleaseGuiMainPanel extends SizedJPanel {
 	 * @param configuration 
 	 * @param advancedPanel
 	 */
-	public ReleaseGuiMainPanel(Frame frame, OortConfiguration configuration, ReleaseGuiAdvancedPanel advancedPanel)
+	public OortGuiMainPanel(Frame frame, OortConfiguration configuration, OortGuiAdvancedPanel advancedPanel)
 	{
 		super();
 		this.frame = frame;

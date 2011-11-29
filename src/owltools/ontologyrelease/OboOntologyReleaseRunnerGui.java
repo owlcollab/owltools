@@ -16,8 +16,8 @@ import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 
-import owltools.ontologyrelease.gui.GUIOortConfiguration;
-import owltools.ontologyrelease.gui.ReleaseGuiMainFrame;
+import owltools.ontologyrelease.gui.OortGuiConfiguration;
+import owltools.ontologyrelease.gui.OortGuiMainFrame;
 
 /**
  * GUI access for ontology release runner.
@@ -71,7 +71,7 @@ public class OboOntologyReleaseRunnerGui {
 		new ReleaseGuiMainFrameRunner(logQueue);
 	}
 
-	private static final class ReleaseGuiMainFrameRunner extends ReleaseGuiMainFrame {
+	private static final class ReleaseGuiMainFrameRunner extends OortGuiMainFrame {
 		
 		// generated
 		private static final long serialVersionUID = -8690322825608397262L;
@@ -81,7 +81,7 @@ public class OboOntologyReleaseRunnerGui {
 		}
 	
 		@Override
-		protected void executeRelease(final GUIOortConfiguration parameters) {
+		protected void executeRelease(final OortGuiConfiguration parameters) {
 			logger.info("Starting release manager process");
 			disableReleaseButton();
 			// execute the release in a separate Thread, otherwise the GUI might be blocked.

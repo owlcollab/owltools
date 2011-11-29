@@ -210,6 +210,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				oortConfig.addBridgeOntology(args[i]);
 				i++;
 			}
+			else if (opt.equals("--config-file")) {
+				File file = new File(args[i]);
+				OortConfiguration.loadConfig(file , oortConfig);
+				i++;
+			}
 			else {
 				String tokens[] = opt.split(" ");
 				for (String token : tokens)

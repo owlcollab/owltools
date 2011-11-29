@@ -518,7 +518,7 @@ public class OortConfiguration {
 	public static void loadOortConfig(Properties properties, OortConfiguration config) {
 		config.paths = getValue(properties, "paths", config.paths);
 		config.base = getValue(properties, "base", config.base);
-		config.macroStrategy = getValue(properties, "macroStrategy", config.macroStrategy);
+		config.reasonerName = getValue(properties, "reasonerName", config.reasonerName);
 		config.enforceEL = getValue(properties, "enforceEL", config.enforceEL);
 		config.writeELOntology = getValue(properties, "writeELOntology", config.writeELOntology);
 		config.asserted = getValue(properties, "asserted", config.asserted);
@@ -535,6 +535,7 @@ public class OortConfiguration {
 		config.justifyAssertedSubclasses = getValue(properties, "justifyAssertedSubclasses", config.justifyAssertedSubclasses);
 		config.sourceOntologyPrefixes = getValue(properties, "sourceOntologyPrefixes", config.sourceOntologyPrefixes);
 		config.executeOntologyChecks = getValue(properties, "executeOntologyChecks", config.executeOntologyChecks);
+		config.forceRelease = getValue(properties, "forceRelease", config.forceRelease);
 		config.autoDetectBridgingOntology = getValue(properties, "autoDetectBridgingOntology", config.autoDetectBridgingOntology);
 		config.bridgeOntologies = getValue(properties, "bridgeOntologies", config.bridgeOntologies);
 	}
@@ -543,6 +544,14 @@ public class OortConfiguration {
 		String property = properties.getProperty(key, null);
 		if (property != null) {
 			return Boolean.valueOf(property);
+		}
+		return defaultValue;
+	}
+	
+	private static String getValue(Properties properties, String key, String defaultValue) {
+		String property = properties.getProperty(key, null);
+		if (property != null) {
+			return property.trim();
 		}
 		return defaultValue;
 	}

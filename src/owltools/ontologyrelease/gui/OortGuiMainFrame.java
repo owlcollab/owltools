@@ -3,7 +3,6 @@ package owltools.ontologyrelease.gui;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,9 +11,7 @@ import java.util.concurrent.BlockingQueue;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -22,10 +19,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
 import org.obolibrary.gui.GuiLogPanel;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
-import org.obolibrary.gui.SelectDialog;
 
 import owltools.InferenceBuilder;
 import owltools.ontologyrelease.OortConfiguration;
@@ -33,19 +28,17 @@ import owltools.ontologyrelease.OortConfiguration;
 /**
  * GUI main frame, calls all constructors for the sub components.
  */
-public class ReleaseGuiMainFrame extends JFrame {
-	
-	private static final Logger LOGGER = Logger.getLogger(ReleaseGuiMainFrame.class);
+public class OortGuiMainFrame extends JFrame {
 	
 	// generated
 	private static final long serialVersionUID = 6955854898081677364L;
 	
 	private JPanel allPanel;
-	private ReleaseGuiMainPanel mainPanel;
-	private ReleaseGuiAdvancedPanel advancedPanel;
+	private OortGuiMainPanel mainPanel;
+	private OortGuiAdvancedPanel advancedPanel;
 	private GuiLogPanel logPanel;
 	private final BlockingQueue<String> logQueue;
-	private final GUIOortConfiguration parameters;
+	private final OortGuiConfiguration parameters;
 
 	private JTabbedPane tabbedPane;
 
@@ -54,7 +47,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	/**
 	 * Default constructor, required only for testing the GUI as bean.
 	 */
-	public ReleaseGuiMainFrame() {
+	public OortGuiMainFrame() {
 		this(new ArrayBlockingQueue<String>(100));
 	}
 	
@@ -63,10 +56,10 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * 
 	 * @param logQueue Message queue for events to be shown in the log panel
 	 */
-	public ReleaseGuiMainFrame(BlockingQueue<String> logQueue) {
+	public OortGuiMainFrame(BlockingQueue<String> logQueue) {
 		super();
 		this.logQueue = logQueue;
-		this.parameters = new GUIOortConfiguration();
+		this.parameters = new OortGuiConfiguration();
 		initialize();
 	}
 
@@ -81,76 +74,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	}
 
 	private JMenuBar createMenuBar() {
-		JMenuBar menuBar = new JMenuBar();
-		
-		// add file menu
-		JMenu fileMenu = new JMenu("File");
-		fileMenu.setMnemonic(KeyEvent.VK_F);
-		menuBar.add(fileMenu);
-		
-		// load configuration from file
-		JMenuItem loadItem = new JMenuItem("Load Configuration");
-		fileMenu.add(loadItem);
-		loadItem.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String defaultFolder = FileUtils.getUserDirectoryPath();
-				String title = "Select OORT configuation file";
-				SelectDialog dialog = SelectDialog.getFileSelector(ReleaseGuiMainFrame.this, SelectDialog.LOAD, defaultFolder, title, null, null);
-				dialog.show();
-				File selected = dialog.getSelected();
-				if (selected != null) {
-					try {
-						OortConfiguration.loadConfig(selected, parameters);
-						applyConfig(parameters);
-						LOGGER.info("Finished loading OORT config from file: "+selected);
-					} catch (IOException exception) {
-						LOGGER.warn("Could not load config file: "+selected, exception);
-					}
-				}
-				
-			}
-		});
-		
-		// store configuration to file
-		JMenuItem storeItem = new JMenuItem("Store Configuration");
-		storeItem.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				getParametersFromGUI(true);
-				String defaultFolder = FileUtils.getUserDirectoryPath();
-				String title = "Select OORT configuation file";
-				SelectDialog dialog = SelectDialog.getFileSelector(ReleaseGuiMainFrame.this, SelectDialog.SAVE, defaultFolder, title, null, null);
-				dialog.show();
-				File selected = dialog.getSelected();
-				if (selected != null) {
-					try {
-						OortConfiguration.writeConfig(selected, parameters);
-						LOGGER.info("Finished saving OORT config to file: "+selected);
-					} catch (IOException exception) {
-						LOGGER.warn("Could not save OORT config to file: "+selected, exception);
-					}
-				}
-			}
-		});
-		fileMenu.add(storeItem);
-		
-		// Exit
-		fileMenu.addSeparator();
-		JMenuItem exitItem = new JMenuItem("Exit");
-		exitItem.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ReleaseGuiMainFrame.this.dispose();
-				System.exit(0);
-			}
-		});
-		fileMenu.add(exitItem);
-		
-		return menuBar;
+		return new OortGuiMenuBar(this, parameters);
 	}
 
 	/**
@@ -222,7 +146,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * @param silent if true, no warnings during parameter update. 
 	 * @return boolean
 	 */
-	private boolean getParametersFromGUI(boolean silent) {
+	boolean getParametersFromGUI(boolean silent) {
 		// format
 		// currently only one ontology format, do nothing
 		
@@ -305,7 +229,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	}
 	
 	private void renderInputError(String message) {
-		JOptionPane.showMessageDialog(ReleaseGuiMainFrame.this, message);
+		JOptionPane.showMessageDialog(OortGuiMainFrame.this, message);
 	}
 
 	/**
@@ -314,7 +238,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * 
 	 * @param parameters 
 	 */
-	protected void executeRelease(GUIOortConfiguration parameters) {
+	protected void executeRelease(OortGuiConfiguration parameters) {
 		// for tests print all parameter variables
 		StringBuilder sb = new StringBuilder("-------------------------\n");
 		sb.append(parameters.toString());
@@ -327,9 +251,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * @param advancedPanel 
 	 * @return main panel
 	 */
-	private SizedJPanel getMainPanel(ReleaseGuiAdvancedPanel advancedPanel) {
+	private SizedJPanel getMainPanel(OortGuiAdvancedPanel advancedPanel) {
 		if (mainPanel == null) {
-			mainPanel = new ReleaseGuiMainPanel(this, parameters, advancedPanel);
+			mainPanel = new OortGuiMainPanel(this, parameters, advancedPanel);
 		}
 		return mainPanel;
 	}
@@ -339,9 +263,9 @@ public class ReleaseGuiMainFrame extends JFrame {
 	 * 
 	 * @return advanced panel
 	 */
-	protected ReleaseGuiAdvancedPanel getAdvancedPanel() {
+	protected OortGuiAdvancedPanel getAdvancedPanel() {
 		if (advancedPanel == null) {
-			advancedPanel = new ReleaseGuiAdvancedPanel(parameters);
+			advancedPanel = new OortGuiAdvancedPanel(parameters);
 		}
 		return advancedPanel;
 	}
@@ -366,7 +290,7 @@ public class ReleaseGuiMainFrame extends JFrame {
 		releaseButton.setEnabled(true);
 	}
 	
-	private void applyConfig(OortConfiguration configuration) {
+	void applyConfig(OortConfiguration configuration) {
 		mainPanel.applyConfig(configuration);
 		advancedPanel.applyConfig(configuration);
 	}
