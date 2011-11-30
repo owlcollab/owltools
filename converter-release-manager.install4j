@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="4.0.8" transformSequenceNumber="1">
   <directoryPresets config="./releases" />
-  <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}-${compiler:sys.date}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.3.2-beta" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
+  <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}-${compiler:sys.date}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.3.5-beta" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
     <languages skipLanguageSelection="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -204,8 +204,8 @@
 			// special case MacOS: the installer gives you too low values for max
 			// memory. Use system tools instead.
 			try {
-				// Execute command: system profiler for hardware infos
-				String cmd = "/usr/sbin/system_profiler SPHardwareDataType";
+				// Execute command
+				String cmd = "sysctl hw.memsize";
 				Process child = Runtime.getRuntime().exec(cmd);
 
 				// Get the input stream and read from it
@@ -216,16 +216,16 @@
 					sb.append((char) c);
 				}
 				in.close();
-				java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("Memory:\\s+(\\d+)\\s*GB");
+				java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("hw.memsize:\\s+(\\d+)\\s*");
 				java.util.regex.Matcher matcher = pattern.matcher(sb);
 				if (matcher.find()) {
-					maxMemory = Integer.parseInt(matcher.group(1)) * 1024;
+					maxMemory = new Long(Long.parseLong(matcher.group(1)) / 1024L / 1024L).intValue();
 				}
 			} catch (java.io.IOException e) {
 			} catch (NumberFormatException e) {
-			}	
+			}
 
-			// The MacOS 64 bit check is two part: has 64-bit java version and 64-bit ApplicationStub
+			// The MacOS 64 bit check is three part: has 64-bit java version, 64-bit OS, and 64-bit ApplicationStub
 			boolean is64bitDefaultJava = false;
 			try {
 				// Check default java if it is 64-bit
@@ -245,10 +245,11 @@
 			}
 			boolean is64bit = false;
 			if (is64bitDefaultJava) {
+				boolean is64bitOS = false;
 				try {
-					// Try to call JavaApplicationstub to check, if it also is 64 bit capable
-					// Execute command file for default JavaApplicationStub
-					String cmd = "file /System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub";
+					// Try to call uname to check for 64-bit OS
+					// Execute command
+					String cmd = "uname -pm";
 					Process child = Runtime.getRuntime().exec(cmd);
 	
 					// Get the input stream and read from it
@@ -259,8 +260,28 @@
 						sb.append((char) c);
 					}
 					in.close();
-					is64bit = sb.toString().toLowerCase().contains("x86_64");
+					String uname = sb.toString().toLowerCase();
+					is64bitOS = uname.contains("x86_64");
 				} catch (java.io.IOException e) {
+				}
+				if (is64bitOS) {
+					try {
+						// Try to call JavaApplicationstub to check, if it also is 64 bit capable
+						// Execute command file for default JavaApplicationStub
+						String cmd = "file /System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub";
+						Process child = Runtime.getRuntime().exec(cmd);
+
+						// Get the input stream and read from it
+						java.io.InputStream in = child.getInputStream();
+						StringBuilder sb = new StringBuilder();
+						int c;
+						while ((c = in.read()) != -1) {
+							sb.append((char) c);
+						}
+						in.close();
+						is64bit = sb.toString().toLowerCase().contains("x86_64");
+					} catch (java.io.IOException e) {
+					}
 				}
 			}
 			if(!is64bit) {
