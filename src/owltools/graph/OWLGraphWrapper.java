@@ -2421,20 +2421,20 @@ public class OWLGraphWrapper {
 		for (OWLOntology o : getAllOntologies()) {
 			Set<OWLAnnotationAssertionAxiom> aas = o.getAxioms(AxiomType.ANNOTATION_ASSERTION);
 			for (OWLAnnotationAssertionAxiom aa : aas) {
-				// TODO - check for label
 				OWLAnnotationValue v = aa.getValue();
-				if (v instanceof OWLLiteral) {
+				OWLAnnotationProperty property = aa.getProperty();
+				if (property.isLabel() && v instanceof OWLLiteral) {
 					if (label.equals( ((OWLLiteral)v).getLiteral())) {
-						OWLAnnotationSubject obj = aa.getSubject();
-						if (obj instanceof IRI) {
+						OWLAnnotationSubject subject = aa.getSubject();
+						if (subject instanceof IRI) {
 							if (isEnforceUnivocal) {
-								if (iri != null && !iri.equals((IRI)obj)) {
-									throw new SharedLabelException(label,iri,(IRI)obj);
+								if (iri != null && !iri.equals((IRI)subject)) {
+									throw new SharedLabelException(label,iri,(IRI)subject);
 								}
-								iri = (IRI)obj;
+								iri = (IRI)subject;
 							}
 							else {
-								return (IRI)obj;
+								return (IRI)subject;
 							}
 						}
 						else {
