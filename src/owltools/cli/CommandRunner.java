@@ -21,6 +21,7 @@ import java.util.Vector;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
+import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -47,6 +48,7 @@ import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -65,6 +67,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
+import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -98,6 +101,8 @@ import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.Mooncat;
 import owltools.ontologyrelease.OntologyMetadata;
+import owltools.reasoner.ExpressionMaterializingReasoner;
+import owltools.reasoner.OWLExtendedReasoner;
 import owltools.sim.DescriptionTreeSimilarity;
 import owltools.sim.MultiSimilarity;
 import owltools.sim.OWLObjectPair;
@@ -363,7 +368,7 @@ public class CommandRunner {
 				opts.info("ONT", "merges ONT into current source ontology");
 				g.mergeOntology(pw.parse(opts.nextOpt()));
 			}
-			else if (opts.nextEq("--map-iri")) {
+			else if (opts.nextEq("--map-ontology-iri")) {
 				opts.info("OntologyIRI FILEPATH", "maps an ontology IRI to a file in your filesystem");
 				OWLOntologyIRIMapper iriMapper = 
 					new SimpleIRIMapper(IRI.create(opts.nextOpt()),
@@ -371,7 +376,7 @@ public class CommandRunner {
 				LOG.info("Adding "+iriMapper+" to "+pw.getManager());
 				pw.getManager().addIRIMapper(iriMapper);
 			}
-			else if (opts.nextEq("--auto-iri")) {
+			else if (opts.nextEq("--auto-ontology-iri")) {
 				opts.info("[-r] ROOTDIR", "uses an AutoIRI mapper [EXPERIMENTAL]");
 				boolean isRecursive = false;
 				while (opts.hasOpts()) {
@@ -446,7 +451,44 @@ public class CommandRunner {
 				gcw.render(g);				
 			}
 			else if (opts.nextEq("--rename-entity")) {
-				// TODO OWLEntityRenamer
+				OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
+				List<OWLOntologyChange> changes = oer.changeIRI(IRI.create(opts.nextOpt()),IRI.create(opts.nextOpt()));
+				g.getManager().applyChanges(changes);
+			}
+			else if (opts.nextEq("--merge-equivalent-classes")) {
+				opts.info("[-f FROM-URI-PREFIX] [-t TO-URI-PREFIX]", "merges equivalent classes to a common ID space");
+				String prefixFrom = null;
+				String prefixTo = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-f")) {
+						prefixFrom = opts.nextOpt();
+					}
+					else if (opts.nextEq("-t")) {
+						prefixTo = opts.nextOpt();
+					}
+					else
+						break;
+				}
+				Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
+				LOG.info("building entity2IRI map...");
+				OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
+				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
+					if (prefixFrom != null && !c.getIRI().toString().startsWith(prefixFrom)) {
+						continue;
+					}
+					for (OWLEquivalentClassesAxiom eca : g.getSourceOntology().getEquivalentClassesAxioms(c)) {
+						for (OWLClass d : eca.getClassesInSignature()) {
+							if (d.getIRI().toString().startsWith(prefixTo)) {
+								e2iri.put(c, d.getIRI()); // TODO one-to-many
+							}
+						}
+					}
+				}
+				LOG.info("Mapping "+e2iri.size()+" entities");
+				// TODO - this is slow
+				List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
+				g.getManager().applyChanges(changes);
+				LOG.info("Mapped "+e2iri.size()+" entities!");
 			}
 			else if (opts.nextEq("--make-taxon-set")) {
 				opts.info("[-s] TAXON","Lists all classes that are applicable for a specified taxon");
@@ -493,7 +535,7 @@ public class CommandRunner {
 							}
 						}
 					}
-					*/
+					 */
 					if (isExcluded) {
 						LOG.info("excluding: "+owlpp.render(c));
 					}
@@ -617,6 +659,10 @@ public class CommandRunner {
 				opts.info("[-r reasonername] [-m] CLASS-EXPRESSION", 
 				"Queries current ontology for descendants of CE using reasoner");
 				boolean isManifest = false;
+				boolean isDescendants = true;
+				boolean isAncestors = true;
+				boolean isExtended = false;
+
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
 						reasonerName = opts.nextOpt();
@@ -627,6 +673,17 @@ public class CommandRunner {
 						opts.info("", 
 						"manifests the class exression as a class equivalent to query CE and uses this as a query; required for Elk");
 						isManifest = true;
+					}
+					else if (opts.nextEq("-d")) {
+						isDescendants = true;
+						isAncestors = false;
+					}
+					else if (opts.nextEq("-a")) {
+						isDescendants = false;
+						isAncestors = true;
+					}
+					else if (opts.nextEq("-x")) {
+						isExtended = true;
 					}
 					else {
 						break;
@@ -653,11 +710,37 @@ public class CommandRunner {
 						g.getManager().addAxiom(g.getSourceOntology(), ax);
 						ce = qc;
 					}
+					ExpressionMaterializingReasoner xr = null;
+					if (isExtended) {
+						xr = new ExpressionMaterializingReasoner(g.getSourceOntology());	
+						xr.materializeExpressions();
+						LOG.info("set extended reasoner: "+xr);
+					}
 					if (reasoner == null) {
 						reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+						LOG.info("created reasoner: "+reasoner);
 					}
-					for (OWLClass r : reasoner.getSubClasses(ce, false).getFlattened()) {
-						System.out.println(owlpp.render(r));
+					if (xr != null) {
+						xr.setWrappedReasoner(reasoner);
+						reasoner = xr;					
+					}
+					if (isDescendants) {
+						for (OWLClass r : reasoner.getSubClasses(ce, false).getFlattened()) {
+							System.out.println("D: "+owlpp.render(r));
+						}
+					}
+					if (isAncestors) {
+						if (isExtended) {
+							for (OWLClassExpression r : ((OWLExtendedReasoner) reasoner).getSuperClassExpressions(ce, false)) {
+								System.out.println("A:"+owlpp.render(r));
+							}
+
+						}
+						else {
+							for (OWLClass r : reasoner.getSuperClasses(ce, false).getFlattened()) {
+								System.out.println("A:"+owlpp.render(r));
+							}
+						}
 					}
 
 
@@ -1361,7 +1444,9 @@ public class CommandRunner {
 					if (ofmtname.equals("functional")) {
 						ofmt = new OWLFunctionalSyntaxOntologyFormat();
 					}
-
+					else if (ofmtname.equals("obo")) {
+						ofmt = new OBOOntologyFormat();
+					}
 				}
 
 				pw.saveOWL(g.getSourceOntology(), ofmt, opts.nextOpt());
