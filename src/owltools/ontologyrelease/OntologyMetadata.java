@@ -1,5 +1,6 @@
 package owltools.ontologyrelease;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +26,7 @@ import owltools.io.OWLPrettyPrinter;
 public class OntologyMetadata {
 
 	OWLPrettyPrinter pp ;
+	PrintWriter printWriter = null;
 
 	public enum MetadataField {
 		NUMBER_OF_CLASSES,
@@ -43,6 +45,18 @@ public class OntologyMetadata {
 		INCLUDE_IMPORT_CLOSURE,
 		OBJECT_PROPERTY, ANNOTATION_PROPERTY
 	}
+	
+
+	public OntologyMetadata(PrintWriter printWriter) {
+		super();
+		this.printWriter = printWriter;
+	}
+
+
+	public OntologyMetadata() {
+		super();
+	}
+
 
 	public boolean isDeprecated(OWLClass c, OWLOntology o, OWLAnnotationProperty dep) {
 		/*
@@ -98,9 +112,15 @@ public class OntologyMetadata {
 		// annotation statistics
 		// ----------------------------------------
 
+		// numbers of classes with no annotations of the specified property
 		Map<OWLAnnotationProperty,Integer> numClasses0 = new HashMap<OWLAnnotationProperty,Integer>();
+		
+		// numbers of classes with one or more annotations of the specified property
 		Map<OWLAnnotationProperty,Integer> numClasses1 = new HashMap<OWLAnnotationProperty,Integer>();
+		
+		// numbers of classes with >1 annotations of the specified property
 		Map<OWLAnnotationProperty,Integer> numClassesMulti = new HashMap<OWLAnnotationProperty,Integer>();
+		
 		for (OWLAnnotationProperty ap : o.getAnnotationPropertiesInSignature()) {
 			numClasses0.put(ap, 0);
 			numClasses1.put(ap, 0);
@@ -129,9 +149,9 @@ public class OntologyMetadata {
 		for (OWLAnnotationProperty ap : o.getAnnotationPropertiesInSignature()) {
 			if (numClasses1.get(ap) > 0) {
 				List<String> vl = new Vector<String>();
-				vl.add(numClasses1.get(ap)+" ("+(float)numClasses1.get(ap)/nc+")");
-				vl.add(numClasses0.get(ap)+" ("+(float)numClasses0.get(ap)/nc+")");
-				vl.add(numClassesMulti.get(ap)+" ("+(float)numClassesMulti.get(ap)/nc+")");
+				vl.add("0:  "+numClasses1.get(ap)+" ("+(float)numClasses1.get(ap)/nc+")");
+				vl.add("1+: "+numClasses0.get(ap)+" ("+(float)numClasses0.get(ap)/nc+")");
+				vl.add(">1: "+numClassesMulti.get(ap)+" ("+(float)numClassesMulti.get(ap)/nc+")");
 				generateDatum(MetadataField.NUMBER_OF_NON_DEPRECATED_CLASSES, 
 						MetadataQualifier.ANNOTATION_PROPERTY,
 						ap,
@@ -252,10 +272,14 @@ public class OntologyMetadata {
 		}
 		nl();
 	}
-	private void print(String string) {
-		System.out.print(string);
-
+	
+	private void print(String s) {
+		if (printWriter == null)
+			System.out.print(s);
+		else
+			printWriter.print(s);
 	}
+	
 	private void print(Integer num) {
 		print(num.toString());
 
