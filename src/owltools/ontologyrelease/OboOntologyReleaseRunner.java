@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -171,6 +172,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			 * else if (opt.equals("-oboincludes")) { oboIncludes = args[i];
 			 * i++; }
 			 */
+			else if (opt.equals("--no-subsets")) {
+				oortConfig.setWriteSubsets(false);
+			}
 			else if (opt.equals("--force")) {
 				oortConfig.setForceRelease(true);
 			}
@@ -672,9 +676,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		saveOntologyInAllFormats(ontologyId, fn, ontologyToSave, gciOntology);
 	}
 
-	private void saveOntologyInAllFormats(String ontologyId, String fn, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveOntologyInAllFormats(String ontologyId, String fileNameBase, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
-		logger.info("Saving: "+fn);
+		logger.info("Saving: "+fileNameBase);
 
 		final OWLOntologyManager manager = mooncat.getManager();
 
@@ -702,15 +706,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		if (date != null) {
-			SetOntologyID change = OntologyVersionTools.setOntologyVersion(ontologyToSave, date, ontologyId, fn);
+			SetOntologyID change = OntologyVersionTools.setOntologyVersion(ontologyToSave, date, ontologyId, fileNameBase);
 			// create change axiom with original id
 			reset = new SetOntologyID(ontologyToSave, change.getOriginalOntologyID());
 		}
-		OutputStream os = getOutputSteam(fn +".owl");
+		OutputStream os = getOutputSteam(fileNameBase +".owl");
 		manager.saveOntology(ontologyToSave, oortConfig.getDefaultFormat(), os);
 		os.close();
 
-		OutputStream osxml = getOutputSteam(fn +".owx");
+		OutputStream osxml = getOutputSteam(fileNameBase +".owx");
 		manager.saveOntology(ontologyToSave, oortConfig.getOwlXMLFormat(), osxml);
 		osxml.close();
 
@@ -725,16 +729,16 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			OWLOntologyManager gciManager = gciOntology.getOWLOntologyManager();
 
 			// create specific import for the generated owl ontology
-			OWLImportsDeclaration importDeclaration = new OWLImportsDeclarationImpl(IRI.create(fn +".owl"));
+			OWLImportsDeclaration importDeclaration = new OWLImportsDeclarationImpl(IRI.create(fileNameBase +".owl"));
 			AddImport addImport = new AddImport(gciOntology, importDeclaration);
 			RemoveImport removeImport = new RemoveImport(gciOntology, importDeclaration);
 
 			gciManager.applyChange(addImport);
-			OutputStream gciOS = getOutputSteam(fn +"-aux.owl");
+			OutputStream gciOS = getOutputSteam(fileNameBase +"-aux.owl");
 			gciManager.saveOntology(gciOntology, oortConfig.getDefaultFormat(), gciOS);
 			gciOS.close();
 
-			OutputStream gciOSxml = getOutputSteam(fn +"-aux.owx");
+			OutputStream gciOSxml = getOutputSteam(fileNameBase +"-aux.owx");
 			gciManager.saveOntology(gciOntology, oortConfig.getOwlXMLFormat(), gciOSxml);
 			gciOSxml.close();
 
@@ -746,17 +750,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		OBOFormatWriter writer = new OBOFormatWriter();
 
-		BufferedWriter bwriter = getWriter(fn +".obo");
+		BufferedWriter bwriter = getWriter(fileNameBase +".obo");
 
 		writer.write(doc, bwriter);
 
 		bwriter.close();
 
 		if (oortConfig.isWriteMetadata()) {
-			OntologyMetadata omd = new OntologyMetadata();
-			// TODO
-			//omd.generate();
-
+			saveMetadata(fileNameBase, mooncat.getGraph());
 		}
 	}
 
@@ -776,6 +777,23 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.warn("Could not print reasoner report for ontolog: "+ontologyId, e);
 		}
 	}
+	
+	private void saveMetadata(String ontologyId,
+			OWLGraphWrapper graph) {
+		String fn = ontologyId + "-metadata.txt";
+		OutputStream fos;
+		try {
+			fos = getOutputSteam(fn);
+			PrintWriter pw = new PrintWriter(fos);
+			OntologyMetadata omd = new OntologyMetadata(pw);
+			omd.generate(graph);
+			pw.close();
+			fos.close();
+		} catch (IOException e) {
+			logger.warn("Could not print reasoner report for ontolog: "+ontologyId, e);
+		}
+	}
+
 
 	private boolean isBridgingOntology(OWLOntology ont) {
 		for (OWLClass c : ont.getClassesInSignature(true)) {
