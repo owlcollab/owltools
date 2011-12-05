@@ -10,9 +10,13 @@ Features
  * OORT: Add GUI Menu to load and store configuration files, including a file history
  * OORT: Add option to use URLs as source for ontologies
  * OORT: Change default output folder for GUI to $(USER_HOME)/OORT
+ * OORT: Add option to repair inconsistent merged ontologies (i.e. multiple def tags)
+ * OORT: Implement save ontology meta data
+ * OORT: Add command-line option '--no-subsets' to skip writing the subsets
 
 BugFixes
  * OORT: command-line option '-h' for help
+ * OORT: issue #25 'multiple def tag exception'
 
 Documentation
  * Fix some broken links in the JavaDoc

@@ -45,6 +45,7 @@ public class OortConfiguration {
 	private boolean allowFileOverWrite = false;
 	private boolean expandXrefs = false;
 	private boolean recreateMireot = true;
+	private boolean repairAnnotationCardinality = false;
 	private boolean expandShortcutRelations = false;
 	private boolean allowEquivalentNamedClassPairs = false;
 	private MacroStrategy macroStrategy = MacroStrategy.GCI;
@@ -374,6 +375,20 @@ public class OortConfiguration {
 		this.base = base;
 	}
 
+	/**
+	 * @return the repairAnnotationCardinality
+	 */
+	public boolean isRepairAnnotationCardinality() {
+		return repairAnnotationCardinality;
+	}
+
+	/**
+	 * @param repairAnnotationCardinality the repairAnnotationCardinality to set
+	 */
+	public void setRepairAnnotationCardinality(boolean repairAnnotationCardinality) {
+		this.repairAnnotationCardinality = repairAnnotationCardinality;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -397,6 +412,8 @@ public class OortConfiguration {
 		builder.append(expandXrefs);
 		builder.append(", recreateMireot=");
 		builder.append(recreateMireot);
+		builder.append(", repairAnnotationCardinality=");
+		builder.append(repairAnnotationCardinality);
 		builder.append(", expandShortcutRelations=");
 		builder.append(expandShortcutRelations);
 		builder.append(", allowEquivalentNamedClassPairs=");
@@ -443,6 +460,7 @@ public class OortConfiguration {
 		putValue(properties, "allowFileOverWrite", config.allowFileOverWrite);
 		putValue(properties, "expandXrefs", config.expandXrefs);
 		putValue(properties, "recreateMireot", config.recreateMireot);
+		putValue(properties, "repairAnnotationCardinality", config.repairAnnotationCardinality);
 		putValue(properties, "expandShortcutRelations", config.expandShortcutRelations);
 		putValue(properties, "allowEquivalentNamedClassPairs", config.allowEquivalentNamedClassPairs);
 		putValue(properties, "macroStrategy", config.macroStrategy);
@@ -526,6 +544,7 @@ public class OortConfiguration {
 		config.allowFileOverWrite = getValue(properties, "allowFileOverWrite", config.allowFileOverWrite);
 		config.expandXrefs = getValue(properties, "expandXrefs", config.expandXrefs);
 		config.recreateMireot = getValue(properties, "recreateMireot", config.recreateMireot);
+		config.repairAnnotationCardinality = getValue(properties, "repairAnnotationCardinality", config.repairAnnotationCardinality);
 		config.expandShortcutRelations = getValue(properties, "expandShortcutRelations", config.expandShortcutRelations);
 		config.allowEquivalentNamedClassPairs = getValue(properties, "allowEquivalentNamedClassPairs", config.allowEquivalentNamedClassPairs);
 		config.macroStrategy = getValue(properties, "macroStrategy", config.macroStrategy);

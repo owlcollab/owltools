@@ -38,6 +38,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox simpleCheckBox;
 	final JCheckBox expandXrefsCheckBox;
 	final JCheckBox recreateMireot;
+	final JCheckBox repairAnnotationCardinality;
 	final JCheckBox expandShortcutRelations;
 	final JCheckBox writeELOntologyCheckBox;
 	final JCheckBox justifyAssertedSubclasses;
@@ -50,7 +51,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JRadioButton jcelRadioButton;
 	final JRadioButton elkRadioButton;
 
-	private List<JComponent> mireotFancyCheckbox;
+	private List<JComponent> mireotCheckboxes;
 	private boolean defaultRecreateMireot;
 	
 	/**
@@ -76,6 +77,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		expandXrefsCheckBox = new JCheckBox();
 		allowOverwrite = new JCheckBox();
 		recreateMireot = new JCheckBox();
+		repairAnnotationCardinality = new JCheckBox();
 		expandShortcutRelations = new JCheckBox();
 		writeELOntologyCheckBox = new JCheckBox();
 		justifyAssertedSubclasses = new JCheckBox();
@@ -144,7 +146,9 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 
 		addRowGap(panel, pos.nextRow(), 5);
 		
-		mireotFancyCheckbox = createFancyCheckBox(pos, "Recreate Mireot (advanced)", null, recreateMireot);
+		mireotCheckboxes = createFancyCheckBox(pos, "Recreate Mireot (advanced)", null, recreateMireot);
+		addRowGap(panel, pos.nextRow(), 5);
+		mireotCheckboxes.addAll(createFancyCheckBox(pos, "Check and Repair Annotation Cardinalities", "<html><p>This setting is only used during Mireot. After merging the ontologies, this allows to detect violations for ontology tags (e.g., duplicate definition tags).</p></html>", repairAnnotationCardinality));
 		setMireotButtonsEnabled(false);
 
 		addRowGap(panel, pos.nextRow(), 5);
@@ -238,7 +242,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	 */
 	void setMireotButtonsEnabled(boolean enabled) {
 		boolean wasEnabled = recreateMireot.isEnabled();
-		for (JComponent jComponent : mireotFancyCheckbox) {
+		for (JComponent jComponent : mireotCheckboxes) {
 			jComponent.setEnabled(enabled);
 		}
 		if (enabled) {

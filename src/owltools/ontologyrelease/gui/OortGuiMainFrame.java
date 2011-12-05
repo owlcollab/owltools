@@ -179,6 +179,9 @@ public class OortGuiMainFrame extends JFrame {
 		// recreateMireot
 		parameters.setRecreateMireot(advancedPanel.recreateMireot.isSelected());
 		
+		// repairAnnotationCardinality
+		parameters.setRepairAnnotationCardinality(advancedPanel.repairAnnotationCardinality.isSelected());
+		
 		// expandShortcutRelations
 		parameters.setExpandShortcutRelations(advancedPanel.expandShortcutRelations.isSelected());
 		

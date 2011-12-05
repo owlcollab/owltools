@@ -51,6 +51,8 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
+import owltools.mooncat.OntologyMetaDataTools;
+import owltools.mooncat.OntologyMetaDataTools.AnnotationCardinalityException;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
 import owltools.ontologyverification.OntologyCheckHandler;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
@@ -190,6 +192,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--re-mireot")) {
 				oortConfig.setRecreateMireot(true);
 			}
+			else if (opt.equals("--repairCardinality")) {
+				oortConfig.setRepairAnnotationCardinality(true);
+			}
 			else if (opt.equals("--justify")) {
 				oortConfig.setJustifyAssertedSubclasses(true);
 			}
@@ -243,6 +248,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Done!");
 		} catch (OboOntologyReleaseRunnerCheckException exception) {
 			logger.error("Stopped Release process. Reason: "+exception.renderMessageString());
+		} catch (AnnotationCardinalityException exception) {
+			logger.error("Stopped Release process. Reason: "+exception.getMessage());
 		} finally {
 			logger.info("deleting lock file");
 			oorr.deleteLockFile();
@@ -251,7 +258,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 	public boolean createRelease(Vector<String> paths) throws IOException, 
 	OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException,
-	OboOntologyReleaseRunnerCheckException
+	OboOntologyReleaseRunnerCheckException, AnnotationCardinalityException
 	{
 		String path = null;
 
@@ -385,6 +392,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();
+			if (oortConfig.isRepairAnnotationCardinality()) {
+				logger.info("Checking and repair annotation cardinality constrains");
+				OntologyMetaDataTools.checkAnnotationCardinality(mooncat.getOntology());
+			}
 			saveInAllFormats(ontologyId, "merged", gciOntology);
 
 			logger.info("Number of dangling classes in source (post-merge): "+mooncat.getDanglingClasses().size());
