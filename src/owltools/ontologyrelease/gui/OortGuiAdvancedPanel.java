@@ -148,7 +148,10 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		
 		mireotCheckboxes = createFancyCheckBox(pos, "Recreate Mireot (advanced)", null, recreateMireot);
 		addRowGap(panel, pos.nextRow(), 5);
-		mireotCheckboxes.addAll(createFancyCheckBox(pos, "Check and Repair Annotation Cardinalities", "<html><p>This setting is only used during Mireot. After merging the ontologies, this allows to detect violations for ontology tags (e.g., duplicate definition tags).</p></html>", repairAnnotationCardinality));
+		mireotCheckboxes.addAll(createFancyCheckBox(pos, "Check and Repair Annotation Cardinalities", 
+				"<html><p>This setting is only used during Mireot.</p>" +
+				"<p>After merging the ontologies, the ontology terms are <br>" +
+				"checked for violations (e.g., duplicate definition tags).</p></html>", repairAnnotationCardinality));
 		setMireotButtonsEnabled(false);
 
 		addRowGap(panel, pos.nextRow(), 5);
