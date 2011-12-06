@@ -60,29 +60,32 @@ public class ParserWrapper {
 		return parseOWL(iriString);		
 	}
 
-	public OWLOntology parseOBO(String iri) throws IOException, OWLOntologyCreationException {
+	public OWLOntology parseOBO(String source) throws IOException, OWLOntologyCreationException {
 		OBOFormatParser p = new OBOFormatParser();
-		LOG.info("Parsing: "+iri);
-		if (isIRI(iri)) {
-			obodoc = p.parse(IRI.create(iri).toURI().toURL());
+		LOG.info("Parsing: "+source);
+		final String id;
+		if (isIRI(source)) {
+			obodoc = p.parse(IRI.create(source).toURI().toURL());
+			id = source;
 		}
 		else {
-			obodoc = p.parse(iri);
+			final File file = new File(source);
+			obodoc = p.parse(file);
+			String fileName = file.getName();
+			if (fileName.endsWith(".obo") || fileName.endsWith(".owl")) {
+				fileName.substring(0, fileName.length() - 4);
+			}
+			id = fileName;
 		}
 		if (obodoc == null) {
-			throw new IOException("Loading of ontology failed: "+iri);
+			throw new IOException("Loading of ontology failed: "+source);
 		}
 		/*
 		 * This fixes an exception for ontologies without an declared id. 
-		 * 
-		 * When such ontologies are loaded on a windows platform, the file 
-		 * path may contain a colon character. This results in invalid IRIs.
-		 * 
 		 * Only by URL encoding the path it is guaranteed that a valid 
 		 * ontology id is generated.
 		 */
-		String encodedIRI = URLEncoder.encode(iri, "UTF-8");
-		obodoc.addDefaultOntologyHeader(encodedIRI);
+		obodoc.addDefaultOntologyHeader(URLEncoder.encode(id, "UTF-8"));
 
 		Obo2Owl bridge = new Obo2Owl();
 		OWLOntology ontology = bridge.convert(obodoc);

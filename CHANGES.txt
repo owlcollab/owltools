@@ -17,6 +17,7 @@ Features
 BugFixes
  * OORT: command-line option '-h' for help
  * OORT: issue #25 'multiple def tag exception'
+ * OORT: issue #20 use file name as default ontology id, if available
 
 Documentation
  * Fix some broken links in the JavaDoc
