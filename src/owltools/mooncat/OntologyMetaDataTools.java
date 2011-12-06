@@ -13,6 +13,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
@@ -86,24 +87,36 @@ public class OntologyMetaDataTools {
 		final OWLAnnotationProperty lap = factory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI());
 		
 		for (OWLClass owlClass : ontology.getClassesInSignature(true)) {
-			// check cardinality constraint for definition
-			Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(owlClass.getIRI());
-			Set<OWLAnnotationAssertionAxiom> defAxioms = new HashSet<OWLAnnotationAssertionAxiom>();
-			for (OWLAnnotationAssertionAxiom axiom : axioms) {
-				if (lap.equals(axiom.getProperty())) {
-					defAxioms.add(axiom);
-				}
+			checkOwlEntity(owlClass, lap, ontology, handler, manager);
+		}
+		for (OWLObjectProperty owlProperty : ontology.getObjectPropertiesInSignature(true)) {
+			checkOwlEntity(owlProperty, lap, ontology, handler, manager);
+		}
+	}
+
+	private static void checkOwlEntity(OWLEntity owlClass,
+			final OWLAnnotationProperty lap, OWLOntology ontology,
+			AnnotationCardinalityConfictHandler handler,
+			final OWLOntologyManager manager)
+			throws AnnotationCardinalityException 
+	{
+		// check cardinality constraint for definition
+		Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(owlClass.getIRI());
+		Set<OWLAnnotationAssertionAxiom> defAxioms = new HashSet<OWLAnnotationAssertionAxiom>();
+		for (OWLAnnotationAssertionAxiom axiom : axioms) {
+			if (lap.equals(axiom.getProperty())) {
+				defAxioms.add(axiom);
 			}
-			if (defAxioms.size() > 1) {
-				// handle conflict
-				// if conflict is not resolvable, throws exception
-				List<OWLAnnotationAssertionAxiom> changed = handler.handleConflict(owlClass, lap, defAxioms);
-				for(OWLAnnotationAssertionAxiom axiom : defAxioms) {
-					manager.removeAxiom(ontology, axiom);
-				}
-				for(OWLAnnotationAssertionAxiom axiom : changed) {
-					manager.addAxiom(ontology, axiom);
-				}
+		}
+		if (defAxioms.size() > 1) {
+			// handle conflict
+			// if conflict is not resolvable, throws exception
+			List<OWLAnnotationAssertionAxiom> changed = handler.handleConflict(owlClass, lap, defAxioms);
+			for(OWLAnnotationAssertionAxiom axiom : defAxioms) {
+				manager.removeAxiom(ontology, axiom);
+			}
+			for(OWLAnnotationAssertionAxiom axiom : changed) {
+				manager.addAxiom(ontology, axiom);
 			}
 		}
 	}
