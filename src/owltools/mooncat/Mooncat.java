@@ -36,16 +36,23 @@ import owltools.graph.OWLQuantifiedProperty;
 
 /**
  * Given one source ontology referencing one or more referenced ontologies
- * (e.g. CL referencing PRO, GO, CHEBI, UBERON), merge/copy selected axiom
- * from the referenced ontologies into the source ontology.
+ * (e.g. CL referencing PRO, GO, CHEBI, UBERON), merge/copy a
+ * subset of axioms from the referenced ontologies into the source ontology.
  * 
  * This relies on a {@link OWLGraphWrapper} object being created, in which
  * the the source ontology is the primary ontology of interest, and the
  * support ontologies are the set of ontologies from which references are
- * drawn.
- * For example, src=CL, sup={PRO,GO,CHEBI,UBERON}
+ * drawn. For example, src=CL, sup={PRO,GO,CHEBI,UBERON}
  * 
- * In the future, owl imports will be supported
+ * The {@link owltools.graph} algorithm is used to find the reference closure -
+ * i.e. all classes in the support ontologies referenced in the main ontology, 
+ * together with their ancestors over subclass, equivalence and someValuesFrom.
+ * 
+ * As a first step, previously merged classes are removed. These are marked
+ * out by an annotation assertion using IAO_0000412. Any classes merged in
+ * get this assigned automatically.
+ * 
+ * In the future, owl imports will be supported.
  * 
  * @author cjm
  *
@@ -203,7 +210,7 @@ public class Mooncat {
 	 */
 	public void mergeOntologies() {
 		// refresh existing MIREOT set
-		logger.info("flushing external...");
+		logger.info("flushing external... (but will not remove dangling)");
 		removeExternalOntologyClasses(false);
 
 		OWLOntology srcOnt = graph.getSourceOntology();
@@ -308,9 +315,14 @@ public class Mooncat {
 	 * @return closure of all external referenced entities
 	 */
 	public Set<OWLObject> getClosureOfExternalReferencedEntities() {
+		// the closure set, to be returned
 		Set<OWLObject> objs = new HashSet<OWLObject>();
+		
+		// set of entities in external ontologies referenced in source ontology
 		Set<OWLEntity> refs = getExternalReferencedEntities();
 		LOG.info("direct external referenced entities: "+refs.size());
+		
+		// build the closure
 		for (OWLEntity ref : refs) {
 			// todo - allow per-relation control
 			// todo - make more efficient, allow passing of set of entities
@@ -320,7 +332,8 @@ public class Mooncat {
 		}
 		LOG.info("closure of direct external referenced entities: "+objs.size());
 
-		// also include referenced annotation properties
+		// extraObjs is the set of properties (annotation and object)
+		// that are in the signatures of all referencing axioms
 		Set<OWLObject> extraObjs = new HashSet<OWLObject>();
 		for (OWLObject obj : objs) {
 			if (obj instanceof OWLEntity) {
