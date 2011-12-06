@@ -1068,6 +1068,15 @@ public class OWLGraphWrapper {
 		}
 		return ancs;
 	}
+	
+	/**
+	 * returns all ancestors that can be reached over subclass or
+	 * the specified set of relations
+	 * 
+	 * @param sourceObject
+	 * @param overProps
+	 * @return
+	 */
 	public Set<OWLObject> getAncestors(OWLObject x, Set<OWLPropertyExpression> overProps) {
 		Set<OWLObject> ancs = new HashSet<OWLObject>();
 		for (OWLGraphEdge e : getOutgoingEdgesClosure(x)) {

@@ -20,6 +20,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.eclipse.jetty.server.Server;
@@ -111,6 +112,7 @@ import owltools.sim.SimEngine;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
+import owltools.solrj.GafSolrDocumentLoader;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 
@@ -163,6 +165,13 @@ public class CommandRunner {
 		public boolean hasOpts() {
 			return hasArgs() && args[i].startsWith("-");
 		}
+		public boolean hasOpt(String opt) {
+			for (int j=i; j<args.length; j++) {
+				if (args[j].equals(opt))
+					return true;
+			}
+			return false;
+		}
 
 		public boolean nextEq(String eq) {
 			if (helpMode) {
@@ -180,6 +189,7 @@ public class CommandRunner {
 			}
 			return false;
 		}
+
 		private boolean nextEq(String[] eqs) {
 			for (String eq : eqs) {
 				if (nextEq(eq))
@@ -187,22 +197,24 @@ public class CommandRunner {
 			}
 			return false;
 		}
-
-		public boolean hasOpt(String opt) {
-			for (int j=i; j<args.length; j++) {
-				if (args[j].equals(opt))
-					return true;
-			}
-			return false;
-		}
-
-
 		public boolean nextEq(Collection<String> eqs) {
 			for (String eq : eqs) {
 				if (nextEq(eq))
 					return true;
 			}
 			return false;
+		}
+		public List<String> nextList() {
+			ArrayList<String> sl = new ArrayList<String>();
+			while (hasArgs()) {
+				if (args[i].equals("//"))
+					break;
+				if (args[i].startsWith("-"))
+					break;
+				sl.add(args[i]);
+				i++;
+			}
+			return sl;
 		}
 		public String nextOpt() {
 			String opt = args[i];
@@ -1583,7 +1595,6 @@ public class CommandRunner {
 			else if (opts.nextEq("--gaf")) {
 				GafObjectsBuilder builder = new GafObjectsBuilder();
 				gafdoc = builder.buildDocument(opts.nextOpt());				
-				//gafdoc = builder.buildDocument(new File(opts.nextOpt()));				
 			}
 			else if (opts.nextEq("--gaf2owl")) {
 				GAFOWLBridge bridge;
@@ -1601,6 +1612,36 @@ public class CommandRunner {
 					bridge = new GAFOWLBridge(g);
 				}
 				bridge.translate(gafdoc);			
+			}
+			else if (opts.nextEq("--load-gafs-solr")) {
+				String url = opts.nextOpt();
+				List<String> files = opts.nextList();
+				for (String file : files) {
+					LOG.info("parsing gaf:"+file);
+					GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
+					loader.setGraph(g);
+					GafObjectsBuilder builder = new GafObjectsBuilder();
+					gafdoc = builder.buildDocument(file);				
+					loader.setGafDocument(gafdoc);
+					try {
+						loader.load();
+					} catch (SolrServerException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			else if (opts.nextEq("--load-gaf-solr")) {
+				String url = opts.nextOpt();
+				GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
+				loader.setGafDocument(gafdoc);
+				loader.setGraph(g);
+				try {
+					loader.load();
+				} catch (SolrServerException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			else if (opts.nextEq("--gaf-xp-predict")) {
 				owlpp = new OWLPrettyPrinter(g);

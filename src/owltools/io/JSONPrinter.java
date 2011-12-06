@@ -21,6 +21,7 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 
+@Deprecated
 public class JSONPrinter {
 	PrintWriter writer;
 

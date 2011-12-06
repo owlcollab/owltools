@@ -192,7 +192,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--re-mireot")) {
 				oortConfig.setRecreateMireot(true);
 			}
-			else if (opt.equals("--repairCardinality")) {
+			else if (opt.equals("--repair-cardinality")) {
 				oortConfig.setRepairAnnotationCardinality(true);
 			}
 			else if (opt.equals("--justify")) {
