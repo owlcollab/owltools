@@ -2297,7 +2297,7 @@ public class OWLGraphWrapper {
 	 * @return OBO-style identifier, using obo2owl mapping
 	 */
 	public String getIdentifier(OWLObject owlObject) {
-		return Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology);
+		return Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
 	}
 
 
