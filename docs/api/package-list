@@ -11,6 +11,7 @@ owltools.graph
 owltools.graph.test
 owltools.idmap
 owltools.io
+owltools.io.test
 owltools.mooncat
 owltools.mooncat.test
 owltools.ontologyrelease
@@ -23,6 +24,7 @@ owltools.profile
 owltools.reasoner
 owltools.sim
 owltools.sim.test
+owltools.solrj
 owltools.test
 owltools.util
 owltools.web
