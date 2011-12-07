@@ -1,10 +1,7 @@
 package owltools.mooncat.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.Collection;
 
 import org.junit.Test;
@@ -13,7 +10,6 @@ import org.obolibrary.oboformat.model.Clause;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
-import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.graph.OWLGraphWrapper;
@@ -29,7 +25,7 @@ import owltools.test.OWLToolsTestBasics;
  */
 public class DuplicateDefinitionMooncatTest extends OWLToolsTestBasics {
 
-	private static boolean REDER_ONTOLOGY_FLAG = true;
+	private static boolean RENDER_ONTOLOGY_FLAG = true;
 	
 	@Test
 	public void testMireot() throws Exception {
@@ -47,22 +43,11 @@ public class DuplicateDefinitionMooncatTest extends OWLToolsTestBasics {
 		
 		Owl2Obo owl2Obo = new Owl2Obo();
 		OBODoc oboDoc = owl2Obo.convert(sourceOntology);
-		if (REDER_ONTOLOGY_FLAG) {
+		if (RENDER_ONTOLOGY_FLAG) {
 			renderOBO(oboDoc);
 		}
 		Frame termFrame = oboDoc.getTermFrame("C:0000001");
 		Collection<Clause> clauses = termFrame.getClauses(OboFormatTag.TAG_DEF);
 		assertEquals(1, clauses.size());
 	}
-	
-	private void renderOBO(OBODoc oboDoc) throws IOException {
-		OBOFormatWriter writer = new OBOFormatWriter();
-		writer.setCheckStructure(true);
-		StringWriter out = new StringWriter();
-		BufferedWriter stream = new BufferedWriter(out);
-		writer.write(oboDoc, stream);
-		stream.close();
-		System.out.println(out.getBuffer());
-	}
-	
 }

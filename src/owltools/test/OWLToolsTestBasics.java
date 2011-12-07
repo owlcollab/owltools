@@ -2,9 +2,13 @@ package owltools.test;
 
 import static junit.framework.Assert.*;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 
+import org.obolibrary.oboformat.model.OBODoc;
+import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -36,5 +40,15 @@ public class OWLToolsTestBasics {
 		ParserWrapper pw = new ParserWrapper();
 		OWLOntology obodoc = pw.parse(filename);
 		return new OWLGraphWrapper(obodoc);
+	}
+	
+	protected static void renderOBO(OBODoc oboDoc) throws IOException {
+		OBOFormatWriter writer = new OBOFormatWriter();
+		writer.setCheckStructure(true);
+		StringWriter out = new StringWriter();
+		BufferedWriter stream = new BufferedWriter(out);
+		writer.write(oboDoc, stream);
+		stream.close();
+		System.out.println(out.getBuffer());
 	}
 }

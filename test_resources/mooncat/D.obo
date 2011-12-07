@@ -1,0 +1,36 @@
+format-version: 1.2
+default-namespace: d
+ontology: d
+
+[Term]
+id: D:0000001
+name: d1
+
+[Term]
+id: D:0000002
+name: d2
+is_a: D:0000001 ! d1
+intersection_of: D:0000001 ! d1
+intersection_of: rel_e E:0000003
+
+[Term]
+id: D:0000003
+name: d3
+is_a: D:0000001 ! d1
+intersection_of: D:0000001 ! D1
+intersection_of: rel_f F:0000002 
+
+[Term]
+id: D:0000004
+name: d4
+relationship: rel_d D:0000001 ! d1
+
+[Typedef]
+id: rel_d
+name: rel_d
+
+[Typedef]
+id: rel_f
+name: rel_f
+def: "def for rel_f in d" [GOC:test]
+property_value: IAO:0000412 http://purl.obolibrary.org/obo/f.owl
