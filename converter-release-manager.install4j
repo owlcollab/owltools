@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="4.0.8" transformSequenceNumber="1">
-  <directoryPresets config="./releases" />
-  <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}-${compiler:sys.date}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.3.5-beta" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
+  <directoryPresets config="./CHANGES.txt" />
+  <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}-${compiler:sys.date}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.3.6-beta" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
     <languages skipLanguageSelection="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -18,6 +18,7 @@
     <mountPoints>
       <mountPoint id="20" root="" location="lib" mode="755" />
       <mountPoint id="1091" root="" location="scripts" mode="755" />
+      <mountPoint id="1414" root="" location="" mode="755" />
     </mountPoints>
     <entries>
       <dirEntry mountPoint="20" file="./lib/runlibs" overwrite="4" shared="false" mode="644" uninstallMode="0" excludeSuffixes=".svn" dirMode="755">
@@ -26,15 +27,15 @@
         </exclude>
       </dirEntry>
       <fileEntry mountPoint="20" file="./runtime/owltools.jar" overwrite="1" shared="false" mode="644" uninstallMode="2" />
+      <fileEntry mountPoint="1414" file="./CHANGES.txt" overwrite="1" shared="false" mode="644" uninstallMode="2" />
     </entries>
     <components>
       <component name="OBO-OWL converter" id="18" displayDescription="false" selected="true" mandatory="true" downloadable="false">
         <description />
         <include all="false">
           <entry location="lib/log4j-1.2.15.jar" launcher="false" />
-          <entry location="lib/owlapi-bin.jar" launcher="false" />
-          <entry location="lib/junit.jar" launcher="false" />
           <entry location="lib/oboformat.jar" launcher="false" />
+          <entry location="CHANGES.txt" launcher="false" />
           <entry location="obo-owl-converter" launcher="true" />
         </include>
         <dependencies />
@@ -43,6 +44,7 @@
         <description />
         <include all="false">
           <entry location="lib" launcher="false" />
+          <entry location="CHANGES.txt" launcher="false" />
           <entry location="obo-release-manager" launcher="true" />
         </include>
         <dependencies />
@@ -52,6 +54,7 @@
         <include all="false">
           <entry location="scripts/obolib-obo2owl" launcher="true" />
           <entry location="scripts/obolib-owl2obo" launcher="true" />
+          <entry location="CHANGES.txt" launcher="false" />
         </include>
         <dependencies>
           <component id="18" />
@@ -61,6 +64,7 @@
         <description />
         <include all="false">
           <entry location="scripts/ontology-release-runner" launcher="true" />
+          <entry location="CHANGES.txt" launcher="false" />
         </include>
         <dependencies>
           <component id="19" />

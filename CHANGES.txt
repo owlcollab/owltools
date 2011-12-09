@@ -1,5 +1,5 @@
 
-(Unreleased) Version 0.3.6-beta:
+Version 0.3.6-beta:
 
 Features
  * Add JSON support for OWL web services
