@@ -150,7 +150,7 @@ abstract class ReleaseRunnerFileTools {
 	
 	/**
 	 * Check whether the file is new. Throw an {@link IOException}, 
-	 * if the file already exists and {@link OortConfiguration#allowFileOverWrite} 
+	 * if the file already exists and {@link OortConfiguration#isAllowFileOverWrite()} 
 	 * is not set to true.
 	 * 
 	 * @param file
