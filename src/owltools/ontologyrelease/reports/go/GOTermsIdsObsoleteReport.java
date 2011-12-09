@@ -5,7 +5,7 @@ import static owltools.ontologyrelease.reports.go.GOTermsIdsReport.getOboNamespa
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.ontologyrelease.reports.OntologyReportGenerator.AbstractReport;
@@ -36,12 +36,12 @@ public class GOTermsIdsObsoleteReport extends AbstractReport {
 	}
 
 	@Override
-	public void handleTerm(PrintWriter writer, OWLObject owlObject, OWLGraphWrapper graph) throws IOException {
-		if (graph.isObsolete(owlObject)) {
-			char oboNamespaceChar = getOboNamespaceChar(owlObject, graph);
+	public void handleTerm(PrintWriter writer, OWLClass owlClass, OWLGraphWrapper graph) throws IOException {
+		if (graph.isObsolete(owlClass)) {
+			char oboNamespaceChar = getOboNamespaceChar(owlClass, graph);
 			if (oboNamespaceChar > 0) {
-				String id = graph.getIdentifier(owlObject);
-				String label = graph.getLabel(owlObject);
+				String id = graph.getIdentifier(owlClass);
+				String label = graph.getLabel(owlClass);
 				writeTabs(writer, writer, id, label, oboNamespaceChar, "obs");
 			}
 		}

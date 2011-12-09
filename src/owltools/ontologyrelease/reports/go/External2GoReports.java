@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.ontologyrelease.reports.OntologyReportGenerator.AbstractReport;
@@ -22,24 +24,23 @@ public class External2GoReports {
 		// no instances
 	}
 
-	private static List<OntologyReport> external2GoReports = null;
-
+	/**
+	 * Get all external reports. Creates always a list of new instances.
+	 * 
+	 * @return list of {@link OntologyReport}
+	 */
 	public static List<OntologyReport> getReports() {
-		synchronized (External2GoReports.class) {
-			if (external2GoReports == null) {
-				external2GoReports = new ArrayList<OntologyReport>();
-				external2GoReports.add(new External2GoEC());
-				external2GoReports.add(new External2GoKegg());
-				external2GoReports.add(new External2GoMetaCyc());
-				external2GoReports.add(new External2GoReactome());
-				external2GoReports.add(new External2GoResid());
-				external2GoReports.add(new External2GoRhea());
-				external2GoReports.add(new External2GoUmBbdEnzymeId());
-				external2GoReports.add(new External2GoUmBbdPathwayId());
-				external2GoReports.add(new External2GoUmBbdReactionId());
-				external2GoReports.add(new External2GoWikipedia());
-			}
-		}
+		List<OntologyReport> external2GoReports = new ArrayList<OntologyReport>();
+		external2GoReports.add(new External2GoEC());
+		external2GoReports.add(new External2GoKegg());
+		external2GoReports.add(new External2GoMetaCyc());
+		external2GoReports.add(new External2GoReactome());
+		external2GoReports.add(new External2GoResid());
+		external2GoReports.add(new External2GoRhea());
+		external2GoReports.add(new External2GoUmBbdEnzymeId());
+		external2GoReports.add(new External2GoUmBbdPathwayId());
+		external2GoReports.add(new External2GoUmBbdReactionId());
+		external2GoReports.add(new External2GoWikipedia());
 		return external2GoReports;
 	}
 
@@ -48,6 +49,33 @@ public class External2GoReports {
 		private final String reportFileName;
 		private final String fileHeader;
 		private final String prefix;
+		
+		private List<ExternalReference> references = null;
+		private static final Comparator<ExternalReference> COMPARATOR = new Comparator<ExternalReference>() {
+			
+			@Override
+			public int compare(ExternalReference ref1, ExternalReference ref2) {
+				return ref1.externalId.compareTo(ref2.externalId);
+			}
+		};
+		
+		private static class ExternalReference {
+			
+			final String externalId;
+			final String name;
+			final String goId;
+			
+			/**
+			 * @param externalId
+			 * @param name
+			 * @param goId
+			 */
+			ExternalReference(String externalId, String name, String goId) {
+				this.externalId = externalId;
+				this.name = name;
+				this.goId = goId;
+			}
+		}
 
 		/**
 		 * @param reportFileName
@@ -59,8 +87,8 @@ public class External2GoReports {
 			super();
 			this.reportFileName = reportFileName;
 			this.prefix = prefix;
-			fileHeader = fileHeaderMain + "! Last update at " + getTimeString()
-					+ " by the script " + getDate() + "\n!\n";
+			fileHeader = fileHeaderMain + "! Last update at " + getDate()
+					+ " by OORT \n!\n";
 		}
 
 		@Override
@@ -79,10 +107,17 @@ public class External2GoReports {
 		}
 
 		@Override
-		public void handleTerm(PrintWriter writer, OWLObject owlObject,
+		public void start(PrintWriter writer, OWLGraphWrapper graph)
+				throws IOException {
+			super.start(writer, graph);
+			references = new ArrayList<ExternalReference>();
+		}
+
+		@Override
+		public void handleTerm(PrintWriter writer, OWLClass owlClass,
 				OWLGraphWrapper graph) throws IOException {
-			List<String> xrefs = graph.getXref(owlObject);
-			if (graph.isObsolete(owlObject) == false) {
+			List<String> xrefs = graph.getXref(owlClass);
+			if (graph.isObsolete(owlClass) == false) {
 				for (String xref : xrefs) {
 					if (xref.length() > 1) {
 						String prefix = null;
@@ -93,16 +128,27 @@ public class External2GoReports {
 							suffix = xref.substring(pos + 1);
 						}
 						if (this.prefix.equals(prefix)) {
-							String id = graph.getIdentifier(owlObject);
-							writeTabs(writer, id, suffix);
+							String id = graph.getIdentifier(owlClass);
+							String label = graph.getLabel(owlClass);
+							references.add(new ExternalReference(suffix, "GO:"+label, id));
 						}
 					}
 				}
 			}
 		}
-
-		private String getTimeString() {
-			return ""; // TODO get info from graph header
+		
+		@Override
+		public void end(PrintWriter writer, OWLGraphWrapper graph)
+				throws IOException {
+			Collections.sort(references, COMPARATOR);
+			for (ExternalReference ref : references) {
+				writer.print(ref.externalId);
+				writer.print(" > ");
+				writer.print(ref.name);
+				writer.print(" ; ");
+				writer.print(ref.goId);
+			}
+			super.end(writer, graph);
 		}
 
 		private static String getDate() {

@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
@@ -38,8 +38,8 @@ public class GOTermsAltIdsReport extends AbstractReport {
 	}
 
 	@Override
-	public void handleTerm(PrintWriter writer, OWLObject owlObject, OWLGraphWrapper graph) throws IOException {
-		List<String> altIds = graph.getAltIds(owlObject);
+	public void handleTerm(PrintWriter writer, OWLClass owlClass, OWLGraphWrapper graph) throws IOException {
+		List<String> altIds = graph.getAltIds(owlClass);
 		if (altIds != null && !altIds.isEmpty()) {
 			StringBuilder sb = new StringBuilder();
 			for (String altId : altIds) {
@@ -48,13 +48,13 @@ public class GOTermsAltIdsReport extends AbstractReport {
 				}
 				sb.append(altId);
 			}
-			char oboNamespaceChar = getOboNamespaceChar(owlObject, graph);
+			char oboNamespaceChar = getOboNamespaceChar(owlClass, graph);
 			if (oboNamespaceChar > 0) {
-				String id = graph.getIdentifier(owlObject);
-				String label = graph.getLabel(owlObject);
+				String id = graph.getIdentifier(owlClass);
+				String label = graph.getLabel(owlClass);
 				String altIdsString = sb.toString();
 				writeTabs(writer, writer, id, altIdsString, label, oboNamespaceChar); // TODO append obsolete state?
-				List<ISynonym> synonyms = graph.getOBOSynonyms(owlObject);
+				List<ISynonym> synonyms = graph.getOBOSynonyms(owlClass);
 				if (synonyms != null && !synonyms.isEmpty()) {
 					for (ISynonym synonym : synonyms) {
 						writeTabs(writer, writer, id, altIdsString, synonym.getLabel(), oboNamespaceChar); // TODO append obsolete state?

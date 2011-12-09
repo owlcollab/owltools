@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.ontologyrelease.reports.OntologyReportGenerator.AbstractReport;
@@ -44,11 +44,11 @@ public class ObsoletesInExactReport extends AbstractReport {
 	}
 
 	@Override
-	public void handleTerm(PrintWriter writer, OWLObject owlObject, OWLGraphWrapper graph) throws IOException {
-		if (graph.isObsolete(owlObject)) {
-			List<String> considerList = graph.getConsider(owlObject);
+	public void handleTerm(PrintWriter writer, OWLClass owlClass, OWLGraphWrapper graph) throws IOException {
+		if (graph.isObsolete(owlClass)) {
+			List<String> considerList = graph.getConsider(owlClass);
 			if (considerList != null && !considerList.isEmpty()) {
-				String id = graph.getIdentifier(owlObject);
+				String id = graph.getIdentifier(owlClass);
 				for (String consider : considerList) {
 					writeTabs(writer, writer, id, consider);
 				}

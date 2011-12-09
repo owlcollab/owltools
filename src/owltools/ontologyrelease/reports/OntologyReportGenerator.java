@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
@@ -60,10 +62,9 @@ public class OntologyReportGenerator {
 			for (int i = 0; i < reports.size(); i++) {
 				reports.get(i).start(writers.get(i), graph);
 			}
-			// TODO sort order?
-			for(OWLObject owlObject : graph.getAllOWLObjects()) {
+			for(OWLClass cls : getSortedOWLClasses(graph)) {
 				for (int i = 0; i < reports.size(); i++) {
-					reports.get(i).handleTerm(writers.get(i), owlObject, graph);
+					reports.get(i).handleTerm(writers.get(i), cls, graph);
 				}
 			}
 			for (int i = 0; i < reports.size(); i++) {
@@ -77,6 +78,12 @@ public class OntologyReportGenerator {
 				}
 			}
 		}
+	}
+	
+	private List<OWLClass> getSortedOWLClasses(OWLGraphWrapper graph) {
+		List<OWLClass> classes = new ArrayList<OWLClass>(graph.getSourceOntology().getClassesInSignature());
+		Collections.sort(classes);
+		return classes;
 	}
 	
 	/**
@@ -111,11 +118,11 @@ public class OntologyReportGenerator {
 		 * Handle an {@link OWLObject} during the report.
 		 * 
 		 * @param writer
-		 * @param owlObject
+		 * @param owlClass
 		 * @param graph
 		 * @throws IOException
 		 */
-		public void handleTerm(PrintWriter writer, OWLObject owlObject, OWLGraphWrapper graph) throws IOException;
+		public void handleTerm(PrintWriter writer, OWLClass owlClass, OWLGraphWrapper graph) throws IOException;
 		
 		/**
 		 * End the report.
@@ -139,6 +146,7 @@ public class OntologyReportGenerator {
 
 		public void start(PrintWriter writer, OWLGraphWrapper graph) throws IOException {
 			String header = getFileHeader();
+			// TODO print ontology information
 			if (header != null) {
 				writer.println(header);
 			}
