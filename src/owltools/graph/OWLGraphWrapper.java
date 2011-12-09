@@ -83,7 +83,7 @@ import owltools.profile.Profiler;
  * 
  * An instance of an OWLGraphWrapper wraps one or more {@link org.semanticweb.owlapi.model.OWLOntology} objects. One of these is designated
  * the <i>sourceOntology</i>, the others are designated <i>support ontologies</i>
- * (see {@link #getSourceOntology()} and {@link getSupportOntologies()}).
+ * (see {@link #getSourceOntology()} and {@link #getSupportOntologySet()}).
  * The source ontology may import the support
  * ontologies, but this is optional. Most OWLGraphWrapper methods operate over the union of the source ontology
  * and support ontologies. This is particularly useful for working with OBO Library ontologies, where axioms
@@ -295,8 +295,7 @@ public class OWLGraphWrapper {
 	/**
 	 * Every OWLGraphWrapper objects wraps zero or one source ontologies.
 	 * 
-	 * 
-	 * @return
+	 * @return ontology
 	 */
 	public OWLOntology getSourceOntology() {
 		return sourceOntology;
@@ -334,7 +333,7 @@ public class OWLGraphWrapper {
 	 * any number of supporting ontologies. The supporting ontologies may be drawn
 	 * from the imports closure of the source ontology, although this need not be the case.
 	 * 
-	 * @return
+	 * @return set of support ontologies
 	 */
 	public Set<OWLOntology> getSupportOntologySet() {
 		return supportOntologySet;
@@ -911,7 +910,7 @@ public class OWLGraphWrapper {
 	/**
 	 * as getOutgoingEdgesClosure(s), but also includes an identity edge
 	 * @param s
-	 * @return
+	 * @return set of {@link OWLGraphEdge}
 	 */
 	public Set<OWLGraphEdge> getOutgoingEdgesClosureReflexive(OWLObject s) {
 		Set<OWLGraphEdge> edges = getOutgoingEdgesClosure(s);
@@ -1005,7 +1004,6 @@ public class OWLGraphWrapper {
 			}
 		}
 		else if (t instanceof OWLObjectUnionOf) {
-			Set<OWLObject> iresults = null;
 			for (OWLClassExpression y : ((OWLObjectUnionOf)t).getOperands()) {
 				results.addAll(queryDescendants(y, isInstances, isClasses));
 			}
@@ -1073,9 +1071,9 @@ public class OWLGraphWrapper {
 	 * returns all ancestors that can be reached over subclass or
 	 * the specified set of relations
 	 * 
-	 * @param sourceObject
+	 * @param x the sourceObject
 	 * @param overProps
-	 * @return
+	 * @return set of ancestors
 	 */
 	public Set<OWLObject> getAncestors(OWLObject x, Set<OWLPropertyExpression> overProps) {
 		Set<OWLObject> ancs = new HashSet<OWLObject>();
@@ -1128,7 +1126,7 @@ public class OWLGraphWrapper {
 	 * i.e. excludes anonymous class expressions
 	 * 
 	 * @param x
-	 * @return
+	 * @return set of named ancestors
 	 */
 	public Set<OWLObject> getNamedAncestors(OWLObject x) {
 		Set<OWLObject> ancs = new HashSet<OWLObject>();
@@ -1147,7 +1145,7 @@ public class OWLGraphWrapper {
 	/**
 	 * gets all descendants d of x, where d is reachable by any path. Excludes self
 	 * 
-	 * @see getAncestors()
+	 * @see #getAncestors
 	 * @see owltools.graph
 	 * @param x
 	 * @return descendant objects
@@ -1162,7 +1160,7 @@ public class OWLGraphWrapper {
 	/**
 	 * gets all reflexive descendants d of x, where d is reachable by any path. Includes self
 	 * 
-	 * @see getAncestors()
+	 * @see #getAncestors
 	 * @see owltools.graph
 	 * @param x
 	 * @return descendant objects plus x
@@ -1194,7 +1192,7 @@ public class OWLGraphWrapper {
 	 * 
 	 * for every s, if t is reachable from s, then include the inferred edge between s and t.
 	 * 
-	 * @see getOutgoingEdgesClosure
+	 * @see #getOutgoingEdgesClosure
 	 * @param t target
 	 * @return all edges connecting all descendants of target to target
 	 */
@@ -1285,7 +1283,7 @@ public class OWLGraphWrapper {
 	/**
 	 * Composes two graph edges into a new edge, using axioms in the ontology to determine the correct composition
 	 * 
-	 * For examole,  Edge(x,SUBCLASS_OF,y) * Edge(y,SUBCLASS_OF,z) yields Edge(x,SUBCLASS_OF,z)
+	 * For example,  Edge(x,SUBCLASS_OF,y) * Edge(y,SUBCLASS_OF,z) yields Edge(x,SUBCLASS_OF,z)
 	 * 
 	 * Note that property chains of length>2 are currently ignored
 	 * 
@@ -1293,7 +1291,7 @@ public class OWLGraphWrapper {
 	 * @param ne - edge 1
 	 * @param extEdge - edge 2
 	 * @param nextDist - new distance
-	 * @return
+	 * @return edge
 	 */
 	public OWLGraphEdge combineEdgePair(OWLObject s, OWLGraphEdge ne, OWLGraphEdge extEdge, int nextDist) {
 		//System.out.println("combing edges: "+s+" // "+ne+ " * "+extEdge);
@@ -1555,7 +1553,7 @@ public class OWLGraphWrapper {
 	 * assumes zero or one rdfs:label
 	 * 
 	 * @param c
-	 * @return
+	 * @return label
 	 */
 	public String getLabel(OWLObject c) {
 		OWLAnnotationProperty lap = dataFactory.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()); 
@@ -1579,7 +1577,7 @@ public class OWLGraphWrapper {
 	 * tests if an OWLObject has been declared obsolete in the source ontology
 	 * 
 	 * @param c
-	 * @return
+	 * @return boolean
 	 */
 	public boolean isObsolete(OWLObject c) {
 		for (OWLAnnotation ann : ((OWLEntity)c).getAnnotations(getSourceOntology())) {
@@ -1595,7 +1593,7 @@ public class OWLGraphWrapper {
 	 * gets the value of rdfs:comment for an OWLObject
 	 * 
 	 * @param c
-	 * @return
+	 * @return comment of null
 	 */
 	public String getComment(OWLObject c) {
 		OWLAnnotationProperty lap = dataFactory.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_COMMENT.getIRI()); 
@@ -1611,7 +1609,7 @@ public class OWLGraphWrapper {
 	 * 
 	 * @param c
 	 * @param lap
-	 * @return
+	 * @return value
 	 */
 	public String getAnnotationValue(OWLObject c, OWLAnnotationProperty lap) {
 		Set<OWLAnnotation>anns = new HashSet<OWLAnnotation>();
@@ -1637,7 +1635,7 @@ public class OWLGraphWrapper {
 	 * 
 	 * @param c
 	 * @param lap
-	 * @return
+	 * @return list of values or null
 	 */
 	public List<String> getAnnotationValues(OWLObject c, OWLAnnotationProperty lap) {
 		Set<OWLAnnotation>anns = new HashSet<OWLAnnotation>();
@@ -1675,7 +1673,7 @@ public class OWLGraphWrapper {
 	 * 
 	 * It returns the definition text (encoded as def in obo format and IAO_0000115 annotation property in OWL format) of a class
 	 * @param c
-	 * @return
+	 * @return definition
 	 */
 	public String getDef(OWLObject c) {
 		OWLAnnotationProperty lap = dataFactory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI()); 
@@ -1686,7 +1684,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns the value of the is_metadata_tag tag.
 	 * @param c could OWLClass or OWLObjectProperty
-	 * @return
+	 * @return boolean
 	 */
 	public boolean getIsMetaTag(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_IS_METADATA_TAG.getTag());
@@ -1699,7 +1697,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns the value of the subset tag.
 	 * @param c could OWLClass or OWLObjectProperty
-	 * @return
+	 * @return values
 	 */
 	// TODO - return set
 	public List<String> getSubsets(OWLObject c) {
@@ -1725,7 +1723,7 @@ public class OWLGraphWrapper {
 	 * given a subset name, find all OWLObjects (typically OWLClasses) assigned to that subset
 	 * 
 	 * @param subset
-	 * @return
+	 * @return set of {@link OWLObject}
 	 */
 	public Set<OWLObject> getOWLObjectsInSubset(String subset) {
 		Set<OWLObject> objs = new HashSet<OWLObject>();
@@ -1739,7 +1737,7 @@ public class OWLGraphWrapper {
 	/**
 	 * given a subset name, find all OWLClasses assigned to that subset
 	 * @param subset
-	 * @return
+	 * @return set of {@link OWLClass}
 	 */
 	public Set<OWLClass> getOWLClassesInSubset(String subset) {
 		Set<OWLClass> objs = new HashSet<OWLClass>();
@@ -1754,7 +1752,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns the value of the domain tag
 	 * @param prop
-	 * @return
+	 * @return domain string or null
 	 */
 	public String getDomain(OWLObjectProperty prop){
 		Set<OWLClassExpression> domains = prop.getDomains(ontology);
@@ -1770,7 +1768,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns the value of the range tag
 	 * @param prop
-	 * @return
+	 * @return range or null
 	 */
 	public String getRange(OWLObjectProperty prop){
 		Set<OWLClassExpression> domains = prop.getRanges(ontology);
@@ -1784,9 +1782,9 @@ public class OWLGraphWrapper {
 
 
 	/**
-	 * It returns the value of the replaced_by tag or IAO_0100001 annotation.
+	 * It returns the values of the replaced_by tag or IAO_0100001 annotation.
 	 * @param c could OWLClass or OWLObjectProperty
-	 * @return
+	 * @return list of values
 	 */
 	public List<String> getReplacedBy(OWLObject c) {
 		OWLAnnotationProperty lap = dataFactory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI());
@@ -1795,24 +1793,22 @@ public class OWLGraphWrapper {
 	}
 
 	/**
-	 * It returns the value of the consider tag.
-	 * 
-	 * TODO - needs to be multivalued - this will change in the future
+	 * It returns the values of the consider tag.
 	 * 
 	 * @param c could OWLClass or OWLObjectProperty
-	 * @return
+	 * @return list of values
 	 */
-	public String getConsider(OWLObject c) {
+	public List<String> getConsider(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_CONSIDER.getTag());
 
-		return getAnnotationValue(c, lap);
+		return getAnnotationValues(c, lap);
 	}
 
 
 	/**
 	 * It returns the value of the is-obsolete tag.
 	 * @param c could OWLClass or OWLObjectProperty
-	 * @return
+	 * @return boolean
 	 */
 	public boolean getIsObsolete(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_IS_OBSELETE.getTag()); 
@@ -1827,7 +1823,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns the values of the alt_id tag
 	 * @param c
-	 * @return
+	 * @return list of identifiers
 	 */
 	public List<String> getAltIds(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_ALT_ID.getTag());
@@ -1867,7 +1863,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It translates a oboformat tag into an OWL annotation property
 	 * @param tag
-	 * @return
+	 * @return {@link OWLAnnotationProperty}
 	 */
 	public OWLAnnotationProperty getAnnotationProperty(String tag){
 		return dataFactory.getOWLAnnotationProperty(Obo2Owl.trTagToIRI(tag));
@@ -1880,7 +1876,7 @@ public class OWLGraphWrapper {
 	 * Example: if the OWLObject is the GO class GO:0008150, this would return "biological_process"
 	 * 
 	 * @param c
-	 * @return
+	 * @return namespace
 	 */
 	public String getNamespace(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_NAMESPACE.getTag());
@@ -1892,7 +1888,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns the value of the created_by tag
 	 * @param c
-	 * @return
+	 * @return value or null
 	 */
 	public String getCreatedBy(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_CREATED_BY.getTag()); 
@@ -1904,7 +1900,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns the value of the is_anti_symmetric tag or IAO_0000427 annotation
 	 * @param c
-	 * @return
+	 * @return boolean
 	 */
 	public boolean getIsAntiSymmetric(OWLObject c) {
 		OWLAnnotationProperty lap = dataFactory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000427.getIRI());
@@ -1918,7 +1914,7 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns the value of the is_cyclic tag 
 	 * @param c
-	 * @return
+	 * @return boolean
 	 */
 	public boolean getIsCyclic(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_IS_CYCLIC.getTag()); 
@@ -1934,7 +1930,7 @@ public class OWLGraphWrapper {
 	 * true if c is transitive in the source ontology
 	 * 
 	 * @param c
-	 * @return
+	 * @return boolean
 	 */
 	public boolean getIsTransitive(OWLObjectProperty c) {
 		Set<OWLTransitiveObjectPropertyAxiom> ax = sourceOntology.getTransitiveObjectPropertyAxioms(c);
@@ -1946,7 +1942,7 @@ public class OWLGraphWrapper {
 	/**
 	 * true if c is functional in the source ontology
 	 * @param c
-	 * @return
+	 * @return boolean
 	 */
 	public boolean getIsFunctional(OWLObjectProperty c) {
 		Set<OWLFunctionalObjectPropertyAxiom> ax = sourceOntology.getFunctionalObjectPropertyAxioms(c);
@@ -1980,7 +1976,7 @@ public class OWLGraphWrapper {
 	/**
 	 * returns parent properties of p in all ontologies
 	 * @param p
-	 * @return
+	 * @return set of properties
 	 */
 	public Set<OWLObjectPropertyExpression> getSuperPropertiesOf(OWLObjectPropertyExpression p) {
 		Set<OWLObjectPropertyExpression> ps = new HashSet<OWLObjectPropertyExpression>();
@@ -2025,7 +2021,7 @@ public class OWLGraphWrapper {
 	 * Get the definition xrefs (IAO_0000115)
 	 * 
 	 * @param c
-	 * @return
+	 * @return list of definition xrefs
 	 */
 	public List<String> getDefXref(OWLObject c){
 		OWLAnnotationProperty lap = dataFactory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI()); 
@@ -2389,7 +2385,7 @@ public class OWLGraphWrapper {
 	 * if there is >1 match, return the first one encountered
 	 * 
 	 * @param label
-	 * @return
+	 * @return object or null
 	 */
 	public OWLObject getOWLObjectByLabel(String label) {
 		IRI iri = getIRIByLabel(label);
@@ -2402,7 +2398,7 @@ public class OWLGraphWrapper {
 	 * fetches an OWL IRI by rdfs:label
 	 * 
 	 * @param label
-	 * @return
+	 * @return IRI or null
 	 */
 	public IRI getIRIByLabel(String label) {
 		try {
@@ -2422,7 +2418,7 @@ public class OWLGraphWrapper {
 	 * 
 	 * @param label
 	 * @param isEnforceUnivocal
-	 * @return
+	 * @return IRI or null
 	 * @throws SharedLabelException if >1 IRI shares input label
 	 */
 	public IRI getIRIByLabel(String label, boolean isEnforceUnivocal) throws SharedLabelException {
