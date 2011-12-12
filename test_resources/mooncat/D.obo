@@ -1,10 +1,14 @@
 format-version: 1.2
 default-namespace: d
 ontology: d
+subsetdef: subset_d1 "Subset 1 defined in D"
+subsetdef: subset_d2 "Subset 2 defined in D"
 
 [Term]
 id: D:0000001
 name: d1
+subset: subset_d1
+subset: subset_d2
 
 [Term]
 id: D:0000002
@@ -12,6 +16,7 @@ name: d2
 is_a: D:0000001 ! d1
 intersection_of: D:0000001 ! d1
 intersection_of: rel_e E:0000003
+subset: subset_d1
 
 [Term]
 id: D:0000003
@@ -19,6 +24,7 @@ name: d3
 is_a: D:0000001 ! d1
 intersection_of: D:0000001 ! D1
 intersection_of: rel_f F:0000002 
+subset: subset_d2
 
 [Term]
 id: D:0000004

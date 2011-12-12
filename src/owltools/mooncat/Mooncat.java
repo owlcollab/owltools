@@ -237,11 +237,19 @@ public class Mooncat {
 		//   we want to preserve obo headers.
 		// TODO: make this configurable
 		LOG.info("adding SAPs");
+		Set<OWLAxiom> sapAxioms = new HashSet<OWLAxiom>();
 		for (OWLOntology refOnt : this.getReferencedOntologies()) {
 			for (OWLSubAnnotationPropertyOfAxiom a : refOnt.getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
-				axioms.add(a);
+				sapAxioms.add(a);
+				Set<OWLAnnotationAssertionAxiom> s = refOnt.getAnnotationAssertionAxioms(a.getSubProperty().getIRI());
+				if (s != null && !s.isEmpty()) {
+					for (OWLAnnotationAssertionAxiom owlAnnotationAssertionAxiom : s) {
+						sapAxioms.add(owlAnnotationAssertionAxiom);
+					}
+				}
 			}
 		}
+		axioms.addAll(sapAxioms);
 
 		for (OWLAxiom a : axioms) {
 			LOG.info("Adding:"+a);
