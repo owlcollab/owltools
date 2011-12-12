@@ -50,7 +50,7 @@ public class ObsoletesExactReport extends AbstractReport {
 			if (replacedBys != null && !replacedBys.isEmpty()) {
 				String id = graph.getIdentifier(owlClass);
 				for (String replacedBy : replacedBys) {
-					writeTabs(writer, writer, id, replacedBy);
+					writeTabs(writer, id, replacedBy);
 				}
 			}
 		}

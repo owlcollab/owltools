@@ -160,7 +160,7 @@ public class OntologyReportGenerator {
 			// intentionally empty
 		}
 		
-		protected void writeTabs(PrintWriter writer, Object... fields) {
+		protected void writeTabs(PrintWriter writer, CharSequence... fields) {
 			for (int i = 0; i < fields.length; i++) {
 				if (i > 0) {
 					writer.print('\t');

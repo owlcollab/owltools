@@ -50,14 +50,14 @@ public class ObsoletesAllReport extends AbstractReport {
 			if (considerList != null && !considerList.isEmpty()) {
 				String id = graph.getIdentifier(owlClass);
 				for (String consider : considerList) {
-					writeTabs(writer, writer, id, consider);
+					writeTabs(writer, id, consider);
 				}
 			}
 			List<String> replacedBys = graph.getReplacedBy(owlClass);
 			if (replacedBys != null && !replacedBys.isEmpty()) {
 				String id = graph.getIdentifier(owlClass);
 				for (String replacedBy : replacedBys) {
-					writeTabs(writer, writer, id, replacedBy);
+					writeTabs(writer, id, replacedBy);
 				}
 			}
 		}
