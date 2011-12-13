@@ -139,8 +139,9 @@ public class InferenceBuilder{
 				OWLOntology infOnt = manager.createOntology();
 				// Set ontology ID
 				//manager.applyChange(new SetOntologyID(infOnt, sourceOntology.getOntologyID()));
+				OWLOntologyID ontologyID = sourceOntology.getOntologyID();
 				manager.applyChange(new SetOntologyID(infOnt, 
-						new OWLOntologyID(IRI.create(sourceOntology.getOntologyID().toString()+"-el"))));
+						new OWLOntologyID(IRI.create(ontologyID.getOntologyIRI().toString()+"-el"))));
 				// Remove violations
 				List<OWLProfileViolation> violations = report.getViolations();
 				Set<OWLAxiom> ignoreSet = new HashSet<OWLAxiom>();
