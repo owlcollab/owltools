@@ -31,7 +31,7 @@ public class RetrieveRelationByLabelTest extends OWLToolsTestBasics {
 		OWLObject part_of = wrapper.getOWLObjectByLabel("part_of");
 		assertNotNull("All relations need to be retrievable by label.", part_of);
 		
-		OWLObject occurs_in = wrapper.getOWLObjectByLabel("occurs_in");
+		OWLObject occurs_in = wrapper.getOWLObjectByLabel("occurs in");
 		assertNotNull("All relations need to be retrievable by label.",occurs_in);
 	}
 
