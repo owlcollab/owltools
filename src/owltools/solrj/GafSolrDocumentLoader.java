@@ -60,6 +60,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	private void add(Bioentity e) {
 		String eid = e.getId();
 		String esym = e.getSymbol();
+		LOG.info("Adding: "+eid+" "+esym);
 		SolrInputDocument d = new SolrInputDocument();
 		d.addField("document_category", "bioentity");
 		d.addField("id", eid);
@@ -72,19 +73,21 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		Map<String,SolrInputDocument> aggDocMap = new HashMap<String,SolrInputDocument>();
 		
 		for (GeneAnnotation a : gafDocument.getGeneAnnotations(e.getId())) {
-			String clsId = a.getCls();
-
-
 			// annotation doc
 			SolrInputDocument ad = new SolrInputDocument();
+
+			String clsId = a.getCls();
+			String refId = a.getReferenceId();
+
+
 			ad.addField("document_category", "annotation");
-			ad.addField("id", eid + clsId); // TODO
-			ad.addField("bioentity_id", e.getId());
+			ad.addField("id", eid + clsId); // TODO - make unique
+			ad.addField("bioentity_id", eid);
 			ad.addField("bioentity_label", esym);
 			ad.addField("taxon", taxId);
 			addLabelField(ad, "taxon_label", taxId);
 
-			ad.addField("reference", a.getReferenceId());
+			ad.addField("reference", refId);
 			// TODO - ev. closure
 			ad.addField("evidence_type", a.getEvidenceCls());
 			ad.addField("evidence_with", a.getWithExpression());
