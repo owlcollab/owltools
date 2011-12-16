@@ -1,8 +1,0 @@
-format-version: 1.2
-default-namespace: c
-ontology: c
-
-[Term]
-id: C:0000001
-name: c1
-def: "Definition for term c1" [GOC:test, GOC:test2]
