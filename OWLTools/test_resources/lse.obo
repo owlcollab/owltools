@@ -1,0 +1,473 @@
+format-version: 1.2
+ontology: go
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_goa "GOA and proteome slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+subsetdef: unvetted "unvetted"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+
+[Term]
+id: GO:0006139
+name: nucleobase, nucleoside, nucleotide and nucleic acid metabolic process
+namespace: biological_process
+alt_id: GO:0055134
+def: "Any cellular metabolic process involving nucleobases, nucleosides, nucleotides and nucleic acids." [GOC:ai]
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular nucleobase, nucleoside, nucleotide and nucleic acid metabolic process" EXACT []
+synonym: "cellular nucleobase, nucleoside, nucleotide and nucleic acid metabolism" EXACT []
+synonym: "nucleobase, nucleoside, nucleotide and nucleic acid metabolism" EXACT []
+is_a: GO:0034641  ! cellular nitrogen compound metabolic process
+is_a: GO:0044238  ! primary metabolic process
+
+[Term]
+id: GO:0006259
+name: DNA metabolic process
+namespace: biological_process
+alt_id: GO:0055132
+def: "Any cellular metabolic process involving deoxyribonucleic acid. This is one of the two main types of nucleic acid, consisting of a long, unbranched macromolecule formed from one, or more commonly, two, strands of linked deoxyribonucleotides." [ISBN:0198506732]
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "DNA metabolism" EXACT []
+synonym: "cellular DNA metabolism" EXACT []
+is_a: GO:0044260  ! cellular macromolecule metabolic process
+is_a: GO:0090304  ! nucleic acid metabolic process
+
+[Term]
+id: GO:0006260
+name: DNA replication
+namespace: biological_process
+alt_id: GO:0055133
+def: "The cellular metabolic process in which a cell duplicates one or more molecules of DNA. DNA replication begins when specific sequences, known as origins of replication, are recognized and bound by initiation proteins, and ends when the original DNA molecule has been completely duplicated and the copies topologically separated. The unit of replication usually corresponds to the genome of the cell, an organelle, or a virus. The template for replication can either be an existing DNA molecule or RNA." [GOC:mah]
+comment: See also the biological process terms 'DNA-dependent DNA replication ; GO:0006261' and 'RNA-dependent DNA replication ; GO:0006278'.
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+xref: Reactome:1006387
+xref: Reactome:1014038
+xref: Reactome:1024839
+xref: Reactome:1034782
+xref: Reactome:1034791
+xref: Reactome:1034793
+xref: Reactome:1034795
+xref: Reactome:1034812
+xref: Reactome:1034821
+xref: Reactome:1034822
+xref: Reactome:1051687
+xref: Reactome:1061251
+xref: Reactome:1061263
+xref: Reactome:1061265
+xref: Reactome:1061267
+xref: Reactome:1061287
+xref: Reactome:1061303
+xref: Reactome:1061304
+xref: Reactome:1076646
+xref: Reactome:1084516
+xref: Reactome:1084525
+xref: Reactome:1084527
+xref: Reactome:1084529
+xref: Reactome:1084546
+xref: Reactome:1084555
+xref: Reactome:1084556
+xref: Reactome:1097164
+xref: Reactome:1105191
+xref: Reactome:1105204
+xref: Reactome:1105206
+xref: Reactome:1105208
+xref: Reactome:1105221
+xref: Reactome:1105238
+xref: Reactome:1105239
+xref: Reactome:1116447
+xref: Reactome:1125306
+xref: Reactome:1125315
+xref: Reactome:1125317
+xref: Reactome:1125319
+xref: Reactome:1125340
+xref: Reactome:1125349
+xref: Reactome:1125350
+xref: Reactome:1140267
+xref: Reactome:1152635
+xref: Reactome:1152644
+xref: Reactome:1152646
+xref: Reactome:1152648
+xref: Reactome:1152673
+xref: Reactome:1152682
+xref: Reactome:1152683
+xref: Reactome:1170512
+xref: Reactome:1180520
+xref: Reactome:1180530
+xref: Reactome:1192340
+xref: Reactome:1199348
+xref: Reactome:1206873
+xref: Reactome:1243758
+xref: Reactome:1247047
+xref: Reactome:1252489
+xref: Reactome:1256317
+xref: Reactome:1258281
+xref: Reactome:176101
+xref: Reactome:176116
+xref: Reactome:176175
+xref: Reactome:176187
+xref: Reactome:176250
+xref: Reactome:176264
+xref: Reactome:176298
+xref: Reactome:176318
+xref: Reactome:963341
+xref: Reactome:963350
+xref: Reactome:963352
+xref: Reactome:963354
+xref: Reactome:963374
+xref: Reactome:963390
+xref: Reactome:963391
+xref: Reactome:979790
+xref: Reactome:989857
+xref: Reactome:989866
+xref: Reactome:989868
+xref: Reactome:989870
+xref: Reactome:989894
+xref: Reactome:989903
+xref: Reactome:989904
+xref: Wikipedia:DNA_replication
+is_a: GO:0006259  ! DNA metabolic process
+is_a: GO:0034645  ! cellular macromolecule biosynthetic process
+relationship: has_part GO:0071897 ! DNA biosynthetic process
+
+[Term]
+id: GO:0006261
+name: DNA-dependent DNA replication
+namespace: biological_process
+alt_id: GO:0006262
+alt_id: GO:0006263
+def: "A DNA replication process that uses parental DNA as a template for the DNA-dependent DNA polymerases that synthesize the new strands." [GOC:mah, ISBN:0198506732]
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0006260  ! DNA replication
+
+[Term]
+id: GO:0006269
+name: DNA replication, synthesis of RNA primer
+namespace: biological_process
+def: "The synthesis of a short RNA polymer, usually 4-15 nucleotides long, using one strand of unwound DNA as a template; the RNA then serves as a primer from which DNA polymerases extend synthesis." [PMID:11395402]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "replication priming" RELATED []
+is_a: GO:0006259  ! DNA metabolic process
+is_a: GO:0032774  ! RNA biosynthetic process
+relationship: part_of GO:0006261 ! DNA-dependent DNA replication
+
+[Term]
+id: GO:0006271
+name: DNA strand elongation involved in DNA replication
+namespace: biological_process
+def: "The process in which a DNA strand is synthesized from template DNA during replication by the action of polymerases, which add nucleotides to the 3' end of the nascent DNA strand." [ISBN:071673706X, ISBN:0815316194]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "DNA replication elongation" EXACT []
+synonym: "DNA strand elongation during DNA replication" RELATED [GOC:dph, GOC:tb]
+xref: Reactome:1006372
+xref: Reactome:1024719
+xref: Reactome:1051672
+xref: Reactome:1076631
+xref: Reactome:1097155
+xref: Reactome:1116435
+xref: Reactome:1140252
+xref: Reactome:1170497
+xref: Reactome:1192328
+xref: Reactome:1206523
+xref: Reactome:1221169
+xref: Reactome:1239154
+xref: Reactome:1246736
+xref: Reactome:1252479
+xref: Reactome:1258271
+xref: Reactome:1261992
+xref: Reactome:1265585
+xref: Reactome:69190
+xref: Reactome:979775
+is_a: GO:0022616  ! DNA strand elongation
+relationship: part_of GO:0006261 ! DNA-dependent DNA replication
+intersection_of: GO:0022616  ! DNA strand elongation
+intersection_of: part_of GO:0006260 ! DNA replication
+
+[Term]
+id: GO:0006273
+name: lagging strand elongation
+namespace: biological_process
+def: "The synthesis of DNA from a template strand in a net 3' to 5' direction. Lagging strand DNA elongation proceeds by discontinuous synthesis of short stretches of DNA, known as Okazaki fragments, from RNA primers; these fragments are then joined by DNA ligase. Although each segment of nascent DNA is synthesized in the 5' to 3' direction, the overall direction of lagging strand synthesis is 3' to 5', mirroring the progress of the replication fork." [ISBN:071673706X, ISBN:0815316194]
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0006271  ! DNA strand elongation involved in DNA replication
+relationship: has_part GO:0006269 ! DNA replication, synthesis of RNA primer
+
+[Term]
+id: GO:0006807
+name: nitrogen compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving organic or inorganic compounds that contain nitrogen, including (but not limited to) nitrogen fixation, nitrification, denitrification, assimilatory/dissimilatory nitrate reduction and the interconversion of nitrogenous organic matter and ammonium." [CHEBI:51143, GOC:go_curators, GOC:jl, ISBN:0198506732]
+comment: Note that amino acid and derivative metabolism should not be annotated here. Instead use the 'amino acid and derivative metabolism' node.
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "nitrogen compound metabolism" EXACT []
+is_a: GO:0008152  ! metabolic process
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "biological process" EXACT []
+synonym: "biological process unknown" NARROW []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+disjoint_from: GO:0003674  ! molecular_function
+disjoint_from: GO:0005575  ! cellular_component
+
+[Term]
+id: GO:0008152
+name: metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways, including anabolism and catabolism, by which living organisms transform chemical substances. Metabolic processes typically transform small molecules, but also include macromolecular processes such as DNA repair and replication, and protein synthesis and degradation." [GOC:go_curators, ISBN:0198547684]
+comment: Note that metabolic processes do not include single functions or processes such as protein-protein interactions, protein-nucleic acids, nor receptor-ligand interactions.
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "metabolic process resulting in cell growth" NARROW []
+synonym: "metabolism" EXACT []
+synonym: "metabolism resulting in cell growth" NARROW []
+xref: Wikipedia:Metabolism
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0009058
+name: biosynthetic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the formation of substances; typically the energy-requiring part of metabolism in which simpler substances are transformed into more complex ones." [GOC:curators, ISBN:0198547684]
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "anabolism" EXACT []
+synonym: "biosynthesis" EXACT []
+synonym: "formation" EXACT []
+synonym: "synthesis" EXACT []
+xref: Wikipedia:Anabolism
+is_a: GO:0008152  ! metabolic process
+
+[Term]
+id: GO:0009059
+name: macromolecule biosynthetic process
+namespace: biological_process
+alt_id: GO:0043284
+def: "The chemical reactions and pathways resulting in the formation of a macromolecule, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass." [CHEBI:33694, GOC:mah]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "biopolymer biosynthetic process" EXACT [GOC:mtg_chebi_dec09]
+synonym: "macromolecule anabolism" EXACT []
+synonym: "macromolecule biosynthesis" EXACT []
+synonym: "macromolecule formation" EXACT []
+synonym: "macromolecule synthesis" EXACT []
+is_a: GO:0009058  ! biosynthetic process
+is_a: GO:0043170  ! macromolecule metabolic process
+
+[Term]
+id: GO:0009987
+name: cellular process
+namespace: biological_process
+alt_id: GO:0008151
+alt_id: GO:0050875
+def: "Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators, GOC:isa_complete]
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell growth and/or maintenance" NARROW []
+synonym: "cell physiology" EXACT []
+synonym: "cellular physiological process" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0016070
+name: RNA metabolic process
+namespace: biological_process
+def: "The cellular chemical reactions and pathways involving RNA, ribonucleic acid, one of the two main type of nucleic acid, consisting of a long, unbranched macromolecule formed from ribonucleotides joined in 3',5'-phosphodiester linkage." [ISBN:0198506732]
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "RNA metabolism" EXACT []
+xref: Reactome:1006928
+xref: Reactome:1025201
+xref: Reactome:1052235
+xref: Reactome:1077174
+xref: Reactome:1097649
+xref: Reactome:1116940
+xref: Reactome:1140787
+xref: Reactome:1171026
+xref: Reactome:1192744
+xref: Reactome:1207076
+xref: Reactome:1221550
+xref: Reactome:1239533
+xref: Reactome:1247185
+xref: Reactome:1252834
+xref: Reactome:1258644
+xref: Reactome:1262225
+xref: Reactome:532600
+xref: Reactome:980323
+is_a: GO:0044260  ! cellular macromolecule metabolic process
+is_a: GO:0090304  ! nucleic acid metabolic process
+
+[Term]
+id: GO:0022616
+name: DNA strand elongation
+namespace: biological_process
+def: "The DNA metabolic process in which a DNA strand is synthesized by adding nucleotides to the 3' end of an existing DNA stand." [GOC:isa_complete]
+is_a: GO:0006259  ! DNA metabolic process
+
+[Term]
+id: GO:0032774
+name: RNA biosynthetic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the formation of RNA, ribonucleic acid, one of the two main type of nucleic acid, consisting of a long, unbranched macromolecule formed from ribonucleotides joined in 3',5'-phosphodiester linkage. Includes polymerization of ribonucleotide monomers." [GOC:mah]
+synonym: "RNA anabolism" EXACT []
+synonym: "RNA biosynthesis" EXACT []
+synonym: "RNA formation" EXACT []
+synonym: "RNA synthesis" EXACT []
+is_a: GO:0016070  ! RNA metabolic process
+is_a: GO:0044249  ! cellular biosynthetic process
+
+[Term]
+id: GO:0034641
+name: cellular nitrogen compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving various organic and inorganic nitrogenous compounds, as carried out by individual cells." [GOC:mah]
+subset: goslim_generic  ! Generic GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular nitrogen compound metabolism" EXACT []
+is_a: GO:0006807  ! nitrogen compound metabolic process
+is_a: GO:0044237  ! cellular metabolic process
+
+[Term]
+id: GO:0034645
+name: cellular macromolecule biosynthetic process
+namespace: biological_process
+alt_id: GO:0034961
+def: "The chemical reactions and pathways resulting in the formation of a macromolecule, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass, carried out by individual cells." [CHEBI:33694, GOC:mah]
+synonym: "cellular biopolymer biosynthetic process" EXACT [GOC:mtg_chebi_dec09]
+synonym: "cellular macromolecule anabolism" EXACT [GOC:mah]
+synonym: "cellular macromolecule biosynthesis" EXACT [GOC:mah]
+synonym: "cellular macromolecule formation" EXACT [GOC:mah]
+synonym: "cellular macromolecule synthesis" EXACT [GOC:mah]
+is_a: GO:0009059  ! macromolecule biosynthetic process
+is_a: GO:0044249  ! cellular biosynthetic process
+is_a: GO:0044260  ! cellular macromolecule metabolic process
+
+[Term]
+id: GO:0043170
+name: macromolecule metabolic process
+namespace: biological_process
+alt_id: GO:0043283
+def: "The chemical reactions and pathways involving macromolecules, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass." [CHEBI:33694, GOC:mah]
+subset: goslim_goa  ! GOA and proteome slim
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "biopolymer metabolic process" EXACT [GOC:mtg_chebi_dec09]
+synonym: "macromolecule metabolism" EXACT []
+is_a: GO:0008152  ! metabolic process
+
+[Term]
+id: GO:0044237
+name: cellular metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways by which individual cells transform chemical substances." [GOC:go_curators]
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular metabolism" EXACT []
+synonym: "intermediary metabolism" RELATED [GOC:mah]
+is_a: GO:0008152  ! metabolic process
+is_a: GO:0009987  ! cellular process
+
+[Term]
+id: GO:0044238
+name: primary metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving those compounds which are formed as a part of the normal anabolic and catabolic processes. These processes take place in most, if not all, cells of the organism." [GOC:go_curators, http://www.metacyc.org]
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "primary metabolism" EXACT []
+is_a: GO:0008152  ! metabolic process
+
+[Term]
+id: GO:0044249
+name: cellular biosynthetic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the formation of substances, carried out by individual cells." [GOC:jl]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular anabolism" EXACT []
+synonym: "cellular biosynthesis" EXACT []
+synonym: "cellular formation" EXACT []
+synonym: "cellular synthesis" EXACT []
+is_a: GO:0009058  ! biosynthetic process
+is_a: GO:0044237  ! cellular metabolic process
+
+[Term]
+id: GO:0044260
+name: cellular macromolecule metabolic process
+namespace: biological_process
+alt_id: GO:0034960
+def: "The chemical reactions and pathways involving macromolecules, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass, as carried out by individual cells." [CHEBI:33694, GOC:mah]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular biopolymer metabolic process" EXACT [GOC:mtg_chebi_dec09]
+synonym: "cellular macromolecule metabolism" EXACT []
+is_a: GO:0043170  ! macromolecule metabolic process
+is_a: GO:0044237  ! cellular metabolic process
+
+[Term]
+id: GO:0071897
+name: DNA biosynthetic process
+namespace: biological_process
+def: "The cellular DNA metabolic process resulting in the formation of DNA, deoxyribonucleic acid, one of the two main types of nucleic acid, consisting of a long unbranched macromolecule formed from one or two strands of linked deoxyribonucleotides, the 3'-phosphate group of each constituent deoxyribonucleotide being joined in 3',5'-phosphodiester linkage to the 5'-hydroxyl group of the deoxyribose moiety of the next one." [GOC:mah]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "DNA anabolism" EXACT [GOC:mah]
+synonym: "DNA biosynthesis" EXACT [GOC:mah]
+synonym: "DNA formation" EXACT [GOC:mah]
+synonym: "DNA synthesis" EXACT [GOC:mah]
+is_a: GO:0006259  ! DNA metabolic process
+is_a: GO:0034645  ! cellular macromolecule biosynthetic process
+
+[Term]
+id: GO:0090304
+name: nucleic acid metabolic process
+namespace: biological_process
+def: "Any cellular metabolic process involving nucleic acids." [GOC:dph, GOC:tb]
+is_a: GO:0006139  ! nucleobase, nucleoside, nucleotide and nucleic acid metabolic process
+
+[Typedef]
+id: has_part
+name: has_part
+namespace: gene_ontology
+is_transitive: true
+xref: OBO_REL:has_part
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: gene_ontology
+is_transitive: true
+xref: OBO_REL:part_of
+

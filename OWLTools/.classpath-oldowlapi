@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/owlapi-bin.jar" sourcepath="/owlapi"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/pellet.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/aterm-java-1.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/FaCTpp-OWLAPI-v1.2.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/commons-logging-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/relaxngDatatype.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/xercesImpl.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/xml-apis.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/runlibs/xsdlib-1.5.jar"/>
+	<classpathentry kind="lib" path="lib/runlibs/log4j-1.2.15.jar"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>

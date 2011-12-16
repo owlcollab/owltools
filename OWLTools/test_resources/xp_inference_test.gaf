@@ -1,0 +1,8 @@
+!gaf-version: 2.0
+!for testing
+!
+FOO	FOO:1	foo1		GO:0006412	TEST:1	IDA		P			gene	taxon:10090	20100209	FOO		
+FOO	FOO:1	foo1		GO:0005739	TEST:1	IDA		C			gene	taxon:10090	20100209	FOO		
+FOO	FOO:2	foo2		GO:0048585	TEST:1	IDA		P			gene	taxon:10090	20100209	FOO	regulates(GO:0051594)	
+FOO	FOO:3	foo1		GO:0006412	TEST:1	IDA		P			gene	taxon:10090	20100209	FOO	occurs_in(GO:0005739)	
+FOO	FOO:4	foo1		GO:0005739	TEST:1	IDA		C			gene	taxon:10090	20100209	FOO		

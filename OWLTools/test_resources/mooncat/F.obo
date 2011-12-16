@@ -1,0 +1,20 @@
+format-version: 1.2
+default-namespace: f
+ontology: f
+subsetdef: subset_f1 "Subset 1 defined in F"
+
+[Term]
+id: F:0000001
+name: f1
+def: "Definition for term f1" [GOC:test, GOC:test2]
+subset: subset_f1
+
+[Term]
+id: F:0000002
+name: f2
+relationship: rel_f F:0000001 ! f1  
+
+[Typedef]
+id: rel_f
+name: rel_f
+def: "Definition for rel_f" [GOC:test4]

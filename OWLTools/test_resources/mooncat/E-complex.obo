@@ -1,0 +1,42 @@
+format-version: 1.2
+default-namespace: e
+ontology: e
+subsetdef: subset_e1 "Subset 1 defined in E"
+subsetdef: subset_e2 "Subset 2 defined in E"
+subsetdef: subset_f1 "Subset 1 defined in F"
+
+[Term]
+id: E:0000001
+name: e1
+
+[Term]
+id: E:0000002
+name: e2
+is_a: E:0000001 ! e1
+intersection_of: E:0000001 ! e1
+intersection_of: rel_f F:0000001 
+relationship: rel_f F:0000001
+subset: subset_e1
+
+[Term]
+id: E:0000003
+name: e3
+relationship: rel_e E:0000002
+
+[Term]
+id: F:0000001
+name: f1
+namespace: f
+def: "Definition for term f1 in E" [GOC:test, GOC:test2]
+property_value: IAO:0000412 http://purl.obolibrary.org/obo/f.owl
+subset: subset_f1
+
+[Typedef]
+id: rel_e
+name: rel_e
+
+[Typedef]
+id: rel_f
+name: rel_f
+def: "Definition for rel_f in E" [GOC:test3]
+property_value: IAO:0000412 http://purl.obolibrary.org/obo/f.owl

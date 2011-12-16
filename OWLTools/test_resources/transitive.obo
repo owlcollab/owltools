@@ -1,0 +1,16 @@
+[Term]
+id: a
+relationship: part_of b
+
+[Term]
+id: b
+relationship: part_of c
+
+[Term]
+id: c
+
+[Typedef]
+id: part_of
+is_transitive: true
+
+

@@ -1,0 +1,24 @@
+
+[Term]
+id: test:1234
+name: A
+
+[Term]
+id: test:2234
+name: B
+intersection_of: test:1234 ! A  
+intersection_of: rtest:1234 test:3234 ! part_of C
+
+[Term]
+id: test:3234
+name: C
+
+[Term]
+id: test:4234
+name: D
+is_a: test:1234 ! A
+relationship: rtest:1234 test:3234 ! part_of C
+
+[Typedef]
+id: rtest:1234
+name: part_of

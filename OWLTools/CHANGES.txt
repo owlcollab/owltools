@@ -1,0 +1,25 @@
+
+Version 0.3.6-beta:
+
+Features
+ * Add JSON support for OWL web services
+ * Improve support for saving OBO via oboformat-tools in OWL-API
+ * Extended reasoner framework for returning super class *expressions*
+ * OORT: Add external configuration files
+ * OORT: Add flag for loading a configuration file in the command-line version
+ * OORT: Add GUI Menu to load and store configuration files, including a file history
+ * OORT: Add option to use URLs as source for ontologies
+ * OORT: Change default output folder for GUI to $(USER_HOME)/OORT
+ * OORT: Add option to repair inconsistent merged ontologies (i.e. multiple def tags)
+ * OORT: Implement save ontology meta data
+ * OORT: Add command-line option '--no-subsets' to skip writing the subsets
+
+BugFixes
+ * OORT: command-line option '-h' for help
+ * OORT: issue #25 'multiple def tag exception'
+ * OORT: issue #20 use file name as default ontology id, if available
+
+Documentation
+ * Fix some broken links in the JavaDoc
+ * Start change log
+

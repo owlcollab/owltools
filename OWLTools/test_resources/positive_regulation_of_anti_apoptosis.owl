@@ -1,0 +1,1160 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.org/obo/owl/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#" xmlns:oboContent="http://purl.org/obo/owl/" xmlns:oban="http://purl.org/obo/oban/" xml:base="http://purl.org/obo/owl/positive_regulation_of_anti_apoptosis">
+<!--oboInOwl meta-model - we must declare this here, otherwise the ontology will be OWL-Full unless we import http://www.geneontology.org/formats/oboInOwl#-->
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasAlternativeId"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasDate"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasVersion"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasDbXref"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasDefaultNamespace"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasOBONamespace"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasDefinition"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasSynonym"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasSynonymType"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasSubset"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasURI"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#isCyclic"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#inSubset"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#savedBy"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#replacedBy"/>
+  <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#consider"/>
+  <owl:Class rdf:about="http://www.geneontology.org/formats/oboInOwl#DbXref"/>
+  <owl:Class rdf:about="http://www.geneontology.org/formats/oboInOwl#Definition"/>
+  <owl:Class rdf:about="http://www.geneontology.org/formats/oboInOwl#Subset"/>
+  <owl:Class rdf:about="http://www.geneontology.org/formats/oboInOwl#Synonym"/>
+  <owl:Class rdf:about="http://www.geneontology.org/formats/oboInOwl#SynonymType"/>
+  <owl:Class rdf:about="http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"/>
+  <owl:ObjectProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#ObsoleteProperty"/>
+  <owl:Ontology rdf:about="">
+    <oboInOwl:hasDate>17:06:2008 17:47</oboInOwl:hasDate>
+    <oboInOwl:hasDefaultNamespace>file:/Users/cjm/cvs/go/scratch/transitive_closure/z</oboInOwl:hasDefaultNamespace>
+    <oboInOwl:hasSubset>
+      <oboInOwl:Subset rdf:about="http://purl.org/obo/owl/obo#goslim_candida">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Candida GO slim</rdfs:comment>
+      </oboInOwl:Subset>
+    </oboInOwl:hasSubset>
+    <oboInOwl:hasSubset>
+      <oboInOwl:Subset rdf:about="http://purl.org/obo/owl/obo#goslim_generic">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Generic GO slim</rdfs:comment>
+      </oboInOwl:Subset>
+    </oboInOwl:hasSubset>
+    <oboInOwl:hasSubset>
+      <oboInOwl:Subset rdf:about="http://purl.org/obo/owl/obo#goslim_goa">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOA and proteome slim</rdfs:comment>
+      </oboInOwl:Subset>
+    </oboInOwl:hasSubset>
+    <oboInOwl:hasSubset>
+      <oboInOwl:Subset rdf:about="http://purl.org/obo/owl/obo#goslim_pir">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">PIR GO slim</rdfs:comment>
+      </oboInOwl:Subset>
+    </oboInOwl:hasSubset>
+    <oboInOwl:hasSubset>
+      <oboInOwl:Subset rdf:about="http://purl.org/obo/owl/obo#goslim_plant">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Plant GO slim</rdfs:comment>
+      </oboInOwl:Subset>
+    </oboInOwl:hasSubset>
+    <oboInOwl:hasSubset>
+      <oboInOwl:Subset rdf:about="http://purl.org/obo/owl/obo#goslim_yeast">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Yeast GO slim</rdfs:comment>
+      </oboInOwl:Subset>
+    </oboInOwl:hasSubset>
+    <oboInOwl:hasSubset>
+      <oboInOwl:Subset rdf:about="http://purl.org/obo/owl/obo#gosubset_prok">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Prokaryotic GO subset</rdfs:comment>
+      </oboInOwl:Subset>
+    </oboInOwl:hasSubset>
+    <rdfs:label>file:/Users/cjm/cvs/go/scratch/transitive_closure/z</rdfs:label>
+    <rdfs:comment>
+          This is an OWL translation of an ontology whose native representational form is .obo. The translation was performed using the oboInOwl xslt library. For details, see http://www.berkeleybop.org/obo-conv.cgi
+        </rdfs:comment>
+  </owl:Ontology>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0006915">
+    <rdfs:label xml:lang="en">apoptosis</rdfs:label>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">A form of programmed cell death induced by external or internal signals that trigger the activity of proteolytic caspases, whose actions dismantle the cell and result in cell death. Apoptosis begins internally with condensation and subsequent fragmentation of the cell nucleus (blebbing) while the plasma membrane remains intact. Other characteristics of apoptosis include DNA fragmentation and the exposure of phosphatidyl serine on the cell surface.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>ISBN:0198506732</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/ISBN#ISBN_0198506732</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">apoptotic programmed cell death</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">programmed cell death by apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">signaling (initiator) caspase activity</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">type I programmed cell death</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:109581</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_109581</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:212025</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_212025</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:221788</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_221788</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:230365</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_230365</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:238478</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_238478</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:245020</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_245020</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:249908</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_249908</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:252627</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_252627</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:255810</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_255810</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:259206</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_259206</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:262565</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_262565</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:265386</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_265386</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:268517</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_268517</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:274243</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_274243</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:280709</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_280709</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:286733</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_286733</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>Reactome:288390</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/Reactome#Reactome_288390</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0012501"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0006916">
+    <rdfs:label xml:lang="en">anti-apoptosis</rdfs:label>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">A process which directly inhibits any of the steps required for cell death by apoptosis.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">apoptosis inhibitor activity</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0043066"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0008150">
+    <rdfs:label xml:lang="en">biological_process</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.</rdfs:comment>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_candida"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_generic"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_goa"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_pir"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_plant"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_yeast"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:isa_complete</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_isa_complete</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">biological process unknown</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">physiological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0008219">
+    <rdfs:label xml:lang="en">cell death</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_generic"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_goa"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_plant"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">The specific activation or halting of processes within a cell so that its vital functions markedly cease, rather than simply deteriorating gradually over time, which culminates in cell death.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:ems</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_ems</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">necrosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0016265"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0048869"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/OBO_REL#part_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0048468"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0009987">
+    <rdfs:label xml:lang="en">cellular process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_goa"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_pir"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_plant"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:isa_complete</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_isa_complete</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">cell growth and/or maintenance</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">cell physiology</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">cellular physiological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0008150"/>
+    <owl:disjointWith rdf:resource="http://purl.org/obo/owl/GO#GO_0032501"/>
+    <owl:disjointWith rdf:resource="http://purl.org/obo/owl/GO#GO_0051704"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0012501">
+    <rdfs:label xml:lang="en">programmed cell death</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Note that this term should be used to annotate gene products in the organism undergoing the programmed cell death. To annotate genes in another organism whose products modulate programmed cell death in a host organism, consider the term 'modulation by symbiont of host programmed cell death ; GO:0052040'.</rdfs:comment>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Cell death resulting from activation of endogenous cellular processes.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:lr</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_lr</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">necrosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0008219"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0016265">
+    <rdfs:label xml:lang="en">death</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">See also the biological process term 'apoptosis ; GO:0006915'.</rdfs:comment>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_generic"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_plant"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">A permanent cessation of all vital functions: the end of life; can be applied to a whole organism or to a part of an organism.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:mah</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_mah</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>ISBN:0877797099</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/ISBN#ISBN_0877797099</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0032502"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0030154">
+    <rdfs:label xml:lang="en">cell differentiation</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_generic"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_goa"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_plant"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">The process whereby relatively unspecialized cells, e.g. embryonic or regenerative cells, acquire specialized structural and/or functional features that characterize the cells, tissues, or organs of the mature organism or some other relatively stable phase of the organism's life history. Differentiation includes the processes involved in commitment of a cell to a specific fate.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>ISBN:0198506732</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/ISBN#ISBN_0198506732</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0048869"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0032502">
+    <rdfs:label xml:lang="en">developmental process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_pir"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">A biological process whose specific outcome is the progression of an integrated living unit: a cell, tissue, organ, or organism over time from an initial condition to a later condition.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:isa_complete</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_isa_complete</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">development</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0008150"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0042981">
+    <rdfs:label xml:lang="en">regulation of apoptosis</rdfs:label>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that modulates the occurrence or rate of cell death by apoptosis.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:jl</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_jl</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">apoptosis regulator activity</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0043067"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0006915"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0043066">
+    <rdfs:label xml:lang="en">negative regulation of apoptosis</rdfs:label>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that stops, prevents or reduces the frequency, rate or extent of cell death by apoptosis.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:jl</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_jl</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down regulation of apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down-regulation of apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">downregulation of apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">inhibition of apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0042981"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0043069"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#negatively_regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0006915"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0043067">
+    <rdfs:label xml:lang="en">regulation of programmed cell death</rdfs:label>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that modulates the frequency, rate or extent of programmed cell death, cell death resulting from activation of endogenous cellular processes.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:jl</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_jl</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050793"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050794"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0012501"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0043069">
+    <rdfs:label xml:lang="en">negative regulation of programmed cell death</rdfs:label>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that stops, prevents or reduces the frequency, rate or extent of programmed cell death, cell death resulting from activation of endogenous cellular processes.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:jl</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_jl</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down regulation of programmed cell death</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down-regulation of programmed cell death</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">downregulation of programmed cell death</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">inhibition of programmed cell death</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0043067"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0048523"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0051093"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#negatively_regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0012501"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0045767">
+    <rdfs:label xml:lang="en">regulation of anti-apoptosis</rdfs:label>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that modulates the frequency, rate or extent of anti-apoptosis.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050789"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0006916"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0045768">
+    <rdfs:label xml:lang="en">positive regulation of anti-apoptosis</rdfs:label>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that activates or increases the frequency, rate or extent of anti-apoptosis.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">activation of anti-apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">stimulation of anti-apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">up regulation of anti-apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">up-regulation of anti-apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">upregulation of anti-apoptosis</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0045767"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0048518"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#positively_regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0006916"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0048468">
+    <rdfs:label xml:lang="en">cell development</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_candida"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">The process whose specific outcome is the progression of the cell over time, from its formation to the mature structure. Cell development does not include the steps involved in committing a cell to a specific fate.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0009987"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/OBO_REL#part_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0030154"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0048518">
+    <rdfs:label xml:lang="en">positive regulation of biological process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that activates or increases the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:jic</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_jic</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">activation of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">positive regulation of physiological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">stimulation of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">up regulation of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">up-regulation of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">upregulation of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050789"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#positively_regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0008150"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0048519">
+    <rdfs:label xml:lang="en">negative regulation of biological process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that stops, prevents or reduces the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:jic</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_jic</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down regulation of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down-regulation of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">downregulation of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">inhibition of biological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">negative regulation of physiological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050789"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#negatively_regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0008150"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0048523">
+    <rdfs:label xml:lang="en">negative regulation of cellular process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that stops, prevents or reduces the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:jic</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_jic</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down regulation of cellular process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down-regulation of cellular process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">downregulation of cellular process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">inhibition of cellular process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">negative regulation of cellular physiological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0048519"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050794"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#negatively_regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0009987"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0048869">
+    <rdfs:label xml:lang="en">cellular developmental process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">A biological process whose specific outcome is the progression of a cell over time from an initial condition to a later condition.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:isa_complete</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_isa_complete</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0009987"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0032502"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0050789">
+    <rdfs:label xml:lang="en">regulation of biological process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_generic"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_goa"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:ai</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_ai</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">regulation of physiological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0065007"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0008150"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0050793">
+    <rdfs:label xml:lang="en">regulation of developmental process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that modulates the frequency, rate or extent of development, the biological process whose specific outcome is the progression of a multicellular organism over time from an initial condition (e.g. a zygote, or a young adult) to a later condition (e.g. a multicellular animal or an aged adult).</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050789"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0032502"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0050794">
+    <rdfs:label xml:lang="en">regulation of cellular process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:go_curators</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_go_curators</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">regulation of cellular physiological process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050789"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0009987"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0051093">
+    <rdfs:label xml:lang="en">negative regulation of developmental process</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that stops, prevents or reduces the rate or extent of development, the biological process whose specific outcome is the progression of an organism over time from an initial condition (e.g. a zygote, or a young adult) to a later condition (e.g. a multicellular animal or an aged adult).</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:ai</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_ai</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down regulation of developmental process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">down-regulation of developmental process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">downregulation of developmental process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+    <oboInOwl:hasNarrowSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">inhibition of developmental process</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasNarrowSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0048519"/>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0050793"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#negatively_regulates"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0032502"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/GO#GO_0065007">
+    <rdfs:label xml:lang="en">biological regulation</rdfs:label>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#goslim_pir"/>
+    <oboInOwl:inSubset rdf:resource="http://purl.org/obo/owl/obo#gosubset_prok"/>
+    <oboInOwl:hasDefinition>
+      <oboInOwl:Definition>
+        <rdfs:label xml:lang="en">Any process that modulates the frequency, rate or extent of any biological process, quality or function.</rdfs:label>
+        <oboInOwl:hasDbXref>
+          <oboInOwl:DbXref>
+            <rdfs:label>GOC:isa_complete</rdfs:label>
+            <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/GOC#GOC_isa_complete</oboInOwl:hasURI>
+          </oboInOwl:DbXref>
+        </oboInOwl:hasDbXref>
+      </oboInOwl:Definition>
+    </oboInOwl:hasDefinition>
+    <oboInOwl:hasBroadSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">regulation</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasBroadSynonym>
+    <oboInOwl:hasOBONamespace>biological_process</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/GO#GO_0008150"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/MGI#MGI:88139">
+    <rdfs:label xml:lang="en">Bcl2l1</rdfs:label>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">Bcl(X)L</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">Bcl-XL</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">Bcl-Xs</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">BclX</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasRelatedSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label xml:lang="en">bcl-x</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasRelatedSynonym>
+    <oboInOwl:hasOBONamespace>feature</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/obo#gene"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#has_function_in"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0045768"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://purl.org/obo/owl/RGD#RGD:2138">
+    <rdfs:label xml:lang="en">Apoe</rdfs:label>
+    <oboInOwl:hasOBONamespace>feature</oboInOwl:hasOBONamespace>
+    <rdfs:subClassOf rdf:resource="http://purl.org/obo/owl/obo#gene"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#has_function_in"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://purl.org/obo/owl/GO#GO_0006916"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#negatively_regulates">
+    <rdfs:label xml:lang="en">negatively_regulates</rdfs:label>
+    <oboInOwl:hasOBONamespace>gene_ontology</oboInOwl:hasOBONamespace>
+    <rdfs:subPropertyOf rdf:resource="http://purl.org/obo/owl/obo#regulates"/>
+  </owl:ObjectProperty>
+  <owl:TransitiveProperty rdf:about="http://purl.org/obo/owl/OBO_REL#part_of">
+    <rdfs:label xml:lang="en">part_of</rdfs:label>
+    <oboInOwl:hasOBONamespace>gene_ontology</oboInOwl:hasOBONamespace>
+    <oboInOwl:hasDbXref>
+      <oboInOwl:DbXref>
+        <rdfs:label>OBO_REL:part_of</rdfs:label>
+        <oboInOwl:hasURI rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://purl.org/obo/owl/OBO_REL#OBO_REL_part_of</oboInOwl:hasURI>
+      </oboInOwl:DbXref>
+    </oboInOwl:hasDbXref>
+  </owl:TransitiveProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#positively_regulates">
+    <rdfs:label xml:lang="en">positively_regulates</rdfs:label>
+    <oboInOwl:hasOBONamespace>gene_ontology</oboInOwl:hasOBONamespace>
+    <rdfs:subPropertyOf rdf:resource="http://purl.org/obo/owl/obo#regulates"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#regulates">
+    <rdfs:label xml:lang="en">regulates</rdfs:label>
+    <oboInOwl:hasOBONamespace>gene_ontology</oboInOwl:hasOBONamespace>
+  </owl:ObjectProperty>
+  <owl:TransitiveProperty rdf:about="http://purl.org/obo/owl/obo#indirectly_regulates">
+    <rdfs:label xml:lang="en">indirectly_regulates</rdfs:label>
+    <oboInOwl:hasOBONamespace>gene_ontology</oboInOwl:hasOBONamespace>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="http://purl.org/obo/owl/obo#indirectly_positively_regulates">
+    <rdfs:label xml:lang="en">indirectly_positively_regulates</rdfs:label>
+    <oboInOwl:hasOBONamespace>gene_ontology</oboInOwl:hasOBONamespace>
+    <rdfs:subPropertyOf rdf:resource="http://purl.org/obo/owl/obo#indirectly_regulates"/>
+  </owl:TransitiveProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#indirectly_negatively_regulates">
+    <rdfs:label xml:lang="en">indirectly_negatively_regulates</rdfs:label>
+    <oboInOwl:hasOBONamespace>gene_ontology</oboInOwl:hasOBONamespace>
+    <rdfs:subPropertyOf rdf:resource="http://purl.org/obo/owl/obo#indirectly_regulates"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#regulator_of">
+    <rdfs:domain rdf:resource="http://purl.org/obo/owl/obo#IndependentContinuant"/>
+    <rdfs:range rdf:resource="http://purl.org/obo/owl/obo#Process"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></rdfs:comment>
+    <oboInOwl:hasOBONamespace>relation</oboInOwl:hasOBONamespace>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#indirect_regulator_of">
+    <rdfs:domain rdf:resource="http://purl.org/obo/owl/obo#IndependentContinuant"/>
+    <rdfs:range rdf:resource="http://purl.org/obo/owl/obo#Process"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></rdfs:comment>
+    <oboInOwl:hasOBONamespace>relation</oboInOwl:hasOBONamespace>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#indirect_positive_regulator_of">
+    <rdfs:domain rdf:resource="http://purl.org/obo/owl/obo#IndependentContinuant"/>
+    <rdfs:range rdf:resource="http://purl.org/obo/owl/obo#Process"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></rdfs:comment>
+    <oboInOwl:hasOBONamespace>relation</oboInOwl:hasOBONamespace>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#indirect_negative_regulator_of">
+    <rdfs:domain rdf:resource="http://purl.org/obo/owl/obo#IndependentContinuant"/>
+    <rdfs:range rdf:resource="http://purl.org/obo/owl/obo#Process"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></rdfs:comment>
+    <oboInOwl:hasOBONamespace>relation</oboInOwl:hasOBONamespace>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#positive_regulator_of">
+    <rdfs:label xml:lang="en">positive_regulator_of</rdfs:label>
+    <rdfs:domain rdf:resource="http://purl.org/obo/owl/obo#IndependentContinuant"/>
+    <rdfs:range rdf:resource="http://purl.org/obo/owl/obo#Process"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></rdfs:comment>
+    <oboInOwl:hasOBONamespace>relation</oboInOwl:hasOBONamespace>
+    <rdfs:subPropertyOf rdf:resource="http://purl.org/obo/owl/obo#regulator_of"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#negative_regulator_of">
+    <rdfs:label xml:lang="en">negative_regulator_of</rdfs:label>
+    <rdfs:domain rdf:resource="http://purl.org/obo/owl/obo#IndependentContinuant"/>
+    <rdfs:range rdf:resource="http://purl.org/obo/owl/obo#Process"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></rdfs:comment>
+    <oboInOwl:hasOBONamespace>relation</oboInOwl:hasOBONamespace>
+    <rdfs:subPropertyOf rdf:resource="http://purl.org/obo/owl/obo#regulator_of"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://purl.org/obo/owl/obo#has_function_in">
+    <rdfs:label xml:lang="en">has_function_in</rdfs:label>
+    <oboInOwl:hasOBONamespace>file:/Users/cjm/cvs/go/scratch/transitive_closure/z</oboInOwl:hasOBONamespace>
+  </owl:ObjectProperty>
+</rdf:RDF>
