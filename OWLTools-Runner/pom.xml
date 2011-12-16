@@ -17,5 +17,25 @@
 			<artifactId>OWLTools-Core</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.bbop</groupId>
+			<artifactId>OWLTools-Web</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bbop</groupId>
+			<artifactId>OWLTools-Solr</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bbop</groupId>
+			<artifactId>OWLTools-Oort</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bbop</groupId>
+			<artifactId>OWLTools-Annotation</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
 	</dependencies>
 </project>

@@ -1,71 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.bbop</groupId>
-	<artifactId>OWLTools</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>OWLTools</name>
-	<url>http://code.google.com/p/owltools/</url>
-	<description>OWLTools (aka OWL2LS - OWL2 Life Sciences) is convenience java API on top of the OWL API.</description>
-	<inceptionYear>2010</inceptionYear>
-	<scm>
-		<url>https://owltools.googlecode.com/svn/trunk/</url>
-	</scm>
-	<issueManagement>
-		<url>http://code.google.com/p/owltools/issues/list</url>
-	</issueManagement>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+	<parent>
+		<artifactId>OWLTools-Parent</artifactId>
+		<groupId>org.bbop</groupId>
+		<version>0.2.0-SNAPSHOT</version>
+		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
+	</parent>
 
+	<artifactId>OWLTools-Core</artifactId>
+	<name>OWLTools-Core</name>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
-		<resources>
-			<resource>
-				<directory>conf</directory>
-			</resource>
-		</resources>
-		<testResources>
-			<testResource>
-				<directory>test_resources</directory>
-			</testResource>
-		</testResources>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-			<plugin>
-	  			<groupId>org.apache.maven.plugins</groupId>
-	  			<artifactId>maven-source-plugin</artifactId>
-	  			<version>2.1.2</version>
-	  			<executions>
-	  				<execution>
-	  					<id>attach-sources</id>
-	  					<goals>
-	  						<goal>jar</goal>
-	  					</goals>
-	  				</execution>
-	  			</executions>
-	  		</plugin>
-	  		<plugin>
-	  			<groupId>org.apache.maven.plugins</groupId>
-	  			<artifactId>maven-javadoc-plugin</artifactId>
-	  			<version>2.8</version>
-	  			<executions>
-	  				<execution>
-	  					<id>attach-javadocs</id>
-	  					<goals>
-	  						<goal>jar</goal>
-	  					</goals>
-	  				</execution>
-	  			</executions>
-	  		</plugin>
+			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
@@ -105,120 +52,55 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin>-->
 		</plugins>
 	</build>
-
-	<repositories>
-		<repository>
-			<id>BerkeleyBOP</id>
-			<name>Berkeley BOP maven repository</name>
-			<url>http://code.berkeleybop.org/maven/repository/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>BerkeleyBOPSnapshot</id>
-			<url>http://code.berkeleybop.org/maven/snapshot-repository/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>elk-reasoner</id>
-			<name>elk reasoner google code maven repository</name>
-			<url>http://elk-reasoner.googlecode.com/svn/m2/releases</url>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<dependency>
 			<groupId>owlapi</groupId>
 			<artifactId>owlapi</artifactId>
-			<version>3.2.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bbop</groupId>
 			<artifactId>pellet-custom</artifactId>
-			<version>2.2.2</version>
 			<type>pom</type>
-			<exclusions>
-				<exclusion>
-					<artifactId>antlr-runtime</artifactId>
-					<groupId>org.antlr</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>mail</artifactId>
-					<groupId>javax.mail</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jms</artifactId>
-					<groupId>javax.jms</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jmxtools</artifactId>
-					<groupId>com.sun.jdmk</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jmxri</artifactId>
-					<groupId>com.sun.jmx</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
-			<!-- <scope>test</scope> this may be used as soon as the tests are in 
-				a separate source folder -->
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.manchester.cs</groupId>
 			<artifactId>factplusplus</artifactId>
-			<version>1.5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.semanticweb</groupId>
 			<artifactId>HermiT</artifactId>
-			<version>1.3.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bbop</groupId>
 			<artifactId>oboformat</artifactId>
-			<version>0.5.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.ebi.interpro</groupId>
 			<artifactId>graphdraw</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ant</groupId>
 			<artifactId>ant</artifactId>
-			<version>1.8.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math</artifactId>
-			<version>2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>jcel</groupId>
 			<artifactId>jcel.owlapi</artifactId>
-			<version>0.15.0</version>
 		</dependency>
 		<dependency>
 			<groupId>de.derivo</groupId>
 			<artifactId>sparqldl-api</artifactId>
-			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>owlapi</artifactId>
@@ -229,55 +111,14 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.semanticweb.elk</groupId>
 			<artifactId>elk-owlapi</artifactId>
-			<version>0.2.0</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>owlapi-all</artifactId>
-					<groupId>net.sourceforge.owlapi</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<version>7.5.4.v20111024</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>1.7.1</version>
-		</dependency>
-		<dependency>
-			<artifactId>solr-solrj</artifactId>
-			<groupId>org.apache.solr</groupId>
-			<version>1.4.0</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-api</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>commons-logging</artifactId>
-					<groupId>commons-logging</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 	</dependencies>
-	<distributionManagement>
-		<repository>
-			<id>BBOPDeployRepository</id>
-			<name>BBOPDeployRepository</name>
-			<url>${bbopdeployrepository}</url>
-		</repository>
-		<snapshotRepository>
-			<id>BBOPSnapshotRepository</id>
-			<name>BBOPSnapshotRepository</name>
-			<url>${bbopsnapshotrepository}</url>
-		</snapshotRepository>
-	</distributionManagement>
 </project>

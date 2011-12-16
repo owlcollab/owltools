@@ -5,4 +5,3 @@
  */
 package owltools.phenolog;
 
-import owltools.cli.CommandLineInterface;

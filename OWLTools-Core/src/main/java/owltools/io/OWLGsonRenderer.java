@@ -30,7 +30,6 @@ import org.semanticweb.owlapi.util.SimpleRenderer;
 
 import com.google.gson.Gson;
 
-import owltools.cli.CommandRunner.OptionException;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
@@ -171,7 +170,7 @@ public class OWLGsonRenderer {
 		return m;
 	}
 
-	public static void main(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException, URISyntaxException {
+	public static void main(String[] args) throws Exception {
 		Gson gson = new Gson();
 		System.out.println(gson.toJson(3));
 	}

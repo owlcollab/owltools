@@ -648,5 +648,3 @@ owltools file:imports.owl --sim-method MultiSimilarity --sim -p 'has phenotype' 
 
  */
 package owltools.sim;
-
-import owltools.cli.CommandLineInterface;

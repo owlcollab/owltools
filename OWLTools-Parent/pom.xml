@@ -165,6 +165,16 @@
 				<version>0.0.1-SNAPSHOT</version>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.ant</groupId>
+				<artifactId>ant</artifactId>
+				<version>1.8.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-math</artifactId>
+				<version>2.1</version>
+			</dependency>
+			<dependency>
 				<groupId>jcel</groupId>
 				<artifactId>jcel.owlapi</artifactId>
 				<version>0.15.0</version>
@@ -179,6 +189,27 @@
 						<groupId>owlapi</groupId>
 					</exclusion>
 				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>2.0.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.semanticweb.elk</groupId>
+				<artifactId>elk-owlapi</artifactId>
+				<version>0.2.0</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>owlapi-all</artifactId>
+						<groupId>net.sourceforge.owlapi</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.google.code.gson</groupId>
+				<artifactId>gson</artifactId>
+				<version>1.7.1</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
