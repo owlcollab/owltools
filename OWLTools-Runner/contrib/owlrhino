@@ -10,7 +10,7 @@ OBDAPI_LIB=../
 # Give a space-separated list of classpath items RELATIVE TO THE CURRENT SCRIPT
 # These will be resolved into absolute pathnames
 # Wildcards are allowed
-CLASSPATH_RELATIVE=../runtime/*jar
+CLASSPATH_RELATIVE=../bin/owltools-runner-all.jar
 
 # If literal classpath values are needed, uncomment the line below
 # This can be useful if the classpath contains URLs

@@ -4,7 +4,7 @@ DIRNAME=`dirname $0`
 # Give a space-separated list of classpath items RELATIVE TO THE CURRENT SCRIPT
 # These will be resolved into absolute pathnames
 # Wildcards are allowed
-CLASSPATH_RELATIVE=../runtime/*.jar
+CLASSPATH_RELATIVE=owltools-runner-all.jar
 
 # If literal classpath values are needed, uncomment the line below
 # This can be useful if the classpath contains URLs
@@ -99,5 +99,5 @@ then
 	fi
 fi
 
-CMD="$JAVAPATH -Xmx4096M -Xms2048M -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH:gold.jar -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
+CMD="$JAVAPATH -Xmx4096M -Xms2048M -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
 sh -c "$CMD"
