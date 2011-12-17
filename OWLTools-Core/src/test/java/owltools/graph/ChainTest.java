@@ -21,7 +21,7 @@ public class ChainTest extends OWLToolsTestBasics {
 
 	@Test
 	public void testDescendants() throws Exception {
-		OWLGraphWrapper  g =  getGraph("test_resources/multipath.obo");
+		OWLGraphWrapper  g =  getGraph("multipath.obo");
 		OWLObject a1 = g.getOWLObjectByIdentifier("A:1");
 		OWLObject x1 = g.getOWLObjectByIdentifier("X:1");
 		OWLObject z1 = g.getOWLObjectByIdentifier("Z:1");

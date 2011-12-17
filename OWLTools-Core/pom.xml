@@ -12,35 +12,6 @@
 	<name>OWLTools-Core</name>
 	<build>
 		<plugins>
-			<!--
-			<plugin>
-	  			<artifactId>maven-assembly-plugin</artifactId>
-	  			<version>2.2.1</version>
-				<configuration>
-					<finalName>owltools-all-${project.version}</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
-					<attach>false</attach>
-					<outputDirectory>${project.basedir}/runlibs</outputDirectory>
-					<descriptors>
-						<descriptor>assembly/owltools-all.xml</descriptor>
-					</descriptors>
-					<archive>
-						<addMavenDescriptor>false</addMavenDescriptor>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-						</manifest>
-					</archive>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>

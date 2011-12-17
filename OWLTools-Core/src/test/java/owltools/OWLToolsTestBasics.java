@@ -22,7 +22,7 @@ public class OWLToolsTestBasics {
 		assertNotNull(name);
 		assertFalse(name.length() == 0);
 		// TODO replace this with a mechanism not relying on the relative path
-		File file = new File("test_resources/"+name);
+		File file = new File("src/test/resources/"+name);
 		assertTrue("Requested resource does not exists: "+file, file.exists());
 		return file;
 	}
@@ -38,7 +38,7 @@ public class OWLToolsTestBasics {
 	
 	protected OWLGraphWrapper getGraph(String filename) throws OWLOntologyCreationException, IOException {
 		ParserWrapper pw = new ParserWrapper();
-		OWLOntology obodoc = pw.parse(filename);
+		OWLOntology obodoc = pw.parse(getResource(filename).getAbsolutePath());
 		return new OWLGraphWrapper(obodoc);
 	}
 	

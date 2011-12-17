@@ -11,6 +11,39 @@
 	<artifactId>OWLTools-Runner</artifactId>
 	<name>OWLTools-Runner</name>
 
+	<build>
+		<plugins>
+			<plugin>
+	  			<artifactId>maven-assembly-plugin</artifactId>
+	  			<version>2.2.1</version>
+				<configuration>
+					<finalName>owltools-runner-all</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+					<attach>false</attach>
+					<outputDirectory>${project.basedir}/bin</outputDirectory>
+					<descriptors>
+						<descriptor>src/main/assembly/owltools-runner-all.xml</descriptor>
+					</descriptors>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<mainClass>owltools.cli.CommandLineInterface</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.bbop</groupId>

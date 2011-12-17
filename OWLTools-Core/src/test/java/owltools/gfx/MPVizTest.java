@@ -1,5 +1,6 @@
 package owltools.gfx;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -23,7 +24,9 @@ public class MPVizTest extends OWLToolsTestBasics {
 		OWLObject ob = g.getOWLObjectByIdentifier("MP:0001293");
 		System.out.println("drawing: "+ob);
 		r.addObject(ob);
-		r.renderHTML();
+		File folder = new File("out/"+getClass().getSimpleName());
+		folder.mkdirs();
+		r.renderHTML(folder);
 	}
 	
 }

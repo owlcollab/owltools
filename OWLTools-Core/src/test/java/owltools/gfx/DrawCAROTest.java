@@ -1,5 +1,6 @@
 package owltools.gfx;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -23,7 +24,9 @@ public class DrawCAROTest extends OWLToolsTestBasics {
 		OWLObject ob = g.getOWLObjectByIdentifier("CARO:0000070");
 		System.out.println("drawing: "+ob);
 		r.addObject(ob);
-		r.renderHTML();
+		File folder = new File("out/"+getClass().getSimpleName());
+		folder.mkdirs();
+		r.renderHTML(folder);
 	}
 	
 }

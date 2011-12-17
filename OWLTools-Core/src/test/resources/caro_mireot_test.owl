@@ -8,7 +8,7 @@
      xmlns:owl="http://www.w3.org/2002/07/owl#">
     
 <owl:Ontology rdf:about="http://purl.obolibrary.org/obo/caro-mireot-test.owl">
-  <owl:imports rdf:resource="file:test_resources/caro_local.owl"/>
+  <owl:imports rdf:resource="file:src/test/resources/caro_local.owl"/>
 </owl:Ontology>
 
  <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/TODO_part_of">

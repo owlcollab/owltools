@@ -172,12 +172,13 @@ public class OWLGraphLayoutRenderer {
 	/**
 	 * generates both HTML and a PNG
 	 * 
+	 * @param folder targetFolder for the output files 
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public void renderHTML() throws FileNotFoundException, IOException {
-		PrintWriter pw = new PrintWriter(new FileWriter("hierarchicalGraph.html"));
-		FileOutputStream fos = new FileOutputStream("hierarchicalGraph"+orientation+".png");
+	public void renderHTML(File folder) throws FileNotFoundException, IOException {
+		PrintWriter pw = new PrintWriter(new FileWriter(new File(folder, "hierarchicalGraph.html")));
+		FileOutputStream fos = new FileOutputStream(new File(folder, "hierarchicalGraph"+orientation+".png"));
 		String imageMapString = renderImage("png", fos);
 		pw.println("<html><body>");
 		pw.println("<img src='hierarchicalGraph"+orientation+".png' usemap='#bob' /><map name='bob'>" + imageMapString + "</map>");

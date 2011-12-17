@@ -1,5 +1,5 @@
 #!/bin/sh
 DIRNAME=`dirname $0`
-java -Xmx2524M -jar $DIRNAME/../runtime/ontologyrelease.jar  "$@"
+java -Xmx2524M -jar owltools-oort-all.jar  "$@"
 
 

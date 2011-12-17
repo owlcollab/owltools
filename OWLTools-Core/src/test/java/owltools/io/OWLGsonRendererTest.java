@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 	@Test
 	public void testAxioms() throws Exception{
 		OWLGraphWrapper  wrapper = getOBO2OWLOntologyWrapper("caro.obo");
-		OWLGsonRenderer gr = new OWLGsonRenderer();
+		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(System.out));
 		OWLOntology ont = wrapper.getSourceOntology();
 		for (OWLClass c : ont.getClassesInSignature()) {
 			
@@ -48,7 +49,7 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 	@Test
 	public void testGEdges() throws Exception{
 		OWLGraphWrapper  wrapper = getOBO2OWLOntologyWrapper("caro.obo");
-		OWLGsonRenderer gr = new OWLGsonRenderer();
+		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(System.out));
 		OWLOntology ont = wrapper.getSourceOntology();
 		for (OWLClass c : ont.getClassesInSignature()) {
 			for (OWLGraphEdge e : wrapper.getOutgoingEdgesClosure(c)) {
@@ -60,7 +61,7 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 	@Test
 	public void testOnt() throws Exception{
 		OWLGraphWrapper  wrapper = getOBO2OWLOntologyWrapper("caro.obo");
-		OWLGsonRenderer gr = new OWLGsonRenderer();
+		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(System.out));
 		gr.render(wrapper.getSourceOntology());
 	}
 

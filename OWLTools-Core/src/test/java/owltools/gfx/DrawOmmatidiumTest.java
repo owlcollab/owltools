@@ -1,5 +1,6 @@
 package owltools.gfx;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -24,7 +25,9 @@ public class DrawOmmatidiumTest extends OWLToolsTestBasics {
 		OWLObject ob = g.getOWLObjectByIdentifier("FBbt:00001766");
 		System.out.println("drawing: "+ob);
 		r.addObject(ob);
-		r.renderHTML();
+		File folder = new File("out/"+getClass().getSimpleName());
+		folder.mkdirs();
+		r.renderHTML(folder);
 	}
 	
 }

@@ -11,11 +11,51 @@
 	<artifactId>OWLTools-Oort</artifactId>
 	<name>OWLTools-Oort</name>
 
+	<build>
+		<plugins>
+			<plugin>
+	  			<artifactId>maven-assembly-plugin</artifactId>
+	  			<version>2.2.1</version>
+				<configuration>
+					<finalName>owltools-oort-all</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+					<attach>false</attach>
+					<outputDirectory>${project.basedir}/bin</outputDirectory>
+					<descriptors>
+						<descriptor>src/main/assembly/owltools-oort-all.xml</descriptor>
+					</descriptors>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<mainClass>owltools.ontologyrelease.OboOntologyReleaseRunner</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.bbop</groupId>
 			<artifactId>OWLTools-Core</artifactId>
 			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bbop</groupId>
+			<artifactId>OWLTools-Core</artifactId>
+			<version>${project.parent.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

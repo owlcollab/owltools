@@ -45,12 +45,6 @@ public class OWLGsonRenderer {
 		this.writer = writer;		
 	}
 
-	public OWLGsonRenderer() {
-		// TODO Auto-generated constructor stub
-	}
-
-
-
 	public Object convert(OWLObject obj) {
 		if (obj instanceof OWLEntity) {
 			return convert(((OWLEntity)obj).getIRI());

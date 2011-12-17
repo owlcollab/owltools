@@ -3,20 +3,13 @@ package owltools;
 import static junit.framework.Assert.*;
 
 import java.io.File;
-import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.InferenceBuilder;
@@ -68,6 +61,7 @@ public class RestrictToELTest extends OWLToolsTestBasics {
 	 * 
 	 * @throws Exception
 	 */
+	@Ignore
 	@Test
 	public void testRetainDeprecated() throws Exception {
 		ParserWrapper pw = new ParserWrapper();

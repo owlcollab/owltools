@@ -2,6 +2,7 @@ package owltools;
 
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -14,6 +15,7 @@ import owltools.io.ParserWrapper;
 
 public class FlyXPTest {
 
+	@Ignore("Takes too long and just prints the content")
 	@Test
 	public void testConvertXPs() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
 		ParserWrapper pw = new ParserWrapper();

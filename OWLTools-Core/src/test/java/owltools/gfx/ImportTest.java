@@ -2,6 +2,7 @@ package owltools.gfx;
 
 import static junit.framework.Assert.*;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -26,7 +27,9 @@ public class ImportTest extends OWLToolsTestBasics {
 		assertTrue(ob != null);
 		OWLGraphLayoutRenderer r = new OWLGraphLayoutRenderer(g);
 		r.addAllObjects();
-		r.renderHTML();
+		File folder = new File("out/"+getClass().getSimpleName());
+		folder.mkdirs();
+		r.renderHTML(folder);
 		for (OWLAxiom ax : g.getSourceOntology().getAxioms()) {
 			System.out.println("AX:"+ax);
 		}
