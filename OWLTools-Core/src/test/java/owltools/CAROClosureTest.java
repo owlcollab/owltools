@@ -15,7 +15,7 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
-public class ClosureTestCARO extends OWLToolsTestBasics {
+public class CAROClosureTest extends OWLToolsTestBasics {
 
 	@Test
 	public void testConvertXPs() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {

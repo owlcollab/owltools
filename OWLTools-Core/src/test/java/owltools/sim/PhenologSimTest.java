@@ -8,7 +8,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.sim.DescriptionTreeSimilarity;
 import owltools.sim.SimEngine;
 
-public class PhenologSimTest extends AsbtractSimEngineTest {
+public class PhenologSimTest extends AbstractSimEngineTest {
 
 	@Test
 //	@Ignore("takes a long time, add to separate test suite") // uncomment this line to deactivate the test

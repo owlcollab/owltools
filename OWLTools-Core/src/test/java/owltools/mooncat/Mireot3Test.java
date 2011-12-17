@@ -15,7 +15,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
 
-public class MireotTest3 extends OWLToolsTestBasics {
+public class Mireot3Test extends OWLToolsTestBasics {
 
 	@Test
 	public void testMireot() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {

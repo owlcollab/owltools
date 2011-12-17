@@ -7,7 +7,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.sim.ConjunctiveSetSimilarity;
 import owltools.sim.SimEngine;
 
-public class CombinedJaccardConjunctiveSetSimilarityTest extends AsbtractSimEngineTest {
+public class CombinedJaccardConjunctiveSetSimilarityTest extends AbstractSimEngineTest {
 
 	@Test
 	public void testSim() throws Exception{

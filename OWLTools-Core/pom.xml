@@ -23,6 +23,23 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>owltools/graph/DLLikeQueryTest.java</exclude>
+						<exclude>owltools/graph/AncestorsTest.java</exclude>
+						<exclude>owltools/gfx/DrawOmmatidiumTest.java</exclude>
+						<exclude>owltools/mooncat/Mireot2Test.java</exclude>
+						<exclude>owltools/graph/PKBTest.java</exclude>
+						<exclude>owltools/AddImportTest.java</exclude>
+						<exclude>owltools/gfx/ImportTest.java</exclude>
+						<exclude>owltools/graph/GraphImportsClosureTest.java</exclude>
+						<exclude>owltools/mooncat/SubsetDefMooncatTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

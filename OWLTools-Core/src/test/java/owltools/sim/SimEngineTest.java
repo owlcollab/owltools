@@ -7,7 +7,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.sim.MaximumInformationContentSimilarity;
 import owltools.sim.Similarity;
 
-public class SimEngineTest extends AsbtractSimEngineTest {
+public class SimEngineTest extends AbstractSimEngineTest {
 
 	@Test
 	public void testCARO() throws Exception{

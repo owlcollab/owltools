@@ -11,7 +11,7 @@ import owltools.sim.MaximumInformationContentSimilarity;
 import owltools.sim.SimEngine;
 import owltools.sim.Similarity;
 
-public class SimEngineTest3 extends AsbtractSimEngineTest {
+public class SimEngine3Test extends AbstractSimEngineTest {
 
 	@Test
 	public void testSim() throws Exception{

@@ -1,9 +1,6 @@
 package owltools.graph;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -15,55 +12,14 @@ import org.junit.Test;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.OWLToolsTestBasics;
-import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 
 public class OWLGraphWrapperTest extends OWLToolsTestBasics {
-
-	@Test
-	public void testSynonyms() throws Exception{
-		OWLGraphWrapper  wrapper =  getOntologyWrapper();
-		
-		OWLObject cls = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "CHEBI_15355");
-		
-		String s[] = wrapper.getSynonymStrings(cls);
-		assertTrue(s.length>0);
-	}
-	
-	@Test
-	public void testDef() throws Exception{
-		OWLGraphWrapper  wrapper =  getOntologyWrapper();
-		
-		OWLObject cls = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "CHEBI_15355");
-		
-		String s = wrapper.getDef(cls);
-		assertTrue(s != null);
-	}
-
-	@Test
-	public void testSubClassesNames() throws Exception{
-		OWLGraphWrapper  wrapper =  getOntologyWrapper();
-		
-		OWLClass cls =(OWLClass) wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "CHEBI_33429");
-		
-		String s[] = wrapper.getSubClassesNames(cls);
-		assertTrue(s.length>0);
-	}
-
-	
-	private OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException{
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(getResource("test.owl"));
-		return new OWLGraphWrapper(ontology);
-	}
 
 	@Test
 	public void testGetOBOSynonymsWithXrefs() throws Exception{

@@ -11,6 +11,20 @@
 	<artifactId>OWLTools-Annotation</artifactId>
 	<name>OWLTools-Annotation</name>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>owltools/gaf/GAFInferenceTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.bbop</groupId>

@@ -18,7 +18,7 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.Config;
 
-public class AncestorsTest2 extends OWLToolsTestBasics {
+public class Ancestors2Test extends OWLToolsTestBasics {
 
 	@Test
 	public void testIntersectionsReturnedInClosure() throws Exception {

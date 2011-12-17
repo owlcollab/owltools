@@ -12,7 +12,7 @@ import owltools.io.ParserWrapper;
 import owltools.sim.SimEngine;
 import owltools.sim.Similarity;
 
-public abstract class AsbtractSimEngineTest extends OWLToolsTestBasics {
+public abstract class AbstractSimEngineTest extends OWLToolsTestBasics {
 
 	protected void run(OWLGraphWrapper  wrapper, Similarity sa, OWLObject a, OWLObject b) throws Exception{
 		SimEngine se = new SimEngine(wrapper);
