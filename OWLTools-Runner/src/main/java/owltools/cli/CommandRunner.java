@@ -101,6 +101,7 @@ import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.Mooncat;
+import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.OWLExtendedReasoner;
@@ -1593,25 +1594,43 @@ public class CommandRunner {
 				// TODO...
 			}
 			else if (opts.nextEq("--gaf")) {
+				opts.info("GAF-FILE", "parses GAF and makes this the current GAF document");
 				GafObjectsBuilder builder = new GafObjectsBuilder();
 				gafdoc = builder.buildDocument(opts.nextOpt());				
 			}
 			else if (opts.nextEq("--gaf2owl")) {
+				opts.info("[-n TARGET-IRI]", "translates previously loaded GAF document into OWL");
 				GAFOWLBridge bridge;
-				if (opts.nextEq("-n")) {
-					String iri = opts.nextOpt();
+				String iri = null;
+				String out = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-n"))
+						iri = opts.nextOpt();
+					else if (opts.nextEq("-o")) {
+						out = opts.nextOpt();
+					}
+					else
+						break;
+							
+				}
+				if (iri != null) {
 					if (!iri.startsWith("http:")) {
 						iri = "http://purl.obolibrary.org/obo/"+iri;
 					}
+					// todo - save tgtOnt
 					OWLOntology tgtOnt = g.getManager().createOntology(IRI.create(iri));
-
 
 					bridge = new GAFOWLBridge(g, tgtOnt);
 				}
 				else {
+					// adds gaf axioms back into main ontology
 					bridge = new GAFOWLBridge(g);
 				}
-				bridge.translate(gafdoc);			
+				bridge.translate(gafdoc);
+				if (out != null) {
+					pw.saveOWL(bridge.getTargetOntology(),out);
+				}
+
 			}
 			else if (opts.nextEq("--load-gafs-solr")) {
 				String url = opts.nextOpt();
@@ -1688,6 +1707,34 @@ public class CommandRunner {
 						System.out.println(g.getIdentifier(c)+"\t"+a.getBioentityObject()+"\t"+a.getBioentityObject().getSymbol());
 					}
 				}
+			}
+			else if (opts.nextEq("--build-property-view-ontology")) {
+				OWLOntology sourceOntol = g.getSourceOntology();
+				OWLOntology annotOntol = g.getSourceOntology();
+				OWLObjectProperty viewProperty = null;
+				String outFile = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p")) {
+						viewProperty = resolveObjectProperty(opts.nextOpt());
+					}
+					else if (opts.nextEq("-o")) {
+						outFile = opts.nextOpt();
+					}
+					else
+						break;
+				}
+				PropertyViewOntologyBuilder pvob = 
+					new PropertyViewOntologyBuilder(sourceOntol,
+							annotOntol,
+							viewProperty);
+				pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
+				OWLOntology avo = pvob.getAssertedViewOntology();
+				OWLReasoner vr = createReasoner(avo, reasonerName, g.getManager());
+				pvob.buildInferredViewOntology(vr);
+				// save
+				if (outFile != null)
+					pw.saveOWL(g.getSourceOntology(), outFile);
+
 			}
 			else if (opts.nextEq("--report-profile")) {
 				g.getProfiler().report();
