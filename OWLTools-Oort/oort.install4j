@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="4.0.8" transformSequenceNumber="1">
-  <directoryPresets config="./CHANGES.txt" />
+  <directoryPresets config="../OWLTools-Core/CHANGES.txt" />
   <application name="OBO Release Manager" distributionSourceDir="" applicationId="3597-7703-8988-3358" mediaDir="./releases" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}-${compiler:sys.date}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="true" shortName="OBOReleaseManager" publisher="" publisherWeb="" version="0.3.6-beta" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="false" macSignature="????" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false">
     <languages skipLanguageSelection="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -21,13 +21,8 @@
       <mountPoint id="1414" root="" location="" mode="755" />
     </mountPoints>
     <entries>
-      <dirEntry mountPoint="20" file="./lib/runlibs" overwrite="4" shared="false" mode="644" uninstallMode="0" excludeSuffixes=".svn" dirMode="755">
-        <exclude>
-          <entry location=".svn" launcher="false" />
-        </exclude>
-      </dirEntry>
-      <fileEntry mountPoint="20" file="./runtime/owltools.jar" overwrite="1" shared="false" mode="644" uninstallMode="2" />
-      <fileEntry mountPoint="1414" file="./CHANGES.txt" overwrite="1" shared="false" mode="644" uninstallMode="2" />
+      <fileEntry mountPoint="20" file="./bin/owltools-oort-all.jar" overwrite="1" shared="false" mode="644" uninstallMode="2" />
+      <fileEntry mountPoint="1414" file="../OWLTools-Core/CHANGES.txt" overwrite="1" shared="false" mode="644" uninstallMode="2" />
     </entries>
     <components>
       <component name="OBO-OWL converter" id="18" displayDescription="false" selected="true" mandatory="true" downloadable="false">
