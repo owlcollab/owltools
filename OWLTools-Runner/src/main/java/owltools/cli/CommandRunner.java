@@ -10,7 +10,6 @@ import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,25 +20,21 @@ import java.util.Vector;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.eclipse.jetty.server.Server;
+import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.expression.OWLEntityChecker;
 import org.semanticweb.owlapi.expression.ParserException;
-import org.semanticweb.owlapi.expression.ShortFormEntityChecker;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -59,18 +54,14 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.SetOntologyID;
-import org.semanticweb.owlapi.reasoner.FreshEntityPolicy;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
-import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
-import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
-import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.GafDocument;
@@ -704,18 +695,11 @@ public class CommandRunner {
 				}
 				String expression = opts.nextOpt();
 				owlpp = new OWLPrettyPrinter(g);
-				OWLEntityChecker entityChecker;
-				entityChecker = new ShortFormEntityChecker(
-						new BidirectionalShortFormProviderAdapter(
-								g.getManager(),
-								Collections.singleton(g.getSourceOntology()),
-								new SimpleShortFormProvider()));
-				ManchesterOWLSyntaxEditorParser parser = 
-					new ManchesterOWLSyntaxEditorParser(g.getDataFactory(), expression);
-
-				parser.setOWLEntityChecker(entityChecker);	
+				
+				ManchesterSyntaxTool parser = new ManchesterSyntaxTool(g.getSourceOntology(), g.getSupportOntologySet());
+				
 				try {
-					OWLClassExpression ce = parser.parseClassExpression();
+					OWLClassExpression ce = parser.parseManchesterExpression(expression);
 					System.out.println("# QUERY: "+owlpp.render(ce));
 					if (isManifest) {
 						OWLClass qc = g.getDataFactory().getOWLClass(IRI.create("http://owltools.org/Q"));
@@ -1118,7 +1102,7 @@ public class CommandRunner {
 						objs2.add(x);
 					}
 				}
-				Set lcsh = new HashSet<OWLClassExpression>();
+				Set<OWLClassExpression> lcsh = new HashSet<OWLClassExpression>();
 				owlpp = new OWLPrettyPrinter(g);
 				owlpp.hideIds();
 				for (OWLObject a : objs1) {
