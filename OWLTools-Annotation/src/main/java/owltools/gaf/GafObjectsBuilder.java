@@ -241,6 +241,17 @@ public class GafObjectsBuilder {
 		
 		String clsId = parser.getGOId();
 
+		String relation = null;
+		String aspect = parser.getAspect();
+		if (aspect.equals("F"))
+			relation = "actively_participates_in";
+		else if (aspect.equals("P"))
+			relation = "actively_participates_in";
+		else if (aspect.equals("C"))
+			relation = "part_of";
+		else
+			relation = aspect;
+		
 		String referenceId = parser.getReference();
 		
 		String evidenceCls = parser.getEvidence();
@@ -266,6 +277,7 @@ public class GafObjectsBuilder {
 				isContributesTo, isIntegeralTo, compositeQualifier, clsId, referenceId, evidenceCls, 
 				withExpression, actsOnTaxonId, lastUpdateDate, assignedBy,extensionExpression, geneProductForm, gafDocument.getId());
 		ga.setBioentityObject(entity);
+		ga.setRelation(relation);
 		AnnotationSource source = new AnnotationSource(parser.getCurrentRow(), parser.getLineNumber(), gafDocument.getId());
 		ga.setSource(source);
 		gafDocument.addGeneAnnotation(ga);

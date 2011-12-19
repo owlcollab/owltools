@@ -1,5 +1,6 @@
 package owltools.gaf.owl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,11 +16,13 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectHasValue;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
@@ -31,10 +34,16 @@ public class GAFOWLBridge {
 	private OWLOntology targetOntology;
 	private OWLGraphWrapper graph;
 	private Map<Vocab,IRI> vocabMap = new HashMap<Vocab,IRI>();
+	
+	private enum BioentityMapping { NONE, CLASS_EXPRESSION, INDIVIDUAL };
+	
+	// config
+	private BioentityMapping bioentityMapping = BioentityMapping.CLASS_EXPRESSION;
+	
 
 	public enum Vocab {
 		ACTIVELY_PARTICIPATES_IN, PART_OF,
-		DESCRIBES, SOURCE, HAS_PROTOTYPE
+		DESCRIBES, SOURCE, PROTOTYPICALLY
 	}
 
 	public GAFOWLBridge(OWLGraphWrapper g) {
@@ -50,13 +59,15 @@ public class GAFOWLBridge {
 
 	private void addVocabMapDefaults() {
 		addVocabMap(Vocab.PART_OF, "BFO_0000050");
+		addVocabMap(Vocab.ACTIVELY_PARTICIPATES_IN, "RO_0002217", "actively participates in");
+		addVocabMap(Vocab.PROTOTYPICALLY, "RO_0002214", "has prototype"); // canonically?
 		addVocabMap(Vocab.DESCRIBES, "IAO_0000136", "is about");
 	}
 
 	private void addVocabMap(Vocab v, String s) {
 		vocabMap.put(v, IRI.create("http://purl.obolibrary.org/obo/"+s));
 	}
-	
+
 	private void addVocabMap(Vocab v, String s, String label) {
 		IRI iri = IRI.create("http://purl.obolibrary.org/obo/"+s);
 		vocabMap.put(v, iri);
@@ -65,7 +76,20 @@ public class GAFOWLBridge {
 				iri,
 				fac.getOWLLiteral(label)));
 	}
+	
 
+	public OWLOntology getTargetOntology() {
+		return targetOntology;
+	}
+
+	public void setTargetOntology(OWLOntology targetOntology) {
+		this.targetOntology = targetOntology;
+	}
+
+	/**
+	 * @param gafdoc
+	 * @return
+	 */
 	public OWLOntology translate(GafDocument gafdoc) {
 
 		translateBioentities(gafdoc);
@@ -112,14 +136,20 @@ public class GAFOWLBridge {
 		axioms.add(fac.getOWLClassAssertionAxiom(dx, iAnn));
 		// TODO - text description of annotation
 
-		// PROTOTYPE RELATIONSHIP
-		//  E.g. Shh[cls] SubClassOf has_proto VALUE _:x, where _:x Type act_ptpt_in SOME 'heart dev'
-		if (false) {
-			OWLObjectProperty pProto = getGeneAnnotationObjectProperty(Vocab.HAS_PROTOTYPE);
-			OWLAnonymousIndividual anonInd = fac.getOWLAnonymousIndividual();
-			axioms.add(fac.getOWLClassAssertionAxiom(r, anonInd));
-			OWLObjectHasValue hv = fac.getOWLObjectHasValue(pProto, anonInd);
-			axioms.add(fac.getOWLSubClassOfAxiom(e, hv));
+		if (bioentityMapping != BioentityMapping.NONE) {
+			// PROTOTYPE RELATIONSHIP
+			OWLObjectProperty pProto = getGeneAnnotationObjectProperty(Vocab.PROTOTYPICALLY);
+			OWLClassExpression ce = null;
+			if (bioentityMapping == BioentityMapping.INDIVIDUAL) {
+				//  E.g. Shh[cls] SubClassOf has_proto VALUE _:x, where _:x Type act_ptpt_in SOME 'heart dev'
+				OWLAnonymousIndividual anonInd = fac.getOWLAnonymousIndividual();
+				axioms.add(fac.getOWLClassAssertionAxiom(r, anonInd));
+				ce = fac.getOWLObjectHasValue(pProto, anonInd);
+			}
+			else {
+				ce = fac.getOWLObjectSomeValuesFrom(pProto, r);
+			}
+			axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
 		}
 
 		addAxioms(axioms);
@@ -138,9 +168,17 @@ public class GAFOWLBridge {
 	}
 
 	private OWLObjectProperty getGeneAnnotationRelation(GeneAnnotation a) {
+		String relation = a.getRelation();
+		Vocab v = Vocab.valueOf(relation.toUpperCase());
+		if (v != null)
+			return getGeneAnnotationObjectProperty(v);
+		OWLObjectProperty op = graph.getOWLObjectPropertyByIdentifier(relation);
+		if (op != null)
+			return op;
 		// TODO
-		return getGeneAnnotationObjectProperty(Vocab.PART_OF);
+		return getGeneAnnotationObjectProperty(Vocab.ACTIVELY_PARTICIPATES_IN);
 	}
+	
 
 	private OWLClass getOWLClass(String id) {
 		IRI iri = graph.getIRIByIdentifier(id);

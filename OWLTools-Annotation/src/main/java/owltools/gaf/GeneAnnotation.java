@@ -16,6 +16,7 @@ public class GeneAnnotation {
 	protected boolean isContributesTo;
 	protected boolean isIntegralTo;
 	protected String compositeQualifier;
+	protected String relation;
 	protected String cls;
 	protected String referenceId;	
 	protected String evidenceCls;
@@ -190,6 +191,15 @@ public class GeneAnnotation {
 		this.bioentity = bioentity;
 		
 		this.isChanged = true;
+	}
+
+	
+	public String getRelation() {
+		return relation;
+	}
+
+	public void setRelation(String relation) {
+		this.relation = relation;
 	}
 
 	public String getCls() {

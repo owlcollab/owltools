@@ -41,9 +41,9 @@ public class GAFInferenceTest extends OWLToolsTestBasics{
 			String b = a.getBioentity();
 			String c = a.getCls();
 			System.out.println("p="+p+" // "+b+"-"+c);
-			if (b.equals("FOO:f1") && c.equals("GO:0032543"))
+			if (b.equals("FOO:FOO:1") && c.equals("GO:0032543"))
 				ok1 = true;
-			if (b.equals("FOO:f3") && c.equals("GO:0032543"))
+			if (b.equals("FOO:FOO:3") && c.equals("GO:0032543"))
 				ok2 = true;
 		}
 		assertTrue(ok1);

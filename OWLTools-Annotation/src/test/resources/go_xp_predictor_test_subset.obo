@@ -2233,6 +2233,7 @@ id: negatively_regulates
 name: negatively_regulates
 namespace: gene_ontology
 is_a: regulates  ! regulates
+xref: RO:0002212
 
 [Typedef]
 id: occurs_in
@@ -2246,17 +2247,17 @@ name: part_of
 namespace: gene_ontology
 is_transitive: true
 xref: BFO:0000050
-xref: OBO_REL:part_of
 
 [Typedef]
 id: positively_regulates
 name: positively_regulates
 namespace: gene_ontology
 is_a: regulates  ! regulates
+xref: RO:0002213
 
 [Typedef]
 id: regulates
 name: regulates
 namespace: gene_ontology
 transitive_over: part_of  ! part_of
-
+xref: RO:0002211
