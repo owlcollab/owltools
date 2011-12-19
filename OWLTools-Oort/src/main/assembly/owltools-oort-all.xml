@@ -24,4 +24,9 @@
 			<scope>runtime</scope>
 		</dependencySet>
 	</dependencySets>
+	<files>
+		<file>
+			<source>${project.build.outputDirectory}/log4j.properties</source>
+		</file>
+	</files>
 </assembly>
