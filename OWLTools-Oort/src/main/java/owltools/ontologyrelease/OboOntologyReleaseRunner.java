@@ -508,12 +508,16 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					List<String> incs = infBuilder.performConsistencyChecks();
 					if (incs.size() > 0) {
 						for (String inc  : incs) {
-							logger.error("INCONSISTENCY:" + inc);
+							String message = "INCONSISTENCY\t" + inc;
+							reasonerReportLines.add(message);
+							logger.error(message);
 						}
 						// TODO: allow --force option
 						// TODO: proper exception mechanism - delay until end?
-						if (!oortConfig.isForceRelease())
+						if (!oortConfig.isForceRelease()) {
+							saveReasonerReport(ontologyId, reasonerReportLines);
 							throw new OboOntologyReleaseRunnerCheckException("Found inconsistencies during intial checks.",incs, "Use ForceRelease option to ignore this warning.");
+						}
 					}
 					logger.info("Checking consistency completed");
 				}
@@ -526,13 +530,17 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						for (OWLEquivalentClassesAxiom eca : infBuilder.getEquivalentNamedClassPairs()) {
 							String axiomString = owlpp.render(eca);
 							reasons.add(axiomString);
-							logger.warn("EQUIVALENT_CLASS_PAIR\t"+axiomString);
+							String message = "EQUIVALENT_CLASS_PAIR\t"+axiomString;
+							reasonerReportLines.add(message);
+							logger.warn(message);
 						}
 						if (oortConfig.isAllowEquivalentNamedClassPairs() == false) {
 							// TODO: allow --force option
 							// TODO: proper exception mechanism - delay until end?
-							if (!oortConfig.isForceRelease())
+							if (!oortConfig.isForceRelease()) {
+								saveReasonerReport(ontologyId, reasonerReportLines);
 								throw new OboOntologyReleaseRunnerCheckException("Found equivalencies between named classes.", reasons, "Use ForceRelease option to ignore this warning.");
+							}
 						}
 
 					}
