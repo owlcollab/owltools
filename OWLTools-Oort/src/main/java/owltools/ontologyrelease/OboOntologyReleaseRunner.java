@@ -234,7 +234,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		logger.info("Base directory path " + oortConfig.getBase().getAbsolutePath());
 
 		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, oortConfig.getBase());
-
+		
+		int exitCode = 0;
 		try {
 			boolean success = oorr.createRelease(oortConfig.getPaths());
 			String message;
@@ -248,12 +249,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Done!");
 		} catch (OboOntologyReleaseRunnerCheckException exception) {
 			logger.error("Stopped Release process. Reason: "+exception.renderMessageString());
+			exitCode = -1;
 		} catch (AnnotationCardinalityException exception) {
 			logger.error("Stopped Release process. Reason: "+exception.getMessage());
+			exitCode = -1;
 		} finally {
 			logger.info("deleting lock file");
 			oorr.deleteLockFile();
 		}
+		System.exit(exitCode);
 	}
 
 	public boolean createRelease(Vector<String> paths) throws IOException, 
