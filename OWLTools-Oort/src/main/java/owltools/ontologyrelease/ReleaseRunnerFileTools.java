@@ -36,18 +36,22 @@ abstract class ReleaseRunnerFileTools {
 	private final File staging;
 	private final File lockFile;
 	private final Logger logger;
+	private final boolean useReleasesFolder;
 
 	/**
 	 * @param base directory
 	 * @param logger
+	 * @param useReleasesFolder 
 	 * @throws IOException
 	 */
-	ReleaseRunnerFileTools(File base, Logger logger) throws IOException {
+	ReleaseRunnerFileTools(File base, Logger logger, boolean useReleasesFolder) throws IOException {
 		super();
 		this.logger = logger;
+		this.useReleasesFolder = useReleasesFolder;
 		
 		// base
 		this.base = base;
+		
 		checkFolder(base);
 		
 		// staging directory
@@ -169,31 +173,30 @@ abstract class ReleaseRunnerFileTools {
 	 */
 	boolean commit(String version) throws IOException {
 		try {
-			File releasesFolder = new File(base, RELEASE_DIRECTORY_NAME);
-			checkFolder(releasesFolder);
-			
-			// check if staging folder content is different than the last release
-			String oldVersion = readVersionInfo();
-			if (oldVersion != null) {
-				File oldVersionFolder = new File(releasesFolder, oldVersion);
-				if (oldVersionFolder.exists() && oldVersionFolder.isDirectory()) {
-					boolean equals = checkOldVersion(oldVersionFolder);
-					if (equals) {
-						//skip release with message
-						logger.info("Skipping release, as the newly generated files do not differ from last release.");
-						return false;
+			if (useReleasesFolder) {
+				File releasesFolder = new File(base, RELEASE_DIRECTORY_NAME);
+				checkFolder(releasesFolder);
+				// check if staging folder content is different than the last release
+				String oldVersion = readVersionInfo();
+				if (oldVersion != null) {
+					File oldVersionFolder = new File(releasesFolder, oldVersion);
+					if (oldVersionFolder.exists() && oldVersionFolder.isDirectory()) {
+						boolean equals = checkOldVersion(oldVersionFolder);
+						if (equals) {
+							//skip release with message
+							logger.info("Skipping release, as the newly generated files do not differ from last release.");
+							return false;
+						}
 					}
+					// overwrite base folder content (if there is any)
+					// as the user already must have allowed it, to get to this part of the code.
 				}
-				// overwrite base folder content (if there is any)
-				// as the user already must have allowed it, to get to this part of the code.
+				// make version specific releases sub folder
+				File versionFolder = new File(releasesFolder, version);
+				checkFolder(versionFolder);
+				// copy from staging directory into version specific releases folder
+				copyContents(staging, versionFolder, STAGING_DIRECTORY_LOCK_FILE_NAME);
 			}
-			// make version specific releases sub folder
-			File versionFolder = new File(releasesFolder, version);
-			checkFolder(versionFolder);
-			
-			// copy from staging directory into version specific releases folder
-			copyContents(staging, versionFolder, STAGING_DIRECTORY_LOCK_FILE_NAME);
-			
 			// copy stuff from staging directory into the live directory
 			copyContents(staging, base, STAGING_DIRECTORY_LOCK_FILE_NAME);
 			

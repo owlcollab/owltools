@@ -76,7 +76,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	OortConfiguration oortConfig;
 
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base) throws IOException {
-		super(base, logger);
+		super(base, logger, oortConfig.isUseReleaseFolder());
 		this.oortConfig = oortConfig; 
 	}
 
@@ -214,6 +214,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			else if (opt.equals("--skip-ontology-checks")) {
 				oortConfig.setExecuteOntologyChecks(false);
+			}
+			else if (opt.equals("--skip-release-folder")) {
+				oortConfig.setUseReleaseFolder(false);
 			}
 			else if (opt.equals("--bridge-ontology") || opt.equals("-b")) {
 				oortConfig.addBridgeOntology(args[i]);

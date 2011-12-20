@@ -58,6 +58,7 @@ public class OortConfiguration {
 	private boolean forceRelease = false;
 	private boolean autoDetectBridgingOntology = true;
 	private List<String> bridgeOntologies = new ArrayList<String>();
+	private boolean useReleaseFolder = true;
 
 	private OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
@@ -389,6 +390,20 @@ public class OortConfiguration {
 		this.repairAnnotationCardinality = repairAnnotationCardinality;
 	}
 
+	/**
+	 * @return the useReleaseFolder
+	 */
+	public boolean isUseReleaseFolder() {
+		return useReleaseFolder;
+	}
+
+	/**
+	 * @param useReleaseFolder the useReleaseFolder to set
+	 */
+	public void setUseReleaseFolder(boolean useReleaseFolder) {
+		this.useReleaseFolder = useReleaseFolder;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -438,6 +453,8 @@ public class OortConfiguration {
 		builder.append(autoDetectBridgingOntology);
 		builder.append(", bridgeOntologies=");
 		builder.append(bridgeOntologies);
+		builder.append(", useReleaseFolder=");
+		builder.append(useReleaseFolder);
 		builder.append("]");
 		return builder.toString();
 	}
@@ -473,6 +490,7 @@ public class OortConfiguration {
 		putValue(properties, "forceRelease", config.forceRelease);
 		putValue(properties, "autoDetectBridgingOntology", config.autoDetectBridgingOntology);
 		putValue(properties, "bridgeOntologies", config.bridgeOntologies);
+		putValue(properties, "useReleaseFolder", config.useReleaseFolder);
 		return properties;
 	}
 	
@@ -557,6 +575,7 @@ public class OortConfiguration {
 		config.forceRelease = getValue(properties, "forceRelease", config.forceRelease);
 		config.autoDetectBridgingOntology = getValue(properties, "autoDetectBridgingOntology", config.autoDetectBridgingOntology);
 		config.bridgeOntologies = getValue(properties, "bridgeOntologies", config.bridgeOntologies);
+		config.useReleaseFolder = getValue(properties, "useReleaseFolder", config.useReleaseFolder);
 	}
 	
 	private static boolean getValue(Properties properties, String key, boolean defaultValue) {
