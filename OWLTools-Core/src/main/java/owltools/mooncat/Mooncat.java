@@ -233,6 +233,18 @@ public class Mooncat {
 		removeExternalOntologyClasses(false);
 
 		// add ALL subannotprop axioms
+		addSubAnnotationProperties(axioms);
+
+		for (OWLAxiom a : axioms) {
+			LOG.info("Adding:"+a);
+		}
+		manager.addAxioms(srcOnt, axioms);
+	}
+
+
+
+	void addSubAnnotationProperties(Set<OWLAxiom> axioms) {
+		// add ALL subannotprop axioms
 		// - this is quite geared towards obo ontologies, where
 		//   we want to preserve obo headers.
 		// TODO: make this configurable
@@ -250,11 +262,6 @@ public class Mooncat {
 			}
 		}
 		axioms.addAll(sapAxioms);
-
-		for (OWLAxiom a : axioms) {
-			LOG.info("Adding:"+a);
-		}
-		manager.addAxioms(srcOnt, axioms);
 	}
 
 	private boolean isInExternalOntology(OWLEntity obj) {
