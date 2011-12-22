@@ -23,81 +23,117 @@ PATH_SEP=":"
 JAVAARGS=" "
 CMDARGS=" "
 
+# Remove the name of this script from the end of the path
 PATH_TO_ME=`which $0`;
-
-
-SCRIPTNAME=`echo $PATH_TO_ME | sed -e "s/.*\/\(.*\)/\1/g"`
-
-#Remove the name of this script from the end of the path
 PATH_TO_ME=`echo $PATH_TO_ME | sed -e "s/\(.*\)\/.*/\1/g"`
 
+# Just the name of the script.
+SCRIPTNAME=`echo $PATH_TO_ME | sed -e "s/.*\/\(.*\)/\1/g"`
+
+## Add vmoptions to JAVAARGS if the proper file is available.
 if [ -e "$PATH_TO_ME/$SCRIPTNAME.vmoptions" ]
 then
-	VMOPTIONS=`cat $PATH_TO_ME/$SCRIPTNAME.vmoptions`
-	for OPTION in "$VMOPTIONS"
-	do
-		JAVAARGS="$JAVAARGS '${OPTION}'"
-	done
+    VMOPTIONS=`cat $PATH_TO_ME/$SCRIPTNAME.vmoptions`
+    for OPTION in "$VMOPTIONS"
+    do
+	JAVAARGS="$JAVAARGS '${OPTION}'"
+    done
 fi
 
+## Walk through all the command line arguments and see if they are a
+## -Jvm flag; if so, add to JAVAPATH; otherwise, either add them to
+## the JAVAARGS or the CMDARGS depending.
 for ARG in "$@"
 do
-	if [ "${ARG:0:5}" == "-Jvm=" ]
-	then
-		JAVAPATH=${ARG:6};
-	else
-		if [ "${ARG:0:2}" == "-J" ]
-		then
-			JAVAARGS="$JAVAARGS '${ARG:2}'"
-		else
-			CMDARGS="$CMDARGS '$ARG'"
-		fi
-	fi
-	shift 1;
-	
+    ## Bourne shell does not have slice/substr builtins, so we'll fall
+    ## back onto expr to take care ofthat lifting.
+    ONE_TO_FIVE=`expr substr $ARG 1 5`
+    FIVE_PLUS=`expr substr $ARG 5 127`
+    ONE_TO_TWO=`expr substr $ARG 1 2`
+    TWO_PLUS=`expr substr $ARG 2 127`
+    ## DEBUG
+    ## Let's see how the command line is parsed if we declare DEBUG=1.
+    if [ $DEBUG ]
+    then
+	echo "ARG: $ARG"
+	echo "ONE_TO_FIVE: ${ONE_TO_FIVE}"
+	echo "FIVE_PLUS: ${FIVE_PLUS}"
+	echo "ONE_TO_TWO: ${ONE_TO_TWO}"
+	echo "TWO_PLUS: ${TWO_PLUS}"
+    fi
+    if [ "${ONE_TO_FIVE}" = "-Jvm=" ]
+    then
+    	JAVAPATH="${FIVE_PLUS}";
+    else
+     	if [ "${ONE_TO_TWO}" = "-J" ]
+    	then
+    	    JAVAARGS="${JAVAARGS} '${TWO_PLUS}'"
+    	else
+    	    CMDARGS="${CMDARGS} '${ARG}'"
+    	fi
+    fi
+    shift 1;
 done
 
+## Add to CLASSPATH using CLASSPATH_RELATIVE.
 CLASSPATH=""
 for ARG in "$CLASSPATH_RELATIVE"
 do
-	DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$ARG | grep -v ontologyrelease`
-	for CP_ENTRY in $DEREFERENCED_CLASSPATH
-	do
-		if [ -z "$CLASSPATH" ]
-		then
-			CLASSPATH="$CP_ENTRY"
-		else
-			CLASSPATH="$CLASSPATH$PATH_SEP$CP_ENTRY"
-		fi
-	done
+    DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$ARG | grep -v ontologyrelease`
+    for CP_ENTRY in $DEREFERENCED_CLASSPATH
+    do
+	if [ -z "$CLASSPATH" ]
+	then
+	    CLASSPATH="$CP_ENTRY"
+	else
+	    CLASSPATH="$CLASSPATH$PATH_SEP$CP_ENTRY"
+	fi
+    done
 done
 
+## Add to CLASSPATH using CLASSPATH_LITERAL.
 if [ -n "$CLASSPATH_LITERAL" ]
 then
-	for CP_ENTRY in $CLASSPATH_LITERAL
-	do
-		if [ -z "$CLASSPATH" ]
-		then
-			CLASSPATH="$CP_ENTRY"
-		else
-			CLASSPATH="$CLASSPATH$PATH_SEP$CP_ENTRY"
-		fi
-	done
+    for CP_ENTRY in $CLASSPATH_LITERAL
+    do
+	if [ -z "$CLASSPATH" ]
+	then
+	    CLASSPATH="$CP_ENTRY"
+	else
+	    CLASSPATH="$CLASSPATH$PATH_SEP$CP_ENTRY"
+	fi
+    done
 fi
 
+## Figure out which java to use.
 if [ -z "$JAVAPATH" ]
 then
-	JAVAPATH=`which java`
-	if [ -z "$JAVAPATH" ]
+    JAVAPATH=`which java`
+    if [ -z "$JAVAPATH" ]
+    then
+	if [ -n "$JAVA_HOME" && -e "$JAVA_HOME" ]
 	then
-		if [ -n "$JAVA_HOME" && -e "$JAVA_HOME" ]
-		then
-			JAVAPATH=$JAVA_HOME/bin/java
-		else
-			JAVAPATH="java"
-		fi
+	    JAVAPATH=$JAVA_HOME/bin/java
+	else
+	    JAVAPATH="java"
 	fi
+    fi
 fi
 
+## Assemble and run the final command.
 CMD="$JAVAPATH -Xmx4096M -Xms2048M -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
+
+## DEBUG
+## Let's see a little of the environment if we declare DEBUG=1.
+if [ $DEBUG ]
+then
+    for MYVAR in DEBUG PATH_TO_ME SCRIPTNAME DIRNAME JAVAARGS CMDARGS CLASSPATH_RELATIVE CMD
+    do
+	LETVAR=`echo "$"$MYVAR`
+	TMPVAR=`eval echo $LETVAR`
+	echo "${MYVAR}: \"${TMPVAR}\""
+    done
+fi
+
+## Run the final command.
 sh -c "$CMD"
