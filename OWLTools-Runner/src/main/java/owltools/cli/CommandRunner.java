@@ -28,6 +28,7 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -199,8 +200,10 @@ public class CommandRunner {
 		public List<String> nextList() {
 			ArrayList<String> sl = new ArrayList<String>();
 			while (hasArgs()) {
-				if (args[i].equals("//"))
+				if (args[i].equals("//")) {
+					i++;
 					break;
+				}
 				if (args[i].startsWith("-"))
 					break;
 				sl.add(args[i]);
@@ -316,6 +319,9 @@ public class CommandRunner {
 				reasonerClassName = "org.semanticweb.HermiT.Reasoner";
 				reasonerName = "hermit";
 			}
+			else if (opts.nextEq("--use-reasoner")) {
+				reasonerName =  opts.nextOpt();
+			}
 			else if (opts.nextEq("--reasoner")) {
 				reasonerName = opts.nextOpt();
 				g.setReasoner(createReasoner(g.getSourceOntology(),reasonerName,g.getManager()));
@@ -403,12 +409,24 @@ public class CommandRunner {
 				}
 				g.setSourceOntology(ont);
 			}
+			else if (opts.nextEq("--add-imports-declarations")) {
+				List<String> importsIRIs = opts.nextList();
+				for (String importIRI : importsIRIs) {
+					AddImport ai = 
+						new AddImport(g.getSourceOntology(),
+								g.getDataFactory().getOWLImportsDeclaration(IRI.create(importIRI)));
+					g.getManager().applyChange(ai);
+				}
+			}
 			else if (opts.nextEq("--create-ontology")) {
 				String iri = opts.nextOpt();
 				if (!iri.startsWith("http:")) {
 					iri = "http://purl.obolibrary.org/obo/"+iri;
 				}
 				g = new OWLGraphWrapper(iri);
+			}
+			else if (opts.nextEq("--merge-import-closure") || opts.nextEq("--merge-imports-closure")) {
+				g.mergeImportClosure();
 			}
 			else if (opts.nextEq("--merge-support-ontologies")) {
 				for (OWLOntology ont : g.getSupportOntologySet())
@@ -417,6 +435,10 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--add-support-from-imports")) {
 				g.addSupportOntologiesFromImportsClosure();
+			}
+			else if (opts.nextEq("--add-imports-from-support")) {
+				// TODO
+				//g.addSupportOntologiesFromImportsClosure();
 			}
 			else if (opts.nextEq("-m") || opts.nextEq("--mcat")) {
 				catOntologies(opts);
@@ -1595,11 +1617,13 @@ public class CommandRunner {
 					}
 					else
 						break;
-							
+
 				}
 				if (iri != null) {
 					if (!iri.startsWith("http:")) {
 						iri = "http://purl.obolibrary.org/obo/"+iri;
+						if (!iri.endsWith(".owl"))
+							iri = iri + ".owl";
 					}
 					// todo - save tgtOnt
 					OWLOntology tgtOnt = g.getManager().createOntology(IRI.create(iri));
@@ -1694,7 +1718,15 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--build-property-view-ontology")) {
 				OWLOntology sourceOntol = g.getSourceOntology();
-				OWLOntology annotOntol = g.getSourceOntology();
+				// TODO - for now assume exactly 1 support ontology
+				OWLOntology annotOntol;
+				if (g.getSupportOntologySet().size() == 1)
+					annotOntol = g.getSupportOntologySet().iterator().next();
+				else if (g.getSupportOntologySet().size() == 1)
+					annotOntol = g.getManager().createOntology();
+				else
+					throw new OptionException("must have zero or one support ontologies");
+
 				OWLObjectProperty viewProperty = null;
 				String outFile = null;
 				while (opts.hasOpts()) {
@@ -1717,7 +1749,9 @@ public class CommandRunner {
 				pvob.buildInferredViewOntology(vr);
 				// save
 				if (outFile != null)
-					pw.saveOWL(g.getSourceOntology(), outFile);
+					pw.saveOWL(pvob.getInferredViewOntology(), outFile);
+				else
+					g.addSupportOntology(pvob.getInferredViewOntology());
 
 			}
 			else if (opts.nextEq("--report-profile")) {
