@@ -221,7 +221,7 @@ public class Mooncat {
 	 */
 	public void mergeOntologies() {
 		// refresh existing MIREOT set
-		LOG.info("flushing external... (but will not remove dangling)");
+		LOG.info("Flushing external... (but will not remove dangling)");
 		removeExternalOntologyClasses(false);
 
 		OWLOntology srcOnt = graph.getSourceOntology();
@@ -248,7 +248,7 @@ public class Mooncat {
 		// - this is quite geared towards obo ontologies, where
 		//   we want to preserve obo headers.
 		// TODO: make this configurable
-		LOG.info("adding SAPs");
+		LOG.info("adding SubAnnotationProperties");
 		Set<OWLAxiom> sapAxioms = new HashSet<OWLAxiom>();
 		for (OWLOntology refOnt : this.getReferencedOntologies()) {
 			for (OWLSubAnnotationPropertyOfAxiom a : refOnt.getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
@@ -783,14 +783,17 @@ public class Mooncat {
 		}
 	}
 
+	// removes entities marked with IAO_0000412 
+	// classes are only removed when main is true
 	private void removeExternalEntities(boolean main, OWLOntology ont) {
 		Set<OWLEntity> objs = ont.getSignature(false);
 		Set<OWLClass> rmClasses = new HashSet<OWLClass>();
 		Set<OWLObjectProperty> rmProperties = new HashSet<OWLObjectProperty>();
 		Set<OWLIndividual> rmIndividuals = new HashSet<OWLIndividual>();
+		LOG.info("removing external entities marked with IAO_0000412 from: "+ont);
 		if (main) {
-			LOG.info("RM testing " + objs.size()
-					+ " objs to see if they are contained in: "
+			LOG.info("testing " + objs.size()
+					+ " objs to see if they are contained in the follow referenced ontologies: "
 					+ getReferencedOntologies());
 		}
 		for (OWLEntity obj : objs) {
