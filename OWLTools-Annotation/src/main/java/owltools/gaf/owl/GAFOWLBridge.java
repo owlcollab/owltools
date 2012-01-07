@@ -3,9 +3,13 @@ package owltools.gaf.owl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.element.AnnotationValue;
+
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -25,11 +29,15 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.gaf.Bioentity;
+import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
 
 public class GAFOWLBridge {
+	
+	private Logger LOG = Logger.getLogger(GAFOWLBridge.class);
+
 
 	private OWLOntology targetOntology;
 	private OWLGraphWrapper graph;
@@ -116,25 +124,58 @@ public class GAFOWLBridge {
 		return a.getBioentity() + "-" + a.getCls();
 	}
 
+	private String getAnnotationDescription(GeneAnnotation a) {
+		String clsDesc = a.getCls();
+		OWLClass owlCls = graph.getOWLClassByIdentifier(a.getCls());
+		if (owlCls != null) {
+			clsDesc = graph.getLabelOrDisplayId(owlCls);
+		}
+		return "annotation of "+a.getBioentityObject().getSymbol() + " to " + clsDesc;
+	}
+
 	private void translateGeneAnnotation(GeneAnnotation a) {
 		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 		OWLDataFactory fac = graph.getDataFactory();
 		OWLClass e = getOWLClass(a.getBioentity());
-		OWLClass t = getOWLClass(a.getCls());
+		OWLClassExpression annotatedToClass = getOWLClass(a.getCls());
+		List<ExtensionExpression> exts = a.getExtensionExpressions();
+		if (exts.size() > 0) {
+			HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
+			ops.add(annotatedToClass);
+			for (ExtensionExpression ext : exts) {
+				OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
+				OWLClass filler = getOWLClass(ext.getCls());
+				LOG.info(" EXT:"+p+" "+filler);
+				ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
+			}
+			annotatedToClass = fac.getOWLObjectIntersectionOf(ops);
+		}
+
 		OWLObjectProperty p = getGeneAnnotationRelation(a);
 		OWLObjectSomeValuesFrom r =
-			fac.getOWLObjectSomeValuesFrom(p, t);
+			fac.getOWLObjectSomeValuesFrom(p, annotatedToClass);
 		// e.g. Shh and actively_participates_in some 'heart development'
 		// todo - product
 		OWLClassExpression x =
 			fac.getOWLObjectIntersectionOf(e, r);
+		
+		// create or fetch the unique Id of the gene annotation
+		String geneAnnotationId = getAnnotationId(a);
+		
+		// Create an instance for every gene annotation
+		OWLNamedIndividual iAnn = fac.getOWLNamedIndividual(graph.getIRIByIdentifier(geneAnnotationId));
+
+		// the gene annotation instances _describes_ a gene/product in some context
 		OWLObjectProperty pDescribes = getGeneAnnotationObjectProperty(Vocab.DESCRIBES);
-		String aid = getAnnotationId(a);
-		OWLNamedIndividual iAnn = fac.getOWLNamedIndividual(graph.getIRIByIdentifier(aid));
 		OWLObjectSomeValuesFrom dx =
 			fac.getOWLObjectSomeValuesFrom(pDescribes, x);		
 		axioms.add(fac.getOWLClassAssertionAxiom(dx, iAnn));
-		// TODO - text description of annotation
+		OWLAnnotationProperty labelProperty = fac.getRDFSLabel();
+		String desc = this.getAnnotationDescription(a);
+		OWLAnnotation labelAnnotation = fac.getOWLAnnotation(labelProperty, fac.getOWLLiteral(desc));
+		axioms.add(fac.getOWLAnnotationAssertionAxiom(iAnn.getIRI(), labelAnnotation));
+		// TODO - annotations on iAnn; evidence etc
+		
 
 		if (bioentityMapping != BioentityMapping.NONE) {
 			// PROTOTYPE RELATIONSHIP
@@ -151,8 +192,19 @@ public class GAFOWLBridge {
 			}
 			axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
 		}
+		
+		// experimental: annotation assertions
+		if (false) {
+			// TODO
+			AnnotationValue v;
+		}
 
 		addAxioms(axioms);
+	}
+
+	private OWLObjectProperty getObjectPropertyByShorthand(String id) {
+		OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier(id);
+		return p;
 	}
 
 	private OWLAnnotationProperty getGeneAnnotationAnnotationProperty(Vocab v) {
