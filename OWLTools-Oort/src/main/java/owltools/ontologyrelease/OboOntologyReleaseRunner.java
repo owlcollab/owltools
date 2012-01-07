@@ -53,6 +53,7 @@ import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
 import owltools.mooncat.OntologyMetaDataTools;
 import owltools.mooncat.OntologyMetaDataTools.AnnotationCardinalityException;
+import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
 import owltools.ontologyverification.OntologyCheckHandler;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
@@ -212,6 +213,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--allow-overwrite")) {
 				oortConfig.setAllowFileOverWrite(true);
 			}
+			else if (opt.equals("--remove-dangling-before-reasoning")) {
+				oortConfig.setRemoveDanglingBeforeReasoning(true);
+			}
+			else if (opt.equals("--add-support-from-imports")) {
+				oortConfig.setAddSupportFromImports(true);
+			}
 			else if (opt.equals("--skip-ontology-checks")) {
 				oortConfig.setExecuteOntologyChecks(false);
 			}
@@ -272,7 +279,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		if (paths.size() > 0)
 			path = getPathIRI( paths.get(0) );
 
-		logger.info("Processing Ontologies: " + paths);
+		logger.info("Loading the following ontologies: " + paths);
 
 		parser = new ParserWrapper();
 		mooncat = new Mooncat(parser.parseToOWLGraph(path));
@@ -285,7 +292,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// Here we merge in the bridge ontologies into the core ontology
 		for (String f : oortConfig.getBridgeOntologies()) {
 			OWLOntology ont = parser.parse(f);
-			logger.info("Merging "+ont+" loaded from "+f);
+			logger.info("Merging "+ont+" into main ontology [loaded from "+f+"]");
 			mooncat.getGraph().mergeOntology(ont);
 		}
 
@@ -293,12 +300,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		for (int k = 1; k < paths.size(); k++) {
 			String p = getPathIRI(paths.get(k));
 			OWLOntology ont = parser.parse(p);
+			logger.info("Loaded "+ont+" from "+p);
 			if (oortConfig.isAutoDetectBridgingOntology() && isBridgingOntology(ont))
 				mooncat.mergeIntoReferenceOntology(ont);
 			else
 				mooncat.addReferencedOntology(ont);
 		}
 		if (oortConfig.getSourceOntologyPrefixes() != null) {
+			logger.info("The following prefixes will be used to determine "+
+					"which classes belong in source:"+oortConfig.getSourceOntologyPrefixes());
 			mooncat.setSourceOntologyPrefixes(oortConfig.getSourceOntologyPrefixes());
 		}
 
@@ -310,10 +320,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			if (OntologyVersionTools.isOBOOntologyVersion(version)) {
 				Date versionDate = OntologyVersionTools.parseVersion(version);
 				version = OntologyVersionTools.format(versionDate);
+				logger.info("Set ontology version from standard purl: "+version);
+			}
+			else {
+				logger.info("Using version as given: "+version);
 			}
 		}
 		else {
 			version = OntologyVersionTools.getOboInOWLVersion(mooncat.getOntology());
+			logger.info("Extracted version from remark field: "+version);
 		}
 
 		if (version == null) {
@@ -321,6 +336,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		version = buildVersionInfo(version);
+		logger.info("Version: "+version);
 		OntologyVersionTools.setOboInOWLVersion(mooncat.getOntology(), version);
 		// the versionIRI for in the ontologyID is set during write out, 
 		// as they are specific to the file name
@@ -328,11 +344,13 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
 		ontologyId = ontologyId.replaceAll(".obo$", ""); // temp workaround
 
+		// cache all lines to go into reasoner report
 		List<String> reasonerReportLines = new ArrayList<String>();
 
 		// ----------------------------------------
 		// Macro expansion
 		// ----------------------------------------
+		// sets gciOntology, if there are macros and the strategy is GCI
 		OWLOntology gciOntology = null;
 		if (oortConfig.isExpandMacros()) {
 			logger.info("expanding macros");
@@ -354,7 +372,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		// ----------------------------------------
-		// Bridge files
+		// Generate bridge ontologies from xref expansion
 		// ----------------------------------------
 		if (oortConfig.isExpandXrefs()) {
 			logger.info("Creating Bridge Ontologies");
@@ -387,14 +405,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// ----------------------------------------
 
 		if (oortConfig.isAsserted()) {
-			logger.info("Creating Asserted Ontology");
+			logger.info("Creating Asserted Ontology (copy of original)");
 			saveInAllFormats(ontologyId, "non-classified", gciOntology);
 			logger.info("Asserted Ontology Creation Completed");
 		}
 
 		// ----------------------------------------
-		// Merge in external ontologies
+		// Merge in subsets of external ontologies
 		// ----------------------------------------
+		// only do this if --re-mireot is set
+		//
+		// note this is done *prior* to reasoning - part of the rationale
+		// is that by bringing in a smaller subset we make the reasoning
+		// more tractable (though this is less relevant for Elk)
 		if (oortConfig.isRecreateMireot()) {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
@@ -413,6 +436,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		if (oortConfig.isExecuteOntologyChecks()) {
 			OntologyCheckHandler.DEFAULT_INSTANCE.afterMireot(mooncat.getGraph());
 		}
+		
+		if (oortConfig.isRemoveDanglingBeforeReasoning()) {
+			mooncat.removeDanglingAxioms();
+		}
 
 		// ----------------------------------------
 		// Main (asserted plus inference of non-redundant links)
@@ -424,9 +451,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		//  but a user would rarely choose to omit the main ontology
 		if (true) {
 
-			logger.info("Creating basic ontology");
+			logger.info("Creating main ontology");
 
 			if (oortConfig.getReasonerName() != null) {
+				logger.info("Using reasoner to add/retract links in main ontology");
 				OWLDataFactory df = mooncat.getGraph().getDataFactory();
 				Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
 				Set<RemoveAxiom> removedSubClassOfAxiomChanges = new HashSet<RemoveAxiom>();
@@ -571,9 +599,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			saveInAllFormats(ontologyId, null, gciOntology);
 
 			saveReasonerReport(ontologyId, reasonerReportLines);
-
-
+		} // --end of building main ontology
+		
+		// TODO
+		for (PropertyView pv : oortConfig.getPropertyViews()) {
+			PropertyViewOntologyBuilder pvob = 
+				new PropertyViewOntologyBuilder(mooncat.getGraph().getDataFactory(),
+						mooncat.getManager(),
+						mooncat.getOntology(),
+						mooncat.getOntology(),
+						pv.property);
+			
 		}
+		
 		// ----------------------------------------
 		// SUBSETS
 		// ----------------------------------------
@@ -605,7 +643,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		// ----------------------------------------
-		// Simple (no MIREOTs, no imports)
+		// Simple/Basic (no MIREOTs, no imports)
 		// ----------------------------------------
 		// this is the same as MAIN, with certain axiom REMOVED
 		if (oortConfig.isSimple()) {
@@ -623,6 +661,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			 */
 
 			Owl2Obo owl2obo = new Owl2Obo();
+			
+			Set<RemoveImport> ris = new HashSet<RemoveImport>();
+			for (OWLImportsDeclaration oid : mooncat.getOntology().getImportsDeclarations()) {
+				ris.add( new RemoveImport(mooncat.getOntology(), oid) );
+			}
+			for (RemoveImport ri : ris) {
+				mooncat.getManager().applyChange(ri);
+			}
 
 
 			logger.info("Guessing core ontology (in future this can be overridden)");
@@ -648,6 +694,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Removing "+rmAxs.size()+" EquivalentClasses axioms from simple");
 			mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
 
+			mooncat.removeDanglingAxioms();
+			
 			saveInAllFormats(ontologyId, "simple", gciOntology);
 			logger.info("Creating simple ontology completed");
 

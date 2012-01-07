@@ -57,7 +57,11 @@ public class OortConfiguration {
 	private boolean executeOntologyChecks = true;
 	private boolean forceRelease = false;
 	private boolean autoDetectBridgingOntology = true;
+	private boolean removeDanglingBeforeReasoning = false;
+	private boolean addSupportFromImports = true; // TODO
 	private List<String> bridgeOntologies = new ArrayList<String>();
+	private List<String> toBeMergedOntologies = new ArrayList<String>(); // TODO
+	private Set<PropertyView> propertyViews = new HashSet<PropertyView>();
 	private boolean useReleaseFolder = true;
 
 	private OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
@@ -319,6 +323,25 @@ public class OortConfiguration {
 	public void setCheckConsistency(boolean checkConsistency) {
 		this.checkConsistency = checkConsistency;
 	}
+	
+	
+
+	public boolean isRemoveDanglingBeforeReasoning() {
+		return removeDanglingBeforeReasoning;
+	}
+
+	public void setRemoveDanglingBeforeReasoning(
+			boolean removeDanglingBeforeReasoning) {
+		this.removeDanglingBeforeReasoning = removeDanglingBeforeReasoning;
+	}
+
+	public boolean isAddSupportFromImports() {
+		return addSupportFromImports;
+	}
+
+	public void setAddSupportFromImports(boolean addSupportFromImports) {
+		this.addSupportFromImports = addSupportFromImports;
+	}
 
 	/**
 	 * @return isWriteMetadata
@@ -388,6 +411,16 @@ public class OortConfiguration {
 	 */
 	public void setRepairAnnotationCardinality(boolean repairAnnotationCardinality) {
 		this.repairAnnotationCardinality = repairAnnotationCardinality;
+	}
+	
+	
+
+	public Set<PropertyView> getPropertyViews() {
+		return propertyViews;
+	}
+
+	public void setPropertyViews(Set<PropertyView> propertyViews) {
+		this.propertyViews = propertyViews;
 	}
 
 	/**
