@@ -35,6 +35,7 @@ import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLFunctionalObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
@@ -53,6 +54,7 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
@@ -279,7 +281,33 @@ public class OWLGraphWrapper {
 		for (OWLAxiom axiom : extOnt.getAxioms()) {
 			manager.applyChange(new AddAxiom(sourceOntology, axiom));
 		}
+		for (OWLImportsDeclaration oid: extOnt.getImportsDeclarations()) {
+			manager.applyChange(new AddImport(sourceOntology, oid));
+		}
 	}
+	
+	public void mergeOntology(OWLOntology extOnt, boolean isRemoveFromSupportList) throws OWLOntologyCreationException {
+		mergeOntology(extOnt);
+		if (isRemoveFromSupportList) {
+			this.supportOntologySet.remove(extOnt);
+		}
+	}
+	
+	public void mergeSupportOntology(String ontologyIRI, boolean isRemoveFromSupportList) throws OWLOntologyCreationException {
+		OWLOntology extOnt = null;
+		for (OWLOntology ont : this.supportOntologySet) {
+			if (ont.getOntologyID().getOntologyIRI().toString().equals(ontologyIRI)) {
+				extOnt = ont;
+				break;
+			}
+		}
+		
+		mergeOntology(extOnt);
+		if (isRemoveFromSupportList) {
+			this.supportOntologySet.remove(extOnt);
+		}
+	}
+
 
 	@Deprecated
 	public OWLOntology getOntology() {
@@ -362,6 +390,33 @@ public class OWLGraphWrapper {
 			addSupportOntology(o);
 		}
 	}
+	
+	public void remakeOntologiesFromImportsClosure() throws OWLOntologyCreationException {
+		remakeOntologiesFromImportsClosure((new OWLOntologyID()).getOntologyIRI());
+	}
+	
+	public void remakeOntologiesFromImportsClosure(IRI ontologyIRI) throws OWLOntologyCreationException {
+		addSupportOntologiesFromImportsClosure();
+		sourceOntology = manager.createOntology(sourceOntology.getAxioms(), ontologyIRI);
+	}
+	
+	/**
+	 * note: may move to mooncat
+	 * @throws OWLOntologyCreationException
+	 */
+	public void mergeImportClosure() throws OWLOntologyCreationException {
+		OWLOntologyID oid = sourceOntology.getOntologyID();
+		Set<OWLOntology> imports = sourceOntology.getImportsClosure();
+		Set<OWLAxiom> axioms = sourceOntology.getAxioms();
+		manager.removeOntology(sourceOntology);
+		sourceOntology = manager.createOntology(oid);
+		for (OWLOntology o : imports) {
+			if (o.equals(sourceOntology))
+				continue;
+			manager.addAxioms(sourceOntology, o.getAxioms());
+		}
+	}
+
 
 	/**
 	 * in general application code need not call this - it is mostly used internally
