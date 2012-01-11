@@ -1599,6 +1599,7 @@ public class CommandRunner {
 				System.out.println("Types:"+p.idMap.size());
 				// TODO...
 			}
+			// Used for loading GAFs into memory, useful for noodling.
 			else if (opts.nextEq("--gaf")) {
 				opts.info("GAF-FILE", "parses GAF and makes this the current GAF document");
 				GafObjectsBuilder builder = new GafObjectsBuilder();
@@ -1640,6 +1641,7 @@ public class CommandRunner {
 				}
 
 			}
+			// Used for loading a list of GAFs into GOlr.
 			else if (opts.nextEq("--load-gafs-solr")) {
 				String url = opts.nextOpt();
 				List<String> files = opts.nextList();
@@ -1658,6 +1660,7 @@ public class CommandRunner {
 					}
 				}
 			}
+			// Requires the --gaf argument (or something else that fills the gafdoc object).
 			else if (opts.nextEq("--load-gaf-solr")) {
 				String url = opts.nextOpt();
 				GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
