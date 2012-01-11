@@ -308,6 +308,9 @@ public class OWLGraphWrapper {
 		}
 	}
 
+	public void mergeSupportOntology(String ontologyIRI) throws OWLOntologyCreationException {
+		mergeSupportOntology(ontologyIRI, true);
+	}
 
 	@Deprecated
 	public OWLOntology getOntology() {
@@ -2431,7 +2434,10 @@ public class OWLGraphWrapper {
 	 * @return OWLClass with id or null
 	 */
 	public OWLClass getOWLClassByIdentifier(String id) {
-		return dataFactory.getOWLClass(getIRIByIdentifier(id));
+		IRI iri = getIRIByIdentifier(id);
+		if (iri != null)
+			return getOWLClass(iri);
+		return null;
 	}
 
 	/**
