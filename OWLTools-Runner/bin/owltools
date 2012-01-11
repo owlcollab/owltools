@@ -136,4 +136,8 @@ then
 fi
 
 ## Run the final command.
+if [ $DEBUG ]
+then
+    echo "$CMD"
+fi
 sh -c "$CMD"
