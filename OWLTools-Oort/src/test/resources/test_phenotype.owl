@@ -1,0 +1,322 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.obolibrary.org/obo/phenotype-commons/MGI/test_phenotype.owl#"
+     xml:base="http://purl.obolibrary.org/obo/phenotype-commons/MGI/test_phenotype.owl"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:has="has ">
+    <owl:Ontology rdf:about="http://purl.obolibrary.org/obo/phenotype-commons/MGI/test_phenotype.owl"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0000018 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0000018"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0000435 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0000435"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0000771 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0000771"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0000929 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0000929"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001127 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001127"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001147 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001147"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001259 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001259"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001262 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001262"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001286 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001286"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001405 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001405"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001469 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001469"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001688 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001688"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001698 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0001698"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002080 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0002080"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002082 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0002082"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002151 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0002151"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002950 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0002950"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002969 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0002969"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0005657 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0005657"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0009937 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/MP_0009937"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/NCBITaxon_10090 -->
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/NCBITaxon_10090"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MGI_101757 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.obolibrary.org/obo/MGI_101757">
+        <rdf:type rdf:resource="http://purl.obolibrary.org/obo/NCBITaxon_10090"/>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001698"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0009937"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001688"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0005657"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002151"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001286"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002080"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002950"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002082"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0000929"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Cfl1</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MGI_101759 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.obolibrary.org/obo/MGI_101759">
+        <rdf:type rdf:resource="http://purl.obolibrary.org/obo/NCBITaxon_10090"/>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001469"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001405"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002969"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Syt4</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MGI_101761 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.obolibrary.org/obo/MGI_101761">
+        <rdf:type rdf:resource="http://purl.obolibrary.org/obo/NCBITaxon_10090"/>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0000771"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0000435"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001262"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001147"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001259"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001127"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0000018"/>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Hmga2</rdfs:label>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.2.0.1502) http://owlapi.sourceforge.net -->
+
