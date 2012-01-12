@@ -19,7 +19,9 @@ import java.util.Vector;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
@@ -106,6 +108,7 @@ import owltools.sim.SimEngine.SimilarityAlgorithmException;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
 import owltools.solrj.GafSolrDocumentLoader;
+import owltools.solrj.OntologySolrLoader;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 
@@ -293,6 +296,7 @@ public class CommandRunner {
 		Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = null;
 		OWLPrettyPrinter owlpp;
 		GraphicsConfig gfxCfg = new GraphicsConfig();
+		String globalSolrURL = null;
 		//Configuration config = new PropertiesConfiguration("owltools.properties");
 
 
@@ -1641,9 +1645,72 @@ public class CommandRunner {
 				}
 
 			}
+			
+			///
+			/// Solr/GOlr loading.
+			///
+			
+			// Set an optional Solr URL to use with Solr options so they don't
+			// have to be specified separately for every option.
+			else if (opts.nextEq("--solr-url")) {
+				globalSolrURL = opts.nextOpt(); // shift it off of null
+				LOG.info("Globally use GOlr server at: " + globalSolrURL);
+			}
+			// Manually purge the index to try again.
+			// Since this cascade is currently ordered, can be used to purge before we load.
+			else if (opts.nextEq("--purge-solr")) {
+
+				// Check to see if the global url has been set, otherwise use the local one.
+				String url = null;
+				if( globalSolrURL == null ){
+					url = opts.nextOpt();
+				}else{
+					url = globalSolrURL;
+				}
+				LOG.info("Purge GOlr server at: " + url);
+
+				// 
+				SolrServer server = new CommonsHttpSolrServer(url);
+			    try {
+					server.deleteByQuery("*:*");
+				} catch (SolrServerException e) {
+					LOG.info("Purge at: " + url + " failed!");
+					e.printStackTrace();
+				}
+			}
+			// Used for loading whatever ontology stuff we have into GOlr.
+			else if (opts.nextEq("--load-ontology-solr")) {
+
+				// Check to see if the global url has been set, otherwise use the local one.
+				String url = null;
+				if( globalSolrURL == null ){
+					url = opts.nextOpt();
+				}else{
+					url = globalSolrURL;
+				}
+				LOG.info("Use GOlr server at: " + url);
+
+				// Actual ontology class loading.
+				OntologySolrLoader loader = new OntologySolrLoader(url);
+				try {
+					loader.load(g);
+				} catch (SolrServerException e) {
+					LOG.info("Ontology load at: " + url + " failed!");
+					e.printStackTrace();
+				}
+			}
 			// Used for loading a list of GAFs into GOlr.
 			else if (opts.nextEq("--load-gafs-solr")) {
-				String url = opts.nextOpt();
+				
+				// Check to see if the global url has been set, otherwise use the local one.
+				String url = null;
+				if( globalSolrURL == null ){
+					url = opts.nextOpt();
+				}else{
+					url = globalSolrURL;
+				}
+				LOG.info("Use GOlr server at: " + url);
+				
 				List<String> files = opts.nextList();
 				for (String file : files) {
 					LOG.info("parsing gaf:"+file);
@@ -1662,7 +1729,24 @@ public class CommandRunner {
 			}
 			// Requires the --gaf argument (or something else that fills the gafdoc object).
 			else if (opts.nextEq("--load-gaf-solr")) {
-				String url = opts.nextOpt();
+
+				// Double check we're not going to do something silly, like try and
+				// use a null variable...
+				if( gafdoc == null ){
+					System.err.println("No GAF document defined (maybe use '--gaf GAF-FILE') ");
+					System.exit(1);
+				}
+				
+				// Check to see if the global url has been set, otherwise use the local one.
+				String url = null;
+				if( globalSolrURL == null ){
+					url = opts.nextOpt();
+				}else{
+					url = globalSolrURL;
+				}
+				LOG.info("Use GOlr server at: " + url);			
+				
+				// Doc load.
 				GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
 				loader.setGafDocument(gafdoc);
 				loader.setGraph(g);
@@ -1673,6 +1757,7 @@ public class CommandRunner {
 					e.printStackTrace();
 				}
 			}
+			
 			else if (opts.nextEq("--gaf-xp-predict")) {
 				owlpp = new OWLPrettyPrinter(g);
 				if (gafdoc == null) {

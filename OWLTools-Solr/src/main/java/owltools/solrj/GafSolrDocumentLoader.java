@@ -57,47 +57,53 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		return p;
 	}
 
+	// Main wrapping for adding non-ontology documents to GOlr.
+	// Also see OntologySolrLoader.
 	private void add(Bioentity e) {
+
 		String eid = e.getId();
 		String esym = e.getSymbol();
-		LOG.info("Adding: "+eid+" "+esym);
-		SolrInputDocument d = new SolrInputDocument();
-		d.addField("document_category", "bioentity");
-		d.addField("id", eid);
-		d.addField("label", esym);
-		d.addField("type", e.getTypeCls());
+		LOG.info("Adding: " + eid + " " + esym);
+		
+		SolrInputDocument bioentity_doc = new SolrInputDocument();
+		
+		// Bioentity document base.
+		bioentity_doc.addField("document_category", "bioentity");
+		bioentity_doc.addField("id", eid);
+		bioentity_doc.addField("label", esym);
+		bioentity_doc.addField("type", e.getTypeCls());
 		String taxId = e.getNcbiTaxonId();
-		d.addField("taxon", taxId);
-		addLabelField(d, "taxon_label", taxId);
+		bioentity_doc.addField("taxon", taxId);
+		addLabelField(bioentity_doc, "taxon_label", taxId);
 
-		Map<String,SolrInputDocument> aggDocMap = new HashMap<String,SolrInputDocument>();
+		Map<String,SolrInputDocument> evAggDocMap = new HashMap<String,SolrInputDocument>();
 		
 		for (GeneAnnotation a : gafDocument.getGeneAnnotations(e.getId())) {
 			// annotation doc
-			SolrInputDocument ad = new SolrInputDocument();
+			SolrInputDocument annotation_doc = new SolrInputDocument();
 
 			String clsId = a.getCls();
 			String refId = a.getReferenceId();
 
+			// Annotation document base.
+			annotation_doc.addField("document_category", "annotation");
+			annotation_doc.addField("id", eid + "_:_" + clsId); // TODO - make unique
+			annotation_doc.addField("bioentity_id", eid);
+			annotation_doc.addField("bioentity_label", esym);
+			annotation_doc.addField("taxon", taxId);
+			addLabelField(annotation_doc, "taxon_label", taxId);
 
-			ad.addField("document_category", "annotation");
-			ad.addField("id", eid + clsId); // TODO - make unique
-			ad.addField("bioentity_id", eid);
-			ad.addField("bioentity_label", esym);
-			ad.addField("taxon", taxId);
-			addLabelField(ad, "taxon_label", taxId);
-
-			ad.addField("reference", refId);
+			annotation_doc.addField("reference", refId);
 			// TODO - ev. closure
-			ad.addField("evidence_type", a.getEvidenceCls());
-			ad.addField("evidence_with", a.getWithExpression());
+			annotation_doc.addField("evidence_type", a.getEvidenceCls());
+			annotation_doc.addField("evidence_with", a.getWithExpression());
 			for (WithInfo wi : a.getWithInfos()) {
 				//check this
 				//ad.addField("evidence_with", wi.getWithXref());
 			}
 
-			ad.addField("annotation_class", clsId);
-			addLabelField(ad, "annotation_class_label", clsId);
+			annotation_doc.addField("annotation_class", clsId);
+			addLabelField(annotation_doc, "annotation_class_label", clsId);
 
 			// ------------------------
 			// -- isa_partof_closure --
@@ -113,41 +119,41 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				String tlabel = null;
 				if (t != null)
 					tlabel = graph.getLabel(t);
-				ad.addField("isa_partof_closure", tid);
-				addFieldUnique(d, "isa_partof_closure", tid);
+				annotation_doc.addField("isa_partof_closure", tid);
+				addFieldUnique(bioentity_doc, "isa_partof_closure", tid);
 				if (tlabel != null) {
-					ad.addField("isa_partof_label_closure", tlabel);
-					addFieldUnique(d, "isa_partof_label_closure", tlabel);
+					annotation_doc.addField("isa_partof_label_closure", tlabel);
+					addFieldUnique(bioentity_doc, "isa_partof_label_closure", tlabel);
 				}
 
-				// aggregate
-				String aggId = eid+"^^^"+clsId;
-				SolrInputDocument aggDoc;
-				if (aggDocMap.containsKey(aggId)) {
-					aggDoc = aggDocMap.get(aggId);	
+				// Annotation evidence aggregate base.
+				String evAggId = eid + "_:ev:_" + clsId;
+				SolrInputDocument ev_agg_doc;
+				if (evAggDocMap.containsKey(evAggId)) {
+					ev_agg_doc = evAggDocMap.get(evAggId);	
 				}
 				else {
-					aggDoc = new SolrInputDocument();
-					aggDocMap.put(aggId, aggDoc);
-					aggDoc.addField("id", aggId);
-					aggDoc.addField("document_category", "annotation_aggregate");
-					aggDoc.addField("bioentity_id", eid);
-					aggDoc.addField("bioentity_label", esym);
-					aggDoc.addField("annotation_class", tid);
-					aggDoc.addField("annotation_class_label", tlabel);
-					aggDoc.addField("taxon", taxId);
-					addLabelField(aggDoc, "taxon_label", taxId);
+					ev_agg_doc = new SolrInputDocument();
+					evAggDocMap.put(evAggId, ev_agg_doc);
+					ev_agg_doc.addField("id", evAggId);
+					ev_agg_doc.addField("document_category", "annotation_evidence_aggregate");
+					ev_agg_doc.addField("bioentity_id", eid);
+					ev_agg_doc.addField("bioentity_label", esym);
+					ev_agg_doc.addField("annotation_class", tid);
+					ev_agg_doc.addField("annotation_class_label", tlabel);
+					ev_agg_doc.addField("taxon", taxId);
+					addLabelField(ev_agg_doc, "taxon_label", taxId);
 				}
 
 				//evidence_type is single valued
 				//aggDoc.addField("evidence_type", a.getEvidenceCls());
 				String wx = a.getWithExpression();
 				if (wx != null && !wx.equals(""))
-					aggDoc.addField("evidence_with", wx);
+					ev_agg_doc.addField("evidence_with", wx);
 
 				//aggDoc.getFieldValues(name)
 				// TODO:
-				aggDoc.addField("evidence_closure", a.getEvidenceCls());
+				ev_agg_doc.addField("evidence_closure", a.getEvidenceCls());
 			}
 
 			/*
@@ -206,30 +212,27 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				ee.getRelation();	// TODO
 				String eeid = ee.getCls();
 				OWLObject eObj = graph.getOWLObjectByIdentifier(eeid);
-				ad.addField("annotation_extension_class", eeid);	
-				addLabelField(ad, "annotation_extension_class_label", eeid);
+				annotation_doc.addField("annotation_extension_class", eeid);	
+				addLabelField(annotation_doc, "annotation_extension_class_label", eeid);
 
 				if (eObj != null) {
 					for (OWLGraphEdge edge : graph.getOutgoingEdgesClosureReflexive(eObj)) {
 						OWLObject t = edge.getTarget();
 						if (!(t instanceof OWLClass))
 							continue;
-						ad.addField("annotation_extension_class_closure", graph.getIdentifier(t));
-						ad.addField("annotation_extension_class_label_closure", graph.getLabel(edge.getTarget()));
+						annotation_doc.addField("annotation_extension_class_closure", graph.getIdentifier(t));
+						annotation_doc.addField("annotation_extension_class_label_closure", graph.getLabel(edge.getTarget()));
 					}
 				}
 			}
 
-			add(ad);
+			add(annotation_doc);
 		}
-		add(d);
+		add(bioentity_doc);
 
-		for (SolrInputDocument aggDoc : aggDocMap.values()) {
-			add(aggDoc);
+		for (SolrInputDocument ev_agg_doc : evAggDocMap.values()) {
+			add(ev_agg_doc);
 		}
-
-
-
 	}
 	
 	private void addFieldUnique(SolrInputDocument d, String field, String val) {
