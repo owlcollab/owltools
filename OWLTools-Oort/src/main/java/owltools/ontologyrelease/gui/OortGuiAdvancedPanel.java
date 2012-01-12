@@ -42,6 +42,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox expandShortcutRelations;
 	final JCheckBox writeELOntologyCheckBox;
 	final JCheckBox justifyAssertedSubclasses;
+	final JCheckBox writeSubSets;
 	
 	final JCheckBox allowOverwrite;
 	
@@ -81,6 +82,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		expandShortcutRelations = new JCheckBox();
 		writeELOntologyCheckBox = new JCheckBox();
 		justifyAssertedSubclasses = new JCheckBox();
+		writeSubSets = new JCheckBox();
 		
 		// reasoner radio buttons
 		pelletRadioButton = new JRadioButton();
@@ -135,6 +137,10 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(panel, pos.nextRow(), 5);
 		
 		createFancyCheckBox(pos, simpleLabel, simpleDesc, simpleCheckBox);
+		
+		addRowGap(panel, pos.nextRow(), 10);
+		
+		createFancyCheckBox(pos, "Write SubSets", null, writeSubSets);
 		
 		addRowGap(panel, pos.nextRow(), 10);
 		
@@ -277,6 +283,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		expandShortcutRelations.setSelected(configuration.isExpandShortcutRelations());
 		writeELOntologyCheckBox.setSelected(configuration.isWriteELOntology());
 		justifyAssertedSubclasses.setSelected(configuration.isJustifyAssertedSubclasses());
+		writeSubSets.setSelected(configuration.isWriteSubsets());
 				
 		String reasoner = configuration.getReasonerName();
 		if (InferenceBuilder.REASONER_PELLET.equals(reasoner)) {

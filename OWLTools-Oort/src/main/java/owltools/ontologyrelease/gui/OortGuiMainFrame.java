@@ -191,6 +191,9 @@ public class OortGuiMainFrame extends JFrame {
 		// JustifyAssertedSubclasses
 		parameters.setJustifyAssertedSubclasses(advancedPanel.justifyAssertedSubclasses.isSelected());
 		
+		// writeSubSets
+		parameters.setWriteSubsets(advancedPanel.writeSubSets.isSelected());
+		
 		// paths
 		for(String source : mainPanel.sources.keySet()) {
 			parameters.addPath(source);
