@@ -62,6 +62,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bbop</groupId>
+			<artifactId>OWLTools-Annotation</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bbop</groupId>
 			<artifactId>OWLTools-Core</artifactId>
 			<version>${project.parent.version}</version>
 			<type>test-jar</type>
