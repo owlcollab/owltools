@@ -45,21 +45,22 @@ public class OortGuiMainFrame extends JFrame {
 	private JButton releaseButton;
 	
 	/**
-	 * Default constructor, required only for testing the GUI as bean.
+	 * @param parameters 
 	 */
-	public OortGuiMainFrame() {
-		this(new ArrayBlockingQueue<String>(100));
+	public OortGuiMainFrame(OortGuiConfiguration parameters) {
+		this(new ArrayBlockingQueue<String>(100), parameters);
 	}
 	
 	/**
 	 * Main constructor. 
 	 * 
 	 * @param logQueue Message queue for events to be shown in the log panel
+	 * @param parameters 
 	 */
-	public OortGuiMainFrame(BlockingQueue<String> logQueue) {
+	public OortGuiMainFrame(BlockingQueue<String> logQueue, OortGuiConfiguration parameters) {
 		super();
 		this.logQueue = logQueue;
-		this.parameters = new OortGuiConfiguration();
+		this.parameters = parameters;
 		initialize();
 	}
 
@@ -162,6 +163,18 @@ public class OortGuiMainFrame extends JFrame {
 		}
 		else if (advancedPanel.elkRadioButton.isSelected()) {
 			parameters.setReasonerName(InferenceBuilder.REASONER_ELK);
+		}
+		
+		// write formats
+		parameters.getSkipFormatSet().clear();
+		if (!advancedPanel.writeOBO.isSelected()) {
+			parameters.addToSkipFormatSet("obo");
+		}
+		if (!advancedPanel.writeOWL.isSelected()) {
+			parameters.addToSkipFormatSet("owl");
+		}
+		if (!advancedPanel.writeOWX.isSelected()) {
+			parameters.addToSkipFormatSet("owx");
 		}
 		
 		// asserted

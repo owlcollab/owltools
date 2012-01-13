@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -44,6 +45,9 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox justifyAssertedSubclasses;
 	final JCheckBox writeSubSets;
 	final JCheckBox gafToOwl;
+	final JCheckBox writeOWL;
+	final JCheckBox writeOWX;
+	final JCheckBox writeOBO;
 	
 	final JCheckBox allowOverwrite;
 	
@@ -86,6 +90,10 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		writeSubSets = new JCheckBox();
 		gafToOwl = new JCheckBox();
 		
+		writeOBO = new JCheckBox();
+		writeOWL = new JCheckBox();
+		writeOWX = new JCheckBox();
+		
 		// reasoner radio buttons
 		pelletRadioButton = new JRadioButton();
 		hermitRadioButton = new JRadioButton();
@@ -108,7 +116,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 				"<p> with all external classes and references to them removed</p></html>");
 		addRowGap(panel, pos, 10);
 		
-		
+		// write format options
+		createWriteFormatPanel(pos);
 		
 		// reasoner
 		createReasonerPanel(pos);
@@ -208,6 +217,18 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		return components;
 	}
 
+	private void createWriteFormatPanel(GBHelper pos) {
+		panel.add(new JLabel("Write Formats"), pos.nextRow().indentLeft(DEFAULT_INDENT));
+		panel.add(writeOBO, pos.nextRow().nextCol());
+		panel.add(new JLabel("OBO"), pos.nextCol().expandW());
+		
+		panel.add(writeOWL, pos.nextRow().nextCol());
+		panel.add(new JLabel("OWL"), pos.nextCol().expandW());
+		
+		panel.add(writeOWX, pos.nextRow().nextCol());
+		panel.add(new JLabel("OWX"), pos.nextCol().expandW());
+	}
+
 	/**
 	 * Create layout for reasoner selection
 	 * 
@@ -288,7 +309,12 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		justifyAssertedSubclasses.setSelected(configuration.isJustifyAssertedSubclasses());
 		writeSubSets.setSelected(configuration.isWriteSubsets());
 		gafToOwl.setSelected(configuration.isGafToOwl());
-				
+		
+		Set<String> skipFormats = configuration.getSkipFormatSet();
+		writeOBO.setSelected(!skipFormats.contains("obo"));
+		writeOWL.setSelected(!skipFormats.contains("owl"));
+		writeOWX.setSelected(!skipFormats.contains("owx"));
+		
 		String reasoner = configuration.getReasonerName();
 		if (InferenceBuilder.REASONER_PELLET.equals(reasoner)) {
 			pelletRadioButton.setSelected(true);

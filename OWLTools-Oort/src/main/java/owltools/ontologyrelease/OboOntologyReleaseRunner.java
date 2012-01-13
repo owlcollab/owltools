@@ -128,7 +128,40 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	OBOFormatDanglingReferenceException {
 
 		OortConfiguration oortConfig = new OortConfiguration();
+		
+		parseOortCommandLineOptions(args, oortConfig);
 
+		logger.info("Base directory path " + oortConfig.getBase().getAbsolutePath());
+
+		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, oortConfig.getBase());
+
+		int exitCode = 0;
+		try {
+			boolean success = oorr.createRelease(oortConfig.getPaths());
+			String message;
+			if (success) {
+				message = "Finished release manager process";
+			}
+			else {
+				message = "Finished release manager process, but no release was created.";
+			}
+			logger.info(message);
+			logger.info("Done!");
+		} catch (OboOntologyReleaseRunnerCheckException exception) {
+			logger.error("Stopped Release process. Reason: "+exception.renderMessageString());
+			exitCode = -1;
+		} catch (AnnotationCardinalityException exception) {
+			logger.error("Stopped Release process. Reason: "+exception.getMessage());
+			exitCode = -1;
+		} finally {
+			logger.info("deleting lock file");
+			oorr.deleteLockFile();
+		}
+		System.exit(exitCode);
+	}
+
+	static void parseOortCommandLineOptions(String[] args, OortConfiguration oortConfig) throws IOException {
+		
 		int i = 0;
 		while (i < args.length) {
 			String opt = args[i];
@@ -247,34 +280,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					oortConfig.addPath(token);
 			}
 		}
-
-		logger.info("Base directory path " + oortConfig.getBase().getAbsolutePath());
-
-		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, oortConfig.getBase());
-
-		int exitCode = 0;
-		try {
-			boolean success = oorr.createRelease(oortConfig.getPaths());
-			String message;
-			if (success) {
-				message = "Finished release manager process";
-			}
-			else {
-				message = "Finished release manager process, but no release was created.";
-			}
-			logger.info(message);
-			logger.info("Done!");
-		} catch (OboOntologyReleaseRunnerCheckException exception) {
-			logger.error("Stopped Release process. Reason: "+exception.renderMessageString());
-			exitCode = -1;
-		} catch (AnnotationCardinalityException exception) {
-			logger.error("Stopped Release process. Reason: "+exception.getMessage());
-			exitCode = -1;
-		} finally {
-			logger.info("deleting lock file");
-			oorr.deleteLockFile();
-		}
-		System.exit(exitCode);
 	}
 
 	public boolean createRelease(Vector<String> allPaths) throws IOException, 

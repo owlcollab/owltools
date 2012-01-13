@@ -36,8 +36,13 @@ public class OboOntologyReleaseRunnerGui {
 		}
 	};
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+
+		// parse command-line
+		OortGuiConfiguration parameters = new OortGuiConfiguration();  
+		OboOntologyReleaseRunner.parseOortCommandLineOptions(args, parameters);
 		
+		// setup logger for GUI
 		Logger rootLogger = Logger.getRootLogger();
 		final BlockingQueue<String> logQueue =  new ArrayBlockingQueue<String>(100);
 		
@@ -68,7 +73,7 @@ public class OboOntologyReleaseRunnerGui {
 		});
 		
 		// Start GUI
-		new ReleaseGuiMainFrameRunner(logQueue);
+		new ReleaseGuiMainFrameRunner(logQueue, parameters );
 	}
 
 	private static final class ReleaseGuiMainFrameRunner extends OortGuiMainFrame {
@@ -76,8 +81,8 @@ public class OboOntologyReleaseRunnerGui {
 		// generated
 		private static final long serialVersionUID = -8690322825608397262L;
 		
-		private ReleaseGuiMainFrameRunner(BlockingQueue<String> logQueue) {
-			super(logQueue);
+		private ReleaseGuiMainFrameRunner(BlockingQueue<String> logQueue, OortGuiConfiguration parameters) {
+			super(logQueue, parameters);
 		}
 	
 		@Override
