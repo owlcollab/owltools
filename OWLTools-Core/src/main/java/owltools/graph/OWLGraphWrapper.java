@@ -2633,7 +2633,7 @@ public class OWLGraphWrapper {
 	 * @param s entity IRI
 	 * @return {@link OWLObject}
 	 */
-	private OWLObject getOWLObject(IRI s) {
+	public OWLObject getOWLObject(IRI s) {
 		OWLObject o;
 		o = getOWLClass(s);
 		if (o == null) {
