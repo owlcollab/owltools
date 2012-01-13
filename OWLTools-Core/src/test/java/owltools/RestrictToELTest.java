@@ -46,7 +46,7 @@ public class RestrictToELTest extends OWLToolsTestBasics {
 		String ontologyId = "fribble";
 		assertEquals(ontologyId, g.getOntologyId());
 		OWLGraphWrapper gEL = InferenceBuilder.enforceEL(g);
-		assertEquals(ontologyId, gEL.getOntologyId());
+		assertEquals(ontologyId+"-el", gEL.getOntologyId());
 	}
 	
 	/**
