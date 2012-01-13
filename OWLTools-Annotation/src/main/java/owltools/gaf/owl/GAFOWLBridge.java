@@ -35,19 +35,21 @@ import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
 
 public class GAFOWLBridge {
-	
+
 	private Logger LOG = Logger.getLogger(GAFOWLBridge.class);
 
 
 	private OWLOntology targetOntology;
 	private OWLGraphWrapper graph;
 	private Map<Vocab,IRI> vocabMap = new HashMap<Vocab,IRI>();
-	
+	private Map<String,OWLObjectProperty> shorthandMap = new HashMap<String,OWLObjectProperty>();
+
 	private enum BioentityMapping { NONE, CLASS_EXPRESSION, INDIVIDUAL };
-	
+
 	// config
 	private BioentityMapping bioentityMapping = BioentityMapping.CLASS_EXPRESSION;
-	
+	private boolean isGenerateIndividuals = true;
+
 
 	public enum Vocab {
 		ACTIVELY_PARTICIPATES_IN, PART_OF,
@@ -58,11 +60,27 @@ public class GAFOWLBridge {
 		graph = g;
 		targetOntology = g.getSourceOntology();
 		addVocabMapDefaults();
+		makeShorthandMap();
 	}
 
+	/**
+	 * The ontology generated from the gaf will be placed in tgtOnt
+	 * 
+	 * The graphwrapper object should include ontologies required to resolve certain entities,
+	 * including the relations used in col16. In future it will also be used to translate GAF evidence
+	 * codes into ECO class IRIs.
+	 * 
+	 * These ontologies could be the main ontology or support ontologies. A standard pattern is to have
+	 * GO as the main, ro.owl and go/extensions/gorel.owl as support. (gorel is where many of the c16 relations
+	 * are declared)
+	 * 
+	 * @param g
+	 * @param tgtOnt
+	 */
 	public GAFOWLBridge(OWLGraphWrapper g, OWLOntology tgtOnt) {
 		this(g);
 		targetOntology = tgtOnt;
+		makeShorthandMap();
 	}
 
 	private void addVocabMapDefaults() {
@@ -84,7 +102,15 @@ public class GAFOWLBridge {
 				iri,
 				fac.getOWLLiteral(label)));
 	}
-	
+
+
+	public boolean isGenerateIndividuals() {
+		return isGenerateIndividuals;
+	}
+
+	public void setGenerateIndividuals(boolean isGenerateIndividuals) {
+		this.isGenerateIndividuals = isGenerateIndividuals;
+	}
 
 	public OWLOntology getTargetOntology() {
 		return targetOntology;
@@ -145,7 +171,7 @@ public class GAFOWLBridge {
 			for (ExtensionExpression ext : exts) {
 				OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
 				OWLClass filler = getOWLClass(ext.getCls());
-				LOG.info(" EXT:"+p+" "+filler);
+				//LOG.info(" EXT:"+p+" "+filler);
 				ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
 			}
 			annotatedToClass = fac.getOWLObjectIntersectionOf(ops);
@@ -158,24 +184,26 @@ public class GAFOWLBridge {
 		// todo - product
 		OWLClassExpression x =
 			fac.getOWLObjectIntersectionOf(e, r);
-		
+
 		// create or fetch the unique Id of the gene annotation
 		String geneAnnotationId = getAnnotationId(a);
-		
-		// Create an instance for every gene annotation
-		OWLNamedIndividual iAnn = fac.getOWLNamedIndividual(graph.getIRIByIdentifier(geneAnnotationId));
 
 		// the gene annotation instances _describes_ a gene/product in some context
 		OWLObjectProperty pDescribes = getGeneAnnotationObjectProperty(Vocab.DESCRIBES);
-		OWLObjectSomeValuesFrom dx =
-			fac.getOWLObjectSomeValuesFrom(pDescribes, x);		
-		axioms.add(fac.getOWLClassAssertionAxiom(dx, iAnn));
-		OWLAnnotationProperty labelProperty = fac.getRDFSLabel();
-		String desc = this.getAnnotationDescription(a);
-		OWLAnnotation labelAnnotation = fac.getOWLAnnotation(labelProperty, fac.getOWLLiteral(desc));
-		axioms.add(fac.getOWLAnnotationAssertionAxiom(iAnn.getIRI(), labelAnnotation));
-		// TODO - annotations on iAnn; evidence etc
-		
+
+		if (this.isGenerateIndividuals) {
+			// Create an instance for every gene annotation
+			OWLNamedIndividual iAnn = fac.getOWLNamedIndividual(graph.getIRIByIdentifier(geneAnnotationId));
+
+			OWLObjectSomeValuesFrom dx =
+				fac.getOWLObjectSomeValuesFrom(pDescribes, x);		
+			axioms.add(fac.getOWLClassAssertionAxiom(dx, iAnn));
+			OWLAnnotationProperty labelProperty = fac.getRDFSLabel();
+			String desc = this.getAnnotationDescription(a);
+			OWLAnnotation labelAnnotation = fac.getOWLAnnotation(labelProperty, fac.getOWLLiteral(desc));
+			axioms.add(fac.getOWLAnnotationAssertionAxiom(iAnn.getIRI(), labelAnnotation));
+			// TODO - annotations on iAnn; evidence etc
+		}
 
 		if (bioentityMapping != BioentityMapping.NONE) {
 			// PROTOTYPE RELATIONSHIP
@@ -192,7 +220,7 @@ public class GAFOWLBridge {
 			}
 			axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
 		}
-		
+
 		// experimental: annotation assertions
 		if (false) {
 			// TODO
@@ -202,7 +230,23 @@ public class GAFOWLBridge {
 		addAxioms(axioms);
 	}
 
+	private void makeShorthandMap() {
+		OWLAnnotationProperty shp = 
+			graph.getDataFactory().getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#shorthand"));
+		for (OWLOntology o : graph.getAllOntologies()) {
+			for (OWLObjectProperty q : o.getObjectPropertiesInSignature(true)) {
+				String v = graph.getAnnotationValue(q, shp);
+				if (v != null)
+					shorthandMap.put(v, q);
+			}
+		}
+	}
+
+
 	private OWLObjectProperty getObjectPropertyByShorthand(String id) {
+		if (shorthandMap.containsKey(id)) {
+			return shorthandMap.get(id);
+		}
 		OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier(id);
 		return p;
 	}
@@ -230,7 +274,7 @@ public class GAFOWLBridge {
 		// TODO
 		return getGeneAnnotationObjectProperty(Vocab.ACTIVELY_PARTICIPATES_IN);
 	}
-	
+
 
 	private OWLClass getOWLClass(String id) {
 		IRI iri = graph.getIRIByIdentifier(id);
