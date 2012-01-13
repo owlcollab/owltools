@@ -63,6 +63,7 @@ public class OortConfiguration {
 	private List<String> toBeMergedOntologies = new ArrayList<String>(); // TODO
 	private Set<PropertyView> propertyViews = new HashSet<PropertyView>();
 	private boolean useReleaseFolder = true;
+	private Set skipFormatSet = new HashSet<String>();
 
 	private OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
@@ -204,6 +205,22 @@ public class OortConfiguration {
 
 	public void setWriteELOntology(boolean writeELOntology) {
 		this.writeELOntology = writeELOntology;
+	}
+	
+	
+
+	public Set getSkipFormatSet() {
+		return skipFormatSet;
+	}
+
+	public void setSkipFormatSet(Set skipFormatSet) {
+		this.skipFormatSet = skipFormatSet;
+	}
+	public void addToSkipFormatSet(String fmt) {
+		this.skipFormatSet.add(fmt);
+	}
+	public boolean isSkipFormat(String fmt) {
+		return this.skipFormatSet.contains(fmt);
 	}
 
 	public Set<String> getSourceOntologyPrefixes() {
