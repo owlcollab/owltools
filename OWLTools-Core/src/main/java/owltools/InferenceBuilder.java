@@ -115,7 +115,17 @@ public class InferenceBuilder{
 			this(factory, null);
 		}
 	}
-	
+
+	public static OWLGraphWrapper enforceEL(OWLGraphWrapper graph) {
+		String origIRI = graph.getSourceOntology().getOntologyID().getOntologyIRI().toString();
+		if (origIRI.endsWith(".owl")) {
+			origIRI = origIRI.replace(".owl", "-el.owl");
+		}
+		else {
+			origIRI = origIRI + "-el";
+		}
+		return enforceEL(graph, IRI.create(origIRI));
+	}
 	/**
 	 * Create an ontology with EL as description logic profile. This is achieved by 
 	 * removing the non-compatible axioms.
@@ -126,7 +136,7 @@ public class InferenceBuilder{
 	 * @param graph
 	 * @return ontology limited to EL
 	 */
-	public static OWLGraphWrapper enforceEL(OWLGraphWrapper graph) {
+	public static OWLGraphWrapper enforceEL(OWLGraphWrapper graph, IRI elOntologyIRI) {
 		OWL2ELProfile profile = new OWL2ELProfile();
 		OWLOntology sourceOntology = graph.getSourceOntology();
 		OWLProfileReport report = profile.checkOntology(sourceOntology);
@@ -136,12 +146,8 @@ public class InferenceBuilder{
 
 			// see el-vira (http://code.google.com/p/el-vira/) for groovy version
 			try {
-				OWLOntology infOnt = manager.createOntology();
-				// Set ontology ID
-				//manager.applyChange(new SetOntologyID(infOnt, sourceOntology.getOntologyID()));
-				OWLOntologyID ontologyID = sourceOntology.getOntologyID();
-				manager.applyChange(new SetOntologyID(infOnt, 
-						new OWLOntologyID(IRI.create(ontologyID.getOntologyIRI().toString()+"-el"))));
+				OWLOntology infOnt = manager.createOntology(elOntologyIRI);
+				
 				// Remove violations
 				List<OWLProfileViolation> violations = report.getViolations();
 				Set<OWLAxiom> ignoreSet = new HashSet<OWLAxiom>();
