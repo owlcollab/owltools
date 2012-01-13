@@ -21,6 +21,7 @@ import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -87,7 +88,7 @@ public class ParserWrapper {
 		 */
 		obodoc.addDefaultOntologyHeader(URLEncoder.encode(id, "UTF-8"));
 
-		Obo2Owl bridge = new Obo2Owl();
+		Obo2Owl bridge = new Obo2Owl(manager);
 		OWLOntology ontology = bridge.convert(obodoc);
 		return ontology;
 	}
