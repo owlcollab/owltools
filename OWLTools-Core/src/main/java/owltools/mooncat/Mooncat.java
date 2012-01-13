@@ -236,7 +236,9 @@ public class Mooncat {
 		addSubAnnotationProperties(axioms);
 
 		for (OWLAxiom a : axioms) {
-			LOG.info("Adding:"+a);
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Adding:" + a);
+			}
 		}
 		manager.addAxioms(srcOnt, axioms);
 	}
@@ -286,7 +288,9 @@ public class Mooncat {
 			for (OWLOntology refOnt : getReferencedOntologies()) {
 				//LOG.info("  refOnt: "+refOnt);
 				if (refOnt.getDeclarationAxioms(obj).size() > 0) {
-					LOG.info("  refObj: "+obj);
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("  refObj: " + obj);
+					}
 					return true;
 				}
 			}
@@ -446,7 +450,9 @@ public class Mooncat {
 				}
 
 				if (obj instanceof OWLClass) {
-					LOG.info("class:"+obj);
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("class:" + obj);
+					}
 					// includes SubClassOf(obj,?), disjoints, equivalents, ..
 					final OWLClass c = (OWLClass) obj;
 					axioms.addAll(refOnt.getAxioms(c));
@@ -514,7 +520,9 @@ public class Mooncat {
 							// rely on the fact that the OWLAPI will infer this for now
 							continue;
 						}
-						LOG.info("removing:"+a+" because signature does not include:"+e+" // "+e.getIRI().toURI());
+						if (LOG.isDebugEnabled()) {
+							LOG.debug("removing:"+a+" because signature does not include:"+e+" // "+e.getIRI().toURI());
+						}
 						includeThis = false;
 						break;
 					}

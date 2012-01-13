@@ -284,10 +284,14 @@ public class InferenceBuilder{
 				if (cls.equals(ec))
 					continue;
 				
-				logger.info("Inferred Equiv: "+cls+" == "+ec);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Inferred Equiv: " + cls + " == " + ec);
+				}
 				if (ec instanceof OWLClass && !ec.equals(cls)) {
 					OWLEquivalentClassesAxiom eca = graph.getDataFactory().getOWLEquivalentClassesAxiom(cls, ec);
-					logger.info("Equivalent Named Class Pair: "+eca);
+					if (logger.isDebugEnabled()) {
+						logger.info("Equivalent Named Class Pair: "+eca);
+					}
 					equivalentNamedClassPairs.add(eca);
 				}
 
@@ -309,7 +313,7 @@ public class InferenceBuilder{
 			NodeSet<OWLClass> scs = reasoner.getSuperClasses(cls, true);
 			for (Node<OWLClass> scSet : scs) {
 				for (OWLClass sc : scSet) {
-					if (sc.equals(dataFactory.getOWLThing())) {
+					if (sc.isOWLThing()) {
 						continue; // do not report subclasses of owl:Thing
 					}
 					if (nrClasses.contains(sc))
@@ -366,7 +370,7 @@ public class InferenceBuilder{
 			}
 			for (OWLClassExpression sup : supers) {
 				if (sup instanceof OWLClass) {
-					if (sup.equals(dataFactory.getOWLThing())) {
+					if (sup.isOWLThing()) {
 						redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup));
 						continue;
 					}
