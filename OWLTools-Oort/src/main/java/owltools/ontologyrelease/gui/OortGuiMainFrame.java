@@ -198,6 +198,7 @@ public class OortGuiMainFrame extends JFrame {
 		parameters.setGafToOwl(advancedPanel.gafToOwl.isSelected());
 		
 		// paths
+		parameters.getPaths().clear();
 		for(String source : mainPanel.sources.keySet()) {
 			parameters.addPath(source);
 		}
