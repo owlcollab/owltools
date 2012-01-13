@@ -47,8 +47,15 @@ public class OntologySolrLoader extends AbstractSolrLoader {
 		
 		cls_doc.addField("id", graph.getIdentifier(obj));
 		cls_doc.addField("label", graph.getLabel(obj));
+
 		// BUG: Apparently no "def" in real life...
-		//cls_doc.addField("def", graph.getDef(obj));
+		String obj_def = graph.getDef(obj);
+		if( obj_def == null ){
+			LOG.info("ERROR? No \"def\" for: " + graph.getIdentifier(obj));
+		}else{
+			cls_doc.addField("def", graph.getDef(obj));
+		}
+		
 		if (obj instanceof OWLClass)
 			 collectClass(cls_doc, (OWLClass)obj);
 		else if (obj instanceof OWLIndividual)
