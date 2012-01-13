@@ -157,6 +157,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--no-reasoner")) {
 				oortConfig.setReasonerName(null);
 			}
+			else if (opt.equals("--skip-format")) {
+				oortConfig.addToSkipFormatSet(args[i]);
+				i++;
+			}
 			else if (opt.equals("--prefix")) {
 				oortConfig.addSourceOntologyPrefix(args[i]);
 				i++;
@@ -244,7 +248,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		logger.info("Base directory path " + oortConfig.getBase().getAbsolutePath());
 
 		OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(oortConfig, oortConfig.getBase());
-		
+
 		int exitCode = 0;
 		try {
 			boolean success = oorr.createRelease(oortConfig.getPaths());
@@ -375,7 +379,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// Generate bridge ontologies from xref expansion
 		// ----------------------------------------
 		if (oortConfig.isExpandXrefs()) {
-			logger.info("Creating Bridge Ontologies");
+			logger.info("Creating Bridge Ontologies by expanding Xrefs");
 
 			// Note that this introduces a dependency on the oboformat-specific portion
 			// of the oboformat code. Ideally we would like to make everything run
@@ -385,7 +389,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				// TODO - make this configurable.
 				// currently uses the name "MAIN-bridge-to-EXT" for all
 				xe = new XrefExpander(parser.getOBOdoc(), ontologyId+"-bridge-to");
-				xe.expandXrefs();
+				xe.expandXrefs(); // generate imported obo docs from xrefs
 				for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
 					String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
 					logger.info("Generating bridge ontology:"+tOntId);
@@ -436,7 +440,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		if (oortConfig.isExecuteOntologyChecks()) {
 			OntologyCheckHandler.DEFAULT_INSTANCE.afterMireot(mooncat.getGraph());
 		}
-		
+
 		if (oortConfig.isRemoveDanglingBeforeReasoning()) {
 			mooncat.removeDanglingAxioms();
 		}
@@ -543,7 +547,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					List<String> incs = infBuilder.performConsistencyChecks();
 					if (incs.size() > 0) {
 						for (String inc  : incs) {
-							String message = "INCONSISTENCY\t" + inc;
+							String message = "PROBLEM\t" + inc;
 							reasonerReportLines.add(message);
 							logger.error(message);
 						}
@@ -551,7 +555,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						// TODO: proper exception mechanism - delay until end?
 						if (!oortConfig.isForceRelease()) {
 							saveReasonerReport(ontologyId, reasonerReportLines);
-							throw new OboOntologyReleaseRunnerCheckException("Found inconsistencies during intial checks.",incs, "Use ForceRelease option to ignore this warning.");
+							throw new OboOntologyReleaseRunnerCheckException("Found problems during intial checks.",incs, "Use ForceRelease option to ignore this warning.");
 						}
 					}
 					logger.info("Checking consistency completed");
@@ -600,7 +604,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 			saveReasonerReport(ontologyId, reasonerReportLines);
 		} // --end of building main ontology
-		
+
 		// TODO
 		for (PropertyView pv : oortConfig.getPropertyViews()) {
 			PropertyViewOntologyBuilder pvob = 
@@ -609,9 +613,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						mooncat.getOntology(),
 						mooncat.getOntology(),
 						pv.property);
-			
+
 		}
-		
+
 		// ----------------------------------------
 		// SUBSETS
 		// ----------------------------------------
@@ -661,7 +665,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			 */
 
 			Owl2Obo owl2obo = new Owl2Obo();
-			
+
 			Set<RemoveImport> ris = new HashSet<RemoveImport>();
 			for (OWLImportsDeclaration oid : mooncat.getOntology().getImportsDeclarations()) {
 				ris.add( new RemoveImport(mooncat.getOntology(), oid) );
@@ -695,7 +699,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
 
 			mooncat.removeDanglingAxioms();
-			
+
 			saveInAllFormats(ontologyId, "simple", gciOntology);
 			logger.info("Creating simple ontology completed");
 
@@ -784,13 +788,18 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			// create change axiom with original id
 			reset = new SetOntologyID(ontologyToSave, change.getOriginalOntologyID());
 		}
-		OutputStream os = getOutputSteam(fileNameBase +".owl");
-		manager.saveOntology(ontologyToSave, oortConfig.getDefaultFormat(), os);
-		os.close();
 
-		OutputStream osxml = getOutputSteam(fileNameBase +".owx");
-		manager.saveOntology(ontologyToSave, oortConfig.getOwlXMLFormat(), osxml);
-		osxml.close();
+		if (!oortConfig.isSkipFormat("owl")) {
+			OutputStream os = getOutputSteam(fileNameBase +".owl");
+			manager.saveOntology(ontologyToSave, oortConfig.getDefaultFormat(), os);
+			os.close();
+		}
+
+		if (!oortConfig.isSkipFormat("owx")) {
+			OutputStream osxml = getOutputSteam(fileNameBase +".owx");
+			manager.saveOntology(ontologyToSave, oortConfig.getOwlXMLFormat(), osxml);
+			osxml.close();
+		}
 
 		if (reset != null) {
 			// reset versionIRI
@@ -819,19 +828,24 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			gciManager.applyChange(removeImport);
 		}
 
-		Owl2Obo owl2obo = new Owl2Obo();
-		OBODoc doc = owl2obo.convert(ontologyToSave);
+		if (!oortConfig.isSkipFormat("obo")) {
 
-		OBOFormatWriter writer = new OBOFormatWriter();
+			Owl2Obo owl2obo = new Owl2Obo();
+			OBODoc doc = owl2obo.convert(ontologyToSave);
 
-		BufferedWriter bwriter = getWriter(fileNameBase +".obo");
+			OBOFormatWriter writer = new OBOFormatWriter();
 
-		writer.write(doc, bwriter);
+			BufferedWriter bwriter = getWriter(fileNameBase +".obo");
 
-		bwriter.close();
+			writer.write(doc, bwriter);
 
-		if (oortConfig.isWriteMetadata()) {
-			saveMetadata(fileNameBase, mooncat.getGraph());
+			bwriter.close();
+		}
+
+		if (!oortConfig.isSkipFormat("metadata")) {
+			if (oortConfig.isWriteMetadata()) {
+				saveMetadata(fileNameBase, mooncat.getGraph());
+			}
 		}
 	}
 
@@ -851,7 +865,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.warn("Could not print reasoner report for ontolog: "+ontologyId, e);
 		}
 	}
-	
+
 	private void saveMetadata(String ontologyId,
 			OWLGraphWrapper graph) {
 		String fn = ontologyId + "-metadata.txt";
@@ -885,28 +899,28 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					logger.info(c+" has declaration axioms, is not in main, and is not dangling, therefore "+ont+" is NOT a bridging ontology");
 					return false;
 				}
-				}
 			}
-			logger.info(ont+" is a bridging ontology");
-			return true;
 		}
-
-		private static void usage() {
-			System.out.println("This utility builds an ontology release. This tool is supposed to be run " +
-			"from the location where a particular ontology releases are to be maintained.");
-			System.out.println("\n");
-			System.out.println("bin/ontology-release-runner [OPTIONAL OPTIONS] ONTOLOGIES-FILES");
-			System.out
-			.println("Multiple obo or owl files are separated by a space character in the place of the ONTOLOGIES-FILES arguments.");
-			System.out.println("\n");
-			System.out.println("OPTIONS:");
-			System.out
-			.println("\t\t (-outdir ~/work/myontology) The path where the release will be produced.");
-			System.out
-			.println("\t\t (-reasoner pellet) This option provides name of reasoner to be used to build inference computation.");
-			System.out
-			.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
-			System.out
-			.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
-		}
+		logger.info(ont+" is a bridging ontology");
+		return true;
 	}
+
+	private static void usage() {
+		System.out.println("This utility builds an ontology release. This tool is supposed to be run " +
+		"from the location where a particular ontology releases are to be maintained.");
+		System.out.println("\n");
+		System.out.println("bin/ontology-release-runner [OPTIONAL OPTIONS] ONTOLOGIES-FILES");
+		System.out
+		.println("Multiple obo or owl files are separated by a space character in the place of the ONTOLOGIES-FILES arguments.");
+		System.out.println("\n");
+		System.out.println("OPTIONS:");
+		System.out
+		.println("\t\t (-outdir ~/work/myontology) The path where the release will be produced.");
+		System.out
+		.println("\t\t (-reasoner pellet) This option provides name of reasoner to be used to build inference computation.");
+		System.out
+		.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
+		System.out
+		.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
+	}
+}
