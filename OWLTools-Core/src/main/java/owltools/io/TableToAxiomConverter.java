@@ -199,7 +199,7 @@ public class TableToAxiomConverter {
 		if (ax != null)
 			axs.add(ax);
 		if (config.individualsType != null) {
-			axs.add(df.getOWLClassAssertionAxiom(config.individualsType, resolveIndividual(sub)));
+			axs.add(df.getOWLClassAssertionAxiom(config.individualsType, resolveIndividual(obj)));
 		}
 		return axs;
 	}
