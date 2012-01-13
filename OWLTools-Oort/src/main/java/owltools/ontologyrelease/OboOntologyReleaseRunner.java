@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -47,6 +48,9 @@ import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
 
 import owltools.InferenceBuilder;
+import owltools.gaf.GafDocument;
+import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.owl.GAFOWLBridge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
@@ -117,10 +121,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		 * the command-line flag '--allowOverwrite' has to be used.
 		 */
 		return false;
-	}
-
-	private static String getPathIRI(String path){
-		return path;
 	}
 
 	public static void main(String[] args) throws IOException,
@@ -238,6 +238,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				OortConfiguration.loadConfig(file , oortConfig);
 				i++;
 			}
+			else if (opt.equals("--check-for-gaf")) {
+				oortConfig.setGafToOwl(true);
+			}
 			else {
 				String tokens[] = opt.split(" ");
 				for (String token : tokens)
@@ -274,19 +277,42 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		System.exit(exitCode);
 	}
 
-	public boolean createRelease(Vector<String> paths) throws IOException, 
+	public boolean createRelease(Vector<String> allPaths) throws IOException, 
 	OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException,
 	OboOntologyReleaseRunnerCheckException, AnnotationCardinalityException
 	{
-		String path = null;
-
-		if (paths.size() > 0)
-			path = getPathIRI( paths.get(0) );
-
-		logger.info("Loading the following ontologies: " + paths);
-
+		if (allPaths.isEmpty()) {
+			logger.error("No files to load found, please specify at least one ontology file.");
+			return false;
+		}
+		List<String> paths;
+		List<String> gafs = null;
+		if (oortConfig.isGafToOwl()) {
+			gafs = new ArrayList<String>();
+			paths = new ArrayList<String>();
+			for(String path : allPaths) {
+				if (path.endsWith(".obo") || path.endsWith(".owl")) {
+					paths.add(path);
+				}
+				else {
+					gafs.add(path);
+				}
+			}
+			if (gafs.isEmpty()) {
+				logger.error("No gaf files found, please specify at least one gaf file or disable 'check-for-gaf' mode.");
+				return false;
+			}
+		}
+		else {
+			paths = allPaths;
+		}
+		logger.info("Using the following ontologies: " + paths);
+		if (gafs != null) {
+			logger.info("Using the following gaf files: " +gafs);
+		}
 		parser = new ParserWrapper();
-		mooncat = new Mooncat(parser.parseToOWLGraph(path));
+		OWLGraphWrapper graph = parser.parseToOWLGraph(paths.get(0));
+		mooncat = new Mooncat(graph);
 		owlpp = new OWLPrettyPrinter(mooncat.getGraph());
 
 		// A bridge ontology contains axioms connecting classes from different ontologies,
@@ -300,9 +326,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			mooncat.getGraph().mergeOntology(ont);
 		}
 
-
 		for (int k = 1; k < paths.size(); k++) {
-			String p = getPathIRI(paths.get(k));
+			String p = paths.get(k);
 			OWLOntology ont = parser.parse(p);
 			logger.info("Loaded "+ont+" from "+p);
 			if (oortConfig.isAutoDetectBridgingOntology() && isBridgingOntology(ont))
@@ -310,6 +335,50 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else
 				mooncat.addReferencedOntology(ont);
 		}
+		
+		// load gafs
+		if (oortConfig.isGafToOwl()) {
+			// prepare an empty ontology for the GAFs to be loaded later
+			// use the first gaf file name as ontology id
+			String gafResource = gafs.get(0);
+			IRI gafIRI;
+			if (gafResource.indexOf(':') > 0) {
+				// if it contains a colon, assume its an IRI
+				gafIRI = IRI.create(gafResource);
+			}
+			else {
+				// assume it is a file, use the filename as id
+				gafIRI = IRI.create(new File(gafResource).getName());
+			}
+			// create ontology with gaf IRI
+			OWLOntology gafOntology = graph.getManager().createOntology(gafIRI);
+			
+			// create the GAF bridge
+			GAFOWLBridge gafBridge = new GAFOWLBridge(graph, gafOntology);
+			// Do not generate individuals, use a prototype instead
+			// This is required for efficient reasoning
+			gafBridge.setGenerateIndividuals(false);
+			
+			// load gaf files
+			for(String gaf : gafs) {
+				try {
+					GafObjectsBuilder builder = new GafObjectsBuilder();
+					GafDocument gafdoc = builder.buildDocument(gaf);
+					gafBridge.translate(gafdoc);
+				} catch (URISyntaxException e) {
+					throw new IOException(e);
+				}
+			}
+			
+			// update the owl graph wrapper, mooncat, and pretty printer with the new gaf data
+			OWLGraphWrapper gafGraph = new OWLGraphWrapper(gafOntology);
+			for(OWLOntology ontology : graph.getAllOntologies()) {
+				gafGraph.addSupportOntology(ontology);
+			}
+			mooncat = new Mooncat(gafGraph);
+			owlpp = new OWLPrettyPrinter(gafGraph);
+		}
+		
 		if (oortConfig.getSourceOntologyPrefixes() != null) {
 			logger.info("The following prefixes will be used to determine "+
 					"which classes belong in source:"+oortConfig.getSourceOntologyPrefixes());
@@ -317,7 +386,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		if (oortConfig.isExecuteOntologyChecks()) {
-			OntologyCheckHandler.DEFAULT_INSTANCE.afterLoading(mooncat .getGraph());
+			OntologyCheckHandler.DEFAULT_INSTANCE.afterLoading(mooncat.getGraph());
 		}
 		String version = OntologyVersionTools.getOntologyVersion(mooncat.getOntology());
 		if (version != null) {
@@ -422,7 +491,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// note this is done *prior* to reasoning - part of the rationale
 		// is that by bringing in a smaller subset we make the reasoning
 		// more tractable (though this is less relevant for Elk)
-		if (oortConfig.isRecreateMireot()) {
+		//
+		// This is a mandatory step for checking GAFs, otherwise 
+		// the reasoner does not use the loaded support ontologies.
+		if (oortConfig.isRecreateMireot() || oortConfig.isGafToOwl()) {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();
@@ -499,7 +571,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				// TODO: ensure there is a subClassOf axiom for ALL classes that have an equivalence axiom
 				for(OWLAxiom ax: axioms) {
 					if (ax instanceof OWLSubClassOfAxiom && 
-							((OWLSubClassOfAxiom)ax).getSuperClass().equals(df.getOWLThing())) {
+							((OWLSubClassOfAxiom)ax).getSuperClass().isOWLThing()) {
 						continue;
 					}
 					String ppax = owlpp.render(ax);
@@ -654,16 +726,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 			logger.info("Creating simple ontology");
 
-			/*
-			logger.info("Creating Inferences");
-			if (reasoner != null) {
-				//buildInferredOntology(simpleOnt, manager, reasoner);
-				buildInferences(mooncat.getGraph(), mooncat.getManager(), reasoner);
-
-			}
-			logger.info("Inferences creation completed");
-			 */
-
 			Owl2Obo owl2obo = new Owl2Obo();
 
 			Set<RemoveImport> ris = new HashSet<RemoveImport>();
@@ -714,29 +776,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return success;
 	}
 
-
-	/**
-	 * Uses reasoner to obtained inferred subclass axioms, and then adds the non-redundant
-	 * ones to he ontology
-	 * 
-	 * @return axioms
-	 */
-	private List<OWLAxiom> buildInferences() {
-
-		OWLGraphWrapper graph = mooncat.getGraph();
-
-		List<OWLAxiom> axioms = infBuilder.buildInferences();
-
-		// TODO: ensure there is a subClassOf axiom for ALL classes that have an equivalence axiom
-		for(OWLAxiom ax: axioms){
-			logger.info("New axiom:"+ax+" // " + owlpp.render(ax));
-			mooncat.getManager().applyChange(new AddAxiom(graph.getSourceOntology(), ax));
-		}		
-
-		// note: not used
-		return axioms;
-	}
-
 	/**
 	 * @param ontologyId
 	 * @param ext
@@ -783,19 +822,23 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 		}
 
-		if (date != null) {
+		boolean writeOWL = !oortConfig.isSkipFormat("owl");
+		boolean writeOWX = !oortConfig.isSkipFormat("owx");
+		
+		if (date != null && (writeOWL || writeOWX)) {
 			SetOntologyID change = OntologyVersionTools.setOntologyVersion(ontologyToSave, date, ontologyId, fileNameBase);
 			// create change axiom with original id
 			reset = new SetOntologyID(ontologyToSave, change.getOriginalOntologyID());
 		}
 
-		if (!oortConfig.isSkipFormat("owl")) {
+		if (writeOWL) {
 			OutputStream os = getOutputSteam(fileNameBase +".owl");
 			manager.saveOntology(ontologyToSave, oortConfig.getDefaultFormat(), os);
 			os.close();
 		}
 
-		if (!oortConfig.isSkipFormat("owx")) {
+		
+		if (writeOWX) {
 			OutputStream osxml = getOutputSteam(fileNameBase +".owx");
 			manager.saveOntology(ontologyToSave, oortConfig.getOwlXMLFormat(), osxml);
 			osxml.close();
@@ -808,7 +851,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			manager.applyChange(reset);
 		}
 
-		if (gciOntology != null) {
+		if (gciOntology != null && (writeOWL || writeOWX)) {
 			OWLOntologyManager gciManager = gciOntology.getOWLOntologyManager();
 
 			// create specific import for the generated owl ontology
@@ -816,14 +859,18 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			AddImport addImport = new AddImport(gciOntology, importDeclaration);
 			RemoveImport removeImport = new RemoveImport(gciOntology, importDeclaration);
 
-			gciManager.applyChange(addImport);
-			OutputStream gciOS = getOutputSteam(fileNameBase +"-aux.owl");
-			gciManager.saveOntology(gciOntology, oortConfig.getDefaultFormat(), gciOS);
-			gciOS.close();
+			if (writeOWL) {
+				gciManager.applyChange(addImport);
+				OutputStream gciOS = getOutputSteam(fileNameBase +"-aux.owl");
+				gciManager.saveOntology(gciOntology, oortConfig.getDefaultFormat(), gciOS);
+				gciOS.close();
+			}
 
-			OutputStream gciOSxml = getOutputSteam(fileNameBase +"-aux.owx");
-			gciManager.saveOntology(gciOntology, oortConfig.getOwlXMLFormat(), gciOSxml);
-			gciOSxml.close();
+			if (writeOWX) {
+				OutputStream gciOSxml = getOutputSteam(fileNameBase +"-aux.owx");
+				gciManager.saveOntology(gciOntology, oortConfig.getOwlXMLFormat(), gciOSxml);
+				gciOSxml.close();
+			}
 
 			gciManager.applyChange(removeImport);
 		}

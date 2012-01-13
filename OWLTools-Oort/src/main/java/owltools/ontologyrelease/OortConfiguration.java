@@ -63,7 +63,8 @@ public class OortConfiguration {
 	private List<String> toBeMergedOntologies = new ArrayList<String>(); // TODO
 	private Set<PropertyView> propertyViews = new HashSet<PropertyView>();
 	private boolean useReleaseFolder = true;
-	private Set skipFormatSet = new HashSet<String>();
+	private Set<String> skipFormatSet = new HashSet<String>();
+	private boolean gafToOwl = false;
 
 	private OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
@@ -207,13 +208,11 @@ public class OortConfiguration {
 		this.writeELOntology = writeELOntology;
 	}
 	
-	
-
-	public Set getSkipFormatSet() {
+	public Set<String> getSkipFormatSet() {
 		return skipFormatSet;
 	}
 
-	public void setSkipFormatSet(Set skipFormatSet) {
+	public void setSkipFormatSet(Set<String> skipFormatSet) {
 		this.skipFormatSet = skipFormatSet;
 	}
 	public void addToSkipFormatSet(String fmt) {
@@ -454,6 +453,20 @@ public class OortConfiguration {
 		this.useReleaseFolder = useReleaseFolder;
 	}
 
+	/**
+	 * @return the gafToOwl
+	 */
+	public boolean isGafToOwl() {
+		return gafToOwl;
+	}
+
+	/**
+	 * @param gafToOwl the gafToOwl to set
+	 */
+	public void setGafToOwl(boolean gafToOwl) {
+		this.gafToOwl = gafToOwl;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -505,6 +518,10 @@ public class OortConfiguration {
 		builder.append(bridgeOntologies);
 		builder.append(", useReleaseFolder=");
 		builder.append(useReleaseFolder);
+		builder.append(", gafToOwl=");
+		builder.append(gafToOwl);
+		builder.append(", skipFormatSet=");
+		builder.append(skipFormatSet);
 		builder.append("]");
 		return builder.toString();
 	}
@@ -541,6 +558,8 @@ public class OortConfiguration {
 		putValue(properties, "autoDetectBridgingOntology", config.autoDetectBridgingOntology);
 		putValue(properties, "bridgeOntologies", config.bridgeOntologies);
 		putValue(properties, "useReleaseFolder", config.useReleaseFolder);
+		putValue(properties, "gafToOwl", config.gafToOwl);
+		putValue(properties, "skipFormatSet", config.skipFormatSet);
 		return properties;
 	}
 	
@@ -626,6 +645,8 @@ public class OortConfiguration {
 		config.autoDetectBridgingOntology = getValue(properties, "autoDetectBridgingOntology", config.autoDetectBridgingOntology);
 		config.bridgeOntologies = getValue(properties, "bridgeOntologies", config.bridgeOntologies);
 		config.useReleaseFolder = getValue(properties, "useReleaseFolder", config.useReleaseFolder);
+		config.gafToOwl = getValue(properties, "gafToOwl", config.gafToOwl);
+		config.skipFormatSet = getValue(properties, "skipFormatSet", config.skipFormatSet);
 	}
 	
 	private static boolean getValue(Properties properties, String key, boolean defaultValue) {

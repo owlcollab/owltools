@@ -43,6 +43,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox writeELOntologyCheckBox;
 	final JCheckBox justifyAssertedSubclasses;
 	final JCheckBox writeSubSets;
+	final JCheckBox gafToOwl;
 	
 	final JCheckBox allowOverwrite;
 	
@@ -83,6 +84,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		writeELOntologyCheckBox = new JCheckBox();
 		justifyAssertedSubclasses = new JCheckBox();
 		writeSubSets = new JCheckBox();
+		gafToOwl = new JCheckBox();
 		
 		// reasoner radio buttons
 		pelletRadioButton = new JRadioButton();
@@ -141,6 +143,10 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(panel, pos.nextRow(), 10);
 		
 		createFancyCheckBox(pos, "Write SubSets", null, writeSubSets);
+		
+		addRowGap(panel, pos.nextRow(), 10);
+		
+		createFancyCheckBox(pos, "Check for GAF files", null, gafToOwl);
 		
 		addRowGap(panel, pos.nextRow(), 10);
 		
@@ -277,13 +283,11 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		boolean mireot = configuration.isRecreateMireot();
 		recreateMireot.setSelected(mireot);
 		defaultRecreateMireot = mireot;
-		if (mireot) {
-			 
-		}
 		expandShortcutRelations.setSelected(configuration.isExpandShortcutRelations());
 		writeELOntologyCheckBox.setSelected(configuration.isWriteELOntology());
 		justifyAssertedSubclasses.setSelected(configuration.isJustifyAssertedSubclasses());
 		writeSubSets.setSelected(configuration.isWriteSubsets());
+		gafToOwl.setSelected(configuration.isGafToOwl());
 				
 		String reasoner = configuration.getReasonerName();
 		if (InferenceBuilder.REASONER_PELLET.equals(reasoner)) {

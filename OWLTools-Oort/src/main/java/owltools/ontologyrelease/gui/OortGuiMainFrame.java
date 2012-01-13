@@ -194,6 +194,9 @@ public class OortGuiMainFrame extends JFrame {
 		// writeSubSets
 		parameters.setWriteSubsets(advancedPanel.writeSubSets.isSelected());
 		
+		// gafToOwl
+		parameters.setGafToOwl(advancedPanel.gafToOwl.isSelected());
+		
 		// paths
 		for(String source : mainPanel.sources.keySet()) {
 			parameters.addPath(source);
