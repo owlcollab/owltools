@@ -34,6 +34,7 @@ import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -905,6 +906,11 @@ public class CommandRunner {
 					}
 					System.out.println("all inferences");
 					System.out.println("Consistent? "+reasoner.isConsistent());
+					if (!reasoner.isConsistent()) {
+						for (OWLClass c : reasoner.getUnsatisfiableClasses()) {
+							System.out.println("UNSAT: "+owlpp.render(c));
+						}
+					}
 					for (OWLObject obj : g.getAllOWLObjects()) {
 						if (obj instanceof OWLClass) {
 							Set<OWLClassExpression> assertedSuperclasses =
@@ -1488,6 +1494,20 @@ public class CommandRunner {
 					System.out.println("AX:"+a);
 				}
 			}
+			else if (opts.nextEq("--translate-undeclared-to-classes")) {
+				for (OWLAnnotationAssertionAxiom a : g.getSourceOntology().getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
+					OWLAnnotationSubject sub = a.getSubject();
+					if (sub instanceof IRI) {
+						OWLObject e = g.getOWLObject(((IRI)sub));
+						if (e == null) {
+							OWLClass c = g.getDataFactory().getOWLClass((IRI)sub);
+							OWLDeclarationAxiom ax = g.getDataFactory().getOWLDeclarationAxiom(c);
+							g.getManager().addAxiom(g.getSourceOntology(), ax);
+						}
+						
+					}
+				}
+			}
 			else if (opts.nextEq("--show-metadata")) {
 				OntologyMetadata omd = new OntologyMetadata();
 				omd.generate(g);
@@ -1610,15 +1630,19 @@ public class CommandRunner {
 				gafdoc = builder.buildDocument(opts.nextOpt());				
 			}
 			else if (opts.nextEq("--gaf2owl")) {
-				opts.info("[-n TARGET-IRI]", "translates previously loaded GAF document into OWL");
+				opts.info("[-n TARGET-IRI] [-o FILE]", "translates previously loaded GAF document into OWL");
 				GAFOWLBridge bridge;
 				String iri = null;
 				String out = null;
+				boolean isSkipIndividuals = false;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-n"))
 						iri = opts.nextOpt();
 					else if (opts.nextEq("-o")) {
 						out = opts.nextOpt();
+					}
+					else if (opts.nextEq("-c") || opts.nextEq("--skip-individuals")) {
+						isSkipIndividuals = true;
 					}
 					else
 						break;
@@ -1639,6 +1663,7 @@ public class CommandRunner {
 					// adds gaf axioms back into main ontology
 					bridge = new GAFOWLBridge(g);
 				}
+				bridge.setGenerateIndividuals(!isSkipIndividuals);
 				bridge.translate(gafdoc);
 				if (out != null) {
 					pw.saveOWL(bridge.getTargetOntology(),out);
