@@ -1,4 +1,15 @@
 <?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY CL "http://purl.org/obo/owl/CL#" >
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY obo "http://purl.obolibrary.org/obo/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
 <rdf:RDF xmlns="http://purl.obolibrary.org/obo/phenotype-commons/MGI/test_phenotype.owl#"
      xml:base="http://purl.obolibrary.org/obo/phenotype-commons/MGI/test_phenotype.owl"
      xmlns:obo="http://purl.obolibrary.org/obo/"
@@ -20,6 +31,9 @@
      -->
 
     
+    <owl:ObjectProperty rdf:about="&obo;RO_0002200">
+        <rdfs:label xml:lang="en">has phenotype</rdfs:label>
+    </owl:ObjectProperty>
 
 
     <!-- 
@@ -176,61 +190,61 @@
         <rdf:type rdf:resource="http://purl.obolibrary.org/obo/NCBITaxon_10090"/>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001698"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0009937"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001688"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0005657"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002151"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001286"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002080"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002950"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002082"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0000929"/>
             </owl:Restriction>
         </rdf:type>
@@ -245,19 +259,19 @@
         <rdf:type rdf:resource="http://purl.obolibrary.org/obo/NCBITaxon_10090"/>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001469"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001405"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0002969"/>
             </owl:Restriction>
         </rdf:type>
@@ -272,43 +286,43 @@
         <rdf:type rdf:resource="http://purl.obolibrary.org/obo/NCBITaxon_10090"/>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0000771"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0000435"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001262"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001147"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001259"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0001127"/>
             </owl:Restriction>
         </rdf:type>
         <rdf:type>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="has phenotype"/>
+                <owl:onProperty rdf:resource="http://purlobolibrary.org/obo/RO_0002200"/>
                 <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/MP_0000018"/>
             </owl:Restriction>
         </rdf:type>
