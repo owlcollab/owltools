@@ -65,6 +65,12 @@ public class OortConfiguration {
 	private boolean useReleaseFolder = true;
 	private Set<String> skipFormatSet = new HashSet<String>();
 	private boolean gafToOwl = false;
+	
+	private boolean useQueryOntology = false;
+	private String queryOntology = null; 
+	private String queryOntologyReference = null;
+	private boolean queryOntologyReferenceIsIRI = true;
+	private boolean removeQueryOntologyReference = false;
 
 	private OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
@@ -467,6 +473,76 @@ public class OortConfiguration {
 		this.gafToOwl = gafToOwl;
 	}
 
+	/**
+	 * @return the useQueryOntology
+	 */
+	public boolean isUseQueryOntology() {
+		return useQueryOntology;
+	}
+
+	/**
+	 * @param useQueryOntology the useQueryOntology to set
+	 */
+	public void setUseQueryOntology(boolean useQueryOntology) {
+		this.useQueryOntology = useQueryOntology;
+	}
+
+	/**
+	 * @return the queryOntology
+	 */
+	public String getQueryOntology() {
+		return queryOntology;
+	}
+
+	/**
+	 * @param queryOntology the queryOntology to set
+	 */
+	public void setQueryOntology(String queryOntology) {
+		this.queryOntology = queryOntology;
+	}
+
+	/**
+	 * @return the queryOntologyReference
+	 */
+	public String getQueryOntologyReference() {
+		return queryOntologyReference;
+	}
+
+	/**
+	 * @param queryOntologyReference the queryOntologyReference to set
+	 */
+	public void setQueryOntologyReference(String queryOntologyReference) {
+		this.queryOntologyReference = queryOntologyReference;
+	}
+
+	/**
+	 * @return the queryOntologyReferenceIsIRI
+	 */
+	public boolean isQueryOntologyReferenceIsIRI() {
+		return queryOntologyReferenceIsIRI;
+	}
+
+	/**
+	 * @param queryOntologyReferenceIsIRI the queryOntologyReferenceIsIRI to set
+	 */
+	public void setQueryOntologyReferenceIsIRI(boolean queryOntologyReferenceIsIRI) {
+		this.queryOntologyReferenceIsIRI = queryOntologyReferenceIsIRI;
+	}
+
+	/**
+	 * @return the removeQueryOntologyReference
+	 */
+	public boolean isRemoveQueryOntologyReference() {
+		return removeQueryOntologyReference;
+	}
+
+	/**
+	 * @param removeQueryOntologyReference the removeQueryOntologyReference to set
+	 */
+	public void setRemoveQueryOntologyReference(boolean removeQueryOntologyReference) {
+		this.removeQueryOntologyReference = removeQueryOntologyReference;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -522,6 +598,16 @@ public class OortConfiguration {
 		builder.append(gafToOwl);
 		builder.append(", skipFormatSet=");
 		builder.append(skipFormatSet);
+		builder.append(", useQueryOntology=");
+		builder.append(useQueryOntology);
+		builder.append(", queryOntology=");
+		builder.append(queryOntology);
+		builder.append(", queryOntologyReference=");
+		builder.append(queryOntologyReference);
+		builder.append(", queryOntologyReferenceIsIRI=");
+		builder.append(queryOntologyReferenceIsIRI);
+		builder.append(", removeQueryOntologyReference=");
+		builder.append(removeQueryOntologyReference);
 		builder.append("]");
 		return builder.toString();
 	}
@@ -560,6 +646,11 @@ public class OortConfiguration {
 		putValue(properties, "useReleaseFolder", config.useReleaseFolder);
 		putValue(properties, "gafToOwl", config.gafToOwl);
 		putValue(properties, "skipFormatSet", config.skipFormatSet);
+		putValue(properties, "useQueryOntology", config.useQueryOntology);
+		putValue(properties, "queryOntology", config.queryOntology);
+		putValue(properties, "queryOntologyReference", config.queryOntologyReference);
+		putValue(properties, "queryOntologyReferenceIsIRI", config.queryOntologyReferenceIsIRI);
+		putValue(properties, "removeQueryOntologyReference", config.removeQueryOntologyReference);
 		return properties;
 	}
 	
@@ -647,6 +738,11 @@ public class OortConfiguration {
 		config.useReleaseFolder = getValue(properties, "useReleaseFolder", config.useReleaseFolder);
 		config.gafToOwl = getValue(properties, "gafToOwl", config.gafToOwl);
 		config.skipFormatSet = getValue(properties, "skipFormatSet", config.skipFormatSet);
+		config.useQueryOntology = getValue(properties, "useQueryOntology", config.useQueryOntology);
+		config.queryOntology = getValue(properties, "queryOntology", config.queryOntology);
+		config.queryOntologyReference = getValue(properties, "queryOntologyReference", config.queryOntologyReference);
+		config.queryOntologyReferenceIsIRI = getValue(properties, "queryOntologyReferenceIsIRI", config.queryOntologyReferenceIsIRI);
+		config.removeQueryOntologyReference = getValue(properties, "removeQueryOntologyReference", config.removeQueryOntologyReference);
 	}
 	
 	private static boolean getValue(Properties properties, String key, boolean defaultValue) {

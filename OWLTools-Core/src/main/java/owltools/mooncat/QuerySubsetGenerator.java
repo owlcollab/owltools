@@ -54,6 +54,32 @@ public class QuerySubsetGenerator {
 			return;
 		}
 	}
+	
+	/**
+	 * Create a new sub ontology from a given DL query and source ontology. The
+	 * subset will be created in the target ontology.
+	 * 
+	 * @param namedQuery
+	 * @param sourceGraph
+	 * @param targetGraph
+	 * @param reasonerFactory
+	 */
+	public void createSubOntologyFromDLQuery(OWLClass namedQuery,
+			OWLGraphWrapper sourceGraph, OWLGraphWrapper targetGraph, 
+			OWLReasonerFactory reasonerFactory)
+	{
+		try {
+			Set<OWLClass> subset = DLQueryTool.executeQuery(namedQuery, sourceGraph.getSourceOntology(), reasonerFactory);
+			if (subset.isEmpty()) {
+				return;
+			}
+			createSubSet(sourceGraph, targetGraph, subset);
+		} catch (OWLOntologyCreationException e) {
+			LOG.error("Could not create ontology.", e);
+			// TODO throw Exception?
+			return;
+		}
+	}
 
 	private void createSubSet(OWLGraphWrapper sourceGraph, OWLGraphWrapper targetGraph, 
 			Set<OWLClass> subset) throws OWLOntologyCreationException 

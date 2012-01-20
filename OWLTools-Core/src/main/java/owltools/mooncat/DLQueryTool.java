@@ -46,8 +46,6 @@ public class DLQueryTool {
 	public static Set<OWLClass> executeDLQuery(String dlQuery, OWLGraphWrapper graph, 
 			OWLReasonerFactory reasonerFactory) throws ParserException, OWLOntologyCreationException 
 	{
-		Set<OWLClass> subset = new HashSet<OWLClass>();
-		
 		// create parser and parse DL query string
 		ManchesterSyntaxTool parser = new ManchesterSyntaxTool(graph.getSourceOntology(), graph.getSupportOntologySet());
 		OWLClassExpression ce = parser.parseManchesterExpression(dlQuery);
@@ -61,10 +59,31 @@ public class DLQueryTool {
 		OWLEquivalentClassesAxiom ax = f.getOWLEquivalentClassesAxiom(ce, qc);
 		m.addAxiom(queryOntology, ax);
 		
+		Set<OWLClass> subset = executeQuery(ce, queryOntology, reasonerFactory);
+		if(subset.isEmpty()) {
+			LOG.warn("No classes found for query subclass of:"+dlQuery);
+		}
+		return subset;
+	}
+	
+	/**
+	 * Execute the DL query on the given ontology graph. Uses the factory to create 
+	 * the {@link OWLReasoner} for an internal query ontology.
+	 * 
+	 * @param queryObject
+	 * @param ontology
+	 * @param reasonerFactory
+	 * @return set of {@link OWLClass} which 
+	 */
+	static Set<OWLClass> executeQuery(OWLClassExpression queryObject, OWLOntology ontology, 
+			OWLReasonerFactory reasonerFactory) 
+	{
+		Set<OWLClass> subset = new HashSet<OWLClass>();
+		
 		LOG.info("Create reasoner for query ontology.");
-		OWLReasoner reasoner = createReasoner(queryOntology, reasonerFactory);
-		LOG.info("Start evaluation for DL query subclass of: "+ce);
-		NodeSet<OWLClass> node = reasoner.getSubClasses(qc, false);
+		OWLReasoner reasoner = createReasoner(ontology, reasonerFactory);
+		LOG.info("Start evaluation for DL query subclass of: "+queryObject);
+		NodeSet<OWLClass> node = reasoner.getSubClasses(queryObject, false);
 		if (node != null) {
 			Set<OWLClass> classes = node.getFlattened();
 			for (OWLClass owlClass : classes) {
@@ -73,9 +92,6 @@ public class DLQueryTool {
 				}
 			}
 			LOG.info("Number of found classes for dl query subclass of: "+classes.size());
-		}
-		else {
-			LOG.warn("No classes found for query subclass of:"+dlQuery);
 		}
 		return subset;
 	}

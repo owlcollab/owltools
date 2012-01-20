@@ -36,6 +36,7 @@ public class OortGuiMainFrame extends JFrame {
 	private JPanel allPanel;
 	private OortGuiMainPanel mainPanel;
 	private OortGuiAdvancedPanel advancedPanel;
+	private OortGuiQueryOntologyPanel dynamicOntologyPanel;
 	private GuiLogPanel logPanel;
 	private final BlockingQueue<String> logQueue;
 	private final OortGuiConfiguration parameters;
@@ -105,6 +106,7 @@ public class OortGuiMainFrame extends JFrame {
 			tabbedPane = new JTabbedPane();
 			addTab(tabbedPane, "Input/Output", getMainPanel(getAdvancedPanel()));
 			addTab(tabbedPane, "Advanced", getAdvancedPanel());
+			addTab(tabbedPane, "Query Ontology", getDynamicOntologyPanel());
 			addTab(tabbedPane, "Logs", getLogPanel());
 		}
 		return tabbedPane;
@@ -210,6 +212,21 @@ public class OortGuiMainFrame extends JFrame {
 		// gafToOwl
 		parameters.setGafToOwl(advancedPanel.gafToOwl.isSelected());
 		
+		// useQueryOntology
+		parameters.setUseQueryOntology(dynamicOntologyPanel.activateCheckBox.isSelected());
+		
+		// queryOntology
+		parameters.setQueryOntology(dynamicOntologyPanel.queryOntologyField.getText());
+		
+		// queryOntologyReference
+		parameters.setQueryOntologyReference(dynamicOntologyPanel.queryTargetField.getText());
+		
+		// queryOntologyReferenceIsIRI
+		parameters.setQueryOntologyReferenceIsIRI(dynamicOntologyPanel.queryTargetIriRadioButton.isSelected());
+		
+		// removeQueryOntologyReference
+		parameters.setRemoveQueryOntologyReference(dynamicOntologyPanel.removeQueryTermCheckBox.isSelected());
+		
 		// paths
 		parameters.getPaths().clear();
 		for(String source : mainPanel.sources.keySet()) {
@@ -291,6 +308,13 @@ public class OortGuiMainFrame extends JFrame {
 			advancedPanel = new OortGuiAdvancedPanel(parameters);
 		}
 		return advancedPanel;
+	}
+	
+	private OortGuiQueryOntologyPanel getDynamicOntologyPanel() {
+		if (dynamicOntologyPanel == null) {
+			dynamicOntologyPanel = new OortGuiQueryOntologyPanel(this, parameters);
+		}
+		return dynamicOntologyPanel;
 	}
 
 	/**

@@ -84,7 +84,7 @@ public class InferenceBuilder{
 		}
 	}
 	
-	private static FactoryDetails getFactory(String reasonerName) {
+	public static FactoryDetails getFactory(String reasonerName) {
 		if (REASONER_PELLET.equals(reasonerName)) {
 			return new FactoryDetails(new PelletReasonerFactory());
 		}
@@ -100,9 +100,9 @@ public class InferenceBuilder{
 		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
 	}
 	
-	private static class FactoryDetails {
+	public static class FactoryDetails {
 		
-		final OWLReasonerFactory factory;
+		public final OWLReasonerFactory factory;
 		final InferenceType[] precomputeInferences;
 		
 		FactoryDetails(OWLReasonerFactory factory, InferenceType[] precomputeInferences) {

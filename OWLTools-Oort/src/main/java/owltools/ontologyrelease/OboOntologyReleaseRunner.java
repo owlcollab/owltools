@@ -34,10 +34,12 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -46,6 +48,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.InferenceBuilder;
 import owltools.gaf.GafDocument;
@@ -58,6 +61,7 @@ import owltools.mooncat.Mooncat;
 import owltools.mooncat.OntologyMetaDataTools;
 import owltools.mooncat.OntologyMetaDataTools.AnnotationCardinalityException;
 import owltools.mooncat.PropertyViewOntologyBuilder;
+import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
 import owltools.ontologyverification.OntologyCheckHandler;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
@@ -274,6 +278,24 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--check-for-gaf")) {
 				oortConfig.setGafToOwl(true);
 			}
+			else if (opt.equals("--query-ontology")) {
+				oortConfig.setUseQueryOntology(true);
+				oortConfig.setQueryOntology(args[i]);
+				i++;
+			}
+			else if (opt.equals("--query-ontology-iri")) {
+				oortConfig.setQueryOntologyReferenceIsIRI(true);
+				oortConfig.setQueryOntologyReference(args[i]);
+				i++;
+			}
+			else if (opt.equals("--query-ontology-label")) {
+				oortConfig.setQueryOntologyReferenceIsIRI(false);
+				oortConfig.setQueryOntologyReference(args[i]);
+				i++;
+			}
+			else if (opt.equals("--query-ontology-remove-query")) {
+				oortConfig.setQueryOntologyReferenceIsIRI(true);
+			}
 			else {
 				String tokens[] = opt.split(" ");
 				for (String token : tokens)
@@ -309,7 +331,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 		}
 		else {
-			paths = allPaths;
+			if (oortConfig.isUseQueryOntology()) {
+				paths = new ArrayList<String>(allPaths.size() + 1);
+				paths.add(oortConfig.getQueryOntology());
+				paths.addAll(allPaths);
+			}
+			else {
+				paths = allPaths;
+			}
 		}
 		logger.info("Using the following ontologies: " + paths);
 		if (gafs != null) {
@@ -486,6 +515,52 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Creating Asserted Ontology (copy of original)");
 			saveInAllFormats(ontologyId, "non-classified", gciOntology);
 			logger.info("Asserted Ontology Creation Completed");
+		}
+		
+		// ----------------------------------------
+		// Create query from named query (non-classified)
+		// ----------------------------------------		
+
+		if (oortConfig.isUseQueryOntology()) {
+			logger.info("Use named query to build ontology.");
+			String queryReference = oortConfig.getQueryOntologyReference();
+			if (queryReference == null || queryReference.isEmpty()) {
+				logger.error("Could not find a named query reference. This is required for the QueryOntology feature.");
+				return false;
+			}
+			
+			OWLClass namedQuery;
+			if (oortConfig.isQueryOntologyReferenceIsIRI()) {
+				IRI iri = IRI.create(queryReference);
+				namedQuery = mooncat.getGraph().getOWLClass(iri);
+				if (namedQuery == null) {
+					logger.error("Could not find an OWLClass with the IRI: "+iri);
+					return false;
+				}
+			}
+			else {
+				OWLObject owlObject = mooncat.getGraph().getOWLObjectByLabel(queryReference);
+				if (owlObject != null && owlObject instanceof OWLClass) {
+					namedQuery = (OWLClass) owlObject;
+				}
+				else {
+					logger.error("Could not find an OWLClass with the label: "+queryReference);
+					return false;
+				}
+			}
+			OWLReasonerFactory reasonerFactory = InferenceBuilder.getFactory(oortConfig.getReasonerName()).factory;
+			
+			QuerySubsetGenerator subsetGenerator = new QuerySubsetGenerator();
+			subsetGenerator.createSubOntologyFromDLQuery(namedQuery, mooncat.getGraph(), mooncat.getGraph(), reasonerFactory );
+			
+			if (oortConfig.isRemoveQueryOntologyReference()) {
+				OWLOntology owlOntology = mooncat.getGraph().getSourceOntology();
+				Set<OWLClassAxiom> axioms = owlOntology.getAxioms(namedQuery);
+				OWLOntologyManager manager = owlOntology.getOWLOntologyManager();
+				manager.removeAxioms(owlOntology, axioms);
+			}
+			
+			logger.info("Finished building ontology from query.");
 		}
 
 		// ----------------------------------------
