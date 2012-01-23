@@ -124,7 +124,7 @@ public class QuerySubsetGenerator {
 			
 		// add missing axioms
 		int count = targetManager.addAxioms(targetOntology, axioms).size();
-		LOG.info("Added "+count+" to the query ontology");
+		LOG.info("Added "+count+" axioms to the query ontology");
 		return;
 	}
 
