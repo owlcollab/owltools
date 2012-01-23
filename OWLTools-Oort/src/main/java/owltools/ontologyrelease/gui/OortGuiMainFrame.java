@@ -340,5 +340,6 @@ public class OortGuiMainFrame extends JFrame {
 	void applyConfig(OortConfiguration configuration) {
 		mainPanel.applyConfig(configuration);
 		advancedPanel.applyConfig(configuration);
+		dynamicOntologyPanel.applyConfig(configuration);
 	}
 } 

@@ -1,6 +1,8 @@
 package owltools.mooncat;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -8,11 +10,14 @@ import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.graph.OWLGraphWrapper;
+import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
  * Tools for creating a sub ontology spanning multiple ontologies. Uses
@@ -31,10 +36,11 @@ public class QuerySubsetGenerator {
 	 * @param sourceGraph
 	 * @param targetGraph
 	 * @param reasonerFactory
+	 * @param toMerge 
 	 */
 	public void createSubOntologyFromDLQuery(String dlQueryString,
 			OWLGraphWrapper sourceGraph, OWLGraphWrapper targetGraph, 
-			OWLReasonerFactory reasonerFactory)
+			OWLReasonerFactory reasonerFactory, Set<OWLOntology> toMerge)
 	{
 		try {
 			Set<OWLClass> subset;
@@ -42,7 +48,7 @@ public class QuerySubsetGenerator {
 			if (subset.isEmpty()) {
 				return;
 			}
-			createSubSet(sourceGraph, targetGraph, subset);
+			createSubSet(targetGraph, subset, toMerge);
 			
 		} catch (ParserException e) {
 			LOG.error("Could not parse query: "+dlQueryString, e);
@@ -63,17 +69,18 @@ public class QuerySubsetGenerator {
 	 * @param sourceGraph
 	 * @param targetGraph
 	 * @param reasonerFactory
+	 * @param toMerge 
 	 */
 	public void createSubOntologyFromDLQuery(OWLClass namedQuery,
 			OWLGraphWrapper sourceGraph, OWLGraphWrapper targetGraph, 
-			OWLReasonerFactory reasonerFactory)
+			OWLReasonerFactory reasonerFactory, Set<OWLOntology> toMerge)
 	{
 		try {
 			Set<OWLClass> subset = DLQueryTool.executeQuery(namedQuery, sourceGraph.getSourceOntology(), reasonerFactory);
 			if (subset.isEmpty()) {
 				return;
 			}
-			createSubSet(sourceGraph, targetGraph, subset);
+			createSubSet(targetGraph, subset, toMerge);
 		} catch (OWLOntologyCreationException e) {
 			LOG.error("Could not create ontology.", e);
 			// TODO throw Exception?
@@ -81,23 +88,33 @@ public class QuerySubsetGenerator {
 		}
 	}
 
-	private void createSubSet(OWLGraphWrapper sourceGraph, OWLGraphWrapper targetGraph, 
-			Set<OWLClass> subset) throws OWLOntologyCreationException 
+	private void createSubSet(OWLGraphWrapper targetGraph, 
+			Set<OWLClass> subset, Set<OWLOntology> toMerge) throws OWLOntologyCreationException 
 	{
-		OWLOntology sourceOntology = sourceGraph.getSourceOntology();
 		OWLOntology targetOntology = targetGraph.getSourceOntology();
-		OWLOntologyManager targetManager = targetOntology.getOWLOntologyManager();
 		
-		// add subset to target ontology.
-		for(OWLClass cls : subset) {
-			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-			axioms.addAll(sourceOntology.getAxioms(cls));
-			targetManager.addAxioms(targetOntology, axioms);
+		// import axioms set
+		Set<OWLAxiom> importAxioms = new HashSet<OWLAxiom>();
+		for (OWLOntology mergeOntology : toMerge) {
+			for (OWLClass cls : subset) {
+				importAxioms.addAll(mergeOntology.getAxioms(cls));
+			}
 		}
+		
+		// remove merge imports
+		OWLOntologyManager targetManager = targetOntology.getOWLOntologyManager();
+		List<OWLOntologyChange> removeImports = new ArrayList<OWLOntologyChange>();
+		for(OWLOntology m : toMerge) {
+			removeImports.add(new RemoveImport(targetOntology, new OWLImportsDeclarationImpl(m.getOntologyID().getOntologyIRI())));
+		}
+		targetManager.applyChanges(removeImports);
+		
+		// add axiom set to target ontology.
+		targetManager.addAxioms(targetOntology, importAxioms);
 		
 		LOG.info("Start Mooncat for subset.");
 		Mooncat mooncat = new Mooncat(targetGraph);
-		for (OWLOntology ont : sourceGraph.getAllOntologies()) {
+		for (OWLOntology ont : toMerge) {
 			mooncat.addReferencedOntology(ont);
 		}
 			
@@ -106,8 +123,8 @@ public class QuerySubsetGenerator {
 		mooncat.addSubAnnotationProperties(axioms);
 			
 		// add missing axioms
-		targetManager.addAxioms(targetOntology, axioms);
-		LOG.info("Added "+axioms.size()+" to the sub ontology");
+		int count = targetManager.addAxioms(targetOntology, axioms).size();
+		LOG.info("Added "+count+" to the query ontology");
 		return;
 	}
 

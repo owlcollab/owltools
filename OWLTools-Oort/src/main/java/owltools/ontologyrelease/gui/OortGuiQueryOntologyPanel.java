@@ -52,11 +52,14 @@ public class OortGuiQueryOntologyPanel extends SizedJPanel {
 	
 	final JRadioButton queryTargetIriRadioButton = new JRadioButton();
 	final JRadioButton queryTargetLabelRadioButton = new JRadioButton();
+
+	private final List<JComponent> subComponents;
 	
 	public OortGuiQueryOntologyPanel(Frame frame, OortConfiguration oortConfiguration) {
 		super();
 		this.panel = new JPanel();
 		this.frame = frame;
+		subComponents = new ArrayList<JComponent>();
 		
 		this.setLayout(new BorderLayout(1, 1));
 		JScrollPane scrollPane = new JScrollPane(panel);
@@ -68,10 +71,10 @@ public class OortGuiQueryOntologyPanel extends SizedJPanel {
 		panel.setLayout(new GridBagLayout());
 		GBHelper pos = new GBHelper();
 		
-		final List<JComponent> subComponents = new ArrayList<JComponent>();
+		
 		
 		// add checkbox which activates the following options
-		createMainCheckBox(pos, subComponents);
+		createMainCheckBox(pos);
 		addRowGap(panel, pos.nextRow(), 10);
 		
 		// add query ontology (file or url)
@@ -87,10 +90,10 @@ public class OortGuiQueryOntologyPanel extends SizedJPanel {
 		
 		addRowGap(panel, pos.nextRow().expandH(), 10);
 		
-		applyConfig(oortConfiguration, subComponents);
+		applyConfig(oortConfiguration);
 	}
 
-	void createMainCheckBox(GBHelper pos, final List<JComponent> subComponents) {
+	void createMainCheckBox(GBHelper pos) {
 		activateCheckBox.setText("Create Ontology from Query");
 		GBHelper p = pos.nextRow().indentLeft(DEFAULT_INDENT).width(3);
 		p.insets.top += 15;
@@ -99,7 +102,7 @@ public class OortGuiQueryOntologyPanel extends SizedJPanel {
 			
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				updateGui(subComponents);
+				updateGui();
 			}
 		});
 	}
@@ -207,7 +210,7 @@ public class OortGuiQueryOntologyPanel extends SizedJPanel {
 		panel.add(message, pos.nextRow().expandW().indentLeft(DEFAULT_INDENT*3).width(3).indentRight(DEFAULT_INDENT));
 	}
 
-	void applyConfig(OortConfiguration configuration, final List<JComponent> subComponents) {
+	void applyConfig(OortConfiguration configuration) {
 		activateCheckBox.setSelected(configuration.isUseQueryOntology());
 		queryOntologyField.setText(configuration.getQueryOntology());
 		queryTargetField.setText(configuration.getQueryOntologyReference());
@@ -218,10 +221,10 @@ public class OortGuiQueryOntologyPanel extends SizedJPanel {
 			queryTargetLabelRadioButton.setSelected(true);
 		}
 		removeQueryTermCheckBox.setSelected(configuration.isRemoveQueryOntologyReference());
-		updateGui(subComponents);
+		updateGui();
 	}
 
-	private void updateGui(final List<JComponent> subComponents) {
+	private void updateGui() {
 		for(JComponent component : subComponents) {
 			component.setEnabled(activateCheckBox.isSelected());
 		}

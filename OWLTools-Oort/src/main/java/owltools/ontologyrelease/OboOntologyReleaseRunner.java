@@ -551,7 +551,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			OWLReasonerFactory reasonerFactory = InferenceBuilder.getFactory(oortConfig.getReasonerName()).factory;
 			
 			QuerySubsetGenerator subsetGenerator = new QuerySubsetGenerator();
-			subsetGenerator.createSubOntologyFromDLQuery(namedQuery, mooncat.getGraph(), mooncat.getGraph(), reasonerFactory );
+			Set<OWLOntology> toMerge = mooncat.getGraph().getSupportOntologySet();
+			subsetGenerator.createSubOntologyFromDLQuery(namedQuery, mooncat.getGraph(), mooncat.getGraph(), reasonerFactory, toMerge);
 			
 			if (oortConfig.isRemoveQueryOntologyReference()) {
 				OWLOntology owlOntology = mooncat.getGraph().getSourceOntology();
@@ -574,7 +575,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		//
 		// This is a mandatory step for checking GAFs, otherwise 
 		// the reasoner does not use the loaded support ontologies.
-		if (oortConfig.isRecreateMireot() || oortConfig.isGafToOwl()) {
+		if (oortConfig.isRecreateMireot() || oortConfig.isGafToOwl() || oortConfig.isUseQueryOntology()) {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();

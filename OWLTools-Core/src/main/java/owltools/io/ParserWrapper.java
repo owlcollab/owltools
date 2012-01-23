@@ -21,10 +21,12 @@ import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
@@ -129,7 +131,40 @@ public class ParserWrapper {
 
 	public OWLOntology parseOWL(IRI iri) throws OWLOntologyCreationException {
 		LOG.info("parsing: "+iri.toString()+" using "+manager);
-		OWLOntology ont = manager.loadOntology(iri);
+		OWLOntology ont;
+		try {
+			ont = manager.loadOntology(iri);
+		} catch (OWLOntologyAlreadyExistsException e) {
+			// Trying to recover from exception
+			OWLOntologyID ontologyID = e.getOntologyID();
+			ont = manager.getOntology(ontologyID);
+			if (ont == null) {
+				// throw original exception, if no ontology could be found
+				// never return null ontology
+				throw e;
+			}
+			else {
+				LOG.info("Skip already loaded ontology: "+iri);
+			}
+		} catch (OWLOntologyDocumentAlreadyExistsException e) {
+			// Trying to recover from exception
+			IRI duplicate = e.getOntologyDocumentIRI();
+			ont = manager.getOntology(duplicate);
+			if (ont == null) {
+				for(OWLOntology managed : manager.getOntologies()) {
+					if(duplicate.equals(managed.getOntologyID().getOntologyIRI())) {
+						LOG.info("Skip already loaded ontology: "+iri);
+						ont = managed;
+						break;
+					}
+				}
+			}
+			if (ont == null) {
+				// throw original exception, if no ontology could be found
+				// never return null ontology
+				throw e;
+			}
+		}
 		return ont;
 	}
 
@@ -143,8 +178,7 @@ public class ParserWrapper {
 				FileOutputStream os = new FileOutputStream(new File(file));
 				saveOWL(ont, owlFormat, os);
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new OWLOntologyStorageException("Could not open file: "+file, e);
 			}
 		}
 		else {
@@ -156,18 +190,25 @@ public class ParserWrapper {
 		if (owlFormat instanceof OBOOntologyFormat) {
 			Owl2Obo bridge = new Owl2Obo();
 			OBODoc doc;
+			BufferedWriter bw = null;
 			try {
 				doc = bridge.convert(ont);
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
-				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outputStream));
+				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
 				oboWriter.write(doc, bw);
-				bw.close();
 			} catch (OWLOntologyCreationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new OWLOntologyStorageException("Could not create temporary OBO ontology.", e);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new OWLOntologyStorageException("Could not write ontology to output stream.", e);
+			}
+			finally {
+				if (bw != null) {
+					try {
+						bw.close();
+					} catch (IOException e) {
+						LOG.warn("Could not close writer.", e);
+					}
+				}
 			}
 		}
 		else {
