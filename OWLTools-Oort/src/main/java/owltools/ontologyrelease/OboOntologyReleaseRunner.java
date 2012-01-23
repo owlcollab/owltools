@@ -37,10 +37,12 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -555,10 +557,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			subsetGenerator.createSubOntologyFromDLQuery(namedQuery, mooncat.getGraph(), mooncat.getGraph(), reasonerFactory, toMerge);
 			
 			if (oortConfig.isRemoveQueryOntologyReference()) {
+				logger.info("Removing query term from ontology: "+namedQuery);
 				OWLOntology owlOntology = mooncat.getGraph().getSourceOntology();
-				Set<OWLClassAxiom> axioms = owlOntology.getAxioms(namedQuery);
+				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+				axioms.addAll(owlOntology.getAxioms(namedQuery));
+				axioms.addAll(owlOntology.getDeclarationAxioms(namedQuery));
 				OWLOntologyManager manager = owlOntology.getOWLOntologyManager();
-				manager.removeAxioms(owlOntology, axioms);
+				List<OWLOntologyChange> removed = manager.removeAxioms(owlOntology, axioms);
+				logger.info("Finished removing query term, removed axiom count: "+removed.size());
 			}
 			
 			logger.info("Finished building ontology from query.");
@@ -575,7 +581,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		//
 		// This is a mandatory step for checking GAFs, otherwise 
 		// the reasoner does not use the loaded support ontologies.
-		if (oortConfig.isRecreateMireot() || oortConfig.isGafToOwl() || oortConfig.isUseQueryOntology()) {
+		if ((oortConfig.isRecreateMireot() || oortConfig.isGafToOwl()) && !oortConfig.isUseQueryOntology()) {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();
