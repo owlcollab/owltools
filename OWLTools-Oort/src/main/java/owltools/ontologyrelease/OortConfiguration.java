@@ -65,6 +65,7 @@ public class OortConfiguration {
 	private boolean useReleaseFolder = true;
 	private Set<String> skipFormatSet = new HashSet<String>();
 	private boolean gafToOwl = false;
+	private String catalogXML = null;
 	
 	private boolean useQueryOntology = false;
 	private String queryOntology = null; 
@@ -474,6 +475,20 @@ public class OortConfiguration {
 	}
 
 	/**
+	 * @return the catalogXML
+	 */
+	public String getCatalogXML() {
+		return catalogXML;
+	}
+
+	/**
+	 * @param catalogXML the catalogXML to set
+	 */
+	public void setCatalogXML(String catalogXML) {
+		this.catalogXML = catalogXML;
+	}
+
+	/**
 	 * @return the useQueryOntology
 	 */
 	public boolean isUseQueryOntology() {
@@ -598,6 +613,8 @@ public class OortConfiguration {
 		builder.append(gafToOwl);
 		builder.append(", skipFormatSet=");
 		builder.append(skipFormatSet);
+		builder.append(", catalogXML=");
+		builder.append(catalogXML);
 		builder.append(", useQueryOntology=");
 		builder.append(useQueryOntology);
 		builder.append(", queryOntology=");
@@ -646,6 +663,7 @@ public class OortConfiguration {
 		putValue(properties, "useReleaseFolder", config.useReleaseFolder);
 		putValue(properties, "gafToOwl", config.gafToOwl);
 		putValue(properties, "skipFormatSet", config.skipFormatSet);
+		putValue(properties, "catalogXML", config.catalogXML);
 		putValue(properties, "useQueryOntology", config.useQueryOntology);
 		putValue(properties, "queryOntology", config.queryOntology);
 		putValue(properties, "queryOntologyReference", config.queryOntologyReference);
@@ -738,6 +756,7 @@ public class OortConfiguration {
 		config.useReleaseFolder = getValue(properties, "useReleaseFolder", config.useReleaseFolder);
 		config.gafToOwl = getValue(properties, "gafToOwl", config.gafToOwl);
 		config.skipFormatSet = getValue(properties, "skipFormatSet", config.skipFormatSet);
+		config.catalogXML = getValue(properties, "catalogXML", config.catalogXML);
 		config.useQueryOntology = getValue(properties, "useQueryOntology", config.useQueryOntology);
 		config.queryOntology = getValue(properties, "queryOntology", config.queryOntology);
 		config.queryOntologyReference = getValue(properties, "queryOntologyReference", config.queryOntologyReference);

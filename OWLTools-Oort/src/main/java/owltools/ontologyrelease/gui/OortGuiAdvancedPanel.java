@@ -1,24 +1,30 @@
 package owltools.ontologyrelease.gui;
 
-import static org.obolibrary.gui.GuiTools.addRowGap;
+import static org.obolibrary.gui.GuiTools.*;
 
 import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 
 import org.obolibrary.gui.GuiTools.GBHelper;
 import org.obolibrary.gui.GuiTools.SizedJPanel;
+import org.obolibrary.gui.SelectDialog;
 
 import owltools.InferenceBuilder;
 import owltools.ontologyrelease.OortConfiguration;
@@ -51,6 +57,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	
 	final JCheckBox allowOverwrite;
 	
+	final JTextField catalogXMLField;
+	
 	final JRadioButton pelletRadioButton;
 	final JRadioButton hermitRadioButton;
 	final JRadioButton factppRadioButton;
@@ -59,14 +67,18 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 
 	private List<JComponent> mireotCheckboxes;
 	private boolean defaultRecreateMireot;
+
+	private final Frame frame;
 	
 	/**
 	 * Create the panel with the given default values.
 	 * 
+	 * @param frame 
 	 * @param oortConfiguration 
 	 */
-	public OortGuiAdvancedPanel(OortConfiguration oortConfiguration) {
+	public OortGuiAdvancedPanel(Frame frame, OortConfiguration oortConfiguration) {
 		super();
+		this.frame = frame;
 		
 		this.panel = new JPanel();
 		this.defaultRecreateMireot = oortConfiguration.isRecreateMireot();
@@ -94,6 +106,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		writeOWL = new JCheckBox();
 		writeOWX = new JCheckBox();
 		
+		catalogXMLField = new JTextField();
+		
 		// reasoner radio buttons
 		pelletRadioButton = new JRadioButton();
 		hermitRadioButton = new JRadioButton();
@@ -115,6 +129,9 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 				"<html><p>In addition the generating the main ontology, this will make a version</p>" +
 				"<p> with all external classes and references to them removed</p></html>");
 		addRowGap(panel, pos, 10);
+		
+		// catalog xml
+		createCatalogXMLPanel(pos);
 		
 		// write format options
 		createWriteFormatPanel(pos);
@@ -216,9 +233,41 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		}
 		return components;
 	}
+	
+	private void createCatalogXMLPanel(GBHelper pos) {
+		panel.add(new JLabel("catalog.xml File"), pos.nextRow().indentLeft(DEFAULT_INDENT).width(3));
+		addRowGap(this.panel, pos.nextRow(), 5);
+		JPanel catalogXMLInputPanel = new JPanel(new BorderLayout(10, 0));
+		catalogXMLInputPanel.add(catalogXMLField, BorderLayout.CENTER);
+		final JButton selectFileButton = new JButton("Select File");
+		catalogXMLInputPanel.add(selectFileButton, BorderLayout.LINE_END);
+		
+		final SelectDialog fileDialog = SelectDialog.getFileSelector(frame, 
+				SelectDialog.LOAD,
+				".",
+				"Select catalog.xml dialog", 
+				"XML files", 
+				new String[]{"xml"});		
+		
+		selectFileButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fileDialog.show();
+				String selected = fileDialog.getSelectedCanonicalPath();
+				if (selected != null) {
+					catalogXMLField.setText(selected);
+				}
+			}
+		});
+		
+		panel.add(catalogXMLInputPanel, pos.nextRow().nextCol().nextCol().width(2).expandW().indentRight(DEFAULT_INDENT).fill());
+		addRowGap(this.panel, pos.nextRow(), 10);
+	}
 
 	private void createWriteFormatPanel(GBHelper pos) {
-		panel.add(new JLabel("Write Formats"), pos.nextRow().indentLeft(DEFAULT_INDENT));
+		panel.add(new JLabel("Write Formats"), pos.nextRow().indentLeft(DEFAULT_INDENT).width(3));
+		addRowGap(this.panel, pos.nextRow(), 5);
 		panel.add(writeOBO, pos.nextRow().nextCol());
 		panel.add(new JLabel("OBO"), pos.nextCol().expandW());
 		
@@ -227,6 +276,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		
 		panel.add(writeOWX, pos.nextRow().nextCol());
 		panel.add(new JLabel("OWX"), pos.nextCol().expandW());
+		addRowGap(this.panel, pos.nextRow(), 10);
 	}
 
 	/**
@@ -235,7 +285,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	 * @param pos
 	 */
 	private void createReasonerPanel(GBHelper pos) {
-		panel.add(new JLabel("Reasoner"), pos.nextRow().indentLeft(DEFAULT_INDENT));
+		panel.add(new JLabel("Reasoner"), pos.nextRow().indentLeft(DEFAULT_INDENT).width(3));
+		addRowGap(this.panel, pos.nextRow(), 5);
 		
 		ButtonGroup reasonerGroup = new ButtonGroup();
 		reasonerGroup.add(pelletRadioButton);
@@ -262,7 +313,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(this.panel, pos.nextRow(), 5);
 		this.panel.add(new JLabel("(Both Hermit and Pellet should give the same results, Hermit is typically faster)"), 
 				pos.nextRow().indentLeft(DEFAULT_INDENT).width(3).fill().expandW());
-		
+		addRowGap(this.panel, pos.nextRow(), 10);
 		hermitRadioButton.setSelected(true);
 		factppRadioButton.setEnabled(false);
 	}
@@ -314,6 +365,12 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		writeOBO.setSelected(!skipFormats.contains("obo"));
 		writeOWL.setSelected(!skipFormats.contains("owl"));
 		writeOWX.setSelected(!skipFormats.contains("owx"));
+		
+		catalogXMLField.setText("");
+		String catalogXML = configuration.getCatalogXML();
+		if (catalogXML != null) {
+			catalogXMLField.setText(catalogXML);
+		}
 		
 		String reasoner = configuration.getReasonerName();
 		if (InferenceBuilder.REASONER_PELLET.equals(reasoner)) {

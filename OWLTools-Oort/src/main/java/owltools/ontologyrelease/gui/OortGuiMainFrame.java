@@ -227,6 +227,13 @@ public class OortGuiMainFrame extends JFrame {
 		// removeQueryOntologyReference
 		parameters.setRemoveQueryOntologyReference(dynamicOntologyPanel.removeQueryTermCheckBox.isSelected());
 		
+		// catalogXML
+		parameters.setCatalogXML(null);
+		String catalogXML = advancedPanel.catalogXMLField.getText();
+		if (catalogXML != null && !catalogXML.isEmpty()) {
+			parameters.setCatalogXML(catalogXML);
+		}
+		
 		// paths
 		parameters.getPaths().clear();
 		for(String source : mainPanel.sources.keySet()) {
@@ -305,7 +312,7 @@ public class OortGuiMainFrame extends JFrame {
 	 */
 	protected OortGuiAdvancedPanel getAdvancedPanel() {
 		if (advancedPanel == null) {
-			advancedPanel = new OortGuiAdvancedPanel(parameters);
+			advancedPanel = new OortGuiAdvancedPanel(this, parameters);
 		}
 		return advancedPanel;
 	}

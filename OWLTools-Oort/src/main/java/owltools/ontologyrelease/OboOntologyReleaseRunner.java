@@ -34,10 +34,8 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -57,6 +55,7 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
@@ -277,6 +276,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				OortConfiguration.loadConfig(file , oortConfig);
 				i++;
 			}
+			else if (opt.equals("--catalog-xml")) {
+				oortConfig.setCatalogXML(args[i]);
+				i++;
+			}
 			else if (opt.equals("--check-for-gaf")) {
 				oortConfig.setGafToOwl(true);
 			}
@@ -347,6 +350,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Using the following gaf files: " +gafs);
 		}
 		parser = new ParserWrapper();
+		String catalogXML = oortConfig.getCatalogXML();
+		if (catalogXML != null) {
+			parser.addIRIMapper(new CatalogXmlIRIMapper(catalogXML));
+		}
 		OWLGraphWrapper graph = parser.parseToOWLGraph(paths.get(0));
 		mooncat = new Mooncat(graph);
 		owlpp = new OWLPrettyPrinter(mooncat.getGraph());

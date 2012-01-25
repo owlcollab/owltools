@@ -27,6 +27,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
@@ -49,6 +50,12 @@ public class ParserWrapper {
 	}
 	public void setManager(OWLOntologyManager manager) {
 		this.manager = manager;
+	}
+	public void addIRIMapper(OWLOntologyIRIMapper mapper) {
+		manager.addIRIMapper(mapper);
+	}
+	public void removeIRIMapper(OWLOntologyIRIMapper mapper) {
+		manager.removeIRIMapper(mapper);
 	}
 	public OWLGraphWrapper parseToOWLGraph(String iriString) throws OWLOntologyCreationException, IOException {
 		return new OWLGraphWrapper(parse(iriString));		
