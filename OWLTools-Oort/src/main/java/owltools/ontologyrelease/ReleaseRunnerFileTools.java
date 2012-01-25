@@ -94,6 +94,10 @@ abstract class ReleaseRunnerFileTools {
 		// cleared: either overwrite is okay or is a new file 
 		// But keep working in the staging directory
 		File stagingFile = new File(staging, fileName);
+		
+		// create sub folder
+		stagingFile.getParentFile().mkdirs();
+		
 		logger.info("saving to " + stagingFile.getAbsolutePath());
 		return new FileOutputStream(stagingFile);
 	}
