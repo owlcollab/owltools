@@ -1716,9 +1716,9 @@ public class CommandRunner {
 				LOG.info("Use GOlr server at: " + url);
 
 				// Actual ontology class loading.
-				OntologySolrLoader loader = new OntologySolrLoader(url);
 				try {
-					loader.load(g);
+					OntologySolrLoader loader = new OntologySolrLoader(url, g);
+					loader.load();
 				} catch (SolrServerException e) {
 					LOG.info("Ontology load at: " + url + " failed!");
 					e.printStackTrace();

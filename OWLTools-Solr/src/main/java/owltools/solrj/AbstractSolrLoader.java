@@ -24,7 +24,7 @@ public abstract class AbstractSolrLoader {
 	
 	private static Logger LOG = Logger.getLogger(AbstractSolrLoader.class);
 	
-    private SolrServer server;
+    protected SolrServer server;
     
     private Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
 
