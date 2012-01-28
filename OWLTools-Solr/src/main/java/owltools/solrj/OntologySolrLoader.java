@@ -70,7 +70,14 @@ public class OntologySolrLoader extends AbstractSolrLoader {
 		if( syns != null && !syns.isEmpty() ){	
 			for( ISynonym s : syns ){
 				String synLabel = s.getLabel();
+				String synScope = s.getScope();
+
+				// Standard neutral synonym.
 				cls_doc.addField("synonym", synLabel); // can add multiples
+
+				// EXPERIMENTAL: scoped synonym label.
+				String synScopeName = "synonym_label_with_scope_" + synScope.toLowerCase();
+				cls_doc.addField(synScopeName, synLabel);
 			}
 		}
 	
