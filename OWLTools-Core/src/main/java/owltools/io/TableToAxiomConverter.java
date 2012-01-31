@@ -184,7 +184,7 @@ public class TableToAxiomConverter {
 		}
 		else if (config.axiomType.equals(AxiomType.ANNOTATION_ASSERTION)) {
 			if (true) {
-				axs.add(df.getOWLDeclarationAxiom(resolveClass(sub)));
+				//axs.add(df.getOWLDeclarationAxiom(resolveClass(sub)));
 			}
 			ax = df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(config.property), 
 					resolveIRI(sub), literal(obj));
