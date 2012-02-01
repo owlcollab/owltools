@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,6 +109,7 @@ import owltools.sim.SimEngine;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
+import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
 import owltools.web.OWLServer;
@@ -1686,15 +1688,9 @@ public class CommandRunner {
 			else if (opts.nextEq("--purge-solr")) {
 
 				// Check to see if the global url has been set, otherwise use the local one.
-				String url = null;
-				if( globalSolrURL == null ){
-					url = opts.nextOpt();
-				}else{
-					url = globalSolrURL;
-				}
-				LOG.info("Purge GOlr server at: " + url);
+				String url = sortOutSolrURL(opts, globalSolrURL);				
 
-				// 
+				// Wipe out the solr index at url.
 				SolrServer server = new CommonsHttpSolrServer(url);
 			    try {
 					server.deleteByQuery("*:*");
@@ -1707,13 +1703,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--load-ontology-solr")) {
 
 				// Check to see if the global url has been set, otherwise use the local one.
-				String url = null;
-				if( globalSolrURL == null ){
-					url = opts.nextOpt();
-				}else{
-					url = globalSolrURL;
-				}
-				LOG.info("Use GOlr server at: " + url);
+				String url = sortOutSolrURL(opts, globalSolrURL);				
 
 				// Actual ontology class loading.
 				try {
@@ -1724,32 +1714,38 @@ public class CommandRunner {
 					e.printStackTrace();
 				}
 			}
+			// TODO: Try experimental flexible loader.
+			else if (opts.nextEq("--flex-load-gafs-solr")) {
+
+				// Check to see if the global url has been set, otherwise use the local one.
+				String url = sortOutSolrURL(opts, globalSolrURL);				
+
+				// Load remaining docs.
+				List<String> files = opts.nextList();
+				for (String file : files) {
+					LOG.info("Parsing GAF: " + file);
+					FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url);
+					loader.setGafDocument(gafdoc);
+					loader.setGraph(g);
+					try {
+						loader.load();
+					} catch (SolrServerException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 			// Used for loading a list of GAFs into GOlr.
 			else if (opts.nextEq("--load-gafs-solr")) {
 				
 				// Check to see if the global url has been set, otherwise use the local one.
-				String url = null;
-				if( globalSolrURL == null ){
-					url = opts.nextOpt();
-				}else{
-					url = globalSolrURL;
-				}
-				LOG.info("Use GOlr server at: " + url);
+				String url = sortOutSolrURL(opts, globalSolrURL);
 				
 				List<String> files = opts.nextList();
 				for (String file : files) {
-					LOG.info("parsing gaf:"+file);
-					GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
-					loader.setGraph(g);
+					LOG.info("Parsing GAF: " + file);
 					GafObjectsBuilder builder = new GafObjectsBuilder();
-					gafdoc = builder.buildDocument(file);				
-					loader.setGafDocument(gafdoc);
-					try {
-						loader.load();
-					} catch (SolrServerException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					gafdoc = builder.buildDocument(file);
+					loadGAFDoc(url, gafdoc);
 				}
 			}
 			// Requires the --gaf argument (or something else that fills the gafdoc object).
@@ -1763,24 +1759,9 @@ public class CommandRunner {
 				}
 				
 				// Check to see if the global url has been set, otherwise use the local one.
-				String url = null;
-				if( globalSolrURL == null ){
-					url = opts.nextOpt();
-				}else{
-					url = globalSolrURL;
-				}
-				LOG.info("Use GOlr server at: " + url);			
-				
+				String url = sortOutSolrURL(opts, globalSolrURL);
 				// Doc load.
-				GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
-				loader.setGafDocument(gafdoc);
-				loader.setGraph(g);
-				try {
-					loader.load();
-				} catch (SolrServerException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				loadGAFDoc(url, gafdoc);
 			}
 			
 			else if (opts.nextEq("--gaf-xp-predict")) {
@@ -1958,6 +1939,38 @@ public class CommandRunner {
 		}
 		 */
 
+	}
+
+	/*
+	 * TODO: Convert all solr URL handling through here.
+	 */
+	private String sortOutSolrURL(Opts opts, String globalSolrURL){
+	
+		String url = null;
+		if( globalSolrURL == null ){
+			url = opts.nextOpt();
+		}else{
+			url = globalSolrURL;
+		}
+		LOG.info("Use GOlr server at: " + url);
+		
+		return url;
+	}
+
+	/*
+	 * Wrapper multiple places where there is direct GAF loading.
+	 */
+	private void loadGAFDoc(String url, GafDocument gafdoc) throws IOException{
+	
+		// Doc load.
+		GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
+		loader.setGafDocument(gafdoc);
+		loader.setGraph(g);
+		try {
+			loader.load();
+		} catch (SolrServerException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 
