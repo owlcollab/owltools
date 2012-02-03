@@ -1,90 +1,41 @@
----
-AMIGO_BETA:
-  comment: "Mark the AmiGO site as BETA (triggers some changes in variables and installed features).\n"
-  type: boolean
-  value: 0
-AMIGO_CGI_PARTIAL_PATH:
-  comment: Please enter the full path to a usable CGI enabled directory.
-  type: directory
-  value: /srv/www/cgi-bin
-AMIGO_CGI_PARTIAL_URL:
-  comment: Please enter the URL that this path maps to.
-  type: url
-  value: http://localhost/cgi-bin
-AMIGO_CONFIGURED:
-  comment: "This variable must be edited (to 1) before installing AmiGO.\n"
-  type: boolean
-  value: 1
-AMIGO_GOOGLE_ANALYTICS_ID:
-  comment: Google analytics ID. Optional.
-  type: string
-  value: ''
-AMIGO_HTDOCS_PARTIAL_PATH:
-  comment: Please enter the full path to a usable static document directory.
-  type: directory
-  value: /srv/www/htdocs
-AMIGO_HTDOCS_PARTIAL_URL:
-  comment: Please enter the URL that this path maps to.
-  type: url
-  value: http://localhost
-AMIGO_MAX_SESSIONS:
-  comment: The number of sessions AmiGO will not purge at a time.
-  type: integer
-  value: 200
-AMIGO_OBSOLETE_BEHAVIOUR:
-  comment: "AmiGO term searches may return obsolete terms. Please choose how AmiGO should handle these terms: \"ignore\": all obsolete terms will be excluded from the results \"include_commented\": obsolete terms which have a GO id tucked away in a nearby field will be included; non-GO sites should never use this value as the GO id part is currently hard-coded \"include_all\": no obsolete terms will be excluded from the results\n"
-  type: string
-  value: include_all
-AMIGO_PROJECT_NAME:
-  comment: Please enter the name of this AmiGO installation.
-  type: string
-  value: amigo2
-AMIGO_PUBLIC_CGI_PARTIAL_URL:
-  comment: Please enter the partial public URL.
-  type: true
-  value: http://amigo.geneontology.org/cgi-bin
-AMIGO_PUBLIC_GOLR_URL:
-  comment: Please enter the public URL of the GOlr server.
-  type: url
-  value: http://localhost:8080/solr/
-AMIGO_ROOT:
-  comment: 'Please enter the full path to the SVN geneontology/AmiGO[/trunk] directory.'
-  type: directory
-  value: /home/sjcarbon/local/src/svn/geneontology/AmiGO/trunk
-AMIGO_SESSION_TIMEOUT:
-  comment: The amount of time before an AmiGO session expires.
-  type: integer
-  value: 7200
-AMIGO_SHOW_GOOSE_LINKS:
-  comment: "Do you wish to show links to GOOSE, the GO Online SQL Environment? Note that this is only suitable for if you are installing the GO GOLD database. Use 1 for yes and 0 for no.\n"
-  type: boolean
-  value: 1
-AMIGO_TERM_REGEXP:
-  comment: The regular expressions to identify ontology ids.
-  type: string
-  value: 'all|GO:[0-9]{7}'
-AMIGO_TROUBLE_MESSAGE:
-  comment: Message to present when AmiGO\'s TROUBLE switch is true.
-  type: string
-  value: "<h2 style=\"text-align: center;\"> AmiGO is currently experiencing some difficulty.<br /> You may want to temporarily try <a href=\"http://amigo.berkeleybop.org/cgi-bin/amigo/go.cgi\" title=\"Go to AmiGO Labs\">AmiGO Labs</a> instead.</h2>\n"
-AMIGO_TROUBLE_SWITCH:
-  comment: Mark the AmiGO site as TROUBLED (triggers some changes).
-  type: boolean
-  value: 0
-AMIGO_VERBOSE:
-  comment: Log verbose AmiGO debugging messages.
-  type: boolean
-  value: 1
-AMIGO_VERSION:
-  comment: Displayed AmiGO version string.
-  type: string
-  value: 2.0
-GOBO_ROOT:
-  comment: "Please enter the full path to the SVN geneontology/gobo-dbic directory. You may not need this if you already have the package loaded as a library.\n"
-  type: true
-  value: /home/sjcarbon/local/src/svn/geneontology/gobo-dbic
-GO_JS_ROOT:
-  comment: Please enter the full path to the SVN geneontology/javascript directory.
-  type: directory
-  value: /home/sjcarbon/local/src/svn/geneontology/javascript
+--- # Different docs to define.
+- id: ontology_class
+  description: "Test mapping of ontology class."
+  display_name: "Test mapping of ontology class."
+#  trigger: owl
+  fixed:
+    - id: document_type
+      description: "Ontology class."
+      display_name: "Ontology Term"
+      type: string
+      value: ontology_class
+  dynamic:
+    - id: label
+      description: "term name"
+      display_name: Term
+      type: string
+      property: ???
+      transform: []
 
+    - id: id
+      description: Term acc.
+      type: string
+      property: ???
+      transform: [boolify]
+
+- id: bioentity
+  description: "GAF bioentities."
+#  trigger: obo
+  fixed:
+    - field_name: document_type
+      type: string
+      value: bioentity
+  # dynamic:
+  #   xform: [foo, bar]]
+
+# - id: test
+#   description: "this is a test entry"
+#   fixed:
+#     document_type: test
+#  dynamic:
+#      xform: [foo, bar]]

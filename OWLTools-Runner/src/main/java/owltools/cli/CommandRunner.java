@@ -1715,24 +1715,36 @@ public class CommandRunner {
 				}
 			}
 			// TODO: Try experimental flexible loader.
-			else if (opts.nextEq("--flex-load-gafs-solr")) {
+			else if (opts.nextEq("--flex-load-ontology-solr")) {
 
 				// Check to see if the global url has been set, otherwise use the local one.
 				String url = sortOutSolrURL(opts, globalSolrURL);				
 
-				// Load remaining docs.
-				List<String> files = opts.nextList();
-				for (String file : files) {
-					LOG.info("Parsing GAF: " + file);
-					FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url);
-					loader.setGafDocument(gafdoc);
-					loader.setGraph(g);
-					try {
-						loader.load();
-					} catch (SolrServerException e) {
-						e.printStackTrace();
-					}
+				// Actual ontology class loading.
+				try {
+					FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, g);
+					loader.load();
+				} catch (SolrServerException e) {
+					LOG.info("Ontology load at: " + url + " failed!");
+					e.printStackTrace();
 				}
+
+//				// Check to see if the global url has been set, otherwise use the local one.
+//				String url = sortOutSolrURL(opts, globalSolrURL);				
+//
+//				// Load remaining docs.
+//				List<String> files = opts.nextList();
+//				for (String file : files) {
+//					LOG.info("Parsing GAF: " + file);
+//					FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url);
+//					loader.setGafDocument(gafdoc);
+//					loader.setGraph(g);
+//					try {
+//						loader.load();
+//					} catch (SolrServerException e) {
+//						e.printStackTrace();
+//					}
+//				}
 			}
 			// Used for loading a list of GAFs into GOlr.
 			else if (opts.nextEq("--load-gafs-solr")) {

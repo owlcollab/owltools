@@ -63,7 +63,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 		String eid = e.getId();
 		String esym = e.getSymbol();
-		LOG.info("Adding: " + eid + " " + esym);
+		//LOG.info("Adding: " + eid + " " + esym);
 		
 		SolrInputDocument bioentity_doc = new SolrInputDocument();
 		

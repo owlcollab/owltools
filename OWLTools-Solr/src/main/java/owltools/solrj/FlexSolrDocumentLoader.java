@@ -2,6 +2,7 @@ package owltools.solrj;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -29,40 +30,31 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphWrapper;
+import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty;
 
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);
-	
-	GafDocument gafDocument;
 
-	public FlexSolrDocumentLoader(String url) throws MalformedURLException {
+	public FlexSolrDocumentLoader(String url, OWLGraphWrapper graph) throws MalformedURLException {
 		super(url);
+		setGraph(graph);
 	}
 
-	public GafDocument getGafDocument() {
-		return gafDocument;
-	}
+	// Get the inputs from the configuration file.
+	private Object getConfig() throws FileNotFoundException {
 
-	public void setGafDocument(GafDocument gafDocument) {
-		this.gafDocument = gafDocument;
-	}
-
-	@Override
-	public void load() throws SolrServerException, IOException {
-		
-		// Get the inputs from the configuration file.
-	    //InputStream input = new FileInputStream(new File("flex-loader.yaml"));
-	    //InputStream input = new FileInputStream(new File("src/main/resources/flex-loader.yaml"));
+		// ...
 		String rsrc = "flex-loader.yaml";
 		ClassLoader floader = FlexSolrDocumentLoader.class.getClassLoader();
 		URL yamlURL = floader.getResource(rsrc);
 		if( yamlURL == null ){
 			LOG.info("Couldn't access \"" + rsrc + "\" in: " + getClass().getResource("").toString());
-			return;
+			return null;
 		}
-		
+	
 		// ...
 		InputStream input = null;
 		try {
@@ -73,241 +65,81 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		LOG.info("Found flex config: " + yamlURL.toString());
 		//String input = yamlURL.toString();
 		Yaml yaml = new Yaml();
-		Map map = (Map) yaml.load(input);
-		LOG.info("Dumping flex loader YAML: " + yaml.dump(map));
+		Object config = yaml.load(input);
+		LOG.info("Dumping flex loader YAML: " + yaml.dump(config));
+
+		return config;
+		//return null;
+	}
+	
+	@Override
+	public void load() throws SolrServerException, IOException {
+
+		Object config = getConfig();
 		
-	    //System.out.println(object);
-		// Load the listed documents.
-		//gafDocument.index();
-		//for (Bioentity e : gafDocument.getBioentities()) {
-			//add(e);
-		//}
-		//addAllAndCommit();
+		if( graph == null ){
+			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
+		}else{
+			for (OWLObject obj : graph.getAllOWLObjects()) {
+				add(collect(obj, graph, config));
+			}	
+			addAllAndCommit();
+		}
 	}
 
-//	private OWLObjectProperty getPartOfProperty() {
-//		OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier("BFO:0000050");
-//		return p;
-//	}
-//
-//	// Main wrapping for adding non-ontology documents to GOlr.
-//	// Also see OntologySolrLoader.
-//	private void add(Bioentity e) {
-//
-//		String eid = e.getId();
-//		String esym = e.getSymbol();
-//		LOG.info("Adding: " + eid + " " + esym);
-//		
-//		SolrInputDocument bioentity_doc = new SolrInputDocument();
-//		
-//		// Bioentity document base.
-//		bioentity_doc.addField("document_category", "bioentity");
-//		bioentity_doc.addField("id", eid);
-//		bioentity_doc.addField("label", esym);
-//		bioentity_doc.addField("type", e.getTypeCls());
-//		String taxId = e.getNcbiTaxonId();
-//		bioentity_doc.addField("taxon", taxId);
-//		addLabelField(bioentity_doc, "taxon_label", taxId);
-//
-//		Map<String,SolrInputDocument> evAggDocMap = new HashMap<String,SolrInputDocument>();
-//		
-//		for (GeneAnnotation a : gafDocument.getGeneAnnotations(e.getId())) {
-//			// annotation doc
-//			SolrInputDocument annotation_doc = new SolrInputDocument();
-//
-//			String clsId = a.getCls();
-//			String refId = a.getReferenceId();
-//
-//			// Annotation document base.
-//			annotation_doc.addField("document_category", "annotation");
-//			annotation_doc.addField("id", eid + "_:_" + clsId); // TODO - make unique
-//			annotation_doc.addField("bioentity_id", eid);
-//			annotation_doc.addField("bioentity_label", esym);
-//			annotation_doc.addField("taxon", taxId);
-//			addLabelField(annotation_doc, "taxon_label", taxId);
-//
-//			annotation_doc.addField("reference", refId);
-//			// TODO - ev. closure
-//			annotation_doc.addField("evidence_type", a.getEvidenceCls());
-//			annotation_doc.addField("evidence_with", a.getWithExpression());
-//			for (WithInfo wi : a.getWithInfos()) {
-//				//check this
-//				//ad.addField("evidence_with", wi.getWithXref());
-//			}
-//
-//			annotation_doc.addField("annotation_class", clsId);
-//			addLabelField(annotation_doc, "annotation_class_label", clsId);
-//
-//			// ------------------------
-//			// -- isa_partof_closure --
-//			// ------------------------
-//			OWLObject c = graph.getOWLObjectByIdentifier(clsId);
-//			Set<OWLPropertyExpression> ps = Collections.singleton((OWLPropertyExpression)getPartOfProperty());
-//			Set<OWLObject> ancs = graph.getAncestors(c, ps);
-//			for (OWLObject t : ancs) {
-//				if (! (t instanceof OWLClass))
-//					continue;
-//				String tid = graph.getIdentifier(t);
-//				//System.out.println(edge+" TGT:"+tid);
-//				String tlabel = null;
-//				if (t != null)
-//					tlabel = graph.getLabel(t);
-//				annotation_doc.addField("isa_partof_closure", tid);
-//				addFieldUnique(bioentity_doc, "isa_partof_closure", tid);
-//				if (tlabel != null) {
-//					annotation_doc.addField("isa_partof_label_closure", tlabel);
-//					addFieldUnique(bioentity_doc, "isa_partof_label_closure", tlabel);
-//				}
-//
-//				// Annotation evidence aggregate base.
-//				String evAggId = eid + "_:ev:_" + clsId;
-//				SolrInputDocument ev_agg_doc;
-//				if (evAggDocMap.containsKey(evAggId)) {
-//					ev_agg_doc = evAggDocMap.get(evAggId);	
-//				}
-//				else {
-//					ev_agg_doc = new SolrInputDocument();
-//					evAggDocMap.put(evAggId, ev_agg_doc);
-//					ev_agg_doc.addField("id", evAggId);
-//					ev_agg_doc.addField("document_category", "annotation_evidence_aggregate");
-//					ev_agg_doc.addField("bioentity_id", eid);
-//					ev_agg_doc.addField("bioentity_label", esym);
-//					ev_agg_doc.addField("annotation_class", tid);
-//					ev_agg_doc.addField("annotation_class_label", tlabel);
-//					ev_agg_doc.addField("taxon", taxId);
-//					addLabelField(ev_agg_doc, "taxon_label", taxId);
-//				}
-//
-//				//evidence_type is single valued
-//				//aggDoc.addField("evidence_type", a.getEvidenceCls());
-//				String wx = a.getWithExpression();
-//				if (wx != null && !wx.equals(""))
-//					ev_agg_doc.addField("evidence_with", wx);
-//
-//				//aggDoc.getFieldValues(name)
-//				// TODO:
-//				ev_agg_doc.addField("evidence_closure", a.getEvidenceCls());
-//			}
-//
-//			/*
-//			for (OWLGraphEdge edge : graph.getOutgoingEdgesClosureReflexive(c)) {
-//				OWLObject t = edge.getTarget();
-//				if (! (t instanceof OWLClass))
-//					continue;
-//				String tid = graph.getIdentifier(t);
-//				//System.out.println(edge+" TGT:"+tid);
-//				String tlabel = null;
-//				if (t != null)
-//					tlabel = graph.getLabel(t);
-//				Set<String> fields = edgeToField(edge);
-//				// only add to annotation document for now
-//				for (String field : fields) {
-//					ad.addField(field+"_closure", tid);
-//					if (tlabel != null)
-//						ad.addField(field+"_label_closure", tlabel);
-//				}
-//
-//				// aggregate
-//				// TODO - only do this for 
-//				String aggId = eid+"^^^"+clsId;
-//				Map<String,Object> aggFields;
-//				SolrInputDocument aggDoc;
-//				if (aggDocMap.containsKey(aggId)) {
-//					aggDoc = aggDocMap.get(aggId);	
-//				}
-//				else {
-//					aggDoc = new SolrInputDocument();
-//					aggDocMap.put(aggId, aggDoc);
-//					aggDoc.addField("id", aggId);
-//					aggDoc.addField("document_category", "annotation_aggregate");
-//					aggDoc.addField("bioentity_id", eid);
-//					aggDoc.addField("bioentity_label", esym);
-//					aggDoc.addField("annotation_class", tid);
-//					aggDoc.addField("annotation_class_label", tlabel);
-//					aggDoc.addField("taxon", taxId);
-//					addLabelField(aggDoc, "taxon_label", taxId);
-//				}
-//
-//				//evidence_type is single valued
-//				//aggDoc.addField("evidence_type", a.getEvidenceCls());
-//				String wx = a.getWithExpression();
-//				if (wx != null && !wx.equals(""))
-//					aggDoc.addField("evidence_with", wx);
-//
-//				//aggDoc.getFieldValues(name)
-//				// TODO:
-//				aggDoc.addField("evidence_closure", a.getEvidenceCls());
-//			}
-//			 */
+	// Main wrapping for adding ontology documents to GOlr.
+	// Also see GafSolrDocumentLoader for the others.
+	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, Object config) {
+
+		SolrInputDocument cls_doc = new SolrInputDocument();
+
+//		// TODO: use object to create load sequence.
+//		config.
+//		for(  ){
 //			
-//			// c16
-//			for (ExtensionExpression ee : a.getExtensionExpressions()) {
-//				ee.getRelation();	// TODO
-//				String eeid = ee.getCls();
-//				OWLObject eObj = graph.getOWLObjectByIdentifier(eeid);
-//				annotation_doc.addField("annotation_extension_class", eeid);	
-//				addLabelField(annotation_doc, "annotation_extension_class_label", eeid);
-//
-//				if (eObj != null) {
-//					for (OWLGraphEdge edge : graph.getOutgoingEdgesClosureReflexive(eObj)) {
-//						OWLObject t = edge.getTarget();
-//						if (!(t instanceof OWLClass))
-//							continue;
-//						annotation_doc.addField("annotation_extension_class_closure", graph.getIdentifier(t));
-//						annotation_doc.addField("annotation_extension_class_label_closure", graph.getLabel(edge.getTarget()));
-//					}
-//				}
-//			}
-//
-//			add(annotation_doc);
 //		}
-//		add(bioentity_doc);
-//
-//		for (SolrInputDocument ev_agg_doc : evAggDocMap.values()) {
-//			add(ev_agg_doc);
-//		}
-//	}
+		
+//		// General for all ontology objects.
+//		cls_doc.addField("id", graph.getIdentifier(obj));
+//		cls_doc.addField("label", graph.getLabel(obj));
+//		cls_doc.addField("description", graph.getDef(obj));
+//		
+//		// Single fields.
+//		cls_doc.addField("document_category", "ontology_class");
+//		cls_doc.addField("source", graph.getNamespace(obj));
+//		cls_doc.addField("is_obsolete", graph.getIsObsolete(obj));
+//		cls_doc.addField("comment", graph.getComment(obj));
 //	
-//	private void addFieldUnique(SolrInputDocument d, String field, String val) {
-//		if (val == null)
-//			return;
-//		Collection<Object> vals = d.getFieldValues(field);
-//		if (vals != null && vals.contains(val))
-//			return;
-//		d.addField(field, val);
-//	}
+//		// Term synonym gathering.
+//		java.util.List<ISynonym> syns = graph.getOBOSynonyms(obj);
+//		if( syns != null && !syns.isEmpty() ){	
+//			for( ISynonym s : syns ){
+//				String synLabel = s.getLabel();
+//				String synScope = s.getScope();
 //
+//				// Standard neutral synonym.
+//				cls_doc.addField("synonym", synLabel); // can add multiples
 //
-//	private void addLabelField(SolrInputDocument d, String field, String id) {
-//		OWLObject obj = graph.getOWLObjectByIdentifier(id);
-//		if (obj == null)
-//			return;
-//		String label = graph.getLabel(obj);
-//		if (label != null)
-//			d.addField(field, label);
-//	}
-//
-//	private Set<String> edgeToField(OWLGraphEdge edge) {
-//		List<OWLQuantifiedProperty> qpl = edge.getQuantifiedPropertyList();
-//		if (qpl.size() == 0) {
-//			return Collections.singleton("isa_partof");
+//				// EXPERIMENTAL: scoped synonym label.
+//				String synScopeName = "synonym_label_with_scope_" + synScope.toLowerCase();
+//				cls_doc.addField(synScopeName, synLabel);
+//			}
 //		}
-//		else if (qpl.size() == 1) {
-//			return qpToFields(qpl.get(0));
-//		}
-//		else {
-//			return Collections.EMPTY_SET;
-//		}
-//	}
-//
-//	private Set<String> qpToFields(OWLQuantifiedProperty qp) {
-//		if (qp.isSubClassOf()) {
-//			return Collections.singleton("isa_partof");
-//		}
-//		else {
-//			// TODO
-//			return Collections.singleton("isa_partof");
-//		}
-//		//return Collections.EMPTY_SET;
-//	}
+//	
+//		// Add alternate ids, subsets, and definition xrefs.
+//		cramString(cls_doc, "alternate_id", graph.getAltIds(obj));
+//		cramString(cls_doc, "subset", graph.getSubsets(obj));
+//		cramString(cls_doc, "definition_xref", graph.getDefXref(obj));
+		
+		return cls_doc;
+	}
+
+	// Private helper to load multiple fields when the list return type is of dubious quality.
+	private void cramString(SolrInputDocument cls_doc, String name, Collection<String> inList) {
+		if( inList != null && ! inList.isEmpty()) {
+			for (String string : inList) {
+				cls_doc.addField(name, string);
+			}
+		}
+	}
 }
