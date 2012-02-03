@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,7 +75,17 @@ public class CatalogXmlIRIMapper implements OWLOntologyIRIMapper {
 	 * @throws IOException
 	 */
 	public CatalogXmlIRIMapper(URL catalogURL) throws IOException {
-		this(parseCatalogXml(catalogURL.openStream(), null));
+		if ("file".equals(catalogURL.getProtocol())) {
+			try {
+				File catalogFile = new File(catalogURL.toURI());
+				mappings = parseCatalogXml(new FileInputStream(catalogFile), catalogFile.getParentFile());
+			} catch (URISyntaxException e) {
+				throw new IOException(e);
+			}
+		}
+		else {
+			mappings = parseCatalogXml(catalogURL.openStream(), null);
+		}
 	}
 	
 	/**
