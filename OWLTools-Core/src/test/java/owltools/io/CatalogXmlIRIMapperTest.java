@@ -23,5 +23,12 @@ public class CatalogXmlIRIMapperTest extends OWLToolsTestBasics {
 		Map<IRI, IRI> mappings = CatalogXmlIRIMapper.parseCatalogXml(inputStream, parentFolder);
 		assertEquals(7, mappings.size());
 	}
+	
+	@Test
+	public void testParseCatalogXML2() throws Exception {
+		CatalogXmlIRIMapper m = new CatalogXmlIRIMapper("src/test/resources/test-catalog.xml");
+		IRI iri = m.getDocumentIRI(IRI.create("http://purl.obolibrary.org/obo/go.owl"));
+		assertNotNull(iri);
+	}
 
 }
