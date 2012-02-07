@@ -1,41 +1,25 @@
 --- # Different docs to define.
-- id: ontology_class
-  description: "Test mapping of ontology class."
-  display_name: "Test mapping of ontology class."
+id: ontology_class
+description: "Test mapping of ontology class."
+display_name: "Test mapping of ontology class."
 #  trigger: owl
-  fixed:
-    - id: document_type
-      description: "Ontology class."
-      display_name: "Ontology Term"
-      type: string
-      value: ontology_class
-  dynamic:
-    - id: label
-      description: "term name"
-      display_name: Term
-      type: string
-      property: ???
-      transform: []
-
-    - id: id
-      description: Term acc.
-      type: string
-      property: ???
-      transform: [boolify]
-
-- id: bioentity
-  description: "GAF bioentities."
-#  trigger: obo
-  fixed:
-    - field_name: document_type
-      type: string
-      value: bioentity
-  # dynamic:
-  #   xform: [foo, bar]]
-
-# - id: test
-#   description: "this is a test entry"
-#   fixed:
-#     document_type: test
-#  dynamic:
-#      xform: [foo, bar]]
+fixed:
+- id: document_type
+  description: "Ontology class."
+  display_name: "Ontology Term"
+  type: string
+  value: ontology_class
+dynamic:
+- id: label
+  description: "term name"
+  display_name: Term
+  type: string
+  property: http://www.w3.org/2000/01/rdf-schema#label
+  transform: []
+- id: id
+  description: Term acc.
+  display_name: Acc
+  type: string
+  property: ???
+  transform:
+  - boolify

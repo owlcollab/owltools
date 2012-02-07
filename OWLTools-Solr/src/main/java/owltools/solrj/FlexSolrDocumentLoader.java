@@ -8,9 +8,11 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +24,9 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
@@ -33,6 +37,9 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty;
+import owltools.yaml.flexdoc.FlexDocConfig;
+import owltools.yaml.flexdoc.FlexDocDynamicField;
+import owltools.yaml.flexdoc.FlexDocFixedField;
 
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
@@ -44,7 +51,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	}
 
 	// Get the inputs from the configuration file.
-	private Object getConfig() throws FileNotFoundException {
+	private FlexDocConfig getConfig() throws FileNotFoundException {
 
 		// ...
 		String rsrc = "flex-loader.yaml";
@@ -64,9 +71,9 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		}
 		LOG.info("Found flex config: " + yamlURL.toString());
 		//String input = yamlURL.toString();
-		Yaml yaml = new Yaml();
-		Object config = yaml.load(input);
-		LOG.info("Dumping flex loader YAML: " + yaml.dump(config));
+		Yaml yaml = new Yaml(new Constructor(FlexDocConfig.class));
+		FlexDocConfig config = (FlexDocConfig) yaml.load(input);
+		LOG.info("Dumping flex loader YAML: \n" + yaml.dump(config));
 
 		return config;
 		//return null;
@@ -75,7 +82,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	@Override
 	public void load() throws SolrServerException, IOException {
 
-		Object config = getConfig();
+		FlexDocConfig config = getConfig();
 		
 		if( graph == null ){
 			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
@@ -89,15 +96,30 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	// Main wrapping for adding ontology documents to GOlr.
 	// Also see GafSolrDocumentLoader for the others.
-	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, Object config) {
+	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, FlexDocConfig config) {
 
 		SolrInputDocument cls_doc = new SolrInputDocument();
 
-//		// TODO: use object to create load sequence.
-//		config.
-//		for(  ){
-//			
-//		}
+		///
+		/// TODO: use object to create load sequence.
+		///
+		
+		LOG.info("Trying to load a(n): " + config.id);
+
+		// Fixed fields--the same every time.
+		for( FlexDocFixedField fixedField : config.fixed ){
+			LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
+			cls_doc.addField("document_category", "ontology_class");
+		}
+
+		// Dynamic fields--have to get dynamic info to cram into the 
+		for( FlexDocDynamicField fixedField : config.dynamic ){
+			LOG.info("Add?: " + fixedField.id + ":" + fixedField.property);
+//			LOG.info("Add?: " + fixedField.id + ":" + fixedField.property + " " + OWLRDFVocabulary.RDFS_LABEL.getIRI());
+//			graph.getP
+//			cls_doc.addField("id", graph.getIdentifier(obj));
+//			cls_doc.addField("label", graph.getLabel(obj));
+		}
 		
 //		// General for all ontology objects.
 //		cls_doc.addField("id", graph.getIdentifier(obj));
