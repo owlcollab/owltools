@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
@@ -48,6 +49,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -56,6 +58,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.SetOntologyID;
@@ -87,6 +90,7 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.idmap.IDMapPairWriter;
 import owltools.idmap.IDMappingPIRParser;
 import owltools.idmap.UniProtIDMapParser;
+import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ChadoGraphClosureRenderer;
 import owltools.io.CompactGraphClosureReader;
 import owltools.io.CompactGraphClosureRenderer;
@@ -114,6 +118,8 @@ import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
+import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
+import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
@@ -385,6 +391,14 @@ public class CommandRunner {
 				opts.info("ONT", "merges ONT into current source ontology");
 				g.mergeOntology(pw.parse(opts.nextOpt()));
 			}
+			else if (opts.nextEq("--use-catalog") || opts.nextEq("--use-catalog-xml")) {
+				opts.info("", "uses default catalog-v001.xml");
+				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper("catalog-v001.xml"));
+			}
+			else if (opts.nextEq("--catalog-xml")) {
+				opts.info("CATALOG-FILE", "uses the specified file as a catalog");
+				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
+			}
 			else if (opts.nextEq("--map-ontology-iri")) {
 				opts.info("OntologyIRI FILEPATH", "maps an ontology IRI to a file in your filesystem");
 				OWLOntologyIRIMapper iriMapper = 
@@ -433,6 +447,7 @@ public class CommandRunner {
 				g = new OWLGraphWrapper(iri);
 			}
 			else if (opts.nextEq("--merge-import-closure") || opts.nextEq("--merge-imports-closure")) {
+				opts.info("", "All axioms from ontologies in import closure are copied into main ontology");
 				g.mergeImportClosure();
 			}
 			else if (opts.nextEq("--merge-support-ontologies")) {
@@ -441,6 +456,7 @@ public class CommandRunner {
 				g.setSupportOntologySet(new HashSet<OWLOntology>());
 			}
 			else if (opts.nextEq("--add-support-from-imports")) {
+				opts.info("", "All ontologies in direct import are removed and added as support ontologies");
 				g.addSupportOntologiesFromImportsClosure();
 			}
 			else if (opts.nextEq("--add-imports-from-support")) {
@@ -449,6 +465,10 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("-m") || opts.nextEq("--mcat")) {
 				catOntologies(opts);
+			}
+			else if (opts.nextEq("--remove-external-entities")) {
+				Mooncat m = new Mooncat(g);
+				m.removeExternalEntities();
 			}
 			else if (opts.nextEq("--info")) {
 				opts.info("","show ontology statistics");
@@ -724,9 +744,9 @@ public class CommandRunner {
 				}
 				String expression = opts.nextOpt();
 				owlpp = new OWLPrettyPrinter(g);
-				
+
 				ManchesterSyntaxTool parser = new ManchesterSyntaxTool(g.getSourceOntology(), g.getSupportOntologySet());
-				
+
 				try {
 					OWLClassExpression ce = parser.parseManchesterExpression(expression);
 					System.out.println("# QUERY: "+owlpp.render(ce));
@@ -895,7 +915,7 @@ public class CommandRunner {
 							OWLClassExpression sup = a.getSuperClass();
 							if (sup instanceof OWLClass) {
 								boolean has = false;
-								for (Node<OWLClass> isup : reasoner.getSuperClasses(a.getSubClass(),true)) {
+								for (Node<OWLClass> isup : reasoner.getSuperClasses(a.getSubClass(),false)) {
 									if (isup.getEntities().contains(sup)) {
 										has = true;
 										break;
@@ -938,13 +958,43 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--stash-subclasses")) {
-				opts.info("", "removes all subclasses in current source ontology; after reasoning, try to re-infer these");
-				boolean isDefinedOnly = true; // TODO - option
+				opts.info("[-a][--prefix PREFIX][--ontology RECAP-ONTOLOGY-IRI", 
+						"removes all subclasses in current source ontology; after reasoning, try to re-infer these");
+				boolean isDefinedOnly = true;
+				Set<String> prefixes = new HashSet<String>();
+				OWLOntology recapOnt = g.getSourceOntology();
+				
 
+				while (opts.hasOpts()) {
+					if (opts.nextEq("--prefix")) {
+						prefixes.add(opts.nextOpt());
+					}
+					else if (opts.nextEq("-a")) {
+						isDefinedOnly = false;
+					}
+					else if (opts.nextEq("--ontology")) {
+						IRI ontIRI = IRI.create(opts.nextOpt());
+						recapOnt = g.getManager().getOntology(ontIRI);
+						if (recapOnt == null) {
+							LOG.error("Cannot find ontology: "+ontIRI+" from "+g.getManager().getOntologies().size());
+							for (OWLOntology ont : g.getManager().getOntologies()) {
+								LOG.error("  I have: "+ont.getOntologyID().getOntologyIRI().toString());
+							}
+							for (OWLOntology ont : g.getSourceOntology().getImportsClosure()) {
+								LOG.error("  IC: "+ont.getOntologyID().getOntologyIRI().toString());
+							}
+						}
+					}
+					else {
+						break;
+					}
+				}
+
+				Set<OWLSubClassOfAxiom> allAxioms = recapOnt.getAxioms(AxiomType.SUBCLASS_OF);
 				removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
-				System.out.println("Testing "+removedSubClassOfAxioms.size()+" SubClassOf axioms for stashing");
+				System.out.println("Testing "+allAxioms.size()+" SubClassOf axioms for stashing. Prefixes: "+prefixes.size());
 				HashSet<RemoveAxiom> rmaxs = new HashSet<RemoveAxiom>();
-				for (OWLSubClassOfAxiom a : g.getSourceOntology().getAxioms(AxiomType.SUBCLASS_OF)) {
+				for (OWLSubClassOfAxiom a : allAxioms) {
 					OWLClassExpression subc = a.getSubClass();
 					if (!(subc instanceof OWLClass)) {
 						continue;
@@ -953,7 +1003,19 @@ public class CommandRunner {
 					if (!(supc instanceof OWLClass)) {
 						continue;
 					}
+					if (prefixes.size() > 0) {
+						boolean skip = true;
+						for (String p : prefixes) {
+							if (((OWLClass) subc).getIRI().toString().startsWith(p)) {
+								skip = false;
+								break;
+							}
+						}
+						if (skip)
+							break;
+					}
 					if (isDefinedOnly) {
+						// TODO - imports closure
 						if (((OWLClass)subc).getEquivalentClasses(g.getSourceOntology()).size() == 0) {
 							continue;
 						}
@@ -961,10 +1023,13 @@ public class CommandRunner {
 							continue;
 						}
 					}
-					RemoveAxiom rmax = new RemoveAxiom(g.getSourceOntology(),a);
+					// TODO: remove it from the ontology in which it's asserted
+					RemoveAxiom rmax = new RemoveAxiom(recapOnt,a);
+					LOG.debug("WILL_REMOVE: "+a);
 					rmaxs.add(rmax);
 					removedSubClassOfAxioms.add(g.getDataFactory().getOWLSubClassOfAxiom(a.getSubClass(), a.getSuperClass()));
 				}
+				System.out.println("Will remove "+rmaxs.size()+" axioms");
 				for (RemoveAxiom rmax : rmaxs) {
 					g.getManager().applyChange(rmax);
 				}
@@ -1472,6 +1537,9 @@ public class CommandRunner {
 				}
 				if (opts.nextEq("-f")) {
 					String ofmtname = opts.nextOpt();
+					if (ofmtname.equals("manchester")) {
+						ofmt = new ManchesterOWLSyntaxOntologyFormat();
+					}
 					if (ofmtname.equals("functional")) {
 						ofmt = new OWLFunctionalSyntaxOntologyFormat();
 					}
@@ -1506,7 +1574,7 @@ public class CommandRunner {
 							OWLDeclarationAxiom ax = g.getDataFactory().getOWLDeclarationAxiom(c);
 							g.getManager().addAxiom(g.getSourceOntology(), ax);
 						}
-						
+
 					}
 				}
 			}
@@ -1672,11 +1740,11 @@ public class CommandRunner {
 				}
 
 			}
-			
+
 			///
 			/// Solr/GOlr loading.
 			///
-			
+
 			// Set an optional Solr URL to use with Solr options so they don't
 			// have to be specified separately for every option.
 			else if (opts.nextEq("--solr-url")) {
@@ -1692,7 +1760,7 @@ public class CommandRunner {
 
 				// Wipe out the solr index at url.
 				SolrServer server = new CommonsHttpSolrServer(url);
-			    try {
+				try {
 					server.deleteByQuery("*:*");
 				} catch (SolrServerException e) {
 					LOG.info("Purge at: " + url + " failed!");
@@ -1748,10 +1816,10 @@ public class CommandRunner {
 			}
 			// Used for loading a list of GAFs into GOlr.
 			else if (opts.nextEq("--load-gafs-solr")) {
-				
+
 				// Check to see if the global url has been set, otherwise use the local one.
 				String url = sortOutSolrURL(opts, globalSolrURL);
-				
+
 				List<String> files = opts.nextList();
 				for (String file : files) {
 					LOG.info("Parsing GAF: " + file);
@@ -1769,9 +1837,17 @@ public class CommandRunner {
 					System.err.println("No GAF document defined (maybe use '--gaf GAF-FILE') ");
 					System.exit(1);
 				}
-				
+
 				// Check to see if the global url has been set, otherwise use the local one.
-				String url = sortOutSolrURL(opts, globalSolrURL);
+				String url = null;
+				if( globalSolrURL == null ){
+					url = opts.nextOpt();
+				}else{
+					url = globalSolrURL;
+				}
+				LOG.info("Use GOlr server at: " + url);			
+
+				url = sortOutSolrURL(opts, globalSolrURL);
 				// Doc load.
 				loadGAFDoc(url, gafdoc);
 			}
@@ -1821,6 +1897,74 @@ public class CommandRunner {
 						System.out.println(g.getIdentifier(c)+"\t"+a.getBioentityObject()+"\t"+a.getBioentityObject().getSymbol());
 					}
 				}
+			}
+			else if (opts.nextEq("--extract-module")) {
+				opts.info("SEED-OBJECTS", "Uses the OWLAPI module extractor");
+				String modIRI = null;
+				ModuleType mtype = ModuleType.STAR;
+				boolean isTraverseDown = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-n")) {
+						modIRI = opts.nextOpt();
+					}
+					else if (opts.nextEq("-d")) {
+						isTraverseDown = true;
+					}
+					else if (opts.nextEq("-m") || opts.nextEq("--module-type")) {
+						opts.info("MODULE-TYPE", "One of: STAR (default), TOP, BOT, TOP_OF_BOT, BOT_OF_TOP");
+						mtype = ModuleType.valueOf(opts.nextOpt());
+					}
+					else {
+						break;
+					}
+				}
+
+				// module extraction not implemented for SAPs
+				// this code can be replaced when this is fixed:
+				// https://sourceforge.net/tracker/?func=detail&aid=3477470&group_id=90989&atid=595534
+				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+				for (OWLAxiom ax : g.getSourceOntology().getAxioms()) {
+					if (ax instanceof OWLSubAnnotationPropertyOfAxiom)
+						continue;
+					axioms.add(ax);
+				}
+
+				OWLOntology baseOnt = g.getManager().createOntology(axioms);
+
+				Set<OWLObject> objs = this.resolveEntityList(opts);
+
+				Set<OWLEntity> seedSig = new HashSet<OWLEntity>();
+				if (isTraverseDown) {
+					OWLReasoner mr = this.createReasoner(baseOnt, reasonerName, g.getManager());
+					for (OWLObject obj : objs) {
+						if (obj instanceof OWLClassExpression) {
+							seedSig.addAll(mr.getSubClasses((OWLClassExpression) obj, false).getFlattened());
+						}
+						else if (obj instanceof OWLObjectPropertyExpression) {
+							for (OWLObjectPropertyExpression pe : mr.getSubObjectProperties((OWLObjectPropertyExpression) obj, false).getFlattened()) {
+								if (pe instanceof OWLObjectProperty) {
+									seedSig.add((OWLObjectProperty) pe);
+								}
+							}
+						}
+					}
+				}
+				SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(g.getManager(), baseOnt, mtype);
+				for (OWLObject obj : objs) {
+					if (obj instanceof OWLEntity) {
+						seedSig.add((OWLEntity) obj);
+					}
+				}
+				Set<OWLAxiom> modAxioms = sme.extract(seedSig);
+				OWLOntology modOnt;
+				if (modIRI == null) {
+					modOnt = g.getManager().createOntology();
+				}
+				else {
+					modOnt = g.getManager().createOntology(IRI.create(modIRI));
+				}
+				g.getManager().addAxioms(modOnt, modAxioms);
+				g.setSourceOntology(modOnt);
 			}
 			else if (opts.nextEq("--build-property-view-ontology")) {
 				OWLOntology sourceOntol = g.getSourceOntology();
@@ -1907,8 +2051,10 @@ public class CommandRunner {
 				String f  = opts.nextOpt();
 				try {
 					OWLOntology ont = pw.parse(f);
-					if (g == null)
+					if (g == null) {
 						g =	new OWLGraphWrapper(ont);
+						g.setManager(pw.getManager());
+					}
 					else {
 						System.out.println("adding support ont "+ont);
 						g.addSupportOntology(ont);
@@ -2110,6 +2256,15 @@ public class CommandRunner {
 		System.out.println("  AxiomCount:"+ont.getAxiomCount());
 	}
 
+	public Set<OWLObject> resolveEntityList(Opts opts) {
+		OWLObject obj = null;
+		List<String> ids = opts.nextList();
+		Set<OWLObject> objs = new HashSet<OWLObject>();
+		for (String id: ids) {
+			objs.add( resolveEntity(id) );
+		}
+		return objs;
+	}
 
 
 	// todo - move to util
