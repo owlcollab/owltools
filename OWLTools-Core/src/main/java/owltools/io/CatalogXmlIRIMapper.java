@@ -41,7 +41,7 @@ public class CatalogXmlIRIMapper implements OWLOntologyIRIMapper {
 	 * @throws IOException
 	 */
 	public CatalogXmlIRIMapper(String catalogFile) throws IOException {
-		this(new File(catalogFile));
+		this(new File(catalogFile).getAbsoluteFile());
 	}
 	
 	/**
@@ -52,7 +52,7 @@ public class CatalogXmlIRIMapper implements OWLOntologyIRIMapper {
 	 * @throws IOException
 	 */
 	public CatalogXmlIRIMapper(File catalogFile) throws IOException {
-		this(catalogFile, catalogFile.getParentFile());
+		this(catalogFile, catalogFile.getAbsoluteFile().getParentFile());
 	}
 	
 	/**
