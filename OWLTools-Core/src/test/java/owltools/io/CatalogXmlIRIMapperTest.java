@@ -17,11 +17,11 @@ public class CatalogXmlIRIMapperTest extends OWLToolsTestBasics {
 
 	@Test
 	public void testParseCatalogXML() throws Exception {
-		File resource = getResource("catalog.xml");
+		File resource = getResource("catalog-v001.xml");
 		InputStream inputStream = new FileInputStream(resource);
 		File parentFolder = resource.getParentFile();
 		Map<IRI, IRI> mappings = CatalogXmlIRIMapper.parseCatalogXml(inputStream, parentFolder);
-		assertEquals(7, mappings.size());
+		assertEquals(4, mappings.size());
 	}
 	
 	@Test
