@@ -796,7 +796,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logger.info("subset:"+subset+" #classes:"+objs.size());
 				String fn = "subsets/"+subset;
 
-				IRI iri = IRI.create("http://purl.obolibrary.org/obo/"+ontologyId+fn+".owl");
+				IRI iri = IRI.create("http://purl.obolibrary.org/obo/"+ontologyId+"/"+fn+".owl");
 				OWLOntology subOnt = mooncat.makeSubsetOntology(objs,iri);
 				logger.info("subOnt:"+subOnt+" #axioms:"+subOnt.getAxiomCount());
 				saveOntologyInAllFormats(ontologyId, fn, subOnt, gciOntology);
