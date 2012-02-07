@@ -790,10 +790,24 @@ public class Mooncat {
 			removeDanglingAxioms(ont);
 		}
 	}
+	
+	public void removeExternalEntities() {
+		removeExternalEntities(this.getOntology());
+	}
 
+	/**
+	 * Removes all classes, individuals and object properties that are marked with
+	 * IAO_0000412
+	 * 
+	 * @param ont
+	 */
+	public void removeExternalEntities(OWLOntology ont) {
+		removeExternalEntities(true, ont);
+	}
+		
 	// removes entities marked with IAO_0000412 
 	// classes are only removed when main is true
-	private void removeExternalEntities(boolean main, OWLOntology ont) {
+	public void removeExternalEntities(boolean main, OWLOntology ont) {
 		Set<OWLEntity> objs = ont.getSignature(false);
 		Set<OWLClass> rmClasses = new HashSet<OWLClass>();
 		Set<OWLObjectProperty> rmProperties = new HashSet<OWLObjectProperty>();
