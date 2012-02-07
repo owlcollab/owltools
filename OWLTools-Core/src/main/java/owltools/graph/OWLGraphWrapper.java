@@ -428,7 +428,11 @@ public class OWLGraphWrapper {
 	 */
 	public Set<OWLOntology> getAllOntologies() {
 		Set<OWLOntology> all = new HashSet<OWLOntology>(getSupportOntologySet());
+		for (OWLOntology o : getSupportOntologySet()) {
+			all.addAll(o.getImportsClosure());
+		}
 		all.add(getSourceOntology());
+		all.addAll(getSourceOntology().getImportsClosure());
 		return all;
 	}
 
@@ -1673,6 +1677,7 @@ public class OWLGraphWrapper {
 		Set<OWLAnnotation>anns = new HashSet<OWLAnnotation>();
 		if (c instanceof OWLEntity) {
 			for (OWLOntology ont : getAllOntologies()) {
+				// TODO : import closure
 				anns.addAll(((OWLEntity) c).getAnnotations(ont,lap));
 			}
 		}
