@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+  <uri id="User Entered Import Resolution" name="http://www.w3.org/TR/2003/PR-owl-guide-20031209/food" uri="food.owf"/>
+  <uri id="User Entered Import Resolution" name="http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine" uri="wine.owf"/>
+  <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/mutual-import-1.owl" uri="mutual-import-1.owl"/>
+  <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/mutual-import-2.owl" uri="mutual-import-2.owl"/>
+</catalog>
