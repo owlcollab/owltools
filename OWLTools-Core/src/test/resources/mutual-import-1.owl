@@ -1,0 +1,5 @@
+Prefix(:=<http://purl.obollibrary.org/obo/TEST_>)
+Ontology(<http://purl.obollibrary.org/obo/mutual-import-1.owl>
+    Import(<http://purl.obolibrary.org/obo/mutual-import-2.owl>)
+SubClassOf(:a ObjectSomeValuesFrom(:r :b))
+)
