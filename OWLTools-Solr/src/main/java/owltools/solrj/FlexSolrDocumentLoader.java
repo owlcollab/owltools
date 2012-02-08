@@ -44,16 +44,22 @@ import owltools.yaml.flexdoc.FlexDocFixedField;
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);
+	private static final String prefix = "bbop_ext"; // same as appears in geneontology/java/gold/conf/schema.xml
 
 	public FlexSolrDocumentLoader(String url, OWLGraphWrapper graph) throws MalformedURLException {
 		super(url);
 		setGraph(graph);
 	}
 
-	// Get the inputs from the configuration file.
+	/*
+	 *  Get the flexible document definition from the configuration file.
+	 *
+ 	 * @param
+	 * @return config
+	 */
 	private FlexDocConfig getConfig() throws FileNotFoundException {
 
-		// ...
+		// Find the file in question on the filesystem.
 		String rsrc = "flex-loader.yaml";
 		ClassLoader floader = FlexSolrDocumentLoader.class.getClassLoader();
 		URL yamlURL = floader.getResource(rsrc);
@@ -62,7 +68,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 			return null;
 		}
 	
-		// ...
+		// Generate the config from the file input text.
 		InputStream input = null;
 		try {
 			input = new FileInputStream(new File(yamlURL.toURI()));
@@ -70,13 +76,11 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 			e.printStackTrace();
 		}
 		LOG.info("Found flex config: " + yamlURL.toString());
-		//String input = yamlURL.toString();
 		Yaml yaml = new Yaml(new Constructor(FlexDocConfig.class));
 		FlexDocConfig config = (FlexDocConfig) yaml.load(input);
 		LOG.info("Dumping flex loader YAML: \n" + yaml.dump(config));
 
 		return config;
-		//return null;
 	}
 	
 	@Override
@@ -94,74 +98,173 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		}
 	}
 
-	// Main wrapping for adding ontology documents to GOlr.
-	// Also see GafSolrDocumentLoader for the others.
+	/*
+	 * Take args and add it index (no commits)
+	 * Main wrapping for adding ontology documents to GOlr.
+	 * Also see GafSolrDocumentLoader for the others.
+	 *
+	 * @param owlObject, graph, and a config.
+	 * @return an input doc for add()
+	 */
 	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, FlexDocConfig config) {
 
 		SolrInputDocument cls_doc = new SolrInputDocument();
 
 		///
-		/// TODO: use object to create load sequence.
+		/// TODO/BUG: use object to create load sequence.
+		/// Needs better cooperation from OWLTools to make is truly flexible.
+		/// See Chris.
 		///
 		
 		LOG.info("Trying to load a(n): " + config.id);
 
-		// Fixed fields--the same every time.
+		// Single fixed fields--the same every time.
 		for( FlexDocFixedField fixedField : config.fixed ){
-			LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
-			cls_doc.addField("document_category", "ontology_class");
+			//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
+			cls_doc.addField(fixedField.id, fixedField.value);
+
+			// TODO/BUG: Needs to be removed--just here so I don't have to juggle muliple schema.xml on Solr during testing.
+			cls_doc.addField("id", "nil");
 		}
 
-		// Dynamic fields--have to get dynamic info to cram into the 
-		for( FlexDocDynamicField fixedField : config.dynamic ){
-			LOG.info("Add?: " + fixedField.id + ":" + fixedField.property);
-//			LOG.info("Add?: " + fixedField.id + ":" + fixedField.property + " " + OWLRDFVocabulary.RDFS_LABEL.getIRI());
-//			graph.getP
-//			cls_doc.addField("id", graph.getIdentifier(obj));
-//			cls_doc.addField("label", graph.getLabel(obj));
+		// Dynamic fields--have to get dynamic info to cram into the index.
+		//LOG.info("Add?: " + fixedField.id + ":" + fixedField.property + " " + OWLRDFVocabulary.RDFS_LABEL.getIRI());
+		//cls_doc.addField("id", graph.getIdentifier(obj));
+		for( FlexDocDynamicField dynamicField : config.dynamic ){
+			//LOG.info("Add?: (" + dynamicField.type + ") " + dynamicField.id + ":" + dynamicField.property);
+			if( dynamicField.type.equals("string") || dynamicField.type.equals("text") ){
+				ArrayList<String> inputList = tempStringLoader(obj, graph, dynamicField.property);
+				cramString(cls_doc, dynamicField.type, dynamicField.id, inputList);
+			}else if( dynamicField.type.equals("integer") ){
+				ArrayList<Integer> inputList = tempIntegerLoader(obj, graph, dynamicField.property);
+				cramInteger(cls_doc, dynamicField.type, dynamicField.id, inputList);
+//			}else if( dynamicField.type.equals("boolean") ){
+//				ArrayList<Boolean> inputList = tempBooleanLoader(obj, graph, dynamicField.property);
+//				cramBoolean(cls_doc, dynamicField.type, dynamicField.id, inputList);
+			}else{
+				LOG.info("No input methods for: " + dynamicField.type);
+			}
 		}
-		
-//		// General for all ontology objects.
-//		cls_doc.addField("id", graph.getIdentifier(obj));
-//		cls_doc.addField("label", graph.getLabel(obj));
-//		cls_doc.addField("description", graph.getDef(obj));
-//		
-//		// Single fields.
-//		cls_doc.addField("document_category", "ontology_class");
-//		cls_doc.addField("source", graph.getNamespace(obj));
-//		cls_doc.addField("is_obsolete", graph.getIsObsolete(obj));
-//		cls_doc.addField("comment", graph.getComment(obj));
-//	
-//		// Term synonym gathering.
-//		java.util.List<ISynonym> syns = graph.getOBOSynonyms(obj);
-//		if( syns != null && !syns.isEmpty() ){	
-//			for( ISynonym s : syns ){
-//				String synLabel = s.getLabel();
-//				String synScope = s.getScope();
-//
-//				// Standard neutral synonym.
-//				cls_doc.addField("synonym", synLabel); // can add multiples
-//
-//				// EXPERIMENTAL: scoped synonym label.
-//				String synScopeName = "synonym_label_with_scope_" + synScope.toLowerCase();
-//				cls_doc.addField(synScopeName, synLabel);
-//			}
-//		}
-//	
-//		// Add alternate ids, subsets, and definition xrefs.
-//		cramString(cls_doc, "alternate_id", graph.getAltIds(obj));
-//		cramString(cls_doc, "subset", graph.getSubsets(obj));
-//		cramString(cls_doc, "definition_xref", graph.getDefXref(obj));
 		
 		return cls_doc;
 	}
 
-	// Private helper to load multiple fields when the list return type is of dubious quality.
-	private void cramString(SolrInputDocument cls_doc, String name, Collection<String> inList) {
-		if( inList != null && ! inList.isEmpty()) {
-			for (String string : inList) {
-				cls_doc.addField(name, string);
+	/*
+	 * Jimmy interesting bits out of the OWLObject for use in loading the GOlr index.
+	 * 
+	 * WARNING: This is a temporary function until a proper flex mapper can be built into the OWLGraphWrapper,
+	 * and that	will take some consultation with Chris.
+	 * 
+	 * @param owlObject and string property to identify the part of the owl object that we want
+	 * @return ArrayList<String>
+	 */
+	@Deprecated
+	private ArrayList<String> tempStringLoader(OWLObject obj, OWLGraphWrapper graph, String property){
+
+		ArrayList<String> fields = new ArrayList<String>();
+		
+		if( property.equals("id") ){
+			fields.add(graph.getIdentifier(obj));
+		}else if( property.equals("label") ){
+			fields.add(graph.getLabel(obj));
+		}else if( property.equals("description") ){
+			fields.add(graph.getDef(obj));
+		}else if( property.equals("source") ){
+			fields.add(graph.getNamespace(obj));
+		}else if( property.equals("comment") ){
+			fields.add(graph.getComment(obj));
+		}else if( property.equals("synonym") ){
+			// Term synonym gathering rather more irritating.
+			java.util.List<ISynonym> syns = graph.getOBOSynonyms(obj);
+			if( syns != null && !syns.isEmpty() ){	
+				for( ISynonym s : syns ){
+					String synLabel = s.getLabel();
+
+					// Standard neutral synonym.
+					//cls_doc.addField("synonym", synLabel); // can add multiples
+					fields.add(synLabel);
+
+					// EXPERIMENTAL: scoped synonym label.
+					//String synScope = s.getScope();
+					//String synScopeName = "synonym_label_with_scope_" + synScope.toLowerCase();
+					//cls_doc.addField(synScopeName, synLabel);
+				}
+			}	
+		}else if( property.equals("alternate_id") ){
+			fields = ensureArrayList(graph.getAltIds(obj));
+		}else if( property.equals("subset") ){
+			fields = ensureArrayList(graph.getSubsets(obj));
+		}else if( property.equals("definition_xref") ){
+			fields = ensureArrayList(graph.getDefXref(obj));
+		}
+			
+		return fields;
+	}
+	// Same as above
+	@Deprecated
+	private ArrayList<Integer> tempIntegerLoader(OWLObject obj, OWLGraphWrapper graph, String property){
+
+		ArrayList<Integer> fields = new ArrayList<Integer>();
+		
+		if( property.equals("is_obsolete") ){
+			Boolean obs = graph.getIsObsolete(obj);
+			if( obs ){
+				fields.add(1);
+			}else{
+				fields.add(0);
 			}
 		}
+		
+		return fields;
+	}
+//	// Same as above
+//	@Deprecated
+//	private ArrayList<Boolean> tempBooleanLoader(OWLObject obj, OWLGraphWrapper graph, String property){
+//
+//		ArrayList<Boolean> fields = new ArrayList<Boolean>();
+//		
+//		//if( property.equals("is_obsolete") ){
+//		//	fields.add(graph.getIsObsolete(obj));
+//		//}
+//		
+//		return fields;
+//	}	
+	/*
+	 * Private helper to load our always assumed multiple fields.
+	 */
+	@Deprecated
+	private void cramString(SolrInputDocument cls_doc, String type, String name, ArrayList<String> inList) {
+		if( inList != null && ! inList.isEmpty()) {
+			for (String thing : inList) {
+				cls_doc.addField(prefix + "_" + type + "_" + name, thing);
+			}
+		}
+	}
+//	@Deprecated
+//	private void cramBoolean(SolrInputDocument cls_doc, String type, String name, ArrayList<Boolean> inList) {
+//		if( inList != null && ! inList.isEmpty()) {
+//			for (Boolean thing : inList) {
+//				cls_doc.addField(prefix + "_" + type + "_" + name, thing);
+//			}
+//		}
+//	}
+	@Deprecated
+	private void cramInteger(SolrInputDocument cls_doc, String type, String name, ArrayList<Integer> inList) {
+		if( inList != null && ! inList.isEmpty() ){
+			for (Integer thing : inList) {
+				cls_doc.addField(prefix + "_" + type + "_" + name, thing);
+			}
+		}
+	}
+	
+	// We want to ensure at least an empty array on these callbacks.
+	private ArrayList<String> ensureArrayList (Collection<String> inList) {
+
+		ArrayList<String> outList = new ArrayList<String>();
+		
+		if( inList != null && ! inList.isEmpty()) {
+			outList = new ArrayList<String>(inList);
+		}
+		return outList;
 	}
 }

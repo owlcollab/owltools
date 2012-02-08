@@ -1,25 +1,74 @@
 --- # Different docs to define.
 id: ontology_class
-description: "Test mapping of ontology class."
-display_name: "Test mapping of ontology class."
+description: Test mapping of ontology class for GO.
+display_name: Ontology
 #  trigger: owl
 fixed:
-- id: document_type
-  description: "Ontology class."
-  display_name: "Ontology Term"
+- id: document_category
+  description: The category of the document in the Solr index.
+  display_name: Category
   type: string
   value: ontology_class
 dynamic:
-- id: label
-  description: "term name"
-  display_name: Term
-  type: string
-  property: http://www.w3.org/2000/01/rdf-schema#label
-  transform: []
 - id: id
-  description: Term acc.
+  description: Term acc/id.
   display_name: Acc
   type: string
-  property: ???
-  transform:
-  - boolify
+  property: id
+  transform: []
+#  - boolify
+- id: label
+  description: Common term name.
+  display_name: Term
+  type: text
+  #property: http://www.w3.org/2000/01/rdf-schema#label
+  property: label
+  transform: []
+- id: description
+  description: Term description.
+  display_name: Description
+  type: text
+  property: description
+  transform: []
+- id: source
+  description: Term namespace.
+  display_name: Source
+  type: string
+  property: source
+  transform: []
+- id: is_obsolete
+  description: Is the term obsolete?
+  display_name: Obsoletion
+  type: integer
+  property: is_obsolete
+  transform: []
+- id: comment
+  description: Term comment.
+  display_name: Comment
+  type: text
+  property: comment
+  transform: []
+- id: synonym
+  description: Term synonym.
+  display_name: Synonym
+  type: string
+  property: synonym
+  transform: []
+- id: alternate_id
+  description: Alternate term id.
+  display_name: Alt ID
+  type: string
+  property: alternate_id
+  transform: []
+- id: subset
+  description: Term subset.
+  display_name: Subset
+  type: string
+  property: subset
+  transform: []
+- id: definition_xref
+  description: Definition cross-reference.
+  display_name: Def XRef
+  type: string
+  property: definition_xref
+  transform: []
