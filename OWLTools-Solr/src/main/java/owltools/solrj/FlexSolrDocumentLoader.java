@@ -44,7 +44,8 @@ import owltools.yaml.flexdoc.FlexDocFixedField;
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);
-	private static final String prefix = "bbop_ext"; // same as appears in geneontology/java/gold/conf/schema.xml
+	private String schema_mangle = "ext"; // same as appears in geneontology/java/gold/conf/schema.xml
+	private String ns_mangle = "unknown";
 
 	public FlexSolrDocumentLoader(String url, OWLGraphWrapper graph) throws MalformedURLException {
 		super(url);
@@ -87,6 +88,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	public void load() throws SolrServerException, IOException {
 
 		FlexDocConfig config = getConfig();
+		ns_mangle = config.id;
 		
 		if( graph == null ){
 			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
@@ -236,7 +238,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	private void cramString(SolrInputDocument cls_doc, String type, String name, ArrayList<String> inList) {
 		if( inList != null && ! inList.isEmpty()) {
 			for (String thing : inList) {
-				cls_doc.addField(prefix + "_" + type + "_" + name, thing);
+				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type, thing);
 			}
 		}
 	}
@@ -244,7 +246,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 //	private void cramBoolean(SolrInputDocument cls_doc, String type, String name, ArrayList<Boolean> inList) {
 //		if( inList != null && ! inList.isEmpty()) {
 //			for (Boolean thing : inList) {
-//				cls_doc.addField(prefix + "_" + type + "_" + name, thing);
+//              cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type, thing);
 //			}
 //		}
 //	}
@@ -252,7 +254,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	private void cramInteger(SolrInputDocument cls_doc, String type, String name, ArrayList<Integer> inList) {
 		if( inList != null && ! inList.isEmpty() ){
 			for (Integer thing : inList) {
-				cls_doc.addField(prefix + "_" + type + "_" + name, thing);
+				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type, thing);
 			}
 		}
 	}

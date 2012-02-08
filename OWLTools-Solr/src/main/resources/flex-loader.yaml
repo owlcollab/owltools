@@ -1,5 +1,5 @@
 --- # Different docs to define.
-id: ontology_class
+id: bbop_ont
 description: Test mapping of ontology class for GO.
 display_name: Ontology
 #  trigger: owl
