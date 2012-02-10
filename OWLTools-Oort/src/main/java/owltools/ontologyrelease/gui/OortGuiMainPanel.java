@@ -128,9 +128,9 @@ public class OortGuiMainPanel extends SizedJPanel {
 		final SelectDialog fileDialog = SelectDialog.getFileSelector(frame, 
 				SelectDialog.LOAD,
 				defaultFolder,
-				"Input ontology file choose dialog", 
-				"OBO & OWL files", 
-				new String[]{"obo","owl"});
+				"Choose input file dialog", 
+				"OBO, OWL, GAF", 
+				new String[]{"obo","owl","gaf"});
 		
 		// add listener for adding a file to the list model
 		fileDialogAddButton.addActionListener(new ActionListener() {
