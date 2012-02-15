@@ -794,6 +794,10 @@ public class CommandRunner {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				finally {
+					// always dispose parser to avoid a memory leak
+					parser.dispose();
+				}
 
 			}
 			else if (opts.nextEq("--reasoner-ask-all")) {

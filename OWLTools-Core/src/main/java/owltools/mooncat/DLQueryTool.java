@@ -47,8 +47,18 @@ public class DLQueryTool {
 			OWLReasonerFactory reasonerFactory) throws ParserException, OWLOntologyCreationException 
 	{
 		// create parser and parse DL query string
-		ManchesterSyntaxTool parser = new ManchesterSyntaxTool(graph.getSourceOntology(), graph.getSupportOntologySet());
-		OWLClassExpression ce = parser.parseManchesterExpression(dlQuery);
+		ManchesterSyntaxTool parser = null;
+		
+		OWLClassExpression ce;
+		try {
+			parser = new ManchesterSyntaxTool(graph.getSourceOntology(), graph.getSupportOntologySet());
+			ce = parser.parseManchesterExpression(dlQuery);
+		} finally {
+			// always dispose parser to avoid a memory leak
+			if (parser != null) {
+				parser.dispose();
+			}
+		}
 		
 		// create query ontology
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();

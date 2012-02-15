@@ -475,6 +475,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					new MacroExpansionGCIVisitor(mooncat.getOntology());
 				gciOntology = gciVisitor.createGCIOntology();
 				logger.info("GCI Ontology has "+gciOntology.getAxiomCount()+" axioms");
+				gciVisitor.dispose();
 			}
 			else {
 				OWLOntology ont = mooncat.getOntology();
@@ -482,6 +483,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					new MacroExpansionVisitor(ont);
 				ont = mev.expandAll();		
 				mooncat.setOntology(ont);
+				mev.dispose();
 				logger.info("Expanded in place; Ontology has "+ont.getAxiomCount()+" axioms");
 			}
 
