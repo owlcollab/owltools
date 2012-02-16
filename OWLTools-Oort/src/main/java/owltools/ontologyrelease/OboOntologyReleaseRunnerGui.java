@@ -9,6 +9,7 @@ import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
@@ -132,17 +133,17 @@ public class OboOntologyReleaseRunnerGui {
 						logger.info(message);
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message);
 					} catch (OboOntologyReleaseRunnerCheckException e) {
-						String message = "Stopped Release process. Reason: "+e.renderMessageString();
+						String message = "Stopped Release process. Reason: \n"+e.renderMessageString();
 						logger.error(message, e);
-						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message, "OORT Release Problem", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, createMultiLineLabel(message), "OORT Release Problem", JOptionPane.ERROR_MESSAGE);
 					} catch (Exception e) {
-						String message = "Internal error: "+ e.getMessage();
+						String message = "Internal error: \n"+ e.getMessage();
 						logger.error(message, e);
-						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message, "Error", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, createMultiLineLabel(message), "Error", JOptionPane.ERROR_MESSAGE);
 					} catch (Throwable e) {
-						String message = "Internal error: "+ e.getMessage();
+						String message = "Internal error: \n"+ e.getMessage();
 						logger.fatal(message, e);
-						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message, "FatalError", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, createMultiLineLabel(message), "FatalError", JOptionPane.ERROR_MESSAGE);
 					}
 					finally {
 						enableReleaseButton();
@@ -152,4 +153,15 @@ public class OboOntologyReleaseRunnerGui {
 			t.start();
 		}
 	}
+	
+	
+	public static JComponent createMultiLineLabel(String s) {
+		return new JLabel(convertToMultiline(s));
+	}
+	
+	public static String convertToMultiline(String orig)
+	{
+	    return "<html><body style='width: 450px; padding: 5px;'><p>" + orig.replaceAll("\n", "<br>")+"</p></body></html>";
+	}
+
 }
