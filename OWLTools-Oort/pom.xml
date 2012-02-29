@@ -46,7 +46,6 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<excludes>
-						<exclude>owltools/ontologyrelease/AncestorsTest.java</exclude>
 						<exclude>owltools/ontologyrelease/ReleaseInferenceTest.java</exclude>
 					</excludes>
 				</configuration>
