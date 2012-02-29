@@ -53,7 +53,8 @@ public class GAFOWLBridge {
 
 	public enum Vocab {
 		ACTIVELY_PARTICIPATES_IN, PART_OF,
-		DESCRIBES, SOURCE, PROTOTYPICALLY
+		DESCRIBES, SOURCE, PROTOTYPICALLY,
+		IN_TAXON
 	}
 
 	public GAFOWLBridge(OWLGraphWrapper g) {
@@ -88,6 +89,7 @@ public class GAFOWLBridge {
 		addVocabMap(Vocab.ACTIVELY_PARTICIPATES_IN, "RO_0002217", "actively participates in");
 		addVocabMap(Vocab.PROTOTYPICALLY, "RO_0002214", "has prototype"); // canonically?
 		addVocabMap(Vocab.DESCRIBES, "IAO_0000136", "is about");
+		addVocabMap(Vocab.IN_TAXON, "RO_0002162", "is about");
 	}
 
 	private void addVocabMap(Vocab v, String s) {
@@ -285,10 +287,20 @@ public class GAFOWLBridge {
 		OWLDataFactory fac = graph.getDataFactory();
 		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 		OWLClass cls = getOWLClass(e.getId());
+
+		// --label---
 		axioms.add(fac.getOWLAnnotationAssertionAxiom(fac.getRDFSLabel(),
 				cls.getIRI(),
 				fac.getOWLLiteral(e.getSymbol())));
+		
+		// --taxon--
+		OWLClass taxCls = getOWLClass(e.getNcbiTaxonId()); // todo - cache
+		axioms.add(fac.getOWLSubClassOfAxiom(cls, 
+				fac.getOWLObjectSomeValuesFrom(getGeneAnnotationObjectProperty(Vocab.IN_TAXON), 
+						taxCls)));
+		
 		// TODO - other properties
+		
 		addAxioms(axioms);
 
 
