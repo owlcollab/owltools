@@ -36,6 +36,7 @@ public class GAFOWLBridgeTest extends OWLToolsTestBasics{
 		ParserWrapper pw = new ParserWrapper();
 		OWLOntology ont = pw.parse(getResourceIRIString("go_xp_predictor_test_subset.obo"));
 		OWLGraphWrapper g = new OWLGraphWrapper(ont);
+		g.addSupportOntology(pw.parse(getResourceIRIString("gorel.owl")));
 
 		GafObjectsBuilder builder = new GafObjectsBuilder();
 
