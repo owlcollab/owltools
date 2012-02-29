@@ -555,6 +555,7 @@ public class SimEngine {
 			return makeIntersectionPair((OWLClassExpression)a,(OWLClassExpression)b);
 		}
 
+		// TODO: for these two cases make a union class
 		if (isASubsumesB) {
 			LOG.info("A subsumes B");
 			return (OWLClassExpression) a;
