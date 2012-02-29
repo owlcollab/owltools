@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +35,7 @@ import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -45,6 +45,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -61,6 +62,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
@@ -143,9 +145,14 @@ public class CommandRunner {
 
 	private static Logger LOG = Logger.getLogger(CommandRunner.class);
 
-	OWLGraphWrapper g = null;
-	GafDocument gafdoc = null;
-	OWLOntology queryOntology = null;
+	public OWLGraphWrapper g = null;
+	public GafDocument gafdoc = null;
+	public OWLOntology queryOntology = null;
+	public boolean exitOnException = true;
+
+	public OWLReasoner reasoner = null;
+	public String reasonerName = "pellet";
+
 	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
 
 	public class Opts {
@@ -263,6 +270,13 @@ public class CommandRunner {
 
 	}
 
+	private void exit(int code) {
+		// if we are using this in a REPL context (e.g. owlrhino), we don't want to exit the shell
+		// on an error - reporting the error is sufficient
+		if (exitOnException)
+			System.exit(code);
+	}
+
 
 	public List<String> parseArgString(String str) {
 		List<String> args = new ArrayList<String>();
@@ -293,14 +307,6 @@ public class CommandRunner {
 
 	public void run(Opts opts) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException, URISyntaxException {
 
-		List<String> paths = new ArrayList<String>();
-
-		String reasonerClassName = "com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory";
-		OWLReasoner reasoner = null;
-		String reasonerName = "pellet";
-		boolean createNamedRestrictions = false;
-		boolean createDefaultInstances = false;
-		boolean merge = false;
 		OWLOntology simOnt = null;
 		Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = null;
 		OWLPrettyPrinter owlpp;
@@ -325,11 +331,9 @@ public class CommandRunner {
 			//String opt = opts.nextOpt();
 			//System.out.println("processing arg: "+opt);
 			if (opts.nextEq("--pellet")) {
-				reasonerClassName = "com.clarkparsia.pellet.owlapiv3.Reasoner";
 				reasonerName = "pellet";
 			}
 			else if (opts.nextEq("--hermit")) {
-				reasonerClassName = "org.semanticweb.HermiT.Reasoner";
 				reasonerName = "hermit";
 			}
 			else if (opts.nextEq("--use-reasoner")) {
@@ -338,16 +342,10 @@ public class CommandRunner {
 			else if (opts.nextEq("--reasoner")) {
 				reasonerName = opts.nextOpt();
 				g.setReasoner(createReasoner(g.getSourceOntology(),reasonerName,g.getManager()));
+				reasoner = g.getReasoner();
 			}
 			else if (opts.nextEq("--no-reasoner")) {
-				reasonerClassName = "";
 				reasonerName = "";
-			}
-			else if (opts.nextEq("-r") || opts.nextEq("--namerestr")) {
-				createNamedRestrictions = true;
-			}
-			else if (opts.nextEq("-i") || opts.nextEq("--inst")) {
-				createDefaultInstances = true;
 			}
 			else if (opts.nextEq("--log-info")) {
 				Logger.getRootLogger().setLevel(Level.INFO);
@@ -365,6 +363,15 @@ public class CommandRunner {
 				Set<OWLClass> clss = g.getSourceOntology().getClassesInSignature();
 				for (OWLClass c : clss) {
 					System.out.println(c);
+				}
+			}
+			else if (opts.nextEq("--object-to-label-table")) {
+				Set<OWLObject> objs = g.getAllOWLObjects();
+				for (OWLObject c : objs) {
+					if (c instanceof OWLNamedObject) {
+						String label = g.getLabel(c);
+						System.out.println(((OWLNamedObject)c).getIRI()+"\t"+label);
+					}
 				}
 			}
 			else if (opts.nextEq("--query-ontology")) {
@@ -424,11 +431,11 @@ public class CommandRunner {
 				pw.getManager().addIRIMapper(iriMapper);
 			}
 			else if (opts.nextEq("--remove-imports-declarations")) {
-				OWLOntology ont = g.getManager().createOntology(g.getSourceOntology().getOntologyID().getOntologyIRI());
-				for (OWLAxiom a : g.getSourceOntology().getAxioms()) {
-					g.getManager().addAxiom(ont, a);
+				Set<OWLImportsDeclaration> oids = g.getSourceOntology().getImportsDeclarations();
+				for (OWLImportsDeclaration oid : oids) {
+					RemoveImport ri = new RemoveImport(g.getSourceOntology(), oid);
+					g.getManager().applyChange(ri);
 				}
-				g.setSourceOntology(ont);
 			}
 			else if (opts.nextEq("--add-imports-declarations")) {
 				List<String> importsIRIs = opts.nextList();
@@ -963,11 +970,11 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--stash-subclasses")) {
 				opts.info("[-a][--prefix PREFIX][--ontology RECAP-ONTOLOGY-IRI", 
-						"removes all subclasses in current source ontology; after reasoning, try to re-infer these");
+				"removes all subclasses in current source ontology; after reasoning, try to re-infer these");
 				boolean isDefinedOnly = true;
 				Set<String> prefixes = new HashSet<String>();
 				OWLOntology recapOnt = g.getSourceOntology();
-				
+
 
 				while (opts.hasOpts()) {
 					if (opts.nextEq("--prefix")) {
@@ -1164,6 +1171,8 @@ public class CommandRunner {
 					System.out.println(d);
 			}
 			else if (opts.nextEq("--lcsx")) {
+				owlpp = new OWLPrettyPrinter(g);
+
 				opts.info("LABEL", "anonymous class expression 1");
 				OWLObject a = resolveEntity( opts);
 
@@ -1175,7 +1184,7 @@ public class CommandRunner {
 				SimEngine se = new SimEngine(g);
 				OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
 
-				System.out.println("LCS:"+lcs);
+				System.out.println("LCS:"+owlpp.render(lcs));
 			}
 			else if (opts.nextEq("--lcsx-all")) {
 				opts.info("LABEL", "ont 1");
@@ -1613,6 +1622,34 @@ public class CommandRunner {
 
 				g.getConfig().graphEdgeExcludeSet.add(new OWLQuantifiedProperty(p, null));	
 			}
+			else if (opts.nextEq("--exclusion-annotation-property")) {
+				opts.info("[-o ONT] PROP-LABEL", "exclude object properties of this type in graph traversal.\n"+
+				"     default is to exclude NONE.");
+				OWLOntology xo = g.getSourceOntology();
+				if (opts.hasOpts()) {
+					if (opts.nextEq("-o")) {
+						xo = pw.parse(opts.nextOpt());
+					}
+					else
+						break;
+				}
+				OWLAnnotationProperty ap = (OWLAnnotationProperty) g.getOWLObjectByLabel(opts.nextOpt());				
+				g.getConfig().excludeAllWith(ap, xo);	
+			}
+			else if (opts.nextEq("--inclusion-annotation-property")) {
+				opts.info("[-o ONT] PROP-LABEL", "include object properties of this type in graph traversal.\n"+
+				"     default is to include NONE.");
+				OWLOntology xo = g.getSourceOntology();
+				if (opts.hasOpts()) {
+					if (opts.nextEq("-o")) {
+						xo = pw.parse(opts.nextOpt());
+					}
+					else
+						break;
+				}
+				OWLAnnotationProperty ap = (OWLAnnotationProperty) g.getOWLObjectByLabel(opts.nextOpt());				
+				g.getConfig().includeAllWith(ap, xo);	
+			}
 			else if (opts.nextEq("--exclude-metaclass")) {
 				opts.info("METACLASS-LABEL", "exclude classes of this type in graph traversal.\n"+
 				"     default is to follow ALL classes");
@@ -1801,22 +1838,22 @@ public class CommandRunner {
 					e.printStackTrace();
 				}
 
-//				// Check to see if the global url has been set, otherwise use the local one.
-//				String url = sortOutSolrURL(opts, globalSolrURL);				
-//
-//				// Load remaining docs.
-//				List<String> files = opts.nextList();
-//				for (String file : files) {
-//					LOG.info("Parsing GAF: " + file);
-//					FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url);
-//					loader.setGafDocument(gafdoc);
-//					loader.setGraph(g);
-//					try {
-//						loader.load();
-//					} catch (SolrServerException e) {
-//						e.printStackTrace();
-//					}
-//				}
+				//				// Check to see if the global url has been set, otherwise use the local one.
+				//				String url = sortOutSolrURL(opts, globalSolrURL);				
+				//
+				//				// Load remaining docs.
+				//				List<String> files = opts.nextList();
+				//				for (String file : files) {
+				//					LOG.info("Parsing GAF: " + file);
+				//					FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url);
+				//					loader.setGafDocument(gafdoc);
+				//					loader.setGraph(g);
+				//					try {
+				//						loader.load();
+				//					} catch (SolrServerException e) {
+				//						e.printStackTrace();
+				//					}
+				//				}
 			}
 			// Used for loading a list of GAFs into GOlr.
 			else if (opts.nextEq("--load-gafs-solr")) {
@@ -1839,7 +1876,7 @@ public class CommandRunner {
 				// use a null variable...
 				if( gafdoc == null ){
 					System.err.println("No GAF document defined (maybe use '--gaf GAF-FILE') ");
-					System.exit(1);
+					exit(1);
 				}
 
 				// Check to see if the global url has been set, otherwise use the local one.
@@ -1855,12 +1892,12 @@ public class CommandRunner {
 				// Doc load.
 				loadGAFDoc(url, gafdoc);
 			}
-			
+
 			else if (opts.nextEq("--gaf-xp-predict")) {
 				owlpp = new OWLPrettyPrinter(g);
 				if (gafdoc == null) {
 					System.err.println("No gaf document (use '--gaf GAF-FILE') ");
-					System.exit(1);
+					exit(1);
 				}
 				AnnotationPredictor ap = new CompositionalClassPredictor(gafdoc, g);
 				Set<Prediction> predictions = ap.getAllPredictions();
@@ -2067,7 +2104,7 @@ public class CommandRunner {
 				}
 				catch (Exception e) {
 					System.err.println("could not parse:"+f+" Exception:"+e);
-					System.exit(1);
+					exit(1);
 				}
 
 
@@ -2107,7 +2144,7 @@ public class CommandRunner {
 	 * TODO: Convert all solr URL handling through here.
 	 */
 	private String sortOutSolrURL(Opts opts, String globalSolrURL){
-	
+
 		String url = null;
 		if( globalSolrURL == null ){
 			url = opts.nextOpt();
@@ -2115,7 +2152,7 @@ public class CommandRunner {
 			url = globalSolrURL;
 		}
 		LOG.info("Use GOlr server at: " + url);
-		
+
 		return url;
 	}
 
@@ -2123,7 +2160,7 @@ public class CommandRunner {
 	 * Wrapper multiple places where there is direct GAF loading.
 	 */
 	private void loadGAFDoc(String url, GafDocument gafdoc) throws IOException{
-	
+
 		// Doc load.
 		GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
 		loader.setGafDocument(gafdoc);
@@ -2261,7 +2298,6 @@ public class CommandRunner {
 	}
 
 	public Set<OWLObject> resolveEntityList(Opts opts) {
-		OWLObject obj = null;
 		List<String> ids = opts.nextList();
 		Set<OWLObject> objs = new HashSet<OWLObject>();
 		for (String id: ids) {
@@ -2273,7 +2309,6 @@ public class CommandRunner {
 
 	// todo - move to util
 	public OWLObject resolveEntity(Opts opts) {
-		OWLObject obj = null;
 		String id = opts.nextOpt(); // in future we will allow resolution by name etc
 		return resolveEntity(id);
 	}
