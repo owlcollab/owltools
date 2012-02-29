@@ -1,0 +1,69 @@
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: obo: <http://purl.obolibrary.org/obo/>
+Prefix: : <http://purl.obolibrary.org/obo/FOO_>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: dc: <http://purl.org/dc/elements/1.1/>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+Ontology: <http://purl.obolibrary.org/obo/scratch.owl>
+
+ObjectProperty: :part_of
+  Characteristics: Transitive
+  Annotations: :includeMe true
+
+ObjectProperty: :has_part
+   Annotations: :includeMe true
+  Characteristics: Transitive
+
+ObjectProperty: :develops_from
+  SubPropertyChain: :develops_from o :part_of
+  Characteristics: Transitive
+   Annotations: :includeMe true
+  
+ObjectProperty: :has_developmental_contribution_from
+  SubPropertyChain: :has_part o :develops_from
+  Annotations: :includeMe true
+
+ObjectProperty: :adjacent_to
+  Annotations: :excludeMe true
+
+Class: :finger
+  SubClassOf: :part_of some :hand
+  
+Class: :hand
+  SubClassOf: :part_of some :limb,
+    :has_part some :limb
+  
+Class: :limb
+  SubClassOf: :has_part some :hand, :develops_from some :limb_bud, :part_of some :organism, :adjacent_to some :trunk
+
+Class: :limb_bud
+  SubClassOf: :develops_from some :limb_field
+  
+Class: :limb_field
+
+Class: :organism
+  SubClassOf: :has_part some :limb, :has_part some :head
+  
+Class: :head
+  SubClassOf: :part_of some :organism
+  
+Class: :trunk
+  SubClassOf: :part_of some :organism
+
+AnnotationProperty: :excludeMe
+  Annotations: rdfs:label "exclude me"
+
+
+ObjectProperty: :part_of_has_part
+  Annotations: :excludeMe true
+  SubPropertyChain: :part_of o :has_part
+  
+AnnotationProperty: :includeMe
+  Annotations: rdfs:label "include me"
+  
+  
+  
