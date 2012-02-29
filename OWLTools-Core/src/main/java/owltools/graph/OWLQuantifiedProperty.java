@@ -150,6 +150,11 @@ public class OWLQuantifiedProperty {
 			
 	}
 
+	/**
+	 * true if this is equal to other. Nulls are considered to match
+	 * @param other
+	 * @return
+	 */
 	public boolean subsumes(OWLQuantifiedProperty other) {
 		if ((quantifier == null || quantifier == other.getQuantifier())
 				&&
