@@ -13,17 +13,19 @@ public class AnnotationRuleViolation {
 	private Set<GeneAnnotation> suggestedReplacements;
 	private GeneAnnotation sourceAnnotation;
 	private String annotationRow;
-	private String gafDoument;
-	private String ruleId;
-	private int lineNumber;
+	private String gafDocument;
+	private final String ruleId;
+	private int lineNumber = -1;
 
 	/**
 	 * Create a simple violation from with a given message.
 	 * 
+	 * @param ruleId 
 	 * @param msg
 	 */
-	public AnnotationRuleViolation(String msg) {
+	public AnnotationRuleViolation(String ruleId, String msg) {
 		super();
+		this.ruleId = ruleId;
 		message = msg;
 	}
 
@@ -31,11 +33,12 @@ public class AnnotationRuleViolation {
 	 * Create a violation object with a message and a the corresponding source
 	 * annotation.
 	 * 
+	 * @param ruleId 
 	 * @param message
 	 * @param sourceAnnotation
 	 */
-	public AnnotationRuleViolation(String message, GeneAnnotation sourceAnnotation) {
-		this(message);
+	public AnnotationRuleViolation(String ruleId, String message, GeneAnnotation sourceAnnotation) {
+		this(ruleId, message);
 		setSourceAnnotation(sourceAnnotation);
 	}
 
@@ -43,20 +46,17 @@ public class AnnotationRuleViolation {
 	 * Create a violation object with a message and a the corresponding
 	 * annotation row.
 	 * 
+	 * @param ruleId 
 	 * @param message
 	 * @param annotationRow
 	 */
-	public AnnotationRuleViolation(String message, String annotationRow) {
-		this(message);
+	public AnnotationRuleViolation(String ruleId, String message, String annotationRow) {
+		this(ruleId, message);
 		this.annotationRow = annotationRow;
 	}
 
 	public String getRuleId() {
 		return ruleId;
-	}
-
-	public void setRuleId(String ruleId) {
-		this.ruleId = ruleId;
 	}
 
 	public String getMessage() {
@@ -82,7 +82,7 @@ public class AnnotationRuleViolation {
 			if (sourceAnnotation.getSource() != null) {
 				this.annotationRow = sourceAnnotation.getSource().getRow();
 				this.lineNumber = sourceAnnotation.getSource().getLineNumber();
-				this.gafDoument = sourceAnnotation.getSource().getFileName();
+				this.gafDocument = sourceAnnotation.getSource().getFileName();
 			}
 		}
 	}
@@ -103,15 +103,50 @@ public class AnnotationRuleViolation {
 		this.lineNumber = lineNumber;
 	}
 
-	public String getGafDoument() {
+	public String getGafDocument() {
 		if (this.sourceAnnotation != null)
 			return this.sourceAnnotation.getGafDocument();
 
-		return gafDoument;
+		return gafDocument;
 	}
 
 	public void setGafDoument(String gafDoument) {
-		this.gafDoument = gafDoument;
+		this.gafDocument = gafDoument;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("AnnotationRuleViolation [");
+		builder.append("ruleId=");
+		builder.append(ruleId);
+		if (lineNumber >= 0) {
+			builder.append(", ");
+			builder.append("lineNumber=");
+			builder.append(lineNumber);
+		}
+		if (message != null) {
+			builder.append(", ");
+			builder.append("message=");
+			builder.append(message);
+		}
+		if (suggestedReplacements != null) {
+			builder.append(", ");
+			builder.append("suggestedReplacements=");
+			builder.append(suggestedReplacements);
+		}
+		if (sourceAnnotation != null) {
+			builder.append(", ");
+			builder.append("sourceAnnotation=");
+			builder.append(sourceAnnotation);
+		}
+		if (annotationRow != null) {
+			builder.append(", ");
+			builder.append("annotationRow=");
+			builder.append(annotationRow);
+		}
+		builder.append("]");
+		return builder.toString();
 	}
 
 }

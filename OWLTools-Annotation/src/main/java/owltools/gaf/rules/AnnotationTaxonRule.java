@@ -58,8 +58,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		Set<AnnotationRuleViolation> violations = new HashSet<AnnotationRuleViolation>();
 	
 		if(taxonCls == null){
-			AnnotationRuleViolation v = new AnnotationRuleViolation("Taxon id is null", a);
-			v.setRuleId(getRuleId());
+			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "Taxon id is null", a);
 			violations.add(v);
 			return violations;
 		}
@@ -68,49 +67,46 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		OWLObject tax = taxGraphWrapper.getOWLObjectByIdentifier(taxonCls);
 		
 		
-//		Set<OWLGraphEdge> edges = graphWrapper.getOutgoingEdgesClosure(cls);
 		Set<OWLGraphEdge> edges = taxGraphWrapper.getOutgoingEdgesClosure(cls);
 
-		// TODO - requires correct obo2owl translation for negation and only constructs
-		// ALTERNATIVE HACK - load taxonomy into separate ontology
-		boolean isValid = true;
 		for (OWLGraphEdge ge : edges) {
 			OWLObject tgt = ge.getTarget();
 			if (!(tgt instanceof OWLNamedObject))
 				continue;
 			OWLObject p = taxGraphWrapper.getOWLClass(tgt);
-			//System.out.println("edge: "+ge+" prop:"+ge.getLastQuantifiedProperty().getProperty());
+			if (p == null) {
+				continue;
+			}
 			OWLQuantifiedProperty qp = ge.getLastQuantifiedProperty();
 			if (qp.isQuantified() && qp.getProperty().equals(rOnly)) {
-				//System.out.println("   ONLY: "+rOnly+" p:"+p);
 				// ONLY
 				if (!taxGraphWrapper.getAncestorsReflexive(tax).contains(p)) {
 					StringBuilder sb = new StringBuilder();
-					sb.append("ANCESTORS OF ");
-					renderEntity(sb, tax, taxGraphWrapper);
-					sb.append(" DOES NOT CONTAIN ");
+					sb.append("The term ");
+					renderEntity(sb, cls, graphWrapper);
+					sb.append("requires the taxon ");
 					renderEntity(sb, p, taxGraphWrapper);
+					sb.append(", but ");
+					renderEntity(sb, tax, taxGraphWrapper);
+					sb.append(" does not match this constraint");
 					// System.out.println("   "+sb);
 					
-					AnnotationRuleViolation v = new AnnotationRuleViolation(sb.toString(), a);
-					v.setRuleId(getRuleId());
+					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), sb.toString(), a);
 					violations.add(v);
-					isValid = false;
 				}
 			}
 			else if (qp.isQuantified() && qp.getProperty().equals(rNever)) {
-				//System.out.println("   NEVER: "+rOnly+" p:"+p);
 				// NEVER
 				if (taxGraphWrapper.getAncestorsReflexive(tax).contains(p)) {
 					StringBuilder sb = new StringBuilder();
-					sb.append("ANCESTORS OF ");
+					sb.append("The term ");
+					renderEntity(sb, cls, graphWrapper);
+					sb.append(" may not be used with ");
 					renderEntity(sb, tax, taxGraphWrapper);
-					sb.append(" CONTAINS ");
+					sb.append(" reason: excluded ancestor ");
 					renderEntity(sb, p, taxGraphWrapper);
-					AnnotationRuleViolation v = new AnnotationRuleViolation(sb.toString(), a);
-					v.setRuleId(getRuleId());
+					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), sb.toString(), a);
 					violations.add(v);
-					isValid = false;
 				}
 			}
 		}

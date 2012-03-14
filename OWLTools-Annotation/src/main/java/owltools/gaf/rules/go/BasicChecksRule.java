@@ -120,8 +120,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		try{
 			dtFormat.get().parse(dtString);
 		}catch(Exception ex){
-			AnnotationRuleViolation v = new AnnotationRuleViolation("The date in the column 14 is of incorrect format in the row: " , a);
-			v.setRuleId(getRuleId());
+			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "The date in the column 14 is of incorrect format in the row: " , a);
 			set.add(v);
 		}
 		
@@ -134,8 +133,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		
 		//check db abbreviations
 		if(!db_abbreviations.contains(cols[0])){
-			AnnotationRuleViolation v= new AnnotationRuleViolation("The DB '" + cols[0] + "'  referred in the column 1 is incorrect in the row: " , a);
-			v.setRuleId(getRuleId());
+			AnnotationRuleViolation v= new AnnotationRuleViolation(getRuleId(), "The DB '" + cols[0] + "'  referred in the column 1 is incorrect in the row: " , a);
 			set.add(v);
 		}
 		
@@ -157,14 +155,12 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		}*/
 		
 		if(min>=1 && value.length()==0){
-			AnnotationRuleViolation v = new AnnotationRuleViolation(columnName +" value is not supplied in the row: " ,a );
-			v.setRuleId(getRuleId());
+			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), columnName +" value is not supplied in the row: " ,a );
 			voilations.add(v);
 		}
 		
 		if(max==1 && value.contains("|")){
-			AnnotationRuleViolation v = new AnnotationRuleViolation(columnName +" cardinality is found greate than 1 in the row: " ,a);
-			v.setRuleId(getRuleId());
+			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), columnName +" cardinality is found greate than 1 in the row: " ,a);
 			voilations.add(v);
 		}
 		
@@ -173,8 +169,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 			String tokens[] = value.split("\\|");
 			
 			if(max==2 && tokens.length>2){
-				AnnotationRuleViolation v = new AnnotationRuleViolation(columnName +" cardinality is found greate than 2 in the row: " ,a);
-				v.setRuleId(getRuleId());
+				AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), columnName +" cardinality is found greate than 2 in the row: " ,a);
 				voilations.add(v);
 			}
 			
@@ -193,16 +188,14 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 			return;
 		
 		if(value.contains(" ")){
-			AnnotationRuleViolation v = new AnnotationRuleViolation("White Spaces are found in the " + columnName+ " column in the row: " ,a);
-			v.setRuleId(getRuleId());
+			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "White Spaces are found in the " + columnName+ " column in the row: " ,a);
 			voilations.add(v);
 		}
 	}
 	
 	private void checkTaxon(String value, String row, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
 		if(!value.startsWith("taxon")){
-			AnnotationRuleViolation v = new AnnotationRuleViolation("The taxon id in the column 13 is of in correct format in the row :" ,a);
-			v.setRuleId(getRuleId());
+			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "The taxon id in the column 13 is of in correct format in the row :" ,a);
 			voilations.add(v);
 		}
 		
@@ -210,8 +203,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 			String taxon = value.substring("taxon:".length());
 			Integer.parseInt(taxon);
 		}catch(Exception ex){
-			AnnotationRuleViolation v = new AnnotationRuleViolation("The taxon id in the column 13 is not an integer value :" ,a);
-			v.setRuleId(getRuleId());
+			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "The taxon id in the column 13 is not an integer value :" ,a);
 			voilations.add(v);
 		}
 	}
@@ -221,7 +213,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 	private void checkWhiteSpaces(String value, String columnName, HashSet<AnnotationRuleViolation> set, GeneAnnotation a){
 
 		if(value.length() != value.trim().length()){
-			set.add(new AnnotationRuleViolation("Spaces are not allowed in the " + columnName+ " column", a));
+			set.add(new AnnotationRuleViolation(getRuleId(), "Spaces are not allowed in the " + columnName+ " column", a));
 		}
 		
 	}
@@ -229,19 +221,19 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 	private void checkCardinality(String value, String columnName, HashSet<AnnotationRuleViolation> set, GeneAnnotation a, int min, int max){
 
 		if(min>0 && value.length() != value.trim().length()){
-			set.add(new AnnotationRuleViolation("Spaces are not allowed in the " + columnName+ " column", a));
+			set.add(new AnnotationRuleViolation(getRuleId(), "Spaces are not allowed in the " + columnName+ " column", a));
 		}
 
 		if(min==0 && value != null && value.length() != value.trim().length()){
-			set.add(new AnnotationRuleViolation("Spaces are not allowed in the " + columnName+ " column", a));
+			set.add(new AnnotationRuleViolation(getRuleId(), "Spaces are not allowed in the " + columnName+ " column", a));
 		}
 		
 		if(min>=1 && value.length()==0){
-			set.add(new AnnotationRuleViolation(columnName +" column cannot be empty", a));
+			set.add(new AnnotationRuleViolation(getRuleId(), columnName +" column cannot be empty", a));
 		}
 		
 		if(max==1 && value.contains("|")){
-			set.add(new AnnotationRuleViolation(columnName +" colmn cardinality cannt be greater than 1", a));
+			set.add(new AnnotationRuleViolation(getRuleId(), columnName +" colmn cardinality cannt be greater than 1", a));
 		}
 		
 		String tokens[] = value.split("|");

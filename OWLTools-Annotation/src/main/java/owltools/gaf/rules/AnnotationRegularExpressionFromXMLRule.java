@@ -41,8 +41,7 @@ public class AnnotationRegularExpressionFromXMLRule extends
 		Matcher m = pattern.matcher(ann.toString());
 		
 		if(m.find()){
-			AnnotationRuleViolation v = new AnnotationRuleViolation(this.errorMessage, ann);
-			v.setRuleId(this.getRuleId());
+			AnnotationRuleViolation v = new AnnotationRuleViolation(this.getRuleId(), this.errorMessage, ann);
 			voilations.add(v);
 		}
 	}
