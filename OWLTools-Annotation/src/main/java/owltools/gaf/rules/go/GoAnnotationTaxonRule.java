@@ -28,10 +28,9 @@ public class GoAnnotationTaxonRule extends AnnotationTaxonRule {
 	
 	/**
 	 * @param graphWrapper
-	 * @param taxGraphWrapper
 	 */
-	public GoAnnotationTaxonRule(OWLGraphWrapper graphWrapper, OWLGraphWrapper taxGraphWrapper) {
-		super(graphWrapper, taxGraphWrapper, neverId, onlyId);
+	public GoAnnotationTaxonRule(OWLGraphWrapper graphWrapper) {
+		super(graphWrapper, neverId, onlyId);
 	}
 
 }

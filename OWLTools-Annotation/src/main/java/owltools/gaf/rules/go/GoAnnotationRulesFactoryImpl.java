@@ -19,32 +19,21 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 	public GoAnnotationRulesFactoryImpl() {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
 				"http://www.geneontology.org/doc/GO.xrf_abbs",
-				"http://www.geneontology.org/ontology/editors/gene_ontology_write.obo",
-				Arrays.asList("http://www.geneontology.org/ontology/obo_format_1_2/gene_ontology_ext.obo",
+				Arrays.asList("http://www.geneontology.org/ontology/editors/gene_ontology_write.obo",
 					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/taxon_go_triggers.obo",
 					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/ncbi_taxon_slim.obo",
 					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/taxon_union_terms.obo"));
 	}
 	
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, String ontologylocation, List<String> taxonomylocation) {
-		this(qcfile, xrfabbslocation, getOntology(ontologylocation), getOntologies(taxonomylocation));
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, List<String> ontologies) {
+		this(qcfile, xrfabbslocation, getOntologies(ontologies));
 	}
 	
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graphWrapper, OWLGraphWrapper taxGraphWrapper) {
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph) {
 		super(qcfile);
 		basicChecksRule = new BasicChecksRule(xrfabbslocation);
-		taxonRule = new GoAnnotationTaxonRule(graphWrapper, taxGraphWrapper);
-		referenceAnnotationRule = new GoClassReferenceAnnotationRule(graphWrapper);
-	}
-	
-	private static OWLGraphWrapper getOntology(String ontologylocation) {
-		try {
-			ParserWrapper p = new ParserWrapper();
-			OWLGraphWrapper graphWrapper = p.parseToOWLGraph(ontologylocation);
-			return graphWrapper;
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		taxonRule = new GoAnnotationTaxonRule(graph);
+		referenceAnnotationRule = new GoClassReferenceAnnotationRule(graph);
 	}
 	
 	private static OWLGraphWrapper getOntologies(List<String> ontologylocations) {

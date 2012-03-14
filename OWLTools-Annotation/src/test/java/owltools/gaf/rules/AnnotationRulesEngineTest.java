@@ -25,14 +25,13 @@ public class AnnotationRulesEngineTest {
 	public static void setUpBeforeClass() throws Exception {
 		String qcfile = LOCATION + "annotation_qc.xml";
 		String xrfabbslocation = LOCATION + "GO.xrf_abbs";
-		String ontologylocation = LOCATION + "taxon/gene_ontology_ext.obo";
 		List<String> taxonomylocation = Arrays.asList(LOCATION + "taxon/gene_ontology_ext.obo", 
 				LOCATION + "taxon/ncbi_taxon_slim.obo",
 				LOCATION + "taxon/taxon_go_triggers.obo", 
 				LOCATION + "taxon/taxon_union_terms.obo");
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
-				qcfile, xrfabbslocation, ontologylocation, taxonomylocation);
+				qcfile, xrfabbslocation, taxonomylocation);
 		engine = new AnnotationRulesEngine(-1, rulesFactory);
 	}
 

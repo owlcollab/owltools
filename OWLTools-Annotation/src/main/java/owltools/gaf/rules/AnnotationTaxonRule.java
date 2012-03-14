@@ -18,27 +18,23 @@ import owltools.graph.OWLQuantifiedProperty;
  */
 public class AnnotationTaxonRule extends AbstractAnnotationRule {
 	
-	private final OWLGraphWrapper graphWrapper;
-	private final OWLGraphWrapper taxGraphWrapper;
+	private final OWLGraphWrapper graph;
 	private final OWLObject rNever;
 	private final OWLObject rOnly;
 	
 	/**
-	 * @param graphWrapper
-	 * @param taxGraphWrapper
+	 * @param graph The {@link OWLGraphWrapper} with merged-in taxon constraints
 	 * @param neverId
 	 * @param onlyId 
 	 */
-	public AnnotationTaxonRule(OWLGraphWrapper graphWrapper, OWLGraphWrapper taxGraphWrapper, 
-			String neverId, String onlyId) {
+	public AnnotationTaxonRule(OWLGraphWrapper graph, String neverId, String onlyId) {
 		
-		if(graphWrapper == null || taxGraphWrapper == null){
-			throw new IllegalArgumentException("OWLGraphWrappers may not be null");
+		if(graph == null){
+			throw new IllegalArgumentException("OWLGraphWrapper may not be null");
 		}
-		this.graphWrapper = graphWrapper;
-		this.taxGraphWrapper = taxGraphWrapper;
-		rNever = graphWrapper.getOWLObjectPropertyByIdentifier(neverId);
-		rOnly = graphWrapper.getOWLObjectPropertyByIdentifier(onlyId);
+		this.graph = graph;
+		rNever = graph.getOWLObjectPropertyByIdentifier(neverId);
+		rOnly = graph.getOWLObjectPropertyByIdentifier(onlyId);
 	}
 
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
@@ -63,31 +59,31 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 			return violations;
 		}
 		
-		OWLObject cls = graphWrapper.getOWLObjectByIdentifier(annotationCls);
-		OWLObject tax = taxGraphWrapper.getOWLObjectByIdentifier(taxonCls);
+		OWLObject cls = graph.getOWLObjectByIdentifier(annotationCls);
+		OWLObject tax = graph.getOWLObjectByIdentifier(taxonCls);
 		
 		
-		Set<OWLGraphEdge> edges = taxGraphWrapper.getOutgoingEdgesClosure(cls);
+		Set<OWLGraphEdge> edges = graph.getOutgoingEdgesClosure(cls);
 
 		for (OWLGraphEdge ge : edges) {
 			OWLObject tgt = ge.getTarget();
 			if (!(tgt instanceof OWLNamedObject))
 				continue;
-			OWLObject p = taxGraphWrapper.getOWLClass(tgt);
+			OWLObject p = graph.getOWLClass(tgt);
 			if (p == null) {
 				continue;
 			}
 			OWLQuantifiedProperty qp = ge.getLastQuantifiedProperty();
 			if (qp.isQuantified() && qp.getProperty().equals(rOnly)) {
 				// ONLY
-				if (!taxGraphWrapper.getAncestorsReflexive(tax).contains(p)) {
+				if (!graph.getAncestorsReflexive(tax).contains(p)) {
 					StringBuilder sb = new StringBuilder();
 					sb.append("The term ");
-					renderEntity(sb, cls, graphWrapper);
+					renderEntity(sb, cls, graph);
 					sb.append("requires the taxon ");
-					renderEntity(sb, p, taxGraphWrapper);
+					renderEntity(sb, p, graph);
 					sb.append(", but ");
-					renderEntity(sb, tax, taxGraphWrapper);
+					renderEntity(sb, tax, graph);
 					sb.append(" does not match this constraint");
 					// System.out.println("   "+sb);
 					
@@ -97,14 +93,14 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 			}
 			else if (qp.isQuantified() && qp.getProperty().equals(rNever)) {
 				// NEVER
-				if (taxGraphWrapper.getAncestorsReflexive(tax).contains(p)) {
+				if (graph.getAncestorsReflexive(tax).contains(p)) {
 					StringBuilder sb = new StringBuilder();
 					sb.append("The term ");
-					renderEntity(sb, cls, graphWrapper);
+					renderEntity(sb, cls, graph);
 					sb.append(" may not be used with ");
-					renderEntity(sb, tax, taxGraphWrapper);
+					renderEntity(sb, tax, graph);
 					sb.append(" reason: excluded ancestor ");
-					renderEntity(sb, p, taxGraphWrapper);
+					renderEntity(sb, p, graph);
 					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), sb.toString(), a);
 					violations.add(v);
 				}
