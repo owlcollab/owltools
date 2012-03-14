@@ -1,5 +1,6 @@
 package owltools.gaf.rules;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -19,7 +20,7 @@ public class AnnotationRulesEngine {
 	
 	private final AnnotationRulesFactory rulesFactory;
 	
-	private Map<String, Set<AnnotationRuleViolation>> annotationRuleViolations;
+	private Map<String, List<AnnotationRuleViolation>> annotationRuleViolations;
 	private Map<String, Integer> annotationRuleViolationsCounter;
 	
 	private int annotationVoilationLimit;
@@ -33,12 +34,13 @@ public class AnnotationRulesEngine {
 	public AnnotationRulesEngine(int annotationVoilationLimit, AnnotationRulesFactory rulesFactory){
 		this.rulesFactory = rulesFactory;
 		this.annotationVoilationLimit = annotationVoilationLimit;
-		annotationRuleViolations = new Hashtable<String, Set<AnnotationRuleViolation>>();
+		annotationRuleViolations = new Hashtable<String, List<AnnotationRuleViolation>>();
 		annotationRuleViolationsCounter = new Hashtable<String, Integer>();
+		rulesFactory.init();
 	}
 	
 	
-	public Map<String, Set<AnnotationRuleViolation>> validateAnnotations(GafDocument doc) throws AnnotationRuleCheckException{
+	public Map<String, List<AnnotationRuleViolation>> validateAnnotations(GafDocument doc) throws AnnotationRuleCheckException{
 		
 		List<AnnotationRule> rules = rulesFactory.getRules();
 		if(rules == null || rules.isEmpty()){
@@ -54,12 +56,12 @@ public class AnnotationRulesEngine {
 						continue;
 					
 					for(AnnotationRuleViolation av: rule.getRuleViolations(annotation)){
-						Set<AnnotationRuleViolation> setV= annotationRuleViolations.get(av.getRuleId());
+						List<AnnotationRuleViolation> list= annotationRuleViolations.get(av.getRuleId());
 						Integer counter = annotationRuleViolationsCounter.get(av.getRuleId());
-						if(setV == null){
-							setV = new HashSet<AnnotationRuleViolation>();
-							setV = Collections.synchronizedSet(setV);
-							annotationRuleViolations.put(av.getRuleId(), setV);
+						if(list == null){
+							list = new ArrayList<AnnotationRuleViolation>();
+							list = Collections.synchronizedList(list);
+							annotationRuleViolations.put(av.getRuleId(), list);
 							counter = 0;
 						}
 						
@@ -67,7 +69,7 @@ public class AnnotationRulesEngine {
 							rulesNotToRun.add(rule.getRuleId());
 						}
 						else {	
-							setV.add(av);
+							list.add(av);
 						}
 						
 						annotationRuleViolationsCounter.put(av.getRuleId(), counter+1);

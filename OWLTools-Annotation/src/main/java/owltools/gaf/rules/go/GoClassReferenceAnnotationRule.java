@@ -27,13 +27,14 @@ public class GoClassReferenceAnnotationRule extends AbstractAnnotationRule {
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
 
 		HashSet<AnnotationRuleViolation> set = new HashSet<AnnotationRuleViolation>();
-		String cls = a.getCls().replace(":", "_");
+		String id = a.getCls();
+		String cls = id.replace(":", "_");
 
 		OWLClass owlClass = graph.getOWLClass(Obo2OWLConstants.DEFAULT_IRI_PREFIX + cls);
 
 		if (owlClass == null) {
 			AnnotationRuleViolation v = new AnnotationRuleViolation(
-					"The GO id in the annotation is a dangling reference", a);
+					"The id '"+id+"' in the annotation is a dangling reference", a);
 			v.setRuleId(getRuleId());
 			set.add(v);
 		}
@@ -42,7 +43,7 @@ public class GoClassReferenceAnnotationRule extends AbstractAnnotationRule {
 
 		if (isObsolete) {
 			AnnotationRuleViolation arv = new AnnotationRuleViolation(
-					"The GO id in the annotation is a obsolete class", a);
+					"The id '"+id+"' in the annotation is a obsolete class", a);
 			arv.setRuleId(getRuleId());
 			
 			// arv.setSuggestedReplacements(suggestedReplacements)

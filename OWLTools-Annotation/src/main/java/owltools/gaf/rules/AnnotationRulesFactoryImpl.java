@@ -25,17 +25,24 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 
 	private static Logger LOG = Logger.getLogger(AnnotationRulesFactoryImpl.class);
 	
-	private List<AnnotationRule> rules = null;
+	private final List<AnnotationRule> rules;
+	private final String path;
+	
+	private boolean isInitalized = false;
 	
 	/**
 	 * @param path location of the annotation_qc.xml file
 	 */
 	protected AnnotationRulesFactoryImpl(String path){
-		init(path);
+		this.path = path;
+		rules = new ArrayList<AnnotationRule>();
 	}
 	
-	private void init(String path) {
-		rules = new ArrayList<AnnotationRule>();
+	@Override
+	public synchronized void init() {
+		if (isInitalized) {
+			return;
+		}
 		SAXBuilder builder = new SAXBuilder();
 		Document doc = null;
 		try {
@@ -57,6 +64,8 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 		
 		loadRegex(doc);
 		loadJava(doc);
+		
+		isInitalized = true;
 	}
 
 	private void loadJava(Document doc) {
@@ -77,8 +86,13 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 		    	if(className != null){
 		    		try{
 		    			AnnotationRule rule = getClassForName(className);
-		    			rule.setRuleId(id);
-		    			rules.add(rule);
+		    			if (rule == null) {
+							LOG.warn("No implementation found for: "+className);
+						}
+		    			else {
+		    				rule.setRuleId(id);
+		    				rules.add(rule);
+		    			}
 		    		}catch(Exception ex){
 		    			LOG.error(ex.getMessage(), ex);
 		    		}
@@ -152,6 +166,9 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	
 	@Override
 	public List<AnnotationRule> getRules(){
+		if (!isInitalized) {
+			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
+		}
 		return this.rules;
 	}
 	

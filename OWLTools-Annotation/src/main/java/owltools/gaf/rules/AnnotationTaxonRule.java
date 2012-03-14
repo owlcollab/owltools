@@ -7,8 +7,6 @@ import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.rules.AbstractAnnotationRule;
-import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
@@ -87,8 +85,14 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 				//System.out.println("   ONLY: "+rOnly+" p:"+p);
 				// ONLY
 				if (!taxGraphWrapper.getAncestorsReflexive(tax).contains(p)) {
-					//System.out.println("   ANCESTORS OF "+tax+" DOES NOT CONTAIN "+p);
-					AnnotationRuleViolation v = new AnnotationRuleViolation("ANCESTORS OF "+tax+" DOES NOT CONTAIN "+p, a);
+					StringBuilder sb = new StringBuilder();
+					sb.append("ANCESTORS OF ");
+					renderEntity(sb, tax, taxGraphWrapper);
+					sb.append(" DOES NOT CONTAIN ");
+					renderEntity(sb, p, taxGraphWrapper);
+					// System.out.println("   "+sb);
+					
+					AnnotationRuleViolation v = new AnnotationRuleViolation(sb.toString(), a);
 					v.setRuleId(getRuleId());
 					violations.add(v);
 					isValid = false;
@@ -98,7 +102,12 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 				//System.out.println("   NEVER: "+rOnly+" p:"+p);
 				// NEVER
 				if (taxGraphWrapper.getAncestorsReflexive(tax).contains(p)) {
-					AnnotationRuleViolation v = new AnnotationRuleViolation("ANCESTORS OF "+tax+" CONTAINS "+p, a);
+					StringBuilder sb = new StringBuilder();
+					sb.append("ANCESTORS OF ");
+					renderEntity(sb, tax, taxGraphWrapper);
+					sb.append(" CONTAINS ");
+					renderEntity(sb, p, taxGraphWrapper);
+					AnnotationRuleViolation v = new AnnotationRuleViolation(sb.toString(), a);
 					v.setRuleId(getRuleId());
 					violations.add(v);
 					isValid = false;
@@ -106,6 +115,16 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 			}
 		}
 		return violations;	
+	}
+	
+	private void renderEntity(StringBuilder sb, OWLObject o, OWLGraphWrapper graph) {
+		sb.append(graph.getIdentifier(o));
+		String label = graph.getLabel(o);
+		if (label != null) {
+			sb.append(" '");
+			sb.append(label);
+			sb.append('\'');
+		}
 	}
 }
 
