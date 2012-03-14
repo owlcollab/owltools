@@ -17,6 +17,7 @@ import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 
 public class AnnotationRulesEngineTest {
 
+	private static boolean renderViolations = false;
 	private static final String LOCATION = "src/test/resources/rules/";
 	private static AnnotationRulesEngine engine = null;
 
@@ -41,8 +42,14 @@ public class AnnotationRulesEngineTest {
 		GafDocument gafdoc = builder.buildDocument("src/test/resources/test_gene_association_mgi.gaf");			
 		Map<String, List<AnnotationRuleViolation>> allViolations = engine.validateAnnotations(gafdoc);
 		
-		assertFalse(allViolations.isEmpty());
-		renderViolations(allViolations);
+		assertEquals(4, allViolations.size()); // 4 types of rule violations
+		assertEquals(2, allViolations.get("GO_AR:0000001").size());
+		assertEquals(9, allViolations.get("GO_AR:0000003").size());
+		assertEquals(7, allViolations.get("GO_AR:0000013").size());
+		assertEquals(1, allViolations.get("GO_AR:0000014").size());
+		if (renderViolations) {
+			renderViolations(allViolations);
+		}
 	}
 
 	private static void renderViolations(Map<String, List<AnnotationRuleViolation>> allViolations) {
