@@ -7,7 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URISyntaxException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,18 +16,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
-import org.obolibrary.oboformat.model.FrameMergeException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
@@ -37,7 +33,6 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
-import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
@@ -58,7 +53,6 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
@@ -72,16 +66,9 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
-import owltools.gaf.GeneAnnotation;
-import owltools.gaf.inference.AnnotationPredictor;
-import owltools.gaf.inference.CompositionalClassPredictor;
-import owltools.gaf.inference.Prediction;
+import owltools.cli.tools.CLIMethod;
 import owltools.gaf.inference.TaxonConstraintsEngine;
-import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
@@ -107,17 +94,6 @@ import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.OWLExtendedReasoner;
-import owltools.sim.DescriptionTreeSimilarity;
-import owltools.sim.MultiSimilarity;
-import owltools.sim.OWLObjectPair;
-import owltools.sim.Reporter;
-import owltools.sim.SimEngine;
-import owltools.sim.SimEngine.SimilarityAlgorithmException;
-import owltools.sim.SimSearch;
-import owltools.sim.Similarity;
-import owltools.solrj.FlexSolrDocumentLoader;
-import owltools.solrj.GafSolrDocumentLoader;
-import owltools.solrj.OntologySolrLoader;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
@@ -135,18 +111,22 @@ import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
 /**
  * An instance of this class can execute owltools commands in sequence.
  * 
- * This is typically wrapper from within a main() method
+ * Typically, this class is called from a wrapper within its main() method.
  * 
+ * Extend this class to implement additional functions. Use the {@link CLIMethod} 
+ * annotation, to designate the relevant methods.
  * 
  * @author cjm
  *
+ * @see GafCommandRunner
+ * @see SolrCommandRunner
+ * @see SimCommandRunner
  */
 public class CommandRunner {
 
 	private static Logger LOG = Logger.getLogger(CommandRunner.class);
 
 	public OWLGraphWrapper g = null;
-	public GafDocument gafdoc = null;
 	public OWLOntology queryOntology = null;
 	public boolean exitOnException = true;
 
@@ -154,6 +134,9 @@ public class CommandRunner {
 	public String reasonerName = "pellet";
 
 	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
+	
+	protected ParserWrapper pw = new ParserWrapper();
+	protected OWLPrettyPrinter owlpp;
 
 	public class Opts {
 		int i = 0;
@@ -264,13 +247,17 @@ public class CommandRunner {
 	}
 
 	public class OptionException extends Exception {
+		
+		// generated
+		private static final long serialVersionUID = 8770773099868997872L;
+
 		public OptionException(String msg) {
 			super(msg);
 		}
 
 	}
 
-	private void exit(int code) {
+	protected void exit(int code) {
 		// if we are using this in a REPL context (e.g. owlrhino), we don't want to exit the shell
 		// on an error - reporting the error is sufficient
 		if (exitOnException)
@@ -300,25 +287,16 @@ public class CommandRunner {
 		return args;
 	}
 
-	public void run(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException, URISyntaxException {
+	public void run(String[] args) throws Exception {
 		Opts opts = new Opts(args);
 		run(opts);
 	}
 
-	public void run(Opts opts) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException, URISyntaxException {
+	public void run(Opts opts) throws Exception {
 
-		OWLOntology simOnt = null;
 		Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = null;
-		OWLPrettyPrinter owlpp;
 		GraphicsConfig gfxCfg = new GraphicsConfig();
-		String globalSolrURL = null;
 		//Configuration config = new PropertiesConfiguration("owltools.properties");
-
-
-		String similarityAlgorithmName = "JaccardSimilarity";
-
-
-		ParserWrapper pw = new ParserWrapper();
 
 
 		while (opts.hasArgs()) {
@@ -1056,44 +1034,13 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("-a|--ancestors")) {
 				opts.info("LABEL", "list edges in graph closure to root nodes");
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity(opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj);
 				showEdges(edges);
 			}
-			else if (opts.nextEq("--ancestors-with-ic")) {
-				opts.info("LABEL [-p COMPARISON_PROPERTY_URI]", "list edges in graph closure to root nodes, with the IC of the target node");
-				SimEngine se = new SimEngine(g);
-				if (opts.nextEq("-p")) {
-					se.comparisonProperty =  g.getOWLObjectProperty(opts.nextOpt());
-				}
-
-				//System.out.println("i= "+i);
-				OWLObject obj = resolveEntity(opts);
-				System.out.println(obj+ " "+obj.getClass());
-				Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj);
-
-				for (OWLGraphEdge e : edges) {
-					System.out.println(e);
-					System.out.println("  TARGET IC:"+se.getInformationContent(e.getTarget()));
-				}
-			}
-			else if (opts.nextEq("--get-ic")) {
-				opts.info("LABEL [-p COMPARISON_PROPERTY_URI]", "calculate information content for class");
-				SimEngine se = new SimEngine(g);
-				if (opts.nextEq("-p")) {
-					se.comparisonProperty =  g.getOWLObjectProperty(opts.nextOpt());
-				}
-
-				//System.out.println("i= "+i);
-				OWLObject obj = resolveEntity( opts);
-				System.out.println(obj+ " "+" // IC:"+se.getInformationContent(obj));
-
-			}
 			else if (opts.nextEq("--ancestor-nodes")) {
 				opts.info("LABEL", "list nodes in graph closure to root nodes");
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
 				System.out.println(obj+ " "+obj.getClass());
 				for (OWLObject a : g.getAncestors(obj)) 
@@ -1101,7 +1048,6 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--parents-named")) {
 				opts.info("LABEL", "list direct outgoing edges to named classes");
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getOutgoingEdges(obj);
@@ -1109,7 +1055,6 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--parents")) {
 				opts.info("LABEL", "list direct outgoing edges");
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getPrimitiveOutgoingEdges(obj);
@@ -1117,7 +1062,6 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--grandparents")) {
 				opts.info("LABEL", "list direct outgoing edges and their direct outgoing edges");
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLGraphEdge> edges = g.getPrimitiveOutgoingEdges(obj);
@@ -1131,7 +1075,6 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--subsumers")) {
 				opts.info("LABEL", "list named subsumers and subsuming expressions");
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
 				Set<OWLObject> ancs = g.getSubsumersFromClosure(obj);
 				for (OWLObject a : ancs) {
@@ -1154,7 +1097,6 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--descendants")) {
 				opts.info("LABEL", "show all descendant nodes");
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLObject> ds = g.getDescendants(obj);
@@ -1163,89 +1105,11 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--subsumed-by")) {
 				opts.info("LABEL", "show all descendant nodes");
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
 				System.out.println(obj+ " "+obj.getClass());
 				Set<OWLObject> ds = g.queryDescendants((OWLClass)obj);
 				for (OWLObject d : ds)
 					System.out.println(d);
-			}
-			else if (opts.nextEq("--lcsx")) {
-				owlpp = new OWLPrettyPrinter(g);
-
-				opts.info("LABEL", "anonymous class expression 1");
-				OWLObject a = resolveEntity( opts);
-
-				opts.info("LABEL", "anonymous class expression 2");
-				OWLObject b = resolveEntity( opts);
-				System.out.println(a+ " // "+a.getClass());
-				System.out.println(b+ " // "+b.getClass());
-
-				SimEngine se = new SimEngine(g);
-				OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
-
-				System.out.println("LCS:"+owlpp.render(lcs));
-			}
-			else if (opts.nextEq("--lcsx-all")) {
-				opts.info("LABEL", "ont 1");
-				String ont1 = opts.nextOpt();
-
-				opts.info("LABEL", "ont 2");
-				String ont2 = opts.nextOpt();
-
-				if (simOnt == null) {
-					simOnt = g.getManager().createOntology();
-				}
-
-				SimEngine se = new SimEngine(g);
-
-				Set <OWLObject> objs1 = new HashSet<OWLObject>();
-				Set <OWLObject> objs2 = new HashSet<OWLObject>();
-
-				System.out.println(ont1+" -vs- "+ont2);
-				for (OWLObject x : g.getAllOWLObjects()) {
-					if (! (x instanceof OWLClass))
-						continue;
-					String id = g.getIdentifier(x);
-					if (id.startsWith(ont1)) {
-						objs1.add(x);
-					}
-					if (id.startsWith(ont2)) {
-						objs2.add(x);
-					}
-				}
-				Set<OWLClassExpression> lcsh = new HashSet<OWLClassExpression>();
-				owlpp = new OWLPrettyPrinter(g);
-				owlpp.hideIds();
-				for (OWLObject a : objs1) {
-					for (OWLObject b : objs2) {
-						OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
-						if (lcs instanceof OWLAnonymousClassExpression) {
-							if (lcsh.contains(lcs))
-								continue;
-							lcsh.add(lcs);
-							String label = owlpp.render(lcs);
-							IRI iri = IRI.create("http://purl.obolibrary.org/obo/U_"+
-									g.getIdentifier(a).replaceAll(":", "_")+"_" 
-									+"_"+g.getIdentifier(b).replaceAll(":", "_"));
-							OWLClass namedClass = g.getDataFactory().getOWLClass(iri);
-							// TODO - use java obol to generate meaningful names
-							OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(namedClass , lcs);
-							g.getManager().addAxiom(simOnt, ax);
-							g.getManager().addAxiom(simOnt,
-									g.getDataFactory().getOWLAnnotationAssertionAxiom(
-											g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
-											iri,
-											g.getDataFactory().getOWLLiteral(label)));
-							LOG.info("LCSX:"+owlpp.render(a)+" -vs- "+owlpp.render(b)+" = "+label);
-							//LOG.info("  Adding:"+owlpp.render(ax));
-							LOG.info("  Adding:"+ax);
-
-						}
-					}					
-				}
-
-
 			}
 			else if (opts.nextEq("-l") || opts.nextEq("--list-axioms")) {
 				opts.info("LABEL", "lists all axioms for entity matching LABEL");
@@ -1286,7 +1150,6 @@ public class CommandRunner {
 						break;
 					}
 				}
-				//System.out.println("i= "+i);
 				OWLObject obj = resolveEntity( opts);
 				System.out.println(obj);
 				OWLGraphLayoutRenderer r = new OWLGraphLayoutRenderer(g);
@@ -1299,7 +1162,6 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--draw-all")) {
 				opts.info("", "draws ALL objects in the ontology (caution: small ontologies only)");
-				//System.out.println("i= "+i);
 				OWLGraphLayoutRenderer r = new OWLGraphLayoutRenderer(g);
 
 				r.addAllObjects();
@@ -1352,195 +1214,6 @@ public class CommandRunner {
 				}
 				stream.close();
 			}
-			else if (opts.nextEq("--all-class-ic")) {
-				opts.info("", "show calculated Information Content for all classes");
-				SimEngine se = new SimEngine(g);
-				Similarity sa = se.getSimilarityAlgorithm(similarityAlgorithmName);
-				//  no point in caching, as we only check descendants of each object once
-				g.getConfig().isCacheClosure = false;
-				for (OWLObject obj : g.getAllOWLObjects()) {
-					if (se.hasInformationContent(obj)) {
-						System.out.println(obj+"\t"+se.getInformationContent(obj));
-					}
-				}
-			}
-			else if (opts.nextEq("--sim-method")) {
-				opts.info("metric", "sets deafult similarity metric. Type --all to show all TODO");
-				similarityAlgorithmName = opts.nextOpt();
-			}
-			else if (opts.nextEq("--sim-all")) {
-				opts.info("", "calculates similarity between all pairs");
-				Double minScore = null;
-				SimEngine se = new SimEngine(g);
-				if (opts.hasOpts()) {
-					if (opts.nextEq("-m|--min")) {
-						minScore = Double.valueOf(opts.nextOpt());
-					}
-					else if (opts.nextEq("-s|--subclass-of")) {
-						se.comparisonSuperclass = resolveEntity(opts);
-					}
-				}
-				//Similarity metric = se.getSimilarityAlgorithm(similarityAlgorithmName);
-				//SimilarityAlgorithm metric = se.new JaccardSimilarity();
-				se.calculateSimilarityAllByAll(similarityAlgorithmName, minScore);
-				//System.out.println(metric.getClass().getName());
-			}
-			else if (opts.nextEq("--sim")) {
-				Reporter reporter = new Reporter(g);
-				opts.info("[-m metric] A B", "calculates similarity between A and B");
-				boolean nr = false;
-				Vector<OWLObjectPair> pairs = new Vector<OWLObjectPair>();
-				String subSimMethod = null;
-
-				boolean isAll = false;
-				SimEngine se = new SimEngine(g);
-				while (opts.hasOpts()) {
-					System.out.println("sub-opts for --sim");
-					if (opts.nextEq("-m")) {
-						similarityAlgorithmName = opts.nextOpt();
-					}
-					else if (opts.nextEq("-p")) {
-						se.comparisonProperty =  g.getOWLObjectProperty(opts.nextOpt());
-					}
-					else if (opts.nextEq("--min-ic")) {
-						se.minimumIC = Double.valueOf(opts.nextOpt());
-					}
-					else if (opts.nextEq("--sub-method")) {
-						opts.info("MethodName","sets the method used to compare all attributes in a MultiSim test");
-						subSimMethod = opts.nextOpt();
-					}
-					else if (opts.nextEq("--query")) {
-						OWLObject q = resolveEntity(opts.nextOpt());
-						SimSearch search = new SimSearch(se, reporter);
-
-						isAll = true;
-						boolean isClasses = true;
-						boolean isInstances = true;
-						int MAX_PAIRS = 50; // todo - make configurable
-						while (opts.hasOpts()) {
-							if (opts.nextEq("-i"))
-								isClasses = false;
-							else if (opts.nextEq("-c"))
-								isInstances = false;
-							else if (opts.nextEq("--max-hits"))
-								MAX_PAIRS = Integer.parseInt(opts.nextOpt());
-							else
-								break;
-						}
-						search.setMaxHits(MAX_PAIRS);
-						OWLObject cc = resolveEntity(opts.nextOpt());
-						Set<OWLObject> candidates = g.queryDescendants((OWLClass)cc, isInstances, isClasses);
-						candidates.remove(cc);
-						search.setCandidates(candidates);
-						System.out.println("  numCandidates:"+candidates.size());
-
-						List<OWLObject> hits = search.search(q);
-						System.out.println("  hits:"+hits.size());
-						int n = 0;
-						for (OWLObject hit : hits) {
-							if (n < MAX_PAIRS)
-								pairs.add(new OWLObjectPair(q,hit));
-							n++;
-							System.out.println("HIT:"+n+"\t"+g.getLabelOrDisplayId(hit));
-						}
-						while (opts.nextEq("--include")) {
-							OWLObjectPair pair = new OWLObjectPair(q,resolveEntity(opts.nextOpt()));
-
-							if (!pairs.contains(pair)) {
-								pairs.add(pair);
-								System.out.println("adding_extra_pair:"+pair);
-							}
-							else {
-								System.out.println("extra_pair_alrwady_added:"+pair);
-							}
-						}
-					}
-					else if (opts.nextEq("-a|--all")) {
-						isAll = true;
-						boolean isClasses = true;
-						boolean isInstances = true;
-						if (opts.nextEq("-i"))
-							isClasses = false;
-						if (opts.nextEq("-c"))
-							isInstances = false;
-						OWLObject anc = resolveEntity(opts.nextOpt());
-						System.out.println("Set1:"+anc+" "+anc.getClass());
-						Set<OWLObject> objs = g.queryDescendants((OWLClass)anc, isInstances, isClasses);
-						objs.remove(anc);
-						System.out.println("  Size1:"+objs.size());
-						Set<OWLObject> objs2 = objs;
-						if (opts.nextEq("--vs")) {
-							OWLObject anc2 = resolveEntity(opts.nextOpt());
-							System.out.println("Set2:"+anc2+" "+anc2.getClass());
-							objs2 = g.queryDescendants((OWLClass)anc2, isInstances, isClasses);
-							objs2.remove(anc2);
-							System.out.println("  Size2:"+objs2.size());
-						}
-						for (OWLObject a : objs) {
-							if (!(a instanceof OWLNamedObject)) {
-								continue;
-							}
-							for (OWLObject b : objs2) {
-								if (!(b instanceof OWLNamedObject)) {
-									continue;
-								}
-								if (a.equals(b))
-									continue;
-								//if (a.compareTo(b) <= 0)
-								//	continue;
-								OWLObjectPair pair = new OWLObjectPair(a,b);
-								System.out.println("Scheduling:"+pair);
-								pairs.add(pair);
-							}							
-						}
-
-					}
-					else if (opts.nextEq("-s|--subclass-of")) {
-						se.comparisonSuperclass = resolveEntity(opts);
-					}
-					else if (opts.nextEq("--no-create-reflexive")) {
-						nr = true;
-					}
-					else {
-						// not recognized - end of this block of opts
-						break;
-						//System.err.println("???"+opts.nextOpt());
-					}
-				}
-				if (isAll) {
-					// TODO
-					//se.calculateSimilarityAllByAll(similarityAlgorithmName, 0.0);
-				}
-				else {
-					pairs.add(new OWLObjectPair(resolveEntity(opts.nextOpt()),
-							resolveEntity(opts.nextOpt())));
-
-				}
-				for (OWLObjectPair pair : pairs) {
-
-					OWLObject oa = pair.getA();
-					OWLObject ob = pair.getB();
-
-					Similarity metric = se.getSimilarityAlgorithm(similarityAlgorithmName);
-					if (nr) {
-						((DescriptionTreeSimilarity)metric).forceReflexivePropertyCreation = false;
-					}
-					if (subSimMethod != null)
-						((MultiSimilarity)metric).setSubSimMethod(subSimMethod);
-
-					System.out.println("comparing: "+oa+" vs "+ob);
-					Similarity r = se.calculateSimilarity(metric, oa, ob);
-					//System.out.println(metric+" = "+r);
-					metric.print();
-					metric.report(reporter);
-					if (simOnt == null) {
-						simOnt = g.getManager().createOntology();
-					}
-					if (opts.hasOpt("--save-sim")) {
-						metric.addResultsToOWLOntology(simOnt);
-					}
-				}
-			}
 			else if (opts.nextEq("-o|--output")) {
 				opts.info("FILE", "writes source ontology -- MUST BE specified as IRI, e.g. file://`pwd`/foo.owl");
 				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
@@ -1563,14 +1236,6 @@ public class CommandRunner {
 
 				pw.saveOWL(g.getSourceOntology(), ofmt, opts.nextOpt());
 				//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
-			}
-			else if (opts.nextEq("--save-sim")) {
-				opts.info("FILE", "saves similarity results as an OWL ontology. Use after --sim or --sim-all");
-				pw.saveOWL(simOnt, opts.nextOpt());
-			}
-			else if (opts.nextEq("--merge-sim")) {
-				opts.info("FILE", "merges similarity results into source OWL ontology. Use after --sim or --sim-all");
-				g.mergeOntology(simOnt);
 			}
 			else if (opts.nextEq("--list-axioms")) {
 				for (OWLAxiom a : g.getSourceOntology().getAxioms()) {
@@ -1734,211 +1399,6 @@ public class CommandRunner {
 				System.out.println("Types:"+p.idMap.size());
 				// TODO...
 			}
-			// Used for loading GAFs into memory, useful for noodling.
-			else if (opts.nextEq("--gaf")) {
-				opts.info("GAF-FILE", "parses GAF and makes this the current GAF document");
-				GafObjectsBuilder builder = new GafObjectsBuilder();
-				gafdoc = builder.buildDocument(opts.nextOpt());				
-			}
-			else if (opts.nextEq("--gaf2owl")) {
-				opts.info("[-n TARGET-IRI] [-o FILE]", "translates previously loaded GAF document into OWL");
-				GAFOWLBridge bridge;
-				String iri = null;
-				String out = null;
-				boolean isSkipIndividuals = false;
-				while (opts.hasOpts()) {
-					if (opts.nextEq("-n"))
-						iri = opts.nextOpt();
-					else if (opts.nextEq("-o")) {
-						out = opts.nextOpt();
-					}
-					else if (opts.nextEq("-c") || opts.nextEq("--skip-individuals")) {
-						isSkipIndividuals = true;
-					}
-					else
-						break;
-
-				}
-				if (iri != null) {
-					if (!iri.startsWith("http:")) {
-						iri = "http://purl.obolibrary.org/obo/"+iri;
-						if (!iri.endsWith(".owl"))
-							iri = iri + ".owl";
-					}
-					// todo - save tgtOnt
-					OWLOntology tgtOnt = g.getManager().createOntology(IRI.create(iri));
-
-					bridge = new GAFOWLBridge(g, tgtOnt);
-				}
-				else {
-					// adds gaf axioms back into main ontology
-					bridge = new GAFOWLBridge(g);
-				}
-				bridge.setGenerateIndividuals(!isSkipIndividuals);
-				bridge.translate(gafdoc);
-				if (out != null) {
-					pw.saveOWL(bridge.getTargetOntology(),out);
-				}
-
-			}
-
-			///
-			/// Solr/GOlr loading.
-			///
-
-			// Set an optional Solr URL to use with Solr options so they don't
-			// have to be specified separately for every option.
-			else if (opts.nextEq("--solr-url")) {
-				globalSolrURL = opts.nextOpt(); // shift it off of null
-				LOG.info("Globally use GOlr server at: " + globalSolrURL);
-			}
-			// Manually purge the index to try again.
-			// Since this cascade is currently ordered, can be used to purge before we load.
-			else if (opts.nextEq("--purge-solr")) {
-
-				// Check to see if the global url has been set, otherwise use the local one.
-				String url = sortOutSolrURL(opts, globalSolrURL);				
-
-				// Wipe out the solr index at url.
-				SolrServer server = new CommonsHttpSolrServer(url);
-				try {
-					server.deleteByQuery("*:*");
-				} catch (SolrServerException e) {
-					LOG.info("Purge at: " + url + " failed!");
-					e.printStackTrace();
-				}
-			}
-			// Used for loading whatever ontology stuff we have into GOlr.
-			else if (opts.nextEq("--load-ontology-solr")) {
-
-				// Check to see if the global url has been set, otherwise use the local one.
-				String url = sortOutSolrURL(opts, globalSolrURL);				
-
-				// Actual ontology class loading.
-				try {
-					OntologySolrLoader loader = new OntologySolrLoader(url, g);
-					loader.load();
-				} catch (SolrServerException e) {
-					LOG.info("Ontology load at: " + url + " failed!");
-					e.printStackTrace();
-				}
-			}
-			// TODO: Try experimental flexible loader.
-			else if (opts.nextEq("--flex-load-ontology-solr")) {
-
-				// Check to see if the global url has been set, otherwise use the local one.
-				String url = sortOutSolrURL(opts, globalSolrURL);				
-
-				// Actual ontology class loading.
-				try {
-					FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, g);
-					loader.load();
-				} catch (SolrServerException e) {
-					LOG.info("Ontology load at: " + url + " failed!");
-					e.printStackTrace();
-				}
-
-				//				// Check to see if the global url has been set, otherwise use the local one.
-				//				String url = sortOutSolrURL(opts, globalSolrURL);				
-				//
-				//				// Load remaining docs.
-				//				List<String> files = opts.nextList();
-				//				for (String file : files) {
-				//					LOG.info("Parsing GAF: " + file);
-				//					FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url);
-				//					loader.setGafDocument(gafdoc);
-				//					loader.setGraph(g);
-				//					try {
-				//						loader.load();
-				//					} catch (SolrServerException e) {
-				//						e.printStackTrace();
-				//					}
-				//				}
-			}
-			// Used for loading a list of GAFs into GOlr.
-			else if (opts.nextEq("--load-gafs-solr")) {
-
-				// Check to see if the global url has been set, otherwise use the local one.
-				String url = sortOutSolrURL(opts, globalSolrURL);
-
-				List<String> files = opts.nextList();
-				for (String file : files) {
-					LOG.info("Parsing GAF: " + file);
-					GafObjectsBuilder builder = new GafObjectsBuilder();
-					gafdoc = builder.buildDocument(file);
-					loadGAFDoc(url, gafdoc);
-				}
-			}
-			// Requires the --gaf argument (or something else that fills the gafdoc object).
-			else if (opts.nextEq("--load-gaf-solr")) {
-
-				// Double check we're not going to do something silly, like try and
-				// use a null variable...
-				if( gafdoc == null ){
-					System.err.println("No GAF document defined (maybe use '--gaf GAF-FILE') ");
-					exit(1);
-				}
-
-				// Check to see if the global url has been set, otherwise use the local one.
-				String url = null;
-				if( globalSolrURL == null ){
-					url = opts.nextOpt();
-				}else{
-					url = globalSolrURL;
-				}
-				LOG.info("Use GOlr server at: " + url);			
-
-				url = sortOutSolrURL(opts, globalSolrURL);
-				// Doc load.
-				loadGAFDoc(url, gafdoc);
-			}
-
-			else if (opts.nextEq("--gaf-xp-predict")) {
-				owlpp = new OWLPrettyPrinter(g);
-				if (gafdoc == null) {
-					System.err.println("No gaf document (use '--gaf GAF-FILE') ");
-					exit(1);
-				}
-				AnnotationPredictor ap = new CompositionalClassPredictor(gafdoc, g);
-				Set<Prediction> predictions = ap.getAllPredictions();
-				System.out.println("Predictions:"+predictions.size());
-				for (Prediction p : predictions) {
-					System.out.println(p.render(owlpp));
-				}
-			}
-			else if (opts.nextEq("--gaf-term-counts")) {
-				// TODO - ensure has_part and other relations are excluded
-				owlpp = new OWLPrettyPrinter(g);
-				Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
-				for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
-					OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
-					for (OWLObject x : g.getAncestorsReflexive(c)) {
-						if (!aMap.containsKey(x))
-							aMap.put(x, new HashSet<String>());
-						aMap.get(x).add(a.getBioentity());
-					}
-				}
-				for (OWLObject c : g.getAllOWLObjects()) {
-					if (c instanceof OWLClass) {
-						if (g.isObsolete(c))
-							continue;
-						System.out.println(g.getIdentifier(c)+"\t"+g.getLabel(c)+"\t"+
-								(aMap.containsKey(c) ? aMap.get(c).size() : "0"));
-					}
-				}
-			}
-			else if (opts.nextEq("--gaf-query")) {
-				opts.info("LABEL", "list edges in graph closure to root nodes");
-				//System.out.println("i= "+i);
-				OWLObject obj = resolveEntity(opts);
-				Set<OWLObject> descs = g.getDescendantsReflexive(obj);
-				for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
-					OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
-					if (descs.contains(c)) {
-						System.out.println(g.getIdentifier(c)+"\t"+a.getBioentityObject()+"\t"+a.getBioentityObject().getSymbol());
-					}
-				}
-			}
 			else if (opts.nextEq("--extract-module")) {
 				opts.info("SEED-OBJECTS", "Uses the OWLAPI module extractor");
 				String modIRI = null;
@@ -2088,6 +1548,31 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.hasArgs()) {
+				// check first if it as an annotated method
+				boolean called = false;
+				Method[] methods = getClass().getMethods();
+				for (Method method : methods) {
+					CLIMethod cliMethod = method.getAnnotation(CLIMethod.class);
+					if (cliMethod !=null) {
+						if (opts.nextEq(cliMethod.value())) {
+							called = true;
+							try {
+								method.invoke(this, opts);
+							} catch (InvocationTargetException e) {
+								// the underlying method has throw an exception
+								Throwable cause = e.getCause();
+								if (cause instanceof Exception) {
+									throw ((Exception) cause);
+								}
+								throw e;
+							}
+						}
+					}
+				}
+				if (called) {
+					continue;
+				}
+				
 				// Default is to treat argument as an ontology
 				String f  = opts.nextOpt();
 				try {
@@ -2138,38 +1623,6 @@ public class CommandRunner {
 		}
 		 */
 
-	}
-
-	/*
-	 * TODO: Convert all solr URL handling through here.
-	 */
-	private String sortOutSolrURL(Opts opts, String globalSolrURL){
-
-		String url = null;
-		if( globalSolrURL == null ){
-			url = opts.nextOpt();
-		}else{
-			url = globalSolrURL;
-		}
-		LOG.info("Use GOlr server at: " + url);
-
-		return url;
-	}
-
-	/*
-	 * Wrapper multiple places where there is direct GAF loading.
-	 */
-	private void loadGAFDoc(String url, GafDocument gafdoc) throws IOException{
-
-		// Doc load.
-		GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
-		loader.setGafDocument(gafdoc);
-		loader.setGraph(g);
-		try {
-			loader.load();
-		} catch (SolrServerException e) {
-			e.printStackTrace();
-		}
 	}
 
 	private OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 

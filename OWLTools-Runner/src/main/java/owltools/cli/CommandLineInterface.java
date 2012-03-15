@@ -1,22 +1,14 @@
 package owltools.cli;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 
-import org.apache.log4j.Logger;
-import org.obolibrary.oboformat.model.FrameMergeException;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-
-import owltools.cli.CommandRunner.OptionException;
-import owltools.sim.SimEngine.SimilarityAlgorithmException;
-
+/**
+ * Wrapper class to provide a stable class name for the main method.
+ */
 public class CommandLineInterface {
+	// Do not move or rename this class.
 
-	private static Logger LOG = Logger.getLogger(CommandLineInterface.class);
-	
-	public static void main(String[] args) throws OWLOntologyCreationException, IOException, FrameMergeException, SimilarityAlgorithmException, OWLOntologyStorageException, OptionException, URISyntaxException {
-		CommandRunner cr = new CommandRunner();
+	public static void main(String[] args) throws Exception {
+		CommandRunner cr = new SimCommandRunner();
 		cr.run(args);
 	}
 }
