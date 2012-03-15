@@ -25,6 +25,11 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/taxon_union_terms.obo"));
 	}
 	
+	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph) {
+		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
+				"http://www.geneontology.org/doc/GO.xrf_abbs", graph);
+	}
+	
 	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, List<String> ontologies) {
 		this(qcfile, xrfabbslocation, getOntologies(ontologies));
 	}
