@@ -839,7 +839,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--run-reasoner")) {
-				opts.info("[-r reasonername] [--assert-implied]", "infer new relationships");
+				opts.info("[-r reasonername] [--assert-implied] [--indirect]", "infer new relationships");
 				boolean isAssertImplied = false;
 				boolean isDirect = true;
 
