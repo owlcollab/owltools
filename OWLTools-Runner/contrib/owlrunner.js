@@ -6,11 +6,16 @@ importPackage(Packages.com.google.gson);
 var runner;
 var reasoner;
 
+// initializes runner with new CommandRunner
 function init() {
-    runner = new CommandRunner();
+    runner = new SimCommandRunner();
     runner.exitOnException = false;
 }
 
+// executes commands using owltools command line syntax.
+// E.g.
+//   x("-a limb"); // ancestors of limbs
+//   x("foo.owl"); // loads foo.owl in graph wrapper
 function x(args) {
     if (runner == null) {
         init();
@@ -18,19 +23,23 @@ function x(args) {
     runner.run(args.split(" "));
 }
 
+// initializes a reasoner. E.g. reasoner("elk")
 function reasoner(rn) {
     runner.run(["--reasoner",rn]);
     reasoner = runner.g.getReasoner();
 }
 
+// shortcuts
 function elk() {
     reasoner("elk");
 }
 
+// gets the current graph object
 function g() {
     return runner.g;
 }
 
+// gets the current ontology object
 function ont() {
     return runner.g.getSourceOntology();
 }
@@ -52,6 +61,7 @@ function go(num) {
 function get(label) {
     return g().getOWLObjectByLabel(label);
 }
+
 function getLabel(obj) {
     return g.getLabel(obj);
 }
@@ -62,6 +72,7 @@ function rancs(label) {
     return reasoner.getSubClasses( get(label), true ).getFlattened().toArray();
 }
 
+// generic javascript prettyprint
 function pp(object) { 
   return pp(object, 1, true);
 }
