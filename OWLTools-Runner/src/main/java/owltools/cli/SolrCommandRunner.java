@@ -57,6 +57,7 @@ public class SolrCommandRunner extends GafCommandRunner {
 			LOG.info("Purge at: " + url + " failed!");
 			e.printStackTrace();
 		}
+		LOG.info("Purged: " + url);
 	}
 	
 	/**
@@ -154,21 +155,13 @@ public class SolrCommandRunner extends GafCommandRunner {
 		}
 
 		// Check to see if the global url has been set, otherwise use the local one.
-		String url = null;
-		if( globalSolrURL == null ){
-			url = opts.nextOpt();
-		}else{
-			url = globalSolrURL;
-		}
-		LOG.info("Use GOlr server at: " + url);			
-
-		url = sortOutSolrURL(opts, globalSolrURL);
+		String url = sortOutSolrURL(opts, globalSolrURL);
 		// Doc load.
 		loadGAFDoc(url, gafdoc);
 	}
 	
 	/*
-	 * TODO: Convert all solr URL handling through here.
+	 * Convert all solr URL handling through here.
 	 */
 	private String sortOutSolrURL(Opts opts, String globalSolrURL){
 

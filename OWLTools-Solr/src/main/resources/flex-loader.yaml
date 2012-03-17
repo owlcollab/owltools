@@ -47,28 +47,33 @@ dynamic:
   display_name: Comment
   type: text
   property: comment
-  transform: []
+  cardinality: multi
+#  transform: []
 - id: synonym
   description: Term synonym.
   display_name: Synonym
   type: string
   property: synonym
-  transform: []
+  cardinality: multi
+#  transform: []
 - id: alternate_id
   description: Alternate term id.
   display_name: Alt ID
   type: string
   property: alternate_id
-  transform: []
+  cardinality: multi
+#  transform: []
 - id: subset
   description: Term subset.
   display_name: Subset
   type: string
   property: subset
-  transform: []
+  cardinality: multi
+#  transform: []
 - id: definition_xref
   description: Definition cross-reference.
   display_name: Def XRef
   type: string
   property: definition_xref
-  transform: []
+#  transform: []
+  cardinality: multi

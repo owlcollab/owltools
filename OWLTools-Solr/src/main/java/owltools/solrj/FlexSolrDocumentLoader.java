@@ -53,7 +53,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	}
 
 	/*
-	 *  Get the flexible document definition from the configuration file.
+	 * Get the flexible document definition from the configuration file.
 	 *
  	 * @param
 	 * @return config
@@ -124,25 +124,28 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		for( FlexDocFixedField fixedField : config.fixed ){
 			//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
 			cls_doc.addField(fixedField.id, fixedField.value);
-
-			// TODO/BUG: Needs to be removed--just here so I don't have to juggle muliple schema.xml on Solr during testing.
-			cls_doc.addField("id", "nil");
 		}
-
+		// TODO/BUG: Needs to be removed--just here so I don't have to juggle muliple schema.xml on Solr during testing
+		// and benchmarking. "id" is actually the only one that is *required* as it stands now.
+		//cls_doc.addField("id", "nil");
+					
 		// Dynamic fields--have to get dynamic info to cram into the index.
 		//LOG.info("Add?: " + fixedField.id + ":" + fixedField.property + " " + OWLRDFVocabulary.RDFS_LABEL.getIRI());
 		//cls_doc.addField("id", graph.getIdentifier(obj));
 		for( FlexDocDynamicField dynamicField : config.dynamic ){
-			//LOG.info("Add?: (" + dynamicField.type + ") " + dynamicField.id + ":" + dynamicField.property);
+			//LOG.info("Add?: (" + dynamicField.type + ") " + dynamicField.id + ":" + dynamicField.property + ":" + dynamicField.cardinality);
+//			ArrayList<String> inputList = tempLoader(obj, graph, dynamicField.property);
+//			cramAll(cls_doc, dynamicField.id, inputList);
+			// TODO/BUG: This "id" is special for now.
+			if( dynamicField.id.equals("id") ){
+				cls_doc.addField("id", graph.getIdentifier(obj));
+			}
 			if( dynamicField.type.equals("string") || dynamicField.type.equals("text") ){
 				ArrayList<String> inputList = tempStringLoader(obj, graph, dynamicField.property);
-				cramString(cls_doc, dynamicField.type, dynamicField.id, inputList);
+				cramString(cls_doc, dynamicField.type, dynamicField.id, inputList, dynamicField.cardinality);
 			}else if( dynamicField.type.equals("integer") ){
 				ArrayList<Integer> inputList = tempIntegerLoader(obj, graph, dynamicField.property);
-				cramInteger(cls_doc, dynamicField.type, dynamicField.id, inputList);
-//			}else if( dynamicField.type.equals("boolean") ){
-//				ArrayList<Boolean> inputList = tempBooleanLoader(obj, graph, dynamicField.property);
-//				cramBoolean(cls_doc, dynamicField.type, dynamicField.id, inputList);
+				cramInteger(cls_doc, dynamicField.type, dynamicField.id, inputList, dynamicField.cardinality);
 			}else{
 				LOG.info("No input methods for: " + dynamicField.type);
 			}
@@ -162,11 +165,17 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	 */
 	@Deprecated
 	private ArrayList<String> tempStringLoader(OWLObject obj, OWLGraphWrapper graph, String property){
+	//private ArrayList<String> tempLoader(OWLObject obj, OWLGraphWrapper graph, String property){
 
 		ArrayList<String> fields = new ArrayList<String>();
 		
 		if( property.equals("id") ){
 			fields.add(graph.getIdentifier(obj));
+//			// BUG
+//			String foo_id = graph.getIdentifier(obj);
+//			if( foo_id.equals("GO:0022008")){
+//				LOG.info("Found: " + foo_id);
+//			}
 		}else if( property.equals("label") ){
 			fields.add(graph.getLabel(obj));
 		}else if( property.equals("description") ){
@@ -219,42 +228,38 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		
 		return fields;
 	}
-//	// Same as above
+	
+//	/*
+//	 * Private helper to load our always assumed multiple fields.
+//	 * Since everything is the same on the backend, go ahead and ignore incoming types.
+//	 * Probably long-term deprecated since we'll eventually use some built through the OWLGraphWrapper.
+//	 */
 //	@Deprecated
-//	private ArrayList<Boolean> tempBooleanLoader(OWLObject obj, OWLGraphWrapper graph, String property){
-//
-//		ArrayList<Boolean> fields = new ArrayList<Boolean>();
-//		
-//		//if( property.equals("is_obsolete") ){
-//		//	fields.add(graph.getIsObsolete(obj));
-//		//}
-//		
-//		return fields;
-//	}	
+//	private void cramAll(SolrInputDocument cls_doc, String name, ArrayList<String> inList) {
+//		if( inList != null && ! inList.isEmpty()) {
+//			for (String thing : inList) {
+//				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle, thing);
+//			}
+//		}
+//	}
+	
 	/*
 	 * Private helper to load our always assumed multiple fields.
 	 */
 	@Deprecated
-	private void cramString(SolrInputDocument cls_doc, String type, String name, ArrayList<String> inList) {
+	private void cramString(SolrInputDocument cls_doc, String type, String name, ArrayList<String> inList, String cardinality) {
 		if( inList != null && ! inList.isEmpty()) {
 			for (String thing : inList) {
-				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type, thing);
+				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type + "_" + cardinality, thing);
 			}
 		}
 	}
-//	@Deprecated
-//	private void cramBoolean(SolrInputDocument cls_doc, String type, String name, ArrayList<Boolean> inList) {
-//		if( inList != null && ! inList.isEmpty()) {
-//			for (Boolean thing : inList) {
-//              cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type, thing);
-//			}
-//		}
-//	}
+		
 	@Deprecated
-	private void cramInteger(SolrInputDocument cls_doc, String type, String name, ArrayList<Integer> inList) {
+	private void cramInteger(SolrInputDocument cls_doc, String type, String name, ArrayList<Integer> inList, String cardinality) {
 		if( inList != null && ! inList.isEmpty() ){
 			for (Integer thing : inList) {
-				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type, thing);
+				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type + "_" + cardinality, thing);
 			}
 		}
 	}
