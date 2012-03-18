@@ -91,6 +91,7 @@ import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.Mooncat;
 import owltools.mooncat.PropertyViewOntologyBuilder;
+import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.OWLExtendedReasoner;
@@ -694,13 +695,15 @@ public class CommandRunner {
 				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());			
 			}
 			else if (opts.nextEq("--reasoner-query")) {
-				opts.info("[-r reasonername] [-m] CLASS-EXPRESSION", 
+				opts.info("[-r reasonername] [-m] [-d] [-a] [-x] [-c IRI] CLASS-EXPRESSION", 
 				"Queries current ontology for descendants of CE using reasoner");
 				boolean isManifest = false;
 				boolean isDescendants = true;
 				boolean isAncestors = true;
 				boolean isExtended = false;
-
+				String subOntologyIRI = null;
+				OWLClassExpression ce = null;
+				
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
 						reasonerName = opts.nextOpt();
@@ -723,19 +726,34 @@ public class CommandRunner {
 					else if (opts.nextEq("-x")) {
 						isExtended = true;
 					}
+					else if (opts.nextEq("-c")) {
+						subOntologyIRI = opts.nextOpt();
+					}
+					else if (opts.nextEq("-l")) {
+						ce = (OWLClassExpression) resolveEntity(opts);
+					}
 					else {
 						break;
 					}
 				}
-				String expression = opts.nextOpt();
+				
+				String expression = null;
+				if (ce == null)
+					expression = opts.nextOpt();
 				owlpp = new OWLPrettyPrinter(g);
-
+				Set<OWLClass> results = new HashSet<OWLClass>();
 				ManchesterSyntaxTool parser = new ManchesterSyntaxTool(g.getSourceOntology(), g.getSupportOntologySet());
 
 				try {
-					OWLClassExpression ce = parser.parseManchesterExpression(expression);
+					if (ce == null)
+						ce = parser.parseManchesterExpression(expression);
 					System.out.println("# QUERY: "+owlpp.render(ce));
-					if (isManifest) {
+					if (ce instanceof OWLClass)
+						results.add((OWLClass) ce);
+					
+					// some reasoners such as elk cannot query using class expressions - we manifest
+					// the class expression as a named class in order to bypass this limitation
+					if (isManifest && !(ce instanceof OWLClass)) {
 						OWLClass qc = g.getDataFactory().getOWLClass(IRI.create("http://owltools.org/Q"));
 						OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(ce, qc);
 						g.getManager().addAxiom(g.getSourceOntology(), ax);
@@ -757,18 +775,21 @@ public class CommandRunner {
 					}
 					if (isDescendants) {
 						for (OWLClass r : reasoner.getSubClasses(ce, false).getFlattened()) {
+							results.add(r);
 							System.out.println("D: "+owlpp.render(r));
 						}
 					}
 					if (isAncestors) {
 						if (isExtended) {
 							for (OWLClassExpression r : ((OWLExtendedReasoner) reasoner).getSuperClassExpressions(ce, false)) {
+								///results.add(r);
 								System.out.println("A:"+owlpp.render(r));
 							}
 
 						}
 						else {
 							for (OWLClass r : reasoner.getSuperClasses(ce, false).getFlattened()) {
+								results.add(r);
 								System.out.println("A:"+owlpp.render(r));
 							}
 						}
@@ -783,7 +804,16 @@ public class CommandRunner {
 					// always dispose parser to avoid a memory leak
 					parser.dispose();
 				}
-
+				
+				// Create a sub-ontology
+				if (subOntologyIRI != null) {
+					//g.mergeImportClosure();
+					QuerySubsetGenerator subsetGenerator = new QuerySubsetGenerator();
+					OWLOntology srcOnt = g.getSourceOntology();
+					g.setSourceOntology(g.getManager().createOntology(IRI.create(subOntologyIRI)));
+					g.addSupportOntology(srcOnt);
+					subsetGenerator.createSubSet(g, results, g.getSupportOntologySet());
+				}
 			}
 			else if (opts.nextEq("--reasoner-ask-all")) {
 				opts.info("[-r REASONERNAME] [-s] [-a] AXIOMTYPE", "list all inferred equivalent named class pairs");
@@ -1365,9 +1395,13 @@ public class CommandRunner {
 							//
 						}
 						String pfx = opts.nextOpt();
-						if (!pfx.startsWith("http:"))
-							pfx = "http://purl.obolibrary.org/obo/" + pfx + "_";
-						ttac.config.iriPrefixMap.put(col, pfx);
+						// note that we do not put the full URI prefix here for now
+						//if (!pfx.startsWith("http:"))
+						//	pfx = "http://purl.obolibrary.org/obo/" + pfx + "_";
+						if (pfx.startsWith("http:"))
+							ttac.config.iriPrefixMap.put(col, pfx);
+						else
+							ttac.config.iriPrefixMap.put(col, pfx+":");
 					}
 					else if (opts.nextEq("-a|--axiom-type")) {
 						ttac.config.setAxiomType(opts.nextOpt());
