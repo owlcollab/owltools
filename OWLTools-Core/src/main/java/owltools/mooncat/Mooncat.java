@@ -221,16 +221,12 @@ public class Mooncat {
 	 */
 	public void mergeOntologies() {
 		// refresh existing MIREOT set
-		LOG.info("Flushing external... (but will not remove dangling)");
+		LOG.info("Flushing external (IAO_0000412)... (but will not remove dangling)");
 		removeExternalOntologyClasses(false);
 
 		OWLOntology srcOnt = graph.getSourceOntology();
 		LOG.info("getting closure...");
 		Set<OWLAxiom> axioms = getClosureAxiomsOfExternalReferencedEntities();
-
-		// refresh existing MIREOT set
-		LOG.info("flushing external...");
-		removeExternalOntologyClasses(false);
 
 		// add ALL subannotprop axioms
 		addSubAnnotationProperties(axioms);
@@ -653,7 +649,7 @@ public class Mooncat {
 	/**
 	 * Given a set of classes (e.g. those corresponding to an obo-subset or go-slim), and an ontology
 	 * in which these are declared, generate a sub-ontology.
-	 * The sub-ontology will only include classes in the subset. It will remove any axioms that refer
+	 * The sub-ontology will ONLY include classes in the subset. It will remove any axioms that refer
 	 * to classes not in the subset. Inference is used to ensure that as many entailments as possible
 	 * are preserved.
 	 * 
@@ -673,6 +669,7 @@ public class Mooncat {
 				iriExcludeSubset.add(c.getIRI());
 		}
 		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+		LOG.info("Testing "+o.getAxioms().size()+" axioms");
 		for (OWLAxiom a : o.getAxioms()) {
 			boolean isInclude = false;
 			/*
@@ -705,8 +702,12 @@ public class Mooncat {
 			}
 			if (isInclude) {
 				axioms.add(a);
+				LOG.debug("including axiom: "+a);
 			}
 		}
+		LOG.info("Base axioms to be added: "+axioms.size());
+
+		LOG.info("Checking closure for: "+subset.size());
 
 		// transitive reduction
 		for (OWLClass x : subset) {
@@ -779,6 +780,13 @@ public class Mooncat {
 		return false;
 	}
 
+	/**
+	 * Removes all classes that have IAO_0000412 'imported from' set to another ontology.
+	 * 
+	 * Removes from both source ontology and referenced ontologies
+	 * 
+	 * @param removeDangling
+	 */
 	public void removeExternalOntologyClasses(boolean removeDangling) {
 		OWLOntology ont = graph.getSourceOntology();
 		removeExternalEntities(true, ont);

@@ -443,11 +443,10 @@ public class OWLGraphWrapper {
 	 * @throws OWLOntologyCreationException
 	 */
 	public void mergeImportClosure() throws OWLOntologyCreationException {
-		OWLOntologyID oid = sourceOntology.getOntologyID();
+		//OWLOntologyID oid = sourceOntology.getOntologyID();
 		Set<OWLOntology> imports = sourceOntology.getImportsClosure();
-		Set<OWLAxiom> axioms = sourceOntology.getAxioms();
-		manager.removeOntology(sourceOntology);
-		sourceOntology = manager.createOntology(oid);
+		//manager.removeOntology(sourceOntology);
+		//sourceOntology = manager.createOntology(oid);
 		for (OWLOntology o : imports) {
 			if (o.equals(sourceOntology))
 				continue;

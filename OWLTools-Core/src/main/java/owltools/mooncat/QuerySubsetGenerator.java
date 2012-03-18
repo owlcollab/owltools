@@ -88,7 +88,19 @@ public class QuerySubsetGenerator {
 		}
 	}
 
-	private void createSubSet(OWLGraphWrapper targetGraph, 
+	/**
+	 * Given a collection of classes (such as those generated from a reasoner getSubClasses call), create a 
+	 * subset ontology and place it in tragetGraph.
+	 * 
+	 * The subset ontology is created by first collecting all axioms from toMerge that form a description of the input subset classes,
+	 * adding these to the target ontology, and then including the reference closure via Mooncat
+	 * 
+	 * @param targetGraph
+	 * @param subset
+	 * @param toMerge
+	 * @throws OWLOntologyCreationException
+	 */
+	public void createSubSet(OWLGraphWrapper targetGraph, 
 			Set<OWLClass> subset, Set<OWLOntology> toMerge) throws OWLOntologyCreationException 
 	{
 		OWLOntology targetOntology = targetGraph.getSourceOntology();
