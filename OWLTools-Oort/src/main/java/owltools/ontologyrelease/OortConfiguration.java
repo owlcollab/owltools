@@ -225,6 +225,9 @@ public class OortConfiguration {
 	public void addToSkipFormatSet(String fmt) {
 		this.skipFormatSet.add(fmt);
 	}
+	public void removeFromSkipFormatSet(String fmt) {
+		this.skipFormatSet.remove(fmt);
+	}
 	public boolean isSkipFormat(String fmt) {
 		return this.skipFormatSet.contains(fmt);
 	}
