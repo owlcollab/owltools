@@ -28,6 +28,7 @@ import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatDanglingReferenceException;
 import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
+import org.obolibrary.owl.LabelFunctionalSyntaxOntologyStorer;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -42,6 +43,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -301,6 +303,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--query-ontology-remove-query")) {
 				oortConfig.setQueryOntologyReferenceIsIRI(true);
 			}
+			else if (opt.equals("--write-label-owl")) {
+				oortConfig.setWriteLabelOWL(true);
+			}
 			else {
 				String tokens[] = opt.split(" ");
 				for (String token : tokens)
@@ -451,6 +456,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			// TODO add an option to set the version manually
 		}
 
+		if (oortConfig.isWriteLabelOWL()) {
+			mooncat.getManager().addOntologyStorer(new LabelFunctionalSyntaxOntologyStorer());
+		}
+		
+		
 		version = buildVersionInfo(version);
 		logger.info("Version: "+version);
 		OntologyVersionTools.setOboInOWLVersion(mooncat.getOntology(), version);
@@ -920,6 +930,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		boolean writeOWL = !oortConfig.isSkipFormat("owl");
 		boolean writeOWX = !oortConfig.isSkipFormat("owx");
+		boolean writeOFN = oortConfig.isWriteLabelOWL();
 		
 		if (date != null && (writeOWL || writeOWX)) {
 			SetOntologyID change = OntologyVersionTools.setOntologyVersion(ontologyToSave, date, ontologyId, fileNameBase);
@@ -929,15 +940,18 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		if (writeOWL) {
 			OutputStream os = getOutputSteam(fileNameBase +".owl");
-			manager.saveOntology(ontologyToSave, oortConfig.getDefaultFormat(), os);
-			os.close();
+			write(manager, ontologyToSave, oortConfig.getDefaultFormat(), os);
 		}
 
 		
 		if (writeOWX) {
 			OutputStream osxml = getOutputSteam(fileNameBase +".owx");
-			manager.saveOntology(ontologyToSave, oortConfig.getOwlXMLFormat(), osxml);
-			osxml.close();
+			write(manager, ontologyToSave, oortConfig.getOwlXMLFormat(), osxml);
+		}
+		
+		if (writeOFN) {
+			OutputStream os = getOutputSteam(fileNameBase +".ofn");
+			write(manager, ontologyToSave, oortConfig.getOwlOfnFormat(), os);
 		}
 
 		if (reset != null) {
@@ -947,7 +961,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			manager.applyChange(reset);
 		}
 
-		if (gciOntology != null && (writeOWL || writeOWX)) {
+		if (gciOntology != null && (writeOWL || writeOWX || writeOFN)) {
 			OWLOntologyManager gciManager = gciOntology.getOWLOntologyManager();
 
 			// create specific import for the generated owl ontology
@@ -955,20 +969,26 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			AddImport addImport = new AddImport(gciOntology, importDeclaration);
 			RemoveImport removeImport = new RemoveImport(gciOntology, importDeclaration);
 
-			if (writeOWL) {
-				gciManager.applyChange(addImport);
-				OutputStream gciOS = getOutputSteam(fileNameBase +"-aux.owl");
-				gciManager.saveOntology(gciOntology, oortConfig.getDefaultFormat(), gciOS);
-				gciOS.close();
-			}
+			gciManager.applyChange(addImport);
+			try {
+				if (writeOWL) {
+					OutputStream gciOS = getOutputSteam(fileNameBase +"-aux.owl");
+					write(gciManager, gciOntology, oortConfig.getDefaultFormat(), gciOS);
+				}
 
-			if (writeOWX) {
-				OutputStream gciOSxml = getOutputSteam(fileNameBase +"-aux.owx");
-				gciManager.saveOntology(gciOntology, oortConfig.getOwlXMLFormat(), gciOSxml);
-				gciOSxml.close();
-			}
+				if (writeOWX) {
+					OutputStream gciOSxml = getOutputSteam(fileNameBase +"-aux.owx");
+					write(gciManager, gciOntology, oortConfig.getOwlXMLFormat(), gciOSxml);
+				}
 
-			gciManager.applyChange(removeImport);
+				if (writeOFN) {
+					OutputStream gciOS = getOutputSteam(fileNameBase +"-aux.ofn");
+					write(gciManager, gciOntology, oortConfig.getOwlOfnFormat(), gciOS);
+				}
+			}
+			finally {
+				gciManager.applyChange(removeImport);
+			}
 		}
 
 		if (!oortConfig.isSkipFormat("obo")) {
@@ -990,6 +1010,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				saveMetadata(fileNameBase, mooncat.getGraph());
 			}
 		}
+	}
+	
+	private static void write(OWLOntologyManager manager, OWLOntology ont, OWLOntologyFormat format, OutputStream out) throws OWLOntologyStorageException {
+		try {
+			manager.saveOntology(ont, format, out);
+		} finally {
+			try {
+				out.close();
+			} catch (IOException e) {
+				logger.warn("Could not close stream.", e);
+			} 
+		}
+		
 	}
 
 	private void saveReasonerReport(String ontologyId,

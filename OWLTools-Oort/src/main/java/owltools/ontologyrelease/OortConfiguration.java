@@ -16,6 +16,7 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.obolibrary.owl.LabelFunctionalFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -67,6 +68,8 @@ public class OortConfiguration {
 	private boolean gafToOwl = false;
 	private String catalogXML = null;
 	
+	private boolean writeLabelOWL = false;
+	
 	private boolean useQueryOntology = false;
 	private String queryOntology = null; 
 	private String queryOntologyReference = null;
@@ -75,6 +78,7 @@ public class OortConfiguration {
 
 	private OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
+	private static final OWLOntologyFormat owlOFNFormat = new LabelFunctionalFormat(); 
 
 	/**
 	 * @return the reasoner name
@@ -552,6 +556,27 @@ public class OortConfiguration {
 	 */
 	public boolean isRemoveQueryOntologyReference() {
 		return removeQueryOntologyReference;
+	}
+
+	/**
+	 * @return the writeLabelOWL
+	 */
+	public boolean isWriteLabelOWL() {
+		return writeLabelOWL;
+	}
+
+	/**
+	 * @param writeLabelOWL the writeLabelOWL to set
+	 */
+	public void setWriteLabelOWL(boolean writeLabelOWL) {
+		this.writeLabelOWL = writeLabelOWL;
+	}
+
+	/**
+	 * @return the owlOFNFormat
+	 */
+	public OWLOntologyFormat getOwlOfnFormat() {
+		return owlOFNFormat;
 	}
 
 	/**
