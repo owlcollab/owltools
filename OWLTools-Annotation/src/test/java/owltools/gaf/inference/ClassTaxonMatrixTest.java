@@ -42,11 +42,12 @@ public class ClassTaxonMatrixTest extends OWLToolsTestBasics {
 		
 		StringWriter stringWriter = new StringWriter();
 		BufferedWriter writer = new BufferedWriter(stringWriter);
-		ClassTaxonMatrix.write(m, writer);
+		ClassTaxonMatrix.write(m, go, writer);
 		writer.close();
 		
 		// test: writing does not throw any exceptions and is non-empty
 		String writtenMatrix = stringWriter.getBuffer().toString();
+		// System.out.println(writtenMatrix);
 		assertTrue(writtenMatrix.length() > 0); 
 		
 		// spindle pole body duplication in nuclear envelope

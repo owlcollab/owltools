@@ -97,14 +97,24 @@ public class ClassTaxonMatrix {
 	 * @return matrix
 	 */
 	public static ClassTaxonMatrix create(OWLGraphWrapper graph, Collection<OWLClass> classes, Collection<OWLClass> taxa) {
+		LOG.info("Start creating class-taxon-matrix for: "+graph.getOntologyId()+" with "+classes.size()+" classes and "+taxa.size()+" taxa");
 		ClassTaxonMatrix matrix = new ClassTaxonMatrix(classes.size(), taxa.size());
 		TaxonConstraintsEngine engine = new TaxonConstraintsEngine(graph);
-		for (OWLClass owlClass : classes) {
-			for (OWLClass taxon : taxa) {
+		
+		// sort classes to guarantee a sorted output
+		List<OWLClass> sortedOWLClasses = new ArrayList<OWLClass>(classes);
+		Collections.sort(sortedOWLClasses);
+		
+		List<OWLClass> sortedTaxa = new ArrayList<OWLClass>(taxa);
+		Collections.sort(sortedTaxa);
+		
+		for (OWLClass owlClass : sortedOWLClasses) {
+			for (OWLClass taxon : sortedTaxa) {
 				boolean applicable = engine.isClassApplicable(owlClass, taxon);
 				matrix.add(applicable, owlClass, taxon);
 			}
 		}
+		LOG.info("Finished create class-taxon-matrix");
 		return matrix;
 	}
 
@@ -114,12 +124,13 @@ public class ClassTaxonMatrix {
 	 * Hint: Do not forget to close the writer after use.
 	 * 
 	 * @param matrix
+	 * @param graph required for rendering the OBO style identifiers
 	 * @param writer
 	 * @throws IOException
 	 */
-	public static void write(ClassTaxonMatrix matrix, BufferedWriter writer) throws IOException {
+	public static void write(ClassTaxonMatrix matrix, OWLGraphWrapper graph, BufferedWriter writer) throws IOException {
 		// default delimiter is a tab
-		write(matrix, '\t', writer);
+		write(matrix, graph, '\t', writer);
 	}
 
 	/**
@@ -128,11 +139,12 @@ public class ClassTaxonMatrix {
 	 * Hint: Do not forget to close the writer after use.
 	 * 
 	 * @param matrix
+	 * @param graph required for rendering the OBO style identifiers
 	 * @param delimiter
 	 * @param writer
 	 * @throws IOException
 	 */
-	public static void write(ClassTaxonMatrix matrix, char delimiter, BufferedWriter writer) throws IOException {
+	public static void write(ClassTaxonMatrix matrix, OWLGraphWrapper graph, char delimiter, BufferedWriter writer) throws IOException {
 
 		// create sorted list of classes and taxa
 		List<OWLClass> sortedClasses = createSortedClasses(matrix.matrixIndicies);
@@ -141,13 +153,13 @@ public class ClassTaxonMatrix {
 		// write header
 		for (OWLClass taxon : sortedTaxa) {
 			writer.append(delimiter);
-			writer.append(taxon.getIRI().toString());
+			writer.append(graph.getIdentifier(taxon));
 		}
 		writer.newLine();
 
 		// write lines
 		for (int i = 0; i < sortedClasses.size(); i++) {
-			writer.append(sortedClasses.get(i).getIRI().toString());
+			writer.append(graph.getIdentifier(sortedClasses.get(i)));
 			for (boolean b : matrix.matrix[i]) {
 				writer.append(delimiter);
 				writer.append(Boolean.toString(b));
