@@ -88,7 +88,9 @@ public class TaxonConstraintsEngine {
 						if (!(taxAncs.contains(restrTaxon) ||
 								graph.getAncestors(restrTaxon).contains(testTax))) {
 							isInvalid = true;
-							LOG.info("invalid: <"+c+" "+testTax+"> restrTaxon="+restrTaxon+" // "+taxAncs.contains(restrTaxon));
+							if(LOG.isDebugEnabled()) {
+								LOG.debug("invalid: <"+c+" "+testTax+"> restrTaxon="+restrTaxon+" // "+taxAncs.contains(restrTaxon));
+							}
 							break;
 						}
 					}
@@ -96,7 +98,9 @@ public class TaxonConstraintsEngine {
 						// if C never_in_taxon taxonRestr, then testTax cannot be a subclass of restrTaxon 
 						if (taxAncs.contains(restrTaxon)) {
 							isInvalid = true;
-							LOG.info("invalid: <"+c+" "+testTax+"> reason:"+te);
+							if (LOG.isDebugEnabled()) {
+								LOG.debug("invalid: <" + c + " " + testTax + "> reason:" + te);
+							}
 							break;
 						}
 					}
