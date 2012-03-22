@@ -68,7 +68,6 @@ import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
 import owltools.cli.tools.CLIMethod;
-import owltools.gaf.inference.TaxonConstraintsEngine;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
@@ -528,61 +527,6 @@ public class CommandRunner {
 				List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
 				g.getManager().applyChanges(changes);
 				LOG.info("Mapped "+e2iri.size()+" entities!");
-			}
-			else if (opts.nextEq("--make-taxon-set")) {
-				opts.info("[-s] TAXON","Lists all classes that are applicable for a specified taxon");
-				String idspace = null;
-				if (opts.nextEq("-s"))
-					idspace = opts.nextOpt();
-				owlpp = new OWLPrettyPrinter(g);
-				TaxonConstraintsEngine tce = new TaxonConstraintsEngine(g);
-				OWLClass tax = (OWLClass)this.resolveEntity(opts);
-				Set<OWLObject> taxAncs = g.getAncestorsReflexive(tax);
-				LOG.info("Tax ancs: "+taxAncs);
-				Set<OWLClass> taxSet = new HashSet<OWLClass>();
-				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
-					String cid = g.getIdentifier(c);
-					if (idspace != null && !cid.startsWith(idspace+":"))
-						continue;
-					Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosure(c);
-					boolean isExcluded = !tce.isClassApplicable(c, tax, edges, taxAncs);
-					/*
-					for (OWLGraphEdge e : g.getOutgoingEdgesClosure(c)) {
-						if (isExcluded)
-							break;
-						for (OWLGraphEdge te : g.getOutgoingEdges(e.getTarget())) {
-							OWLObjectProperty tp = te.getSingleQuantifiedProperty().getProperty();
-							if (tp != null) {
-								String tpl = g.getLabel(tp);
-								if (tpl == null)
-									continue;
-								OWLObject rt = te.getTarget();
-								// temp hack until RO is stable
-								if (tpl.equals("only_in_taxon") || tpl.equals("only in taxon")) {
-									if (!taxAncs.contains(rt) &&
-											!g.getAncestors(rt).contains(tax)) {
-										isExcluded = true;
-										break;
-									}
-								}
-								else if (tpl.equals("never_in_taxon") || tpl.equals("never in taxon")) {
-									if (taxAncs.contains(rt)) {
-										isExcluded = true;
-										break;
-									}
-								}
-							}
-						}
-					}
-					 */
-					if (isExcluded) {
-						LOG.info("excluding: "+owlpp.render(c));
-					}
-					else {
-						taxSet.add(c);
-						System.out.println(cid);
-					}
-				}
 			}
 			else if (opts.nextEq("--query-cw")) {
 				opts.info("", "closed-world query");

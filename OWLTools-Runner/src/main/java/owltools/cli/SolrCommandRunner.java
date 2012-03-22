@@ -18,7 +18,7 @@ import owltools.solrj.OntologySolrLoader;
 /**
  *  Solr/GOlr loading.
  */
-public class SolrCommandRunner extends GafCommandRunner {
+public class SolrCommandRunner extends TaxonCommandRunner {
 
 	private static final Logger LOG = Logger.getLogger(SolrCommandRunner.class);
 	
