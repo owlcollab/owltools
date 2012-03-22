@@ -18,7 +18,7 @@ import owltools.io.ParserWrapper;
 
 public class OWLToolsTestBasics {
 	
-	protected File getResource(String name) {
+	protected static File getResource(String name) {
 		assertNotNull(name);
 		assertFalse(name.length() == 0);
 		// TODO replace this with a mechanism not relying on the relative path
@@ -27,11 +27,11 @@ public class OWLToolsTestBasics {
 		return file;
 	}
 	
-	protected String getResourceIRIString(String name) {
+	protected static String getResourceIRIString(String name) {
 		return getResourceIRI(name).toString();
 	}
 	
-	protected IRI getResourceIRI(String name) {
+	protected static IRI getResourceIRI(String name) {
 		File file = getResource(name);
 		return IRI.create(file);
 	}
