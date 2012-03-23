@@ -6,13 +6,12 @@ import uk.ac.ebi.interpro.graphdraw.*;
 import java.awt.*;
 import java.awt.geom.*;
 
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-
 import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 
 /**
- * Represents an edge in a layour graph
+ * Represents an edge in a layout graph
  * 
  * Adapted from QuickGO
  * 
@@ -22,20 +21,17 @@ import owltools.graph.OWLQuantifiedProperty;
 public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
 
     private static final Stroke relationStroke = new BasicStroke(2f);
-//    private static final Shape parentArrow = null; //StrokeEdge.standardArrow(8,6,2);
-//    private static final Shape childArrow = null;
 	private static final Shape arrow = StrokeEdge.standardArrow(8,6,2);
 
     OWLGraphEdge owlGraphEdge;
     RelationType relType;
 
-    public OWLGraphStrokeEdge(OWLGraphLayoutNode parent, OWLGraphLayoutNode child, OWLGraphEdge oge) {
+    public OWLGraphStrokeEdge(OWLGraphLayoutNode parent, OWLGraphLayoutNode child, OWLGraphEdge oge, OWLGraphWrapper graph) {
         //super(parent, child, Color.black, relationStroke, (rtype.polarity == OWLGraphEdge.Polarity.POSITIVE || rtype.polarity == OWLGraphEdge.Polarity.BIPOLAR) ? arrow : null, (rtype.polarity == OWLGraphEdge.Polarity.NEGATIVE || rtype.polarity == OWLGraphEdge.Polarity.BIPOLAR) ? arrow : null);
     	super(parent, child, Color.black, relationStroke,
     			arrow,null);
     	this.owlGraphEdge = oge;
-    	setRelationType();
-    	System.out.println("RT="+relType);
+    	relType = getRelationType(oge, graph);
     	if (relType != null)
     		this.colour = relType.color;
     	
@@ -55,33 +51,54 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      * TODO : this is too hacky. Make this a soft configuration, e.g. 
      * an ontology with color properties
      * 
+     * @param owlGraphEdge 
+     * @param graph 
+     * @return relationtype or null
      */
-    public void setRelationType() {
+    public static RelationType getRelationType(OWLGraphEdge owlGraphEdge, OWLGraphWrapper graph) {
      	OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
      	if (qp.isSubClassOf()) {
-     		relType = RelationType.ISA;
-     		return;
+     		return RelationType.ISA;
      	}
-     	String pid = qp.getPropertyId();
-     	//System.out.println("PID="+pid+" // "+qp);
+     	
+     	String id = graph.getIdentifier(qp.getProperty());
+     	if ("BFO:0000050".equals(id) || "part_of".equals(id)) {
+			return RelationType.PARTOF;
+		}
+     	else if ("RO:0002212".equals(id) || "negatively_regulates".equals(id)) {
+     		return RelationType.NEGATIVEREGULATES;
+     	}
+     	else if ("RO:0002213".equals(id) || "positively_regulates".equals(id)) {
+     		return RelationType.POSITIVEREGULATES;
+     	}
+     	else if ("RO:0002211".equals(id) || "regulates".equals(id)) {
+     		return RelationType.REGULATES;
+     	}
+     	else if ("BFO:0000051".equals(id) || "has_part".equals(id)) {
+     		return RelationType.HASPART;
+     	}
+     	
+     	String s = graph.getLabelOrDisplayId(qp.getProperty());
+     	
      	// multiple layers of indirection - first we map the relation obo ID to
      	// the hardcoded list of relation types in QuickGO. 
-       	if (pid.contains("part_of")) {
-    		relType = RelationType.PARTOF;
+       	if (s.contains("part_of")) {
+       		return RelationType.PARTOF;
     	}
-     	else if (pid.contains("has_part")) {
-    		relType = RelationType.HASPART;
+     	else if (s.contains("has_part")) {
+     		return RelationType.HASPART;
     	}
-     	else if (pid.contains("develops_from")) {
-    		relType = RelationType.DEVELOPSFROM;
+     	else if (s.contains("develops_from")) {
+     		return RelationType.DEVELOPSFROM;
     	}
+     	return null;
     }
 
-    public class SVGEdge {
-        public String svgPath;
-        public String colour;
+    public static class SVGEdge {
+        public final String svgPath;
+        public final String colour;
 
-        SVGEdge() {
+        SVGEdge(Shape route, String color) {
 
             PathIterator pi = route.getPathIterator(null);
             double[] locations = new double[6];
@@ -106,7 +123,7 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
             }
 
             svgPath = svgPathSB.toString();
-            colour = getColourCode(OWLGraphStrokeEdge.this.colour);
+            this.colour = color;
         }
 
         private String nf(double location) {
@@ -115,7 +132,7 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
     }
 
     public Object serialise() {
-	    return new SVGEdge();
+	    return new SVGEdge(route, getColourCode(colour));
     }
 
     private String getColourCode(Color color) {

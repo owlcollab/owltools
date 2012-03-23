@@ -1,26 +1,32 @@
 package owltools.gfx;
 
 
-import javax.imageio.*;
-
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLNamedObject;
-import org.semanticweb.owlapi.model.OWLObject;
-
-import owltools.gfx.GraphStyle;
-import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLQuantifiedProperty;
-
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.image.*;
-import java.io.*;
+import java.awt.BasicStroke;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.image.RenderedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.ebi.interpro.graphdraw.*;
+import javax.imageio.ImageIO;
+
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLObject;
+
+import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphWrapper;
+import uk.ac.ebi.interpro.graphdraw.HierarchicalLayout;
+import uk.ac.ebi.interpro.graphdraw.StandardGraph;
 
 /**
  * Render a portion of an ontology using the QuickGO graphics code
@@ -42,22 +48,36 @@ public class OWLGraphLayoutRenderer {
 
 	protected StandardGraph<OWLGraphLayoutNode, OWLGraphStrokeEdge> g = 
 		new StandardGraph<OWLGraphLayoutNode, OWLGraphStrokeEdge>();
-	GraphStyle style;
+	
+	final GraphStyle style;
 	HierarchicalLayout.Orientation orientation = HierarchicalLayout.Orientation.TOP;
 	Stroke thinStroke = new BasicStroke(1);
 	Stroke fatStroke = new BasicStroke(3);
-	HashMap<OWLObject, OWLGraphLayoutNode> nodemap = new HashMap<OWLObject,OWLGraphLayoutNode>();
-
+	Map<OWLObject, OWLGraphLayoutNode> nodemap = new HashMap<OWLObject,OWLGraphLayoutNode>();
+	Set<RelationType> relationTypes = new HashSet<RelationType>();
+	
 	Shape parent=OWLGraphStrokeEdge.standardArrow(10,8,0);
 	Shape child=OWLGraphStrokeEdge.standardArrow(10,8,5);
 
 
+	
 	/**
+	 * Create a new renderer with default graph style.
+	 * 
 	 * @param owlGraphWrapper
 	 */
 	public OWLGraphLayoutRenderer(OWLGraphWrapper owlGraphWrapper) {
+		this(owlGraphWrapper, new GraphStyle());
+	}
+	
+	/**
+	 * @param owlGraphWrapper
+	 * @param style
+	 */
+	public OWLGraphLayoutRenderer(OWLGraphWrapper owlGraphWrapper, GraphStyle style) {
 		super();
 		this.owlGraphWrapper = owlGraphWrapper;
+		this.style = style;
 	}
 
 	/**
@@ -65,24 +85,15 @@ public class OWLGraphLayoutRenderer {
 	 * 
 	 * make private?
 	 * @param ob
-	 * @return
+	 * @return {@link OWLGraphLayoutNode}
 	 */
 	public OWLGraphLayoutNode getNode(OWLObject ob) {
-		if (nodemap.containsKey(ob))
-			return nodemap.get(ob);
-		//IRI iri = ((OWLNamedObject)ob).getIRI();
-		OWLGraphLayoutNode node = 
-			new OWLGraphLayoutNode(owlGraphWrapper, ob, style);
-
-		/*
-		RectangularNode node = 
-			new RectangularNode(100, 30, label,
-					iri.toString(), null, 
-					label, Color.RED, Color.BLACK,
-					thinStroke);
-		 */
-		nodemap.put(ob, node);
-		g.nodes.add(node);
+		OWLGraphLayoutNode node = nodemap.get(ob);
+		if (node == null) {
+			node = new OWLGraphLayoutNode(owlGraphWrapper, ob, style);
+			nodemap.put(ob, node);
+			g.nodes.add(node);
+		}
 		return node;
 	}
 
@@ -91,25 +102,15 @@ public class OWLGraphLayoutRenderer {
 	 * 
 	 * make private?
 	 * @param e
-	 * @return
+	 * @return OWLGraphStrokeEdge
 	 */
 	public OWLGraphStrokeEdge makeEdge(OWLGraphEdge e) {
 		OWLGraphLayoutNode sn = getNode(e.getSource());
 		OWLGraphLayoutNode tn = getNode(e.getTarget());
-		//System.out.println("adding:"+e+" "+n1+"//"+n2);
 
-		OWLQuantifiedProperty qr = e.getSingleQuantifiedProperty();
-
-		/*
-		// TODO : this isn't actually used yet...
-		Color color = Color.RED;
-		if (qr.isSubClassOf()) {
-			color = Color.GREEN;
-		}
-		*/
-		OWLGraphStrokeEdge ge = 
-			new OWLGraphStrokeEdge(tn, sn, e);	
+		OWLGraphStrokeEdge ge = new OWLGraphStrokeEdge(tn, sn, e, owlGraphWrapper);	
 		//		new OWLGraphStrokeEdge(n1, n2, color, fatStroke,parent,child);	
+		relationTypes.add(ge.relType);
 		return ge;
 	}
 
@@ -123,20 +124,31 @@ public class OWLGraphLayoutRenderer {
 	}
 
 	/**
-	 * Adds all objects from the OGW into the rendered graph
+	 * Adds all objects from the OGW into the rendered graph. 
+	 * This includes also all object properties (i.e. relation types).
+	 * If this is not intended use {@link #addAllClasses()} instead.
+	 * 
 	 * 
 	 * CAUTION: do this only for small ontologies
-	 * 
 	 */
 	public void addAllObjects() {
-		for (OWLObject ob : owlGraphWrapper.getAllOWLObjects()) {
-			OWLGraphLayoutNode node = getNode(ob);
-		}
-		for (OWLObject ob : owlGraphWrapper.getAllOWLObjects()) {
-			for (OWLGraphEdge e : owlGraphWrapper.getOutgoingEdges(ob)) {
-				g.edges.add(makeEdge(e));
+		addObjectsInternal(owlGraphWrapper.getAllOWLObjects());
+	}
+	
+	/**
+	 * Adds all classes from the OGW into the rendered graph
+	 * 
+	 * CAUTION: do this only for small ontologies
+	 */
+	public void addAllClasses() {
+		Set<OWLObject> allOWLObjects = owlGraphWrapper.getAllOWLObjects();
+		Set<OWLObject> allOWLClasses = new HashSet<OWLObject>();
+		for (OWLObject owlObject : allOWLObjects) {
+			if (owlObject instanceof OWLClass) {
+				allOWLClasses.add(owlObject);
 			}
 		}
+		addObjectsInternal(allOWLClasses);
 	}
 
 	/**
@@ -150,22 +162,30 @@ public class OWLGraphLayoutRenderer {
 	public void addObject(OWLObject focusObj) {
 		Set<OWLObject> ancObjs = owlGraphWrapper.getNamedAncestors(focusObj);
 		ancObjs.add(focusObj);
-		for (OWLObject ob : ancObjs) {
-			OWLGraphLayoutNode node = getNode(ob);
-		}
-		for (OWLObject ob : ancObjs) {
-			for (OWLGraphEdge e : owlGraphWrapper.getOutgoingEdges(ob)) {
-				g.edges.add(makeEdge(e));
-			}
-		}
+		addObjectsInternal(ancObjs);
 	}
 
 	public void addObjects(Set<OWLObject> objs) {
-		// TODO - make this more efficient
-		for (OWLObject obj : objs) {
-			addObject(obj);
+		Set<OWLObject> allObjects = new HashSet<OWLObject>();
+		for (OWLObject owlObject : objs) {
+			Set<OWLObject> ancestors = owlGraphWrapper.getNamedAncestors(owlObject);
+			if (ancestors != null) {
+				allObjects.addAll(ancestors);
+			}
 		}
-		
+		addObjectsInternal(allObjects);
+	}
+	
+	private void addObjectsInternal(Collection<OWLObject> objs) {
+		for (OWLObject ob : objs) {
+			getNode(ob); // creates the nodes
+		}
+		for (OWLObject ob : objs) {
+			for (OWLGraphEdge e : owlGraphWrapper.getOutgoingEdges(ob)) {
+				OWLGraphStrokeEdge edge = makeEdge(e);
+				g.edges.add(edge);
+			}
+		}
 	}
 
 
@@ -193,11 +213,10 @@ public class OWLGraphLayoutRenderer {
 	 * 
 	 * @param fmt - see ImageIO
 	 * @param fos
-	 * @return imageMap - TODO
-	 * @throws FileNotFoundException
+	 * @return imageMap - TODO currently an empty string, no map is provided
 	 * @throws IOException
 	 */
-	public String renderImage(String fmt, OutputStream fos) throws FileNotFoundException, IOException {
+	public String renderImage(String fmt, OutputStream fos) throws IOException {
 
 
 		HierarchicalLayout<OWLGraphLayoutNode, OWLGraphStrokeEdge> layout =
@@ -213,31 +232,10 @@ public class OWLGraphLayoutRenderer {
 
 		final int width = layout.getWidth();
 		final int height = layout.getHeight();
-		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-		final Graphics2D g2 = image.createGraphics();
-
-		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-		g2.setColor(Color.white);
-
-		g2.fillRect(0, 0, width, height);
-
-		g2.setColor(Color.black);
-
-		for (OWLGraphStrokeEdge edge : g.edges) {
-			//System.out.println("EDGE:"+edge);
-			edge.render(g2);
-		}
-
-		StringBuilder sb = new StringBuilder();
-
-		for (OWLGraphLayoutNode node : g.nodes) {
-			node.render(g2);
-			//sb.append(node.getImageMap());
-		}
+		ImageRender hierarchyImage = new HierarchyImage(width, height, g.nodes, g.edges, style, relationTypes);
+		RenderedImage image = hierarchyImage.render();
 		ImageIO.write(image, fmt, fos);
-		return sb.toString();
+		return "";
 
 	}
 

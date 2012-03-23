@@ -15,7 +15,7 @@ public class OWLGraphUtil {
 	 * @param g
 	 * @param x
 	 * @param y
-	 * @return 
+	 * @return set of edges
 	 */
 	public static Set<OWLGraphEdge> findCommonSubsumersAsEdges(OWLGraphWrapper g,
 			OWLObject x, OWLObject y) {

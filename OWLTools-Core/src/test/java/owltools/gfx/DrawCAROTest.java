@@ -1,22 +1,18 @@
 package owltools.gfx;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.OWLToolsTestBasics;
-import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
 public class DrawCAROTest extends OWLToolsTestBasics {
 
 	@Test
-	public void testRenderCARO() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void testRenderCARO() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g =
 			pw.parseToOWLGraph(getResourceIRIString("caro.obo"));

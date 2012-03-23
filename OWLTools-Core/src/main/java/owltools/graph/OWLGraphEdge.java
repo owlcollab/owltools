@@ -13,7 +13,6 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
 
 public class OWLGraphEdge {
 	
-	
 	private OWLObject source;
 	private OWLObject target;
 	private OWLOntology ontology;
@@ -29,7 +28,7 @@ public class OWLGraphEdge {
 		setSingleQuantifiedProperty(qp);
 	}
 
-	public OWLGraphEdge(OWLRestriction s, OWLObject t,
+	public OWLGraphEdge(OWLRestriction<?, ?, ?> s, OWLObject t,
 			OWLQuantifiedProperty el, OWLOntology o) {
 		super();
 		this.source = s;
@@ -110,7 +109,6 @@ public class OWLGraphEdge {
 		this.distance = distance;
 	}
 
-
 	/**
 	 * @return copy of QPL
 	 */
@@ -131,7 +129,7 @@ public class OWLGraphEdge {
 	}
 	
 	public OWLQuantifiedProperty getLastQuantifiedProperty() {
-		return (OWLQuantifiedProperty)quantifiedPropertyList.get(quantifiedPropertyList.size()-1);
+		return quantifiedPropertyList.get(quantifiedPropertyList.size()-1);
 	}
 
 	public void setSingleQuantifiedProperty(OWLQuantifiedProperty qp) {
@@ -158,6 +156,7 @@ public class OWLGraphEdge {
 		return (target instanceof OWLNamedObject);
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
@@ -165,18 +164,17 @@ public class OWLGraphEdge {
 		sb.append(" ");
 		sb.append(getQuantifiedPropertyList());
 		sb.append(" ");
-		sb.append(" ");
 		sb.append(target);
 		sb.append("]");
 		return sb.toString();
 	}
 	
+	@Override
 	public int hashCode() {
-		// TODO remove usage of toString() for owlQuantifiedProperties in hashcode calculation
 		final int prime = 31;
 		int result = 1;
 		List<OWLQuantifiedProperty> owlQuantifiedProperties = getQuantifiedPropertyList();
-		result = prime * result + ((owlQuantifiedProperties == null) ? 0 : owlQuantifiedProperties.toString().hashCode());
+		result = prime * result + ((owlQuantifiedProperties == null) ? 0 : owlQuantifiedProperties.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((target == null) ? 0 : target.hashCode());
 		return result;
@@ -191,20 +189,16 @@ public class OWLGraphEdge {
 		return a.equals(b);
 	}
 	
+	@Override
 	public boolean equals(Object e) {
-		
-		if(e == null && !(e instanceof OWLGraphEdge))
+		if(e == null || !(e instanceof OWLGraphEdge))
 			return false;
 		
 		OWLGraphEdge other = (OWLGraphEdge) e;
 		
-		
-		return 
-		isEq(other.getSource(),getSource()) &&
-		isEq(other.getTarget(),getTarget()) &&
-		isEq(quantifiedPropertyList,other.getQuantifiedPropertyList());
-		
+		return isEq(other.getSource(),getSource()) &&
+				isEq(other.getTarget(),getTarget()) &&
+				isEq(quantifiedPropertyList,other.getQuantifiedPropertyList());
 	}
-
 
 }

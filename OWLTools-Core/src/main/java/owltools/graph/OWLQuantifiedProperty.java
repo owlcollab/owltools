@@ -1,12 +1,8 @@
 package owltools.graph;
 
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLProperty;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 public class OWLQuantifiedProperty {
 	
@@ -90,6 +86,7 @@ public class OWLQuantifiedProperty {
 		this.maxCardinality = maxCardinality;
 	}
 	
+	@Override
 	public String toString() {
 		return getPropertyId()+" "+quantifier;
 	}
@@ -147,7 +144,6 @@ public class OWLQuantifiedProperty {
 		}
 		
 		return qb && (getProperty() != null && getProperty().equals(other.getProperty())) ;
-			
 	}
 
 	/**
@@ -163,8 +159,6 @@ public class OWLQuantifiedProperty {
 			return true;
 		return false;
 	}
-
-
 
 
 }
