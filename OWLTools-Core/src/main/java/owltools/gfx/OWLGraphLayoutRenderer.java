@@ -166,7 +166,7 @@ public class OWLGraphLayoutRenderer {
 	}
 
 	public void addObjects(Set<OWLObject> objs) {
-		Set<OWLObject> allObjects = new HashSet<OWLObject>();
+		Set<OWLObject> allObjects = new HashSet<OWLObject>(objs);
 		for (OWLObject owlObject : objs) {
 			Set<OWLObject> ancestors = owlGraphWrapper.getNamedAncestors(owlObject);
 			if (ancestors != null) {
@@ -183,7 +183,10 @@ public class OWLGraphLayoutRenderer {
 		for (OWLObject ob : objs) {
 			for (OWLGraphEdge e : owlGraphWrapper.getOutgoingEdges(ob)) {
 				OWLGraphStrokeEdge edge = makeEdge(e);
-				g.edges.add(edge);
+				// not nice, would have liked to make g.edges a set to avoid duplicates
+				if (!g.edges.contains(edge)) {
+					g.edges.add(edge);
+				}
 			}
 		}
 	}

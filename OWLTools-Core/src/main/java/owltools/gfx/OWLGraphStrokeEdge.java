@@ -18,8 +18,9 @@ import owltools.graph.OWLQuantifiedProperty;
  * @author cjm
  *
  */
-public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
-
+public final class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
+// this class is final due to a direct != check on the class in the equals method. 
+	
     private static final Stroke relationStroke = new BasicStroke(2f);
 	private static final Shape arrow = StrokeEdge.standardArrow(8,6,2);
 
@@ -140,4 +141,38 @@ public class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
     	return "aaaaaa";
     }
 
-  }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((owlGraphEdge == null) ? 0 : owlGraphEdge.hashCode());
+		result = prime * result + ((relType == null) ? 0 : relType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		OWLGraphStrokeEdge other = (OWLGraphStrokeEdge) obj;
+		if (owlGraphEdge == null) {
+			if (other.owlGraphEdge != null) {
+				return false;
+			}
+		}
+		else if (!owlGraphEdge.equals(other.owlGraphEdge)) {
+			return false;
+		}
+		if (relType != other.relType) {
+			return false;
+		}
+		return true;
+	}
+}
