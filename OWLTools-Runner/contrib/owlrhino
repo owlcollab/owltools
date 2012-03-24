@@ -146,7 +146,7 @@ fi
 #JCMD="$JAVAPATH -Xmx1024m -classpath $CLASSPATH:$CLASSPATH_RHINO -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME $CMDARGS"
 #CMD="$RLWRAP -C owlrhino $JCMD"
 #CMD="$RLWRAP -C owlrhino $JAVAPATH -Xmx1024m -classpath $CLASSPATH:$CLASSPATH_RHINO:~/bin -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME $CMDARGS -e 'load(\"$PATH_TO_ME/owlrunner.js\");load(\"$PATH_TO_ME/json2.js\")'"
-CMD="$RLWRAP -C owlrhino $JAVAPATH -Xmx2G -classpath $CLASSPATH:$CLASSPATH_RHINO:~/bin -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME $CMDARGS -f $PATH_TO_ME/owlrunner.js -f -"
+CMD="$RLWRAP -C owlrhino $JAVAPATH -Xmx4G -classpath $CLASSPATH:$CLASSPATH_RHINO:~/bin -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME $CMDARGS -f $PATH_TO_ME/owlrunner.js -f -"
 #CMD="$JAVAPATH -Xmx1024m -classpath $CLASSPATH:$CLASSPATH_RHINO -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME $CMDARGS"
 #CMD=$JCMD
 echo $CMD

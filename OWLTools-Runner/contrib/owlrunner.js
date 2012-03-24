@@ -1,6 +1,9 @@
 importPackage(java.io);
+importPackage(Packages.org.semanticweb.owlapi.model);
+importPackage(Packages.org.semanticweb.owlapi.io);
 importPackage(Packages.owltools.cli);
 importPackage(Packages.owltools.io);
+importPackage(Packages.owltools.mooncat);
 importPackage(Packages.com.google.gson);
 
 var runner;
@@ -23,15 +26,15 @@ function x(args) {
     runner.run(args.split(" "));
 }
 
-// initializes a reasoner. E.g. reasoner("elk")
-function reasoner(rn) {
+// initializes a reasoner. E.g. reason("elk")
+function reason(rn) {
     runner.run(["--reasoner",rn]);
     reasoner = runner.g.getReasoner();
 }
 
 // shortcuts
 function elk() {
-    reasoner("elk");
+    reason("elk");
 }
 
 // gets the current graph object
@@ -66,8 +69,48 @@ function getLabel(obj) {
     return g.getLabel(obj);
 }
 
+function dumpSubsets(matchPrefix, iriPrefix, dir) {
+    var pw = new ParserWrapper();
+    var subsetGenerator = new QuerySubsetGenerator();
+    var man = g().getManager();
+    var ont = g().getSourceOntology();
+    var objs = ont.getClassesInSignature(true).toArray();
+    //g().addSupportOntology(ont);
+    owlFormat = new RDFXMLOntologyFormat();
+
+    if (typeof reasoner == "undefined") {
+        elk();
+    }
+
+    for (var k in objs) {
+        var obj = objs[k];
+        print(obj);
+        var id = g().getIdentifier(obj);
+        id = id.replace(":","_");
+        id = id.replace(":","%3A");
+        print(id);
+        if (id.search(matchPrefix) == 0) {
+            var descs = reasoner.getSubClasses(obj, false).getFlattened();
+            print(descs);
+            descs.add(obj);
+            g().setSourceOntology(man.createOntology(IRI.create(iriPrefix + id + ".owl")));
+            g().setSupportOntologySet(new java.util.HashSet);
+            //g().addSupportOntology(ont);
+            supps = new java.util.HashSet;
+            supps.add(ont);
+            subsetGenerator.createSubSet(g(), descs, supps);
+            var fn = dir + "/" + id + ".owl";
+            man.saveOntology(g().getSourceOntology(), owlFormat, IRI.create(new File(fn)));
+            man.removeOntology(g().getSourceOntology());
+            // pw.saveOWL(g().getSourceOntology(),fn);
+            // TODO - release ontology
+        }
+    }
+}
+
+
 // reasoner ancestors
-//  Example: rancs("limb").map( function(a) {return getLabel(a)} )
+//  Example: rancs("limb").map( function(a) {return g().getLabel(a)} )
 function rancs(label) {
     return reasoner.getSubClasses( get(label), true ).getFlattened().toArray();
 }
