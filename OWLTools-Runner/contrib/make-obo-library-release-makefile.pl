@@ -77,7 +77,7 @@ foreach my $ns (keys %d)  {
     push(@rules, "$srcf:\n\twget -N --no-check-certificate $d{$ns} -O \$@");
 
     # then build
-    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --allow-overwrite -outdir --no-reasoner --asserted --simple \$<");
+    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$<");
 
     # then release
     push(@rules, "release-$ont: $ont/$ont.owl\n\tcp $ont/$ont.owl ..; cp $ont/$ont.obo ..");
