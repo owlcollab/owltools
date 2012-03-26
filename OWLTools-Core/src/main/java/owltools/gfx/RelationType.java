@@ -11,15 +11,17 @@ import java.util.*;
 public enum RelationType {
     ANCESTOR("?", "Ancestor","ancestor"),
     IDENTITY("=", "Identity","equals"),
-    ISA("I", "Is a", "is_a",new Color(0,0,0)),
-    PARTOF("P", "Part of", "part_of",new Color(0,0,255)),
-    REGULATES("R", "Regulates", "regulated",new Color(255,192,0)),
-    POSITIVEREGULATES("+", "Positively regulates","positively_regulates","PR", new Color(0,255,0)),
-    NEGATIVEREGULATES("-", "Negatively regulates","negatively_regulates","NR", new Color(255,0,0)),
-    DEVELOPSFROM(">", "Develops from","develops_from","develops_from", new Color(255,0,255)),
-    REPLACEDBY(">", "Replaced by","replaced_by","replaced_by", new Color(255,0,255)),
-    CONSIDER("~", "Consider","consider","consider", new Color(192,0,255)),
-	HASPART("H", "Has part", "has_part",new Color(128,0,128), Polarity.NEGATIVE);
+    ISA("I", "Is a", "is_a",Color.BLACK),
+    PARTOF("P", "Part of", "part_of",Color.BLUE),
+    REGULATES("R", "Regulates", "regulated",new Color(255,192,0)), // yellow
+    POSITIVEREGULATES("+", "Positively regulates","positively_regulates","PR", Color.GREEN),
+    NEGATIVEREGULATES("-", "Negatively regulates","negatively_regulates","NR", Color.RED),
+    DEVELOPSFROM(">", "Develops from","develops_from","develops_from", new Color(128,128,0)), // olive
+    REPLACEDBY(">", "Replaced by","replaced_by","replaced_by", new Color(255,0,255)), // fuchsia
+    CONSIDER("~", "Consider","consider","consider", new Color(192,0,255)), // violet
+	HASPART("H", "Has part", "has_part",new Color(128,0,128), Polarity.NEGATIVE), // dark violet
+	OCCURSIN("O", "Occurs in", "occurs_in", new Color(135,206,235)), // sky blue
+    UNKNOWN("U","Unkown","unkown", Color.GRAY);
 
 	public enum Polarity {
 		POSITIVE,   // relation is unidirectional from child to parent
@@ -57,7 +59,7 @@ public enum RelationType {
 	}
 
     RelationType(String code, String description,String formalCode) {
-	    this(code, description, formalCode, code, new Color(0, 0, 0), Polarity.POSITIVE);
+	    this(code, description, formalCode, code, Color.BLACK, Polarity.POSITIVE);
     }
 
     boolean ofType(RelationType query) {

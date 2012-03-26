@@ -63,7 +63,7 @@ public final class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      	}
      	
      	String id = graph.getIdentifier(qp.getProperty());
-     	if ("BFO:0000050".equals(id) || "part_of".equals(id)) {
+     	if ("BFO:0000050".equals(id) || "part_of".equals(id) || "part of".equals(id)) {
 			return RelationType.PARTOF;
 		}
      	else if ("RO:0002212".equals(id) || "negatively_regulates".equals(id)) {
@@ -75,8 +75,11 @@ public final class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      	else if ("RO:0002211".equals(id) || "regulates".equals(id)) {
      		return RelationType.REGULATES;
      	}
-     	else if ("BFO:0000051".equals(id) || "has_part".equals(id)) {
+     	else if ("BFO:0000051".equals(id) || "has_part".equals(id) || "has part".equals(id)) {
      		return RelationType.HASPART;
+     	}
+     	else if ("BFO:0000051".equals(id) || "occurs_in".equals(id) || "occurs in".equals(id)) {
+     		return RelationType.OCCURSIN;
      	}
      	
      	String s = graph.getLabelOrDisplayId(qp.getProperty());
@@ -92,7 +95,7 @@ public final class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      	else if (s.contains("develops_from")) {
      		return RelationType.DEVELOPSFROM;
     	}
-     	return null;
+     	return RelationType.UNKNOWN;
     }
 
     public static class SVGEdge {
