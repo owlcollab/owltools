@@ -21,6 +21,7 @@ public enum RelationType {
     CONSIDER("~", "Consider","consider","consider", new Color(192,0,255)), // violet
 	HASPART("H", "Has part", "has_part",new Color(128,0,128), Polarity.NEGATIVE), // dark violet
 	OCCURSIN("O", "Occurs in", "occurs_in", new Color(135,206,235)), // sky blue
+	RESULTSIN("N", "Results in", "results_in", new Color(160,82,45)), // sienna 
     UNKNOWN("U","Unkown","unkown", Color.GRAY);
 
 	public enum Polarity {

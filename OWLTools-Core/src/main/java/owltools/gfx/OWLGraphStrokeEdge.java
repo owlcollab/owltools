@@ -54,7 +54,7 @@ public final class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      * 
      * @param owlGraphEdge 
      * @param graph 
-     * @return relationtype or null
+     * @return relationtype (never null)
      */
     public static RelationType getRelationType(OWLGraphEdge owlGraphEdge, OWLGraphWrapper graph) {
      	OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
@@ -81,6 +81,9 @@ public final class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      	else if ("BFO:0000051".equals(id) || "occurs_in".equals(id) || "occurs in".equals(id)) {
      		return RelationType.OCCURSIN;
      	}
+     	else if ("results_in".equals(id) || "results in".equals(id)) {
+     		return RelationType.RESULTSIN;
+     	}
      	
      	String s = graph.getLabelOrDisplayId(qp.getProperty());
      	
@@ -95,6 +98,9 @@ public final class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      	else if (s.contains("develops_from")) {
      		return RelationType.DEVELOPSFROM;
     	}
+     	else if (s.contains("results_in")) {
+     		return RelationType.RESULTSIN;
+     	}
      	return RelationType.UNKNOWN;
     }
 
