@@ -1,4 +1,4 @@
-package owltools.yaml.flexdoc;
+package owltools.yaml.flexconfig;
 
 public class FlexDocCore {
 	public String id;

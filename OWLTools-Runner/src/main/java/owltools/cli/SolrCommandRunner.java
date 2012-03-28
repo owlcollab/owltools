@@ -1,7 +1,10 @@
 package owltools.cli;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
@@ -14,6 +17,7 @@ import owltools.gaf.GafObjectsBuilder;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
+import owltools.yaml.flexconfig.FlexConfigReader;
 
 /**
  *  Solr/GOlr loading.
@@ -23,7 +27,34 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	private static final Logger LOG = Logger.getLogger(SolrCommandRunner.class);
 	
 	private String globalSolrURL = null;
-	
+
+	/**
+	 * Output (STDOUT) a XML segment to put into the Solr schema file after reading the YAML file.
+	 * 
+	 * @param opts
+	 */
+	@CLIMethod("--solr-config")
+	public void solrConfigDump(Opts opts) {
+		String fsPath = opts.nextOpt();
+		LOG.info("Output XML config blob.");
+
+		// Attempt to parse the given config file.
+		FlexConfigReader fconf = null;
+		try {
+			fconf = new FlexConfigReader(fsPath);
+			LOG.info("Using config found at: " + fsPath);
+		} catch (FileNotFoundException e) {
+			LOG.info("Failure to find config file at: " + fsPath);
+			e.printStackTrace();
+		}
+		
+		try {
+			fconf.dumpSchemaBlob();
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Set an optional Solr URL to use with Solr options so they don't have to
 	 * be specified separately for every option.

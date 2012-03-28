@@ -37,9 +37,9 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty;
-import owltools.yaml.flexdoc.FlexDocConfig;
-import owltools.yaml.flexdoc.FlexDocDynamicField;
-import owltools.yaml.flexdoc.FlexDocFixedField;
+import owltools.yaml.flexconfig.FlexDocConfig;
+import owltools.yaml.flexconfig.FlexDocDynamicField;
+import owltools.yaml.flexconfig.FlexDocFixedField;
 
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
@@ -61,7 +61,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	private FlexDocConfig getConfig() throws FileNotFoundException {
 
 		// Find the file in question on the filesystem.
-		String rsrc = "flex-loader.yaml";
+		String rsrc = "flex-config.yaml";
 		ClassLoader floader = FlexSolrDocumentLoader.class.getClassLoader();
 		URL yamlURL = floader.getResource(rsrc);
 		if( yamlURL == null ){
