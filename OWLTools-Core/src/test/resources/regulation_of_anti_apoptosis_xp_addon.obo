@@ -1,0 +1,7 @@
+format-version: 1.2
+
+[Term]
+id: GO:0043066
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0006915 ! apoptosis
+
