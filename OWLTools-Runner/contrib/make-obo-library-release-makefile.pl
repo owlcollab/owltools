@@ -73,20 +73,27 @@ foreach my $ns (keys %d)  {
 
     push(@targets, "release-$ont");
 
-    # first fetch
-    push(@rules, "$srcf:\n\twget -N --no-check-certificate $d{$ns} -O \$@");
+
+    # first fetch; depends on 'stamp' file, which can be touched
+    push(@rules, "$srcf: stamp\n\twget -N --no-check-certificate $d{$ns} -O \$@");
 
     # then build
     push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$<");
+    push(@rules, "$ont/$ont.obo: $ont/$ont.owl");
 
     # then release
-    push(@rules, "release-$ont: $ont/$ont.owl\n\tcp $ont/$ont.owl ..; cp $ont/$ont.obo ..");
+    #push(@rules, "../$ont.%: $ont/$ont.%\n\tcp \$< \$@");
+    push(@rules, "../$ont.obo: $ont/$ont.obo\n\tcp \$< \$@");
+    push(@rules, "../$ont.owl: $ont/$ont.owl\n\tcp \$< \$@");
+    push(@rules, "release-$ont: ../$ont.obo ../$ont.owl");
+    #push(@rules, "release-$ont: $ont/$ont.owl\n\tcp $ont/$ont.owl ..; cp $ont/$ont.obo ..");
 
     cmd("mkdir $ont");
     cmd("mkdir $ont/src");
 
 }
 unshift(@rules, "all: @targets");
+push(@rules, "stamp:\n\ttouch \$@");
 
 foreach (@rules) {
     print "$_\n\n";
