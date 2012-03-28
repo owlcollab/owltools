@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -157,9 +158,19 @@ public class GafCommandRunner extends CommandRunner {
 			AnnotationRulesEngine ruleEngine = new AnnotationRulesEngine(-1, rulesFactory );
 			Map<String, List<AnnotationRuleViolation>> allViolations = ruleEngine.validateAnnotations(gafdoc);
 			File reportFile = new File(gafReportFile);
+			
+			// no violations found, delete previous error file (if it exists)
+			if (allViolations.isEmpty()) {
+				System.out.println("No violations found for gaf.");
+				FileUtils.deleteQuietly(reportFile);
+				return;
+			}
+			
+			// write violations
 			PrintWriter writer = null;
 			try {
 				// TODO make this a more detailed report
+				int allViolationsCount = 0;
 				writer = new PrintWriter(reportFile);
 				writer.println("------------");
 				List<String> ruleIds = new ArrayList<String>(allViolations.keySet());
@@ -172,12 +183,15 @@ public class GafCommandRunner extends CommandRunner {
 						writer.print(violation.getLineNumber());
 						writer.print(": ");
 						writer.println(violation.getMessage());
+						allViolationsCount++;
 					}
 					writer.println("------------");
 				}
+				System.err.println(allViolationsCount+" GAF violations found, reportfile: "+gafReportFile);
 			} finally {
 				IOUtils.closeQuietly(writer);
 			}
+			exit(-1); // end with an error code to indicate to Jenkins, that it was not successful
 		}
 	}
 	
