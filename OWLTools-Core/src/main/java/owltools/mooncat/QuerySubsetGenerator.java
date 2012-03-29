@@ -90,7 +90,7 @@ public class QuerySubsetGenerator {
 
 	/**
 	 * Given a collection of classes (such as those generated from a reasoner getSubClasses call), create a 
-	 * subset ontology and place it in tragetGraph.
+	 * subset ontology and place it in targetGraph.
 	 * 
 	 * The subset ontology is created by first collecting all axioms from toMerge that form a description of the input subset classes,
 	 * adding these to the target ontology, and then including the reference closure via Mooncat
