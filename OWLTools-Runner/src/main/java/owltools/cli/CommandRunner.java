@@ -134,7 +134,7 @@ public class CommandRunner {
 	public String reasonerName = "pellet";
 
 	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
-	
+
 	protected ParserWrapper pw = new ParserWrapper();
 	protected OWLPrettyPrinter owlpp;
 
@@ -247,7 +247,7 @@ public class CommandRunner {
 	}
 
 	public class OptionException extends Exception {
-		
+
 		// generated
 		private static final long serialVersionUID = 8770773099868997872L;
 
@@ -590,6 +590,19 @@ public class CommandRunner {
 				}
 
 			}
+			else if (opts.nextEq("--remove-abox")) {
+				opts.info("", "removes all named individual declarations and all individual axioms (e.g. class/property assertion");
+				for (OWLOntology ont : g.getAllOntologies()) {
+					Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+					rmAxioms.addAll(ont.getAxioms(AxiomType.DIFFERENT_INDIVIDUALS));
+					rmAxioms.addAll(ont.getAxioms(AxiomType.CLASS_ASSERTION));
+					rmAxioms.addAll(ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION));
+					for (OWLNamedIndividual ind : ont.getIndividualsInSignature()) {
+						rmAxioms.add(g.getDataFactory().getOWLDeclarationAxiom(ind));
+					}
+					g.getManager().removeAxioms(ont, rmAxioms);
+				}
+			}
 			else if (opts.nextEq("--i2c")) {
 				opts.info("[-s]", "Converts individuals to classes");
 				boolean isReplaceOntology = false;
@@ -647,7 +660,7 @@ public class CommandRunner {
 				boolean isExtended = false;
 				String subOntologyIRI = null;
 				OWLClassExpression ce = null;
-				
+
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
 						reasonerName = opts.nextOpt();
@@ -680,7 +693,7 @@ public class CommandRunner {
 						break;
 					}
 				}
-				
+
 				String expression = null;
 				if (ce == null)
 					expression = opts.nextOpt();
@@ -694,7 +707,7 @@ public class CommandRunner {
 					System.out.println("# QUERY: "+owlpp.render(ce));
 					if (ce instanceof OWLClass)
 						results.add((OWLClass) ce);
-					
+
 					// some reasoners such as elk cannot query using class expressions - we manifest
 					// the class expression as a named class in order to bypass this limitation
 					if (isManifest && !(ce instanceof OWLClass)) {
@@ -748,7 +761,7 @@ public class CommandRunner {
 					// always dispose parser to avoid a memory leak
 					parser.dispose();
 				}
-				
+
 				// Create a sub-ontology
 				if (subOntologyIRI != null) {
 					//g.mergeImportClosure();
@@ -756,6 +769,7 @@ public class CommandRunner {
 					OWLOntology srcOnt = g.getSourceOntology();
 					g.setSourceOntology(g.getManager().createOntology(IRI.create(subOntologyIRI)));
 					g.addSupportOntology(srcOnt);
+					
 					subsetGenerator.createSubSet(g, results, g.getSupportOntologySet());
 				}
 			}
@@ -1072,7 +1086,8 @@ public class CommandRunner {
 			else if (opts.nextEq("--descendants")) {
 				opts.info("LABEL", "show all descendant nodes");
 				OWLObject obj = resolveEntity( opts);
-				System.out.println(obj+ " "+obj.getClass());
+				owlpp = new OWLPrettyPrinter(g);
+				System.out.println("#" + obj+ " "+obj.getClass()+" "+owlpp.render(obj));
 				Set<OWLObject> ds = g.getDescendants(obj);
 				for (OWLObject d : ds)
 					System.out.println(d);
@@ -1207,7 +1222,7 @@ public class CommandRunner {
 						ofmt = new OBOOntologyFormat();
 					}
 				}
-
+				
 				pw.saveOWL(g.getSourceOntology(), ofmt, opts.nextOpt());
 				//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
 			}
@@ -1550,7 +1565,7 @@ public class CommandRunner {
 				if (called) {
 					continue;
 				}
-				
+
 				// Default is to treat argument as an ontology
 				String f  = opts.nextOpt();
 				try {

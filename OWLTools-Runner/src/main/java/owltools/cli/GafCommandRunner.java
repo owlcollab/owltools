@@ -144,7 +144,7 @@ public class GafCommandRunner extends CommandRunner {
 	
 	@CLIMethod("--gaf-query")
 	public void gafQuery(Opts opts) {
-		opts.info("LABEL", "list edges in graph closure to root nodes");
+		opts.info("LABEL", "extracts lines from a GAF file where the ontology term is a reflexive descendant of the query");
 		OWLObject obj = resolveEntity(opts);
 		Set<OWLObject> descs = g.getDescendantsReflexive(obj);
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
