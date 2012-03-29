@@ -30,8 +30,7 @@
       <component name="OBO-OWL converter" id="18" customizedId="" displayDescription="false" hideHelpButton="false" selected="true" changeable="false" downloadable="false" hidden="false">
         <description />
         <include all="false">
-          <entry location="lib/log4j-1.2.15.jar" fileType="regular" />
-          <entry location="lib/oboformat.jar" fileType="regular" />
+          <entry location="lib" fileType="regular" />
           <entry location="CHANGES.txt" fileType="regular" />
           <entry location="obo-owl-converter" fileType="launcher" />
         </include>
@@ -49,6 +48,7 @@
       <component name="OBO-OWL scripts" id="1095" customizedId="" displayDescription="false" hideHelpButton="false" selected="true" changeable="true" downloadable="false" hidden="false">
         <description />
         <include all="false">
+          <entry location="lib" fileType="regular" />
           <entry location="scripts/obolib-obo2owl" fileType="launcher" />
           <entry location="scripts/obolib-owl2obo" fileType="launcher" />
           <entry location="CHANGES.txt" fileType="regular" />
@@ -60,12 +60,21 @@
       <component name="OBO Release Manager scripts" id="1096" customizedId="" displayDescription="false" hideHelpButton="false" selected="true" changeable="true" downloadable="false" hidden="false">
         <description />
         <include all="false">
+          <entry location="lib" fileType="regular" />
           <entry location="scripts/ontology-release-runner" fileType="launcher" />
           <entry location="CHANGES.txt" fileType="regular" />
         </include>
         <dependencies>
           <component id="19" />
         </dependencies>
+      </component>
+      <component name="Misc" id="1489" customizedId="" displayDescription="false" hideHelpButton="false" selected="true" changeable="true" downloadable="false" hidden="false">
+        <description />
+        <include all="false">
+          <entry location="lib" fileType="regular" />
+          <entry location="scripts/reasoner-diff" fileType="launcher" />
+        </include>
+        <dependencies />
       </component>
     </components>
   </files>
@@ -185,6 +194,32 @@
         </text>
       </splashScreen>
       <java mainClass="owltools.ontologyrelease.OboOntologyReleaseRunner" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+        <classPath>
+          <scanDirectory location="lib" failOnError="false" />
+        </classPath>
+        <nativeLibraryDirectories />
+      </java>
+      <includedFiles />
+      <unextractableFiles />
+      <vmOptionsFile mode="none" overwriteMode="0" fileMode="644">
+        <content />
+      </vmOptionsFile>
+      <customScript mode="1" file="">
+        <content />
+      </customScript>
+      <iconImageFiles />
+    </launcher>
+    <launcher name="reasoner-diff" id="1486" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="">
+      <executable name="reasoner-diff" type="1" iconSet="false" iconFile="" executableDir="scripts" redirectStderr="false" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="2" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+        <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
+      </executable>
+      <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
+        <text>
+          <statusLine x="20" y="20" text="" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+          <versionLine x="20" y="40" text="version ${compiler:sys.version}" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+        </text>
+      </splashScreen>
+      <java mainClass="owltools.diff.ResonerDiffCommandLine" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <scanDirectory location="lib" failOnError="false" />
         </classPath>
