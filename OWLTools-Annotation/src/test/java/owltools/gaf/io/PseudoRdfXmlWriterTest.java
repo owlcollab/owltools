@@ -3,6 +3,8 @@ package owltools.gaf.io;
 import static org.junit.Assert.*;
 import static owltools.gaf.io.PseudoRdfXmlWriter.*;
 
+import java.util.Arrays;
+
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -38,7 +40,7 @@ public class PseudoRdfXmlWriterTest extends OWLToolsTestBasics {
 		GafDocument gaf = builder.buildDocument(getResource("test_gene_association_mgi.gaf"));
 		
 		PseudoRdfXmlWriter w = new PseudoRdfXmlWriter();
-		w.write(System.out, graph, gaf);
+		w.write(System.out, graph, Arrays.asList(gaf));
 	}
 	
 	@Test

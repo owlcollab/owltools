@@ -22,7 +22,6 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
@@ -34,19 +33,32 @@ import owltools.graph.OWLQuantifiedProperty;
  */
 public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 	
+	/**
+	 * DTD location for the GO RDF XML format
+	 */
+	static final String GO_RDF_XML_DTD = "http://www.geneontology.org/dtds/go.dtd";
+	
 	static final String RDF_NAMESPACE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	static final String GO_NAMESPACE_URI = "http://www.geneontology.org/dtds/go.dtd#";
+	static final String GO_NAMESPACE_URI = GO_RDF_XML_DTD+"#";
 	static final String DEFAULT_INDENT = "    "; // 4 space chars as indent
 	
 	public PseudoRdfXmlWriter() {
 		super(DEFAULT_INDENT);
 	}
 
-	public void write(OutputStream stream, OWLGraphWrapper graph, GafDocument gaf) throws IOException {
+	/**
+	 * Write a pseudo RDF XML for the given ontology and gene annotations.
+	 * 
+	 * @param stream
+	 * @param graph the ontology
+	 * @param gafs (optional) list of gaf documents or null
+	 * @throws IOException
+	 */
+	public void write(OutputStream stream, OWLGraphWrapper graph, List<GafDocument> gafs) throws IOException {
 		try {
 			XMLStreamWriter writer = createWriter(stream);
 			writer.writeStartDocument();
-			writer.writeDTD("\n<!DOCTYPE go:go PUBLIC \"-//Gene Ontology//Custom XML/RDF Version 2.0//EN\" \"http://www.geneontology.org/dtd/go.dtd\">\n");
+			writer.writeDTD("\n<!DOCTYPE go:go PUBLIC \"-//Gene Ontology//Custom XML/RDF Version 2.0//EN\" \""+GO_RDF_XML_DTD+"\">\n");
 			
 			writer.writeStartElement("go:go");
 			writer.writeNamespace("go", GO_NAMESPACE_URI);
@@ -54,7 +66,7 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 			
 			writer.writeStartElement(RDF_NAMESPACE_URI, "RDF");
 			
-			writeTerms(writer, graph, gaf);
+			writeTerms(writer, graph, gafs);
 			
 			writer.writeEndElement(); // RDF
 			writer.writeEndElement(); // go:go
@@ -66,7 +78,7 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 		}
 	}
 
-	private void writeTerms(XMLStreamWriter writer, final OWLGraphWrapper graph, GafDocument gaf)
+	private void writeTerms(XMLStreamWriter writer, final OWLGraphWrapper graph, List<GafDocument> gafs)
 			throws XMLStreamException {
 		
 		// get all classes and sort them according to the lexical order of their OBO identifiers
@@ -88,11 +100,11 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 		
 		// write each term and corresponding gene annotations
 		for (OWLClass owlClass : allClasses) {
-			writeTerm(writer, owlClass, graph, gaf);
+			writeTerm(writer, owlClass, graph, gafs);
 		}
 	}
 	
-	private void writeTerm(XMLStreamWriter writer, OWLClass c, OWLGraphWrapper graph, GafDocument gaf) throws XMLStreamException {
+	private void writeTerm(XMLStreamWriter writer, OWLClass c, OWLGraphWrapper graph, List<GafDocument> gafs) throws XMLStreamException {
 		writer.writeStartElement(GO_NAMESPACE_URI, "term");
 		String accession = graph.getIdentifier(c);
 		writer.writeAttribute(RDF_NAMESPACE_URI, "about", "http://www.geneontology.org/go#"+accession);
@@ -125,7 +137,9 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 		
 		
 		// go:association*
-		writeAssociations(writer, c, accession, graph, gaf);
+		if(gafs != null && !gafs.isEmpty()) {
+			writeAssociations(writer, c, accession, graph, gafs);
+		}
 		
 		// go:history*
 		// NOT used
@@ -144,15 +158,22 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 	private void writeSynonyms(XMLStreamWriter writer, OWLClass c, OWLGraphWrapper graph) throws XMLStreamException {
 		List<ISynonym> synonyms = graph.getOBOSynonyms(c);
 		if (synonyms != null && !synonyms.isEmpty()) {
+			// sort synonym labels and avoid duplicates
+			SortedSet<String> strings = new TreeSet<String>();
 			for (ISynonym synonym : synonyms) {
-				writeGoTag(writer, "synonym", synonym.getLabel());
+				strings.add(synonym.getLabel());
+			}
+			for (String string : strings) {
+				writeGoTag(writer, "synonym", string);
 			}
 		}
+		
 	}
 	
 	void writeRelations(XMLStreamWriter writer, OWLClass c, OWLGraphWrapper graph) throws XMLStreamException {
 		// go:part_of | go:is_a | go:negatively_regulates | go:positively_regulates | go:regulates
 		
+		// sort relations to provide a deterministic output file
 		SortedSet<String> is_a_rels = new TreeSet<String>();
 		SortedSet<String> part_of_rels = new TreeSet<String>();
 		SortedSet<String> negatively_regulates_rels = new TreeSet<String>();
@@ -214,6 +235,8 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 				is_a_rels.add(graph.getIdentifier(target));
 			}
 		}
+		
+		// sort by type of relation
 		writeRelation(writer, "is_a", is_a_rels);
 		writeRelation(writer, "part_of", part_of_rels);
 		writeRelation(writer, "regulates", regulates_rels);
@@ -278,43 +301,45 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 	private static final Set<String> EVIDENCE_CODES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
 			"IEA", "IMP", "IGI", "IPI", "ISS", "IDA", "IEP", "TAS",  "NAS", "IC", "ND", "NR", "RCA", "NULL")));
 	
-	private void writeAssociations(XMLStreamWriter writer, OWLClass c, String accession, final OWLGraphWrapper graph, GafDocument gaf)
+	private void writeAssociations(XMLStreamWriter writer, OWLClass c, String accession, final OWLGraphWrapper graph, List<GafDocument> gafs)
 			throws XMLStreamException {
 		
 		// get corresponding gene annotations for the term
-		for(GeneAnnotation ann : gaf.getGeneAnnotationsByDirectGoCls(accession)) {
-			writer.writeStartElement(GO_NAMESPACE_URI, "association");
-			writer.writeAttribute(RDF_NAMESPACE_URI, "parseType", "Resource");
-			
-			//go:evidence+
-			String evidenceCls = ann.getEvidenceCls();
-			if (evidenceCls == null) {
-				evidenceCls = "NULL";
-			}
-			else {
-				evidenceCls = evidenceCls.toUpperCase();
-				if(!EVIDENCE_CODES.contains(evidenceCls)) {
+		for(GafDocument gaf : gafs) {
+			for(GeneAnnotation ann : gaf.getGeneAnnotationsByDirectGoCls(accession)) {
+				writer.writeStartElement(GO_NAMESPACE_URI, "association");
+				writer.writeAttribute(RDF_NAMESPACE_URI, "parseType", "Resource");
+				
+				//go:evidence+
+				String evidenceCls = ann.getEvidenceCls();
+				if (evidenceCls == null) {
 					evidenceCls = "NULL";
 				}
+				else {
+					evidenceCls = evidenceCls.toUpperCase();
+					if(!EVIDENCE_CODES.contains(evidenceCls)) {
+						evidenceCls = "NULL";
+					}
+				}
+				String xref = ann.getReferenceId();
+				
+				writer.writeStartElement(GO_NAMESPACE_URI, "evidence");
+				writer.writeAttribute("evidence_code", evidenceCls);
+				writeDbXref(writer, xref);
+				writer.writeEndElement(); // evidence
+				
+				//go:gene_product
+				Bioentity bioentity = ann.getBioentityObject();
+				writer.writeStartElement(GO_NAMESPACE_URI, "gene_product");
+				writer.writeAttribute(RDF_NAMESPACE_URI, "parseType", "Resource");
+				
+				writeGoTag(writer, "name", bioentity.getFullName());
+				writeDbXref(writer, bioentity.getId());
+				
+				writer.writeEndElement(); // gene_product
+				
+				writer.writeEndElement(); // association
 			}
-			String xref = ann.getReferenceId();
-			
-			writer.writeStartElement(GO_NAMESPACE_URI, "evidence");
-			writer.writeAttribute("evidence_code", evidenceCls);
-			writeDbXref(writer, xref);
-			writer.writeEndElement(); // evidence
-			
-			//go:gene_product
-			Bioentity bioentity = ann.getBioentityObject();
-			writer.writeStartElement(GO_NAMESPACE_URI, "gene_product");
-			writer.writeAttribute(RDF_NAMESPACE_URI, "parseType", "Resource");
-			
-			writeGoTag(writer, "name", bioentity.getFullName());
-			writeDbXref(writer, bioentity.getId());
-			
-			writer.writeEndElement(); // gene_product
-			
-			writer.writeEndElement(); // association
 		}
 		
 	}
