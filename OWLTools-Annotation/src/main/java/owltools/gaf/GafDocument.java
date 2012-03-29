@@ -8,6 +8,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.log4j.Logger;
 
 public class GafDocument{
@@ -100,10 +101,16 @@ public class GafDocument{
 		return anns;
 	}
 
-	public Set<GeneAnnotation> getGeneAnnotationsByGoCls(String cls){
-		return null;
+	public List<GeneAnnotation> getGeneAnnotationsByDirectGoCls(String cls){
+		List<GeneAnnotation> result = new ArrayList<GeneAnnotation>();
+		for (GeneAnnotation annotation : annotations) {
+			if(cls.equals(annotation.cls)) {
+				result.add(annotation);
+			}
+		}
+		return result;
 	}
-
+	
 	public void addBioentity(Bioentity bioentity){
 		bioentity.setGafDocument(this.getId());
 		bioentities.put(bioentity.getId(), bioentity);
