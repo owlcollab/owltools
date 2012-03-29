@@ -212,14 +212,17 @@ public class GafCommandRunner extends CommandRunner {
 		if (g == null) {
 			System.err.println("ERROR: No ontology available.");
 			exit(-1);
+			return;
 		}
 		if(gafdoc != null) {
 			System.err.println("ERROR: No GAF available.");
 			exit(-1);
+			return;
 		}
 		if (!opts.hasArgs()) {
 			System.err.println("ERROR: No output file available.");
 			exit(-1);
+			return;
 		}
 		String outputFileName = opts.nextOpt();
 		PseudoRdfXmlWriter w = new PseudoRdfXmlWriter();
