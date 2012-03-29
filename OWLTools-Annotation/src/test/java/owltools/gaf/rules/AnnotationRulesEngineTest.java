@@ -11,11 +11,12 @@ import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 
-public class AnnotationRulesEngineTest {
+public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 
 	private static boolean renderViolations = false;
 	private static final String LOCATION = "src/test/resources/rules/";
@@ -38,7 +39,7 @@ public class AnnotationRulesEngineTest {
 	@Test
 	public void testValidateAnnotations() throws Exception {
 		GafObjectsBuilder builder = new GafObjectsBuilder();
-		GafDocument gafdoc = builder.buildDocument("src/test/resources/test_gene_association_mgi.gaf");			
+		GafDocument gafdoc = builder.buildDocument(getResource("test_gene_association_mgi.gaf"));			
 		Map<String, List<AnnotationRuleViolation>> allViolations = engine.validateAnnotations(gafdoc);
 		
 		assertEquals(4, allViolations.size()); // 4 types of rule violations
