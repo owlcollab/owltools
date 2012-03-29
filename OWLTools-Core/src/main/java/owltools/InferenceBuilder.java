@@ -192,7 +192,7 @@ public class InferenceBuilder{
 		this.reasoner = reasoner;
 	}
 
-	private synchronized OWLReasoner getReasoner(OWLOntology ontology){
+	public synchronized OWLReasoner getReasoner(OWLOntology ontology){
 		if(reasoner == null){
 			OWLReasonerFactory factory = reasonerFactoryDetails.factory;
 			String reasonerFactoryName = factory.getReasonerName();

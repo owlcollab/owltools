@@ -140,15 +140,15 @@ public class ResonerDiffCommandLine {
 		}
 		report.append("# ----------------").append('\n');
 		
-		List<OWLAxiom> redundantAxioms = diff.getRedundantAxioms();
-		if (redundantAxioms != null && !redundantAxioms.isEmpty()) {
-			report.append("# There are "+redundantAxioms.size()+" new redundant axioms.").append('\n');
-			for (OWLAxiom owlAxiom : redundantAxioms) {
+		List<OWLAxiom> removedInferredAxioms = diff.getRemovedInferredAxioms();
+		if (removedInferredAxioms != null && !removedInferredAxioms.isEmpty()) {
+			report.append("# There are "+removedInferredAxioms.size()+" removed inferred axioms.").append('\n');
+			for (OWLAxiom owlAxiom : removedInferredAxioms) {
 				report.append(pp.render(owlAxiom)).append('\n');
 			}
 		}
 		else {
-			report.append("# There are NO new redundant axioms.").append('\n');
+			report.append("# There are NO removed inferred axioms.").append('\n');
 		}
 		return report;
 	}

@@ -1,11 +1,19 @@
 package owltools.diff;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
@@ -13,16 +21,16 @@ import owltools.graph.OWLGraphWrapper;
 public class ReasonerDiff {
 
 	private final List<OWLAxiom> newAxioms;
-	private final List<OWLAxiom> redundantAxioms;
+	private final List<OWLAxiom> removedInferredAxioms;
 	
 	/**
 	 * @param newAxioms
-	 * @param redundantAxioms
+	 * @param removedInferredAxioms
 	 */
 	protected ReasonerDiff(List<OWLAxiom> newAxioms,
-			List<OWLAxiom> redundantAxioms) {
+			List<OWLAxiom> removedInferredAxioms) {
 		this.newAxioms = newAxioms;
-		this.redundantAxioms = redundantAxioms;
+		this.removedInferredAxioms = removedInferredAxioms;
 	}
 	
 	/**
@@ -33,16 +41,15 @@ public class ReasonerDiff {
 	}
 
 	/**
-	 * @return the redundantAxioms
+	 * @return the removedInferredAxioms
 	 */
-	public List<OWLAxiom> getRedundantAxioms() {
-		return redundantAxioms;
+	public List<OWLAxiom> getRemovedInferredAxioms() {
+		return removedInferredAxioms;
 	}
 
 	public static ReasonerDiff createReasonerDiff(OWLGraphWrapper baseLine, OWLGraphWrapper change, String reasoner) throws OWLException {
-		// pre-reason both ontologies
-		preReasonOntology(baseLine, reasoner);
-		preReasonOntology(change, reasoner);
+		
+		Set<OWLAxiom> baseInferences = getInferences(baseLine, reasoner);
 		
 		// add change to ontology
 		for(OWLOntology ontology : change.getAllOntologies()) {
@@ -50,26 +57,61 @@ public class ReasonerDiff {
 		}
 		
 		// get new inferences
-		InferenceBuilder builder = new InferenceBuilder(baseLine, reasoner);
-		List<OWLAxiom> newAxioms = builder.buildInferences();
-		List<OWLAxiom> redundantAxioms = builder.getRedundantAxioms();
+		Set<OWLAxiom> changeInferences = getInferences(baseLine, reasoner);
 		
-		return new ReasonerDiff(newAxioms, redundantAxioms);
+		List<OWLAxiom> newAxioms = new ArrayList<OWLAxiom>();
+		List<OWLAxiom> removedInferredAxioms = new ArrayList<OWLAxiom>();
+		
+		for (OWLAxiom owlAxiom : changeInferences) {
+			if (baseInferences.contains(owlAxiom) == false) {
+				newAxioms.add(owlAxiom);
+			}
+		}
+		for(OWLAxiom owlAxiom : baseInferences) {
+			if (changeInferences.contains(owlAxiom) == false) {
+				removedInferredAxioms.add(owlAxiom);
+			}
+		}
+		
+		return new ReasonerDiff(newAxioms, removedInferredAxioms);
 	}
 	
-	static void preReasonOntology(OWLGraphWrapper graph, String reasoner) {
-		InferenceBuilder builder = new InferenceBuilder(graph, reasoner);
-		OWLOntology ontology = graph.getSourceOntology();
-		OWLOntologyManager manager = ontology.getOWLOntologyManager();
+	static Set<OWLAxiom> getInferences(OWLGraphWrapper graph, String reasonerName) throws OWLException {
 		
-		List<OWLAxiom> inferredAxioms = builder.buildInferences();
-		for (OWLAxiom owlAxiom : inferredAxioms) {
-			manager.addAxiom(ontology, owlAxiom);
+		graph.mergeImportClosure();
+		InferenceBuilder builder = new InferenceBuilder(graph, reasonerName);
+		
+		Set<OWLAxiom> inferredAxioms = new HashSet<OWLAxiom>();
+		
+		OWLOntology ontology = graph.getSourceOntology();
+		OWLDataFactory dataFactory = ontology.getOWLOntologyManager().getOWLDataFactory();
+		
+		OWLReasoner reasoner = builder.getReasoner(ontology);
+		for (OWLClass cls : ontology.getClassesInSignature()) {
+			NodeSet<OWLClass> scs = reasoner.getSuperClasses(cls, true);
+			for (Node<OWLClass> scSet : scs) {
+				for (OWLClass sc : scSet) {
+					if (sc.isOWLThing()) {
+						continue; // do not report subclasses of owl:Thing
+					}
+					// we do not want to report inferred subclass links
+					// if they are already asserted in the ontology
+					boolean isAsserted = false;
+					for (OWLClassExpression asc : cls.getSuperClasses(ontology)) {
+						if (asc.equals(sc)) {
+							// we don't want to report this
+							isAsserted = true;
+						}
+					}
+					// include any inferred axiom that is NOT already asserted in the ontology
+					if (!isAsserted) {						
+						inferredAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
+					}
+				}
+			}
 		}
-		List<OWLAxiom> redundantAxioms = builder.getRedundantAxioms();
-		for (OWLAxiom owlAxiom : redundantAxioms) {
-			manager.removeAxiom(ontology, owlAxiom);
-		}
+		
+		return inferredAxioms;
 	}
 	
 }
