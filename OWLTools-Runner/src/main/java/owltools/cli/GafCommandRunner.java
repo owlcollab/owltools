@@ -214,7 +214,7 @@ public class GafCommandRunner extends CommandRunner {
 			exit(-1);
 			return;
 		}
-		if(gafdoc != null) {
+		if(gafdoc == null) {
 			System.err.println("ERROR: No GAF available.");
 			exit(-1);
 			return;
