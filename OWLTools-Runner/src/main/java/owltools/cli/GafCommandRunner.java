@@ -1,9 +1,12 @@
 package owltools.cli;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +29,7 @@ import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
+import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRulesEngine;
@@ -200,6 +204,28 @@ public class GafCommandRunner extends CommandRunner {
 		if (opts.hasArgs()) {
 			gafReportFile = opts.nextOpt();
 		}
+	}
+	
+	@CLIMethod("--pseudo-rdf-xml")
+	public void createRdfXml(Opts opts) throws IOException {
+		opts.info("OUTPUTFILE", "create an RDF XML file in legacy format.");
+		if (g == null) {
+			System.err.println("ERROR: No ontology available.");
+			exit(-1);
+		}
+		if(gafdoc != null) {
+			System.err.println("ERROR: No GAF available.");
+			exit(-1);
+		}
+		if (!opts.hasArgs()) {
+			System.err.println("ERROR: No output file available.");
+			exit(-1);
+		}
+		String outputFileName = opts.nextOpt();
+		PseudoRdfXmlWriter w = new PseudoRdfXmlWriter();
+		OutputStream stream = new FileOutputStream(new File(outputFileName));
+		w.write(stream, g, Arrays.asList(gafdoc));
+		stream.close();
 	}
 
 }
