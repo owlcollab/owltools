@@ -58,7 +58,7 @@ public class ReasonerDiff {
 		
 		// get new inferences
 		Set<OWLAxiom> changeInferences = getInferences(baseLine, reasoner);
-		
+	
 		List<OWLAxiom> newAxioms = new ArrayList<OWLAxiom>();
 		List<OWLAxiom> removedInferredAxioms = new ArrayList<OWLAxiom>();
 		

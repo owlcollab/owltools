@@ -5,3 +5,7 @@ id: GO:0043066
 intersection_of: GO:0065007 ! biological regulation
 intersection_of: negatively_regulates GO:0006915 ! apoptosis
 
+[Term]
+id: GO:0043069
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0012501 ! programmed cell death

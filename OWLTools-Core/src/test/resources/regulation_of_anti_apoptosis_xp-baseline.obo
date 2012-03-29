@@ -196,6 +196,7 @@ synonym: "down regulation of apoptosis" EXACT []
 synonym: "down-regulation of apoptosis" EXACT []
 synonym: "downregulation of apoptosis" EXACT []
 synonym: "inhibition of apoptosis" NARROW []
+is_a: GO:0065007 ! biological regulation
 relationship: negatively_regulates GO:0006915 ! apoptosis
 
 [Term]
@@ -216,8 +217,7 @@ synonym: "down regulation of programmed cell death" EXACT []
 synonym: "down-regulation of programmed cell death" EXACT []
 synonym: "downregulation of programmed cell death" EXACT []
 synonym: "inhibition of programmed cell death" NARROW []
-intersection_of: GO:0065007 ! biological regulation
-intersection_of: negatively_regulates GO:0012501 ! programmed cell death
+is_a: GO:0065007 ! biological regulation
 relationship: negatively_regulates GO:0012501 ! programmed cell death
 
 [Term]

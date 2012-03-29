@@ -27,12 +27,18 @@ public class ReasonerDiffTest extends OWLToolsTestBasics {
 		ReasonerDiff diff = ReasonerDiff.createReasonerDiff(baseLine, change, InferenceBuilder.REASONER_HERMIT);
 		
 		List<OWLAxiom> newAxioms = diff.getNewAxioms();
+		List<OWLAxiom> rmAxioms = diff.getRemovedInferredAxioms();
+		
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(baseLine);
 		
 		for (OWLAxiom owlAxiom : newAxioms) {
 			System.out.println(pp.render(owlAxiom));
 		}
-		assertEquals(5, newAxioms.size());
+		for (OWLAxiom owlAxiom : rmAxioms) {
+			System.out.println("RM: "+pp.render(owlAxiom));
+		}
+		assertEquals(1, newAxioms.size());
+		assertEquals(2, rmAxioms.size());
 	}
 
 }
