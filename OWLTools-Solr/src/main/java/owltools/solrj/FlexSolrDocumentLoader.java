@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -20,6 +22,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -44,9 +47,7 @@ import owltools.yaml.golrconfig.GOlrFixedField;
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);
-	private String schema_mangle = "ext"; // same as appears in geneontology/java/gold/conf/schema.xml
-	private String ns_mangle = "unknown";
-
+	
 	public FlexSolrDocumentLoader(String url, OWLGraphWrapper graph) throws MalformedURLException {
 		super(url);
 		setGraph(graph);
@@ -88,8 +89,8 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	public void load() throws SolrServerException, IOException {
 
 		GOlrConfig config = getConfig();
-		ns_mangle = config.id;
-		
+		LOG.info("Trying to load with config: " + config.id);
+
 		if( graph == null ){
 			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
 		}else{
@@ -100,7 +101,93 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		}
 	}
 
-	/*
+	/**
+	 * Try and pull out right OWLGraphWrapper function.
+	 * 
+	 * @param owlfunction
+	 * @return
+	 */
+	private Method getExtMethod(String owlfunction){
+
+		java.lang.reflect.Method method = null;
+		try {
+			method = graph.getClass().getMethod(owlfunction, OWLObject.class);
+		} catch (SecurityException e) {
+			LOG.info("ERROR: apparently a security problem with: " + owlfunction);
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			LOG.info("ERROR: couldn't find method: " + owlfunction);
+			e.printStackTrace();
+		}
+
+		return method;
+	}
+	
+	/**
+	 * Get properly formatted output from the OWLGraphWrapper.
+	 * 
+	 * @param oobj
+	 * @param owlfunction
+	 * @return a (possibly null) string return value
+	 */
+	private String getExtString(OWLObject oobj, String owlfunction){
+
+		String retval = null;
+		
+		// Try and pull out right OWLGraphWrapper function.
+		java.lang.reflect.Method method = getExtMethod(owlfunction);
+		
+		// Try to invoke said method.
+		if( method != null ){
+			try {
+				retval = (String) method.invoke(graph, oobj);
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();				
+			}
+
+			// TODO: try and massage the output into something useful--a single string.
+		}
+		
+		return retval;
+	}
+
+	/**
+	 * Get properly formatted output from the OWLGraphWrapper.
+	 * 
+	 * @param oobj
+	 * @param owlfunction
+	 * @return a (possibly empty) string list of returned values
+	 */
+	private List<String> getExtStringList(OWLObject oobj, String owlfunction){
+
+		List<String> retvals = new ArrayList<String>();
+
+		// Try and pull out right OWLGraphWrapper function.
+		java.lang.reflect.Method method = getExtMethod(owlfunction);
+		
+		// Try to invoke said method.
+		if( method != null ){
+			try {
+				retvals = (List<String>) method.invoke(graph, oobj);
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();				
+			}
+
+			// TODO: try and massage the output into something useful--a single string.
+		}
+		
+		return retvals;
+	}
+	
+	/**
 	 * Take args and add it index (no commits)
 	 * Main wrapping for adding ontology documents to GOlr.
 	 * Also see GafSolrDocumentLoader for the others.
@@ -113,165 +200,42 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		SolrInputDocument cls_doc = new SolrInputDocument();
 
 		///
-		/// TODO/BUG: use object to create load sequence.
+		/// TODO/BUG: use object to create proper load sequence.
 		/// Needs better cooperation from OWLTools to make is truly flexible.
 		/// See Chris.
 		///
 		
-		LOG.info("Trying to load a(n): " + config.id);
+		//LOG.info("Trying to load a(n): " + config.id);
 
 		// Single fixed fields--the same every time.
 		for( GOlrFixedField fixedField : config.fixed ){
 			//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
 			cls_doc.addField(fixedField.id, fixedField.value);
 		}
-		// TODO/BUG: Needs to be removed--just here so I don't have to juggle muliple schema.xml on Solr during testing
-		// and benchmarking. "id" is actually the only one that is *required* as it stands now.
-		//cls_doc.addField("id", "nil");
 					
 		// Dynamic fields--have to get dynamic info to cram into the index.
-		//LOG.info("Add?: " + fixedField.id + ":" + fixedField.property + " " + OWLRDFVocabulary.RDFS_LABEL.getIRI());
-		//cls_doc.addField("id", graph.getIdentifier(obj));
 		for( GOlrDynamicField dynamicField : config.dynamic ){
-			//LOG.info("Add?: (" + dynamicField.type + ") " + dynamicField.id + ":" + dynamicField.property + ":" + dynamicField.cardinality);
-//			ArrayList<String> inputList = tempLoader(obj, graph, dynamicField.property);
-//			cramAll(cls_doc, dynamicField.id, inputList);
-			// TODO/BUG: This "id" is special for now.
-			if( dynamicField.id.equals("id") ){
-				cls_doc.addField("id", graph.getIdentifier(obj));
-			}
-			if( dynamicField.type.equals("string") || dynamicField.type.equals("text") ){
-				ArrayList<String> inputList = tempStringLoader(obj, graph, dynamicField.property);
-				cramString(cls_doc, dynamicField.type, dynamicField.id, inputList, dynamicField.cardinality);
-			}else if( dynamicField.type.equals("integer") ){
-				ArrayList<Integer> inputList = tempIntegerLoader(obj, graph, dynamicField.property);
-				cramInteger(cls_doc, dynamicField.type, dynamicField.id, inputList, dynamicField.cardinality);
+
+			String did = dynamicField.id;
+			String prop_meth = dynamicField.property;
+			String card = dynamicField.cardinality;
+
+			// Select between the single and multi styles.
+			if( card.equals("single") ){
+				String val = getExtString(obj, prop_meth);
+				if( val != null ){
+					cls_doc.addField(did, val);
+				}
 			}else{
-				LOG.info("No input methods for: " + dynamicField.type);
+				List<String> vals = getExtStringList(obj, prop_meth);
+				if( vals != null && ! vals.isEmpty() ){
+					for (String val : vals) {
+						cls_doc.addField(did, val);
+					}
+				}
 			}
 		}
 		
 		return cls_doc;
-	}
-
-	/*
-	 * Jimmy interesting bits out of the OWLObject for use in loading the GOlr index.
-	 * 
-	 * WARNING: This is a temporary function until a proper flex mapper can be built into the OWLGraphWrapper,
-	 * and that	will take some consultation with Chris.
-	 * 
-	 * @param owlObject and string property to identify the part of the owl object that we want
-	 * @return ArrayList<String>
-	 */
-	@Deprecated
-	private ArrayList<String> tempStringLoader(OWLObject obj, OWLGraphWrapper graph, String property){
-	//private ArrayList<String> tempLoader(OWLObject obj, OWLGraphWrapper graph, String property){
-
-		ArrayList<String> fields = new ArrayList<String>();
-		
-		if( property.equals("id") ){
-			fields.add(graph.getIdentifier(obj));
-//			// BUG
-//			String foo_id = graph.getIdentifier(obj);
-//			if( foo_id.equals("GO:0022008")){
-//				LOG.info("Found: " + foo_id);
-//			}
-		}else if( property.equals("label") ){
-			fields.add(graph.getLabel(obj));
-		}else if( property.equals("description") ){
-			fields.add(graph.getDef(obj));
-		}else if( property.equals("source") ){
-			fields.add(graph.getNamespace(obj));
-		}else if( property.equals("comment") ){
-			fields.add(graph.getComment(obj));
-		}else if( property.equals("synonym") ){
-			// Term synonym gathering rather more irritating.
-			java.util.List<ISynonym> syns = graph.getOBOSynonyms(obj);
-			if( syns != null && !syns.isEmpty() ){	
-				for( ISynonym s : syns ){
-					String synLabel = s.getLabel();
-
-					// Standard neutral synonym.
-					//cls_doc.addField("synonym", synLabel); // can add multiples
-					fields.add(synLabel);
-
-					// EXPERIMENTAL: scoped synonym label.
-					//String synScope = s.getScope();
-					//String synScopeName = "synonym_label_with_scope_" + synScope.toLowerCase();
-					//cls_doc.addField(synScopeName, synLabel);
-				}
-			}	
-		}else if( property.equals("alternate_id") ){
-			fields = ensureArrayList(graph.getAltIds(obj));
-		}else if( property.equals("subset") ){
-			fields = ensureArrayList(graph.getSubsets(obj));
-		}else if( property.equals("definition_xref") ){
-			fields = ensureArrayList(graph.getDefXref(obj));
-		}
-			
-		return fields;
-	}
-	// Same as above
-	@Deprecated
-	private ArrayList<Integer> tempIntegerLoader(OWLObject obj, OWLGraphWrapper graph, String property){
-
-		ArrayList<Integer> fields = new ArrayList<Integer>();
-		
-		if( property.equals("is_obsolete") ){
-			Boolean obs = graph.getIsObsolete(obj);
-			if( obs ){
-				fields.add(1);
-			}else{
-				fields.add(0);
-			}
-		}
-		
-		return fields;
-	}
-	
-//	/*
-//	 * Private helper to load our always assumed multiple fields.
-//	 * Since everything is the same on the backend, go ahead and ignore incoming types.
-//	 * Probably long-term deprecated since we'll eventually use some built through the OWLGraphWrapper.
-//	 */
-//	@Deprecated
-//	private void cramAll(SolrInputDocument cls_doc, String name, ArrayList<String> inList) {
-//		if( inList != null && ! inList.isEmpty()) {
-//			for (String thing : inList) {
-//				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle, thing);
-//			}
-//		}
-//	}
-	
-	/*
-	 * Private helper to load our always assumed multiple fields.
-	 */
-	@Deprecated
-	private void cramString(SolrInputDocument cls_doc, String type, String name, ArrayList<String> inList, String cardinality) {
-		if( inList != null && ! inList.isEmpty()) {
-			for (String thing : inList) {
-				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type + "_" + cardinality, thing);
-			}
-		}
-	}
-		
-	@Deprecated
-	private void cramInteger(SolrInputDocument cls_doc, String type, String name, ArrayList<Integer> inList, String cardinality) {
-		if( inList != null && ! inList.isEmpty() ){
-			for (Integer thing : inList) {
-				cls_doc.addField(name + "_" + ns_mangle + "_" + schema_mangle + "_" + type + "_" + cardinality, thing);
-			}
-		}
-	}
-	
-	// We want to ensure at least an empty array on these callbacks.
-	private ArrayList<String> ensureArrayList (Collection<String> inList) {
-
-		ArrayList<String> outList = new ArrayList<String>();
-		
-		if( inList != null && ! inList.isEmpty()) {
-			outList = new ArrayList<String>(inList);
-		}
-		return outList;
 	}
 }

@@ -1953,7 +1953,17 @@ public class OWLGraphWrapper {
 		return val == null ? false: Boolean.valueOf(val);
 	}
 
-
+	/**
+	 * It returns the value of the is-obsolete tag.
+	 * @param c could OWLClass or OWLObjectProperty
+	 * @return String
+	 */
+	public String getIsObsoleteBinaryString(OWLObject c) {
+		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_IS_OBSELETE.getTag()); 
+		String val = getAnnotationValue(c, lap);
+		return val == null ? "0": "1";
+		//return val;
+	}
 
 	/**
 	 * It returns the values of the alt_id tag
@@ -2266,6 +2276,35 @@ public class OWLGraphWrapper {
 		synonyms.addAll(list1);
 		synonyms.addAll(list2);
 		return synonyms;
+	}
+
+	/**
+	 * It returns String Listof synonyms.
+	 * 
+	 * @param c
+	 * @return string list of synonyms
+	 */
+	public List<String> getOBOSynonymStrings(OWLObject c) {
+
+		List<String> synStrings = new ArrayList<String>();
+		
+		// Term synonym gathering rather more irritating.
+		java.util.List<ISynonym> syns = getOBOSynonyms(c);
+		if( syns != null && ! syns.isEmpty() ){	
+			for( ISynonym s : syns ){
+				String synLabel = s.getLabel();
+
+				// Standard neutral synonym.
+				synStrings.add(synLabel);
+
+				// EXPERIMENTAL: scoped synonym label.
+				//String synScope = s.getScope();
+				//String synScopeName = "synonym_label_with_scope_" + synScope.toLowerCase();
+				//cls_doc.addField(synScopeName, synLabel);
+			}
+		}	
+
+		return synStrings;
 	}
 
 	private List<ISynonym> getOBOSynonyms(OWLEntity e, Obo2OWLVocabulary vocabulary) {

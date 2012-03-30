@@ -2,7 +2,6 @@
 id: bbop_ont
 description: Test mapping of ontology class for GO.
 display_name: Ontology
-#  trigger: owl
 fixed:
 - id: document_category
   description: The category of the document in the Solr index.
@@ -14,7 +13,7 @@ dynamic:
   description: Term acc/id.
   display_name: Acc
   type: string
-  property: id
+  property: getIdentifier
 #  transform: []
 #  - boolify
 - id: label
@@ -22,54 +21,56 @@ dynamic:
   display_name: Term
   type: text_ws
   #property: http://www.w3.org/2000/01/rdf-schema#label
-  property: label
-- id: descriptive_name
-  description: Term description.
-  display_name: Description
-  type: text_ws
-  property: descriptive_name
+  property: getLabel
+## Ever used with terms?
+# - id: descriptive_name
+#   description: Term description.
+#   display_name: Description
+#   type: text_ws
+#   property: descriptive_name
 - id: description
   description: Term definition.
   display_name: Definition
   type: text_ws
-  property: description
+  property: getDef
 - id: source
   description: Term namespace.
   display_name: Source
   type: string
-  property: source
+  property: getNamespace
 - id: is_obsolete
   description: Is the term obsolete?
   display_name: Obsoletion
   type: integer
-  property: is_obsolete
+  property: getIsObsoleteBinaryString
 - id: comment
   description: Term comment.
   display_name: Comment
   type: text_ws
-  property: comment
-  cardinality: multi
+  property: getComment
+## looks like single in OWLGraphWrapper API
+#  cardinality: multi
 - id: synonym
   description: Term synonym.
   display_name: Synonym
   type: string
-  property: synonym
+  property: getOBOSynonymStrings
   cardinality: multi
 - id: alternate_id
   description: Alternate term id.
   display_name: Alt ID
   type: string
-  property: alternate_id
+  property: getAltIds
   cardinality: multi
 - id: subset
   description: Term subset.
   display_name: Subset
   type: string
-  property: subset
+  property: getSubsets
   cardinality: multi
 - id: definition_xref
   description: Definition cross-reference.
   display_name: Def XRef
   type: string
-  property: definition_xref
+  property: getDefXref
   cardinality: multi
