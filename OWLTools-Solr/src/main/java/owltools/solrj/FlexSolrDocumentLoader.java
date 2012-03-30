@@ -37,9 +37,9 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty;
-import owltools.yaml.flexconfig.FlexDocConfig;
-import owltools.yaml.flexconfig.FlexDocDynamicField;
-import owltools.yaml.flexconfig.FlexDocFixedField;
+import owltools.yaml.golrconfig.GOlrConfig;
+import owltools.yaml.golrconfig.GOlrDynamicField;
+import owltools.yaml.golrconfig.GOlrFixedField;
 
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
@@ -58,10 +58,10 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
  	 * @param
 	 * @return config
 	 */
-	private FlexDocConfig getConfig() throws FileNotFoundException {
+	private GOlrConfig getConfig() throws FileNotFoundException {
 
 		// Find the file in question on the filesystem.
-		String rsrc = "flex-config.yaml";
+		String rsrc = "amigo-config.yaml";
 		ClassLoader floader = FlexSolrDocumentLoader.class.getClassLoader();
 		URL yamlURL = floader.getResource(rsrc);
 		if( yamlURL == null ){
@@ -77,8 +77,8 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 			e.printStackTrace();
 		}
 		LOG.info("Found flex config: " + yamlURL.toString());
-		Yaml yaml = new Yaml(new Constructor(FlexDocConfig.class));
-		FlexDocConfig config = (FlexDocConfig) yaml.load(input);
+		Yaml yaml = new Yaml(new Constructor(GOlrConfig.class));
+		GOlrConfig config = (GOlrConfig) yaml.load(input);
 		LOG.info("Dumping flex loader YAML: \n" + yaml.dump(config));
 
 		return config;
@@ -87,7 +87,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	@Override
 	public void load() throws SolrServerException, IOException {
 
-		FlexDocConfig config = getConfig();
+		GOlrConfig config = getConfig();
 		ns_mangle = config.id;
 		
 		if( graph == null ){
@@ -108,7 +108,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	 * @param owlObject, graph, and a config.
 	 * @return an input doc for add()
 	 */
-	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, FlexDocConfig config) {
+	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, GOlrConfig config) {
 
 		SolrInputDocument cls_doc = new SolrInputDocument();
 
@@ -121,7 +121,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		LOG.info("Trying to load a(n): " + config.id);
 
 		// Single fixed fields--the same every time.
-		for( FlexDocFixedField fixedField : config.fixed ){
+		for( GOlrFixedField fixedField : config.fixed ){
 			//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
 			cls_doc.addField(fixedField.id, fixedField.value);
 		}
@@ -132,7 +132,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		// Dynamic fields--have to get dynamic info to cram into the index.
 		//LOG.info("Add?: " + fixedField.id + ":" + fixedField.property + " " + OWLRDFVocabulary.RDFS_LABEL.getIRI());
 		//cls_doc.addField("id", graph.getIdentifier(obj));
-		for( FlexDocDynamicField dynamicField : config.dynamic ){
+		for( GOlrDynamicField dynamicField : config.dynamic ){
 			//LOG.info("Add?: (" + dynamicField.type + ") " + dynamicField.id + ":" + dynamicField.property + ":" + dynamicField.cardinality);
 //			ArrayList<String> inputList = tempLoader(obj, graph, dynamicField.property);
 //			cramAll(cls_doc, dynamicField.id, inputList);

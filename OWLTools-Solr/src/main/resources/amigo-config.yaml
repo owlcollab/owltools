@@ -15,7 +15,7 @@ dynamic:
   display_name: Acc
   type: string
   property: id
-  transform: []
+#  transform: []
 #  - boolify
 - id: label
   description: Common term name.
@@ -23,57 +23,53 @@ dynamic:
   type: text
   #property: http://www.w3.org/2000/01/rdf-schema#label
   property: label
-  transform: []
-- id: description
+- id: descriptive_name
   description: Term description.
   display_name: Description
   type: text
+  property: descriptive_name
+- id: description
+  description: Term definition.
+  display_name: Definition
+  type: text
   property: description
-  transform: []
 - id: source
   description: Term namespace.
   display_name: Source
   type: string
   property: source
-  transform: []
 - id: is_obsolete
   description: Is the term obsolete?
   display_name: Obsoletion
   type: integer
   property: is_obsolete
-  transform: []
 - id: comment
   description: Term comment.
   display_name: Comment
   type: text
   property: comment
   cardinality: multi
-#  transform: []
 - id: synonym
   description: Term synonym.
   display_name: Synonym
   type: string
   property: synonym
   cardinality: multi
-#  transform: []
 - id: alternate_id
   description: Alternate term id.
   display_name: Alt ID
   type: string
   property: alternate_id
   cardinality: multi
-#  transform: []
 - id: subset
   description: Term subset.
   display_name: Subset
   type: string
   property: subset
   cardinality: multi
-#  transform: []
 - id: definition_xref
   description: Definition cross-reference.
   display_name: Def XRef
   type: string
   property: definition_xref
-#  transform: []
   cardinality: multi

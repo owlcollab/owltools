@@ -3,6 +3,8 @@ package owltools.cli;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -17,7 +19,8 @@ import owltools.gaf.GafObjectsBuilder;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
-import owltools.yaml.flexconfig.FlexConfigReader;
+import owltools.yaml.golrconfig.AmiGOConfig;
+import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 
 /**
  *  Solr/GOlr loading.
@@ -39,20 +42,42 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		LOG.info("Output XML config blob.");
 
 		// Attempt to parse the given config file.
-		FlexConfigReader fconf = null;
+		AmiGOConfig aconf = null;
 		try {
-			fconf = new FlexConfigReader(fsPath);
+			aconf = new AmiGOConfig(fsPath);
 			LOG.info("Using config found at: " + fsPath);
 		} catch (FileNotFoundException e) {
 			LOG.info("Failure to find config file at: " + fsPath);
 			e.printStackTrace();
 		}
 		
+		// Get the XML from the dumper into a string.
+		String config_string = null;
 		try {
-			fconf.dumpSchemaBlob();
+			SolrSchemaXMLWriter ssxw = new SolrSchemaXMLWriter(aconf);
+			config_string = ssxw.schema();
 		} catch (XMLStreamException e) {
 			e.printStackTrace();
 		}
+		
+//		// Run the XML through a regexp to just get the parts we want.
+//		String output = null;
+//		//LOG.info("Current XML schema:\n" + config_string);
+//		Pattern pattern = Pattern.compile("<!--START-->(.*)<!--STOP-->", Pattern.DOTALL);
+//		Matcher matcher = pattern.matcher(config_string);
+//		boolean matchFound = matcher.find();
+//		if (matchFound) {
+//			output = matcher.group(1); // not the global match, but inside
+//			//LOG.info("Found:\n" + output);
+//		}
+		
+//		// Either we got it, and we dump to STDOUT, or exception.
+//		if( output == null || output.equals("") ){
+//			throw new Error();
+//		}else{
+//  		System.out.println(output);
+		System.out.println(config_string);
+//		}
 	}
 
 	/**

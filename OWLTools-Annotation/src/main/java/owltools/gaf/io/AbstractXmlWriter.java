@@ -77,7 +77,6 @@ public abstract class AbstractXmlWriter {
 			
 			// Match comments to the current depth.
 			if ("writeComment".equals(m)) {
-				// indent for current depth
 				target.writeCharacters(LINEFEED_CHAR);
 				target.writeCharacters(repeat(depth, indentString));
 			}
