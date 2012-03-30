@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
-import org.obolibrary.oboformat.model.Clause;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.obolibrary.oboformat.model.OBODoc;
@@ -208,7 +207,7 @@ public class ParserWrapper {
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
 				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
 				if (graph != null) {
-					oboWriter.write(doc, bw, new OWLGraphWrapperNameProvider(graph));
+					oboWriter.write(doc, bw, new OWLGraphWrapperNameProvider(graph, doc));
 				}
 				else {
 					oboWriter.write(doc, bw);
@@ -239,24 +238,58 @@ public class ParserWrapper {
 	}
 
 	/**
-	 * 
+	 * Provide names for the {@link OBOFormatWriter} using an {@link OWLGraphWrapper}.
 	 */
 	public static class OWLGraphWrapperNameProvider implements NameProvider {
 		private final OWLGraphWrapper graph;
-		private final String defaultOboNamespace = null;
+		private final String defaultOboNamespace;
 
 		/**
-		 * @param oboDoc
+		 * @param graph
 		 */
 		public OWLGraphWrapperNameProvider(OWLGraphWrapper graph) {
 			super();
 			this.graph = graph;
+			this.defaultOboNamespace = null;
+			
+		}
+		
+		/**
+		 * @param graph
+		 * @param defaultOboNamespace
+		 */
+		public OWLGraphWrapperNameProvider(OWLGraphWrapper graph, String defaultOboNamespace) {
+			super();
+			this.graph = graph;
+			this.defaultOboNamespace = defaultOboNamespace;
+			
+		}
+		
+		/**
+		 * @param graph
+		 * @param oboDoc
+		 */
+		public OWLGraphWrapperNameProvider(OWLGraphWrapper graph, OBODoc oboDoc) {
+			super();
+			this.graph = graph;
+			String defaultOboNamespace = null;
+			if (oboDoc != null) {
+				Frame headerFrame = oboDoc.getHeaderFrame();
+				if (headerFrame != null) {
+					defaultOboNamespace = headerFrame.getTagValue(OboFormatTag.TAG_DEFAULT_NAMESPACE, String.class);
+				}
+			}
+			this.defaultOboNamespace = defaultOboNamespace;
 			
 		}
 
 		public String getName(String id) {
+			String name = null;
 			OWLObject obj = graph.getOWLObjectByIdentifier(id);
-			return graph.getLabel(obj);
+			if (obj != null) {
+				name = graph.getLabel(obj);
+			}
+			return name;
 		}
 
 		public String getDefaultOboNamespace() {
