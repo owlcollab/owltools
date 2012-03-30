@@ -14,13 +14,18 @@ import org.apache.log4j.Logger;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.oboformat.model.Clause;
+import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
+import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
+import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -175,15 +180,15 @@ public class ParserWrapper {
 		return ont;
 	}
 
-	public void saveOWL(OWLOntology ont, String file) throws OWLOntologyStorageException {
+	public void saveOWL(OWLOntology ont, String file, OWLGraphWrapper graph) throws OWLOntologyStorageException {
 		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
-		saveOWL(ont, owlFormat, file);
+		saveOWL(ont, owlFormat, file, graph);
 	}
-	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file) throws OWLOntologyStorageException {
+	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file, OWLGraphWrapper graph) throws OWLOntologyStorageException {
 		if (owlFormat instanceof OBOOntologyFormat) {
 			try {
 				FileOutputStream os = new FileOutputStream(new File(file));
-				saveOWL(ont, owlFormat, os);
+				saveOWL(ont, owlFormat, os, graph);
 			} catch (FileNotFoundException e) {
 				throw new OWLOntologyStorageException("Could not open file: "+file, e);
 			}
@@ -193,7 +198,7 @@ public class ParserWrapper {
 		}
 	}
 	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat,
-			OutputStream outputStream) throws OWLOntologyStorageException {
+			OutputStream outputStream, OWLGraphWrapper graph) throws OWLOntologyStorageException {
 		if (owlFormat instanceof OBOOntologyFormat) {
 			Owl2Obo bridge = new Owl2Obo();
 			OBODoc doc;
@@ -202,7 +207,13 @@ public class ParserWrapper {
 				doc = bridge.convert(ont);
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
 				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
-				oboWriter.write(doc, bw);
+				if (graph != null) {
+					oboWriter.write(doc, bw, new OWLGraphWrapperNameProvider(graph));
+				}
+				else {
+					oboWriter.write(doc, bw);
+				}
+				
 			} catch (OWLOntologyCreationException e) {
 				throw new OWLOntologyStorageException("Could not create temporary OBO ontology.", e);
 			} catch (IOException e) {
@@ -227,7 +238,31 @@ public class ParserWrapper {
 		return obodoc;
 	}
 
-	
+	/**
+	 * 
+	 */
+	public static class OWLGraphWrapperNameProvider implements NameProvider {
+		private final OWLGraphWrapper graph;
+		private final String defaultOboNamespace = null;
+
+		/**
+		 * @param oboDoc
+		 */
+		public OWLGraphWrapperNameProvider(OWLGraphWrapper graph) {
+			super();
+			this.graph = graph;
+			
+		}
+
+		public String getName(String id) {
+			OWLObject obj = graph.getOWLObjectByIdentifier(id);
+			return graph.getLabel(obj);
+		}
+
+		public String getDefaultOboNamespace() {
+			return defaultOboNamespace;
+		}
+	}
 	
 
 }

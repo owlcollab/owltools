@@ -1223,7 +1223,7 @@ public class CommandRunner {
 					}
 				}
 				
-				pw.saveOWL(g.getSourceOntology(), ofmt, opts.nextOpt());
+				pw.saveOWL(g.getSourceOntology(), ofmt, opts.nextOpt(), g);
 				//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
 			}
 			else if (opts.nextEq("--list-axioms")) {
@@ -1493,7 +1493,7 @@ public class CommandRunner {
 				pvob.buildInferredViewOntology(vr);
 				// save
 				if (outFile != null)
-					pw.saveOWL(pvob.getInferredViewOntology(), outFile);
+					pw.saveOWL(pvob.getInferredViewOntology(), outFile, g);
 				else
 					g.addSupportOntology(pvob.getInferredViewOntology());
 

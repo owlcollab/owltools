@@ -100,7 +100,7 @@ public class GafCommandRunner extends CommandRunner {
 		bridge.setGenerateIndividuals(!isSkipIndividuals);
 		bridge.translate(gafdoc);
 		if (out != null) {
-			pw.saveOWL(bridge.getTargetOntology(),out);
+			pw.saveOWL(bridge.getTargetOntology(),out,g);
 		}
 	}
 	

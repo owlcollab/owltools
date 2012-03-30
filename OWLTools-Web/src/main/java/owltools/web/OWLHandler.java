@@ -471,7 +471,7 @@ public class OWLHandler {
 			LOG.info("Format:"+ofmt);
 			ParserWrapper pw = new ParserWrapper();
 			//graph.getManager().saveOntology(tmpOnt, ofmt, response.getOutputStream());
-			pw.saveOWL(tmpOnt, ofmt, response.getOutputStream());
+			pw.saveOWL(tmpOnt, ofmt, response.getOutputStream(), null);
 			graph.getManager().removeOntology(tmpOnt);
 			cachedAxioms = new HashSet<OWLAxiom>();
 		}
