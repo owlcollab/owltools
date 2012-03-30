@@ -20,18 +20,18 @@ dynamic:
 - id: label
   description: Common term name.
   display_name: Term
-  type: text
+  type: text_ws
   #property: http://www.w3.org/2000/01/rdf-schema#label
   property: label
 - id: descriptive_name
   description: Term description.
   display_name: Description
-  type: text
+  type: text_ws
   property: descriptive_name
 - id: description
   description: Term definition.
   display_name: Definition
-  type: text
+  type: text_ws
   property: description
 - id: source
   description: Term namespace.
@@ -46,7 +46,7 @@ dynamic:
 - id: comment
   description: Term comment.
   display_name: Comment
-  type: text
+  type: text_ws
   property: comment
   cardinality: multi
 - id: synonym
