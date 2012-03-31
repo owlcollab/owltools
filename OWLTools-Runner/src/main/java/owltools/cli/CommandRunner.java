@@ -85,6 +85,7 @@ import owltools.io.CompactGraphClosureRenderer;
 import owltools.io.GraphClosureRenderer;
 import owltools.io.GraphReader;
 import owltools.io.GraphRenderer;
+import owltools.io.ImportClosureSlurper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
@@ -1202,6 +1203,24 @@ public class CommandRunner {
 					}
 				}
 				stream.close();
+			}
+			else if (opts.nextEq("--sip|--slurp-import-closure")) {
+				opts.info("[-d DIR] [-o CATALOG-OUT]","Saves local copy of import closure. Assumes sourceontology has imports");
+				String dir = ".";
+				String catfile = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-d")) {
+						dir = opts.nextOpt();
+					}
+					else if (opts.nextEq("-c")) {
+						catfile = opts.nextOpt();
+					}
+					else {
+						break;
+					}
+				}
+				ImportClosureSlurper ics = new ImportClosureSlurper(g.getSourceOntology());
+				ics.save(dir, catfile);
 			}
 			else if (opts.nextEq("-o|--output")) {
 				opts.info("FILE", "writes source ontology -- MUST BE specified as IRI, e.g. file://`pwd`/foo.owl");
