@@ -140,7 +140,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @throws Exception
 	 */
 	@Deprecated
-	@CLIMethod("--load-ontology-solr")
+	@CLIMethod("--solr-load-ontology-old")
 	public void loadOntologySolr(Opts opts) throws Exception {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);				
@@ -200,7 +200,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @param opts
 	 * @throws Exception
 	 */
-	@CLIMethod("--load-gafs-solr")
+	@CLIMethod("--solr-load-gafs")
 	public void loadGafsSolr(Opts opts) throws Exception {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
@@ -220,7 +220,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @param opts
 	 * @throws Exception
 	 */
-	@CLIMethod("--load-gaf-solr")
+	@CLIMethod("--solr-load-gaf")
 	public void loadGafSolr(Opts opts) throws Exception {
 		// Double check we're not going to do something silly, like try and
 		// use a null variable...
