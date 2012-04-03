@@ -12,9 +12,9 @@ import owltools.gaf.io.AbstractXmlWriter;
 
 public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 
-	private AmiGOConfig config = null;
+	private ConfigManager config = null;
 	
-	public SolrSchemaXMLWriter(AmiGOConfig aconfig) {
+	public SolrSchemaXMLWriter(ConfigManager aconfig) {
 		super("  "); // like emacs nXML
 		config = aconfig;
 	}
@@ -22,15 +22,23 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 	/**
 	 * Just dump out the fields of our various lists.
 	 * 
-	 * @param arrayList
+	 * @param fieldList
 	 * @param xml
 	 * @throws XMLStreamException
 	 */
-	private void outFields(List<? extends GOlrCoreField> arrayList, XMLStreamWriter xml) throws XMLStreamException{
+	//private void outFields(List<? extends GOlrCoreField> fieldList, XMLStreamWriter xml) throws XMLStreamException{
+	private void outFields(ConfigManager config, XMLStreamWriter xml) throws XMLStreamException{
 
-		for( GOlrCoreField field : arrayList ){
+		ArrayList<GOlrCoreField> fieldList = config.getFields();
+		for( GOlrCoreField field : fieldList ){
 
-			xml.writeComment(field.description);
+			// Output any comments we found as a bunch at the top;
+			// this should help clarify things when fields are overloaded.
+			ArrayList<String> comments = config.getFieldComments(field.id);
+			for( String comment : comments ){
+				xml.writeComment(comment);
+			}
+			
 			xml.writeStartElement("field");
 
 			// The main variants.
@@ -112,12 +120,16 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 		//xml.writeComment(" Add this and below to your schema.xml file as your schema and restart Jetty. ");
 		//xml.writeComment(" After this schema has been applied for the given config file, purge the index and rerun the loader (with said config file). ");
 
-		// Single fixed fields--the same every time.
-		outFields(config.getFixedFields(), xml);
+//		// Single fixed fields--the same every time.
+//		outFields(config.getFixedFields(), xml);
+//
+//		// Dynamic fields.
+//		outFields(config.getDynamicFields(), xml);
 
 		// Dynamic fields.
-		outFields(config.getDynamicFields(), xml);
-
+		//outFields(config.getFields(), xml);
+		outFields(config, xml);
+		
 		xml.writeEndElement(); // </fields>
 
 		///

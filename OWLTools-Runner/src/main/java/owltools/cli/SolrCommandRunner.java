@@ -3,8 +3,6 @@ package owltools.cli;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -19,7 +17,7 @@ import owltools.gaf.GafObjectsBuilder;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
-import owltools.yaml.golrconfig.AmiGOConfig;
+import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 
 /**
@@ -30,6 +28,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	private static final Logger LOG = Logger.getLogger(SolrCommandRunner.class);
 	
 	private String globalSolrURL = null;
+	private ConfigManager aconf = null;
 
 	/**
 	 * Output (STDOUT) a XML segment to put into the Solr schema file after reading the YAML file.
@@ -37,20 +36,38 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @param opts
 	 */
 	@CLIMethod("--solr-config")
-	public void solrConfigDump(Opts opts) {
-		String fsPath = opts.nextOpt();
-		LOG.info("Output XML config blob.");
-
-		// Attempt to parse the given config file.
-		AmiGOConfig aconf = null;
-		try {
-			aconf = new AmiGOConfig(fsPath);
-			LOG.info("Using config found at: " + fsPath);
-		} catch (FileNotFoundException e) {
-			LOG.info("Failure to find config file at: " + fsPath);
-			e.printStackTrace();
-		}
+	public void configRead(Opts opts) {
 		
+		LOG.info("Grab configuration files.");
+
+		// Try and munge all of the configs together.
+		aconf = new ConfigManager();
+		List<String> confList = opts.nextList();
+		for( String fsPath : confList ){
+
+			LOG.info("Trying config found at: " + fsPath);
+		
+			// Attempt to parse the given config file.
+			try {
+				aconf.add(fsPath);
+				LOG.info("Using config found at: " + fsPath);
+			} catch (FileNotFoundException e) {
+				LOG.info("Failure with config file at: " + fsPath);
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Output (STDOUT) XML segment to put into the Solr schema file after reading the YAML configuration file(s).
+	 * 
+	 * @param opts
+	 */
+	@CLIMethod("--solr-schema-dump")
+	public void solrSchemaDump(Opts opts) {
+		
+		LOG.info("Dump Solr schema.");
+
 		// Get the XML from the dumper into a string.
 		String config_string = null;
 		try {
@@ -99,11 +116,11 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @param opts
 	 * @throws Exception
 	 */
-	@CLIMethod("--purge-solr")
+	@CLIMethod("--solr-purge")
 	public void purgeSolr(Opts opts) throws Exception {
 
-		// Check to see if the global url has been set, otherwise use the local one.
-		String url = sortOutSolrURL(opts, globalSolrURL);				
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);				
 
 		// Wipe out the solr index at url.
 		SolrServer server = new CommonsHttpSolrServer(url);
@@ -122,10 +139,11 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @param opts 
 	 * @throws Exception
 	 */
+	@Deprecated
 	@CLIMethod("--load-ontology-solr")
 	public void loadOntologySolr(Opts opts) throws Exception {
-		// Check to see if the global url has been set, otherwise use the local one.
-		String url = sortOutSolrURL(opts, globalSolrURL);				
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);				
 
 		// Actual ontology class loading.
 		try {
@@ -138,26 +156,27 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	}
 	
 	/**
-	 * TODO: Try experimental flexible loader.
+	 * Experimental flexible loader.
 	 * 
 	 * @param opts
 	 * @throws Exception
 	 */
-	@CLIMethod("--flex-load-ontology-solr")
+	@CLIMethod("--solr-load-ontology")
 	public void flexLoadOntologySolr(Opts opts) throws Exception {
-		// Check to see if the global url has been set, otherwise use the local one.
-		String url = sortOutSolrURL(opts, globalSolrURL);				
+
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);				
 
 		// Actual ontology class loading.
 		try {
-			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, g);
+			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, aconf, g);
 			loader.load();
 		} catch (SolrServerException e) {
 			LOG.info("Ontology load at: " + url + " failed!");
 			e.printStackTrace();
 		}
 
-//		// Check to see if the global url has been set, otherwise use the local one.
+//		// Check to see if the global url has been set.
 //		String url = sortOutSolrURL(opts, globalSolrURL);				
 //
 //		// Load remaining docs.
@@ -183,8 +202,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--load-gafs-solr")
 	public void loadGafsSolr(Opts opts) throws Exception {
-		// Check to see if the global url has been set, otherwise use the local one.
-		String url = sortOutSolrURL(opts, globalSolrURL);
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);
 
 		List<String> files = opts.nextList();
 		for (String file : files) {
@@ -210,8 +229,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			exit(1);
 		}
 
-		// Check to see if the global url has been set, otherwise use the local one.
-		String url = sortOutSolrURL(opts, globalSolrURL);
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);
 		// Doc load.
 		loadGAFDoc(url, gafdoc);
 	}
@@ -219,16 +238,21 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	/*
 	 * Convert all solr URL handling through here.
 	 */
-	private String sortOutSolrURL(Opts opts, String globalSolrURL){
+	//private String sortOutSolrURL(Opts opts, String globalSolrURL) throws Exception {
+	private String sortOutSolrURL(String globalSolrURL) throws Exception {
 
 		String url = null;
 		if( globalSolrURL == null ){
-			url = opts.nextOpt();
+			//url = opts.nextOpt();
 		}else{
 			url = globalSolrURL;
 		}
 		LOG.info("Use GOlr server at: " + url);
 
+		if( url == null ){
+			throw new Exception();
+		}
+		
 		return url;
 	}
 	

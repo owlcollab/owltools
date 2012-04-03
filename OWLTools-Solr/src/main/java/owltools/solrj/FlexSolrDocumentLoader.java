@@ -40,6 +40,7 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty;
+import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.GOlrConfig;
 import owltools.yaml.golrconfig.GOlrDynamicField;
 import owltools.yaml.golrconfig.GOlrFixedField;
@@ -47,49 +48,51 @@ import owltools.yaml.golrconfig.GOlrFixedField;
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);
+	private ConfigManager config = null;
 	
-	public FlexSolrDocumentLoader(String url, OWLGraphWrapper graph) throws MalformedURLException {
+	public FlexSolrDocumentLoader(String url, ConfigManager aconf, OWLGraphWrapper graph) throws MalformedURLException {
 		super(url);
 		setGraph(graph);
+		config = aconf;
 	}
 
-	/*
-	 * Get the flexible document definition from the configuration file.
-	 *
- 	 * @param
-	 * @return config
-	 */
-	private GOlrConfig getConfig() throws FileNotFoundException {
-
-		// Find the file in question on the filesystem.
-		String rsrc = "amigo-config.yaml";
-		ClassLoader floader = FlexSolrDocumentLoader.class.getClassLoader();
-		URL yamlURL = floader.getResource(rsrc);
-		if( yamlURL == null ){
-			LOG.info("Couldn't access \"" + rsrc + "\" in: " + getClass().getResource("").toString());
-			return null;
-		}
-	
-		// Generate the config from the file input text.
-		InputStream input = null;
-		try {
-			input = new FileInputStream(new File(yamlURL.toURI()));
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		LOG.info("Found flex config: " + yamlURL.toString());
-		Yaml yaml = new Yaml(new Constructor(GOlrConfig.class));
-		GOlrConfig config = (GOlrConfig) yaml.load(input);
-		LOG.info("Dumping flex loader YAML: \n" + yaml.dump(config));
-
-		return config;
-	}
+//	/*
+//	 * Get the flexible document definition from the configuration file.
+//	 *
+// 	 * @param
+//	 * @return config
+//	 */
+//	private GOlrConfig getConfig() throws FileNotFoundException {
+//
+//		// Find the file in question on the filesystem.
+//		String rsrc = "amigo-config.yaml";
+//		ClassLoader floader = FlexSolrDocumentLoader.class.getClassLoader();
+//		URL yamlURL = floader.getResource(rsrc);
+//		if( yamlURL == null ){
+//			LOG.info("Couldn't access \"" + rsrc + "\" in: " + getClass().getResource("").toString());
+//			return null;
+//		}
+//	
+//		// Generate the config from the file input text.
+//		InputStream input = null;
+//		try {
+//			input = new FileInputStream(new File(yamlURL.toURI()));
+//		} catch (URISyntaxException e) {
+//			e.printStackTrace();
+//		}
+//		LOG.info("Found flex config: " + yamlURL.toString());
+//		Yaml yaml = new Yaml(new Constructor(GOlrConfig.class));
+//		GOlrConfig config = (GOlrConfig) yaml.load(input);
+//		LOG.info("Dumping flex loader YAML: \n" + yaml.dump(config));
+//
+//		return config;
+//	}
 	
 	@Override
 	public void load() throws SolrServerException, IOException {
 
-		GOlrConfig config = getConfig();
-		LOG.info("Trying to load with config: " + config.id);
+//		//GOlrConfig config = getConfig();
+//		LOG.info("Trying to load with config: " + config.id);
 
 		if( graph == null ){
 			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
@@ -148,8 +151,6 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 			} catch (InvocationTargetException e) {
 				e.printStackTrace();				
 			}
-
-			// TODO: try and massage the output into something useful--a single string.
 		}
 		
 		return retval;
@@ -162,6 +163,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	 * @param owlfunction
 	 * @return a (possibly empty) string list of returned values
 	 */
+	@SuppressWarnings("unchecked")
 	private List<String> getExtStringList(OWLObject oobj, String owlfunction){
 
 		List<String> retvals = new ArrayList<String>();
@@ -172,6 +174,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		// Try to invoke said method.
 		if( method != null ){
 			try {
+				// TODO: anybody got a better idea about this?
 				retvals = (List<String>) method.invoke(graph, oobj);
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
@@ -180,8 +183,6 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 			} catch (InvocationTargetException e) {
 				e.printStackTrace();				
 			}
-
-			// TODO: try and massage the output into something useful--a single string.
 		}
 		
 		return retvals;
@@ -195,7 +196,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	 * @param owlObject, graph, and a config.
 	 * @return an input doc for add()
 	 */
-	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, GOlrConfig config) {
+	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, ConfigManager config) {
 
 		SolrInputDocument cls_doc = new SolrInputDocument();
 
@@ -208,13 +209,13 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		//LOG.info("Trying to load a(n): " + config.id);
 
 		// Single fixed fields--the same every time.
-		for( GOlrFixedField fixedField : config.fixed ){
+		for( GOlrFixedField fixedField : config.getFixedFields() ){
 			//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
 			cls_doc.addField(fixedField.id, fixedField.value);
 		}
 					
 		// Dynamic fields--have to get dynamic info to cram into the index.
-		for( GOlrDynamicField dynamicField : config.dynamic ){
+		for( GOlrDynamicField dynamicField : config.getDynamicFields() ){
 
 			String did = dynamicField.id;
 			String prop_meth = dynamicField.property;

@@ -1,0 +1,272 @@
+--- # Different docs to define.
+id: bbop_gaf
+description: A description of the GAF file for GOlr.
+display_name: Bioentities (an various annotation categories munged in for now).
+fixed:
+- id: document_category
+  description: The category of the document in the Solr index.
+  display_name: Category
+  type: string
+  value: bioentity
+dynamic:
+- id: id
+  description: Bioentity id.
+  display_name: Acc
+  type: string
+#  property: getIdentifier
+- id: source
+  description: "Column 15: database."
+  display_name: Database
+  type: string
+#  property: getLabel
+- id: date
+  description: "Column 14: date."
+  display_name: Date
+  type: string
+#  property: descriptive_name
+- id: type
+  description: "Column 12: type class id."
+  display_name: Type class id
+  type: string
+#  property: getDef
+- id: type_label
+  description: "Column 12: type class label."
+  display_name: Type class label
+  type: string
+#  property: getNamespace
+- id: type_closure
+  description: "Derived from c12 + SO."
+  display_name: Type closure
+  type: string
+  cardinality: multi
+#  property: getIsObsoleteBinaryString
+- id: type_label_closure
+  description: "Derived from c12 + SO."
+  display_name: Type label closure
+  type: string
+  cardinality: multi
+#  property: getIsObsoleteBinaryString
+- id: taxon
+  description: "Column 13: taxon."
+  display_name: Taxon
+  type: string
+#  property: getComment
+- id: taxon_closure
+  description: "Derived from C13 + ncbi_taxonomy.obo."
+  display_name: Taxon closure
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: taxon_label
+  description: "Derived from C13 + ncbi_taxonomy.obo."
+  display_name: Taxon label
+  type: string
+#  property: getComment
+- id: taxon_label_closure
+  description: "Derived from C13 + ncbi_taxonomy.obo."
+  display_name: Taxon label closure
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: isa_partof_closure
+  description: "Closure of ids/accs over isa and partof."
+  display_name: isa/partof closure
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: isa_partof_label_closure
+  description: "Closure of labels over isa and partof."
+  display_name: isa/partof label closure
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: regulates_closure
+  description: "Closure of ids/accs over regulates."
+  display_name: regulates closure
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: regulates_label_closure
+  description: "Closure of labels over regulates."
+  display_name: regulates label closure
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: label
+  description: Symbol or name.
+  display_name: Label
+  type: text_ws
+#  property: getComment
+- id: descriptive_name
+  description: Full name or name.
+  display_name: Full name
+  type: text_ws
+#  property: getComment
+- id: synonym
+  description: Any synonym.
+  display_name: Synonym
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: alternate_id
+  description: Any alternaitve id.
+  display_name: Alt id
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: description
+  description: Definition.
+  display_name: Definition
+  type: text_ws
+#  property: getComment
+- id: subset
+  description: Member of these named subsets.
+  display_name: Subset
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: is_obsolete
+  description: Is this obsolete?
+  display_name: Obsolete
+  type: integer
+#  property: getComment
+- id: comment
+  description: Comment.
+  display_name: comment
+  type: text_ws
+#  cardinality: multi
+#  property: getComment
+- id: definition_xref
+  description: DBXref for definitions.
+  display_name: Def dbxref
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: direct_annotation
+  description: Direct terms associatied with GP.
+  display_name: Direct annotations
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: annotation_closure
+  description: All terms associatied with GP.
+  display_name: All annotations
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: axiom
+  description: "Each ontology entity (class or property) can be associated with multiple OWL axioms. We cache them in the index so that advanced OWL-aware clients can pull relevant information quickly. Axioms are stored in functional syntax."
+  display_name: Axiom
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: bioentity_id
+  description: "Column 1 + columns 2."
+  display_name: Bioentity id
+  type: string
+#  property: getComment
+- id: bioentity_label
+  description: Column 3.
+  display_name: Bioentity label
+  type: string
+#  property: getComment
+- id: bioentity_alternate_label
+  description: Alternate label.
+  display_name: Alternate label
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: is_negated
+  description: Derived from column 4.
+  display_name: Is not
+  type: string
+#  property: getComment
+- id: qualifier
+  description: Derived from column 4.
+  display_name: Qualifier
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: annotation_class
+  description: Column 5.
+  display_name: Annotation class
+  type: string
+#  property: getComment
+- id: aspect
+  description: Column 9.
+  display_name: Ontology (aspect)
+  type: string
+#  property: getComment
+- id: annotation_class_label
+  description: "Column 5 + ontology."
+  display_name: Annotation class label
+  type: string
+#  property: getComment
+- id: secondary_taxon
+  description: Acts on taxon.
+  display_name: Secondary taxon
+  type: string
+#  property: getComment
+- id: secondary_taxon_label
+  description: Acts on taxon.
+  display_name: Secondary taxon label
+  type: string
+#  property: getComment
+- id: bioentity_isoform
+  description: ???
+  display_name: Bioentity isoform
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: bioentity_isoform_label
+  description: ???
+  display_name: Bioentity isoform label
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: evidence_type
+  description: ???
+  display_name: Evidence type
+  type: string
+#  property: getComment
+- id: evidence_closure
+  description: ???
+  display_name: Evidence closure
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: evidence_with
+  description: ???
+  display_name: Evidence with
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: reference
+  description: ???
+  display_name: Reference
+  type: string
+#  property: getComment
+- id: annotation_extension_class
+  description: ???
+  display_name: Annotation extension class
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: annotation_extension_class_label
+  description: ???
+  display_name: Annotation extension class label
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: annotation_extension_class_closure
+  description: ???
+  display_name: Annotation extension class closure
+  type: string
+  cardinality: multi
+#  property: getComment
+- id: annotation_extension_class_label_closure
+  description: ???
+  display_name: Annotation extension class label closure
+  type: string
+  cardinality: multi
+#  property: getComment

@@ -1,0 +1,76 @@
+--- # Different docs to define.
+id: bbop_ont
+description: Test mapping of ontology class for GO.
+display_name: Ontology
+fixed:
+- id: document_category
+  description: The category of the document in the Solr index.
+  display_name: Category
+  type: string
+  value: ontology_class
+dynamic:
+- id: id
+  description: Term acc/id.
+  display_name: Acc
+  type: string
+  property: getIdentifier
+#  transform: []
+#  - boolify
+- id: label
+  description: Common term name.
+  display_name: Term
+  type: text_ws
+  #property: http://www.w3.org/2000/01/rdf-schema#label
+  property: getLabel
+## Ever used with terms?
+# - id: descriptive_name
+#   description: Term description.
+#   display_name: Description
+#   type: text_ws
+#   property: descriptive_name
+- id: description
+  description: Term definition.
+  display_name: Definition
+  type: text_ws
+  property: getDef
+- id: source
+  description: Term namespace.
+  display_name: Source
+  type: string
+  property: getNamespace
+- id: is_obsolete
+  description: Is the term obsolete?
+  display_name: Obsoletion
+  type: integer
+  property: getIsObsoleteBinaryString
+- id: comment
+  description: Term comment.
+  display_name: Comment
+  type: text_ws
+  property: getComment
+## looks like single in OWLGraphWrapper API
+#  cardinality: multi
+- id: synonym
+  description: Term synonym.
+  display_name: Synonym
+  type: string
+  property: getOBOSynonymStrings
+  cardinality: multi
+- id: alternate_id
+  description: Alternate term id.
+  display_name: Alt ID
+  type: string
+  property: getAltIds
+  cardinality: multi
+- id: subset
+  description: Term subset.
+  display_name: Subset
+  type: string
+  property: getSubsets
+  cardinality: multi
+- id: definition_xref
+  description: Definition cross-reference.
+  display_name: Def XRef
+  type: string
+  property: getDefXref
+  cardinality: multi
