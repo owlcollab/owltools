@@ -7,11 +7,11 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.sim.MaximumInformationContentSimilarity;
 import owltools.sim.Similarity;
 
-public class SimEngine2Test extends AbstractSimEngineTest {
+public class MaxInfContentOnPhenotypeTest extends AbstractSimEngineTest {
 
 	@Test
-	public void testCARO() throws Exception{
-		OWLGraphWrapper  wrapper =  getOntologyWrapper("lcstest1.owl");
+	public void testOrganismPair() throws Exception{
+		OWLGraphWrapper  wrapper =  getOntologyWrapper("lcstest3.owl");
 		Similarity sa = 
 			new MaximumInformationContentSimilarity();
 		OWLObject a = wrapper.getOWLObjectByIdentifier("http://example.org#o1");

@@ -12,11 +12,11 @@ public class CombinedJaccardConjunctiveSetSimilarityTest extends AbstractSimEngi
 	@Test
 	public void testSim() throws Exception{
 		OWLGraphWrapper  wrapper =  getOntologyWrapper("lcstest3.owl");
-		ConjunctiveSetSimilarity sa = new ConjunctiveSetSimilarity();
+		CombinedJaccardConjunctiveSetSimilarity sa = new CombinedJaccardConjunctiveSetSimilarity();
 		OWLObject a = wrapper.getOWLObject("http://example.org#axon_terminals_degenerated_in_ca2");
 		OWLObject b = wrapper.getOWLObject("http://example.org#axon_terminals_degenerated_in_ca3");
 		SimEngine se = new SimEngine(wrapper);
-		sa.calculate(se, b, a);
+		sa.calculate(se, a, b);
 		sa.print();
 	}	
 	

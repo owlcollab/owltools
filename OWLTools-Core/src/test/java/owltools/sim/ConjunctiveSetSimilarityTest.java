@@ -7,6 +7,12 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.sim.ConjunctiveSetSimilarity;
 import owltools.sim.SimEngine;
 
+/**
+ * tests ConjunctiveSetSimilarity
+ * 
+ * @author cjm
+ *
+ */
 public class ConjunctiveSetSimilarityTest extends AbstractSimEngineTest {
 
 	@Test

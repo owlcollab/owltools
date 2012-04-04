@@ -7,7 +7,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.sim.DescriptionTreeSimilarity;
 import owltools.sim.SimEngine;
 
-public class SimEngine4Test extends AbstractSimEngineTest {
+public class DescriptionTreeSimilarityTest extends AbstractSimEngineTest {
 
 	@Test
 	public void testSim() throws Exception{
