@@ -10,7 +10,12 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 
 /**
- * score is the IC of the intersection of all attributes;
+ * ConjunctiveSetSimilarity(a,b) = IC( LCA_1(a,b) ^ LCA_2(a,b) ... LCA_n(a,b) )
+ * 
+ * Each LCA is an ancestor class or class expression that can be reached over any properties from a and b.
+ * Note that no new class expressions are generated when calculating LCA - however, existing class expressions
+ * used in axioms are used.
+ * 
  * 
  * it's recommended this used as a sub-method of a MultiSimilarity check
  * 
@@ -51,8 +56,9 @@ public class ConjunctiveSetSimilarity extends Similarity {
 	}
 	
 	public void print(PrintStream s) {
-		s.println("IntersectionIC:"+toString()+"\n");
+		s.println("IntersectionIC: "+toString()+"\n");
 		for (OWLObject obj : bestSubsumers) {
+			s.print("  subsumer:");
 			print(s,obj);
 		}
 

@@ -1,8 +1,14 @@
 package owltools.graph;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
+
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 
 public class OWLQuantifiedProperty {
 	
@@ -159,6 +165,5 @@ public class OWLQuantifiedProperty {
 			return true;
 		return false;
 	}
-
-
+	
 }

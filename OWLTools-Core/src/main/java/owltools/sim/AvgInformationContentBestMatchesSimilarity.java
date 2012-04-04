@@ -28,7 +28,7 @@ public class AvgInformationContentBestMatchesSimilarity extends Similarity {
 		Map <OWLObject,Similarity> bestMap = new HashMap<OWLObject,Similarity>();
 		aset = new HashSet<OWLObject>();
 		bset = new HashSet<OWLObject>();
-		
+
 		for (OWLGraphEdge ea : graph.getOutgoingEdges(a)) {
 			OWLObject pa = ea.getTarget();
 			aset.add(pa);
@@ -48,18 +48,22 @@ public class AvgInformationContentBestMatchesSimilarity extends Similarity {
 		int n = 0;
 		double sum = 0;
 		for (OWLObject pa : aset) {
-			sum += bestMap.get(pa).score;
-			n++;
+			if (bestMap.containsKey(pa)) {
+				sum += bestMap.get(pa).score;
+				n++;
+			}
 		}
 		for (OWLObject pb : bset) {
-			sum += bestMap.get(pb).score;
-			n++;
+			if (bestMap.containsKey(pb)) {
+				sum += bestMap.get(pb).score;
+				n++;
+			}
 		}
 		setScore(sum/n);
 		matchMap = bestMap;
 
 	}
-	
+
 	public void print(PrintStream s) {
 		s.println("Matches A");
 		print(s, aset);
@@ -74,13 +78,13 @@ public class AvgInformationContentBestMatchesSimilarity extends Similarity {
 			s.print(" ");
 			s.println(matchMap.get(x).toString());
 		}
-		
+
 	}
 
 	@Override
 	protected void translateResultsToOWLAxioms(String id,
 			OWLNamedIndividual result, Set<OWLAxiom> axioms) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

@@ -9,6 +9,12 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 
 /**
+ * MaximumInformationContentSimilarity(a,b) = max { IC(LCA_1(a,b)) ... IC(LCA_n(a,b)) }
+ * 
+ * E.g. for GO model, this would check all named LCAs (i.e. GO terms) and use the one with the highest IC
+ * 
+ * 
+ * 
  * @author cjm
  *
  */

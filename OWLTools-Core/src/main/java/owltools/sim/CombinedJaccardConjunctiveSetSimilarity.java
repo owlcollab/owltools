@@ -10,6 +10,8 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 
 /**
+ * filters first based on SimJ, if passes threshold performs full ConjunctiveSetSimilarity
+ * 
  * @author cjm
  *
  */

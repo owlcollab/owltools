@@ -64,6 +64,10 @@ public class ImportClosureSlurper {
 			IRI outputStream = IRI.create(new File(local));
 			ontology.getOWLOntologyManager().saveOntology(subOnt, fmt, outputStream);
 			w.write("  <uri id=\"User Entered Import Resolution\" name=\""+iri +"\" uri=\""+local+"\"/>\n");
+			
+			for (OWLOntology di : subOnt.getDirectImports()) {
+				System.out.println("import\t"+subOnt.getOntologyID()+"\t"+di.getOntologyID());
+			}
 		}
 		
 		w.write("  <group id=\"Folder Repository, directory=, recursive=false, Auto-Update=false, version=2\" prefer=\"public\" xml:base=\"\">\n");

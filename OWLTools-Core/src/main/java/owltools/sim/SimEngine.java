@@ -401,6 +401,12 @@ public class SimEngine {
 		return getUnionSubsumers(a,b).size();		
 	}
 
+	/**
+	 * @todo rename - actually gets common named ancestrs
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	public Set<OWLObject> getCommonSubsumers(OWLObject a, OWLObject b) {
 		Set<OWLObject> s1 = getGraph().getAncestorsReflexive(a);
 		s1.retainAll(getGraph().getAncestorsReflexive(b));
@@ -516,21 +522,25 @@ public class SimEngine {
 		return getGraph().getAncestorsReflexive(obj);
 	}
 
+	/**
+	 * @param a
+	 * @param b
+	 * @return ObjectIntersectionOf(a b)
+	 */
 	public OWLClassExpression makeIntersectionPair(OWLClassExpression a, OWLClassExpression b) {
-		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
-		ces.add((OWLClassExpression) a);
-		ces.add((OWLClassExpression) b);
 		OWLClassExpression ce =
-			graph.getDataFactory().getOWLObjectIntersectionOf(ces);
+			graph.getDataFactory().getOWLObjectIntersectionOf(a,b);
 		return ce;		
 	}
 
+	/**
+	 * @param a
+	 * @param b
+	 * @return ObjectUnionOf(a b)
+	 */
 	public OWLClassExpression makeUnionPair(OWLClassExpression a, OWLClassExpression b) {
-		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
-		ces.add((OWLClassExpression) a);
-		ces.add((OWLClassExpression) b);
 		OWLClassExpression ce =
-			graph.getDataFactory().getOWLObjectUnionOf(ces);
+			graph.getDataFactory().getOWLObjectUnionOf(a, b);
 		return ce;		
 	}
 
@@ -538,14 +548,145 @@ public class SimEngine {
 	// ANONYMOUS LCS
 	// ----------------------------------------
 
+	/**
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	public OWLClassExpression getLeastCommonSubsumerSimpleClassExpression(OWLObject a, OWLObject b) {
-		
+		return getLeastCommonSubsumerSimpleClassExpression(a,b,true);
+	}
+
+	/**
+	 * @param a
+	 * @param b
+	 * @param isIgnoreEdgeLabels
+	 * @return
+	 */
+
+	public OWLClassExpression getLeastCommonSubsumerSimpleClassExpression(OWLObject a, OWLObject b, boolean isIgnoreEdgeLabels) {
+
 		if (a.equals(b)) {
-			return (OWLClassExpression) a;
+			LOG.info("a equals b");
+			if (a instanceof OWLClassExpression)
+				return (OWLClassExpression) a;
+			return null;
+		}
+
+		Set<OWLObject> ancsA;
+		Set<OWLObject> ancsB;
+
+		// first calculate LCAs
+		ancsA = graph.getAncestorsReflexive(a);
+		ancsB = graph.getAncestorsReflexive(b);
+
+		Set<OWLObject> csl = new HashSet<OWLObject>(ancsA);
+		csl.retainAll(ancsB);
+		LOG.info("All LCAs"+csl);
+		filterObjects(csl); // user-filtering
+		//makeNonRedundant(csl);
+		//LOG.info("NR LCAs"+csl);
+
+
+		Set<OWLGraphEdge> commonEdges = new HashSet<OWLGraphEdge>();
+		for (OWLObject x : csl) {
+			Set<OWLGraphEdge> edgesA = graph.getCompleteEdgesBetween(a, x);
+			Set<OWLGraphEdge> edgesB = graph.getCompleteEdgesBetween(b, x);
+
+			for (OWLGraphEdge ea : edgesA) {
+				for (OWLGraphEdge eb : edgesB) {
+					if (ea.getQuantifiedPropertyList().equals(eb.getQuantifiedPropertyList())) {
+						commonEdges.add(ea);
+					}
+				}
+			}
 		}
 		
-		Set<OWLObject> ancsA = graph.getAncestorsReflexive(a);
-		Set<OWLObject> ancsB = graph.getAncestorsReflexive(b);
+		/*
+		 * Also check for
+		 * [R X] and [R.S Y]
+		 * where X<S some Y
+		 * 
+		 * 
+		 */
+
+		// TODO: optimization
+		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
+		for (OWLGraphEdge ce : commonEdges) {
+
+			OWLClassExpression cex = (OWLClassExpression) graph.edgeToTargetExpression(ce);
+			boolean isSubsumed = false;
+			for (OWLGraphEdge e2 : commonEdges) {
+
+				if (e2.equals(ce))
+					continue;
+				for (OWLGraphEdge se : graph.getOWLGraphEdgeSubsumers(e2)) {
+					if (ce.getQuantifiedPropertyList().equals(se.getQuantifiedPropertyList())) {
+						Set<OWLObject> subsumers = graph.getSubsumersFromClosure(e2.getTarget());
+						subsumers.add(e2.getTarget());
+						if (subsumers.contains(ce.getTarget())) {
+							isSubsumed = true;
+							break;
+						}
+					}
+					
+					for (OWLGraphEdge xe : graph.getCompleteOutgoingEdgesClosure(se.getTarget())) {
+						OWLGraphEdge ne = graph.combineEdgePair(null, se, xe, 1);
+						if (graph.edgeToTargetExpression(ne).equals(cex)) {
+							// the candidate expression includes a superfluous chain at the end
+							isSubsumed = true;
+							break;
+						}
+					}
+				
+				}
+			}
+
+			if (!isSubsumed) {
+				ces.add(cex);
+			}
+		}
+		if (ces.size() == 0) {
+			return null; // TODO - owl:Thing
+		}
+		else if (ces.size() == 1) {
+			return ces.iterator().next();
+		}
+		else {
+			OWLClassExpression lcs =
+				graph.getDataFactory().getOWLObjectIntersectionOf(ces);
+
+			return lcs;
+		}
+	}
+	
+	public Set<OWLGraphEdge> extendEdge(OWLGraphEdge e) {
+		Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
+		return edges;
+	}
+	
+	/*
+	public OWLClassExpression old___getLeastCommonSubsumerSimpleClassExpression(OWLObject a, OWLObject b, boolean isIgnoreEdgeLabels) {
+
+		if (a.equals(b)) {
+			LOG.info("a equals b");
+			if (a instanceof OWLClassExpression)
+				return (OWLClassExpression) a;
+			return null;
+		}
+
+		Set<OWLObject> ancsA;
+		Set<OWLObject> ancsB;
+
+		if (isIgnoreEdgeLabels) {
+			// note that we calculate the edge list later
+			ancsA = graph.getAncestorsReflexive(a);
+			ancsB = graph.getAncestorsReflexive(b);
+		}
+		else {
+			ancsA = graph.getSubsumersFromClosure(a);
+			ancsB = graph.getSubsumersFromClosure(b);
+		}
 
 		boolean isASubsumesB = ancsB.contains(a);		
 		boolean isBSubsumesA = ancsA.contains(b);
@@ -567,22 +708,43 @@ public class SimEngine {
 
 		Set<OWLObject> csl = new HashSet<OWLObject>(ancsA);
 		csl.retainAll(ancsB);
+		LOG.info("All LCAs"+csl);
 		filterObjects(csl);
 		makeNonRedundant(csl);
+		LOG.info("NR LCAs"+csl);
 
 
 		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
 		for (OWLObject x : csl) {
-			Set<OWLGraphEdge> edgesA = graph.getEdgesBetween(a, x);
-			Set<OWLGraphEdge> edgesB = graph.getEdgesBetween(b, x);
+			Set<OWLGraphEdge> edgesA = graph.getCompleteEdgesBetween(a, x);
+			Set<OWLGraphEdge> edgesB = graph.getCompleteEdgesBetween(b, x);
+			OWLGraphEdge commonEdge = null;
 			for (OWLGraphEdge ea : edgesA) {
 				for (OWLGraphEdge eb : edgesB) {
 					if (ea.getQuantifiedPropertyList().equals(eb.getQuantifiedPropertyList())) {
-						OWLClassExpression ce = (OWLClassExpression) graph.edgeToTargetExpression(ea);
-						ces.add(ce);
+						if (commonEdge == null) {
+							commonEdge = ea;
+						}
+						else {
+							boolean isSubsumed = false;
+							for (OWLGraphEdge ec : graph.getOWLGraphEdgeSubsumers(commonEdge)) {
+								if (ec.getQuantifiedPropertyList().equals(ea.getQuantifiedPropertyList())) {
+									isSubsumed = true;
+									break;
+								}
+							}
+							if (!isSubsumed)
+								commonEdge = ea;
+						}
 					}
 				}
 			}
+			if (commonEdge != null) {
+				OWLClassExpression ce = (OWLClassExpression) graph.edgeToTargetExpression(commonEdge);
+				ces.add(ce);
+			}
+			// TODO - use property hierarchy here;
+			// e.g. if path1 = inheres_in_part_of and path2 = inheres_in, use the more general one
 		}
 		if (ces.size() == 0) {
 			return null; // TODO - owl:Thing
@@ -597,6 +759,7 @@ public class SimEngine {
 			return lcs;
 		}
 	}
+	 */
 
 	/**
 	 * makes a reduced union expression.
@@ -716,6 +879,13 @@ public class SimEngine {
 
 	}
 
+	/**
+	 * iterates through ALL similarity metrics and calculates
+	 * @param a
+	 * @param b
+	 * @return
+	 * @throws SimilarityAlgorithmException
+	 */
 	public Set<Similarity> calculateAllSimilarity(OWLObject a, OWLObject b) throws SimilarityAlgorithmException  {
 		Set<Similarity> mm = 
 			new HashSet<Similarity>();
@@ -729,6 +899,7 @@ public class SimEngine {
 			}
 			if (m != null) {
 				calculateSimilarity(m,a,b);
+				m.simEngine = this;
 				mm.add(m);
 			}
 		}

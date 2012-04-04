@@ -182,7 +182,7 @@ public class OWLGraphWrapper {
 				graphEdgeExcludeSet = new HashSet<OWLQuantifiedProperty>();
 			graphEdgeExcludeSet.add(new OWLQuantifiedProperty(p, null));
 		}
-		
+
 		public void includeProperty(OWLObjectProperty p) {
 			if (graphEdgeIncludeSet == null)
 				graphEdgeIncludeSet = new HashSet<OWLQuantifiedProperty>();
@@ -203,7 +203,7 @@ public class OWLGraphWrapper {
 				}
 			}
 		}
-		
+
 		public void includeAllWith(OWLAnnotationProperty ap, OWLOntology o) {
 			for (OWLObjectProperty p : o.getObjectPropertiesInSignature(true)) {
 				Set<OWLAnnotation> anns = p.getAnnotations(o, ap);
@@ -1064,27 +1064,79 @@ public class OWLGraphWrapper {
 	public Set<OWLObject> getSubsumersFromClosure(OWLObject s) {
 		Set<OWLObject> ts = new HashSet<OWLObject>();
 		for (OWLGraphEdge e : getOutgoingEdgesClosure(s)) {
+			for (OWLGraphEdge se : getOWLGraphEdgeSubsumers(e)) {
+				ts.add(edgeToTargetExpression(e));
+			}
 			ts.add(edgeToTargetExpression(e));
 		}
 		return ts;
 	}
 
+	/**
+	 * See {@link getIncomingEdgesClosure(OWLObject s, boolean isComplete)}
+	 * 
+	 * @param s
+	 * @param isComplete
+	 * @return
+	 */
+	public Set<OWLGraphEdge> getOutgoingEdgesClosure(OWLObject s, boolean isComplete) {
+		if (isComplete) {
+			Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
+			for (OWLGraphEdge e : getOutgoingEdgesClosure(s)) {
+				edges.addAll(getOWLGraphEdgeSubsumers(e));
+			}
+			return edges;
+		}
+		else {
+			return getOutgoingEdgesClosure(s);
+		}
+	}
+
+	/**
+	 * See {@link getIncomingEdgesClosure(OWLObject s, boolean isComplete)}
+	 * 
+	 * @param s
+	 * @return
+	 */
+	public Set<OWLGraphEdge> getCompleteOutgoingEdgesClosure(OWLObject s) {
+		Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
+		for (OWLGraphEdge e : getOutgoingEdgesClosure(s)) {
+			edges.addAll(getOWLGraphEdgeSubsumers(e));
+		}
+		return edges;
+	}
+
+
+	/**
+	 * Treats an edge as a path and performs a query.
+	 * 
+	 * E.g <x [R SOME] [S SOME] y> will be treated as the class expression
+	 *    R SOME (S SOME y)
+	 * @param e
+	 * @return
+	 */
 	public Set<OWLObject> queryDescendants(OWLGraphEdge e) {
 		profiler.startTaskNotify("queryDescendants");
 		Set<OWLObject> results = new HashSet<OWLObject>();
 		// reflexivity
 		results.add(this.edgeToTargetExpression(e));
 		List<OWLQuantifiedProperty> eqpl = e.getQuantifiedPropertyList();
-		// todo - cast
-		for (OWLObject d1 : queryDescendants((OWLClassExpression)e.getTarget())) {
-			Set<OWLGraphEdge> dEdges = this.getIncomingEdgesClosure(d1);
-			for (OWLGraphEdge dEdge : dEdges) {
-				OWLGraphEdge newEdge = combineEdgePair(e.getTarget(), 
-						new OWLGraphEdge(null, null, Quantifier.SUBCLASS_OF), dEdge, 1);
-				if (!keepEdge(newEdge))
-					continue;
 
-				List<OWLQuantifiedProperty> dqpl = newEdge.getQuantifiedPropertyList();
+		// first find all subclasses of target (todo - optimize)
+		for (OWLObject d1 : queryDescendants((OWLClassExpression)e.getTarget())) {
+			//LOG.info("  Q="+d1);
+			Set<OWLGraphEdge> dEdges = this.getIncomingEdgesClosure(d1, true);
+			for (OWLGraphEdge dEdge : dEdges) {
+				List<OWLQuantifiedProperty> dqpl = new Vector<OWLQuantifiedProperty>(dEdge.getQuantifiedPropertyList());
+
+				if (dqpl.get(0).isInstanceOf()) {
+					// the graph path from an individual will start with either
+					// an instance-of QP, or a property assertion.
+					// we ignore the instance-of here, as the query is implicitly for individuals
+					// and classes
+					dqpl.remove(dqpl.get(0));
+				}				
+				
 				if (dqpl.equals(eqpl)) {
 					results.add(dEdge.getSource());
 				}
@@ -1112,7 +1164,7 @@ public class OWLGraphWrapper {
 		results.add(t);
 
 		// transitivity and link composition
-		Set<OWLGraphEdge> dEdges = this.getIncomingEdgesClosure(t);
+		Set<OWLGraphEdge> dEdges = this.getIncomingEdgesClosure(t, true);
 		for (OWLGraphEdge dEdge : dEdges) {
 			if (dEdge.getQuantifiedPropertyList().size() > 1)
 				continue;
@@ -1129,10 +1181,23 @@ public class OWLGraphWrapper {
 					iresults = queryDescendants(y, isInstances, isClasses);
 				}
 				else {
-					iresults.retainAll(queryDescendants(y, isInstances, isClasses));
+					if (y instanceof OWLObjectComplementOf) {
+						// mini-optimization: 
+						// for "A and not B and ...", perform B and remove results from A.
+						//
+						// assumes the NOT precedes the initial operand, and is preferably
+						// as far to the end as possible.
+						// this could be easily improved upon, but this functionality
+						// will eventually be subsumed by reasoners in any case...
+						OWLClassExpression z = ((OWLObjectComplementOf) y).getOperand();
+						iresults.removeAll(queryDescendants(z, isInstances, isClasses));
+					}
+					else {
+						iresults.retainAll(queryDescendants(y, isInstances, isClasses));
+					}
 				}
-				results.addAll(iresults);
 			}
+			results.addAll(iresults);
 		}
 		else if (t instanceof OWLObjectUnionOf) {
 			for (OWLClassExpression y : ((OWLObjectUnionOf)t).getOperands()) {
@@ -1144,6 +1209,10 @@ public class OWLGraphWrapper {
 		}
 		else if (t instanceof OWLObjectComplementOf) {
 			// NOTE: this is closed-world negation
+			// TODO: optimize by re-ordering clauses
+			for (OWLOntology o : getAllOntologies()) {
+				results.addAll(o.getClassesInSignature(true));
+			}
 			results.removeAll(queryDescendants( ((OWLObjectComplementOf) t).getOperand()));
 		}
 		// equivalent classes - substitute a named class in the query for an expression
@@ -1181,6 +1250,14 @@ public class OWLGraphWrapper {
 		return edges;
 	}
 
+	public Set<OWLGraphEdge> getCompleteEdgesBetween(OWLObject s, OWLObject t) {
+		Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
+		for (OWLGraphEdge e : getEdgesBetween(s,t)) {
+			for (OWLGraphEdge se : this.getOWLGraphEdgeSubsumers(e)) 
+				edges.add(se);
+		}
+		return edges;
+	}
 
 	/**
 	 * returns all ancestors of an object. Here, ancestors is defined as any
@@ -1318,6 +1395,35 @@ public class OWLGraphWrapper {
 	}
 
 
+
+	/**
+	 * As {@link getIncomingEdgesClosure(OWLObject t)}, but allows the option of including
+	 * 'complete' edge list. A complete edge list also includes redundant subsuming paths. E.g
+	 * 
+	 * if there is a path <x [R some] [S some] y>
+	 * and R' and S' are super-properties of R and S, then there will also be a path
+	 * <x [R' some] [S' some] y>
+	 * 
+	 * The default is false, i.e. if the more specific path exists, only it will be returned
+	 * 
+	 * 
+	 * @param t
+	 * @param isComplete
+	 * @return
+	 */
+	public Set<OWLGraphEdge> getIncomingEdgesClosure(OWLObject t, boolean isComplete) {
+		if (isComplete) {
+			Set<OWLGraphEdge> ccs = new HashSet<OWLGraphEdge>();
+			for (OWLGraphEdge e : getIncomingEdgesClosure(t)) {
+				ccs.addAll(getOWLGraphEdgeSubsumers(e));
+			}
+			return ccs;
+		}
+		else {
+			return getIncomingEdgesClosure(t);
+		}
+	}
+	
 	/**
 	 * gets all inferred edges coming in to the target edge
 	 * 
@@ -1410,6 +1516,9 @@ public class OWLGraphWrapper {
 		if (config.isCacheClosure) {
 			inferredEdgeByTarget.put(t, new HashSet<OWLGraphEdge>(closureSet));
 		}
+		
+	
+		
 		profiler.endTaskNotify("getIncomingEdgesClosure");
 		return closureSet;
 	}
@@ -2131,6 +2240,68 @@ public class OWLGraphWrapper {
 			}
 		}
 		return ps;
+	}
+
+	public Set<OWLObjectPropertyExpression> getSuperPropertyClosureOf(OWLObjectPropertyExpression p) {
+		Set<OWLObjectPropertyExpression> superProps = new HashSet<OWLObjectPropertyExpression>();
+		Stack<OWLObjectPropertyExpression> stack = new Stack<OWLObjectPropertyExpression>();
+		stack.add(p);
+		while (!stack.isEmpty()) {
+			OWLObjectPropertyExpression nextProp = stack.pop();
+			Set<OWLObjectPropertyExpression> directSupers = getSuperPropertiesOf(nextProp);
+			directSupers.removeAll(superProps);
+			stack.addAll(directSupers);
+			superProps.addAll(directSupers);
+		}
+		return superProps;
+	}
+
+
+	public Set<OWLObjectPropertyExpression> getSuperPropertyReflexiveClosureOf(OWLObjectPropertyExpression p) {
+		Set<OWLObjectPropertyExpression> superProps = getSuperPropertyClosureOf(p);
+		superProps.add(p);
+		return superProps;
+	}
+
+	/**
+	 * generalizes over quantified properties
+	 * 
+	 * @param e
+	 * @return
+	 */
+	public Set<OWLGraphEdge> getOWLGraphEdgeSubsumers(OWLGraphEdge e) {
+		return getOWLGraphEdgeSubsumers(e, 0);
+
+	}
+	public Set<OWLGraphEdge> getOWLGraphEdgeSubsumers(OWLGraphEdge e, int i) {
+		Set<OWLGraphEdge> subsumers = new HashSet<OWLGraphEdge>();
+		if (i >= e.getQuantifiedPropertyList().size()) {
+			subsumers.add(new OWLGraphEdge(e.getSource(), e.getTarget(), new Vector<OWLQuantifiedProperty>(), null));
+			return subsumers;
+		}
+		OWLQuantifiedProperty qp = e.getQuantifiedPropertyList().get(i);
+		Set<OWLQuantifiedProperty> superQps = new HashSet<OWLQuantifiedProperty>();
+		superQps.add(qp);
+		OWLObjectProperty p = qp.getProperty();
+		if (p != null) {
+			for (OWLObjectPropertyExpression pe : getSuperPropertyClosureOf(p)) {
+				if (pe instanceof OWLObjectProperty) {
+					superQps.add(new OWLQuantifiedProperty(pe, qp.getQuantifier()));
+				}
+			}
+		}
+		for (OWLQuantifiedProperty sqp : superQps) {
+			for (OWLGraphEdge se : getOWLGraphEdgeSubsumers(e, i+1)) {
+				List<OWLQuantifiedProperty> qpl = new Vector<OWLQuantifiedProperty>();
+				qpl.add(sqp);
+				qpl.addAll(se.getQuantifiedPropertyList());
+
+				subsumers.add(new OWLGraphEdge(e.getSource(),e.getTarget(),
+						qpl, e.getOntology()));
+			}
+		}
+
+		return subsumers;
 	}
 
 	/**

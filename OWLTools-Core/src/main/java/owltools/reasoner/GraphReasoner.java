@@ -32,6 +32,7 @@ import org.semanticweb.owlapi.reasoner.UnsupportedEntailmentTypeException;
 import org.semanticweb.owlapi.reasoner.impl.DefaultNodeSet;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNodeSet;
+import org.semanticweb.owlapi.reasoner.impl.OWLNamedIndividualNodeSet;
 import org.semanticweb.owlapi.reasoner.impl.OWLReasonerBase;
 import org.semanticweb.owlapi.util.Version;
 
@@ -150,8 +151,22 @@ public class GraphReasoner extends OWLReasonerBase implements OWLExtendedReasone
 	FreshEntitiesException, InconsistentOntologyException,
 	ClassExpressionNotInProfileException {
 
-		// TODO Auto-generated method stub
-		return null;
+		DefaultNodeSet<OWLClass> result = new OWLClassNodeSet();
+		Set<OWLObject> subs = gw.queryDescendants(ce, false, true);
+		for (OWLObject s : subs) {
+			if (s instanceof OWLClassExpression) {
+				if (s instanceof OWLClass) {
+					result.addEntity((OWLClass) s);
+				}
+				else {
+
+				}
+			}
+			else {
+
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -348,8 +363,17 @@ public class GraphReasoner extends OWLReasonerBase implements OWLExtendedReasone
 			boolean direct) throws InconsistentOntologyException,
 			ClassExpressionNotInProfileException, FreshEntitiesException,
 			ReasonerInterruptedException, TimeOutException {
-		// TODO Auto-generated method stub
-		return null;
+		DefaultNodeSet<OWLNamedIndividual> result = new OWLNamedIndividualNodeSet();
+		Set<OWLObject> subs = gw.queryDescendants(ce, true, true);
+		for (OWLObject s : subs) {
+			if (s instanceof OWLNamedIndividual) {
+				result.addEntity((OWLNamedIndividual) s);
+			}
+			else {
+
+			}
+		}
+		return result;
 	}
 
 	public NodeSet<OWLNamedIndividual> getObjectPropertyValues(

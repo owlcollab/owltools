@@ -1,6 +1,8 @@
 package owltools.graph;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.semanticweb.owlapi.model.OWLObject;
@@ -155,6 +157,7 @@ public class OWLGraphEdge {
 	public boolean isTargetNamedObject() {
 		return (target instanceof OWLNamedObject);
 	}
+	
 
 	@Override
 	public String toString() {

@@ -54,7 +54,15 @@ import org.semanticweb.owlapi.util.Version;
 import owltools.graph.OWLGraphWrapper;
 
 /**
- *
+ * This wraps an existing reasoner to implement OWLExtendedReasoner.
+ * 
+ * It works by materializing expressions of the form "R some Y" as
+ * equivalence axioms prior to reasoning.
+ * 
+ * After reasoning, it can retrieve these anonymous superclasses.
+ * 
+ * Currently limited to a single level of nesting - in principle it could be extended
+ * to expressions of depth k
  * 
  * @author cjm
  *

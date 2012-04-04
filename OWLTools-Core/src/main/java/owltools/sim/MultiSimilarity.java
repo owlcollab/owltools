@@ -126,8 +126,8 @@ public class MultiSimilarity extends Similarity {
 	private void calculate(OWLObject a, OWLObject b, Set<OWLObject> aAtts,
 			Set<OWLObject> bAtts) throws SimilarityAlgorithmException {
 
-		LOG.info(a+" size="+aAtts.size());
-		LOG.info(b+" size="+bAtts.size());
+		LOG.debug(a+" size="+aAtts.size());
+		LOG.debug(b+" size="+bAtts.size());
 		if (aAtts.size() == 0 || bAtts.size() ==0) {
 			isComparable = false;
 			return;
