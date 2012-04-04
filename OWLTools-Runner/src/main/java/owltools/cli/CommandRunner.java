@@ -94,6 +94,7 @@ import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
+import owltools.reasoner.GraphReasonerFactory;
 import owltools.reasoner.OWLExtendedReasoner;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
@@ -719,7 +720,11 @@ public class CommandRunner {
 					}
 					ExpressionMaterializingReasoner xr = null;
 					if (isExtended) {
+						if (reasoner != null) {
+							LOG.error("Reasoner should NOT be set prior to creating EMR - unsetting");
+						}
 						xr = new ExpressionMaterializingReasoner(g.getSourceOntology());	
+						LOG.info("materializing... [doing this before initializing reasoner]");					
 						xr.materializeExpressions();
 						LOG.info("set extended reasoner: "+xr);
 					}
@@ -1204,8 +1209,8 @@ public class CommandRunner {
 				}
 				stream.close();
 			}
-			else if (opts.nextEq("--sip|--slurp-import-closure")) {
-				opts.info("[-d DIR] [-o CATALOG-OUT]","Saves local copy of import closure. Assumes sourceontology has imports");
+			else if (opts.nextEq("--sic|--slurp-import-closure")) {
+				opts.info("[-d DIR] [-c CATALOG-OUT]","Saves local copy of import closure. Assumes sourceontology has imports");
 				String dir = ".";
 				String catfile = null;
 				while (opts.hasOpts()) {
@@ -1649,6 +1654,9 @@ public class CommandRunner {
 		else if (reasonerName.equals("hermit")) {
 			//return new org.semanticweb.HermiT.Reasoner.ReasonerFactory().createReasoner(ont);
 			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
+		}
+		else if (reasonerName.equals("ogr")) {
+			reasonerFactory = new GraphReasonerFactory();			
 		}
 		else if (reasonerName.equals("elk")) {
 			//SimpleConfiguration rconf = new SimpleConfiguration(FreshEntityPolicy.ALLOW, Long.MAX_VALUE);
