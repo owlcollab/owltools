@@ -62,7 +62,7 @@ function parseManx(String expr) {
 }
 
 function dlq(String expr) {
-    var x = parseManc(expr);
+    var x = parseManx(expr);
     
 }
 
