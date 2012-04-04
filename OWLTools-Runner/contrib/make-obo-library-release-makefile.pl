@@ -73,19 +73,20 @@ foreach my $ns (keys %d)  {
 
     push(@targets, "release-$ont");
 
-
     # first fetch; depends on 'stamp' file, which can be touched
-    push(@rules, "$srcf: stamp\n\twget -N --no-check-certificate $d{$ns} -O \$@");
+    my $localf = $d{$ns};
+    $localf =~ s@.*/@@g;
+    push(@rules, "$srcf: stamp\n\twget --no-check-certificate '$d{$ns}' -O \$@.tmp && ( cmp \$@.tmp \$@ && echo identical || cp \$@.tmp \$@)");
 
     # then build
-    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$<");
+    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --skip-format owx --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$<");
     push(@rules, "$ont/$ont.obo: $ont/$ont.owl");
 
     # then release
     #push(@rules, "../$ont.%: $ont/$ont.%\n\tcp \$< \$@");
-    push(@rules, "../$ont.obo: $ont/$ont.obo\n\tcp \$< \$@");
-    push(@rules, "../$ont.owl: $ont/$ont.owl\n\tcp \$< \$@");
-    push(@rules, "release-$ont: ../$ont.obo ../$ont.owl");
+    push(@rules, "\$(TDIR)/$ont.obo: $ont/$ont.obo\n\tcp \$< \$@");
+    push(@rules, "\$(TDIR)/$ont.owl: $ont/$ont.owl\n\tcp \$< \$@");
+    push(@rules, "release-$ont: \$(TDIR)/$ont.obo \$(TDIR)/$ont.owl\n\ttouch \$@");
     #push(@rules, "release-$ont: $ont/$ont.owl\n\tcp $ont/$ont.owl ..; cp $ont/$ont.obo ..");
 
     cmd("mkdir $ont");
@@ -95,8 +96,13 @@ foreach my $ns (keys %d)  {
 unshift(@rules, "all: @targets");
 push(@rules, "stamp:\n\ttouch \$@");
 
+print "TDIR=..\n\n";
 foreach (@rules) {
-    print "$_\n\n";
+    print "$_\n";
+    if (/^(\S+):/) {
+        print ".PRECIOUS: $1\n";
+    }
+    print "\n";
 }
 
 exit 0;    

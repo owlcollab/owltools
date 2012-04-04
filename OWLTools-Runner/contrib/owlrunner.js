@@ -4,10 +4,12 @@ importPackage(Packages.org.semanticweb.owlapi.io);
 importPackage(Packages.owltools.cli);
 importPackage(Packages.owltools.io);
 importPackage(Packages.owltools.mooncat);
+importPackage(Packages.org.obolibrary.macro);
 importPackage(Packages.com.google.gson);
 
 var runner;
 var reasoner;
+var mst;
 
 // initializes runner with new CommandRunner
 function init() {
@@ -52,6 +54,16 @@ function o2j(owlObj) {
     gson = new Gson();
     obj = ogr.convert(owlObj);
     return eval('('+gson.toJson(obj)+')');
+}
+
+function parseManx(String expr) {
+    mst = new ManchesterSyntaxTool(g().getSourceOntology(), g().getSupportOntologySet(), true);
+    return mst.parseManchesterExpression(expr);
+}
+
+function dlq(String expr) {
+    var x = parseManc(expr);
+    
 }
 
 function obo(id) {
