@@ -25,7 +25,7 @@ public class ResonerDiffCommandLine {
 				" ONTOLOGY resource to be used as base ontology\n" +
 				" --report output file with the report (OPTIONAL)\n" +
 				" --catalog-xml specify an catalog.xml file for IRI mapping (OPTIONAL)\n" +
-				" --resoner ["+InferenceBuilder.REASONER_HERMIT+"|"+
+				" --reasoner ["+InferenceBuilder.REASONER_HERMIT+"|"+
 					InferenceBuilder.REASONER_ELK+"|"+
 					InferenceBuilder.REASONER_PELLET+"|"+
 					InferenceBuilder.REASONER_JCEL+"] (OPTIONAL)\n");
