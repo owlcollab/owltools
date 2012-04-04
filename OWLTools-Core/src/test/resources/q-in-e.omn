@@ -1,0 +1,140 @@
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: : <http://x.org#>
+
+Ontology: <http://example.org#phenotype>
+
+ObjectProperty: :related_to
+ObjectProperty: :anterior_to
+ObjectProperty: :develops_from
+  SubPropertyChain: :part_of o :develops_from
+
+ObjectProperty: :inheres_in
+  SubPropertyOf: :inheres_in_part_of
+
+ObjectProperty: :inheres_in_part_of
+  SubPropertyOf: :related_to
+  SubPropertyChain: :inheres_in o :part_of
+
+ObjectProperty: :inheres_in_develops_from
+  SubPropertyOf: :related_to
+  SubPropertyChain: :inheres_in o :develops_from
+  SubPropertyChain: :inheres_in_part_of o :develops_from
+
+ObjectProperty: :part_of
+  Characteristics: Transitive
+
+ObjectProperty: :has_part
+  Characteristics: Transitive
+
+ObjectProperty: :has_phenotype
+
+Class: :AER
+
+Class: :limb_bud
+ SubClassOf: :has_part some :AER
+
+Class: :forelimb_bud
+  SubClassOf: :limb_bud
+
+Class: :hindlimb_bud
+  SubClassOf: :limb_bud
+
+Class: :limb
+ SubClassOf: :develops_from some :limb_bud
+
+Class: :forelimb
+ SubClassOf: :limb
+ SubClassOf: :anterior_to some :hindlimb
+ SubClassOf: :develops_from some :forelimb_bud
+
+Class: :hindlimb
+ SubClassOf: :limb
+ SubClassOf: :develops_from some :hindlimb_bud
+
+Class: :autopod
+ SubClassOf: :part_of some :limb
+
+Class: :hand
+ EquivalentTo: :autopod and :part_of some :forelimb
+
+Class: :foot
+ EquivalentTo: :autopod and :part_of some :hindlimb
+
+Class: :abnormal_morphology
+
+Class: :hypoplastic
+  SubClassOf: :abnormal_morphology
+
+Class: :hyperplastic
+  SubClassOf: :abnormal_morphology
+
+Class: :hypoplastic_forelimb
+  SubClassOf: :hypoplastic and :inheres_in some :forelimb
+
+Class: :hypoplastic_hindlimb
+  SubClassOf: :hypoplastic and :inheres_in some :hindlimb
+
+Class: :hyperplastic_hand
+  SubClassOf: :hyperplastic and :inheres_in some :hand
+
+Class: :hyperplastic_foot
+  SubClassOf: :hyperplastic and :inheres_in some :foot
+
+Class: :abnormal_hindlimb_bud_morphology
+  SubClassOf: :abnormal_morphology and :inheres_in some :hindlimb_bud
+
+Class: :color
+
+Class: :red
+  SubClassOf: :color
+
+Class: :photoreceptor
+
+Class: :ommatidium
+  SubClassOf: :has_part some :photoreceptor
+
+Class: :retina
+  SubClassOf: :has_part some :photoreceptor
+
+Class: :compound_eye
+  SubClassOf: :part_of some :head
+  SubClassOf: :has_part some :ommatidium
+
+Class: :camera_eye
+  SubClassOf: :part_of some :head
+  SubClassOf: :has_part some :retina
+
+Class: :dm_red_eyes
+  EquivalentTo: :red and :inheres_in some :compound_eye
+
+Class: :head
+
+Class: :metazoan
+
+Class: :mammal
+  SubClassOf: :metazoan
+Class: :human
+  SubClassOf: :mammal
+Class: :mouse
+  SubClassOf: :mammal
+Class: :fly
+  SubClassOf: :metazoan
+
+Individual: :h1
+  Types: :human, :has_phenotype some :hyperplastic_foot
+
+Individual: :h2
+  Types: :human, :has_phenotype some :hyperplastic_hand
+
+Individual: :h3
+  Types: :human, :has_phenotype some :hyperplastic and :inheres_in some :hand
+
+Individual: :m1
+  Types: :mouse, :has_phenotype some :hyperplastic_hand, :has_phenotype some :abnormal_hindlimb_bud_morphology
+
+Individual: :dm1
+  Types: :fly, :has_phenotype some :dm_red_eyes
