@@ -63,7 +63,7 @@ function parseManx(String expr) {
 
 function dlq(String expr) {
     var x = parseManx(expr);
-    
+    return reasoner.getSubClasses( x, true ).getFlattened().toArray();
 }
 
 function obo(id) {
