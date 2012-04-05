@@ -1,7 +1,6 @@
 package owltools.gaf;
 
-import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -33,12 +32,7 @@ public class GeneAnnotation {
 	protected List<CompositeQualifier> compositeQualifierList;
 
 	
-	protected static List<WithInfo> withInfoEmptyList = new ArrayList<WithInfo>();
-	protected static List<ExtensionExpression> extensionExpressionEmptyList = new ArrayList<ExtensionExpression>();
-	protected static List<CompositeQualifier> compositeQualifierEmptyList = new ArrayList<CompositeQualifier>();
-	
 	protected transient GafDocument gafDocumentObject;
-
 	protected transient AnnotationSource annotationSource;
 	
 	/**
@@ -49,14 +43,13 @@ public class GeneAnnotation {
 	protected String toString;
 	
 	/**
-	 * this method generate a tab separated row of a gene annotation
-	 * @return
+	 * this method generates/updates the tab separated row of a gene annotation.
 	 */
 	protected void buildRow(){
 		if(!isChanged)
 			return;
 		
-		String s = "";
+		StringBuilder s = new StringBuilder();
 
 		String taxon = "";
 		String dbObjectSynonym = "";
@@ -85,34 +78,34 @@ public class GeneAnnotation {
 		if(this.bioentity != null){
 			int i = bioentity.indexOf(":");
 			if(i>-1){
-				s += bioentity.substring(0, i) + "\t" + bioentity.substring(i+1) + "\t";
+				s.append(bioentity.substring(0, i)).append("\t").append(bioentity.substring(i+1)).append("\t");
 			}else{
-				s += bioentity + "\t";
+				s.append(bioentity).append("\t");
 			}
 		}else{
-			s += "\t\t";
+			s.append("\t\t");
 		}
 			
 		
-		s += symbol + "\t";
+		s.append(symbol).append("\t");
 		
-		s+= compositeQualifier + "\t";
+		s.append(compositeQualifier).append("\t");
 		
-		s+= this.cls + "\t";
+		s.append(this.cls).append("\t");
 		
-		s += this.referenceId + "\t";
+		s.append(this.referenceId).append("\t");
 		
-		s += this.evidenceCls + "\t";
+		s.append(this.evidenceCls).append("\t");
 		
-		s += this.withExpression + "\t";
+		s.append(this.withExpression).append("\t");
 		
-		s += "\t";
+		s.append("\t");
 		
-		s += dbObjectName+ "\t";
+		s.append(dbObjectName).append("\t");
 		
-		s += dbObjectSynonym + "\t";
+		s.append(dbObjectSynonym).append("\t");
 		
-		s += dbObjectType+ "\t";
+		s.append(dbObjectType).append("\t");
 		
 		if(this.actsOnTaxonId != null && this.actsOnTaxonId.length()>0){
 			int i = actsOnTaxonId.indexOf(":");
@@ -124,19 +117,19 @@ public class GeneAnnotation {
 			taxon += "|taxon:" + actsOnTaxonId.substring(i);
 		}
 		
-		s+= taxon + "\t";
+		s.append(taxon).append("\t");
 		
-		s += this.lastUpdateDate + "\t";
+		s.append(this.lastUpdateDate).append("\t");
 		
-		s += this.assignedBy + "\t";
+		s.append(this.assignedBy).append("\t");
 		
-		s += this.extensionExpression + "\t";
+		s.append(this.extensionExpression).append("\t");
 		
-		s += this.geneProductForm;
+		s.append(this.geneProductForm);
 		
 		this.isChanged = false;
 		
-		this.toString = s;
+		this.toString = s.toString();
 
 	}
 	
@@ -346,7 +339,7 @@ public class GeneAnnotation {
 				extensionExpressionList = gafDocumentObject.getExpressions(getExtensionExpression());
 				
 				if(extensionExpressionList == null)
-					extensionExpressionList = extensionExpressionEmptyList;
+					extensionExpressionList = Collections.emptyList();
 			}
 		}
 		
@@ -361,7 +354,7 @@ public class GeneAnnotation {
 			
 			
 			if(withInfoList == null){
-				withInfoList = withInfoEmptyList;
+				withInfoList = Collections.emptyList();
 			}
 		}
 		
@@ -375,7 +368,7 @@ public class GeneAnnotation {
 			}
 
 			if(compositeQualifierList == null)
-				compositeQualifierList = compositeQualifierEmptyList;
+				compositeQualifierList = Collections.emptyList();
 		}
 		return compositeQualifierList;
 	}

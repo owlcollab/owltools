@@ -10,7 +10,6 @@ import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -61,28 +60,21 @@ public class GAFParser {
 	
 	private int lineNumber;
 	
-//	private List<String> errors;
-
-	
-	private List voilations;
+	private List<Object> voilations;
 	
 	private List<GafParserListener> parserListeners;
 	
 	
-	public List getAnnotationRuleViolations(){
+	public List<Object> getAnnotationRuleViolations(){
 		return this.voilations;
 	}
 	
 	/**
 	 * Method declaration
 	 * 
-	 * @param File
-	 *            gaf_file
+	 * @return true, if next was successful
 	 * @throws IOException
-	 * 
-	 * @see
 	 */
-
 	public boolean next() throws IOException{
 		if(reader != null){
 			currentRow  = reader.readLine();
@@ -171,7 +163,7 @@ public class GAFParser {
 		this.gafVersion = 0;
 		this.reader = null;
 		this.expectedNumCols = 15;
-		voilations = new Vector();
+		voilations = new Vector<Object>();
 		lineNumber = 0;
 		if(parserListeners == null){
 			parserListeners = new Vector<GafParserListener>();

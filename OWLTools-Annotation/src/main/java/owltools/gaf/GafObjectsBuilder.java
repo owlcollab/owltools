@@ -10,17 +10,25 @@ import org.apache.log4j.Logger;
 
 
 /**
- * The class builds {@link GafDocument} a gaf file.
- * By default it read the whole gaf file and builds the GAFDocument.
- * If a GAF file is large enough, e.g. uniport file, it cannot be loaded as whole into memory,
- * so in such cases the file is needed to be split into small units that only one unit will be loaded into memory. This
- * class has built-in this split functionality. By creating the instance of this class through the constructor with int parameter (split size)
- * enable the split methodology of building the gaf document. See {@link GafObjectsBuilderTest} class for details how to build GafDocument
+ * The class builds {@link GafDocument} a gaf file. By default it read the whole
+ * gaf file and builds the GAFDocument.<br>
+ * <br>
+ * 
+ * If a GAF file is large enough, e.g. uniprot file, it cannot be loaded as
+ * whole into memory. In such cases the file can to be split into smaller units,
+ * such that only one unit is loaded into memory.<br>
+ * 
+ * This class has built-in this split functionality. By creating the instance of
+ * this class through the constructor with int parameter (split size) enable the
+ * split methodology of building the gaf document. <br>
+ * <br>
+ * 
+ * See {@link GafObjectsBuilderTest} class for details how to build GafDocument
  * object from this class.
+ * 
  * @author Shahid Manzoor
- *
+ * 
  */
-
 public class GafObjectsBuilder {
 
 	private final static Logger LOG = Logger.getLogger(GafObjectsBuilder.class);
@@ -100,14 +108,13 @@ public class GafObjectsBuilder {
 	}
 
 	/**
-	 * 	
-	 * when this variable reaches at splitSize then the algorithm in the getNextSplitDocument method stops calling next method of the GafParser and return the GafDocument object build with the number of rows 
-	 * @return
+	 * When this variable reaches the splitSize count, the algorithm in the
+	 * {@link #getNextSplitDocument()} method stops calling next method of the GafParser
+	 * and returns the {@link GafDocument} object build with the number of rows
+	 * 
+	 * @return gafDocument or null
 	 * @throws IOException
 	 */
-	
-	
-	
 	public GafDocument getNextSplitDocument() throws IOException{
 		if(parser == null){
 			throw new IllegalStateException("the buildDocument method is not called yet.");
@@ -160,9 +167,9 @@ public class GafObjectsBuilder {
 
 	
 	/**
-	 * This method builds Bioentity object from the current position (row) of GafParser
+	 * This method builds {@link Bioentity} object from the current position (row) of GafParser
 	 * @param parser
-	 * @return
+	 * @return bioentity, never null
 	 */
 	private Bioentity addBioEntity(GAFParser parser){
 		String id = parser.getDb() + ":" + parser.getDbObjectId();
