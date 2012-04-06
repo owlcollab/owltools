@@ -45,7 +45,7 @@ public abstract class AbstractSolrLoader {
 
 	public AbstractSolrLoader(String url) throws MalformedURLException {
 		super();
-		LOG.info("SERVER:"+url);
+		LOG.info("Server at: " + url);
 		this.server = new CommonsHttpSolrServer(url);
 	}
 
@@ -65,7 +65,15 @@ public abstract class AbstractSolrLoader {
 		LOG.info("committing docs...");
 		server.commit();
 		LOG.info("docs committed");
-
 	}
 
+	protected void incrementalAddAndCommit() throws SolrServerException, IOException {
+		//LOG.info("adding some docs...");
+		server.add(docs);
+		//LOG.info("committing some docs...");
+		server.commit();
+		//LOG.info("some docs committed");
+	    docs.clear();
+		//LOG.info("added, committed, and purged some docs");
+	}
 }

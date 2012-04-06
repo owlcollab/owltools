@@ -30,9 +30,12 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	private static Logger LOG = Logger.getLogger(GafSolrDocumentLoader.class);
 
 	GafDocument gafDocument;
-
+	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
+	int current_doc_number;
+	
 	public GafSolrDocumentLoader(String url) throws MalformedURLException {
 		super(url);
+		current_doc_number = 0;
 	}
 
 	public GafDocument getGafDocument() {
@@ -48,8 +51,17 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		gafDocument.index();
 		for (Bioentity e : gafDocument.getBioentities()) {
 			add(e);
+			current_doc_number++;
+			if( current_doc_number % doc_limit_trigger == 0 ){
+				LOG.info("Processed " + doc_limit_trigger + " bioentities at " + current_doc_number + " and committing...");
+				incrementalAddAndCommit();
+			}
 		}
-		addAllAndCommit();
+		LOG.info("Doing cleanup commit.");
+		incrementalAddAndCommit(); // pick up anything that we didn't catch
+		LOG.info("Optimizing.");
+		server.optimize();
+		LOG.info("Done.");
 	}
 
 	private OWLObjectProperty getPartOfProperty() {
