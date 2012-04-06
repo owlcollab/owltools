@@ -28,33 +28,69 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 /*
- * a PropertyViewOntology (PVO) is a materialized view over a Source Ontology (SO) using an object property P, 
- * such that for every class C in SO there is a class C' in PVO, together with an axiom
- * C' = P some C
+ * This class will create a property view or *faceted* view over an ontology using a specified
+ * property (relation).
  * 
- * Each class C' in PVO is optionally named automatically according to some template.
+ * One use for this is building Solr indexes - each property view ontology
+ * would correspond to a distinct facet.
  * 
- * An Inferred PVO (IPVO) is the materialized inferred subclass axioms from PVO plus the SO plus an ontology
- * containing zero or more entities that are to be classified using the PVO.
+ * For example, a faceted view over samples classified using a cell type ontology might have 
+ * individual classifications for sample-by-cell-lineage, sample-by-system, sample-by-disease
+ *
+ * <h2>Algorithm</h2>
  * 
- * For example, if the SO is an anatomy ontology (which includes part_of relations) then the PVO
- * defined using the part_of object property, and we use a naming scheme "<X> part", the the PVO subsumption
- * hierarchy will look like this:
+ * A PropertyViewOntology O(P) is a materialized view over a Source Ontology O using an object property P, 
+ * such that for every class C in O there is a class C(P) in O(P), together with an axiom
+ * C(P) = P some C. In addition, O(P) imports O.
  * 
+ * Each class C(P) in O(P) is optionally named automatically according to some template.
+ * 
+ * An Inferred PropertyViewOntology O(P)' is created by adding all direct inferred subclass axioms
+ * between classes in O(P)', as well as inferred class assertion axioms.
+ * 
+ * Optionally, another import can be added to O(P) - this is where we would add an ontology
+ * of elements to classified using classes in O(P). The elements may be individuals or classes.
+ * We denote this as O(P,O^e) where O^e is the imported element ontology, and O(P,O^e)' is obtained
+ * by finding all inferred direct subclass axioms between classes in O(P) or subclass/class assertion
+ * axioms between entities i O^e and classes in O(P).
+ * 
+ * For example, if the O is an anatomy ontology (which includes partOf relations) including classes
+ * {body, limb, forelimb, hand, ...} and axioms {forelimb SubClassOf limb, hand SubClassOf part_of finger},
+ * then the O(partOf) will include only equivalence axioms, all of the form
+ * {'forelimb part' = partOf some forelimb, hand part' = partOf some hand, etc}
+ * (assuming we use a naming scheme where we suffix using " part").
+ * 
+ * After reasoning, the inferred property view ontology O(partOf)' will contain subclass axioms forming a
+ * hierarchy like this:
+ * 
+ * <pre>
  *  body part
  *    limb part
  *      forelimb part
  *        hand part
  *          finger part
  *            phalanx part
+ * </pre>
  * 
- * Alternatively, if we define an object property [expressed_in <- expressed_in o part_of], we can use
- * this to build a IPVO that directly classifies genes. E.h. if g1 SubClassOf expressed_in some hand,
- * then g1 will be inferred to be a subclass of "limb gene", if "limb gene" is equivalent to
- * [expressed_in some limb]
  * 
- * One use for this is building Solr indexes - each IPVO would correspond to a distinct facet 
+ * If we also have an additional element ontology G containing individuals {gene1, gene2, ...}
+ * and class assertions {gene1 Type expressedIn some finger, ...}, where expressedIn is declared as
  * 
+ *   expressedIn o partOf -> expressedIn
+ *   
+ * Then the combined subclass/class assertion hierarchy O(expressedIn,G)' will look like this: 
+ * 
+ * <pre>
+ *  body gene
+ *    limb gene
+ *      forelimb gene
+ *        hand gene
+ *          finger gene
+ *            gene1
+ *            phalanx gene
+ * </pre>
+ * 
+ * TODO - allow O(P)' to be exported as SKOS
  * 
  * @author cjm
  *
@@ -66,11 +102,13 @@ public class PropertyViewOntologyBuilder {
 
 	private OWLDataFactory owlDataFactory;
 	private OWLOntologyManager owlOntologyManager;
-	private OWLOntology sourceOntology;
-	private OWLOntology unitsOntology;
-	private OWLOntology assertedViewOntology;
-	private OWLOntology inferredViewOntology;
-	private OWLObjectProperty viewProperty;
+	
+	private OWLOntology sourceOntology;       // O
+	private OWLOntology elementsOntology;     // O^E
+	private OWLOntology assertedViewOntology; // O(P) or O(P,O^E)
+	private OWLOntology inferredViewOntology; // O(P)' or O(P,O^E)'
+	private OWLObjectProperty viewProperty;   // P
+	
 	private boolean isUseOriginalClassIRIs = false;
 	private boolean isClassifyIndividuals = false;
 	private String viewLabelPrefix="";
@@ -89,7 +127,7 @@ public class PropertyViewOntologyBuilder {
 		this.owlOntologyManager = OWLManager.createOWLOntologyManager();
 		this.owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		this.sourceOntology = sourceOntology;
-		this.unitsOntology = unitsOntology;
+		this.elementsOntology = unitsOntology;
 		this.viewProperty = viewProperty;
 		init();
 	}
@@ -108,7 +146,7 @@ public class PropertyViewOntologyBuilder {
 		this.owlDataFactory = owlDataFactory;
 		this.owlOntologyManager = owlOntologyManager;
 		this.sourceOntology = sourceOntology;
-		this.unitsOntology = unitsOntology;
+		this.elementsOntology = unitsOntology;
 		this.viewProperty = viewProperty;
 		init();
 	}
@@ -121,7 +159,7 @@ public class PropertyViewOntologyBuilder {
 
 
 	/**
-	 * Automatically generated Property View Ontology,
+	 * Automatically generated Property View Ontology O(P)
 	 * containing axioms C' == P some C, for each C in source ontology
 	 * 
 	 * @return
@@ -135,12 +173,12 @@ public class PropertyViewOntologyBuilder {
 	}
 
 	/**
-	 * Generated after running {@link buildInferredViewOntology}.
+	 * Generated after running {@link #buildInferredViewOntology(OWLReasoner)}
 	 * 
-	 * Can be the same as assertedViewOntology - in which case both the assertions
-	 * and the inferences go in the same ontology
+	 * Note that O(P) and O(P)' can share the same object,
+	 * i.e the assertedViewOntology is augmented to become the inferred view ontology
 	 * 
-	 * @return
+	 * @return O(P)' or O(P,E)'
 	 */
 	public OWLOntology getInferredViewOntology() {
 		return inferredViewOntology;
@@ -151,9 +189,7 @@ public class PropertyViewOntologyBuilder {
 	}
 
 	/**
-	 * The set of all entities in the view ontology
-	 * 
-	 * @return
+	 * @return The set of all entities in the view ontology O(P)
 	 */
 	public Set<OWLEntity> getViewEntities() {
 		return viewEntities;
@@ -168,8 +204,10 @@ public class PropertyViewOntologyBuilder {
 	}
 
 	/**
-	 * typically [P some owl:Thing]
-	 * @return
+	 * As the we treat Thing as belonging to O, O(P) will contain "P some Thing", and this
+	 * will be the root of O(P)
+	 * 
+	 * @return the root declared class of O(P)
 	 */
 	public OWLClass getViewRootClass() {
 		return viewRootClass;
@@ -179,6 +217,10 @@ public class PropertyViewOntologyBuilder {
 		return viewLabelPrefix;
 	}
 
+	/**
+	 * Set this to prefix all class labels in O(P)
+	 * @param viewLabelPrefix
+	 */
 	public void setViewLabelPrefix(String viewLabelPrefix) {
 		this.viewLabelPrefix = viewLabelPrefix;
 	}
@@ -187,6 +229,10 @@ public class PropertyViewOntologyBuilder {
 		return viewLabelSuffix;
 	}
 
+	/**
+	 * Set this to suffix all class labels in O(P)
+	 * @param viewLabelSuffix
+	 */
 	public void setViewLabelSuffix(String viewLabelSuffix) {
 		this.viewLabelSuffix = viewLabelSuffix;
 	}
@@ -196,21 +242,38 @@ public class PropertyViewOntologyBuilder {
 		this.viewLabelSuffix = viewLabelSuffix;
 	}
 
+	/**
+	 * As {@link #buildViewOntology(IRI, IRI)}, but both O(P) and O(P)' have automatically
+	 * generated IRIs
+	 * 
+	 * @throws OWLOntologyCreationException
+	 */
 	public void buildViewOntology() throws OWLOntologyCreationException {
 		buildViewOntology((new OWLOntologyID()).getOntologyIRI(), 
 				(new OWLOntologyID()).getOntologyIRI());
 	}
 
 	/**
-	 * Constructs view ontology (PVO) from source ontology (SO), such that every class C in SO
-	 * has a corresponding view class C', such that C' == P some C
+	 * Constructs a property view ontology O(P) or O(P,E) from source ontology O,
+	 * such that every class C in O
+	 * has a corresponding view class C' in O(P), such that C' EquivalentTo = P some C
 	 * 
-	 * The PVO imports both the SO, and the elements ontology
+	 * O(P) imports both the O, and optionally the elements ontology E - in which case
+	 * we call the ontology O(P,E).
 	 * 
-	 * Also prepares the inferred view ontology (IPVO)
+	 * As part of this procedre, an inferred property view ontology O(P)' or O(P,E)' is created
 	 * 
 	 * You must call buildInferredViewOntology yourself
-	 * (because you need to set up the reasoner object yourself)
+	 * (because you need to set up the reasoner object yourself, and feed in O(P) as input)
+	 * TODO - use reasonerfactory
+	 * 
+	 * E.g.
+	 * <pre>
+	 * 		pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
+	 *		OWLOntology avo = pvob.getAssertedViewOntology();
+	 *		OWLReasoner vr = reasonerFactory.createReasoner(avo);
+	 *		pvob.buildInferredViewOntology(vr); 
+	 * </pre>
 	 * 
 	 * @param avoIRI
 	 * @param ivoIRI
@@ -219,7 +282,7 @@ public class PropertyViewOntologyBuilder {
 	public void buildViewOntology(IRI avoIRI, IRI ivoIRI) throws OWLOntologyCreationException {
 		Set<OWLOntology> imports = new HashSet<OWLOntology>();
 		imports.add(sourceOntology);
-		imports.add(unitsOntology);
+		imports.add(elementsOntology);
 		// the AVO includes the source ontology and elemental ontology in its imports
 		//  - when we reason, we need axioms from all
 		assertedViewOntology = owlOntologyManager.createOntology(avoIRI, imports);
@@ -273,8 +336,8 @@ public class PropertyViewOntologyBuilder {
 				continue;
 			viewEntities.add(elementEntity);
 		}
-		LOG.info("making view for "+unitsOntology);
-		if (isClassifyIndividuals && unitsOntology.getIndividualsInSignature(false).size() > 0) {
+		LOG.info("making view for "+elementsOntology);
+		if (isClassifyIndividuals && elementsOntology.getIndividualsInSignature(false).size() > 0) {
 			// only attempt to look for individuals if the element ontology contains them
 			// (remember, ELK 0.2.0 fails with individuals) 
 			for (OWLNamedIndividual elementEntity : reasoner.getInstances(getViewRootClass(), false).getFlattened()) {
