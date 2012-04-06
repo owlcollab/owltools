@@ -1,3 +1,5 @@
+#### Format
+#### 
 --- # Different docs to define.
 id: bbop_ont
 description: Test mapping of ontology class for GO.
@@ -7,7 +9,7 @@ fixed:
   description: The category of the document in the Solr index.
   display_name: Category
   type: string
-  value: ontology_class
+  property: ontology_class
 dynamic:
 - id: id
   description: Term acc/id.

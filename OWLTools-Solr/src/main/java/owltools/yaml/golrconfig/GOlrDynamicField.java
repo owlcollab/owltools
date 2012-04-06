@@ -6,9 +6,9 @@ public class GOlrDynamicField extends GOlrCoreField{
 
 	public String property; // The place to look for the value that will go here.
 	public ArrayList<String> transform; // The processing steps to apply to that property.
-	
+
+	// Define the defaults for optional fields.
 	public GOlrDynamicField (){
 		transform = new ArrayList<String>();
 	}
-	
 }

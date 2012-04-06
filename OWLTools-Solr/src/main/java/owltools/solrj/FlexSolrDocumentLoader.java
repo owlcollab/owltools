@@ -211,7 +211,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		// Single fixed fields--the same every time.
 		for( GOlrFixedField fixedField : config.getFixedFields() ){
 			//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
-			cls_doc.addField(fixedField.id, fixedField.value);
+			cls_doc.addField(fixedField.id, fixedField.property);
 		}
 					
 		// Dynamic fields--have to get dynamic info to cram into the index.

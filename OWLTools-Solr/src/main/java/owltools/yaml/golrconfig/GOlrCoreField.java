@@ -8,9 +8,12 @@ public class GOlrCoreField {
 	public String type;
 	public String required;
 	public String cardinality;
-
+	public int weight;
+	
+	// Define the defaults for optional fields.
 	public GOlrCoreField() {
-		//required = "false";
+		required = "false";
 		cardinality = "single";
+		weight = 0;
 	}
 }
