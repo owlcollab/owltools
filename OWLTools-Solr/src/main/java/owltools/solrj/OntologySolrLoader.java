@@ -15,6 +15,7 @@ import org.semanticweb.owlapi.model.OWLProperty;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 
+@Deprecated
 public class OntologySolrLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(OntologySolrLoader.class);
