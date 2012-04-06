@@ -27,9 +27,9 @@ public class ConfigManager {
 	private static Logger LOG = Logger.getLogger(ConfigManager.class);
 	//private GOlrConfig config = null;
 	
-	private ArrayList<GOlrFixedField> fixed_fields = new ArrayList<GOlrFixedField>();
-	private ArrayList<GOlrDynamicField> dynamic_fields = new ArrayList<GOlrDynamicField>();
-	private HashMap<String, GOlrCoreField> unique_fields = new HashMap<String, GOlrCoreField>();
+	private ArrayList<GOlrField> fixed_fields = new ArrayList<GOlrField>();
+	private ArrayList<GOlrField> dynamic_fields = new ArrayList<GOlrField>();
+	private HashMap<String, GOlrField> unique_fields = new HashMap<String, GOlrField>();
 	private HashMap<String, ArrayList<String>> collected_comments = new HashMap<String, ArrayList<String>>();
 	
 	/**
@@ -39,7 +39,7 @@ public class ConfigManager {
 		// Nobody here.
 	}
 
-	private void addFieldToBook (GOlrCoreField field) {
+	private void addFieldToBook (GOlrField field) {
 		// Ensure presence of item; only take the first one.
 		if( ! unique_fields.containsKey(field.id) ){
 			unique_fields.put(field.id, field);
@@ -73,14 +73,18 @@ public class ConfigManager {
 		LOG.info("Dumping flex loader YAML: \n" + yaml.dump(config));
 
 		// Plonk them all in to our bookkeeping.
-		for( GOlrFixedField field : config.fixed ){
+		for( GOlrField field : config.fields ){
 			addFieldToBook(field);
-			fixed_fields.add(field);
+			if( field.property_type.equals("fixed") ){
+				fixed_fields.add(field);
+			}else{
+				dynamic_fields.add(field);
+			}
 		}
-		for( GOlrDynamicField field : config.dynamic ){
-			addFieldToBook(field);
-			dynamic_fields.add(field);
-		}
+//		for( GOlrDynamicField field : config.dynamic ){
+//			addFieldToBook(field);
+//			dynamic_fields.add(field);
+//		}
 	}
 
 	/**
@@ -88,12 +92,12 @@ public class ConfigManager {
 	 * 
 	 * @return
 	 */
-	public ArrayList<GOlrCoreField> getFields() {
+	public ArrayList<GOlrField> getFields() {
 
-		ArrayList<GOlrCoreField> collection = new ArrayList<GOlrCoreField>();
+		ArrayList<GOlrField> collection = new ArrayList<GOlrField>();
 		
 		// Plonk them all in to our bookkeeping.
-		for( GOlrCoreField field : unique_fields.values() ){
+		for( GOlrField field : unique_fields.values() ){
 			collection.add(field);
 		}
 		
@@ -120,18 +124,18 @@ public class ConfigManager {
 	/**
 	 * Get the fixed fields.
 	 *
- 	 * @returns ArrayList<GOlrFixedField>
+ 	 * @returns ArrayList<GOlrField>
 	 */
-	public ArrayList<GOlrFixedField> getFixedFields() {
+	public ArrayList<GOlrField> getFixedFields() {
 		return fixed_fields;
 	}
 	
 	/**
 	 * Get the dynamic fields.
 	 *
- 	 * @returns ArrayList<GOlrDynamicField>
+ 	 * @returns ArrayList<GOlrField>
 	 */
-	public ArrayList<GOlrDynamicField> getDynamicFields() {
+	public ArrayList<GOlrField> getDynamicFields() {
 		return dynamic_fields;
 	}
 }

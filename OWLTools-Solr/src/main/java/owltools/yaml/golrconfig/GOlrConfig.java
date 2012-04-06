@@ -9,8 +9,9 @@ public class GOlrConfig {
 	public String display_name;
 	public int weight;
 
-	public ArrayList<GOlrFixedField> fixed;
-	public ArrayList<GOlrDynamicField> dynamic;
+//	public ArrayList<GOlrFixedField> fixed;
+//	public ArrayList<GOlrDynamicField> dynamic;
+	public ArrayList<GOlrField> fields;
 	
 	// Define the defaults for optional fields.
 	public GOlrConfig() {

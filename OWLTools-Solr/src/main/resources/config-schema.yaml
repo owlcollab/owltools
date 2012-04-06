@@ -1,0 +1,56 @@
+####
+#### Use kwalify and this schema to validate the config files.
+#### Example:
+####    kwalify -f OWLTools-Solr/src/main/resources/config-schema.yaml OWLTools-Solr/src/main/resources/ont-config.yaml
+####
+type: map
+mapping:
+  "id":
+    type: str
+    required: yes
+  "description":
+    type: str
+    required: yes
+  "display_name":
+    type: str
+    required: yes
+  "weight":
+    type: int
+    required: no
+  "fields":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          "id":
+            type: str
+            required: yes
+          "description":
+            type: str
+            required: yes
+          "display_name":
+            type: str
+            required: yes
+          "type":
+            type: str
+            required: yes 
+          "required":
+            type: str
+            required: no
+          "cardinality":
+            type: str
+            required: no
+          "property":
+            type: str
+            required: yes
+          "property_type":
+            type: str
+            required: no
+          "weight":
+            type: int
+            required: no
+          "transform":
+            type: seq
+            required: no
+            sequence:
+              - type: str

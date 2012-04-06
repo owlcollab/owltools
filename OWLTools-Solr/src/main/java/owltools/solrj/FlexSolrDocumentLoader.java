@@ -43,6 +43,7 @@ import owltools.graph.OWLQuantifiedProperty;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.GOlrConfig;
 import owltools.yaml.golrconfig.GOlrDynamicField;
+import owltools.yaml.golrconfig.GOlrField;
 import owltools.yaml.golrconfig.GOlrFixedField;
 
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
@@ -209,13 +210,13 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		//LOG.info("Trying to load a(n): " + config.id);
 
 		// Single fixed fields--the same every time.
-		for( GOlrFixedField fixedField : config.getFixedFields() ){
+		for( GOlrField fixedField : config.getFixedFields() ){
 			//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
 			cls_doc.addField(fixedField.id, fixedField.property);
 		}
 					
 		// Dynamic fields--have to get dynamic info to cram into the index.
-		for( GOlrDynamicField dynamicField : config.getDynamicFields() ){
+		for( GOlrField dynamicField : config.getDynamicFields() ){
 
 			String did = dynamicField.id;
 			String prop_meth = dynamicField.property;

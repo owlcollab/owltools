@@ -1,6 +1,7 @@
 package owltools.yaml.golrconfig;
 
-public class GOlrFixedField extends GOlrCoreField{
+public class GOlrFixedField extends GOlrField{
 
-	public String property; // The static value to apply to all.
+	// NOTE: There used to be lots here, now it's more of an historical placeholder.
+	// I'm keeping this separation around 'cause I think the differences may come again...
 }

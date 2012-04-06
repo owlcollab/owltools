@@ -29,8 +29,8 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 	//private void outFields(List<? extends GOlrCoreField> fieldList, XMLStreamWriter xml) throws XMLStreamException{
 	private void outFields(ConfigManager config, XMLStreamWriter xml) throws XMLStreamException{
 
-		ArrayList<GOlrCoreField> fieldList = config.getFields();
-		for( GOlrCoreField field : fieldList ){
+		ArrayList<GOlrField> fieldList = config.getFields();
+		for( GOlrField field : fieldList ){
 
 			// Output any comments we found as a bunch at the top;
 			// this should help clarify things when fields are overloaded.
