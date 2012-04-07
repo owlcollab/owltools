@@ -39,7 +39,7 @@ public class ConfigManager {
 		// Nobody here.
 	}
 
-	private void addFieldToBook (GOlrField field) {
+	private void addFieldToBook (String config_id, GOlrField field) {
 		// Ensure presence of item; only take the first one.
 		if( ! unique_fields.containsKey(field.id) ){
 			unique_fields.put(field.id, field);
@@ -52,7 +52,7 @@ public class ConfigManager {
 		// And add to it if there is an available description.
 		if( field.description != null ){
 			ArrayList<String> comments = collected_comments.get(field.id);
-			comments.add(field.description);
+			comments.add(" " + config_id + ": " + field.description + " ");
 			collected_comments.put(field.id, comments);
 		}
 	}
@@ -74,7 +74,7 @@ public class ConfigManager {
 
 		// Plonk them all in to our bookkeeping.
 		for( GOlrField field : config.fields ){
-			addFieldToBook(field);
+			addFieldToBook(config.id, field);
 			if( field.property_type.equals("fixed") ){
 				fixed_fields.add(field);
 			}else{
