@@ -165,7 +165,7 @@
 			<dependency>
 				<groupId>org.semanticweb</groupId>
 				<artifactId>HermiT</artifactId>
-				<version>1.3.5</version>
+				<version>1.3.6-BBOP</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bbop</groupId>
