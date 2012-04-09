@@ -554,7 +554,7 @@ configurationObject.setModel(model);</initScript>
                 </serializedBean>
                 <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
               </action>
-              <action name="" id="1325" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="1325" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not set memory for java vm">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction">
@@ -573,7 +573,7 @@ configurationObject.setModel(model);</initScript>
                 </serializedBean>
                 <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
               </action>
-              <action name="" id="1326" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="1326" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not set memory for java vm">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction">
@@ -592,12 +592,31 @@ configurationObject.setModel(model);</initScript>
                 </serializedBean>
                 <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
               </action>
-              <action name="" id="1327" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="1327" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not set memory for java vm">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction">
                       <void property="launcherId">
                         <string>1094</string>
+                      </void>
+                      <void property="vmOptions">
+                        <array class="java.lang.String" length="1">
+                          <void index="0">
+                            <string>-Xmx${installer:owltools.memoryAlloc}M</string>
+                          </void>
+                        </array>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>context.getVariable("owltools.memoryAlloc") != null</condition>
+              </action>
+              <action name="" id="1555" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not set memory for java vm">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction">
+                      <void property="launcherId">
+                        <string>1486</string>
                       </void>
                       <void property="vmOptions">
                         <array class="java.lang.String" length="1">
