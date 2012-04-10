@@ -57,6 +57,19 @@ public class ImportClosureSlurper {
 		w.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
 		w.write("<catalog prefer=\"public\" xmlns=\"urn:oasis:names:tc:entity:xmlns:xml:catalog\">\n");
 
+		for (IRI impDoc : ontology.getDirectImportsDocuments()) {
+			boolean hasMatch = false;
+			for (OWLOntology o : ontology.getDirectImports()) {
+				if (o.getOntologyID().getOntologyIRI().equals(impDoc)) {
+					hasMatch = true;
+					break;
+				}
+			}
+			if (!hasMatch) {
+				// TODO - throw error
+				System.err.println("WARNING: importsDocument and imported ontology IRI mismatch: "+impDoc);
+			}
+		}
 		
 		for (OWLOntology subOnt : ontology.getImportsClosure()) {
 			String iri = subOnt.getOntologyID().getOntologyIRI().toString();

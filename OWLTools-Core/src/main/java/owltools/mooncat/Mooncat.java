@@ -723,7 +723,7 @@ public class Mooncat {
 								for (OWLGraphEdge e3 : getGraph().getOutgoingEdgesClosure(e2.getTarget())) {
 									if (e3.getTarget().equals(e.getTarget())) {
 										OWLGraphEdge e4 = getGraph().combineEdgePair(e.getSource(), e2, e3, 0);
-										if (e4.getQuantifiedPropertyList().equals(qpl)) {
+										if (e4 != null && e4.getQuantifiedPropertyList().equals(qpl)) {
 											isRedundant = true;
 										}
 									}

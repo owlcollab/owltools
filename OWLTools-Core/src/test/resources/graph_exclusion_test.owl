@@ -10,6 +10,9 @@ Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 Ontology: <http://purl.obolibrary.org/obo/scratch.owl>
 
+ObjectProperty: :inheres_in
+  Annotations: :includeMe true
+
 ObjectProperty: :part_of
   Characteristics: Transitive
   Annotations: :includeMe true
@@ -32,6 +35,10 @@ ObjectProperty: :adjacent_to
 
 Class: :finger
   SubClassOf: :part_of some :hand
+
+
+Class: :abnormality_of_finger
+  SubClassOf: :inheres_in some :finger
   
 Class: :hand
   SubClassOf: :part_of some :limb,

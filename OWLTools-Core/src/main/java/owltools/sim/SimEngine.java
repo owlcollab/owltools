@@ -632,6 +632,8 @@ public class SimEngine {
 					
 					for (OWLGraphEdge xe : graph.getCompleteOutgoingEdgesClosure(se.getTarget())) {
 						OWLGraphEdge ne = graph.combineEdgePair(null, se, xe, 1);
+						if (ne == null)
+							continue;
 						if (graph.edgeToTargetExpression(ne).equals(cex)) {
 							// the candidate expression includes a superfluous chain at the end
 							isSubsumed = true;

@@ -6587,7 +6587,6 @@ transitive_over: part_of ! part_of
 id: part_of
 name: part_of
 xref: BFO:0000050
-xref: OBO_REL:part_of
 property_value: IAO:0000412 http://purl.obolibrary.org/obo/go.owl
 is_transitive: true
 

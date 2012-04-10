@@ -639,91 +639,78 @@ public class OWLGraphWrapper {
 		return edges;
 	}
 
-
-	private boolean keepEdge(OWLGraphEdge e) {
+	// TODO - DRY
+	private boolean isExcluded(OWLQuantifiedProperty qp) {
 		if (config.graphEdgeIncludeSet != null) {
-			if (!edgeSatisfiesOneOf(e, config.graphEdgeIncludeSet)) {
+			if (qp.getProperty() == null)
 				return false;
+			for (OWLQuantifiedProperty qtp : config.graphEdgeIncludeSet) {
+				if (qp.subsumes(qtp))
+					return false;
 			}
-
+			return true;
 		}
 		if (config.graphEdgeExcludeSet != null) {
-			if (edgeSatisfiesOneOf(e, config.graphEdgeExcludeSet)) {
-				return false;
+			for (OWLQuantifiedProperty qtp : config.graphEdgeExcludeSet) {
+				if (qtp.subsumes(qp))
+					return true;
 			}
-		}
-		OWLObject t = e.getTarget();
-		if (t instanceof OWLNamedObject) {
-			OWLNamedObject nt = (OWLNamedObject) t;
-			// TODO
-			if (nt.getIRI().toString().startsWith("http://www.ifomis.org/bfo"))
-				return false;
-		}
-
-		if (t instanceof OWLNamedObject &&
-				((OWLNamedObject) t).getIRI().equals(this.getDataFactory().getOWLThing())) {
 			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * only include those edges that match user constraints
-	 * @param edges
-	 */
-	private void filterEdges(Set<OWLGraphEdge> edges) {
-		Set<OWLGraphEdge> rmEdges = new HashSet<OWLGraphEdge>();
-		if (config.graphEdgeIncludeSet != null) {
-			for (OWLGraphEdge e : edges) {
-				if (!edgeSatisfiesOneOf(e, config.graphEdgeIncludeSet)) {
-					rmEdges.add(e);
-				}
-			}
-		}
-		if (config.graphEdgeExcludeSet != null) {
-			for (OWLGraphEdge e : edges) {
-				if (edgeSatisfiesOneOf(e, config.graphEdgeExcludeSet)) {
-					rmEdges.add(e);
-				}
-			}
-		}
-		//TODO
-		//if (config.excludeMetaClass != null) {
-		for (OWLGraphEdge e : edges) {
-			OWLObject t = e.getTarget();
-			if (t instanceof OWLNamedObject) {
-				OWLNamedObject nt = (OWLNamedObject) t;
-				// TODO
-				if (nt.getIRI().toString().startsWith("http://www.ifomis.org/bfo"))
-					rmEdges.add(e);
-			}
-		}
-
-		//}
-
-		for (OWLGraphEdge e : edges) {
-			OWLObject t = e.getTarget();
-			if (t instanceof OWLNamedObject &&
-					((OWLNamedObject) t).getIRI().equals(this.getDataFactory().getOWLThing())) {
-				rmEdges.add(e);
-			}
-		}
-		edges.removeAll(rmEdges);
-	}
-
-	// true if one of qps subsumes e
-	// 
-	private boolean edgeSatisfiesOneOf(OWLGraphEdge e, Set<OWLQuantifiedProperty> qps) {
-		for (OWLQuantifiedProperty c : qps) {
-			if (edgeSatisfies(e, c))
-				return true;
 		}
 		return false;
 	}
 
-	private boolean edgeSatisfies(OWLGraphEdge e, OWLQuantifiedProperty c) {
-		return c.subsumes(e.getSingleQuantifiedProperty());
+	
+	/**
+	 * only include those edges that match user constraints.
+	 * 
+	 * default is to include
+	 * 
+	 * If the includeSet is specified, then the candidate property MUST be in this set.
+	 * If the excludeSet is specified, then the candidate property MUST NOT be in this set.
+	 * 
+	 * Note there is generally little point in specifying both, but sometimes this may
+	 * be useful; e.g. to configure a generic includeSet
+	 * 
+	 * @param edges
+	 */
+	private void filterEdges(Set<OWLGraphEdge> edges) {
+		Set<OWLGraphEdge> rmEdges = new HashSet<OWLGraphEdge>();
+		for (OWLGraphEdge e : edges) {
+			if (isExcludeEdge(e)) {
+				rmEdges.add(e);
+			}
+		}
+		
+		edges.removeAll(rmEdges);
+	}
+	
+	private boolean isExcludeEdge(OWLGraphEdge edge) {
+
+		if (config.graphEdgeExcludeSet != null ||
+				config.graphEdgeIncludeSet != null) {
+			for (OWLQuantifiedProperty qp : edge.getQuantifiedPropertyList()) {
+				if (isExcluded(qp)) {
+					return true;
+				}
+			}
+		}
+	
+		
+		OWLObject t = edge.getTarget();
+		if (t != null) {
+			if (t instanceof OWLNamedObject) {
+				OWLNamedObject nt = (OWLNamedObject) t;
+				// TODO
+				if (nt.getIRI().toString().startsWith("http://www.ifomis.org/bfo"))
+					return true;
+				if (t instanceof OWLClass && t.equals(getDataFactory().getOWLThing())) {
+					return true;
+				}
+
+			}
+		}
+		return false;
 	}
 
 	// e.g. R-some-B ==> <R-some-B,R,B>
@@ -770,7 +757,9 @@ public class OWLGraphWrapper {
 			OWLObject s = e.getSource();
 			Set<OWLGraphEdge> nextEdges = getOutgoingEdges(e.getTarget());
 			for (OWLGraphEdge e2 : nextEdges) {
-				edges.add(this.combineEdgePair(s, e, e2, 1));
+				OWLGraphEdge nu = this.combineEdgePair(s, e, e2, 1);
+				if (nu != null)
+				edges.add(nu);
 			}
 		}
 		filterEdges(edges);
@@ -974,8 +963,10 @@ public class OWLGraphWrapper {
 			for (OWLGraphEdge extEdge : extSet) {
 				//System.out.println("   EXT:"+extEdge);
 				OWLGraphEdge nu = combineEdgePair(s, ne, extEdge, nextDist);
-				if (!keepEdge(nu))
+				if (nu == null)
 					continue;
+				//if (!isKeepEdge(nu))
+				//	continue;
 
 				OWLObject nuTarget = nu.getTarget();
 				//System.out.println("     COMBINED:"+nu);
@@ -1471,8 +1462,12 @@ public class OWLGraphWrapper {
 				// extEdge o ne --> nu
 				//OWLGraphEdge nu = combineEdgePairDown(ne, extEdge, nextDist);
 				OWLGraphEdge nu = combineEdgePair(extEdge.getSource(), extEdge, ne, nextDist);
-				if (!keepEdge(nu))
+				if (nu == null)
 					continue;
+				
+				// TODO - no longer required?
+				//if (!isKeepEdge(nu))
+				//	continue;
 
 				OWLObject nusource = nu.getSource();
 
@@ -1547,6 +1542,9 @@ public class OWLGraphWrapper {
 			OWLQuantifiedProperty combinedQP = combinedQuantifiedPropertyPair(qpl1.get(qpl1.size()-1),qpl2.get(0));
 			if (combinedQP == null)
 				break;
+			if (isExcluded(combinedQP)) {
+				return null;
+			}
 			qpl1.set(qpl1.size()-1, combinedQP);
 			if (combinedQP.isIdentity())
 				qpl1.subList(qpl1.size()-1,qpl1.size()).clear();

@@ -5,7 +5,7 @@ Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 Prefix: : <http://x.org#>
 
-Ontology: <http://example.org#phenotype>
+Ontology: <http://example.org#q-in-e>
 
 ObjectProperty: :related_to
 ObjectProperty: :anterior_to
@@ -31,6 +31,10 @@ ObjectProperty: :has_part
   Characteristics: Transitive
 
 ObjectProperty: :has_phenotype
+  SubPropertyOf: :has_phenotype_involving
+
+ObjectProperty: :has_phenotype_involving
+  SubPropertyChain: :has_phenotype o :inheres_in_part_of
 
 Class: :AER
 
@@ -125,16 +129,21 @@ Class: :fly
   SubClassOf: :metazoan
 
 Individual: :h1
+    Annotations: rdfs:label "human 1"^^xsd:string
   Types: :human, :has_phenotype some :hyperplastic_foot
 
 Individual: :h2
+    Annotations: rdfs:label "human 2"^^xsd:string
   Types: :human, :has_phenotype some :hyperplastic_hand
 
 Individual: :h3
+    Annotations: rdfs:label "human 3"^^xsd:string
   Types: :human, :has_phenotype some :hyperplastic and :inheres_in some :hand
 
 Individual: :m1
+    Annotations: rdfs:label "mouse 1"^^xsd:string
   Types: :mouse, :has_phenotype some :hyperplastic_hand, :has_phenotype some :abnormal_hindlimb_bud_morphology
 
 Individual: :dm1
+    Annotations: rdfs:label "dmel 1"^^xsd:string
   Types: :fly, :has_phenotype some :dm_red_eyes

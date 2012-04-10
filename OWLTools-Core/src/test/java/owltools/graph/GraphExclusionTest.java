@@ -35,23 +35,24 @@ public class GraphExclusionTest extends OWLToolsTestBasics {
 			}
 		}
 		System.out.println(n);
-		assertEquals(208, n);
+		assertEquals(245, n);
 
 		n = 0;
 		boolean okTrunk = false;
 		boolean okChain = false;
 		OWLClass finger = g.getOWLClassByIdentifier("FOO:finger");
 		OWLClass trunk = g.getOWLClassByIdentifier("FOO:trunk");
-		OWLObjectProperty p = g.getOWLObjectProperty("http://purl.obolibrary.org/obo/FOO_part_of_has_part");
+		OWLObjectProperty partOfHasPart = g.getOWLObjectProperty("http://purl.obolibrary.org/obo/FOO_part_of_has_part");
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosure(finger)) {
 			//System.out.println(e);
 			n++;
 			if (e.getTarget().equals(trunk)) {
+				// partOf some hand partOf some limb adjacentTo some trunk
 				okTrunk = true;
 			}
 			if (e.getSingleQuantifiedProperty().getProperty() != null) {
 				//System.out.println(e.getSingleQuantifiedProperty().getProperty());
-				if (e.getSingleQuantifiedProperty().getProperty().equals(p)) {
+				if (e.getSingleQuantifiedProperty().getProperty().equals(partOfHasPart)) {
 					okChain = true;
 				}
 			}
@@ -61,7 +62,7 @@ public class GraphExclusionTest extends OWLToolsTestBasics {
 	}
 
 	@Test
-	public void testAllEdgesWithFilter() throws Exception {
+	public void testAllEdgesWithExclusionFilter() throws Exception {
 		OWLGraphWrapper  g =  getGraph("graph_exclusion_test.owl");
 		Config conf = g.getConfig();
 		OWLAnnotationProperty ap = (OWLAnnotationProperty) g.getOWLObjectByLabel("exclude me");
@@ -86,10 +87,12 @@ public class GraphExclusionTest extends OWLToolsTestBasics {
 		OWLClass trunk = g.getOWLClassByIdentifier("FOO:trunk");
 		OWLObjectProperty p = g.getOWLObjectPropertyByIdentifier("FOO:part_of_has_part");
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosure(finger)) {
-			System.out.println(e);
+			System.out.println("FILTERED: "+e);
 			n++;
 			if (e.getTarget().equals(trunk)) {
-				okTrunk = true;
+				// partOf some hand partOf some limb adjacentTo some trunk
+				System.err.println(" This edge should have been filtered: "+e);
+				okTrunk = false;
 			}
 			if (e.getSingleQuantifiedProperty().getProperty() != null &&
 					e.getSingleQuantifiedProperty().getProperty().equals(p)) {
@@ -98,6 +101,58 @@ public class GraphExclusionTest extends OWLToolsTestBasics {
 
 		}
 		assertTrue(okTrunk);
+		assertTrue(okChain);
+	}
+	
+	@Test
+	public void testAllEdgesWithInclusionFilter() throws Exception {
+		OWLGraphWrapper  g =  getGraph("graph_exclusion_test.owl");
+		Config conf = g.getConfig();
+		OWLAnnotationProperty ap = (OWLAnnotationProperty) g.getOWLObjectByLabel("include me");
+		conf.includeAllWith(ap, g.getSourceOntology());
+		for (OWLQuantifiedProperty qp : conf.graphEdgeIncludeSet) {
+			System.out.println("  INCLUDE="+qp);
+		}
+		boolean isExcluded = true;
+		int n = 0;
+		for (OWLObject obj : g.getAllOWLObjects()) {
+			for (OWLGraphEdge e : g.getOutgoingEdgesClosure(obj)) {
+				for (OWLQuantifiedProperty qp : e.getQuantifiedPropertyList()) {
+					if (qp.getProperty() != null && qp.getProperty().getIRI().toString().contains("part_of_has_part")) {
+						isExcluded = false;
+					}
+				}
+				//System.out.println(e);
+				n++;
+			}
+		}
+		assertTrue(isExcluded);
+		System.out.println("TOTAL EDGES: "+n);
+		assertTrue(n>0);
+		//assertEquals(153, n);
+
+		n = 0;
+		boolean okTrunk = true;
+		boolean okChain = true;
+		OWLClass finger = g.getOWLClassByIdentifier("FOO:finger");
+		OWLClass trunk = g.getOWLClassByIdentifier("FOO:trunk");
+		OWLObjectProperty partOfHasPart = g.getOWLObjectPropertyByIdentifier("FOO:part_of_has_part");
+		for (OWLGraphEdge e : g.getOutgoingEdgesClosure(finger)) {
+			System.out.println("INCL-FILTERED: "+e);
+			n++;
+			if (e.getTarget().equals(trunk)) {
+				// partOf some hand partOf some limb adjacentTo some trunk
+				System.err.println(" This edge should have been filtered: "+e);
+				okTrunk = false;
+			}
+			if (e.getSingleQuantifiedProperty().getProperty() != null &&
+					e.getSingleQuantifiedProperty().getProperty().equals(partOfHasPart)) {
+				okChain = false;
+			}
+
+		}
+		assertTrue(okTrunk);
+		assertTrue(okChain);
 	}
 
 }
