@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -490,18 +491,45 @@ public class CommandRunner {
 				gcw.isChain = isChain;
 				gcw.render(g);				
 			}
+			else if (opts.nextEq("--remove-annotation-assertions")) {
+				boolean isPreserveLabels = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-l")) {
+						isPreserveLabels = true;
+					}
+					else
+						break;
+				}
+				for (OWLOntology o : g.getAllOntologies()) {
+					Set<OWLAnnotationAssertionAxiom> aas;
+
+					if (isPreserveLabels) {
+						aas = new HashSet<OWLAnnotationAssertionAxiom>();
+						for (OWLAnnotationAssertionAxiom aaa : o.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
+							if (!aaa.getProperty().isLabel()) {
+								aas.add(aaa);
+							}
+						}
+					}
+					else {
+						aas = o.getAxioms(AxiomType.ANNOTATION_ASSERTION);
+					}
+					g.getManager().removeAxioms(o, aas);
+
+				}
+			}
 			else if (opts.nextEq("--rename-entity")) {
 				OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
 				List<OWLOntologyChange> changes = oer.changeIRI(IRI.create(opts.nextOpt()),IRI.create(opts.nextOpt()));
 				g.getManager().applyChanges(changes);
 			}
 			else if (opts.nextEq("--merge-equivalent-classes")) {
-				opts.info("[-f FROM-URI-PREFIX] [-t TO-URI-PREFIX]", "merges equivalent classes to a common ID space");
-				String prefixFrom = null;
+				opts.info("[-f FROM-URI-PREFIX]* [-t TO-URI-PREFIX]", "merges equivalent classes to a common ID space");
+				List<String> prefixFroms = new Vector<String>();
 				String prefixTo = null;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-f")) {
-						prefixFrom = opts.nextOpt();
+						prefixFroms.add(opts.nextOpt());
 					}
 					else if (opts.nextEq("-t")) {
 						prefixTo = opts.nextOpt();
@@ -510,16 +538,25 @@ public class CommandRunner {
 						break;
 				}
 				Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
-				LOG.info("building entity2IRI map...");
+				LOG.info("building entity2IRI map...: " + prefixFroms + " --> "+prefixTo);
 				OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
 				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
-					if (prefixFrom != null && !c.getIRI().toString().startsWith(prefixFrom)) {
-						continue;
+					//LOG.info("  testing "+c+" ECAs: "+g.getSourceOntology().getEquivalentClassesAxioms(c));
+					// TODO - may be more efficient to invert order of testing
+					String iriStr = c.getIRI().toString();
+					boolean isMatch = false;
+					for (String prefixFrom : prefixFroms) {
+						if (iriStr.startsWith(prefixFrom)) {
+							isMatch = true;
+							break;
+						}
 					}
-					for (OWLEquivalentClassesAxiom eca : g.getSourceOntology().getEquivalentClassesAxioms(c)) {
-						for (OWLClass d : eca.getClassesInSignature()) {
-							if (d.getIRI().toString().startsWith(prefixTo)) {
-								e2iri.put(c, d.getIRI()); // TODO one-to-many
+					if (isMatch) {
+						for (OWLEquivalentClassesAxiom eca : g.getSourceOntology().getEquivalentClassesAxioms(c)) {
+							for (OWLClass d : eca.getClassesInSignature()) {
+								if (d.getIRI().toString().startsWith(prefixTo)) {
+									e2iri.put(c, d.getIRI()); // TODO one-to-many
+								}
 							}
 						}
 					}
@@ -775,7 +812,7 @@ public class CommandRunner {
 					OWLOntology srcOnt = g.getSourceOntology();
 					g.setSourceOntology(g.getManager().createOntology(IRI.create(subOntologyIRI)));
 					g.addSupportOntology(srcOnt);
-					
+
 					subsetGenerator.createSubSet(g, results, g.getSupportOntologySet());
 				}
 			}
@@ -1246,7 +1283,7 @@ public class CommandRunner {
 						ofmt = new OBOOntologyFormat();
 					}
 				}
-				
+
 				pw.saveOWL(g.getSourceOntology(), ofmt, opts.nextOpt(), g);
 				//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
 			}
@@ -1484,25 +1521,54 @@ public class CommandRunner {
 				g.getManager().addAxioms(modOnt, modAxioms);
 				g.setSourceOntology(modOnt);
 			}
-			else if (opts.nextEq("--build-property-view-ontology")) {
+			else if (opts.nextEq("--build-property-view-ontology|--bpvo")) {
+				opts.info("[-p PROPERTY] [-o OUTFILE]", 
+				"generates a new ontology O' from O using property P such that for each C in O, O' contains C' = P some C");
 				OWLOntology sourceOntol = g.getSourceOntology();
 				// TODO - for now assume exactly 1 support ontology
 				OWLOntology annotOntol;
 				if (g.getSupportOntologySet().size() == 1)
 					annotOntol = g.getSupportOntologySet().iterator().next();
-				else if (g.getSupportOntologySet().size() == 1)
+				else if (g.getSupportOntologySet().size() == 0)
 					annotOntol = g.getManager().createOntology();
 				else
 					throw new OptionException("must have zero or one support ontologies");
 
 				OWLObjectProperty viewProperty = null;
 				String outFile = null;
+				String suffix = null;
+				String prefix = null;
+				boolean isFilterUnused = false;
+				boolean isABoxToTBox = false;
+				String avFile =  null;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-p")) {
 						viewProperty = resolveObjectProperty(opts.nextOpt());
 					}
+					else if (opts.nextEq("-r")) {
+						reasonerName = opts.nextOpt();
+					}
+					else if (opts.nextEq("--prefix")) {
+						prefix = opts.nextOpt();
+					}
+					else if (opts.nextEq("--suffix")) {
+						prefix = opts.nextOpt();
+					}
 					else if (opts.nextEq("-o")) {
 						outFile = opts.nextOpt();
+					}
+					else if (opts.nextEq("--avfile")) {
+						avFile = opts.nextOpt();
+					}
+					else if (opts.nextEq("--filter-unused")) {
+						isFilterUnused = true;
+					}
+					else if (opts.nextEq("" +
+					"")) {
+						annotOntol = g.getSourceOntology();
+					}
+					else if (opts.nextEq("--i2c")) {
+						isABoxToTBox = true;
 					}
 					else
 						break;
@@ -1511,7 +1577,16 @@ public class CommandRunner {
 					new PropertyViewOntologyBuilder(sourceOntol,
 							annotOntol,
 							viewProperty);
+				if (isABoxToTBox) {
+					LOG.info("translation abox to tbox...");
+					pvob.translateABoxToTBox();
+				}
+				if (avFile != null)
+					pw.saveOWL(pvob.getAssertedViewOntology(), avFile, g);
 				pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
+				pvob.setViewLabelPrefix(prefix);
+				pvob.setViewLabelSuffix(suffix);
+				pvob.setFilterUnused(isFilterUnused);
 				OWLOntology avo = pvob.getAssertedViewOntology();
 				OWLReasoner vr = createReasoner(avo, reasonerName, g.getManager());
 				pvob.buildInferredViewOntology(vr);
