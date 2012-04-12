@@ -151,7 +151,6 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 		xml.writeEndElement(); // </schema>
 		xml.writeEndDocument();
 		xml.close();
-		xml.flush();
 
 		return outputStream.toString();
 	}
