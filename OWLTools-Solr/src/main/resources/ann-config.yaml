@@ -4,6 +4,8 @@
 id: bbop_ann
 description: A description of annotations for GOlr and AmiGO.
 display_name: Annotations
+weight: 20
+default_fields_and_boosts: foo^1.0
 fields:
   - id: document_category
     description: The category of the document in the Solr index.

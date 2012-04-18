@@ -17,6 +17,9 @@ mapping:
   "weight":
     type: int
     required: no
+  "default_fields_and_boosts":
+    type: str
+    required: no
   "fields":
     type: seq
     sequence:
