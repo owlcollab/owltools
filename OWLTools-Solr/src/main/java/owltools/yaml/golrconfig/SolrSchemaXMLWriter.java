@@ -86,26 +86,46 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 		
 		xml.writeStartElement("schema");
 		xml.writeAttribute("name", "golr");
-		xml.writeAttribute("version", "1.3");
+		xml.writeAttribute("version", "3.6");
 
 		xml.writeStartElement("types");
 
+		// Unsplit single string.
 		xml.writeStartElement("fieldType");
 		xml.writeAttribute("name", "string");
 		xml.writeAttribute("class", "solr.StrField");
+		xml.writeAttribute("sortMissingLast", "true");
 		xml.writeEndElement(); // </fieldType>		
 		
+		// Integer.
 		xml.writeStartElement("fieldType");
 		xml.writeAttribute("name", "integer");
-		xml.writeAttribute("class", "solr.IntField");
+		xml.writeAttribute("class", "solr.TrieIntField");
+		xml.writeAttribute("precisionStep", "0");
+		xml.writeAttribute("positionIncrementGap", "0");
+		xml.writeAttribute("sortMissingLast", "true");
 		xml.writeEndElement(); // </fieldType>		
 
+		// Any string with spaces.
 		xml.writeStartElement("fieldType");
 		xml.writeAttribute("name", "text_ws");
 		xml.writeAttribute("class", "solr.TextField");
 		xml.writeAttribute("positionIncrementGap", "100");
+		xml.writeAttribute("sortMissingLast", "true");
+		xml.writeStartElement("analyzer");
+		xml.writeStartElement("tokenizer");
+		xml.writeAttribute("class", "solr.WhitespaceTokenizerFactory");
+		xml.writeEndElement(); // </tokenizer>		
+		xml.writeEndElement(); // </analyzer>		
 		xml.writeEndElement(); // </fieldType>		
 		
+		// True boolean.
+		xml.writeStartElement("fieldType");
+		xml.writeAttribute("name", "boolean");
+		xml.writeAttribute("class", "solr.BoolField");
+		xml.writeAttribute("sortMissingLast", "true");
+		xml.writeEndElement(); // </fieldType>		
+
 		xml.writeEndElement(); // </types>		
 		
 		///
@@ -138,13 +158,17 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 		
 		xml.writeStartElement("uniqueKey");
 		xml.writeCharacters("id");
-		xml.writeEndElement(); // </field>
-		xml.writeStartElement("defaultSearchField");
-		xml.writeCharacters("label");
-		xml.writeEndElement(); // </defaultSearchField>
-		xml.writeStartElement("solrQueryParser");
-		xml.writeAttribute("defaultOperator", "OR");
-		xml.writeEndElement(); // </solrQueryParser>
+		xml.writeEndElement(); // </uniqueKey>
+
+		// These are now declared in the search string:
+		// defaultSearchOperator defaults to OR and can be changed with "q.op".
+		// defaultSearchField is deprecated for using "df" in request handler.
+		//xml.writeStartElement("defaultSearchField");
+		//xml.writeCharacters("label");
+		//xml.writeEndElement(); // </defaultSearchField>
+		//xml.writeStartElement("solrQueryParser");
+		//xml.writeAttribute("defaultOperator", "OR");
+		//xml.writeEndElement(); // </solrQueryParser>
 		
 		// Special STOP and wrap up.
 		//xml.writeComment("STOP");

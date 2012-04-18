@@ -33,7 +33,7 @@
 		<dependency>
 			<artifactId>solr-solrj</artifactId>
 			<groupId>org.apache.solr</groupId>
-			<version>1.4.0</version>
+			<version>3.6.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>slf4j-api</artifactId>

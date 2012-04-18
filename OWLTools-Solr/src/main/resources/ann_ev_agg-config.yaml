@@ -171,7 +171,7 @@ fields:
   - id: bioentity_label
     description: Column 3.
     display_name: Bioentity label
-    type: string
+    type: text_ws
     property: ???
 #   - id: bioentity_alternate_label
 #     description: Alternate label.
@@ -198,7 +198,7 @@ fields:
   - id: annotation_class_label
     description: "Column 5 + ontology."
     display_name: Annotation class label
-    type: string
+    type: text_ws
     property: ???
 #   - id: aspect
 #     description: Column 9.

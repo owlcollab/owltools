@@ -43,7 +43,7 @@ fields:
   - id: is_obsolete
     description: Is the term obsolete?
     display_name: Obsoletion
-    type: integer
+    type: boolean
     property: getIsObsoleteBinaryString
   - id: comment
     description: Term comment.
@@ -55,7 +55,7 @@ fields:
   - id: synonym
     description: Term synonym.
     display_name: Synonym
-    type: string
+    type: text_ws
     property: getOBOSynonymStrings
     cardinality: multi
   - id: alternate_id

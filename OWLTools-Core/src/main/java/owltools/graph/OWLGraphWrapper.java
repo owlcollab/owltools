@@ -2068,7 +2068,7 @@ public class OWLGraphWrapper {
 	public String getIsObsoleteBinaryString(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_IS_OBSELETE.getTag()); 
 		String val = getAnnotationValue(c, lap);
-		return val == null ? "0": "1";
+		return val == null ? "false": "true";
 		//return val;
 	}
 

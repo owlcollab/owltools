@@ -56,7 +56,7 @@ fields:
   - id: taxon_label
     description: "Derived from C13 + ncbi_taxonomy.obo."
     display_name: Taxon label
-    type: string
+    type: text_ws
     property: ???
 #   - id: taxon_closure
 #     description: "Derived from C13 + ncbi_taxonomy.obo."
@@ -79,7 +79,7 @@ fields:
   - id: isa_partof_label_closure
     description: "Closure of labels over isa and partof."
     display_name: isa/partof label closure
-    type: string
+    type: text_ws
     cardinality: multi
     property: ???
 #   - id: regulates_closure
@@ -170,7 +170,7 @@ fields:
   - id: bioentity_label
     description: Column 3.
     display_name: Bioentity label
-    type: string
+    type: text_ws
     property: ???
 #   - id: bioentity_alternate_label
 #     description: Alternate label.
@@ -197,7 +197,7 @@ fields:
   - id: annotation_class_label
     description: "Column 5 + ontology."
     display_name: Annotation class label
-    type: string
+    type: text_ws
     property: ???
 #   - id: aspect
 #     description: Column 9.
@@ -257,7 +257,7 @@ fields:
   - id: annotation_extension_class_label
     description: ???
     display_name: Annotation extension class label
-    type: string
+    type: text_ws
     cardinality: multi
     property: ???
   - id: annotation_extension_class_closure
@@ -269,6 +269,6 @@ fields:
   - id: annotation_extension_class_label_closure
     description: ???
     display_name: Annotation extension class label closure
-    type: string
+    type: text_ws
     cardinality: multi
     property: ???
