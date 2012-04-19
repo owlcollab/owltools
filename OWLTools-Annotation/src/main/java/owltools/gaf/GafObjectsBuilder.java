@@ -185,7 +185,8 @@ public class GafObjectsBuilder {
 		}else
 			ncbiTaxonId = taxons[0];
 		
-		String db = parser.getDbObjectSynonym();
+		//String db = parser.getDbObjectSynonym();
+		String db = parser.getDb();
 		
 		Bioentity entity = new Bioentity(id, symbol, fullName, typeCls, "NCBITaxon:" + ncbiTaxonId, db, gafDocument.getId());
 		

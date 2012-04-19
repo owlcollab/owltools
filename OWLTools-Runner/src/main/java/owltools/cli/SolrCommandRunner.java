@@ -22,7 +22,8 @@ import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 
 /**
  *  Solr/GOlr loading.
- */
+ */	
+@SuppressWarnings("deprecation")
 public class SolrCommandRunner extends TaxonCommandRunner {
 
 	private static final Logger LOG = Logger.getLogger(SolrCommandRunner.class);
@@ -116,6 +117,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @param opts
 	 * @throws Exception
 	 */
+	@SuppressWarnings("deprecation")
 	@CLIMethod("--solr-purge")
 	public void purgeSolr(Opts opts) throws Exception {
 

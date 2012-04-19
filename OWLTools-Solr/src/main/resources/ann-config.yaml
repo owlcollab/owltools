@@ -18,16 +18,16 @@ fields:
     display_name: Acc
     type: string
     property: ???
-#   - id: source
-#     description: "Column 15: database."
-#     display_name: Database
-#     type: string
-#     property: ???
-#   - id: date
-#     description: "Column 14: date."
-#     display_name: Date
-#     type: string
-#     property: ???
+  - id: source
+    description: "Column 15: assigned by."
+    display_name: Source
+    type: string
+    property: ???
+  - id: date
+    description: "Column 14: date of assignment."
+    display_name: Date
+    type: string
+    property: ???
 #   - id: type
 #     description: "Column 12: type class id."
 #     display_name: Type class id

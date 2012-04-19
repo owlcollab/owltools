@@ -10,7 +10,7 @@ public class Bioentity{
 	protected String db;
 	protected String gafDocument;
 	
-	 public Bioentity(){
+	public Bioentity(){
 	}
 	
 	public Bioentity(String id, String symbol, String fullName, String typeCls,

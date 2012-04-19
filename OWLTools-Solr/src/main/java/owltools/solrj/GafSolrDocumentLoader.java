@@ -75,6 +75,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 		String eid = e.getId();
 		String esym = e.getSymbol();
+		String edb = e.getDb();
 		//LOG.info("Adding: " + eid + " " + esym);
 		
 		SolrInputDocument bioentity_doc = new SolrInputDocument();
@@ -83,6 +84,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		bioentity_doc.addField("document_category", "bioentity");
 		bioentity_doc.addField("id", eid);
 		bioentity_doc.addField("label", esym);
+		bioentity_doc.addField("db", edb);
 		bioentity_doc.addField("type", e.getTypeCls());
 		String taxId = e.getNcbiTaxonId();
 		bioentity_doc.addField("taxon", taxId);
@@ -102,6 +104,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("id", eid + "_:_" + clsId); // TODO - make unique
 			annotation_doc.addField("bioentity_id", eid);
 			annotation_doc.addField("bioentity_label", esym);
+			annotation_doc.addField("source", a.getAssignedBy());
+			annotation_doc.addField("date", a.getLastUpdateDate());
 			annotation_doc.addField("taxon", taxId);
 			addLabelField(annotation_doc, "taxon_label", taxId);
 
