@@ -27,8 +27,9 @@ fields:
   - id: bioentity_label
     description: Column 3.
     display_name: Bioentity label
-    type: text_ws
+    type: string
     property: ???
+    searchable: true
   - id: annotation_class
     description: Column 5.
     display_name: Annotation class
@@ -37,8 +38,9 @@ fields:
   - id: annotation_class_label
     description: "Column 5 + ontology."
     display_name: Annotation class label
-    type: text_ws
+    type: string
     property: ???
+    searchable: true
   - id: evidence_closure
     description: ???
     display_name: Evidence closure

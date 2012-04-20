@@ -38,7 +38,7 @@ mapping:
             type: str
             required: yes 
           "required":
-            type: str
+            type: bool
             required: no
           "cardinality":
             type: str
@@ -57,3 +57,6 @@ mapping:
             required: no
             sequence:
               - type: str
+          "searchable":
+            type: bool
+            required: no

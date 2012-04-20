@@ -23,20 +23,23 @@ fields:
   - id: label
     description: Common term name.
     display_name: Term
-    type: text_ws
+    type: string
     #property: http://www.w3.org/2000/01/rdf-schema#label
     property: getLabel
+    searchable: true
 ## Ever used with terms?
 # - id: descriptive_name
 #     description: Term description.
 #     display_name: Description
-#     type: text_ws
+#     type: string
 #     property: descriptive_name
+#    searchable: true
   - id: description
     description: Term definition.
     display_name: Definition
-    type: text_ws
+    type: string
     property: getDef
+    searchable: true
   - id: source
     description: Term namespace.
     display_name: Source
@@ -50,16 +53,18 @@ fields:
   - id: comment
     description: Term comment.
     display_name: Comment
-    type: text_ws
+    type: string
     property: getComment
+    searchable: true
 ## looks like single in OWLGraphWrapper API
 #    cardinality: multi
   - id: synonym
     description: Term synonym.
     display_name: Synonym
-    type: text_ws
+    type: string
     property: getOBOSynonymStrings
     cardinality: multi
+    searchable: true
   - id: alternate_id
     description: Alternate term id.
     display_name: Alt ID
@@ -78,3 +83,8 @@ fields:
     type: string
     property: getDefXref
     cardinality: multi
+#  - id: json
+#    description: JSON blob.
+#    display_name: JSON
+#    type: string
+#    property: ???

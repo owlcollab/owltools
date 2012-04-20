@@ -113,9 +113,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// TODO - ev. closure
 			annotation_doc.addField("evidence_type", a.getEvidenceCls());
 			annotation_doc.addField("evidence_with", a.getWithExpression());
+
+			// Drag in "with" (col 8).
 			for (WithInfo wi : a.getWithInfos()) {
-				//check this
-				//ad.addField("evidence_with", wi.getWithXref());
+				annotation_doc.addField("evidence_with", wi.getWithXref());
 			}
 
 			annotation_doc.addField("annotation_class", clsId);
@@ -163,9 +164,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 				//evidence_type is single valued
 				//aggDoc.addField("evidence_type", a.getEvidenceCls());
-				String wx = a.getWithExpression();
-				if (wx != null && !wx.equals(""))
-					ev_agg_doc.addField("evidence_with", wx);
+
+				// Drag in "with" (col 8), this time for ev_agg.
+				for (WithInfo wi : a.getWithInfos()) {
+					ev_agg_doc.addField("evidence_with", wi.getWithXref());
+				}
 
 				//aggDoc.getFieldValues(name)
 				// TODO:

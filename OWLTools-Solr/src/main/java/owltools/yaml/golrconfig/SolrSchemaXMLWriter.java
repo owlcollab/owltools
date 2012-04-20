@@ -8,10 +8,13 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.log4j.Logger;
+
 import owltools.gaf.io.AbstractXmlWriter;
 
 public class SolrSchemaXMLWriter extends AbstractXmlWriter {
-
+	
+	private static Logger LOG = Logger.getLogger(ConfigManager.class);
 	private ConfigManager config = null;
 	
 	public SolrSchemaXMLWriter(ConfigManager aconfig) {
@@ -39,33 +42,61 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 				xml.writeComment(comment);
 			}
 			
+			// Gather things up first.
+			String f_id = field.id;
+			String f_type = field.type;
+			// ID is the only required field.
+			String f_required = "false";
+			if( field.id.equals("id") ){
+				f_required = "true";
+			}
+			// Cardinality maps to multivalued.
+			String f_multi = "true";
+			if( field.cardinality.equals("single") ){
+				f_multi = "false";
+			}
+			
+			// Write out the "main" field declaration.
 			xml.writeStartElement("field");
-
 			// The main variants.
-			xml.writeAttribute("name", field.id);
-			xml.writeAttribute("type", field.type);
-
+			xml.writeAttribute("name", f_id);
+			xml.writeAttribute("type", f_type);
+			xml.writeAttribute("required", f_required);
+			xml.writeAttribute("multiValued", f_multi);
 			// Invariants: we'll always store and index.
 			xml.writeAttribute("indexed", "true");
 			xml.writeAttribute("stored", "true");
-
-			// ID is the only required field.
-			//xml.writeAttribute("required", field.required);
-			if( field.id.equals("id") ){
-				xml.writeAttribute("required", "true");
-			}else{
-				xml.writeAttribute("required", "false");
-			}
-
-			// Cardinality maps to multivalued.
-			if( field.cardinality.equals("single") ){
-				xml.writeAttribute("multiValued", "false");
-			}else{
-				xml.writeAttribute("multiValued", "true");
-			}
-			
 			// Done.
 			xml.writeEndElement(); // </field>
+
+			// If searchable is true, create an additional field that mirrors
+			// the main one, but using the tokenizer (needed for edismax, etc.).
+			String f_searchable = field.searchable;
+			//LOG.info("field.searchable: " + f_searchable);
+			if( f_searchable.equals("true") ){
+
+				String munged_id = f_id + "_searchable";
+				
+				xml.writeComment("An easily searchable (TextField tokenized) version of " + f_id + ".");
+				xml.writeStartElement("field");
+				// The main variants.
+				xml.writeAttribute("name", munged_id);
+				xml.writeAttribute("type", "text_searchable");
+				xml.writeAttribute("required", f_required);
+				xml.writeAttribute("multiValued", f_multi);
+				// Invariants: we'll always store and index.
+				xml.writeAttribute("indexed", "true");
+				xml.writeAttribute("stored", "true");
+				// Done.
+				xml.writeEndElement(); // </field>				
+
+				// Also, add the field copy soe we don't have to worry about manually loading it.
+				xml.writeStartElement("copyField");
+				//  <copyField source="body" dest="teaser" maxChars="300"/>
+				xml.writeAttribute("source", f_id);
+				xml.writeAttribute("dest", munged_id);
+				xml.writeEndElement(); // </copyField>
+			}
 		}
 	}
 	
@@ -90,13 +121,32 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 
 		xml.writeStartElement("types");
 
-		// Unsplit single string.
+		// NOTE: See comments below.
+		xml.writeComment("Unsplit string for when text needs to be dealt with atomically.");
+		xml.writeComment("For example, faceted querying.");
 		xml.writeStartElement("fieldType");
 		xml.writeAttribute("name", "string");
 		xml.writeAttribute("class", "solr.StrField");
 		xml.writeAttribute("sortMissingLast", "true");
 		xml.writeEndElement(); // </fieldType>		
-		
+
+		// NOTE: See comments below.
+		xml.writeComment("Any string with spaces that needs to be treated for searching purposes.");
+		xml.writeComment("This will be automatically used in cases where \"searchable: true\" has been");
+		xml.writeComment("specified in the YAML.");
+		xml.writeStartElement("fieldType");
+		xml.writeAttribute("name", "text_searchable");
+		xml.writeAttribute("class", "solr.TextField");
+		xml.writeAttribute("positionIncrementGap", "100");
+		xml.writeAttribute("sortMissingLast", "true");
+		xml.writeStartElement("analyzer");
+		xml.writeStartElement("tokenizer");
+		//xml.writeAttribute("class", "solr.WhitespaceTokenizerFactory");
+		xml.writeAttribute("class", "solr.StandardTokenizerFactory");
+		xml.writeEndElement(); // </tokenizer>		
+		xml.writeEndElement(); // </analyzer>		
+		xml.writeEndElement(); // </fieldType>		
+
 		// Integer.
 		xml.writeStartElement("fieldType");
 		xml.writeAttribute("name", "integer");
@@ -106,19 +156,6 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 		xml.writeAttribute("sortMissingLast", "true");
 		xml.writeEndElement(); // </fieldType>		
 
-		// Any string with spaces.
-		xml.writeStartElement("fieldType");
-		xml.writeAttribute("name", "text_ws");
-		xml.writeAttribute("class", "solr.TextField");
-		xml.writeAttribute("positionIncrementGap", "100");
-		xml.writeAttribute("sortMissingLast", "true");
-		xml.writeStartElement("analyzer");
-		xml.writeStartElement("tokenizer");
-		xml.writeAttribute("class", "solr.WhitespaceTokenizerFactory");
-		xml.writeEndElement(); // </tokenizer>		
-		xml.writeEndElement(); // </analyzer>		
-		xml.writeEndElement(); // </fieldType>		
-		
 		// True boolean.
 		xml.writeStartElement("fieldType");
 		xml.writeAttribute("name", "boolean");

@@ -58,8 +58,9 @@ fields:
   - id: taxon_label
     description: "Derived from C13 + ncbi_taxonomy.obo."
     display_name: Taxon label
-    type: text_ws
+    type: string
     property: ???
+    searchable: true
 #   - id: taxon_closure
 #     description: "Derived from C13 + ncbi_taxonomy.obo."
 #     display_name: Taxon closure
@@ -81,9 +82,10 @@ fields:
   - id: isa_partof_label_closure
     description: "Closure of labels over isa and partof."
     display_name: isa/partof label closure
-    type: text_ws
+    type: string
     cardinality: multi
     property: ???
+    searchable: true
 #   - id: regulates_closure
 #     description: "Closure of ids/accs over regulates."
 #     display_name: regulates closure
@@ -99,13 +101,15 @@ fields:
 #   - id: label
 #     description: Symbol or name.
 #     display_name: Label
-#     type: text_ws
+#     type: string
 #     property: ???
+#     searchable: true
 #   - id: descriptive_name
 #     description: Full name or name.
 #     display_name: Full name
-#     type: text_ws
+#     type: string
 #     property: ???
+#     searchable: true
 #   - id: synonym
 #     description: Any synonym.
 #     display_name: Synonym
@@ -121,8 +125,9 @@ fields:
 #   - id: description
 #     description: Definition.
 #     display_name: Definition
-#     type: text_ws
+#     type: string
 #     property: ???
+#     searchable: true
 #   - id: subset
 #     description: Member of these named subsets.
 #     display_name: Subset
@@ -137,9 +142,10 @@ fields:
 #   - id: comment
 #     description: Comment.
 #     display_name: comment
-#     type: text_ws
+#     type: string
 # #    cardinality: multi
 #     property: ???
+#     searchable: true
 #   - id: definition_xref
 #     description: DBXref for definitions.
 #     display_name: Def dbxref
@@ -170,10 +176,11 @@ fields:
     type: string
     property: ???
   - id: bioentity_label
-    description: Column 3.
+    description: "Column 3: bioentity label."
     display_name: Bioentity label
-    type: text_ws
+    type: string
     property: ???
+    searchable: true
 #   - id: bioentity_alternate_label
 #     description: Alternate label.
 #     display_name: Alternate label
@@ -199,8 +206,9 @@ fields:
   - id: annotation_class_label
     description: "Column 5 + ontology."
     display_name: Annotation class label
-    type: text_ws
+    type: string
     property: ???
+    searchable: true
 #   - id: aspect
 #     description: Column 9.
 #     display_name: Ontology (aspect)
@@ -240,8 +248,8 @@ fields:
 #     cardinality: multi
 #     property: ???
   - id: evidence_with
-    description: ???
-    display_name: Evidence with
+    description: "Column 8: with/from."
+    display_name: With
     type: string
     cardinality: multi
     property: ???
@@ -259,9 +267,10 @@ fields:
   - id: annotation_extension_class_label
     description: ???
     display_name: Annotation extension class label
-    type: text_ws
+    type: string
     cardinality: multi
     property: ???
+    searchable: true
   - id: annotation_extension_class_closure
     description: ???
     display_name: Annotation extension class closure
@@ -271,6 +280,7 @@ fields:
   - id: annotation_extension_class_label_closure
     description: ???
     display_name: Annotation extension class label closure
-    type: text_ws
+    type: string
     cardinality: multi
     property: ???
+    searchable: true
