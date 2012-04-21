@@ -87,7 +87,7 @@ public class ParserWrapper {
 			obodoc = p.parse(file);
 			String fileName = file.getName();
 			if (fileName.endsWith(".obo") || fileName.endsWith(".owl")) {
-				fileName.substring(0, fileName.length() - 4);
+				fileName = fileName.substring(0, fileName.length() - 4);
 			}
 			id = fileName;
 		}

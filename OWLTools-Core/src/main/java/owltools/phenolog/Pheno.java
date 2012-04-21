@@ -28,6 +28,12 @@ public class Pheno implements Comparable<Pheno>{
 
 //        @Override
         public boolean equals(Object aPheno){
+        	if (aPheno == null) {
+				return false;
+			}
+        	if (aPheno instanceof Pheno == false) {
+        		return false;
+        	}
             Pheno p = (Pheno) aPheno;
             return getId().equals(p.getId());
         }

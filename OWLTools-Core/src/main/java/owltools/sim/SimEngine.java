@@ -246,7 +246,7 @@ public class SimEngine {
 
 
 		}
-		if (comparisonProperty == null && comparisonProperty == null) {
+		if (comparisonProperty == null && comparisonClass == null) {
 			ancs.addAll(g.getSubsumersFromClosure(x));
 			// this one probably better:
 			/*

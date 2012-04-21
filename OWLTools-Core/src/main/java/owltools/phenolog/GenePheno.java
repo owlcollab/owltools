@@ -15,6 +15,12 @@ public class GenePheno implements Comparable<GenePheno>{
 
 //    @Override
     public boolean equals(Object aGenePheno){
+    	if (aGenePheno == null) {
+			return false;
+		}
+    	if (aGenePheno instanceof GenePheno == false) {
+			return false;
+		}
         GenePheno gp = (GenePheno) aGenePheno;
         String cc1 = this.id.concat(this.phenoid);
         return cc1.equals(gp.getid().concat(gp.getphenoid()));

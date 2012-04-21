@@ -48,7 +48,7 @@ public class OWLGraphLayoutNode implements Node, LayoutNode {
     		label = owlObject.getClass().toString();
     	if (label == null)
     		label = "?";
-    	label.replace('_', ' ');
+    	label = label.replace('_', ' ');
     	
         this.label = label;
         this.id = owlGraphWrapper.getIdentifier(owlObject);

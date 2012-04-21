@@ -852,9 +852,6 @@ public class OWLGraphWrapper {
 			Iterator<OWLQuantifiedProperty> qpi, OWLObject t) {
 		if (qpi.hasNext()) {
 			OWLQuantifiedProperty qp = qpi.next();
-			if (qp == null) {
-				System.err.println("");
-			}
 			OWLObject x = edgeToTargetExpression(qpi,t);
 			OWLClassExpression t2;
 			if (!(x instanceof OWLClassExpression)) {

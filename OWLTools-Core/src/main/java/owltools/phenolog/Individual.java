@@ -18,6 +18,12 @@ public class Individual implements Comparable<Individual>{
 
     // @Override
     public boolean equals(Object oind) {
+    	if (oind == null) {
+			return false;
+		}
+    	if (oind instanceof Individual == false) {
+    		return false;
+    	}
         Individual ind = (Individual)oind;
         return getId().equals(ind.getId());
     }

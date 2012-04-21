@@ -8,6 +8,12 @@ public class IndividualPair implements Comparable<IndividualPair>{
 
         @Override
         public boolean equals(Object a){
+        	if (a == null) {
+				return false;
+			}
+        	if (a instanceof IndividualPair == false) {
+        		return false;
+        	}
             IndividualPair indpair = (IndividualPair) a;
             String cc1 = this.member1.getId().concat(this.member2.getId());
             String cc2 = indpair.getMember1().getId().concat(indpair.getMember2().getId());

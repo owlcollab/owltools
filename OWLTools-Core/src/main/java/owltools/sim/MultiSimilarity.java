@@ -81,15 +81,17 @@ public class MultiSimilarity extends Similarity {
 
 	class ValueComparator implements Comparator {
 
-		Map base;
-		public ValueComparator(Map base) {
+		Map<?, ? extends Similarity> base;
+		public ValueComparator(Map<?, ? extends Similarity> base) {
 			this.base = base;
 		}
 
 		public int compare(Object a, Object b) {
-			if(((Similarity)base.get(a)).score < ((Similarity)base.get(b)).score) {
+			double scoreA = (base.get(a)).score;
+			double scoreB = (base.get(b)).score;
+			if(scoreA < scoreB) {
 				return 1;
-			} else if(((Similarity)base.get(a)).score == ((Similarity)base.get(b)).score) {
+			} else if(scoreA == scoreB) {
 				return 0;
 			} else {
 				return -1;
