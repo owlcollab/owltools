@@ -186,7 +186,7 @@ public class OWLHandler {
 		Set<OWLObject> objs = this.resolveEntityList();
 		if (objs.size() == 2) {
 			SimEngine se = new SimEngine(graph);
-			OWLObject[] objsA = (OWLObject[]) objs.toArray();
+			OWLObject[] objsA = objs.toArray(new OWLObject[objs.size()]);
 			OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(objsA[0], objsA[1]);		
 		}
 		else {
