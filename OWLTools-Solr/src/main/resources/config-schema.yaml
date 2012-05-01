@@ -20,6 +20,9 @@ mapping:
   "default_fields_and_boosts":
     type: str
     required: no
+  "searchable_extension":
+    type: str
+    required: no
   "fields":
     type: seq
     sequence:

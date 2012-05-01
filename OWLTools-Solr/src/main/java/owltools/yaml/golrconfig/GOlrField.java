@@ -16,6 +16,7 @@ public class GOlrField {
 	public String property;
 	public String property_type;
 	public int weight;	
+	//public double boost;	
 	public String searchable;
 	// The processing steps to apply to that property--not yet used
 	public ArrayList<String> transform;
@@ -26,6 +27,7 @@ public class GOlrField {
 		cardinality = "single";
 		property_type = "dynamic";
 		weight = 0;
+		//boost = 0.0;
 		searchable = "false";
 		
 		// There are no default transformations to make.

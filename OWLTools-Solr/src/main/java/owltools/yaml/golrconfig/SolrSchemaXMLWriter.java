@@ -75,7 +75,7 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 			//LOG.info("field.searchable: " + f_searchable);
 			if( f_searchable.equals("true") ){
 
-				String munged_id = f_id + "_searchable";
+				String munged_id = f_id + config.getSearchableExtension();
 				
 				xml.writeComment("An easily searchable (TextField tokenized) version of " + f_id + ".");
 				xml.writeStartElement("field");

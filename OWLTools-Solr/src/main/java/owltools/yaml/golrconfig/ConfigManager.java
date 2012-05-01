@@ -32,6 +32,8 @@ public class ConfigManager {
 	private HashMap<String, GOlrField> unique_fields = new HashMap<String, GOlrField>();
 	private HashMap<String, ArrayList<String>> collected_comments = new HashMap<String, ArrayList<String>>();
 	
+	private String searchable_extension = null;
+	
 	/**
 	 * Constructor.
 	 */
@@ -72,6 +74,8 @@ public class ConfigManager {
 		GOlrConfig config = (GOlrConfig) yaml.load(input);
 		LOG.info("Dumping flex loader YAML: \n" + yaml.dump(config));
 
+		searchable_extension = config.searchable_extension;
+		
 		// Plonk them all in to our bookkeeping.
 		for( GOlrField field : config.fields ){
 			addFieldToBook(config.id, field);
@@ -137,5 +141,14 @@ public class ConfigManager {
 	 */
 	public ArrayList<GOlrField> getDynamicFields() {
 		return dynamic_fields;
+	}
+	
+	/**
+	 * Get the extension to be used with the searchable field generation.
+	 *
+ 	 * @returns ArrayList<GOlrField>
+	 */
+	public String getSearchableExtension() {
+		return searchable_extension;
 	}
 }
