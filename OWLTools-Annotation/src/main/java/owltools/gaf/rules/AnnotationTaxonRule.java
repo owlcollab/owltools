@@ -37,6 +37,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		rOnly = graph.getOWLObjectPropertyByIdentifier(onlyId);
 	}
 
+	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
 		return _getRuleViolations(a.getCls(), a.getBioentityObject().getNcbiTaxonId(),a);
 	}

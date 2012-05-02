@@ -7,6 +7,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.gaf.rules.AnnotationRule;
 import owltools.gaf.rules.AnnotationRulesFactoryImpl;
+import owltools.gaf.rules.GenericReasonerValidationCheck;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -15,6 +16,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 	private final BasicChecksRule basicChecksRule;
 	private final GoAnnotationTaxonRule taxonRule;
 	private final GoClassReferenceAnnotationRule referenceAnnotationRule;
+	private final GenericReasonerValidationCheck genericValidationRule;
 	
 	public GoAnnotationRulesFactoryImpl() {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
@@ -39,6 +41,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		basicChecksRule = new BasicChecksRule(xrfabbslocation);
 		taxonRule = new GoAnnotationTaxonRule(graph);
 		referenceAnnotationRule = new GoClassReferenceAnnotationRule(graph);
+		genericValidationRule = new GenericReasonerValidationCheck(graph);
 	}
 	
 	private static OWLGraphWrapper getOntologies(List<String> ontologylocations) {
@@ -72,6 +75,10 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		if ("org.geneontology.gold.rules.GoClassReferenceAnnotationRule".equals(className)) {
 			return referenceAnnotationRule;
 		}
+		if ("org.geneontology.gold.rules.GenericReasonerValidationCheck".equals(className)) {
+			return genericValidationRule;
+		}
 		return super.getClassForName(className);
 	}
+	
 }

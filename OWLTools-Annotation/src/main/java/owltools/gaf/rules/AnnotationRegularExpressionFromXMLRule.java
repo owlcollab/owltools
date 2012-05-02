@@ -23,6 +23,7 @@ public class AnnotationRegularExpressionFromXMLRule extends
 	public AnnotationRegularExpressionFromXMLRule(){
 	}
 
+	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
 
 		if(a == null){

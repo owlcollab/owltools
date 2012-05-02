@@ -807,5 +807,31 @@ ORDER BY s1.ncbi_taxa_id, s2.ncbi_taxa_id, term.acc
 	</implementation_list>
 	<status date="2012-02-01">Approved</status>
 </rule>
+<rule>
+	<id>
+		GO_AR:0000019
+	</id>
+	<title>Generic Reasoner Validation Check</title>
+	<contact>
+		hdietze@lbl.gov
+	</contact>
+	<description format="html">
+<![CDATA[
+ <p>The entire GAF is converted to OWL, combined with
+the main GO ontology and auxhiliary constraint
+ontologies. The resulting ontology is checked for
+consistency and unsatisfiable classes over using a
+complete DL reasoner such as HermiT. </p> ]]>
+	</description>
+	<implementation_list>
+		<implementation status="active">
+			<script language="java"
+				source="org.geneontology.gold.rules.GenericReasonerValidationCheck" />
+		</implementation>
+	</implementation_list>
+	<status date="2011-04-09">
+		Implemented
+	</status>
+</rule>
 
 </ruleset>

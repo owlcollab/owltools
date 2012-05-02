@@ -1,6 +1,7 @@
 package owltools.gaf.rules;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -22,7 +23,6 @@ public class AnnotationRulesEngine {
 	
 	private Map<String, List<AnnotationRuleViolation>> annotationRuleViolations;
 	private Map<String, Integer> annotationRuleViolationsCounter;
-	
 	private int annotationVoilationLimit;
 
 	
@@ -42,10 +42,12 @@ public class AnnotationRulesEngine {
 	
 	public Map<String, List<AnnotationRuleViolation>> validateAnnotations(GafDocument doc) throws AnnotationRuleCheckException{
 		
-		List<AnnotationRule> rules = rulesFactory.getRules();
+		List<AnnotationRule> rules = rulesFactory.getGeneAnnotationRules();
+		List<AnnotationRule> gafRules = rulesFactory.getGafRules();
 		if(rules == null || rules.isEmpty()){
 			throw new AnnotationRuleCheckException("Rules are not initialized. Please check the annotation_qc.xml file for errors");
 		}
+		
 		
 		try{
 			Set<String> rulesNotToRun = new HashSet<String>();
@@ -55,28 +57,15 @@ public class AnnotationRulesEngine {
 					if(rulesNotToRun.contains(rule.getRuleId()))
 						continue;
 					
-					for(AnnotationRuleViolation av: rule.getRuleViolations(annotation)){
-						List<AnnotationRuleViolation> list= annotationRuleViolations.get(av.getRuleId());
-						Integer counter = annotationRuleViolationsCounter.get(av.getRuleId());
-						if(list == null){
-							list = new ArrayList<AnnotationRuleViolation>();
-							list = Collections.synchronizedList(list);
-							annotationRuleViolations.put(av.getRuleId(), list);
-							counter = 0;
-						}
-						
-						if(annotationVoilationLimit != -1 && counter >= annotationVoilationLimit) {
-							rulesNotToRun.add(rule.getRuleId());
-						}
-						else {	
-							list.add(av);
-						}
-						
-						annotationRuleViolationsCounter.put(av.getRuleId(), counter+1);
-					}
-					
+					updateViolations(rule.getRuleViolations(annotation), rule, rulesNotToRun);
 				}
 			}
+			if (gafRules != null && !gafRules.isEmpty()) {
+				for (AnnotationRule rule : gafRules) {
+					updateViolations(rule.getRuleViolations(doc), rule, rulesNotToRun);
+				}
+			}
+			
 		}catch(Exception ex){
 			LOG.error(ex.getMessage(), ex);
 			throw new RuntimeException(ex);
@@ -84,6 +73,31 @@ public class AnnotationRulesEngine {
 		return annotationRuleViolations;
 	}
 	
+	
+	private void updateViolations(Collection<AnnotationRuleViolation> violations, AnnotationRule rule, Set<String> rulesNotToRun) throws Exception {
+		if (violations == null || violations.isEmpty()) {
+			return;
+		}
+		for(AnnotationRuleViolation av: violations){
+			List<AnnotationRuleViolation> list= annotationRuleViolations.get(av.getRuleId());
+			Integer counter = annotationRuleViolationsCounter.get(av.getRuleId());
+			if(list == null){
+				list = new ArrayList<AnnotationRuleViolation>();
+				list = Collections.synchronizedList(list);
+				annotationRuleViolations.put(av.getRuleId(), list);
+				counter = 0;
+			}
+			
+			if(annotationVoilationLimit != -1 && counter >= annotationVoilationLimit) {
+				rulesNotToRun.add(rule.getRuleId());
+			}
+			else {	
+				list.add(av);
+			}
+			
+			annotationRuleViolationsCounter.put(av.getRuleId(), counter+1);
+		}
+	}
 	
 	/**
 	 * This exception is thrown when an exception occurs during the execution

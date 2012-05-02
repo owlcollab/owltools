@@ -26,6 +26,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	private static Logger LOG = Logger.getLogger(AnnotationRulesFactoryImpl.class);
 	
 	private final List<AnnotationRule> rules;
+	private final List<AnnotationRule> globalRules;
 	private final String path;
 	
 	private boolean isInitalized = false;
@@ -36,6 +37,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	protected AnnotationRulesFactoryImpl(String path){
 		this.path = path;
 		rules = new ArrayList<AnnotationRule>();
+		globalRules = new ArrayList<AnnotationRule>();
 	}
 	
 	@Override
@@ -91,7 +93,12 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 						}
 		    			else {
 		    				rule.setRuleId(id);
-		    				rules.add(rule);
+		    				if (!rule.isDocumentLevel()) {
+								rules.add(rule);
+							}
+		    				else {
+		    					globalRules.add(rule);
+		    				}
 		    			}
 		    		}catch(Exception ex){
 		    			LOG.error(ex.getMessage(), ex);
@@ -165,11 +172,16 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	}
 	
 	@Override
-	public List<AnnotationRule> getRules(){
+	public List<AnnotationRule> getGeneAnnotationRules(){
 		if (!isInitalized) {
 			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
 		}
 		return this.rules;
+	}
+
+	@Override
+	public List<AnnotationRule> getGafRules() {
+		return globalRules;
 	}
 	
 }
