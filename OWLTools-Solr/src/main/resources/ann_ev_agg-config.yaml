@@ -7,7 +7,7 @@ description: A description of annotation evidence aggregate for GOlr and AmiGO.
 display_name: Evidence Aggregate
 document_category: annotation_evidence_aggregate
 weight: 10
-default_fields_and_boosts: foo^1.0
+default_fields_and_boosts: annotation_class^2.0 annotation_class_label^1.0 bioentity_id^2.0 bioentity_label^1.0
 fields:
   # - id: document_category
   #   description: The category of the document in the Solr index.
