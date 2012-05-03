@@ -4,15 +4,16 @@
 id: bbop_ont
 description: Test mapping of ontology class for GO.
 display_name: Ontology
+document_category: ontology_class
 weight: 40
 default_fields_and_boosts: foo^1.0
 fields:
-  - id: document_category
-    description: The category of the document in the Solr index.
-    display_name: Category
-    type: string
-    property_type: fixed
-    property: ontology_class
+  # - id: document_category
+  #   description: The category of the document in the Solr index.
+  #   display_name: Category
+  #   type: string
+  #   property_type: fixed
+  #   property: ontology_class
   - id: id
     description: Term acc/id.
     display_name: Acc

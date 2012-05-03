@@ -14,7 +14,6 @@ public class GOlrField {
 	public String required;
 	public String cardinality;
 	public String property;
-	public String property_type;
 	public int weight;	
 	//public double boost;	
 	public String searchable;
@@ -25,7 +24,6 @@ public class GOlrField {
 	public GOlrField() {
 		required = "false";
 		cardinality = "single";
-		property_type = "dynamic";
 		weight = 0;
 		//boost = 0.0;
 		searchable = "false";

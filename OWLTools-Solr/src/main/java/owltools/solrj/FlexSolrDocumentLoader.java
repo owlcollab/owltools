@@ -194,6 +194,10 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	 * Main wrapping for adding ontology documents to GOlr.
 	 * Also see GafSolrDocumentLoader for the others.
 	 *
+	 * TODO: Dirty dirty bad Seth. We have hard-coded document_categoty here (and the GAF loader).
+	 * The proper way would be to pair conf files and the file to be loaded, that is not happening
+	 * quite yet, so we punt on this bad thing.
+	 *
 	 * @param owlObject, graph, and a config.
 	 * @return an input doc for add()
 	 */
@@ -209,18 +213,17 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		
 		//LOG.info("Trying to load a(n): " + config.id);
 
-		// Single fixed fields--the same every time.
-		for( GOlrField fixedField : config.getFixedFields() ){
-			//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
-			cls_doc.addField(fixedField.id, fixedField.property);
-		}
+		// Special loading for document_category.
+		//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
+		//
+		cls_doc.addField("document_category", "ontology_class");
 					
 		// Dynamic fields--have to get dynamic info to cram into the index.
-		for( GOlrField dynamicField : config.getDynamicFields() ){
+		for( GOlrField field : config.getFields() ){
 
-			String did = dynamicField.id;
-			String prop_meth = dynamicField.property;
-			String card = dynamicField.cardinality;
+			String did = field.id;
+			String prop_meth = field.property;
+			String card = field.cardinality;
 
 			// Select between the single and multi styles.
 			if( card.equals("single") ){

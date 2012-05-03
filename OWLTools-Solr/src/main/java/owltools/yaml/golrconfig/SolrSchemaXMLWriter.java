@@ -177,6 +177,17 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 		//xml.writeComment(" Add this and below to your schema.xml file as your schema and restart Jetty. ");
 		//xml.writeComment(" After this schema has been applied for the given config file, purge the index and rerun the loader (with said config file). ");
 
+		// Write out the special required "document_category" field declaration.
+		xml.writeComment(" A special static/fixed (by YAML conf file) field all documents have. ");
+		xml.writeStartElement("field"); // <field>
+		xml.writeAttribute("name", "document_category");
+		xml.writeAttribute("type", "string");
+		xml.writeAttribute("required", "false");
+		xml.writeAttribute("multiValued", "false");
+		xml.writeAttribute("indexed", "true");
+		xml.writeAttribute("stored", "true");
+		xml.writeEndElement(); // </field>
+		
 //		// Single fixed fields--the same every time.
 //		outFields(config.getFixedFields(), xml);
 //

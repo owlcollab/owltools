@@ -2,6 +2,7 @@
 #### Use kwalify and this schema to validate the config files.
 #### Example:
 ####    kwalify -f OWLTools-Solr/src/main/resources/config-schema.yaml OWLTools-Solr/src/main/resources/ont-config.yaml
+####    kwalify -f config-schema.yaml ont-config.yaml
 ####
 type: map
 mapping:
@@ -12,6 +13,9 @@ mapping:
     type: str
     required: yes
   "display_name":
+    type: str
+    required: yes
+  "document_category":
     type: str
     required: yes
   "weight":
@@ -49,9 +53,6 @@ mapping:
           "property":
             type: str
             required: yes
-          "property_type":
-            type: str
-            required: no
           "weight":
             type: int
             required: no

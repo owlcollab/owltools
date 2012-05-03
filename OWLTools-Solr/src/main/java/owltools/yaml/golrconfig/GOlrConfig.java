@@ -7,6 +7,7 @@ public class GOlrConfig {
 	public String id;
 	public String description;
 	public String display_name;
+	public String document_category;
 	public int weight;
 	public String searchable_extension;
 	public String default_fields_and_boosts;

@@ -1,5 +1,6 @@
 package owltools.yaml.golrconfig;
 
+@Deprecated
 public class GOlrFixedField extends GOlrField{
 
 	// NOTE: There used to be lots here, now it's more of an historical placeholder.
