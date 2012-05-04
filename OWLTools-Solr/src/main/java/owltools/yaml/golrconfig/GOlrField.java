@@ -14,8 +14,9 @@ public class GOlrField {
 	public String required;
 	public String cardinality;
 	public String property;
-	public int weight;	
-	//public double boost;	
+	public String boost_weights;
+	public String result_weights;
+	public String filter_weights;
 	public String searchable;
 	// The processing steps to apply to that property--not yet used
 	public ArrayList<String> transform;
@@ -24,8 +25,9 @@ public class GOlrField {
 	public GOlrField() {
 		required = "false";
 		cardinality = "single";
-		weight = 0;
-		//boost = 0.0;
+		boost_weights = "";
+		result_weights = "";
+		filter_weights = "";
 		searchable = "false";
 		
 		// There are no default transformations to make.

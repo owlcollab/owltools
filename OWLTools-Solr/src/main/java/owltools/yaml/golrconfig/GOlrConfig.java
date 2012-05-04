@@ -10,7 +10,9 @@ public class GOlrConfig {
 	public String document_category;
 	public int weight;
 	public String searchable_extension;
-	public String default_fields_and_boosts;
+	public String boost_weights;
+	public String filter_weights;
+	public String result_weights;
 
 //	public ArrayList<GOlrFixedField> fixed;
 //	public ArrayList<GOlrDynamicField> dynamic;
@@ -20,7 +22,9 @@ public class GOlrConfig {
 	public GOlrConfig() {
 		searchable_extension = "_searchable";
 		weight = 0;
-		default_fields_and_boosts = "";
+		boost_weights = "";
+		filter_weights = "";
+		result_weights = "";
 	}
 }
 

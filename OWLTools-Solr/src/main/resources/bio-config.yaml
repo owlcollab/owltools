@@ -6,7 +6,8 @@ description: A description of bioentities file for GOlr.
 display_name: Bioentities
 document_category: bioentity
 weight: 30
-default_fields_and_boosts: id^2.0 label^2.0
+boost_weights: id^2.0 label^2.0
+result_weights: label^2.0 id^1.0
 fields:
   # - id: document_category
   #   description: The category of the document in the Solr index.

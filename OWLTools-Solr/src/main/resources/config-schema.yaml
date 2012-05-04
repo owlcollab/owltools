@@ -21,7 +21,13 @@ mapping:
   "weight":
     type: int
     required: no
-  "default_fields_and_boosts":
+  "boost_weights":
+    type: str
+    required: no
+  "filter_weights":
+    type: str
+    required: no
+  "result_weights":
     type: str
     required: no
   "searchable_extension":
@@ -53,9 +59,6 @@ mapping:
           "property":
             type: str
             required: yes
-          "weight":
-            type: int
-            required: no
           "transform":
             type: seq
             required: no
