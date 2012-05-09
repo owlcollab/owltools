@@ -141,6 +141,12 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				if (tlabel != null) {
 					annotation_doc.addField("isa_partof_label_closure", tlabel);
 					addFieldUnique(bioentity_doc, "isa_partof_label_closure", tlabel);
+				}else{
+					// For the time being at least, I want to ensure that the id and label clsures
+					// mirror eachother as much as possible (for facets and mapping, etc.). Without
+					// this, in some cases there is simply nothing returned to drill on.
+					annotation_doc.addField("isa_partof_label_closure", tid);
+					addFieldUnique(bioentity_doc, "isa_partof_label_closure", tid);
 				}
 
 				// Annotation evidence aggregate base.
