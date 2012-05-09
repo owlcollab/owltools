@@ -1,0 +1,109 @@
+ontology: test
+remark: The contents of this document are valid obo-format.
+remark: However, they contain a mixture of bad practice and patterns that are discouraged within certain ontologies.
+remark: Oort should provide a list of warnings by default. It should also be configurable such that it fails if certain types of check are violated.
+
+[Term]
+id: X:1
+comment: term has no name! This is valid obo format, but Oort should by default ensure that every term has a name
+
+[Term]
+id: X:2
+name: obsolete test
+is_obsolete: true
+is_a: X:1
+comment: obsolete classes should have no logical axioms. this is an obo-format structure violation
+
+[Term]
+id: X:2b
+name: obsolete ref test
+is_a: X:2
+comment: no longical axiom should ever point to an obsolete class
+
+[Term]
+id: X:3
+name: non-existent relation
+relationship: non_existent_relation X:1
+comment: Optionally Oort should check all relations used should be declared (no dangling relations)
+
+[Term]
+id: X:4
+name: dangling
+relationship: part_of NONEXISTENT:1
+comment: Optionally Oort should check there are no dangling classes in the release file (apart from no-src)
+
+[Term]
+id: X:5
+name: isa-orphan
+relationship: part_of X:1
+comment: Optionally Oort should check that every class that has some logical axiom has a named superclass (i.e. must have is_a or intersection_of tags)
+
+[Term]
+id: X:6
+name: dual-genus
+intersection_of: X:1
+intersection_of: X:4
+comment: Valid obo-format, but a discouraged pattern for obo-format ontologies
+
+[Term]
+id: X:7
+name: no genus
+intersection_of: part_of X:1
+intersection_of: part_of X:4
+comment: Valid obo-format, but a discouraged pattern for obo-format ontologies
+
+[Term]
+id: X:8
+name: dupe
+comment: valid obo-format but bad practice
+
+[Term]
+id: X:9
+name: dupe
+comment: valid obo-format but bad practice
+
+[Term]
+id: X:10
+name: dupe def 1
+def: "abc def." []
+comment: valid obo-format but bad practice
+
+[Term]
+id: X:11
+name: dupe def 2
+def: "abc def." []
+comment: valid obo-format but bad practice
+
+[Term]
+id: X:12
+name: dupe exact syn 1
+synonym: "DUPE" EXACT []
+comment: valid obo-format but discouraged for some ontologies
+
+[Term]
+id: X:13
+name: dupe exact syn 2
+synonym: "DUPE" EXACT []
+comment: valid obo-format but discouraged for some ontologies
+
+[Typedef]
+id: part_of
+name: part of
+xref: BFO:0000050
+
+[Typedef]
+id: unusued_relation
+comment: optionally Oort should check all relations declared are used in some axiom
+
+[Typedef]
+id: used_relation1
+holds_over_chain: used_relation2 used_relation3
+comment: This relation is not used itself, but forms a clique of relations. Only cliques of 1 are discouraged.
+
+[Typedef]
+id: used_relation2
+comment: This relation is used (by other relations)
+
+[Typedef]
+id: used_relation3
+comment: This relation is used (by other relations)
