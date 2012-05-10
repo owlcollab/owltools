@@ -236,6 +236,35 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// Doc load.
 		loadGAFDoc(url, gafdoc);
 	}
+		
+	/**
+	 * Used for loading a list of GPAD pairs into GOlr.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-load-gpads")
+	public void loadGPADsSolr(Opts opts) throws Exception {
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);
+
+		List<String> files = opts.nextList();
+		if( files.size() % 2 != 0 ){
+			System.err.println("GPAD format comes in pairs; skipping...");
+		}else{
+			while( ! files.isEmpty() ){
+				String car = files.remove(0);
+				String cdr = files.remove(0);
+				LOG.info("Parsing GPAD car: " + car);
+				LOG.info("Parsing GPAD cdr: " + cdr);
+				// TODO: a new buildDocument that takes the two GPAD arguments.
+				//GafObjectsBuilder builder = new GafObjectsBuilder();
+				//gafdoc = builder.buildDocument(car, cdr);
+				//loadGAFDoc(url, gafdoc);
+			}
+		}
+	}
+
 	
 	/*
 	 * Convert all solr URL handling through here.
