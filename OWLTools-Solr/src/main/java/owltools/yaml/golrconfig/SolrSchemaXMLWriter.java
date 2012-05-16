@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -22,6 +24,38 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 		config = aconfig;
 	}
 	
+	/**
+	 * Automatically add fields to the schema depending on qualities in the current GOlrField.
+	 * 
+	 * @param GOlrField
+	 * @param xml
+	 * @throws XMLStreamException
+	 */
+	private void generateAutomaticFields(GOlrField field, XMLStreamWriter xml) throws XMLStreamException{
+
+		// Detect whether we need to automatically add _label_closure mapping information.
+		Pattern p = Pattern.compile("(.*)_label_closure$");
+		Matcher fmatch = p.matcher(field.id);
+		if( fmatch.matches() ){
+			
+			// A map for:
+			String baseName = fmatch.group(1);
+			
+			// NOTE: See comments below.
+			xml.writeComment(" Automatically created to capture mapping information ");
+			xml.writeComment(" between " + baseName + " and " + baseName + "_label_closure.");
+			xml.writeComment(" It is not indexed for searching, but may be useful to the client. ");
+			xml.writeStartElement("field"); // <field>
+			xml.writeAttribute("name", baseName + "_map");
+			xml.writeAttribute("type", "string");
+			xml.writeAttribute("required", "false");
+			xml.writeAttribute("multiValued", "false");
+			xml.writeAttribute("indexed", "false");
+			xml.writeAttribute("stored", "true");
+			xml.writeEndElement(); // </field>
+		}
+	}
+
 	/**
 	 * Just dump out the fields of our various lists.
 	 * 
@@ -97,6 +131,9 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 				xml.writeAttribute("dest", munged_id);
 				xml.writeEndElement(); // </copyField>
 			}
+			
+			// Add any automatically generated fields if necessary.
+			generateAutomaticFields(field, xml);
 		}
 	}
 	
