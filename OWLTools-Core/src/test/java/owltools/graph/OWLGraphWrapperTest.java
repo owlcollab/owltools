@@ -12,12 +12,15 @@ import org.junit.Test;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper.ISynonym;
+import owltools.graph.shunt.OWLShuntGraph;
 
 public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 

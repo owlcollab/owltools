@@ -9,12 +9,6 @@ weight: 30
 boost_weights: id^2.0 label^2.0
 result_weights: label^2.0 id^1.0
 fields:
-  # - id: document_category
-  #   description: The category of the document in the Solr index.
-  #   display_name: Category
-  #   type: string
-  #   property_type: fixed
-  #   property: bioentity
   - id: id
     description: Bioentity id.
     display_name: Acc

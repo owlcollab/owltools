@@ -70,6 +70,9 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
+import owltools.graph.shunt.OWLShuntEdge;
+import owltools.graph.shunt.OWLShuntGraph;
+import owltools.graph.shunt.OWLShuntNode;
 import owltools.profile.Profiler;
 
 /**
@@ -1338,6 +1341,92 @@ public class OWLGraphWrapper {
 		return ancs;
 	}
 
+	/**
+	 * Gets all ancestors and direct descendents (distance == 1) that are OWLNamedObjects.
+	 * i.e. excludes anonymous class expressions
+	 * 
+	 * TODO: we're current just doing distance == 1 both up and down
+	 * TODO: a work in progress
+	 * TODO: no distinction in relation types here--we lie to is_a
+	 * 
+	 * @param x
+	 * @return set of named ancestors and direct descendents
+	 */
+	public OWLShuntGraph getSegmentShuntGraph(OWLObject x) {
+
+		// Collection depot.
+		OWLShuntGraph graphSegment = new OWLShuntGraph();
+
+		// Add this node.
+		String topicID = getIdentifier(x);
+		String topicLabel = getLabel(x);
+		OWLShuntNode tn = new OWLShuntNode(topicID, topicLabel);
+		graphSegment.addNode(tn);
+
+		// Next, get all of the named ancestors and add them to our shunt graph.
+		// TODO: we're currently just doing distance == 1.
+		// We need some traversal code going up!
+		for (OWLGraphEdge e : getOutgoingEdges(x)) {
+			//if( e.getDistance() == 1 ){
+				OWLObject t = e.getTarget();
+				if (t instanceof OWLNamedObject){				
+				
+					String objectID = getIdentifier(t);
+					String objectLabel = getLabel(t);
+
+					// Add node.
+					OWLShuntNode sn = new OWLShuntNode(objectID, objectLabel);
+					graphSegment.addNode(sn);
+
+					//Add edge.
+					OWLShuntEdge se = new OWLShuntEdge(topicID, objectID);
+					graphSegment.addEdge(se);
+				}
+			//}
+		}
+
+		// Next, get all of the immediate descendents.
+		// Yes, this could be done more efficiently by reworking 
+		// getIncomingEdgesClosure for our case, but I'm heading towards
+		// proof on concept right now; optimization later.
+		// Basically, toss anything that is not of distance 1--we already got
+		// reflexive above.
+		for (OWLGraphEdge e : getIncomingEdges(x)) {
+			//if( e.getDistance() == 1 ){
+				OWLObject t = e.getSource();
+				if( t instanceof OWLNamedObject ){
+					
+					String subjectID = getIdentifier(t);
+					String subjectLabel = getLabel(t);
+
+					// Add node.
+					OWLShuntNode sn = new OWLShuntNode(subjectID, subjectLabel);
+					graphSegment.addNode(sn);
+
+					//Add edge.
+					OWLShuntEdge se = new OWLShuntEdge(subjectID, topicID);
+					graphSegment.addEdge(se);
+				}
+			//}
+		}	
+//		
+		return graphSegment;
+	}
+
+	/**
+	 * Return a JSONized version of the output of getSegmentShuntGraph
+	 *
+	 * @param x
+	 * @return String representing part of the OWL graph
+	 */
+	public String getSegmentShuntGraphJSON(OWLObject x) {
+
+		// Collection depot.
+		OWLShuntGraph graphSegment = getSegmentShuntGraph(x);
+		
+		return graphSegment.toJSON();
+	}
+	
 	/**
 	 * gets all descendants d of x, where d is reachable by any path. Excludes self
 	 * 

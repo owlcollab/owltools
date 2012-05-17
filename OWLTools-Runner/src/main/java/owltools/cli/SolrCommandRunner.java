@@ -1,5 +1,6 @@
 package owltools.cli;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
@@ -10,10 +11,19 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.graph.OWLGraphWrapper;
+import owltools.graph.shunt.OWLShuntEdge;
+import owltools.graph.shunt.OWLShuntGraph;
+import owltools.graph.shunt.OWLShuntNode;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
@@ -265,7 +275,53 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		}
 	}
 
-	
+	/**
+	 * Used for generating output for units tests in other languages.
+	 * Output some JSON graph serializations.
+	 * 
+	 * NOTE: In order to cut down on clutter, this method depends on relative
+	 * resources in the test/resources. This may change later on--be warned.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-shunt-test")
+	public void dumpShuntGraphs(Opts opts) throws Exception {
+
+		File here = new File(".");
+		String here_str = null;
+		try {
+			here_str = here.getCanonicalPath();
+		} catch (IOException e) {
+			LOG.warn("Apparently, no \"here\" to be had...");
+			e.printStackTrace();
+		}
+		LOG.warn("NOTE: In order to cut down on clutter, this method depends on relative ("+ here_str +") resources in the test/resources. This may change later on--be warned.");
+
+		// A trivial output.
+		OWLShuntGraph g1 = new OWLShuntGraph();
+		g1.addNode(new OWLShuntNode("a", "A"));
+		g1.addNode(new OWLShuntNode("b", "B"));
+		g1.addEdge(new OWLShuntEdge("a", "b"));
+		System.out.println(g1.toJSON());
+
+		// TODO: A more realistic output (the segement graph is still partial).
+		OWLGraphWrapper wrapper = getOntologyWrapper("go.owl");		
+		OWLObject c = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "GO_0022008");
+		OWLShuntGraph g2 = wrapper.getSegmentShuntGraph(c);
+		System.out.println(g2.toJSON());
+	}
+	private OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException{
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(getTestResource(file));
+		return new OWLGraphWrapper(ontology);
+	}
+	private File getTestResource(String name) {
+		// TODO: Replace this with a mechanism not relying on the relative path--see above
+		File file = new File("../OWLTools-Core/src/test/resources/" + name);
+		return file;
+	}
+
 	/*
 	 * Convert all solr URL handling through here.
 	 */

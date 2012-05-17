@@ -67,3 +67,6 @@ mapping:
           "searchable":
             type: bool
             required: no
+          "indexed":
+            type: bool
+            required: no

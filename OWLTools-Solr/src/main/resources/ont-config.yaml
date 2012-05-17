@@ -9,12 +9,6 @@ weight: 40
 boost_weights: id^2.0 label^2.0 description^1.0 comment^0.5 synonym^1.0 alternate_id^1.0
 result_weights: label^10.0 id^8.0 description^6.0 source^4.0 synonym^3.0 alternate_id^2.0 comment^1.0
 fields:
-  # - id: document_category
-  #   description: The category of the document in the Solr index.
-  #   display_name: Category
-  #   type: string
-  #   property_type: fixed
-  #   property: ontology_class
   - id: id
     description: Term acc/id.
     display_name: Acc
@@ -85,8 +79,9 @@ fields:
     type: string
     property: getDefXref
     cardinality: multi
-#  - id: json
-#    description: JSON blob.
-#    display_name: JSON
-#    type: string
-#    property: ???
+  - id: graph
+    description: JSON blob form of the local graph.
+    display_name: This should not be displayed
+    type: string
+    property: getSegmentShuntGraphJSON
+    indexed: false

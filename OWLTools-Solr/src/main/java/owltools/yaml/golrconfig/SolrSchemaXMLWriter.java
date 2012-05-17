@@ -89,6 +89,7 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 			if( field.cardinality.equals("single") ){
 				f_multi = "false";
 			}
+			String f_indexed = field.indexed;
 			
 			// Write out the "main" field declaration.
 			xml.writeStartElement("field");
@@ -97,8 +98,8 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 			xml.writeAttribute("type", f_type);
 			xml.writeAttribute("required", f_required);
 			xml.writeAttribute("multiValued", f_multi);
-			// Invariants: we'll always store and index.
-			xml.writeAttribute("indexed", "true");
+			xml.writeAttribute("indexed", f_indexed);
+			// Invariants: we'll always store.
 			xml.writeAttribute("stored", "true");
 			// Done.
 			xml.writeEndElement(); // </field>

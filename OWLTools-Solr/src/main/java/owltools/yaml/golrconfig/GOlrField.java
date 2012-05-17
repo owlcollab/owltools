@@ -18,6 +18,7 @@ public class GOlrField {
 	public String result_weights;
 	public String filter_weights;
 	public String searchable;
+	public String indexed;
 	// The processing steps to apply to that property--not yet used
 	public ArrayList<String> transform;
 
@@ -29,6 +30,7 @@ public class GOlrField {
 		result_weights = "";
 		filter_weights = "";
 		searchable = "false";
+		indexed = "true";
 		
 		// There are no default transformations to make.
 		transform = new ArrayList<String>();
