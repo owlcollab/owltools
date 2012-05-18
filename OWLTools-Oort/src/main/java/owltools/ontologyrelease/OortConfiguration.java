@@ -59,7 +59,7 @@ public class OortConfiguration {
 	private boolean forceRelease = false;
 	private boolean autoDetectBridgingOntology = true;
 	private boolean removeDanglingBeforeReasoning = false;
-	private boolean addSupportFromImports = true; // TODO
+	private boolean addSupportFromImports = false;
 	private List<String> bridgeOntologies = new ArrayList<String>();
 	private List<String> toBeMergedOntologies = new ArrayList<String>(); // TODO
 	private Set<PropertyView> propertyViews = new HashSet<PropertyView>();

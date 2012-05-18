@@ -360,6 +360,17 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			parser.addIRIMapper(new CatalogXmlIRIMapper(catalogXML));
 		}
 		OWLGraphWrapper graph = parser.parseToOWLGraph(paths.get(0));
+		if (oortConfig.isAddSupportFromImports()) {
+			// add imports to support
+			graph.addSupportOntologiesFromImportsClosure();
+			
+			OWLOntology sourceOntology = graph.getSourceOntology();
+			Set<OWLImportsDeclaration> importsDeclarations = sourceOntology.getImportsDeclarations();
+			OWLOntologyManager manager = sourceOntology.getOWLOntologyManager();
+			for (OWLImportsDeclaration owlImportsDeclaration : importsDeclarations) {
+				manager.applyChange(new RemoveImport(sourceOntology, owlImportsDeclaration));
+			}
+		}
 		mooncat = new Mooncat(graph);
 		owlpp = new OWLPrettyPrinter(mooncat.getGraph());
 
