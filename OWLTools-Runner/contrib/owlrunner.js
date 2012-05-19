@@ -4,6 +4,7 @@ importPackage(Packages.org.semanticweb.owlapi.io);
 importPackage(Packages.owltools.cli);
 importPackage(Packages.owltools.io);
 importPackage(Packages.owltools.mooncat);
+importPackage(Packages.owltools.graph);
 importPackage(Packages.org.obolibrary.macro);
 importPackage(Packages.com.google.gson);
 
@@ -56,12 +57,12 @@ function o2j(owlObj) {
     return eval('('+gson.toJson(obj)+')');
 }
 
-function parseManx(String expr) {
+function parseManx(expr) {
     mst = new ManchesterSyntaxTool(g().getSourceOntology(), g().getSupportOntologySet(), true);
     return mst.parseManchesterExpression(expr);
 }
 
-function dlq(String expr) {
+function dlq(expr) {
     var x = parseManx(expr);
     return reasoner.getSubClasses( x, true ).getFlattened().toArray();
 }
@@ -76,10 +77,37 @@ function go(num) {
 function get(label) {
     return g().getOWLObjectByLabel(label);
 }
+function lookup(label) {
+    return g().getOWLObjectByLabel(label);
+}
 
 function getLabel(obj) {
     return g.getLabel(obj);
 }
+
+// ========================================
+// DATA FACTORY METHODS
+// ========================================
+
+function get_data_factory() {
+    return g().getDataFactory();
+}
+
+function someValuesFrom(p, filler) {
+    return get_data_factory().getOWLObjectSomeValuesFrom(p, filler);
+}
+
+function intersectionOf(xs) {
+    return get_data_factory().getOWLObjectIntersectionOf(xs);
+}
+
+function pairwiseIntersectionOf(xs) {
+    return get_data_factory().getOWLObjectIntersectionOf(xs);
+}
+
+// ========================================
+// GENERIC
+// ========================================
 
 function dumpSubsets(matchPrefix, iriPrefix, dir) {
     var pw = new ParserWrapper();
