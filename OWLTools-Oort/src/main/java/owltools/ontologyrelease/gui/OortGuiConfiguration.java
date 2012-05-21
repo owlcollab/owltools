@@ -20,5 +20,6 @@ public class OortGuiConfiguration extends OortConfiguration {
 		setSimple(true);
 		setExpandXrefs(false);
 		setBase(new File(FileUtils.getUserDirectory(),"OORT"));
+		setRecreateMireot(false);
 	}
 }

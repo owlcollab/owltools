@@ -104,7 +104,7 @@ public class OortGuiMainFrame extends JFrame {
 	private JTabbedPane getTabbedPane() {
 		if (tabbedPane == null) {
 			tabbedPane = new JTabbedPane();
-			addTab(tabbedPane, "Input/Output", getMainPanel(getAdvancedPanel()));
+			addTab(tabbedPane, "Input/Output", getMainPanel());
 			addTab(tabbedPane, "Advanced", getAdvancedPanel());
 			addTab(tabbedPane, "Query Ontology", getDynamicOntologyPanel());
 			addTab(tabbedPane, "Logs", getLogPanel());
@@ -227,6 +227,9 @@ public class OortGuiMainFrame extends JFrame {
 		// removeQueryOntologyReference
 		parameters.setRemoveQueryOntologyReference(dynamicOntologyPanel.removeQueryTermCheckBox.isSelected());
 		
+		// addSupportFromImports
+		parameters.setAddSupportFromImports(advancedPanel.addSupportFromImports.isSelected());
+		
 		// catalogXML
 		parameters.setCatalogXML(null);
 		String catalogXML = advancedPanel.catalogXMLField.getText();
@@ -295,12 +298,11 @@ public class OortGuiMainFrame extends JFrame {
 	/**
 	 * Retrieve main panel, create new if it not exists.
 	 * 
-	 * @param advancedPanel 
 	 * @return main panel
 	 */
-	private SizedJPanel getMainPanel(OortGuiAdvancedPanel advancedPanel) {
+	private SizedJPanel getMainPanel() {
 		if (mainPanel == null) {
-			mainPanel = new OortGuiMainPanel(this, parameters, advancedPanel);
+			mainPanel = new OortGuiMainPanel(this, parameters);
 		}
 		return mainPanel;
 	}

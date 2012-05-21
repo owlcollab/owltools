@@ -55,6 +55,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox writeOWX;
 	final JCheckBox writeOBO;
 	
+	final JCheckBox addSupportFromImports;
+	
 	final JCheckBox allowOverwrite;
 	
 	final JTextField catalogXMLField;
@@ -64,9 +66,6 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JRadioButton factppRadioButton;
 	final JRadioButton jcelRadioButton;
 	final JRadioButton elkRadioButton;
-
-	private List<JComponent> mireotCheckboxes;
-	private boolean defaultRecreateMireot;
 
 	private final Frame frame;
 	
@@ -81,7 +80,6 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		this.frame = frame;
 		
 		this.panel = new JPanel();
-		this.defaultRecreateMireot = oortConfiguration.isRecreateMireot();
 		
 		this.setLayout(new BorderLayout(1, 1));
 		JScrollPane scrollPane = new JScrollPane(panel);
@@ -101,6 +99,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		justifyAssertedSubclasses = new JCheckBox();
 		writeSubSets = new JCheckBox();
 		gafToOwl = new JCheckBox();
+		addSupportFromImports = new JCheckBox();
 		
 		writeOBO = new JCheckBox();
 		writeOWL = new JCheckBox();
@@ -184,13 +183,20 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 
 		addRowGap(panel, pos.nextRow(), 5);
 		
-		mireotCheckboxes = createFancyCheckBox(pos, "Recreate Mireot (advanced)", null, recreateMireot);
+		createFancyCheckBox(pos, "Remove Imports (advanced)", 
+				"<html><p>This option will remove the import statments form the ontology (in all formats).</p>" +
+				"<p>To avoid dangling links, use the 'Recreate Mireot' option to include the relevant <br>" +
+				"terms in the ontology.</p></html>", addSupportFromImports);
+		
 		addRowGap(panel, pos.nextRow(), 5);
-		mireotCheckboxes.addAll(createFancyCheckBox(pos, "Check and Repair Annotation Cardinalities", 
+		
+		createFancyCheckBox(pos, "Recreate Mireot (advanced)", null, recreateMireot);
+		addRowGap(panel, pos.nextRow(), 5);
+		
+		createFancyCheckBox(pos, "Check and Repair Annotation Cardinalities", 
 				"<html><p>This setting is only used during Mireot.</p>" +
 				"<p>After merging the ontologies, the ontology terms are <br>" +
-				"checked for violations (e.g., duplicate definition tags).</p></html>", repairAnnotationCardinality));
-		setMireotButtonsEnabled(false);
+				"checked for violations (e.g., duplicate definition tags).</p></html>", repairAnnotationCardinality);
 
 		addRowGap(panel, pos.nextRow(), 5);
 		
@@ -322,29 +328,6 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		this.allowOverwrite.setSelected(allowOverwrite);
 	}
 	
-	/**
-	 * Enable or disable the Mireot-options check box components.
-	 * 
-	 * @param enabled
-	 */
-	void setMireotButtonsEnabled(boolean enabled) {
-		boolean wasEnabled = recreateMireot.isEnabled();
-		for (JComponent jComponent : mireotCheckboxes) {
-			jComponent.setEnabled(enabled);
-		}
-		if (enabled) {
-			// if enabled set the default value
-			// but only if it wasn't enabled before 
-			if (!wasEnabled) {
-				recreateMireot.setSelected(defaultRecreateMireot);
-			}
-		}
-		else {
-			// If disabled remove, set current value to false
-			recreateMireot.setSelected(false);
-		}
-	}
-
 	void applyConfig(OortConfiguration configuration) {
 		
 		// options flags
@@ -352,14 +335,13 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		simpleCheckBox.setSelected(configuration.isSimple());
 		expandXrefsCheckBox.setSelected(configuration.isExpandXrefs());
 		allowOverwrite.setSelected(configuration.isAllowFileOverWrite());
-		boolean mireot = configuration.isRecreateMireot();
-		recreateMireot.setSelected(mireot);
-		defaultRecreateMireot = mireot;
+		recreateMireot.setSelected(configuration.isRecreateMireot());
 		expandShortcutRelations.setSelected(configuration.isExpandShortcutRelations());
 		writeELOntologyCheckBox.setSelected(configuration.isWriteELOntology());
 		justifyAssertedSubclasses.setSelected(configuration.isJustifyAssertedSubclasses());
 		writeSubSets.setSelected(configuration.isWriteSubsets());
 		gafToOwl.setSelected(configuration.isGafToOwl());
+		addSupportFromImports.setSelected(configuration.isAddSupportFromImports());
 		
 		Set<String> skipFormats = configuration.getSkipFormatSet();
 		writeOBO.setSelected(!skipFormats.contains("obo"));

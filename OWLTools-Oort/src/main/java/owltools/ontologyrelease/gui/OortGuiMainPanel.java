@@ -43,7 +43,6 @@ public class OortGuiMainPanel extends SizedJPanel {
 	private final static Logger LOGGER = Logger.getLogger(OortGuiMainPanel.class); 
 	
 	private final Frame frame;
-	private final OortGuiAdvancedPanel advancedPanel;
 	
 	private final JList inputSourcesJList;
 	final JTextField outputFolderTextField;
@@ -59,13 +58,11 @@ public class OortGuiMainPanel extends SizedJPanel {
 	 * 
 	 * @param frame
 	 * @param configuration 
-	 * @param advancedPanel
 	 */
-	public OortGuiMainPanel(Frame frame, OortConfiguration configuration, OortGuiAdvancedPanel advancedPanel)
+	public OortGuiMainPanel(Frame frame, OortConfiguration configuration)
 	{
 		super();
 		this.frame = frame;
-		this.advancedPanel = advancedPanel;
 
 		// create accessible fields
 		// add default values to these fields
@@ -243,9 +240,6 @@ public class OortGuiMainPanel extends SizedJPanel {
 			listModel.addElement(name);
 		}
 		inputSourcesJList.setModel(listModel);
-		
-		// enable the mireot option, when there is more than one file. 
-		advancedPanel.setMireotButtonsEnabled(sources.size() > 1);
 	}
 
 	/**
