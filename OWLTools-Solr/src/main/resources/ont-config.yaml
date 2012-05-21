@@ -79,6 +79,19 @@ fields:
     type: string
     property: getDefXref
     cardinality: multi
+  - id: isa_partof_closure
+    description: "Closure of ids/accs over isa and partof."
+    display_name: isa/partof closure (ids)
+    type: string
+    cardinality: multi
+    property: getIsaPartofIDClosure
+  - id: isa_partof_label_closure
+    description: "Closure of labels over isa and partof."
+    display_name: Is-a/Part-of closure (labels)
+    type: string
+    cardinality: multi
+    property: getIsaPartofLabelClosure
+    searchable: true
   - id: graph
     description: JSON blob form of the local graph.
     display_name: This should not be displayed

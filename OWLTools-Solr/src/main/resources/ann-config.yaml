@@ -72,13 +72,13 @@ fields:
 #     property: ???
   - id: isa_partof_closure
     description: "Closure of ids/accs over isa and partof."
-    display_name: isa/partof closure
+    display_name: isa/partof closure (ids)
     type: string
     cardinality: multi
     property: ???
   - id: isa_partof_label_closure
     description: "Closure of labels over isa and partof."
-    display_name: Is-a/Part-of closure (readable)
+    display_name: Is-a/Part-of closure (labels)
     type: string
     cardinality: multi
     property: ???

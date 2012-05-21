@@ -1,6 +1,7 @@
 package owltools.graph;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -2446,7 +2447,65 @@ public class OWLGraphWrapper {
 
 		return list;
 	}
+	
+	/**
+	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
+	 * Intended for GOlr loading.
+	 * 
+	 * @param c
+	 * @return list of is_partof_closure ids
+	 */
+	public Map<String,String> getIsaPartofClosureMap(OWLObject c){
 
+		Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
+
+		OWLObjectProperty p = getOWLObjectPropertyByIdentifier("BFO:0000050");
+		Set<OWLPropertyExpression> ps = Collections.singleton((OWLPropertyExpression)p);
+		Set<OWLObject> ancs = getAncestors(c, ps);
+		for (OWLObject t : ancs) {
+			if (! (t instanceof OWLClass)){
+				continue;
+			}
+			String tid = getIdentifier(t);
+			String tlabel = null;
+			if (t != null){
+				tlabel = getLabel(t);
+			}
+			if (tlabel != null) {
+				isa_partof_map.put(tid, tlabel);
+			}else{
+				isa_partof_map.put(tid, tid);
+			}
+		}
+
+		return isa_partof_map;
+	}
+
+	/**
+	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
+	 * Intended for GOlr loading.
+	 * 
+	 * @param c
+	 * @return list of is_partof_closure ids
+	 */
+	public List<String> getIsaPartofIDClosure(OWLObject c){
+		Map<String, String> foo = getIsaPartofClosureMap(c);
+		List<String> bar = new ArrayList<String>(foo.keySet());
+		return bar;
+	}
+
+	/**
+	 * Return a overlaps with getIsaPartofIDClosure and stuff in GafSolrDocumentLoader.
+	 * Intended for GOlr loading.
+	 * 
+	 * @param c
+	 * @return list of is_partof_closure labels
+	 */
+	public List<String> getIsaPartofLabelClosure(OWLObject c){
+		Map<String, String> foo = getIsaPartofClosureMap(c);
+		List<String> bar = new ArrayList<String>(foo.values());
+		return bar;
+	}
 
 	/**
 	 * Return the names of the asserted subClasses of the cls (Class) 
