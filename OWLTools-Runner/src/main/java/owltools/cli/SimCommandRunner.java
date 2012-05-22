@@ -27,6 +27,7 @@ import owltools.sim.SimEngine;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
+import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
 
 /**
  * Semantic similarity and information content.
@@ -284,14 +285,16 @@ public class SimCommandRunner extends SolrCommandRunner {
 			}
 		}
 		Set<OWLClassExpression> lcsh = new HashSet<OWLClassExpression>();
-		owlpp = new OWLPrettyPrinter(g);
+		owlpp = new OWLPrettyPrinter(g, new ManchesterOWLSyntaxOWLObjectRendererImpl());
 		owlpp.hideIds();
 		for (OWLObject a : objs1) {
 			for (OWLObject b : objs2) {
 				OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
 				if (lcs instanceof OWLAnonymousClassExpression) {
-					if (lcsh.contains(lcs))
+					if (lcsh.contains(lcs)) {
+						// already seen
 						continue;
+					}
 					lcsh.add(lcs);
 					String label = owlpp.render(lcs);
 					IRI iri = IRI.create("http://purl.obolibrary.org/obo/U_"+
@@ -306,7 +309,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 									g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
 									iri,
 									g.getDataFactory().getOWLLiteral(label)));
-					LOG.info("LCSX:"+owlpp.render(a)+" -vs- "+owlpp.render(b)+" = "+label);
+					System.out.println("LCSX:"+owlpp.render(a)+" -vs- "+owlpp.render(b)+" = \n "+label);
 					//LOG.info("  Adding:"+owlpp.render(ax));
 					LOG.info("  Adding:"+ax);
 

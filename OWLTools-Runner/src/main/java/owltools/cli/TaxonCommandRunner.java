@@ -27,7 +27,7 @@ public class TaxonCommandRunner extends GafCommandRunner {
 
 	@CLIMethod("--make-class-taxon-matrix")
 	public void makeClassTaxonMatrix(Opts opts) throws Exception {
-		opts.info("[-o OUTPUT-FILE] [--output OUTPUT-FILE] [--query-taxa QUERY_TAXA_ONTOLOGY_IRI] [TAXON ...]", 
+		opts.info("[-o|--output OUTPUT-FILE] [--query-taxa QUERY_TAXA_ONTOLOGY_IRI] [TAXON ...]", 
 				"Specifiy relevant taxa either as list or as separate taxon ontology (Load via an IRI)" +
 				"\nOptional parameter: OUTPUT-FILE (if not specified system out is used)" +
 				"\nHINT: To create a class taxon load first the ontology with merged taxa.");

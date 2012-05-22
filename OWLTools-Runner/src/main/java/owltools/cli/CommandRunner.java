@@ -39,6 +39,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
+import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
@@ -435,8 +436,13 @@ public class CommandRunner {
 				g = new OWLGraphWrapper(iri);
 			}
 			else if (opts.nextEq("--merge-import-closure") || opts.nextEq("--merge-imports-closure")) {
-				opts.info("", "All axioms from ontologies in import closure are copied into main ontology");
-				g.mergeImportClosure();
+				opts.info("[--ni]", "All axioms from ontologies in import closure are copied into main ontology");
+				boolean isRmImports = false;
+				if (opts.nextEq("--ni")) {
+					opts.info("", "removes imports declarations after merging");
+					isRmImports = true;
+				}
+				g.mergeImportClosure(isRmImports);
 			}
 			else if (opts.nextEq("--merge-support-ontologies")) {
 				for (OWLOntology ont : g.getSupportOntologySet())
@@ -447,9 +453,8 @@ public class CommandRunner {
 				opts.info("", "All ontologies in direct import are removed and added as support ontologies");
 				g.addSupportOntologiesFromImportsClosure();
 			}
-			else if (opts.nextEq("--add-imports-from-support")) {
-				// TODO
-				//g.addSupportOntologiesFromImportsClosure();
+			else if (opts.nextEq("--add-imports-from-support|--add-imports-from-supports")) {
+				g.addImportsFromSupportOntologies();
 			}
 			else if (opts.nextEq("-m") || opts.nextEq("--mcat")) {
 				catOntologies(opts);
@@ -873,6 +878,7 @@ public class CommandRunner {
 				opts.info("[-r reasonername] [--assert-implied] [--indirect]", "infer new relationships");
 				boolean isAssertImplied = false;
 				boolean isDirect = true;
+				boolean isShowUnsatisfiable = false;
 
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
@@ -884,6 +890,9 @@ public class CommandRunner {
 					else if (opts.nextEq("--indirect")) {
 						isDirect = false;
 					}
+					else if (opts.nextEq("-u|--list-unsatisfiable")) {
+						isShowUnsatisfiable = true;
+					}
 					else {
 						break;
 					}
@@ -894,6 +903,21 @@ public class CommandRunner {
 				if (reasoner == null) {
 					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
 				}
+				if (isShowUnsatisfiable) {
+					int n = 0;
+					// NOTE: 
+					for (OWLClass c : reasoner.getEquivalentClasses(g.getDataFactory().getOWLNothing())) {
+						if (g.getDataFactory().getOWLNothing().equals(c))
+							continue;
+						System.out.println("UNSAT: "+owlpp.render(c));
+						n++;
+					}
+					System.out.println("NUMBER_OF_UNSATISFIABLE_CLASSES: "+n);
+					if (n > 0) {
+						System.exit(1);
+					}
+				}
+
 				if (opts.hasOpts()) {
 					if (opts.nextEq("-i")) {
 						OWLClass qc = (OWLClass)resolveEntity(opts);
@@ -1520,6 +1544,26 @@ public class CommandRunner {
 				}
 				g.getManager().addAxioms(modOnt, modAxioms);
 				g.setSourceOntology(modOnt);
+			}
+			else if (opts.nextEq("--translate-disjoint-to-equivalent")) {
+				opts.info("", "adds (Xi and Xj  = Nothing) for every DisjointClasses(X1...Xn) where i<j<n");
+				for (OWLOntology ont : g.getAllOntologies()) {
+
+				for (OWLDisjointClassesAxiom dca : ont.getAxioms(AxiomType.DISJOINT_CLASSES, true)) {
+						for (OWLClassExpression ce1 : dca.getClassExpressions()) {
+							for (OWLClassExpression ce2 : dca.getClassExpressions()) {
+								if (ce1.compareTo(ce2) <= 0)
+									continue;
+								OWLEquivalentClassesAxiom eca = g.getDataFactory().getOWLEquivalentClassesAxiom(g.getDataFactory().getOWLNothing(),
+										g.getDataFactory().getOWLObjectIntersectionOf(ce1, ce2));
+								g.getManager().addAxiom(ont, eca);
+								// TODO - remove if requested
+							}
+						}
+						
+
+					}
+				}
 			}
 			else if (opts.nextEq("--build-property-view-ontology|--bpvo")) {
 				opts.info("[-p PROPERTY] [-o OUTFILE]", 
