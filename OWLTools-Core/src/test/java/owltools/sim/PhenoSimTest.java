@@ -66,6 +66,8 @@ public class PhenoSimTest extends AbstractSimEngineTest {
 	
 	protected void showLCS(OWLObject a, OWLObject b, String check) {
 		pp = new OWLPrettyPrinter(g);
+		pp.hideIds();
+		pp.noQuoteLabels();
 		//showClosure("a", a);
 		//showClosure("b", b);
 		OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);	

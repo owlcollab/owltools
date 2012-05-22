@@ -2,6 +2,8 @@ package owltools.graph;
 
 import static junit.framework.Assert.*;
 
+import java.util.Set;
+
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -153,6 +155,22 @@ public class GraphExclusionTest extends OWLToolsTestBasics {
 		}
 		assertTrue(okTrunk);
 		assertTrue(okChain);
+	}
+	
+	@Test
+	public void testReflexive() throws Exception {
+		OWLGraphWrapper  g =  getGraph("graph_exclusion_test.owl");
+		Config conf = g.getConfig();
+		OWLAnnotationProperty ap = (OWLAnnotationProperty) g.getOWLObjectByLabel("include me");
+		conf.includeAllWith(ap, g.getSourceOntology());
+		for (OWLQuantifiedProperty qp : conf.graphEdgeIncludeSet) {
+			System.out.println("  INCLUDE="+qp);
+		}
+		
+		OWLClass finger = g.getOWLClassByIdentifier("FOO:finger");
+		Set<OWLGraphEdge> edgesR = g.getCompleteEdgesBetween(finger, finger);
+		System.out.println("RE="+edgesR);
+		
 	}
 
 }
