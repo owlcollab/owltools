@@ -704,18 +704,30 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 							continue;
 						}
 						if (markedClasses != null) {
-							boolean usesMarkedAxiom = false;
-							Set<OWLEquivalentClassesAxiom> axioms = ont.getEquivalentClassesAxioms(subClass);
-							for (OWLEquivalentClassesAxiom equivalentClassesAxiom : axioms) {
+							boolean usesMarkedAxiomSubClass = false;
+							boolean usesMarkedAxiomSuperClass = false;
+							Set<OWLEquivalentClassesAxiom> subClassEqAxioms = ont.getEquivalentClassesAxioms(subClass);
+							for (OWLEquivalentClassesAxiom equivalentClassesAxiom : subClassEqAxioms) {
 								Set<OWLClass> classesInSignature = equivalentClassesAxiom.getClassesInSignature();
 								for (OWLClass owlClass : classesInSignature) {
 									if (markedClasses.contains(owlClass)) {
-										usesMarkedAxiom = true;
+										usesMarkedAxiomSubClass = true;
 										break;
 									}
 								}
 							}
-							if (usesMarkedAxiom) {
+							Set<OWLEquivalentClassesAxiom> superClassEqAxioms = ont.getEquivalentClassesAxioms(superClass);
+							for (OWLEquivalentClassesAxiom equivalentClassesAxiom : superClassEqAxioms) {
+								Set<OWLClass> classesInSignature = equivalentClassesAxiom.getClassesInSignature();
+								for (OWLClass owlClass : classesInSignature) {
+									if (markedClasses.contains(owlClass)) {
+										usesMarkedAxiomSuperClass = true;
+										break;
+									}
+								}
+							}
+							
+							if (!usesMarkedAxiomSubClass || !usesMarkedAxiomSuperClass) {
 								continue;
 							}
 						}
