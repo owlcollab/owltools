@@ -592,7 +592,11 @@ public class Mooncat {
 
 	/**
 	 * Removes any axiom from ont if that axiom contains a dangling
-	 * reference - i.e. a reference a class in another ontology
+	 * reference - i.e. a reference a class in another ontology.
+	 * 
+	 * TODO : replace equivalence axioms with weaker axioms;
+	 * e.g. if O contains X = A and R some B, and B is in O', then we
+	 * want to weaken to X SubClassOf A (and possibly X SubClassOf R some Thing)
 	 * 
 	 * @param ont
 	 */
@@ -603,6 +607,9 @@ public class Mooncat {
 		LOG.info("FINISHED Removing "+rmAxioms.size()+" dangling axioms");
 	}
 
+	/**
+	 * @see #removeDanglingAxioms(OWLOntology)
+	 */
 	public void removeDanglingAxioms() {
 		removeDanglingAxioms(getOntology());
 	}

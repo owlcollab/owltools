@@ -63,22 +63,7 @@ public abstract class AbstractClosureRenderer implements GraphRenderer {
 
 	public void render(OWLGraphWrapper g) {
 		graph = g;
-		prettyPrinter = new OWLPrettyPrinter(g);
-		g.getConfig().isCacheClosure = false;
-		int i = 0;
 		for (OWLObject obj : g.getAllOWLObjects()) {
-			if (i % 100 == 0) {
-				if (g.getConfig().isMonitorMemory) {
-					System.gc();
-					System.gc();
-					System.gc();
-					long tm = Runtime.getRuntime().totalMemory();
-					long fm = Runtime.getRuntime().freeMemory();
-					long mem = tm-fm;
-					System.err.println(i+" Memory total:"+tm+" free:"+fm+" diff:"+mem+" (bytes) diff:"+(mem/1000000)+" (mb)");
-				}
-			}
-			i++;
 			for (OWLGraphEdge e : g.getOutgoingEdgesClosure(obj)) {
 				render(e);
 			}

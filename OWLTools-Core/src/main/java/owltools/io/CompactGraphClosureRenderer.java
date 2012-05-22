@@ -35,24 +35,6 @@ public class CompactGraphClosureRenderer extends AbstractClosureRenderer impleme
 		super(file);
 	}
 
-	public void render(OWLGraphWrapper g) {
-		g.getConfig().isCacheClosure = false; // ensure fresh cache
-		int i = 0;
-		for (OWLObject obj : g.getAllOWLObjects()) {
-			if (!(obj instanceof OWLNamedObject)) {
-				return;
-			}
-
-			i++;
-			crender((OWLNamedObject) obj);
-			for (OWLGraphEdge e : g.getOutgoingEdgesClosure(obj)) {
-				render(e);
-			}
-			nl();
-		}
-		stream.close();
-	}
-
 	public void render(OWLGraphEdge e) {
 		if (!(e.getTarget() instanceof OWLNamedObject)) {
 			return;

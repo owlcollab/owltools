@@ -19,9 +19,18 @@ import owltools.graph.OWLQuantifiedProperty;
 
 public class OWLPrettyPrinter {
 	OWLGraphWrapper graph;
-	
+
 	OWLObjectRenderer renderer;
 	ShortFormProvider shortFormProvider;
+
+	public OWLPrettyPrinter(OWLGraphWrapper graph, OWLObjectRenderer r) {
+		super();
+		this.graph = graph;
+		shortFormProvider = new LabelProvider(graph);
+		renderer = r;
+		renderer.setShortFormProvider(shortFormProvider);
+	}
+
 
 	public OWLPrettyPrinter(OWLGraphWrapper graph) {
 		super();
@@ -29,13 +38,13 @@ public class OWLPrettyPrinter {
 		shortFormProvider = new LabelProvider(graph);
 		renderer = new SimpleRenderer();
 		renderer.setShortFormProvider(shortFormProvider);
-		
+
 	}
-	
+
 	public String render(OWLObject obj) {
 		return obj == null ? "-" : renderer.render(obj);
 	}
-	
+
 	public String renderId(String id) {
 		return render(graph.getOWLObjectByIdentifier(id));
 	}
@@ -44,7 +53,7 @@ public class OWLPrettyPrinter {
 	public String render(OWLAxiom a) {
 		return renderer.render(a);
 	}
-	
+
 	public String render(OWLGraphEdge edge) {
 		StringBuffer sb = new StringBuffer();
 		sb.append(render(edge.getSource())+ " [");
@@ -62,61 +71,81 @@ public class OWLPrettyPrinter {
 		return sb.toString();
 	}
 
-	
+
 	private Object render(OWLQuantifiedProperty qp) {
 		OWLObjectProperty p = qp.getProperty();
 		return (p== null ? "" : render(qp.getProperty())+" ")+qp.getQuantifier();
 	}
-	
+
 
 
 	public void print(OWLObject obj) {
 		print(render(obj));
 	}
-	
+
 	public void print(Set<OWLAxiom> axioms) {
 		for (OWLAxiom a : axioms) {
 			print(render(a));
 		}
 	}
-	
-	
+
+
 	public void print(String s) {
 		System.out.println(s);
 	}
-	
+
 	public void hideIds() {
 		((LabelProvider)shortFormProvider).hideIds = true;
 	}
-	
+	public void noQuoteLabels() {
+		((LabelProvider)shortFormProvider).quoteLabels = false;
+	}
+
 	public class LabelProvider implements ShortFormProvider  {
-		
+
 		OWLGraphWrapper graph;
 		boolean hideIds = false;
-		
+		boolean quoteLabels = true;
+
 
 		public LabelProvider(OWLGraphWrapper graph) {
 			super();
 			this.graph = graph;
 		}
 
+		
 		public String getShortForm(OWLEntity entity) {
+			String label = getLabelOrId(entity);
 			if (hideIds) {
-				return graph.getLabel(entity);
+				return label;
+			}
+			return getTruncatedId(entity) + " "+ label;
+		}
+
+		public String getLabelOrId(OWLEntity entity) {
+			String label = graph.getLabel(entity);
+			if (label == null) {
+				label = getTruncatedId(entity);
 			}
 			else {
-				String label = graph.getLabel(entity);
-				if (label == null)
-					return graph.getIdentifier(entity);
-				else
-					return graph.getIdentifier(entity) + " \""+ label + "\"";
+				if (quoteLabels) {
+					label = "'" + label +"'";
+				}
 			}
+			return label;
+		}
+		
+		public String getTruncatedId(OWLEntity entity) {
+			String id = graph.getIdentifier(entity);
+			id = id.replaceAll(".*#", "");
+			id = id.replaceAll(".*/", "");
+			return id;
 		}
 
 		public void dispose() {
-			
+
 		}
-		
+
 	}
 
 
