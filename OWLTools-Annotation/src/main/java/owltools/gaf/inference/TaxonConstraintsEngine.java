@@ -3,9 +3,14 @@ package owltools.gaf.inference;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -51,14 +56,52 @@ public class TaxonConstraintsEngine {
 		return isClassApplicable(c, testTax, testClsEdges, taxAncs);
 	}
 	
+	// we have already calculated the closure of edges from c
 	public boolean isClassApplicable(OWLClass c, OWLClass testTax, 
 			Set<OWLGraphEdge> testClsEdges, Set<OWLObject> taxAncs) {
 		boolean isInvalid = false;
 		for (OWLGraphEdge e : testClsEdges) {
 			if (isInvalid)
 				break;
-			for (OWLGraphEdge te : graph.getOutgoingEdges(e.getTarget())) {
+			OWLObject tgt = e.getTarget();
+			Set<OWLGraphEdge> nextEdges = graph.getOutgoingEdges(tgt);			
+			// never_in_taxon may also be encoded as an annotation assertion which is expanded to a disjointness axiom
+			if (tgt instanceof OWLEntity) {
+				for (OWLAnnotationAssertionAxiom aaa : graph.getSourceOntology().getAnnotationAssertionAxioms(((OWLEntity)tgt).getIRI())) {
+					String rid = graph.getIdentifier(aaa.getProperty());
+					if (rid.equals("RO:0002161")) {
+						if (taxAncs.contains(graph.getOWLClass(aaa.getValue()))) {
+							isInvalid = true;
+							LOG.info("invalid: <"+c+" "+testTax+"> reason:"+aaa);
+							break;
+						}
+					}
+				}
+			}
+			if (tgt instanceof OWLClass) {
+				for (OWLDisjointClassesAxiom dca : graph.getSourceOntology().getDisjointClassesAxioms((OWLClass) tgt)) {
+					for (OWLClassExpression ce : dca.getClassExpressionsMinus((OWLClass)tgt)) {
+						if (ce instanceof OWLObjectSomeValuesFrom) {
+							String rid = graph.getIdentifier(((OWLObjectSomeValuesFrom)ce).getProperty());
+							if (rid.equals("RO:0002162")) {
+								OWLClassExpression tc = ((OWLObjectSomeValuesFrom)ce).getFiller();
+								if (tc instanceof OWLClass &&
+										taxAncs.contains(graph.getOWLClass((OWLClass)tc))) {
+									isInvalid = true;
+									LOG.info("invalid: <"+c+" "+testTax+"> reason:"+dca);
+									break;
+								}
+							
+							}
+						}
+					}
+				}
+			}
+			
+			for (OWLGraphEdge te : nextEdges) {
 				OWLObjectProperty tp = te.getSingleQuantifiedProperty().getProperty();
+				
+				
 				if (tp != null) {
 					String tpl = graph.getLabel(tp);
 					String tpid = graph.getIdentifier(tp);
