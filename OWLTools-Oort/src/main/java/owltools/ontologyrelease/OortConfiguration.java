@@ -54,6 +54,7 @@ public class OortConfiguration {
 	private boolean writeMetadata = true;
 	private boolean writeSubsets = true;
 	private boolean justifyAssertedSubclasses = false;
+	private String justifyAssertedSubclassesFrom = null;
 	private Set<String> sourceOntologyPrefixes = null;
 	private boolean executeOntologyChecks = true;
 	private boolean forceRelease = false;
@@ -584,6 +585,20 @@ public class OortConfiguration {
 	 */
 	public void setRemoveQueryOntologyReference(boolean removeQueryOntologyReference) {
 		this.removeQueryOntologyReference = removeQueryOntologyReference;
+	}
+
+	/**
+	 * @return the justifyAssertedSubclassesFrom
+	 */
+	public String getJustifyAssertedSubclassesFrom() {
+		return justifyAssertedSubclassesFrom;
+	}
+
+	/**
+	 * @param justifyAssertedSubclassesFrom the justifyAssertedSubclassesFrom to set
+	 */
+	public void setJustifyAssertedSubclassesFrom(String justifyAssertedSubclassesFrom) {
+		this.justifyAssertedSubclassesFrom = justifyAssertedSubclassesFrom;
 	}
 
 	@Override

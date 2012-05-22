@@ -50,6 +50,8 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
+import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.InferenceBuilder;
@@ -242,6 +244,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			else if (opt.equals("--justify")) {
 				oortConfig.setJustifyAssertedSubclasses(true);
+			}
+			else if (opt.equals("--justify-from")) {
+				oortConfig.setJustifyAssertedSubclasses(true);
+				oortConfig.setJustifyAssertedSubclassesFrom(args[i]);
+				i++;
 			}
 			else if (opt.equals("--allow-equivalent-pairs")) {
 				oortConfig.setAllowEquivalentNamedClassPairs(true);
@@ -648,33 +655,73 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 			if (oortConfig.getReasonerName() != null) {
 				logger.info("Using reasoner to add/retract links in main ontology");
-				OWLDataFactory df = mooncat.getGraph().getDataFactory();
+				OWLGraphWrapper g = mooncat.getGraph();
+				OWLOntology ont = g.getSourceOntology();
+				OWLDataFactory df = g.getDataFactory();
 				Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
 				Set<RemoveAxiom> removedSubClassOfAxiomChanges = new HashSet<RemoveAxiom>();
-				infBuilder = new InferenceBuilder(mooncat.getGraph(), oortConfig.getReasonerName(), oortConfig.isEnforceEL());
+				infBuilder = new InferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL());
 
 				// optionally remove a subset of the axioms we want to attempt to recapitulate
 				if (oortConfig.isJustifyAssertedSubclasses()) {
-					logger.info("Removing asserted subclasses between defined class pairs");
-					for (OWLSubClassOfAxiom a : mooncat.getOntology().getAxioms(AxiomType.SUBCLASS_OF)) {
-						OWLClassExpression subc = a.getSubClass();
-						if (!(subc instanceof OWLClass)) {
+					String from = oortConfig.getJustifyAssertedSubclassesFrom();
+					final Set<OWLClass> markedClasses;
+					final OWLClass fromClass = from == null ? null: g.getOWLClassByIdentifier(from);
+					if (fromClass == null) {
+						logger.info("Removing asserted subclasses between defined class pairs");
+						markedClasses = null;
+					}
+					else {
+						OWLReasoner reasoner = infBuilder.getReasoner(ont);
+						NodeSet<OWLClass> nodeSet = reasoner.getSubClasses(fromClass, false);
+						
+						if (nodeSet == null || nodeSet.isEmpty() || nodeSet.isBottomSingleton()) {
+							logger.warn("No subclasses found for class: "+owlpp.render(fromClass));
+							markedClasses = Collections.singleton(fromClass);
+						}
+						else {
+							markedClasses = new HashSet<OWLClass>(nodeSet.getFlattened());
+							markedClasses.add(fromClass);
+						}
+						infBuilder.setReasoner(null); // reset reasoner
+					}
+					for (OWLSubClassOfAxiom a : ont.getAxioms(AxiomType.SUBCLASS_OF)) {
+						OWLClassExpression subClassExpression = a.getSubClass();
+						if (subClassExpression.isAnonymous()) {
 							continue;
 						}
-						OWLClassExpression supc = a.getSuperClass();
-						if (!(supc instanceof OWLClass)) {
+						OWLClassExpression superClassExpression = a.getSuperClass();
+						if (superClassExpression.isAnonymous()) {
 							continue;
 						}
-						if (((OWLClass)subc).getEquivalentClasses(mooncat.getOntology()).size() == 0) {
+						OWLClass subClass = subClassExpression.asOWLClass();
+						OWLClass superClass = superClassExpression.asOWLClass();
+						
+						if (subClass.getEquivalentClasses(ont).size() == 0) {
 							continue;
 						}
-						if (((OWLClass)supc).getEquivalentClasses(mooncat.getOntology()).size() == 0) {
+						if (superClass.getEquivalentClasses(ont).size() == 0) {
 							continue;
 						}
-						RemoveAxiom rmax = new RemoveAxiom(mooncat.getOntology(),a);
+						if (markedClasses != null) {
+							boolean usesMarkedAxiom = false;
+							Set<OWLEquivalentClassesAxiom> axioms = ont.getEquivalentClassesAxioms(subClass);
+							for (OWLEquivalentClassesAxiom equivalentClassesAxiom : axioms) {
+								Set<OWLClass> classesInSignature = equivalentClassesAxiom.getClassesInSignature();
+								for (OWLClass owlClass : classesInSignature) {
+									if (markedClasses.contains(owlClass)) {
+										usesMarkedAxiom = true;
+										break;
+									}
+								}
+							}
+							if (usesMarkedAxiom) {
+								continue;
+							}
+						}
+						RemoveAxiom rmax = new RemoveAxiom(ont, a);
 						removedSubClassOfAxiomChanges.add(rmax);
-						removedSubClassOfAxioms.add(df.getOWLSubClassOfAxiom(a.getSubClass(),
-								a.getSuperClass()));
+						removedSubClassOfAxioms.add(df.getOWLSubClassOfAxiom(a.getSubClass(), a.getSuperClass()));
 					}
 					for (RemoveAxiom rmax : removedSubClassOfAxiomChanges) {
 						mooncat.getManager().applyChange(rmax);
