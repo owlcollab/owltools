@@ -61,6 +61,7 @@ public class OortConfiguration {
 	private boolean autoDetectBridgingOntology = true;
 	private boolean removeDanglingBeforeReasoning = false;
 	private boolean addSupportFromImports = false;
+	private boolean addImportsFromSupports = false;
 	private List<String> bridgeOntologies = new ArrayList<String>();
 	private List<String> toBeMergedOntologies = new ArrayList<String>(); // TODO
 	private Set<PropertyView> propertyViews = new HashSet<PropertyView>();
@@ -372,6 +373,15 @@ public class OortConfiguration {
 
 	public void setAddSupportFromImports(boolean addSupportFromImports) {
 		this.addSupportFromImports = addSupportFromImports;
+	}
+
+	
+	public boolean isAddImportsFromSupports() {
+		return addImportsFromSupports;
+	}
+
+	public void setAddImportsFromSupports(boolean addImportsFromSupports) {
+		this.addImportsFromSupports = addImportsFromSupports;
 	}
 
 	/**

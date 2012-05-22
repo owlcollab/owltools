@@ -270,6 +270,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--add-support-from-imports")) {
 				oortConfig.setAddSupportFromImports(true);
 			}
+			else if (opt.equals("--add-imports-from-supports")) {
+				oortConfig.setAddImportsFromSupports(true);
+			}
 			else if (opt.equals("--skip-ontology-checks")) {
 				oortConfig.setExecuteOntologyChecks(false);
 			}
@@ -369,7 +372,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		OWLGraphWrapper graph = parser.parseToOWLGraph(paths.get(0));
 		if (oortConfig.isAddSupportFromImports()) {
 			// add imports to support
-			graph.addSupportOntologiesFromImportsClosure();
+			graph.addSupportOntologiesFromImportsClosure(true);
 			
 			OWLOntology sourceOntology = graph.getSourceOntology();
 			Set<OWLImportsDeclaration> importsDeclarations = sourceOntology.getImportsDeclarations();
@@ -378,6 +381,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				manager.applyChange(new RemoveImport(sourceOntology, owlImportsDeclaration));
 			}
 		}
+		if (oortConfig.isAddImportsFromSupports()) {
+			logger.info("Adding imports from supports");
+			graph.addImportsFromSupportOntologies();
+		}
+
 		mooncat = new Mooncat(graph);
 		owlpp = new OWLPrettyPrinter(mooncat.getGraph());
 
@@ -618,7 +626,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		//
 		// This is a mandatory step for checking GAFs, otherwise 
 		// the reasoner does not use the loaded support ontologies.
-		if ((oortConfig.isRecreateMireot() || oortConfig.isGafToOwl()) && !oortConfig.isUseQueryOntology()) {
+		if ((oortConfig.isRecreateMireot() || oortConfig.isGafToOwl()) && 
+				!oortConfig.isUseQueryOntology() &&
+				graph.getSupportOntologySet().size() > 0) {
 			logger.info("Number of dangling classes in source: "+mooncat.getDanglingClasses().size());
 			logger.info("Merging Ontologies (only has effect if multiple ontologies are specified)");
 			mooncat.mergeOntologies();
@@ -735,9 +745,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						removedSubClassOfAxiomChanges.add(rmax);
 						removedSubClassOfAxioms.add(df.getOWLSubClassOfAxiom(a.getSubClass(), a.getSuperClass()));
 					}
+					logger.info("Removing "+removedSubClassOfAxiomChanges.size()+" axioms");
 					for (RemoveAxiom rmax : removedSubClassOfAxiomChanges) {
 						mooncat.getManager().applyChange(rmax);
 					}
+					saveInAllFormats(ontologyId, "minimal", gciOntology);
 				}
 
 				logger.info("Creating inferences");				
@@ -839,7 +851,13 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					// TODO - in future do not remove axioms that are annotated
 					logger.info("Removing redundant axiom:"+ax+" // " + owlpp.render(ax));
 					reasonerReportLines.add("REDUNDANT\t"+owlpp.render(ax));
-					mooncat.getManager().applyChange(new RemoveAxiom(mooncat.getOntology(), ax));					
+					// note that the actual axiom in the ontology may be different, but with the same
+					// structure; i.e. with annotations
+					for (OWLAxiom axInOnt : mooncat.getOntology().getAxiomsIgnoreAnnotations(ax)) {
+						logger.info("  Actual axiom: "+axInOnt);
+						mooncat.getManager().applyChange(new RemoveAxiom(mooncat.getOntology(), axInOnt));	
+					}
+					
 				}
 
 				logger.info("Redundant axioms removed");
