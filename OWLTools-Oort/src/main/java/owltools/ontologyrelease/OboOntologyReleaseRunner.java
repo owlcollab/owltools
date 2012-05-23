@@ -791,12 +791,24 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					logger.info(rptLine);
 				}
 				if (oortConfig.isJustifyAssertedSubclasses()) {
+					OWLReasoner owlReasoner = infBuilder.getReasoner(ont);
 					for (OWLSubClassOfAxiom ax : removedSubClassOfAxioms) {
 						if (!axioms.contains(ax)) {
-							reasonerReportLines.add("EXITS, NOT-ENTAILED\t"+owlpp.render(ax));
-							// add it back.
-							//  note that we won't have entailments that came from this
-							mooncat.getManager().addAxiom(mooncat.getOntology(), ax);
+							OWLClassExpression superClass = ax.getSuperClass();
+							boolean entailed = false;
+							if (superClass.isAnonymous() == false) {
+								NodeSet<OWLClass> superClasses = owlReasoner.getSuperClasses(ax.getSubClass(), false);
+								entailed = superClasses.containsEntity(superClass.asOWLClass());
+							}
+							if (entailed) {
+								reasonerReportLines.add("EXITS, REDUNDANT\t"+owlpp.render(ax));
+							}
+							else {
+								reasonerReportLines.add("EXITS, NOT-ENTAILED\t"+owlpp.render(ax));
+								// add it back.
+								//  note that we won't have entailments that came from this
+								mooncat.getManager().addAxiom(mooncat.getOntology(), ax);
+							}
 						}
 					}
 				}
@@ -968,6 +980,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// ----------------------------------------
 
 		boolean success = commit(version);
+		
+		// clean up reasoner
+		if (infBuilder != null) {
+			infBuilder.dispose();
+		}
 		return success;
 	}
 

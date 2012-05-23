@@ -467,4 +467,14 @@ public class InferenceBuilder{
 		return null;
 	}
 
+	/**
+	 * Dispose the internal reasoner
+	 */
+	public synchronized void dispose() {
+		if (reasoner != null) {
+			reasoner.dispose();
+			reasoner = null;
+		}
+	}
+
 }
