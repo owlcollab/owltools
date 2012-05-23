@@ -1715,7 +1715,6 @@ public class CommandRunner {
 					OWLOntology ont = pw.parse(f);
 					if (g == null) {
 						g =	new OWLGraphWrapper(ont);
-						g.setManager(pw.getManager());
 					}
 					else {
 						System.out.println("adding support ont "+ont);
