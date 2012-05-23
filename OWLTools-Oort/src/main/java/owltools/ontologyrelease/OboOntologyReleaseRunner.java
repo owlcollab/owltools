@@ -381,10 +381,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				manager.applyChange(new RemoveImport(sourceOntology, owlImportsDeclaration));
 			}
 		}
-		if (oortConfig.isAddImportsFromSupports()) {
-			logger.info("Adding imports from supports");
-			graph.addImportsFromSupportOntologies();
-		}
 
 		mooncat = new Mooncat(graph);
 		owlpp = new OWLPrettyPrinter(mooncat.getGraph());
@@ -408,6 +404,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				mooncat.mergeIntoReferenceOntology(ont);
 			else
 				mooncat.addReferencedOntology(ont);
+		}
+		
+		if (oortConfig.isAddImportsFromSupports()) {
+			logger.info("Adding imports from supports");
+			graph.addImportsFromSupportOntologies();
 		}
 		
 		// load gafs
