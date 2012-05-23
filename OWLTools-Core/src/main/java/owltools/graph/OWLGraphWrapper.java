@@ -182,16 +182,31 @@ public class OWLGraphWrapper {
 		public Set<OWLQuantifiedProperty> graphEdgeExcludeSet = null;
 		public OWLClass excludeMetaClass = null;
 
-		public void excludeProperty(OWLObjectProperty p) {
+		/**
+		 * @param p
+		 * @param q
+		 */
+		public void excludeProperty(OWLObjectProperty p, Quantifier q) {
 			if (graphEdgeExcludeSet == null)
 				graphEdgeExcludeSet = new HashSet<OWLQuantifiedProperty>();
-			graphEdgeExcludeSet.add(new OWLQuantifiedProperty(p, Quantifier.SOME));
+			graphEdgeExcludeSet.add(new OWLQuantifiedProperty(p, q));
+		}
+
+		/**
+		 * @see #excludeProperty(OWLObjectProperty, Quantifier) - the default quantifier is some
+		 * @param p
+		 */
+		public void excludeProperty(OWLObjectProperty p) {
+			excludeProperty(p, Quantifier.SOME);
 		}
 
 		public void includeProperty(OWLObjectProperty p) {
+			includeProperty(p, Quantifier.SOME);
+		}
+		public void includeProperty(OWLObjectProperty p, Quantifier q) {
 			if (graphEdgeIncludeSet == null)
 				graphEdgeIncludeSet = new HashSet<OWLQuantifiedProperty>();
-			graphEdgeIncludeSet.add(new OWLQuantifiedProperty(p, Quantifier.SOME));
+			graphEdgeIncludeSet.add(new OWLQuantifiedProperty(p, q));
 		}
 
 		public void excludeAllWith(OWLAnnotationProperty ap, OWLOntology o) {
@@ -1103,7 +1118,7 @@ public class OWLGraphWrapper {
 		Set<OWLObject> ts = new HashSet<OWLObject>();
 		for (OWLGraphEdge e : getOutgoingEdgesClosure(s)) {
 			for (OWLGraphEdge se : getOWLGraphEdgeSubsumers(e)) {
-				ts.add(edgeToTargetExpression(e));
+				ts.add(edgeToTargetExpression(se));
 			}
 			ts.add(edgeToTargetExpression(e));
 		}

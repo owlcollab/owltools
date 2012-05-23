@@ -17,6 +17,7 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.Config;
+import owltools.graph.OWLQuantifiedProperty.Quantifier;
 
 public class Ancestors2Test extends OWLToolsTestBasics {
 
@@ -50,11 +51,16 @@ public class Ancestors2Test extends OWLToolsTestBasics {
 	public void testExclusion() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		Config cfg = g.getConfig();
-		cfg.excludeProperty(g.getDataFactory().getOWLObjectProperty(IRI.create("http://example.org#has")));
+		cfg.excludeProperty(g.getDataFactory().getOWLObjectProperty(IRI.create("http://example.org#has")),
+				null);
 		OWLObject obj = g.getOWLObject("http://example.org#o1");
 		OWLObject eye = g.getOWLObject("http://example.org#eye");
 		boolean ok = true;
+		for (OWLGraphEdge e : g.getOutgoingEdges(obj)) {
+			System.out.println("DIRECT EDGE:"+e);
+		}
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosureReflexive(obj)) {
+			//System.out.println("EDGE:"+e);
 			if (e.getTarget().equals(eye))
 				ok = false;
 		}
