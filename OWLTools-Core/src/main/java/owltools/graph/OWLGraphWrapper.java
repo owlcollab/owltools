@@ -2,6 +2,7 @@ package owltools.graph;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -71,6 +72,7 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
@@ -2613,10 +2615,10 @@ public class OWLGraphWrapper {
 	}
 
 	/**
-	 * It returns array of synonyms as encoded by OBO2OWL.
+	 * It returns list of synonyms as encoded by OBO2OWL.
 	 * 
 	 * @param c
-	 * @return list of synonyms
+	 * @return list of synonyms or null
 	 */
 	public List<ISynonym> getOBOSynonyms(OWLObject c) {
 		OWLEntity e;
@@ -2628,11 +2630,10 @@ public class OWLGraphWrapper {
 		}
 		List<ISynonym> synonyms = null;
 
-		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym));
 		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasExactSynonym));
-		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasNarrowSynonym));
 		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasRelatedSynonym));
-
+		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasNarrowSynonym));
+		synonyms = merge(synonyms, getOBOSynonyms(e, Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym));
 		return synonyms;
 	}
 
@@ -2648,7 +2649,7 @@ public class OWLGraphWrapper {
 		synonyms.addAll(list2);
 		return synonyms;
 	}
-
+	
 	/**
 	 * It returns String Listof synonyms.
 	 * 
@@ -2660,7 +2661,7 @@ public class OWLGraphWrapper {
 		List<String> synStrings = new ArrayList<String>();
 
 		// Term synonym gathering rather more irritating.
-		java.util.List<ISynonym> syns = getOBOSynonyms(c);
+		List<ISynonym> syns = getOBOSynonyms(c);
 		if( syns != null && ! syns.isEmpty() ){	
 			for( ISynonym s : syns ){
 				String synLabel = s.getLabel();
@@ -2679,11 +2680,78 @@ public class OWLGraphWrapper {
 	}
 
 	private List<ISynonym> getOBOSynonyms(OWLEntity e, Obo2OWLVocabulary vocabulary) {
+		// get all synonyms defined in the source ontology
+		Set<ISynonym> synonymSet = getOBOSynonyms(e, vocabulary, sourceOntology);
+		// iterate over import closure, as the OWL-API currently doesn't have a 
+		// method get annotations and its axioms from imported ontologies 
+		for(OWLOntology ont : sourceOntology.getImportsClosure()) {
+			synonymSet = merge(synonymSet, getOBOSynonyms(e, vocabulary, ont));
+		}
+		
+		// repeat for support ontologies
+		for(OWLOntology support : getSupportOntologySet()) {
+			synonymSet = merge(synonymSet, getOBOSynonyms(e, vocabulary, support));
+			for(OWLOntology ont : support.getImportsClosure()) {
+				synonymSet = merge(synonymSet, getOBOSynonyms(e, vocabulary, ont));
+			}
+		}
+		if (synonymSet == null || synonymSet.isEmpty()) {
+			return null;
+		}
+		
+		// sort the result alphabetical
+		List<ISynonym> synonyms = new ArrayList<ISynonym>(synonymSet);
+		Collections.sort(synonyms, new Comparator<ISynonym>() {
+
+			@Override
+			public int compare(ISynonym o1, ISynonym o2) {
+				int cmp = compareStrings(o1.getLabel(), o2.getLabel());
+				if (cmp == 0) {
+					cmp = compareStrings(o1.getScope(), o2.getScope());
+				}
+				if (cmp == 0) {
+					cmp = compareStrings(o1.getCategory(), o2.getCategory());
+				}
+				return cmp;
+			}
+			
+			private int compareStrings(String s1, String s2) {
+				int cmp = 0;
+				if (s1 != null) {
+					if (s2 == null) {
+						cmp = -1;
+					}
+					else {
+						cmp = s1.compareTo(s2);
+					}
+				}
+				else if (s2 != null) {
+					cmp = 1;
+				}
+				return cmp ;
+			}
+		});
+		return synonyms ;
+	}
+	
+	private <T> Set<T> merge(Set<T> set1, Set<T> set2) {
+		if (set1 == null || set1.isEmpty()) {
+			return set2;
+		}
+		if (set2 == null || set2.isEmpty()) {
+			return set1;
+		}
+		Set<T> synonyms = new HashSet<T>(set1);
+		synonyms.addAll(set2);
+		return synonyms;
+	}
+
+	private Set<ISynonym> getOBOSynonyms(OWLEntity e, Obo2OWLVocabulary vocabulary, OWLOntology ont) {
 		OWLAnnotationProperty property = getDataFactory().getOWLAnnotationProperty(vocabulary.getIRI());
-		Set<OWLAnnotation> anns = e.getAnnotations(sourceOntology, property);
-		Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms = e.getAnnotationAssertionAxioms(sourceOntology);
+		Set<OWLAnnotation> anns = e.getAnnotations(ont, property);
+		Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms = e.getAnnotationAssertionAxioms(ont);
 		if (anns != null && !anns.isEmpty()) {
-			ArrayList<ISynonym> list = new ArrayList<ISynonym>(anns.size());
+			Set<ISynonym> set = new HashSet<ISynonym>();
 			for (OWLAnnotation a : anns) {
 				if (a.getValue() instanceof OWLLiteral) {
 					OWLLiteral val = (OWLLiteral) a.getValue();
@@ -2691,12 +2759,12 @@ public class OWLGraphWrapper {
 					if (label != null && label.length() > 0) {
 						Set<String> xrefs = getOBOSynonymXrefs(annotationAssertionAxioms, val, property);
 						Synonym s = new Synonym(label, vocabulary.getMappedTag(), null, xrefs);
-						list.add(s);
+						set.add(s);
 					}
 				}
 			}
-			if (!list.isEmpty()) {
-				return list;
+			if (!set.isEmpty()) {
+				return set;
 			}
 		}
 		return null;
@@ -2776,22 +2844,22 @@ public class OWLGraphWrapper {
 			this.xrefs = xrefs;
 		}
 
-		//@Override
+		@Override
 		public String getLabel() {
 			return label;
 		}
 
-		//@Override
+		@Override
 		public String getScope() {
 			return scope;
 		}
 
-		//@Override
+		@Override
 		public String getCategory() {
 			return category;
 		}
 
-		//@Override
+		@Override
 		public Set<String> getXrefs() {
 			return xrefs;
 		}
@@ -2819,6 +2887,55 @@ public class OWLGraphWrapper {
 			}
 			builder.append("]");
 			return builder.toString();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((category == null) ? 0 : category.hashCode());
+			result = prime * result + ((label == null) ? 0 : label.hashCode());
+			result = prime * result + ((scope == null) ? 0 : scope.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (obj instanceof ISynonym == false) {
+				return false;
+			}
+			ISynonym other = (ISynonym) obj;
+			if (label == null) {
+				if (other.getLabel() != null) {
+					return false;
+				}
+			}
+			else if (!label.equals(other.getLabel())) {
+				return false;
+			}
+			if (scope == null) {
+				if (other.getScope() != null) {
+					return false;
+				}
+			}
+			else if (!scope.equals(other.getScope())) {
+				return false;
+			}
+			if (category == null) {
+				if (other.getCategory() != null) {
+					return false;
+				}
+			}
+			else if (!category.equals(other.getCategory())) {
+				return false;
+			}
+			return true;
 		}
 	}
 
