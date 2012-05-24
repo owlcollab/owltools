@@ -107,7 +107,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// Annotation document base.
 			annotation_doc.addField("document_category", "annotation");
 			annotation_doc.addField("id", eid + "_:_" + clsId); // TODO - make unique
-			annotation_doc.addField("bioentity_id", eid);
+			annotation_doc.addField("bioentity", eid);
 			annotation_doc.addField("bioentity_label", esym);
 			annotation_doc.addField("source", a.getAssignedBy());
 			annotation_doc.addField("date", a.getLastUpdateDate());
@@ -146,8 +146,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				annotation_doc.addField("isa_partof_closure", tid);
 				addFieldUnique(bioentity_doc, "isa_partof_closure", tid);
 				if (tlabel != null) {
-					annotation_doc.addField("isa_partof_label_closure", tlabel);
-					addFieldUnique(bioentity_doc, "isa_partof_label_closure", tlabel);
+					annotation_doc.addField("isa_partof_closure_label", tlabel);
+					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tlabel);
 					// Map both ways.
 					// TODO: collisions shouldn't be an issue here?
 					isa_partof_map.put(tid, tlabel);
@@ -156,8 +156,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					// For the time being at least, I want to ensure that the id and label closures
 					// mirror eachother as much as possible (for facets and mapping, etc.). Without
 					// this, in some cases there is simply nothing returned to drill on.
-					annotation_doc.addField("isa_partof_label_closure", tid);
-					addFieldUnique(bioentity_doc, "isa_partof_label_closure", tid);
+					annotation_doc.addField("isa_partof_closure_label", tid);
+					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tid);
 					// Map just the one way I guess--see above.
 					isa_partof_map.put(tid, tid);
 				}
@@ -173,7 +173,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					evAggDocMap.put(evAggId, ev_agg_doc);
 					ev_agg_doc.addField("id", evAggId);
 					ev_agg_doc.addField("document_category", "annotation_evidence_aggregate");
-					ev_agg_doc.addField("bioentity_id", eid);
+					ev_agg_doc.addField("bioentity", eid);
 					ev_agg_doc.addField("bioentity_label", esym);
 					ev_agg_doc.addField("annotation_class", tid);
 					ev_agg_doc.addField("annotation_class_label", tlabel);
@@ -209,7 +209,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				for (String field : fields) {
 					ad.addField(field+"_closure", tid);
 					if (tlabel != null)
-						ad.addField(field+"_label_closure", tlabel);
+						ad.addField(field+"_closure_label", tlabel);
 				}
 
 				// aggregate
@@ -225,7 +225,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					aggDocMap.put(aggId, aggDoc);
 					aggDoc.addField("id", aggId);
 					aggDoc.addField("document_category", "annotation_aggregate");
-					aggDoc.addField("bioentity_id", eid);
+					aggDoc.addField("bioentity", eid);
 					aggDoc.addField("bioentity_label", esym);
 					aggDoc.addField("annotation_class", tid);
 					aggDoc.addField("annotation_class_label", tlabel);
@@ -262,7 +262,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						String annExtID = graph.getIdentifier(t);
 						String annExtLabel = graph.getLabel(edge.getTarget());
 						annotation_doc.addField("annotation_extension_class_closure", annExtID);
-						annotation_doc.addField("annotation_extension_class_label_closure", annExtLabel);
+						annotation_doc.addField("annotation_extension_class_closure_label", annExtLabel);
 						ann_ext_map.put(annExtID, annExtLabel);
 						ann_ext_map.put(annExtLabel, annExtID);
 					}
@@ -272,11 +272,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// Compile maps.
 			if( ! isa_partof_map.isEmpty() ){
 				String jsonized_isa_partof_map = gson.toJson(isa_partof_map);
-				annotation_doc.addField("isa_partof_map", jsonized_isa_partof_map);
+				annotation_doc.addField("isa_partof_closure_map", jsonized_isa_partof_map);
 			}
 			if( ! ann_ext_map.isEmpty() ){
 				String jsonized_ann_ext_map = gson.toJson(ann_ext_map);
-				annotation_doc.addField("annotation_extension_class_map", jsonized_ann_ext_map);
+				annotation_doc.addField("annotation_extension_class_closure_map", jsonized_ann_ext_map);
 			}
 			
 			// Finally add doc.

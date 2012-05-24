@@ -34,7 +34,7 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 	private void generateAutomaticFields(GOlrField field, XMLStreamWriter xml) throws XMLStreamException{
 
 		// Detect whether we need to automatically add _label_closure mapping information.
-		Pattern p = Pattern.compile("(.*)_label_closure$");
+		Pattern p = Pattern.compile("(.*)_closure_label$");
 		Matcher fmatch = p.matcher(field.id);
 		if( fmatch.matches() ){
 			
@@ -43,10 +43,10 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 			
 			// NOTE: See comments below.
 			xml.writeComment(" Automatically created to capture mapping information ");
-			xml.writeComment(" between " + baseName + " and " + baseName + "_label_closure.");
+			xml.writeComment(" between " + baseName + "_closure and " + baseName + "_closure_label.");
 			xml.writeComment(" It is not indexed for searching, but may be useful to the client. ");
 			xml.writeStartElement("field"); // <field>
-			xml.writeAttribute("name", baseName + "_map");
+			xml.writeAttribute("name", baseName + "_closure_map");
 			xml.writeAttribute("type", "string");
 			xml.writeAttribute("required", "false");
 			xml.writeAttribute("multiValued", "false");

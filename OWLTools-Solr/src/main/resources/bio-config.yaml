@@ -10,7 +10,7 @@ boost_weights: id^2.0 label^2.0
 result_weights: label^2.0 id^1.0
 fields:
   - id: id
-    description: Bioentity id.
+    description: Bioentity ID.
     display_name: Acc
     type: string
     property: ???
@@ -30,7 +30,7 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: ???
-#   - id: type_label_closure
+#   - id: type_closure_label
 #     description: "Derived from c12 + SO."
 #     display_name: Type label closure
 #     type: string
@@ -53,7 +53,7 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: ???
-#   - id: taxon_label_closure
+#   - id: taxon_closure_label
 #     description: "Derived from C13 + ncbi_taxonomy.obo."
 #     display_name: Taxon label closure
 #     type: string
@@ -65,7 +65,7 @@ fields:
     type: string
     cardinality: multi
     property: ???
-  - id: isa_partof_label_closure
+  - id: isa_partof_closure_label
     description: "Closure of labels over isa and partof."
     display_name: isa/partof label closure
     type: string
@@ -78,7 +78,7 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: ???
-#   - id: regulates_label_closure
+#   - id: regulates_closure_label
 #     description: "Closure of labels over regulates."
 #     display_name: regulates label closure
 #     type: string
@@ -160,16 +160,6 @@ fields:
 #     display_name: Axiom
 #     type: string
 #     cardinality: multi
-#     property: ???
-#   - id: bioentity_id
-#     description: "Column 1 + columns 2."
-#     display_name: Bioentity id
-#     type: string
-#     property: ???
-#   - id: bioentity_label
-#     description: Column 3.
-#     display_name: Bioentity label
-#     type: string
 #     property: ???
 #   - id: bioentity_alternate_label
 #     description: Alternate label.
@@ -265,7 +255,7 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: ???
-#   - id: annotation_extension_class_label_closure
+#   - id: annotation_extension_class_closure_label
 #     description: ???
 #     display_name: Annotation extension class label closure
 #     type: string

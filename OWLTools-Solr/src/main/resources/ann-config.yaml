@@ -6,9 +6,9 @@ description: A description of annotations for GOlr and AmiGO.
 display_name: Annotations
 document_category: annotation
 weight: 20
-boost_weights: annotation_class^2.0 annotation_class_label^1.0 bioentity_id^2.0 bioentity_label^1.0 annotation_extension_class^2.0 annotation_extension_class_label^1.0
+boost_weights: annotation_class^2.0 annotation_class_label^1.0 bioentity^2.0 bioentity_label^1.0 annotation_extension_class^2.0 annotation_extension_class_label^1.0
 result_weights: annotation_class_label^9.0 evidence_type^8.0 bioentity_label^7.0 type^6.0 source^4.0 taxon_label^3.0 annotation_extension_class_label^1.0
-filter_weights: source^7.0 evidence_type^6.0 taxon^5.0 isa_partof_label_closure^4.0 annotation_extension_class^3.0
+filter_weights: source^7.0 evidence_type^6.0 taxon^5.0 isa_partof_closure_label^4.0 annotation_extension_class^3.0
 fields:
   - id: id
     description: A unique (and internal) combination of bioentity and ontology class.
@@ -41,7 +41,7 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: ???
-#   - id: type_label_closure
+#   - id: type_closure_label
 #     description: "Derived from c12 + SO."
 #     display_name: Type label closure
 #     type: string
@@ -64,7 +64,7 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: ???
-#   - id: taxon_label_closure
+#   - id: taxon_closure_label
 #     description: "Derived from C13 + ncbi_taxonomy.obo."
 #     display_name: Taxon label closure
 #     type: string
@@ -76,7 +76,7 @@ fields:
     type: string
     cardinality: multi
     property: ???
-  - id: isa_partof_label_closure
+  - id: isa_partof_closure_label
     description: "Closure of labels over isa and partof."
     display_name: Is-a/Part-of closure (labels)
     type: string
@@ -89,7 +89,7 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: ???
-#   - id: regulates_label_closure
+#   - id: regulates_closure_label
 #     description: "Closure of labels over regulates."
 #     display_name: regulates label closure
 #     type: string
@@ -167,9 +167,9 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: ???
-  - id: bioentity_id
+  - id: bioentity
     description: "Column 1 + columns 2."
-    display_name: Bioentity id
+    display_name: Bioentity ID
     type: string
     property: ???
   - id: bioentity_label
@@ -274,7 +274,7 @@ fields:
     type: string
     cardinality: multi
     property: ???
-  - id: annotation_extension_class_label_closure
+  - id: annotation_extension_class_closure_label
     description: ???
     display_name: Annotation extension class label closure
     type: string
