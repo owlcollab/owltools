@@ -32,6 +32,7 @@ import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderListener;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
@@ -45,10 +46,30 @@ import owltools.graph.OWLGraphWrapper;
 public class ParserWrapper {
 
 	private static Logger LOG = Logger.getLogger(ParserWrapper.class);
-	OWLOntologyManager manager = OWLManager.createOWLOntologyManager(); // persist?
+	OWLOntologyManager manager;
 	OBODoc obodoc;
+	
+	public ParserWrapper() {
+		manager = OWLManager.createOWLOntologyManager(); // persist?
+		OWLOntologyLoaderListener listener = new OWLOntologyLoaderListener() {
 
+			@Override
+			public void startedLoadingOntology(LoadingStartedEvent event) {
+				IRI id = event.getOntologyID().getOntologyIRI();
+				IRI source = event.getDocumentIRI();
+				LOG.info("Start loading ontology: "+id+" from: "+source);
+			}
 
+			@Override
+			public void finishedLoadingOntology(LoadingFinishedEvent event) {
+				IRI id = event.getOntologyID().getOntologyIRI();
+				IRI source = event.getDocumentIRI();
+				LOG.info("Finished loading ontology: "+id+" from: "+source);
+			}
+		};
+		manager.addOntologyLoaderListener(listener);
+	}
+	
 	public OWLOntologyManager getManager() {
 		return manager;
 	}
