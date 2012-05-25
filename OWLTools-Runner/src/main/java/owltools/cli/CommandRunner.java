@@ -523,7 +523,12 @@ public class CommandRunner {
 
 				}
 			}
+			else if (opts.nextEq("--translate-xrefs-to-equivs")) {
+				// TODO
+				//g.getXref(c);
+			}
 			else if (opts.nextEq("--rename-entity")) {
+				opts.info("OLD-IRI NEW-IRI", "used OWLEntityRenamer to switch IDs/IRIs");
 				OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
 				List<OWLOntologyChange> changes = oer.changeIRI(IRI.create(opts.nextOpt()),IRI.create(opts.nextOpt()));
 				g.getManager().applyChanges(changes);
@@ -1079,13 +1084,22 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--list-cycles")) {
+				boolean failOnCycle = false;
+				if (opts.nextEq("-f|--fail-on-cycle")) {
+					failOnCycle = true;
+				}
+				int n = 0;
 				for (OWLObject x : g.getAllOWLObjects()) {
 					for (OWLObject y : g.getAncestors(x)) {
 						if (g.getAncestors(y).contains(x)) {
 							System.out.println(x + " in-cycle-with "+y);
+							n++;
 						}
 					}
 				}
+				System.out.println("Number of cycles: "+n);
+				if (n > 0 && failOnCycle)
+					System.exit(1);
 			}
 			else if (opts.nextEq("-a|--ancestors")) {
 				opts.info("LABEL", "list edges in graph closure to root nodes");
@@ -1545,25 +1559,10 @@ public class CommandRunner {
 				g.getManager().addAxioms(modOnt, modAxioms);
 				g.setSourceOntology(modOnt);
 			}
-			else if (opts.nextEq("--translate-disjoint-to-equivalent")) {
+			else if (opts.nextEq("--translate-disjoint-to-equivalent|--translate-disjoints-to-equivalents")) {
 				opts.info("", "adds (Xi and Xj  = Nothing) for every DisjointClasses(X1...Xn) where i<j<n");
-				for (OWLOntology ont : g.getAllOntologies()) {
-
-				for (OWLDisjointClassesAxiom dca : ont.getAxioms(AxiomType.DISJOINT_CLASSES, true)) {
-						for (OWLClassExpression ce1 : dca.getClassExpressions()) {
-							for (OWLClassExpression ce2 : dca.getClassExpressions()) {
-								if (ce1.compareTo(ce2) <= 0)
-									continue;
-								OWLEquivalentClassesAxiom eca = g.getDataFactory().getOWLEquivalentClassesAxiom(g.getDataFactory().getOWLNothing(),
-										g.getDataFactory().getOWLObjectIntersectionOf(ce1, ce2));
-								g.getManager().addAxiom(ont, eca);
-								// TODO - remove if requested
-							}
-						}
-						
-
-					}
-				}
+				Mooncat m = new Mooncat(g);
+				m.translateDisjointsToEquivalents();
 			}
 			else if (opts.nextEq("--build-property-view-ontology|--bpvo")) {
 				opts.info("[-p PROPERTY] [-o OUTFILE]", 

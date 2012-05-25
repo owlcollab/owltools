@@ -62,6 +62,7 @@ public class OortConfiguration {
 	private boolean removeDanglingBeforeReasoning = false;
 	private boolean addSupportFromImports = false;
 	private boolean addImportsFromSupports = false;
+	private boolean translateDisjointsToEquivalents = false;
 	private List<String> bridgeOntologies = new ArrayList<String>();
 	private List<String> toBeMergedOntologies = new ArrayList<String>(); // TODO
 	private Set<PropertyView> propertyViews = new HashSet<PropertyView>();
@@ -382,6 +383,15 @@ public class OortConfiguration {
 
 	public void setAddImportsFromSupports(boolean addImportsFromSupports) {
 		this.addImportsFromSupports = addImportsFromSupports;
+	}
+	
+	public boolean isTranslateDisjointsToEquivalents() {
+		return translateDisjointsToEquivalents;
+	}
+
+	public void setTranslateDisjointsToEquivalents(
+			boolean translateDisjointsToEquivalents) {
+		this.translateDisjointsToEquivalents = translateDisjointsToEquivalents;
 	}
 
 	/**

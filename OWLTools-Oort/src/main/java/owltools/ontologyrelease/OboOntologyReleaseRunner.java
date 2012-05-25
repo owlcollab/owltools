@@ -273,6 +273,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--add-imports-from-supports")) {
 				oortConfig.setAddImportsFromSupports(true);
 			}
+			else if (opt.equals("--translate-disjoints-to-equivalents")) {
+				oortConfig.setTranslateDisjointsToEquivalents(true);
+			}
 			else if (opt.equals("--skip-ontology-checks")) {
 				oortConfig.setExecuteOntologyChecks(false);
 			}
@@ -554,7 +557,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 			// TODO - option to generate imports
 		}
-
+		
+		if (oortConfig.isTranslateDisjointsToEquivalents()) {
+			mooncat.translateDisjointsToEquivalents();
+		}
+			
 		// ----------------------------------------
 		// Asserted (non-classified)
 		// ----------------------------------------
