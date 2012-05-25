@@ -7,8 +7,8 @@ display_name: Annotations
 document_category: annotation
 weight: 20
 boost_weights: annotation_class^2.0 annotation_class_label^1.0 bioentity^2.0 bioentity_label^1.0 annotation_extension_class^2.0 annotation_extension_class_label^1.0
-result_weights: annotation_class_label^9.0 evidence_type^8.0 bioentity_label^7.0 type^6.0 source^4.0 taxon_label^3.0 annotation_extension_class_label^1.0
-filter_weights: source^7.0 evidence_type^6.0 taxon^5.0 isa_partof_closure_label^4.0 annotation_extension_class^3.0
+result_weights: annotation_class^9.0 evidence_type^8.0 bioentity^7.0 source^4.0 taxon_label^3.0 annotation_extension_class^1.0
+filter_weights: source^7.0 evidence_type^6.0 taxon_label^5.0 isa_partof_closure_label^4.0 annotation_extension_class_closure_label^3.0
 fields:
   - id: id
     description: A unique (and internal) combination of bioentity and ontology class.
@@ -263,7 +263,7 @@ fields:
     property: ???
   - id: annotation_extension_class_label
     description: ???
-    display_name: Annotation extension class label
+    display_name: Annotation extension class (labels)
     type: string
     cardinality: multi
     property: ???
@@ -276,7 +276,7 @@ fields:
     property: ???
   - id: annotation_extension_class_closure_label
     description: ???
-    display_name: Annotation extension class label closure
+    display_name: Annotation extension class closure (labels)
     type: string
     cardinality: multi
     property: ???
