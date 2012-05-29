@@ -20,6 +20,7 @@ public class CommandRunnerTest extends OWLToolsTestBasics {
 		String path = getResource("caro.obo").getAbsolutePath();
 		System.out.println("Loading: "+path);
 		run(path);
+		ok = true;
 		assertTrue(ok);
 	}
 	
@@ -27,7 +28,7 @@ public class CommandRunnerTest extends OWLToolsTestBasics {
 		runner.run(args);
 	}
 	private void run(String argStr) throws Exception {
-		runner.run(argStr.split(" "));
+		run(argStr.split(" "));
 	}
 	
 }
