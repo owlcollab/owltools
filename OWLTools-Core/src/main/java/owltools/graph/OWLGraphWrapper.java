@@ -3157,7 +3157,17 @@ public class OWLGraphWrapper {
 	 * @return {@link OWLClass}
 	 */
 	public OWLClass getOWLClass(OWLObject x) {
-		return getDataFactory().getOWLClass(((OWLNamedObject)x).getIRI());
+		IRI iri;
+		if (x instanceof IRI) {
+			iri = (IRI)x;
+		}
+		else if (x instanceof OWLNamedObject) {
+			iri = ((OWLNamedObject)x).getIRI();
+		}
+		else {
+			return null;
+		}
+		return getDataFactory().getOWLClass(iri);
 	}
 
 

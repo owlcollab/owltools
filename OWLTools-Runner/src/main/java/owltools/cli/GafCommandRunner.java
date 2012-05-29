@@ -30,6 +30,7 @@ import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
 import owltools.gaf.io.PseudoRdfXmlWriter;
+import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRulesEngine;
@@ -230,5 +231,26 @@ public class GafCommandRunner extends CommandRunner {
 		w.write(stream, g, Arrays.asList(gafdoc));
 		stream.close();
 	}
+	
+	@CLIMethod("--write-xgmml")
+	public void writeXgmml(Opts opts) throws IOException {
+		opts.info("OUTPUTFILE", "create an XGMML file in legacy format.");
+		if (g == null) {
+			System.err.println("ERROR: No ontology available.");
+			exit(-1);
+			return;
+		}
+		if (!opts.hasArgs()) {
+			System.err.println("ERROR: No output file available.");
+			exit(-1);
+			return;
+		}
+		String outputFileName = opts.nextOpt();
+		XgmmlWriter w = new XgmmlWriter();
+		OutputStream stream = new FileOutputStream(new File(outputFileName));
+		w.write(stream, g, Arrays.asList(gafdoc));
+		stream.close();
+	}
+
 
 }

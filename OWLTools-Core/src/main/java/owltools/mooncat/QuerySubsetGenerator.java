@@ -25,7 +25,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  * 
  */
 public class QuerySubsetGenerator {
-	
+
 	private static final Logger LOG = Logger.getLogger(QuerySubsetGenerator.class);
 
 	/**
@@ -49,7 +49,7 @@ public class QuerySubsetGenerator {
 				return;
 			}
 			createSubSet(targetGraph, subset, toMerge);
-			
+
 		} catch (ParserException e) {
 			LOG.error("Could not parse query: "+dlQueryString, e);
 			// TODO throw Exception?
@@ -60,7 +60,7 @@ public class QuerySubsetGenerator {
 			return;
 		}
 	}
-	
+
 	/**
 	 * Create a new sub ontology from a given DL query and source ontology. The
 	 * subset will be created in the target ontology.
@@ -101,10 +101,16 @@ public class QuerySubsetGenerator {
 	 * @throws OWLOntologyCreationException
 	 */
 	public void createSubSet(OWLGraphWrapper targetGraph, 
-			Set<OWLClass> subset, Set<OWLOntology> toMerge) throws OWLOntologyCreationException 
-	{
+			Set<OWLClass> subset, Set<OWLOntology> toMerge) throws OWLOntologyCreationException {
+		createSubSet(targetGraph, subset, toMerge, false, false);
+	}
+
+	public void createSubSet(OWLGraphWrapper targetGraph, 
+			Set<OWLClass> subset, Set<OWLOntology> toMerge, boolean isExcludeClosure,
+			boolean isRemoveDangling) throws OWLOntologyCreationException  {
+
 		OWLOntology targetOntology = targetGraph.getSourceOntology();
-		
+
 		// import axioms set
 		Set<OWLAxiom> importAxioms = new HashSet<OWLAxiom>();
 		for (OWLOntology mergeOntology : toMerge) {
@@ -112,7 +118,7 @@ public class QuerySubsetGenerator {
 				importAxioms.addAll(mergeOntology.getAxioms(cls));
 			}
 		}
-		
+
 		// remove merge imports
 		OWLOntologyManager targetManager = targetOntology.getOWLOntologyManager();
 		List<OWLOntologyChange> removeImports = new ArrayList<OWLOntologyChange>();
@@ -120,23 +126,30 @@ public class QuerySubsetGenerator {
 			removeImports.add(new RemoveImport(targetOntology, new OWLImportsDeclarationImpl(m.getOntologyID().getOntologyIRI())));
 		}
 		targetManager.applyChanges(removeImports);
-		
+
 		// add axiom set to target ontology.
 		targetManager.addAxioms(targetOntology, importAxioms);
-		
+
 		LOG.info("Start Mooncat for subset.");
 		Mooncat mooncat = new Mooncat(targetGraph);
 		for (OWLOntology ont : toMerge) {
 			mooncat.addReferencedOntology(ont);
 		}
-			
-		// create Closure
-		Set<OWLAxiom> axioms = mooncat.getClosureAxiomsOfExternalReferencedEntities();
-		mooncat.addSubAnnotationProperties(axioms);
-			
-		// add missing axioms
-		int count = targetManager.addAxioms(targetOntology, axioms).size();
-		LOG.info("Added "+count+" axioms to the query ontology");
+
+		if (!isExcludeClosure) {
+			// create Closure
+			Set<OWLAxiom> axioms = mooncat.getClosureAxiomsOfExternalReferencedEntities();
+			mooncat.addSubAnnotationProperties(axioms);
+
+			// add missing axioms
+			int count = targetManager.addAxioms(targetOntology, axioms).size();
+			LOG.info("Added "+count+" axioms to the query ontology");
+		}
+		
+		if (isRemoveDangling) {
+			mooncat.removeDanglingAxioms();
+		}
+
 		return;
 	}
 

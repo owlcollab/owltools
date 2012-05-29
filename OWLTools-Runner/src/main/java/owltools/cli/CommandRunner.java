@@ -136,6 +136,7 @@ public class CommandRunner {
 
 	public OWLReasoner reasoner = null;
 	public String reasonerName = "pellet";
+	public Set<OWLObject> owlObjectCachedSet = null;
 
 	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
 
@@ -707,11 +708,15 @@ public class CommandRunner {
 				boolean isDescendants = true;
 				boolean isAncestors = true;
 				boolean isExtended = false;
+				boolean isCache = false;
+				boolean isRemoveUnsatisfiable = false;
+				boolean isSubOntExcludeClosure = false;
 				String subOntologyIRI = null;
 				OWLClassExpression ce = null;
 
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
+						reasoner = null;
 						reasonerName = opts.nextOpt();
 						if (reasonerName.toLowerCase().equals("elk"))
 							isManifest = true;
@@ -733,7 +738,12 @@ public class CommandRunner {
 						isExtended = true;
 					}
 					else if (opts.nextEq("-c")) {
+						if (opts.nextEq("--exclude-closure"))
+							isSubOntExcludeClosure = true;
 						subOntologyIRI = opts.nextOpt();
+					}
+					else if (opts.nextEq("--cache")) {
+						isCache = true;
 					}
 					else if (opts.nextEq("-l")) {
 						ce = (OWLClassExpression) resolveEntity(opts);
@@ -786,21 +796,26 @@ public class CommandRunner {
 					if (isDescendants) {
 						for (OWLClass r : reasoner.getSubClasses(ce, false).getFlattened()) {
 							results.add(r);
-							System.out.println("D: "+owlpp.render(r));
+							if (!isCache)
+								System.out.println("D: "+owlpp.render(r));
 						}
 					}
 					if (isAncestors) {
 						if (isExtended) {
 							for (OWLClassExpression r : ((OWLExtendedReasoner) reasoner).getSuperClassExpressions(ce, false)) {
-								///results.add(r);
-								System.out.println("A:"+owlpp.render(r));
+								if (r instanceof OWLClass)
+									results.add((OWLClass) r);
+
+								if (!isCache)
+									System.out.println("A:"+owlpp.render(r));
 							}
 
 						}
 						else {
 							for (OWLClass r : reasoner.getSuperClasses(ce, false).getFlattened()) {
 								results.add(r);
-								System.out.println("A:"+owlpp.render(r));
+								if (!isCache)
+									System.out.println("A:"+owlpp.render(r));
 							}
 						}
 					}
@@ -815,7 +830,13 @@ public class CommandRunner {
 					parser.dispose();
 				}
 
+				if (owlObjectCachedSet == null)
+					owlObjectCachedSet = new HashSet<OWLObject>();
+				owlObjectCachedSet.addAll(results);
+
+				// ---
 				// Create a sub-ontology
+				// ---
 				if (subOntologyIRI != null) {
 					//g.mergeImportClosure();
 					QuerySubsetGenerator subsetGenerator = new QuerySubsetGenerator();
@@ -823,8 +844,50 @@ public class CommandRunner {
 					g.setSourceOntology(g.getManager().createOntology(IRI.create(subOntologyIRI)));
 					g.addSupportOntology(srcOnt);
 
-					subsetGenerator.createSubSet(g, results, g.getSupportOntologySet());
+					subsetGenerator.createSubSet(g, results, g.getSupportOntologySet(), isSubOntExcludeClosure, 
+							isSubOntExcludeClosure);
 				}
+			}
+			else if (opts.nextEq("--make-ontology-from-results")) {
+
+				String subOntologyIRI = opts.nextOpt();
+				Set<OWLAxiom> subsetAxioms = new HashSet<OWLAxiom>();
+				Set <OWLObjectProperty> objPropsUsed = new HashSet<OWLObjectProperty>();
+				for (OWLOntology mergeOntology : g.getAllOntologies()) {
+					for (OWLObject cls : owlObjectCachedSet) {
+						if (cls instanceof OWLClass) {
+							for (OWLAxiom ax : mergeOntology.getAxioms((OWLClass)cls)) {
+								boolean ok = true;
+								for (OWLClass refCls : ax.getClassesInSignature()) {
+									if (!owlObjectCachedSet.contains(refCls)) {
+										LOG.info("Skipping: "+ax);
+										ok = false;
+										break;
+									}
+								}
+								if (ok)
+									subsetAxioms.add(ax);
+							}
+							for (OWLAxiom ax : mergeOntology.getAnnotationAssertionAxioms(((OWLClass)cls).getIRI())) {
+								subsetAxioms.add(ax);
+							}
+						}
+						subsetAxioms.add(g.getDataFactory().getOWLDeclarationAxiom(((OWLClass)cls)));
+					}
+				}
+				for (OWLAxiom ax : subsetAxioms) {
+					objPropsUsed.addAll(ax.getObjectPropertiesInSignature());
+				}
+				for (OWLObjectProperty p : objPropsUsed) {
+					for (OWLOntology mergeOntology : g.getAllOntologies()) {
+						subsetAxioms.addAll(mergeOntology.getAxioms(p));
+						subsetAxioms.addAll(mergeOntology.getAnnotationAssertionAxioms(p.getIRI()));
+					}
+				}
+
+				OWLOntology subOnt = g.getManager().createOntology(IRI.create(subOntologyIRI));
+				g.getManager().addAxioms(subOnt, subsetAxioms);
+				g.setSourceOntology(subOnt);
 			}
 			else if (opts.nextEq("--reasoner-ask-all")) {
 				opts.info("[-r REASONERNAME] [-s] [-a] AXIOMTYPE", "list all inferred equivalent named class pairs");
