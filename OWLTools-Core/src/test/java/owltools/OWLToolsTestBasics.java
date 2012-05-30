@@ -36,7 +36,7 @@ public class OWLToolsTestBasics {
 		return IRI.create(file);
 	}
 	
-	protected OWLGraphWrapper getGraph(String filename) throws OWLOntologyCreationException, IOException {
+	protected static OWLGraphWrapper getGraph(String filename) throws OWLOntologyCreationException, IOException {
 		ParserWrapper pw = new ParserWrapper();
 		OWLOntology obodoc = pw.parse(getResource(filename).getAbsolutePath());
 		return new OWLGraphWrapper(obodoc);
