@@ -117,7 +117,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("reference", refId);
 			// TODO - ev. closure
 			annotation_doc.addField("evidence_type", a.getEvidenceCls());
-			annotation_doc.addField("evidence_with", a.getWithExpression());
+			//annotation_doc.addField("evidence_with", a.getWithExpression());
 
 			// Drag in "with" (col 8).
 			for (WithInfo wi : a.getWithInfos()) {

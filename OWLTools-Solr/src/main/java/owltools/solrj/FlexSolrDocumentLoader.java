@@ -1,50 +1,20 @@
 package owltools.solrj;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 
-import owltools.gaf.Bioentity;
-import owltools.gaf.ExtensionExpression;
-import owltools.gaf.GafDocument;
-import owltools.gaf.GeneAnnotation;
-import owltools.gaf.WithInfo;
-import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapper.ISynonym;
-import owltools.graph.OWLQuantifiedProperty;
 import owltools.yaml.golrconfig.ConfigManager;
-import owltools.yaml.golrconfig.GOlrConfig;
-import owltools.yaml.golrconfig.GOlrDynamicField;
 import owltools.yaml.golrconfig.GOlrField;
-import owltools.yaml.golrconfig.GOlrFixedField;
 
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 

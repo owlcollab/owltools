@@ -3,20 +3,17 @@ package owltools.yaml.golrconfig;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.log4j.Logger;
-
 import owltools.gaf.io.AbstractXmlWriter;
 
 public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 	
-	private static Logger LOG = Logger.getLogger(ConfigManager.class);
+	//private static Logger LOG = Logger.getLogger(ConfigManager.class);
 	private ConfigManager config = null;
 	
 	public SolrSchemaXMLWriter(ConfigManager aconfig) {

@@ -26,5 +26,18 @@ public class OWLShuntTest extends OWLToolsTestBasics {
 		
 		assertEquals("two nodes", 2, g.nodes.size());
 		assertEquals("one edge", 1, g.edges.size());
+
+		// Add another similar, but different (has rel), edge.
+		g.addEdge(new OWLShuntEdge("a", "b", "e"));
+		
+		assertEquals("still two nodes", 2, g.nodes.size());
+		assertEquals("two edges", 2, g.edges.size());
+
+		// Add same node and edges, for hopefully no changes.
+		g.addNode(new OWLShuntNode("b", "B"));
+		g.addEdge(new OWLShuntEdge("a", "b", "e"));
+		
+		assertEquals("even still two nodes", 2, g.nodes.size());
+		assertEquals("even still two edges", 2, g.edges.size());
 	}
 }
