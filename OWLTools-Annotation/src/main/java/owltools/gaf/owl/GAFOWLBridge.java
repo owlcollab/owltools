@@ -1,9 +1,8 @@
 package owltools.gaf.owl;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,7 +11,6 @@ import javax.lang.model.element.AnnotationValue;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -20,13 +18,9 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectHasValue;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
@@ -166,8 +160,8 @@ public class GAFOWLBridge {
 		OWLDataFactory fac = graph.getDataFactory();
 		OWLClass e = getOWLClass(a.getBioentity());
 		OWLClassExpression annotatedToClass = getOWLClass(a.getCls());
-		List<ExtensionExpression> exts = a.getExtensionExpressions();
-		if (exts.size() > 0) {
+		Collection<ExtensionExpression> exts = a.getExtensionExpressions();
+		if (exts != null && !exts.isEmpty()) {
 			HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
 			ops.add(annotatedToClass);
 			for (ExtensionExpression ext : exts) {

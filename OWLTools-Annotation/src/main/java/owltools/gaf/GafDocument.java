@@ -18,10 +18,10 @@ public class GafDocument{
 	protected String id;
 	protected String documentPath;
 
-	protected transient Hashtable<String, Bioentity> bioentities;
-	protected transient Hashtable<String, List<WithInfo>> withInfos;
-	protected transient Hashtable<String, List<ExtensionExpression>> extensionExpressions;
-	protected transient Hashtable<String, List<CompositeQualifier>> compositeQualifiers; 
+	protected transient Map<String, Bioentity> bioentities;
+	protected transient Map<String, Set<WithInfo>> withInfos;
+	protected transient Map<String, Set<ExtensionExpression>> extensionExpressions;
+	protected transient Map<String, Set<CompositeQualifier>> compositeQualifiers; 
 	protected transient List<GeneAnnotation> annotations;
 
 	private Map<String,Set<GeneAnnotation>> annotationMap = null;
@@ -31,9 +31,9 @@ public class GafDocument{
 
 
 		bioentities = new Hashtable<String, Bioentity>();
-		withInfos = new Hashtable<String, List<WithInfo>>();
-		extensionExpressions = new Hashtable<String, List<ExtensionExpression>>();
-		compositeQualifiers = new Hashtable<String, List<CompositeQualifier>>();
+		withInfos = new HashMap<String, Set<WithInfo>>();
+		extensionExpressions = new HashMap<String, Set<ExtensionExpression>>();
+		compositeQualifiers = new HashMap<String, Set<CompositeQualifier>>();
 		annotations = new ArrayList<GeneAnnotation>();
 	}
 
@@ -117,57 +117,45 @@ public class GafDocument{
 	}
 
 	public void addCompositeQualifier(CompositeQualifier compositeQualifier){
-		List<CompositeQualifier> list = compositeQualifiers.get(compositeQualifier.getId());
-		if(list == null){
-			list = new ArrayList<CompositeQualifier>();
-			compositeQualifiers.put(compositeQualifier.getId(), list);
+		Set<CompositeQualifier> set = compositeQualifiers.get(compositeQualifier.getId());
+		if(set == null){
+			set = new HashSet<CompositeQualifier>();
+			compositeQualifiers.put(compositeQualifier.getId(), set);
 		}
-
-		if(!list.contains(compositeQualifier))
-			list.add(compositeQualifier);
+		set.add(compositeQualifier);
 	}
 
 	public Set<String> getCompositeQualifiersIds(){
 		return compositeQualifiers.keySet();
 	}
 
-	public List<CompositeQualifier> getCompositeQualifiers(String id){
-		List<CompositeQualifier> list = compositeQualifiers.get(id);
-
-
-		return list;
+	public Collection<CompositeQualifier> getCompositeQualifiers(String id){
+		Set<CompositeQualifier> set = compositeQualifiers.get(id);
+		return set;
 	}
 
 	public void addWithInfo(WithInfo withInfo){
 
-		List<WithInfo> list = withInfos.get(withInfo.getId());
+		Set<WithInfo> list = withInfos.get(withInfo.getId());
 		if(list == null){
-			list = new ArrayList<WithInfo>();
+			list = new HashSet<WithInfo>();
 			withInfos.put(withInfo.getId(), list);
 		}
-
-		if(!list.contains(withInfo))
-			list.add(withInfo);
-
+		list.add(withInfo);
 	}
 
 	public Set<String> getWithInfosIds(){
 		return withInfos.keySet();
 	}
 
-	public List<WithInfo> getWithInfos(String id){
-		List<WithInfo> list = withInfos.get(id);
-
-
-		return list;
+	public Collection<WithInfo> getWithInfos(String id){
+		Set<WithInfo> set = withInfos.get(id);
+		return set;
 	}
 
-
-	public List<ExtensionExpression> getExpressions(String id){
-		List<ExtensionExpression> list = extensionExpressions.get(id);
-
-
-		return list;
+	public Collection<ExtensionExpression> getExpressions(String id){
+		Set<ExtensionExpression> set = extensionExpressions.get(id);
+		return set;
 	}
 
 	public Set<String> getExtensionExpressionIds(){
@@ -175,14 +163,12 @@ public class GafDocument{
 	}
 
 	public void addExtensionExpression(ExtensionExpression extensionExpression){
-		List<ExtensionExpression> list = extensionExpressions.get(extensionExpression.getId());
-		if(list == null){
-			list = new ArrayList<ExtensionExpression>();
-			extensionExpressions.put(extensionExpression.getId(), list);
+		Set<ExtensionExpression> set = extensionExpressions.get(extensionExpression.getId());
+		if(set == null){
+			set = new HashSet<ExtensionExpression>();
+			extensionExpressions.put(extensionExpression.getId(), set);
 		}
-
-		if(!list.contains(extensionExpression))
-			list.add(extensionExpression);
+		set.add(extensionExpression);
 	}
 
 	public void addGeneAnnotation(GeneAnnotation ga){

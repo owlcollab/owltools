@@ -1,7 +1,7 @@
 package owltools.gaf;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * 
@@ -27,9 +27,9 @@ public class GeneAnnotation {
 	protected String geneProductForm;
 	protected String gafDocument;
 	
-	protected List<WithInfo> withInfoList;
-	protected List<ExtensionExpression> extensionExpressionList;
-	protected List<CompositeQualifier> compositeQualifierList;
+	protected Collection<WithInfo> withInfoList;
+	protected Collection<ExtensionExpression> extensionExpressionList;
+	protected Collection<CompositeQualifier> compositeQualifierList;
 
 	
 	protected transient GafDocument gafDocumentObject;
@@ -332,7 +332,7 @@ public class GeneAnnotation {
 		this.isIntegralTo = isIntegralTo;
 	}
 
-	public List<ExtensionExpression> getExtensionExpressions(){
+	public Collection<ExtensionExpression> getExtensionExpressions(){
 		if(extensionExpressionList == null){
 			
 			if(gafDocumentObject != null){
@@ -346,7 +346,7 @@ public class GeneAnnotation {
 		return extensionExpressionList;
 	}
 	
-	public List<WithInfo> getWithInfos(){
+	public Collection<WithInfo> getWithInfos(){
 		if(withInfoList == null){
 			
 			if(gafDocumentObject != null)
@@ -361,7 +361,7 @@ public class GeneAnnotation {
 		return withInfoList;
 	}
 	
-	public List<CompositeQualifier> getCompositeQualifiers(){
+	public Collection<CompositeQualifier> getCompositeQualifiers(){
 		if(compositeQualifierList == null){
 			if(gafDocumentObject != null){
 				compositeQualifierList = gafDocumentObject.getCompositeQualifiers(getCompositeQualifier());
