@@ -808,10 +808,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 								entailed = superClasses.containsEntity(superClass.asOWLClass());
 							}
 							if (entailed) {
-								reasonerReportLines.add("EXITS, REDUNDANT\t"+owlpp.render(ax));
+								reasonerReportLines.add("EXISTS, REDUNDANT\t"+owlpp.render(ax));
 							}
 							else {
-								reasonerReportLines.add("EXITS, NOT-ENTAILED\t"+owlpp.render(ax));
+								reasonerReportLines.add("EXISTS, NOT-ENTAILED\t"+owlpp.render(ax));
 								// add it back.
 								//  note that we won't have entailments that came from this
 								mooncat.getManager().addAxiom(mooncat.getOntology(), ax);
