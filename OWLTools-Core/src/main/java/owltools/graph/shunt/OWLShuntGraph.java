@@ -31,21 +31,43 @@ public class OWLShuntGraph {
 	}
 	
 	/**
+	 * Check to see if a node is in the graph.
+	 * 
+	 * @param n
+	 * @return boolean
+	 */
+	public boolean hasNode(OWLShuntNode n){
+		return nodes.contains(n);
+	}
+
+	/**
+	 * Check to see if an edge is in the graph.
+	 * 
+	 * @param e
+	 * @return boolean
+	 */
+	public boolean hasEdge(OWLShuntEdge e){
+		return edges.contains(e);
+	}
+
+	/**
 	 * Simply "add" a node to the graph.
 	 * 
 	 * @param n
+	 * @return boolean, true if new elt added
 	 */
-	public void addNode(OWLShuntNode n){
-		nodes.add(n);
+	public boolean addNode(OWLShuntNode n){
+		return nodes.add(n);
 	}
 
 	/**
 	 * Simply "add" an edge to the graph.
 	 * 
 	 * @param e
+	 * @return boolean, true if new elt added
 	 */
-	public void addEdge(OWLShuntEdge e){
-		edges.add(e);
+	public boolean addEdge(OWLShuntEdge e){
+		return edges.add(e);
 	}
 	
 	/**

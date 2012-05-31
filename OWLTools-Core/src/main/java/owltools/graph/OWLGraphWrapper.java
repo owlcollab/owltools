@@ -1426,13 +1426,14 @@ public class OWLGraphWrapper {
 
 	/**
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
+	 * This is reflexive.
 	 * 
 	 * @param s
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
 	 */
-	public OWLShuntGraph addAncestorsToShuntGraph(Set<OWLGraphEdge> s, OWLObject x, OWLShuntGraph g) {
+	public OWLShuntGraph addAncestorsToShuntGraph(OWLObject x, OWLShuntGraph g) {
 
 		// Add this node, our seed.
 		String topicID = getIdentifier(x);
@@ -1441,10 +1442,8 @@ public class OWLGraphWrapper {
 		g.addNode(tn);
 
 		// Next, get all of the named ancestors and add them to our shunt graph.
-		// TODO: we're currently just doing distance == 1.
 		// We need some traversal code going up!
-		for (OWLGraphEdge e : s) {
-			//if( e.getDistance() == 1 ){
+		for (OWLGraphEdge e : getOutgoingEdges(x)) {
 			OWLObject t = e.getTarget();
 			if (t instanceof OWLNamedObject){				
 
@@ -1457,21 +1456,23 @@ public class OWLGraphWrapper {
 				
 				// Only add when subject, object, and relation are properly defined.
 				if( elabel != null &&
-					topicID != null &&
-					! topicID.equals("") &&
-					objectID != null &&
-					! objectID.equals("") ){
+					topicID != null && ! topicID.equals("") &&
+					objectID != null &&	! objectID.equals("") ){
 				
 					// Add node.
 					OWLShuntNode sn = new OWLShuntNode(objectID, objectLabel);
-					g.addNode(sn);
+					boolean wuzAdded = g.addNode(sn);
+
+					// Recur on node if it already wasn't there.
+					if( wuzAdded ){
+						addAncestorsToShuntGraph(t, g);
+					}
 				
 					//Add edge 
 					OWLShuntEdge se = new OWLShuntEdge(topicID, objectID, elabel);
 					g.addEdge(se);
 				}
 			}
-			//}
 		}
 		
 		return g;
@@ -1479,13 +1480,14 @@ public class OWLGraphWrapper {
 
 	/**
 	 * Add a set of edges, as descendents to x in OWLShuntGraph g.
+	 * This is reflexive.
 	 * 
 	 * @param s
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
 	 */
-	public OWLShuntGraph addDirectDescendentsToShuntGraph(Set<OWLGraphEdge> s, OWLObject x, OWLShuntGraph g) {
+	public OWLShuntGraph addDirectDescendentsToShuntGraph(OWLObject x, OWLShuntGraph g) {
 
 		// Add this node, our seed.
 		String topicID = getIdentifier(x);
@@ -1512,10 +1514,8 @@ public class OWLGraphWrapper {
 
 				// Only add when subject, object, and relation are properly defined.
 				if( elabel != null &&
-					topicID != null &&
-					! topicID.equals("") &&
-					subjectID != null &&
-					! subjectID.equals("") ){
+					topicID != null && ! topicID.equals("") &&
+					subjectID != null && ! subjectID.equals("") ){
 
 					// Add node.
 					OWLShuntNode sn = new OWLShuntNode(subjectID, subjectLabel);
@@ -1554,10 +1554,10 @@ public class OWLGraphWrapper {
 		graphSegment.addNode(tn);
 
 		// Next, get all of the named ancestors and add them to our shunt graph.
-		graphSegment = addAncestorsToShuntGraph(getOutgoingEdges(x), x, graphSegment);
+		graphSegment = addAncestorsToShuntGraph(x, graphSegment);
 
 		// Next, get all of the immediate descendents.
-		graphSegment = addDirectDescendentsToShuntGraph(getIncomingEdges(x), x, graphSegment);
+		graphSegment = addDirectDescendentsToShuntGraph(x, graphSegment);
 
 		//		
 		return graphSegment;
