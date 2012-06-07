@@ -164,7 +164,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	 * Main wrapping for adding ontology documents to GOlr.
 	 * Also see GafSolrDocumentLoader for the others.
 	 *
-	 * TODO: Dirty dirty bad Seth. We have hard-coded document_categoty here (and the GAF loader).
+	 * TODO: Bad Seth. We have hard-coded document_category here (and the GAF loader).
 	 * The proper way would be to pair conf files and the file to be loaded, that is not happening
 	 * quite yet, so we punt on this bad thing.
 	 *

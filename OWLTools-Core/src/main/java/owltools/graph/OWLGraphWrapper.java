@@ -1423,7 +1423,6 @@ public class OWLGraphWrapper {
 		return retstr;
 	}
 
-
 	/**
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
@@ -1524,6 +1523,12 @@ public class OWLGraphWrapper {
 					//Add edge.
 					OWLShuntEdge se = new OWLShuntEdge(subjectID, topicID, elabel);
 					g.addEdge(se);
+
+					// TODO/BUG: detecting that only "is_a" children are being found--make
+					// a test case and see what people see.
+//					if( ! elabel.equals("is_a") ){
+//						LOG.info("Edge label: "+ elabel);						
+//					}
 				}
 			}
 		}	
