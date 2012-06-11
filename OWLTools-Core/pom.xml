@@ -42,6 +42,7 @@
 						<exclude>owltools/graph/GraphImportsClosureTest.java</exclude>
 						<exclude>owltools/mooncat/SubsetDefMooncatTest.java</exclude>
 						<exclude>owltools/mooncat/PropertyViewTest.java</exclude>
+						<exclude>owltools/graph/OWLGraphWrapperEdgeTest</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
