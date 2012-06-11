@@ -22,7 +22,6 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.EntityType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -47,6 +46,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
+import org.semanticweb.owlapi.model.OWLObjectCardinalityRestriction;
 import org.semanticweb.owlapi.model.OWLObjectComplementOf;
 import org.semanticweb.owlapi.model.OWLObjectHasValue;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -771,7 +771,7 @@ public class OWLGraphWrapper {
 	}
 
 	// e.g. R-some-B ==> <R-some-B,R,B>
-	private OWLGraphEdge restrictionToPrimitiveEdge(OWLRestriction s) {
+	private OWLGraphEdge restrictionToPrimitiveEdge(OWLRestriction<?,?,?> s) {
 		OWLObjectPropertyExpression p = null;
 		OWLObject t = null;
 		OWLQuantifiedProperty.Quantifier q = null;
@@ -789,6 +789,17 @@ public class OWLGraphWrapper {
 			t  = ((OWLObjectHasValue)s).getValue();
 			p = (OWLObjectPropertyExpression) s.getProperty();
 			q = OWLQuantifiedProperty.Quantifier.VALUE;
+		}
+		else if (s instanceof OWLObjectCardinalityRestriction) {
+			OWLObjectCardinalityRestriction cardinalityRestriction = (OWLObjectCardinalityRestriction) s;
+			if (cardinalityRestriction.getCardinality() > 0) {
+				t = cardinalityRestriction.getFiller();
+				p = cardinalityRestriction.getProperty();
+				q = OWLQuantifiedProperty.Quantifier.SOME;
+			}
+			else {
+				System.err.println("cannot handle negation:"+s);
+			}
 		}
 		else {
 			System.err.println("cannot handle:"+s);
