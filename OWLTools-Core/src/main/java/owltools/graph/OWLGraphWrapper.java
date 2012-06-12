@@ -815,6 +815,7 @@ public class OWLGraphWrapper {
 	// extend an edge target until we hit a named object.
 	// this could involve multiple extensions and "forks", e.g.
 	// <A sub B^C> ==> <A sub B>, <A sub C>
+	// NOTE: may be renamed to 'unfoldEdgeTarget'
 	private Set<OWLGraphEdge> primitiveEdgeToFullEdges(OWLGraphEdge e) {
 		Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
 		if (e.isTargetNamedObject()) {
@@ -834,6 +835,24 @@ public class OWLGraphWrapper {
 		return edges;
 	}
 
+	private Set<OWLGraphEdge> unfoldEdgeSource(OWLGraphEdge e) {
+		Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
+		if (e.isSourceNamedObject()) {
+			edges.add(e); // do nothing
+		}
+		else {
+			// extend
+			OWLObject t = e.getTarget();
+			Set<OWLGraphEdge> nextEdges = getIncomingEdges(e.getSource());
+			for (OWLGraphEdge e2 : nextEdges) {
+				OWLGraphEdge nu = this.combineEdgePairDown(e, e2, 1);
+				if (nu != null)
+					edges.add(nu);
+			}
+		}
+		filterEdges(edges);
+		return edges;
+	}
 
 
 	/**
@@ -883,8 +902,13 @@ public class OWLGraphWrapper {
 	public Set<OWLGraphEdge> getIncomingEdges(OWLObject t) {
 		ensureEdgesCached();
 		if (edgeByTarget.containsKey(t)) {
-			return new HashSet<OWLGraphEdge>(edgeByTarget.get(t));
+			HashSet<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
+			for (OWLGraphEdge e :edgeByTarget.get(t)) {
+				edges.addAll(this.unfoldEdgeSource(e));
+			}
+			return edges;
 		}
+		
 		return new HashSet<OWLGraphEdge>();
 	}
 
