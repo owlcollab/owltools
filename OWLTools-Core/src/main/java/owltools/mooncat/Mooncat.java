@@ -663,7 +663,7 @@ public class Mooncat {
 	 * are preserved.
 	 * 
 	 *  
-	 * note: this does the same as the perl script go-slimdown, used by the GO
+	 * note: this does the same as the perl script go-slimdown, used by the GO Consortium
 	 * 
 	 * @param subset
 	 * @param subOntIRI
