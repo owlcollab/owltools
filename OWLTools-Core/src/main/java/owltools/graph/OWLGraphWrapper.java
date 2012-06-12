@@ -912,6 +912,14 @@ public class OWLGraphWrapper {
 		return new HashSet<OWLGraphEdge>();
 	}
 
+	public Set<OWLGraphEdge> getPrimitiveIncomingEdges(OWLObject t) {
+		ensureEdgesCached();
+		if (edgeByTarget.containsKey(t)) {
+			return new HashSet<OWLGraphEdge>(edgeByTarget.get(t));
+		}
+		
+		return new HashSet<OWLGraphEdge>();
+	}
 
 	private void ensureEdgesCached() {
 		if (edgeByTarget == null)
@@ -1723,7 +1731,7 @@ public class OWLGraphWrapper {
 		// note that edges are always from src to tgt. here we are extending down from tgt to src
 
 		//edgeStack.add(new OWLGraphEdge(t,t,ontology,new OWLQuantifiedProperty()));
-		edgeStack.addAll(getIncomingEdges(t));
+		edgeStack.addAll(getPrimitiveIncomingEdges(t));
 		closureSet.addAll(edgeStack);
 
 		while (!edgeStack.isEmpty()) {
@@ -1732,7 +1740,7 @@ public class OWLGraphWrapper {
 			int nextDist = ne.getDistance() + 1;
 
 			// extend down from this edge; e.g. [s, extEdge + ne, tgt] 
-			Set<OWLGraphEdge> extSet = getIncomingEdges(ne.getSource());
+			Set<OWLGraphEdge> extSet = getPrimitiveIncomingEdges(ne.getSource());
 			for (OWLGraphEdge extEdge : extSet) {
 
 				// extEdge o ne --> nu
