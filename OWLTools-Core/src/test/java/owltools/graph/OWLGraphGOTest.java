@@ -2,28 +2,20 @@ package owltools.graph;
 
 import static junit.framework.Assert.*;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
-import org.obolibrary.obo2owl.Obo2Owl;
-import org.obolibrary.oboformat.model.OBODoc;
-import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.OWLToolsTestBasics;
-import owltools.graph.OWLGraphWrapper.ISynonym;
-import owltools.graph.shunt.OWLShuntEdge;
-import owltools.graph.shunt.OWLShuntGraph;
-import owltools.graph.shunt.OWLShuntNode;
 
 public class OWLGraphGOTest extends OWLToolsTestBasics {
 	
@@ -35,7 +27,7 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 		OWLGraphWrapper wrapper = getOntologyWrapper("go.owl");
 		
 		// First, let's look at the world of GO:0022008; specifically, the neighborhood above.
-		OWLObject x1 = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "GO_0022008");
+		OWLObject x1 = wrapper.getOWLClassByIdentifier("GO:0022008");
 
 		// In this loop we're checking that GO:0022008 has two known parents, one is_a and one part_of.
 		// Anything else is an error.
@@ -54,20 +46,21 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 				}else if( objectID.equals("GO:0007399") ){
 					assertEquals("GO:0007399 part_of parent of GO_0022008:", elabel, "part_of");
 				}else{
-					assertEquals("not a parent of GO_0022008: " + objectID, false, true);
+					fail("not a parent of GO_0022008: " + objectID);
 				}
 			}
 		}
 		
-		// First, let's look at the world of GO:0022008; specifically, the neighborhood above.
-		OWLObject x2 = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "GO_0007399");
+		// Second, let's look at the world of GO:0007399; specifically, the neighborhood below.
+		OWLObject x2 = wrapper.getOWLClassByIdentifier("GO:0007399");
 
 		// In this loop we're checking that GO:0007399, known from above, has GO:0022008 as a part_of child somewhere.
 		// Anything else is an error.
 		boolean kid_p = false;
-		for (OWLGraphEdge e : wrapper.getIncomingEdges(x2)) {
+		final Set<OWLGraphEdge> incomingEdges = wrapper.getIncomingEdges(x2);
+		for (OWLGraphEdge e : incomingEdges) {
 			OWLObject s = e.getSource();
-
+			
 			if (s instanceof OWLNamedObject){				
 
 				// Figure out subject the bits.
@@ -81,7 +74,7 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 				}
 			}
 		}
-		assertEquals("saw GO:0022008 as a child of GO_0007399:", kid_p, true);
+		assertTrue("saw GO:0022008 as a child of GO_0007399:", kid_p);
 	}
 	
 	private OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException{

@@ -47,7 +47,6 @@ public class OWLGraphWrapperEdgeTest extends OWLToolsTestBasics {
 			
 			// TODO is it the source or the target?
 			OWLObject s = e.getSource();
-			OWLObject t = e.getTarget();
 			if (s instanceof OWLNamedObject){				
 
 				// Figure out subject the bits.
