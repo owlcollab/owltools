@@ -38,13 +38,9 @@ public class OWLGraphShuntTest extends OWLToolsTestBasics {
 		// Exists.
 		OWLShuntGraph g = wrapper.getSegmentShuntGraph(c);
 		assertNotNull("have a shunt graph, not a complete failure apparently", g);
-
-		// Gross counts.
-		//System.err.println("JSON: " + g.toJSON());
-		assertEquals("node count okay", g.nodes.size(), 13); // remember: two kids
-		assertEquals("edge count okay", g.edges.size(), 16); // remember: two kids
 		
 		// Now let's go through and exhaust this subgraph...nodes.
+		assertEquals("node count okay", g.nodes.size(), 16); // remember: 10 above, self, 5 below
 		assertEquals("n01", g.hasNode(new OWLShuntNode("GO:0008150")), true);
 		assertEquals("n02", g.hasNode(new OWLShuntNode("GO:0032502")), true);
 		assertEquals("n03", g.hasNode(new OWLShuntNode("GO:0032501")), true);
@@ -58,8 +54,15 @@ public class OWLGraphShuntTest extends OWLToolsTestBasics {
 		assertEquals("n11", g.hasNode(new OWLShuntNode("GO:0022008")), true);
 		assertEquals("n12", g.hasNode(new OWLShuntNode("GO:0048699")), true);
 		assertEquals("n13", g.hasNode(new OWLShuntNode("GO:0042063")), true);
+		assertEquals("n13", g.hasNode(new OWLShuntNode("GO:0050768")), true);
+		assertEquals("n13", g.hasNode(new OWLShuntNode("GO:0050769")), true);
+		assertEquals("n13", g.hasNode(new OWLShuntNode("GO:0050767")), true);
 
 		// Now let's go through and exhaust this subgraph...edges.
+		assertEquals("edge count okay", g.edges.size(), 19); // 
+		assertEquals("e-05", g.hasEdge(new OWLShuntEdge("GO:0050767", "GO:0022008", "regulates")), true);
+		assertEquals("e-04", g.hasEdge(new OWLShuntEdge("GO:0050769", "GO:0022008", "positively_regulates")), true);
+		assertEquals("e-03", g.hasEdge(new OWLShuntEdge("GO:0050768", "GO:0022008", "negatively_regulates")), true);
 		assertEquals("e-02", g.hasEdge(new OWLShuntEdge("GO:0048699", "GO:0022008", "is_a")), true);
 		assertEquals("e-01", g.hasEdge(new OWLShuntEdge("GO:0042063", "GO:0022008", "is_a")), true);
 		assertEquals("e01", g.hasEdge(new OWLShuntEdge("GO:0022008", "GO:0007399", "part_of")), true);
