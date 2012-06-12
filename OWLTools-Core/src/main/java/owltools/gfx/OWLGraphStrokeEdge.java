@@ -84,7 +84,9 @@ public final class OWLGraphStrokeEdge extends StrokeEdge<OWLGraphLayoutNode>  {
      	else if ("results_in".equals(id) || "results in".equals(id)) {
      		return RelationType.RESULTSIN;
      	}
-     	
+     	if (qp.getProperty() == null) {
+     		return RelationType.UNKNOWN;
+     	}
      	String s = graph.getLabelOrDisplayId(qp.getProperty());
      	
      	// multiple layers of indirection - first we map the relation obo ID to
