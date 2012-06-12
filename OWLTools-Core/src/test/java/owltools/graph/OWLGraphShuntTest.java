@@ -41,7 +41,7 @@ public class OWLGraphShuntTest extends OWLToolsTestBasics {
 
 		// Gross counts.
 		//System.err.println("JSON: " + g.toJSON());
-		assertEquals("node count okay", g.nodes.size(), 13); // remeber: two kids
+		assertEquals("node count okay", g.nodes.size(), 13); // remember: two kids
 		assertEquals("edge count okay", g.edges.size(), 16); // remember: two kids
 		
 		// Now let's go through and exhaust this subgraph...nodes.
