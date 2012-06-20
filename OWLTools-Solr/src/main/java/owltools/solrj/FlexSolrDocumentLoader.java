@@ -1,162 +1,36 @@
 package owltools.solrj;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import org.semanticweb.owlapi.model.OWLObject;
 
-import owltools.graph.OWLGraphWrapper;
-import owltools.yaml.golrconfig.ConfigManager;
-import owltools.yaml.golrconfig.GOlrField;
+import owltools.flex.FlexCollection;
+import owltools.flex.FlexDocument;
+import owltools.flex.FlexLine;
 
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);
-	private ConfigManager config = null;
+	private FlexCollection collection = null;
 	
-	public FlexSolrDocumentLoader(String url, ConfigManager aconf, OWLGraphWrapper graph) throws MalformedURLException {
+	public FlexSolrDocumentLoader(String url, FlexCollection c) throws MalformedURLException {
 		super(url);
-		setGraph(graph);
-		config = aconf;
+		collection = c;
 	}
-
-//	/*
-//	 * Get the flexible document definition from the configuration file.
-//	 *
-// 	 * @param
-//	 * @return config
-//	 */
-//	private GOlrConfig getConfig() throws FileNotFoundException {
-//
-//		// Find the file in question on the filesystem.
-//		String rsrc = "amigo-config.yaml";
-//		ClassLoader floader = FlexSolrDocumentLoader.class.getClassLoader();
-//		URL yamlURL = floader.getResource(rsrc);
-//		if( yamlURL == null ){
-//			LOG.info("Couldn't access \"" + rsrc + "\" in: " + getClass().getResource("").toString());
-//			return null;
-//		}
-//	
-//		// Generate the config from the file input text.
-//		InputStream input = null;
-//		try {
-//			input = new FileInputStream(new File(yamlURL.toURI()));
-//		} catch (URISyntaxException e) {
-//			e.printStackTrace();
-//		}
-//		LOG.info("Found flex config: " + yamlURL.toString());
-//		Yaml yaml = new Yaml(new Constructor(GOlrConfig.class));
-//		GOlrConfig config = (GOlrConfig) yaml.load(input);
-//		LOG.info("Dumping flex loader YAML: \n" + yaml.dump(config));
-//
-//		return config;
-//	}
 	
 	@Override
 	public void load() throws SolrServerException, IOException {
 
-//		//GOlrConfig config = getConfig();
-//		LOG.info("Trying to load with config: " + config.id);
+		//		//GOlrConfig config = getConfig();
+		//		LOG.info("Trying to load with config: " + config.id);
 
-		if( graph == null ){
-			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
-		}else{
-			for (OWLObject obj : graph.getAllOWLObjects()) {
-				add(collect(obj, graph, config));
-			}	
-			addAllAndCommit();
-		}
-	}
-
-	/**
-	 * Try and pull out right OWLGraphWrapper function.
-	 * 
-	 * @param owlfunction
-	 * @return
-	 */
-	private Method getExtMethod(String owlfunction){
-
-		java.lang.reflect.Method method = null;
-		try {
-			method = graph.getClass().getMethod(owlfunction, OWLObject.class);
-		} catch (SecurityException e) {
-			LOG.info("ERROR: apparently a security problem with: " + owlfunction);
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			LOG.info("ERROR: couldn't find method: " + owlfunction);
-			e.printStackTrace();
-		}
-
-		return method;
-	}
-	
-	/**
-	 * Get properly formatted output from the OWLGraphWrapper.
-	 * 
-	 * @param oobj
-	 * @param owlfunction
-	 * @return a (possibly null) string return value
-	 */
-	private String getExtString(OWLObject oobj, String owlfunction){
-
-		String retval = null;
-		
-		// Try and pull out right OWLGraphWrapper function.
-		java.lang.reflect.Method method = getExtMethod(owlfunction);
-		
-		// Try to invoke said method.
-		if( method != null ){
-			try {
-				retval = (String) method.invoke(graph, oobj);
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();				
-			}
-		}
-		
-		return retval;
-	}
-
-	/**
-	 * Get properly formatted output from the OWLGraphWrapper.
-	 * 
-	 * @param oobj
-	 * @param owlfunction
-	 * @return a (possibly empty) string list of returned values
-	 */
-	@SuppressWarnings("unchecked")
-	private List<String> getExtStringList(OWLObject oobj, String owlfunction){
-
-		List<String> retvals = new ArrayList<String>();
-
-		// Try and pull out right OWLGraphWrapper function.
-		java.lang.reflect.Method method = getExtMethod(owlfunction);
-		
-		// Try to invoke said method.
-		if( method != null ){
-			try {
-				// TODO: anybody got a better idea about this?
-				retvals = (List<String>) method.invoke(graph, oobj);
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();				
-			}
-		}
-		
-		return retvals;
+		for( FlexDocument d : collection ){
+			add(collect(d));
+		}	
+		addAllAndCommit();
 	}
 	
 	/**
@@ -164,50 +38,17 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 	 * Main wrapping for adding ontology documents to GOlr.
 	 * Also see GafSolrDocumentLoader for the others.
 	 *
-	 * TODO: Bad Seth. We have hard-coded document_category here (and the GAF loader).
-	 * The proper way would be to pair conf files and the file to be loaded, that is not happening
-	 * quite yet, so we punt on this bad thing.
-	 *
-	 * @param owlObject, graph, and a config.
+	 * @param f
 	 * @return an input doc for add()
 	 */
-	public SolrInputDocument collect(OWLObject obj, OWLGraphWrapper graph, ConfigManager config) {
+	public SolrInputDocument collect(FlexDocument f) {
 
 		SolrInputDocument cls_doc = new SolrInputDocument();
 
-		///
-		/// TODO/BUG: use object to create proper load sequence.
-		/// Needs better cooperation from OWLTools to make is truly flexible.
-		/// See Chris.
-		///
-		
-		//LOG.info("Trying to load a(n): " + config.id);
-
-		// Special loading for document_category.
-		//LOG.info("Add: " + fixedField.id + ":" + fixedField.value);
-		//
-		cls_doc.addField("document_category", "ontology_class");
-					
-		// Dynamic fields--have to get dynamic info to cram into the index.
-		for( GOlrField field : config.getFields() ){
-
-			String did = field.id;
-			String prop_meth = field.property;
-			String card = field.cardinality;
-
-			// Select between the single and multi styles.
-			if( card.equals("single") ){
-				String val = getExtString(obj, prop_meth);
-				if( val != null ){
-					cls_doc.addField(did, val);
-				}
-			}else{
-				List<String> vals = getExtStringList(obj, prop_meth);
-				if( vals != null && ! vals.isEmpty() ){
-					for (String val : vals) {
-						cls_doc.addField(did, val);
-					}
-				}
+		for( FlexLine l : f ){
+			String fieldName = l.field();
+			for( String val : l.values() ){
+				cls_doc.addField(fieldName, val);
 			}
 		}
 		

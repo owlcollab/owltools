@@ -17,7 +17,10 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import com.google.gson.Gson;
+
 import owltools.cli.tools.CLIMethod;
+import owltools.flex.FlexCollection;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
@@ -179,9 +182,12 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);				
 
+		// Grab the intermediate form.
+		FlexCollection flex = new FlexCollection(aconf, g);
+		
 		// Actual ontology class loading.
 		try {
-			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, aconf, g);
+			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, flex);
 			loader.load();
 		} catch (SolrServerException e) {
 			LOG.info("Ontology load at: " + url + " failed!");
@@ -206,6 +212,25 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 //		}
 	}
 	
+	/**
+	 * Dump experimental flexible loader output to JSON(?) blob.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-dump-ontology")
+	public void flexDumpOntologySolr(Opts opts) throws Exception {
+
+		// Grab the intermediate form.
+		FlexCollection flex = new FlexCollection(aconf, g);
+
+		// TODO: Make it a little nicer?
+		
+		// And dump it.
+		Gson gson = new Gson();
+		System.out.println(gson.toJson(flex));
+	}
+		
 	/**
 	 * Used for loading a list of GAFs into GOlr.
 	 * 
