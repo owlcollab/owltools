@@ -8,7 +8,7 @@ public class CommandLineInterface {
 	// Do not move or rename this class.
 
 	public static void main(String[] args) throws Exception {
-		CommandRunner cr = new SimCommandRunner();
+		CommandRunner cr = new JsCommandRunner();
 		cr.run(args);
 	}
 }
