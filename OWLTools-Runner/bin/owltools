@@ -121,7 +121,7 @@ then
 fi
 
 ## Assemble and run the final command.
-CMD="$JAVAPATH -Xmx4096M -Xms2048M -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
+CMD="$JAVAPATH -Xmx4096M -Xms2048M -DentityExpansionLimit=512000 -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
 
 ## DEBUG
 ## Let's see a little of the environment if we declare DEBUG=1.
