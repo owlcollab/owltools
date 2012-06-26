@@ -327,6 +327,9 @@ public class CommandRunner {
 				g.setReasoner(createReasoner(g.getSourceOntology(),reasonerName,g.getManager()));
 				reasoner = g.getReasoner();
 			}
+			else if (opts.nextEq("--reasoner-dispose")) {
+				reasoner.dispose();
+			}
 			else if (opts.nextEq("--no-reasoner")) {
 				reasonerName = "";
 			}
@@ -1628,10 +1631,10 @@ public class CommandRunner {
 				m.translateDisjointsToEquivalents();
 			}
 			else if (opts.nextEq("--build-property-view-ontology|--bpvo")) {
-				opts.info("[-p PROPERTY] [-o OUTFILE]", 
+				opts.info("[-p PROPERTY] [-o OUTFILE] [-r REASONER] [--filter-unused] [--prefix STR] [--suffix STR] [--avfile FILE] [--i2c]", 
 				"generates a new ontology O' from O using property P such that for each C in O, O' contains C' = P some C");
 				OWLOntology sourceOntol = g.getSourceOntology();
-				// TODO - for now assume exactly 1 support ontology
+				// TODO - for now assume exactly 0 or 1 support ontology; if 1, the support is the element ontology
 				OWLOntology annotOntol;
 				if (g.getSupportOntologySet().size() == 1)
 					annotOntol = g.getSupportOntologySet().iterator().next();
@@ -1646,34 +1649,52 @@ public class CommandRunner {
 				String prefix = null;
 				boolean isFilterUnused = false;
 				boolean isABoxToTBox = false;
+				boolean isReplace = false;
 				String avFile =  null;
+				String viewIRI = "http://example.org/";
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-p")) {
+						opts.info("PROPERTY-ID-OR-LABEL", "The ObjectProperty P that is used to build the view");
 						viewProperty = resolveObjectProperty(opts.nextOpt());
 					}
 					else if (opts.nextEq("-r")) {
+						opts.info("REASONERNAME", "e.g. elk");
 						reasonerName = opts.nextOpt();
 					}
 					else if (opts.nextEq("--prefix")) {
+						opts.info("STR", "each class in O(P) will have this prefix in its label");
 						prefix = opts.nextOpt();
 					}
 					else if (opts.nextEq("--suffix")) {
-						prefix = opts.nextOpt();
+						opts.info("STR", "each class in O(P) will have this suffix in its label");
+						suffix = opts.nextOpt();
 					}
 					else if (opts.nextEq("-o")) {
+						opts.info("FILE", "file to save O(P)' [i.e. reasoned view ontology] into");
 						outFile = opts.nextOpt();
 					}
+					else if (opts.nextEq("--view-iri")) {
+						opts.info("IRI", "IRI for the view ontology");
+						viewIRI = opts.nextOpt();
+					}
 					else if (opts.nextEq("--avfile")) {
+						opts.info("FILE", "file to save O(P) [i.e. non-reasoner view ontology] into");
 						avFile = opts.nextOpt();
 					}
 					else if (opts.nextEq("--filter-unused")) {
+						opts.info("", "if set, any class or individual that is not subsumed by P some Thing is removed from O(P)");
 						isFilterUnused = true;
+					}
+					else if (opts.nextEq("--replace")) {
+						opts.info("", "if set, the source ontology is replaced with O(P)'");
+						isReplace = true;
 					}
 					else if (opts.nextEq("" +
 					"")) {
 						annotOntol = g.getSourceOntology();
 					}
 					else if (opts.nextEq("--i2c")) {
+						opts.info("", "if set, translate individuals to classes (e.g. for reasoning with Elk)");
 						isABoxToTBox = true;
 					}
 					else
@@ -1687,20 +1708,25 @@ public class CommandRunner {
 					LOG.info("translation abox to tbox...");
 					pvob.translateABoxToTBox();
 				}
-				if (avFile != null)
-					pw.saveOWL(pvob.getAssertedViewOntology(), avFile, g);
-				pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
 				pvob.setViewLabelPrefix(prefix);
 				pvob.setViewLabelSuffix(suffix);
+				pvob.buildViewOntology(IRI.create("http://x.org/assertedViewOntology"), IRI.create(viewIRI));
 				pvob.setFilterUnused(isFilterUnused);
 				OWLOntology avo = pvob.getAssertedViewOntology();
+				if (avFile != null)
+					pw.saveOWL(avo, avFile, g);
 				OWLReasoner vr = createReasoner(avo, reasonerName, g.getManager());
 				pvob.buildInferredViewOntology(vr);
 				// save
 				if (outFile != null)
 					pw.saveOWL(pvob.getInferredViewOntology(), outFile, g);
-				else
+				else if (isReplace) {
+					g.setSourceOntology(pvob.getInferredViewOntology());
+				}
+				else {
 					g.addSupportOntology(pvob.getInferredViewOntology());
+				}
+				vr.dispose();
 
 			}
 			else if (opts.nextEq("--report-profile")) {
