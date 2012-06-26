@@ -16,6 +16,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLProperty;
@@ -104,16 +105,18 @@ public class XgmmlWriter extends AbstractXmlWriter {
 	throws XMLStreamException {
 
 		// get all classes and sort them according to the lexical order of their OBO identifiers
-		List<OWLClass> allClasses = new ArrayList<OWLClass>();
+		List<OWLObject> allObjects = new ArrayList<OWLObject>();
 		for(OWLObject owlObject : graph.getAllOWLObjects()) {
-			if (owlObject instanceof OWLClass && graph.getIdentifier(owlObject) != null) {
-				allClasses.add((OWLClass) owlObject);
+			if (owlObject instanceof OWLObject && graph.getIdentifier(owlObject) != null) {
+				if (owlObject instanceof OWLClass || owlObject instanceof OWLIndividual) {
+					allObjects.add((OWLObject) owlObject);
+				}
 			}
 		}
-		Collections.sort(allClasses, new Comparator<OWLClass>() {
+		Collections.sort(allObjects, new Comparator<OWLObject>() {
 
 			@Override
-			public int compare(OWLClass c1, OWLClass c2) {
+			public int compare(OWLObject c1, OWLObject c2) {
 				String id1 = graph.getIdentifier(c1);
 				String id2 = graph.getIdentifier(c2);
 				return id1.compareTo(id2);
@@ -121,25 +124,25 @@ public class XgmmlWriter extends AbstractXmlWriter {
 		});
 
 		// write each term and corresponding gene annotations
-		for (OWLClass owlClass : allClasses) {
-			writeNode(writer, owlClass, allClasses, graph, gafs);
+		for (OWLObject OWLObject : allObjects) {
+			writeNode(writer, OWLObject, allObjects, graph, gafs);
 		}
 	}
-	
+
 	private void writeEdges(XMLStreamWriter writer, final OWLGraphWrapper graph, List<GafDocument> gafs)
 	throws XMLStreamException {
 
 		// get all classes and sort them according to the lexical order of their OBO identifiers
-		List<OWLClass> allClasses = new ArrayList<OWLClass>();
+		List<OWLObject> allClasses = new ArrayList<OWLObject>();
 		for(OWLObject owlObject : graph.getAllOWLObjects()) {
-			if (owlObject instanceof OWLClass && graph.getIdentifier(owlObject) != null) {
-				allClasses.add((OWLClass) owlObject);
+			if (owlObject instanceof OWLObject && graph.getIdentifier(owlObject) != null) {
+				allClasses.add((OWLObject) owlObject);
 			}
 		}
-		Collections.sort(allClasses, new Comparator<OWLClass>() {
+		Collections.sort(allClasses, new Comparator<OWLObject>() {
 
 			@Override
-			public int compare(OWLClass c1, OWLClass c2) {
+			public int compare(OWLObject c1, OWLObject c2) {
 				String id1 = graph.getIdentifier(c1);
 				String id2 = graph.getIdentifier(c2);
 				return id1.compareTo(id2);
@@ -147,8 +150,8 @@ public class XgmmlWriter extends AbstractXmlWriter {
 		});
 
 		// write each term and corresponding gene annotations
-		for (OWLClass owlClass : allClasses) {
-			writeEdges(writer, owlClass, allClasses, graph, gafs);
+		for (OWLObject OWLObject : allClasses) {
+			writeEdges(writer, OWLObject, allClasses, graph, gafs);
 		}
 	}
 
@@ -159,7 +162,7 @@ public class XgmmlWriter extends AbstractXmlWriter {
 		return in.replaceAll(":", "_");
 	}
 
-	private void writeNode(XMLStreamWriter writer, OWLClass c, List<OWLClass> allClasses, OWLGraphWrapper graph, List<GafDocument> gafs) throws XMLStreamException {
+	private void writeNode(XMLStreamWriter writer, OWLObject c, List<OWLObject> allClasses, OWLGraphWrapper graph, List<GafDocument> gafs) throws XMLStreamException {
 
 		boolean obsolete = graph.isObsolete(c);
 		if (obsolete) {
@@ -193,7 +196,7 @@ public class XgmmlWriter extends AbstractXmlWriter {
 
 		writer.writeEndElement(); // node
 	}
-	private void writeEdges(XMLStreamWriter writer, OWLClass c, List<OWLClass> allClasses, OWLGraphWrapper graph, List<GafDocument> gafs) throws XMLStreamException {
+	private void writeEdges(XMLStreamWriter writer, OWLObject c, List<OWLObject> allClasses, OWLGraphWrapper graph, List<GafDocument> gafs) throws XMLStreamException {
 
 		String id = getId(graph.getIdentifier(c));
 		Set<OWLGraphEdge> edges = graph.getOutgoingEdges(c);
