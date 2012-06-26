@@ -97,6 +97,12 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
  * 
  * TODO - allow O(P)' to be exported as SKOS
  * 
+ * <h2>Notes</h2>
+ * 
+ * If you have some 'leaf' element to classify - e.g. genes - make sure you pass in an
+ * elementsOntology E. Otherwise these will go into O(P) as "P some gene123", which will
+ * not classify as anything.
+ * 
  * @author cjm
  *
  */
@@ -120,7 +126,7 @@ public class PropertyViewOntologyBuilder {
 	private boolean isAssumeOBOStyleIRIs = true;
 	private String viewLabelPrefix="";
 	private String viewLabelSuffix="";
-	private Set<OWLEntity> viewEntities;
+	private Set<OWLEntity> viewEntities; // E
 	private OWLClass viewRootClass;
 
 	/**
@@ -318,7 +324,7 @@ public class PropertyViewOntologyBuilder {
 	 * O(P) imports both the O, and optionally the elements ontology E - in which case
 	 * we call the ontology O(P,E).
 	 * 
-	 * As part of this procedre, an inferred property view ontology O(P)' or O(P,E)' is created
+	 * As part of this procedure, an inferred property view ontology O(P)' or O(P,E)' is created
 	 * 
 	 * You must call buildInferredViewOntology yourself
 	 * (because you need to set up the reasoner object yourself, and feed in O(P) as input)
@@ -361,6 +367,7 @@ public class PropertyViewOntologyBuilder {
 		sourceClasses.add(thing);
 		for (OWLClass c : sourceClasses) {
 			IRI vcIRI = makeViewClassIRI(c);
+			setViewClassLabel(c, vcIRI, assertedViewOntology);
 			OWLClass vc = owlDataFactory.getOWLClass(vcIRI);
 			LOG.info("C -> C' : "+c+" -> "+vc);
 			OWLObjectSomeValuesFrom vx = owlDataFactory.getOWLObjectSomeValuesFrom(viewProperty, c);
@@ -453,7 +460,15 @@ public class PropertyViewOntologyBuilder {
 		for (OWLEntity e : viewEntities) {
 			if (e instanceof OWLClass) {
 				OWLClass c = (OWLClass) e;
-
+				// copy across label
+				String label = getLabel(c, assertedViewOntology);
+				if (label != null) {
+					OWLAnnotationAssertionAxiom aaa = owlDataFactory.getOWLAnnotationAssertionAxiom(owlDataFactory.getRDFSLabel(), c.getIRI(), 
+							owlDataFactory.getOWLLiteral(label));
+					// anything derived -- including labels -- goes in the derived ontology
+					owlOntologyManager.addAxiom(inferredViewOntology, aaa);
+				}
+				
 				// first add equivalence axioms
 				// TODO - allow for merging of equivalent classes
 				Set<OWLClass> ecs = reasoner.getEquivalentClasses(c).getEntities();
@@ -480,8 +495,8 @@ public class PropertyViewOntologyBuilder {
 				Set<OWLClass> scs = reasoner.getTypes(ind, true).getFlattened();
 				for (OWLClass sc : scs) {
 					if (viewEntities.contains(sc)) {
-						OWLClassAssertionAxiom sca = owlDataFactory.getOWLClassAssertionAxiom(sc, ind);
-						owlOntologyManager.addAxiom(inferredViewOntology, sca);
+						OWLClassAssertionAxiom caa = owlDataFactory.getOWLClassAssertionAxiom(sc, ind);
+						owlOntologyManager.addAxiom(inferredViewOntology, caa);
 					}
 				}
 			}
@@ -506,28 +521,35 @@ public class PropertyViewOntologyBuilder {
 				vcIRIstr = vcIRIstr + "_view";
 			}
 			vcIRI = IRI.create(vcIRIstr);
-			String vLabel = getViewLabel(c);
-			if (vLabel != null) {
-				OWLAnnotationAssertionAxiom aaa = owlDataFactory.getOWLAnnotationAssertionAxiom(owlDataFactory.getRDFSLabel(), vcIRI, 
-						owlDataFactory.getOWLLiteral(vLabel));
-				// anything derived -- including labels -- goes in the derived ontology
-				owlOntologyManager.addAxiom(inferredViewOntology, aaa);
-			}
 		}
 		return vcIRI;
 	}
+	
+	private void setViewClassLabel(OWLClass c, IRI vcIRI, OWLOntology ont) {
+		String vLabel = getViewLabel(c);
+		if (vLabel != null) {
+			OWLAnnotationAssertionAxiom aaa = owlDataFactory.getOWLAnnotationAssertionAxiom(owlDataFactory.getRDFSLabel(), vcIRI, 
+					owlDataFactory.getOWLLiteral(vLabel));
+			// anything derived -- including labels -- goes in the derived ontology
+			owlOntologyManager.addAxiom(ont, aaa);
+		}		
+	}
 
-
-	private String getAnyLabel(OWLEntity c) {
-		String label = null;
+	private String getLabel(OWLEntity c, OWLOntology ont) {
+		String label = null;		
 		// todo - ontology import closure
-		for (OWLAnnotation ann : c.getAnnotations(sourceOntology, owlDataFactory.getRDFSLabel())) {
+		for (OWLAnnotation ann : c.getAnnotations(ont, owlDataFactory.getRDFSLabel())) {
 			OWLAnnotationValue v = ann.getValue();
 			if (v instanceof OWLLiteral) {
 				label = ((OWLLiteral)v).getLiteral();
 				break;
 			}
 		}
+		return label;
+	}
+
+	private String getAnyLabel(OWLEntity c) {
+		String label = getLabel(c, sourceOntology);
 		if (label == null) {
 			// non-OBO-style ontology
 			label = c.getIRI().getFragment();

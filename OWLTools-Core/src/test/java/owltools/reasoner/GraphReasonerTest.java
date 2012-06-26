@@ -63,11 +63,11 @@ public class GraphReasonerTest extends AbstractReasonerTest {
 		findIndividuals(r, "human", 3);
 		findIndividuals(r, "has_phenotype some hyperplastic_hand", 2);
 		findIndividuals(r, "human and has_phenotype some hyperplastic_hand", 1); // underestimation without pre-reasoning
-		//findIndividuals(r, "human and has_phenotype some abnormal_morphology", 3);
-		//findIndividuals(r, "human and has_phenotype some hyperplastic", 3);
+		findIndividuals(r, "human and has_phenotype some abnormal_morphology", 3);
+		findIndividuals(r, "human and has_phenotype some hyperplastic", 3);
 		////findIndividuals(r, "has_phenotype some (not hyperplastic)", 2);
-		//findIndividuals(r, "fly and has_phenotype some (inheres_in some compound_eye)", 1);
-		//findIndividuals(r, "fly and has_phenotype some (inheres_in some (has_part some ommatidium))", 1);
+		findIndividuals(r, "fly and has_phenotype some (inheres_in some compound_eye)", 1);
+		findIndividuals(r, "fly and has_phenotype some (inheres_in some (has_part some ommatidium))", 1);
 
 	}
 

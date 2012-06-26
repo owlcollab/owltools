@@ -214,6 +214,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		pvob.setClassifyIndividuals(true);
 		pvob.setFilterUnused(true);
 		pvob.setViewLabelPrefix("involves ");
+		pvob.setViewLabelSuffix("");
 		pvob.setAssumeOBOStyleIRIs(false);
 		//pvob.setUseOriginalClassIRIs(true);
 
@@ -274,6 +275,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		OWLObjectProperty viewProperty = 
 			df.getOWLObjectProperty(IRI.create("http://x.org#has_phenotype_involving"));
 
+		// in this test, the individuals are in the source ontology
 		OWLOntology elementsOntology = sourceOntol;
 
 		PropertyViewOntologyBuilder pvob = 
