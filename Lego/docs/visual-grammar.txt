@@ -1,0 +1,54 @@
+
+# ---
+# NODES
+# ---
+
+for each
+  NamedIndividual(I)
+add
+  Node(I)
+
+# ---
+# EDGES
+# ---
+
+for each
+  ObjectPropertyAssertion(P I J)
+where
+  P is one of: {...]
+add
+ Edge(P I J)
+
+# ---
+# EDGE PROPERTIES
+# ---
+
+for each
+  E=Edge(P I J)
+add
+  EdgeProperty(E label: Label)
+where
+  AnnotationAssertion(label E Label)
+
+# ---
+# NODE PROPERTIES
+# ---
+
+for each
+  Node(I) and isMolecularFunction(I)
+add
+  NodeProperty(I label: ELabel + "\n" + MolFuncLabel)
+where
+  MostSpecificNamedClassAssertion(C I) and AnnotationAssertion(label C MolFuncLabel)
+ and
+  ClassAssertion(X I) and X = <:enabled_by some E> and AnnotationAssertion(label C ELabel)
+
+for each
+  Node(I) and isBiologicalProcess(I)
+add
+  NodeProperty(I label: Label)
+where
+  MostSpecificNamedClassAssertion(C I) and AnnotationAssertion(label C Label)
+
+
+

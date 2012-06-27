@@ -1,0 +1,82 @@
+# --------------------
+# ANNOT UNITS
+# --------------------
+
+MolecularAnnotation(
+ id: I
+
+ molecularFunction : F
+ activeEntity : E
+ cellularLocation : C
+
+ AnnotationUnitRelationships: [
+   Relationship(
+    Type: Type_1
+    To: To_1
+   )
+   ..
+   Relationship(
+    Type: Type_n
+    To: To_n
+   )
+
+ Context:
+  Relationship(
+    Type: CType
+    To:   P
+  )
+
+ ]
+
+)
+=>
+NamedIndividual(I)
+Class(E)
+ClassAssertion(F I)
+ClassAssertion( (:enabled_by SOME E) I)
+ClassAssertion( (:occurs_in SOME C) I)
+
+ObjectPropertyAssertion(Type_1 I To_1)
+...
+ObjectPropertyAssertion(Type_n I To_n)
+
+ObjectPropertyAssertion(CType I P)
+
+# --------------------
+# CONTEXTS
+# --------------------
+
+MolecularContext(
+ id: I
+ parentClass: P
+ cellularLocation: L
+ cellType: CT
+ grossAnatomy: A
+ organism: O
+
+ Relationships: [
+   Relationship(
+    Type: Type_1
+    To: To_1
+   )
+   ..
+   Relationship(
+    Type: Type_n
+    To: To_n
+   )  
+
+ ]
+)
+=>
+NamedIndividual(I)
+Class(P)
+ClassAssertion(P I)
+ClassAssertion(
+ :occurs_in SOME (L AND
+                   :part_of SOME (CT AND
+                                     :part_of SOME (A AND
+                                                      :part_of some O)))
+ I)
+ObjectPropertyAssertion(Type_1 I To_1)
+...
+ObjectPropertyAssertion(Type_n I To_n)
