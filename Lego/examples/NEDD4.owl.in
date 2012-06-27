@@ -1,0 +1,52 @@
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: : <http://purl.obolibrary.org/obo/>
+Prefix: i: <http://purl.obolibrary.org/obo/test/inst_>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: dc: <http://purl.org/dc/elements/1.1/>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+Ontology: <http://purl.obolibrary.org/obo/go/examples/NEDD4.owl>
+
+# Import: <http://purl.obolibrary.org/obo/go/test/go.owl>
+# MetadataFile: goa_human
+
+# ---
+# ACTIVITIES
+# ---
+
+# NEDD4 marks RNAPII for proteasomal degradation
+Individual: i:ubiquitin_protein_ligase_activity
+  Types: @ubiquitin_protein_ligase_activity, 
+    @molecular_function,
+    :enabled_by some @NEDD4,
+    :occurs_in some @nucleus
+  Facts: 
+    :part_of i:ubiquitin_dependent_protein_catabolic_process,
+    :directly_activates i:RNA_polymerase_II_activity
+
+Individual: i:RNA_polymerase_II_activity
+  Types: @RNA_polymerase_II_activity,
+     @molecular_function,
+     :enabled_by some @DNA_directed_RNA_polymerase_II_core_complex
+  Facts: 
+    :part_of i:transcription_from_RNA_polymerase_II_promoter
+
+# ---
+# PROCESSES
+# ---
+
+Individual: i:ubiquitin_dependent_protein_catabolic_process
+  Types: @ubiquitin_dependent_protein_catabolic_process
+  Facts:
+   :part_of i:cellular_response_to_UV
+
+Individual: i:cellular_response_to_UV
+  Types: @cellular_response_to_UV
+
+Individual: i:transcription_from_RNA_polymerase_II_promoter
+  Types: @transcription_from_RNA_polymerase_II_promoter
+
+Class: @NEDD4
+  SubClassOf: @protein
