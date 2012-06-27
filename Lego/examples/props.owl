@@ -1,5 +1,4 @@
 
-
 Class: @ubiquitin_dependent_protein_catabolic_process
   SubClassOf: :IS_ubiquitin_dependent_protein_catabolic_process self
 ObjectProperty: :IS_ubiquitin_dependent_protein_catabolic_process
@@ -39,7 +38,7 @@ ObjectProperty: :gene_product_of
 # M-P
 ObjectProperty: :enables
   SubPropertyOf: :upstream_of
-  SubPropertyChain: :enables o :part_of
+  SubPropertyChain: :enables o part_of:
 
 # M-P
 ObjectProperty: :enabled_by
@@ -61,10 +60,12 @@ ObjectProperty: :input_of
 ObjectProperty: :occurs_in
 
 # P-P
-ObjectProperty: :regulates
+ObjectProperty: regulates:
 ObjectProperty: :activates
 ObjectProperty: :directly_activates
+  SubPropertyOf: :upstream_of
 ObjectProperty: :directly_inhibits
+  SubPropertyOf: :upstream_of
 
 
 # P-M
@@ -88,6 +89,6 @@ ObjectProperty: :upstream_of
 ObjectProperty: :downstream_of
   InverseOf: :upstream_of
 
-ObjectProperty: :part_of
+ObjectProperty: part_of:
 
   

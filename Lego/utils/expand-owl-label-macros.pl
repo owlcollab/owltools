@@ -3,7 +3,8 @@ use strict;
 
 #my $f = pop @ARGV;
 my %name2id = ();
-my @lines = @_;
+my @lines = ();
+
 
 while(<>) {
     
@@ -21,6 +22,11 @@ while(<>) {
 
 # defaults
 $name2id{protein} = 'http://purl.obolibrary.org/obo/PR_000000001';
+
+unshift(@lines,
+     "Prefix: regulates:=<http://purl.obolibrary.org/obo/RO_0002211>\n",
+     "Prefix: part_of:=<http://purl.obolibrary.org/obo/BFO_0000050>\n"
+);
 
 my %class_h = ();
 #open (F, $f) || die $f;
