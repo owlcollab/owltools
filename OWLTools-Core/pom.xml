@@ -43,6 +43,7 @@
 						<exclude>owltools/mooncat/SubsetDefMooncatTest.java</exclude>
 						<exclude>owltools/mooncat/PropertyViewTest.java</exclude>
 						<exclude>owltools/graph/OWLGraphWrapperEdgeTest</exclude>
+						<exclude>owltools/gfx/LegoVizTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
