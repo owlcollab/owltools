@@ -2,7 +2,9 @@ package org.geneontology.lego.dot;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
@@ -82,10 +84,11 @@ public abstract class LegoDotWriter {
 	 * 
 	 * @param individuals
 	 * @param name name of the graph to be used in the dot file (optional)
+	 * @param renderKey
 	 * @throws IOException
 	 * @throws UnExpectedStructureException thrown, if there are unexpected axioms.
 	 */
-	public void renderDot(Collection<OWLNamedIndividual> individuals, String name)
+	public void renderDot(Collection<OWLNamedIndividual> individuals, String name, boolean renderKey)
 			throws IOException, UnExpectedStructureException {
 
 		open();
@@ -98,8 +101,24 @@ public abstract class LegoDotWriter {
 
 		// individual nodes
 		Set<IRI> renderedEntities = new HashSet<IRI>();
+		Map<String, String> legend = new HashMap<String, String>();
 		for (OWLNamedIndividual individual : individuals) {
-			renderIndividualsNode(individual, renderedEntities);
+			renderIndividualsNode(individual, renderedEntities, legend);
+		}
+		if (!legend.isEmpty() && renderKey) {
+			appendLine("");
+			appendLine("// Key / Legend",1);
+			appendLine("subgraph {", 1);
+			for(String relName : legend.keySet()) {
+				final CharSequence a = quote("legend_"+relName+"_A");
+				final CharSequence b = quote("legend_"+relName+"_B");
+				
+				appendLine(a+"[shape=plaintext,label=\"\"];", 2);
+				appendLine(b+"[shape=plaintext,label="+quote(relName)+"];", 2);
+				appendLine(a+" -> "+b+" "+legend.get(relName)+";", 2);
+				appendLine("");
+			}
+			appendLine("}", 1);
 		}
 
 		// end dot
@@ -107,7 +126,7 @@ public abstract class LegoDotWriter {
 		close();
 	}
 	
-	private void renderIndividualsNode(OWLNamedIndividual individual, Set<IRI> entities) throws IOException, UnExpectedStructureException {
+	private void renderIndividualsNode(OWLNamedIndividual individual, Set<IRI> entities, Map<String, String> legend) throws IOException, UnExpectedStructureException {
 		
 		OWLOntology sourceOntology = graph.getSourceOntology();
 		
@@ -184,7 +203,10 @@ public abstract class LegoDotWriter {
 				// render activeEntityEdge
 				appendLine("");
 				appendLine("// edge: annoton -> active entity", 1);
-				appendLine(nodeId(individual)+" -> "+nodeId(iri)+" [label=Entity];", 1);
+				appendLine(nodeId(individual)+" -> "+nodeId(iri)+" [style=dashed];", 1);
+				if (!legend.containsKey("Entity")) {
+					legend.put("Entity", "[style=dashed]");
+				}
 			}
 			
 		}
@@ -258,9 +280,19 @@ public abstract class LegoDotWriter {
 			OWLNamedIndividual namedTarget = (OWLNamedIndividual) object;
 			OWLObjectPropertyExpression property = propertyAxiom.getProperty();
 			String linkLabel = graph.getLabelOrDisplayId(property);
-			appendLine("");
-			appendLine("// edge", 1);
-			appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [label="+quote(linkLabel)+"];", 1);
+			if ("directly_inhibits".equals(linkLabel)) {
+				appendLine("");
+				appendLine("// edge", 1);
+				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [arrowhead=tee];", 1);
+				if (!legend.containsKey("directly_inhibits")) {
+					legend.put("directly_inhibits", "[arrowhead=tee]");
+				}
+			}
+			else {
+				appendLine("");
+				appendLine("// edge", 1);
+				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [label="+quote(linkLabel)+"];", 1);
+			}
 		}
 	}
 	
