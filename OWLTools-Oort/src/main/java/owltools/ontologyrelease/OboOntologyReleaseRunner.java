@@ -90,7 +90,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	OortConfiguration oortConfig;
 
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base) throws IOException {
-		super(base, logger, oortConfig.isUseReleaseFolder());
+		super(base, logger, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile());
 		this.oortConfig = oortConfig; 
 	}
 
@@ -130,11 +130,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		 * the command-line flag '--allowOverwrite' has to be used.
 		 */
 		return false;
-	}
-
-	@Override
-	boolean forceLock(File file) {
-		return oortConfig.isIgnoreLockFile();
 	}
 
 	public static void main(String[] args) throws IOException,

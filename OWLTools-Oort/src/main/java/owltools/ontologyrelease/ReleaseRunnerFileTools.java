@@ -42,9 +42,10 @@ abstract class ReleaseRunnerFileTools {
 	 * @param base directory
 	 * @param logger
 	 * @param useReleasesFolder 
+	 * @param ignoreLock
 	 * @throws IOException
 	 */
-	ReleaseRunnerFileTools(File base, Logger logger, boolean useReleasesFolder) throws IOException {
+	ReleaseRunnerFileTools(File base, Logger logger, boolean useReleasesFolder, boolean ignoreLock) throws IOException {
 		super();
 		this.logger = logger;
 		this.useReleasesFolder = useReleasesFolder;
@@ -61,7 +62,7 @@ abstract class ReleaseRunnerFileTools {
 		// lock file
 		lockFile = new File(staging, STAGING_DIRECTORY_LOCK_FILE_NAME);
 		boolean success = lockFile.createNewFile();
-		if (!success) {
+		if (!success && !ignoreLock) {
 			if (!forceLock(lockFile)) {
 				throw new IOException("Could not lock staging directory via lock file: "+lockFile.getAbsolutePath());
 			}
