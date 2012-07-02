@@ -132,6 +132,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return false;
 	}
 
+	@Override
+	boolean forceLock(File file) {
+		return oortConfig.isIgnoreLockFile();
+	}
+
 	public static void main(String[] args) throws IOException,
 	OWLOntologyCreationException, OWLOntologyStorageException,
 	OBOFormatDanglingReferenceException {
@@ -226,6 +231,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			else if (opt.equals("--force")) {
 				oortConfig.setForceRelease(true);
+			}
+			else if (opt.equals("--ignoreLock")) {
+				oortConfig.setIgnoreLockFile(true);
 			}
 			else if (opt.equals("--asserted")) {
 				oortConfig.setAsserted(true);

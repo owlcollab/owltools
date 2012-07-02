@@ -58,6 +58,7 @@ public class OortConfiguration {
 	private Set<String> sourceOntologyPrefixes = null;
 	private boolean executeOntologyChecks = true;
 	private boolean forceRelease = false;
+	private boolean ignoreLockFile = false;
 	private boolean autoDetectBridgingOntology = true;
 	private boolean removeDanglingBeforeReasoning = false;
 	private boolean addSupportFromImports = false;
@@ -619,6 +620,20 @@ public class OortConfiguration {
 	 */
 	public void setJustifyAssertedSubclassesFrom(String justifyAssertedSubclassesFrom) {
 		this.justifyAssertedSubclassesFrom = justifyAssertedSubclassesFrom;
+	}
+	
+	/**
+	 * @return the ignoreLockFile
+	 */
+	public boolean isIgnoreLockFile() {
+		return ignoreLockFile;
+	}
+
+	/**
+	 * @param ignoreLockFile the ignoreLockFile to set
+	 */
+	public void setIgnoreLockFile(boolean ignoreLockFile) {
+		this.ignoreLockFile = ignoreLockFile;
 	}
 
 	@Override
