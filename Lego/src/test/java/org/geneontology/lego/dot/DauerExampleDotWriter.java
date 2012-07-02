@@ -45,7 +45,7 @@ public class DauerExampleDotWriter {
 				fileWriter.append(line).append('\n');
 			}
 		};
-		writer.renderDot(individuals, name);
+		writer.renderDot(individuals, name, true);
 	}
 	
 	public static void main(String[] args) throws Exception {
