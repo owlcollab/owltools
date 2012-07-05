@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
@@ -24,6 +25,7 @@ import owltools.sim.MultiSimilarity;
 import owltools.sim.OWLObjectPair;
 import owltools.sim.Reporter;
 import owltools.sim.SimEngine;
+import owltools.sim.SimpleOwlSim;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
@@ -41,6 +43,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 	private OWLOntology simOnt = null;
 	private String similarityAlgorithmName = "JaccardSimilarity";
+	SimpleOwlSim sos;
 
 	@CLIMethod("--sim-method")
 	public void setSimMethod(Opts opts) {
@@ -363,4 +366,64 @@ public class SimCommandRunner extends SolrCommandRunner {
 			}
 		}
 	}
+	
+	// NEW
+	@CLIMethod("--owlsim-init")
+	public void owlsimInit(Opts opts) throws OWLOntologyCreationException {
+		sos = new SimpleOwlSim(g.getSourceOntology());
+		sos.setAttributesFromOntology(g.getSourceOntology());
+	}
+	
+	// NEW
+	@CLIMethod("--owlsim-create-sim-ont")
+	public void owlsimCreateSimOnt(Opts opts) throws OWLOntologyCreationException {
+		sos.createSimOnt();
+	}
+	
+	// NEW
+	@CLIMethod("--owlsim-view-property")
+	public void owlsimAddViewProperty(Opts opts) throws OWLOntologyCreationException {
+		sos.addViewProperty(this.resolveObjectProperty(opts.nextOpt()));
+	}
+
+	
+	// NEW
+	@CLIMethod("--owlsim-all-by-all")
+	public void owlsimPrepare(Opts opts) throws OWLOntologyCreationException {
+		sos = new SimpleOwlSim(g.getSourceOntology());
+		sos.setAttributesFromOntology(g.getSourceOntology());
+		sos.createSimOnt();
+	}
+	// NEW
+	@CLIMethod("--owlsim-dispose")
+	public void owlsimDispose(Opts opts) throws OWLOntologyCreationException {
+		sos.getReasoner().dispose();
+	}
+	
+			
+	// NEW
+	@CLIMethod("--owlsim-lcsx")
+	public void owlsimLcsx(Opts opts) throws OWLOntologyCreationException {
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.prepareOntology();
+		}
+		
+		owlpp = new OWLPrettyPrinter(g);
+
+		opts.info("LABEL", "anonymous class expression 1");
+		OWLObject a = resolveEntity( opts);
+
+		opts.info("LABEL", "anonymous class expression 2");
+		OWLObject b = resolveEntity( opts);
+		System.out.println(a+ " // "+a.getClass());
+		System.out.println(b+ " // "+b.getClass());
+
+		
+		//OWLClassExpression lcs = sos.getLowestCommonSubsumer((OWLClass)a, (OWLClass)b);
+		OWLClassExpression lcs = sos.makeLowestCommonSubsumerClass((OWLClass)a, (OWLClass)b);
+
+		System.out.println("LCS:"+owlpp.render(lcs));
+	}
+
 }

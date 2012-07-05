@@ -106,10 +106,13 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
 import de.derivo.sparqldlapi.Query;
+import de.derivo.sparqldlapi.QueryArgument;
+import de.derivo.sparqldlapi.QueryBinding;
 import de.derivo.sparqldlapi.QueryEngine;
 import de.derivo.sparqldlapi.QueryResult;
 import de.derivo.sparqldlapi.exceptions.QueryEngineException;
 import de.derivo.sparqldlapi.exceptions.QueryParserException;
+import de.derivo.sparqldlapi.types.QueryArgumentType;
 import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
 
 /**
@@ -608,6 +611,7 @@ public class CommandRunner {
 				}
 				String q = opts.nextOpt();
 				System.out.println("Q="+q);
+				OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
 				try {
 					QueryEngine engine;
 					Query query = Query.create(q);
@@ -628,7 +632,22 @@ public class CommandRunner {
 						}
 						else {
 							System.out.println("Results:");
-							System.out.print(result);
+							for (int i=0; i < result.size(); i++) {
+								System.out.print("["+i+"] ");
+								QueryBinding qb = result.get(i);
+								for (QueryArgument qa : qb.getBoundArgs()) {
+									String k = qa.toString();
+									System.out.print(" "+k+"=");
+									QueryArgument v = qb.get(qa);
+									String out = v.toString();
+									if (v.getType().equals(QueryArgumentType.URI)) {
+										out = owlpp.renderIRI(v.toString());
+									}
+									System.out.print(out+"; ");
+								}
+								System.out.println("");
+							}
+							//System.out.print(result);
 							System.out.println("-------------------------------------------------");
 							System.out.println("Size of result set: " + result.size());
 						}
