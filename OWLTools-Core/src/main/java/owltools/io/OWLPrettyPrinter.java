@@ -4,6 +4,7 @@ package owltools.io;
 import java.util.Set;
 
 import org.semanticweb.owlapi.io.OWLObjectRenderer;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
@@ -48,6 +49,12 @@ public class OWLPrettyPrinter {
 	public String renderId(String id) {
 		return render(graph.getOWLObjectByIdentifier(id));
 	}
+	
+	public String renderIRI(String iri) {
+		return render(graph.getOWLObject(IRI.create(iri)));
+
+	}
+
 
 
 	public String render(OWLAxiom a) {
@@ -147,6 +154,7 @@ public class OWLPrettyPrinter {
 		}
 
 	}
+
 
 
 

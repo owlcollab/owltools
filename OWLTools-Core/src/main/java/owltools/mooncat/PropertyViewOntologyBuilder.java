@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -28,9 +29,11 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 /**
  * This class will create a property view or *faceted* view over an ontology using a specified
@@ -200,8 +203,8 @@ public class PropertyViewOntologyBuilder {
 	public void setInferredViewOntology(OWLOntology inferredViewOntology) {
 		this.inferredViewOntology = inferredViewOntology;
 	}
-	
-	
+
+
 
 	public OWLOntology getElementsOntology() {
 		return elementsOntology;
@@ -306,6 +309,18 @@ public class PropertyViewOntologyBuilder {
 	}
 
 	/**
+	 * @param reasonerFactory
+	 * @throws OWLOntologyCreationException 
+	 */
+	public void build(OWLReasonerFactory reasonerFactory) throws OWLOntologyCreationException {
+		buildViewOntology();
+		OWLReasoner reasoner = reasonerFactory.createReasoner(assertedViewOntology);
+		reasoner.precomputeInferences(InferenceType.values()); // Elk only?
+
+		buildInferredViewOntology(reasoner);
+	}
+
+	/**
 	 * As {@link #buildViewOntology(IRI, IRI)}, but both O(P) and O(P)' have automatically
 	 * generated IRIs
 	 * 
@@ -314,6 +329,17 @@ public class PropertyViewOntologyBuilder {
 	public void buildViewOntology() throws OWLOntologyCreationException {
 		buildViewOntology((new OWLOntologyID()).getOntologyIRI(), 
 				(new OWLOntologyID()).getOntologyIRI());
+	}
+
+	/**
+	 * as {@link buildViewOntology(IRI,IRI)}, but sets the asserted and inferred view
+	 * ontologies to be the same
+	 * 
+	 * @param voIRI
+	 * @throws OWLOntologyCreationException
+	 */
+	public void buildViewOntology(IRI voIRI) throws OWLOntologyCreationException {
+		buildViewOntology(voIRI, voIRI);
 	}
 
 	/**
@@ -348,10 +374,12 @@ public class PropertyViewOntologyBuilder {
 		if (!elementsOntology.equals(sourceOntology))
 			imports.add(elementsOntology);
 		LOG.info("imports="+imports);
+		LOG.info("AVO="+avoIRI);
+		LOG.info("IVO="+ivoIRI);
 		// the AVO includes the source ontology and elemental ontology in its imports
 		//  - when we reason, we need axioms from all
 		assertedViewOntology = owlOntologyManager.createOntology(avoIRI, imports);
-		if (avoIRI.equals(ivoIRI))
+		if ((avoIRI == null && ivoIRI == null) || avoIRI.equals(ivoIRI))
 			inferredViewOntology = assertedViewOntology;
 		else
 			inferredViewOntology = owlOntologyManager.createOntology(ivoIRI);
@@ -468,7 +496,7 @@ public class PropertyViewOntologyBuilder {
 					// anything derived -- including labels -- goes in the derived ontology
 					owlOntologyManager.addAxiom(inferredViewOntology, aaa);
 				}
-				
+
 				// first add equivalence axioms
 				// TODO - allow for merging of equivalent classes
 				Set<OWLClass> ecs = reasoner.getEquivalentClasses(c).getEntities();
@@ -492,11 +520,14 @@ public class PropertyViewOntologyBuilder {
 			}
 			else if (e instanceof OWLNamedIndividual){
 				OWLNamedIndividual ind = (OWLNamedIndividual) e;
-				Set<OWLClass> scs = reasoner.getTypes(ind, true).getFlattened();
-				for (OWLClass sc : scs) {
-					if (viewEntities.contains(sc)) {
-						OWLClassAssertionAxiom caa = owlDataFactory.getOWLClassAssertionAxiom(sc, ind);
-						owlOntologyManager.addAxiom(inferredViewOntology, caa);
+				NodeSet<OWLClass> types = reasoner.getTypes(ind, true);
+				if (types != null) {
+					Set<OWLClass> scs = types.getFlattened();
+					for (OWLClass sc : scs) {
+						if (viewEntities.contains(sc)) {
+							OWLClassAssertionAxiom caa = owlDataFactory.getOWLClassAssertionAxiom(sc, ind);
+							owlOntologyManager.addAxiom(inferredViewOntology, caa);
+						}
 					}
 				}
 			}
@@ -507,24 +538,31 @@ public class PropertyViewOntologyBuilder {
 	}
 
 	private IRI makeViewClassIRI(OWLClass c) {
-		IRI vcIRI = c.getIRI();
+		return makeViewClassIRI(c.getIRI(), viewProperty.getIRI(), "-");
+	}
+
+	public IRI makeViewClassIRI(IRI vcIRI, IRI vpIRI, String sep) {
 		if (!isUseOriginalClassIRIs) {
 			String vcIRIstr = vcIRI.toString();
 			if (isAssumeOBOStyleIRIs) {
 				String baseId = Owl2Obo.getIdentifier(vcIRI);
-				String relId = Owl2Obo.getIdentifier(viewProperty.getIRI());
+				String relId = Owl2Obo.getIdentifier(vpIRI);
 				vcIRIstr = "http://purl.obolibrary.org/obo/"
-					+ baseId.replace(":", "_") + "-"
+					+ baseId.replace(":", "_") + sep
 					+ relId.replace("_", "-").replace(":", "-");
 			}
 			else {
-				vcIRIstr = vcIRIstr + "_view";
+				String frag = vpIRI.getFragment();
+				if (frag == null || frag.equals("")) {
+					frag = vpIRI.toString().replaceAll(".*\\/", "view");
+				}
+				vcIRIstr = vcIRIstr + sep + frag;
 			}
 			vcIRI = IRI.create(vcIRIstr);
 		}
 		return vcIRI;
 	}
-	
+
 	private void setViewClassLabel(OWLClass c, IRI vcIRI, OWLOntology ont) {
 		String vLabel = getViewLabel(c);
 		if (vLabel != null) {
@@ -535,7 +573,7 @@ public class PropertyViewOntologyBuilder {
 		}		
 	}
 
-	private String getLabel(OWLEntity c, OWLOntology ont) {
+	public String getLabel(OWLEntity c, OWLOntology ont) {
 		String label = null;		
 		// todo - ontology import closure
 		for (OWLAnnotation ann : c.getAnnotations(ont, owlDataFactory.getRDFSLabel())) {
@@ -596,7 +634,7 @@ public class PropertyViewOntologyBuilder {
 			axs.add(owlDataFactory.getOWLDeclarationAxiom(c));
 			//g.getDataFactory().getOWLDeclarationAxiom(owlEntity)
 		}
-		
+
 		for (OWLAxiom axiom : axs) {
 			LOG.info("Tbox2Abox: "+axiom);
 			owlOntologyManager.addAxiom(newElementsOntology, axiom);
