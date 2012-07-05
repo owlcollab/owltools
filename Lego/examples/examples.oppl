@@ -17,3 +17,10 @@ SELECT
 BEGIN
 ADD ?f Type ?x
 END;
+
+
+?f:INDIVIDUAL, ?x:CLASS, ?rt:CLASS
+SELECT ?f Type 'kinase activity',
+?f Type enabled_by some ?x,
+ASSERTED ?x SubClassOf  protein
+ BEGIN ADD ?f Type ?x END;
