@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <VSNode splits="0.3 0.7">
+        <CNode>
+            <Component label="Asserted class hierarchy">
+                <Property id="pluginId" value="org.protege.editor.owl.OWLAssertedClassHierarchy"/>
+            </Component>
+            <Component label="Inferred class hierarchy">
+                <Property id="pluginId" value="org.protege.editor.owl.InferredOWLClassHierarchy"/>
+            </Component>
+        </CNode>
+        <CNode>
+            <Component label="Lego Annotations View Component">
+                <!-- This pluginID is a composite of the plug-in id space (defined in MANIFEST.MF) 
+                      and the extension point in plugin.xml
+                      Here, this is conveniently the same as the class.  -->
+                <Property id="pluginId" value="org.geneontology.annotation.view.LegoAnnotationView"/>
+            </Component>
+        </CNode>
+    </VSNode>
+</layout>
