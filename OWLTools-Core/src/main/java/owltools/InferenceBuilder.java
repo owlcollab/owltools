@@ -392,7 +392,7 @@ public class InferenceBuilder{
 
 		axiomsToAdd.addAll(equivAxiomsToAdd);
 
-
+		logger.info("Done building inferences");
 
 		return axiomsToAdd;
 
