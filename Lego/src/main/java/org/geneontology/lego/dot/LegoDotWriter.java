@@ -207,9 +207,9 @@ public abstract class LegoDotWriter {
 				// render activeEntityEdge
 				appendLine("");
 				appendLine("// edge: annoton -> active entity", 1);
-				appendLine(nodeId(individual)+" -> "+nodeId(iri)+" [style=dashed];", 1);
+				appendLine(nodeId(individual)+" -> "+nodeId(iri)+" [style=dashed,arrowhead=none];", 1);
 				if (!legend.containsKey("Entity")) {
-					legend.put("Entity", "[style=dashed]");
+					legend.put("has activtity", "[style=dashed,arrowhead=none]");
 				}
 			}
 			
