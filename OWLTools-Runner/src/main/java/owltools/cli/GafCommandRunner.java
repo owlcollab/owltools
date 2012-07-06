@@ -120,6 +120,33 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
+	@CLIMethod("--gaf-term-IC-values")
+	public void gafTermICValues(Opts opts) {
+		// TODO - ensure has_part and other relations are excluded
+		owlpp = new OWLPrettyPrinter(g);
+		Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
+		double corpusSize = gafdoc.getBioentities().size();
+		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
+			OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
+			for (OWLObject x : g.getAncestorsReflexive(c)) {
+				if (!aMap.containsKey(x))
+					aMap.put(x, new HashSet<String>());
+				aMap.get(x).add(a.getBioentity());
+			}
+		}
+		for (OWLObject c : g.getAllOWLObjects()) {
+			if (c instanceof OWLClass) {
+				if (g.isObsolete(c))
+					continue;
+				if (!aMap.containsKey(c))
+					continue;
+				int n = aMap.get(c).size();
+				double ic = - (Math.log( n / corpusSize) / Math.log(2));
+				System.out.println(g.getIdentifier(c)+"\t"+g.getLabel(c)+"\t"+ ic);
+			}
+		}
+	}
+	
 	@CLIMethod("--gaf-term-counts")
 	public void gafTermCounts(Opts opts) {
 		// TODO - ensure has_part and other relations are excluded
