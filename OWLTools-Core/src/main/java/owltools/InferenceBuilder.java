@@ -1,6 +1,7 @@
 package owltools;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +56,7 @@ public class InferenceBuilder{
 	private final FactoryDetails reasonerFactoryDetails;
 	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
-	List<OWLAxiom> redundantAxioms = new ArrayList<OWLAxiom>();
+	Set<OWLAxiom> redundantAxioms = new HashSet<OWLAxiom>();
 	List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = new ArrayList<OWLEquivalentClassesAxiom>();
 
 	public InferenceBuilder(OWLGraphWrapper graph){
@@ -213,7 +214,7 @@ public class InferenceBuilder{
 		return reasoner;
 	}
 
-	public List<OWLAxiom> getRedundantAxioms() {
+	public Collection<OWLAxiom> getRedundantAxioms() {
 		return redundantAxioms;
 	}
 	
@@ -362,7 +363,7 @@ public class InferenceBuilder{
 
 		// CHECK FOR REDUNDANCY
 		logger.info("Checking for redundant assertions caused by inferences");
-		redundantAxioms = new ArrayList<OWLAxiom>();
+		redundantAxioms = new HashSet<OWLAxiom>();
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 			Set<OWLClassExpression> supers = cls.getSuperClasses(ontology);
 			for (OWLAxiom ax : axiomsToAdd) {
@@ -379,11 +380,9 @@ public class InferenceBuilder{
 						redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup));
 						continue;
 					}
-					for (Node<OWLClass> supNode : reasoner.getSuperClasses(sup,false)) {
-						for (OWLClass sup2 : supNode.getEntities()) {
-							if (supers.contains(sup2)) {
-								redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup2) );
-							}
+					for (OWLClass sup2 : reasoner.getSuperClasses(sup,false).getFlattened()) {
+						if (supers.contains(sup2)) {
+							redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup2) );
 						}
 					}
 				}
