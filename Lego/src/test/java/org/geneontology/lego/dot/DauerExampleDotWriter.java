@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.semanticweb.HermiT.Reasoner.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -20,7 +21,7 @@ import owltools.io.ParserWrapper;
  */
 public class DauerExampleDotWriter {
 
-	static void write(String input, String output, String name) throws Exception {
+	static void write(String input, final String output, String name) throws Exception {
 		ParserWrapper p = new ParserWrapper();
 		IRI iri = IRI.create(new File(input));
 		final OWLOntology ontology = p.parseOWL(iri);
@@ -30,13 +31,18 @@ public class DauerExampleDotWriter {
 
 		OWLReasonerFactory factory = new ReasonerFactory();
 		
-		final BufferedWriter fileWriter = new BufferedWriter(new FileWriter(new File(output)));
-		
 		LegoDotWriter writer = new LegoDotWriter(g, factory.createReasoner(ontology)) {
 
+			BufferedWriter fileWriter = null;
+			
 			@Override
-			protected void close() throws IOException {
-				fileWriter.close();
+			protected void open() throws IOException {
+				fileWriter = new BufferedWriter(new FileWriter(new File(output)));
+			}
+
+			@Override
+			protected void close() {
+				IOUtils.closeQuietly(fileWriter);
 			}
 
 			@Override

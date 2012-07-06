@@ -91,39 +91,43 @@ public abstract class LegoDotWriter {
 	public void renderDot(Collection<OWLNamedIndividual> individuals, String name, boolean renderKey)
 			throws IOException, UnExpectedStructureException {
 
-		open();
-		// start dot
-		if (name == null) {
-			appendLine("digraph {");
-		} else {
-			appendLine("digraph " + quote(name) + " {");
-		}
-
-		// individual nodes
-		Set<IRI> renderedEntities = new HashSet<IRI>();
-		Map<String, String> legend = new HashMap<String, String>();
-		for (OWLNamedIndividual individual : individuals) {
-			renderIndividualsNode(individual, renderedEntities, legend);
-		}
-		if (!legend.isEmpty() && renderKey) {
-			appendLine("");
-			appendLine("// Key / Legend",1);
-			appendLine("subgraph {", 1);
-			for(String relName : legend.keySet()) {
-				final CharSequence a = quote("legend_"+relName+"_A");
-				final CharSequence b = quote("legend_"+relName+"_B");
-				
-				appendLine(a+"[shape=plaintext,label=\"\"];", 2);
-				appendLine(b+"[shape=plaintext,label="+quote(relName)+"];", 2);
-				appendLine(a+" -> "+b+" "+legend.get(relName)+";", 2);
-				appendLine("");
+		try {
+			open();
+			// start dot
+			if (name == null) {
+				appendLine("digraph {");
+			} else {
+				appendLine("digraph " + quote(name) + " {");
 			}
-			appendLine("}", 1);
-		}
 
-		// end dot
-		appendLine("}");
-		close();
+			// individual nodes
+			Set<IRI> renderedEntities = new HashSet<IRI>();
+			Map<String, String> legend = new HashMap<String, String>();
+			for (OWLNamedIndividual individual : individuals) {
+				renderIndividualsNode(individual, renderedEntities, legend);
+			}
+			if (!legend.isEmpty() && renderKey) {
+				appendLine("");
+				appendLine("// Key / Legend",1);
+				appendLine("subgraph {", 1);
+				for(String relName : legend.keySet()) {
+					final CharSequence a = quote("legend_"+relName+"_A");
+					final CharSequence b = quote("legend_"+relName+"_B");
+					
+					appendLine(a+"[shape=plaintext,label=\"\"];", 2);
+					appendLine(b+"[shape=plaintext,label="+quote(relName)+"];", 2);
+					appendLine(a+" -> "+b+" "+legend.get(relName)+";", 2);
+					appendLine("");
+				}
+				appendLine("}", 1);
+			}
+
+			// end dot
+			appendLine("}");
+		} finally {
+			close();
+		}
+		
 	}
 	
 	private void renderIndividualsNode(OWLNamedIndividual individual, Set<IRI> entities, Map<String, String> legend) throws IOException, UnExpectedStructureException {
@@ -391,11 +395,9 @@ public abstract class LegoDotWriter {
 	
 	/**
 	 * Overwrite this method to implement a custom close() function for the writer.
-	 * Not guaranteed to be called in case of an Exception.
-	 * 
-	 * @throws IOException
+	 * Guaranteed to be called, also in case of an Exception (try-finally pattern).
 	 */
-	protected void close() throws IOException {
+	protected void close() {
 		// default: do nothing
 	}
 
