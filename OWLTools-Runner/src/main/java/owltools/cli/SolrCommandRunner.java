@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -221,6 +222,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	@CLIMethod("--solr-dump-ontology")
 	public void flexDumpOntologySolr(Opts opts) throws Exception {
 
+		//Logger.getRootLogger().setLevel(Level.ERROR);
+		
 		// Grab the intermediate form.
 		FlexCollection flex = new FlexCollection(aconf, g);
 

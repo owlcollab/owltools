@@ -2356,13 +2356,38 @@ public class OWLGraphWrapper {
 	}
 
 	/**
+	 * Get the annotation property value for a tag.
+	 * 
+	 * @see #getAnnotationPropertyValues(OWLObject c, String tag)
+	 * @param c
+	 * @param tag
+	 * @return String
+	 */
+	public String getAnnotationPropertyValue(OWLObject c, String tag) {
+		OWLAnnotationProperty lap = getAnnotationProperty(tag);
+		return getAnnotationValue(c, lap);
+	}
+
+	/**
+	 * Get the annotation property values for a tag.
+	 * 
+	 * @see #getAnnotationPropertyValue(OWLObject c, String tag)
+	 * @param c
+	 * @param tag
+	 * @return String List
+	 */
+	public List<String> getAnnotationPropertyValues(OWLObject c, String tag) {
+		OWLAnnotationProperty lap = getAnnotationProperty(tag);
+		return getAnnotationValues(c, lap);
+	}
+
+	/**
 	 * It returns the values of the alt_id tag
 	 * @param c
 	 * @return list of identifiers
 	 */
 	public List<String> getAltIds(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_ALT_ID.getTag());
-
 		return getAnnotationValues(c, lap);
 	}
 

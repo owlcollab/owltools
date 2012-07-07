@@ -13,38 +13,38 @@ fields:
     description: Bioentity id.
     display_name: Acc
     type: string
-    property: ???
+    property: []
   - id: bioentity
     description: "Column 1 + columns 2."
     display_name: Bioentity ID
     type: string
-    property: ???
+    property: []
   - id: bioentity_label
     description: Column 3.
     display_name: Bioentity label
     type: string
-    property: ???
+    property: []
     searchable: true
   - id: annotation_class
     description: Column 5.
     display_name: Annotation class
     type: string
-    property: ???
+    property: []
   - id: annotation_class_label
     description: "Column 5 + ontology."
     display_name: Annotation class label
     type: string
-    property: ???
+    property: []
     searchable: true
   - id: evidence_closure
     description: ???
     display_name: Evidence closure
     type: string
     cardinality: multi
-    property: ???
+    property: []
   - id: evidence_with
     description: ???
     display_name: Evidence with
     type: string
     cardinality: multi
-    property: ???
+    property: []

@@ -13,7 +13,7 @@ public class GOlrField {
 	public String type;
 	public String required;
 	public String cardinality;
-	public String property;
+	public ArrayList <String> property;
 	public String boost_weights;
 	public String result_weights;
 	public String filter_weights;

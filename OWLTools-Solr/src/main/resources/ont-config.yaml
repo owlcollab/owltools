@@ -13,44 +13,44 @@ fields:
     description: Term acc/ID.
     display_name: Acc
     type: string
-    property: getIdentifier
+    property: [getIdentifier]
 #    transform: []
 #    - boolify
   - id: label
     description: Common term name.
     display_name: Term
     type: string
-    #property: http://www.w3.org/2000/01/rdf-schema#label
-    property: getLabel
+    #property: [http://www.w3.org/2000/01/rdf-schema#label]
+    property: [getLabel]
     searchable: true
 ## Ever used with terms?
 # - id: descriptive_name
 #     description: Term description.
 #     display_name: Description
 #     type: string
-#     property: descriptive_name
+#     property: [descriptive_name]
 #    searchable: true
   - id: description
     description: Term definition.
     display_name: Definition
     type: string
-    property: getDef
+    property: [getDef]
     searchable: true
   - id: source
     description: Term namespace.
     display_name: Source
     type: string
-    property: getNamespace
+    property: [getNamespace]
   - id: is_obsolete
     description: Is the term obsolete?
     display_name: Obsoletion
     type: boolean
-    property: getIsObsoleteBinaryString
+    property: [getIsObsoleteBinaryString]
   - id: comment
     description: Term comment.
     display_name: Comment
     type: string
-    property: getComment
+    property: [getComment]
     searchable: true
 ## looks like single in OWLGraphWrapper API
 #    cardinality: multi
@@ -58,43 +58,43 @@ fields:
     description: Term synonym.
     display_name: Synonym
     type: string
-    property: getOBOSynonymStrings
+    property: [getOBOSynonymStrings]
     cardinality: multi
     searchable: true
   - id: alternate_id
     description: Alternate term id.
     display_name: Alt ID
     type: string
-    property: getAltIds
+    property: [getAnnotationPropertyValues, alt_id]
     cardinality: multi
   - id: subset
     description: Term subset.
     display_name: Subset
     type: string
-    property: getSubsets
+    property: [getSubsets]
     cardinality: multi
   - id: definition_xref
     description: Definition cross-reference.
     display_name: Def XRef
     type: string
-    property: getDefXref
+    property: [getDefXref]
     cardinality: multi
   - id: isa_partof_closure
     description: "Closure of ids/accs over isa and partof."
     display_name: isa/partof closure (ids)
     type: string
     cardinality: multi
-    property: getIsaPartofIDClosure
+    property: [getIsaPartofIDClosure]
   - id: isa_partof_closure_label
     description: "Closure of labels over isa and partof."
     display_name: Is-a/Part-of closure (labels)
     type: string
     cardinality: multi
-    property: getIsaPartofLabelClosure
+    property: [getIsaPartofLabelClosure]
     searchable: true
   - id: graph
     description: JSON blob form of the local graph.
     display_name: This should not be displayed
     type: string
-    property: getSegmentShuntGraphJSON
+    property: [getSegmentShuntGraphJSON]
     indexed: false
