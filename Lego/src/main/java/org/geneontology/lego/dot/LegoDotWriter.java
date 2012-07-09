@@ -208,6 +208,12 @@ public abstract class LegoDotWriter {
 				appendLine("");
 				appendLine("// edge: annoton -> active entity", 1);
 				appendLine(nodeId(individual)+" -> "+nodeId(iri)+" [style=dashed,arrowhead=none];", 1);
+				
+				// make entity and activity the same rank for layout
+				// appendLine("{ rank = same "+nodeId(individual)+" "+nodeId(iri)+"}", 1);
+				// keep this as reference, did not help to make nicer renderings
+				
+				// add key if required
 				if (!legend.containsKey("Entity")) {
 					legend.put("has activtity", "[style=dashed,arrowhead=none]");
 				}
