@@ -2,8 +2,10 @@ package owltools.graph;
 
 import static junit.framework.Assert.*;
 
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -19,6 +21,8 @@ import owltools.OWLToolsTestBasics;
 
 public class OWLGraphGOTest extends OWLToolsTestBasics {
 	
+	private static Logger LOG = Logger.getLogger(OWLGraphWrapper.class);
+
 	/*
 	 * Testing the some of the relation functions in the graph wrapper on GO.
 	 */
@@ -75,6 +79,38 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 			}
 		}
 		assertTrue("saw GO:0022008 as a child of GO_0007399:", kid_p);
+		
+		
+		// Third, lets make sure that the closure for isa_partof is actually getting everything.
+		OWLObject x3 = wrapper.getOWLClassByIdentifier("GO:0022008");
+		Map<String, String> closure_map = wrapper.getIsaPartofClosureMap(x3);
+		
+		
+		// And make sure they are the right ones.
+		int tally = 0;
+		for( String key : closure_map.keySet() ){
+			//LOG.info("key: " + key + ", label: " + closure_map.get(key));
+			assertNotNull("the closure ids should never be null", key);
+			if( key != null ){
+				if( key.equals("GO:0022008") ||
+					key.equals("GO:0030154") ||
+					key.equals("GO:0007399") ||
+					key.equals("GO:0048731") ||
+					key.equals("GO:0048869") ||
+					key.equals("GO:0048856") ||
+					key.equals("GO:0007275") ||
+					key.equals("GO:0009987") ||
+					key.equals("GO:0032502") ||
+					key.equals("GO:0032501") ||
+					key.equals("GO:0008150") ){
+					tally++;
+				}
+			}
+		}
+		// Do we have the right number and right allocation of ancestors?
+		assertEquals("have 11 ids in closure", 11, closure_map.keySet().size());
+		assertEquals("have correct 11 ids in closure", 11, tally);
+		
 	}
 	
 	private OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException{

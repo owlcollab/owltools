@@ -66,10 +66,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		LOG.info("Done.");
 	}
 
-	private OWLObjectProperty getPartOfProperty() {
-		OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier("BFO:0000050");
-		return p;
-	}
+//	private OWLObjectProperty getPartOfProperty() {
+//		OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier("BFO:0000050");
+//		return p;
+//	}
 
 	// Main wrapping for adding non-ontology documents to GOlr.
 	// Also see OntologySolrLoader.
@@ -131,119 +131,129 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			/// isa_partof_closure
 			///
 			
-			Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
-			OWLObject c = graph.getOWLObjectByIdentifier(clsId);
-			Set<OWLPropertyExpression> ps = Collections.singleton((OWLPropertyExpression)getPartOfProperty());
-			Set<OWLObject> ancs = graph.getAncestors(c, ps);
-			for (OWLObject t : ancs) {
-				if (! (t instanceof OWLClass))
-					continue;
-				String tid = graph.getIdentifier(t);
-				//System.out.println(edge+" TGT:"+tid);
-				String tlabel = null;
-				if (t != null)
-					tlabel = graph.getLabel(t);
-				annotation_doc.addField("isa_partof_closure", tid);
-				addFieldUnique(bioentity_doc, "isa_partof_closure", tid);
-				if (tlabel != null) {
-					annotation_doc.addField("isa_partof_closure_label", tlabel);
+			OWLObject cls = graph.getOWLObjectByIdentifier(clsId);
+			// TODO: This may be a bug workaround, or it may be the way things are.
+			// getOWLObjectByIdentifier returns null on alt_ids, so skip them for now.
+			if(cls != null ){
+				//	System.err.println(clsId);
+			
+				// Add to annotation and bioentity isa_partof closures.
+				List<String> idClosure = graph.getIsaPartofIDClosure(cls);
+				List<String> labelClosure = graph.getIsaPartofLabelClosure(cls);
+				annotation_doc.addField("isa_partof_closure", idClosure);
+				annotation_doc.addField("isa_partof_closure_label", labelClosure);
+				for( String tlabel : labelClosure){
 					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tlabel);
-					// Map both ways.
-					// TODO: collisions shouldn't be an issue here?
-					isa_partof_map.put(tid, tlabel);
-					isa_partof_map.put(tlabel, tid);
-				}else{
-					// For the time being at least, I want to ensure that the id and label closures
-					// mirror eachother as much as possible (for facets and mapping, etc.). Without
-					// this, in some cases there is simply nothing returned to drill on.
-					annotation_doc.addField("isa_partof_closure_label", tid);
-					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tid);
-					// Map just the one way I guess--see above.
-					isa_partof_map.put(tid, tid);
+					addFieldUnique(bioentity_doc, "isa_partof_closure", tlabel);
 				}
-
-				// Annotation evidence aggregate base.
-				String evAggId = eid + "_:ev:_" + clsId;
-				SolrInputDocument ev_agg_doc;
-				if (evAggDocMap.containsKey(evAggId)) {
-					ev_agg_doc = evAggDocMap.get(evAggId);	
+					
+				// Compile closure maps to JSON.
+				Map<String, String> isa_partof_map = graph.getIsaPartofClosureMap(cls);
+				if( ! isa_partof_map.isEmpty() ){
+					String jsonized_isa_partof_map = gson.toJson(isa_partof_map);
+					annotation_doc.addField("isa_partof_closure_map", jsonized_isa_partof_map);
 				}
-				else {
-					ev_agg_doc = new SolrInputDocument();
-					evAggDocMap.put(evAggId, ev_agg_doc);
-					ev_agg_doc.addField("id", evAggId);
-					ev_agg_doc.addField("document_category", "annotation_evidence_aggregate");
-					ev_agg_doc.addField("bioentity", eid);
-					ev_agg_doc.addField("bioentity_label", esym);
-					ev_agg_doc.addField("annotation_class", tid);
-					ev_agg_doc.addField("annotation_class_label", tlabel);
-					ev_agg_doc.addField("taxon", taxId);
-					addLabelField(ev_agg_doc, "taxon_label", taxId);
+	
+				// Cycle through and pick up all the associated bits for the terms in the closure.
+				for( String tid : idClosure ){
+	
+					String tlabel = isa_partof_map.get(tid);				
+					//OWLObject c = graph.getOWLObjectByIdentifier(tid);
+	
+					// Annotation evidence aggregate base.
+					String evAggId = eid + "_:ev:_" + clsId;
+					SolrInputDocument ev_agg_doc;
+					if (evAggDocMap.containsKey(evAggId)) {
+						ev_agg_doc = evAggDocMap.get(evAggId);	
+					} else {
+						ev_agg_doc = new SolrInputDocument();
+						evAggDocMap.put(evAggId, ev_agg_doc);
+						ev_agg_doc.addField("id", evAggId);
+						ev_agg_doc.addField("document_category", "annotation_evidence_aggregate");
+						ev_agg_doc.addField("bioentity", eid);
+						ev_agg_doc.addField("bioentity_label", esym);
+						ev_agg_doc.addField("annotation_class", tid);
+						ev_agg_doc.addField("annotation_class_label", tlabel);
+						ev_agg_doc.addField("taxon", taxId);
+						addLabelField(ev_agg_doc, "taxon_label", taxId);
+					}
+	
+					//evidence_type is single valued
+					//aggDoc.addField("evidence_type", a.getEvidenceCls());
+	
+					// Drag in "with" (col 8), this time for ev_agg.
+					for (WithInfo wi : a.getWithInfos()) {
+						ev_agg_doc.addField("evidence_with", wi.getWithXref());
+					}
+	
+					//aggDoc.getFieldValues(name)
+					// TODO:
+					ev_agg_doc.addField("evidence_closure", a.getEvidenceCls());
 				}
-
-				//evidence_type is single valued
-				//aggDoc.addField("evidence_type", a.getEvidenceCls());
-
-				// Drag in "with" (col 8), this time for ev_agg.
-				for (WithInfo wi : a.getWithInfos()) {
-					ev_agg_doc.addField("evidence_with", wi.getWithXref());
-				}
-
-				//aggDoc.getFieldValues(name)
-				// TODO:
-				ev_agg_doc.addField("evidence_closure", a.getEvidenceCls());
 			}
 
-			/*
-			for (OWLGraphEdge edge : graph.getOutgoingEdgesClosureReflexive(c)) {
-				OWLObject t = edge.getTarget();
-				if (! (t instanceof OWLClass))
-					continue;
-				String tid = graph.getIdentifier(t);
-				//System.out.println(edge+" TGT:"+tid);
-				String tlabel = null;
-				if (t != null)
-					tlabel = graph.getLabel(t);
-				Set<String> fields = edgeToField(edge);
-				// only add to annotation document for now
-				for (String field : fields) {
-					ad.addField(field+"_closure", tid);
-					if (tlabel != null)
-						ad.addField(field+"_closure_label", tlabel);
-				}
-
-				// aggregate
-				// TODO - only do this for 
-				String aggId = eid+"^^^"+clsId;
-				Map<String,Object> aggFields;
-				SolrInputDocument aggDoc;
-				if (aggDocMap.containsKey(aggId)) {
-					aggDoc = aggDocMap.get(aggId);	
-				}
-				else {
-					aggDoc = new SolrInputDocument();
-					aggDocMap.put(aggId, aggDoc);
-					aggDoc.addField("id", aggId);
-					aggDoc.addField("document_category", "annotation_aggregate");
-					aggDoc.addField("bioentity", eid);
-					aggDoc.addField("bioentity_label", esym);
-					aggDoc.addField("annotation_class", tid);
-					aggDoc.addField("annotation_class_label", tlabel);
-					aggDoc.addField("taxon", taxId);
-					addLabelField(aggDoc, "taxon_label", taxId);
-				}
-
-				//evidence_type is single valued
-				//aggDoc.addField("evidence_type", a.getEvidenceCls());
-				String wx = a.getWithExpression();
-				if (wx != null && !wx.equals(""))
-					aggDoc.addField("evidence_with", wx);
-
-				//aggDoc.getFieldValues(name)
-				// TODO:
-				aggDoc.addField("evidence_closure", a.getEvidenceCls());
-			}
-			 */
+//			Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
+//			OWLObject c = graph.getOWLObjectByIdentifier(clsId);
+//			Set<OWLPropertyExpression> ps = Collections.singleton((OWLPropertyExpression)getPartOfProperty());
+//			Set<OWLObject> ancs = graph.getAncestors(c, ps);
+//			for (OWLObject t : ancs) {
+//				if (! (t instanceof OWLClass))
+//					continue;
+//				String tid = graph.getIdentifier(t);
+//				//System.out.println(edge+" TGT:"+tid);
+//				String tlabel = null;
+//				if (t != null)
+//					tlabel = graph.getLabel(t);
+//				annotation_doc.addField("isa_partof_closure", tid);
+//				addFieldUnique(bioentity_doc, "isa_partof_closure", tid);
+//				if (tlabel != null) {
+//					annotation_doc.addField("isa_partof_closure_label", tlabel);
+//					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tlabel);
+//					// Map both ways.
+//					// TODO: collisions shouldn't be an issue here?
+//					isa_partof_map.put(tid, tlabel);
+//					isa_partof_map.put(tlabel, tid);
+//				}else{
+//					// For the time being at least, I want to ensure that the id and label closures
+//					// mirror eachother as much as possible (for facets and mapping, etc.). Without
+//					// this, in some cases there is simply nothing returned to drill on.
+//					annotation_doc.addField("isa_partof_closure_label", tid);
+//					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tid);
+//					// Map just the one way I guess--see above.
+//					isa_partof_map.put(tid, tid);
+//				}
+//
+//				// Annotation evidence aggregate base.
+//				String evAggId = eid + "_:ev:_" + clsId;
+//				SolrInputDocument ev_agg_doc;
+//				if (evAggDocMap.containsKey(evAggId)) {
+//					ev_agg_doc = evAggDocMap.get(evAggId);	
+//				}
+//				else {
+//					ev_agg_doc = new SolrInputDocument();
+//					evAggDocMap.put(evAggId, ev_agg_doc);
+//					ev_agg_doc.addField("id", evAggId);
+//					ev_agg_doc.addField("document_category", "annotation_evidence_aggregate");
+//					ev_agg_doc.addField("bioentity", eid);
+//					ev_agg_doc.addField("bioentity_label", esym);
+//					ev_agg_doc.addField("annotation_class", tid);
+//					ev_agg_doc.addField("annotation_class_label", tlabel);
+//					ev_agg_doc.addField("taxon", taxId);
+//					addLabelField(ev_agg_doc, "taxon_label", taxId);
+//				}
+//
+//				//evidence_type is single valued
+//				//aggDoc.addField("evidence_type", a.getEvidenceCls());
+//
+//				// Drag in "with" (col 8), this time for ev_agg.
+//				for (WithInfo wi : a.getWithInfos()) {
+//					ev_agg_doc.addField("evidence_with", wi.getWithXref());
+//				}
+//
+//				//aggDoc.getFieldValues(name)
+//				// TODO:
+//				ev_agg_doc.addField("evidence_closure", a.getEvidenceCls());
+//			}
 			
 			// c16
 			Map<String,String> ann_ext_map = new HashMap<String,String>(); // capture labels/ids			
@@ -269,11 +279,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				}
 			}
 
-			// Compile maps.
-			if( ! isa_partof_map.isEmpty() ){
-				String jsonized_isa_partof_map = gson.toJson(isa_partof_map);
-				annotation_doc.addField("isa_partof_closure_map", jsonized_isa_partof_map);
-			}
+			// Add annotation ext closure map to annotation doc.
 			if( ! ann_ext_map.isEmpty() ){
 				String jsonized_ann_ext_map = gson.toJson(ann_ext_map);
 				annotation_doc.addField("annotation_extension_class_closure_map", jsonized_ann_ext_map);

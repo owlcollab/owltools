@@ -2680,7 +2680,7 @@ public class OWLGraphWrapper {
 	 * Intended for GOlr loading.
 	 * 
 	 * @param c
-	 * @return list of is_partof_closure ids
+	 * @return map of is_partof_closure ids to their displayable labels
 	 */
 	public Map<String,String> getIsaPartofClosureMap(OWLObject c){
 
@@ -2693,31 +2693,28 @@ public class OWLGraphWrapper {
 			OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
 			if (qp.isSubClassOf() || partOfProperty.equals(qp.getProperty())) {
 				OWLObject target = owlGraphEdge.getTarget();
+				if (target instanceof OWLClass) {
+					final String id = getIdentifier(target);
+					final String label = getLabelOrDisplayId(target);
+					isa_partof_map.put(id, label);
+				}else if (target instanceof OWLObjectSomeValuesFrom) {
+					OWLClassExpression clsexp = ((OWLObjectSomeValuesFrom)target).getFiller();
+					if( ! clsexp.isAnonymous()){
+						OWLClass cls = clsexp.asOWLClass();
+						final String id = getIdentifier(cls);
+						final String label = getLabelOrDisplayId(cls);
+						isa_partof_map.put(id, label);
+					}
+				}
+			}else if (qp.isIdentity()) {
+				final String id = getIdentifier(c);
 				final String label = getLabelOrDisplayId(c);
-				final String id = getIdentifier(target);
 				isa_partof_map.put(id, label);
+			}else {
+				//System.out.println(owlGraphEdge);
 			}
 		}
 		
-//		OWLObjectProperty p = getOWLObjectPropertyByIdentifier("BFO:0000050");
-//		Set<OWLPropertyExpression> ps = Collections.singleton((OWLPropertyExpression)p);
-//		Set<OWLObject> ancs = getAncestors(c, ps);
-//		for (OWLObject t : ancs) {
-//			if (! (t instanceof OWLClass)){
-//				continue;
-//			}
-//			String tid = getIdentifier(t);
-//			String tlabel = null;
-//			if (t != null){
-//				tlabel = getLabel(t);
-//			}
-//			if (tlabel != null) {
-//				isa_partof_map.put(tid, tlabel);
-//			}else{
-//				isa_partof_map.put(tid, tid);
-//			}
-//		}
-
 		return isa_partof_map;
 	}
 
