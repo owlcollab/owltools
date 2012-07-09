@@ -2686,24 +2686,37 @@ public class OWLGraphWrapper {
 
 		Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
 
-		OWLObjectProperty p = getOWLObjectPropertyByIdentifier("BFO:0000050");
-		Set<OWLPropertyExpression> ps = Collections.singleton((OWLPropertyExpression)p);
-		Set<OWLObject> ancs = getAncestors(c, ps);
-		for (OWLObject t : ancs) {
-			if (! (t instanceof OWLClass)){
-				continue;
-			}
-			String tid = getIdentifier(t);
-			String tlabel = null;
-			if (t != null){
-				tlabel = getLabel(t);
-			}
-			if (tlabel != null) {
-				isa_partof_map.put(tid, tlabel);
-			}else{
-				isa_partof_map.put(tid, tid);
+		final OWLObjectProperty partOfProperty = getOWLObjectPropertyByIdentifier("BFO:0000050");
+		
+		Set<OWLGraphEdge> edges = getOutgoingEdgesClosureReflexive(c);
+		for (OWLGraphEdge owlGraphEdge : edges) {
+			OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
+			if (qp.isSubClassOf() || partOfProperty.equals(qp.getProperty())) {
+				OWLObject target = owlGraphEdge.getTarget();
+				final String label = getLabelOrDisplayId(c);
+				final String id = getIdentifier(target);
+				isa_partof_map.put(id, label);
 			}
 		}
+		
+//		OWLObjectProperty p = getOWLObjectPropertyByIdentifier("BFO:0000050");
+//		Set<OWLPropertyExpression> ps = Collections.singleton((OWLPropertyExpression)p);
+//		Set<OWLObject> ancs = getAncestors(c, ps);
+//		for (OWLObject t : ancs) {
+//			if (! (t instanceof OWLClass)){
+//				continue;
+//			}
+//			String tid = getIdentifier(t);
+//			String tlabel = null;
+//			if (t != null){
+//				tlabel = getLabel(t);
+//			}
+//			if (tlabel != null) {
+//				isa_partof_map.put(tid, tlabel);
+//			}else{
+//				isa_partof_map.put(tid, tid);
+//			}
+//		}
 
 		return isa_partof_map;
 	}
