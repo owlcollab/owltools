@@ -38,6 +38,13 @@ then
     do
 	JAVAARGS="$JAVAARGS '${OPTION}'"
     done
+else
+    if [ $OWLTOOLS_MEMORY ]
+    then
+        JAVAARGS="$JAVAARGS -Xmx$OWLTOOLS_MEMORY"
+    else
+        JAVAARGS="$JAVAARGS -Xmx4G"
+    fi
 fi
 
 ## Walk through all the command line arguments and see if they are a
@@ -121,7 +128,7 @@ then
 fi
 
 ## Assemble and run the final command.
-CMD="$JAVAPATH -Xmx4096M -Xms2048M -DentityExpansionLimit=512000 -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
+CMD="$JAVAPATH -Xms2048M -DentityExpansionLimit=512000 -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
 
 ## DEBUG
 ## Let's see a little of the environment if we declare DEBUG=1.
