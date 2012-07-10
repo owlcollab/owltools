@@ -253,8 +253,6 @@ public class InferenceBuilder{
 
 		reasoner = getReasoner(ontology);
 
-		Set<OWLClass> nrClasses = new HashSet<OWLClass>();
-
 		logger.info("Finding asserted equivalencies...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 
@@ -279,14 +277,12 @@ public class InferenceBuilder{
 		}
 		logger.info("Finding inferred superclasses...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
-			if (nrClasses.contains(cls))
+			if (cls.isOWLNothing() || cls.isBottomEntity() || cls.isOWLThing()) {
 				continue; // do not report these
+			}
 
 			// REPORT INFERRED EQUIVALENCE BETWEEN NAMED CLASSES
 			for (OWLClass ec : reasoner.getEquivalentClasses(cls)) {
-				if (nrClasses.contains(ec))
-					continue; // do not report these
-
 				if (cls.equals(ec))
 					continue;
 				
@@ -322,8 +318,6 @@ public class InferenceBuilder{
 					if (sc.isOWLThing()) {
 						continue; // do not report subclasses of owl:Thing
 					}
-					if (nrClasses.contains(sc))
-						continue; 
 
 					// we do not want to report inferred subclass links
 					// if they are already asserted in the ontology
