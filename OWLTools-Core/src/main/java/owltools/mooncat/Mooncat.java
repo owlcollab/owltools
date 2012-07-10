@@ -879,17 +879,30 @@ public class Mooncat {
 	 */
 	public void translateDisjointsToEquivalents() {
 		for (OWLOntology ont : getAllOntologies()) {
-
-			for (OWLDisjointClassesAxiom dca : ont.getAxioms(AxiomType.DISJOINT_CLASSES, true)) {
-				for (OWLClassExpression ce1 : dca.getClassExpressions()) {
-					for (OWLClassExpression ce2 : dca.getClassExpressions()) {
-						if (ce1.compareTo(ce2) <= 0)
-							continue;
-						OWLEquivalentClassesAxiom eca = dataFactory.getOWLEquivalentClassesAxiom(dataFactory.getOWLNothing(),
-								dataFactory.getOWLObjectIntersectionOf(ce1, ce2));
-						getManager().addAxiom(ont, eca);
-						// TODO - remove if requested
-					}
+			translateDisjointsToEquivalents(ont, getManager(), dataFactory);
+		}
+	}
+	
+	/**
+	 * For every pair X DisjointWith Y, generate an axiom
+	 * A and Y = Nothing
+	 * 
+	 * (may become deprecated after Elk supports disjoints)
+	 * 
+	 * @param ont
+	 * @param manager
+	 * @param dataFactory
+	 */
+	public static void translateDisjointsToEquivalents(OWLOntology ont, OWLOntologyManager manager, OWLDataFactory dataFactory) {
+		for (OWLDisjointClassesAxiom dca : ont.getAxioms(AxiomType.DISJOINT_CLASSES, true)) {
+			for (OWLClassExpression ce1 : dca.getClassExpressions()) {
+				for (OWLClassExpression ce2 : dca.getClassExpressions()) {
+					if (ce1.compareTo(ce2) <= 0)
+						continue;
+					OWLEquivalentClassesAxiom eca = dataFactory.getOWLEquivalentClassesAxiom(dataFactory.getOWLNothing(),
+							dataFactory.getOWLObjectIntersectionOf(ce1, ce2));
+					manager.addAxiom(ont, eca);
+					// TODO - remove if requested
 				}
 			}
 		}
