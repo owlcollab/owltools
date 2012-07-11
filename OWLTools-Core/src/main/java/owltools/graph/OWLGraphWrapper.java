@@ -1,6 +1,7 @@
 package owltools.graph;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -3295,8 +3296,100 @@ public class OWLGraphWrapper {
 		return iri;
 	}
 
+	/**
+	 * Find the corresponding {@link OWLObject} for a given OBO-style alternate identifier.
+	 * 
+	 * WARNING: This methods scans all object annotations in all ontologies. 
+	 * This is an expensive method.
+	 * 
+	 * If there are multiple altIds use {@link #getOWLObjectsByAltId(Set)} for more efficient retrieval.
+	 * Also consider loading all altId-mappings using {@link #getAllOWLObjectsByAltId()}.
+	 * 
+	 * @param altIds
+	 * @return {@link OWLObject} or null
+	 * 
+	 * @see #getOWLObjectsByAltId(Set)
+	 * @see #getAllOWLObjectsByAltId()
+	 */
+	public OWLObject getOWLObjectByAltId(String altIds) {
+		Map<String, OWLObject> map = getOWLObjectsByAltId(Collections.singleton(altIds));
+		return map.get(altIds);
+	}
 
+	/**
+	 * Find the corresponding {@link OWLObject}s for a given set of OBO-style alternate identifiers.
+	 * 
+	 * WARNING: This methods scans all object annotations in all ontologies. 
+	 * This is an expensive method.
+	 * 
+	 * Consider loading all altId-mappings using {@link #getAllOWLObjectsByAltId()}.
+	 * 
+	 * @param altIds
+	 * @return map of altId to OWLObject (never null)
+	 * @see #getAllOWLObjectsByAltId()
+	 */
+	public Map<String, OWLObject> getOWLObjectsByAltId(Set<String> altIds) {
+		final Map<String, OWLObject> results = new HashMap<String, OWLObject>();
+		final OWLAnnotationProperty altIdProperty = getAnnotationProperty(OboFormatTag.TAG_ALT_ID.getTag());
+		if (altIdProperty == null) {
+			return Collections.emptyMap();
+		}
+		for (OWLOntology o : getAllOntologies()) {
+			Set<OWLAnnotationAssertionAxiom> aas = o.getAxioms(AxiomType.ANNOTATION_ASSERTION);
+			for (OWLAnnotationAssertionAxiom aa : aas) {
+				OWLAnnotationValue v = aa.getValue();
+				OWLAnnotationProperty property = aa.getProperty();
+				if (altIdProperty.equals(property) && v instanceof OWLLiteral) {
+					String altId = ((OWLLiteral)v).getLiteral();
+					if (altIds.contains(altId)) {
+						OWLAnnotationSubject subject = aa.getSubject();
+						if (subject instanceof IRI) {
+							OWLObject obj = getOWLObject((IRI) subject);
+							if (obj != null) {
+								results.put(altId, obj);
+							}
+						}
+					}
+				}
+			}
+		}
+		return results;
+	}
 
+	/**
+	 * Find all corresponding {@link OWLObject}s with an OBO-style alternate identifier.
+	 * 
+	 * WARNING: This methods scans all object annotations in all ontologies. 
+	 * This is an expensive method.
+	 * 
+	 * @return map of altId to OWLObject (never null)
+	 */
+	public Map<String, OWLObject> getAllOWLObjectsByAltId() {
+		final Map<String, OWLObject> results = new HashMap<String, OWLObject>();
+		final OWLAnnotationProperty altIdProperty = getAnnotationProperty(OboFormatTag.TAG_ALT_ID.getTag());
+		if (altIdProperty == null) {
+			return Collections.emptyMap();
+		}
+		for (OWLOntology o : getAllOntologies()) {
+			Set<OWLAnnotationAssertionAxiom> aas = o.getAxioms(AxiomType.ANNOTATION_ASSERTION);
+			for (OWLAnnotationAssertionAxiom aa : aas) {
+				OWLAnnotationValue v = aa.getValue();
+				OWLAnnotationProperty property = aa.getProperty();
+				if (altIdProperty.equals(property) && v instanceof OWLLiteral) {
+					String altId = ((OWLLiteral)v).getLiteral();
+					OWLAnnotationSubject subject = aa.getSubject();
+					if (subject instanceof IRI) {
+						OWLObject obj = getOWLObject((IRI) subject);
+						if (obj != null) {
+							results.put(altId, obj);
+						}
+					}
+				}
+			}
+		}
+		return results;
+	}
+	
 	/**
 	 * Returns an OWLClass given an IRI string
 	 * 

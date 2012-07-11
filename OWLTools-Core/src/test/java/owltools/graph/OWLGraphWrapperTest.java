@@ -6,21 +6,22 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper.ISynonym;
-import owltools.graph.shunt.OWLShuntGraph;
 
 public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 
@@ -66,6 +67,27 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 		assertEquals("EXACT", synonym2.getScope());
 		assertNull(synonym2.getCategory());
 		assertNull(synonym2.getXrefs());
+	}
+	
+	@Test
+	public void testAltIds() throws Exception {
+		OWLGraphWrapper graph = getOBO2OWLOntologyWrapper("omma.obo");
+		
+		// test single retrieval
+		assertNotNull(graph.getOWLObjectByAltId("FBbt:00000113"));
+		
+		// test multiple retrieval
+		Set<String> altIds = new HashSet<String>(Arrays.asList("FBbt:00004474","FBbt:00002653","FBbt:00005253","FBbt:00005321"));
+		Map<String, OWLObject> map = graph.getOWLObjectsByAltId(altIds);
+		assertEquals("FBbt:00005396", graph.getIdentifier(map.get("FBbt:00004474")));
+		assertEquals("FBbt:00007234", graph.getIdentifier(map.get("FBbt:00002653")));
+		assertEquals("FBbt:00025990", graph.getIdentifier(map.get("FBbt:00005253")));
+		assertNull(map.get("FBbt:00005321"));
+		assertEquals(3, map.size());
+		
+		// test retrieve all
+		Map<String, OWLObject> all = graph.getAllOWLObjectsByAltId();
+		assertEquals(4, all.size());
 	}
 	
 	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws OWLOntologyCreationException, FileNotFoundException, IOException{
