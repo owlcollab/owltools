@@ -1,5 +1,6 @@
 package owltools.cli;
 
+import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,11 +11,14 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
@@ -27,6 +31,7 @@ import owltools.sim.Reporter;
 import owltools.sim.SimEngine;
 import owltools.sim.SimpleOwlSim;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
+import owltools.sim.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
 import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
@@ -371,28 +376,70 @@ public class SimCommandRunner extends SolrCommandRunner {
 	@CLIMethod("--owlsim-init")
 	public void owlsimInit(Opts opts) throws OWLOntologyCreationException {
 		sos = new SimpleOwlSim(g.getSourceOntology());
-		sos.setAttributesFromOntology(g.getSourceOntology());
+		//sos.setAttributesFromOntology(g.getSourceOntology());
 	}
 	
 	// NEW
 	@CLIMethod("--owlsim-create-sim-ont")
-	public void owlsimCreateSimOnt(Opts opts) throws OWLOntologyCreationException {
-		sos.createSimOnt();
+	public void owlsimCreateSimOnt(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
+		sos.generateGroupingClasses();
 	}
+	
+	@CLIMethod("--owlsim-fn")
+	public void owlsimFn(Opts opts) throws OWLOntologyCreationException {
+		sos.setBaseFileName(opts.nextOpt());
+	}
+
 	
 	// NEW
 	@CLIMethod("--owlsim-view-property")
 	public void owlsimAddViewProperty(Opts opts) throws OWLOntologyCreationException {
 		sos.addViewProperty(this.resolveObjectProperty(opts.nextOpt()));
 	}
+	// NEW
+	@CLIMethod("--owlsim-source-view-property")
+	public void owlsimAddSourceViewProperty(Opts opts) throws OWLOntologyCreationException {
+		sos.addSourceViewProperty(this.resolveObjectProperty(opts.nextOpt()));
+	}
+
+	// NEW
+	@CLIMethod("--owlsim-elements-all-by-all")
+	public void owlsimElementsAllByAll(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+		}
+		//sos.setAttributesFromOntology(g.getSourceOntology());
+		sos.generateGroupingClasses();
+		
+		Set<OWLEntity> humans = sos.getAllElements();
+		for (OWLEntity i : humans) {
+			for (OWLEntity j : humans) {
+				if (i.equals(j))
+					continue;
+				showSim((OWLNamedIndividual)i,(OWLNamedIndividual)j);
+			}
+		}
+	}
+	
+	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+		
+		float s = sos.getElementJaccardSimilarity(i, j);
+		System.out.println("SimJ( "+i+" , "+j+" ) = "+s);
+
+		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
+		System.out.println("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+maxic.attributeClassSet);
+
+		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
+		System.out.println("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+bma.attributeClassSet);	
+	}
+
 
 	
 	// NEW
 	@CLIMethod("--owlsim-all-by-all")
-	public void owlsimPrepare(Opts opts) throws OWLOntologyCreationException {
+	public void owlsimAllByAll(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
 		sos = new SimpleOwlSim(g.getSourceOntology());
-		sos.setAttributesFromOntology(g.getSourceOntology());
-		sos.createSimOnt();
+		sos.generateGroupingClasses();
 	}
 	// NEW
 	@CLIMethod("--owlsim-dispose")
@@ -406,7 +453,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	public void owlsimLcsx(Opts opts) throws OWLOntologyCreationException {
 		if (sos == null) {
 			sos = new SimpleOwlSim(g.getSourceOntology());
-			sos.prepareOntology();
+			sos.generatePropertyViews();
 		}
 		
 		owlpp = new OWLPrettyPrinter(g);
@@ -421,7 +468,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 		
 		//OWLClassExpression lcs = sos.getLowestCommonSubsumer((OWLClass)a, (OWLClass)b);
-		OWLClassExpression lcs = sos.makeLowestCommonSubsumerClass((OWLClass)a, (OWLClass)b);
+		OWLClassExpression lcs = sos.getLowestCommonSubsumerClass((OWLClass)a, (OWLClass)b);
 
 		System.out.println("LCS:"+owlpp.render(lcs));
 	}
