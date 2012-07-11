@@ -233,6 +233,11 @@
 				<artifactId>gson</artifactId>
 				<version>1.7.1</version>
 			</dependency>
+			<dependency>
+				<groupId>org.coode</groupId>
+				<artifactId>oppl2</artifactId>
+				<version>1.5.5</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<distributionManagement>
