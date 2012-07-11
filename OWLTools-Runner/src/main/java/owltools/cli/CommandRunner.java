@@ -2,14 +2,18 @@ package owltools.cli;
 
 import java.awt.Color;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,11 +21,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.regex.PatternSyntaxException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.coode.oppl.AnnotationBasedSymbolTableFactory;
+import org.coode.oppl.ChangeExtractor;
+import org.coode.oppl.OPPLParser;
+import org.coode.oppl.OPPLScript;
+import org.coode.oppl.ParserFactory;
+import org.coode.oppl.exceptions.RuntimeExceptionHandler;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
+import org.coode.parsers.common.SystemErrorEcho;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -35,6 +48,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -55,6 +69,7 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
@@ -330,6 +345,18 @@ public class CommandRunner {
 				g.setReasoner(createReasoner(g.getSourceOntology(),reasonerName,g.getManager()));
 				reasoner = g.getReasoner();
 			}
+			else if (opts.nextEq("--init-reasoner")) {
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-r")) {
+						reasonerName = opts.nextOpt();
+					}
+					else {
+						break;
+					}
+				}
+				g.setReasoner(createReasoner(g.getSourceOntology(),reasonerName,g.getManager()));
+				reasoner = g.getReasoner();
+			}
 			else if (opts.nextEq("--reasoner-dispose")) {
 				reasoner.dispose();
 			}
@@ -598,6 +625,60 @@ public class CommandRunner {
 						if (result instanceof OWLClass) {
 							System.out.println("  "+owlpp.render((OWLClass)result));
 						}
+					}
+				}
+			}
+			else if (opts.nextEq("--oppl")) {
+				opts.info("[--dry-run] [-i OPPL-SCRIPT-FILE] OPPL-STRING", "runs an oppl script");
+				boolean isDryRun = false;
+				String script = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("--dry-run")) {
+						isDryRun = true;
+					}
+					else if (opts.nextEq("-i")) {
+						script = FileUtils.readFileToString(new File(opts.nextOpt()));
+					}
+					else {
+						break;
+					}
+				}
+				if (script == null)
+					script = opts.nextOpt();
+				LOG.info("OPPL: "+script);
+				ParserFactory parserFactory = new ParserFactory(g.getManager(), g.getSourceOntology(), 
+						reasoner);
+				AnnotationBasedSymbolTableFactory annotationBasedSymbolTableFactory = new AnnotationBasedSymbolTableFactory(
+						g.getManager(),
+						Arrays.asList(g.getDataFactory().getRDFSLabel().getIRI()));
+
+				OPPLParser parser = parserFactory.build(
+						new SystemErrorEcho(),
+						annotationBasedSymbolTableFactory);
+
+
+				OPPLScript parsed = parser.parse(script);
+				ChangeExtractor extractor = new ChangeExtractor(new RuntimeExceptionHandler() {
+					public void handlePatternSyntaxExcpetion(PatternSyntaxException e) {
+						e.printStackTrace();
+					}
+
+					public void handleOWLRuntimeException(OWLRuntimeException e) {
+						e.printStackTrace();
+					}
+
+					public void handleException(RuntimeException e) {
+						e.printStackTrace();
+					}
+				}, true);
+				List<OWLAxiomChange> changes = extractor.visit(parsed);
+				for (OWLAxiomChange owlAxiomChange : changes) {
+					if (!isDryRun) {
+						LOG.info("APPLYING: "+owlAxiomChange);
+						g.getManager().applyChange(owlAxiomChange);
+					}
+					else {
+						LOG.info("DRY_RUN: "+owlAxiomChange);
 					}
 				}
 			}
