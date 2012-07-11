@@ -39,14 +39,14 @@ public class PhenoSimTest extends AbstractSimEngineTest {
 		OWLObject hyperHand = g.getOWLObject("http://x.org#hyperplastic_hand");
 		
 		showLCS(hypoFL, hyperHand, 
-				"ObjectIntersectionOf(abnormal_morphology ObjectSomeValuesFrom(inheres_in_part_of forelimb))");
-		showLCS(hypoHL, hyperHand,
-				"ObjectIntersectionOf(abnormal_morphology ObjectSomeValuesFrom(inheres_in_part_of limb))");
+				"ObjectIntersectionOf(abnormal_morphology ObjectSomeValuesFrom(inheres_in ObjectSomeValuesFrom(develops_from forelimb_bud)))");
+		//showLCS(hypoHL, hyperHand,
+		//		"ObjectIntersectionOf(abnormal_morphology ObjectSomeValuesFrom(inheres_in_part_of limb))");
 
 		OWLObject abHLB = g.getOWLObject("http://x.org#abnormal_hindlimb_bud_morphology");
 		
-		showLCS(hypoHL, abHLB, "ObjectIntersectionOf(abnormal_morphology ObjectSomeValuesFrom(related_to hindlimb_bud))");
-		showLCS(hyperHand, abHLB, "ObjectIntersectionOf(abnormal_morphology ObjectSomeValuesFrom(related_to limb_bud))");
+		//showLCS(hypoHL, abHLB, "ObjectIntersectionOf(abnormal_morphology ObjectSomeValuesFrom(related_to hindlimb_bud))");
+		//showLCS(hyperHand, abHLB, "ObjectIntersectionOf(abnormal_morphology ObjectSomeValuesFrom(related_to limb_bud))");
 
 		OWLObject h1 = g.getOWLObject("http://x.org#h1");
 		OWLObject m1 = g.getOWLObject("http://x.org#m1");

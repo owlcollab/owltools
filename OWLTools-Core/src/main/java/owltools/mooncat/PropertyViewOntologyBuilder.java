@@ -1,12 +1,17 @@
 package owltools.mooncat;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -23,12 +28,14 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
@@ -130,8 +137,15 @@ public class PropertyViewOntologyBuilder {
 	private String viewLabelPrefix="";
 	private String viewLabelSuffix="";
 	private Set<OWLEntity> viewEntities; // E
+	private Set<OWLClass> leafClasses;
 	private OWLClass viewRootClass;
-
+	private boolean isExpandPropertyChain = false; // TODO - to ensure subclass closure reflects existential tree
+	private boolean isCreateUnionClasses = false; // TODO
+	private boolean isCreateReflexiveClasses = false;
+	private Map<OWLClass,OWLClass> classToViewClass = new HashMap<OWLClass,OWLClass>();
+	private Map<OWLClass,OWLClass> viewClassToClass = new HashMap<OWLClass,OWLClass>();
+	private Set<OWLClass> excludedClasses = new HashSet<OWLClass>();
+	
 	/**
 	 * @param sourceOntology
 	 * @param elementsOntology
@@ -214,6 +228,26 @@ public class PropertyViewOntologyBuilder {
 		this.elementsOntology = elementsOntology;
 	}
 
+
+
+	public Set<OWLClass> getLeafClasses() {
+		return leafClasses;
+	}
+
+	public void setLeafClasses(Set<OWLClass> leafClasses) {
+		this.leafClasses = leafClasses;
+	}
+	
+	
+
+	public Set<OWLClass> getExcludedClasses() {
+		return excludedClasses;
+	}
+
+	public void setExcludedClasses(Set<OWLClass> excludedClasses) {
+		this.excludedClasses = excludedClasses;
+	}
+
 	/**
 	 * @return The set of all entities in the view ontology O(P)
 	 */
@@ -274,6 +308,16 @@ public class PropertyViewOntologyBuilder {
 
 	public void setUseOriginalClassIRIs(boolean isUseOriginalClassIRIs) {
 		this.isUseOriginalClassIRIs = isUseOriginalClassIRIs;
+	}
+	
+	
+
+	public boolean isCreateReflexiveClasses() {
+		return isCreateReflexiveClasses;
+	}
+
+	public void setCreateReflexiveClasses(boolean isCreateReflexiveClasses) {
+		this.isCreateReflexiveClasses = isCreateReflexiveClasses;
 	}
 
 	public boolean isClassifyIndividuals() {
@@ -390,22 +434,142 @@ public class PropertyViewOntologyBuilder {
 		LOG.info("O(P)'= "+inferredViewOntology);
 		LOG.info("E= "+elementsOntology);
 
+		// TODO: add subclass axiom for expansion of property chain
+		Set<List<OWLObjectPropertyExpression>> chains = getPropertyChains(viewProperty);
+
+
 		Set<OWLClass> sourceClasses = sourceOntology.getClassesInSignature();
 		OWLClass thing = owlDataFactory.getOWLThing();
 		sourceClasses.add(thing);
 		for (OWLClass c : sourceClasses) {
+			if (this.getExcludedClasses().contains(c))
+				continue;
 			IRI vcIRI = makeViewClassIRI(c);
 			setViewClassLabel(c, vcIRI, assertedViewOntology);
 			OWLClass vc = owlDataFactory.getOWLClass(vcIRI);
+			classToViewClass.put(c, vc);
+			viewClassToClass.put(vc, c);
 			LOG.info("C -> C' : "+c+" -> "+vc);
 			OWLObjectSomeValuesFrom vx = owlDataFactory.getOWLObjectSomeValuesFrom(viewProperty, c);
 			OWLEquivalentClassesAxiom eca = 
 				owlDataFactory.getOWLEquivalentClassesAxiom(vc, vx);
 			owlOntologyManager.addAxiom(assertedViewOntology, eca);
+
+			for (List<OWLObjectPropertyExpression> chain : chains) {
+				OWLClassExpression sc = this.expandPropertyChain(chain, c);
+				owlOntologyManager.addAxiom(assertedViewOntology, owlDataFactory.getOWLSubClassOfAxiom(vc, sc));
+			}
+
+			// each view ontology has a root "P some Thing"
 			if (c.equals(thing)) {
 				viewRootClass = vc;
 			}
+			
+			// for SEP-like structures
+			if (isCreateUnionClasses) {
+				IRI ucIRI = null;
+				OWLClass uc = owlDataFactory.getOWLClass(vcIRI);
+				LOG.info("UnionOf(C C') -> "+uc);
+				//OWLSubClassOfAxiom
+				// TODO
+			}
+			
+			// e.g. if P = part_of and C = lung, this simulates the reflexivity
+			// of part_of by adding an axiom "lung part_of some lung".
+			// compare:
+			//  WITHOUT         |  WITH
+			//  * organ         | * organ part [V]
+			//   * lung         |  * organ
+			//  * organ part    |   * lung
+			//   * lung part    |  * lung part [V]
+			//    * lung lobe   |   * lung lobe
+			//                  |   * lung
+			// note that the "entire structure" (E) is always a subclass of / more specific
+			// than the grouping structure (S). This is not a full SEP pattern as
+			// we do not have the proper part (P).
+			/*
+			if (isCreateReflexiveClasses) {
+				OWLObjectSomeValuesFrom svf =
+					owlDataFactory.getOWLObjectSomeValuesFrom(viewProperty, c);
+				OWLSubClassOfAxiom sca = owlDataFactory.getOWLSubClassOfAxiom(c, svf);
+				owlOntologyManager.addAxiom(assertedViewOntology, sca);
+				LOG.info("REFLEXIVE: "+sca);
+			}
+			*/
 		}		
+	}
+
+	public Set<List<OWLObjectPropertyExpression>> getPropertyChains(OWLObjectProperty p) {
+		LOG.info("Getting chains for: "+p);
+		Set<List<OWLObjectPropertyExpression>> chains = new HashSet<List<OWLObjectPropertyExpression>>();
+		for (OWLSubPropertyChainOfAxiom spca : sourceOntology.getAxioms(AxiomType.SUB_PROPERTY_CHAIN_OF)) {
+			if (spca.getSuperProperty().equals(p)) {
+				List<OWLObjectPropertyExpression> chain = spca.getPropertyChain();
+				chains.add(chain);
+
+				// note: limited form of cycle checking
+				if (!chain.contains(p)) {
+					chains.addAll(expandPropertyChain(chain));
+				}
+			}
+		}
+		LOG.info(p+" ==> "+chains);
+		return chains;
+	}
+
+	public Set<List<OWLObjectPropertyExpression>> expandPropertyChain(List<OWLObjectPropertyExpression> chain) {
+		LOG.info(" ExpandingChain: "+chain);
+		return expandPropertyChain(chain, chain.size()-1);
+	}
+	public Set<List<OWLObjectPropertyExpression>> expandPropertyChain(List<OWLObjectPropertyExpression> chain, int pos) {
+
+		Set<List<OWLObjectPropertyExpression>> returnSet = new HashSet<List<OWLObjectPropertyExpression>>();
+		if (pos < 0) {
+			// base case
+			returnSet.add(new ArrayList<OWLObjectPropertyExpression>());
+			return returnSet;
+		}
+
+		// expansion of current property. Either to itself (chain of length 1), or to n new chains
+		Set<List<OWLObjectPropertyExpression>> extChains = null;
+		OWLObjectPropertyExpression pe = chain.get(pos);
+		if (pe instanceof OWLObjectProperty) {
+			extChains = getPropertyChains((OWLObjectProperty) pe);
+		}
+
+		if (extChains == null || extChains.size() == 0) {
+			// no rewrite - 
+			Set<List<OWLObjectPropertyExpression>> headChains = expandPropertyChain(chain, pos-1);
+			for (List<OWLObjectPropertyExpression> headChain : headChains) {
+				headChain.add(pe); // append headChain + [p] --> newChain
+			}
+			returnSet = headChains;
+		}
+		else {
+			for (List<OWLObjectPropertyExpression> extChain : extChains) {
+				// create a new returnset for every way to rewrite the property
+				Set<List<OWLObjectPropertyExpression>> headChains = expandPropertyChain(chain, pos-1);
+				for (List<OWLObjectPropertyExpression> headChain : headChains) {
+					headChain.addAll(extChain); // append headChain + extChain --> newChain
+				}
+				returnSet.addAll(headChains);
+			}
+		}
+
+		return returnSet;
+	}
+
+	public OWLClassExpression expandPropertyChain(List<OWLObjectPropertyExpression> chain, OWLClassExpression t) {
+		OWLClassExpression x = t;
+		for (int i = chain.size()-1; i>=0;	i--) {
+			x = this.owlDataFactory.getOWLObjectSomeValuesFrom(chain.get(i),t);
+			t = x;
+		}
+		return x;
+	}
+	
+	public OWLClass getOriginalClassForViewClass(OWLClass vc) {
+		return viewClassToClass.get(vc);
 	}
 
 
@@ -463,19 +627,26 @@ public class PropertyViewOntologyBuilder {
 		// remove any classes in the view O(P,E) that are not ancestors of elements in E.
 		// this can be seen as a 'closed-world satisfiability' test
 		if (isFilterUnused) {
-			if (elementsOntology == null) {
-				LOG.error("should not combined isFilterUnused with empty elements ontology");
-			}
 			Set<OWLClass> usedClasses = new HashSet<OWLClass>();
 			if (insts != null) {
 				for (OWLNamedIndividual e : elementsOntology.getIndividualsInSignature()) {
 					usedClasses.addAll(reasoner.getTypes(e, false).getFlattened());
 				}
 			}
-			for (OWLClass e : elementsOntology.getClassesInSignature()) {
-				usedClasses.addAll(reasoner.getSuperClasses(e, false).getFlattened());
-				usedClasses.add(e);
+			if (leafClasses != null) {
+				for (OWLClass lc : leafClasses) {
+					Set<OWLClass> subsumers = reasoner.getSuperClasses(lc, false).getFlattened();
+					usedClasses.addAll(subsumers);
+					usedClasses.addAll(reasoner.getEquivalentClasses(lc).getEntities());
+				}
 			}
+			if (elementsOntology != sourceOntology) {
+				for (OWLClass e : elementsOntology.getClassesInSignature()) {
+					usedClasses.addAll(reasoner.getSuperClasses(e, false).getFlattened());
+					usedClasses.add(e);
+				}
+			}
+
 			LOG.info("Finding intersection of "+viewEntities.size()+" entites and used: "+usedClasses.size());
 			viewEntities.retainAll(usedClasses);
 			LOG.info("intersection has "+viewEntities.size());
@@ -620,7 +791,7 @@ public class PropertyViewOntologyBuilder {
 		Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
 		OWLOntology newElementsOntology = owlOntologyManager.createOntology();
 		for (OWLNamedIndividual i : srcOnt.getIndividualsInSignature()) {
-			OWLClass c = owlDataFactory.getOWLClass(i.getIRI());
+			OWLClass c = owlDataFactory.getOWLClass(i.getIRI()); // pun
 			for (OWLClassExpression ce : i.getTypes(srcOnt)) {
 				axs.add(owlDataFactory.getOWLSubClassOfAxiom(c, ce));
 			}
@@ -639,6 +810,7 @@ public class PropertyViewOntologyBuilder {
 			LOG.info("Tbox2Abox: "+axiom);
 			owlOntologyManager.addAxiom(newElementsOntology, axiom);
 		}
+		// TODO - in future communicate leaf nodes a different way
 		elementsOntology = newElementsOntology;
 	}
 
