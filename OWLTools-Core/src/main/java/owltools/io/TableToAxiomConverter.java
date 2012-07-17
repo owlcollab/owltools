@@ -148,6 +148,7 @@ public class TableToAxiomConverter {
 		OWLAxiom ax = null;
 
 		if (config.axiomType.equals(AxiomType.CLASS_ASSERTION)) {
+			// format: Arg2 Type Arg1
 			OWLClass c = resolveClass(sub);
 			axs.add(df.getOWLDeclarationAxiom(c));
 			if (config.property == null) {
