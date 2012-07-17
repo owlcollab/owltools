@@ -519,7 +519,7 @@ public class OWLGraphWrapper {
 	/**
 	 * in general application code need not call this - it is mostly used internally
 	 * 
-	 * @return union of source ontology plus all supporting ontologies
+	 * @return union of source ontology plus all supporting ontologies plus their import closures
 	 */
 	public Set<OWLOntology> getAllOntologies() {
 		Set<OWLOntology> all = new HashSet<OWLOntology>(getSupportOntologySet());
