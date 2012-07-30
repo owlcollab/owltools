@@ -236,6 +236,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opt.equals("--simple")) {
 				oortConfig.setSimple(true);
 			}
+			else if (opt.equals("--relaxed")) {
+				oortConfig.setRelaxed(true);
+			}
 			else if (opt.equals("--expand-xrefs")) {
 				oortConfig.setExpandXrefs(true);
 			}
@@ -936,6 +939,22 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		// ----------------------------------------
+		// Relaxed (assert inferred subclasses and remove equivalence axioms)
+		// ----------------------------------------
+		
+		if (oortConfig.isRelaxed()) {
+			
+			logger.info("Creating relaxed ontology");
+			
+			Set<OWLEquivalentClassesAxiom> rmAxs = mooncat.getOntology().getAxioms(AxiomType.EQUIVALENT_CLASSES);
+			logger.info("Removing "+rmAxs.size()+" EquivalentClasses axioms from simple");
+			mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
+			
+			saveInAllFormats(ontologyId, "relaxed", gciOntology);
+			logger.info("Creating relaxed ontology completed");
+		}
+		
+		// ----------------------------------------
 		// Simple/Basic (no MIREOTs, no imports)
 		// ----------------------------------------
 		// this is the same as MAIN, with certain axiom REMOVED
@@ -973,10 +992,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				mooncat.removeSubsetComplementClasses(coreSubset, true);
 			}
 
-			Set<OWLEquivalentClassesAxiom> rmAxs = mooncat.getOntology().getAxioms(AxiomType.EQUIVALENT_CLASSES);
-			logger.info("Removing "+rmAxs.size()+" EquivalentClasses axioms from simple");
-			mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
-
+			if (!oortConfig.isRelaxed()) {
+				// if relaxed wasa created, than the equivalence axioms, have already been removed
+				Set<OWLEquivalentClassesAxiom> rmAxs = mooncat.getOntology().getAxioms(AxiomType.EQUIVALENT_CLASSES);
+				logger.info("Removing "+rmAxs.size()+" EquivalentClasses axioms from simple");
+				mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
+			}
 			mooncat.removeDanglingAxioms();
 
 			saveInAllFormats(ontologyId, "simple", gciOntology);

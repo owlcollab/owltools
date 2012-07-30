@@ -43,6 +43,7 @@ public class OortConfiguration {
 	private boolean writeELOntology = false;
 	private boolean asserted = false;
 	private boolean simple = false;
+	private boolean relaxed = false;
 	private boolean allowFileOverWrite = false;
 	private boolean expandXrefs = false;
 	private boolean recreateMireot = true;
@@ -130,6 +131,20 @@ public class OortConfiguration {
 	 */
 	public void setSimple(boolean simple) {
 		this.simple = simple;
+	}
+
+	/**
+	 * @return the relaxed
+	 */
+	public boolean isRelaxed() {
+		return relaxed;
+	}
+
+	/**
+	 * @param relaxed the relaxed to set
+	 */
+	public void setRelaxed(boolean relaxed) {
+		this.relaxed = relaxed;
 	}
 
 	/**
