@@ -73,7 +73,7 @@
         <include all="false">
           <entry location="lib" fileType="regular" />
           <entry location="scripts/reasoner-diff" fileType="launcher" />
-          <entry location="scripts/obo2obo" fileType="launcher" />
+          <entry location="scripts/obo-roundtrip" fileType="launcher" />
         </include>
         <dependencies />
       </component>
@@ -236,8 +236,8 @@
       </customScript>
       <iconImageFiles />
     </launcher>
-    <launcher name="obo2obo" id="1592" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="">
-      <executable name="obo2obo" type="1" iconSet="false" iconFile="" executableDir="scripts" redirectStderr="false" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="2" changeWorkingDirectory="false" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+    <launcher name="obo-roundtrip" id="1592" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="">
+      <executable name="obo-roundtrip" type="1" iconSet="false" iconFile="" executableDir="scripts" redirectStderr="false" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="2" changeWorkingDirectory="false" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
