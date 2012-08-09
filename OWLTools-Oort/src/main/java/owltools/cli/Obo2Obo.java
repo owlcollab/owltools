@@ -12,7 +12,6 @@ import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.OBODocNameProvider;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import owltools.cli.CommandRunner.Opts;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
@@ -42,7 +41,7 @@ public class Obo2Obo {
 		while (opts.hasArgs()) {
 			if (opts.nextArgIsHelp()) {
 				help();
-				opts.helpMode = true;
+				opts.setHelpMode(true);
 			}
 			else if (opts.nextEq("-o|--output")) {
 				opts.info("OUTPUT-FILE", "specify an output file");

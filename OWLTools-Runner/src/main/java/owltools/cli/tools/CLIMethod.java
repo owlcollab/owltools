@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import owltools.cli.CommandRunner.Opts;
+import owltools.cli.Opts;
 
 /**
  * Annotation indicating, that this method can be called from the command line

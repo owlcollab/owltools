@@ -14,7 +14,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -161,114 +160,6 @@ public class CommandRunner {
 	protected ParserWrapper pw = new ParserWrapper();
 	protected OWLPrettyPrinter owlpp;
 
-	public static class Opts {
-		int i = 0;
-		String[] args;
-		boolean helpMode = false;
-
-		public Opts(String[] args) {
-			super();
-			this.i = 0;
-			this.args = args;
-		}
-		public Opts(List<String> args) {
-			super();
-			this.i = 0;
-			this.args = args.toArray(new String[args.size()]);
-		}
-
-		public boolean hasArgs() {
-			return i < args.length;
-		}
-		public boolean hasOpts() {
-			return hasArgs() && args[i].startsWith("-");
-		}
-		public boolean hasOpt(String opt) {
-			for (int j=i; j<args.length; j++) {
-				if (args[j].equals(opt))
-					return true;
-			}
-			return false;
-		}
-
-		public boolean nextEq(String eq) {
-			if (helpMode) {
-				System.out.println("    "+eq);
-				return false;
-			}
-			if (eq.contains("|")) {
-				return nextEq(eq.split("\\|"));
-			}
-			if (hasArgs()) {
-				if (args[i].equals(eq)) {
-					i++;
-					return true;
-				}
-			}
-			return false;
-		}
-
-		private boolean nextEq(String[] eqs) {
-			for (String eq : eqs) {
-				if (nextEq(eq))
-					return true;
-			}
-			return false;
-		}
-		public boolean nextEq(Collection<String> eqs) {
-			for (String eq : eqs) {
-				if (nextEq(eq))
-					return true;
-			}
-			return false;
-		}
-		public List<String> nextList() {
-			ArrayList<String> sl = new ArrayList<String>();
-			while (hasArgs()) {
-				if (args[i].equals("//")) {
-					i++;
-					break;
-				}
-				if (args[i].startsWith("-"))
-					break;
-				sl.add(args[i]);
-				i++;
-			}
-			return sl;
-		}
-		public String nextOpt() {
-			String opt = args[i];
-			i++;
-			return opt;
-		}
-		public String peekArg() {
-			if (hasArgs())
-				return args[i];
-			return null;
-		}
-		public boolean nextArgIsHelp() {
-			if (hasArgs() && (args[i].equals("-h")
-					|| args[i].equals("--help"))) {
-				nextOpt();
-				return true;
-			}
-			return false;
-		}
-
-		public void fail() {
-			System.err.println("cannot process: "+args[i]);
-			System.exit(1);
-
-		}
-
-		public void info(String params, String desc) {
-			if (this.nextArgIsHelp()) {
-				System.out.println(args[i-2]+" "+params+"\t   "+desc);
-				System.exit(0);
-			}
-		}
-	}
-
 	public class OptionException extends Exception {
 
 		// generated
@@ -326,7 +217,7 @@ public class CommandRunner {
 
 			if (opts.nextArgIsHelp()) {
 				help();
-				opts.helpMode = true;
+				opts.setHelpMode(true);
 			}
 
 			//String opt = opts.nextOpt();
@@ -1919,7 +1810,7 @@ public class CommandRunner {
 				//paths.add(opt);
 			}
 			else {
-				if (opts.helpMode)
+				if (opts.isHelpMode())
 					helpFooter();
 				// should only reach here in help mode
 			}
