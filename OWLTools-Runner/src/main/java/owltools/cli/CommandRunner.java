@@ -161,7 +161,7 @@ public class CommandRunner {
 	protected ParserWrapper pw = new ParserWrapper();
 	protected OWLPrettyPrinter owlpp;
 
-	public class Opts {
+	public static class Opts {
 		int i = 0;
 		String[] args;
 		boolean helpMode = false;
