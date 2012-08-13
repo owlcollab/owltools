@@ -1,12 +1,14 @@
 package owltools.ontologyverification;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.ontologyverification.CheckResult.Status;
 import owltools.ontologyverification.annotations.AfterLoading;
 import owltools.ontologyverification.annotations.AfterMireot;
 import owltools.ontologyverification.annotations.AfterReasoning;
@@ -18,11 +20,6 @@ import owltools.ontologyverification.annotations.AfterReasoning;
  */
 public class OntologyCheckHandler {
 
-	/**
-	 * Default instance for convenient use.
-	 */
-	public static final OntologyCheckHandler DEFAULT_INSTANCE = new OntologyCheckHandler(false, DefaultOntologyChecks.class);
-	
 	private static final Logger logger = Logger.getLogger(OntologyCheckHandler.class);
 	
 	private final OntologyCheckRunner runner;
@@ -34,7 +31,7 @@ public class OntologyCheckHandler {
 	 * @param isWarningFatal if true all warnings are treated as errors.
 	 * @param classes list of classes containing ontology checks
 	 */
-	public OntologyCheckHandler(boolean isWarningFatal, Class<?>...classes) {
+	public OntologyCheckHandler(boolean isWarningFatal, List<Class<? extends OntologyCheck>> classes) {
 		super();
 		this.isWarningFatal = isWarningFatal;
 		runner = new OntologyCheckRunner(classes);
@@ -68,7 +65,7 @@ public class OntologyCheckHandler {
 	}
 	
 	void run(OWLGraphWrapper owlGraphWrapper, Class<?> annotation) {
-		List<CheckResult> results = runner.verify(owlGraphWrapper, annotation);
+		Map<OntologyCheck, Collection<CheckWarning>> results = runner.verify(owlGraphWrapper, annotation);
 		if (results == null || results.isEmpty()) {
 			// do nothing
 			return;
@@ -80,33 +77,31 @@ public class OntologyCheckHandler {
 		int internalErrorCount = 0;
 		StringBuilder sb = new StringBuilder("OntologyChecks for ").append(ontologyId).append(':');
 		reportHeader(sb);
-		for (CheckResult checkResult : results) {
-			switch (checkResult.getStatus()) {
-			case Success:
+		for (OntologyCheck check : results.keySet()) {
+			Collection<CheckWarning> allWarnings = results.get(check);
+			if (allWarnings == null || allWarnings.isEmpty()) {
 				successCount += 1;
-				report(sb, checkResult, Status.Success);
-				break;
-			case Warning:
-				if (isWarningFatal) {
-					errorCount += 1;
-					report(sb, checkResult, Status.Error);
+				report(sb, check, allWarnings, "Success");
+			}
+			else {
+				List<CheckWarning> fatalOnly = new ArrayList<CheckWarning>();
+				List<CheckWarning> warningsOnly = new ArrayList<CheckWarning>();
+				for (CheckWarning warning : allWarnings) {
+					if (warning.isFatal() || isWarningFatal) {
+						fatalOnly.add(warning);
+					}
+					else {
+						warningsOnly.add(warning);
+					}
 				}
-				else {
-					warningCount += 1;
-					report(sb, checkResult, Status.Warning);
+				warningCount += warningsOnly.size();
+				errorCount += fatalOnly.size();
+				if (!fatalOnly.isEmpty()) {
+					report(sb, check, fatalOnly, "Error");
 				}
-				break;
-			case Error:
-				errorCount += 1;
-				report(sb, checkResult, Status.Error);
-				break;
-
-			case InternalError:
-				internalErrorCount += 1;
-				report(sb, checkResult, Status.InternalError);
-				break;
-			default:
-				break;
+				if (!warningsOnly.isEmpty()) {
+					report(sb, check, warningsOnly, "Warning");
+				}
 			}
 		}
 		sb.append('\n');
@@ -159,19 +154,16 @@ public class OntologyCheckHandler {
 		sb.append("Name \t Status \t Message");
 	}
 	
-	protected void report(StringBuilder sb, CheckResult checkResult, Status status) {
+	protected void report(StringBuilder sb, OntologyCheck check, Collection<CheckWarning> warnings, String status) {
 		sb.append('\n');
-		sb.append(checkResult.getCheckName());
+		sb.append(check.getLabel());
 		sb.append('\t');
-		sb.append(status.name());
+		sb.append(status);
 		sb.append('\t');
-		List<String> messages = checkResult.getMessages();
-		if (messages != null && !messages.isEmpty()) {
-			for (int i = 0; i < messages.size(); i++) {
-				if (i > 0) {
-					sb.append("\n\t\t");
-				}
-				sb.append(messages.get(i));
+		if (warnings != null && !warnings.isEmpty()) {
+			for (CheckWarning warning : warnings) {
+				sb.append("\n\t\t");
+				sb.append(warning.getMessage());
 			}
 		}
 	}

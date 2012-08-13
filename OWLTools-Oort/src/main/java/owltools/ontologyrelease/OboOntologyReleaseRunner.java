@@ -68,7 +68,9 @@ import owltools.mooncat.OntologyMetaDataTools.AnnotationCardinalityException;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
+import owltools.ontologyverification.OntologyCheck;
 import owltools.ontologyverification.OntologyCheckHandler;
+import owltools.ontologyverification.impl.SelfReferenceInDefinition;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
@@ -83,6 +85,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 	protected final static Logger logger = Logger .getLogger(OboOntologyReleaseRunner.class);
 
+	final OntologyCheckHandler ontologyChecks;
 	ParserWrapper parser;
 	Mooncat mooncat;
 	InferenceBuilder infBuilder;
@@ -91,7 +94,12 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base) throws IOException {
 		super(base, logger, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile());
-		this.oortConfig = oortConfig; 
+		this.oortConfig = oortConfig;
+		
+		// TODO make this configurable
+		List<Class<? extends OntologyCheck>> classes = new ArrayList<Class<? extends OntologyCheck>>();
+		classes.add(SelfReferenceInDefinition.class);
+		this.ontologyChecks = new OntologyCheckHandler(false, classes);
 	}
 
 	/**
@@ -470,7 +478,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		if (oortConfig.isExecuteOntologyChecks()) {
-			OntologyCheckHandler.DEFAULT_INSTANCE.afterLoading(mooncat.getGraph());
+			ontologyChecks.afterLoading(mooncat.getGraph());
 		}
 		String version = OntologyVersionTools.getOntologyVersion(mooncat.getOntology());
 		if (version != null) {
@@ -658,7 +666,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		if (oortConfig.isExecuteOntologyChecks()) {
-			OntologyCheckHandler.DEFAULT_INSTANCE.afterMireot(mooncat.getGraph());
+			ontologyChecks.afterMireot(mooncat.getGraph());
 		}
 
 		if (oortConfig.isRemoveDanglingBeforeReasoning()) {
@@ -889,7 +897,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logger.info("Redundant axioms removed");
 			}
 			if (oortConfig.isExecuteOntologyChecks()) {
-				OntologyCheckHandler.DEFAULT_INSTANCE.afterReasoning(mooncat.getGraph());
+				ontologyChecks.afterReasoning(mooncat.getGraph());
 			}
 
 			saveInAllFormats(ontologyId, null, gciOntology);

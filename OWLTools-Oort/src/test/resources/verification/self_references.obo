@@ -1,0 +1,34 @@
+format-version: 1.2
+ontology: foo
+
+[Term]
+id: FOO:0001
+name: root
+
+[Term]
+id: FOO:0002
+name: left
+is_a: FOO:0001 ! root
+
+[Term]
+id: FOO:0003
+name: right
+is_a: FOO:0001 ! root
+
+[Term]
+id: FOO:0004
+name: right2
+is_a: FOO:0003 ! root
+intersection_of: FOO:0004 ! root
+intersection_of: part_of FOO:0005 ! dangling
+
+[Term]
+id: FOO:0005
+name: other root
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_transitive: true
