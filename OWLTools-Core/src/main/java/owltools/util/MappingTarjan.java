@@ -15,6 +15,13 @@ public class MappingTarjan<T> extends AbstractTarjan<T> {
 	private final Map<T, Integer> indicies = new HashMap<T, Integer>();
 	private final Map<T, Integer> lowlinks = new HashMap<T, Integer>();
 	
+	/**
+	 * @param ignoreSingleton
+	 */
+	public MappingTarjan(boolean ignoreSingleton) {
+		super(ignoreSingleton);
+	}
+
 	@Override
 	protected void setIndex(T n, int index) {
 		indicies.put(n, Integer.valueOf(index));

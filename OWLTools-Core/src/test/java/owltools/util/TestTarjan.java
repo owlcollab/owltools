@@ -17,8 +17,8 @@ import org.semanticweb.owlapi.model.IRI;
 public class TestTarjan {
 
 	@Test
-	public void testMappingBasedTarjan() {
-		Tarjan<IRI> t = new MappingTarjan<IRI>();
+	public void testMappingBasedTarjan1() {
+		Tarjan<IRI> t = new MappingTarjan<IRI>(false);
 
 		Adjacency<IRI> graph = new TestIRIAdjacency();
 		
@@ -27,6 +27,18 @@ public class TestTarjan {
 		assertEquals(2, scc.size());
 		assertEquals(1, scc.get(0).size());
 		assertEquals(3, scc.get(1).size());
+	}
+	
+	@Test
+	public void testMappingBasedTarjan2() {
+		Tarjan<IRI> t = new MappingTarjan<IRI>(true);
+
+		Adjacency<IRI> graph = new TestIRIAdjacency();
+		
+		List<List<IRI>> scc = t.executeTarjan(graph);
+
+		assertEquals(1, scc.size());
+		assertEquals(3, scc.get(0).size());
 	}
 
 	static class TestIRIAdjacency implements Adjacency<IRI> {
@@ -71,6 +83,10 @@ public class TestTarjan {
 	}
 
 	static class NodeTarjan extends AbstractTarjan<Node> {
+		
+		public NodeTarjan() {
+			super(false);
+		}
 		
 		@Override
 		protected void setIndex(Node n, int index) {

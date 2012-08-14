@@ -38,39 +38,33 @@ public class CycleCheck extends AbstractCheck {
 		Collection<CheckWarning> out = new ArrayList<CheckWarning>();
 		
 		// find strongly connected components using the Tarjan algorithm
-		Tarjan<OWLClass> tarjan = new MappingTarjan<OWLClass>();
+		// use parameter to request only components with more than one node
+		Tarjan<OWLClass> tarjan = new MappingTarjan<OWLClass>(true);
 		List<List<OWLClass>> scc = tarjan.executeTarjan(new OWLClassAdjacency(graph, allOwlObjects));
 		
-		// check all strongly connected components
-		// if size > 1 its in a cycle
+		// report all strongly connected components
 		for (List<OWLClass> component : scc) {
-			final int size = component.size();
-			if (size > 1) {
-				// cycle
-				// create message
-				StringBuilder sb = new StringBuilder("Cycle detected with the following classes: ");
-				List<IRI> iris = new ArrayList<IRI>(size);
-				for (OWLClass owlClass : component) {
-					if (!iris.isEmpty()) {
-						sb.append(", ");
-					}
-					final IRI iri = owlClass.getIRI();
-					iris.add(iri);
-					sb.append(graph.getIdentifier(iri));
-					
-					final String label = graph.getLabel(owlClass);
-					if (label != null) {
-						sb.append(" (");
-						sb.append(label);
-						sb.append(")");
-					}
-					
+			StringBuilder sb = new StringBuilder("Cycle detected with the following classes: ");
+			List<IRI> iris = new ArrayList<IRI>(component.size());
+			for (OWLClass owlClass : component) {
+				if (!iris.isEmpty()) {
+					sb.append(", ");
 				}
-				CheckWarning warning = new CheckWarning(getID(), sb.toString(), isFatal(), iris, null);
-				out.add(warning);
+				final IRI iri = owlClass.getIRI();
+				iris.add(iri);
+				sb.append(graph.getIdentifier(iri));
+
+				final String label = graph.getLabel(owlClass);
+				if (label != null) {
+					sb.append(" (");
+					sb.append(label);
+					sb.append(")");
+				}
+
 			}
+			CheckWarning warning = new CheckWarning(getID(), sb.toString(), isFatal(), iris, null);
+			out.add(warning);
 		}
-		
 		return out;
 	}
 	

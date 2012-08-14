@@ -12,9 +12,18 @@ import java.util.Stack;
  */
 public abstract class AbstractTarjan<NODE> implements Tarjan<NODE> {
 
+	private final boolean ignoreSingleton;
+	
 	private int index = 0;
 	private Stack<NODE> stack = new Stack<NODE>();
 	private List<List<NODE>> SCC = new ArrayList<List<NODE>>();
+
+	/**
+	 * @param ignoreSingleton
+	 */
+	protected AbstractTarjan(boolean ignoreSingleton) {
+		this.ignoreSingleton = ignoreSingleton;
+	}
 
 	@Override
 	public final List<List<NODE>> executeTarjan(Adjacency<NODE> graph){
@@ -73,11 +82,15 @@ public abstract class AbstractTarjan<NODE> implements Tarjan<NODE> {
 		}
 		if(getLowlink(v) == getIndex(v)){
 			NODE n;
-			ArrayList<NODE> component = new ArrayList<NODE>();
+			List<NODE> component = new ArrayList<NODE>();
 			do{
 				n = stack.pop();
 				component.add(n);
 			}while(notEquals(n, v));
+			if (component.size() == 1 && ignoreSingleton) {
+				// ignore components with only one node
+				return;
+			}
 			SCC.add(component);
 		}
 	}
