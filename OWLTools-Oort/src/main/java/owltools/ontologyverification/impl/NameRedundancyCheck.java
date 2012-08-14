@@ -29,7 +29,7 @@ public class NameRedundancyCheck extends AbstractCheck {
 	public static final String SHORT_HAND = "name-redundancy";
 	
 	public NameRedundancyCheck() {
-		super("NAME_REDUNDANCY_CHECK", "Name Redundancy Check", true);
+		super("NAME_REDUNDANCY_CHECK", "Name Redundancy Check", false);
 	}
 	
 	@Override
