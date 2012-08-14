@@ -3,6 +3,7 @@ package owltools.ontologyverification.impl;
 import static org.junit.Assert.*;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
@@ -27,21 +28,10 @@ public class CycleCheckTest extends OWLToolsTestBasics {
 		OntologyCheck check = new CycleCheck();
 		
 		Collection<CheckWarning> warnings = check.check(graph, graph.getAllOWLObjects());
-		assertEquals(3, warnings.size());
-	}
-	
-	@Test
-	public void testCycle2() throws Exception {
-		ParserWrapper parser = new ParserWrapper();
-		IRI iri = IRI.create(getResource("verification/self_references.obo").getAbsoluteFile()) ;
-		OWLGraphWrapper graph = parser.parseToOWLGraph(iri.toString());
-		
-		OntologyCheck check = new CycleCheck();
-		
-		Collection<CheckWarning> warnings = check.check(graph, graph.getAllOWLObjects());
 		assertEquals(1, warnings.size());
 		CheckWarning warning = warnings.iterator().next();
-		assertTrue(warning.getIris().contains(IRI.create("http://purl.obolibrary.org/obo/FOO_0004")));
+		List<IRI> iris = warning.getIris();
+		assertEquals(3, iris.size());
 	}
 	
 	@Test
@@ -60,6 +50,18 @@ public class CycleCheckTest extends OWLToolsTestBasics {
 	public void testNonCycle2() throws Exception {
 		ParserWrapper parser = new ParserWrapper();
 		IRI iri = IRI.create(getResource("verification/name_redundancy.obo").getAbsoluteFile()) ;
+		OWLGraphWrapper graph = parser.parseToOWLGraph(iri.toString());
+		
+		OntologyCheck check = new CycleCheck();
+		
+		Collection<CheckWarning> warnings = check.check(graph, graph.getAllOWLObjects());
+		assertTrue(warnings.isEmpty());
+	}
+	
+	@Test
+	public void testNonCycle3() throws Exception {
+		ParserWrapper parser = new ParserWrapper();
+		IRI iri = IRI.create(getResource("verification/self_references.obo").getAbsoluteFile()) ;
 		OWLGraphWrapper graph = parser.parseToOWLGraph(iri.toString());
 		
 		OntologyCheck check = new CycleCheck();
