@@ -9,7 +9,12 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.ButtonGroup;
@@ -28,6 +33,7 @@ import org.obolibrary.gui.SelectDialog;
 
 import owltools.InferenceBuilder;
 import owltools.ontologyrelease.OortConfiguration;
+import owltools.ontologyverification.OntologyCheck;
 
 /**
  * Panel containing advanced options for the release manager.
@@ -66,6 +72,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JRadioButton factppRadioButton;
 	final JRadioButton jcelRadioButton;
 	final JRadioButton elkRadioButton;
+	
+	final Map<Class<? extends OntologyCheck>, JCheckBox> ontologyCheckBoxes;
 
 	private final Frame frame;
 	
@@ -113,6 +121,12 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		factppRadioButton = new JRadioButton();
 		jcelRadioButton = new JRadioButton();
 		elkRadioButton = new JRadioButton();
+		
+		// ontolgy checks
+		ontologyCheckBoxes = new HashMap<Class<? extends OntologyCheck>, JCheckBox>();
+		for (Class<? extends OntologyCheck> check : OortConfiguration.getAvailableChecks()) {
+			ontologyCheckBoxes.put(check, new JCheckBox(OortConfiguration.getOntologyCheckShortName(check)));
+		}
 		
 		// Layout
 		panel.setLayout(new GridBagLayout());
@@ -209,6 +223,23 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(panel, pos.nextRow(), 5);
 		
 		createFancyCheckBox(pos, "Justify Asserted Sub Classes", null, justifyAssertedSubclasses);
+		
+		addRowGap(panel, pos.nextRow(), 10);
+		
+		panel.add(new JLabel("Ontology Checks"), pos.nextRow().indentLeft(DEFAULT_INDENT).width(3));
+		List<Class<? extends OntologyCheck>> classes = new ArrayList<Class<? extends OntologyCheck>>(ontologyCheckBoxes.keySet());
+		Collections.sort(classes, new Comparator<Class<? extends OntologyCheck>>() {
+
+			@Override
+			public int compare(Class<? extends OntologyCheck> o1, Class<? extends OntologyCheck> o2) {
+				return o1.getCanonicalName().compareTo(o2.getCanonicalName());
+			}
+		});
+		for(Class<? extends OntologyCheck> cls : classes) {
+			JCheckBox box = ontologyCheckBoxes.get(cls);
+			addRowGap(panel, pos.nextRow(), 5);
+			panel.add(box, pos.nextRow().nextCol().width(2).expandW());
+		}
 		
 		addRowGap(panel, pos.nextRow(), 10);
 	}
@@ -366,6 +397,18 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		}
 		else {
 			hermitRadioButton.setSelected(true);
-		}				
+		}
+		
+		for(Entry<Class<? extends OntologyCheck>, JCheckBox> entry : ontologyCheckBoxes.entrySet()) {
+			entry.getValue().setSelected(false);
+		}
+		List<Class<? extends OntologyCheck>> checks = configuration.getOntologyChecks();
+		for (Class<? extends OntologyCheck> check : checks) {
+			JCheckBox checkBox = ontologyCheckBoxes.get(check);
+			if (checkBox != null) {
+				checkBox.setSelected(true);
+			}
+		}
+		
 	}
 }

@@ -5,11 +5,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
@@ -24,6 +27,7 @@ import org.obolibrary.gui.GuiTools.SizedJPanel;
 
 import owltools.InferenceBuilder;
 import owltools.ontologyrelease.OortConfiguration;
+import owltools.ontologyverification.OntologyCheck;
 
 /**
  * GUI main frame, calls all constructors for the sub components.
@@ -235,6 +239,15 @@ public class OortGuiMainFrame extends JFrame {
 		String catalogXML = advancedPanel.catalogXMLField.getText();
 		if (catalogXML != null && !catalogXML.isEmpty()) {
 			parameters.setCatalogXML(catalogXML);
+		}
+		
+		// ontology checks
+		List<Class<? extends OntologyCheck>> ontologyChecks = parameters.getOntologyChecks();
+		ontologyChecks.clear();
+		for(Entry<Class<? extends OntologyCheck>, JCheckBox> entry : advancedPanel.ontologyCheckBoxes.entrySet()) {
+			if (entry.getValue().isSelected()) {
+				ontologyChecks.add(entry.getKey());
+			}
 		}
 		
 		// paths
