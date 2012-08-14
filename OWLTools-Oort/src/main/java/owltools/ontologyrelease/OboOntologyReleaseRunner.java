@@ -55,6 +55,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.InferenceBuilder;
+import owltools.cli.Opts;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.owl.GAFOWLBridge;
@@ -70,7 +71,6 @@ import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
 import owltools.ontologyverification.OntologyCheck;
 import owltools.ontologyverification.OntologyCheckHandler;
-import owltools.ontologyverification.impl.SelfReferenceInDefinition;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
@@ -95,11 +95,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base) throws IOException {
 		super(base, logger, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile());
 		this.oortConfig = oortConfig;
-		
-		// TODO make this configurable
-		List<Class<? extends OntologyCheck>> classes = new ArrayList<Class<? extends OntologyCheck>>();
-		classes.add(SelfReferenceInDefinition.class);
-		this.ontologyChecks = new OntologyCheckHandler(false, classes);
+		List<Class<? extends OntologyCheck>> checks = oortConfig.getOntologyChecks();
+		this.ontologyChecks = new OntologyCheckHandler(false, checks);
 	}
 
 	/**
@@ -179,164 +176,178 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 	static void parseOortCommandLineOptions(String[] args, OortConfiguration oortConfig) throws IOException {
 		
-		int i = 0;
-		while (i < args.length) {
-			String opt = args[i];
-			i++;
+		Opts opts = new Opts(args);
+		while (opts.hasArgs()) {
 
-			if (opt.trim().length() == 0)
-				continue;
 
-			logger.info("processing arg: " + opt);
-			if (opt.equals("--h") || opt.equals("--help") || opt.equals("-h")) {
+			if (opts.nextEq("--h|--help|-h")) {
 				usage();
 				System.exit(0);
 			}
-
-			else if (opt.equals("-outdir") || opt.equals("--outdir")) { 
-				oortConfig.setBase(new File(args[i])); i++; 
+			else if (opts.nextEq("-outdir|--outdir")) { 
+				oortConfig.setBase(new File(opts.nextOpt())); 
 			}
-			/*
-			 * else if (opt.equals("-owlversion")) { version = args[i]; i++; }
-			 */
-			else if (opt.equals("-reasoner") || opt.equals("--reasoner")) {
+			else if (opts.nextEq("-reasoner|--reasoner")) {
 				// TODO - deprecate "-reasoner"
-				oortConfig.setReasonerName(args[i]);
-				i++;
+				oortConfig.setReasonerName(opts.nextOpt());
 			}
-			else if (opt.equals("--no-reasoner")) {
+			else if (opts.nextEq("--no-reasoner")) {
 				oortConfig.setReasonerName(null);
 			}
-			else if (opt.equals("--skip-format")) {
-				oortConfig.addToSkipFormatSet(args[i]);
-				i++;
+			else if (opts.nextEq("--skip-format")) {
+				oortConfig.addToSkipFormatSet(opts.nextOpt());
 			}
-			else if (opt.equals("--prefix")) {
-				oortConfig.addSourceOntologyPrefix(args[i]);
-				i++;
+			else if (opts.nextEq("--prefix")) {
+				oortConfig.addSourceOntologyPrefix(opts.nextOpt());
 			}
-			else if (opt.equals("--enforceEL")) {
+			else if (opts.nextEq("--enforceEL")) {
 				// If this option is active, the ontology is 
 				// restricted to EL before reasoning!
 				oortConfig.setEnforceEL(true);
 			}
-			else if (opt.equals("--makeEL")) {
+			else if (opts.nextEq("--makeEL")) {
 				// If this option is active, an EL restricted ontology 
 				// is written after reasoning.
 				oortConfig.setWriteELOntology(true);
 			}
-			/*
-			 * else if (opt.equals("-oboincludes")) { oboIncludes = args[i];
-			 * i++; }
-			 */
-			else if (opt.equals("--no-subsets")) {
+			else if (opts.nextEq("--no-subsets")) {
 				oortConfig.setWriteSubsets(false);
 			}
-			else if (opt.equals("--force")) {
+			else if (opts.nextEq("--force")) {
 				oortConfig.setForceRelease(true);
 			}
-			else if (opt.equals("--ignoreLock")) {
+			else if (opts.nextEq("--ignoreLock")) {
 				oortConfig.setIgnoreLockFile(true);
 			}
-			else if (opt.equals("--asserted")) {
+			else if (opts.nextEq("--asserted")) {
 				oortConfig.setAsserted(true);
 			}
-			else if (opt.equals("--simple")) {
+			else if (opts.nextEq("--simple")) {
 				oortConfig.setSimple(true);
 			}
-			else if (opt.equals("--relaxed")) {
+			else if (opts.nextEq("--relaxed")) {
 				oortConfig.setRelaxed(true);
 			}
-			else if (opt.equals("--expand-xrefs")) {
+			else if (opts.nextEq("--expand-xrefs")) {
 				oortConfig.setExpandXrefs(true);
 			}
-			else if (opt.equals("--re-mireot")) {
+			else if (opts.nextEq("--re-mireot")) {
 				oortConfig.setRecreateMireot(true);
 			}
-			else if (opt.equals("--repair-cardinality")) {
+			else if (opts.nextEq("--repair-cardinality")) {
 				oortConfig.setRepairAnnotationCardinality(true);
 			}
-			else if (opt.equals("--justify")) {
+			else if (opts.nextEq("--justify")) {
 				oortConfig.setJustifyAssertedSubclasses(true);
 			}
-			else if (opt.equals("--justify-from")) {
+			else if (opts.nextEq("--justify-from")) {
 				oortConfig.setJustifyAssertedSubclasses(true);
-				oortConfig.setJustifyAssertedSubclassesFrom(args[i]);
-				i++;
+				oortConfig.setJustifyAssertedSubclassesFrom(opts.nextOpt());
 			}
-			else if (opt.equals("--allow-equivalent-pairs")) {
+			else if (opts.nextEq("--allow-equivalent-pairs")) {
 				oortConfig.setAllowEquivalentNamedClassPairs(true);
 			}
-			else if (opt.equals("--expand-macros")) {
+			else if (opts.nextEq("--expand-macros")) {
 				oortConfig.setExpandMacros(true);
 				oortConfig.setMacroStrategy(MacroStrategy.GCI);
 			}
-			else if (opt.equals("--expand-macros-inplace")) {
+			else if (opts.nextEq("--expand-macros-inplace")) {
 				oortConfig.setExpandMacros(true);
 				oortConfig.setMacroStrategy(MacroStrategy.INPLACE);
 			}
-			else if (opt.equals("--allow-overwrite")) {
+			else if (opts.nextEq("--allow-overwrite")) {
 				oortConfig.setAllowFileOverWrite(true);
 			}
-			else if (opt.equals("--remove-dangling-before-reasoning")) {
+			else if (opts.nextEq("--remove-dangling-before-reasoning")) {
 				oortConfig.setRemoveDanglingBeforeReasoning(true);
 			}
-			else if (opt.equals("--add-support-from-imports")) {
+			else if (opts.nextEq("--add-support-from-imports")) {
 				oortConfig.setAddSupportFromImports(true);
 			}
-			else if (opt.equals("--add-imports-from-supports")) {
+			else if (opts.nextEq("--add-imports-from-supports")) {
 				oortConfig.setAddImportsFromSupports(true);
 			}
-			else if (opt.equals("--translate-disjoints-to-equivalents")) {
+			else if (opts.nextEq("--translate-disjoints-to-equivalents")) {
 				oortConfig.setTranslateDisjointsToEquivalents(true);
 			}
-			else if (opt.equals("--skip-ontology-checks")) {
+			else if (opts.nextEq("--skip-ontology-checks")) {
 				oortConfig.setExecuteOntologyChecks(false);
 			}
-			else if (opt.equals("--skip-release-folder")) {
+			else if (opts.nextEq("--skip-release-folder")) {
 				oortConfig.setUseReleaseFolder(false);
 			}
-			else if (opt.equals("--bridge-ontology") || opt.equals("-b")) {
-				oortConfig.addBridgeOntology(args[i]);
-				i++;
+			else if (opts.nextEq("--bridge-ontology|-b")) {
+				oortConfig.addBridgeOntology(opts.nextOpt());
 			}
-			else if (opt.equals("--config-file")) {
-				File file = new File(args[i]);
+			else if (opts.nextEq("--config-file")) {
+				File file = new File(opts.nextOpt());
 				OortConfiguration.loadConfig(file , oortConfig);
-				i++;
 			}
-			else if (opt.equals("--catalog-xml")) {
-				oortConfig.setCatalogXML(args[i]);
-				i++;
+			else if (opts.nextEq("--catalog-xml")) {
+				oortConfig.setCatalogXML(opts.nextOpt());
 			}
-			else if (opt.equals("--check-for-gaf")) {
+			else if (opts.nextEq("--check-for-gaf")) {
 				oortConfig.setGafToOwl(true);
 			}
-			else if (opt.equals("--query-ontology")) {
+			else if (opts.nextEq("--query-ontology")) {
 				oortConfig.setUseQueryOntology(true);
-				oortConfig.setQueryOntology(args[i]);
-				i++;
+				oortConfig.setQueryOntology(opts.nextOpt());
 			}
-			else if (opt.equals("--query-ontology-iri")) {
+			else if (opts.nextEq("--query-ontology-iri")) {
 				oortConfig.setQueryOntologyReferenceIsIRI(true);
-				oortConfig.setQueryOntologyReference(args[i]);
-				i++;
+				oortConfig.setQueryOntologyReference(opts.nextOpt());
 			}
-			else if (opt.equals("--query-ontology-label")) {
+			else if (opts.nextEq("--query-ontology-label")) {
 				oortConfig.setQueryOntologyReferenceIsIRI(false);
-				oortConfig.setQueryOntologyReference(args[i]);
-				i++;
+				oortConfig.setQueryOntologyReference(opts.nextOpt());
 			}
-			else if (opt.equals("--query-ontology-remove-query")) {
+			else if (opts.nextEq("--query-ontology-remove-query")) {
 				oortConfig.setQueryOntologyReferenceIsIRI(true);
 			}
-			else if (opt.equals("--write-label-owl")) {
+			else if (opts.nextEq("--write-label-owl")) {
 				oortConfig.setWriteLabelOWL(true);
 			}
+			else if (opts.nextEq("--ontology-checks")) {
+				Set<String> addFlags = new HashSet<String>(); 
+				Set<String> removeFlags = new HashSet<String>();
+				boolean clear = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-a")) { // add
+						addFlags.add(opts.nextOpt());
+					}
+					else if (opts.nextEq("-r")) { // remove
+						removeFlags.add(opts.nextOpt());
+					}
+					else if (opts.nextEq("-c|--clear")) {
+						
+					}
+					else
+						break;
+				}
+				List<Class<? extends OntologyCheck>> checks = oortConfig.getOntologyChecks();
+				if (checks == null) {
+					checks = new ArrayList<Class<? extends OntologyCheck>>();
+				}
+				if (clear) {
+					checks.clear();
+				}
+				oortConfig.setOntologyChecks(checks);
+				for(String shortName : addFlags) {
+					Class<? extends OntologyCheck> check = OortConfiguration.getOntologyCheck(shortName);
+					if (check != null) {
+						checks.add(check);
+					}
+				}
+				for(String shortName : removeFlags) {
+					Class<? extends OntologyCheck> check = OortConfiguration.getOntologyCheck(shortName);
+					if (check != null) {
+						checks.remove(check);
+					}
+				}
+				
+			}
 			else {
-				String tokens[] = opt.split(" ");
-				for (String token : tokens)
-					oortConfig.addPath(token);
+				oortConfig.addPath(opts.nextOpt());
 			}
 		}
 	}

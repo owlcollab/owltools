@@ -22,6 +22,11 @@ import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.InferenceBuilder;
+import owltools.ontologyverification.OntologyCheck;
+import owltools.ontologyverification.impl.CycleCheck;
+import owltools.ontologyverification.impl.DanglingReferenceCheck;
+import owltools.ontologyverification.impl.NameRedundancyCheck;
+import owltools.ontologyverification.impl.SelfReferenceInDefinition;
 
 /**
  * Parameters for {@link OboOntologyReleaseRunner}. Contains methods 
@@ -85,6 +90,62 @@ public class OortConfiguration {
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
 	private static final OWLOntologyFormat owlOFNFormat = new LabelFunctionalFormat(); 
 
+	private List<Class<? extends OntologyCheck>> ontologyChecks = getDefaultOntologyChecks();
+	
+	private static List<Class<? extends OntologyCheck>> getDefaultOntologyChecks() {
+		List<Class<? extends OntologyCheck>> checks = new ArrayList<Class<? extends OntologyCheck>>();
+		checks.add(SelfReferenceInDefinition.class);
+		checks.add(NameRedundancyCheck.class);
+		checks.add(DanglingReferenceCheck.class);
+		return checks;
+	}
+	
+	public static Class<? extends OntologyCheck> getOntologyCheck(String shortName) {
+		if (SelfReferenceInDefinition.SHORT_HAND.equals(shortName)) {
+			return SelfReferenceInDefinition.class;
+		}
+		else if (NameRedundancyCheck.SHORT_HAND.equals(shortName)) {
+			return NameRedundancyCheck.class;
+		}
+		else if (DanglingReferenceCheck.SHORT_HAND.equals(shortName)) {
+			return DanglingReferenceCheck.class;
+		}
+		else if (CycleCheck.SHORT_HAND.equals(shortName)) {
+			return CycleCheck.class;
+		}
+		return null;
+	}
+	
+	public static String getOntologyCheckShortName(Class<? extends OntologyCheck> check) {
+		if (SelfReferenceInDefinition.class.equals(check)) {
+			return SelfReferenceInDefinition.SHORT_HAND;
+		}
+		else if (NameRedundancyCheck.class.equals(check)) {
+			return NameRedundancyCheck.SHORT_HAND;
+		}
+		else if (DanglingReferenceCheck.class.equals(check)) {
+			return DanglingReferenceCheck.SHORT_HAND;
+		}
+		else if (CycleCheck.class.equals(check)) {
+			return CycleCheck.SHORT_HAND;
+		}
+		return null;
+	}
+	
+	/**
+	 * Provide a list of all {@link OntologyCheck}'s known to this configuration.
+	 * 
+	 * @return list of checks
+	 */
+	public static List<Class<? extends OntologyCheck>> getAvailableChecks() {
+		List<Class<? extends OntologyCheck>> checks = new ArrayList<Class<? extends OntologyCheck>>();
+		checks.add(SelfReferenceInDefinition.class);
+		checks.add(NameRedundancyCheck.class);
+		checks.add(DanglingReferenceCheck.class);
+		checks.add(CycleCheck.class);
+		return checks;
+	}
+	
 	/**
 	 * @return the reasoner name
 	 */
@@ -651,6 +712,21 @@ public class OortConfiguration {
 		this.ignoreLockFile = ignoreLockFile;
 	}
 
+	/**
+	 * @return the ontologyChecks
+	 */
+	public List<Class<? extends OntologyCheck>> getOntologyChecks() {
+		return ontologyChecks;
+	}
+
+	/**
+	 * @param ontologyChecks the ontologyChecks to set
+	 */
+	public void setOntologyChecks(
+			List<Class<? extends OntologyCheck>> ontologyChecks) {
+		this.ontologyChecks = ontologyChecks;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -762,9 +838,24 @@ public class OortConfiguration {
 		putValue(properties, "queryOntologyReference", config.queryOntologyReference);
 		putValue(properties, "queryOntologyReferenceIsIRI", config.queryOntologyReferenceIsIRI);
 		putValue(properties, "removeQueryOntologyReference", config.removeQueryOntologyReference);
+		putValue(properties, "ontologyChecks", config.ontologyChecks);
 		return properties;
 	}
 	
+	private static void putValue(Properties properties, String key, List<Class<? extends OntologyCheck>> ontologyChecks) {
+		List<String> shortNames = new ArrayList<String>(ontologyChecks.size());
+		for (Class<? extends OntologyCheck> cls : ontologyChecks) {
+			String shortName = getOntologyCheckShortName(cls);
+			if (shortName != null) {
+				shortNames.add(shortName);
+			}
+			else {
+				LOGGER.warn("Could not find short name for ontology check: "+cls.getCanonicalName());
+			}
+		}
+		putValue(properties, key, shortNames);
+	}
+
 	private static void putValue(Properties properties, String key, MacroStrategy value) {
 		if (value != null) {
 			properties.put(key, value.name());
@@ -855,8 +946,28 @@ public class OortConfiguration {
 		config.queryOntologyReference = getValue(properties, "queryOntologyReference", config.queryOntologyReference);
 		config.queryOntologyReferenceIsIRI = getValue(properties, "queryOntologyReferenceIsIRI", config.queryOntologyReferenceIsIRI);
 		config.removeQueryOntologyReference = getValue(properties, "removeQueryOntologyReference", config.removeQueryOntologyReference);
+		config.ontologyChecks = getClassValues(properties, "ontologyChecks", getDefaultOntologyChecks());
 	}
 	
+	private static List<Class<? extends OntologyCheck>> getClassValues(Properties properties, String key,
+			List<Class<? extends OntologyCheck>> defaultOntologyChecks) {
+		List<String> shortNames = getValue(properties, key, (List<String>) null);
+		if (shortNames != null) {
+			List<Class<? extends OntologyCheck>> checks = new ArrayList<Class<? extends OntologyCheck>>(shortNames.size());
+			for (String shortName : shortNames) {
+				Class<? extends OntologyCheck> check = getOntologyCheck(shortName);
+				if (check != null) {
+					checks.add(check);
+				}
+				else {
+					LOGGER.warn("Could not retrieve an ontology check for shortname: "+shortName);
+				}
+			}
+			return checks;
+		}
+		return defaultOntologyChecks;
+	}
+
 	private static boolean getValue(Properties properties, String key, boolean defaultValue) {
 		String property = properties.getProperty(key, null);
 		if (property != null) {

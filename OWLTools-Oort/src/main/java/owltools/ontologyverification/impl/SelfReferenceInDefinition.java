@@ -20,6 +20,8 @@ import owltools.ontologyverification.CheckWarning;
  */
 public class SelfReferenceInDefinition extends AbstractCheck {
 
+	public static final String SHORT_HAND = "self-reference-in-def";
+	
 	public SelfReferenceInDefinition() {
 		super("SELF_REFERENCE_IN_DEFINITION", "Self Reference In Definition", true);
 	}

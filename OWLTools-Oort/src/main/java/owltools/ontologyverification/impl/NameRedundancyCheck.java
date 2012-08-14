@@ -26,6 +26,8 @@ import owltools.ontologyverification.CheckWarning;
  */
 public class NameRedundancyCheck extends AbstractCheck {
 
+	public static final String SHORT_HAND = "name-redundancy";
+	
 	public NameRedundancyCheck() {
 		super("NAME_REDUNDANCY_CHECK", "Name Redundancy Check", true);
 	}

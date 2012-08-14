@@ -31,6 +31,8 @@ import owltools.ontologyverification.CheckWarning;
  */
 public class DanglingReferenceCheck extends AbstractCheck {
 
+	public static final String SHORT_HAND = "dangling-ref";
+	
 	public DanglingReferenceCheck() {
 		super("DANGLING_REFERENCE_CHECK", "Dangling Reference Check", false);
 	}
