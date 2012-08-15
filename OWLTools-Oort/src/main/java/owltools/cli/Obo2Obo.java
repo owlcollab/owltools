@@ -1,10 +1,16 @@
 package owltools.cli;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.obolibrary.oboformat.model.FrameStructureException;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
@@ -21,6 +27,8 @@ import owltools.io.ParserWrapper;
  * Main feature: Use other ontologies to provide names for the comments during the write.
  */
 public class Obo2Obo {
+	
+	private static final Logger logger = Logger.getLogger(Obo2Obo.class);
 
 	/**
 	 * @param args
@@ -37,6 +45,7 @@ public class Obo2Obo {
 		String oboOutputFileName = null;
 		List<String> supports = new ArrayList<String>();
 		ParserWrapper pw = new ParserWrapper();
+		boolean skipOBODocChecks = false;
 		
 		while (opts.hasArgs()) {
 			if (opts.nextArgIsHelp()) {
@@ -59,6 +68,10 @@ public class Obo2Obo {
 				opts.info("CATALOG-FILE", "uses the specified file as a catalog");
 				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
 			}
+			else if (opts.nextEq("--skip-obo-checks")) {
+				opts.info("CATALOG-FILE", "uses the specified file as a catalog");
+				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
+			}
 			else{
 				String string = opts.nextOpt();
 				if (oboInputFileName != null) {
@@ -78,26 +91,59 @@ public class Obo2Obo {
 			error("No input file found. Please specify exactly one INPUT");
 		}
 		
-		obo2obo(oboInputFileName, oboOutputFileName, supports, pw);
+		obo2obo(oboInputFileName, oboOutputFileName, supports, pw, skipOBODocChecks);
 	}
 
 	private void obo2obo(String oboInputFileName, String oboOutputFileName, 
-			List<String> supports, ParserWrapper pw) throws Exception 
+			List<String> supports, ParserWrapper pw, boolean skipOBODocChecks) throws Exception
 	{
 		// load OBO source
+		logger.info("Start loading OBO ontology from file: "+oboInputFileName);
 		OBOFormatParser oboParser = new OBOFormatParser();
-		OBODoc oboDoc = oboParser.parse(oboInputFileName);
+		OBODoc oboDoc;
+		try {
+			oboDoc = oboParser.parse(oboInputFileName);
+		} catch (IOException e) {
+			System.err.println("An error occured during the load of the input file '"+oboInputFileName+"' with the error message:/n"+e.getMessage());
+			System.exit(-1);
+			return;
+		}
+		logger.info("Finished loading OBO ontology.");
 		
+		// check structure
+		if (!skipOBODocChecks) {
+			logger.info("Check OBO document structure.");
+			try {
+				oboDoc.check();
+			} catch (FrameStructureException e) {
+				System.err.println("The loaded obo file has an unexpected structure: "+e.getMessage());
+				System.exit(-1);
+				return;
+			}
+		}
+		else {
+			logger.info("SKIPPING - Check OBO document structure.");
+		}
 		
 		// load optional supports for names
 		OWLGraphWrapper graph = null;
-		for (String support : supports) {
-			if (graph == null) {
-				graph = pw.parseToOWLGraph(support);
+		if (supports != null && !supports.isEmpty()) {
+			logger.info("Start loading support ontologies.");
+			for (String support : supports) {
+				try {
+					if (graph == null) {
+						graph = pw.parseToOWLGraph(support);
+					}
+					else {
+						graph.addSupportOntology(pw.parse(support));
+					}
+				} catch (Exception e) {
+					System.err.println("An error occured during the load of the support file '"+support+"' with the error message:/n"+e.getMessage());
+					System.exit(-1);
+					return;
+				}
 			}
-			else {
-				graph.addSupportOntology(pw.parse(support));
-			}
+			logger.info("Finished loading support ontologies.");
 		}
 		
 		// setup name provider
@@ -109,11 +155,49 @@ public class Obo2Obo {
 			provider = new OBODocNameProvider(oboDoc);
 		}
 		
-		// write OBO file
+		if (oboInputFileName.equals(oboOutputFileName)) {
+			// try writing to temp-file to avoid clobbering the input file
+			File tempFile = null;
+			try {
+				logger.info("Create temporary output file to avoid overwriting input file with invalid data.");
+				// create temp-file
+				tempFile = File.createTempFile("obo-2-obo-temp-", ".obo");
+				
+				// write OBO file
+				logger.info("Start writing OBO ontology to temporary output file.");
+				writeOboFile(oboDoc, tempFile, provider);
+				
+				// copy file to intended location
+				logger.info("Copy temporary file to intended output location: "+oboOutputFileName);
+				FileUtils.copyFile(tempFile, new File(oboOutputFileName));
+				logger.info("Finished copying OBO ontology to file.");
+			}
+			finally {
+				// delete temp-file
+				logger.info("Delete temporary output file.");
+				FileUtils.deleteQuietly(tempFile);
+			}
+		}
+		else {
+			// write OBO file
+			logger.info("Start writing OBO ontology to file: "+oboOutputFileName);
+			File outFile = new File(oboOutputFileName);
+			writeOboFile(oboDoc, outFile, provider);
+			logger.info("Finished writing OBO ontology to file.");
+		}
+	}
+	
+	private void writeOboFile(OBODoc doc, File outputFile, NameProvider provider) throws IOException {
 		final OBOFormatWriter writer = new OBOFormatWriter();
-		final BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(oboOutputFileName));
-		writer.write(oboDoc, bufferedWriter, provider);
-		bufferedWriter.close();
+		writer.setCheckStructure(false);
+		BufferedWriter bufferedWriter = null;
+		try {
+			bufferedWriter = new BufferedWriter(new FileWriter(outputFile));
+			writer.write(doc, bufferedWriter, provider);
+		}
+		finally {
+			IOUtils.closeQuietly(bufferedWriter);
+		}
 	}
 	
 	private void error(String message) {
