@@ -21,3 +21,8 @@ name: right
 id: FOO:0005
 name: left-1
 synonym: "left" EXACT []
+
+[Term]
+id: FOO:0006
+name: left-2
+synonym: "left-2" EXACT []

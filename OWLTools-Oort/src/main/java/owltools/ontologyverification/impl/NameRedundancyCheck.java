@@ -91,19 +91,28 @@ public class NameRedundancyCheck extends AbstractCheck {
 				}
             	Set<OWLEntity> conflictingSynonyms = synonyms.get(label);
             	if (conflictingSynonyms != null) {
-					// entities with synonyms, which are supposed to be unique labels
-            		IRI mainIRI = entities.iterator().next().getIRI();
-            		List<IRI> iris = new ArrayList<IRI>(conflictingSynonyms.size() + 1);
-            		iris.add(mainIRI);
-            		StringBuilder sb = new StringBuilder("Primary label '");
-            		sb.append(label).append("' ").append(mainIRI.toQuotedString());
-            		sb.append(" re-used as synonym for IRIs:");
-            		for(OWLEntity synonymEntity : conflictingSynonyms) {
-            			IRI synonymIRI = synonymEntity.getIRI();
-						iris.add(synonymIRI);
-						sb.append(' ').append(synonymIRI.toQuotedString());
+            		// remove entities which have the same primary label
+            		Set<OWLEntity> cleaned = new HashSet<OWLEntity>();
+            		for (OWLEntity owlEntity : conflictingSynonyms) {
+						if (!entities.contains(owlEntity)) {
+							cleaned.add(owlEntity);
+						}
+					}
+            		if (!cleaned.isEmpty()) {
+						// entities with synonyms, which are supposed to be unique labels
+	            		IRI mainIRI = entities.iterator().next().getIRI();
+	            		List<IRI> iris = new ArrayList<IRI>(cleaned.size() + 1);
+	            		iris.add(mainIRI);
+	            		StringBuilder sb = new StringBuilder("Primary label '");
+	            		sb.append(label).append("' ").append(mainIRI.toQuotedString());
+	            		sb.append(" re-used as synonym for IRIs:");
+	            		for(OWLEntity synonymEntity : cleaned) {
+	            			IRI synonymIRI = synonymEntity.getIRI();
+							iris.add(synonymIRI);
+							sb.append(' ').append(synonymIRI.toQuotedString());
+	            		}
+	            		out.add(new CheckWarning(getID(), sb.toString(), isFatal(), iris, OboFormatTag.TAG_SYNONYM.getTag()));
             		}
-            		out.add(new CheckWarning(getID(), sb.toString(), isFatal(), iris, OboFormatTag.TAG_SYNONYM.getTag()));
 				}
             }
             
