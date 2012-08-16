@@ -11,11 +11,26 @@ Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 Ontology: <http://purl.obolibrary.org/obo/go/examples/change-me.owl>
 
+Import: <http://purl.obolibrary.org/obo/wbbt.owl>
 Import: <http://purl.obolibrary.org/obo/go.owl>
 Import: <http://purl.obolibrary.org/obo/go/extensions/lego-relations.owl>
 Import: <http://purl.obolibrary.org/obo/omeo/Caenorhabditis_elegans-uniprot-labels.owl>
 
+Annotations: 
+    rdfs:comment "PMID 21771813
+
+Microtubule-based localization of a synaptic calcium- signaling complex is required for left-right neuronal
+asymmetry in C. elegans
+Chieh Chang1, Yi-Wen Hsieh1, Bluma J. Lesch2, Cornelia I. Bargmann2 and Chiou-Fen Chuang1,*
+
+SUMMARY
+The axons of C. elegans left and right AWC olfactory neurons communicate at synapses through a calcium-signaling complex to regulate stochastic asymmetric cell identities called AWCON and AWCOFF. However, it is not known how the calcium-signaling complex, which consists of UNC-43/CaMKII, TIR-1/SARM adaptor protein and NSY-1/ASK1 MAPKKK, is localized to postsynaptic sites in the AWC axons for this lateral interaction. Here, we show that microtubule-based localization of the TIR-1 signaling complex to the synapses regulates AWC asymmetry. Similar to unc-43, tir-1 and nsy-1 loss-of-function mutants, specific disruption of microtubules in AWC by nocodazole generates two AWCON neurons. Reduced localization of UNC-43, TIR-1 and NSY-1 proteins in the AWC axons strongly correlates with the 2AWCON phenotype in nocodazole-treated animals. We identified kinesin motor unc-104/kif1a mutants for enhancement of the 2AWCON phenotype of a hypomorphic tir-1 mutant. Mutations in unc-104, like microtubule depolymerization, lead to a reduced level of UNC-43, TIR-1 and NSY-1 proteins in the AWC axons. In addition,
+dynamic transport of TIR-1 in the AWC axons is dependent on unc-104, the primary motor required for the transport of presynaptic vesicles. Furthermore, unc-104 acts non-cell autonomously in the AWCON neuron to regulate the AWCOFF identity. Together, these results suggest a model in which UNC-104 may transport some unknown presynaptic factor(s) in the future AWCON cell that non-cell autonomously control the trafficking of the TIR-1 signaling complex to postsynaptic regions of the AWC axons to regulate the AWCOFF identity."
+
 AnnotationProperty: rdfs:label
+
+    
+AnnotationProperty: rdfs:comment
 
     
 Datatype: rdf:PlainLiteral
@@ -30,10 +45,19 @@ ObjectProperty: directly_activates
 ObjectProperty: enabled_by
 
     
+ObjectProperty: occurs_in
+
+    
 ObjectProperty: BFO_0000050
 
     
+ObjectProperty: <http://purl.obolibrary.org/obo/wbbt#part_of>
+
+    
 ObjectProperty: directly_inhibits
+
+    
+Class: WBbt_0005672
 
     
 Class: GO_0030424
@@ -51,7 +75,7 @@ Class: UniProtKB_Q86DA5
 Class: UniProtKB_E0AHC6
 
     
-Class: GO_0035545
+Class: GO_0007368
 
     
 Class: GO_0005243
@@ -61,6 +85,9 @@ Class: UniProtKB_Q9N419
 
     
 Class: GO_0003675
+
+    
+Class: GO_0003674
 
     
 Class: UniProtKB_G5EDF7
@@ -75,7 +102,16 @@ Class: GO_0004871
 Class: UniProtKB_O62305
 
     
+Class: GO_0001708
+
+    
+Class: WBbt_0005832
+
+    
 Class: GO_0004709
+
+    
+Class: WBbt_0005833
 
     
 Class: GO_0004708
@@ -83,6 +119,30 @@ Class: GO_0004708
     
 Class: UniProtKB_G4SFC3
 
+    
+Individual: RO_0002326
+
+    Annotations: 
+        rdfs:label "AWC-OFF"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/wbbt#part_of> some 
+            (GO_0001708
+             and (occurs_in some WBbt_0005833)),
+        GO_0003674
+    
+    
+Individual: RO_0002325
+
+    Annotations: 
+        rdfs:label "AWC-ON"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/wbbt#part_of> some 
+            (GO_0001708
+             and (occurs_in some WBbt_0005832)),
+        GO_0003674
+    
     
 Individual: RO_0002324
 
@@ -159,7 +219,8 @@ Individual: RO_0002316
 Individual: RO_0002320
 
     Annotations: 
-        rdfs:label "tir-1 activity"@en
+        rdfs:label "tir-1 activity"@en,
+        rdfs:comment "Here, we show that microtubule-based localization of the TIR-1 signaling complex to the synapses regulates AWC asymmetry"
     
     Types: 
         GO_0019901,
@@ -181,6 +242,8 @@ Individual: RO_0002318
         GO_0004708
     
     Facts:  
+     directly_inhibits  RO_0002325,
+     directly_activates  RO_0002326,
      BFO_0000050  RO_0002317
     
     
@@ -190,7 +253,8 @@ Individual: RO_0002317
         rdfs:label "l/r neuronal asymmetry in C elegans"@en
     
     Types: 
-        GO_0035545
+        occurs_in some WBbt_0005672,
+        GO_0007368
     
     
 Individual: RO_0002319
