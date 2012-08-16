@@ -60,43 +60,37 @@ ObjectProperty: directly_inhibits
 Class: WBbt_0005672
 
     
-Class: GO_0030424
-
-    
 Class: GO_0019901
 
     
-Class: UniProtKB_Q21029
-
-    
-Class: UniProtKB_Q86DA5
+Class: GO_0030424
 
     
 Class: UniProtKB_E0AHC6
 
     
-Class: GO_0007368
+Class: UniProtKB_H2KYW5
 
     
-Class: GO_0005243
+Class: UniProtKB_Q965R3
 
     
 Class: UniProtKB_Q9N419
 
     
-Class: GO_0003675
-
-    
-Class: GO_0003674
-
-    
 Class: UniProtKB_G5EDF7
 
     
-Class: GO_0005262
+Class: GO_0045596
+
+    
+Class: GO_0003700
 
     
 Class: GO_0004871
+
+    
+Class: UniProtKB_O61715
 
     
 Class: UniProtKB_O62305
@@ -105,13 +99,7 @@ Class: UniProtKB_O62305
 Class: GO_0001708
 
     
-Class: WBbt_0005832
-
-    
 Class: GO_0004709
-
-    
-Class: WBbt_0005833
 
     
 Class: GO_0004708
@@ -120,38 +108,92 @@ Class: GO_0004708
 Class: UniProtKB_G4SFC3
 
     
+Class: UniProtKB_Q21029
+
+    
+Class: UniProtKB_Q86DA5
+
+    
+Class: GO_0035545
+
+    
+Class: GO_0005243
+
+    SubClassOf: 
+        occurs_in some GO_0005921
+    
+    
+Class: GO_0003674
+
+    
+Class: GO_0005262
+
+    
+Class: GO_0005923
+
+    
+Class: GO_0005921
+
+    
+Class: UniProtKB_G5EF54
+
+    
+Class: WBbt_0005832
+
+    
+Class: GO_0015267
+
+    
+Class: WBbt_0005833
+
+    
+Individual: RO_0002327
+
+    Annotations: 
+        rdfs:label "l/r asymmetry"@en
+    
+    Types: 
+        GO_0035545
+    
+    
 Individual: RO_0002326
 
     Annotations: 
-        rdfs:label "AWC-OFF"@en
+        rdfs:label "srsx-3 -> AWC-OFF"@en,
+        rdfs:comment "Troemel et al. 1999; Bauer Huang et al. 2007"
     
     Types: 
         <http://purl.obolibrary.org/obo/wbbt#part_of> some 
             (GO_0001708
              and (occurs_in some WBbt_0005833)),
+        enabled_by some UniProtKB_Q965R3,
         GO_0003674
     
     
 Individual: RO_0002325
 
     Annotations: 
-        rdfs:label "AWC-ON"@en
+        rdfs:label "str-2 -> AWC-ON"@en,
+        rdfs:comment "Troemel et al. 1999; Bauer Huang et al. 2007"
     
     Types: 
         <http://purl.obolibrary.org/obo/wbbt#part_of> some 
             (GO_0001708
              and (occurs_in some WBbt_0005832)),
+        enabled_by some UniProtKB_G5EF54,
         GO_0003674
     
     
 Individual: RO_0002324
 
     Annotations: 
-        rdfs:label "claudin activity"@en
+        rdfs:label "claudin activity"@en,
+        rdfs:comment "establishment of cell fate?"
     
     Types: 
-        GO_0005243,
-        enabled_by some UniProtKB_Q9N419
+        enabled_by some UniProtKB_Q9N419,
+        occurs_in some GO_0005923,
+        GO_0015267
     
     Facts:  
      directly_inhibits  RO_0002322
@@ -160,11 +202,12 @@ Individual: RO_0002324
 Individual: RO_0002323
 
     Annotations: 
-        rdfs:label "innexin activity"@en
+        rdfs:label "innexin activity"@en,
+        rdfs:comment "establishment of cell fate?"
     
     Types: 
         GO_0005243,
-        enabled_by some GO_0003675
+        enabled_by some UniProtKB_O61715
     
     Facts:  
      directly_inhibits  RO_0002322,
@@ -185,21 +228,6 @@ Individual: RO_0002322
      BFO_0000050  RO_0002317
     
     
-Individual: RO_0002321
-
-    Annotations: 
-        rdfs:label "CaMKII/IUNC-43 activity"@en
-    
-    Types: 
-        GO_0019901,
-        enabled_by some UniProtKB_O62305,
-        BFO_0000066 some GO_0030424
-    
-    Facts:  
-     directly_activates  RO_0002320,
-     BFO_0000050  RO_0002317
-    
-    
 Individual: RO_0002316
 
     Annotations: 
@@ -216,6 +244,20 @@ Individual: RO_0002316
      BFO_0000050  RO_0002317
     
     
+Individual: RO_0002321
+
+    Annotations: 
+        rdfs:label "CaMKII/UNC-43 activity"@en
+    
+    Types: 
+        GO_0019901,
+        enabled_by some UniProtKB_O62305
+    
+    Facts:  
+     directly_activates  RO_0002320,
+     BFO_0000050  RO_0002317
+    
+    
 Individual: RO_0002320
 
     Annotations: 
@@ -224,7 +266,6 @@ Individual: RO_0002320
     
     Types: 
         GO_0019901,
-        BFO_0000066 some GO_0030424,
         enabled_by some UniProtKB_Q86DA5
     
     Facts:  
@@ -250,11 +291,14 @@ Individual: RO_0002318
 Individual: RO_0002317
 
     Annotations: 
-        rdfs:label "l/r neuronal asymmetry in C elegans"@en
+        rdfs:label "establishment of cell fate"@en
     
     Types: 
         occurs_in some WBbt_0005672,
-        GO_0007368
+        GO_0001708
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/wbbt#part_of>  RO_0002327
     
     
 Individual: RO_0002319
@@ -269,5 +313,39 @@ Individual: RO_0002319
     Facts:  
      BFO_0000050  RO_0002317,
      directly_activates  RO_0002318
+    
+    
+Individual: RO_0002329
+
+    Annotations: 
+        rdfs:comment "check: no 'maintenance of cell identity' in GO. Existing GO annotation is to 'neuron fate specification'.
+
+GO:0001708 ! cell fate specification [DEF: \"The process involved in the specification of cell identity. Once specification has taken place, a cell will be committed to differentiate down a specific pathway if left in its normal environment.\"]",
+        rdfs:label "maintenance of cell fate"@en
+    
+    Types: 
+        GO_0045596
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/wbbt#part_of>  RO_0002327
+    
+    
+Individual: RO_0002328
+
+    Annotations: 
+        rdfs:comment "check: no 'maintenance of cell identity' in GO. Existing GO annotation is to 'neuron fate specification'.
+
+GO:0001708 ! cell fate specification [DEF: \"The process involved in the specification of cell identity. Once specification has taken place, a cell will be committed to differentiate down a specific pathway if left in its normal environment.\"]",
+        rdfs:label "nsy-7 activity"@en,
+        rdfs:comment "NSY-7 likely acts as a transcriptional regulator that represses expression of AWC-OFF genes, such as srsx-3 and hlh-11, in the AWC-ON cell; in vitro, NSY-7 displays sequence-specific, DNA-binding activity to elements found within the promoter regions of srsx-3 and hlh-11; consistent with its role as a transcriptional regulator, a NSY-7::GFP reporter localizes to the AWC nucleus"
+    
+    Types: 
+        enabled_by some UniProtKB_H2KYW5,
+        GO_0003700
+    
+    Facts:  
+     directly_inhibits  RO_0002326,
+     directly_inhibits  RO_0002325,
+     <http://purl.obolibrary.org/obo/wbbt#part_of>  RO_0002329
     
     
