@@ -1,22 +1,7 @@
 
-Class: @ubiquitin_dependent_protein_catabolic_process
-  SubClassOf: :IS_ubiquitin_dependent_protein_catabolic_process self
-ObjectProperty: :IS_ubiquitin_dependent_protein_catabolic_process
-
-
-Class: @endopeptidase_activity
-  SubClassOf: :IS_endopeptidase_activity self
-ObjectProperty: :IS_endopeptidase_activity
-
-Class: @transcription_DNA_dependent
-  SubClassOf: :IS_transcription_DNA_dependent self
-ObjectProperty: :IS_transcription_DNA_dependent
 
 # M-M
 ObjectProperty: :disables_action_of
- SubPropertyChain: :disables o :IS_transcription_DNA_dependent o :has_direct_input
- SubPropertyChain: :enables o :IS_endopeptidase_activity o :has_direct_input
- SubPropertyChain: :enables o :IS_ubiquitin_dependent_protein_catabolic_process o :has_direct_input
 
 # M-M
 ObjectProperty: :action_disabled_by
@@ -27,7 +12,6 @@ ObjectProperty: :indirectly_disables_action_of
  SubPropertyChain: :disables_action_of o :enables_action_of
 
 ObjectProperty: :enables_action_of
- SubPropertyChain: :enables o :IS_transcription_DNA_dependent o :has_direct_input
 
 ObjectProperty: :indirectly_enables_action_of
  SubPropertyChain: :disables_action_of o :disables_action_of
