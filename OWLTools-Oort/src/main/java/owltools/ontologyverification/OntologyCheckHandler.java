@@ -35,38 +35,67 @@ public class OntologyCheckHandler {
 		runner = new OntologyCheckRunner(checks);
 	}
 	
+	public static class CheckSummary {
+		
+		public final boolean success;
+		public final int errorCount;
+		public final String message;
+		
+		/**
+		 * @param success
+		 * @param errorCount
+		 * @param message
+		 */
+		protected CheckSummary(boolean success, int errorCount, String message) {
+			this.success = success;
+			this.errorCount = errorCount;
+			this.message = message;
+		}
+		
+		static CheckSummary success() {
+			return new CheckSummary(true, 0, null);
+		}
+		
+		static CheckSummary error(int count, String message) {
+			return new CheckSummary(false, count, message);
+		}
+	}
+	
 	/**
 	 * Run tests for the ontology after loading it. 
 	 * 
 	 * @param owlGraphWrapper ontology
+	 * @return summary
 	 */
-	public void afterLoading(OWLGraphWrapper owlGraphWrapper) {
-		run(owlGraphWrapper, TimePoint.AfterLoad);
+	public CheckSummary afterLoading(OWLGraphWrapper owlGraphWrapper) {
+		return run(owlGraphWrapper, TimePoint.AfterLoad);
 	}
 	
 	/**
 	 * Run tests for the ontology after mireoting. 
 	 * 
 	 * @param owlGraphWrapper ontology
+	 * @return summary
 	 */
-	public void afterMireot(OWLGraphWrapper owlGraphWrapper) {
-		run(owlGraphWrapper, TimePoint.AfterMireot);
+	public CheckSummary afterMireot(OWLGraphWrapper owlGraphWrapper) {
+		return run(owlGraphWrapper, TimePoint.AfterMireot);
 	}
 	
 	/**
 	 * Run tests for the ontology after reasoning. 
 	 * 
 	 * @param owlGraphWrapper ontology
+	 * @return summary
 	 */
-	public void afterReasoning(OWLGraphWrapper owlGraphWrapper) {
-		run(owlGraphWrapper, TimePoint.AfterReasoning);
+	public CheckSummary afterReasoning(OWLGraphWrapper owlGraphWrapper) {
+		return run(owlGraphWrapper, TimePoint.AfterReasoning);
 	}
 	
-	void run(OWLGraphWrapper owlGraphWrapper, TimePoint timePoint) {
+	CheckSummary run(OWLGraphWrapper owlGraphWrapper, TimePoint timePoint) {
 		Map<OntologyCheck, Collection<CheckWarning>> results = runner.verify(owlGraphWrapper, timePoint);
 		if (results == null || results.isEmpty()) {
 			// do nothing
-			return;
+			return CheckSummary.success();
 		}
 		String ontologyId = owlGraphWrapper.getOntologyId();
 		int successCount = 0;
@@ -114,8 +143,9 @@ public class OntologyCheckHandler {
 		}
 		log(sb, level);
 		if (hasErrors) {
-			throw new RuntimeException(createExceptionMessage(ontologyId, errorCount, internalErrorCount));
+			return CheckSummary.error(errorCount, createExceptionMessage(ontologyId, errorCount, internalErrorCount));
 		}
+		return CheckSummary.success();
 		
 	}
 

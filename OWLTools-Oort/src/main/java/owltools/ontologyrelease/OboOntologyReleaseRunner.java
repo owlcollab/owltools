@@ -71,6 +71,7 @@ import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
 import owltools.ontologyverification.OntologyCheck;
 import owltools.ontologyverification.OntologyCheckHandler;
+import owltools.ontologyverification.OntologyCheckHandler.CheckSummary;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
 /**
@@ -95,8 +96,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base) throws IOException {
 		super(base, logger, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile());
 		this.oortConfig = oortConfig;
-		List<OntologyCheck> checks = oortConfig.getOntologyChecks();
-		this.ontologyChecks = new OntologyCheckHandler(false, checks);
+		this.ontologyChecks = new OntologyCheckHandler(false, oortConfig.getOntologyChecks());
 	}
 
 	/**
@@ -489,7 +489,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		if (oortConfig.isExecuteOntologyChecks()) {
-			ontologyChecks.afterLoading(mooncat.getGraph());
+			CheckSummary summary = ontologyChecks.afterLoading(mooncat.getGraph());
+			if (summary.success == false) {
+				if (!oortConfig.isForceRelease()) {
+					throw new OboOntologyReleaseRunnerCheckException(summary.message);
+				}
+				else {
+					logger.warn("Force Release: ignore "+summary.errorCount+" errors from ontology check, error message: "+summary.message);
+				}
+			}
 		}
 		String version = OntologyVersionTools.getOntologyVersion(mooncat.getOntology());
 		if (version != null) {
@@ -677,7 +685,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 
 		if (oortConfig.isExecuteOntologyChecks()) {
-			ontologyChecks.afterMireot(mooncat.getGraph());
+			CheckSummary summary = ontologyChecks.afterMireot(mooncat.getGraph());
+			if (summary.success == false) {
+				if (!oortConfig.isForceRelease()) {
+					throw new OboOntologyReleaseRunnerCheckException(summary.message);
+				}
+				else {
+					logger.warn("Force Release: ignore "+summary.errorCount+" errors from ontology check, error message: "+summary.message);
+				}
+			}
 		}
 
 		if (oortConfig.isRemoveDanglingBeforeReasoning()) {
@@ -908,7 +924,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logger.info("Redundant axioms removed");
 			}
 			if (oortConfig.isExecuteOntologyChecks()) {
-				ontologyChecks.afterReasoning(mooncat.getGraph());
+				CheckSummary summary = ontologyChecks.afterReasoning(mooncat.getGraph());
+				if (summary.success == false) {
+					if (!oortConfig.isForceRelease()) {
+						throw new OboOntologyReleaseRunnerCheckException(summary.message);
+					}
+					else {
+						logger.warn("Force Release: ignore "+summary.errorCount+" errors from ontology check, error message: "+summary.message);
+					}
+				}
 			}
 
 			saveInAllFormats(ontologyId, null, gciOntology);
