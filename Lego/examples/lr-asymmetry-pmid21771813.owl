@@ -1,0 +1,209 @@
+Prefix: : <http://purl.obolibrary.org/obo/>
+Prefix: i: <http://purl.obolibrary.org/obo/test/inst_>
+Prefix: dc: <http://purl.org/dc/elements/1.1/>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+
+Ontology: <http://purl.obolibrary.org/obo/go/examples/change-me.owl>
+
+Import: <http://purl.obolibrary.org/obo/go.owl>
+Import: <http://purl.obolibrary.org/obo/go/extensions/lego-relations.owl>
+Import: <http://purl.obolibrary.org/obo/omeo/Caenorhabditis_elegans-uniprot-labels.owl>
+
+AnnotationProperty: rdfs:label
+
+    
+Datatype: rdf:PlainLiteral
+
+    
+ObjectProperty: BFO_0000066
+
+    
+ObjectProperty: directly_activates
+
+    
+ObjectProperty: enabled_by
+
+    
+ObjectProperty: BFO_0000050
+
+    
+ObjectProperty: directly_inhibits
+
+    
+Class: GO_0030424
+
+    
+Class: GO_0019901
+
+    
+Class: UniProtKB_Q21029
+
+    
+Class: UniProtKB_Q86DA5
+
+    
+Class: UniProtKB_E0AHC6
+
+    
+Class: GO_0035545
+
+    
+Class: GO_0005243
+
+    
+Class: UniProtKB_Q9N419
+
+    
+Class: GO_0003675
+
+    
+Class: UniProtKB_G5EDF7
+
+    
+Class: GO_0005262
+
+    
+Class: GO_0004871
+
+    
+Class: UniProtKB_O62305
+
+    
+Class: GO_0004709
+
+    
+Class: GO_0004708
+
+    
+Class: UniProtKB_G4SFC3
+
+    
+Individual: RO_0002324
+
+    Annotations: 
+        rdfs:label "claudin activity"@en
+    
+    Types: 
+        GO_0005243,
+        enabled_by some UniProtKB_Q9N419
+    
+    Facts:  
+     directly_inhibits  RO_0002322
+    
+    
+Individual: RO_0002323
+
+    Annotations: 
+        rdfs:label "innexin activity"@en
+    
+    Types: 
+        GO_0005243,
+        enabled_by some GO_0003675
+    
+    Facts:  
+     directly_inhibits  RO_0002322,
+     BFO_0000050  RO_0002317
+    
+    
+Individual: RO_0002322
+
+    Annotations: 
+        rdfs:label "unc-2-calcium channel activity"@en
+    
+    Types: 
+        GO_0005262,
+        enabled_by some UniProtKB_G4SFC3
+    
+    Facts:  
+     directly_activates  RO_0002321,
+     BFO_0000050  RO_0002317
+    
+    
+Individual: RO_0002321
+
+    Annotations: 
+        rdfs:label "CaMKII/IUNC-43 activity"@en
+    
+    Types: 
+        GO_0019901,
+        enabled_by some UniProtKB_O62305,
+        BFO_0000066 some GO_0030424
+    
+    Facts:  
+     directly_activates  RO_0002320,
+     BFO_0000050  RO_0002317
+    
+    
+Individual: RO_0002316
+
+    Annotations: 
+        rdfs:label "unc-76 activity"@en
+    
+    Types: 
+        GO_0004871,
+        enabled_by some UniProtKB_E0AHC6,
+        BFO_0000066 some GO_0030424
+    
+    Facts:  
+     directly_activates  RO_0002324,
+     directly_activates  RO_0002323,
+     BFO_0000050  RO_0002317
+    
+    
+Individual: RO_0002320
+
+    Annotations: 
+        rdfs:label "tir-1 activity"@en
+    
+    Types: 
+        GO_0019901,
+        BFO_0000066 some GO_0030424,
+        enabled_by some UniProtKB_Q86DA5
+    
+    Facts:  
+     directly_activates  RO_0002319,
+     BFO_0000050  RO_0002317
+    
+    
+Individual: RO_0002318
+
+    Annotations: 
+        rdfs:label "sek-1-MAPKK-activity"@en
+    
+    Types: 
+        enabled_by some UniProtKB_G5EDF7,
+        GO_0004708
+    
+    Facts:  
+     BFO_0000050  RO_0002317
+    
+    
+Individual: RO_0002317
+
+    Annotations: 
+        rdfs:label "l/r neuronal asymmetry in C elegans"@en
+    
+    Types: 
+        GO_0035545
+    
+    
+Individual: RO_0002319
+
+    Annotations: 
+        rdfs:label "nsy-1-MAPKKK activity"@en
+    
+    Types: 
+        GO_0004709,
+        enabled_by some UniProtKB_Q21029
+    
+    Facts:  
+     BFO_0000050  RO_0002317,
+     directly_activates  RO_0002318
+    
+    
