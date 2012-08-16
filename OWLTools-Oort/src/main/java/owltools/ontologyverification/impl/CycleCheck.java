@@ -32,7 +32,7 @@ public class CycleCheck extends AbstractCheck {
 	public static final String SHORT_HAND = "is_a-cycle";
 	
 	public CycleCheck() {
-		super("CYCLE_CHECK", "Cycle Check", false);
+		super("CYCLE_CHECK", "Cycle Check", false, null);
 	}
 	
 	@Override

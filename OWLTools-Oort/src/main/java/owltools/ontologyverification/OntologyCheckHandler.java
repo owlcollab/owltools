@@ -9,9 +9,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.ontologyverification.annotations.AfterLoading;
-import owltools.ontologyverification.annotations.AfterMireot;
-import owltools.ontologyverification.annotations.AfterReasoning;
+import owltools.ontologyverification.OntologyCheckRunner.TimePoint;
 
 /**
  * Handle the ontology checks for an ontology and its reporting 
@@ -29,12 +27,12 @@ public class OntologyCheckHandler {
 	 * Create a new instance.
 	 * 
 	 * @param isWarningFatal if true all warnings are treated as errors.
-	 * @param classes list of classes containing ontology checks
+	 * @param checks list of ontology checks
 	 */
-	public OntologyCheckHandler(boolean isWarningFatal, List<Class<? extends OntologyCheck>> classes) {
+	public OntologyCheckHandler(boolean isWarningFatal, List<OntologyCheck> checks) {
 		super();
 		this.isWarningFatal = isWarningFatal;
-		runner = new OntologyCheckRunner(classes);
+		runner = new OntologyCheckRunner(checks);
 	}
 	
 	/**
@@ -43,7 +41,7 @@ public class OntologyCheckHandler {
 	 * @param owlGraphWrapper ontology
 	 */
 	public void afterLoading(OWLGraphWrapper owlGraphWrapper) {
-		run(owlGraphWrapper, AfterLoading.class);
+		run(owlGraphWrapper, TimePoint.AfterLoad);
 	}
 	
 	/**
@@ -52,7 +50,7 @@ public class OntologyCheckHandler {
 	 * @param owlGraphWrapper ontology
 	 */
 	public void afterMireot(OWLGraphWrapper owlGraphWrapper) {
-		run(owlGraphWrapper, AfterMireot.class);
+		run(owlGraphWrapper, TimePoint.AfterMireot);
 	}
 	
 	/**
@@ -61,11 +59,11 @@ public class OntologyCheckHandler {
 	 * @param owlGraphWrapper ontology
 	 */
 	public void afterReasoning(OWLGraphWrapper owlGraphWrapper) {
-		run(owlGraphWrapper, AfterReasoning.class);
+		run(owlGraphWrapper, TimePoint.AfterReasoning);
 	}
 	
-	void run(OWLGraphWrapper owlGraphWrapper, Class<?> annotation) {
-		Map<OntologyCheck, Collection<CheckWarning>> results = runner.verify(owlGraphWrapper, annotation);
+	void run(OWLGraphWrapper owlGraphWrapper, TimePoint timePoint) {
+		Map<OntologyCheck, Collection<CheckWarning>> results = runner.verify(owlGraphWrapper, timePoint);
 		if (results == null || results.isEmpty()) {
 			// do nothing
 			return;

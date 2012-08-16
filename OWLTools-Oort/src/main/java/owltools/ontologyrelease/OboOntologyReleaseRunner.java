@@ -95,7 +95,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base) throws IOException {
 		super(base, logger, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile());
 		this.oortConfig = oortConfig;
-		List<Class<? extends OntologyCheck>> checks = oortConfig.getOntologyChecks();
+		List<OntologyCheck> checks = oortConfig.getOntologyChecks();
 		this.ontologyChecks = new OntologyCheckHandler(false, checks);
 	}
 
@@ -324,22 +324,22 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					else
 						break;
 				}
-				List<Class<? extends OntologyCheck>> checks = oortConfig.getOntologyChecks();
+				List<OntologyCheck> checks = oortConfig.getOntologyChecks();
 				if (checks == null) {
-					checks = new ArrayList<Class<? extends OntologyCheck>>();
+					checks = new ArrayList<OntologyCheck>();
 				}
 				if (clear) {
 					checks.clear();
 				}
 				oortConfig.setOntologyChecks(checks);
 				for(String shortName : addFlags) {
-					Class<? extends OntologyCheck> check = OortConfiguration.getOntologyCheck(shortName);
+					OntologyCheck check = OortConfiguration.getOntologyCheck(shortName);
 					if (check != null) {
 						checks.add(check);
 					}
 				}
 				for(String shortName : removeFlags) {
-					Class<? extends OntologyCheck> check = OortConfiguration.getOntologyCheck(shortName);
+					OntologyCheck check = OortConfiguration.getOntologyCheck(shortName);
 					if (check != null) {
 						checks.remove(check);
 					}

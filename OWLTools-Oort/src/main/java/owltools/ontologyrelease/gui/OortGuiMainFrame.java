@@ -242,9 +242,9 @@ public class OortGuiMainFrame extends JFrame {
 		}
 		
 		// ontology checks
-		List<Class<? extends OntologyCheck>> ontologyChecks = parameters.getOntologyChecks();
+		List<OntologyCheck> ontologyChecks = parameters.getOntologyChecks();
 		ontologyChecks.clear();
-		for(Entry<Class<? extends OntologyCheck>, JCheckBox> entry : advancedPanel.ontologyCheckBoxes.entrySet()) {
+		for(Entry<OntologyCheck, JCheckBox> entry : advancedPanel.ontologyCheckBoxes.entrySet()) {
 			if (entry.getValue().isSelected()) {
 				ontologyChecks.add(entry.getKey());
 			}

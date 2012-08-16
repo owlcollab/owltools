@@ -90,43 +90,44 @@ public class OortConfiguration {
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
 	private static final OWLOntologyFormat owlOFNFormat = new LabelFunctionalFormat(); 
 
-	private List<Class<? extends OntologyCheck>> ontologyChecks = getDefaultOntologyChecks();
 	
-	private static List<Class<? extends OntologyCheck>> getDefaultOntologyChecks() {
-		List<Class<? extends OntologyCheck>> checks = new ArrayList<Class<? extends OntologyCheck>>();
-		checks.add(SelfReferenceInDefinition.class);
-		checks.add(NameRedundancyCheck.class);
-		checks.add(DanglingReferenceCheck.class);
+	private List<OntologyCheck> ontologyChecks = getDefaultOntologyChecks();
+	
+	private static List<OntologyCheck> getDefaultOntologyChecks() {
+		List<OntologyCheck> checks = new ArrayList<OntologyCheck>();
+		checks.add(new SelfReferenceInDefinition());
+		checks.add(new NameRedundancyCheck());
+		checks.add(new DanglingReferenceCheck());
 		return checks;
 	}
 	
-	public static Class<? extends OntologyCheck> getOntologyCheck(String shortName) {
+	public static OntologyCheck getOntologyCheck(String shortName) {
 		if (SelfReferenceInDefinition.SHORT_HAND.equals(shortName)) {
-			return SelfReferenceInDefinition.class;
+			return new SelfReferenceInDefinition();
 		}
 		else if (NameRedundancyCheck.SHORT_HAND.equals(shortName)) {
-			return NameRedundancyCheck.class;
+			return new NameRedundancyCheck();
 		}
 		else if (DanglingReferenceCheck.SHORT_HAND.equals(shortName)) {
-			return DanglingReferenceCheck.class;
+			return new DanglingReferenceCheck();
 		}
 		else if (CycleCheck.SHORT_HAND.equals(shortName)) {
-			return CycleCheck.class;
+			return new CycleCheck();
 		}
 		return null;
 	}
 	
-	public static String getOntologyCheckShortName(Class<? extends OntologyCheck> check) {
-		if (SelfReferenceInDefinition.class.equals(check)) {
+	public static String getOntologyCheckShortName(OntologyCheck check) {
+		if (check instanceof SelfReferenceInDefinition) {
 			return SelfReferenceInDefinition.SHORT_HAND;
 		}
-		else if (NameRedundancyCheck.class.equals(check)) {
+		else if (check instanceof NameRedundancyCheck) {
 			return NameRedundancyCheck.SHORT_HAND;
 		}
-		else if (DanglingReferenceCheck.class.equals(check)) {
+		else if (check instanceof DanglingReferenceCheck) {
 			return DanglingReferenceCheck.SHORT_HAND;
 		}
-		else if (CycleCheck.class.equals(check)) {
+		else if (check instanceof CycleCheck) {
 			return CycleCheck.SHORT_HAND;
 		}
 		return null;
@@ -137,12 +138,12 @@ public class OortConfiguration {
 	 * 
 	 * @return list of checks
 	 */
-	public static List<Class<? extends OntologyCheck>> getAvailableChecks() {
-		List<Class<? extends OntologyCheck>> checks = new ArrayList<Class<? extends OntologyCheck>>();
-		checks.add(SelfReferenceInDefinition.class);
-		checks.add(NameRedundancyCheck.class);
-		checks.add(DanglingReferenceCheck.class);
-		checks.add(CycleCheck.class);
+	public static List<OntologyCheck> getAvailableChecks() {
+		List<OntologyCheck> checks = new ArrayList<OntologyCheck>();
+		checks.add(new SelfReferenceInDefinition());
+		checks.add(new NameRedundancyCheck());
+		checks.add(new DanglingReferenceCheck());
+		checks.add(new CycleCheck());
 		return checks;
 	}
 	
@@ -715,15 +716,14 @@ public class OortConfiguration {
 	/**
 	 * @return the ontologyChecks
 	 */
-	public List<Class<? extends OntologyCheck>> getOntologyChecks() {
+	public List<OntologyCheck> getOntologyChecks() {
 		return ontologyChecks;
 	}
 
 	/**
 	 * @param ontologyChecks the ontologyChecks to set
 	 */
-	public void setOntologyChecks(
-			List<Class<? extends OntologyCheck>> ontologyChecks) {
+	public void setOntologyChecks(List<OntologyCheck> ontologyChecks) {
 		this.ontologyChecks = ontologyChecks;
 	}
 
@@ -842,15 +842,15 @@ public class OortConfiguration {
 		return properties;
 	}
 	
-	private static void putValue(Properties properties, String key, List<Class<? extends OntologyCheck>> ontologyChecks) {
+	private static void putValue(Properties properties, String key, List<OntologyCheck> ontologyChecks) {
 		List<String> shortNames = new ArrayList<String>(ontologyChecks.size());
-		for (Class<? extends OntologyCheck> cls : ontologyChecks) {
-			String shortName = getOntologyCheckShortName(cls);
+		for (OntologyCheck check : ontologyChecks) {
+			String shortName = getOntologyCheckShortName(check);
 			if (shortName != null) {
 				shortNames.add(shortName);
 			}
 			else {
-				LOGGER.warn("Could not find short name for ontology check: "+cls.getCanonicalName());
+				LOGGER.warn("Could not find short name for ontology check: "+check.getID());
 			}
 		}
 		putValue(properties, key, shortNames);
@@ -949,13 +949,12 @@ public class OortConfiguration {
 		config.ontologyChecks = getClassValues(properties, "ontologyChecks", getDefaultOntologyChecks());
 	}
 	
-	private static List<Class<? extends OntologyCheck>> getClassValues(Properties properties, String key,
-			List<Class<? extends OntologyCheck>> defaultOntologyChecks) {
+	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {
 		List<String> shortNames = getValue(properties, key, (List<String>) null);
 		if (shortNames != null) {
-			List<Class<? extends OntologyCheck>> checks = new ArrayList<Class<? extends OntologyCheck>>(shortNames.size());
+			List<OntologyCheck> checks = new ArrayList<OntologyCheck>(shortNames.size());
 			for (String shortName : shortNames) {
-				Class<? extends OntologyCheck> check = getOntologyCheck(shortName);
+				OntologyCheck check = getOntologyCheck(shortName);
 				if (check != null) {
 					checks.add(check);
 				}

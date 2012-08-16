@@ -73,7 +73,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JRadioButton jcelRadioButton;
 	final JRadioButton elkRadioButton;
 	
-	final Map<Class<? extends OntologyCheck>, JCheckBox> ontologyCheckBoxes;
+	final Map<OntologyCheck, JCheckBox> ontologyCheckBoxes;
 
 	private final Frame frame;
 	
@@ -123,9 +123,9 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		elkRadioButton = new JRadioButton();
 		
 		// ontolgy checks
-		ontologyCheckBoxes = new HashMap<Class<? extends OntologyCheck>, JCheckBox>();
-		for (Class<? extends OntologyCheck> check : OortConfiguration.getAvailableChecks()) {
-			ontologyCheckBoxes.put(check, new JCheckBox(OortConfiguration.getOntologyCheckShortName(check)));
+		ontologyCheckBoxes = new HashMap<OntologyCheck, JCheckBox>();
+		for (OntologyCheck check : OortConfiguration.getAvailableChecks()) {
+			ontologyCheckBoxes.put(check, new JCheckBox(check.getLabel()));
 		}
 		
 		// Layout
@@ -227,16 +227,16 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(panel, pos.nextRow(), 10);
 		
 		panel.add(new JLabel("Ontology Checks"), pos.nextRow().indentLeft(DEFAULT_INDENT).width(3));
-		List<Class<? extends OntologyCheck>> classes = new ArrayList<Class<? extends OntologyCheck>>(ontologyCheckBoxes.keySet());
-		Collections.sort(classes, new Comparator<Class<? extends OntologyCheck>>() {
+		List<OntologyCheck> checks = new ArrayList<OntologyCheck>(ontologyCheckBoxes.keySet());
+		Collections.sort(checks, new Comparator<OntologyCheck>() {
 
 			@Override
-			public int compare(Class<? extends OntologyCheck> o1, Class<? extends OntologyCheck> o2) {
-				return o1.getCanonicalName().compareTo(o2.getCanonicalName());
+			public int compare(OntologyCheck o1, OntologyCheck o2) {
+				return o1.getLabel().compareTo(o2.getLabel());
 			}
 		});
-		for(Class<? extends OntologyCheck> cls : classes) {
-			JCheckBox box = ontologyCheckBoxes.get(cls);
+		for(OntologyCheck check : checks) {
+			JCheckBox box = ontologyCheckBoxes.get(check);
 			addRowGap(panel, pos.nextRow(), 5);
 			panel.add(box, pos.nextRow().nextCol().width(2).expandW());
 		}
@@ -399,11 +399,11 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 			hermitRadioButton.setSelected(true);
 		}
 		
-		for(Entry<Class<? extends OntologyCheck>, JCheckBox> entry : ontologyCheckBoxes.entrySet()) {
+		for(Entry<OntologyCheck, JCheckBox> entry : ontologyCheckBoxes.entrySet()) {
 			entry.getValue().setSelected(false);
 		}
-		List<Class<? extends OntologyCheck>> checks = configuration.getOntologyChecks();
-		for (Class<? extends OntologyCheck> check : checks) {
+		List<OntologyCheck> checks = configuration.getOntologyChecks();
+		for (OntologyCheck check : checks) {
 			JCheckBox checkBox = ontologyCheckBoxes.get(check);
 			if (checkBox != null) {
 				checkBox.setSelected(true);

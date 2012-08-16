@@ -30,7 +30,7 @@ public class NameRedundancyCheck extends AbstractCheck {
 	private boolean ignoreObsolete = true;
 	
 	public NameRedundancyCheck() {
-		super("NAME_REDUNDANCY_CHECK", "Name Redundancy Check", false);
+		super("NAME_REDUNDANCY_CHECK", "Name Redundancy Check", false, null);
 	}
 	
 	/**

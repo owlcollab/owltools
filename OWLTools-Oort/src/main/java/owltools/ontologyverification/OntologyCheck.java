@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.ontologyverification.OntologyCheckRunner.TimePoint;
 
 /**
  * Methods for executing and describing an ontology check.
@@ -41,4 +42,20 @@ public interface OntologyCheck {
 	 * @param fatal
 	 */
 	public void setFatal(boolean fatal);
+	
+	/**
+	 * Get the {@link TimePoint} for this check.<br>
+	 * If the check is to be run on multiple time points, create multiple
+	 * instance.
+	 * 
+	 * @return {@link TimePoint} or null
+	 */
+	public TimePoint getTimePoint();
+	
+	/**
+	 * Set the {@link TimePoint} for this ontology check instance.
+	 * 
+	 * @param timePoint
+	 */
+	public void setTimePoint(TimePoint timePoint);
 }
