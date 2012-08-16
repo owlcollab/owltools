@@ -29,5 +29,18 @@ public class NameRedundancyCheckTest extends OWLToolsTestBasics {
 		Collection<CheckWarning> warnings = check.check(graph, graph.getAllOWLObjects());
 		assertEquals(2, warnings.size());
 	}
+	
+	@Test
+	public void testNameRedundancyWithObsoletes() throws Exception {
+		ParserWrapper parser = new ParserWrapper();
+		IRI iri = IRI.create(getResource("verification/name_redundancy.obo").getAbsoluteFile()) ;
+		OWLGraphWrapper graph = parser.parseToOWLGraph(iri.toString());
+		
+		NameRedundancyCheck check = new NameRedundancyCheck();
+		check.setIgnoreObsolete(false);
+		
+		Collection<CheckWarning> warnings = check.check(graph, graph.getAllOWLObjects());
+		assertEquals(3, warnings.size());
+	}
 
 }

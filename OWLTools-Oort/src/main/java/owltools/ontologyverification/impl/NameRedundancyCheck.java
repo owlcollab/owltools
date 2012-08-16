@@ -20,18 +20,33 @@ import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.ontologyverification.CheckWarning;
 
 /**
- * Check for redundant names in labels and synonyms (scope EXACT).
- * 
- * TODO create test cases
+ * Check for redundant names in labels and synonyms (scope EXACT).<br>
+ * By default all obsoleted objects are ignored.
  */
 public class NameRedundancyCheck extends AbstractCheck {
 
 	public static final String SHORT_HAND = "name-redundancy";
 	
+	private boolean ignoreObsolete = true;
+	
 	public NameRedundancyCheck() {
 		super("NAME_REDUNDANCY_CHECK", "Name Redundancy Check", false);
 	}
 	
+	/**
+	 * @return the ignoreObsolete
+	 */
+	public boolean isIgnoreObsolete() {
+		return ignoreObsolete;
+	}
+
+	/**
+	 * @param ignoreObsolete the ignoreObsolete to set
+	 */
+	public void setIgnoreObsolete(boolean ignoreObsolete) {
+		this.ignoreObsolete = ignoreObsolete;
+	}
+
 	@Override
 	public Collection<CheckWarning> check(OWLGraphWrapper graph, Collection<OWLObject> allOwlObjects) {
 
@@ -48,9 +63,16 @@ public class NameRedundancyCheck extends AbstractCheck {
             	if (owlObject instanceof OWLEntity == false) {
 					continue;
 				}
+            	if (ignoreObsolete && graph.isObsolete(owlObject)) {
+            		continue;
+            	}
+            	
             	OWLEntity owlEntity = (OWLEntity) owlObject;
             	final IRI iri = owlEntity.getIRI();
 				String label = graph.getLabel(owlObject);
+				
+				
+				
 				addValue(label, owlEntity, labels);
 				
 				List<ISynonym> oboSynonyms = graph.getOBOSynonyms(owlObject);

@@ -26,3 +26,8 @@ synonym: "left" EXACT []
 id: FOO:0006
 name: left-2
 synonym: "left-2" EXACT []
+
+[Term]
+id: FOO:0006
+name: left
+is_obsolete: true
