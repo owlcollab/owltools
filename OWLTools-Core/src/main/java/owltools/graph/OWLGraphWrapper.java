@@ -1471,12 +1471,11 @@ public class OWLGraphWrapper {
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
 	 * 
-	 * @param s
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
 	 */
-	public OWLShuntGraph addAncestorsToShuntGraph(OWLObject x, OWLShuntGraph g) {
+	public OWLShuntGraph addStepwiseAncestorsToShuntGraph(OWLObject x, OWLShuntGraph g) {
 
 		// Add this node, our seed.
 		String topicID = getIdentifier(x);
@@ -1508,10 +1507,58 @@ public class OWLGraphWrapper {
 
 					// Recur on node if it already wasn't there.
 					if( wuzAdded ){
-						addAncestorsToShuntGraph(t, g);
+						addStepwiseAncestorsToShuntGraph(t, g);
 					}
 				
 					//Add edge 
+					OWLShuntEdge se = new OWLShuntEdge(topicID, objectID, elabel);
+					g.addEdge(se);
+				}
+			}
+		}
+		
+		return g;
+	}
+
+	/**
+	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
+	 * This is reflexive.
+	 * 
+	 * @param x
+	 * @param g
+	 * @return the modified OWLShuntGraph
+	 */
+	public OWLShuntGraph addTransitiveAncestorsToShuntGraph(OWLObject x, OWLShuntGraph g) {
+
+		// Add this node, our seed.
+		String topicID = getIdentifier(x);
+		String topicLabel = getLabel(x);
+		OWLShuntNode tn = new OWLShuntNode(topicID, topicLabel);
+		g.addNode(tn);
+
+		// Next, get all of the named ancestors and add them to our shunt graph.
+		// We need some traversal code going up!
+		for (OWLGraphEdge e : getOutgoingEdgesClosure(x)) {
+			OWLObject t = e.getTarget();
+			if (t instanceof OWLNamedObject){				
+
+				// Figure out object.
+				String objectID = getIdentifier(t);
+				String objectLabel = getLabel(t);
+
+				// Edge.
+				String elabel = getEdgeLabel(e);
+				
+				// Only add when subject, object, and relation are properly defined.
+				if(	elabel != null &&
+					topicID != null && ! topicID.equals("") &&
+					objectID != null &&	! objectID.equals("") ){
+				
+					// Add the node.
+					OWLShuntNode on = new OWLShuntNode(objectID, objectLabel);
+					g.addNode(on);
+
+					// And the edges.
 					OWLShuntEdge se = new OWLShuntEdge(topicID, objectID, elabel);
 					g.addEdge(se);
 				}
@@ -1603,7 +1650,7 @@ public class OWLGraphWrapper {
 		graphSegment.addNode(tn);
 
 		// Next, get all of the named ancestors and add them to our shunt graph.
-		graphSegment = addAncestorsToShuntGraph(x, graphSegment);
+		graphSegment = addStepwiseAncestorsToShuntGraph(x, graphSegment);
 
 		// Next, get all of the immediate descendents.
 		graphSegment = addDirectDescendentsToShuntGraph(x, graphSegment);
@@ -1613,15 +1660,56 @@ public class OWLGraphWrapper {
 	}
 
 	/**
+	 * Gets all ancestors that are OWLNamedObjects.
+	 * i.e. excludes anonymous class expressions
+	 * 
+	 * This graph information is concerned almost exclusively with the arguments transitive relations with all of its ancestors.
+	 * 
+	 * @param x
+	 * @return set of named ancestors and direct descendents
+	 */
+	public OWLShuntGraph getLineageShuntGraph(OWLObject x) {
+
+		// Collection depot.
+		OWLShuntGraph graphSegment = new OWLShuntGraph();
+
+		// Add this node, our seed.
+		String topicID = getIdentifier(x);
+		String topicLabel = getLabel(x);
+		OWLShuntNode tn = new OWLShuntNode(topicID, topicLabel);
+		graphSegment.addNode(tn);
+
+		// Next, get all of the named ancestors and add them to our shunt graph.
+		graphSegment = addTransitiveAncestorsToShuntGraph(x, graphSegment);
+
+		//		
+		return graphSegment;
+	}
+	
+	/**
 	 * Return a JSONized version of the output of getSegmentShuntGraph
 	 *
 	 * @param x
-	 * @return String representing part of the OWL graph
+	 * @return String representing part of the stepwise OWL graph
 	 */
 	public String getSegmentShuntGraphJSON(OWLObject x) {
 
 		// Collection depot.
 		OWLShuntGraph graphSegment = getSegmentShuntGraph(x);
+
+		return graphSegment.toJSON();
+	}
+
+	/**
+	 * Return a JSONized version of the output of getLineageShuntGraph
+	 *
+	 * @param x
+	 * @return String representing part of the transitive OWL graph
+	 */
+	public String getLineageShuntGraphJSON(OWLObject x) {
+
+		// Collection depot.
+		OWLShuntGraph graphSegment = getLineageShuntGraph(x);
 
 		return graphSegment.toJSON();
 	}
