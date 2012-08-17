@@ -65,7 +65,7 @@ public class TableToAxiomConverter {
 	public class Config {
 		public boolean isOboIdentifiers = true;
 		public boolean isSwitchSubjectObject = false;
-		public AxiomType axiomType;
+		public AxiomType<?> axiomType;
 		public OWLClass individualsType = null;
 		public IRI property = null;
 		public String defaultCol1 = null;
@@ -216,7 +216,7 @@ public class TableToAxiomConverter {
 	}
 
 	private OWLAnnotationValue literal(String obj) {
-		return graph.getDataFactory().getOWLTypedLiteral(obj);
+		return graph.getDataFactory().getOWLLiteral(obj);
 	}
 	
 	private IRI resolveIRI(String id) {
