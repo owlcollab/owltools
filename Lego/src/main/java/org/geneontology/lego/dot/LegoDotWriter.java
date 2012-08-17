@@ -1,9 +1,13 @@
 package org.geneontology.lego.dot;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +15,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -18,10 +23,12 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.OWLPrettyPrinter;
 
 /**
  * Rudimentary implementation of a DOT writer for the LEGO annotations in OWL.
@@ -101,16 +108,18 @@ public abstract class LegoDotWriter {
 			}
 
 			// individual nodes
-			Set<IRI> renderedEntities = new HashSet<IRI>();
 			Map<String, String> legend = new HashMap<String, String>();
 			for (OWLNamedIndividual individual : individuals) {
-				renderIndividualsNode(individual, renderedEntities, legend);
+				renderIndividualsNode(individual, legend);
 			}
 			if (!legend.isEmpty() && renderKey) {
 				appendLine("");
 				appendLine("// Key / Legend",1);
 				appendLine("subgraph {", 1);
-				for(String relName : legend.keySet()) {
+				List<String> legendKeys = new ArrayList<String>(legend.keySet());
+				Collections.sort(legendKeys);
+				CharSequence prev = null;
+				for(String relName : legendKeys) {
 					final CharSequence a = quote("legend_"+relName+"_A");
 					final CharSequence b = quote("legend_"+relName+"_B");
 					
@@ -118,6 +127,12 @@ public abstract class LegoDotWriter {
 					appendLine(b+"[shape=plaintext,label="+quote(relName)+"];", 2);
 					appendLine(a+" -> "+b+" "+legend.get(relName)+";", 2);
 					appendLine("");
+					if (prev != null) {
+						appendLine("// create invisibe edge for top down order", 2);
+						appendLine(prev+" -> "+a+" [style=invis];", 2);
+						appendLine("");
+					}
+					prev = b;
 				}
 				appendLine("}", 1);
 			}
@@ -130,8 +145,9 @@ public abstract class LegoDotWriter {
 		
 	}
 	
-	private void renderIndividualsNode(OWLNamedIndividual individual, Set<IRI> entities, Map<String, String> legend) throws IOException, UnExpectedStructureException {
+	private void renderIndividualsNode(OWLNamedIndividual individual, Map<String, String> legend) throws IOException, UnExpectedStructureException {
 		
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
 		OWLOntology sourceOntology = graph.getSourceOntology();
 		
 		Set<OWLClassAssertionAxiom> axioms = sourceOntology.getClassAssertionAxioms(individual);
@@ -142,9 +158,10 @@ public abstract class LegoDotWriter {
 		else if (LegoIndividualType.MolecularAnnotation == type) {
 			// annoton
 			
-			OWLClass molecularFunction = getType(individual);
+			OWLClass typeClass = getType(individual);
+			OWLClass molecularFunction = typeClass;
 			OWLClass activeEntity = null;
-			OWLClass cellularLocation = null;
+			List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
 			
 			for (OWLClassAssertionAxiom axiom : axioms) {
 				OWLClassExpression expression = axiom.getClassExpression();
@@ -158,12 +175,23 @@ public abstract class LegoDotWriter {
 					OWLClassExpression clsExp = object.getFiller();
 					if (enabled_by.contains(property) && !clsExp.isAnonymous()) {
 						// active entity
+						if (activeEntity != null) {
+							throw new UnExpectedStructureException("The individual: "+owlpp.render(individual)+" has multiple 'enabled_by' declarations.");
+						}
 						activeEntity = clsExp.asOWLClass();
 					}
-					else if (occurs_in.contains(property) && !clsExp.isAnonymous()) {
+					else if (occurs_in.contains(property)) {
 						// cellular location
-						cellularLocation = clsExp.asOWLClass();
+						cellularLocations.add(clsExp);
 					}
+				}
+			}
+			
+			if (cellularLocations.isEmpty()) {
+				// check super classes for cellular location information
+				OWLClassExpression cellularLocation = searchCellularLocation(typeClass);
+				if (cellularLocation != null) {
+					cellularLocations.add(cellularLocation);
 				}
 			}
 			
@@ -180,9 +208,21 @@ public abstract class LegoDotWriter {
 			line.append(" [shape=plaintext,label=");
 			line.append('<'); // start HTML markup
 			line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"><TR>");
-			line.append("<TD BGCOLOR=\"lightblue\">").append(label).append("</TD>");
-			if (cellularLocation != null) {
-				String location = graph.getLabelOrDisplayId(cellularLocation);
+			
+			if (activeEntity != null) {
+				// render activeEntity as box on top of the activity 
+				line.append("<TD>").append(graph.getLabelOrDisplayId(activeEntity)).append("</TD></TR><TR>");
+			}
+			
+			line.append("<TD BGCOLOR=\"lightblue\" COLSPAN=\"2\">").append(label).append("</TD>");
+			for(OWLClassExpression cellularLocation : cellularLocations) {
+				String location;
+				if (!cellularLocation.isAnonymous()) {
+					location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
+				}
+				else {
+					location = owlpp.render(cellularLocation);
+				}
 				line.append("<TD BGCOLOR=\"yellow\">").append(location).append("</TD>");
 			}
 			line.append("</TR></TABLE>");
@@ -192,32 +232,6 @@ public abstract class LegoDotWriter {
 			appendLine("");
 			appendLine("// annoton", 1);
 			appendLine(line, 1);
-			
-			
-			if (activeEntity != null) {
-				IRI iri = activeEntity.getIRI();
-				// render activeEntity
-				if (entities.add(iri)) {
-					appendLine("");
-					appendLine("// active entitity", 1);
-					appendLine(nodeId(iri)+" [shape=box,label="+quote(graph.getLabelOrDisplayId(activeEntity))+"];", 1);
-				}
-				
-				
-				// render activeEntityEdge
-				appendLine("");
-				appendLine("// edge: annoton -> active entity", 1);
-				appendLine(nodeId(individual)+" -> "+nodeId(iri)+" [style=dashed,arrowhead=none];", 1);
-				
-				// make entity and activity the same rank for layout
-				// appendLine("{ rank = same "+nodeId(individual)+" "+nodeId(iri)+"}", 1);
-				// keep this as reference, did not help to make nicer renderings
-				
-				// add key if required
-				if (!legend.containsKey("Entity")) {
-					legend.put("has activtity", "[style=dashed,arrowhead=none]");
-				}
-			}
 			
 		}
 		else if (LegoIndividualType.MolecularContext == type) {
@@ -298,10 +312,118 @@ public abstract class LegoDotWriter {
 					legend.put("directly_inhibits", "[arrowhead=tee]");
 				}
 			}
+			else if ("part_of".equals(linkLabel) || "part of".equals(linkLabel)) {
+				appendLine("");
+				appendLine("// edge", 1);
+				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [color=\"#C0C0C0\"];", 1);
+				if (!legend.containsKey("part_of")) {
+					legend.put("part_of", "[color=\"#C0C0C0\"]");
+				}
+			}
+			else if ("directly_activates".equals(linkLabel)) {
+				appendLine("");
+				appendLine("// edge", 1);
+				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [arrowhead=open];", 1);
+				if (!legend.containsKey("directly_activates")) {
+					legend.put("directly_activates", "[arrowhead=open]");
+				}
+			}
 			else {
 				appendLine("");
 				appendLine("// edge", 1);
 				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [label="+quote(linkLabel)+"];", 1);
+			}
+		}
+	}
+	
+	private OWLClassExpression searchCellularLocation(OWLClass cls) {
+		Queue<OWLClass> queue = new Queue<OWLClass>();
+		queue.add(cls);
+		return searchCellularLocation(queue);
+	}
+	
+	private OWLClassExpression searchCellularLocation(Queue<OWLClass> queue) {
+		if (queue.isEmpty()) {
+			return null;
+		}
+		List<OWLClass> nextLevel = new ArrayList<OWLClass>();
+		while(!queue.isEmpty()) {
+			OWLClass cls = queue.pop();
+			for (OWLOntology ontology : graph.getAllOntologies()) {
+				
+				// equivalent classes
+				Set<OWLEquivalentClassesAxiom> eqAxioms = ontology.getEquivalentClassesAxioms(cls);
+				for (OWLEquivalentClassesAxiom axiom : eqAxioms) {
+					Set<OWLClassExpression> expressions = axiom.getClassExpressionsMinus(cls);
+					for (OWLClassExpression ce : expressions) {
+						if (!ce.isAnonymous()) {
+							nextLevel.add(ce.asOWLClass());
+						}
+						else if (ce instanceof OWLObjectSomeValuesFrom) {
+							OWLObjectSomeValuesFrom expr = (OWLObjectSomeValuesFrom) ce;
+							OWLObjectPropertyExpression propertyExpression = expr.getProperty();
+							OWLClassExpression filler = expr.getFiller();
+							if (occurs_in.contains(propertyExpression)) {
+								return filler;
+							}
+							if (!filler.isAnonymous()) {
+								nextLevel.add(filler.asOWLClass());
+							}
+						}
+					}
+				}
+				
+				// super classes
+				Set<OWLSubClassOfAxiom> subAxioms = ontology.getSubClassAxiomsForSubClass(cls);
+				for (OWLSubClassOfAxiom axiom : subAxioms) {
+					OWLClassExpression ce = axiom.getSuperClass();
+					if (!ce.isAnonymous()) {
+						nextLevel.add(ce.asOWLClass());
+					}
+					else if (ce instanceof OWLObjectSomeValuesFrom) {
+						OWLObjectSomeValuesFrom expr = (OWLObjectSomeValuesFrom) ce;
+						OWLObjectPropertyExpression propertyExpression = expr.getProperty();
+						OWLClassExpression filler = expr.getFiller();
+						if (occurs_in.contains(propertyExpression)) {
+							return filler;
+						}
+						if (!filler.isAnonymous()) {
+							nextLevel.add(filler.asOWLClass());
+						}
+					}
+				}
+			}
+		}
+		queue.addAll(nextLevel);
+		return searchCellularLocation(queue);
+	}
+	
+	private static class Queue<T> {
+		
+		private final Set<T> visited = new HashSet<T>();
+		private final LinkedList<T> list = new LinkedList<T>();
+		
+		public synchronized T pop() {
+			return list.removeFirst();
+		}
+		
+		public synchronized boolean isEmpty() {
+			return list.isEmpty();
+		}
+		
+		public synchronized void addAll(Collection<T> c) {
+			for (T t : c) {
+				if (!visited.contains(t)) {
+					list.add(t);
+					visited.add(t);
+				}
+			}
+		}
+		
+		public synchronized void add(T t) {
+			if (!visited.contains(t)) {
+				list.add(t);
+				visited.add(t);
 			}
 		}
 	}

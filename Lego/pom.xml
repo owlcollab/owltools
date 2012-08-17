@@ -105,6 +105,12 @@
 			<groupId>org.bbop</groupId>
 			<artifactId>OWLTools-Annotation</artifactId>
 			<version>0.2.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.coode</groupId>
+					<artifactId>oppl2</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 	<distributionManagement>
