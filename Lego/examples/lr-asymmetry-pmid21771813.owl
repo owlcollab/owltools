@@ -51,9 +51,6 @@ ObjectProperty: occurs_in
 ObjectProperty: BFO_0000050
 
     
-ObjectProperty: <http://purl.obolibrary.org/obo/wbbt#part_of>
-
-    
 ObjectProperty: directly_inhibits
 
     
@@ -138,53 +135,31 @@ Class: GO_0005921
 Class: UniProtKB_G5EF54
 
     
-Class: WBbt_0005832
+Class: GO_0015267
 
     
-Class: GO_0015267
+Class: WBbt_0005832
 
     
 Class: WBbt_0005833
 
     
-Individual: RO_0002327
+Individual: LEGO_PMID_21771813_0000020
 
     Annotations: 
-        rdfs:label "l/r asymmetry"@en
+        rdfs:label "tir-1 activity"@en,
+        rdfs:comment "Here, we show that microtubule-based localization of the TIR-1 signaling complex to the synapses regulates AWC asymmetry"
     
     Types: 
-        GO_0035545
+        GO_0019901,
+        enabled_by some UniProtKB_Q86DA5
+    
+    Facts:  
+     BFO_0000050  LEGO_PMID_21771813_0000017,
+     directly_activates  LEGO_PMID_21771813_0000019
     
     
-Individual: RO_0002326
-
-    Annotations: 
-        rdfs:label "srsx-3 -> AWC-OFF"@en,
-        rdfs:comment "Troemel et al. 1999; Bauer Huang et al. 2007"
-    
-    Types: 
-        <http://purl.obolibrary.org/obo/wbbt#part_of> some 
-            (GO_0001708
-             and (occurs_in some WBbt_0005833)),
-        enabled_by some UniProtKB_Q965R3,
-        GO_0003674
-    
-    
-Individual: RO_0002325
-
-    Annotations: 
-        rdfs:label "str-2 -> AWC-ON"@en,
-        rdfs:comment "Troemel et al. 1999; Bauer Huang et al. 2007"
-    
-    Types: 
-        <http://purl.obolibrary.org/obo/wbbt#part_of> some 
-            (GO_0001708
-             and (occurs_in some WBbt_0005832)),
-        enabled_by some UniProtKB_G5EF54,
-        GO_0003674
-    
-    
-Individual: RO_0002324
+Individual: LEGO_PMID_21771813_0000024
 
     Annotations: 
         rdfs:label "claudin activity"@en,
@@ -196,10 +171,10 @@ Individual: RO_0002324
         GO_0015267
     
     Facts:  
-     directly_inhibits  RO_0002322
+     directly_inhibits  LEGO_PMID_21771813_0000022
     
     
-Individual: RO_0002323
+Individual: LEGO_PMID_21771813_0000023
 
     Annotations: 
         rdfs:label "innexin activity"@en,
@@ -210,11 +185,11 @@ Individual: RO_0002323
         enabled_by some UniProtKB_O61715
     
     Facts:  
-     directly_inhibits  RO_0002322,
-     BFO_0000050  RO_0002317
+     directly_inhibits  LEGO_PMID_21771813_0000022,
+     BFO_0000050  LEGO_PMID_21771813_0000017
     
     
-Individual: RO_0002322
+Individual: LEGO_PMID_21771813_0000022
 
     Annotations: 
         rdfs:label "unc-2-calcium channel activity"@en
@@ -224,27 +199,11 @@ Individual: RO_0002322
         enabled_by some UniProtKB_G4SFC3
     
     Facts:  
-     directly_activates  RO_0002321,
-     BFO_0000050  RO_0002317
+     directly_activates  LEGO_PMID_21771813_0000021,
+     BFO_0000050  LEGO_PMID_21771813_0000017
     
     
-Individual: RO_0002316
-
-    Annotations: 
-        rdfs:label "unc-76 activity"@en
-    
-    Types: 
-        GO_0004871,
-        enabled_by some UniProtKB_E0AHC6,
-        BFO_0000066 some GO_0030424
-    
-    Facts:  
-     directly_activates  RO_0002324,
-     directly_activates  RO_0002323,
-     BFO_0000050  RO_0002317
-    
-    
-Individual: RO_0002321
+Individual: LEGO_PMID_21771813_0000021
 
     Annotations: 
         rdfs:label "CaMKII/UNC-43 activity"@en
@@ -254,83 +213,11 @@ Individual: RO_0002321
         enabled_by some UniProtKB_O62305
     
     Facts:  
-     directly_activates  RO_0002320,
-     BFO_0000050  RO_0002317
+     directly_activates  LEGO_PMID_21771813_0000020,
+     BFO_0000050  LEGO_PMID_21771813_0000017
     
     
-Individual: RO_0002320
-
-    Annotations: 
-        rdfs:label "tir-1 activity"@en,
-        rdfs:comment "Here, we show that microtubule-based localization of the TIR-1 signaling complex to the synapses regulates AWC asymmetry"
-    
-    Types: 
-        GO_0019901,
-        enabled_by some UniProtKB_Q86DA5
-    
-    Facts:  
-     directly_activates  RO_0002319,
-     BFO_0000050  RO_0002317
-    
-    
-Individual: RO_0002318
-
-    Annotations: 
-        rdfs:label "sek-1-MAPKK-activity"@en
-    
-    Types: 
-        enabled_by some UniProtKB_G5EDF7,
-        GO_0004708
-    
-    Facts:  
-     directly_inhibits  RO_0002325,
-     directly_activates  RO_0002326,
-     BFO_0000050  RO_0002317
-    
-    
-Individual: RO_0002317
-
-    Annotations: 
-        rdfs:label "establishment of cell fate"@en
-    
-    Types: 
-        occurs_in some WBbt_0005672,
-        GO_0001708
-    
-    Facts:  
-     <http://purl.obolibrary.org/obo/wbbt#part_of>  RO_0002327
-    
-    
-Individual: RO_0002319
-
-    Annotations: 
-        rdfs:label "nsy-1-MAPKKK activity"@en
-    
-    Types: 
-        GO_0004709,
-        enabled_by some UniProtKB_Q21029
-    
-    Facts:  
-     BFO_0000050  RO_0002317,
-     directly_activates  RO_0002318
-    
-    
-Individual: RO_0002329
-
-    Annotations: 
-        rdfs:comment "check: no 'maintenance of cell identity' in GO. Existing GO annotation is to 'neuron fate specification'.
-
-GO:0001708 ! cell fate specification [DEF: \"The process involved in the specification of cell identity. Once specification has taken place, a cell will be committed to differentiate down a specific pathway if left in its normal environment.\"]",
-        rdfs:label "maintenance of cell fate"@en
-    
-    Types: 
-        GO_0045596
-    
-    Facts:  
-     <http://purl.obolibrary.org/obo/wbbt#part_of>  RO_0002327
-    
-    
-Individual: RO_0002328
+Individual: LEGO_PMID_21771813_0000028
 
     Annotations: 
         rdfs:comment "check: no 'maintenance of cell identity' in GO. Existing GO annotation is to 'neuron fate specification'.
@@ -344,8 +231,120 @@ GO:0001708 ! cell fate specification [DEF: \"The process involved in the specifi
         GO_0003700
     
     Facts:  
-     directly_inhibits  RO_0002326,
-     directly_inhibits  RO_0002325,
-     <http://purl.obolibrary.org/obo/wbbt#part_of>  RO_0002329
+     directly_inhibits  LEGO_PMID_21771813_0000026,
+     BFO_0000050  LEGO_PMID_21771813_0000029,
+     directly_inhibits  LEGO_PMID_21771813_0000025
+    
+    
+Individual: LEGO_PMID_21771813_0000027
+
+    Annotations: 
+        rdfs:label "l/r asymmetry"@en
+    
+    Types: 
+        GO_0035545
+    
+    
+Individual: LEGO_PMID_21771813_0000017
+
+    Annotations: 
+        rdfs:label "establishment of cell fate"@en
+    
+    Types: 
+        occurs_in some WBbt_0005672,
+        GO_0001708
+    
+    Facts:  
+     BFO_0000050  LEGO_PMID_21771813_0000027
+    
+    
+Individual: LEGO_PMID_21771813_0000026
+
+    Annotations: 
+        rdfs:label "srsx-3 -> AWC-OFF"@en,
+        rdfs:comment "Troemel et al. 1999; Bauer Huang et al. 2007"
+    
+    Types: 
+        occurs_in some WBbt_0005833,
+        enabled_by some UniProtKB_Q965R3,
+        GO_0003674,
+        BFO_0000050 some 
+            (GO_0001708
+             and (occurs_in some WBbt_0005833))
+    
+    
+Individual: LEGO_PMID_21771813_0000016
+
+    Annotations: 
+        rdfs:label "unc-76 activity"@en
+    
+    Types: 
+        GO_0004871,
+        enabled_by some UniProtKB_E0AHC6,
+        BFO_0000066 some GO_0030424
+    
+    Facts:  
+     directly_activates  LEGO_PMID_21771813_0000024,
+     BFO_0000050  LEGO_PMID_21771813_0000017,
+     directly_activates  LEGO_PMID_21771813_0000023
+    
+    
+Individual: LEGO_PMID_21771813_0000025
+
+    Annotations: 
+        rdfs:label "str-2 -> AWC-ON"@en,
+        rdfs:comment "Troemel et al. 1999; Bauer Huang et al. 2007"
+    
+    Types: 
+        occurs_in some WBbt_0005832,
+        enabled_by some UniProtKB_G5EF54,
+        BFO_0000050 some 
+            (GO_0001708
+             and (occurs_in some WBbt_0005832)),
+        GO_0003674
+    
+    
+Individual: LEGO_PMID_21771813_0000019
+
+    Annotations: 
+        rdfs:label "nsy-1-MAPKKK activity"@en
+    
+    Types: 
+        GO_0004709,
+        enabled_by some UniProtKB_Q21029
+    
+    Facts:  
+     directly_activates  LEGO_PMID_21771813_0000018,
+     BFO_0000050  LEGO_PMID_21771813_0000017
+    
+    
+Individual: LEGO_PMID_21771813_0000018
+
+    Annotations: 
+        rdfs:label "sek-1-MAPKK-activity"@en
+    
+    Types: 
+        enabled_by some UniProtKB_G5EDF7,
+        GO_0004708
+    
+    Facts:  
+     directly_activates  LEGO_PMID_21771813_0000026,
+     directly_inhibits  LEGO_PMID_21771813_0000025,
+     BFO_0000050  LEGO_PMID_21771813_0000017
+    
+    
+Individual: LEGO_PMID_21771813_0000029
+
+    Annotations: 
+        rdfs:comment "check: no 'maintenance of cell identity' in GO. Existing GO annotation is to 'neuron fate specification'.
+
+GO:0001708 ! cell fate specification [DEF: \"The process involved in the specification of cell identity. Once specification has taken place, a cell will be committed to differentiate down a specific pathway if left in its normal environment.\"]",
+        rdfs:label "maintenance of cell fate"@en
+    
+    Types: 
+        GO_0045596
+    
+    Facts:  
+     BFO_0000050  LEGO_PMID_21771813_0000027
     
     

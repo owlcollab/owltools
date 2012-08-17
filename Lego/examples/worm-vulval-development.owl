@@ -1,0 +1,105 @@
+Prefix: : <http://purl.obolibrary.org/obo/>
+Prefix: i: <http://purl.obolibrary.org/obo/test/inst_>
+Prefix: dc: <http://purl.org/dc/elements/1.1/>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+
+Ontology: <http://purl.obolibrary.org/obo/go/examples/change-me.owl>
+
+Import: <http://purl.obolibrary.org/obo/go.owl>
+Import: <http://purl.obolibrary.org/obo/go/extensions/lego-relations.owl>
+Import: <http://purl.obolibrary.org/obo/omeo/Caenorhabditis_elegans-uniprot-labels.owl>
+
+AnnotationProperty: rdfs:label
+
+    
+Datatype: rdf:PlainLiteral
+
+    
+ObjectProperty: BFO_0000066
+
+    
+ObjectProperty: directly_activates
+
+    
+ObjectProperty: enabled_by
+
+    
+ObjectProperty: BFO_0000050
+
+    
+Class: GO_0007173
+
+    
+Class: GO_0040025
+
+    
+Class: GO_0005525
+
+    
+Class: UniProtKB_P22981
+
+    
+Class: GO_0005737
+
+    
+Class: UniProtKB_P39745
+
+    
+Class: GO_0004707
+
+    
+Individual: RO_0002332
+
+    Annotations: 
+        rdfs:label "vulval development"@en
+    
+    Types: 
+        GO_0040025
+    
+    
+Individual: RO_0002331
+
+    Annotations: 
+        rdfs:label "LET-60/Ras activity"@en
+    
+    Types: 
+        GO_0005525,
+        enabled_by some UniProtKB_P22981
+    
+    Facts:  
+     BFO_0000050  RO_0002333,
+     directly_activates  RO_0002330
+    
+    
+Individual: RO_0002333
+
+    Annotations: 
+        rdfs:label "P6.p EGF signaling in vulval development"@en
+    
+    Types: 
+        GO_0007173
+    
+    Facts:  
+     BFO_0000050  RO_0002332
+    
+    
+Individual: RO_0002330
+
+    Annotations: 
+        rdfs:label "MPK-1/MAPK activity"@en
+    
+    Types: 
+        enabled_by some UniProtKB_P39745,
+        BFO_0000066 some GO_0005737,
+        GO_0004707
+    
+    Facts:  
+     BFO_0000050  RO_0002333
+    
+    
