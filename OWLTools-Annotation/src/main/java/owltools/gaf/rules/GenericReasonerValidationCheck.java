@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.HermiT.Reasoner.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.Node;
@@ -23,7 +23,7 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 	private static final Logger logger = Logger.getLogger(GenericReasonerValidationCheck.class);
 
 	private final OWLGraphWrapper graph;
-	private final OWLReasonerFactory factory = new ReasonerFactory();
+	private final OWLReasonerFactory factory = new ElkReasonerFactory();
 	private final OWLPrettyPrinter pp;
 
 	public GenericReasonerValidationCheck(OWLGraphWrapper graph) {

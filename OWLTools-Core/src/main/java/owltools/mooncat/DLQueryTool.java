@@ -16,7 +16,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -109,10 +108,6 @@ public class DLQueryTool {
 	static OWLReasoner createReasoner(OWLOntology ontology, OWLReasonerFactory reasonerFactory) {
 		// Create an instance of an OWL API reasoner
 		OWLReasoner reasoner = reasonerFactory.createReasoner(ontology);
-		
-		// Optionally let the reasoner compute the most relevant inferences in
-		// advance
-		reasoner.precomputeInferences(InferenceType.values());
 		return reasoner;
 	}
 

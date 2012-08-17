@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>OWLTools-Parent</artifactId>
 		<groupId>org.bbop</groupId>
-		<version>0.2.0-SNAPSHOT</version>
+		<version>0.2.1-SNAPSHOT</version>
 		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
 	</parent>
 
@@ -54,8 +54,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>owlapi</groupId>
-			<artifactId>owlapi</artifactId>
+			<groupId>net.sourceforge.owlapi</groupId>
+			<artifactId>owlapi-apibinding</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bbop</groupId>

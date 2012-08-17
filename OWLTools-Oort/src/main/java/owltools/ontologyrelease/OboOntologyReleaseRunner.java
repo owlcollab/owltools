@@ -636,7 +636,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					return false;
 				}
 			}
-			OWLReasonerFactory reasonerFactory = InferenceBuilder.getFactory(oortConfig.getReasonerName()).factory;
+			OWLReasonerFactory reasonerFactory = InferenceBuilder.getFactory(oortConfig.getReasonerName());
 			
 			QuerySubsetGenerator subsetGenerator = new QuerySubsetGenerator();
 			Set<OWLOntology> toMerge = mooncat.getGraph().getSupportOntologySet();

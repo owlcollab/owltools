@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,7 +18,6 @@ import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
-import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -31,7 +29,6 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -44,17 +41,12 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.PropertyViewOntologyBuilder;
-import owltools.sim.SimpleOwlSim.EnrichmentConfig;
-import owltools.sim.SimpleOwlSim.EnrichmentResult;
-import owltools.sim.SimpleOwlSim.OWLClassExpressionPair;
-import owltools.sim.SimpleOwlSim.ScoreAttributePair;
 
 /**
  * <h2>Inputs</h2>
@@ -514,7 +506,6 @@ public class SimpleOwlSim {
 				"\t"+sourceOntology.getLogicalAxiomCount());
 		superclassMap = null;
 		reasoner = reasonerFactory.createReasoner(sourceOntology);
-		reasoner.precomputeInferences(InferenceType.values()); // Elk only?
 		LOG.info("Pre-reasoned...");		
 	}
 
@@ -707,7 +698,7 @@ public class SimpleOwlSim {
 	 * 
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return OWLClassExpression
 	 */
 	public OWLClassExpression getLowestCommonSubsumer(OWLClassExpression a, OWLClassExpression b) {
 		if (a.equals(b)) {
@@ -867,7 +858,7 @@ public class SimpleOwlSim {
 	 * Pesquita et al
 	 * @param i
 	 * @param j
-	 * @return
+	 * @return pair
 	 */
 	public ScoreAttributesPair getSimilarityBestMatchAverageAsym(OWLNamedIndividual i, OWLNamedIndividual j) {
 
@@ -896,7 +887,7 @@ public class SimpleOwlSim {
 		return sap;
 	}
 
-	public class EnrichmentConfig {
+	public static class EnrichmentConfig {
 		public Double pValueCorrectedCutoff;
 		public Double attributeInformationContentCutoff;
 	}
@@ -911,7 +902,7 @@ public class SimpleOwlSim {
 		this.enrichmentConfig = enrichmentConfig;
 	}
 
-	public class EnrichmentResult implements Comparable {
+	public class EnrichmentResult implements Comparable<EnrichmentResult> {
 		public OWLClass enrichedClass;  // attribute being tested
 		public OWLClass sampleSetClass; // e.g. gene set
 		public Double pValue;
@@ -926,8 +917,8 @@ public class SimpleOwlSim {
 		}
 
 		@Override
-		public int compareTo(Object result2) {
-			return this.pValue.compareTo(((EnrichmentResult)result2).pValue);
+		public int compareTo(EnrichmentResult result2) {
+			return this.pValue.compareTo((result2).pValue);
 		}
 
 		public String toString() {
@@ -1046,7 +1037,7 @@ public class SimpleOwlSim {
 	 * 
 	 *  defaults to all classes in source ontology signature
 	 * 
-	 * @return
+	 * @return set of classes
 	 */
 	public Set<OWLClass> getAllAttributeClasses() {
 		if (fixedAttributeClasses == null)
@@ -1164,7 +1155,7 @@ public class SimpleOwlSim {
 	/**
 	 * inferred
 	 * @param c
-	 * @return
+	 * @return set of entities
 	 */
 	public Set<OWLEntity> getElementsForAttribute(OWLClass c) {
 		Set<OWLClass> subclasses = getReasoner().getSubClasses(c, false).getFlattened();
@@ -1245,7 +1236,7 @@ public class SimpleOwlSim {
 	 * note that the reasoner will need to be synchronized after new classes are made
 	 * 
 	 * @param x
-	 * @return
+	 * @return class
 	 */
 	public OWLClass makeClass(OWLObjectIntersectionOf x) {
 		StringBuffer id = new StringBuffer();

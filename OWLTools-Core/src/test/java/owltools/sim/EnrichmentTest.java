@@ -3,37 +3,18 @@ package owltools.sim;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.math.MathException;
-import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.reasoner.InferenceType;
-import org.semanticweb.owlapi.reasoner.Node;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
@@ -51,7 +32,6 @@ import owltools.sim.SimpleOwlSim.EnrichmentResult;
  */
 public class EnrichmentTest extends OWLToolsTestBasics {
 
-	private Logger LOG = Logger.getLogger(EnrichmentTest.class);
 	OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 	OWLDataFactory df = manager.getOWLDataFactory();
 	OWLOntology sourceOntol;
@@ -81,7 +61,7 @@ public class EnrichmentTest extends OWLToolsTestBasics {
 		OWLClass rc2 = get("cellular_component");
 		OWLClass pc = g.getDataFactory().getOWLThing();
 
-		EnrichmentConfig ec = sos.new EnrichmentConfig();
+		EnrichmentConfig ec = new EnrichmentConfig();
 		ec.pValueCorrectedCutoff = 0.05;
 		ec.attributeInformationContentCutoff = 3.0;
 		sos.setEnrichmentConfig(ec);

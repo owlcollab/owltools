@@ -25,7 +25,6 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.profiles.OWL2ELProfile;
 import org.semanticweb.owlapi.profiles.OWLProfileReport;
 import org.semanticweb.owlapi.profiles.OWLProfileViolation;
-import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -44,16 +43,14 @@ import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
  */
 public class InferenceBuilder{
 
-	protected final static Logger logger = Logger
-	.getLogger(InferenceBuilder.class);
-
+	protected final static Logger logger = Logger .getLogger(InferenceBuilder.class);
 
 	public static final String REASONER_PELLET = "pellet";
 	public static final String REASONER_HERMIT = "hermit";
 	public static final String REASONER_JCEL = "jcel";
 	public static final String REASONER_ELK = "elk";
 
-	private final FactoryDetails reasonerFactoryDetails;
+	private final OWLReasonerFactory reasonerFactory;
 	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
 	Set<OWLAxiom> redundantAxioms = new HashSet<OWLAxiom>();
@@ -72,49 +69,29 @@ public class InferenceBuilder{
 	}
 	
 	public InferenceBuilder(OWLGraphWrapper graph, OWLReasonerFactory factory, boolean enforceEL){
-		this(graph, new FactoryDetails(factory), enforceEL);
-	}
-	
-	private InferenceBuilder(OWLGraphWrapper graph, FactoryDetails reasonerFactoryDetails, boolean enforceEL){
 		this.graph = graph;
-		this.reasonerFactoryDetails = reasonerFactoryDetails;
+		this.reasonerFactory = factory;
 		if (enforceEL) {
 			this.graph = enforceEL(graph);
 		}
 	}
 	
-	public static FactoryDetails getFactory(String reasonerName) {
+	public static OWLReasonerFactory getFactory(String reasonerName) {
 		if (REASONER_PELLET.equals(reasonerName)) {
-			return new FactoryDetails(new PelletReasonerFactory());
+			return new PelletReasonerFactory();
 		}
 		else if (REASONER_HERMIT.equals(reasonerName)) {
-			return new FactoryDetails(new Reasoner.ReasonerFactory());
+			return new Reasoner.ReasonerFactory();
 		}
 		else if (REASONER_JCEL.equals(reasonerName)) {
-			return new FactoryDetails(new PlaceholderJcelFactory());
+			return new PlaceholderJcelFactory();
 		}
 		else if (REASONER_ELK.equals(reasonerName)) {
-			return new FactoryDetails(new ElkReasonerFactory(), InferenceType.values());
+			return new ElkReasonerFactory();
 		}
 		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
 	}
 	
-	public static class FactoryDetails {
-		
-		public final OWLReasonerFactory factory;
-		final InferenceType[] precomputeInferences;
-		
-		FactoryDetails(OWLReasonerFactory factory, InferenceType[] precomputeInferences) {
-			super();
-			this.factory = factory;
-			this.precomputeInferences = precomputeInferences;
-		}
-		
-		FactoryDetails(OWLReasonerFactory factory) {
-			this(factory, null);
-		}
-	}
-
 	public static OWLGraphWrapper enforceEL(OWLGraphWrapper graph) {
 		String origIRI = graph.getSourceOntology().getOntologyID().getOntologyIRI().toString();
 		if (origIRI.endsWith(".owl")) {
@@ -194,22 +171,17 @@ public class InferenceBuilder{
 
 	public synchronized OWLReasoner getReasoner(OWLOntology ontology){
 		if(reasoner == null){
-			OWLReasonerFactory factory = reasonerFactoryDetails.factory;
-			String reasonerFactoryName = factory.getReasonerName();
+			String reasonerFactoryName = reasonerFactory.getReasonerName();
 			if (reasonerFactoryName == null) {
-				reasonerFactoryName = factory.getClass().getSimpleName();
+				reasonerFactoryName = reasonerFactory.getClass().getSimpleName();
 			}
 			logger.info("Creating reasoner using: "+reasonerFactoryName);
-			reasoner = factory.createReasoner(ontology);
+			reasoner = reasonerFactory.createReasoner(ontology);
 			String reasonerName = reasoner.getReasonerName();
 			if (reasonerName == null) {
 				reasonerName = reasoner.getClass().getSimpleName();
 			}
 			logger.info("Created reasoner: "+reasonerName);
-			if (reasonerFactoryDetails.precomputeInferences != null) {
-				reasoner.precomputeInferences(reasonerFactoryDetails.precomputeInferences); // necessary for ELK
-				logger.info("pre-computed inferences; types: "+reasonerFactoryDetails.precomputeInferences.length);
-			}
 		}
 		return reasoner;
 	}

@@ -2,13 +2,10 @@ package owltools.cli;
 
 import java.awt.Color;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -52,7 +49,6 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
@@ -140,8 +136,10 @@ import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
  * @author cjm
  *
  * @see GafCommandRunner
- * @see SolrCommandRunner
+ * @see JsCommandRunner
  * @see SimCommandRunner
+ * @see SolrCommandRunner
+ * @see TaxonCommandRunner
  */
 public class CommandRunner {
 
@@ -1849,20 +1847,13 @@ public class CommandRunner {
 		else if (reasonerName.equals("pellet"))
 			reasonerFactory = new PelletReasonerFactory();
 		else if (reasonerName.equals("hermit")) {
-			//return new org.semanticweb.HermiT.Reasoner.ReasonerFactory().createReasoner(ont);
 			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
 		}
 		else if (reasonerName.equals("ogr")) {
 			reasonerFactory = new GraphReasonerFactory();			
 		}
 		else if (reasonerName.equals("elk")) {
-			//SimpleConfiguration rconf = new SimpleConfiguration(FreshEntityPolicy.ALLOW, Long.MAX_VALUE);
 			reasonerFactory = new ElkReasonerFactory();	
-			//reasoner = reasonerFactory.createReasoner(ont, rconf);
-			reasoner = reasonerFactory.createNonBufferingReasoner(ont);
-			System.out.println(reasonerFactory+" "+reasoner+" // "+InferenceType.values());
-			reasoner.precomputeInferences(InferenceType.values());
-			return reasoner;
 		}
 		else if (reasonerName.equals("cb")) {
 			Class<?> rfc;

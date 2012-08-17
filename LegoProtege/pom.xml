@@ -98,8 +98,8 @@
 					<groupId>org.slf4j</groupId>
 				</exclusion>
 				<exclusion>
-					<artifactId>owlapi</artifactId>
-					<groupId>owlapi</groupId>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-apibinding</artifactId>
 				</exclusion>
 				<exclusion>
 					<artifactId>pellet-custom</artifactId>

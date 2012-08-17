@@ -115,8 +115,6 @@ public class OWLServer extends AbstractHandler
 		}
 		else if (reasonerName.equals("elk")) {
 			reasonerFactory = new ElkReasonerFactory();	
-			reasoner = reasonerFactory.createNonBufferingReasoner(ont);
-			reasoner.precomputeInferences(InferenceType.values());
 		}
 		else if (reasonerName.equals("jcel")) {
 			reasoner = new JcelReasoner(ont);

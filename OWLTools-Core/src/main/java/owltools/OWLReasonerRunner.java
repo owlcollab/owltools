@@ -9,7 +9,6 @@ import org.semanticweb.owlapi.profiles.OWL2ELProfile;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-//import org.semanticweb.owlapi.reasoner.OWLReasonerException;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
@@ -21,12 +20,8 @@ import org.semanticweb.owlapi.util.InferredSubClassAxiomGenerator;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.*;
 
-import org.semanticweb.HermiT.Reasoner;
-
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;

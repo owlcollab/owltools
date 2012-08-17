@@ -3,9 +3,7 @@ package owltools.mooncat;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -21,7 +19,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -69,9 +66,10 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 	 * We expect the resulting ontology O(P,E)' to classify the genes
 	 * in a subsumption hierarchy that masks the partOf relations in O
 	 * 
+	 * @throws Exception 
 	 */
 	@Test
-	public void testGeneAssociationPropertyView() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void testGeneAssociationPropertyView() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("test_gene_association_mgi_gaf.owl"));
 		OWLOntology relOnt = pw.parseOWL(getResourceIRIString("go-annot-rel.owl"));
@@ -131,7 +129,6 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
-		reasoner.precomputeInferences(InferenceType.values()); // ELK
 		pvob.buildInferredViewOntology(reasoner);
 		for (OWLEntity e : pvob.getViewEntities()) {
 			LOG.info(" VE: "+e);
@@ -182,7 +179,6 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
-		reasoner.precomputeInferences(InferenceType.values()); // ELK
 		LOG.info("Building inferred view");
 		pvob.buildInferredViewOntology(reasoner);
 		for (OWLEntity e : pvob.getViewEntities()) {
@@ -227,12 +223,8 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 			LOG.info("ASSERTED_VIEW_ONT: "+a);
 		}
 
-		OWLReasonerFactory rf;
-		// we use hermit as elk does not classify individuals yet
-		rf = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();
-
+		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
-		reasoner.precomputeInferences(InferenceType.values()); 
 
 		OWLGraphWrapper g = new OWLGraphWrapper(pvob.getInferredViewOntology());
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
@@ -300,11 +292,8 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 			LOG.info("ASSERTED_VIEW_ONT: "+a);
 		}
 
-		OWLReasonerFactory rf;
-		rf = new ElkReasonerFactory();
-
+		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
-		reasoner.precomputeInferences(InferenceType.values()); 
 
 		OWLGraphWrapper g = new OWLGraphWrapper(pvob.getInferredViewOntology());
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);

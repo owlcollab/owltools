@@ -9,8 +9,6 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -26,7 +24,6 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
@@ -36,8 +33,6 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
-import org.semanticweb.owlapi.reasoner.InferenceType;
-import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -192,7 +187,7 @@ public class PropertyViewOntologyBuilder {
 	 * Automatically generated Property View Ontology O(P)
 	 * containing axioms C' == P some C, for each C in source ontology
 	 * 
-	 * @return
+	 * @return ontology
 	 */
 	public OWLOntology getAssertedViewOntology() {
 		return assertedViewOntology;
@@ -359,8 +354,6 @@ public class PropertyViewOntologyBuilder {
 	public void build(OWLReasonerFactory reasonerFactory) throws OWLOntologyCreationException {
 		buildViewOntology();
 		OWLReasoner reasoner = reasonerFactory.createReasoner(assertedViewOntology);
-		reasoner.precomputeInferences(InferenceType.values()); // Elk only?
-
 		buildInferredViewOntology(reasoner);
 	}
 
@@ -376,7 +369,7 @@ public class PropertyViewOntologyBuilder {
 	}
 
 	/**
-	 * as {@link buildViewOntology(IRI,IRI)}, but sets the asserted and inferred view
+	 * as {@link #buildViewOntology(IRI,IRI)}, but sets the asserted and inferred view
 	 * ontologies to be the same
 	 * 
 	 * @param voIRI
@@ -784,7 +777,6 @@ public class PropertyViewOntologyBuilder {
 	 * Note that property assertions are currently ignored
 	 * 
 	 * @param srcOnt
-	 * @param isReplaceOntology
 	 * @throws OWLOntologyCreationException 
 	 */
 	public void translateABoxToTBox(OWLOntology srcOnt) throws OWLOntologyCreationException {

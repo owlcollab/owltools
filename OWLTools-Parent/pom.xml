@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.bbop</groupId>
 	<artifactId>OWLTools-Parent</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
+	<version>0.2.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>OWLTools-Parent</name>
 	<url>http://code.google.com/p/owltools/</url>
@@ -109,6 +109,14 @@
 			<name>elk reasoner google code maven repository</name>
 			<url>http://elk-reasoner.googlecode.com/svn/m2/releases</url>
 		</repository>
+		<repository>
+			<id>oss-sonatype-snapshot</id>
+			<name>OSS Sonatype Maven Repository - SNAPSHOT</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 
 	<dependencies>
@@ -127,9 +135,9 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>owlapi</groupId>
-				<artifactId>owlapi</artifactId>
-				<version>3.2.4</version>
+				<groupId>net.sourceforge.owlapi</groupId>
+				<artifactId>owlapi-apibinding</artifactId>
+				<version>3.4</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bbop</groupId>
@@ -140,6 +148,10 @@
 					<exclusion>
 						<artifactId>antlr-runtime</artifactId>
 						<groupId>org.antlr</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>owlapi</artifactId>
+						<groupId>owlapi</groupId>
 					</exclusion>
 				</exclusions>
 			</dependency>
@@ -175,11 +187,17 @@
 				<groupId>org.semanticweb</groupId>
 				<artifactId>HermiT</artifactId>
 				<version>1.3.6-BBOP</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>owlapi</artifactId>
+						<groupId>owlapi</groupId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.bbop</groupId>
 				<artifactId>oboformat</artifactId>
-				<version>0.5.3-SNAPSHOT</version>
+				<version>0.5.4-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>uk.ac.ebi.interpro</groupId>
@@ -200,6 +218,12 @@
 				<groupId>jcel</groupId>
 				<artifactId>jcel.owlapi</artifactId>
 				<version>0.15.0</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>owlapi</artifactId>
+						<groupId>owlapi</groupId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>de.derivo</groupId>
@@ -220,13 +244,7 @@
 			<dependency>
 				<groupId>org.semanticweb.elk</groupId>
 				<artifactId>elk-owlapi</artifactId>
-				<version>0.2.0</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>owlapi-all</artifactId>
-						<groupId>net.sourceforge.owlapi</groupId>
-					</exclusion>
-				</exclusions>
+				<version>0.3.1-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.code.gson</groupId>
@@ -237,6 +255,12 @@
 				<groupId>org.coode</groupId>
 				<artifactId>oppl2</artifactId>
 				<version>1.5.5</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>owlapi</artifactId>
+						<groupId>owlapi</groupId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
