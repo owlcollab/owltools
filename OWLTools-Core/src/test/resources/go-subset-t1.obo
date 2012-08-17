@@ -12454,3 +12454,8 @@ property_value: IAO:0000412 http://purl.obolibrary.org/obo/go.owl
 created_by: cjm
 creation_date: 2012-03-14T10:35:44Z
 
+[Typedef]
+id: has_attribute
+name: has_attribute
+xref: GOTESTREL:0000001
+

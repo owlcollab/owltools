@@ -67,6 +67,7 @@ public class EnrichmentTest extends OWLToolsTestBasics {
 		g = new OWLGraphWrapper(sourceOntol);
 		TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 		ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
+		ttac.config.property = g.getOWLObjectPropertyByIdentifier("GOTESTREL:0000001").getIRI();
 		ttac.config.isSwitchSubjectObject = true;
 		ttac.parse("src/test/resources/simplegaf-t1.txt");
 
