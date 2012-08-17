@@ -35,7 +35,6 @@ public class OntologyCheckRunnerTest extends OWLToolsTestBasics {
 	public void testOntologyCheckRunner() throws Exception {
 		Collection<OntologyCheck> checks = new ArrayList<OntologyCheck>();
 		checks.add(new OntologyCheckRunnerTestChecks(TimePoint.AfterLoad));
-		checks.add(new OntologyCheckRunnerTestChecks(TimePoint.AfterLoad));
 		checks.add(new OntologyCheckRunnerTestChecks(null));
 		
 		checks.add(new OntologyCheckRunnerTestChecks(TimePoint.AfterMireot));
@@ -45,7 +44,7 @@ public class OntologyCheckRunnerTest extends OWLToolsTestBasics {
 		OntologyCheckRunner runner = new OntologyCheckRunner(checks);
 		assertNotNull(runner);
 		Map<OntologyCheck, Collection<CheckWarning>> results1 = runner.verify(null, null, TimePoint.AfterLoad);
-		assertEquals(3, results1.size());
+		assertEquals(2, results1.size());
 		
 		Map<OntologyCheck, Collection<CheckWarning>> results2 = runner.verify(null, null, TimePoint.AfterMireot);
 		assertEquals(1, results2.size());
