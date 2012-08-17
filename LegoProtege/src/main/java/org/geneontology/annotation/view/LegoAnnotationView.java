@@ -4,10 +4,16 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -17,6 +23,7 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 import org.geneontology.annotation.view.GraphvizImageRenderer.GraphvizConfigurationError;
 import org.geneontology.lego.dot.LegoDotWriter.UnExpectedStructureException;
+import org.protege.editor.core.ui.util.UIUtil;
 import org.protege.editor.owl.model.OWLModelManager;
 import org.protege.editor.owl.model.OWLWorkspace;
 import org.protege.editor.owl.model.inference.OWLReasonerManager;
@@ -37,7 +44,9 @@ import owltools.graph.OWLGraphWrapper;
  */
 public class LegoAnnotationView extends AbstractOWLViewComponent {
 	
+	private static final String DEFAULT_EXPORT_FILE_TYPE = "png";
 	private static final String UPDATE_VIEW_BUTTON_LABEL = "Update View";
+	private static final String EXPORT_IMAGE_BUTTON_LABEL = "Export Image";
 
 	private static final Logger LOGGER = Logger.getLogger(LegoAnnotationView.class);
 
@@ -47,8 +56,11 @@ public class LegoAnnotationView extends AbstractOWLViewComponent {
 	private final OWLOntologyChangeListener listener;
 	private final JPanel panel;
 	private final JButton updateButton;
+	private final JButton exportButton;
 	
 	private volatile boolean valid = false;
+	
+	private volatile BufferedImage currentImage = null;
 	
 	public LegoAnnotationView() {
 		listener = new OWLOntologyChangeListener() {
@@ -73,6 +85,26 @@ public class LegoAnnotationView extends AbstractOWLViewComponent {
 				});
 			}
 		});
+		exportButton = new JButton(EXPORT_IMAGE_BUTTON_LABEL);
+		exportButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String title = "Save as Image";
+				Set<String> extensions = new HashSet<String>();
+				String desc = "Select a file to save the Lego Annotation View as Image.";
+				final File file = UIUtil.saveFile(new JFrame(), title, desc, extensions);
+				if (file != null) {
+					SwingUtilities.invokeLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							export(file);
+						}
+					});
+				}
+			}
+		});
 	}
 
 	@Override
@@ -80,7 +112,10 @@ public class LegoAnnotationView extends AbstractOWLViewComponent {
 		setLayout(new BorderLayout());
 		JScrollPane scrollPane = new JScrollPane(panel);
 		add(scrollPane, BorderLayout.CENTER);
-		add(updateButton, BorderLayout.SOUTH);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(updateButton);
+		buttonPanel.add(exportButton);
+		add(buttonPanel, BorderLayout.SOUTH);
 		OWLModelManager manager = getOWLModelManager();
 		manager.addOntologyChangeListener(listener);
 		setInvalid();
@@ -100,6 +135,32 @@ public class LegoAnnotationView extends AbstractOWLViewComponent {
 				"<div>Please use the '"+UPDATE_VIEW_BUTTON_LABEL+"' button to generate the view of the current LEGO annotations.</div></html>"));
 	}
 	
+	private synchronized void export(File outputFile) {
+		if (currentImage == null) {
+			// do nothing
+			return;
+		}
+		final OWLWorkspace owlWorkspace = getOWLWorkspace();
+		try {
+			String format = DEFAULT_EXPORT_FILE_TYPE;
+			String fileName = outputFile.getName();
+			if (fileName.length() < 4) {
+				outputFile = new File(outputFile.getParentFile(), fileName+"."+DEFAULT_EXPORT_FILE_TYPE);
+			}
+			else {
+				final int suffixDotPos = fileName.lastIndexOf('.');
+				if (suffixDotPos < 0) {
+					outputFile = new File(outputFile.getParentFile(), fileName+"."+DEFAULT_EXPORT_FILE_TYPE);
+				}
+				else if ((suffixDotPos + 3) < fileName.length()) {
+					format = fileName.substring(suffixDotPos + 1);
+				}
+			}
+			ImageIO.write(currentImage, format, outputFile);
+		} catch (IOException e) {
+			handleError(owlWorkspace, e);
+		}
+	}
 	
 	private synchronized void update() {
 		if (valid) {
@@ -116,11 +177,12 @@ public class LegoAnnotationView extends AbstractOWLViewComponent {
 			try {
 				OWLGraphWrapper graph = new OWLGraphWrapper(ontology);
 				OWLReasoner reasoner = reasonerManager.getCurrentReasoner();
-
-				BufferedImage image = GraphvizImageRenderer.renderLegoAnnotations(graph, reasoner);
-				if (image != null) {
+				
+				currentImage = GraphvizImageRenderer.renderLegoAnnotations(graph, reasoner);
+				if (currentImage != null) {
 					panel.removeAll();
-					JLabel picLabel = new JLabel(new ImageIcon(image));
+					ImageIcon imageIcon = new ImageIcon(currentImage);
+					JLabel picLabel = new JLabel(imageIcon);
 					panel.add(picLabel);
 					valid = true;
 					repaint();
