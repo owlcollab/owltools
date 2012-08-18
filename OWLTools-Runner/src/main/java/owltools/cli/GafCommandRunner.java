@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
@@ -46,6 +47,8 @@ import owltools.io.OWLPrettyPrinter;
  */
 public class GafCommandRunner extends CommandRunner {
 
+	private static final Logger LOG = Logger.getLogger(GafCommandRunner.class);
+	
 	public GafDocument gafdoc = null;
 	
 	private String gafReportFile = null;
@@ -60,7 +63,10 @@ public class GafCommandRunner extends CommandRunner {
 	public void gaf(Opts opts) throws Exception {
 		opts.info("GAF-FILE", "parses GAF and makes this the current GAF document");
 		GafObjectsBuilder builder = new GafObjectsBuilder();
-		gafdoc = builder.buildDocument(opts.nextOpt());				
+		final String input = opts.nextOpt();
+		LOG.info("Start loading GAF from: "+input);
+		gafdoc = builder.buildDocument(input);
+		LOG.info("Finished loading GAF.");
 	}
 	
 	@CLIMethod("--gaf2owl")
@@ -99,7 +105,9 @@ public class GafCommandRunner extends CommandRunner {
 			bridge = new GAFOWLBridge(g);
 		}
 		bridge.setGenerateIndividuals(!isSkipIndividuals);
+		LOG.info("Start converting GAF to OWL");
 		bridge.translate(gafdoc);
+		LOG.info("Finished converting GAF to OWL");
 		if (out != null) {
 			pw.saveOWL(bridge.getTargetOntology(),out,g);
 		}
@@ -186,9 +194,11 @@ public class GafCommandRunner extends CommandRunner {
 	@CLIMethod("--gaf-run-checks")
 	public void runGAFChecks(Opts opts) throws AnnotationRuleCheckException, IOException {
 		if (g != null && gafdoc != null && gafReportFile != null) {
+			LOG.info("Start validating GAF");
 			AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g);
 			AnnotationRulesEngine ruleEngine = new AnnotationRulesEngine(-1, rulesFactory );
 			Map<String, List<AnnotationRuleViolation>> allViolations = ruleEngine.validateAnnotations(gafdoc);
+			LOG.info("Finished validating GAF");
 			File reportFile = new File(gafReportFile);
 			
 			// no violations found, delete previous error file (if it exists)
@@ -199,6 +209,7 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			
 			// write violations
+			LOG.info("Start writing violations to report file: "+gafReportFile);
 			PrintWriter writer = null;
 			try {
 				// TODO make this a more detailed report
@@ -222,6 +233,7 @@ public class GafCommandRunner extends CommandRunner {
 				System.err.println(allViolationsCount+" GAF violations found, reportfile: "+gafReportFile);
 			} finally {
 				IOUtils.closeQuietly(writer);
+				LOG.info("Finished writing violations to report file.");
 			}
 			exit(-1); // end with an error code to indicate to Jenkins, that it was not successful
 		}
