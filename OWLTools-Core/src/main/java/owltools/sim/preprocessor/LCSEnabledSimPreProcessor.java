@@ -20,6 +20,14 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 	@Deprecated
 	protected Map<OWLClassExpressionPair, OWLClass> lcsCache = new HashMap<OWLClassExpressionPair, OWLClass>();
 
+	protected void generateLeastCommonSubsumersForAttributeClasses() {
+		Set<OWLClass> types = new HashSet<OWLClass>();
+		for (OWLNamedIndividual ind : this.outputOntology.getIndividualsInSignature(true)) {
+			types.addAll(getReasoner().getTypes(ind, true).getFlattened());
+		}
+		generateLeastCommonSubsumers(types, types);
+	}
+	
 	public void generateLeastCommonSubsumers(Set<OWLClass> set1, Set<OWLClass> set2) {
 
 		for (OWLClass a : set1) {

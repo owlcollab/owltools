@@ -126,7 +126,7 @@ public class PropertyViewOntologyBuilder {
 	private OWLObjectProperty viewProperty;   // P
 
 	private boolean isUseOriginalClassIRIs = false;
-	private boolean isClassifyIndividuals = false;
+	private boolean isClassifyIndividuals = true;
 	private boolean isFilterUnused = false;
 	private boolean isAssumeOBOStyleIRIs = true;
 	private String viewLabelPrefix="";
@@ -306,11 +306,12 @@ public class PropertyViewOntologyBuilder {
 	}
 	
 	
-
+	@Deprecated
 	public boolean isCreateReflexiveClasses() {
 		return isCreateReflexiveClasses;
 	}
 
+	@Deprecated
 	public void setCreateReflexiveClasses(boolean isCreateReflexiveClasses) {
 		this.isCreateReflexiveClasses = isCreateReflexiveClasses;
 	}
@@ -431,7 +432,7 @@ public class PropertyViewOntologyBuilder {
 		Set<List<OWLObjectPropertyExpression>> chains = getPropertyChains(viewProperty);
 
 
-		Set<OWLClass> sourceClasses = sourceOntology.getClassesInSignature();
+		Set<OWLClass> sourceClasses = new HashSet<OWLClass>(sourceOntology.getClassesInSignature());
 		OWLClass thing = owlDataFactory.getOWLThing();
 		sourceClasses.add(thing);
 		for (OWLClass c : sourceClasses) {
@@ -446,6 +447,7 @@ public class PropertyViewOntologyBuilder {
 			OWLObjectSomeValuesFrom vx = owlDataFactory.getOWLObjectSomeValuesFrom(viewProperty, c);
 			OWLEquivalentClassesAxiom eca = 
 				owlDataFactory.getOWLEquivalentClassesAxiom(vc, vx);
+			LOG.info("Adding equiv axiom to "+assertedViewOntology);
 			owlOntologyManager.addAxiom(assertedViewOntology, eca);
 
 			for (List<OWLObjectPropertyExpression> chain : chains) {
@@ -652,6 +654,8 @@ public class PropertyViewOntologyBuilder {
 		for (OWLEntity e : viewEntities) {
 			if (e instanceof OWLClass) {
 				OWLClass c = (OWLClass) e;
+				OWLDeclarationAxiom cDecl = owlDataFactory.getOWLDeclarationAxiom(c);
+				owlOntologyManager.addAxiom(inferredViewOntology, cDecl);
 				// copy across label
 				String label = getLabel(c, assertedViewOntology);
 				if (label != null) {
@@ -660,6 +664,7 @@ public class PropertyViewOntologyBuilder {
 					// anything derived -- including labels -- goes in the derived ontology
 					owlOntologyManager.addAxiom(inferredViewOntology, aaa);
 				}
+				
 
 				// first add equivalence axioms
 				// TODO - allow for merging of equivalent classes
@@ -779,6 +784,7 @@ public class PropertyViewOntologyBuilder {
 	 * @param srcOnt
 	 * @throws OWLOntologyCreationException 
 	 */
+	@Deprecated
 	public void translateABoxToTBox(OWLOntology srcOnt) throws OWLOntologyCreationException {
 		Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
 		OWLOntology newElementsOntology = owlOntologyManager.createOntology();
@@ -806,6 +812,7 @@ public class PropertyViewOntologyBuilder {
 		elementsOntology = newElementsOntology;
 	}
 
+	@Deprecated
 	public void translateABoxToTBox() throws OWLOntologyCreationException {
 		translateABoxToTBox(elementsOntology);		
 	}

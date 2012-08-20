@@ -9,6 +9,7 @@ public abstract class AbstractOBOSimPreProcessor extends LCSEnabledSimPreProcess
 	//public String HAS_PHENOTYPE = "BFO_0000051"; // TODO
 	public String HAS_PHENOTYPE = "RO_0002200"; // TODO
 	public String HAS_PART = "BFO_0000051";
+	public String COMPOSED_PRIMARILY_OF = "UBREL_0000002";
 	public String PART_OF = "BFO_0000050";
 	public String INHERES_IN = "BFO_0000052";
 	public String DEVELOPS_FROM = "RO_0002202";

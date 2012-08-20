@@ -41,9 +41,11 @@ import owltools.io.ParserWrapper;
  * @author cjm
  *
  */
-public class PropertyViewTest extends OWLToolsTestBasics {
+public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
-	private Logger LOG = Logger.getLogger(PropertyViewTest.class);
+	private Logger LOG = Logger.getLogger(PropertyViewOntologyBuilderTest.class);
+
+	OWLGraphWrapper g;
 
 
 	/**
@@ -63,6 +65,8 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 	 * this is a promiscuous property that has property chains defined such that it will
 	 * connect genes to GO processes plus the processes which they are part of
 	 * 
+	 *   has_attribute o part_of -> has_attribute
+	 * 
 	 * We expect the resulting ontology O(P,E)' to classify the genes
 	 * in a subsumption hierarchy that masks the partOf relations in O
 	 * 
@@ -71,12 +75,12 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 	@Test
 	public void testGeneAssociationPropertyView() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
-		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("test_gene_association_mgi_gaf.owl"));
+		g = pw.parseToOWLGraph(getResourceIRIString("test_gene_association_mgi_gaf.owl"));
 		OWLOntology relOnt = pw.parseOWL(getResourceIRIString("go-annot-rel.owl"));
 		g.mergeOntology(relOnt);
 		OWLOntology sourceOntol = pw.parseOBO(getResourceIRIString("test_go_for_mgi_gaf.obo"));
 		g.addSupportOntology(sourceOntol);
-		OWLOntology annotOntol = g.getSourceOntology();
+		OWLOntology annotOntol = g.getSourceOntology(); // E=O
 
 		OWLObjectProperty viewProperty = g.getOWLObjectPropertyByIdentifier("GORELTEST:0000001");
 
@@ -86,6 +90,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 					viewProperty);
 		pvob.setAssumeOBOStyleIRIs(true); // this is default but we assert anyway
 		pvob.setViewLabelPrefixAndSuffix("", " gene");
+		pvob.setFilterUnused(false);
 		pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
 		OWLOntology avo = pvob.getAssertedViewOntology();
 		OWLReasonerFactory rf = new ElkReasonerFactory();
@@ -96,13 +101,40 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		g = new OWLGraphWrapper(ivo);
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
 
+		
 		for (OWLAxiom a : ivo.getAxioms()) {
 			LOG.info("GO: "+pp.render(a));
+			//LOG.info(a);
 		}
+		LOG.info("Logical axioms: "+ivo.getLogicalAxiomCount());
+		
+		LOG.info("View entities: "+pvob.getViewEntities().size());
+		assertEquals(648, pvob.getViewEntities().size());
+		
+		// based on NT formation SubClassOf part_of NT development
+		//assertOntologyContainsSubClassOf("neural tube formation", "embryonic epithelial tube formation");
 
-		pw.saveOWL(pvob.getAssertedViewOntology(), "file:///tmp/zz.owl", g);
+		// based on NT formation SubClassOf part_of NT development
+		assertOntologyContainsSubClassOf("neural tube formation gene", "neural tube development gene");
+		assertOntologyContainsSubClassOf("neural tube formation gene", "embryonic epithelial tube formation gene");
 
-		pw.saveOWL(ivo, "file:///tmp/z.owl", g);
+		//pw.saveOWL(pvob.getAssertedViewOntology(), "file:///tmp/zz.owl", g);
+
+		//pw.saveOWL(ivo, "file:///tmp/z.owl", g);
+	}
+
+	private void assertOntologyContainsSubClassOf(String c, String p) {
+		OWLSubClassOfAxiom testAx = 
+			g.getDataFactory().getOWLSubClassOfAxiom(resolveClass(c), resolveClass(p));
+		assertTrue(g.getSourceOntology().containsAxiom(testAx, true));
+
+	}
+	
+	private OWLClass resolveClass(String label) {
+		OWLClass c = (OWLClass)g.getOWLObjectByLabel(label);
+		if (c == null)
+			LOG.warn("Could not resolve: "+label);
+		return c;
 	}
 
 	@Test
@@ -126,7 +158,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		for (OWLAxiom a : avo.getAxioms()) {
 			LOG.info("ASSERTED_VIEW_ONT: "+a);
 		}
-		
+
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		pvob.buildInferredViewOntology(reasoner);
@@ -163,7 +195,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		OWLOntology sourceOntol = pw.parseOWL(getResourceIRIString("q-in-e.omn"));
 
 		OWLObjectProperty viewProperty = 
-			df.getOWLObjectProperty(IRI.create("http://x.org#related_to"));
+			df.getOWLObjectProperty(IRI.create("http://x.org#inheres_in"));
 
 		PropertyViewOntologyBuilder pvob = 
 			new PropertyViewOntologyBuilder(sourceOntol,
@@ -187,12 +219,19 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		for (OWLAxiom a : pvob.getInferredViewOntology().getAxioms()) {
 			LOG.info(" VA: "+a);
 		}
-		
+
 
 
 	}
 
 
+	/**
+	 * In this test we filter view classes based on the individuals in the ontology
+	 * 
+	 * @throws IOException
+	 * @throws OWLOntologyCreationException
+	 * @throws OWLOntologyStorageException
+	 */
 	@Test
 	public void testPhenoViewWithIndividuals() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
 		ParserWrapper pw = new ParserWrapper();
@@ -201,13 +240,11 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		OWLOntology sourceOntol = pw.parseOWL(getResourceIRIString("q-in-e.omn"));
 
 		OWLObjectProperty viewProperty = 
-			df.getOWLObjectProperty(IRI.create("http://x.org#has_phenotype_involving"));
-
-		OWLOntology elementsOntology = sourceOntol;
+			df.getOWLObjectProperty(IRI.create("http://x.org#has_phenotype_inheres_in"));
 
 		PropertyViewOntologyBuilder pvob = 
 			new PropertyViewOntologyBuilder(sourceOntol,
-					elementsOntology,
+					sourceOntol,
 					viewProperty);
 
 		pvob.setClassifyIndividuals(true);
@@ -233,6 +270,8 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		pvob.buildInferredViewOntology(reasoner);
 		boolean ok1 = false;
 		int numClassAssertions = 0;
+		
+		// iterate through all view entities - this should be the filtered set of view classes plus individuals.
 		for (OWLEntity e : pvob.getViewEntities()) {
 			LOG.info(" VE: "+e+" LABEL:"+g.getLabel(e));
 			if (e instanceof OWLClass) {
@@ -243,6 +282,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 			else {
 				if (e instanceof OWLNamedIndividual) {
 					Set<OWLClassAssertionAxiom> caas = pvob.getInferredViewOntology().getClassAssertionAxioms((OWLNamedIndividual) e);
+					
 					for (OWLClassAssertionAxiom caa : caas) {
 						LOG.info("  CAA:"+pp.render(caa));
 						numClassAssertions++;
@@ -259,6 +299,8 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 
 
 	}
+
+	/*
 
 	@Test
 	public void testPhenoViewWithIndividualsTranslated() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
@@ -278,6 +320,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 					elementsOntology,
 					viewProperty);
 
+		// for ELK 2.0
 		pvob.translateABoxToTBox();
 
 		pvob.setClassifyIndividuals(false);
@@ -300,7 +343,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		g.addSupportOntology(pvob.getAssertedViewOntology());
 		LOG.info("Building inferred view");
 		pvob.buildInferredViewOntology(reasoner);
-		
+
 		g = new OWLGraphWrapper(pvob.getAssertedViewOntology());
 
 		pw.saveOWL(pvob.getAssertedViewOntology(), "file:///tmp/zz.owl", g);
@@ -310,7 +353,7 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 			LOG.info("IVO AXIOM: "+sca);
 		}
 
-		
+
 		boolean ok1 = false;
 		int numClassifications = 0;
 		for (OWLEntity e : pvob.getViewEntities()) {
@@ -334,10 +377,9 @@ public class PropertyViewTest extends OWLToolsTestBasics {
 		assertEquals(12, numClassifications); // TODO - CHECK
 		LOG.info(pvob.getViewEntities().size());
 		assertEquals(23, pvob.getViewEntities().size());
-		
-
-
 	}
+
+	 */
 
 
 

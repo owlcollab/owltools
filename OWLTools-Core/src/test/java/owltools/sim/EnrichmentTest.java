@@ -6,15 +6,21 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.math.MathException;
+import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
@@ -23,6 +29,7 @@ import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
 import owltools.sim.SimpleOwlSim.EnrichmentConfig;
 import owltools.sim.SimpleOwlSim.EnrichmentResult;
+import owltools.sim.preprocessor.AutomaticSimPreProcessor;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder
@@ -32,6 +39,7 @@ import owltools.sim.SimpleOwlSim.EnrichmentResult;
  */
 public class EnrichmentTest extends OWLToolsTestBasics {
 
+	private Logger LOG = Logger.getLogger(EnrichmentTest.class);
 	OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 	OWLDataFactory df = manager.getOWLDataFactory();
 	OWLOntology sourceOntol;
@@ -41,21 +49,47 @@ public class EnrichmentTest extends OWLToolsTestBasics {
 
 
 	@Test
-	public void testOwlSimPheno() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
+	public void enrichmentTestGO() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResourceIRIString("go-subset-t1.obo"));
 		g = new OWLGraphWrapper(sourceOntol);
+		IRI vpIRI = g.getOWLObjectPropertyByIdentifier("GOTESTREL:0000001").getIRI();
 		TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 		ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
-		ttac.config.property = g.getOWLObjectPropertyByIdentifier("GOTESTREL:0000001").getIRI();
+		ttac.config.property = vpIRI;
 		ttac.config.isSwitchSubjectObject = true;
 		ttac.parse("src/test/resources/simplegaf-t1.txt");
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
 
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
 
 		sos = new SimpleOwlSim(sourceOntol);
+
+		AutomaticSimPreProcessor pproc = new AutomaticSimPreProcessor();
+		pproc.setInputOntology(sourceOntol);
+		pproc.setOutputOntology(sourceOntol);
+		pproc.setReasoner(reasoner); // TODO - share
+		sos.setReasoner(reasoner);
+		
+		//sos.setSimPreProcessor(pproc);
+		//sos.preprocess();
+		pproc.preprocess();
+		
 		sos.createElementAttributeMapFromOntology();
-		sos.removeUnreachableAxioms();
+
+		for (OWLNamedIndividual ind : sourceOntol.getIndividualsInSignature()) {
+			System.out.println(ind);
+			for (OWLClass c : sos.getReasoner().getTypes(ind, true).getFlattened()) {
+				System.out.println("  T:"+c);
+			}
+		}
+		//System.exit(0);
+
+		//sos.addViewProperty(vpIRI);
+		//sos.generatePropertyViews();
+		//sos.saveOntology("/tmp/foo.owl");
+
 
 		OWLClass rc1 = get("biological_process");
 		OWLClass rc2 = get("cellular_component");
@@ -65,11 +99,19 @@ public class EnrichmentTest extends OWLToolsTestBasics {
 		ec.pValueCorrectedCutoff = 0.05;
 		ec.attributeInformationContentCutoff = 3.0;
 		sos.setEnrichmentConfig(ec);
-		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1, rc2);
-		for (EnrichmentResult result : results) {
-			System.out.println(render(result,pp));
-		}
 
+		int n = 0;
+		for (OWLClass vrc1 : pproc.getViewClasses(rc1)) {
+			for (OWLClass vrc2 : pproc.getViewClasses(rc2)) {
+				List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, vrc1, vrc2);
+				System.out.println("Results: "+vrc1+" "+vrc2);
+				for (EnrichmentResult result : results) {
+					System.out.println(render(result,pp));
+					n++;
+				}
+			}
+		}
+		assertTrue(n > 0);
 
 	}
 

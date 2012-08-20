@@ -3,43 +3,63 @@ Prefix: owl: <http://www.w3.org/2002/07/owl#>
 Prefix: xml: <http://www.w3.org/XML/1998/namespace>
 Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: obo: <http://purl.obolibrary.org/obo/>
+Prefix: oio: <http://www.geneontology.org/formats/oboInOwl#>
 Prefix: : <http://x.org#>
+Prefix: inheres_in: <http://purl.obolibrary.org/obo/BFO_0000052>
+Prefix: develops_from: <http://purl.obolibrary.org/obo/RO_0002202>
+Prefix: part_of: <http://purl.obolibrary.org/obo/BFO_0000050>
+Prefix: has_part: <http://purl.obolibrary.org/obo/BFO_0000051>
+Prefix: composed_primarily_of: <http://purl.obolibrary.org/obo/UBREL_0000002>
+Prefix: has_phenotype: <http://purl.obolibrary.org/obo/RO_0002200>
+#Prefix: has_phenotype: <http://purl.obolibrary.org/obo/BFO_0000051>
+Prefix: quality: <http://purl.obolibrary.org/obo/PATO_0000001>
+Prefix: FMA_hand: <http://purl.obolibrary.org/obo/FMA_9712>
+Prefix: cell: <http://purl.obolibrary.org/obo/CL_0000000>
 
 Ontology: <http://example.org#q-in-e>
 
-ObjectProperty: :related_to
+AnnotationProperty: oio:inSubset
+AnnotationProperty: :upper_level
+
 ObjectProperty: :anterior_to
-ObjectProperty: :develops_from
-  SubPropertyChain: :part_of o :develops_from
+ObjectProperty: develops_from:
+  Annotations: rdfs:label "develops from"
+  SubPropertyChain: part_of: o develops_from:
 
-ObjectProperty: :inheres_in
-  SubPropertyOf: :inheres_in_part_of
+ObjectProperty: inheres_in:
+  Annotations: rdfs:label "inheres in"
 
-ObjectProperty: :inheres_in_part_of
-  SubPropertyOf: :related_to
-  SubPropertyChain: :inheres_in o :part_of
-
-ObjectProperty: :inheres_in_develops_from
-  SubPropertyOf: :related_to
-  SubPropertyChain: :inheres_in o :develops_from
-  SubPropertyChain: :inheres_in_part_of o :develops_from
-
-ObjectProperty: :part_of
+ObjectProperty: part_of:
+  Annotations: rdfs:label "part of"
   Characteristics: Transitive
 
-ObjectProperty: :has_part
+
+ObjectProperty: has_part:
+  Annotations: rdfs:label "has part"
   Characteristics: Transitive
 
-ObjectProperty: :has_phenotype
-  SubPropertyOf: :has_phenotype_involving
+ObjectProperty: composed_primarily_of:
+  Annotations: rdfs:label "composed primarily of"
+  SubPropertyOf: has_part:
 
-ObjectProperty: :has_phenotype_involving
-  SubPropertyChain: :has_phenotype o :inheres_in_part_of
+ObjectProperty: has_phenotype:
+  Annotations: rdfs:label "has phenotype"
+  SubPropertyChain: has_phenotype: o has_part:
+
+ObjectProperty: :has_phenotype_inheres_in
+  SubPropertyChain: has_phenotype: o inheres_in:
 
 Class: :AER
+ SubClassOf: :anatomical_entity
+
+Class: :anatomical_entity
+  Annotations:
+   oio:inSubset <http://x.org#upper_level>
 
 Class: :limb_bud
- SubClassOf: :has_part some :AER
+ SubClassOf: :anatomical_entity
+ SubClassOf: has_part: some :AER
 
 Class: :forelimb_bud
   SubClassOf: :limb_bud
@@ -48,27 +68,40 @@ Class: :hindlimb_bud
   SubClassOf: :limb_bud
 
 Class: :limb
- SubClassOf: :develops_from some :limb_bud
+ SubClassOf: develops_from: some :limb_bud
 
 Class: :forelimb
  SubClassOf: :limb
  SubClassOf: :anterior_to some :hindlimb
- SubClassOf: :develops_from some :forelimb_bud
+ SubClassOf: develops_from: some :forelimb_bud
 
 Class: :hindlimb
  SubClassOf: :limb
- SubClassOf: :develops_from some :hindlimb_bud
+ SubClassOf: develops_from: some :hindlimb_bud
 
 Class: :autopod
- SubClassOf: :part_of some :limb
+ SubClassOf: :anatomical_entity
+ SubClassOf: part_of: some :limb
 
 Class: :hand
- EquivalentTo: :autopod and :part_of some :forelimb
+ EquivalentTo: :autopod and part_of: some :forelimb
+
+Class: FMA_hand:
+ SubClassOf: :hand
 
 Class: :foot
- EquivalentTo: :autopod and :part_of some :hindlimb
+ EquivalentTo: :autopod and part_of: some :hindlimb
 
+Class: quality:
+  SubClassOf: inheres_in: some owl:Thing
+  Annotations: rdfs:label "quality"^^xsd:string,
+   oio:inSubset <http://x.org#upper_level>
+
+Class: :abnormal
+ SubClassOf: quality:
+  
 Class: :abnormal_morphology
+ SubClassOf: :abnormal
 
 Class: :hypoplastic
   SubClassOf: :abnormal_morphology
@@ -77,45 +110,59 @@ Class: :hyperplastic
   SubClassOf: :abnormal_morphology
 
 Class: :hypoplastic_forelimb
-  SubClassOf: :hypoplastic and :inheres_in some :forelimb
+  EquivalentTo: has_part: some (:hypoplastic and inheres_in: some :forelimb)
 
 Class: :hypoplastic_hindlimb
-  SubClassOf: :hypoplastic and :inheres_in some :hindlimb
+  EquivalentTo: has_part: some (:hypoplastic and inheres_in: some :hindlimb)
 
 Class: :hyperplastic_hand
-  SubClassOf: :hyperplastic and :inheres_in some :hand
+  EquivalentTo: has_part: some (:hyperplastic and inheres_in: some :hand)
+
+Class: :hyperplastic_head
+  EquivalentTo: has_part: some (:hyperplastic and inheres_in: some :head)
 
 Class: :hyperplastic_foot
-  SubClassOf: :hyperplastic and :inheres_in some :foot
+  EquivalentTo: has_part: some (:hyperplastic and inheres_in: some :foot)
 
 Class: :abnormal_hindlimb_bud_morphology
-  SubClassOf: :abnormal_morphology and :inheres_in some :hindlimb_bud
+  EquivalentTo: has_part: some (:abnormal_morphology and inheres_in: some :hindlimb_bud)
 
 Class: :color
+  SubClassOf: quality:
 
 Class: :red
   SubClassOf: :color
 
+Class: cell:
+ SubClassOf: :anatomical_entity
+  
+
 Class: :photoreceptor
+  SubClassOf: cell:
 
 Class: :ommatidium
-  SubClassOf: :has_part some :photoreceptor
+  SubClassOf: composed_primarily_of: some :photoreceptor
 
 Class: :retina
-  SubClassOf: :has_part some :photoreceptor
+  SubClassOf: composed_primarily_of: some :photoreceptor
 
 Class: :compound_eye
-  SubClassOf: :part_of some :head
-  SubClassOf: :has_part some :ommatidium
+  SubClassOf: part_of: some :head
+  SubClassOf: has_part: some :ommatidium
 
 Class: :camera_eye
-  SubClassOf: :part_of some :head
-  SubClassOf: :has_part some :retina
+  SubClassOf: part_of: some :head
+  SubClassOf: has_part: some :retina
 
 Class: :dm_red_eyes
-  EquivalentTo: :red and :inheres_in some :compound_eye
+  EquivalentTo: :red and inheres_in: some :compound_eye
 
 Class: :head
+ SubClassOf: :anatomical_entity
+Class: :liver
+ SubClassOf: :anatomical_entity
+Class: :lobe_of_liver
+  SubClassOf: part_of: some :liver
 
 Class: :metazoan
 
@@ -127,23 +174,39 @@ Class: :mouse
   SubClassOf: :mammal
 Class: :fly
   SubClassOf: :metazoan
+Class: :zebrafish
+  SubClassOf: :metazoan
 
 Individual: :h1
     Annotations: rdfs:label "human 1"^^xsd:string
-  Types: :human, :has_phenotype some :hyperplastic_foot
+  Types: :human, has_phenotype: some :hyperplastic_foot, has_phenotype: some (has_part: some (:red and inheres_in: some :camera_eye)), has_phenotype: some (has_part: some (:hypoplastic and inheres_in: some :retina))
 
 Individual: :h2
     Annotations: rdfs:label "human 2"^^xsd:string
-  Types: :human, :has_phenotype some :hyperplastic_hand
+  Types: :human, has_phenotype: some :hyperplastic_hand
 
 Individual: :h3
     Annotations: rdfs:label "human 3"^^xsd:string
-  Types: :human, :has_phenotype some :hyperplastic and :inheres_in some :hand
+  Types: :human, has_phenotype: some (has_part: some (:hyperplastic and inheres_in: some FMA_hand:))
+
+Individual: :h4
+    Annotations: rdfs:label "human 4"^^xsd:string
+  Types: :human, has_phenotype: some (has_part: some (:hyperplastic and inheres_in: some :hindlimb))
+
+Individual: :h5
+    Annotations: rdfs:label "human 5"^^xsd:string
+  Types: :human, has_phenotype: some (has_part: some (:hyperplastic and inheres_in: some :forelimb))
 
 Individual: :m1
     Annotations: rdfs:label "mouse 1"^^xsd:string
-  Types: :mouse, :has_phenotype some :hyperplastic_hand, :has_phenotype some :abnormal_hindlimb_bud_morphology
+  Types: :mouse, has_phenotype: some :hyperplastic_head, has_phenotype: some :abnormal_hindlimb_bud_morphology
 
 Individual: :dm1
     Annotations: rdfs:label "dmel 1"^^xsd:string
-  Types: :fly, :has_phenotype some :dm_red_eyes
+  Types: :fly, has_phenotype: some :dm_red_eyes
+
+Individual: :dm2
+    Annotations: rdfs:label "dmel 2"^^xsd:string
+  Types: :fly, has_phenotype: some (has_part: some (:hyperplastic and inheres_in: some :ommatidium))
+
+

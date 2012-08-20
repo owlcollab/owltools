@@ -1,5 +1,8 @@
 package owltools.sim.preprocessor;
 
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
@@ -23,13 +27,19 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import owltools.io.OWLPrettyPrinter;
 import owltools.sim.SimpleOwlSim;
 
 public abstract class AbstractSimPreProcessor implements SimPreProcessor {
@@ -40,6 +50,8 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	Map<OWLClass,Set<OWLClass>> viewMap = new HashMap<OWLClass,Set<OWLClass>>();
 	Map<OWLClass,Map<OWLObjectProperty,OWLClass>> viewMapByProp = new HashMap<OWLClass,Map<OWLObjectProperty,OWLClass>>();
 	Set<OWLClass> newClasses = new HashSet<OWLClass>();
+	public OWLPrettyPrinter owlpp = null;
+	Map<OWLObjectProperty,String> propertyToFormatMap = new HashMap<OWLObjectProperty,String>();
 
 	protected Logger LOG = Logger.getLogger(AbstractSimPreProcessor.class);
 	private OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
@@ -75,6 +87,10 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 
 	public void setReasonerFactory(OWLReasonerFactory reasonerFactory) {
 		this.reasonerFactory = reasonerFactory;
+	}
+	
+	public void setOWLPrettyPrinter(OWLPrettyPrinter owlpp) {
+		this.owlpp = owlpp;
 	}
 
 
@@ -131,6 +147,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	public Set<OWLAxiom> createPropertyView(OWLObjectProperty viewProperty, Set<OWLClass> classes, String labelFormat) {
 		OWLAnnotationProperty rdfsLabel = getOWLDataFactory().getRDFSLabel();
 		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
+		propertyToFormatMap.put(viewProperty, labelFormat);
 		for (OWLClass c : classes) {
 			if (c.equals(getOWLDataFactory().getOWLNothing())) {
 				continue;
@@ -155,6 +172,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		}	
 		LOG.info("Num new classes:"+newClasses.size());
 		addAxiomsToOutput(newAxioms);
+		flush();
 		return newAxioms;
 	}
 
@@ -281,7 +299,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		else {
 			rootClass = materializeClassExpression(rootClassExpr);
 		}
-		
+
 		if (rootClass.equals(getOWLDataFactory().getOWLThing())) {
 			classes = inputOntology.getClassesInSignature(true);
 		}
@@ -303,24 +321,141 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		return types;
 	}
 
+	public Set<OWLClass> materializeClassExpressionsReferencedBy(OWLObjectProperty p) {
+		Set<OWLClassExpression> xs = new HashSet<OWLClassExpression>();
+		for (OWLAxiom ax : outputOntology.getReferencingAxioms(p, true)) {
+			if (ax instanceof OWLSubClassOfAxiom) {
+				xs.addAll(getClassExpressionReferencedBy(p, ((OWLSubClassOfAxiom)ax).getSuperClass()));
+			}
+			else if (ax instanceof OWLClassAssertionAxiom) {
+				xs.addAll(getClassExpressionReferencedBy(p, ((OWLClassAssertionAxiom)ax).getClassExpression()));
+			}
+			else if (ax instanceof OWLEquivalentClassesAxiom) {
+				for (OWLClassExpression x : ((OWLEquivalentClassesAxiom)ax).getClassExpressions()) {
+					xs.addAll(getClassExpressionReferencedBy(p,x));
+				}
+			}
+		}
+		return materializeClassExpressions(xs);
+	}
+
+	private Set<OWLClassExpression> getClassExpressionReferencedBy(OWLObjectProperty p, OWLClassExpression x) {
+		Set<OWLClassExpression> xs = new HashSet<OWLClassExpression>();
+		if (x instanceof OWLObjectSomeValuesFrom) {
+			OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)x;
+			if (svf.getProperty().equals(p)) {
+				return Collections.singleton(svf.getFiller());
+			}
+			else {
+				return getClassExpressionReferencedBy(p, svf.getFiller());
+			}
+		}
+		else if (x instanceof OWLObjectIntersectionOf) {
+			for (OWLClassExpression op : ((OWLObjectIntersectionOf)x).getOperands()) {
+				xs.addAll(getClassExpressionReferencedBy(p,op));
+			}
+		}
+		else if (x instanceof OWLObjectUnionOf) {
+			for (OWLClassExpression op : ((OWLObjectUnionOf)x).getOperands()) {
+				xs.addAll(getClassExpressionReferencedBy(p,op));
+			}
+		}
+
+		return xs;
+	}
 
 	public OWLClass materializeClassExpression(OWLClassExpression ce) {
-		Set<OWLAxiom> axs = materializeClassExpressions(Collections.singleton(ce));
-		return this.extractClassesFromDeclarations(axs).iterator().next();
+		return materializeClassExpressions(Collections.singleton(ce)).iterator().next();
 	}
-	public Set<OWLAxiom> materializeClassExpressions(Set<OWLClassExpression> ces) {
+	public Set<OWLClass> materializeClassExpressions(Set<OWLClassExpression> ces) {
+		OWLAnnotationProperty rdfsLabel = getOWLDataFactory().getRDFSLabel();
 		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
+		Set<OWLClass> newClasses = new HashSet<OWLClass>();
 		for (OWLClassExpression ce : ces) {
-			if (ce instanceof OWLClass)
+			if (ce instanceof OWLClass) {
+				newClasses.add((OWLClass) ce);
 				continue;
-			OWLClass mc = getOWLDataFactory().getOWLClass(IRI.create("http://x.org#"+UUID.randomUUID().toString()));
+			}
+
+			OWLClass mc = getOWLDataFactory().getOWLClass(IRI.create("http://x.org#"+MD5(ce.toString())));
 			newAxioms.add(getOWLDataFactory().getOWLDeclarationAxiom(mc));
 			newAxioms.add(getOWLDataFactory().getOWLEquivalentClassesAxiom(mc, ce));
+			//if (owlpp != null) {
+				newAxioms.add(
+						getOWLDataFactory().getOWLAnnotationAssertionAxiom(rdfsLabel, mc.getIRI(), 
+								getOWLDataFactory().getOWLLiteral(generateLabel(ce)))
+				);
+			//}
 			LOG.info(mc + " EQUIV_TO "+ce);
+			newClasses.add(mc);
 		}
-		this.addAxiomsToOutput(newAxioms);
-		return newAxioms;
+		// some CEs will be identical, but they will be mapped to the same class.
+		// we might be able to optimize by pre-filtering dupes
+		addAxiomsToOutput(newAxioms);
+
+		/*
+		// we have to do this afterwards, as the rendering relies on the axioms being in the ontology
+		if (owlpp != null) {
+			newAxioms = new HashSet<OWLAxiom>();
+			for (OWLClass mc : newClasses) {
+				newAxioms.add(
+						getOWLDataFactory().getOWLAnnotationAssertionAxiom(rdfsLabel, mc.getIRI(), 
+								getOWLDataFactory().getOWLLiteral(owlpp.render(mc)))
+				);
+			}
+			addAxiomsToOutput(newAxioms);
+		}
+		*/
+
+		return newClasses;
 	}
+
+	public String MD5(String md5) {
+		try {
+			java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+			byte[] array = md.digest(md5.getBytes());
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < array.length; ++i) {
+				sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+			}
+			return sb.toString();
+		} catch (java.security.NoSuchAlgorithmException e) {
+		}
+		return null;
+	}
+	
+	public String generateLabel(OWLClassExpression x) {
+		StringBuffer sb = new StringBuffer();
+		if (x instanceof OWLObjectSomeValuesFrom) {
+			OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom) x;	
+			OWLObjectPropertyExpression p = svf.getProperty();
+			if (propertyToFormatMap.containsKey(p)) {
+				return String.format(propertyToFormatMap.get(p), generateLabel(svf.getFiller()));
+			}
+			else {
+				String pStr = p.toString();
+				if (p instanceof OWLEntity) {
+					pStr = getAnyLabel((OWLEntity)p);
+				}
+				return pStr + " some "+generateLabel(svf.getFiller());
+			}
+		}
+		else if (x instanceof OWLObjectIntersectionOf) {
+			OWLObjectIntersectionOf oio = (OWLObjectIntersectionOf) x;
+			for (OWLClassExpression op : oio.getOperands()) {
+				if (sb.length() > 0) {
+					sb.append(" and ");
+				}
+				sb.append(generateLabel(op));
+			}
+			return sb.toString();
+		}
+		else if (x instanceof OWLClass) {
+			return this.getAnyLabel((OWLClass) x);
+		}
+		return x.toString();
+	}
+
 
 	OWLDataFactory getOWLDataFactory() {
 		return getOWLOntologyManager().getOWLDataFactory();

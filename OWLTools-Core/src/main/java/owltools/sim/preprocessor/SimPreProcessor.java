@@ -8,6 +8,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import owltools.io.OWLPrettyPrinter;
+
 
 /**
  * An ontology pre-processor will take an input ontology, apply a series of transforms, and generate
@@ -91,6 +93,8 @@ public interface SimPreProcessor {
 	 * @return LCS
 	 */
 	public OWLClassExpression getLowestCommonSubsumer(OWLClassExpression a, OWLClassExpression b);
+
+	public void setOWLPrettyPrinter(OWLPrettyPrinter owlpp);
 
 
 }

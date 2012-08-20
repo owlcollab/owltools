@@ -16,14 +16,19 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
-public class PhenoSimQualityCentricPreProcessor extends AbstractOBOSimPreProcessor {
+public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 
 	public String QUALITY = "PATO_0000001";
 	public boolean isMultiSpecies = true;
 
 	public void preprocess() {
 
+		// classes and properties
 		OWLClass owlThing = getOWLDataFactory().getOWLThing();
+		OWLObjectProperty df = getOWLObjectPropertyViaOBOSuffix(DEVELOPS_FROM);
+		OWLObjectProperty cpo = getOWLObjectPropertyViaOBOSuffix(COMPOSED_PRIMARILY_OF);
+		OWLObjectProperty inheresIn = getOWLObjectPropertyViaOBOSuffix(INHERES_IN);
+		OWLObjectProperty hasPart = getOWLObjectPropertyViaOBOSuffix(HAS_PART);
 
 		// E.g. hand part_of some hand
 		makeReflexive(PART_OF);
@@ -31,48 +36,77 @@ public class PhenoSimQualityCentricPreProcessor extends AbstractOBOSimPreProcess
 		// E.g. limb bud develops_from some limb bud
 		makeReflexive(DEVELOPS_FROM);
 
-		// i.e. everything except qualities
-		// TODO - filter
+		// Everything is made from itself
+		makeReflexive(COMPOSED_PRIMARILY_OF);
+
+		// Get all "E" classes - i.e. everything except qualities
+		// this is filtered to include only classes that are useful for grouping classes
 		Set<OWLClass> entityClasses = getPhenotypeEntityClasses();
 		LOG.info("Num entity classes:"+entityClasses.size());
+		
+		// VIEW: composed_primarily_of
+		// E.g. "composed primarily of some hair cell".
+		// only build this view for parents of a cpo relationship
+		createPropertyView(cpo, filterByDirectProperty(entityClasses, cpo), "%s-based entity");
 
-		// E.g. "develops from some limb bud"
-		OWLObjectProperty df = getOWLObjectPropertyViaOBOSuffix(DEVELOPS_FROM);
+		// VIEW: develops_from
+		// E.g. "develops from some limb bud".
+		// only build this view for parents of a df relationship
 		createPropertyView(df, filterByDirectProperty(entityClasses, df), "%s or derivative");
 		//createPropertyView(df, entityClasses, "%s or derivative");
 		//filterUnused(dfAxioms);
 
+		// VIEW: part_of
 		// E.g. "part of some limb"
 		createPropertyView(getOWLObjectPropertyViaOBOSuffix(PART_OF), entityClasses, "%s structure");
 
+		// Maintain a list of new E classes
 		// E.g. E = {limb, limb structure, limb bud, limb bud derivative}
 		entityClasses.addAll(newClasses);
-
-		// reset
-		//newClasses = new HashSet<OWLClass>();
 		entityClasses.add(owlThing);
-		OWLObjectProperty inheresIn = getOWLObjectPropertyViaOBOSuffix(INHERES_IN);
-		createPropertyView(inheresIn, entityClasses, "%s phenotype");
 
-		//getReasoner().flush();
-		//generateLeastCommonSubsumers(getQualityClasses(), newClasses);
+		// VIEW: inheres_in
+		// the resulting classes are dependent continuants, on the same footing as qualities;
+		// intersections can be made with these
+		newClasses = new HashSet<OWLClass>();
+		createPropertyView(inheresIn, entityClasses, "affected %s");
 
+		// note: need to materialize QE class expressions - these are currently embedded in
+		// "has_part some QE" expressions
+		getReasoner().flush();
+		Set<OWLClass> thingsWithParts = materializeClassExpressionsReferencedBy(hasPart);
+		getReasoner().flush();
+		generateLeastCommonSubsumers(thingsWithParts, thingsWithParts);
+		getReasoner().flush();
 
+		// note the ontology should have an axiom "Quality SubClassOf inheres_in some Thing"
 		OWLClass inheresInSomeThing = this.viewMapByProp.get(owlThing).get(inheresIn);
 		if (inheresInSomeThing == null) {
 			LOG.warn("Cannot get view class for root of "+inheresIn);
 		}
 		getReasoner().flush();
-		//newClasses = new HashSet<OWLClass>();
-		//createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), inheresInSomeThing, "has %s");
-		createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), inheresInSomeThing, "has %s");
+
+		// E.g. has_phenotype some (Q and inheres_in some E)
+		// Note that has_phenotype <- has_phenotype o has_part, so this should work for both:
+		//  * i1 Type: has_phenotype some (Q and inheres_in some E)
+		//  * i1 Type: has_phenotype some (has_part some (Q and inheres_in some E))
+		// [auto-generated labels for the latter may look odd]
+		createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), inheresInSomeThing, "%s phenotype");
 
 		getReasoner().flush();
-		Set<OWLClassExpression> attExprs = this.getDirectAttributeClassExpressions();
-		Set<OWLAxiom> tempAxioms = materializeClassExpressions(attExprs);
-		Set<OWLClass> attClasses = this.extractClassesFromDeclarations(tempAxioms);
+		generateLeastCommonSubsumersForAttributeClasses();
+
+		//getReasoner().flush();
+		//Set<OWLClassExpression> attExprs = this.getDirectAttributeClassExpressions();
+		//Set<OWLClass> attClasses = materializeClassExpressions(attExprs);
+
+		// INTERSECTIONS
+		// E.g 'has phenotype some affected limb' and 'has phenotype hyperplastic'.
+		// This is not ideal as each individual can have multiple of each;
+		// better to do before but we need to materialize
 		getReasoner().flush();
-		generateLeastCommonSubsumers(attClasses, attClasses);
+		//generateLeastCommonSubsumers(attClasses, attClasses);
+
 		//this.getOWLOntologyManager().removeAxioms(outputOntology, tempAxioms);
 	}
 
