@@ -40,6 +40,7 @@ import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
@@ -78,6 +79,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gfx.GraphicsConfig;
@@ -517,8 +519,46 @@ public class CommandRunner {
 					}
 				}
 			}
+			else if (opts.nextEq("--extract-ontology-metadata")) {
+				opts.info("[-c ONT-IRI]", "extracts annotations from ontology");
+				String mdoIRI = "http://x.org";
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-c")) {
+						mdoIRI = opts.nextOpt();
+					}
+					else
+						break;
+				}
+				OWLGraphWrapper mdg  = new OWLGraphWrapper(mdoIRI);
+				OWLOntology mdo = mdg.getSourceOntology();
+				for (OWLOntology o : g.getAllOntologies()) {
+					LOG.info("Ontology:"+o);
+					IRI oi = o.getOntologyID().getOntologyIRI();
+					for (OWLAnnotation ann : o.getAnnotations()) {
+						OWLAnnotationAssertionAxiom aaa = mdg.getDataFactory().getOWLAnnotationAssertionAxiom(oi, ann);
+						LOG.info("  adding ontology metadata assertion:"+aaa);
+						mdg.getManager().addAxiom(mdo,aaa); 
+					}
+					for (OWLImportsDeclaration oid : o.getImportsDeclarations()) {
+						OWLAnnotationAssertionAxiom aaa = 
+							mdg.getDataFactory().getOWLAnnotationAssertionAxiom(g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.OWL_IMPORTS.getIRI()),
+									oi, oid.getIRI());
+						mdg.getManager().addAxiom(mdo, aaa);
+					}
+					IRI v = o.getOntologyID().getVersionIRI();
+					if (v != null) {
+						OWLAnnotationAssertionAxiom aaa = 
+							mdg.getDataFactory().getOWLAnnotationAssertionAxiom(g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.OWL_VERSION_IRI.getIRI()),
+									oi, v);
+						mdg.getManager().addAxiom(mdo, aaa);
+					
+					}
+
+				}
+				g.setSourceOntology(mdo);
+			}
 			else if (opts.nextEq("--oppl")) {
-				opts.info("[--dry-run] [-i OPPL-SCRIPT-FILE] OPPL-STRING", "runs an oppl script");
+				opts.info("[--dry-run] [[-i OPPL-SCRIPT-FILE] | OPPL-STRING]", "runs an oppl script");
 				boolean isDryRun = false;
 				String script = null;
 				while (opts.hasOpts()) {
