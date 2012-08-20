@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
@@ -31,9 +32,13 @@ import owltools.sim.Reporter;
 import owltools.sim.SimEngine;
 import owltools.sim.SimpleOwlSim;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
+import owltools.sim.SimpleOwlSim.EnrichmentConfig;
+import owltools.sim.SimpleOwlSim.EnrichmentResult;
 import owltools.sim.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
+import owltools.sim.preprocessor.PhenoSimHQEPreProcessor;
+import owltools.sim.preprocessor.SimPreProcessor;
 import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
 
 /**
@@ -49,6 +54,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	private OWLOntology simOnt = null;
 	private String similarityAlgorithmName = "JaccardSimilarity";
 	SimpleOwlSim sos;
+	SimPreProcessor pproc;
 
 	@CLIMethod("--sim-method")
 	public void setSimMethod(Opts opts) {
@@ -372,6 +378,31 @@ public class SimCommandRunner extends SolrCommandRunner {
 		}
 	}
 	
+	public void runOwlSim() {
+		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
+		for (OWLEntity i : insts) {
+			for (OWLEntity j : insts) {
+				if (i.equals(j))
+					continue;
+				showSim((OWLNamedIndividual)i,(OWLNamedIndividual)j);
+			}
+		}
+
+	}
+	
+	@CLIMethod("--phenosim")
+	public void phenoSim(Opts opts) throws OWLOntologyCreationException {
+		pproc = new PhenoSimHQEPreProcessor();
+		pproc.setInputOntology(g.getSourceOntology());
+		pproc.setOutputOntology(g.getSourceOntology());
+		pproc.preprocess();
+		pproc.getReasoner().flush();
+		runOwlSim();
+	}
+
+	
+	/*
+	
 	// NEW
 	@CLIMethod("--owlsim-init")
 	public void owlsimInit(Opts opts) throws OWLOntologyCreationException {
@@ -382,6 +413,9 @@ public class SimCommandRunner extends SolrCommandRunner {
 	// NEW
 	@CLIMethod("--owlsim-create-sim-ont")
 	public void owlsimCreateSimOnt(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+		}
 		sos.generateGroupingClasses();
 	}
 	
@@ -421,6 +455,43 @@ public class SimCommandRunner extends SolrCommandRunner {
 		}
 	}
 	
+	*/
+	
+	// NEW
+	@CLIMethod("--enrichment-analysis")
+	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
+		owlpp = new OWLPrettyPrinter(g);
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.createElementAttributeMapFromOntology();
+		}
+		EnrichmentConfig ec = new EnrichmentConfig();
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-p")) {
+				ec.pValueCorrectedCutoff = Double.parseDouble(opts.nextOpt());				
+			}
+			else if (opts.nextEq("-i")) {
+				ec.attributeInformationContentCutoff = Double.parseDouble(opts.nextOpt());				
+			}
+			else 
+				break;
+		}
+		sos.setEnrichmentConfig(ec);
+		OWLClass rc1 = this.resolveClass(opts.nextOpt());
+		OWLClass rc2 = this.resolveClass(opts.nextOpt());
+		OWLClass pc = g.getDataFactory().getOWLThing();
+		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1, rc2);
+		for (EnrichmentResult result : results) {
+			System.out.println(render(result));
+		}
+	}
+
+	private String render(EnrichmentResult r) {
+		return owlpp.render(r.sampleSetClass) +"\t"+ owlpp.render(r.enrichedClass)
+		+"\t"+ r.pValue +"\t"+ r.pValueCorrected;
+	}
+
+
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
 		
 		float s = sos.getElementJaccardSimilarity(i, j);
@@ -434,6 +505,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	}
 
 
+	/*
 	
 	// NEW
 	@CLIMethod("--owlsim-all-by-all")
@@ -446,7 +518,9 @@ public class SimCommandRunner extends SolrCommandRunner {
 	public void owlsimDispose(Opts opts) throws OWLOntologyCreationException {
 		sos.getReasoner().dispose();
 	}
+	*/
 	
+	/*
 			
 	// NEW
 	@CLIMethod("--owlsim-lcsx")
@@ -472,5 +546,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 		System.out.println("LCS:"+owlpp.render(lcs));
 	}
+	
+	*/
 
 }
