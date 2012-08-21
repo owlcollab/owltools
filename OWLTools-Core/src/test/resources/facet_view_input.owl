@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY obo "http://purl.obolibrary.org/obo/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY oboInOwl "http://www.geneontology.org/formats/oboInOwl#" >
+    <!ENTITY facet_view_input "http://purl.obolibrary.org/obo/facet_view_input#" >
+]>
+
+
+<rdf:RDF xmlns="&obo;facet_view_input.owl#"
+     xml:base="&obo;facet_view_input.owl"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#"
+     xmlns:facet_view_input="&obo;facet_view_input#">
+    <owl:Ontology rdf:about="&obo;facet_view_input.owl"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <owl:AnnotationProperty rdf:about="&oboInOwl;hasDbXref">
+        <rdfs:label rdf:datatype="&xsd;string">database_cross_reference</rdfs:label>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;shorthand">
+        <rdfs:label rdf:datatype="&xsd;string">shorthand</rdfs:label>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&rdfs;label"/>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;id"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000050 -->
+
+    <owl:ObjectProperty rdf:about="&obo;BFO_0000050">
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <rdfs:label rdf:datatype="&xsd;string">part of</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">BFO:0000050</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="&xsd;string">part_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="&xsd;string">part_of</oboInOwl:shorthand>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002206 -->
+
+    <owl:ObjectProperty rdf:about="&obo;RO_0002206">
+        <rdfs:label xml:lang="en">RO_0002206</rdfs:label>
+        <rdfs:label xml:lang="en">expressed in</rdfs:label>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="&obo;RO_0002206"/>
+            <rdf:Description rdf:about="&obo;RO_0002242"/>
+        </owl:propertyChainAxiom>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="&obo;RO_0002206"/>
+            <rdf:Description rdf:about="&obo;BFO_0000050"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002242 -->
+
+    <owl:ObjectProperty rdf:about="&obo;RO_0002242">
+        <rdfs:label xml:lang="en">opposite of</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/#left_autopod -->
+
+    <owl:Class rdf:about="&obo;#left_autopod">
+        <rdfs:label xml:lang="en">left autopod</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;facet_view_input#autopod"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&obo;RO_0002242"/>
+                <owl:someValuesFrom rdf:resource="&obo;#right_autopod"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/#right_autopod -->
+
+    <owl:Class rdf:about="&obo;#right_autopod">
+        <rdfs:label xml:lang="en">right autopod</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;facet_view_input#autopod"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&obo;RO_0002242"/>
+                <owl:someValuesFrom rdf:resource="&obo;#left_autopod"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/facet_view_input#autopod -->
+
+    <owl:Class rdf:about="&obo;facet_view_input#autopod">
+        <rdfs:label>autopod</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&obo;BFO_0000050"/>
+                <owl:someValuesFrom rdf:resource="&obo;facet_view_input#limb"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <oboInOwl:id rdf:datatype="&xsd;string">autopod</oboInOwl:id>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/facet_view_input#autopod_part -->
+
+    <owl:Class rdf:about="&obo;facet_view_input#autopod_part">
+        <rdfs:label xml:lang="en">autopod part</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&obo;BFO_0000050"/>
+                <owl:someValuesFrom rdf:resource="&obo;facet_view_input#autopod"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/facet_view_input#digit -->
+
+    <owl:Class rdf:about="&obo;facet_view_input#digit">
+        <rdfs:label>digit</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&obo;BFO_0000050"/>
+                <owl:someValuesFrom rdf:resource="&obo;facet_view_input#autopod"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <oboInOwl:id rdf:datatype="&xsd;string">digit</oboInOwl:id>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/facet_view_input#finger -->
+
+    <owl:Class rdf:about="&obo;facet_view_input#finger">
+        <rdfs:label>finger</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;facet_view_input#digit"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">finger</oboInOwl:id>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/facet_view_input#limb -->
+
+    <owl:Class rdf:about="&obo;facet_view_input#limb">
+        <rdfs:label>limb</rdfs:label>
+        <oboInOwl:id rdf:datatype="&xsd;string">limb</oboInOwl:id>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/facet_view_input#limb_part -->
+
+    <owl:Class rdf:about="&obo;facet_view_input#limb_part">
+        <rdfs:label xml:lang="en">limb part</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&obo;BFO_0000050"/>
+                <owl:someValuesFrom rdf:resource="&obo;facet_view_input#limb"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.2.3.22702) http://owlapi.sourceforge.net -->
+
