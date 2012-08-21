@@ -23,6 +23,12 @@ import owltools.graph.OWLGraphWrapper;
  */
 public class GoAnnotationTaxonRule extends AnnotationTaxonRule {
 	
+	/**
+	 * The string to identify this class in the annotation_qc.xml and related factories.
+	 * This is not supposed to be changed. 
+	 */
+	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.AnnotationTaxonRule";
+	
 	private static final String neverId = "RO:0002161";
 	private static final String onlyId = "RO:0002160";
 	

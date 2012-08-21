@@ -8,6 +8,13 @@ import owltools.gaf.GeneAnnotation;
  * Data associated with a rule violation
  */
 public class AnnotationRuleViolation {
+	
+	public static enum ViolationType {
+		Error,
+		Warning,
+		Recommandation
+		// TODO Handle warnings and errors, which can be fixed by the test (e.g., by removing or by inference)
+	}
 
 	private final String message;
 	private Set<GeneAnnotation> suggestedReplacements;
@@ -16,6 +23,7 @@ public class AnnotationRuleViolation {
 	private String gafDocument;
 	private final String ruleId;
 	private int lineNumber = -1;
+	private ViolationType type;
 
 	/**
 	 * Create a simple violation from with a given message.
@@ -24,9 +32,7 @@ public class AnnotationRuleViolation {
 	 * @param msg
 	 */
 	public AnnotationRuleViolation(String ruleId, String msg) {
-		super();
-		this.ruleId = ruleId;
-		message = msg;
+		this(ruleId, msg, (String) null);
 	}
 
 	/**
@@ -41,6 +47,20 @@ public class AnnotationRuleViolation {
 		this(ruleId, message);
 		setSourceAnnotation(sourceAnnotation);
 	}
+	
+	/**
+	 * Create a violation object with a message and a the corresponding source
+	 * annotation.
+	 * 
+	 * @param ruleId 
+	 * @param message
+	 * @param sourceAnnotation
+	 * @param type
+	 */
+	public AnnotationRuleViolation(String ruleId, String message, GeneAnnotation sourceAnnotation, ViolationType type) {
+		this(ruleId, message, (String) null, type);
+		setSourceAnnotation(sourceAnnotation);
+	}
 
 	/**
 	 * Create a violation object with a message and a the corresponding
@@ -51,8 +71,24 @@ public class AnnotationRuleViolation {
 	 * @param annotationRow
 	 */
 	public AnnotationRuleViolation(String ruleId, String message, String annotationRow) {
-		this(ruleId, message);
+		this(ruleId, message, annotationRow, ViolationType.Error);
+	}
+	
+	/**
+	 * Create a violation object with a message and a the corresponding
+	 * annotation row and {@link ViolationType}.
+	 * 
+	 * @param ruleId 
+	 * @param message
+	 * @param annotationRow
+	 * @param type
+	 */
+	public AnnotationRuleViolation(String ruleId, String message, String annotationRow, ViolationType type) {
+		super();
+		this.ruleId = ruleId;
+		this.message = message;
 		this.annotationRow = annotationRow;
+		this.type = type;
 	}
 
 	public String getRuleId() {
@@ -112,6 +148,20 @@ public class AnnotationRuleViolation {
 
 	public void setGafDoument(String gafDoument) {
 		this.gafDocument = gafDoument;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public ViolationType getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(ViolationType type) {
+		this.type = type;
 	}
 
 	@Override

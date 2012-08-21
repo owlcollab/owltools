@@ -1,7 +1,9 @@
 package owltools.gaf.rules.go;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -13,10 +15,7 @@ import owltools.io.ParserWrapper;
 
 public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 
-	private final BasicChecksRule basicChecksRule;
-	private final GoAnnotationTaxonRule taxonRule;
-	private final GoClassReferenceAnnotationRule referenceAnnotationRule;
-	private final GenericReasonerValidationCheck genericValidationRule;
+	private final Map<String, AnnotationRule> namedRules;
 	
 	public GoAnnotationRulesFactoryImpl() {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
@@ -24,24 +23,33 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 				Arrays.asList("http://www.geneontology.org/ontology/editors/gene_ontology_write.obo",
 					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/taxon_go_triggers.obo",
 					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/ncbi_taxon_slim.obo",
-					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/taxon_union_terms.obo"));
+					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/taxon_union_terms.obo"),
+					"http://purl.obolibrary.org/obo/eco.owl");
 	}
 	
-	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph) {
+	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, OWLGraphWrapper eco) {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
-				"http://www.geneontology.org/doc/GO.xrf_abbs", graph);
+				"http://www.geneontology.org/doc/GO.xrf_abbs", graph, eco);
 	}
 	
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, List<String> ontologies) {
-		this(qcfile, xrfabbslocation, getOntologies(ontologies));
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, List<String> ontologies, String eco) {
+		this(qcfile, xrfabbslocation, getOntologies(ontologies), getEco(eco));
 	}
 	
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph) {
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, OWLGraphWrapper eco) {
 		super(qcfile);
-		basicChecksRule = new BasicChecksRule(xrfabbslocation);
-		taxonRule = new GoAnnotationTaxonRule(graph);
-		referenceAnnotationRule = new GoClassReferenceAnnotationRule(graph);
-		genericValidationRule = new GenericReasonerValidationCheck(graph);
+		namedRules = new HashMap<String, AnnotationRule>();
+		namedRules.put(BasicChecksRule.PERMANENT_JAVA_ID,  new BasicChecksRule(xrfabbslocation));
+		namedRules.put(GoAnnotationTaxonRule.PERMANENT_JAVA_ID, new GoAnnotationTaxonRule(graph));
+		namedRules.put(GoClassReferenceAnnotationRule.PERMANENT_JAVA_ID, new GoClassReferenceAnnotationRule(graph));
+		namedRules.put(GenericReasonerValidationCheck.PERMANENT_JAVA_ID, new GenericReasonerValidationCheck(graph));
+		namedRules.put(GoNoISSProteinBindingRule.PERMANENT_JAVA_ID, new GoNoISSProteinBindingRule(eco));
+		namedRules.put(GoBindingCheckWithFieldRule.PERMANENT_JAVA_ID, new GoBindingCheckWithFieldRule(eco));
+		namedRules.put(GoIEPRestrictionsRule.PERMANENT_JAVA_ID, new GoIEPRestrictionsRule(graph, eco));
+		namedRules.put(GoIPICatalyticActivityRestrictionsRule.PERMANENT_JAVA_ID, new GoIPICatalyticActivityRestrictionsRule(graph, eco));
+		namedRules.put(GoICAnnotationRule.PERMANENT_JAVA_ID, new GoICAnnotationRule(eco));
+		namedRules.put(GoIDAAnnotationRule.PERMANENT_JAVA_ID, new GoIDAAnnotationRule(eco));
+		namedRules.put(GoIPIAnnotationRule.PERMANENT_JAVA_ID, new GoIPIAnnotationRule(eco));
 	}
 	
 	private static OWLGraphWrapper getOntologies(List<String> ontologylocations) {
@@ -62,21 +70,23 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	} 
+	}
+	
+	private static OWLGraphWrapper getEco(String location) {
+		try {
+			ParserWrapper p = new ParserWrapper();
+			OWLGraphWrapper wrapper = p.parseToOWLGraph(location);
+			return wrapper;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 	@Override
 	protected AnnotationRule getClassForName(String className) throws Exception {
-		if ("org.geneontology.gold.rules.BasicChecksRule".equals(className)) {
-			return basicChecksRule;
-		}
-		if ("org.geneontology.gold.rules.AnnotationTaxonRule".equals(className)) {
-			return taxonRule;
-		}
-		if ("org.geneontology.gold.rules.GoClassReferenceAnnotationRule".equals(className)) {
-			return referenceAnnotationRule;
-		}
-		if ("org.geneontology.gold.rules.GenericReasonerValidationCheck".equals(className)) {
-			return genericValidationRule;
+		AnnotationRule rule = namedRules.get(className);
+		if (rule != null) {
+			return rule;
 		}
 		return super.getClassForName(className);
 	}

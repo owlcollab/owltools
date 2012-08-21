@@ -20,6 +20,12 @@ import owltools.io.OWLPrettyPrinter;
 
 public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 	
+	/**
+	 * The string to identify this class in the annotation_qc.xml and related factories.
+	 * This is not supposed to be changed. 
+	 */
+	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.GenericReasonerValidationCheck";
+	
 	private static final Logger logger = Logger.getLogger(GenericReasonerValidationCheck.class);
 
 	private final OWLGraphWrapper graph;

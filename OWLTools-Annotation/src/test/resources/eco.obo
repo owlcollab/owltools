@@ -1,0 +1,2367 @@
+format-version: 1.2
+data-version: 2.02
+date: 27:06:2012 18:18
+saved-by: mchibucos
+auto-generated-by: OBO-Edit 2.2-rc1
+default-namespace: evidence_code2.obo
+ontology: eco
+
+[Term]
+id: ECO:0000000
+name: evidence
+def: "A type of information that is used to support an assertion." [ECO:MCC]
+synonym: "evidence code" RELATED []
+synonym: "evidence_code" RELATED []
+
+[Term]
+id: ECO:0000001
+name: inference from background scientific knowledge
+def: "A curator inference that links the current annotation to a different evidence-based annotation via background knowledge of the curator." [ECO:go, ECO:MCC]
+synonym: "IC" EXACT [GO:IC]
+synonym: "inferred by curator" EXACT [GO:IC]
+is_a: ECO:0000205 ! curator inference
+
+[Term]
+id: ECO:0000002
+name: direct assay evidence
+def: "Experimental evidence that is based on direct measurement of some aspect of a biological feature." [ECO:MCC, GO:IDA]
+is_a: ECO:0000006 ! experimental evidence
+
+[Term]
+id: ECO:0000003
+name: reconstitution assay evidence
+is_a: ECO:0000002 ! direct assay evidence
+
+[Term]
+id: ECO:0000004
+name: cell fractionation evidence
+def: "Used when an annotation is made based on separation of subcellular components based on their physical properties, such as density in sucrose density gradients. This evidence is used mostly for annotations to the cellular component ontology." [TAIR:TED]
+synonym: "IDA: cell fractionation" RELATED []
+is_a: ECO:0000100 ! fractionation evidence
+
+[Term]
+id: ECO:0000005
+name: enzyme assay evidence
+def: "Used when an annotation is made based on assays that determine the catalytic activity of enzymes." [TAIR:TED]
+synonym: "IDA: enzyme assays" RELATED []
+xref: PSI-MI:MI\:0415 "enzymatic study"
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000006
+name: experimental evidence
+def: "An evidence type that is based on the results of a laboratory assay." [ECO:MCC, GOC:ecd]
+synonym: "EXP" EXACT [GO:EXP]
+synonym: "inferred from experiment" EXACT [GO:EXP]
+is_a: ECO:0000000 ! evidence
+
+[Term]
+id: ECO:0000007
+name: immunofluorescence evidence
+def: "A type of protein assay evidence where a fluorescently labeled antibody is used to detect the presence or localization of a biomolecule within a cell." [ECO:MCC, TAIR:TED]
+synonym: "IDA: immunofluorescence" RELATED []
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000008
+name: expression pattern evidence
+def: "Experimental evidence that is based on characterization of gene expression." [ECO:MCC, GO:IEP]
+comment: Use this evidence type when the annotation is inferred from the timing or location of expression of a gene. It may be difficult to determine whether the expression pattern truly indicates that a gene plays a role in a given process.
+synonym: "IEP" EXACT [GO:IEP]
+synonym: "inferred from expression pattern" EXACT [GO:IEP]
+is_a: ECO:0000006 ! experimental evidence
+
+[Term]
+id: ECO:0000009
+name: transcript expression evidence
+is_a: ECO:0000008 ! expression pattern evidence
+
+[Term]
+id: ECO:0000010
+name: protein expression evidence
+is_a: ECO:0000008 ! expression pattern evidence
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000011
+name: genetic interaction evidence
+xref: TAIR:TED\:0000006
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000012
+name: functional complementation evidence
+def: "Used when an annotation is made based on a functional complementation assay in which a wild-type copy of the gene in question is inserted into a mutant background in the organism of the gene's origin or a heterologous organism with a mutation in the homologous gene." [TAIR:TED]
+synonym: "IGI: functional complementation" RELATED []
+is_a: ECO:0000011 ! genetic interaction evidence
+
+[Term]
+id: ECO:0000013
+name: transgenic rescue experiment evidence
+is_a: ECO:0000012 ! functional complementation evidence
+
+[Term]
+id: ECO:0000015
+name: mutant phenotype evidence
+def: "The IMP evidence code covers those cases when the function, process or cellular localization of a gene product is inferred based on differences in the function, process, or cellular localization between two different alleles of the corresponding gene. The IMP code is used for cases where one allele may be designated 'wild-type' and another as 'mutant'. It is also used in cases where allelic variation occurs naturally and no specific allele is designated as wild-type or mutant. Caution should be used when making annotations from gain-of-function mutations as it may be difficult to infer a gene's normal function from a gain of function mutation, although it is sometimes possible." [GO:IMP]
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000016
+name: loss-of-function mutant phenotype evidence
+is_a: ECO:0000015 ! mutant phenotype evidence
+
+[Term]
+id: ECO:0000017
+name: ectopic expression evidence
+def: "Used when an annotation is made based on the analysis of the phenotype of a wild-type or mutant transgenic organism that has been engineered to overexpress or ectopically express the gene product in question." [TAIR:TED]
+synonym: "IMP: analysis of overexpression/ectopic expression phenotype" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000018
+name: anti-sense experiment evidence
+def: "Used when an annotation is based on a phenotype observed when expressing an anti-sense version of a gene product in a wild-type (for that gene product) background." [TAIR:TED]
+synonym: "IMP: anti-sense experiments" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000019
+name: RNAi evidence
+def: "Inference based on a phenotype observed when expressing an RNAi construct that includes a fragment of the gene product in a wild-type (for that gene product) background. A double-stranded RNA specifically suppresses the expression of the gene bearing its complementary sequence." [TAIR:TED]
+synonym: "IMP: RNAi experiment" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000020
+name: specific protein inhibition experiment evidence
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000021
+name: physical interaction evidence
+def: "Experimental evidence that is based on characterization of an interaction between a gene product and another molecule." [ECO:MCC]
+comment: Molecules interacted with might include protein, nucleic acid, ion, or complex.
+synonym: "inferred from physical interaction" RELATED [GOECO:IPI]
+synonym: "IPI" RELATED [GOECO:IPI]
+xref: GOECO:IPI "inferred from physical interaction"
+xref: PSI-MI:MI\:0045 "experimental interaction detection"
+is_a: ECO:0000006 ! experimental evidence
+
+[Term]
+id: ECO:0000022
+name: co-purification evidence
+def: "A type of physical interaction evidence where a cellular component subunit is isolated as part of purification of its larger complex." [TAIR:TED]
+synonym: "IPI: co-purification" RELATED []
+xref: PSI-MI:MI\:0025 "copurification"
+is_a: ECO:0000021 ! physical interaction evidence
+
+[Term]
+id: ECO:0000023
+name: affinity evidence
+def: "A type of physical interaction evidence that depends on the strength of the interaction between two entities." [ECO:MCC, PSI-MI:MI\:0400]
+synonym: "ligand binding evidence" NARROW []
+xref: PSI-MI:MI\:0400 "affinity technology"
+is_a: ECO:0000021 ! physical interaction evidence
+
+[Term]
+id: ECO:0000024
+name: protein binding evidence
+is_a: ECO:0000023 ! affinity evidence
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000025
+name: hybrid interaction evidence
+def: "A type of affinity evidence where proteins of interest (bait and prey) are covalently linked to incomplete fragments of a third protein (reporter) and expressed in vivo, at which time interaction between bait and prey proteins brings reporter fragments in close enough proximity to allow them to reform and become a functional reporter protein." [ECO:MCC, PSI-MI:MI\:0090]
+comment: Typically enzymes which confer resistance to antibiotics, such as Dihydrofolate reductase or Beta-lactamase, or proteins that give colorimetric or fluorescent signals are used. The Bait protein is generally the protein under study and the methods are readily adaptable to highthroughput mode.
+xref: PSI-MI:MI\:0090 "protein complementation assay"
+is_a: ECO:0000023 ! affinity evidence
+
+[Term]
+id: ECO:0000026
+name: nucleic acid hybridization evidence
+is_a: ECO:0000073 ! experimental genomic evidence
+
+[Term]
+id: ECO:0000027
+name: structural similarity evidence
+def: "Used when an annotation is made based on the structural similarity of the annotated gene or gene product to a single other gene or group of genes. In the case of a single gene, an accession for the related gene's sequence is entered in the evidence_with field." [TAIR:TED]
+synonym: "inferred from sequence or structural similarity" BROAD [GO:ISS]
+synonym: "ISS" BROAD [GO:ISS]
+is_a: ECO:0000057 ! phenotypic similarity evidence
+
+[Term]
+id: ECO:0000028
+name: motif similarity evidence
+def: "Used when an annotation is made based on the presence of a recognized domain or motif in a gene product's (usually protein) primary sequence." [TAIR:TED]
+synonym: "ISS: recognized domains" RELATED []
+is_a: ECO:0000044 ! sequence similarity evidence
+
+[Term]
+id: ECO:0000029
+name: match to InterPro signature evidence
+is_a: ECO:0000202 ! match to sequence model evidence
+
+[Term]
+id: ECO:0000030
+name: BLAST evidence used in manual assertion
+def: "A type of BLAST evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "curated BLAST analysis" RELATED []
+is_a: ECO:0000206 ! BLAST evidence
+intersection_of: ECO:0000206 ! BLAST evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+
+[Term]
+id: ECO:0000031
+name: protein BLAST evidence used in manual assertion
+def: "Protein BLAST evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "curated protein BLAST analysis" RELATED []
+xref: GO_REF:0000012 "Pairwise alignment (TIGR)"
+xref: GO_REF:0000018 "dictyBase 'Inferred from Electronic Annotation (BLAST method)'"
+xref: GO_REF:0000027 "BLAST search criteria for ISS assignment in PAMGO_GAT"
+is_a: ECO:0000208 ! protein BLAST evidence
+intersection_of: ECO:0000208 ! protein BLAST evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+
+[Term]
+id: ECO:0000032
+name: nucleotide BLAST evidence used in manual assertion
+def: "Nucleotide BLAST evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "curated nucleic acid BLAST analysis" RELATED []
+is_a: ECO:0000207 ! nucleotide BLAST evidence
+intersection_of: ECO:0000207 ! nucleotide BLAST evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+
+[Term]
+id: ECO:0000033
+name: traceable author statement
+def: "An author statement that is based on a cited reference." [ECO:MCC, GO:TAS]
+comment: The traceable author statement (TAS) evidence code covers author statements that are attributed to a cited source. Typically this type of information comes from review articles. Material from the introductions and discussion sections of non-review papers may also be suitable if another reference is cited as the source of experimental work or analysis. When annotating with this code the curator should use caution and be aware that authors often cite papers dealing with experiments that were performed in organisms different from the one being discussed in the paper at hand. Thus a problem with the TAS code is that it may turn out from following up the references in the paper that no experiments were performed on the gene in the organism actually being characterized in the primary paper. For this reason we recommend (when time and resources allow) that curators track down the cited paper and annotate directly from the experimental paper using the appropriate experimental evidence code. When this is not possible and it is necessary to annotate from reviews, the TAS code is the appropriate code to use for statements that are associated with a cited reference. Once an annotation has been made to a given term using an experimental evidence code, we recommend removing any annotations made to the same term using the TAS evidence code.
+is_a: ECO:0000204 ! author statement
+
+[Term]
+id: ECO:0000034
+name: non-traceable author statement
+def: "An author statement that is not associated with results presented or a cited reference." [ECO:MCC]
+comment: The non-traceable author statement evidence code should be used in all cases where the author makes a statement that a curator wants to capture but for which there are neither results presented nor a specific reference cited in the source used to make the annotation. The source of the information may be peer reviewed papers, textbooks, database records or vouchered specimens.
+is_a: ECO:0000204 ! author statement
+
+[Term]
+id: ECO:0000035
+name: no biological data found
+def: "A curator inference that states that a search found no information about a biological feature." [ECO:MCC, GO:ND]
+synonym: "ND" EXACT [GO:ND]
+synonym: "no biological data available" EXACT [GO:ND]
+is_a: ECO:0000205 ! curator inference
+
+[Term]
+id: ECO:0000037
+name: not_recorded
+def: "An evidence that reflects an annotation was made before curators began tracking evidence types." [ECO:MCC, GO:NR]
+comment: The evidence not_recorded appears in some legacy annotations; it should not be used for new annotations.
+synonym: "not recorded" EXACT [GO:NR]
+synonym: "NR" EXACT [GO:NR]
+is_obsolete: true
+
+[Term]
+id: ECO:0000038
+name: transient rescue experiment evidence
+is_a: ECO:0000012 ! functional complementation evidence
+
+[Term]
+id: ECO:0000039
+name: protein assay evidence
+is_a: ECO:0000002 ! direct assay evidence
+
+[Term]
+id: ECO:0000040
+name: immunological assay evidence
+is_a: ECO:0000023 ! affinity evidence
+
+[Term]
+id: ECO:0000041
+name: similarity evidence
+def: "An evidence type that is based on comparing likeness of distinct biological entities." [ECO:MCC, PhenoScape:IS]
+synonym: "inferred from similarity" RELATED []
+synonym: "IS" EXACT []
+is_a: ECO:0000000 ! evidence
+
+[Term]
+id: ECO:0000042
+name: gain-of-function mutant phenotype evidence
+is_a: ECO:0000015 ! mutant phenotype evidence
+
+[Term]
+id: ECO:0000044
+name: sequence similarity evidence
+def: "A type of similarity based on biomolecular sequence." [ECO:MCC, TAIR:TED]
+comment: A sequence similarity analysis may involve a gene or a gene product, and it could be based on similarity to a single other gene or to a group of other genes.
+synonym: "inferred from sequence or structural similarity" BROAD [GO:ISS]
+synonym: "inferred from sequence similarity" EXACT []
+synonym: "ISS" BROAD [GO:ISS]
+is_a: ECO:0000041 ! similarity evidence
+
+[Term]
+id: ECO:0000045
+name: spatial pattern of protein expression evidence
+is_a: ECO:0000010 ! protein expression evidence
+
+[Term]
+id: ECO:0000046
+name: protein expression level evidence
+is_a: ECO:0000010 ! protein expression evidence
+
+[Term]
+id: ECO:0000047
+name: spatial pattern of transcript expression evidence
+is_a: ECO:0000009 ! transcript expression evidence
+
+[Term]
+id: ECO:0000048
+name: transcript expression level evidence
+is_a: ECO:0000009 ! transcript expression evidence
+
+[Term]
+id: ECO:0000049
+name: reporter gene assay evidence
+def: "Used when an annotation is made on the basis of the expression pattern of a reporter gene. The reporter gene may consist of the native promoter of the gene in question that drives the expression of a readily assayable gene product such as GUS or GFP. The reporter gene may also be a marker of a particular type of physiological response." [TAIR:TED]
+synonym: "IEP: expression of a reporter gene" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000050
+name: voucher specimen analysis evidence
+def: "Used when an annotation is made on the basis of for a phenotype description for a species or higher level group that given by an author who explicitly references an observation of a voucher specimen(s). Voucher specimens are defined as those specimens with permanent museum catalog numbers. Thus it would be possible for a person to examine this particular specimen and observe the annotated phenotype." [PhenoScape:DOA]
+synonym: "IVS" EXACT []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000051
+name: genetic similarity evidence
+def: "A type of similarity based on genotype without respect to expression." [ECO:MCC, PhenoScape:IGTS]
+comment: A genetic similarity analysis might consider genetic markers, polymorphisms, alleles, or other characteristics sometimes considered as part of the field of traditional genetics. Although an attempt has been made to treat as distinct the concepts of "genetic", "genotypic", "genomic", and "sequence", there is considerable overlap in usage throughout the field of biology.
+synonym: "IGTS" EXACT []
+synonym: "inferred from genetic similarity" RELATED []
+is_a: ECO:0000041 ! similarity evidence
+
+[Term]
+id: ECO:0000052
+name: suppressor/enhancer interaction evidence
+synonym: "IGI: 'traditional' genetic interactions (e.g. suppressors, synthetic lethals)" RELATED []
+xref: TAIR:TED\:0000063
+is_a: ECO:0000011 ! genetic interaction evidence
+
+[Term]
+id: ECO:0000053
+name: computational combinatorial evidence
+def: "A type of combinatorial analysis where data are combined and evaluated by an algorithm." [ECO:go, ECO:MCC]
+comment: Combinatorial analyses could include experimental or computational results. Examples include: (i) large-scale experiment such as a genome-wide two-hybrid or genome-wide synthetic interactions; (ii) integration of large-scale data sets of various types; and (iii) text-based-computation, e.g. text-mining. For simple sequence comparisons, one should use the sequence similarity analysis evidence type. For microarray results alone, expression pattern analysis is appropriate; whereas, large-scale computational analysis should be used when microarray results are combined with the results of other types of large-scale experiments.
+xref: TAIR:TED\:0000004
+is_a: ECO:0000212 ! combinatorial evidence
+
+[Term]
+id: ECO:0000054
+name: double mutant phenotype evidence
+def: "Used when an annotation is made based on the phenotype of double mutant organism that contains a mutation in the gene product of interest in addition to a second mutation at an unrelated locus." [TAIT:TED]
+synonym: "IGI: double mutant analysis" RELATED []
+is_a: ECO:0000011 ! genetic interaction evidence
+
+[Term]
+id: ECO:0000055
+name: array experiment evidence
+is_a: ECO:0000008 ! expression pattern evidence
+
+[Term]
+id: ECO:0000056
+name: epistatic interaction evidence
+def: "Used when an annotation is based on results of epistatis analysis of an allele of the gene in question and a mutant allele at another locus." [TAIR:TED]
+synonym: "IGI: epistatic interactions" RELATED []
+is_a: ECO:0000011 ! genetic interaction evidence
+
+[Term]
+id: ECO:0000057
+name: phenotypic similarity evidence
+def: "A type of similarity based on the expression of a genotype in an environment." [ECO:MCC, PhenoScape:IPTS]
+comment: Phenotype is defined as the outcome of the expression of a genotype in a given environment. A comparison might involve whole organisms or sub-parts of organisms.
+synonym: "inferred from phenotypic similarity" RELATED []
+synonym: "IPTS" EXACT []
+is_a: ECO:0000041 ! similarity evidence
+
+[Term]
+id: ECO:0000058
+name: expression microarray evidence
+is_a: ECO:0000055 ! array experiment evidence
+
+[Term]
+id: ECO:0000059
+name: experimental phenotypic evidence
+alt_id: ECO:0000014
+def: "Experimental evidence that is based on the expression of a genotype in an environment." [ECO:MCC]
+synonym: "inferred from phenotype" RELATED []
+is_a: ECO:0000006 ! experimental evidence
+
+[Term]
+id: ECO:0000060
+name: positional similarity evidence
+def: "Used when an annotation is made based on the similarity of the location and or arrangement of structures." [PhenoScape:IPS]
+synonym: "IPS" EXACT []
+is_a: ECO:0000057 ! phenotypic similarity evidence
+
+[Term]
+id: ECO:0000061
+name: quantitative trait analysis evidence
+def: "Used when an annotation is made for a gene product that has not been cloned but is associated with a quantitative trait locus." [TAIR:tn]
+synonym: "IGI: quantitative trait analysis" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000062
+name: genomic microarray evidence
+is_a: ECO:0000055 ! array experiment evidence
+
+[Term]
+id: ECO:0000063
+name: compositional similarity evidence
+def: "Used when an annotation is made based on the similarity of the histological makeup of structures." [PhenoScape:ICS]
+synonym: "ICS" EXACT []
+is_a: ECO:0000057 ! phenotypic similarity evidence
+
+[Term]
+id: ECO:0000064
+name: functional complementation in heterologous system evidence
+def: "Used when an annotation is made based on a functional complementation assay in which a wild-type copy of the gene in question is inserted into a heterologous organism with a mutation in the homologous gene." [TAIR:TED]
+synonym: "IGI: functional complementation in heterologous system" RELATED []
+is_a: ECO:0000012 ! functional complementation evidence
+
+[Term]
+id: ECO:0000065
+name: CpG island microarray evidence
+is_a: ECO:0000055 ! array experiment evidence
+
+[Term]
+id: ECO:0000066
+name: yeast one-hybrid evidence
+def: "A type of hybrid interaction evidence that is based on a protein-DNA complementation assay where a single promoter acts as bait and is screened against a library of prey transcription factors." [ECO:MCC, PSI-MI:MI\:0432, TAIR:TED]
+comment: The assay involves screening a library of candidate proteins for the ability bind to a target, cis-regulatory element or any other short, DNA binding sequence placed 5' to a yeast reporter gene (TAIR:TED).
+synonym: "IPI: yeast one-hybrid assay" RELATED []
+xref: PSI-MI:MI\:0432 "one hybrid"
+is_a: ECO:0000025 ! hybrid interaction evidence
+
+[Term]
+id: ECO:0000067
+name: developmental similarity evidence
+def: "Used when an annotation is made based on the similarity of embryological and/or post-embryonic origin of structures." [PhenoScape:IDS]
+synonym: "IDS" EXACT []
+is_a: ECO:0000057 ! phenotypic similarity evidence
+
+[Term]
+id: ECO:0000068
+name: yeast 2-hybrid evidence
+def: "Used when an annotation is based on the interaction between two proteins in a yeast two-hybrid assay. The assay involves screening a trap-tagged library with a bait-tagged vector. The library is tagged with a DNA-binding domain (trap) and the bait is tagged with a transcriptional activation domain. Interaction between a library-trap protein and the bait results in activation of a yeast reporter gene whose transcription can be experimentally assayed." [TAIR:TED]
+synonym: "IPI: yeast two-hybrid assay" RELATED []
+is_a: ECO:0000025 ! hybrid interaction evidence
+
+[Term]
+id: ECO:0000069
+name: differential methylation hybridization evidence
+is_a: ECO:0000026 ! nucleic acid hybridization evidence
+
+[Term]
+id: ECO:0000070
+name: co-immunoprecipitation evidence
+def: "A type of immunoprecipitation evidence that involves precipitating two or more proteins via binding to an antibody specific to a single protein, followed by protein identification." [ECO:MCC]
+comment: If performing GO annotation, the interacting protein is referenced in the evidence_with column.
+synonym: "IPI: co-immunoprecipitation" RELATED []
+xref: PSI-MI:MI\:0019 "coimmunoprecipitation"
+is_a: ECO:0000085 ! immunoprecipitation evidence
+
+[Term]
+id: ECO:0000071
+name: morphological similarity evidence
+def: "Used when an annotation is made based on the similarity of the shape, structure or overall configuration of structures." [PhenoScape:IMS]
+synonym: "IMS" EXACT []
+is_a: ECO:0000057 ! phenotypic similarity evidence
+
+[Term]
+id: ECO:0000072
+name: Sos-recruitment assay evidence
+def: "A type of physical interaction evidence that is based on a genetic screening system that detects protein-protein interactions and is not based on a transcriptional readout." [TAIR:TED]
+synonym: "IPI: Sos-recruitment assay" RELATED []
+is_obsolete: true
+
+[Term]
+id: ECO:0000073
+name: experimental genomic evidence
+def: "Experimental evidence that characterizes an attribute of the genome underlying a gene product." [ECO:MCC]
+synonym: "inferred from genomic analysis" EXACT []
+is_a: ECO:0000006 ! experimental evidence
+
+[Term]
+id: ECO:0000074
+name: split-ubiquitin assay evidence
+def: "Used when an annotation is based on the interaction of two proteins in a split-ubiquitin assay. The bait protein is fused to the C-terminal ubiquitin (Cub) domain followed by a reporter protein, and the prey protein is fused to a mutated N terminal ubiquiting (NubG) domain. If bait and prey interact, their interaction brings the NubG and Cub domains close enough together to reconstitute split-ubiquitin, resulting in the release of the reporter protein by the action of the UBPs." [TAIR:TED]
+synonym: "IPI: split-ubiquitin assay" RELATED []
+xref: PSI-MI:MI\:0112 "ubiquitin reconstruction"
+is_a: ECO:0000021 ! physical interaction evidence
+
+[Term]
+id: ECO:0000075
+name: gene expression similarity evidence
+def: "Used when an annotation is made based on the similarity of expression of genes in structures." [PhenoScape:IGES]
+synonym: "IGES" EXACT []
+is_a: ECO:0000057 ! phenotypic similarity evidence
+
+[Term]
+id: ECO:0000076
+name: far-Western blotting evidence
+def: "Used when an annotation is based on the interaction of protein with another in a far-Western assay. The assay involves separating target proteins on an SDS-PAGE gel, blotting to a membrane, hybridization with a protein probe and visualization using a probe-directed antibody. The interacting protein is referenced in the evidence_with column." [TAIR:TED]
+synonym: "IPI: far-Western analysis" RELATED []
+xref: PSI-MI:MI\:0047
+is_a: ECO:0000021 ! physical interaction evidence
+
+[Term]
+id: ECO:0000077
+name: methylation-specific polymerase chain reaction evidence
+synonym: "methylation-specific PCR evidence" EXACT []
+is_a: ECO:0000082 ! polymerase chain reaction evidence
+
+[Term]
+id: ECO:0000078
+name: Southern hybridization evidence
+def: "Used when an annotation is based on the hybridization of a probe derived from the gene in question with a gene of known function/process/component. Can also be used when a probe derived from a gene of known function/process/component hybridizes with the gene in question." [TAIR:TED]
+synonym: "ISS: Southern blotting" RELATED []
+is_a: ECO:0000026 ! nucleic acid hybridization evidence
+
+[Term]
+id: ECO:0000079
+name: affinity chromatography evidence
+def: "A type of affinity evidence that results from separation of biochemical mixtures by selective binding of a compound to an immobilized compound on a polymeric matrix, subsequent removal of unattached components, and then displacement of the bond compound." [ECO:MCC, TAIR:TED]
+comment: "Used when an annotation is made based on affinity chromatography, which is a selective separation technique by which a compound (e.g., an antibody) is immobilized on a polymeric matrix and used to bind selectively other compounds. Following removal of the unattached components, the bound compound is displaced by changing the concentration of protons, salts, or cofactors in the eluent" (from original definition by TAIR:TED). Types of highly specific interaction might include those of antigen and antibody, enzyme and substrate, or receptor and ligand.
+synonym: "IDA: affinity chromatography" RELATED []
+xref: PSI-MI:MI\:0004 "affinity chromatography technology"
+is_a: ECO:0000023 ! affinity evidence
+
+[Term]
+id: ECO:0000080
+name: phylogenetic evidence
+def: "A type of similarity that indicates common ancestry." [ECO:MCC, PhenoScape:IP]
+synonym: "IP" EXACT [PhenoScape:IP]
+is_a: ECO:0000041 ! similarity evidence
+
+[Term]
+id: ECO:0000081
+name: targeting sequence prediction evidence
+def: "Used when a component annotation is made based on the presence of a targeting sequence in a protein's primary sequence. The presence of the targeting sequence may be detected by computational prediction and/or the author's manual examination of the sequence." [TAIR:TED]
+synonym: "ISS: targeting sequence prediction" RELATED []
+is_a: ECO:0000028 ! motif similarity evidence
+
+[Term]
+id: ECO:0000082
+name: polymerase chain reaction evidence
+synonym: "PCR evidence" EXACT []
+is_a: ECO:0000073 ! experimental genomic evidence
+
+[Term]
+id: ECO:0000083
+name: transmembrane domain prediction evidence
+def: "Used when a component annotation is made based on the presence of one or more transmembrane domains in a protein's primary sequence. The presence of the transmembrane domains may be detected by computational prediction and/or the author's manual examination of the sequence." [TAIR:TED]
+synonym: "ISS: transmembrane domain prediction" RELATED []
+is_a: ECO:0000028 ! motif similarity evidence
+
+[Term]
+id: ECO:0000084
+name: gene neighbors evidence
+def: "Evidence that supports the identity of a gene product on the basis of the identity of neighboring genes." [ECO:MCC, GOC:mg]
+comment: Genomic cluster analyses include synteny and operon structure.
+synonym: "ICL" RELATED []
+synonym: "inferred from genome cluster" EXACT []
+xref: GO_REF:0000025 "Operon structure as IGC evidence"
+is_a: ECO:0000177 ! genomic context evidence
+created_by: mgiglio
+creation_date: 2009-03-20T11:55:18Z
+
+[Term]
+id: ECO:0000085
+name: immunoprecipitation evidence
+def: "A type of protein assay evidence that involves precipitation of a multivalent antigen by a bivalent antibody." [ECO:MCC, TAIR:TED]
+synonym: "IDA: immunoprecipitation" RELATED []
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000086
+name: intermethylated site amplification evidence
+is_a: ECO:0000073 ! experimental genomic evidence
+
+[Term]
+id: ECO:0000087
+name: immunolocalization evidence
+def: "A type of protein assay evidence that involves the use of antibodies to detect biomolecules." [ECO:MCC]
+synonym: "IDA: immunolocalization" RELATED []
+is_a: ECO:0000039 ! protein assay evidence
+is_a: ECO:0000122 ! protein localization evidence
+
+[Term]
+id: ECO:0000088
+name: biological system reconstruction
+def: "Evidence based on reconstruction of a biological system that is based on an existing experimentally supported model of that biological system." [ECO:MCC, GOC:mg]
+comment: The biological system in question might be a multi-step process or a physical complex comprising several components. A common basis for system reconstruction is orthology, where all of the components of an experimentally characterized complex exist in one organism; if a second organism contains orthologs of all components, then the existence of the complex is inferred. In the case of a genome-wide analysis, a gene product is said to fulfill a necessary function for a pathway or complex when, with all of the other necessary functions or components also present, the pathway or complex is reconstructed.
+synonym: "inferred from system reconstruction" RELATED []
+synonym: "ISR" RELATED []
+is_a: ECO:0000000 ! evidence
+created_by: mgiglio
+creation_date: 2009-03-20T12:00:17Z
+
+[Term]
+id: ECO:0000089
+name: restriction landmark genomic scanning evidence
+synonym: "RLGS evidence" EXACT []
+is_a: ECO:0000073 ! experimental genomic evidence
+
+[Term]
+id: ECO:0000090
+name: immunogold labelling evidence
+def: "A type of protein assay evidence that involves attaching colloidal gold particles to a secondary antibody, which is attached to a primary antibody that binds a specific protein or cell part, followed by visualization with electron microscopy." [ECO:MCC]
+synonym: "IDA: immunogold labelling" RELATED []
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000092
+name: epitope-tagged protein immunolocalization evidence
+def: "Used when an annotation is made based on immunolocalization of recombinant proteins fused with epitopes that are recognized by antibodies." [TAIR:TED]
+synonym: "IDA: immunolocalization of epitope-tagged protein" RELATED []
+is_a: ECO:0000087 ! immunolocalization evidence
+
+[Term]
+id: ECO:0000093
+name: oligonucleotide microarray evidence
+is_a: ECO:0000055 ! array experiment evidence
+
+[Term]
+id: ECO:0000094
+name: biological assay evidence
+def: "Direct assay evidence that is derived by using a living organism to measure the effect of a substance, factor, or condition." [ECO:MCC, TAIR:TED]
+synonym: "IDA: bioassay" RELATED []
+is_a: ECO:0000002 ! direct assay evidence
+
+[Term]
+id: ECO:0000096
+name: electrophoretic mobility shift assay evidence
+def: "Used when an annotation is made based on electrophoretic mobility shift of macromolecules, compounds, and proteins. Most commonly used for detecting the binding of protein to DNA." [TAIR:TED]
+synonym: "IDA: electrophoretic mobility shift assay" RELATED []
+xref: PSI-MI:MI\:0413 "electrophoretic mobility shift assay"
+is_a: ECO:0000002 ! direct assay evidence
+
+[Term]
+id: ECO:0000097
+name: cDNA microarray evidence
+is_a: ECO:0000055 ! array experiment evidence
+
+[Term]
+id: ECO:0000098
+name: in situ hybridization evidence
+def: "Used when an annotation is made based on a method that hybridizes a labeled nucleic acid probe to a tissue or cell specimen in which the cellular structures are still intact. Depending on the label and protocol used, the probe may detect complementary DNA or RNA by hybridizing specifically to that gene or sequence." [TAIR:TED]
+synonym: "IDA: in situ hybridization" RELATED []
+is_a: ECO:0000026 ! nucleic acid hybridization evidence
+
+[Term]
+id: ECO:0000100
+name: fractionation evidence
+is_a: ECO:0000002 ! direct assay evidence
+
+[Term]
+id: ECO:0000101
+name: Affymetrix array experiment evidence
+is_a: ECO:0000055 ! array experiment evidence
+
+[Term]
+id: ECO:0000102
+name: co-fractionation evidence
+def: "Used when an annotation is made based on fractionation of a protein with other compounds, factors, or macromolecules." [TAIR:TED]
+synonym: "IDA: co-fractionation" RELATED []
+is_a: ECO:0000100 ! fractionation evidence
+
+[Term]
+id: ECO:0000104
+name: microarray RNA expression level evidence
+def: "Used when an annotation is made based on levels of RNA expression determined by microarray experiment." [TAIR:TED]
+synonym: "IEP: transcript levels (e.g. microarray data)" RELATED []
+is_a: ECO:0000048 ! transcript expression level evidence
+is_a: ECO:0000058 ! expression microarray evidence
+
+[Term]
+id: ECO:0000105
+name: Nimblegen array evidence
+is_a: ECO:0000055 ! array experiment evidence
+
+[Term]
+id: ECO:0000106
+name: Northern assay evidence
+def: "Used when an annotation is made based on levels of RNA expression determined by a Northern blot experiment." [TAIR:TED]
+synonym: "IEP: transcript levels (e.g. Northerns)" RELATED []
+is_a: ECO:0000048 ! transcript expression level evidence
+
+[Term]
+id: ECO:0000108
+name: reverse transcription polymerase chain reaction transcription evidence
+def: "Used when an annotation is made based on levels of RNA expression determined by an RT-PCR experiment (quantitative or otherwise)." [TAIR:TED]
+synonym: "IEP: transcript levels (e.g. RT-PCR)" RELATED []
+synonym: "RT-PCR transcription evidence" EXACT []
+is_a: ECO:0000048 ! transcript expression level evidence
+is_a: ECO:0000109 ! reverse transcription polymerase chain reaction evidence
+
+[Term]
+id: ECO:0000109
+name: reverse transcription polymerase chain reaction evidence
+synonym: "RT-PCR evidence" EXACT []
+is_a: ECO:0000082 ! polymerase chain reaction evidence
+
+[Term]
+id: ECO:0000110
+name: RNA protection assay evidence
+def: "Used when an annotation is made based on levels of RNA expression determined by an RNA protection assay." [TAIR:TED]
+synonym: "IEP: RNA protection assay" RELATED []
+is_a: ECO:0000009 ! transcript expression evidence
+
+[Term]
+id: ECO:0000112
+name: Western blot evidence
+def: "Used when an annotation is made based on levels of protein expression determined by a Western blot assay." [TAIR:TED]
+synonym: "IEP: protein levels (e.g. Western blots)" RELATED []
+is_a: ECO:0000046 ! protein expression level evidence
+
+[Term]
+id: ECO:0000114
+name: expression library screen evidence
+def: "A type of protein expression evidence where a protein of interest is isolated on the basis of its hybridization to an antibody raised to a homologous protein." [ECO:MCC, TAIR:TED]
+synonym: "IEP: expression library screening" RELATED []
+is_a: ECO:0000010 ! protein expression evidence
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000116
+name: differential hybridization evidence
+def: "Used when an annotation is made based on results of a differential hybridization experiment that demonstrates expression of an RNA under one condition and not another." [TAIR:TED]
+synonym: "IEP: differential hybridization" RELATED []
+is_a: ECO:0000009 ! transcript expression evidence
+is_a: ECO:0000026 ! nucleic acid hybridization evidence
+
+[Term]
+id: ECO:0000118
+name: subtractive hybridization evidence
+def: "Used when an annotation is made based on results of a subtractive hybridization experiment that demonstrates expression of an RNA under one condition and not another." [TAIR:TED]
+synonym: "IEP: subtractive hybridization" RELATED []
+is_a: ECO:0000009 ! transcript expression evidence
+is_a: ECO:0000026 ! nucleic acid hybridization evidence
+
+[Term]
+id: ECO:0000120
+name: over expression analysis evidence
+def: "Used when an annotation is made based on the analysis of the phenotype of a wild-type or mutant transgenic organism that has been engineered to overexpress the gene product in question." [TAIR:TED]
+synonym: "IMP: analysis of overexpression/ectopic expression phenotype" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000122
+name: protein localization evidence
+is_a: ECO:0000039 ! protein assay evidence
+
+[Term]
+id: ECO:0000124
+name: fusion protein localization evidence
+is_a: ECO:0000122 ! protein localization evidence
+
+[Term]
+id: ECO:0000126
+name: green fluorescent protein fusion protein localization evidence
+synonym: "GFP fusion protein localization evidence" EXACT []
+synonym: "IDA: localization of GFP/YFP fusion protein" RELATED []
+is_a: ECO:0000124 ! fusion protein localization evidence
+
+[Term]
+id: ECO:0000128
+name: yellow fluorescent protein fusion protein localization evidence
+synonym: "IDA: localization of GFP/YFP fusion protein" RELATED []
+synonym: "YFP fusion protein localization evidence" EXACT []
+is_a: ECO:0000124 ! fusion protein localization evidence
+
+[Term]
+id: ECO:0000130
+name: beta-glucuronidase fusion protein localization evidence
+synonym: "GUS fusion protein localization evidence" EXACT []
+synonym: "GUS staining evidence" NARROW []
+synonym: "IDA: localization of GUS fusion protein" RELATED []
+is_a: ECO:0000124 ! fusion protein localization evidence
+
+[Term]
+id: ECO:0000132
+name: beta-galactosidase fusion protein localization evidence
+synonym: "LacZ fusion protein localization evidence" EXACT []
+is_a: ECO:0000124 ! fusion protein localization evidence
+
+[Term]
+id: ECO:0000134
+name: transport assay evidence
+synonym: "IDA: transport assay" RELATED []
+is_a: ECO:0000002 ! direct assay evidence
+
+[Term]
+id: ECO:0000136
+name: nucleic acid binding evidence
+is_a: ECO:0000023 ! affinity evidence
+
+[Term]
+id: ECO:0000138
+name: ribohomopolymer binding assay evidence
+synonym: "IDA: ribohomopolymer binding assay" RELATED []
+is_a: ECO:0000136 ! nucleic acid binding evidence
+
+[Term]
+id: ECO:0000140
+name: thin layer chromatography evidence
+def: "A type of chromatography evidence that uses a thin layer of adsorbent (such as silica gel, alumina, or cellulose) on a flat, inert substrate." [ECO:MCC]
+synonym: "IDA: thin layer chromatography" RELATED []
+synonym: "TLC evidence" EXACT []
+is_a: ECO:0000325 ! chromatography evidence
+
+[Term]
+id: ECO:0000142
+name: protein:ion binding evidence
+is_a: ECO:0000024 ! protein binding evidence
+
+[Term]
+id: ECO:0000144
+name: Southwestern blot evidence
+def: "Used when an annotation is made based on a Southwestern blot analysis, which detects DNA binding of proteins using labeled DNA as probe hybridizing to electrophoretically separated proteins." [TAIR:TED]
+synonym: "IDA: Southwestern analysis" RELATED []
+is_a: ECO:0000136 ! nucleic acid binding evidence
+
+[Term]
+id: ECO:0000146
+name: Northwestern blot evidence
+def: "Used when an annotation is made based on a Northwestern blot analysis, which detects RNA binding of proteins using labeled RNA as probe hybridizing to electrophoretically separated proteins." [TAIR:TED]
+synonym: "IDA: Northwestern analysis" RELATED []
+is_a: ECO:0000136 ! nucleic acid binding evidence
+
+[Term]
+id: ECO:0000148
+name: in vitro binding evidence
+synonym: "IDA: in vitro binding assay" RELATED []
+is_obsolete: true
+
+[Term]
+id: ECO:0000150
+name: in vitro transcription reconstitution assay evidence
+synonym: "IDA: in vitro reconstitution assay with recombinant protein" RELATED []
+is_a: ECO:0000003 ! reconstitution assay evidence
+
+[Term]
+id: ECO:0000152
+name: in vitro recombinant protein transcription reconstitution assay evidence
+synonym: "IDA: in vitro reconstitution assay with recombinant protein" RELATED []
+is_a: ECO:0000150 ! in vitro transcription reconstitution assay evidence
+
+[Term]
+id: ECO:0000154
+name: heterologous protein expression evidence
+synonym: "IDA: protein expression in heterologous system" RELATED []
+is_a: ECO:0000010 ! protein expression evidence
+
+[Term]
+id: ECO:0000156
+name: protein separation evidence
+is_a: ECO:0000100 ! fractionation evidence
+
+[Term]
+id: ECO:0000158
+name: protein separation followed by direct sequencing evidence
+synonym: "IDA: protein separation and direct sequencing" RELATED []
+is_a: ECO:0000156 ! protein separation evidence
+
+[Term]
+id: ECO:0000160
+name: protein separation followed by fragment identification evidence
+synonym: "IDA: protein separation and fragment identification" RELATED []
+is_a: ECO:0000156 ! protein separation evidence
+
+[Term]
+id: ECO:0000162
+name: heterologous system uptake evidence
+def: "Used when an annotation is made based on small molecule update assays carried out in a heterologous system that contains a recombinant protein." [TAIR:TED]
+synonym: "IDA: uptake assay in heterologous system" RELATED []
+is_a: ECO:0000134 ! transport assay evidence
+
+[Term]
+id: ECO:0000164
+name: electrophysiology assay evidence
+is_a: ECO:0000002 ! direct assay evidence
+
+[Term]
+id: ECO:0000166
+name: two-electrode voltage clamp experiment evidence
+synonym: "IDA: two-electrode voltage clamp technique" RELATED []
+is_a: ECO:0000164 ! electrophysiology assay evidence
+
+[Term]
+id: ECO:0000168
+name: transcription assay
+is_a: ECO:0000002 ! direct assay evidence
+
+[Term]
+id: ECO:0000170
+name: transcriptional activation assay
+def: "Used when an annotation is made based on assays that show transcriptional activation of a specific target reporter gene." [TAIR:TED]
+synonym: "IDA: transcriptional activation assay" RELATED []
+is_a: ECO:0000168 ! transcription assay
+
+[Term]
+id: ECO:0000172
+name: biochemical trait analysis evidence
+def: "Used when an annotation is made based on the analysis of a biochemical aspect of a mutant phenotype; for example, the accumulation of a biosynthetic intermediate." [TAIR:TED]
+synonym: "IMP: analysis of biochemical trait" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000174
+name: mutant physiological response evidence
+def: "Used when an annotation is made based on the physiological response of a mutant to an external stimulus; for example, abnormal growth of the root in response to gravity, delay in flowering in response to varying light conditions." [TAIR:TED]
+synonym: "IMP: analysis of physiological response" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000176
+name: mutant visible phenotype evidence
+def: "Used when an annotation is made based on the visual examination of a mutant phenotype; for example, abnormalities in organism morphology." [TAIR:TED]
+synonym: "IMP: analysis of visible trait" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+
+[Term]
+id: ECO:0000177
+name: genomic context evidence
+def: "An evidence type that is based on the location of a gene, which gives rise to a gene product, within the genome." [ECO:go, ECO:MCC]
+comment: This type of evidence might include identity of neighboring genes, operon structure, synteny, phylogenetic analysis, or other whole-genome analysis.
+is_a: ECO:0000000 ! evidence
+
+[Term]
+id: ECO:0000178
+name: in vivo assay evidence
+is_a: ECO:0000094 ! biological assay evidence
+
+[Term]
+id: ECO:0000179
+name: animal model system study evidence
+def: "A type of experimental evidence arising from the investigation of an animal model system." [ECO:MCC]
+is_a: ECO:0000006 ! experimental evidence
+
+[Term]
+id: ECO:0000180
+name: clinical study evidence
+def: "A type of experimental evidence arising from a controlled investigation that uses human subjects." [ECO:MCC]
+is_a: ECO:0000006 ! experimental evidence
+
+[Term]
+id: ECO:0000181
+name: in vitro assay evidence
+is_a: ECO:0000094 ! biological assay evidence
+
+[Term]
+id: ECO:0000182
+name: in vitro culture assay evidence
+synonym: "ex vivo assay" RELATED []
+is_a: ECO:0000094 ! biological assay evidence
+
+[Term]
+id: ECO:0000183
+name: cell-free assay evidence
+synonym: "in vitro assay" BROAD []
+is_a: ECO:0000181 ! in vitro assay evidence
+
+[Term]
+id: ECO:0000184
+name: enzyme inhibition experiment evidence
+is_a: ECO:0000005 ! enzyme assay evidence
+is_a: ECO:0000020 ! specific protein inhibition experiment evidence
+
+[Term]
+id: ECO:0000200
+name: sequence alignment evidence
+alt_id: ECO:00000057
+def: "Used when a sequence alignment is the basis for making an annotation, but only when the alignment has been manually reviewed; or if the information is in a published paper, the authors have manually reviewed the evidence. Such alignments may be pairwise alignments or multiple alignments. BLAST produces pairwise alignments and any annotations based solely on the evaluation of BLAST results should use this code." [url:http\://www.geneontology.org/GO.evidence.shtml]
+synonym: "inferred from sequence alignment" EXACT [GO:ISA]
+synonym: "ISA" EXACT [GO:ISA]
+is_a: ECO:0000044 ! sequence similarity evidence
+created_by: mchibucos
+creation_date: 2010-03-18T12:21:31Z
+
+[Term]
+id: ECO:0000201
+name: sequence orthology evidence
+alt_id: ECO:00000060
+def: "Orthology is a relationship between genes in different species indicating that the genes derive from a common ancestor. Orthology is established by multiple criteria generally including amino acid and/or nucleotide sequence comparisons and one or more of the following: phylogenetic analysis, coincident expression, conserved map location, functional complementation, immunological cross-reaction, similarity in subcellular localization, subunit structure, substrate specificity, and response to specific inhibitors." [url:http\://www.geneontology.org/GO.evidence.shtml]
+synonym: "inferred from sequence orthology" EXACT [GO:ISO]
+synonym: "ISO" EXACT [GO:ISO]
+synonym: "ortholog evidence" RELATED []
+is_a: ECO:0000044 ! sequence similarity evidence
+created_by: mchibucos
+creation_date: 2010-03-18T12:30:06Z
+
+[Term]
+id: ECO:0000202
+name: match to sequence model evidence
+alt_id: ECO:00000063
+def: "Sequence similarity evidence that is based on a sequence-based statistical model that predicts the function of a gene product." [ECO:MCC, url:http\://www.geneontology.org/GO.evidence.shtml]
+comment: Used when evidence from any kind of statistical model of a sequence or group of sequences is used to make a prediction about the function of a protein or RNA. Examples of relevant evidence are: Hidden Markov Models, PROSITE motifs, and tools such as tRNASCAN.
+synonym: "inferred from sequence model" EXACT [GO:ISM]
+synonym: "ISM" EXACT [GO:ISM]
+is_a: ECO:0000044 ! sequence similarity evidence
+created_by: mchibucos
+creation_date: 2010-03-18T12:32:30Z
+
+[Term]
+id: ECO:0000203
+name: automatic assertion
+alt_id: ECO:00000067
+def: "An assertion method that does not involve human review." [ECO:MCC]
+comment: An automatic assertion is based on computationally generated information that is not reviewed by a person prior to making the assertion. For example, one common type of automatic assertion involves creating an association of evidence with an entity based on commonness of attributes of that entity and another entity for which an assertion already exists. The commonness is determined algorithmically.
+synonym: "IEA" EXACT [GOECO:IEA]
+synonym: "inferred from electronic annotation" EXACT [GOECO:IEA]
+xref: GO_REF:0000004 "Gene Ontology annotation based on Swiss-Prot keyword mapping."
+xref: GO_REF:0000023 "Gene Ontology annotation based on Swiss-Prot Subcellular Location vocabulary mapping."
+xref: GOECO:IEA "inferred from electronic annotation"
+is_a: ECO:0000217 ! assertion method
+created_by: mchibucos
+creation_date: 2010-03-18T12:36:04Z
+
+[Term]
+id: ECO:0000204
+name: author statement
+def: "An evidence type that is based on an assertion by the author of a paper, which is read by a curator." [ECO:MCC]
+is_a: ECO:0000000 ! evidence
+created_by: mchibucos
+creation_date: 2010-06-21T11:17:21Z
+
+[Term]
+id: ECO:0000205
+name: curator inference
+def: "An evidence type that is based on conclusions drawn by a curator." [ECO:MCC]
+is_a: ECO:0000000 ! evidence
+created_by: mchibucos
+creation_date: 2010-08-18T05:55:12Z
+
+[Term]
+id: ECO:0000206
+name: BLAST evidence
+def: "A type of sequence alignment evidence obtained with basic local alignment search tool (BLAST)." [ECO:MCC]
+is_a: ECO:0000200 ! sequence alignment evidence
+created_by: mchibucos
+creation_date: 2010-08-06T04:48:24Z
+
+[Term]
+id: ECO:0000207
+name: nucleotide BLAST evidence
+def: "BLAST evidence from aligning nucleotide sequence with nucleotide sequence." [ECO:MCC]
+is_a: ECO:0000206 ! BLAST evidence
+created_by: mchibucos
+creation_date: 2010-08-06T04:49:58Z
+
+[Term]
+id: ECO:0000208
+name: protein BLAST evidence
+def: "BLAST evidence from aligning amino acid or translated nucleotide sequence with amino acid or translated nucleotide sequence." [ECO:MCC]
+is_a: ECO:0000206 ! BLAST evidence
+created_by: mchibucos
+creation_date: 2010-08-06T04:50:45Z
+
+[Term]
+id: ECO:0000209
+name: BLAST evidence used in automatic assertion
+def: "A type of BLAST evidence that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000206 ! BLAST evidence
+intersection_of: ECO:0000206 ! BLAST evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-08-06T04:55:21Z
+
+[Term]
+id: ECO:0000210
+name: nucleotide BLAST evidence used in automatic assertion
+def: "Nucleotide BLAST evidence that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000207 ! nucleotide BLAST evidence
+intersection_of: ECO:0000207 ! nucleotide BLAST evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-08-06T05:09:51Z
+
+[Term]
+id: ECO:0000211
+name: protein BLAST evidence used in automatic assertion
+def: "Protein BLAST evidence that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000208 ! protein BLAST evidence
+intersection_of: ECO:0000208 ! protein BLAST evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-08-06T05:11:04Z
+
+[Term]
+id: ECO:0000212
+name: combinatorial evidence
+alt_id: ECO:0000036
+alt_id: ECO:0000043
+def: "A type of evidence that arises out of the integration of more than one line of evidence." [ECO:MCC]
+comment: A key aspect of this type of evidence is that two or more pieces of information are combined to generate an emergent type of evidence not possible with the constituent pieces of evidence alone. A combinatorial analysis typically involves incorporation of different types of evidence.
+synonym: "inferred from in-silico analysis" RELATED []
+is_a: ECO:0000000 ! evidence
+created_by: mchibucos
+creation_date: 2010-08-06T05:24:57Z
+
+[Term]
+id: ECO:0000213
+name: combinatorial evidence used in automatic assertion
+def: "A type of combinatorial analysis that is used in an automatic assertion." [ECO:MCC]
+comment: Combinatorial analyses could include experimental or computational results. Examples include: (i) large-scale experiment such as a genome-wide two-hybrid or genome-wide synthetic interactions; (ii) integration of large-scale data sets of various types; and (iii) text-based-computation, e.g. text-mining. For simple sequence comparisons, one should use the sequence similarity analysis evidence type. For microarray results alone, expression pattern analysis is appropriate; whereas, large-scale computational analysis should be used when microarray results are combined with the results of other types of large-scale experiments.
+is_a: ECO:0000212 ! combinatorial evidence
+intersection_of: ECO:0000212 ! combinatorial evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-08-06T05:28:33Z
+
+[Term]
+id: ECO:0000214
+name: biological aspect of descendant evidence
+def: "A type of phylogenetic evidence whereby an aspect of an ancestral gene is inferred through the characterization of an aspect of a descendant gene." [ECO:MCC]
+comment: This type of evidence can be used in support of both positive and "not" GO annotations. It should be used to annotate ancestral genes but not extant ones.
+is_a: ECO:0000080 ! phylogenetic evidence
+created_by: mchibucos
+creation_date: 2010-10-05T11:16:50Z
+
+[Term]
+id: ECO:0000215
+name: rapid divergence from ancestral sequence evidence
+def: "A type of phylogenetic evidence characterized by long phylogenetic tree branch lengths following a duplication event." [ECO:MCC]
+comment: Long branch lengths indicate that descendant sequences may have acquired different or additional functions than the ancestral sequence.
+is_a: ECO:0000080 ! phylogenetic evidence
+created_by: mchibucos
+creation_date: 2010-10-05T03:41:34Z
+
+[Term]
+id: ECO:0000216
+name: phylogenetic determination of loss of key residues evidence
+def: "A type of phylogenetic evidence characterized by the absence of key sequence residues." [ECO:MCC]
+comment: The loss of certain residues important for function can indicate that a sequence lacks a particular function.
+is_a: ECO:0000080 ! phylogenetic evidence
+created_by: mchibucos
+creation_date: 2010-10-05T03:43:17Z
+
+[Term]
+id: ECO:0000217
+name: assertion method
+def: "A means by which a statement is made about an entity." [ECO:MCC]
+created_by: mchibucos
+creation_date: 2010-11-12T04:17:37Z
+
+[Term]
+id: ECO:0000218
+name: manual assertion
+def: "An assertion method that involves human review." [ECO:MCC]
+comment: A manual assertion could be based on evidence that is generated by and interpreted by a human or it could involve human review of computationally generated information.
+is_a: ECO:0000217 ! assertion method
+created_by: mchibucos
+creation_date: 2010-11-12T04:20:02Z
+
+[Term]
+id: ECO:0000219
+name: nucleotide sequencing assay evidence
+def: "A sequencing assay result for a biopolymer that comprises nucleotides." [ECO:MCC]
+synonym: "DNA sequencing" RELATED [OBI:0000626]
+is_a: ECO:0000220 ! sequencing assay evidence
+created_by: mchibucos
+creation_date: 2010-11-15T12:22:40Z
+
+[Term]
+id: ECO:0000220
+name: sequencing assay evidence
+def: "A type of experimental evidence where the order of molecules that constitute a biopolymer is determined." [ECO:MCC, OBI:0600047]
+is_a: ECO:0000006 ! experimental evidence
+created_by: mchibucos
+creation_date: 2010-11-15T01:44:45Z
+
+[Term]
+id: ECO:0000221
+name: high throughput nucleotide sequencing assay evidence
+def: "A nucleotide sequencing assay result that is derived from a parallelized sequencing technique." [ECO:MCC]
+comment: Typically thousands to millions of reads are produced in parallel.
+is_a: ECO:0000219 ! nucleotide sequencing assay evidence
+created_by: mchibucos
+creation_date: 2010-11-15T02:19:34Z
+
+[Term]
+id: ECO:0000222
+name: Illumina sequencing evidence
+def: "A high throughput nucleotide sequencing result derived by Illumina (Solexa) sequencing technology." [ECO:MCC]
+comment: In Illumina sequencing technology, adapters are ligated onto the ends of randomly fragmented DNA. After single-stranded fragments are bound to the inside surface of a flow cell channel, they undergo in-place bridge PCR amplification. To begin the sequencing cycle, labeled reversible terminators, primers and DNA polymerase are added, followed by laser excitation of the fluorescent label and high resolution scanning. After non-incorporated nucleotides are washed away and the dye is chemically removed, the next cycle repeats with four labeled reversible terminators, primers and DNA polymerase, again followed by imaging.
+synonym: "Solexa sequencing result" RELATED [OBI:0000724]
+is_a: ECO:0000221 ! high throughput nucleotide sequencing assay evidence
+created_by: mchibucos
+creation_date: 2010-11-15T02:38:03Z
+
+[Term]
+id: ECO:0000223
+name: 454 pyrosequencing evidence
+def: "A high throughput nucleotide sequencing result derived by 454 pyrosequencing technology." [ECO:MCC]
+comment: 454 pyrosequencing technology amplifies individual DNA fragments inside water droplets within an oil solution (emulsion PCR). Within each droplet, a single DNA template is attached to a single primer-coated bead. Each bead is subsequently captured in a picolitre well within the sequencing machine. A luciferase-based readout system is used to identify individual nucleotides added to the nascent DNA.
+synonym: "pyrosequencing" BROAD [OBI:0000730]
+is_a: ECO:0000221 ! high throughput nucleotide sequencing assay evidence
+created_by: mchibucos
+creation_date: 2010-11-15T03:50:14Z
+
+[Term]
+id: ECO:0000224
+name: SOLiD sequencing evidence
+def: "A high throughput nucleotide sequencing result derived by SOLiD sequencing technology." [ECO:MCC, OBI:0000706]
+comment: SOLiD sequencing technology is based on sequencing by ligation. After library preparation, emulsion PCR and bead enrichment are performed, including 3' modification of templates on selected beads to allow covalent bonding to a slide. 3' modified beads are attached to a glass slide and primers are added. Four fluorescently labeled di-base probes are added and multiple cycles of ligation, detection and cleavage are performed. The number of cycles determines read length. After a number of ligation cycles, the extension product is removed and another round of ligation cycles is performed with a new primer complimentary to the n-1 position of the template. Five rounds of primer reset are performed for each sequence tag.
+is_a: ECO:0000221 ! high throughput nucleotide sequencing assay evidence
+created_by: mchibucos
+creation_date: 2010-11-15T04:17:41Z
+
+[Term]
+id: ECO:0000225
+name: chain termination sequencing evidence
+def: "A nucleotide sequencing assay result derived by the chain termination sequencing method." [ECO:MCC, OBI:0000695]
+comment: Chain termination sequencing, also called Sanger sequencing after its developer, uses dideoxynucleotide triphosphates (ddNTPs) as DNA chain terminators. Single-stranded DNA template, DNA primer, DNA polymerase, fluorescently or radioactively labeled nucleotides, and one of four ddNTPs are added together in each of four separate sequencing reactions. The synthesized and labeled DNA fragments from each of the four reactions are denatured, separated by size by gel electrophoresis, and visualized by autoradiography or UV light.
+synonym: "dye terminator sequencing" EXACT []
+synonym: "Sanger sequencing" EXACT []
+is_a: ECO:0000219 ! nucleotide sequencing assay evidence
+created_by: mchibucos
+creation_date: 2010-11-15T04:46:31Z
+
+[Term]
+id: ECO:0000226
+name: chromatin immunoprecipitation evidence
+def: "A type of immunoprecipitation evidence that is used to identify a protein binding site on a genomic DNA sequence." [ECO:MCC]
+comment: Chromatin immunoprecipitation (ChIP) is used to investigate protein-DNA interactions in vivo. DNA and proteins are chemically cross-linked in vivo to form chromatin complexes, followed by cell lysis and DNA shearing. Fragmented DNA-protein complexes are selectively enriched for a protein of interest using a specific antibody (immunoprecipitation). Protein digestion and DNA purification are performed prior to DNA detection via molecular cloning and sequencing, polymerase chain reaction (PCR), microarray analysis (ChIP-on-chip), or direct high-throughput sequencing (ChIP-seq).
+synonym: "ChIP evidence" EXACT []
+xref: PSI-MI:MI\:0402 "chromatin immunoprecipitation assay"
+is_a: ECO:0000085 ! immunoprecipitation evidence
+created_by: mchibucos
+creation_date: 2010-11-16T01:29:08Z
+
+[Term]
+id: ECO:0000227
+name: chromatin immunoprecipitation-PCR evidence
+def: "A chromatin immunoprecipitation (ChIP) evidence that uses polymerase chain reaction (PCR) for DNA detection." [ECO:MCC]
+synonym: "ChIP-PCR evidence" EXACT []
+is_a: ECO:0000226 ! chromatin immunoprecipitation evidence
+created_by: mchibucos
+creation_date: 2010-11-16T05:02:00Z
+
+[Term]
+id: ECO:0000228
+name: chromatin immunoprecipitation-qPCR evidence
+def: "A chromatin immunoprecipitation (ChIP) evidence that uses quantitative polymerase chain reaction (qPCR) for DNA detection." [ECO:MCC]
+synonym: "ChIP-qPCR evidence" EXACT []
+is_a: ECO:0000226 ! chromatin immunoprecipitation evidence
+created_by: mchibucos
+creation_date: 2010-11-16T05:26:47Z
+
+[Term]
+id: ECO:0000229
+name: chromatin immunoprecipitation-seq evidence
+def: "A chromatin immunoprecipitation (ChIP) evidence that uses high-throughput sequencing for DNA detection." [ECO:MCC, OBI:0000716]
+synonym: "ChIP-seq evidence" EXACT []
+synonym: "ChIP-SEQ evidence" EXACT [OBI:0000716]
+is_a: ECO:0000226 ! chromatin immunoprecipitation evidence
+created_by: mchibucos
+creation_date: 2010-11-16T05:30:41Z
+
+[Term]
+id: ECO:0000230
+name: chromatin immunoprecipitation-chip evidence
+def: "A chromatin immunoprecipitation (ChIP) evidence that uses a tiling microarray for DNA detection." [ECO:MCC]
+synonym: "ChIP-chip evidence" EXACT []
+synonym: "ChIP-on-chip evidence" EXACT []
+xref: PSI-MI:MI\:0225 "chromatin immunoprecipitation array"
+is_a: ECO:0000226 ! chromatin immunoprecipitation evidence
+created_by: mchibucos
+creation_date: 2010-11-16T05:43:55Z
+
+[Term]
+id: ECO:0000231
+name: quantitative polymerase chain reaction evidence
+def: "A polymerase chain reaction experiment where the reaction product is quantified in real-time across cycles by means of fluorescent dyes." [ECO:MCC]
+comment: Quantitative PCR enables both detection and quantification (as absolute number of copies or relative amount when normalized to DNA input or additional normalizing genes) of one or more specific sequences in a DNA sample.
+synonym: "Q-PCR evidence" EXACT []
+synonym: "qRT-PCR evidence" EXACT []
+synonym: "quantitative PCR evidence" EXACT []
+synonym: "real-time PCR evidence" EXACT []
+synonym: "real-time polymerase chain reaction evidence" EXACT []
+is_a: ECO:0000082 ! polymerase chain reaction evidence
+created_by: mchibucos
+creation_date: 2010-11-16T05:57:20Z
+
+[Term]
+id: ECO:0000232
+name: chromosome conformation capture-based evidence
+def: "A type of experimental evidence that is based on a five-step technique of cross-linking DNA in vivo, restriction digestion, intramolecular ligation, reversing DNA cross-links, and DNA processing and quantitation." [ECO:MCC]
+comment: Chromosome conformation capture technologies are used to study the structural properties and spatial organization of chromosomes inside cells. All types of chromosome conformation capture technology involve five primary steps: cross-linking of DNA in vivo, restriction digestion, intramolecular ligation, reversing cross-linkages, and DNA enrichment and quantitation. The last step is different for each type of chromosome conformation capture technology, and may include PCR (3C), inverse PCR (4C), or ligation-mediated amplification (5C). Methods for product quantitation can include agarose gel detection or real-time quantitative PCR in the case of 3C, or high-throughput sequencing or microarray analysis for 4C and 5C.
+synonym: "3C" NARROW []
+synonym: "chromosome conformation capture" NARROW []
+is_a: ECO:0000073 ! experimental genomic evidence
+created_by: mchibucos
+creation_date: 2010-11-17T12:27:14Z
+
+[Term]
+id: ECO:0000233
+name: chromosome conformation capture evidence
+def: "A type of chromosome conformation capture-based evidence that is derived by performing a type of polymerase chain reaction (PCR) in the final product quantitation step." [ECO:MCC]
+comment: 3C is used to study the structural properties and spatial organization of chromosomes inside cells. Like other types of chromosome conformation capture technology, 3C differs only in the fifth step, which involves performing either standard polymerase chain reaction (PCR) or quantitative PCR (qPCR) for product quantitation.
+synonym: "3C" EXACT []
+is_a: ECO:0000232 ! chromosome conformation capture-based evidence
+created_by: mchibucos
+creation_date: 2010-11-17T12:46:15Z
+
+[Term]
+id: ECO:0000234
+name: circularized chromosome conformation capture evidence
+def: "A type of chromosome conformation capture-based evidence that is derived by inverse polymerase chain reaction (inverse PCR) on a prior circularized 3C library followed by product quantitation with a microarray." [ECO:MCC]
+comment: 4C is used to study the structural properties and spatial organization of chromosomes inside cells. Like other types of chromosome conformation capture technology, 4C differs only in the fifth step, which involves inverse polymerase chain reaction (inverse PCR) on a circularized 3C library prior to product quantitation.
+synonym: "4C" EXACT []
+synonym: "chromosome conformation capture on chip" EXACT []
+synonym: "circularized 3C" EXACT []
+is_a: ECO:0000232 ! chromosome conformation capture-based evidence
+created_by: mchibucos
+creation_date: 2010-11-19T01:20:28Z
+
+[Term]
+id: ECO:0000235
+name: carbon-copy chromosome conformation capture evidence
+def: "A type of chromosome conformation capture-based evidence that is derived by performing ligation-mediated amplification (LMA) prior to product quantitation." [ECO:MCC]
+comment: 5C is used to study the structural properties and spatial organization of chromosomes inside cells. Like other types of chromosome conformation capture technology, 5C differs only in the fifth step, which involves ligation-mediated amplification (LMA) followed by product quantitation.
+synonym: "5C" EXACT []
+synonym: "carbon-copy 3C" EXACT []
+is_a: ECO:0000232 ! chromosome conformation capture-based evidence
+created_by: mchibucos
+creation_date: 2010-11-19T01:22:20Z
+
+[Term]
+id: ECO:0000236
+name: chromosome conformation capture-PCR evidence
+def: "A type of chromosome conformation capture evidence that is derived by performing polymerase chain reaction (PCR) in the quantitation step." [ECO:MCC]
+synonym: "3C" BROAD []
+synonym: "3C-PCR" EXACT []
+is_a: ECO:0000233 ! chromosome conformation capture evidence
+created_by: mchibucos
+creation_date: 2010-11-19T03:00:47Z
+
+[Term]
+id: ECO:0000237
+name: chromosome conformation capture-qPCR evidence
+def: "A type of chromosome conformation capture evidence that is derived by performing quantitative polymerase chain reaction (qPCR) in the quantitation step." [ECO:MCC]
+synonym: "3C-qPCR" EXACT []
+synonym: "3C-quantitative PCR" EXACT []
+synonym: "3C-real-time PCR" EXACT []
+is_a: ECO:0000233 ! chromosome conformation capture evidence
+created_by: mchibucos
+creation_date: 2010-11-19T03:06:47Z
+
+[Term]
+id: ECO:0000238
+name: Hi-C evidence
+def: "A type of chromosome conformation capture-based evidence that is derived by performing immunoprecipitation enrichment of ligated fragments events prior to product quantitation." [ECO:MCC]
+comment: Hi-C is used to study the structural properties and spatial organization of chromosomes inside cells. Hi-C is similar to other types of chromosome conformation capture technology, but involves the addition of biotinylated nucleotides during the second or fourth step and enrichment for ligated fragments using immunoprecipitation after the fourth step.
+is_a: ECO:0000232 ! chromosome conformation capture-based evidence
+created_by: mchibucos
+creation_date: 2010-11-19T04:24:03Z
+
+[Term]
+id: ECO:0000239
+name: chromosome conformation capture sequencing evidence
+def: "A type of chromosome conformation capture-based evidence that is derived by inverse polymerase chain reaction (inverse PCR) on a circularized 3C library prior to product quantitation with high-throughput (HT) sequencing." [ECO:MCC]
+comment: 3C-seq is used to study the structural properties and spatial organization of chromosomes inside cells. Like other types of chromosome conformation capture technology, 3C-seq differs only in the fifth step, which involves inverse polymerase chain reaction (PCR) on a circularized 3C library prior to product quantitation.
+synonym: "3C sequencing" EXACT []
+synonym: "3C-seq" EXACT []
+synonym: "4C sequencing" EXACT []
+synonym: "4C-seq" EXACT []
+synonym: "circularized 3C sequencing" EXACT []
+synonym: "circularized 3C-seq" EXACT []
+is_a: ECO:0000232 ! chromosome conformation capture-based evidence
+created_by: mchibucos
+creation_date: 2010-11-30T03:22:25Z
+
+[Term]
+id: ECO:0000240
+name: anatomical perturbation evidence
+def: "Experimental phenotypic evidence where a structural feature of an organism is disrupted." [ECO:MCC]
+is_a: ECO:0000059 ! experimental phenotypic evidence
+created_by: mchibucos
+creation_date: 2010-12-06T12:24:16Z
+
+[Term]
+id: ECO:0000241
+name: environmental perturbation evidence
+def: "Experimental phenotypic evidence where the extra-organismal context of an organism is modified." [ECO:MCC]
+comment: Many environmental factors are subject to modification, such as temperature, pressure, humidity, radiation, and so forth.
+synonym: "mechanical constraint evidence" RELATED []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+created_by: mchibucos
+creation_date: 2010-12-06T12:33:58Z
+
+[Term]
+id: ECO:0000242
+name: tissue ablation evidence
+def: "A type of anatomical perturbation that is based on disruption of tissue." [ECO:MCC]
+comment: A tissue ablation experiment involves observing the phenotype of an entity whose tissues have been disrupted through genetic or biochemical manipulation, physical destruction, or some other means.
+synonym: "ablated tissue evidence" EXACT []
+is_a: ECO:0000240 ! anatomical perturbation evidence
+created_by: mchibucos
+creation_date: 2010-12-06T12:33:58Z
+
+[Term]
+id: ECO:0000243
+name: tissue grafting evidence
+def: "A type of anatomical perturbation that is based on adding tissue to an organism through a graft procedure." [ECO:MCC]
+is_a: ECO:0000240 ! anatomical perturbation evidence
+created_by: mchibucos
+creation_date: 2010-12-06T12:33:58Z
+
+[Term]
+id: ECO:0000244
+name: combinatorial evidence used in manual assertion
+def: "A type of combinatorial analysis that is used in a manual assertion." [ECO:MCC]
+comment: Combinatorial analyses could include experimental or computational results. Examples include: (i) large-scale experiment such as a genome-wide two-hybrid or genome-wide synthetic interactions; (ii) integration of large-scale data sets of various types; and (iii) text-based-computation, e.g. text-mining. For simple sequence comparisons, one should use the sequence similarity analysis evidence type. For microarray results alone, expression pattern analysis is appropriate; whereas, large-scale computational analysis should be used when microarray results are combined with the results of other types of large-scale experiments.
+is_a: ECO:0000212 ! combinatorial evidence
+intersection_of: ECO:0000212 ! combinatorial evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-09T02:02:12Z
+
+[Term]
+id: ECO:0000245
+name: computational combinatorial evidence used in manual assertion
+def: "A type of computational combinatorial analysis that is used in a manual assertion." [ECO:MCC]
+synonym: "inferred from reviewed computational analysis" EXACT [GOECO:RCA]
+synonym: "RCA" EXACT [GOECO:RCA]
+xref: GOECO:RCA "inferred from reviewed computational analysis"
+is_a: ECO:0000053 ! computational combinatorial evidence
+intersection_of: ECO:0000053 ! computational combinatorial evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-09T02:37:54Z
+
+[Term]
+id: ECO:0000246
+name: computational combinatorial evidence used in automatic assertion
+def: "A type of computational combinatorial analysis that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000053 ! computational combinatorial evidence
+intersection_of: ECO:0000053 ! computational combinatorial evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-09T02:37:54Z
+
+[Term]
+id: ECO:0000247
+name: sequence alignment evidence used in manual assertion
+def: "Sequence alignment evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "inferred from sequence alignment" EXACT [GOECO:ISA]
+synonym: "ISA" EXACT [GOECO:ISA]
+xref: GOECO:ISA "inferred from sequence alignment"
+is_a: ECO:0000200 ! sequence alignment evidence
+intersection_of: ECO:0000200 ! sequence alignment evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-09T05:12:27Z
+
+[Term]
+id: ECO:0000248
+name: sequence alignment evidence used in automatic assertion
+def: "Sequence alignment evidence that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000200 ! sequence alignment evidence
+intersection_of: ECO:0000200 ! sequence alignment evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-09T05:12:27Z
+
+[Term]
+id: ECO:0000249
+name: sequence similarity evidence used in automatic assertion
+def: "Sequence similarity evidence that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000044 ! sequence similarity evidence
+intersection_of: ECO:0000044 ! sequence similarity evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-09T05:22:30Z
+
+[Term]
+id: ECO:0000250
+name: sequence similarity evidence used in manual assertion
+def: "Sequence similarity evidence that is used in a manual assertion." [ECO:MCC]
+xref: GOECO:ISS "inferred from sequence or structural similarity"
+is_a: ECO:0000044 ! sequence similarity evidence
+intersection_of: ECO:0000044 ! sequence similarity evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-09T05:22:30Z
+
+[Term]
+id: ECO:0000251
+name: similarity evidence used in automatic assertion
+def: "Similarity evidence that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000041 ! similarity evidence
+intersection_of: ECO:0000041 ! similarity evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-09T05:28:12Z
+
+[Term]
+id: ECO:0000252
+name: similarity evidence used in manual assertion
+def: "Similarity evidence that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000041 ! similarity evidence
+intersection_of: ECO:0000041 ! similarity evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-09T05:28:12Z
+
+[Term]
+id: ECO:0000253
+name: genetic similarity evidence used in manual assertion
+def: "Genetic similarity evidence that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000051 ! genetic similarity evidence
+intersection_of: ECO:0000051 ! genetic similarity evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-10T01:42:44Z
+
+[Term]
+id: ECO:0000254
+name: genetic similarity evidence used in automatic assertion
+def: "Genetic similarity evidence that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000051 ! genetic similarity evidence
+intersection_of: ECO:0000051 ! genetic similarity evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-10T01:42:44Z
+
+[Term]
+id: ECO:0000255
+name: match to sequence model evidence used in manual assertion
+def: "A match to sequence model evidence that is employed in a manual assertion." [ECO:MCC]
+xref: GO_REF:0000011 "Hidden Markov Models (TIGR)"
+xref: GOECO:ISM "inferred from sequence model"
+is_a: ECO:0000202 ! match to sequence model evidence
+intersection_of: ECO:0000202 ! match to sequence model evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-10T02:26:35Z
+
+[Term]
+id: ECO:0000256
+name: match to sequence model evidence used in automatic assertion
+def: "A match to sequence model evidence that is employed in an automatic assertion." [ECO:MCC]
+xref: GO_REF:0000002 "Gene Ontology annotation through association of InterPro records with GO terms."
+xref: GO_REF:0000019 "Automatic transfer of experimentally verified manual GO annotation data to orthologs using Ensembl Compara"
+is_a: ECO:0000202 ! match to sequence model evidence
+intersection_of: ECO:0000202 ! match to sequence model evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-10T02:26:35Z
+
+[Term]
+id: ECO:0000257
+name: motif similarity evidence used in manual assertion
+def: "Motif similarity evidence that is employed in a manual assertion." [ECO:MCC]
+is_a: ECO:0000028 ! motif similarity evidence
+intersection_of: ECO:0000028 ! motif similarity evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-10T02:44:34Z
+
+[Term]
+id: ECO:0000258
+name: motif similarity evidence used in automatic assertion
+def: "Motif similarity evidence that is employed in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000028 ! motif similarity evidence
+intersection_of: ECO:0000028 ! motif similarity evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-10T02:44:34Z
+
+[Term]
+id: ECO:0000259
+name: match to InterPro signature evidence used in automatic assertion
+def: "A match to InterPro signature evidence that is employed in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000029 ! match to InterPro signature evidence
+intersection_of: ECO:0000029 ! match to InterPro signature evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-10T02:54:51Z
+
+[Term]
+id: ECO:0000260
+name: match to InterPro signature evidence used in manual assertion
+def: "A match to InterPro signature evidence that is employed in a manual assertion." [ECO:MCC]
+is_a: ECO:0000029 ! match to InterPro signature evidence
+intersection_of: ECO:0000029 ! match to InterPro signature evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-10T02:54:51Z
+
+[Term]
+id: ECO:0000261
+name: targeting sequence prediction evidence used in automatic assertion
+def: "A targeting sequence prediction that is employed in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000081 ! targeting sequence prediction evidence
+intersection_of: ECO:0000081 ! targeting sequence prediction evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-10T03:02:49Z
+
+[Term]
+id: ECO:0000262
+name: targeting sequence prediction evidence used in manual assertion
+def: "A targeting sequence prediction that is employed in a manual assertion." [ECO:MCC]
+is_a: ECO:0000081 ! targeting sequence prediction evidence
+intersection_of: ECO:0000081 ! targeting sequence prediction evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-10T03:02:49Z
+
+[Term]
+id: ECO:0000263
+name: transmembrane domain prediction evidence used in automatic assertion
+def: "Transmembrane domain prediction that is employed in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000083 ! transmembrane domain prediction evidence
+intersection_of: ECO:0000083 ! transmembrane domain prediction evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-10T03:28:35Z
+
+[Term]
+id: ECO:0000264
+name: transmembrane domain prediction evidence used in manual assertion
+def: "Transmembrane domain prediction that is employed in a manual assertion." [ECO:MCC]
+is_a: ECO:0000083 ! transmembrane domain prediction evidence
+intersection_of: ECO:0000083 ! transmembrane domain prediction evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-10T03:28:35Z
+
+[Term]
+id: ECO:0000265
+name: sequence orthology evidence used in automatic assertion
+def: "Sequence orthology evidence that is employed in an automatic assertion." [ECO:MCC]
+synonym: "Ortholog evidence" RELATED []
+xref: GO_REF:0000003 "Gene Ontology annotation based on Enzyme Commission mapping."
+xref: GO_REF:0000019 "Automatic transfer of experimentally verified manual GO annotation data to orthologs using Ensembl Compara"
+xref: GO_REF:0000035 "Automatic transfer of experimentally verified manual GO annotation data to plant orthologs using Ensembl Compara"
+is_a: ECO:0000201 ! sequence orthology evidence
+intersection_of: ECO:0000201 ! sequence orthology evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2010-12-10T03:39:41Z
+
+[Term]
+id: ECO:0000266
+name: sequence orthology evidence used in manual assertion
+def: "Sequence orthology evidence that is employed in a manual assertion." [ECO:MCC]
+synonym: "Ortholog evidence" RELATED []
+xref: GOECO:ISO "inferred from sequence orthology"
+is_a: ECO:0000201 ! sequence orthology evidence
+intersection_of: ECO:0000201 ! sequence orthology evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-10T03:39:41Z
+
+[Term]
+id: ECO:0000267
+name: enzyme-linked immunoabsorbent assay evidence
+def: "A type of protein assay evidence where an antigen is bound to a substrate, and an antibody directly or indirectly linked to an enzyme is utilized to determine the amount of bound antigen." [ECO:MCC]
+synonym: "ELISA evidence" EXACT []
+synonym: "enzyme-linked immunosorbent assay" NARROW []
+xref: PSI-MI:MI\:0411 "enzyme linked immunosorbent assay"
+is_a: ECO:0000039 ! protein assay evidence
+created_by: mchibucos
+creation_date: 2010-12-14T01:57:13Z
+
+[Term]
+id: ECO:0000268
+name: flow cytometry evidence
+def: "A direct assay that passes a stream of cells or particles past a light source, followed by using a detector to monitor light scatter or fluorochrome excitation to characterize the cells or particles." [ECO:MCC]
+synonym: "FCM" EXACT []
+is_a: ECO:0000002 ! direct assay evidence
+created_by: mchibucos
+creation_date: 2010-12-14T02:07:08Z
+
+[Term]
+id: ECO:0000269
+name: experimental evidence used in manual assertion
+def: "A type of experimental evidence that is used in a manual assertion." [ECO:MCC]
+xref: GOECO:EXP "inferred from experiment"
+is_a: ECO:0000006 ! experimental evidence
+intersection_of: ECO:0000006 ! experimental evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T05:36:49Z
+
+[Term]
+id: ECO:0000270
+name: expression evidence used in manual assertion
+def: "A type of expression pattern evidence that is used in a manual assertion." [ECO:MCC]
+xref: GOECO:IEP "inferred from expression pattern"
+is_a: ECO:0000008 ! expression pattern evidence
+intersection_of: ECO:0000008 ! expression pattern evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T05:46:39Z
+
+[Term]
+id: ECO:0000271
+name: array experiment evidence used in manual assertion
+def: "A type of array experiment evidence that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000055 ! array experiment evidence
+intersection_of: ECO:0000055 ! array experiment evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T05:51:58Z
+
+[Term]
+id: ECO:0000272
+name: Affymetrix array experiment evidence used in manual assertion
+def: "A type of Affymetrix array experiment evidence that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000101 ! Affymetrix array experiment evidence
+intersection_of: ECO:0000101 ! Affymetrix array experiment evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T05:53:36Z
+
+[Term]
+id: ECO:0000273
+name: cDNA microarray evidence used in manual assertion
+def: "A type of evidence arising from a cDNA microarray experiment that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000097 ! cDNA microarray evidence
+intersection_of: ECO:0000097 ! cDNA microarray evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T05:55:49Z
+
+[Term]
+id: ECO:0000274
+name: CpG island microarray evidence used in manual assertion
+def: "A type of evidence arising from a CpG island microarray experiment that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000065 ! CpG island microarray evidence
+intersection_of: ECO:0000065 ! CpG island microarray evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T05:58:44Z
+
+[Term]
+id: ECO:0000275
+name: expression microarray evidence used in manual assertion
+def: "A type of expression microarray evidence that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000058 ! expression microarray evidence
+intersection_of: ECO:0000058 ! expression microarray evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:01:26Z
+
+[Term]
+id: ECO:0000276
+name: genomic microarray evidence used in manual assertion
+def: "A type of evidence arising from a genomic microarray experiment that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000062 ! genomic microarray evidence
+intersection_of: ECO:0000062 ! genomic microarray evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:03:28Z
+
+[Term]
+id: ECO:0000277
+name: Nimblegen array evidence used in manual assertion
+def: "A type of evidence arising from a Nimblegen array experiment that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000105 ! Nimblegen array evidence
+intersection_of: ECO:0000105 ! Nimblegen array evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:05:20Z
+
+[Term]
+id: ECO:0000278
+name: oligonucleotide microarray evidence used in manual assertion
+def: "A type of evidence arising from an oligonucleotide microarray experiment that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000093 ! oligonucleotide microarray evidence
+intersection_of: ECO:0000093 ! oligonucleotide microarray evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:09:45Z
+
+[Term]
+id: ECO:0000279
+name: Western blot evidence used in manual assertion
+def: "A type of Western blot assay that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000112 ! Western blot evidence
+intersection_of: ECO:0000112 ! Western blot evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:20:01Z
+
+[Term]
+id: ECO:0000280
+name: protein expression level evidence used in manual assertion
+def: "A type of protein expression level analysis that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000046 ! protein expression level evidence
+intersection_of: ECO:0000046 ! protein expression level evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:21:54Z
+
+[Term]
+id: ECO:0000281
+name: expression library screen evidence used in manual assertion
+def: "A type of expression library screen evidence that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000114 ! expression library screen evidence
+intersection_of: ECO:0000114 ! expression library screen evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:24:05Z
+
+[Term]
+id: ECO:0000282
+name: heterologous protein expression evidence used in manual assertion
+def: "A type of heterologous protein expression analysis that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000154 ! heterologous protein expression evidence
+intersection_of: ECO:0000154 ! heterologous protein expression evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:27:04Z
+
+[Term]
+id: ECO:0000283
+name: spatial pattern of protein expression evidence used in manual assertion
+def: "A type of protein expression spatial pattern analysis that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000045 ! spatial pattern of protein expression evidence
+intersection_of: ECO:0000045 ! spatial pattern of protein expression evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:31:44Z
+
+[Term]
+id: ECO:0000284
+name: protein expression evidence used in manual assertion
+def: "A type of protein expression analysis that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000010 ! protein expression evidence
+intersection_of: ECO:0000010 ! protein expression evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:33:46Z
+
+[Term]
+id: ECO:0000285
+name: microarray RNA expression level evidence used in manual assertion
+def: "A type of microarray RNA expression level data that is used in manual assertion." [ECO:MCC]
+is_a: ECO:0000104 ! microarray RNA expression level evidence
+intersection_of: ECO:0000104 ! microarray RNA expression level evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:41:33Z
+
+[Term]
+id: ECO:0000286
+name: transcript expression level used in manual assertion
+def: "A type of transcript expression level data that is used in manual assertion." [ECO:MCC]
+is_a: ECO:0000048 ! transcript expression level evidence
+intersection_of: ECO:0000048 ! transcript expression level evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:52:03Z
+
+[Term]
+id: ECO:0000287
+name: differential hybridization evidence used in manual assertion
+def: "A type of differential hybridization experiment that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000116 ! differential hybridization evidence
+intersection_of: ECO:0000116 ! differential hybridization evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:55:14Z
+
+[Term]
+id: ECO:0000288
+name: RNA protection assay evidence used in manual assertion
+def: "A type of RNA protection assay that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000110 ! RNA protection assay evidence
+intersection_of: ECO:0000110 ! RNA protection assay evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:57:33Z
+
+[Term]
+id: ECO:0000289
+name: spatial pattern of transcript expression evidence used in manual assertion
+def: "A type of spatial pattern of transcript expression analysis that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000047 ! spatial pattern of transcript expression evidence
+intersection_of: ECO:0000047 ! spatial pattern of transcript expression evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T06:59:18Z
+
+[Term]
+id: ECO:0000290
+name: subtractive hybridization evidence used in manual assertion
+def: "A type of subtractive hybridization experiment that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000118 ! subtractive hybridization evidence
+intersection_of: ECO:0000118 ! subtractive hybridization evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T07:00:48Z
+
+[Term]
+id: ECO:0000291
+name: transcript expression evidence used in manual assertion
+def: "A type of transcript expression evidence that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000009 ! transcript expression evidence
+intersection_of: ECO:0000009 ! transcript expression evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2010-12-20T07:02:08Z
+
+[Term]
+id: ECO:0000292
+name: morpholino experiment evidence
+def: "A type of experimental phenotypic evidence that uses anti-sense by introducing morpholino oligonucleotides into the cytosol of a cell." [ECO:MCC]
+comment: Morpholino oligonucleotides modify gene expression by blocking access of other molecules to specific, approximately 25-base-long regions of the base-pairing surfaces of ribonucleic acid (RNA). To achieve this anti-sense knockdown technique, delivery of the morpholino can be achieved via microinjection, electroporation, or another method.
+synonym: "anti-sense" BROAD []
+is_a: ECO:0000059 ! experimental phenotypic evidence
+created_by: mchibucos
+creation_date: 2011-01-10T03:36:25Z
+
+[Term]
+id: ECO:0000293
+name: systematic evolution of ligands by exponential amplification evidence
+def: "A type of evidence arising from a physical interaction analysis where a combinatorial chemistry technique is used to identify oligonucleotides that bind to a target ligand." [ECO:MCC, url:http\://en.wikipedia.org/wiki/Systematic_Evolution_of_Ligands_by_Exponential_Enrichment]
+comment: SELEX begins with the synthesis of a large oligonucleotide library, either single-stranded DNA or RNA, which consists of random fixed-length sequences flanked by constant 5' and 3' ends that serve as primers. The library is exposed to a target ligand, typically a protein or small organic compound. Unbound sequences are removed, typically with affinity chromatography. Bound sequences are eluted and the nucleic acid is extracted, followed by PCR amplification (RNA is first reverse transcribed). PCR product is converted to single stranded (DNA) or transcribed (RNA). Oligonucleotides are bound to the ligand again and the process is repeated with increasing elution stringency. After several rounds of the process, recovered oligonucleotides are sequenced and analyzed to reveal the binding specificity of the protein.
+synonym: "in vitro evolution evidence" RELATED []
+synonym: "in vitro selection evidence" EXACT []
+synonym: "SELEX evidence" EXACT []
+xref: PSI-MI:MI\:0657 "systematic evolution of ligands by exponential enrichment"
+is_a: ECO:0000021 ! physical interaction evidence
+created_by: mchibucos
+creation_date: 2011-01-10T04:23:50Z
+
+[Term]
+id: ECO:0000294
+name: bacterial one-hybrid evidence
+def: "A type of hybrid interaction evidence that uses bacterial transformation with two plasmids to assess in vivo binding of a DNA-binding domain (bait) and DNA target site (prey)." [ECO:MCC]
+comment: Bacterial one-hybrid assay is a method for screening a library of candidate proteins (prey plasmid) for the ability to bind to a target, cis-regulatory element or any other short, DNA binding sequence placed 5' to reporter genes (bait plasmid). Transformation of a bacterial host with two different plasmids is required: One is designed to express the "bait". The other plasmid contains a "prey" which, if bound to by the chimeric fusion product, drives expression of downstream reporter genes.
+synonym: "B1H evidence" EXACT []
+is_a: ECO:0000025 ! hybrid interaction evidence
+created_by: mchibucos
+creation_date: 2011-01-10T06:16:20Z
+
+[Term]
+id: ECO:0000295
+name: RNA-seq evidence
+def: "A type of transcript expression evidence based on high-throughput (HT) sequencing of fragmented cDNA molecules." [ECO:MCC]
+comment: Total RNA is isolated from cells and mRNA is purified by targeting the 3' polyadenylated (poly(A)) tail with poly(T) oligos covalently attached to a substrate. Next, cDNA fragments are generated either by hydrolysis of RNA into 200-300 base oligonucleotides, preceded by reverse transcription, or by reverse transcription initiated by random primers. The cDNA second strand is synthesized, fragments are adapter ligated and high-throughput sequencing is performed by Roche 454, Illumina, ABI-SOLiD, or another HT sequencing technology. Resulting sort reads are aligned against a reference genome, and downstream analysis is performed.
+synonym: "RNA sequencing" RELATED []
+synonym: "whole transcriptome shotgun sequencing" EXACT [PMID:18611170]
+synonym: "WTSS" EXACT []
+is_a: ECO:0000009 ! transcript expression evidence
+created_by: mchibucos
+creation_date: 2011-01-11T12:54:50Z
+
+[Term]
+id: ECO:0000296
+name: green fluorescent protein transcript localization evidence
+def: "A transcriptional activation assay that uses a green fluorescent protein (GFP) reporter gene." [ECO:MCC]
+comment: This term describes transcriptional activation; to describe immunolocalization of the protein, use the term "immunolocalization of green fluorescent protein".
+synonym: "localization of GFP transcript" EXACT []
+is_a: ECO:0000170 ! transcriptional activation assay
+created_by: mchibucos
+creation_date: 2011-01-11T02:31:19Z
+
+[Term]
+id: ECO:0000297
+name: LacZ transcript localization evidence
+def: "A transcriptional activation assay that uses a LacZ reporter gene." [ECO:MCC]
+comment: This term describes transcriptional activation; to describe immunolocalization of the protein, use the term "immunolocalization of LacZ protein".
+is_a: ECO:0000170 ! transcriptional activation assay
+created_by: mchibucos
+creation_date: 2011-01-11T02:53:19Z
+
+[Term]
+id: ECO:0000298
+name: cleavage arrested development evidence
+def: "A type of experimental phenotypic evidence where embryonic development proceeds although cytokinesis is blocked." [ECO:MCC]
+comment: In the embryos of some organisms, inhibition of cytokinesis blocks neither the cell cycle nor the unfolding of the developmental program. As such, embryonic morphology can be frozen, allowing analysis of the developmental fate of each cell present at the time of cleavage arrest.
+is_a: ECO:0000059 ! experimental phenotypic evidence
+created_by: mchibucos
+creation_date: 2011-01-11T03:28:49Z
+
+[Term]
+id: ECO:0000299
+name: cytochalasin experiment evidence
+def: "A type of cleavage arrested development that arises after treatment with cytochalasin." [ECO:MCC]
+comment: Cytochalasin inhibits cytokinesis by blocking the formation of contractile microfilaments.
+is_a: ECO:0000298 ! cleavage arrested development evidence
+created_by: mchibucos
+creation_date: 2011-01-11T03:30:29Z
+
+[Term]
+id: ECO:0000300
+name: green fluorescent protein immunolocalization evidence
+def: "A type of immunolocalization evidence data that was generated using green fluorescent protein (GFP) as a marker." [ECO:MCC]
+comment: This term describes immunolocalization of the protein; to describe transcriptional activation, use the term "localization of green fluorescent protein transcript".
+synonym: "GFP immunolocalization evidence" EXACT []
+is_a: ECO:0000087 ! immunolocalization evidence
+created_by: mchibucos
+creation_date: 2011-01-11T03:48:50Z
+
+[Term]
+id: ECO:0000301
+name: beta-galactosidase protein immunolocalization evidence
+def: "A type of immunolocalization evidence that was generated using LacZ protein as a marker." [ECO:MCC]
+comment: This term describes immunolocalization of the protein; to describe transcriptional activation, use the term "localization of LacZ transcript".
+synonym: "LacZ protein immunolocalization evidence" EXACT []
+is_a: ECO:0000087 ! immunolocalization evidence
+created_by: mchibucos
+creation_date: 2011-01-11T04:06:40Z
+
+[Term]
+id: ECO:0000302
+name: author statement used in manual assertion
+def: "A type of author statement that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000204 ! author statement
+intersection_of: ECO:0000204 ! author statement
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-01-20T02:26:47Z
+
+[Term]
+id: ECO:0000303
+name: non-traceable author statement used in manual assertion
+def: "A type of non-traceable author statement that is used in a manual assertion." [ECO:MCC]
+synonym: "NAS" EXACT [GOECO:NAS]
+synonym: "non-traceable author statement" EXACT [GOECO:NAS]
+xref: GOECO:NAS "non-traceable author statement"
+is_a: ECO:0000034 ! non-traceable author statement
+intersection_of: ECO:0000034 ! non-traceable author statement
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-01-20T02:29:50Z
+
+[Term]
+id: ECO:0000304
+name: traceable author statement used in manual assertion
+def: "A type of traceable author statement that is used in a manual assertion." [ECO:MCC]
+synonym: "TAS" EXACT [GOECO:TAS]
+synonym: "traceable author statement" EXACT [GOECO:TAS]
+xref: GOECO:TAS "traceable author statement"
+is_a: ECO:0000033 ! traceable author statement
+intersection_of: ECO:0000033 ! traceable author statement
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-01-20T02:31:03Z
+
+[Term]
+id: ECO:0000305
+name: curator inference used in manual assertion
+def: "A type of curator inference that is used in a manual assertion." [ECO:MCC]
+xref: GOECO:IC "inferred by curator"
+is_a: ECO:0000205 ! curator inference
+intersection_of: ECO:0000205 ! curator inference
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-01-20T02:33:32Z
+
+[Term]
+id: ECO:0000306
+name: inference from background scientific knowledge used in manual assertion
+def: "A type of inference from background scientific knowledge that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000001 ! inference from background scientific knowledge
+intersection_of: ECO:0000001 ! inference from background scientific knowledge
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-01-20T02:35:11Z
+
+[Term]
+id: ECO:0000307
+name: no biological data found used in manual assertion
+def: "A type of no biological data found that is used in a manual assertion." [ECO:MCC]
+xref: GOECO:ND "no biological data available"
+is_a: ECO:0000035 ! no biological data found
+intersection_of: ECO:0000035 ! no biological data found
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-01-20T02:43:18Z
+
+[Term]
+id: ECO:0000308
+name: biological aspect of ancestor evidence
+def: "A type of phylogenetic evidence whereby an aspect of a descendant gene is inferred through the characterization of an aspect of an ancestral gene." [ECO:MCC]
+comment: First, a characteristic of the most recent common ancestor (MRCA) is inferred from experimental evidence in descendants; this is followed by inferring a characteristic of a descendant of the MRCA. This type of evidence can be used in support of both positive and "not" GO annotations.
+is_a: ECO:0000080 ! phylogenetic evidence
+created_by: mchibucos
+creation_date: 2011-02-04T05:41:26Z
+
+[Term]
+id: ECO:0000309
+name: cap analysis of gene expression evidence
+def: "A type of transcript expression evidence based on high-throughput (HT) sequencing of the 5' ends of cDNA molecules that are selected by a cap-trapper system." [ECO:MCC]
+comment: cDNA is synthesized from microgram quantities of mRNA using first-strand cDNA primer (oligo dT12-18) and reverse transcriptase in the presence of trehalose and sorbitol, followed by selection of full-length cDNA with biotinylated cap-trapper. Linkers are attached to the 5' ends of full-length enriched cDNAs to introduce a recognition site for the restriction endonuclease MmeI, which creates a two base overhang. After amplification, sequencing tags are concatenated for high-throughput sequencing. Resulting sort reads are aligned against a reference genome, and downstream analysis is performed.
+synonym: "CAGE" EXACT [PMID:16489339]
+is_a: ECO:0000009 ! transcript expression evidence
+created_by: mchibucos
+creation_date: 2011-02-17T01:33:09Z
+
+[Term]
+id: ECO:0000310
+name: nano-cap analysis of gene expression evidence
+def: "A type of transcript expression evidence based on high-throughput (HT) sequencing of the 5' ends of cDNA molecules that are selected by reverse transcriptase template switching." [ECO:MCC]
+comment: NanoCAGE captures the 5' ends of molecules by template switching. When polymerizing the cDNA of a capped mRNA, the reverse transcriptase adds extra cytosines that are complementary to the cap. Each 5' full length cDNAs is extended upon hybridization of the riboguanosine-tailed template switching oligonucleotides to these extra cytosines. In semisuppressive PCR, the short templates fold intramolecularly and prevent the binding of primers, which precludes amplification; longer molecules are less likely to fold and are thus amplified. Templates derived from reaction artifacts form stable homoduplexes, also precluding amplification. After template switching, semisuppressive PCR, and EcoP151 cleavage, 25-bp tags are ligated to bar code-containing oligonucleotide adaptors. After PCR amplification, the nanoCAGE tags are sequenced by synthesis. NanoCAGE requires as little as 10 nanograms of total RNA.
+synonym: "nanoCAGE" RELATED [PMID:20543846]
+is_a: ECO:0000009 ! transcript expression evidence
+created_by: mchibucos
+creation_date: 2011-02-17T01:33:34Z
+
+[Term]
+id: ECO:0000311
+name: imported information
+def: "An evidence type that is based on work performed by a person or group prior to a use by different person or group." [ECO:MCC]
+is_a: ECO:0000000 ! evidence
+created_by: mchibucos
+creation_date: 2011-03-02T05:24:13Z
+
+[Term]
+id: ECO:0000312
+name: imported information used in manual assertion
+def: "A type of imported information that is used in a manual assertion." [ECO:MCC]
+is_a: ECO:0000311 ! imported information
+intersection_of: ECO:0000311 ! imported information
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-03-02T05:29:44Z
+
+[Term]
+id: ECO:0000313
+name: imported information used in automatic assertion
+def: "A type of imported information that is used in an automatic assertion." [ECO:MCC]
+is_a: ECO:0000311 ! imported information
+intersection_of: ECO:0000311 ! imported information
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2011-03-02T05:33:43Z
+
+[Term]
+id: ECO:0000314
+name: direct assay evidence used in manual assertion
+def: "A type of direct assay evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "IDA" RELATED [GOECO:IDA]
+synonym: "inferred from direct assay" EXACT [GOECO:IDA]
+xref: GOECO:IDA "inferred from direct assay"
+is_a: ECO:0000002 ! direct assay evidence
+intersection_of: ECO:0000002 ! direct assay evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-10-28T04:59:31Z
+
+[Term]
+id: ECO:0000315
+name: mutant phenotype evidence used in manual assertion
+def: "A type of mutant phenotype evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "IMP" RELATED [GOECO:IMP]
+synonym: "inferred from mutant phenotype" RELATED [GOECO:IMP]
+xref: GOECO:IMP "inferred from mutant phenotype"
+is_a: ECO:0000015 ! mutant phenotype evidence
+intersection_of: ECO:0000015 ! mutant phenotype evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-10-28T05:12:49Z
+
+[Term]
+id: ECO:0000316
+name: genetic interaction evidence used in manual assertion
+def: "A type of genetic interaction experiment evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "IGI" EXACT [GOECO:IGI]
+synonym: "inferred from genetic interaction" EXACT [GOECO:IGI]
+xref: GOECO:IGI "inferred from genetic interaction"
+is_a: ECO:0000011 ! genetic interaction evidence
+intersection_of: ECO:0000011 ! genetic interaction evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-10-28T05:14:42Z
+
+[Term]
+id: ECO:0000317
+name: genomic context evidence used in manual assertion
+def: "A type of genomic context evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "IGC" RELATED [GOECO:IGC]
+synonym: "inferred from genomic context" EXACT [GOECO:IGC]
+xref: GOECO:IGC "inferred from genomic context"
+is_a: ECO:0000177 ! genomic context evidence
+intersection_of: ECO:0000177 ! genomic context evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-10-28T05:22:53Z
+
+[Term]
+id: ECO:0000318
+name: biological aspect of ancestor evidence used in manual assertion
+def: "A type of biological aspect of ancestor evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "IBA" EXACT [GOECO:IBA]
+synonym: "inferred from biological aspect of ancestor" EXACT [GOECO:IBA]
+xref: GOECO:IBA "inferred from biological aspect of ancestor"
+is_a: ECO:0000308 ! biological aspect of ancestor evidence
+intersection_of: ECO:0000308 ! biological aspect of ancestor evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-10-28T05:23:51Z
+
+[Term]
+id: ECO:0000319
+name: biological aspect of descendant evidence used in manual assertion
+def: "A type of biological aspect of descendant evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "IBD" EXACT [GOECO:IBD]
+synonym: "inferred from biological aspect of descendant" EXACT [GOECO:IBD]
+xref: GOECO:IBD "inferred from biological aspect of descendant"
+is_a: ECO:0000214 ! biological aspect of descendant evidence
+intersection_of: ECO:0000214 ! biological aspect of descendant evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-10-28T05:25:09Z
+
+[Term]
+id: ECO:0000320
+name: phylogenetic determination of loss of key residues evidence used in manual assertion
+def: "A type of phylogenetic determination of loss of key residues evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "IKR" EXACT [GOECO:IKR]
+synonym: "IMR" EXACT [GOECO:IKR]
+synonym: "inferred from key residues" EXACT [GOECO:IKR]
+synonym: "inferred from missing residues" EXACT [GOECO:IKR]
+xref: GOECO:IKR "inferred from key residues"
+xref: GOECO:IMR "inferred from missing residues"
+is_a: ECO:0000216 ! phylogenetic determination of loss of key residues evidence
+intersection_of: ECO:0000216 ! phylogenetic determination of loss of key residues evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-10-28T05:25:48Z
+
+[Term]
+id: ECO:0000321
+name: rapid divergence from ancestral sequence evidence used in manual assertion
+def: "A type of rapid divergence from ancestral sequence evidence that is used in a manual assertion." [ECO:MCC]
+synonym: "inferred from rapid divergence" EXACT [GOECO:IRD]
+synonym: "IRD" EXACT [GOECO:IRD]
+xref: GOECO:IRD "inferred from rapid divergence"
+is_a: ECO:0000215 ! rapid divergence from ancestral sequence evidence
+intersection_of: ECO:0000215 ! rapid divergence from ancestral sequence evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2011-10-28T05:26:42Z
+
+[Term]
+id: ECO:0000322
+name: imported manually asserted information used in automatic assertion
+def: "Evidence that was initially used in manual assertion by one person or group, which is imported by a second person or group and used in automatic assertion." [ECO:MCC]
+is_a: ECO:0000313 ! imported information used in automatic assertion
+created_by: mchibucos
+creation_date: 2011-12-13T12:04:48Z
+
+[Term]
+id: ECO:0000323
+name: imported automatically asserted information used in automatic assertion
+def: "Evidence that was initially used in automatic assertion by one person or group, which is imported by a second person or group and used in automatic assertion." [ECO:MCC]
+is_a: ECO:0000313 ! imported information used in automatic assertion
+created_by: mchibucos
+creation_date: 2011-12-13T02:06:25Z
+
+[Term]
+id: ECO:0000324
+name: imaging assay evidence
+def: "Direct assay evidence derived from analysis of an image." [ECO:MCC]
+is_a: ECO:0000002 ! direct assay evidence
+created_by: mchibucos
+creation_date: 2012-02-23T12:01:43Z
+
+[Term]
+id: ECO:0000325
+name: chromatography evidence
+def: "A type of experimental evidence that is based on separation of constituent parts of a mixture (the mobile phase) as they pass differentially through a stationary phase due to differences in partition coefficient and retention on the stationary phase." [ECO:MCC]
+synonym: "chromatographic evidence" EXACT []
+is_a: ECO:0000006 ! experimental evidence
+created_by: mchibucos
+creation_date: 2012-05-16T11:46:27Z
+
+[Term]
+id: ECO:0000326
+name: transcript splice pattern evidence
+def: "A type of sequence alignment evidence that is based on comparing the position of exon junctions, relative to a reference genome, for a transcript annotation and a supporting transcript." [ECO:MCC]
+is_a: ECO:0000200 ! sequence alignment evidence
+created_by: mchibucos
+creation_date: 2012-06-08T11:03:59Z
+
+[Term]
+id: ECO:0000327
+name: whole transcript splice pattern evidence
+def: "A type of transcript splice pattern evidence that is based on the exon combination of a whole transcript, rather than its constituent features." [ECO:MCC]
+comment: This term is used by the NCBI Reference Sequences (RefSeq) in support of sequences that have the same splice pattern as a RefSeq transcript. If such full transcript information is not available, RefSeq reports sequences that match the splice pattern of a coding sequence (CDS) annotated on a RefSeq, supported by the evidence term ECO:0000328 or a child.
+is_a: ECO:0000326 ! transcript splice pattern evidence
+created_by: mchibucos
+creation_date: 2012-06-08T11:11:24Z
+
+[Term]
+id: ECO:0000328
+name: coding sequence splice pattern evidence
+def: "A type of transcript splice pattern evidence that is based on the exon combination of a coding sequence (CDS), a sub-feature of a whole transcript." [ECO:MCC]
+comment: This term is used by the NCBI Reference Sequences (RefSeq) in support of sequences that match the splice pattern of a coding sequence (CDS) annotated on a RefSeq, but for which full transcript information is unavailable. For sequences that have the same splice pattern as a whole RefSeq transcript, use the evidence term ECO:0000327 or a child.
+is_a: ECO:0000326 ! transcript splice pattern evidence
+created_by: mchibucos
+creation_date: 2012-06-08T11:21:57Z
+
+[Term]
+id: ECO:0000329
+name: whole transcript splice pattern evidence used in manual assertion
+def: "A type of transcript splice pattern evidence that is based on the exon combination of a whole transcript, rather than its constituent features, and is used in manual assertion." [ECO:MCC]
+comment: This term is used by the NCBI Reference Sequences (RefSeq) in support of sequences that have the same splice pattern as a RefSeq transcript. If such full transcript information is not available, RefSeq reports sequences that match the splice pattern of a coding sequence (CDS) annotated on a RefSeq, supported by the evidence term ECO:0000328 or a child.
+is_a: ECO:0000327 ! whole transcript splice pattern evidence
+intersection_of: ECO:0000327 ! whole transcript splice pattern evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2012-06-08T11:40:03Z
+
+[Term]
+id: ECO:0000330
+name: coding sequence splice pattern evidence used in manual assertion
+def: "A type of transcript splice pattern evidence that is based on the exon combination of a coding sequence (CDS), a sub-feature of a whole transcript, and is used in manual assertion." [ECO:MCC]
+comment: This term is used by the NCBI Reference Sequences (RefSeq) in support of sequences that match the splice pattern of a coding sequence (CDS) annotated on a RefSeq, but for which full transcript information is unavailable. For sequences that have the same splice pattern as a whole RefSeq transcript, use the evidence term ECO:0000327 or a child.
+is_a: ECO:0000328 ! coding sequence splice pattern evidence
+intersection_of: ECO:0000328 ! coding sequence splice pattern evidence
+intersection_of: used_in ECO:0000218 ! manual assertion
+created_by: mchibucos
+creation_date: 2012-06-08T11:43:47Z
+
+[Term]
+id: ECO:0000331
+name: coding sequence splice pattern evidence used in automatic assertion
+def: "A type of transcript splice pattern evidence that is based on the exon combination of a coding sequence (CDS), a sub-feature of a whole transcript, and is used in automatic assertion." [ECO:MCC]
+comment: This term is used by the NCBI Reference Sequences (RefSeq) in support of sequences that match the splice pattern of a coding sequence (CDS) annotated on a RefSeq, but for which full transcript information is unavailable. For sequences that have the same splice pattern as a whole RefSeq transcript, use the evidence term ECO:0000327 or a child.
+is_a: ECO:0000328 ! coding sequence splice pattern evidence
+intersection_of: ECO:0000328 ! coding sequence splice pattern evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2012-06-08T11:48:09Z
+
+[Term]
+id: ECO:0000332
+name: whole transcript splice pattern evidence used in automatic assertion
+def: "A type of transcript splice pattern evidence that is based on the exon combination of a whole transcript, rather than its constituent features, and is used in automatic assertion." [ECO:MCC]
+comment: This term is used by the NCBI Reference Sequences (RefSeq) in support of sequences that have the same splice pattern as a RefSeq transcript. If such full transcript information is not available, RefSeq reports sequences that match the splice pattern of a coding sequence (CDS) annotated on a RefSeq, supported by the evidence term ECO:0000328 or a child.
+is_a: ECO:0000327 ! whole transcript splice pattern evidence
+intersection_of: ECO:0000327 ! whole transcript splice pattern evidence
+intersection_of: used_in ECO:0000203 ! automatic assertion
+created_by: mchibucos
+creation_date: 2012-06-08T11:49:17Z
+
+[Typedef]
+id: used_in
+name: used_in
+created_by: mchibucos
+creation_date: 2010-12-09T05:00:20Z

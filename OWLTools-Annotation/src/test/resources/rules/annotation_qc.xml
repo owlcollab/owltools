@@ -183,8 +183,20 @@ WHERE  evidence.code IN ('NAS','TAS','IDA','IMP','IGC','IEP','ND','IC','RCA','EX
 					GO database
 				</input>
 			</implementation>
+			<!--
 			<implementation>
 				<script language="regex">/^(.*?\t){4}GO:0005(488|515)\t/i</script>
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
+			</implementation>
+			 -->
+			<!-- 
+			  Replaced with a procedural check, the regex only identifies all annotations 
+			  with GO:0005515 or GO:0005488. It does not check for the evidence code or 
+			  content of the with field!
+			 -->
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000003" />
 				<input format="gaf1.0" />
 				<input format="gaf2.0" />
 			</implementation>
@@ -290,6 +302,11 @@ WHERE  evidence.code IN ('ISS','ISO','ISA','ISM')
 					GO database
 				</input>
 			</implementation>
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000005" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
+			</implementation>
 		</implementation_list>
 		<status date="2010-04-01">
 			Approved
@@ -346,6 +363,11 @@ WHERE  evidence.code = 'IEP'
 				<input schema="LEAD">
 					GO database
 				</input>
+			</implementation>
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000006" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
 			</implementation>
 		</implementation_list>
 		<status date="2011-01-01">
@@ -407,6 +429,11 @@ WHERE  term2.acc = 'GO:0003824'
 				<input schema="LEAD">
 					GO database
 				</input>
+			</implementation>
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000007" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
 			</implementation>
 		</implementation_list>
 		<status date="2010-04-01">
@@ -756,6 +783,11 @@ ORDER BY s1.ncbi_taxa_id, s2.ncbi_taxa_id, term.acc
 				<when_performed>on_submit</when_performed>
 				<output>warn_and_remove</output>
 			</implementation>
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000016" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
+			</implementation>
 	</implementation_list>
 	<status date="2012-02-01">Approved</status>
 </rule>
@@ -777,6 +809,11 @@ ORDER BY s1.ncbi_taxa_id, s2.ncbi_taxa_id, term.acc
 				<input format="gaf2.0" />
 				<when_performed>on_submit</when_performed>
 				<output>warn_and_remove</output>
+			</implementation>
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000017" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
 			</implementation>
 	</implementation_list>
 	<status date="2012-02-01">Approved</status>
@@ -804,34 +841,39 @@ ORDER BY s1.ncbi_taxa_id, s2.ncbi_taxa_id, term.acc
 				<when_performed>on_submit</when_performed>
 				<output>warn_and_remove</output>
 			</implementation>
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000018" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
+			</implementation>
 	</implementation_list>
 	<status date="2012-02-01">Approved</status>
 </rule>
-<rule>
-	<id>
-		GO_AR:0000019
-	</id>
-	<title>Generic Reasoner Validation Check</title>
-	<contact>
-		hdietze@lbl.gov
-	</contact>
-	<description format="html">
+
+	<rule>
+		<id>
+			GO_AR:0000019
+		</id>
+		<title>Generic Reasoner Validation Check</title>
+		<contact>
+			hdietze@lbl.gov
+		</contact>
+		<description format="html">
 <![CDATA[
- <p>The entire GAF is converted to OWL, combined with
-the main GO ontology and auxhiliary constraint
-ontologies. The resulting ontology is checked for
-consistency and unsatisfiable classes over using a
-complete DL reasoner such as HermiT. </p> ]]>
-	</description>
-	<implementation_list>
-		<implementation status="active">
-			<script language="java"
-				source="org.geneontology.gold.rules.GenericReasonerValidationCheck" />
-		</implementation>
-	</implementation_list>
-	<status date="2011-04-09">
-		Implemented
-	</status>
-</rule>
+		<p>The entire GAF is converted to OWL, combined with
+                  the main GO ontology and auxhiliary constraint
+                  ontologies. The resulting ontology is checked for
+                  consistency and unsatisfiable classes over using a
+                  complete DL reasoner such as HermiT. </p> ]]>
+		</description>
+		<implementation_list>
+		  <implementation status="active">
+		    <script language="java" source="org.geneontology.gold.rules.GenericReasonerValidationCheck" />
+		  </implementation>
+		</implementation_list>
+		<status date="2011-04-09">
+			Implemented
+		</status>
+	</rule>
 
 </ruleset>

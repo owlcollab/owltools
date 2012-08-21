@@ -16,6 +16,12 @@ import owltools.graph.OWLGraphWrapper;
  * the class has not been obsoleted
  */
 public class GoClassReferenceAnnotationRule extends AbstractAnnotationRule {
+	
+	/**
+	 * The string to identify this class in the annotation_qc.xml and related factories.
+	 * This is not supposed to be changed. 
+	 */
+	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.GoClassReferenceAnnotationRule";
 
 	private final OWLGraphWrapper graph;
 

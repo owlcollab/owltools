@@ -1,6 +1,6 @@
 package owltools.gaf.rules;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,22 +29,18 @@ public class AnnotationRegularExpressionFromXMLRule extends
 		if(a == null){
 			throw new IllegalArgumentException("GeneAnnotation argument is null");
 		}
-		
-		Set<AnnotationRuleViolation> voilations = new HashSet<AnnotationRuleViolation>();
-
-		getRuleViolations(voilations, a);
-		
-		return voilations;
+		return getRuleViolationsRegEx(a);
 	}
 	
-	private void getRuleViolations(Set<AnnotationRuleViolation> voilations, GeneAnnotation ann){
+	private Set<AnnotationRuleViolation> getRuleViolationsRegEx(GeneAnnotation ann){
 
 		Matcher m = pattern.matcher(ann.toString());
 		
 		if(m.find()){
 			AnnotationRuleViolation v = new AnnotationRuleViolation(this.getRuleId(), this.errorMessage, ann);
-			voilations.add(v);
+			return Collections.singleton(v);
 		}
+		return Collections.emptySet();
 	}
 
 	public String getRegex() {

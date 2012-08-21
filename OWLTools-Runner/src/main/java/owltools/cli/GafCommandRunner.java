@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.cli.tools.CLIMethod;
+import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.GeneAnnotation;
@@ -35,9 +36,9 @@ import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRulesEngine;
-import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRuleCheckException;
 import owltools.gaf.rules.AnnotationRulesFactory;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
+import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 
 /**
@@ -52,6 +53,8 @@ public class GafCommandRunner extends CommandRunner {
 	public GafDocument gafdoc = null;
 	
 	private String gafReportFile = null;
+	
+	public OWLGraphWrapper eco = null;
 	
 	/**
 	 * Used for loading GAFs into memory
@@ -192,10 +195,13 @@ public class GafCommandRunner extends CommandRunner {
 	}
 	
 	@CLIMethod("--gaf-run-checks")
-	public void runGAFChecks(Opts opts) throws AnnotationRuleCheckException, IOException {
+	public void runGAFChecks(Opts opts) throws Exception {
 		if (g != null && gafdoc != null && gafReportFile != null) {
+			if (eco == null) {
+				eco = EcoTools.loadECO(pw);
+			}
 			LOG.info("Start validating GAF");
-			AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g);
+			AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco);
 			AnnotationRulesEngine ruleEngine = new AnnotationRulesEngine(-1, rulesFactory );
 			Map<String, List<AnnotationRuleViolation>> allViolations = ruleEngine.validateAnnotations(gafdoc);
 			LOG.info("Finished validating GAF");

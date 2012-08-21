@@ -26,6 +26,12 @@ import owltools.gaf.rules.AnnotationRuleViolation;
  * @author Shahid Manzoor
  */
 public class BasicChecksRule extends AbstractAnnotationRule {
+	
+	/**
+	 * The string to identify this class in the annotation_qc.xml and related factories.
+	 * This is not supposed to be changed. 
+	 */
+	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.BasicChecksRule";
 
 	private static Logger LOG = Logger.getLogger(BasicChecksRule.class);
 	

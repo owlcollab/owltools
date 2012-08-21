@@ -31,8 +31,10 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 				LOCATION + "taxon/taxon_go_triggers.obo", 
 				LOCATION + "taxon/taxon_union_terms.obo");
 		
+		String ecolocation = getResourceIRIString("eco.obo");
+		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
-				qcfile, xrfabbslocation, taxonomylocation);
+				qcfile, xrfabbslocation, taxonomylocation, ecolocation);
 		engine = new AnnotationRulesEngine(-1, rulesFactory);
 	}
 
@@ -47,9 +49,9 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		}
 		assertEquals(4, allViolations.size()); // 4 types of rule violations
 		assertEquals(2, allViolations.get("GO_AR:0000001").size());
-		assertEquals(9, allViolations.get("GO_AR:0000003").size());
 		assertEquals(7, allViolations.get("GO_AR:0000013").size());
 		assertEquals(1, allViolations.get("GO_AR:0000014").size());
+		assertEquals(1, allViolations.get("GO_AR:0000018").size());
 	}
 
 	private static void renderViolations(Map<String, List<AnnotationRuleViolation>> allViolations) {
