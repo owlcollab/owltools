@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -88,7 +89,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	public void setReasonerFactory(OWLReasonerFactory reasonerFactory) {
 		this.reasonerFactory = reasonerFactory;
 	}
-	
+
 	public void setOWLPrettyPrinter(OWLPrettyPrinter owlpp) {
 		this.owlpp = owlpp;
 	}
@@ -171,8 +172,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 			newClasses.add(vc);
 		}	
 		LOG.info("Num new classes:"+newClasses.size());
-		addAxiomsToOutput(newAxioms);
-		flush();
+		addAxiomsToOutput(newAxioms, true);
 		return newAxioms;
 	}
 
@@ -218,9 +218,16 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		this.getOWLOntologyManager().removeAxioms(outputOntology, rmAxioms);
 	}
 
-	public void addAxiomsToOutput(Set<OWLAxiom> newAxioms) {
-		getOWLOntologyManager().addAxioms(outputOntology, newAxioms);
-		//		reasoner.flush();
+	public void addAxiomsToOutput(Set<OWLAxiom> newAxioms, boolean isFlush) {
+		if (newAxioms.size() > 0) {
+			LOG.info("Adding axioms: "+newAxioms.size());
+			LOG.info("Example axiom: "+newAxioms.iterator().next());
+
+			getOWLOntologyManager().addAxioms(outputOntology, newAxioms);
+			if (isFlush) {
+				flush();  // NOTE - assumes this method is called outside reasoning loop
+			}
+		}
 	}
 
 	public Set<OWLClass> extractClassesFromDeclarations(Set<OWLAxiom> axs) {
@@ -289,6 +296,51 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		return vcIRI;
 	}
 
+	public Set<OWLClass> assertInferredForAttributeClasses() {
+		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
+		Set<OWLClass> retainedClasses = new HashSet<OWLClass>();
+		Set<OWLClass> usedClasses= new HashSet<OWLClass>(); // including indirect
+		for (OWLNamedIndividual ind : outputOntology.getIndividualsInSignature(true)) {
+			usedClasses.addAll(getReasoner().getTypes(ind, false).getFlattened());
+		}
+		for (OWLClass c : usedClasses) {
+			retainedClasses.add(c);
+			for (OWLClass s : getReasoner().getSuperClasses(c, true).getFlattened()) {
+				newAxioms.add(getOWLDataFactory().getOWLSubClassOfAxiom(c, s));
+				retainedClasses.add(s);
+			}
+			for (OWLClass s : getReasoner().getEquivalentClasses(c)) {
+				newAxioms.add(getOWLDataFactory().getOWLEquivalentClassesAxiom(c, s));
+				retainedClasses.add(s);
+			}
+			for (OWLNamedIndividual ind : getReasoner().getInstances(c, true).getFlattened()) {
+				// note: in future may wish to retain non-grouping informative classes - e.g. species
+				newAxioms.add(getOWLDataFactory().getOWLClassAssertionAxiom(c, ind));
+			}
+		}
+		addAxiomsToOutput(newAxioms, true);
+		return usedClasses;
+	}
+
+	public void removeDisjointClassesAxioms() {
+		getOWLOntologyManager().removeAxioms(outputOntology, 
+		  outputOntology.getAxioms(AxiomType.DISJOINT_CLASSES));
+		
+	}
+	
+	public void trim() {
+		Set<OWLClass> retainedClasses = assertInferredForAttributeClasses();
+		Set<OWLClass> unused = outputOntology.getClassesInSignature(true);
+		LOG.info("Keeping "+retainedClasses.size()+" out of "+unused.size());
+		unused.removeAll( retainedClasses );
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLClass c : unused) {
+			rmAxioms.addAll(outputOntology.getReferencingAxioms(c));
+		}
+		LOG.info("Removing unused: "+rmAxioms.size());
+		getOWLOntologyManager().removeAxioms(outputOntology, rmAxioms);
+		flush();
+	}
 
 	public Set<OWLClass> getReflexiveSubClasses(OWLClassExpression rootClassExpr) {
 		Set<OWLClass> classes;
@@ -304,14 +356,24 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 			classes = inputOntology.getClassesInSignature(true);
 		}
 		else {
-			classes = reasoner.getSubClasses(rootClass, false).getFlattened();
+			classes = getReasoner().getSubClasses(rootClass, false).getFlattened();
 			classes.add(rootClass);
 		}
 		return classes;
 	}
 
+	/**
+	 * @return all named classes inferred to be direct types for the set of individuals
+	 */
+	protected Set<OWLClass> getAttributeClasses() {
+		Set<OWLClass> types = new HashSet<OWLClass>();
+		for (OWLNamedIndividual ind : this.outputOntology.getIndividualsInSignature(true)) {
+			types.addAll(getReasoner().getTypes(ind, true).getFlattened());
+		}
+		return types;
+	}
 
-
+	@Deprecated
 	public Set<OWLClassExpression> getDirectAttributeClassExpressions() {
 		Set<OWLClassExpression> types = new HashSet<OWLClassExpression>();
 		for (OWLNamedIndividual ind : inputOntology.getIndividualsInSignature(true)) {
@@ -367,6 +429,11 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	public OWLClass materializeClassExpression(OWLClassExpression ce) {
 		return materializeClassExpressions(Collections.singleton(ce)).iterator().next();
 	}
+	/**
+	 * Note: does not flush
+	 * @param ces
+	 * @return
+	 */
 	public Set<OWLClass> materializeClassExpressions(Set<OWLClassExpression> ces) {
 		OWLAnnotationProperty rdfsLabel = getOWLDataFactory().getRDFSLabel();
 		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
@@ -380,32 +447,17 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 			OWLClass mc = getOWLDataFactory().getOWLClass(IRI.create("http://x.org#"+MD5(ce.toString())));
 			newAxioms.add(getOWLDataFactory().getOWLDeclarationAxiom(mc));
 			newAxioms.add(getOWLDataFactory().getOWLEquivalentClassesAxiom(mc, ce));
-			//if (owlpp != null) {
-				newAxioms.add(
-						getOWLDataFactory().getOWLAnnotationAssertionAxiom(rdfsLabel, mc.getIRI(), 
-								getOWLDataFactory().getOWLLiteral(generateLabel(ce)))
-				);
-			//}
+			newAxioms.add(
+					getOWLDataFactory().getOWLAnnotationAssertionAxiom(rdfsLabel, mc.getIRI(), 
+							getOWLDataFactory().getOWLLiteral(generateLabel(ce)))
+			);
 			LOG.info(mc + " EQUIV_TO "+ce);
 			newClasses.add(mc);
 		}
 		// some CEs will be identical, but they will be mapped to the same class.
 		// we might be able to optimize by pre-filtering dupes
-		addAxiomsToOutput(newAxioms);
+		addAxiomsToOutput(newAxioms, false);
 
-		/*
-		// we have to do this afterwards, as the rendering relies on the axioms being in the ontology
-		if (owlpp != null) {
-			newAxioms = new HashSet<OWLAxiom>();
-			for (OWLClass mc : newClasses) {
-				newAxioms.add(
-						getOWLDataFactory().getOWLAnnotationAssertionAxiom(rdfsLabel, mc.getIRI(), 
-								getOWLDataFactory().getOWLLiteral(owlpp.render(mc)))
-				);
-			}
-			addAxiomsToOutput(newAxioms);
-		}
-		*/
 
 		return newClasses;
 	}
@@ -423,7 +475,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		}
 		return null;
 	}
-	
+
 	public String generateLabel(OWLClassExpression x) {
 		StringBuffer sb = new StringBuffer();
 		if (x instanceof OWLObjectSomeValuesFrom) {
@@ -454,6 +506,27 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 			return this.getAnyLabel((OWLClass) x);
 		}
 		return x.toString();
+	}
+
+	// note: this is currently somewhat obo-format specific. Make this configurable - TODO
+	public boolean isUpperLevel(OWLClass c) {
+		// TODO - cache
+		Set<OWLAnnotation> anns = c.getAnnotations(inputOntology);
+		for (OWLAnnotation ann : anns) {
+			String ap = ann.getProperty().getIRI().toString();
+			OWLAnnotationValue v = ann.getValue();
+			if (v instanceof IRI) {
+				IRI iv = (IRI)v;
+				if (ap.endsWith("inSubset")) {
+					// TODO - formalize this
+					if (iv.toString().contains("upper_level")) {
+						return true;
+					}
+				}
+
+			}
+		}
+		return false;
 	}
 
 

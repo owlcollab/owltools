@@ -141,16 +141,20 @@ Class: :photoreceptor
   SubClassOf: cell:
 
 Class: :ommatidium
+ SubClassOf: :anatomical_entity
   SubClassOf: composed_primarily_of: some :photoreceptor
 
 Class: :retina
+ SubClassOf: :anatomical_entity
   SubClassOf: composed_primarily_of: some :photoreceptor
 
 Class: :compound_eye
+ SubClassOf: :anatomical_entity
   SubClassOf: part_of: some :head
   SubClassOf: has_part: some :ommatidium
 
 Class: :camera_eye
+ SubClassOf: :anatomical_entity
   SubClassOf: part_of: some :head
   SubClassOf: has_part: some :retina
 
@@ -183,7 +187,7 @@ Individual: :h1
 
 Individual: :h2
     Annotations: rdfs:label "human 2"^^xsd:string
-  Types: :human, has_phenotype: some :hyperplastic_hand
+  Types: :human, has_phenotype: some :hyperplastic_hand, has_phenotype: some (has_part: some (:hypoplastic and inheres_in: some :hindlimb))
 
 Individual: :h3
     Annotations: rdfs:label "human 3"^^xsd:string

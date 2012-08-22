@@ -29,6 +29,8 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		OWLObjectProperty cpo = getOWLObjectPropertyViaOBOSuffix(COMPOSED_PRIMARILY_OF);
 		OWLObjectProperty inheresIn = getOWLObjectPropertyViaOBOSuffix(INHERES_IN);
 		OWLObjectProperty hasPart = getOWLObjectPropertyViaOBOSuffix(HAS_PART);
+		
+		removeDisjointClassesAxioms();
 
 		// E.g. hand part_of some hand
 		makeReflexive(PART_OF);
@@ -94,6 +96,10 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), inheresInSomeThing, "%s phenotype");
 
 		getReasoner().flush();
+		
+		// INTERSECTIONS - final
+		// we have previously created QE intersections - this step ensures that all LCSs of
+		// individuals are materialized
 		generateLeastCommonSubsumersForAttributeClasses();
 
 		//getReasoner().flush();
@@ -108,13 +114,38 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		//generateLeastCommonSubsumers(attClasses, attClasses);
 
 		//this.getOWLOntologyManager().removeAxioms(outputOntology, tempAxioms);
+		trim();
+	}
+	
+	// --
+	// UTIL
+	// --
+	
+	/**
+	 * In MP we have
+	 *  abn. tooth. dev. SubClassOf abn. tooth. morphology
+	 *  
+	 *  Transform:
+	 *  
+	 *  'X devel' (P) = _ and R some U ==> add:
+	 *    quality and inh some P SubClassOf morphology and inh some E
+	 *  
+	 */
+	protected void makeProcessStructureLinks() {
+		String rel = this.RESULTS_IN_MORPHOGENESIS_OF;
+		String oppl =
+			"SELECT ?P EquivalentTo "+rel+" SOME ?U "+
+			"BEGIN ADD ('inheres in' some ?P) SubClassOf (morphology and 'inheres in' some ?U)";
 	}
 
-	public Set<OWLClass> getPhenotypeEntityClasses() {
+	/**
+	 * @return 'E' classes
+	 */
+	protected Set<OWLClass> getPhenotypeEntityClasses() {
 		Set<OWLClass> entityClasses = new HashSet<OWLClass>();
 		
 		for (OWLClass c : inputOntology.getClassesInSignature(true)) {
-			if (!isVerboten(c)) {
+			if (!isVerbotenEntity(c)) {
 				entityClasses.add(c);
 				continue;
 			}
@@ -126,35 +157,21 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 
 		return entityClasses;
 	}
-	
-	public boolean isVerboten(OWLClass c) {
+		
+	public boolean isVerbotenEntity(OWLClass c) {
+		String ont = getOntologyPrefix(c);
 		if (isMultiSpecies) {
-			String ont = getOntologyPrefix(c);
 			if (ont.equals("FMA") || ont.equals("MA") || ont.equals("EHDAA2") ||
 					ont.startsWith("EMAP") || ont.equals("ZFA") || ont.equals("ZFS") ||
 					ont.equals("FBbt") || ont.equals("WBbt")) {
 				return true;
 			}
 		}
-		Set<OWLAnnotation> anns = c.getAnnotations(inputOntology);
-		for (OWLAnnotation ann : anns) {
-			String ap = ann.getProperty().getIRI().toString();
-			OWLAnnotationValue v = ann.getValue();
-			if (v instanceof OWLLiteral) {
-				OWLLiteral lv = (OWLLiteral)v;
-
-			}
-			if (v instanceof IRI) {
-				IRI iv = (IRI)v;
-				if (ap.endsWith("inSubset")) {
-					if (iv.toString().endsWith("upper_level")) {
-						//LOG.info("removing upper level class: "+c);
-						return true;
-					}
-				}
-
-			}
-		}
+		// in future: do this ontologically
+		if (ont.equals("MP") || ont.equals("HP") || ont.equals("FYPO") || ont.equals("WormPhenotype"))
+			return true;
+		if (isUpperLevel(c))
+			return true;
 
 		return false;
 	}

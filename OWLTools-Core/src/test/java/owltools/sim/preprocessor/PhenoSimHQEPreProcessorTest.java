@@ -103,6 +103,7 @@ public class PhenoSimHQEPreProcessorTest extends OWLToolsTestBasics {
 		LOG.info("Getting lcs of "+owlpp.render(xc)+" -vs- "+owlpp.render(yc));
 		LOG.info("   Expecting: "+owlpp.render(ac));
 		OWLClassExpression lcs = pproc.getLowestCommonSubsumer(xc, yc);
+		LOG.info("        Got : "+owlpp.render(lcs));
 		
 		assertEquals(ac, lcs);
 

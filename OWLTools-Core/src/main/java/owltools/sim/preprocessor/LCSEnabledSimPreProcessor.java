@@ -13,18 +13,15 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.reasoner.Node;
 
-import owltools.sim.SimpleOwlSim.OWLClassExpressionPair;
+import owltools.sim.OWLClassExpressionPair;
 
 public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor {
 
-	@Deprecated
 	protected Map<OWLClassExpressionPair, OWLClass> lcsCache = new HashMap<OWLClassExpressionPair, OWLClass>();
 
+	
 	protected void generateLeastCommonSubsumersForAttributeClasses() {
-		Set<OWLClass> types = new HashSet<OWLClass>();
-		for (OWLNamedIndividual ind : this.outputOntology.getIndividualsInSignature(true)) {
-			types.addAll(getReasoner().getTypes(ind, true).getFlattened());
-		}
+		Set<OWLClass> types = getAttributeClasses();
 		generateLeastCommonSubsumers(types, types);
 	}
 	
@@ -58,7 +55,7 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 
 	public Set<Node<OWLClass>> getNamedReflexiveSubsumers(OWLClassExpression a) {
 		// TODO: consider caching
-		Set<Node<OWLClass>> nodes =  getReasoner().getSuperClasses(a, false).getNodes();
+		Set<Node<OWLClass>> nodes =  new HashSet<Node<OWLClass>>(getReasoner().getSuperClasses(a, false).getNodes());
 		nodes.add(getReasoner().getEquivalentClasses(a));
 		return nodes;
 	}
@@ -120,47 +117,36 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 		Set<OWLClass> ops = new HashSet<OWLClass>();
 		Set<OWLClass> skips = new HashSet<OWLClass>();
 		OWLClass best = null;
-		double bestIC = 0.0;
+		int bestAncScore = 0;
 		for (Node<OWLClass> n : ccs) {
 			OWLClass c = n.getRepresentativeElement();
-			// TODO: this was moved from SOS. Consider whether to make configurable, or let caller decide
-			// allows custom filtering; e.g. upper-level classes
-			// note: should be removed at view stage			
-//			if (this.getVerbotenClasses().contains(c))
-//				continue;
-			// TODO: custom filtering
-			boolean skip = false;
-			// TODO: this was moved from SOS. Consider whether to make configurable, or let caller decide
-			/*
-			Double ic = getInformationContentForAttribute(c);
-			if (ic == null) {
-				// if the attributes classes have not been filtered, then null values
-				// (ie classes with no instances) are possible
+			// TODO: add additional custom filtering here
+			if (isUpperLevel(c))
 				continue;
-			}
-			if (ic > bestIC) {
-				bestIC = ic;
+			boolean skip = false;
+			
+			int numAncestors = this.getNamedReflexiveSubsumers(c).size();
+			if (numAncestors > bestAncScore) {
+				bestAncScore = numAncestors;
 				best = c;
 			}
-			if (ic < 2.5) { // TODO: configure
+			if (numAncestors < 3) { // TODO: configure
+				// non-grouping attribute
+				LOG.info("SKIPPING: "+c+" too few parents");
 				//LOG.info("SKIPPING: "+c+" IC="+ic);
 				continue;
 			}
-			*/
-			if (this.getNamedReflexiveSubsumers(c).size() < 2) {
-				LOG.info("SKIPPING: "+c+" no parents");
-				// non-grouping attribute
-				continue;
-			}
-			/*
+			
 			// don't make intersections of similar elements
 			for (Node<OWLClass> n2 : ccs) {
 				OWLClass c2 = n2.getRepresentativeElement();
-				double ic2 = getInformationContentForAttribute(c2); 
-				// prioritize the one with highest IC
-				if (ic < ic2 || (ic==ic2 && c.compareTo(c2) > 0)) {
+				
+				int numAncestors2 = this.getNamedReflexiveSubsumers(c2).size();
+				// prioritize the one with highest score.
+				// it it's a tie, then choose one deterministically
+				if (numAncestors < numAncestors2 || (numAncestors==numAncestors2 && c.compareTo(c2) > 0)) {
 					// TODO: configure simj thresh
-					if (this.getAttributeJaccardSimilarity(c, c2) > 0.75) {
+					if (getJaccardIndex(c, c2) > 0.5) {
 						LOG.info("SKIPPING: "+c+" too similar to "+n2);
 						skip = true;
 					}
@@ -168,12 +154,13 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 			}
 			if (skip)
 				continue;
-				*/
+			
 			// not filtered
 			ops.add(c);
 		}
 
 		if (ops.size() == 1) {
+			// only one passes
 			return ops.iterator().next();
 		}
 		if (ops.size() == 0) {
@@ -191,12 +178,12 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 	 * @return named class representing LCS
 	 */
 	public OWLClass getLowestCommonSubsumerClass(OWLClassExpression a, OWLClassExpression b) {
-		/*
+		
 		OWLClassExpressionPair pair = new OWLClassExpressionPair(a,b);
 		if (lcsCache.containsKey(pair)) {
 			return lcsCache.get(pair);
 		}
-		*/
+
 		OWLClassExpression x = getLowestCommonSubsumer(a,b);
 		OWLClass lcs;
 		/*
@@ -210,7 +197,7 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 			lcs = makeClass((OWLObjectIntersectionOf) x);
 		else
 			lcs = null;
-		//lcsCache.put(pair, lcs);
+		lcsCache.put(pair, lcs);
 		//LOG.info("LCS of "+a+" + "+b+" = "+lcs);
 		return lcs;
 	}
@@ -221,6 +208,8 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 	 * and create a label assertion, where the label is formed by concatenating label(A1)....
 	 * 
 	 * note that the reasoner will need to be synchronized after new classes are made
+	 * 
+	 * Note: modifies ontology but does not flush
 	 * 
 	 * @param x
 	 * @return class
@@ -282,8 +271,17 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 		//TODO
 		//lcsExpressionToClass.put(x, c);
 		LOG.info(" new LCS: "+c+" label: "+label.toString()+" == "+x);
-		this.addAxiomsToOutput(newAxioms);
+		this.addAxiomsToOutput(newAxioms, false);
 		return c;
+	}
+
+	// Note: an identical method is present in SimpleOwlSim. It is only replicated here
+	// as a heuristic in intersection generation
+	private float getJaccardIndex(OWLClassExpression a, OWLClassExpression b) {
+		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b); // a /\ b
+		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a); 
+		cu.addAll(getNamedReflexiveSubsumers(b));   // a \/ u
+		return ci.size() / (float)cu.size();
 	}
 
 

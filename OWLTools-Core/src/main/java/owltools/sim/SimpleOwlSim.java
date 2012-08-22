@@ -52,9 +52,9 @@ public class SimpleOwlSim {
 	Set<OWLObjectProperty> viewsCreated = new HashSet<OWLObjectProperty>();
 	private OWLDataFactory owlDataFactory;
 	private OWLOntologyManager owlOntologyManager;
-	private OWLReasonerFactory reasonerFactory;
+	//private OWLReasonerFactory reasonerFactory;
 	private Set<OWLClass> ignoreSubClassesOf = null;
-	OWLReasoner reasoner;
+	//OWLReasoner reasoner;
 	private Set<OWLClass> fixedAttributeClasses = null;
 	final String OBO_PREFIX = "http://purl.obolibrary.org/obo/";
 	private Integer corpusSize;
@@ -69,7 +69,7 @@ public class SimpleOwlSim {
 	Map<OWLClass,Set<OWLEntity>> attributeToElementsMap;
 	Map<OWLClassExpression, OWLClass> expressionToClassMap;
 	Map<OWLClassExpressionPair, ScoreAttributePair> simCache;
-	Map<OWLClassExpressionPair, OWLClass> lcsCache;
+	//Map<OWLClassExpressionPair, OWLClass> lcsCache;
 	Map<OWLClass, Integer> attributeElementCount = null;
 	Map<OWLClassExpression,OWLClass> lcsExpressionToClass = new HashMap<OWLClassExpression,OWLClass>();
 
@@ -88,40 +88,14 @@ public class SimpleOwlSim {
 	}
 
 	private void init() {
-		reasonerFactory = new ElkReasonerFactory();
+		//reasonerFactory = new ElkReasonerFactory();
 		elementToAttributesMap = new HashMap<OWLEntity,Set<OWLClass>>();
 		attributeToElementsMap = new HashMap<OWLClass,Set<OWLEntity>>();
 		expressionToClassMap = new HashMap<OWLClassExpression, OWLClass>();
 		viewClasses = new HashSet<OWLClass>();
 		sourceViewProperties = new ArrayList<OWLObjectProperty>();
 		simCache = new HashMap<OWLClassExpressionPair, ScoreAttributePair>();
-		lcsCache = new HashMap<OWLClassExpressionPair, OWLClass>();
-	}
-
-	public class OWLClassExpressionPair {
-		public OWLClassExpression c1;
-		public OWLClassExpression c2;
-		public OWLClassExpressionPair(OWLClassExpression c1,
-				OWLClassExpression c2) {
-			super();
-			this.c1 = c1;
-			this.c2 = c2;
-		}
-		public int hashCode() {
-			int n1 = c1.hashCode();
-			int n2 = c2.hashCode();
-
-			return (n1 + n2) * n2 + n1;
-		}
-		public boolean equals(Object other) {
-			if (other instanceof OWLClassExpressionPair) {
-				OWLClassExpressionPair otherPair = (OWLClassExpressionPair) other;
-				return this.c1 == otherPair.c1 && this.c2 == otherPair.c2;
-			}
-
-			return false;
-		}
-
+		//lcsCache = new HashMap<OWLClassExpressionPair, OWLClass>();
 	}
 
 	public class ScoreAttributePair {
@@ -164,13 +138,6 @@ public class SimpleOwlSim {
 	}
 
 
-	public OWLReasonerFactory getReasonerFactory() {
-		return reasonerFactory;
-	}
-
-	public void setReasonerFactory(OWLReasonerFactory reasonerFactory) {
-		this.reasonerFactory = reasonerFactory;
-	}
 	
 	public SimPreProcessor getSimPreProcessor() {
 		return simPreProcessor;
@@ -238,25 +205,14 @@ public class SimpleOwlSim {
 	}
 
 	public OWLReasoner getReasoner() {
+		return simPreProcessor.getReasoner();
+		/*
 		if (reasoner == null) {
 			reason();
 		}
 		return reasoner;
+		*/
 	}
-
-	public void setReasoner(OWLReasoner reasoner) {
-		this.reasoner = reasoner;
-	}
-
-	@Deprecated
-	public void reason() {
-		LOG.info("Preparing to reason.\t"+sourceOntology.getClassesInSignature().size()+
-				"\t"+sourceOntology.getLogicalAxiomCount());
-		superclassMap = null;
-		reasoner = reasonerFactory.createReasoner(sourceOntology);
-		LOG.info("Pre-reasoned...");		
-	}
-
 
 	
 	private Set<OWLClass> getParents(OWLClass c) {
@@ -300,7 +256,7 @@ public class SimpleOwlSim {
 		if (superclassMap != null && superclassMap.containsKey(a)) {
 			return new HashSet<Node<OWLClass>>(superclassMap.get(a));
 		}
-		Set<Node<OWLClass>> nodes =  getReasoner().getSuperClasses(a, false).getNodes();
+		Set<Node<OWLClass>> nodes =  new HashSet<Node<OWLClass>>(getReasoner().getSuperClasses(a, false).getNodes());
 		nodes.add(getReasoner().getEquivalentClasses(a));
 		if (superclassMap == null) {
 			superclassMap = new HashMap<OWLClassExpression,Set<Node<OWLClass>>>();
@@ -671,7 +627,7 @@ public class SimpleOwlSim {
 			allTypes.addAll(addElement(e, types));
 		}
 		// need to materialize as classes...
-		LOG.info("Using "+allTypes.size()+" attribute classes");
+		LOG.info("Using "+allTypes.size()+" attribute classes, based on individuals: "+sourceOntology.getIndividualsInSignature(true).size());
 		fixedAttributeClasses = allTypes;
 	}
 

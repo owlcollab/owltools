@@ -70,9 +70,8 @@ public class EnrichmentTest extends OWLToolsTestBasics {
 		pproc.setInputOntology(sourceOntol);
 		pproc.setOutputOntology(sourceOntol);
 		pproc.setReasoner(reasoner); // TODO - share
-		sos.setReasoner(reasoner);
 		
-		//sos.setSimPreProcessor(pproc);
+		sos.setSimPreProcessor(pproc);
 		//sos.preprocess();
 		pproc.preprocess();
 		
