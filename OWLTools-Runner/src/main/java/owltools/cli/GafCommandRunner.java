@@ -35,7 +35,9 @@ import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation;
+import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine;
+import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.AnnotationRulesFactory;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 import owltools.graph.OWLGraphWrapper;
@@ -202,46 +204,70 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			LOG.info("Start validating GAF");
 			AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco);
-			AnnotationRulesEngine ruleEngine = new AnnotationRulesEngine(-1, rulesFactory );
-			Map<String, List<AnnotationRuleViolation>> allViolations = ruleEngine.validateAnnotations(gafdoc);
+			AnnotationRulesEngine ruleEngine = new AnnotationRulesEngine(rulesFactory );
+			AnnotationRulesEngineResult result = ruleEngine.validateAnnotations(gafdoc);
 			LOG.info("Finished validating GAF");
 			File reportFile = new File(gafReportFile);
 			
 			// no violations found, delete previous error file (if it exists)
-			if (allViolations.isEmpty()) {
+			if (result.isEmpty()) {
 				System.out.println("No violations found for gaf.");
 				FileUtils.deleteQuietly(reportFile);
+				FileUtils.write(reportFile, ""); // create empty file
 				return;
 			}
 			
 			// write violations
-			LOG.info("Start writing violations to report file: "+gafReportFile);
-			PrintWriter writer = null;
-			try {
-				// TODO make this a more detailed report
-				int allViolationsCount = 0;
-				writer = new PrintWriter(reportFile);
-				writer.println("------------");
-				List<String> ruleIds = new ArrayList<String>(allViolations.keySet());
-				Collections.sort(ruleIds);
-				for (String ruleId : ruleIds) {
-					List<AnnotationRuleViolation> violationList = allViolations.get(ruleId);
-					writer.println(ruleId + "  count: "+ violationList.size());
-					for (AnnotationRuleViolation violation : violationList) {
-						writer.print("Line ");
-						writer.print(violation.getLineNumber());
-						writer.print(": ");
-						writer.println(violation.getMessage());
-						allViolationsCount++;
-					}
-					writer.println("------------");
-				}
-				System.err.println(allViolationsCount+" GAF violations found, reportfile: "+gafReportFile);
-			} finally {
-				IOUtils.closeQuietly(writer);
-				LOG.info("Finished writing violations to report file.");
+			writeAnnotationRuleViolations(result, reportFile);
+			
+			System.err.print("Summary:");
+			for(ViolationType type : result.getTypes()) {
+				System.err.print(" ");
+				System.err.print(type.name());
+				System.err.print(" ");
+				System.err.print(result.countViolations(type));
 			}
-			exit(-1); // end with an error code to indicate to Jenkins, that it was not successful
+			System.err.print(" GAF violations found, reportfile: "+gafReportFile);
+			System.err.println();
+			
+			
+			// handle error vs warnings
+			if (result.hasErrors()) {
+				System.out.println("GAF Validation NOT successful. There is at least one ERROR.");
+				exit(-1); // end with an error code to indicate to Jenkins, that it has errors
+			}
+			else if (result.hasWarnings()){
+				System.out.println("GAF Validation NOT successful. There is at least one WARNING.");
+				// print magic string for Jenkins (Text-finder Plug-in) to indicate an unstable build.
+			}
+			else if (result.hasRecommendations()) {
+				System.out.println("GAF Validation NOT successful. There is at least one RECOMMENDATION.");
+				// print magic string for Jenkins (Text-finder Plug-in) to indicate an unstable build.
+			}
+		}
+		else {
+			if (g == null) {
+				System.err.println("No graph available for gaf-run-check.");
+			}
+			if (gafdoc == null) {
+				System.err.println("No loaded gaf available for gaf-run-check.");
+			}
+			if (gafReportFile == null) {
+				System.err.println("No report file available for gaf-run-check.");
+			}
+			exit(-1);
+		}
+	}
+	
+	private void writeAnnotationRuleViolations(AnnotationRulesEngineResult result, File reportFile) throws IOException {
+		LOG.info("Start writing violations to report file: "+gafReportFile);
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(reportFile);
+			AnnotationRulesEngineResult.renderViolations(result, writer);
+		} finally {
+			IOUtils.closeQuietly(writer);
+			LOG.info("Finished writing violations to report file.");
 		}
 	}
 	

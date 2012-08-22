@@ -2,9 +2,8 @@ package owltools.gaf.rules;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
+import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +13,8 @@ import org.junit.Test;
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
+import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 
 public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
@@ -35,41 +36,41 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
 				qcfile, xrfabbslocation, taxonomylocation, ecolocation);
-		engine = new AnnotationRulesEngine(-1, rulesFactory);
+		engine = new AnnotationRulesEngine(rulesFactory);
 	}
 
 	@Test
 	public void testValidateAnnotations() throws Exception {
 		GafObjectsBuilder builder = new GafObjectsBuilder();
 		GafDocument gafdoc = builder.buildDocument(getResource("test_gene_association_mgi.gaf"));			
-		Map<String, List<AnnotationRuleViolation>> allViolations = engine.validateAnnotations(gafdoc);
+		AnnotationRulesEngineResult result = engine.validateAnnotations(gafdoc);
 		
 		if (renderViolations) {
-			renderViolations(allViolations);
+			renderViolations(result);
 		}
-		assertEquals(4, allViolations.size()); // 4 types of rule violations
-		assertEquals(2, allViolations.get("GO_AR:0000001").size());
-		assertEquals(10, allViolations.get("GO_AR:0000013").size());
-		assertEquals(1, allViolations.get("GO_AR:0000014").size());
-		assertEquals(1, allViolations.get("GO_AR:0000018").size());
+		// error
+		assertTrue(result.hasErrors());
+		Map<String, List<AnnotationRuleViolation>> errors = result.getViolations(ViolationType.Error);
+		assertEquals(3, errors.size()); // 3 rules with Errors
+		assertEquals(2, errors.get("GO_AR:0000001").size());
+		assertEquals(7, errors.get("GO_AR:0000013").size());
+		assertEquals(1, errors.get("GO_AR:0000014").size());
+		
+		// warning
+		assertTrue(result.hasWarnings());
+		Map<String, List<AnnotationRuleViolation>> warnings = result.getViolations(ViolationType.Warning);
+		assertEquals(2, warnings.size()); // 4 rules with Warnings
+		assertEquals(3, warnings.get("GO_AR:0000013").size());
+		assertEquals(1, warnings.get("GO_AR:0000018").size());
+		
+		// recommendation
+		assertFalse(result.hasRecommendations());
 	}
 
-	private static void renderViolations(Map<String, List<AnnotationRuleViolation>> allViolations) {
-		System.out.println("------------");
-		List<String> ruleIds = new ArrayList<String>(allViolations.keySet());
-		Collections.sort(ruleIds);
-		for (String ruleId : ruleIds) {
-			List<AnnotationRuleViolation> violationList = allViolations.get(ruleId);
-			System.out.println(ruleId + "  count: "+ violationList.size());
-			for (AnnotationRuleViolation violation : violationList) {
-				StringBuilder sb = new StringBuilder("Line ");
-				sb.append(violation.getLineNumber());
-				sb.append(": ");
-				sb.append(violation.getMessage());
-				System.out.println(sb);
-			}
-			System.out.println("------------");
-		}
+	private static void renderViolations(AnnotationRulesEngineResult result) {
+		final PrintWriter writer = new PrintWriter(System.out);
+		AnnotationRulesEngineResult.renderViolations(result, writer);
+		writer.close();
 	}
-
+	
 }

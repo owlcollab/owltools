@@ -12,7 +12,7 @@ public class AnnotationRuleViolation {
 	public static enum ViolationType {
 		Error,
 		Warning,
-		Recommandation
+		Recommendation
 		// TODO Handle warnings and errors, which can be fixed by the test (e.g., by removing or by inference)
 	}
 
