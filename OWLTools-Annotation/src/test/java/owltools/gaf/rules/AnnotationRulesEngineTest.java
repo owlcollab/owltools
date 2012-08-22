@@ -49,7 +49,7 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		}
 		assertEquals(4, allViolations.size()); // 4 types of rule violations
 		assertEquals(2, allViolations.get("GO_AR:0000001").size());
-		assertEquals(7, allViolations.get("GO_AR:0000013").size());
+		assertEquals(10, allViolations.get("GO_AR:0000013").size());
 		assertEquals(1, allViolations.get("GO_AR:0000014").size());
 		assertEquals(1, allViolations.get("GO_AR:0000018").size());
 	}
