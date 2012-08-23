@@ -74,6 +74,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		
 		Set<AnnotationRuleViolation> violations = new HashSet<AnnotationRuleViolation>();
 		Set<OWLGraphEdge> edges = graph.getOutgoingEdgesClosure(cls);
+		String evidenceCode = a.getEvidenceCls();
 
 		for (OWLGraphEdge ge : edges) {
 			OWLObject tgt = ge.getTarget();
@@ -90,12 +91,12 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 					StringBuilder sb = new StringBuilder();
 					sb.append("The term ");
 					renderEntity(sb, cls, graph);
-					sb.append("requires the taxon ");
+					sb.append(" requires the taxon ");
 					renderEntity(sb, p, graph);
 					sb.append(", but ");
 					renderEntity(sb, tax, graph);
 					sb.append(" does not match this constraint");
-					// System.out.println("   "+sb);
+					sb.append(" (").append(evidenceCode).append(")");
 					
 					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), sb.toString(), a);
 					violations.add(v);
@@ -111,6 +112,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 					renderEntity(sb, tax, graph);
 					sb.append(" reason: excluded ancestor ");
 					renderEntity(sb, p, graph);
+					sb.append(" (").append(evidenceCode).append(")");
 					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), sb.toString(), a);
 					violations.add(v);
 				}
