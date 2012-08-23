@@ -64,38 +64,40 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 			logger.debug("Create reasoner");
 		}
 		OWLReasoner reasoner = factory.createReasoner(translated);
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("Check consistency");
-		}
-		boolean consistent = reasoner.isConsistent();
-		if (!consistent) {
-			return Collections.singleton(new AnnotationRuleViolation(getRuleId(), "Logic inconsistency in combined annotations and ontology detected."));
-		}
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("Start - Check for unsatisfiable classes");
-		}
-		Node<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses();
-		if (logger.isDebugEnabled()) {
-			logger.debug("Finished - Check for unsatisfiable classes");
-		}
-		if (unsatisfiableClasses != null) {
-			Set<OWLClass> entities = unsatisfiableClasses.getEntities();
-			Set<AnnotationRuleViolation> violations = new HashSet<AnnotationRuleViolation>();
-			for (OWLClass c : entities) {
-				if (c.isBottomEntity() || c.isTopEntity()) {
-					continue;
+		try {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Check consistency");
+			}
+			boolean consistent = reasoner.isConsistent();
+			if (!consistent) {
+				return Collections.singleton(new AnnotationRuleViolation(getRuleId(), "Logic inconsistency in combined annotations and ontology detected."));
+			}
+
+			if (logger.isDebugEnabled()) {
+				logger.debug("Start - Check for unsatisfiable classes");
+			}
+			Node<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses();
+			if (logger.isDebugEnabled()) {
+				logger.debug("Finished - Check for unsatisfiable classes");
+			}
+			if (unsatisfiableClasses != null) {
+				Set<OWLClass> entities = unsatisfiableClasses.getEntities();
+				Set<AnnotationRuleViolation> violations = new HashSet<AnnotationRuleViolation>();
+				for (OWLClass c : entities) {
+					if (c.isBottomEntity() || c.isTopEntity()) {
+						continue;
+					}
+					violations.add(new AnnotationRuleViolation(getRuleId(), "unsatifiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Warning));
 				}
-				violations.add(new AnnotationRuleViolation(getRuleId(), "unsatifiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Warning));
+				if (!violations.isEmpty()) {
+					return violations;
+				}
 			}
-			if (!violations.isEmpty()) {
-				return violations;
-			}
+			return Collections.emptySet();
 		}
-		
-			
-		return Collections.emptySet();
+		finally {
+			reasoner.dispose();
+		}
 	}
 
 	
