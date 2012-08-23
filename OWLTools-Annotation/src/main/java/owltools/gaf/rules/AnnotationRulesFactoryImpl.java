@@ -45,6 +45,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 		if (isInitalized) {
 			return;
 		}
+		LOG.info("Start loading GAF validation checks from: "+path);
 		SAXBuilder builder = new SAXBuilder();
 		Document doc = null;
 		try {
@@ -61,13 +62,13 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 			LOG.error("Unable to load document form: " + path, e);
 		}
 		
-		if(doc == null)
-			return;
-		
-		loadRegex(doc);
-		loadJava(doc);
-		
-		isInitalized = true;
+		if(doc != null) {
+			loadRegex(doc);
+			loadJava(doc);
+			isInitalized = true;
+			
+			LOG.info("Finished loading GAF validation checks");
+		}
 	}
 
 	private void loadJava(Document doc) {

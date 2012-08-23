@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.gaf.rules.AnnotationRule;
@@ -14,6 +15,8 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
 public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
+	
+	private static final Logger logger = Logger.getLogger(GoAnnotationRulesFactoryImpl.class);
 
 	private final Map<String, AnnotationRule> namedRules;
 	
@@ -38,6 +41,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 	
 	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, OWLGraphWrapper eco) {
 		super(qcfile);
+		logger.info("Start preparing ontology checks");
 		namedRules = new HashMap<String, AnnotationRule>();
 		namedRules.put(BasicChecksRule.PERMANENT_JAVA_ID,  new BasicChecksRule(xrfabbslocation));
 		namedRules.put(GoAnnotationTaxonRule.PERMANENT_JAVA_ID, new GoAnnotationTaxonRule(graph));
@@ -50,6 +54,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		namedRules.put(GoICAnnotationRule.PERMANENT_JAVA_ID, new GoICAnnotationRule(eco));
 		namedRules.put(GoIDAAnnotationRule.PERMANENT_JAVA_ID, new GoIDAAnnotationRule(eco));
 		namedRules.put(GoIPIAnnotationRule.PERMANENT_JAVA_ID, new GoIPIAnnotationRule(eco));
+		logger.info("Finished preparing ontology checks");
 	}
 	
 	private static OWLGraphWrapper getOntologies(List<String> ontologylocations) {

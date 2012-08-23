@@ -143,7 +143,7 @@ public class GafObjectsBuilder {
 		
 		
 		
-		return gafDocument.getBioentities().size()==0?null: gafDocument;
+		return gafDocument.getBioentities().isEmpty() ? null: gafDocument;
 
 	}
 	

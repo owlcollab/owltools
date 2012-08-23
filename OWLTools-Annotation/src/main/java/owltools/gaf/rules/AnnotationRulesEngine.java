@@ -44,7 +44,8 @@ public class AnnotationRulesEngine {
 		}
 		
 		AnnotationRulesEngineResult result = new AnnotationRulesEngineResult();
-		
+		final int ruleCount = rules.size() + (gafRules != null ? gafRules.size() : 0);
+		LOG.info("Start validation of annotations with "+ruleCount+" rules.");
 		try{
 			for(GeneAnnotation annotation : doc.getGeneAnnotations()){
 				for(AnnotationRule rule : rules){
@@ -61,7 +62,7 @@ public class AnnotationRulesEngine {
 			LOG.error(ex.getMessage(), ex);
 			throw new RuntimeException(ex);
 		}
-		
+		LOG.info("Finished validation of annotations.");
 		return result;
 	}
 	

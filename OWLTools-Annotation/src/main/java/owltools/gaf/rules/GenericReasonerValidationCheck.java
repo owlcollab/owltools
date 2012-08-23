@@ -15,6 +15,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.owl.GAFOWLBridge;
+import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 
@@ -86,7 +87,7 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 				if (c.isBottomEntity() || c.isTopEntity()) {
 					continue;
 				}
-				violations.add(new AnnotationRuleViolation(getRuleId(), "unsatifiable class: "+pp.render(c)));
+				violations.add(new AnnotationRuleViolation(getRuleId(), "unsatifiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Warning));
 			}
 			if (!violations.isEmpty()) {
 				return violations;

@@ -67,7 +67,13 @@ public class GafCommandRunner extends CommandRunner {
 		final String input = opts.nextOpt();
 		LOG.info("Start loading GAF from: "+input);
 		gafdoc = builder.buildDocument(input);
-		LOG.info("Finished loading GAF.");
+		if (gafdoc == null) {
+			LOG.error("The GAF parsing finished with an empty result.");
+			exit(-1);
+		}
+		else {
+			LOG.info("Finished loading GAF.");
+		}
 	}
 	
 	@CLIMethod("--gaf2owl")
