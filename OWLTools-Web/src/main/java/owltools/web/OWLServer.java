@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
  
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Request;
@@ -132,5 +134,23 @@ public class OWLServer extends AbstractHandler
 			reasoner = reasonerFactory.createReasoner(ont);	
 		reasonerMap.put(reasonerName, reasoner);
 		return reasoner;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jetty.server.handler.AbstractHandler#destroy()
+	 */
+	@Override
+	public void destroy() {
+		// clean up reasoners
+		Set<String> reasonerNames = reasonerMap.keySet();
+		Iterator<String> iterator = reasonerNames.iterator();
+		while (iterator.hasNext()) {
+			String reasonerName = iterator.next();
+			OWLReasoner reasoner = reasonerMap.remove(reasonerName);
+			if (reasoner != null) {
+				reasoner.dispose();
+			}
+		}
+		super.destroy();
 	}
 }

@@ -95,32 +95,36 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 		OWLOntology avo = pvob.getAssertedViewOntology();
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
-		reasoner.precomputeInferences(InferenceType.values()); // ELK
-		pvob.buildInferredViewOntology(reasoner);
-		OWLOntology ivo = pvob.getInferredViewOntology();
-		g = new OWLGraphWrapper(ivo);
-		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
+		try {
+			pvob.buildInferredViewOntology(reasoner);
+			OWLOntology ivo = pvob.getInferredViewOntology();
+			g = new OWLGraphWrapper(ivo);
+			OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
 
-		
-		for (OWLAxiom a : ivo.getAxioms()) {
-			LOG.info("GO: "+pp.render(a));
-			//LOG.info(a);
+
+			for (OWLAxiom a : ivo.getAxioms()) {
+				LOG.info("GO: "+pp.render(a));
+				//LOG.info(a);
+			}
+			LOG.info("Logical axioms: "+ivo.getLogicalAxiomCount());
+
+			LOG.info("View entities: "+pvob.getViewEntities().size());
+			assertEquals(648, pvob.getViewEntities().size());
+
+			// based on NT formation SubClassOf part_of NT development
+			//assertOntologyContainsSubClassOf("neural tube formation", "embryonic epithelial tube formation");
+
+			// based on NT formation SubClassOf part_of NT development
+			assertOntologyContainsSubClassOf("neural tube formation gene", "neural tube development gene");
+			assertOntologyContainsSubClassOf("neural tube formation gene", "embryonic epithelial tube formation gene");
+
+			//pw.saveOWL(pvob.getAssertedViewOntology(), "file:///tmp/zz.owl", g);
+
+			//pw.saveOWL(ivo, "file:///tmp/z.owl", g);
 		}
-		LOG.info("Logical axioms: "+ivo.getLogicalAxiomCount());
-		
-		LOG.info("View entities: "+pvob.getViewEntities().size());
-		assertEquals(648, pvob.getViewEntities().size());
-		
-		// based on NT formation SubClassOf part_of NT development
-		//assertOntologyContainsSubClassOf("neural tube formation", "embryonic epithelial tube formation");
-
-		// based on NT formation SubClassOf part_of NT development
-		assertOntologyContainsSubClassOf("neural tube formation gene", "neural tube development gene");
-		assertOntologyContainsSubClassOf("neural tube formation gene", "embryonic epithelial tube formation gene");
-
-		//pw.saveOWL(pvob.getAssertedViewOntology(), "file:///tmp/zz.owl", g);
-
-		//pw.saveOWL(ivo, "file:///tmp/z.owl", g);
+		finally {
+			reasoner.dispose();
+		}
 	}
 
 	private void assertOntologyContainsSubClassOf(String c, String p) {
@@ -161,30 +165,35 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
-		pvob.buildInferredViewOntology(reasoner);
-		for (OWLEntity e : pvob.getViewEntities()) {
-			LOG.info(" VE: "+e);
-		}
-
-		// TODO - less dumb way
-		Set<String> m = new HashSet<String>();
-		m.add("EquivalentClasses(<http://purl.obolibrary.org/obo/#left_autopod-RO_0002206> <http://purl.obolibrary.org/obo/#right_autopod-RO_0002206> )");
-
-
-		OWLOntology ivo = pvob.getInferredViewOntology();
-		for (OWLAxiom a : ivo.getAxioms()) {
-			if (a instanceof OWLEquivalentClassesAxiom) {
-				System.out.println("\""+a+"\"");
+		try {
+			pvob.buildInferredViewOntology(reasoner);
+			for (OWLEntity e : pvob.getViewEntities()) {
+				LOG.info(" VE: "+e);
 			}
-			if (m.contains(a.toString())) {
-				System.out.println("FOUND: \""+a+"\"");
-				m.remove(a.toString());
+
+			// TODO - less dumb way
+			Set<String> m = new HashSet<String>();
+			m.add("EquivalentClasses(<http://purl.obolibrary.org/obo/#left_autopod-RO_0002206> <http://purl.obolibrary.org/obo/#right_autopod-RO_0002206> )");
+
+
+			OWLOntology ivo = pvob.getInferredViewOntology();
+			for (OWLAxiom a : ivo.getAxioms()) {
+				if (a instanceof OWLEquivalentClassesAxiom) {
+					System.out.println("\""+a+"\"");
+				}
+				if (m.contains(a.toString())) {
+					System.out.println("FOUND: \""+a+"\"");
+					m.remove(a.toString());
+				}
+				//m.put(a.toString(), true);
+				//if (a instanceof OWLSubClassOfAxiom)
+				//	System.out.println("\""+a+"\"");
 			}
-			//m.put(a.toString(), true);
-			//if (a instanceof OWLSubClassOfAxiom)
-			//	System.out.println("\""+a+"\"");
+			assertEquals(0, m.size());
 		}
-		assertEquals(0, m.size());
+		finally {
+			reasoner.dispose();
+		}
 	}
 
 	@Test
@@ -211,16 +220,19 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
-		LOG.info("Building inferred view");
-		pvob.buildInferredViewOntology(reasoner);
-		for (OWLEntity e : pvob.getViewEntities()) {
-			LOG.info(" VE: "+e);
+		try {
+			LOG.info("Building inferred view");
+			pvob.buildInferredViewOntology(reasoner);
+			for (OWLEntity e : pvob.getViewEntities()) {
+				LOG.info(" VE: "+e);
+			}
+			for (OWLAxiom a : pvob.getInferredViewOntology().getAxioms()) {
+				LOG.info(" VA: "+a);
+			}
 		}
-		for (OWLAxiom a : pvob.getInferredViewOntology().getAxioms()) {
-			LOG.info(" VA: "+a);
+		finally {
+			reasoner.dispose();
 		}
-
-
 
 	}
 
@@ -262,42 +274,44 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
+		try {
+			OWLGraphWrapper g = new OWLGraphWrapper(pvob.getInferredViewOntology());
+			OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
+			g.addSupportOntology(pvob.getAssertedViewOntology());
+			LOG.info("Building inferred view");
+			pvob.buildInferredViewOntology(reasoner);
+			boolean ok1 = false;
+			int numClassAssertions = 0;
 
-		OWLGraphWrapper g = new OWLGraphWrapper(pvob.getInferredViewOntology());
-		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
-		g.addSupportOntology(pvob.getAssertedViewOntology());
-		LOG.info("Building inferred view");
-		pvob.buildInferredViewOntology(reasoner);
-		boolean ok1 = false;
-		int numClassAssertions = 0;
-		
-		// iterate through all view entities - this should be the filtered set of view classes plus individuals.
-		for (OWLEntity e : pvob.getViewEntities()) {
-			LOG.info(" VE: "+e+" LABEL:"+g.getLabel(e));
-			if (e instanceof OWLClass) {
-				if (g.getLabel(e) != null && g.getLabel(e).equals("involves limb")) {
-					ok1 = true;
+			// iterate through all view entities - this should be the filtered set of view classes plus individuals.
+			for (OWLEntity e : pvob.getViewEntities()) {
+				LOG.info(" VE: "+e+" LABEL:"+g.getLabel(e));
+				if (e instanceof OWLClass) {
+					if (g.getLabel(e) != null && g.getLabel(e).equals("involves limb")) {
+						ok1 = true;
+					}
+				}
+				else {
+					if (e instanceof OWLNamedIndividual) {
+						Set<OWLClassAssertionAxiom> caas = pvob.getInferredViewOntology().getClassAssertionAxioms((OWLNamedIndividual) e);
+
+						for (OWLClassAssertionAxiom caa : caas) {
+							LOG.info("  CAA:"+pp.render(caa));
+							numClassAssertions++;
+						}	
+					}
+
 				}
 			}
-			else {
-				if (e instanceof OWLNamedIndividual) {
-					Set<OWLClassAssertionAxiom> caas = pvob.getInferredViewOntology().getClassAssertionAxioms((OWLNamedIndividual) e);
-					
-					for (OWLClassAssertionAxiom caa : caas) {
-						LOG.info("  CAA:"+pp.render(caa));
-						numClassAssertions++;
-					}	
-				}
-
-			}
+			assertTrue(ok1);
+			LOG.info("class assertions:"+numClassAssertions);
+			assertEquals(12, numClassAssertions); // TODO - CHECK
+			LOG.info(pvob.getViewEntities().size());
+			assertEquals(23, pvob.getViewEntities().size());
 		}
-		assertTrue(ok1);
-		LOG.info("class assertions:"+numClassAssertions);
-		assertEquals(12, numClassAssertions); // TODO - CHECK
-		LOG.info(pvob.getViewEntities().size());
-		assertEquals(23, pvob.getViewEntities().size());
-
-
+		finally {
+			reasoner.dispose();
+		}
 	}
 
 	/*
@@ -337,46 +351,50 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
-
-		OWLGraphWrapper g = new OWLGraphWrapper(pvob.getInferredViewOntology());
-		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
-		g.addSupportOntology(pvob.getAssertedViewOntology());
-		LOG.info("Building inferred view");
-		pvob.buildInferredViewOntology(reasoner);
-
-		g = new OWLGraphWrapper(pvob.getAssertedViewOntology());
-
-		pw.saveOWL(pvob.getAssertedViewOntology(), "file:///tmp/zz.owl", g);
-
-		Set<OWLSubClassOfAxiom> scas = pvob.getInferredViewOntology().getAxioms(AxiomType.SUBCLASS_OF);
-		for (OWLSubClassOfAxiom sca : scas) {
-			LOG.info("IVO AXIOM: "+sca);
-		}
-
-
-		boolean ok1 = false;
-		int numClassifications = 0;
-		for (OWLEntity e : pvob.getViewEntities()) {
-			LOG.info(" VE: "+e+" LABEL:"+g.getLabel(e));
-			if (e instanceof OWLClass) {
-				if (g.getLabel(e) != null && g.getLabel(e).equals("involves limb")) {
-					ok1 = true;
-				}
-				if (pvob.getElementsOntology().getClassesInSignature().contains(e)) {
-					LOG.info(" Class:"+pp.render(e));
-					Set<OWLClassExpression> supers = ((OWLClass) e).getSuperClasses(pvob.getInferredViewOntology());
-					for (OWLClassExpression sup : supers) {
-						LOG.info("  SubClassOf:"+pp.render(sup));
-						numClassifications++;
-					}	
+		try {
+			OWLGraphWrapper g = new OWLGraphWrapper(pvob.getInferredViewOntology());
+			OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
+			g.addSupportOntology(pvob.getAssertedViewOntology());
+			LOG.info("Building inferred view");
+			pvob.buildInferredViewOntology(reasoner);
+	
+			g = new OWLGraphWrapper(pvob.getAssertedViewOntology());
+	
+			pw.saveOWL(pvob.getAssertedViewOntology(), "file:///tmp/zz.owl", g);
+	
+			Set<OWLSubClassOfAxiom> scas = pvob.getInferredViewOntology().getAxioms(AxiomType.SUBCLASS_OF);
+			for (OWLSubClassOfAxiom sca : scas) {
+				LOG.info("IVO AXIOM: "+sca);
+			}
+	
+	
+			boolean ok1 = false;
+			int numClassifications = 0;
+			for (OWLEntity e : pvob.getViewEntities()) {
+				LOG.info(" VE: "+e+" LABEL:"+g.getLabel(e));
+				if (e instanceof OWLClass) {
+					if (g.getLabel(e) != null && g.getLabel(e).equals("involves limb")) {
+						ok1 = true;
+					}
+					if (pvob.getElementsOntology().getClassesInSignature().contains(e)) {
+						LOG.info(" Class:"+pp.render(e));
+						Set<OWLClassExpression> supers = ((OWLClass) e).getSuperClasses(pvob.getInferredViewOntology());
+						for (OWLClassExpression sup : supers) {
+							LOG.info("  SubClassOf:"+pp.render(sup));
+							numClassifications++;
+						}	
+					}
 				}
 			}
+			assertTrue(ok1);
+			LOG.info("class assertions:"+numClassifications);
+			assertEquals(12, numClassifications); // TODO - CHECK
+			LOG.info(pvob.getViewEntities().size());
+			assertEquals(23, pvob.getViewEntities().size());
 		}
-		assertTrue(ok1);
-		LOG.info("class assertions:"+numClassifications);
-		assertEquals(12, numClassifications); // TODO - CHECK
-		LOG.info(pvob.getViewEntities().size());
-		assertEquals(23, pvob.getViewEntities().size());
+		finally {
+			reasoner.dispose();
+		}
 	}
 
 	 */

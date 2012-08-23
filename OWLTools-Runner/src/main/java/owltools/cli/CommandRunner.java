@@ -1624,17 +1624,22 @@ public class CommandRunner {
 				Set<OWLEntity> seedSig = new HashSet<OWLEntity>();
 				if (isTraverseDown) {
 					OWLReasoner mr = this.createReasoner(baseOnt, reasonerName, g.getManager());
-					for (OWLObject obj : objs) {
-						if (obj instanceof OWLClassExpression) {
-							seedSig.addAll(mr.getSubClasses((OWLClassExpression) obj, false).getFlattened());
-						}
-						else if (obj instanceof OWLObjectPropertyExpression) {
-							for (OWLObjectPropertyExpression pe : mr.getSubObjectProperties((OWLObjectPropertyExpression) obj, false).getFlattened()) {
-								if (pe instanceof OWLObjectProperty) {
-									seedSig.add((OWLObjectProperty) pe);
+					try {
+						for (OWLObject obj : objs) {
+							if (obj instanceof OWLClassExpression) {
+								seedSig.addAll(mr.getSubClasses((OWLClassExpression) obj, false).getFlattened());
+							}
+							else if (obj instanceof OWLObjectPropertyExpression) {
+								for (OWLObjectPropertyExpression pe : mr.getSubObjectProperties((OWLObjectPropertyExpression) obj, false).getFlattened()) {
+									if (pe instanceof OWLObjectProperty) {
+										seedSig.add((OWLObjectProperty) pe);
+									}
 								}
 							}
 						}
+					}
+					finally {
+						mr.dispose();
 					}
 				}
 				SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(g.getManager(), baseOnt, mtype);
@@ -1875,6 +1880,9 @@ public class CommandRunner {
 		}
 		 */
 
+		if (reasoner != null) {
+			reasoner.dispose();
+		}
 	}
 
 	private OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 

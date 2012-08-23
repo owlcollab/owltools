@@ -37,95 +37,101 @@ public class SparqlDLQueryTest {
 	@Test
 	public void testQuery() 
 	{
+		OWLReasoner reasoner = null;
 		try {
 			// Create an ontology manager
 			OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 
 			// Load the wine ontology from the web.
-         OWLOntology ont = manager.loadOntologyFromOntologyDocument(IRI.create("http://www.w3.org/TR/owl-guide/wine.rdf"));
+			OWLOntology ont = manager.loadOntologyFromOntologyDocument(IRI.create("http://www.w3.org/TR/owl-guide/wine.rdf"));
 
 			// Create an instance of an OWL API reasoner (we use the OWL API built-in StructuralReasoner for the purpose of demonstration here)
-         StructuralReasonerFactory factory = new StructuralReasonerFactory();
-			OWLReasoner reasoner = factory.createReasoner(ont);
-         // Optionally let the reasoner compute the most relevant inferences in advance
+			StructuralReasonerFactory factory = new StructuralReasonerFactory();
+			reasoner = factory.createReasoner(ont);
+			// Optionally let the reasoner compute the most relevant inferences in advance
 			reasoner.precomputeInferences(InferenceType.CLASS_ASSERTIONS,InferenceType.OBJECT_PROPERTY_ASSERTIONS);
 
 			// Create an instance of the SPARQL-DL query engine
 			engine = QueryEngine.create(manager, reasoner, true);
 
-         // Some queries which cover important basic language constructs of SPARQL-DL
+			// Some queries which cover important basic language constructs of SPARQL-DL
 
-         // All white wines (all individuals of the class WhiteWine and sub classes thereof)
+			// All white wines (all individuals of the class WhiteWine and sub classes thereof)
 			processQuery(
-				"SELECT * WHERE {\n" +
-				    "Type(?x, <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhiteWine>)" +
-				"}"	
-			);
+					"SELECT * WHERE {\n" +
+							"Type(?x, <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhiteWine>)" +
+							"}"	
+					);
 
-         // The white wines (the individuals of WhiteWine but not of it's sub classes) 
-         processQuery(
-				"SELECT * WHERE {\n" +
-				    "DirectType(?x, <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#RedTableWine>)" +
-				"}"
-			);
-
-         // Is PinotBlanc a sub class of Wine?
+			// The white wines (the individuals of WhiteWine but not of it's sub classes) 
 			processQuery(
-				"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
-				"ASK {\n" +
-					"SubClassOf(wine:PinotBlanc, wine:Wine)" +
-				"}"
-			);
+					"SELECT * WHERE {\n" +
+							"DirectType(?x, <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#RedTableWine>)" +
+							"}"
+					);
 
-         // The direct sub classes of FrenchWine
+			// Is PinotBlanc a sub class of Wine?
 			processQuery(
-				"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
-				"SELECT ?x WHERE {\n" +
-					"DirectSubClassOf(?x, wine:FrenchWine)" +
-				"}"	
-			);
-	
+					"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
+							"ASK {\n" +
+							"SubClassOf(wine:PinotBlanc, wine:Wine)" +
+							"}"
+					);
+
+			// The direct sub classes of FrenchWine
+			processQuery(
+					"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
+							"SELECT ?x WHERE {\n" +
+							"DirectSubClassOf(?x, wine:FrenchWine)" +
+							"}"	
+					);
+
 			// All individuals
 			processQuery(
-				"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
-				"SELECT * WHERE {\n" +
-					"Individual(?x)" +
-				"}"
-			);
+					"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
+							"SELECT * WHERE {\n" +
+							"Individual(?x)" +
+							"}"
+					);
 
-         // All functional ObjectProperties
+			// All functional ObjectProperties
 			processQuery(
-				"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
-				"SELECT * WHERE {\n" +
-                 "ObjectProperty(?x), " +
-					"Functional(?x)" +
-				"}"
-			);
+					"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
+							"SELECT * WHERE {\n" +
+							"ObjectProperty(?x), " +
+							"Functional(?x)" +
+							"}"
+					);
 
-         // The strict sub classes of DryWhiteWine (sub classes with are not equivalent to DryWhiteWine)
+			// The strict sub classes of DryWhiteWine (sub classes with are not equivalent to DryWhiteWine)
 			processQuery(
-				"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
-				"SELECT ?x WHERE {\n" +
-					"StrictSubClassOf(?x, wine:DryWhiteWine)" +
-				"}"
-			);
+					"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" +
+							"SELECT ?x WHERE {\n" +
+							"StrictSubClassOf(?x, wine:DryWhiteWine)" +
+							"}"
+					);
 
-         // All the grapes from which RedTableWines are made from (without duplicates)
+			// All the grapes from which RedTableWines are made from (without duplicates)
 			processQuery(
-				"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" + 
-				"SELECT DISTINCT ?v WHERE {\n" +
-				    "Type(?i, wine:RedTableWine),\n" +
-				    "PropertyValue(?i, wine:madeFromGrape, ?v)" +
-				"}"	
-			);
+					"PREFIX wine: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n" + 
+							"SELECT DISTINCT ?v WHERE {\n" +
+							"Type(?i, wine:RedTableWine),\n" +
+							"PropertyValue(?i, wine:madeFromGrape, ?v)" +
+							"}"	
+					);
 
-     }
-     catch(UnsupportedOperationException exception) {
-         System.out.println("Unsupported reasoner operation.");
-     }
-     catch(OWLOntologyCreationException e) {
-         System.out.println("Could not load the wine ontology: " + e.getMessage());
-     }
+		}
+		catch(UnsupportedOperationException exception) {
+			System.out.println("Unsupported reasoner operation.");
+		}
+		catch(OWLOntologyCreationException e) {
+			System.out.println("Could not load the wine ontology: " + e.getMessage());
+		}
+		finally {
+			if (reasoner != null) {
+				reasoner.dispose();
+			}
+		}
 	}
 	
 	private void processQuery(String q)

@@ -355,7 +355,12 @@ public class PropertyViewOntologyBuilder {
 	public void build(OWLReasonerFactory reasonerFactory) throws OWLOntologyCreationException {
 		buildViewOntology();
 		OWLReasoner reasoner = reasonerFactory.createReasoner(assertedViewOntology);
-		buildInferredViewOntology(reasoner);
+		try {
+			buildInferredViewOntology(reasoner);
+		}
+		finally {
+			reasoner.dispose();
+		}
 	}
 
 	/**
@@ -400,6 +405,7 @@ public class PropertyViewOntologyBuilder {
 	 *		OWLOntology avo = pvob.getAssertedViewOntology();
 	 *		OWLReasoner vr = reasonerFactory.createReasoner(avo);
 	 *		pvob.buildInferredViewOntology(vr); 
+	 *      vr.dispose();
 	 * </pre>
 	 * 
 	 * @param avoIRI

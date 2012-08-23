@@ -5,7 +5,6 @@ import org.apache.log4j.Logger;
 import com.clarkparsia.pellet.owlapiv3.*;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.profiles.OWL2ELProfile;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -20,8 +19,6 @@ import org.semanticweb.owlapi.util.InferredSubClassAxiomGenerator;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.*;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -292,7 +289,8 @@ public class OWLReasonerRunner {
 
 				//manager.saveOntology(infOnt, IRI.create("file:///tmp/inferredont.owl"));
 
-
+				// dispose of old reasoner
+				reasoner.dispose();
 			}
 		}
 
@@ -353,43 +351,43 @@ public class OWLReasonerRunner {
 
 	}
 	
-	private void checkEL() {
-		OWL2ELProfile prof = new OWL2ELProfile();
-	}
-	
-	private static OWLReasoner old__createReasoner(OWLOntologyManager man, String reasonerClassName) {
-		try {
-			// The following code is a little overly complicated.  The reason for using
-			// reflection to create an instance of pellet is so that there is no compile time
-			// dependency (since the pellet libraries aren't contained in the OWL API repository).
-			// Normally, one would simply create an instance using the following incantation:
-			//
-			//     OWLReasoner reasoner = new Reasoner()
-			//
-			// Where the full class name for Reasoner is org.mindswap.pellet.owlapi.Reasoner
-			//
-			// Pellet requires the Pellet libraries  (pellet.jar, aterm-java-x.x.jar) and the
-			// XSD libraries that are bundled with pellet: xsdlib.jar and relaxngDatatype.jar
-			//String reasonerClassName = "org.mindswap.pellet.owlapi.Reasoner";
-			//String reasonerClassName = "uk.ac.manchester.cs.factplusplus.owlapi.Reasoner";
-			Class reasonerClass = Class.forName(reasonerClassName);
-			Constructor<OWLReasoner> con = reasonerClass.getConstructor(OWLOntologyManager.class);
-			return con.newInstance(man);
-		}
-		catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-		catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-		catch (InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
-		catch (InstantiationException e) {
-			throw new RuntimeException(e);
-		}
-	}
+//	private void checkEL() {
+//		OWL2ELProfile prof = new OWL2ELProfile();
+//	}
+//	
+//	private static OWLReasoner old__createReasoner(OWLOntologyManager man, String reasonerClassName) {
+//		try {
+//			// The following code is a little overly complicated.  The reason for using
+//			// reflection to create an instance of pellet is so that there is no compile time
+//			// dependency (since the pellet libraries aren't contained in the OWL API repository).
+//			// Normally, one would simply create an instance using the following incantation:
+//			//
+//			//     OWLReasoner reasoner = new Reasoner()
+//			//
+//			// Where the full class name for Reasoner is org.mindswap.pellet.owlapi.Reasoner
+//			//
+//			// Pellet requires the Pellet libraries  (pellet.jar, aterm-java-x.x.jar) and the
+//			// XSD libraries that are bundled with pellet: xsdlib.jar and relaxngDatatype.jar
+//			//String reasonerClassName = "org.mindswap.pellet.owlapi.Reasoner";
+//			//String reasonerClassName = "uk.ac.manchester.cs.factplusplus.owlapi.Reasoner";
+//			Class reasonerClass = Class.forName(reasonerClassName);
+//			Constructor<OWLReasoner> con = reasonerClass.getConstructor(OWLOntologyManager.class);
+//			return con.newInstance(man);
+//		}
+//		catch (ClassNotFoundException e) {
+//			throw new RuntimeException(e);
+//		}
+//		catch (IllegalAccessException e) {
+//			throw new RuntimeException(e);
+//		}
+//		catch (NoSuchMethodException e) {
+//			throw new RuntimeException(e);
+//		}
+//		catch (InvocationTargetException e) {
+//			throw new RuntimeException(e);
+//		}
+//		catch (InstantiationException e) {
+//			throw new RuntimeException(e);
+//		}
+//	}
 }

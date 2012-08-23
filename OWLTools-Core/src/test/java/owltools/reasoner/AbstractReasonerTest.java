@@ -5,15 +5,11 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.semanticweb.owlapi.expression.ParserException;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.ClassExpressionNotInProfileException;
 import org.semanticweb.owlapi.reasoner.FreshEntitiesException;
@@ -26,8 +22,6 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
-import owltools.sim.SimEngine;
-import owltools.sim.Similarity;
 
 public abstract class AbstractReasonerTest extends OWLToolsTestBasics {
 	ManchesterSyntaxTool parser;

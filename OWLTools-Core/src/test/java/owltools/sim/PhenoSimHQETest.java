@@ -55,32 +55,34 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 		
 		// assume buffering
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+			pproc = new PhenoSimHQEPreProcessor();
+			pproc.setInputOntology(sourceOntol);
+			pproc.setOutputOntology(sourceOntol);
+			pproc.setReasoner(reasoner);
+			pproc.setOWLPrettyPrinter(owlpp);
 
-		pproc = new PhenoSimHQEPreProcessor();
-		pproc.setInputOntology(sourceOntol);
-		pproc.setOutputOntology(sourceOntol);
-		pproc.setReasoner(reasoner);
-		pproc.setOWLPrettyPrinter(owlpp);
+			//sos.setSimPreProcessor(pproc);
+			//sos.preprocess();
+			pproc.preprocess();
+			reasoner.flush();
 
-		//sos.setSimPreProcessor(pproc);
-		//sos.preprocess();
-		pproc.preprocess();
-		reasoner.flush();
-		
-		sos = new SimpleOwlSim(sourceOntol);
-		sos.setSimPreProcessor(pproc);
-		sos.createElementAttributeMapFromOntology();
+			sos = new SimpleOwlSim(sourceOntol);
+			sos.setSimPreProcessor(pproc);
+			sos.createElementAttributeMapFromOntology();
 
-		sos.saveOntology("/tmp/z.owl");
+			sos.saveOntology("/tmp/z.owl");
 
-		reasoner.flush();
-		for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
-			for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
-				showSim(i,j);
+			reasoner.flush();
+			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
+					showSim(i,j);
+				}
 			}
 		}
-
-		 
+		finally {
+			reasoner.dispose();
+		}
 	}
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {

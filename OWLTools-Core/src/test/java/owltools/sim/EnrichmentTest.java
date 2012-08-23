@@ -61,56 +61,60 @@ public class EnrichmentTest extends OWLToolsTestBasics {
 		ttac.parse("src/test/resources/simplegaf-t1.txt");
 		// assume buffering
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+			OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
 
-		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
+			sos = new SimpleOwlSim(sourceOntol);
 
-		sos = new SimpleOwlSim(sourceOntol);
+			AutomaticSimPreProcessor pproc = new AutomaticSimPreProcessor();
+			pproc.setInputOntology(sourceOntol);
+			pproc.setOutputOntology(sourceOntol);
+			pproc.setReasoner(reasoner); // TODO - share
 
-		AutomaticSimPreProcessor pproc = new AutomaticSimPreProcessor();
-		pproc.setInputOntology(sourceOntol);
-		pproc.setOutputOntology(sourceOntol);
-		pproc.setReasoner(reasoner); // TODO - share
-		
-		sos.setSimPreProcessor(pproc);
-		//sos.preprocess();
-		pproc.preprocess();
-		
-		sos.createElementAttributeMapFromOntology();
+			sos.setSimPreProcessor(pproc);
+			//sos.preprocess();
+			pproc.preprocess();
 
-		for (OWLNamedIndividual ind : sourceOntol.getIndividualsInSignature()) {
-			System.out.println(ind);
-			for (OWLClass c : sos.getReasoner().getTypes(ind, true).getFlattened()) {
-				System.out.println("  T:"+c);
-			}
-		}
-		//System.exit(0);
+			sos.createElementAttributeMapFromOntology();
 
-		//sos.addViewProperty(vpIRI);
-		//sos.generatePropertyViews();
-		//sos.saveOntology("/tmp/foo.owl");
-
-
-		OWLClass rc1 = get("biological_process");
-		OWLClass rc2 = get("cellular_component");
-		OWLClass pc = g.getDataFactory().getOWLThing();
-
-		EnrichmentConfig ec = new EnrichmentConfig();
-		ec.pValueCorrectedCutoff = 0.05;
-		ec.attributeInformationContentCutoff = 3.0;
-		sos.setEnrichmentConfig(ec);
-
-		int n = 0;
-		for (OWLClass vrc1 : pproc.getViewClasses(rc1)) {
-			for (OWLClass vrc2 : pproc.getViewClasses(rc2)) {
-				List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, vrc1, vrc2);
-				System.out.println("Results: "+vrc1+" "+vrc2);
-				for (EnrichmentResult result : results) {
-					System.out.println(render(result,pp));
-					n++;
+			for (OWLNamedIndividual ind : sourceOntol.getIndividualsInSignature()) {
+				System.out.println(ind);
+				for (OWLClass c : sos.getReasoner().getTypes(ind, true).getFlattened()) {
+					System.out.println("  T:"+c);
 				}
 			}
+			//System.exit(0);
+
+			//sos.addViewProperty(vpIRI);
+			//sos.generatePropertyViews();
+			//sos.saveOntology("/tmp/foo.owl");
+
+
+			OWLClass rc1 = get("biological_process");
+			OWLClass rc2 = get("cellular_component");
+			OWLClass pc = g.getDataFactory().getOWLThing();
+
+			EnrichmentConfig ec = new EnrichmentConfig();
+			ec.pValueCorrectedCutoff = 0.05;
+			ec.attributeInformationContentCutoff = 3.0;
+			sos.setEnrichmentConfig(ec);
+
+			int n = 0;
+			for (OWLClass vrc1 : pproc.getViewClasses(rc1)) {
+				for (OWLClass vrc2 : pproc.getViewClasses(rc2)) {
+					List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, vrc1, vrc2);
+					System.out.println("Results: "+vrc1+" "+vrc2);
+					for (EnrichmentResult result : results) {
+						System.out.println(render(result,pp));
+						n++;
+					}
+				}
+			}
+			assertTrue(n > 0);
 		}
-		assertTrue(n > 0);
+		finally {
+			reasoner.dispose();
+		}
 
 	}
 

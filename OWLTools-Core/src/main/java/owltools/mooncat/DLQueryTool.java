@@ -90,25 +90,25 @@ public class DLQueryTool {
 		Set<OWLClass> subset = new HashSet<OWLClass>();
 		
 		LOG.info("Create reasoner for query ontology.");
-		OWLReasoner reasoner = createReasoner(ontology, reasonerFactory);
-		LOG.info("Start evaluation for DL query subclass of: "+queryObject);
-		NodeSet<OWLClass> node = reasoner.getSubClasses(queryObject, false);
-		if (node != null) {
-			Set<OWLClass> classes = node.getFlattened();
-			for (OWLClass owlClass : classes) {
-				if (!owlClass.isBottomEntity() && !owlClass.isTopEntity()) {
-					subset.add(owlClass);
-				}
-			}
-			LOG.info("Number of found classes for dl query subclass of: "+classes.size());
-		}
-		return subset;
-	}
-
-	static OWLReasoner createReasoner(OWLOntology ontology, OWLReasonerFactory reasonerFactory) {
 		// Create an instance of an OWL API reasoner
 		OWLReasoner reasoner = reasonerFactory.createReasoner(ontology);
-		return reasoner;
+		try {
+			LOG.info("Start evaluation for DL query subclass of: "+queryObject);
+			NodeSet<OWLClass> node = reasoner.getSubClasses(queryObject, false);
+			if (node != null) {
+				Set<OWLClass> classes = node.getFlattened();
+				for (OWLClass owlClass : classes) {
+					if (!owlClass.isBottomEntity() && !owlClass.isTopEntity()) {
+						subset.add(owlClass);
+					}
+				}
+				LOG.info("Number of found classes for dl query subclass of: "+classes.size());
+			}
+			return subset;
+		}
+		finally {
+			reasoner.dispose();
+		}
 	}
 
 }

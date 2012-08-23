@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -52,35 +51,40 @@ public class PhenoSimHQEPreProcessorTest extends OWLToolsTestBasics {
 		
 		// assume buffering
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+			pproc = new PhenoSimHQEPreProcessor();
+			pproc.setInputOntology(sourceOntol);
+			pproc.setOutputOntology(sourceOntol);
+			pproc.setReasoner(reasoner);
 
-		pproc = new PhenoSimHQEPreProcessor();
-		pproc.setInputOntology(sourceOntol);
-		pproc.setOutputOntology(sourceOntol);
-		pproc.setReasoner(reasoner);
-
-		pproc.preprocess();
-		reasoner.flush();
+			pproc.preprocess();
+			reasoner.flush();
 
 
-		reasoner.flush();
-		for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
-			for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
-				showLCS(i,j);
+			reasoner.flush();
+			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
+					showLCS(i,j);
+				}
 			}
+
+			// note: may be sensitive to ordering..
+			testLCS("hypoplastic and affected retina phenotype",
+					"hypoplastic and affected retina phenotype",
+					"hypoplastic and affected retina phenotype");
+
+			testLCS("hypoplastic and affected retina phenotype",
+					"hyperplastic and affected ommatidium phenotype",
+					"abnormal_morphology and affected photoreceptor-based entity phenotype");
+
+			testLCS("hyperplastic and affected hand phenotype",
+					"hypoplastic and affected hindlimb phenotype",
+					"abnormal_morphology and affected limb structure phenotype");
+		
 		}
-
-		// note: may be sensitive to ordering..
-		testLCS("hypoplastic and affected retina phenotype",
-				"hypoplastic and affected retina phenotype",
-				"hypoplastic and affected retina phenotype");
-
-		testLCS("hypoplastic and affected retina phenotype",
-				"hyperplastic and affected ommatidium phenotype",
-				"abnormal_morphology and affected photoreceptor-based entity phenotype");
-
-		testLCS("hyperplastic and affected hand phenotype",
-				"hypoplastic and affected hindlimb phenotype",
-				"abnormal_morphology and affected limb structure phenotype");
+		finally{
+			reasoner.dispose();
+		}
 		 
 	}
 
