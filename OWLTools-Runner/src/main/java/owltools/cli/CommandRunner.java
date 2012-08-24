@@ -1916,6 +1916,24 @@ public class CommandRunner {
 			reasoner.dispose();
 		}
 	}
+	
+	@CLIMethod("--assert-inferred-subclass-axioms")
+	public void assertInferredSubClassAxioms(Opts opts) throws Exception {
+		boolean removeRedundant = true;
+		
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--removeRedundant"))
+				removeRedundant = true;
+			else if (opts.nextEq("--keepRedundant")) {
+				removeRedundant = false;
+			}
+			else {
+				break;
+			}
+		}
+		
+		AssertInferenceTool.assertInferences(g, removeRedundant);
+	}
 
 	private OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 
 			OWLOntologyManager manager) {
