@@ -82,7 +82,7 @@ public class AssertInferenceTool {
 			}
 		}
 		if (inputs.isEmpty()) {
-			error("No input file found. Please specify exactly one INPUT");
+			error("No input file found. Please specify at least one input.");
 		}
 		
 		// load the first one as main ontology, the rest are used as support ontologies
@@ -231,7 +231,8 @@ public class AssertInferenceTool {
 		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
 		try {
 			// assert inferences
-			builder.buildInferences();
+			List<OWLAxiom> inferences = builder.buildInferences();
+			manager.addAxioms(ontology, new HashSet<OWLAxiom>(inferences));
 			
 			// optional
 			// remove redundant
