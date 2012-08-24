@@ -1,15 +1,12 @@
 package owltools.reasoner;
 
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -23,7 +20,6 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -58,7 +54,7 @@ import org.semanticweb.owlapi.util.Version;
  */
 public class LazyExpressionMaterializingReasoner extends OWLReasonerBase implements OWLReasoner {
 
-	private static Logger LOG = Logger.getLogger(LazyExpressionMaterializingReasonerTest.class);
+	private static Logger LOG = Logger.getLogger(LazyExpressionMaterializingReasoner.class);
 	private static final Version version = new Version(1, 0, 0, 0);
 
 	private OWLReasoner wrappedReasoner;

@@ -149,6 +149,9 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 				entityClasses.add(c);
 				continue;
 			}
+			else {
+				LOG.info("Filtering out:"+c);
+			}
 		}
 
 		entityClasses.removeAll(getQualityClasses());
