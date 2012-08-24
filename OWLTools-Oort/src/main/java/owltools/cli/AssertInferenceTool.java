@@ -228,7 +228,7 @@ public class AssertInferenceTool {
 		}
 		
 		// Inference builder
-		InferenceBuilder builder = new InferenceBuilder(graph);
+		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
 		try {
 			// assert inferences
 			builder.buildInferences();
