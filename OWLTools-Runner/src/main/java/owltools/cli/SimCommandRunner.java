@@ -1,6 +1,7 @@
 package owltools.cli;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +25,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.sim.DescriptionTreeSimilarity;
 import owltools.sim.MultiSimilarity;
@@ -37,6 +39,7 @@ import owltools.sim.SimpleOwlSim.EnrichmentResult;
 import owltools.sim.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
+import owltools.sim.preprocessor.NullSimPreProcessor;
 import owltools.sim.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim.preprocessor.SimPreProcessor;
 import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
@@ -378,7 +381,12 @@ public class SimCommandRunner extends SolrCommandRunner {
 		}
 	}
 	
-	public void runOwlSim() {
+	/**
+	 * performs all by all individual comparison
+	 * @param opts 
+	 */
+	public void runOwlSim(Opts opts) {
+		owlpp = new OWLPrettyPrinter(g);
 		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
 		for (OWLEntity i : insts) {
 			for (OWLEntity j : insts) {
@@ -390,15 +398,66 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 	}
 	
+	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+		
+		float s = sos.getElementJaccardSimilarity(i, j);
+		System.out.println("SimJ( "+i+" , "+j+" ) = "+s);
+
+		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
+		System.out.println("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+show(maxic.attributeClassSet));
+
+		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
+		System.out.println("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+show(bma.attributeClassSet));	
+	}
+	
+
+	
 	@CLIMethod("--phenosim")
-	public void phenoSim(Opts opts) throws OWLOntologyCreationException {
+	public void phenoSim(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
 		pproc = new PhenoSimHQEPreProcessor();
 		pproc.setInputOntology(g.getSourceOntology());
 		pproc.setOutputOntology(g.getSourceOntology());
 		pproc.preprocess();
 		pproc.getReasoner().flush();
-		runOwlSim();
+		sos = new SimpleOwlSim(g.getSourceOntology());
+		sos.setSimPreProcessor(pproc);
+		sos.createElementAttributeMapFromOntology();
+		sos.saveOntology("/tmp/phenosim-analysis-ontology.owl");
+		runOwlSim(opts);
+		sos.getReasoner().dispose();
 	}
+	
+	@CLIMethod("--sim-resume")
+	public void simResume(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		OWLOntology ont = pw.parse("file:///tmp/phenosim-analysis-ontology.owl");
+		if (g == null) {
+			g =	new OWLGraphWrapper(ont);
+		}
+		else {
+			System.out.println("adding support ont "+ont);
+			g.addSupportOntology(ont);
+		}
+		pproc = new NullSimPreProcessor();
+		pproc.setInputOntology(g.getSourceOntology());
+		pproc.setOutputOntology(g.getSourceOntology());
+		sos = new SimpleOwlSim(g.getSourceOntology());
+		sos.setSimPreProcessor(pproc);
+		sos.createElementAttributeMapFromOntology();
+		runOwlSim(opts);
+	}
+
+	
+	@CLIMethod("--sim-basic")
+	public void simBasic(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
+		pproc = new NullSimPreProcessor();
+		pproc.setInputOntology(g.getSourceOntology());
+		pproc.setOutputOntology(g.getSourceOntology());
+		sos = new SimpleOwlSim(g.getSourceOntology());
+		sos.setSimPreProcessor(pproc);
+		sos.createElementAttributeMapFromOntology();
+		runOwlSim(opts);
+	}
+
 
 	
 	/*
@@ -492,17 +551,14 @@ public class SimCommandRunner extends SolrCommandRunner {
 	}
 
 
-	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
-		
-		float s = sos.getElementJaccardSimilarity(i, j);
-		System.out.println("SimJ( "+i+" , "+j+" ) = "+s);
-
-		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
-		System.out.println("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+maxic.attributeClassSet);
-
-		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
-		System.out.println("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+bma.attributeClassSet);	
+	private String show(Set<OWLClassExpression> cset) {
+		StringBuffer sb = new StringBuffer();
+		for (OWLClassExpression c : cset) {
+			sb.append(owlpp.render(c) + " ; ");
+		}
+		return sb.toString();
 	}
+
 
 
 	/*
