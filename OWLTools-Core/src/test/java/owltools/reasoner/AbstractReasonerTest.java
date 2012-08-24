@@ -56,7 +56,12 @@ public abstract class AbstractReasonerTest extends OWLToolsTestBasics {
 	
 	protected Set<OWLClass> findDescendants(OWLReasoner r, String expr, Integer numExpected) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, ParserException {
 		System.out.println("Query: "+expr);
-		Set<OWLClass> clzs = r.getSubClasses(parseOMN(expr), false).getFlattened();
+		OWLClassExpression qc = parseOMN(expr);
+		Set<OWLClass> clzs = r.getSubClasses(qc, false).getFlattened();
+		clzs.remove(r.getRootOntology().getOWLOntologyManager().getOWLDataFactory().getOWLNothing());
+		if (!qc.isAnonymous())
+			clzs.add((OWLClass) qc);
+		System.out.println("NumD:"+clzs.size());
 		for (OWLClass c : clzs) {
 			System.out.println("  D:"+c);
 		}
