@@ -2,10 +2,12 @@ package owltools.cli;
 
 import java.awt.Color;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -109,6 +111,7 @@ import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.GraphReasonerFactory;
+import owltools.reasoner.LazyExpressionMaterializingReasonerFactory;
 import owltools.reasoner.OWLExtendedReasoner;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
@@ -227,6 +230,9 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--hermit")) {
 				reasonerName = "hermit";
+			}
+			else if (opts.nextEq("--elk")) {
+				reasonerName = "elk";
 			}
 			else if (opts.nextEq("--use-reasoner")) {
 				reasonerName =  opts.nextOpt();
@@ -551,7 +557,7 @@ public class CommandRunner {
 							mdg.getDataFactory().getOWLAnnotationAssertionAxiom(g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.OWL_VERSION_IRI.getIRI()),
 									oi, v);
 						mdg.getManager().addAxiom(mdo, aaa);
-					
+
 					}
 
 				}
@@ -734,10 +740,12 @@ public class CommandRunner {
 				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());			
 			}
 			else if (opts.nextEq("--reasoner-query")) {
-				opts.info("[-r reasonername] [-m] [-d] [-a] [-x] [-c IRI] CLASS-EXPRESSION", 
-				"Queries current ontology for descendants of CE using reasoner");
+				opts.info("[-r reasonername] [-m] [-d] [-a] [-x] [-c IRI] (--stdin | CLASS-EXPRESSION)", 
+				"Queries current ontology for descendants of CE using reasoner.\n"+
+				"Enclose all labels in quotes (--stdin only). E.g. echo \"'part of' some 'tentacle'\" | owltools ceph.owl --reasoner-query --stdin");
 				boolean isManifest = false;
 				boolean isDescendants = true;
+				boolean isIndividuals = false;
 				boolean isAncestors = true;
 				boolean isExtended = false;
 				boolean isCache = false;
@@ -745,6 +753,7 @@ public class CommandRunner {
 				boolean isSubOntExcludeClosure = false;
 				String subOntologyIRI = null;
 				OWLClassExpression ce = null;
+				String expression = null;
 
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
@@ -766,6 +775,16 @@ public class CommandRunner {
 						isDescendants = false;
 						isAncestors = true;
 					}
+					else if (opts.nextEq("-i")) {
+						isIndividuals = true;
+					}
+					else if (opts.nextEq("--stdin")) {
+						try {
+							BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+							System.out.print("> QUERY: ");
+							expression = in.readLine();
+						} catch (IOException e) {
+						}					}
 					else if (opts.nextEq("-x")) {
 						isExtended = true;
 					}
@@ -785,16 +804,17 @@ public class CommandRunner {
 					}
 				}
 
-				String expression = null;
-				if (ce == null)
+				if (ce == null && expression == null)
 					expression = opts.nextOpt();
 				owlpp = new OWLPrettyPrinter(g);
 				Set<OWLClass> results = new HashSet<OWLClass>();
 				ManchesterSyntaxTool parser = new ManchesterSyntaxTool(g.getSourceOntology(), g.getSupportOntologySet());
 
 				try {
-					if (ce == null)
+					if (ce == null) {
+						System.out.println("# PARSING: "+expression);
 						ce = parser.parseManchesterExpression(expression);
+					}
 					System.out.println("# QUERY: "+owlpp.render(ce));
 					if (ce instanceof OWLClass)
 						results.add((OWLClass) ce);
@@ -802,9 +822,14 @@ public class CommandRunner {
 					// some reasoners such as elk cannot query using class expressions - we manifest
 					// the class expression as a named class in order to bypass this limitation
 					if (isManifest && !(ce instanceof OWLClass)) {
+						System.err.println("-m deprecated: consider using --reasoner welk");
 						OWLClass qc = g.getDataFactory().getOWLClass(IRI.create("http://owltools.org/Q"));
+						g.getManager().removeAxioms(g.getSourceOntology(), 
+								g.getSourceOntology().getAxioms(qc));
 						OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(ce, qc);
 						g.getManager().addAxiom(g.getSourceOntology(), ax);
+						if (reasoner != null)
+							reasoner.flush();
 						ce = qc;
 					}
 					ExpressionMaterializingReasoner xr = null;
@@ -824,6 +849,13 @@ public class CommandRunner {
 					if (xr != null) {
 						xr.setWrappedReasoner(reasoner);
 						reasoner = xr;					
+					}
+					if (isIndividuals) {
+						for (OWLNamedIndividual r : reasoner.getInstances(ce, false).getFlattened()) {
+							//results.add(r);
+							if (!isCache)
+								System.out.println("D: "+owlpp.render(r));
+						}
 					}
 					if (isDescendants) {
 						for (OWLClass r : reasoner.getSubClasses(ce, false).getFlattened()) {
@@ -1902,6 +1934,9 @@ public class CommandRunner {
 		}
 		else if (reasonerName.equals("elk")) {
 			reasonerFactory = new ElkReasonerFactory();	
+		}
+		else if (reasonerName.equals("welk")) {
+			reasonerFactory = new LazyExpressionMaterializingReasonerFactory();	
 		}
 		else if (reasonerName.equals("cb")) {
 			Class<?> rfc;
