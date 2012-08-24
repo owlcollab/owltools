@@ -209,8 +209,8 @@ public class Obo2Obo {
 	private void help() {
 		System.out.println("Read an OBO file and write it back out as OBO, useful for sorting hand-edited OBO files.\n" +
 				"Main feature: Use other ontologies to provide names for the comments during the write.\n\n" +
-				"Usage: obo2obo INPUT [-o OUTPUT] [-s SUPPORT]\n" +
-				"       Allows multiple supports and catalog xml files");
+				"Parameters: INPUT [-o OUTPUT] [-s SUPPORT]\n" +
+				"            Allows multiple supports and catalog xml files");
 	}
 	
 	static class MergedNameProvider extends OBODocNameProvider {
