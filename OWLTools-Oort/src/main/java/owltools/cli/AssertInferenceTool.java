@@ -231,7 +231,7 @@ public class AssertInferenceTool {
 		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
 		try {
 			// assert inferences
-			List<OWLAxiom> inferences = builder.buildInferences();
+			List<OWLAxiom> inferences = builder.buildInferences(false);
 			manager.addAxioms(ontology, new HashSet<OWLAxiom>(inferences));
 			
 			// optional
