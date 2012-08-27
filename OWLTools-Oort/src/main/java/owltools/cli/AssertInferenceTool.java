@@ -50,6 +50,7 @@ public class AssertInferenceTool {
 		OWLGraphWrapper graph = null;
 		boolean removeRedundant = true;
 		boolean checkConsistency = true; // TODO implement an option to override this?
+		boolean dryRun = false;
 		List<String> inputs = new ArrayList<String>();
 		String outputFileName = null;
 		String outputFileFormat = null;
@@ -66,6 +67,9 @@ public class AssertInferenceTool {
 			}
 			else if (opts.nextEq("--keepRedundant")) {
 				removeRedundant = false;
+			}
+			else if (opts.nextEq("--dryRun")) {
+				dryRun = true;
 			}
 			else if (opts.nextEq("-o|--output")) {
 				opts.info("OUTPUT-FILE", "specify an output file");
@@ -130,8 +134,10 @@ public class AssertInferenceTool {
 		// assert inferences
 		assertInferences(graph, removeRedundant, checkConsistency);
 		
-		// write ontology
-		writeOntology(graph.getSourceOntology(), outputFileName, outputFileFormat, useTemp);
+		if (dryRun == false) {
+			// write ontology
+			writeOntology(graph.getSourceOntology(), outputFileName, outputFileFormat, useTemp);
+		}
 		
 	}
 	
