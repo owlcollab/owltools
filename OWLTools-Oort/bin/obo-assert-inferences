@@ -1,0 +1,4 @@
+#!/bin/sh
+DIRNAME=`dirname $0`
+java -Xmx2524M -cp $DIRNAME/owltools-oort-all.jar owltools.cli.AssertInferenceTool  "$@"
+
