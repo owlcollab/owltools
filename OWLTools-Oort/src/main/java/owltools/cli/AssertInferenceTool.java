@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
@@ -22,6 +23,7 @@ import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
@@ -32,6 +34,7 @@ import org.semanticweb.owlapi.model.RemoveImport;
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
+import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 
 /**
@@ -39,11 +42,14 @@ import owltools.io.ParserWrapper;
  */
 public class AssertInferenceTool {
 	
+	private static final Logger logger = Logger.getLogger(AssertInferenceTool.class);
+	
 	public static void main(String[] args) throws Exception {
 		Opts opts = new Opts(args);
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper graph = null;
 		boolean removeRedundant = true;
+		boolean checkConsistency = true; // TODO implement an option to override this?
 		List<String> inputs = new ArrayList<String>();
 		String outputFileName = null;
 		String outputFileFormat = null;
@@ -122,7 +128,7 @@ public class AssertInferenceTool {
 		}
 		
 		// assert inferences
-		assertInferences(graph, removeRedundant);
+		assertInferences(graph, removeRedundant, checkConsistency);
 		
 		// write ontology
 		writeOntology(graph.getSourceOntology(), outputFileName, outputFileFormat, useTemp);
@@ -207,9 +213,12 @@ public class AssertInferenceTool {
 	 * 
 	 * @param graph
 	 * @param removeRedundant set to false to not remove redundant super class relations
+	 * @param checkConsistency
+	 * @throws InconsistentOntologyException 
 	 */
-	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant) {
-		
+	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
+			boolean checkConsistency) throws InconsistentOntologyException
+	{
 		OWLOntology ontology = graph.getSourceOntology();
 		OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		OWLDataFactory factory = manager.getOWLDataFactory();
@@ -230,17 +239,53 @@ public class AssertInferenceTool {
 		// Inference builder
 		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
 		try {
+			logger.info("Start building inferences");
 			// assert inferences
 			List<OWLAxiom> inferences = builder.buildInferences(false);
+			
+			logger.info("Finished building inferences");
+			
+			// add inferences
+			logger.info("Start adding inferred axioms, count: " + inferences.size());
 			manager.addAxioms(ontology, new HashSet<OWLAxiom>(inferences));
+			logger.info("Finished adding inferred axioms");
 			
 			// optional
 			// remove redundant
 			if (removeRedundant) {
 				Collection<OWLAxiom> redundantAxioms = builder.getRedundantAxioms();
 				if (redundantAxioms != null && !redundantAxioms.isEmpty()) {
+					logger.info("Start removing redundant axioms, count: "+redundantAxioms.size());
 					manager.removeAxioms(ontology, new HashSet<OWLAxiom>(redundantAxioms));
+					logger.info("Finished removing redundant axioms");
 				}
+			}
+			
+			// checks
+			if (checkConsistency) {
+				logger.info("Start checking consistency");
+				// logic checks
+				List<String> incs = builder.performConsistencyChecks();
+				final int incCount = incs.size();
+				if (incCount > 0) {
+					for (String inc  : incs) {
+						logger.error("PROBLEM: " + inc);
+					}
+					throw new InconsistentOntologyException("Logic inconsistencies found, count: "+incCount);
+				}
+
+				// equivalent named class pairs
+				final List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = builder.getEquivalentNamedClassPairs();
+				final int eqCount = equivalentNamedClassPairs.size();
+				if (eqCount > 0) {
+					OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
+					logger.error("Found equivalencies between named classes");
+					for (OWLEquivalentClassesAxiom eca : equivalentNamedClassPairs) {
+						logger.error("EQUIVALENT_CLASS_PAIR: "+owlpp.render(eca));
+					}
+					throw new InconsistentOntologyException("Found equivalencies between named classes, count: " + eqCount);
+				}
+				logger.info("Finished checking consistency");
 			}
 		}
 		finally {
@@ -249,6 +294,16 @@ public class AssertInferenceTool {
 		
 		// remove additional import axioms
 		manager.applyChanges(removeImportChanges);
+	}
+	
+	private static class InconsistentOntologyException extends Exception {
+
+		// generated
+		private static final long serialVersionUID = -1075657686336672286L;
+		
+		InconsistentOntologyException(String message) {
+			super(message);
+		}
 	}
 
 }
