@@ -92,14 +92,14 @@ fields:
     cardinality: multi
     property: [getIsaPartofLabelClosure]
     searchable: true
-  - id: graph
-    description: JSON blob form of the local stepwise graph.
+  - id: topology_graph
+    description: JSON blob form of the local stepwise topology graph.
     display_name: This should not be displayed
     type: string
     property: [getSegmentShuntGraphJSON]
     indexed: false
-  - id: lineage_graph
-    description: JSON blob form of the local lineage graph.
+  - id: transitivity_graph
+    description: JSON blob form of the local relation transitivity graph.
     display_name: This should not be displayed
     type: string
     property: [getLineageShuntGraphJSON]
