@@ -214,7 +214,7 @@ public abstract class LegoDotWriter {
 				line.append("<TD>").append(graph.getLabelOrDisplayId(activeEntity)).append("</TD></TR><TR>");
 			}
 			
-			line.append("<TD BGCOLOR=\"lightblue\" COLSPAN=\"2\">").append(label).append("</TD>");
+			line.append("<TD BGCOLOR=\"lightblue\" COLSPAN=\"2\">").append(insertLineBrakes(label)).append("</TD>");
 			for(OWLClassExpression cellularLocation : cellularLocations) {
 				String location;
 				if (!cellularLocation.isAnonymous()) {
@@ -238,6 +238,20 @@ public abstract class LegoDotWriter {
 			// context
 			
 			OWLClass parentClass = getType(individual);
+			List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
+			for (OWLClassAssertionAxiom axiom : axioms) {
+				OWLClassExpression expression = axiom.getClassExpression();
+				if (expression instanceof OWLObjectSomeValuesFrom) {
+					OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
+					OWLObjectPropertyExpression property = object.getProperty();
+					OWLClassExpression clsExp = object.getFiller();
+					if (occurs_in.contains(property)) {
+						// cellular location
+						cellularLocations.add(clsExp);
+					}
+				}
+			}
+			
 //			OWLClass cellularLocation = null;
 //			OWLClass cellType = null;
 //			OWLClass grossAnatomy = null;
@@ -283,8 +297,18 @@ public abstract class LegoDotWriter {
 			line.append(" [shape=plaintext,label=");
 			line.append('<'); // start HTML markup
 			line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
-			line.append("<TR><TD>").append(label).append("</TD></TR>");
-			line.append("</TABLE>");
+			line.append("<TR><TD>").append(insertLineBrakes(label)).append("</TD>");
+			for(OWLClassExpression cellularLocation : cellularLocations) {
+				String location;
+				if (!cellularLocation.isAnonymous()) {
+					location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
+				}
+				else {
+					location = owlpp.render(cellularLocation);
+				}
+				line.append("<TD BGCOLOR=\"yellow\">").append(location).append("</TD>");
+			}
+			line.append("</TR></TABLE>");
 			line.append('>'); // end HTML markup
 			line.append("];");
 			
@@ -336,6 +360,37 @@ public abstract class LegoDotWriter {
 		}
 	}
 	
+	static final int DEFAULT_LINE_LENGTH = 60;
+	
+	static CharSequence insertLineBrakes(String s) {
+		int lastInsert = 0;
+		int pos = DEFAULT_LINE_LENGTH;
+		StringBuilder sb = new StringBuilder();
+		while (pos < s.length()) {
+			int split = searchSplit(pos, s);
+			sb.append(s.substring(lastInsert, split));
+			sb.append("<BR/>");
+			lastInsert = split;
+			pos += DEFAULT_LINE_LENGTH;
+		}
+		if (lastInsert < s.length()) {
+			sb.append(s.substring(lastInsert));
+		}
+		return sb;
+	}
+	
+	
+	
+	private static int searchSplit(int pos, String s) {
+		for (int i = pos; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (Character.isWhitespace(c) || '-' == c || '_' == c) {
+				return i + 1;
+			}
+		}
+		return s.length();
+	}
+
 	private OWLClassExpression searchCellularLocation(OWLClass cls) {
 		Queue<OWLClass> queue = new Queue<OWLClass>();
 		queue.add(cls);
