@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -181,10 +180,12 @@ public class LegoAnnotationView extends AbstractOWLViewComponent {
 				currentImage = GraphvizImageRenderer.renderLegoAnnotations(graph, reasoner);
 				if (currentImage != null) {
 					panel.removeAll();
-					ImageIcon imageIcon = new ImageIcon(currentImage);
-					JLabel picLabel = new JLabel(imageIcon);
-					panel.add(picLabel);
+					
+					ImageZoomerPanel zoomer = new ImageZoomerPanel(currentImage, 10.0d);
+					panel.add(zoomer);
+					
 					valid = true;
+					panel.repaint();
 					repaint();
 				}
 			} catch (UnExpectedStructureException e) {
