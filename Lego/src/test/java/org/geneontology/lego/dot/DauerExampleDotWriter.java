@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
-import org.semanticweb.HermiT.Reasoner.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -29,7 +29,7 @@ public class DauerExampleDotWriter {
 
 		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature();
 
-		OWLReasonerFactory factory = new ReasonerFactory();
+		OWLReasonerFactory factory = new ElkReasonerFactory();
 		
 		LegoDotWriter writer = new LegoDotWriter(g, factory.createReasoner(ontology)) {
 

@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +14,6 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -23,7 +21,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -157,164 +154,12 @@ public abstract class LegoDotWriter {
 		}
 		else if (LegoIndividualType.MolecularAnnotation == type) {
 			// annoton
-			
-			OWLClass typeClass = getType(individual);
-			OWLClass molecularFunction = typeClass;
-			OWLClass activeEntity = null;
-			List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
-			
-			for (OWLClassAssertionAxiom axiom : axioms) {
-				OWLClassExpression expression = axiom.getClassExpression();
-				if (expression.isClassExpressionLiteral()) {
-					// assume it's molecularFunction
-					// ignore, use reasoner to retrieve type
-				}
-				else if (expression instanceof OWLObjectSomeValuesFrom) {
-					OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
-					OWLObjectPropertyExpression property = object.getProperty();
-					OWLClassExpression clsExp = object.getFiller();
-					if (enabled_by.contains(property) && !clsExp.isAnonymous()) {
-						// active entity
-						if (activeEntity != null) {
-							throw new UnExpectedStructureException("The individual: "+owlpp.render(individual)+" has multiple 'enabled_by' declarations.");
-						}
-						activeEntity = clsExp.asOWLClass();
-					}
-					else if (occurs_in.contains(property)) {
-						// cellular location
-						cellularLocations.add(clsExp);
-					}
-				}
-			}
-			
-			if (cellularLocations.isEmpty()) {
-				// check super classes for cellular location information
-				OWLClassExpression cellularLocation = searchCellularLocation(typeClass);
-				if (cellularLocation != null) {
-					cellularLocations.add(cellularLocation);
-				}
-			}
-			
-			String label;
-			// render node
-			if (molecularFunction == null) {
-				label="?";
-			}
-			else {
-				label = graph.getLabelOrDisplayId(molecularFunction);
-			}
-			
-			StringBuilder line = new StringBuilder(nodeId(individual));
-			line.append(" [shape=plaintext,label=");
-			line.append('<'); // start HTML markup
-			line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"><TR>");
-			
-			if (activeEntity != null) {
-				// render activeEntity as box on top of the activity 
-				line.append("<TD>").append(graph.getLabelOrDisplayId(activeEntity)).append("</TD></TR><TR>");
-			}
-			
-			line.append("<TD BGCOLOR=\"lightblue\" COLSPAN=\"2\">").append(insertLineBrakes(label)).append("</TD>");
-			for(OWLClassExpression cellularLocation : cellularLocations) {
-				String location;
-				if (!cellularLocation.isAnonymous()) {
-					location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
-				}
-				else {
-					location = owlpp.render(cellularLocation);
-				}
-				line.append("<TD BGCOLOR=\"yellow\">").append(location).append("</TD>");
-			}
-			line.append("</TR></TABLE>");
-			line.append('>'); // end HTML markup
-			line.append("];");
-			
-			appendLine("");
-			appendLine("// annoton", 1);
-			appendLine(line, 1);
+			createAnnatonNode(individual, owlpp, axioms);
 			
 		}
 		else if (LegoIndividualType.MolecularContext == type) {
 			// context
-			
-			OWLClass parentClass = getType(individual);
-			List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
-			for (OWLClassAssertionAxiom axiom : axioms) {
-				OWLClassExpression expression = axiom.getClassExpression();
-				if (expression instanceof OWLObjectSomeValuesFrom) {
-					OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
-					OWLObjectPropertyExpression property = object.getProperty();
-					OWLClassExpression clsExp = object.getFiller();
-					if (occurs_in.contains(property)) {
-						// cellular location
-						cellularLocations.add(clsExp);
-					}
-				}
-			}
-			
-//			OWLClass cellularLocation = null;
-//			OWLClass cellType = null;
-//			OWLClass grossAnatomy = null;
-//			OWLClass organism = null;
-//			
-//			
-//			for (OWLClassAssertionAxiom axiom : axioms) {
-//				OWLClassExpression expression = axiom.getClassExpression();
-//				if (expression.isClassExpressionLiteral()) {
-//					// assume it's parentClass
-//					// ignore, use reasoner to retrieve type
-//				}
-//				else if (expression instanceof OWLObjectSomeValuesFrom) {
-//					OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
-//					OWLObjectPropertyExpression property = object.getProperty();
-//					if (occurs_in.contains(property)) {
-//						OWLClassExpression clsExp = object.getFiller();
-//						if (clsExp.isAnonymous()) {
-//							// TODO implement this part of the spec and test with a new example
-//							/*
-//							 * ClassAssertion(
-//								 :occurs_in SOME (L AND
-//								                   :part_of SOME (CT AND
-//								                                     :part_of SOME (A AND
-//								                                                      :part_of some O)))
-//								 I)
-//							 */
-//						}
-//					}
-//				}
-//			}
-			
-			String label;
-			// render node
-			if (parentClass == null) {
-				label="?";
-			}
-			else {
-				label = graph.getLabelOrDisplayId(parentClass);
-			}
-			
-			StringBuilder line = new StringBuilder(nodeId(individual));
-			line.append(" [shape=plaintext,label=");
-			line.append('<'); // start HTML markup
-			line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
-			line.append("<TR><TD>").append(insertLineBrakes(label)).append("</TD>");
-			for(OWLClassExpression cellularLocation : cellularLocations) {
-				String location;
-				if (!cellularLocation.isAnonymous()) {
-					location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
-				}
-				else {
-					location = owlpp.render(cellularLocation);
-				}
-				line.append("<TD BGCOLOR=\"yellow\">").append(location).append("</TD>");
-			}
-			line.append("</TR></TABLE>");
-			line.append('>'); // end HTML markup
-			line.append("];");
-			
-			appendLine("");
-			appendLine("// context", 1);
-			appendLine(line, 1);
+			createContextNode(individual, owlpp, axioms);
 		}
 		
 		
@@ -359,128 +204,221 @@ public abstract class LegoDotWriter {
 			}
 		}
 	}
-	
-	static final int DEFAULT_LINE_LENGTH = 60;
-	
-	static CharSequence insertLineBrakes(String s) {
-		int lastInsert = 0;
-		int pos = DEFAULT_LINE_LENGTH;
-		StringBuilder sb = new StringBuilder();
-		while (pos < s.length()) {
-			int split = searchSplit(pos, s);
-			sb.append(s.substring(lastInsert, split));
-			sb.append("<BR/>");
-			lastInsert = split;
-			pos += DEFAULT_LINE_LENGTH;
-		}
-		if (lastInsert < s.length()) {
-			sb.append(s.substring(lastInsert));
-		}
-		return sb;
-	}
-	
-	
-	
-	private static int searchSplit(int pos, String s) {
-		for (int i = pos; i < s.length(); i++) {
-			char c = s.charAt(i);
-			if (Character.isWhitespace(c) || '-' == c || '_' == c) {
-				return i + 1;
+
+	private void createAnnatonNode(OWLNamedIndividual individual,
+			OWLPrettyPrinter owlpp, Set<OWLClassAssertionAxiom> axioms)
+			throws UnExpectedStructureException, IOException
+	{
+		OWLClass typeClass = getType(individual);
+		OWLClass molecularFunction = typeClass;
+		OWLClass activeEntity = null;
+		List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
+		List<OWLClassExpression> unknowns = new ArrayList<OWLClassExpression>();
+		
+		for (OWLClassAssertionAxiom axiom : axioms) {
+			OWLClassExpression expression = axiom.getClassExpression();
+			if (expression.isClassExpressionLiteral()) {
+				// assume it's molecularFunction
+				// ignore, use reasoner to retrieve type
+			}
+			else if (expression instanceof OWLObjectSomeValuesFrom) {
+				OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
+				OWLObjectPropertyExpression property = object.getProperty();
+				OWLClassExpression clsExp = object.getFiller();
+				if (enabled_by.contains(property) && !clsExp.isAnonymous()) {
+					// active entity
+					if (activeEntity != null) {
+						throw new UnExpectedStructureException("The individual: "+owlpp.render(individual)+" has multiple 'enabled_by' declarations.");
+					}
+					activeEntity = clsExp.asOWLClass();
+				}
+				else if (occurs_in.contains(property)) {
+					// cellular location
+					cellularLocations.add(clsExp);
+				}
+				else {
+					unknowns.add(expression);
+				}
+			}
+			else {
+				unknowns.add(expression);
 			}
 		}
-		return s.length();
+		
+		if (cellularLocations.isEmpty()) {
+			// check super classes for cellular location information
+			OWLClassExpression cellularLocation = CellularLocationTools.searchCellularLocation(typeClass, graph, occurs_in);
+			if (cellularLocation != null) {
+				cellularLocations.add(cellularLocation);
+			}
+		}
+		
+		String label;
+		// render node
+		if (molecularFunction == null) {
+			label="?";
+		}
+		else {
+			label = graph.getLabelOrDisplayId(molecularFunction);
+		}
+		
+		StringBuilder line = new StringBuilder(nodeId(individual));
+		line.append(" [shape=plaintext,label=");
+		line.append('<'); // start HTML markup
+		line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"><TR>");
+		
+		if (activeEntity != null) {
+			// render activeEntity as box on top of the activity 
+			line.append("<TD>").append(graph.getLabelOrDisplayId(activeEntity)).append("</TD></TR><TR>");
+		}
+		
+		line.append("<TD BGCOLOR=\"lightblue\" COLSPAN=\"2\">").append(insertLineBrakes(label)).append("</TD>");
+		for(OWLClassExpression cellularLocation : cellularLocations) {
+			String location;
+			if (!cellularLocation.isAnonymous()) {
+				location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
+			}
+			else {
+				location = owlpp.render(cellularLocation);
+			}
+			line.append("<TD BGCOLOR=\"yellow\">").append(location).append("</TD>");
+		}
+		line.append("</TR>");
+		if (!unknowns.isEmpty()) {
+			line.append("<TR><TD COLSPAN=\"2\">");
+			line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
+			for (OWLClassExpression expression : unknowns) {
+				renderAdditionalNodeExpression(line, expression, owlpp);
+			}
+			line.append("</TABLE>");
+			line.append("</TD></TR>");
+		}
+		line.append("</TABLE>");
+		line.append('>'); // end HTML markup
+		line.append("];");
+		
+		appendLine("");
+		appendLine("// annoton", 1);
+		appendLine(line, 1);
 	}
 
-	private OWLClassExpression searchCellularLocation(OWLClass cls) {
-		Queue<OWLClass> queue = new Queue<OWLClass>();
-		queue.add(cls);
-		return searchCellularLocation(queue);
+	private void createContextNode(OWLNamedIndividual individual,
+			OWLPrettyPrinter owlpp, Set<OWLClassAssertionAxiom> axioms)
+			throws UnExpectedStructureException, IOException
+	{
+		OWLClass parentClass = getType(individual);
+		List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
+		List<OWLClassExpression> unknowns = new ArrayList<OWLClassExpression>();
+		for (OWLClassAssertionAxiom axiom : axioms) {
+			OWLClassExpression expression = axiom.getClassExpression();
+			if (expression.isClassExpressionLiteral()) {
+				// assume it's biological process
+				// ignore, use reasoner to retrieve type
+			}
+			else  if (expression instanceof OWLObjectSomeValuesFrom) {
+				OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
+				OWLObjectPropertyExpression property = object.getProperty();
+				OWLClassExpression clsExp = object.getFiller();
+				if (occurs_in.contains(property)) {
+					// cellular location
+					cellularLocations.add(clsExp);
+				}
+				else {
+					unknowns.add(expression);
+				}
+			}
+			else {
+				unknowns.add(expression);
+			}
+		}
+		
+		if (cellularLocations.isEmpty()) {
+			// check super classes for cellular location information
+			OWLClassExpression cellularLocation = CellularLocationTools.searchCellularLocation(parentClass, graph, occurs_in);
+			if (cellularLocation != null) {
+				cellularLocations.add(cellularLocation);
+			}
+		}
+		
+		String label;
+		// render node
+		if (parentClass == null) {
+			label="?";
+		}
+		else {
+			label = graph.getLabelOrDisplayId(parentClass);
+		}
+		
+		StringBuilder line = new StringBuilder(nodeId(individual));
+		line.append(" [shape=plaintext,label=");
+		line.append('<'); // start HTML markup
+		line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
+		line.append("<TR><TD>").append(insertLineBrakes(label)).append("</TD>");
+		for(OWLClassExpression cellularLocation : cellularLocations) {
+			String location;
+			if (!cellularLocation.isAnonymous()) {
+				location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
+			}
+			else {
+				location = owlpp.render(cellularLocation);
+			}
+			line.append("<TD BGCOLOR=\"yellow\">").append(location).append("</TD>");
+		}
+		line.append("</TR>");
+		if (!unknowns.isEmpty()) {
+			line.append("<TR><TD>");
+			line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
+			for (OWLClassExpression expression : unknowns) {
+				renderAdditionalNodeExpression(line, expression, owlpp);
+			}
+			line.append("</TABLE>");
+			line.append("</TD></TR>");
+		}
+		line.append("</TABLE>");
+		line.append('>'); // end HTML markup
+		line.append("];");
+		
+		appendLine("");
+		appendLine("// context", 1);
+		appendLine(line, 1);
 	}
 	
-	private OWLClassExpression searchCellularLocation(Queue<OWLClass> queue) {
-		if (queue.isEmpty()) {
-			return null;
+	private void renderAdditionalNodeExpression(StringBuilder line, OWLClassExpression expression, OWLPrettyPrinter owlpp) {
+		if (expression instanceof OWLObjectSomeValuesFrom) {
+			OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
+			OWLObjectPropertyExpression property = object.getProperty();
+			OWLClassExpression filler = object.getFiller();
+			line.append("<TR><TD>");
+			line.append(insertLineBrakes(getLabel(property, owlpp)));
+			line.append("</TD><TD>");
+			line.append(insertLineBrakes(getLabel(filler, owlpp)));
+			line.append("</TD></TR>");
 		}
-		List<OWLClass> nextLevel = new ArrayList<OWLClass>();
-		while(!queue.isEmpty()) {
-			OWLClass cls = queue.pop();
-			for (OWLOntology ontology : graph.getAllOntologies()) {
-				
-				// equivalent classes
-				Set<OWLEquivalentClassesAxiom> eqAxioms = ontology.getEquivalentClassesAxioms(cls);
-				for (OWLEquivalentClassesAxiom axiom : eqAxioms) {
-					Set<OWLClassExpression> expressions = axiom.getClassExpressionsMinus(cls);
-					for (OWLClassExpression ce : expressions) {
-						if (!ce.isAnonymous()) {
-							nextLevel.add(ce.asOWLClass());
-						}
-						else if (ce instanceof OWLObjectSomeValuesFrom) {
-							OWLObjectSomeValuesFrom expr = (OWLObjectSomeValuesFrom) ce;
-							OWLObjectPropertyExpression propertyExpression = expr.getProperty();
-							OWLClassExpression filler = expr.getFiller();
-							if (occurs_in.contains(propertyExpression)) {
-								return filler;
-							}
-							if (!filler.isAnonymous()) {
-								nextLevel.add(filler.asOWLClass());
-							}
-						}
-					}
-				}
-				
-				// super classes
-				Set<OWLSubClassOfAxiom> subAxioms = ontology.getSubClassAxiomsForSubClass(cls);
-				for (OWLSubClassOfAxiom axiom : subAxioms) {
-					OWLClassExpression ce = axiom.getSuperClass();
-					if (!ce.isAnonymous()) {
-						nextLevel.add(ce.asOWLClass());
-					}
-					else if (ce instanceof OWLObjectSomeValuesFrom) {
-						OWLObjectSomeValuesFrom expr = (OWLObjectSomeValuesFrom) ce;
-						OWLObjectPropertyExpression propertyExpression = expr.getProperty();
-						OWLClassExpression filler = expr.getFiller();
-						if (occurs_in.contains(propertyExpression)) {
-							return filler;
-						}
-						if (!filler.isAnonymous()) {
-							nextLevel.add(filler.asOWLClass());
-						}
-					}
-				}
-			}
+		else {
+			line.append("<TR><TD COLSPAN=\"2\">");
+			line.append(insertLineBrakes(getLabel(expression, owlpp)));
+			line.append("</TD></TR>");
 		}
-		queue.addAll(nextLevel);
-		return searchCellularLocation(queue);
 	}
 	
-	private static class Queue<T> {
-		
-		private final Set<T> visited = new HashSet<T>();
-		private final LinkedList<T> list = new LinkedList<T>();
-		
-		public synchronized T pop() {
-			return list.removeFirst();
+	private String getLabel(OWLClassExpression expression, OWLPrettyPrinter owlpp) {
+		if (expression.isAnonymous()) {
+			return owlpp.render(expression);
 		}
-		
-		public synchronized boolean isEmpty() {
-			return list.isEmpty();
+		return graph.getLabelOrDisplayId(expression);
+	}
+	
+	private String getLabel(OWLObjectPropertyExpression expression, OWLPrettyPrinter owlpp) {
+		if (expression.isAnonymous()) {
+			return owlpp.render(expression);
 		}
-		
-		public synchronized void addAll(Collection<T> c) {
-			for (T t : c) {
-				if (!visited.contains(t)) {
-					list.add(t);
-					visited.add(t);
-				}
-			}
-		}
-		
-		public synchronized void add(T t) {
-			if (!visited.contains(t)) {
-				list.add(t);
-				visited.add(t);
-			}
-		}
+		return graph.getLabelOrDisplayId(expression);
+	}
+
+	static final int DEFAULT_LINE_LENGTH = 60;
+	
+	private CharSequence insertLineBrakes(String s) {
+		return StringTools.insertLineBrakes(s, DEFAULT_LINE_LENGTH, "<BR/>");
 	}
 	
 	private OWLClass getType(OWLNamedIndividual individual) throws UnExpectedStructureException {
