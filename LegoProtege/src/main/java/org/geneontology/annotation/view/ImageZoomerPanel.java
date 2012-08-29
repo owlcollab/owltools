@@ -59,8 +59,8 @@ public class ImageZoomerPanel extends JPanel implements ActionListener {
 
         m_imagePanel = new ImagePanel(image, zoomPercentage);
 
-        m_imageContainer = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        m_imageContainer.setBackground(Color.BLACK);
+        m_imageContainer = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        m_imageContainer.setBackground(Color.WHITE);
         m_imageContainer.add(m_imagePanel);
 
         m_srollPane = new JScrollPane(m_imageContainer);
