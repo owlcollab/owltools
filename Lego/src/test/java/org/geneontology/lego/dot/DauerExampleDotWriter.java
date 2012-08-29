@@ -58,6 +58,6 @@ public class DauerExampleDotWriter {
 		// create work dir
 		File file = new File("out");
 		file.mkdirs();
-		write("examples/dauer-merged.owl", "out/dauer.dot", "dauer");
+		write("src/test/resources/dauer-merged.owl", "out/dauer.dot", "dauer");
 	}
 }
