@@ -127,7 +127,7 @@ public class NameRedundancyCheck extends AbstractCheck {
 	            		iris.add(mainIRI);
 	            		StringBuilder sb = new StringBuilder("Primary label '");
 	            		sb.append(label).append("' ").append(mainIRI.toQuotedString());
-	            		sb.append(" re-used as synonym for IRIs:");
+	            		sb.append(" re-used as EXACT synonym for IRIs:");
 	            		for(OWLEntity synonymEntity : cleaned) {
 	            			IRI synonymIRI = synonymEntity.getIRI();
 							iris.add(synonymIRI);
