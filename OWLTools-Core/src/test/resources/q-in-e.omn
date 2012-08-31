@@ -7,7 +7,9 @@ Prefix: obo: <http://purl.obolibrary.org/obo/>
 Prefix: oio: <http://www.geneontology.org/formats/oboInOwl#>
 Prefix: : <http://x.org#>
 Prefix: inheres_in: <http://purl.obolibrary.org/obo/BFO_0000052>
+Prefix: inheres_in_part_of: <http://deliberaterror.com/foo/bar#inheres_in_part_of>
 Prefix: develops_from: <http://purl.obolibrary.org/obo/RO_0002202>
+Prefix: results_in_morphogenesis_of: <http://purl.obolibrary.org/obo/RO_0002298>
 Prefix: part_of: <http://purl.obolibrary.org/obo/BFO_0000050>
 Prefix: has_part: <http://purl.obolibrary.org/obo/BFO_0000051>
 Prefix: composed_primarily_of: <http://purl.obolibrary.org/obo/UBREL_0000002>
@@ -29,6 +31,8 @@ ObjectProperty: develops_from:
 
 ObjectProperty: inheres_in:
   Annotations: rdfs:label "inheres in"
+ObjectProperty: inheres_in_part_of:
+  Annotations: rdfs:label "inheres in part of"
 
 ObjectProperty: part_of:
   Annotations: rdfs:label "part of"
@@ -42,6 +46,9 @@ ObjectProperty: has_part:
 ObjectProperty: composed_primarily_of:
   Annotations: rdfs:label "composed primarily of"
   SubPropertyOf: has_part:
+
+ObjectProperty: results_in_morphogenesis_of:
+  Annotations: rdfs:label "results in morphogenesis of"
 
 ObjectProperty: has_phenotype:
   Annotations: rdfs:label "has phenotype"
@@ -69,6 +76,10 @@ Class: :hindlimb_bud
 
 Class: :limb
  SubClassOf: develops_from: some :limb_bud
+
+Class: :biological_process
+Class: :limb_morphogenesis
+ EquivalentTo: :biological_process and results_in_morphogenesis_of: some :limb
 
 Class: :forelimb
  SubClassOf: :limb
@@ -128,6 +139,9 @@ Class: :abnormal_hindlimb_bud_morphology
   EquivalentTo: has_part: some (:abnormal_morphology and inheres_in: some :hindlimb_bud)
 
 Class: :color
+  SubClassOf: quality:
+
+Class: :rate
   SubClassOf: quality:
 
 Class: :red
@@ -200,6 +214,15 @@ Individual: :h4
 Individual: :h5
     Annotations: rdfs:label "human 5"^^xsd:string
   Types: :human, has_phenotype: some (has_part: some (:hyperplastic and inheres_in: some :forelimb))
+
+#Individual: :h6
+#    Annotations: rdfs:label "human 6"^^xsd:string
+#  Types: :human, has_phenotype: some (has_part: some (:hyperplastic and inheres_in_part_of: some :forelimb))
+
+Individual: :h7
+    Annotations: rdfs:label "human 7"^^xsd:string
+  Types: :human, has_phenotype: some (has_part: some (:rate and inheres_in: some :limb_morphogenesis))
+
 
 Individual: :m1
     Annotations: rdfs:label "mouse 1"^^xsd:string

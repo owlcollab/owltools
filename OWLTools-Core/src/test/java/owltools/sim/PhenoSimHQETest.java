@@ -61,6 +61,7 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 			pproc.setOutputOntology(sourceOntol);
 			pproc.setReasoner(reasoner);
 			pproc.setOWLPrettyPrinter(owlpp);
+			((PhenoSimHQEPreProcessor)pproc).defaultLCSElementFrequencyThreshold = 0.7;
 
 			//sos.setSimPreProcessor(pproc);
 			//sos.preprocess();

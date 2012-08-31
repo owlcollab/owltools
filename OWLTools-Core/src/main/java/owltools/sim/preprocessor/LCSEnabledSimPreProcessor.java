@@ -12,32 +12,43 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.NodeSet;
 
 import owltools.sim.OWLClassExpressionPair;
 
 public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor {
 
 	protected Map<OWLClassExpressionPair, OWLClass> lcsCache = new HashMap<OWLClassExpressionPair, OWLClass>();
+	private Map< Set<Node<OWLClass>>, OWLClassExpression> csetToExpressionMap = new HashMap< Set<Node<OWLClass>>, OWLClassExpression>();
+	
+	protected double defaultLCSElementSimilarityThreshold = 0.75;
+	
+	// this is public mainly so that it can be set in junit tests
+	public double defaultLCSElementFrequencyThreshold = 0.25;
+	//private Map<OWLClassExpression,OWLClass> 
+
 
 	
 	protected void generateLeastCommonSubsumersForAttributeClasses() {
 		Set<OWLClass> types = getAttributeClasses();
-		generateLeastCommonSubsumers(types, types);
+		generateLeastCommonSubsumers(types);
 	}
 	
-	public void generateLeastCommonSubsumers(Set<OWLClass> set1, Set<OWLClass> set2) {
+	public void generateLeastCommonSubsumers(Set<OWLClass> leafClasses) {
 
-		for (OWLClass a : set1) {
-			LOG.info("  "+a+" vs ALL");		
-			for (OWLClass b : set2) {
+		LOG.info("Generating LCSs en masse; leaf classes "+leafClasses.size());
+		LOG.info("Num materialized class expressions (prior) "+materializedClassExpressionMap.size());
+		for (OWLClass a : leafClasses) {
+			LOG.info("  ALL vs: "+a+" '"+getAnyLabel(a)+"'");		
+			for (OWLClass b : leafClasses) {
 				// LCS operation is symmetric, only pre-compute one way
-				//if (a.compareTo(b) > 0) {
-					OWLClass lcs = getLowestCommonSubsumerClass(a, b);
-					//System.out.println("LCS( "+pp(a)+" , "+pp(b)+" ) = "+pp(lcs));
-				//}
+				if (a.compareTo(b) > 0) {
+					OWLClass lcs = getLowestCommonSubsumerClass(a, b, leafClasses);
+				}
 			}
 		}
 		LOG.info("DONE all x all");		
+		LOG.info("Num materialized class expressions (post) "+materializedClassExpressionMap.size());
 	}
 
 	
@@ -76,6 +87,7 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 		Set<Node<OWLClass>> nodes = getNamedCommonSubsumers(a, b);
 		Set<Node<OWLClass>> rNodes = new HashSet<Node<OWLClass>>();
 		for (Node<OWLClass> node : nodes) {
+			// all ancestors (non-reflexive) of node are redundant
 			rNodes.addAll(getReasoner().getSuperClasses(node.getRepresentativeElement(), false).getNodes());
 		}
 		nodes.removeAll(rNodes);
@@ -91,15 +103,17 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 	 * @return OWLClassExpression
 	 */
 	public OWLClassExpression getLowestCommonSubsumer(OWLClassExpression a, OWLClassExpression b) {
+		return getLowestCommonSubsumer(a, b, null);
+	}
+	public OWLClassExpression getLowestCommonSubsumer(OWLClassExpression a, OWLClassExpression b, Set<OWLClass> leafClasses) {
 		if (a.equals(b)) {
 			return a;
 		}
 		if (a instanceof OWLClass && b instanceof OWLClass) {
-			if (getReasoner().getSuperClasses(a, false).getFlattened().contains(b)) {
+			if (getNamedReflexiveSubsumers(a).contains(b)) {
 				return b;
 			}
-			//LOG.info("Getting superclasses of "+b);
-			if (getReasoner().getSuperClasses(b, false).getFlattened().contains(a)) {
+			if (getNamedReflexiveSubsumers(b).contains(a)) {
 				return a;
 			}
 		}
@@ -107,23 +121,57 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 		// returns the set of named LCSs that already exist
 		Set<Node<OWLClass>> ccs = getNamedLowestCommonSubsumers(a,b);
 
+		
 		// single LCS - return this directly
 		if (ccs.size() == 1) {
 			return ccs.iterator().next().getRepresentativeElement();
 		}
+		
+		if (csetToExpressionMap.containsKey(ccs))
+			return csetToExpressionMap.get(ccs);
 
 		// make a class expression from the filtered intersection of LCSs
 
 		Set<OWLClass> ops = new HashSet<OWLClass>();
-		Set<OWLClass> skips = new HashSet<OWLClass>();
 		OWLClass best = null;
 		int bestAncScore = 0;
 		for (Node<OWLClass> n : ccs) {
 			OWLClass c = n.getRepresentativeElement();
-			// TODO: add additional custom filtering here
-			if (isUpperLevel(c))
+			if (classesToSkip.contains(c))
 				continue;
+			// TODO: add additional custom filtering here
+			if (isUpperLevel(c)) {
+				// note that many upper level classes may already have been filtered out as possible candidates
+				classesToSkip.add(c);
+				continue;
+			}
 			boolean skip = false;
+			/*
+			for (OWLClassExpression eqx : c.getEquivalentClasses(outputOntology)) {
+				Set<OWLClass> zs = eqx.getClassesInSignature();
+				zs.retainAll(classesToSkip);
+				if (zs.size() > 0) {
+					LOG.info("Skipping "+c+" as it is equivalent to a class whose signature includes classes to ignore: "+zs);
+					skip = true;
+					break;
+				}
+			}
+			if (skip) {
+				// e.g. quality and inheres_in some <specificClass>
+				LOG.info("Skipping "+c+" as it is equivalent to a class whose signature includes classes to ignore");
+				continue;
+			}
+			*/
+			if (leafClasses != null) {
+				Set<OWLClass> descs = getReasoner().getSubClasses(c, false).getFlattened();
+				descs.retainAll(leafClasses);
+				int numDescendants = descs.size();
+				if (numDescendants / ((float) leafClasses.size()) > defaultLCSElementFrequencyThreshold) {
+					LOG.info("Skipping "+c+" as it has "+numDescendants+" out of "+leafClasses.size());
+					classesToSkip.add(c);
+					continue;				
+				}
+			}
 			
 			int numAncestors = this.getNamedReflexiveSubsumers(c).size();
 			if (numAncestors > bestAncScore) {
@@ -131,13 +179,23 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 				best = c;
 			}
 			if (numAncestors < 3) { // TODO: configure
-				// non-grouping attribute
-				LOG.info("SKIPPING: "+c+" too few parents");
-				//LOG.info("SKIPPING: "+c+" IC="+ic);
+				// classes that are too near the root do not make informative LCS elements.
+				// note that this is sensitive to graph structure, ontologies loaded etc
+				classesToSkip.add(c);
 				continue;
 			}
 			
-			// don't make intersections of similar elements
+			// TODO: do this in a more java-esque way
+			double lcsElementSimilarityThreshold = defaultLCSElementSimilarityThreshold;
+			String v = System.getenv("OWLSIM_LSS_INTERSECTION_SIMILARITY_THRESHOLD");
+			if (v != null && !v.equals("")) {
+				lcsElementSimilarityThreshold = Double.valueOf(v);
+			}
+			
+			// don't make intersections of similar elements.
+			// TODO: exclude high-level classes. Do this via a class-based IC (intersection elements may not
+			// directly classify the ABox) - but ontologies with lots of leaf nodes may bias; filter out
+			// classes first? Based on simple %?
 			for (Node<OWLClass> n2 : ccs) {
 				OWLClass c2 = n2.getRepresentativeElement();
 				
@@ -146,28 +204,37 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 				// it it's a tie, then choose one deterministically
 				if (numAncestors < numAncestors2 || (numAncestors==numAncestors2 && c.compareTo(c2) > 0)) {
 					// TODO: configure simj thresh
-					if (getJaccardIndex(c, c2) > 0.5) {
-						LOG.info("SKIPPING: "+c+" too similar to "+n2);
+					float sim = getMinAsymmetricJaccardIndex(c, c2);
+					if (sim > lcsElementSimilarityThreshold) {
+						LOG.info("SKIPPING: "+c+" ; too similar to "+n2+" SIM: "+sim);
 						skip = true;
 					}
 				}
 			}
-			if (skip)
+			if (skip) {
+				// Note: we do not add this to the skip cache here,
+				// as this is dependent on other elements
 				continue;
+			}
 			
 			// not filtered
 			ops.add(c);
 		}
 
+		OWLClassExpression lcsx;
 		if (ops.size() == 1) {
 			// only one passes
-			return ops.iterator().next();
+			lcsx = ops.iterator().next();
 		}
-		if (ops.size() == 0) {
+		else if (ops.size() == 0) {
 			// none pass: choose the best representative of the intersection
-			return best;
+			lcsx = best;
 		}
-		return getOWLDataFactory().getOWLObjectIntersectionOf(ops);
+		else {
+			lcsx = getOWLDataFactory().getOWLObjectIntersectionOf(ops);
+		}
+		csetToExpressionMap.put(ccs, lcsx);
+		return lcsx;
 	}
 
 	/**
@@ -175,16 +242,17 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 	 * 
 	 * @param a
 	 * @param b
+	 * @param leafClasses 
 	 * @return named class representing LCS
 	 */
-	public OWLClass getLowestCommonSubsumerClass(OWLClassExpression a, OWLClassExpression b) {
+	public OWLClass getLowestCommonSubsumerClass(OWLClassExpression a, OWLClassExpression b, Set<OWLClass> leafClasses) {
 		
 		OWLClassExpressionPair pair = new OWLClassExpressionPair(a,b);
 		if (lcsCache.containsKey(pair)) {
 			return lcsCache.get(pair);
 		}
 
-		OWLClassExpression x = getLowestCommonSubsumer(a,b);
+		OWLClassExpression x = getLowestCommonSubsumer(a,b,leafClasses);
 		OWLClass lcs;
 		/*
 		if (lcsExpressionToClass.containsKey(x)) {
@@ -211,10 +279,15 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 	 * 
 	 * Note: modifies ontology but does not flush
 	 * 
+	 * @see materializeClassExpression(..)
+	 * 
 	 * @param x
 	 * @return class
 	 */
 	public OWLClass makeClass(OWLObjectIntersectionOf x) {
+		if (materializedClassExpressionMap.containsKey(x)) {
+			return materializedClassExpressionMap.get(x);
+		}
 		//StringBuffer id = new StringBuffer();
 		StringBuffer label = new StringBuffer();
 		int n = 0;
@@ -252,7 +325,7 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 			}
 			if (oplabel != null) {
 				nlabels++;
-				label.append(oplabel);
+				label.append("["+oplabel+"]");
 			}
 			else {
 				label.append("?"+opc.getIRI().toString());
@@ -272,17 +345,26 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 		//lcsExpressionToClass.put(x, c);
 		LOG.info(" new LCS: "+c+" label: "+label.toString()+" == "+x);
 		this.addAxiomsToOutput(newAxioms, false);
+		materializedClassExpressionMap.put(x, c);
 		return c;
 	}
 
-	// Note: an identical method is present in SimpleOwlSim. It is only replicated here
-	// as a heuristic in intersection generation
-	private float getJaccardIndex(OWLClassExpression a, OWLClassExpression b) {
+	
+	// find similarity for purposes of determining if a LCS intersectionOf should be created.
+	// E.g. morphology AND inheres_in some limb is good as the two do not have much in the way
+	// of shared ancestors. Also "bone and part_of some limb" also good, but these will have
+	// more shared ancestors depending on how the ontology is structured, upper ontologies etc.
+	// note we can't use the ABox as these may be "inner" expressions with no named individuals
+	// in the ontology (e.g. "bone"). Using descendant named classes may introduce more graph bias.
+	private float getMinAsymmetricJaccardIndex(OWLClassExpression a, OWLClassExpression b) {
+		// if a subsumes b, then SimMAJ(a,b) = 1
+		// 'rewards' pairs that are distant from eachother
 		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b); // a /\ b
-		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a); 
-		cu.addAll(getNamedReflexiveSubsumers(b));   // a \/ u
-		return ci.size() / (float)cu.size();
+		int div = Math.min(getNamedReflexiveSubsumers(a).size(), getNamedReflexiveSubsumers(b).size());
+		return ci.size() / (float)div;
 	}
+
+	
 
 
 }

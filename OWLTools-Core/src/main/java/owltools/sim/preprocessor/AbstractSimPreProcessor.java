@@ -1,18 +1,19 @@
 package owltools.sim.preprocessor;
 
-import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.util.Collection;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+import java.util.Stack;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -30,18 +31,18 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.io.OWLPrettyPrinter;
-import owltools.sim.SimpleOwlSim;
 
 public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 
@@ -51,8 +52,12 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	Map<OWLClass,Set<OWLClass>> viewMap = new HashMap<OWLClass,Set<OWLClass>>();
 	Map<OWLClass,Map<OWLObjectProperty,OWLClass>> viewMapByProp = new HashMap<OWLClass,Map<OWLObjectProperty,OWLClass>>();
 	Set<OWLClass> newClasses = new HashSet<OWLClass>();
-	public OWLPrettyPrinter owlpp = null;
+	OWLPrettyPrinter owlpp = null;
 	Map<OWLObjectProperty,String> propertyToFormatMap = new HashMap<OWLObjectProperty,String>();
+	protected Map<OWLClassExpression,OWLClass> materializedClassExpressionMap = new HashMap<OWLClassExpression,OWLClass>();
+	protected Set<OWLClass> classesToSkip = new HashSet<OWLClass>();
+	private String fileBase = "/tmp/owlsim";
+	protected boolean saveIntermediateStates = true;
 
 	protected Logger LOG = Logger.getLogger(AbstractSimPreProcessor.class);
 	private OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
@@ -218,6 +223,9 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		this.getOWLOntologyManager().removeAxioms(outputOntology, rmAxioms);
 	}
 
+	public void addAxiomToOutput(OWLAxiom newAxiom, boolean isFlush) {
+		addAxiomsToOutput(Collections.singleton(newAxiom), isFlush);
+	}
 	public void addAxiomsToOutput(Set<OWLAxiom> newAxioms, boolean isFlush) {
 		if (newAxioms.size() > 0) {
 			LOG.info("Adding axioms: "+newAxioms.size());
@@ -299,10 +307,11 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	public Set<OWLClass> assertInferredForAttributeClasses() {
 		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
 		Set<OWLClass> retainedClasses = new HashSet<OWLClass>();
-		Set<OWLClass> usedClasses= new HashSet<OWLClass>(); // including indirect
+		Set<OWLClass> usedClasses= new HashSet<OWLClass>(); // including indirect. Not used?
 		for (OWLNamedIndividual ind : outputOntology.getIndividualsInSignature(true)) {
 			usedClasses.addAll(getReasoner().getTypes(ind, false).getFlattened());
 		}
+		LOG.info("Inferred direct classes from ABox:"+usedClasses.size());
 		for (OWLClass c : usedClasses) {
 			retainedClasses.add(c);
 			for (OWLClass s : getReasoner().getSuperClasses(c, true).getFlattened()) {
@@ -324,10 +333,10 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 
 	public void removeDisjointClassesAxioms() {
 		getOWLOntologyManager().removeAxioms(outputOntology, 
-		  outputOntology.getAxioms(AxiomType.DISJOINT_CLASSES));
-		
+				outputOntology.getAxioms(AxiomType.DISJOINT_CLASSES));
+
 	}
-	
+
 	public void trim() {
 		Set<OWLClass> retainedClasses = assertInferredForAttributeClasses();
 		Set<OWLClass> unused = outputOntology.getClassesInSignature(true);
@@ -336,6 +345,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLClass c : unused) {
 			rmAxioms.addAll(outputOntology.getReferencingAxioms(c));
+			rmAxioms.addAll(outputOntology.getAnnotationAssertionAxioms(c.getIRI()));
 		}
 		LOG.info("Removing unused: "+rmAxioms.size());
 		getOWLOntologyManager().removeAxioms(outputOntology, rmAxioms);
@@ -401,6 +411,13 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		return materializeClassExpressions(xs);
 	}
 
+	/**
+	 * E.g. if x = A and B and q some (p some z), return z 
+	 * 
+	 * @param p
+	 * @param x
+	 * @return all expressions that follow a 'p' in a SOME restriction
+	 */
 	private Set<OWLClassExpression> getClassExpressionReferencedBy(OWLObjectProperty p, OWLClassExpression x) {
 		Set<OWLClassExpression> xs = new HashSet<OWLClassExpression>();
 		if (x instanceof OWLObjectSomeValuesFrom) {
@@ -427,7 +444,10 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	}
 
 	public OWLClass materializeClassExpression(OWLClassExpression ce) {
-		return materializeClassExpressions(Collections.singleton(ce)).iterator().next();
+		if (materializedClassExpressionMap.containsKey(ce))
+			return materializedClassExpressionMap.get(ce);
+		else
+			return materializeClassExpressions(Collections.singleton(ce)).iterator().next();
 	}
 	/**
 	 * Note: does not flush
@@ -435,12 +455,17 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	 * @return
 	 */
 	public Set<OWLClass> materializeClassExpressions(Set<OWLClassExpression> ces) {
+		LOG.info("Materializing class expressions: "+ces.size());
 		OWLAnnotationProperty rdfsLabel = getOWLDataFactory().getRDFSLabel();
 		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
 		Set<OWLClass> newClasses = new HashSet<OWLClass>();
 		for (OWLClassExpression ce : ces) {
 			if (ce instanceof OWLClass) {
 				newClasses.add((OWLClass) ce);
+				continue;
+			}
+			if (materializedClassExpressionMap.containsKey(ce)) {
+				newClasses.add(materializedClassExpressionMap.get(ce));
 				continue;
 			}
 
@@ -452,11 +477,13 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 							getOWLDataFactory().getOWLLiteral(generateLabel(ce)))
 			);
 			LOG.info(mc + " EQUIV_TO "+ce);
+			materializedClassExpressionMap.put(ce, mc);
 			newClasses.add(mc);
 		}
 		// some CEs will be identical, but they will be mapped to the same class.
 		// we might be able to optimize by pre-filtering dupes
 		addAxiomsToOutput(newAxioms, false);
+		LOG.info("Materialized "+ces.size()+ " class expressions, axioms: "+newAxioms.size()+", new classes:"+newClasses.size());
 
 
 		return newClasses;
@@ -507,6 +534,54 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		}
 		return x.toString();
 	}
+	
+	/**
+	 * note: approximation used, may end up removing too many.
+	 * 
+	 * E.g. if P = q1 and inh some e1, and O type has (q1 and inh some e1), then P
+	 * will not be reachable by simple graph walking. Consider materializing first
+	 */
+	protected void removeUnreachableAxioms() {
+		LOG.info("Removing axioms unreachable from ABox. Starting with: "+outputOntology.getAxiomCount());
+
+		Stack<OWLClass> stack = new Stack<OWLClass>();
+		for (OWLNamedIndividual ind : outputOntology.getIndividualsInSignature(true)) {
+			stack.addAll(getReasoner().getTypes(ind, true).getFlattened());
+			for (OWLClassExpression x : ind.getTypes(outputOntology.getImportsClosure())) {
+				stack.addAll(x.getClassesInSignature());
+			}
+		}
+		Set<OWLClass> visited = new HashSet<OWLClass>();
+		visited.addAll(stack);
+
+		while (!stack.isEmpty()) {
+			OWLClass elt = stack.pop();
+			Set<OWLClass> parents = new HashSet<OWLClass>();
+			Set<OWLClassExpression> xparents = elt.getSuperClasses(inputOntology);
+			xparents.addAll(elt.getEquivalentClasses(inputOntology));
+			for (OWLClassExpression x : xparents) {
+				parents.addAll(x.getClassesInSignature());
+			}
+			parents.addAll(getReasoner().getSuperClasses(elt, true).getFlattened());
+			parents.addAll(getReasoner().getEquivalentClasses(elt).getEntities());
+			parents.removeAll(visited);
+			stack.addAll(parents);
+			visited.addAll(parents);
+		}
+
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLClass c : outputOntology.getClassesInSignature()) {
+			if (!visited.contains(c)) {
+				LOG.info("removing axioms for EL-unreachable class: "+c);
+				rmAxioms.addAll(outputOntology.getAxioms(c));
+				rmAxioms.add(getOWLDataFactory().getOWLDeclarationAxiom(c));
+			}
+		}
+
+
+		getOWLOntologyManager().removeAxioms(outputOntology, rmAxioms);
+		LOG.info("Removed "+rmAxioms.size()+" axioms. Remaining: "+outputOntology.getAxiomCount());
+	}
 
 	// note: this is currently somewhat obo-format specific. Make this configurable - TODO
 	public boolean isUpperLevel(OWLClass c) {
@@ -520,6 +595,15 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 				if (ap.endsWith("inSubset")) {
 					// TODO - formalize this
 					if (iv.toString().contains("upper_level")) {
+						return true;
+					}
+					// this tag is used in uberon
+					if (iv.toString().contains("non_informative")) {
+						return true;
+					}
+					// hack: representation of early dev a bit problematic
+					// temporary: find a way to exclude these axiomatically
+					if (iv.toString().contains("early_development")) {
 						return true;
 					}
 				}
@@ -542,4 +626,34 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		LOG.info("flushing...");
 		getReasoner().flush();
 	}
+
+	public void saveState(String state) {
+		if (saveIntermediateStates) {
+			String fn = fileBase+"-"+state+".owl";
+			FileOutputStream os;
+			try {
+				os = new FileOutputStream(new File(fn));
+				OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
+
+				getOWLOntologyManager().saveOntology(outputOntology, owlFormat, os);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (OWLOntologyStorageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
+	
+	protected void ignoreClasses(Set<String> labels) {
+		for (OWLClass c : inputOntology.getClassesInSignature(true)) {
+			String label = this.getAnyLabel(c);
+			if (labels.contains(label)) {
+				classesToSkip.add(c);
+			}
+		}
+	}
+
 }

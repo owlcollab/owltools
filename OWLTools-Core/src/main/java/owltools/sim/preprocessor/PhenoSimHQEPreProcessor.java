@@ -1,27 +1,59 @@
 package owltools.sim.preprocessor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.obolibrary.macro.MacroExpansionVisitor;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 
-	public String QUALITY = "PATO_0000001";
-	public boolean isMultiSpecies = true;
+	protected String QUALITY = "PATO_0000001";
+	protected String ABNORMAL = "PATO_0000460";
+	protected boolean isMultiSpecies = true;
 
 	public void preprocess() {
+
+		final String[] excludeLabels = {
+				"quality", "physical object quality", "process quality", "qualitative","1-D extent","abnormal","deviation(from_normal)",
+				"increased object quality","decreased object quality",
+				"biological_process", "cellular_component", "molecular_function", "cellular process","multicellular organismal process",
+				"anatomical structure development","tissue development", "organ development",
+				"organ", "blastula","epiblast","blastodic", "viscus", "abdomen organ"
+		};
+		fixObjectProperties();
+		makeDevelopmentMorphologyLinks();
+		ignoreClasses(new HashSet<String>(Arrays.asList(excludeLabels)));
+		addPhenotypePropertyChain();
+		removeDisjointClassesAxioms();
+		addPhenoAxioms();
+		expandInheresInPartOf();
+		saveState("expanded");
+		flush();
+
+		removeUnreachableAxioms();
+		saveState("init");
+
 
 		// classes and properties
 		OWLClass owlThing = getOWLDataFactory().getOWLThing();
@@ -29,8 +61,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		OWLObjectProperty cpo = getOWLObjectPropertyViaOBOSuffix(COMPOSED_PRIMARILY_OF);
 		OWLObjectProperty inheresIn = getOWLObjectPropertyViaOBOSuffix(INHERES_IN);
 		OWLObjectProperty hasPart = getOWLObjectPropertyViaOBOSuffix(HAS_PART);
-		
-		removeDisjointClassesAxioms();
+
 
 		// E.g. hand part_of some hand
 		makeReflexive(PART_OF);
@@ -45,7 +76,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		// this is filtered to include only classes that are useful for grouping classes
 		Set<OWLClass> entityClasses = getPhenotypeEntityClasses();
 		LOG.info("Num entity classes:"+entityClasses.size());
-		
+
 		// VIEW: composed_primarily_of
 		// E.g. "composed primarily of some hair cell".
 		// only build this view for parents of a cpo relationship
@@ -57,6 +88,8 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		createPropertyView(df, filterByDirectProperty(entityClasses, df), "%s or derivative");
 		//createPropertyView(df, entityClasses, "%s or derivative");
 		//filterUnused(dfAxioms);
+
+		// TODO - affected X => qualifier abnormal
 
 		// VIEW: part_of
 		// E.g. "part of some limb"
@@ -73,34 +106,47 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		newClasses = new HashSet<OWLClass>();
 		createPropertyView(inheresIn, entityClasses, "affected %s");
 
+		saveState("views");
+
+		// INTERSECTIONS: Q and inheres_in some E
 		// note: need to materialize QE class expressions - these are currently embedded in
 		// "has_part some QE" expressions
-		getReasoner().flush();
+		flush();
+		// Assume: <PhenoClass> = has_part some (Q and inheres_in some E)
+		//     or: Individual: <i> Types: has_phenotype some has_part some (Q and inheres_in some E)
+		OWLClass phenotypeRootClass = materializeClassExpression( getOWLDataFactory().getOWLObjectSomeValuesFrom(hasPart, owlThing) );
 		Set<OWLClass> thingsWithParts = materializeClassExpressionsReferencedBy(hasPart);
-		getReasoner().flush();
-		generateLeastCommonSubsumers(thingsWithParts, thingsWithParts);
-		getReasoner().flush();
+		flush();
+		generateLeastCommonSubsumers(thingsWithParts);
+		saveState("qe-intersections");
+		flush();
 
 		// note the ontology should have an axiom "Quality SubClassOf inheres_in some Thing"
 		OWLClass inheresInSomeThing = this.viewMapByProp.get(owlThing).get(inheresIn);
 		if (inheresInSomeThing == null) {
 			LOG.warn("Cannot get view class for root of "+inheresIn);
 		}
-		getReasoner().flush();
+		//flush();
+		Set<OWLClass> phenotypeClasses = getReflexiveSubClasses(inheresInSomeThing);
+		LOG.info("num inheres in some owl:Thing = "+phenotypeClasses.size());
+		phenotypeClasses.addAll(getReflexiveSubClasses(phenotypeRootClass));
+		LOG.info(" + has part some owl:Thing = "+phenotypeClasses.size());
 
 		// E.g. has_phenotype some (Q and inheres_in some E)
 		// Note that has_phenotype <- has_phenotype o has_part, so this should work for both:
 		//  * i1 Type: has_phenotype some (Q and inheres_in some E)
 		//  * i1 Type: has_phenotype some (has_part some (Q and inheres_in some E))
 		// [auto-generated labels for the latter may look odd]
-		createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), inheresInSomeThing, "%s phenotype");
-
+		createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), phenotypeClasses, "%s phenotype");
+		saveState("phenotypes");
 		getReasoner().flush();
-		
+
 		// INTERSECTIONS - final
 		// we have previously created QE intersections - this step ensures that all LCSs of
-		// individuals are materialized
-		generateLeastCommonSubsumersForAttributeClasses();
+		// individuals are materialized.
+		// TODO - omit this step
+		//generateLeastCommonSubsumersForAttributeClasses();
+		//saveState("final-pre-trimmed");
 
 		//getReasoner().flush();
 		//Set<OWLClassExpression> attExprs = this.getDirectAttributeClassExpressions();
@@ -110,20 +156,22 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		// E.g 'has phenotype some affected limb' and 'has phenotype hyperplastic'.
 		// This is not ideal as each individual can have multiple of each;
 		// better to do before but we need to materialize
-		getReasoner().flush();
+		//getReasoner().flush();
 		//generateLeastCommonSubsumers(attClasses, attClasses);
 
 		//this.getOWLOntologyManager().removeAxioms(outputOntology, tempAxioms);
 		trim();
+		saveState("final-trimmed");
 	}
-	
+
 	// --
 	// UTIL
 	// --
-	
+
 	/**
 	 * In MP we have
-	 *  abn. tooth. dev. SubClassOf abn. tooth. morphology
+	 *  + abn. tooth. morphology
+	 *    + abn. tooth. dev.
 	 *  
 	 *  Transform:
 	 *  
@@ -131,11 +179,49 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 	 *    quality and inh some P SubClassOf morphology and inh some E
 	 *  
 	 */
-	protected void makeProcessStructureLinks() {
-		String rel = this.RESULTS_IN_MORPHOGENESIS_OF;
+	protected void makeDevelopmentMorphologyLinks() {
+		// TODO - use OPPL for this
+		/*
 		String oppl =
-			"SELECT ?P EquivalentTo "+rel+" SOME ?U "+
+			"SELECT ?P EquivalentTo "+RESULTS_IN_MORPHOGENESIS_OF+" SOME ?U "+
 			"BEGIN ADD ('inheres in' some ?P) SubClassOf (morphology and 'inheres in' some ?U)";
+			*/
+		LOG.info("making dev-morph links");
+		OWLObjectProperty rimo = this.getOWLObjectPropertyViaOBOSuffix(RESULTS_IN_MORPHOGENESIS_OF);
+		OWLObjectProperty rido = this.getOWLObjectPropertyViaOBOSuffix(RESULTS_IN_DEVELOPMENT_OF);
+		OWLObjectProperty inheresIn = this.getOWLObjectPropertyViaOBOSuffix(INHERES_IN);
+		OWLClass morphologyCls = this.getOWLClassViaOBOSuffix("PATO_0000051");
+		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
+		for (OWLEquivalentClassesAxiom eca : outputOntology.getAxioms(AxiomType.EQUIVALENT_CLASSES)) {
+			Set<OWLObjectProperty> opSig = eca.getObjectPropertiesInSignature();
+			if (opSig.contains(rimo) || opSig.contains(rido)) {
+				LOG.info("   ECA:"+eca);
+				OWLClass goProcCls = null;
+				OWLClassExpression goProcExpr = null;
+				for (OWLClassExpression x : eca.getClassExpressions()) {
+					if (x.isAnonymous()) {
+						goProcExpr = x;
+					}
+					else {
+						goProcCls = (OWLClass) x;
+					}
+				}
+				if (goProcCls != null && goProcExpr != null) {
+					if (goProcExpr instanceof OWLObjectIntersectionOf) {
+						for (OWLClassExpression d : ((OWLObjectIntersectionOf)goProcExpr).getOperands() ) {
+							if (d instanceof OWLObjectSomeValuesFrom) {
+								OWLClassExpression anatCls = ((OWLObjectSomeValuesFrom)d).getFiller();
+								OWLObjectSomeValuesFrom lhs = getOWLDataFactory().getOWLObjectSomeValuesFrom(inheresIn, goProcCls);
+								OWLObjectSomeValuesFrom inhExpr = getOWLDataFactory().getOWLObjectSomeValuesFrom(inheresIn, anatCls);
+								OWLObjectIntersectionOf rhs = getOWLDataFactory().getOWLObjectIntersectionOf(morphologyCls, inhExpr);
+								newAxioms.add(getOWLDataFactory().getOWLSubClassOfAxiom(lhs,rhs));
+							}
+						}
+					}
+				}
+			}
+		}
+		addAxiomsToOutput(newAxioms, false);
 	}
 
 	/**
@@ -143,7 +229,8 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 	 */
 	protected Set<OWLClass> getPhenotypeEntityClasses() {
 		Set<OWLClass> entityClasses = new HashSet<OWLClass>();
-		
+
+		// add all that are NOT excluded
 		for (OWLClass c : inputOntology.getClassesInSignature(true)) {
 			if (!isVerbotenEntity(c)) {
 				entityClasses.add(c);
@@ -154,22 +241,27 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 			}
 		}
 
+		// exclude all qualities
 		entityClasses.removeAll(getQualityClasses());
-		
-		
+
+		entityClasses.removeAll(classesToSkip);
+
 
 		return entityClasses;
 	}
-		
+
 	public boolean isVerbotenEntity(OWLClass c) {
 		String ont = getOntologyPrefix(c);
 		if (isMultiSpecies) {
+			// in a multi-species analysis we only use multi-species ontologies
+			// to make new groupings
 			if (ont.equals("FMA") || ont.equals("MA") || ont.equals("EHDAA2") ||
 					ont.startsWith("EMAP") || ont.equals("ZFA") || ont.equals("ZFS") ||
 					ont.equals("FBbt") || ont.equals("WBbt")) {
 				return true;
 			}
 		}
+		// phenotype classes don't make entity classes
 		// in future: do this ontologically
 		if (ont.equals("MP") || ont.equals("HP") || ont.equals("FYPO") || ont.equals("WormPhenotype"))
 			return true;
@@ -230,9 +322,111 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 
 			}
 		}
+		outSet.removeAll(classesToSkip);
 		LOG.info("found "+outSet.size()+" candidates; intersection with "+inSet.size());
 		outSet.retainAll(inSet);
 		return outSet;
 	}
+
+	private void addPhenoAxioms() {
+		OWLClass qualityCls = getOWLClassViaOBOSuffix(QUALITY);
+		OWLClass abnormalCls = getOWLClassViaOBOSuffix(ABNORMAL);
+
+		addAxiomToOutput(getOWLDataFactory().getOWLSubClassOfAxiom(qualityCls,
+				getOWLDataFactory().getOWLObjectSomeValuesFrom(getOWLObjectPropertyViaOBOSuffix(QUALIFIER), 
+						abnormalCls)),
+						false);
+		addAxiomToOutput(getOWLDataFactory().getOWLEquivalentClassesAxiom(qualityCls,
+				getOWLDataFactory().getOWLObjectSomeValuesFrom(getOWLObjectPropertyViaOBOSuffix(INHERES_IN), 
+						getOWLDataFactory().getOWLThing())),
+						false);
+
+	}
+
+
+	// this should already be present, but we assert in anyway to be sure
+	private void addPhenotypePropertyChain() {
+		OWLObjectProperty hpart = getOWLObjectPropertyViaOBOSuffix(HAS_PART);
+		OWLObjectProperty hphen = getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE);
+
+		List<OWLObjectPropertyExpression> chain = new ArrayList<OWLObjectPropertyExpression>();
+		chain.add(hphen);
+		chain.add(hpart);
+		addAxiomToOutput(getOWLDataFactory().getOWLSubPropertyChainOfAxiom(chain , hphen), false);
+	}
+
+	// TODO
+	private void expandInheresInPartOf() {
+		LOG.info("Expanding IPO; axioms before="+outputOntology.getAxiomCount());
+		IRI ipoIRI = getIRIViaOBOSuffix(INHERES_IN_PART_OF);
+
+		OWLAnnotationProperty eap = getOWLDataFactory().getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000424"));
+		OWLAnnotationProperty aap = getOWLDataFactory().getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000425"));
+
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLAnnotationAssertionAxiom ax : outputOntology.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
+			if (ax.getProperty().equals(eap) || ax.getProperty().equals(aap)) {
+				rmAxioms.add(ax);
+			}
+		}
+		LOG.info("Clearing old expansions: "+rmAxioms.size());
+		getOWLOntologyManager().removeAxioms(outputOntology, rmAxioms);
+
+		OWLAnnotationAssertionAxiom aaa = getOWLDataFactory().getOWLAnnotationAssertionAxiom(eap, ipoIRI, 
+				getOWLDataFactory().getOWLLiteral("BFO_0000052 some (BFO_0000050 some ?Y)"));
+		addAxiomToOutput(aaa, false);
+
+		MacroExpansionVisitor mev;
+		mev = new MacroExpansionVisitor(outputOntology);
+		mev.expandAll();
+		flush();
+
+
+
+		//mev.expandAll();
+		LOG.info("Expanded IPO; axioms after="+outputOntology.getAxiomCount());
+	}
+
+
+	private void fixObjectProperties() {
+		OWLEntityRenamer oer;
+		oer = new OWLEntityRenamer(getOWLOntologyManager(), outputOntology.getImportsClosure());
+		Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
+		for (OWLObjectProperty p : outputOntology.getObjectPropertiesInSignature(true)) {
+			String frag = p.getIRI().getFragment();
+			if (frag == null) {
+				LOG.info(p+" has no fragment");
+				continue;
+			}
+			LOG.info("Checking "+p+" which has fragment: '"+frag+"'");
+			if (frag.equals("part_of")) {
+				e2iri.put(p, this.getIRIViaOBOSuffix(PART_OF));
+				LOG.info("Mapping legacy property: "+p);
+			}
+			else if (frag.equals("inheres_in_part_of")) {
+				e2iri.put(p, this.getIRIViaOBOSuffix(INHERES_IN_PART_OF));
+				LOG.info("Mapping legacy property: "+p);
+			}
+			else if (frag.equals("inheres_in")) {
+				e2iri.put(p, this.getIRIViaOBOSuffix(INHERES_IN));
+				LOG.info("Mapping legacy property: "+p);
+			}
+			else if (frag.equals("qualifier")) {
+				e2iri.put(p, this.getIRIViaOBOSuffix(QUALIFIER));
+				LOG.info("Mapping legacy property: "+p);
+			}
+			else if (p.getIRI().toString().equals("http://purl.obolibrary.org/obo/RO_0002180")) {
+				// TEMP
+				e2iri.put(p, this.getIRIViaOBOSuffix(QUALIFIER));
+				LOG.info("Mapping legacy property: "+p+" TODO - FIX IN SOURCE ONTOLOGY");
+			}
+		}
+		LOG.info("Mapping legacy properties: "+e2iri.size());
+		List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
+		LOG.info("Changes: "+changes.size());
+		this.getOWLOntologyManager().applyChanges(changes);
+	}
+
+
 
 }

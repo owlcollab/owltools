@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -300,37 +301,10 @@ public class SimpleOwlSim {
 	 * @return OWLClassExpression
 	 */
 	public OWLClassExpression getLowestCommonSubsumer(OWLClassExpression a, OWLClassExpression b) {
+		// TODO - the preprocessor implementation may not be optimized for similarity calculation
 		return this.simPreProcessor.getLowestCommonSubsumer(a, b);
 	}
 
-	/**
-	 * generates a LCS expression and makes it a class if it is a class expression
-	 * 
-	 * @param a
-	 * @param b
-	 * @return named class representing LCS
-	 */
-	/*
-	public OWLClass getLowestCommonSubsumerClass(OWLClassExpression a, OWLClassExpression b) {
-		OWLClassExpressionPair pair = new OWLClassExpressionPair(a,b);
-		if (lcsCache.containsKey(pair)) {
-			return lcsCache.get(pair);
-		}
-		OWLClassExpression x = getLowestCommonSubsumer(a,b);
-		OWLClass lcs;
-		if (lcsExpressionToClass.containsKey(x)) {
-			lcs = lcsExpressionToClass.get(x);
-		}
-		if (x instanceof OWLClass)
-			lcs = (OWLClass)x;
-		else if (x instanceof OWLObjectIntersectionOf)
-			lcs = makeClass((OWLObjectIntersectionOf) x);
-		else
-			lcs = null;
-		lcsCache.put(pair, lcs);
-		return lcs;
-	}
-	*/
 
 
 
@@ -359,14 +333,47 @@ public class SimpleOwlSim {
 		if (simCache.containsKey(pair)) {
 			return simCache.get(pair);
 		}
-		// dangerous cast: we assume the ontology has been fully pre-processed
+		// dangerous cast: we assume the ontology has been fully pre-processed.
+		// however, if the ontology was pre-processed in advance additional filtering
+		// may have happened, not captured in NullPreProcessor...
 		OWLClassExpression lcsx = getLowestCommonSubsumer(a, b);
+		if (lcsx instanceof OWLClass) {
+			OWLClass lcs = (OWLClass) lcsx;
+			ScoreAttributePair sap = new ScoreAttributePair(getInformationContentForAttribute(lcs), lcs);
+			simCache.put(pair, sap);
+			return sap;			
+		}
+		else if (lcsx instanceof OWLObjectIntersectionOf) {
+			Double bestIC = null;
+			OWLClass bestLCS = null;
+			for (OWLClassExpression op : ((OWLObjectIntersectionOf)lcsx).getOperands()) {
+				if (op instanceof OWLClass) {
+					OWLClass lcs = (OWLClass) op;
+					Double ic = getInformationContentForAttribute(lcs);
+					if (bestIC == null || ic > bestIC) {
+						bestIC = ic;
+						bestLCS = lcs;
+					}
+				}
+			}
+			ScoreAttributePair sap = new ScoreAttributePair(bestIC, bestLCS);
+			simCache.put(pair, sap);	
+			return sap;
+		}
+		else {
+			LOG.warn("LCS of "+a+" + "+b+" = "+lcsx);
+			ScoreAttributePair sap = new ScoreAttributePair(0.0, owlDataFactory.getOWLThing());
+			simCache.put(pair, sap);	
+			return sap;
+		}
+		/*
 		if (!(lcsx instanceof OWLClass))
 			LOG.warn("LCS of "+a+" + "+b+" = "+lcsx);
 		OWLClass lcs = (OWLClass) lcsx;
 		ScoreAttributePair sap = new ScoreAttributePair(getInformationContentForAttribute(lcs), lcs);
 		simCache.put(pair, sap);
 		return sap;
+		*/
 	}
 
 	public ScoreAttributesPair getSimilarityMaxIC(OWLNamedIndividual i, OWLNamedIndividual j) {
@@ -375,6 +382,7 @@ public class SimpleOwlSim {
 			for (OWLClass b : this.getAttributesForElement(j)) {
 				ScoreAttributePair sap = getLowestCommonSubsumerIC(a, b);
 				if (Math.abs(sap.score - best.score) < 0.001) {
+					// tie for best attribute
 					best.addAttributeClass(sap.attributeClass);
 				}
 				if (sap.score > best.score) {
@@ -415,7 +423,7 @@ public class SimpleOwlSim {
 				}
 			}
 			atts.addAll(best.attributeClassSet);
-			bestMatches.add(best);
+			bestMatches.add(best); // TODO - do something with this
 			total += best.score;
 			n++;
 		}
@@ -661,10 +669,16 @@ public class SimpleOwlSim {
 		return this.elementToAttributesMap.get(e);
 	}
 
-	public void precomputeAttributeElementCount() {
+	/**
+	 *  Mapping between an attribute (e.g. phenotype class) and the number
+	 *  of instances it classifies
+	 */
+	protected void precomputeAttributeElementCount() {
 		if (attributeElementCount != null)
 			return;
 		attributeElementCount = new HashMap<OWLClass, Integer>();
+		// some high level attributes will classify all or most of the ABox;
+		//  this way may be faster...
 		for (OWLEntity e : this.getAllElements()) {
 			LOG.info("Adding 1 to all attributes of "+e);
 			for (OWLClass dc : getAttributesForElement(e)) {
@@ -679,6 +693,7 @@ public class SimpleOwlSim {
 
 			}
 		}
+		LOG.info("Finished precomputing attribute element count");
 	}
 
 	/**
@@ -729,6 +744,7 @@ public class SimpleOwlSim {
 	public int getCorpusSize() {
 		if (corpusSize == null) {
 			corpusSize = getAllElements().size();
+			LOG.info("corpusSize = "+corpusSize);
 		}
 		return corpusSize;
 	}
@@ -736,6 +752,10 @@ public class SimpleOwlSim {
 		corpusSize = size;
 	}
 
+	// IC = 0.0 : 100%   (1/1)
+	// IC = 1.0 : 50%    (1/2)
+	// IC = 2.0 : 25%    (1/4)
+	// IC = 3.0 : 12.5%  (1/8)
 	public Double getInformationContentForAttribute(OWLClass c) {
 		int freq = getNumElementsForAttribute(c);
 		Double ic = null;

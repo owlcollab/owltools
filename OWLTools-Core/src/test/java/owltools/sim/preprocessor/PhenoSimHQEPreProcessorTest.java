@@ -56,6 +56,8 @@ public class PhenoSimHQEPreProcessorTest extends OWLToolsTestBasics {
 			pproc.setInputOntology(sourceOntol);
 			pproc.setOutputOntology(sourceOntol);
 			pproc.setReasoner(reasoner);
+			((PhenoSimHQEPreProcessor)pproc).defaultLCSElementFrequencyThreshold = 0.9;
+
 
 			pproc.preprocess();
 			reasoner.flush();
@@ -64,7 +66,7 @@ public class PhenoSimHQEPreProcessorTest extends OWLToolsTestBasics {
 			reasoner.flush();
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
 				for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
-					showLCS(i,j);
+					//showLCS(i,j);
 				}
 			}
 
@@ -75,11 +77,11 @@ public class PhenoSimHQEPreProcessorTest extends OWLToolsTestBasics {
 
 			testLCS("hypoplastic and affected retina phenotype",
 					"hyperplastic and affected ommatidium phenotype",
-					"abnormal_morphology and affected photoreceptor-based entity phenotype");
+					"[abnormal_morphology] and [affected photoreceptor-based entity] phenotype");
 
 			testLCS("hyperplastic and affected hand phenotype",
 					"hypoplastic and affected hindlimb phenotype",
-					"abnormal_morphology and affected limb structure phenotype");
+					"[abnormal_morphology] and [affected limb structure] phenotype");
 		
 		}
 		finally{
