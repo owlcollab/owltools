@@ -249,7 +249,7 @@ public class AnnotationRulesEngine {
 				// do nothing
 				return;
 			}
-			writer.println("#Line\tRuleID\tViolationType\tMessage");
+			writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
 			writer.println("#------------");
 			for(ViolationType type : types) {
 				Map<String, List<AnnotationRuleViolation>> violations = result.getViolations(type);
@@ -272,27 +272,46 @@ public class AnnotationRulesEngine {
 						writer.print(type.name());
 						writer.print('\t');
 						final String message = violation.getMessage();
-						for (int i = 0; i < message.length(); i++) {
-							char c = message.charAt(i);
-							if (c == '\t') {
-								writer.print("\\t"); // escape tabs
-							}
-							if (c == '\n') {
-								writer.print("\\n"); // escape new lines
-							}
-							else if (Character.isWhitespace(c)) {
-								// normalize other white spaces
-								writer.print(' ');
-							}
-							else {
-								writer.print(c);
-							}
-							
+						printEscaped(message, writer, false);
+						writer.print('\t');
+						String annotationRow = violation.getAnnotationRow();
+						if (annotationRow != null) {
+							printEscaped(annotationRow, writer, true);
 						}
 						writer.println();
 					}
 					writer.println("#------------");
 				}
+			}
+		}
+	}
+	
+	private static void printEscaped(String s, PrintWriter writer, boolean useWhitespaces) {
+		final int length = s.length();
+		for (int i = 0; i < length; i++) {
+			char c = s.charAt(i);
+			if (c == '\t') {
+				if (useWhitespaces) {
+					writer.print(' '); // replace tab with whitespace
+				}
+				else {
+					writer.print("\\t"); // escape tabs
+				}
+			}
+			if (c == '\n') {
+				if (useWhitespaces) {
+					writer.print(' '); // replace new line with whitespace
+				}
+				else {
+					writer.print("\\n"); // escape new lines
+				}
+			}
+			else if (Character.isWhitespace(c)) {
+				// normalize other white spaces
+				writer.print(' ');
+			}
+			else {
+				writer.print(c);
 			}
 		}
 	}
