@@ -4,6 +4,7 @@ import java.util.Set;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.graph.OWLGraphWrapper;
 
 public interface AnnotationRule {
 	
@@ -12,6 +13,7 @@ public interface AnnotationRule {
 	 * 
 	 * @param a annotation
 	 * @return set of violations
+	 * @see #isAnnotationLevel()
 	 */
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a);	
 
@@ -20,8 +22,18 @@ public interface AnnotationRule {
 	 * 
 	 * @param gafDoc
 	 * @return set of violations
+	 * @see #isDocumentLevel()
 	 */
 	public Set<AnnotationRuleViolation> getRuleViolations(GafDocument gafDoc);
+	
+	/**
+	 * Given a whole {@link GafDocument} in OWL, find the set of violations using the rule
+	 * 
+	 * @param graph
+	 * @return set of violations
+	 * @see #isOwlDocumentLevel()
+	 */
+	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph);
 	
 	/**
 	 * Set the rule id
@@ -38,8 +50,22 @@ public interface AnnotationRule {
 	public String getRuleId();
 	
 	/**
+	 * @return true if the rule has to be applied to a {@link GeneAnnotation}.
+	 * @see #getRuleViolations(GeneAnnotation)
+	 */
+	public boolean isAnnotationLevel();
+	
+	/**
 	 * @return true if the rule has to be applied to the whole GA document.
+	 * @see #getRuleViolations(GafDocument)
 	 */
 	public boolean isDocumentLevel();
+	
+	
+	/**
+	 * @return true if the rule has to be applied to the whole OWL document.
+	 * @see #getRuleViolations(OWLGraphWrapper)
+	 */
+	public boolean isOwlDocumentLevel();
 	
 }

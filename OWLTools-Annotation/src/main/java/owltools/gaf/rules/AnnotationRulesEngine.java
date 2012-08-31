@@ -12,11 +12,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
+import owltools.graph.OWLGraphWrapper;
 
 public class AnnotationRulesEngine {
 
@@ -37,24 +40,38 @@ public class AnnotationRulesEngine {
 	
 	public AnnotationRulesEngineResult validateAnnotations(GafDocument doc) throws AnnotationRuleCheckException{
 		
-		List<AnnotationRule> rules = rulesFactory.getGeneAnnotationRules();
-		List<AnnotationRule> gafRules = rulesFactory.getGafRules();
-		if(rules == null || rules.isEmpty()){
-			throw new AnnotationRuleCheckException("Rules are not initialized. Please check the annotation_qc.xml file for errors");
-		}
+		List<AnnotationRule> annotationRules = rulesFactory.getGeneAnnotationRules();
+		List<AnnotationRule> documentRules = rulesFactory.getGafDocumentRules();
+		List<AnnotationRule> owlRules = rulesFactory.getOwlRules();
+		if(annotationRules == null || annotationRules.isEmpty()){
+ 			throw new AnnotationRuleCheckException("Rules are not initialized. Please check the annotation_qc.xml file for errors");
+ 		}
 		
 		AnnotationRulesEngineResult result = new AnnotationRulesEngineResult();
-		final int ruleCount = rules.size() + (gafRules != null ? gafRules.size() : 0);
+		final int ruleCount = annotationRules.size() 
+				+ (documentRules != null ? documentRules.size() : 0)
+				+ (owlRules != null ? owlRules.size() : 0);
+		
 		LOG.info("Start validation of annotations with "+ruleCount+" rules.");
 		try{
 			for(GeneAnnotation annotation : doc.getGeneAnnotations()){
-				for(AnnotationRule rule : rules){
+				for(AnnotationRule rule : annotationRules){
 					result.addViolations(rule.getRuleViolations(annotation));
 				}
 			}
-			if (gafRules != null && !gafRules.isEmpty()) {
-				for (AnnotationRule rule : gafRules) {
+			if (documentRules != null && !documentRules.isEmpty()) {
+				for (AnnotationRule rule : documentRules) {
 					result.addViolations(rule.getRuleViolations(doc));
+				}
+			}
+			OWLGraphWrapper graph = rulesFactory.getGraph();
+			if (owlRules != null && !owlRules.isEmpty() && graph != null) {
+				GAFOWLBridge bridge = new GAFOWLBridge(graph);
+				bridge.setGenerateIndividuals(false);
+				OWLOntology translated = bridge.translate(doc);
+				OWLGraphWrapper translatedGraph = new OWLGraphWrapper(translated);
+				for(AnnotationRule rule : owlRules) {
+					rule.getRuleViolations(translatedGraph);
 				}
 			}
 			

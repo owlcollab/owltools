@@ -30,8 +30,7 @@ import owltools.graph.OWLGraphWrapper;
 
 public class GAFOWLBridge {
 
-	private Logger LOG = Logger.getLogger(GAFOWLBridge.class);
-
+	private static final Logger LOG = Logger.getLogger(GAFOWLBridge.class);
 
 	private OWLOntology targetOntology;
 	private OWLGraphWrapper graph;
@@ -118,7 +117,7 @@ public class GAFOWLBridge {
 
 	/**
 	 * @param gafdoc
-	 * @return
+	 * @return translated ontology
 	 */
 	public OWLOntology translate(GafDocument gafdoc) {
 

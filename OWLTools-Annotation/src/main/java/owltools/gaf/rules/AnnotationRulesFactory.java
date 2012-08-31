@@ -4,6 +4,7 @@ import java.util.List;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.graph.OWLGraphWrapper;
 
 public interface AnnotationRulesFactory {
 
@@ -24,6 +25,21 @@ public interface AnnotationRulesFactory {
 	 * 
 	 * @return rules
 	 */
-	public List<AnnotationRule> getGafRules();
+	public List<AnnotationRule> getGafDocumentRules();
+	
+	
+	/**
+	 * Get the list of rules, which require a global view of the GAF ({@link GafDocument}) and OWL.
+	 * 
+	 * @return rules
+	 */
+	public List<AnnotationRule> getOwlRules();
+	
+	/**
+	 * Get the underlying ontology graph for this rule factory.
+	 * 
+	 * @return graph or null
+	 */
+	public OWLGraphWrapper getGraph();
 
 }

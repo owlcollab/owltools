@@ -13,6 +13,8 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 
+import owltools.graph.OWLGraphWrapper;
+
 
 /**
  * This class reads the annotation_qc.xml file and builds {@link AnnotationRule}
@@ -25,19 +27,24 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 
 	private static Logger LOG = Logger.getLogger(AnnotationRulesFactoryImpl.class);
 	
-	private final List<AnnotationRule> rules;
-	private final List<AnnotationRule> globalRules;
+	private final List<AnnotationRule> annotationRules;
+	private final List<AnnotationRule> documentRules;
+	private final List<AnnotationRule> owlRules;
 	private final String path;
+	private final OWLGraphWrapper graph;
 	
 	private boolean isInitalized = false;
 	
 	/**
 	 * @param path location of the annotation_qc.xml file
+	 * @param graph
 	 */
-	protected AnnotationRulesFactoryImpl(String path){
+	protected AnnotationRulesFactoryImpl(String path, OWLGraphWrapper graph){
 		this.path = path;
-		rules = new ArrayList<AnnotationRule>();
-		globalRules = new ArrayList<AnnotationRule>();
+		this.graph = graph;
+		annotationRules = new ArrayList<AnnotationRule>();
+		documentRules = new ArrayList<AnnotationRule>();
+		owlRules = new ArrayList<AnnotationRule>();
 	}
 	
 	@Override
@@ -74,38 +81,41 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	private void loadJava(Document doc) {
 		try{
 			XPath javaRule = XPath.newInstance("//implementation/script[@language='java']");			
-		    Iterator<?> itr = javaRule.selectNodes(doc).iterator();
-		    
-		    while(itr.hasNext()){
-		    	Element script = (Element)itr.next();
-		    	Element idElement = script.getParentElement().getParentElement().getParentElement().getChild("id");
-		    	String id = "";
-		    	
-		    	if(idElement != null){
-		    		id = idElement.getTextNormalize();
-		    	}
-		    	
-		    	String className = script.getAttributeValue("source");
-		    	if(className != null){
-		    		try{
-		    			AnnotationRule rule = getClassForName(className);
-		    			if (rule == null) {
+			Iterator<?> itr = javaRule.selectNodes(doc).iterator();
+
+			while(itr.hasNext()){
+				Element script = (Element)itr.next();
+				Element idElement = script.getParentElement().getParentElement().getParentElement().getChild("id");
+				String id = "";
+
+				if(idElement != null){
+					id = idElement.getTextNormalize();
+				}
+
+				String className = script.getAttributeValue("source");
+				if(className != null){
+					try{
+						AnnotationRule rule = getClassForName(className);
+						if (rule == null) {
 							LOG.warn("No implementation found for: "+className);
 						}
-		    			else {
-		    				rule.setRuleId(id);
-		    				if (!rule.isDocumentLevel()) {
-								rules.add(rule);
+						else {
+							rule.setRuleId(id);
+							if (rule.isAnnotationLevel()) {
+								annotationRules.add(rule);
 							}
-		    				else {
-		    					globalRules.add(rule);
-		    				}
-		    			}
-		    		}catch(Exception ex){
-		    			LOG.error(ex.getMessage(), ex);
-		    		}
-		    	}
-		    }
+							else if (rule.isDocumentLevel()) {
+								documentRules.add(rule);
+							}
+							else if(rule.isOwlDocumentLevel()) {
+								owlRules.add(rule);
+							}
+						}
+					}catch(Exception ex){
+						LOG.error(ex.getMessage(), ex);
+					}
+				}
+			}
 		}catch(Exception ex){
 			LOG.error(ex.getMessage(), ex);
 		}
@@ -114,50 +124,50 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	private void loadRegex(Document doc) {
 		try{
 			XPath regexRule = XPath.newInstance("//implementation/script[@language='regex']");			
-		    List<?> regexRules = regexRule.selectNodes(doc);
-	
-		    for(Object obj: regexRules){
-		    	Element script = (Element) obj;
-		    	
-		    	String regex = script.getTextNormalize();
-		    	boolean isCaseInsensitive = regex.endsWith("/i");
-		    	
-		    	//java doesn't like the /^ switch so it is replaced by ^
-		    	regex = regex.replace("/^", "^");
-		    	//java does not support the /i case in-sensitivity switch so it is removed
-		    	regex = regex.replace("/i", "");
-		    	
-		    	//title is child of the rule element
-		    	Element title= script.getParentElement().getParentElement().getParentElement().getChild("title");
-		    	
-		    	
-		    	String titleString = "";
-		    	if(title != null){
-		    		titleString = title.getTextNormalize();
-		    	}
-		    	
-		    	Element idElement = title.getParentElement().getChild("id");
-		    	String id = "";
-		    	if(idElement != null){
-		    		id = idElement.getTextNormalize();
-		    	}
-		    	
-		    	Pattern pattern = null;
-		    	
-		    	if(isCaseInsensitive)
-		    		pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-		    	else
-		    		pattern = Pattern.compile(regex);
-		    	
-		    	
-		    	AnnotationRegularExpressionFromXMLRule rule = new AnnotationRegularExpressionFromXMLRule();
-		    	rule.setRuleId(id);
-		    	rule.setErrorMessage(titleString);
-		    	rule.setPattern(pattern);
-		    	rule.setRegex(regex);
-		    	
-		    	rules.add(rule);
-		    }
+			List<?> regexRules = regexRule.selectNodes(doc);
+
+			for(Object obj: regexRules){
+				Element script = (Element) obj;
+
+				String regex = script.getTextNormalize();
+				boolean isCaseInsensitive = regex.endsWith("/i");
+
+				//java doesn't like the /^ switch so it is replaced by ^
+				regex = regex.replace("/^", "^");
+				//java does not support the /i case in-sensitivity switch so it is removed
+				regex = regex.replace("/i", "");
+
+				//title is child of the rule element
+				Element title= script.getParentElement().getParentElement().getParentElement().getChild("title");
+
+
+				String titleString = "";
+				if(title != null){
+					titleString = title.getTextNormalize();
+				}
+
+				Element idElement = title.getParentElement().getChild("id");
+				String id = "";
+				if(idElement != null){
+					id = idElement.getTextNormalize();
+				}
+
+				Pattern pattern = null;
+
+				if(isCaseInsensitive)
+					pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+				else
+					pattern = Pattern.compile(regex);
+
+
+				AnnotationRegularExpressionFromXMLRule rule = new AnnotationRegularExpressionFromXMLRule();
+				rule.setRuleId(id);
+				rule.setErrorMessage(titleString);
+				rule.setPattern(pattern);
+				rule.setRegex(regex);
+
+				annotationRules.add(rule);
+			}
 		}catch(Exception ex){
 			LOG.error(ex.getMessage(), ex);
 		}
@@ -171,18 +181,34 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	protected AnnotationRule getClassForName(String className) throws Exception {
 		return (AnnotationRule) Class.forName(className).newInstance();
 	}
-	
+
 	@Override
 	public List<AnnotationRule> getGeneAnnotationRules(){
 		if (!isInitalized) {
 			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
 		}
-		return this.rules;
+		return this.annotationRules;
 	}
 
 	@Override
-	public List<AnnotationRule> getGafRules() {
-		return globalRules;
+	public List<AnnotationRule> getGafDocumentRules() {
+		if (!isInitalized) {
+			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
+		}
+		return documentRules;
 	}
-	
+
+	@Override
+	public List<AnnotationRule> getOwlRules() {
+		if (!isInitalized) {
+			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
+		}
+		return owlRules;
+	}
+
+	@Override
+	public OWLGraphWrapper getGraph() {
+		return graph;
+	}
+
 }
