@@ -117,9 +117,6 @@ import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
-
-import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
-
 import de.derivo.sparqldlapi.Query;
 import de.derivo.sparqldlapi.QueryArgument;
 import de.derivo.sparqldlapi.QueryBinding;
@@ -155,7 +152,7 @@ public class CommandRunner {
 	public boolean exitOnException = true;
 
 	public OWLReasoner reasoner = null;
-	public String reasonerName = "pellet";
+	public String reasonerName = "hermit";
 	public Set<OWLObject> owlObjectCachedSet = null;
 
 	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
@@ -226,7 +223,8 @@ public class CommandRunner {
 			//String opt = opts.nextOpt();
 			//System.out.println("processing arg: "+opt);
 			if (opts.nextEq("--pellet")) {
-				reasonerName = "pellet";
+				System.err.println("The Pellet reasoner is no longer supported, use Hermit '--hermit' or ELK '--elk' instead");
+				exit(-1);
 			}
 			else if (opts.nextEq("--hermit")) {
 				reasonerName = "hermit";
@@ -1942,8 +1940,6 @@ public class CommandRunner {
 		LOG.info("Creating reasoner:"+reasonerName);
 		if (reasonerName == null || reasonerName.equals("factpp"))
 			reasonerFactory = new FaCTPlusPlusReasonerFactory();
-		else if (reasonerName.equals("pellet"))
-			reasonerFactory = new PelletReasonerFactory();
 		else if (reasonerName.equals("hermit")) {
 			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
 		}

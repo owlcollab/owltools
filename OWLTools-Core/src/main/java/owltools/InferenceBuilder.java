@@ -9,8 +9,8 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -34,8 +34,6 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.reasoner.PlaceholderJcelFactory;
 
-import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
-
 /**
  * This class build inferred axioms of an ontology.
  * @author Shahid Manzoor
@@ -45,7 +43,6 @@ public class InferenceBuilder{
 
 	protected final static Logger logger = Logger .getLogger(InferenceBuilder.class);
 
-	public static final String REASONER_PELLET = "pellet";
 	public static final String REASONER_HERMIT = "hermit";
 	public static final String REASONER_JCEL = "jcel";
 	public static final String REASONER_ELK = "elk";
@@ -57,7 +54,7 @@ public class InferenceBuilder{
 	List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = new ArrayList<OWLEquivalentClassesAxiom>();
 
 	public InferenceBuilder(OWLGraphWrapper graph){
-		this(graph, new PelletReasonerFactory(), false);
+		this(graph, new Reasoner.ReasonerFactory(), false);
 	}
 	
 	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName){
@@ -77,10 +74,7 @@ public class InferenceBuilder{
 	}
 	
 	public static OWLReasonerFactory getFactory(String reasonerName) {
-		if (REASONER_PELLET.equals(reasonerName)) {
-			return new PelletReasonerFactory();
-		}
-		else if (REASONER_HERMIT.equals(reasonerName)) {
+		if (REASONER_HERMIT.equals(reasonerName)) {
 			return new Reasoner.ReasonerFactory();
 		}
 		else if (REASONER_JCEL.equals(reasonerName)) {

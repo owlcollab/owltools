@@ -1273,7 +1273,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		System.out
 		.println("\t\t (-outdir ~/work/myontology) The path where the release will be produced.");
 		System.out
-		.println("\t\t (-reasoner pellet) This option provides name of reasoner to be used to build inference computation.");
+		.println("\t\t (--reasoner hermit) This option provides name of reasoner to be used to build inference computation.");
 		System.out
 		.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
 		System.out

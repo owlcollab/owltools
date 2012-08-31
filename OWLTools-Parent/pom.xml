@@ -105,17 +105,9 @@
 			</snapshots>
 		</repository>
 		<repository>
-			<id>elk-reasoner</id>
-			<name>elk reasoner google code maven repository</name>
-			<url>http://elk-reasoner.googlecode.com/svn/m2/releases</url>
-		</repository>
-		<repository>
 			<id>oss-sonatype-snapshot</id>
-			<name>OSS Sonatype Maven Repository - SNAPSHOT</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<name>OSS Sonatype Maven Repository - Releases</name>
+			<url>https://oss.sonatype.org/content/groups/public</url>
 		</repository>
 	</repositories>
 
@@ -138,22 +130,6 @@
 				<groupId>net.sourceforge.owlapi</groupId>
 				<artifactId>owlapi-apibinding</artifactId>
 				<version>3.4</version>
-			</dependency>
-			<dependency>
-				<groupId>org.bbop</groupId>
-				<artifactId>pellet-custom</artifactId>
-				<version>2.2.2</version>
-				<type>pom</type>
-				<exclusions>
-					<exclusion>
-						<artifactId>antlr-runtime</artifactId>
-						<groupId>org.antlr</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>owlapi</artifactId>
-						<groupId>owlapi</groupId>
-					</exclusion>
-				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>log4j</groupId>
@@ -244,7 +220,7 @@
 			<dependency>
 				<groupId>org.semanticweb.elk</groupId>
 				<artifactId>elk-owlapi</artifactId>
-				<version>0.3.1-SNAPSHOT</version>
+				<version>0.3.1</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.code.gson</groupId>

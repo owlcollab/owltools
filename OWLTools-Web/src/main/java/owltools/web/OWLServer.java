@@ -24,8 +24,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
-import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
-
 import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
 
 import owltools.graph.OWLGraphWrapper;
@@ -110,8 +108,6 @@ public class OWLServer extends AbstractHandler
 		LOG.info("Creating reasoner:"+reasonerName);
 		if (reasonerName == null || reasonerName.equals("factpp"))
 			reasonerFactory = new FaCTPlusPlusReasonerFactory();
-		else if (reasonerName.equals("pellet"))
-			reasonerFactory = new PelletReasonerFactory();
 		else if (reasonerName.equals("hermit")) {
 			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
 		}

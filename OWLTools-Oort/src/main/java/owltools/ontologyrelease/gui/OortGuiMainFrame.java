@@ -158,10 +158,7 @@ public class OortGuiMainFrame extends JFrame {
 		// currently only one ontology format, do nothing
 		
 		// reasoner
-		if (advancedPanel.pelletRadioButton.isSelected()) {
-			parameters.setReasonerName(InferenceBuilder.REASONER_PELLET);
-		}
-		else if (advancedPanel.hermitRadioButton.isSelected()) {
+		if (advancedPanel.hermitRadioButton.isSelected()) {
 			parameters.setReasonerName(InferenceBuilder.REASONER_HERMIT);
 		}
 		else if (advancedPanel.jcelRadioButton.isSelected()) {

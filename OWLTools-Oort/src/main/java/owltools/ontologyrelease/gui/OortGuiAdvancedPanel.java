@@ -67,7 +67,6 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	
 	final JTextField catalogXMLField;
 	
-	final JRadioButton pelletRadioButton;
 	final JRadioButton hermitRadioButton;
 	final JRadioButton factppRadioButton;
 	final JRadioButton jcelRadioButton;
@@ -116,7 +115,6 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		catalogXMLField = new JTextField();
 		
 		// reasoner radio buttons
-		pelletRadioButton = new JRadioButton();
 		hermitRadioButton = new JRadioButton();
 		factppRadioButton = new JRadioButton();
 		jcelRadioButton = new JRadioButton();
@@ -326,7 +324,6 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(this.panel, pos.nextRow(), 5);
 		
 		ButtonGroup reasonerGroup = new ButtonGroup();
-		reasonerGroup.add(pelletRadioButton);
 		reasonerGroup.add(hermitRadioButton);
 		reasonerGroup.add(factppRadioButton);
 		reasonerGroup.add(jcelRadioButton);
@@ -334,7 +331,6 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		
 		JPanel panel = new JPanel(new GridLayout(3, 2, 20, 2));
 		panel.add(hermitRadioButton);
-		panel.add(pelletRadioButton);
 		panel.add(jcelRadioButton);
 		panel.add(elkRadioButton);
 		panel.add(factppRadioButton);
@@ -342,14 +338,10 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		this.panel.add(panel, pos.nextRow().nextCol().width(2));
 		
 		hermitRadioButton.setText("HermiT");
-		pelletRadioButton.setText("Pellet");
 		jcelRadioButton.setText("JCEL");
 		elkRadioButton.setText("ELK");
 		factppRadioButton.setText("Fact++");
 		
-		addRowGap(this.panel, pos.nextRow(), 5);
-		this.panel.add(new JLabel("(Both Hermit and Pellet should give the same results, Hermit is typically faster)"), 
-				pos.nextRow().indentLeft(DEFAULT_INDENT).width(3).fill().expandW());
 		addRowGap(this.panel, pos.nextRow(), 10);
 		hermitRadioButton.setSelected(true);
 		factppRadioButton.setEnabled(false);
@@ -386,10 +378,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		}
 		
 		String reasoner = configuration.getReasonerName();
-		if (InferenceBuilder.REASONER_PELLET.equals(reasoner)) {
-			pelletRadioButton.setSelected(true);
-		}
-		else if (InferenceBuilder.REASONER_JCEL.equals(reasoner)) {
+		if (InferenceBuilder.REASONER_JCEL.equals(reasoner)) {
 			jcelRadioButton.setSelected(true);
 		}
 		else if (InferenceBuilder.REASONER_ELK.equals(reasoner)) {

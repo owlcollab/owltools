@@ -102,10 +102,6 @@
 					<artifactId>owlapi-apibinding</artifactId>
 				</exclusion>
 				<exclusion>
-					<artifactId>pellet-custom</artifactId>
-					<groupId>org.bbop</groupId>
-				</exclusion>
-				<exclusion>
 					<artifactId>factplusplus</artifactId>
 					<groupId>uk.ac.manchester.cs</groupId>
 				</exclusion>
