@@ -160,6 +160,10 @@ public class InferenceBuilder{
 	}
 
 	public synchronized void setReasoner(OWLReasoner reasoner){
+		if (this.reasoner != null && this.reasoner != reasoner) {
+			// dispose of the old reasoner
+			this.reasoner.dispose();
+		}
 		this.reasoner = reasoner;
 	}
 
