@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
 
@@ -56,8 +57,9 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	Map<OWLObjectProperty,String> propertyToFormatMap = new HashMap<OWLObjectProperty,String>();
 	protected Map<OWLClassExpression,OWLClass> materializedClassExpressionMap = new HashMap<OWLClassExpression,OWLClass>();
 	protected Set<OWLClass> classesToSkip = new HashSet<OWLClass>();
-	private String fileBase = "/tmp/owlsim";
 	protected boolean saveIntermediateStates = true;
+	protected Properties simProperties;
+
 
 	protected Logger LOG = Logger.getLogger(AbstractSimPreProcessor.class);
 	private OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
@@ -99,7 +101,22 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		this.owlpp = owlpp;
 	}
 
+	// TODO - use this
+	public Properties getSimProperties() {
+		return simProperties;
+	}
 
+	public void setSimProperties(Properties simProperties) {
+		this.simProperties = simProperties;
+	}
+	
+	public String getProperty(String k) {
+		if (simProperties == null)
+			return null;
+		else
+			return simProperties.getProperty(k);
+	}
+	
 	protected void addViewMapping(OWLClass c, OWLObjectProperty p, OWLClass vc) {
 		if (!viewMap.containsKey(c))
 			viewMap.put(c, new HashSet<OWLClass>());
@@ -237,6 +254,18 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 			}
 		}
 	}
+	public void removeAxiomsFromOutput(Set<OWLAxiom> rmAxioms, boolean isFlush) {
+		if (rmAxioms.size() > 0) {
+			LOG.info("Removing axioms: "+rmAxioms.size());
+			LOG.info("Example axiom: "+rmAxioms.iterator().next());
+
+			getOWLOntologyManager().removeAxioms(outputOntology, rmAxioms);
+			if (isFlush) {
+				flush();  // NOTE - assumes this method is called outside reasoning loop
+			}
+		}
+	}
+
 
 	public Set<OWLClass> extractClassesFromDeclarations(Set<OWLAxiom> axs) {
 		Set<OWLClass> cs = new HashSet<OWLClass>();
@@ -337,6 +366,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 
 	}
 
+	// todo - remove all 'Thing' classes
 	public void trim() {
 		Set<OWLClass> retainedClasses = assertInferredForAttributeClasses();
 		Set<OWLClass> unused = outputOntology.getClassesInSignature(true);
@@ -628,6 +658,11 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	}
 
 	public void saveState(String state) {
+		String fileBase = getProperty("cacheFileBase");
+		if (fileBase == null || fileBase.equals("")) {
+			fileBase = "/tmp/owlsim";
+		}
+		
 		if (saveIntermediateStates) {
 			String fn = fileBase+"-"+state+".owl";
 			FileOutputStream os;

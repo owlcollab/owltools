@@ -9,21 +9,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.apache.log4j.Logger;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -31,9 +29,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import owltools.io.OWLPrettyPrinter;
 import owltools.sim.preprocessor.SimPreProcessor;
 
 /**
@@ -48,37 +44,45 @@ public class SimpleOwlSim {
 
 	private Logger LOG = Logger.getLogger(SimpleOwlSim.class);
 
-	Set<OWLObjectProperty> viewProperties;
-	List<OWLObjectProperty> sourceViewProperties; // pre-processing is ordered
-	Set<OWLObjectProperty> viewsCreated = new HashSet<OWLObjectProperty>();
 	private OWLDataFactory owlDataFactory;
 	private OWLOntologyManager owlOntologyManager;
-	//private OWLReasonerFactory reasonerFactory;
+
+	// TODO - more fine grained control over axes of classification
 	private Set<OWLClass> ignoreSubClassesOf = null;
-	//OWLReasoner reasoner;
-	private Set<OWLClass> fixedAttributeClasses = null;
-	final String OBO_PREFIX = "http://purl.obolibrary.org/obo/";
+	private Set<OWLClass> cachedAttributeClasses = null;
 	private Integer corpusSize;
 
 	private OWLOntology sourceOntology;       
 	private SimPreProcessor simPreProcessor = null;
-	private OWLOntology resultsOntology = null;
-	
-	Set<OWLClass> viewClasses;
-	Map<OWLClassExpression,Set<Node<OWLClass>>> superclassMap = null;
-	Map<OWLEntity,Set<OWLClass>> elementToAttributesMap;
-	Map<OWLClass,Set<OWLEntity>> attributeToElementsMap;
-	Map<OWLClassExpression, OWLClass> expressionToClassMap;
-	Map<OWLClassExpressionPair, ScoreAttributePair> simCache;
-	//Map<OWLClassExpressionPair, OWLClass> lcsCache;
+	//private OWLOntology resultsOntology = null;
+
+	private Map<OWLClassExpression,Set<Node<OWLClass>>> superclassMap = null;
+	private Map<OWLNamedIndividual,Set<OWLClass>> elementToAttributesMap;
+	private Map<OWLNamedIndividual,Set<Node<OWLClass>>> elementToInferredAttributesMap;
+	private Map<OWLClass,Set<OWLNamedIndividual>> attributeToElementsMap;
+	private Map<OWLClassExpressionPair, ScoreAttributePair> lcsICcache;
+	private Map<OWLClassExpressionPair, Set<Node<OWLClass>>> csCache;
+	private Map<OWLClass,Double> icCache;
 	Map<OWLClass, Integer> attributeElementCount = null;
-	Map<OWLClassExpression,OWLClass> lcsExpressionToClass = new HashMap<OWLClassExpression,OWLClass>();
+	private Map<OWLClassExpression,OWLClass> lcsExpressionToClass = new HashMap<OWLClassExpression,OWLClass>();
+
+	private Properties simProperties;
 
 
 
+	@Deprecated
 	public enum Stage {VIEW, LCS};
+	@Deprecated
 	public String baseFileName = null;
 
+	public enum SimProperty {
+		minimumMaxIC, minimumSimJ,
+		compare;
+	}
+
+	/**
+	 * @param sourceOntology
+	 */
 	public SimpleOwlSim(OWLOntology sourceOntology) {
 		super();
 		this.sourceOntology = sourceOntology;
@@ -89,16 +93,20 @@ public class SimpleOwlSim {
 	}
 
 	private void init() {
-		//reasonerFactory = new ElkReasonerFactory();
-		elementToAttributesMap = new HashMap<OWLEntity,Set<OWLClass>>();
-		attributeToElementsMap = new HashMap<OWLClass,Set<OWLEntity>>();
-		expressionToClassMap = new HashMap<OWLClassExpression, OWLClass>();
-		viewClasses = new HashSet<OWLClass>();
-		sourceViewProperties = new ArrayList<OWLObjectProperty>();
-		simCache = new HashMap<OWLClassExpressionPair, ScoreAttributePair>();
-		//lcsCache = new HashMap<OWLClassExpressionPair, OWLClass>();
+		elementToAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
+		elementToInferredAttributesMap = new HashMap<OWLNamedIndividual,Set<Node<OWLClass>>>();
+		attributeToElementsMap = new HashMap<OWLClass,Set<OWLNamedIndividual>>();
+		lcsICcache = new HashMap<OWLClassExpressionPair, ScoreAttributePair>();
+		icCache = new HashMap<OWLClass,Double>();
+		csCache = new HashMap<OWLClassExpressionPair, Set<Node<OWLClass>>>();
 	}
 
+	/**
+	 * A pair consisting of an attribute class, and a score for that class
+	 * 
+	 * @author cjm
+	 *
+	 */
 	public class ScoreAttributePair {
 		public Double score;
 		public OWLClassExpression attributeClass;
@@ -110,6 +118,11 @@ public class SimpleOwlSim {
 		}
 	}
 
+	/**
+	 * A pair consisting of a set of equal-scoring attributes, and a score
+	 * @author cjm
+	 *
+	 */
 	public class ScoreAttributesPair {
 		public Double score;
 		public Set<OWLClassExpression> attributeClassSet = new HashSet<OWLClassExpression>(); // all attributes with this score
@@ -139,7 +152,15 @@ public class SimpleOwlSim {
 	}
 
 
-	
+
+	public Properties getSimProperties() {
+		return simProperties;
+	}
+
+	public void setSimProperties(Properties simProperties) {
+		this.simProperties = simProperties;
+	}
+
 	public SimPreProcessor getSimPreProcessor() {
 		return simPreProcessor;
 	}
@@ -157,6 +178,10 @@ public class SimpleOwlSim {
 		this.ignoreSubClassesOf = ignoreSubClassesOf;
 	}
 
+	/**
+	 * e.g. 'human'
+	 * @param c
+	 */
 	public void addIgnoreSubClassesOf(OWLClass c) {
 		if (ignoreSubClassesOf == null)
 			ignoreSubClassesOf = new HashSet<OWLClass>();
@@ -177,27 +202,30 @@ public class SimpleOwlSim {
 	private Set<OWLObjectProperty> getAllObjectProperties() {
 		return sourceOntology.getObjectPropertiesInSignature();
 	}
-	
+
 	/**
 	 * NEW: 
 	 * externalize preprocessing to separate class
 	 * 
 	 */
-	public void preprocess() {
+
+	/*
+	private void preprocess() {
 		this.simPreProcessor.setInputOntology(sourceOntology);
 		this.simPreProcessor.setInputOntology(sourceOntology);
-		//this.simPreProcessor.setReasoner(getReasoner());
 		this.simPreProcessor.preprocess();
 	}
+	 */
 
-	
 
-
+	@Deprecated
 	public void saveOntology(Stage stage) throws FileNotFoundException, OWLOntologyStorageException {
 		if (this.baseFileName != null) {
 			this.saveOntology(baseFileName +"-" + stage + ".owl");
 		}
 	}
+
+	@Deprecated
 	public void saveOntology(String fn) throws FileNotFoundException, OWLOntologyStorageException {
 		FileOutputStream os = new FileOutputStream(new File(fn));
 		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
@@ -207,15 +235,9 @@ public class SimpleOwlSim {
 
 	public OWLReasoner getReasoner() {
 		return simPreProcessor.getReasoner();
-		/*
-		if (reasoner == null) {
-			reason();
-		}
-		return reasoner;
-		*/
 	}
 
-	
+
 	private Set<OWLClass> getParents(OWLClass c) {
 		Set<OWLClass> parents = new HashSet<OWLClass>();
 		Set<OWLClassExpression> xparents = c.getSuperClasses(sourceOntology);
@@ -227,12 +249,6 @@ public class SimpleOwlSim {
 	}
 
 
-	public void assertInferences(boolean isRemoveLogicalAxioms) {
-		// TODO
-	}
-	
-
-
 	// ----------- ----------- ----------- -----------
 	// SUBSUMERS AND LOWEST COMMON SUBSUMERS
 	// ----------- ----------- ----------- -----------
@@ -242,21 +258,41 @@ public class SimpleOwlSim {
 		return getReasoner().getSuperClasses(a, false).getNodes();
 	}
 
-	// TODO - DRY - preprocessor
-	public Set<Node<OWLClass>> getNamedSubsumers(OWLNamedIndividual a) {
+	/**
+	 * CACHED
+	 * @param a
+	 * @return nodes for all classes that a instantiates - direct and inferred
+	 */
+	public Set<Node<OWLClass>> getInferredAttributes(OWLNamedIndividual a) {
+		if (elementToInferredAttributesMap.containsKey(a))
+			return new HashSet<Node<OWLClass>>(elementToInferredAttributesMap.get(a));
 		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>();
-		// for now we do not use reasoners for the first step (Elk does not support ABoxes)
 		for (OWLClass c: this.getAttributesForElement(a)) {
-			nodes.addAll(getReasoner().getSuperClasses(c, false).getNodes());
+			// if nodes contains c, it also contains all subsumers of c
+			if (nodes.contains(c))
+				continue;
+			nodes.addAll(getNamedReflexiveSubsumers(c));
+			//nodes.addAll(getReasoner().getSuperClasses(c, false).getNodes());
 		}
-		return nodes;
+		elementToInferredAttributesMap.put(a, nodes);
+		return new HashSet<Node<OWLClass>>(nodes);
 	}
 
 	// TODO - DRY - preprocessor
+	/**
+	 * 
+	 * @param a
+	 * @return anc(a)
+	 */
+	// TODO - CACHE
 	public Set<Node<OWLClass>> getNamedReflexiveSubsumers(OWLClassExpression a) {
 		if (superclassMap != null && superclassMap.containsKey(a)) {
 			return new HashSet<Node<OWLClass>>(superclassMap.get(a));
 		}
+		if (a.isAnonymous()) {
+			LOG.error("finding superclasses of:"+a);
+		}
+		LOG.info("finding superclasses of:"+a); // TODO - tmp
 		Set<Node<OWLClass>> nodes =  new HashSet<Node<OWLClass>>(getReasoner().getSuperClasses(a, false).getNodes());
 		nodes.add(getReasoner().getEquivalentClasses(a));
 		if (superclassMap == null) {
@@ -266,50 +302,61 @@ public class SimpleOwlSim {
 		return nodes;
 	}
 
-	// TODO - DRY - preprocessor
-	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClassExpression a, OWLClassExpression b) {
-		Set<Node<OWLClass>> nodes = getNamedReflexiveSubsumers(a);
-		nodes.retainAll(getNamedReflexiveSubsumers(b));
-		return nodes;
-	}
-	
-	// TODO - DRY - preprocessor
-	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLNamedIndividual a, OWLNamedIndividual b) {
-		Set<Node<OWLClass>> nodes = getNamedSubsumers(a);
-		nodes.retainAll(getNamedSubsumers(b));
-		return nodes;
-	}
-
-	// TODO - DRY - preprocessor
-	// TODO - cache this
-	public Set<Node<OWLClass>> getNamedLowestCommonSubsumers(OWLClassExpression a, OWLClassExpression b) {
-		Set<Node<OWLClass>> nodes = getNamedCommonSubsumers(a, b);
-		Set<Node<OWLClass>> rNodes = new HashSet<Node<OWLClass>>();
-		for (Node<OWLClass> node : nodes) {
-			rNodes.addAll(getReasoner().getSuperClasses(node.getRepresentativeElement(), false).getNodes());
-		}
-		nodes.removeAll(rNodes);
-		return nodes;
-	}
-
 	/**
-	 * gets the LCS. If multiple named LCSs exist in the ontology, then
-	 * a class expression is generated from the filtered intersection
+	 * CACHED
 	 * 
+	 * <pre>
+	 *   CS(a,b) = { c : c &isin; anc(a), c &isin; anc(b) }
+	 * </pre>
 	 * @param a
 	 * @param b
-	 * @return OWLClassExpression
+	 * @return
 	 */
-	public OWLClassExpression getLowestCommonSubsumer(OWLClassExpression a, OWLClassExpression b) {
-		// TODO - the preprocessor implementation may not be optimized for similarity calculation
-		return this.simPreProcessor.getLowestCommonSubsumer(a, b);
+	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClassExpression a, OWLClassExpression b) {
+		OWLClassExpressionPair pair = new OWLClassExpressionPair(a,b); // TODO - optimize - assume named classes
+		if (csCache.containsKey(pair))
+			return new HashSet<Node<OWLClass>>(csCache.get(pair));
+		Set<Node<OWLClass>> nodes = getNamedReflexiveSubsumers(a);
+		nodes.retainAll(getNamedReflexiveSubsumers(b));
+		csCache.put(pair, nodes);
+		return new HashSet<Node<OWLClass>>(nodes);
+	}
+
+	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLNamedIndividual a, OWLNamedIndividual b) {
+		// we don't cache this as we assume it will be called at most once
+		Set<Node<OWLClass>> nodes = getInferredAttributes(a);
+		nodes.retainAll(getInferredAttributes(b));
+		return nodes;
+	}
+
+	/**
+	 * <pre>
+	 *   CS<SUB>redundant</SUB> = { c : d &isin; CS(a,b), d non-reflexive-SubClassOf c }
+	 *   LCS(a,b) = CS(a,b) - CS<SUB>redundant</SUB>
+	 * </pre>
+	 *
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public Set<Node<OWLClass>> getNamedLowestCommonSubsumers(OWLClassExpression a, OWLClassExpression b) {
+		// currently no need to cache this, as only called from getLowestCommonSubsumerIC, which does its own caching
+		Set<Node<OWLClass>> commonSubsumerNodes = getNamedCommonSubsumers(a, b);
+		Set<Node<OWLClass>> rNodes = new HashSet<Node<OWLClass>>();
+		for (Node<OWLClass> node : commonSubsumerNodes) {
+			rNodes.addAll(getReasoner().getSuperClasses(node.getRepresentativeElement(), false).getNodes());
+		}
+		commonSubsumerNodes.removeAll(rNodes);
+		return commonSubsumerNodes;
 	}
 
 
 
-
-
 	/**
+	 * <pre>
+	 * | anc(a) &cap; anc(b) | / | anc(a) &cup; anc(b) |
+	 * </pre>
+	 * 
 	 * @param a
 	 * @param b
 	 * @return SimJ of two attribute classes
@@ -321,79 +368,101 @@ public class SimpleOwlSim {
 		return ci.size() / (float)cu.size();
 	}
 
-	public float getElementJaccardSimilarity(OWLNamedIndividual a, OWLNamedIndividual b) {
-		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b);
-		Set<Node<OWLClass>> cu = getNamedSubsumers(a);
-		cu.addAll(getNamedSubsumers(b));
+	/**
+	 * <pre>
+	 * | T(a) &cap; T(b) | / | T(a) &cup; T(b) |
+	 * </pre>
+	 * @param i
+	 * @param j
+	 * @return SimJ
+	 */
+	public float getElementJaccardSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) {
+		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(i,j);
+		Set<Node<OWLClass>> cu = getInferredAttributes(i);
+		cu.addAll(getInferredAttributes(j));
 		return ci.size() / (float)cu.size();
 	}
 
+	/**
+	 * CACHED
+	 * 
+	 * <pre>
+	 *    IC(c) = -log<SUB>2</SUB>p(c)
+	 *    p(c) = | I(c) | / | I(thing) |
+	 * </pre>
+	 * 
+	 * @param a
+	 * @param b
+	 * @return Lowest common Subsumer plus its Information Content
+	 */
 	public ScoreAttributePair getLowestCommonSubsumerIC(OWLClassExpression a, OWLClassExpression b) {
 		OWLClassExpressionPair pair = new OWLClassExpressionPair(a,b);
-		if (simCache.containsKey(pair)) {
-			return simCache.get(pair);
+		if (lcsICcache.containsKey(pair)) {
+			return lcsICcache.get(pair); // don't make a copy, assume unmodified
 		}
-		// dangerous cast: we assume the ontology has been fully pre-processed.
-		// however, if the ontology was pre-processed in advance additional filtering
-		// may have happened, not captured in NullPreProcessor...
-		OWLClassExpression lcsx = getLowestCommonSubsumer(a, b);
-		if (lcsx instanceof OWLClass) {
-			OWLClass lcs = (OWLClass) lcsx;
-			ScoreAttributePair sap = new ScoreAttributePair(getInformationContentForAttribute(lcs), lcs);
-			simCache.put(pair, sap);
-			return sap;			
+		// TODO: test whether it is more efficient to get redundant common subsumers too,
+		// then simply keep the ones with the highest.
+		// removing redundant may be better as those deeper in the hierarchy may have the same IC as a parent
+		Set<Node<OWLClass>> lcsSet = getNamedLowestCommonSubsumers(a, b);
+
+		ScoreAttributePair sap = null;
+		if (lcsSet.size() == 1) {
+			OWLClass lcs = lcsSet.iterator().next().getRepresentativeElement();
+			sap = new ScoreAttributePair(getInformationContentForAttribute(lcs), lcs);
 		}
-		else if (lcsx instanceof OWLObjectIntersectionOf) {
+		else if (lcsSet.size() > 1) {
+
+			// take the best one; if tie, select arbitrary
 			Double bestIC = null;
 			OWLClass bestLCS = null;
-			for (OWLClassExpression op : ((OWLObjectIntersectionOf)lcsx).getOperands()) {
-				if (op instanceof OWLClass) {
-					OWLClass lcs = (OWLClass) op;
-					Double ic = getInformationContentForAttribute(lcs);
-					if (bestIC == null || ic > bestIC) {
-						bestIC = ic;
-						bestLCS = lcs;
-					}
+			for (Node<OWLClass> node : lcsSet) {
+				OWLClass lcs = node.getRepresentativeElement();
+				Double ic = getInformationContentForAttribute(lcs);
+				if (bestIC == null || ic > bestIC) {
+					bestIC = ic;
+					bestLCS = lcs;
 				}
+
 			}
-			ScoreAttributePair sap = new ScoreAttributePair(bestIC, bestLCS);
-			simCache.put(pair, sap);	
-			return sap;
+			sap = new ScoreAttributePair(bestIC, bestLCS);
 		}
 		else {
-			LOG.warn("LCS of "+a+" + "+b+" = "+lcsx);
-			ScoreAttributePair sap = new ScoreAttributePair(0.0, owlDataFactory.getOWLThing());
-			simCache.put(pair, sap);	
-			return sap;
+			LOG.warn("LCS of "+a+" + "+b+" = {}");
+			sap = new ScoreAttributePair(0.0, owlDataFactory.getOWLThing());
 		}
-		/*
-		if (!(lcsx instanceof OWLClass))
-			LOG.warn("LCS of "+a+" + "+b+" = "+lcsx);
-		OWLClass lcs = (OWLClass) lcsx;
-		ScoreAttributePair sap = new ScoreAttributePair(getInformationContentForAttribute(lcs), lcs);
-		simCache.put(pair, sap);
+		LOG.info("LCS_IC\t"+a+"\t"+b+"\t"+sap.attributeClass+"\t"+sap.score);
+		lcsICcache.put(pair, sap);	
 		return sap;
-		*/
 	}
 
+	/**
+	 * @param i
+	 * @param j
+	 * @return MaxIC
+	 */
 	public ScoreAttributesPair getSimilarityMaxIC(OWLNamedIndividual i, OWLNamedIndividual j) {
+		Set<Node<OWLClass>> atts = getInferredAttributes(i);
+		atts.retainAll(getInferredAttributes(j));
+
 		ScoreAttributesPair best = new ScoreAttributesPair(0.0);
-		for (OWLClass a : this.getAttributesForElement(i)) {
-			for (OWLClass b : this.getAttributesForElement(j)) {
-				ScoreAttributePair sap = getLowestCommonSubsumerIC(a, b);
-				if (Math.abs(sap.score - best.score) < 0.001) {
-					// tie for best attribute
-					best.addAttributeClass(sap.attributeClass);
-				}
-				if (sap.score > best.score) {
-					best = new ScoreAttributesPair(sap.score, sap.attributeClass);
-				}
+		for (Node<OWLClass> n : atts) {
+			OWLClass c = n.getRepresentativeElement();
+			Double ic = this.getInformationContentForAttribute(c);
+			if (Math.abs(ic - best.score) < 0.001) {
+				// tie for best attribute
+				best.addAttributeClass(c);
 			}
-		}
-		if (resultsOntology != null) {
-			//OWLNamedIndividual pair = generateSimPair(i, j, "MaxIC");
+			if (ic > best.score) {
+				best = new ScoreAttributesPair(ic, c);
+			}
 			
 		}
+		/*
+		if (resultsOntology != null) {
+			//OWLNamedIndividual pair = generateSimPair(i, j, "MaxIC");
+
+		}
+		*/
 		return best;
 	}
 
@@ -406,6 +475,7 @@ public class SimpleOwlSim {
 	 */
 	public ScoreAttributesPair getSimilarityBestMatchAverageAsym(OWLNamedIndividual i, OWLNamedIndividual j) {
 
+		// no cache - assume only called once for each pair
 		List<ScoreAttributesPair> bestMatches = new ArrayList<ScoreAttributesPair>();
 		Set<OWLClassExpression> atts = new HashSet<OWLClassExpression>();
 		double total = 0.0;
@@ -430,7 +500,7 @@ public class SimpleOwlSim {
 		ScoreAttributesPair sap = new ScoreAttributesPair(total/n, atts);
 		return sap;
 	}
-	
+
 	//
 	// ENRICHMENT
 	//
@@ -440,7 +510,7 @@ public class SimpleOwlSim {
 		public Double attributeInformationContentCutoff;
 	}
 	public EnrichmentConfig enrichmentConfig;
-	
+
 
 	public EnrichmentConfig getEnrichmentConfig() {
 		return enrichmentConfig;
@@ -487,12 +557,12 @@ public class SimpleOwlSim {
 					enrichmentConfig.attributeInformationContentCutoff) {
 				return;
 			}
-				
+
 		}
 		results.add(result);
 	}
-	
-	
+
+
 	/**
 	 * @param populationClass
 	 * @param pc1 - sample set class
@@ -532,7 +602,7 @@ public class SimpleOwlSim {
 		return results;
 	}
 
-	
+
 
 	public List<EnrichmentResult> calculateEnrichment(OWLClass populationClass,
 			OWLClass sampleSetClass) throws MathException {
@@ -555,7 +625,7 @@ public class SimpleOwlSim {
 	 */
 	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,
 			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException {
-		
+
 		//LOG.info("Hyper :"+populationClass +" "+sampleSetClass+" "+enrichedClass);
 		int populationClassSize = getNumElementsForAttribute(populationClass);
 		int sampleSetClassSize = getNumElementsForAttribute(sampleSetClass);
@@ -571,8 +641,8 @@ public class SimpleOwlSim {
 		LOG.info("popsize="+getNumElementsForAttribute(populationClass));
 		LOG.info("sampleSetSize="+getNumElementsForAttribute(sampleSetClass));
 		LOG.info("enrichedClass="+getNumElementsForAttribute(enrichedClass));
-		*/
-		Set<OWLEntity> eiSet = getElementsForAttribute(sampleSetClass);
+		 */
+		Set<OWLNamedIndividual> eiSet = getElementsForAttribute(sampleSetClass);
 		eiSet.retainAll(this.getElementsForAttribute(enrichedClass));
 		//LOG.info("both="+eiSet.size());
 		double p = hg.cumulativeProbability(eiSet.size(), 
@@ -610,24 +680,20 @@ public class SimpleOwlSim {
 	 * @return set of classes
 	 */
 	public Set<OWLClass> getAllAttributeClasses() {
-		if (fixedAttributeClasses == null)
+		if (cachedAttributeClasses == null)
 			return sourceOntology.getClassesInSignature(true);
 		else
-			return fixedAttributeClasses;
-	}
-
-	@Deprecated
-	public void setAttributesFromOntology(OWLOntology o) {
-		fixedAttributeClasses = o.getClassesInSignature();
+			return new HashSet<OWLClass>(cachedAttributeClasses);
 	}
 
 	/**
 	 * assumes that the ontology contains both attributes (TBox) and elements + associations (ABox)
 	 */
+	// TODO - make this private & call automatically
 	public void createElementAttributeMapFromOntology() {
 		Set<OWLClass> allTypes = new HashSet<OWLClass>();
 		for (OWLNamedIndividual e : sourceOntology.getIndividualsInSignature(true)) {
-			
+
 			// The attribute classes for an individual are the direct inferred
 			// named types. We assume that grouping classes have already been generated.
 			// if they have not then the types may be as general as {Thing}
@@ -636,11 +702,11 @@ public class SimpleOwlSim {
 		}
 		// need to materialize as classes...
 		LOG.info("Using "+allTypes.size()+" attribute classes, based on individuals: "+sourceOntology.getIndividualsInSignature(true).size());
-		fixedAttributeClasses = allTypes;
+		cachedAttributeClasses = allTypes;
 	}
 
 	// adds an element plus associated attributes
-	private Set<OWLClass> addElement(OWLEntity e, Set<OWLClass> atts) {
+	private Set<OWLClass> addElement(OWLNamedIndividual e, Set<OWLClass> atts) {
 		// TODO - fully fold TBox so that expressions of form (inh (part_of x))
 		// generate a class "part_of x", to ensure that a SEP grouping class is created
 		Set<OWLClass> attClasses = new HashSet<OWLClass>();
@@ -654,19 +720,20 @@ public class SimpleOwlSim {
 				}
 			}
 			if (!this.attributeToElementsMap.containsKey(attClass))
-				attributeToElementsMap.put(attClass, new HashSet<OWLEntity>());
+				attributeToElementsMap.put(attClass, new HashSet<OWLNamedIndividual>());
 			attributeToElementsMap.get(attClass).add(e);
 			attClasses.add(attClass);
 		}
 
 		// note this only caches direct associations
+		// TODO - cache indirect here
 		this.elementToAttributesMap.put(e, attClasses);
 		return attClasses;
 	}
 
 
-	public Set<OWLClass> getAttributesForElement(OWLEntity e) {
-		return this.elementToAttributesMap.get(e);
+	public Set<OWLClass> getAttributesForElement(OWLNamedIndividual e) {
+		return new HashSet<OWLClass>(elementToAttributesMap.get(e));
 	}
 
 	/**
@@ -679,18 +746,16 @@ public class SimpleOwlSim {
 		attributeElementCount = new HashMap<OWLClass, Integer>();
 		// some high level attributes will classify all or most of the ABox;
 		//  this way may be faster...
-		for (OWLEntity e : this.getAllElements()) {
-			LOG.info("Adding 1 to all attributes of "+e);
-			for (OWLClass dc : getAttributesForElement(e)) {
-				for (Node<OWLClass> n : this.getNamedReflexiveSubsumers(dc)) {
-					for (OWLClass c : n.getEntities()) {
-						if (!attributeElementCount.containsKey(c))
-							attributeElementCount.put(c, 1);
-						else
-							attributeElementCount.put(c, attributeElementCount.get(c)+1);
-					}
+		for (OWLNamedIndividual e : this.getAllElements()) {
+			LOG.info("Incrementing count all attributes of "+e);
+			LOG.info(" DIRECT ATTS: "+getAttributesForElement(e).size());
+			for (Node<OWLClass> n : this.getInferredAttributes(e)) {
+				for (OWLClass c : n.getEntities()) {
+					if (!attributeElementCount.containsKey(c))
+						attributeElementCount.put(c, 1);
+					else
+						attributeElementCount.put(c, attributeElementCount.get(c)+1);
 				}
-
 			}
 		}
 		LOG.info("Finished precomputing attribute element count");
@@ -701,10 +766,10 @@ public class SimpleOwlSim {
 	 * @param c
 	 * @return set of entities
 	 */
-	public Set<OWLEntity> getElementsForAttribute(OWLClass c) {
+	public Set<OWLNamedIndividual> getElementsForAttribute(OWLClass c) {
 		Set<OWLClass> subclasses = getReasoner().getSubClasses(c, false).getFlattened();
 		subclasses.add(c);
-		Set<OWLEntity> elts = new HashSet<OWLEntity>();
+		Set<OWLNamedIndividual> elts = new HashSet<OWLNamedIndividual>();
 		for (OWLClass sc : subclasses) {
 			if (attributeToElementsMap.containsKey(sc)) {
 				elts.addAll(attributeToElementsMap.get(sc));
@@ -724,6 +789,7 @@ public class SimpleOwlSim {
 			precomputeAttributeElementCount();
 		if (attributeElementCount.containsKey(c))
 			return attributeElementCount.get(c);
+		// DEPRECATED:
 		LOG.info("Uncached count for: "+c);
 		int num;
 		try {
@@ -738,7 +804,7 @@ public class SimpleOwlSim {
 		return num;
 	}
 
-	public Set<OWLEntity> getAllElements() {
+	public Set<OWLNamedIndividual> getAllElements() {
 		return elementToAttributesMap.keySet();
 	}
 	public int getCorpusSize() {
@@ -756,15 +822,20 @@ public class SimpleOwlSim {
 	// IC = 1.0 : 50%    (1/2)
 	// IC = 2.0 : 25%    (1/4)
 	// IC = 3.0 : 12.5%  (1/8)
-	public Double getInformationContentForAttribute(OWLClass c) {
+	public double getInformationContentForAttribute(OWLClass c) {
+		if (icCache.containsKey(c))
+			return icCache.get(c);
 		int freq = getNumElementsForAttribute(c);
 		Double ic = null;
 		if (freq > 0) {
 			ic = -Math.log(((double) (freq) / getCorpusSize())) / Math.log(2);
 		}
+		icCache.put(c, ic);
 		return ic;
 	}
 
-	
+
 
 }
+
+

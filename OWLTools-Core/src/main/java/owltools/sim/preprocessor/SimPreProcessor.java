@@ -1,5 +1,6 @@
 package owltools.sim.preprocessor;
 
+import java.util.Properties;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
@@ -95,6 +96,8 @@ public interface SimPreProcessor {
 	public OWLClassExpression getLowestCommonSubsumer(OWLClassExpression a, OWLClassExpression b);
 
 	public void setOWLPrettyPrinter(OWLPrettyPrinter owlpp);
+
+	public void setSimProperties(Properties simProperties);
 
 
 }

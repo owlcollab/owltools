@@ -15,9 +15,11 @@ import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -42,6 +44,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 				"organ", "blastula","epiblast","blastodic", "viscus", "abdomen organ"
 		};
 		fixObjectProperties();
+		makeInstancesDirect(); // NEW
 		makeDevelopmentMorphologyLinks();
 		ignoreClasses(new HashSet<String>(Arrays.asList(excludeLabels)));
 		addPhenotypePropertyChain();
@@ -70,6 +73,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		makeReflexive(DEVELOPS_FROM);
 
 		// Everything is made from itself
+		// (not truly reflexive, but an approximation for this analysis)
 		makeReflexive(COMPOSED_PRIMARILY_OF);
 
 		// Get all "E" classes - i.e. everything except qualities
@@ -127,9 +131,11 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 			LOG.warn("Cannot get view class for root of "+inheresIn);
 		}
 		//flush();
-		Set<OWLClass> phenotypeClasses = getReflexiveSubClasses(inheresInSomeThing);
+		Set<OWLClass> phenotypeClasses = getReflexiveSubClasses(inheresInSomeThing); // DEP?
 		LOG.info("num inheres in some owl:Thing = "+phenotypeClasses.size());
-		phenotypeClasses.addAll(getReflexiveSubClasses(phenotypeRootClass));
+		
+		// add all MP, HP, etc - these have form "has_part some ..."
+		phenotypeClasses.addAll(getReflexiveSubClasses(phenotypeRootClass)); // DEP?
 		LOG.info(" + has part some owl:Thing = "+phenotypeClasses.size());
 
 		// E.g. has_phenotype some (Q and inheres_in some E)
@@ -137,29 +143,17 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		//  * i1 Type: has_phenotype some (Q and inheres_in some E)
 		//  * i1 Type: has_phenotype some (has_part some (Q and inheres_in some E))
 		// [auto-generated labels for the latter may look odd]
-		createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), phenotypeClasses, "%s phenotype");
+		// NEW
+		createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PART), inheresInSomeThing, "%s phenotype");
+		//createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), phenotypeClasses, "%s phenotype");
 		saveState("phenotypes");
 		getReasoner().flush();
 
-		// INTERSECTIONS - final
-		// we have previously created QE intersections - this step ensures that all LCSs of
-		// individuals are materialized.
-		// TODO - omit this step
-		//generateLeastCommonSubsumersForAttributeClasses();
-		//saveState("final-pre-trimmed");
 
 		//getReasoner().flush();
 		//Set<OWLClassExpression> attExprs = this.getDirectAttributeClassExpressions();
 		//Set<OWLClass> attClasses = materializeClassExpressions(attExprs);
 
-		// INTERSECTIONS
-		// E.g 'has phenotype some affected limb' and 'has phenotype hyperplastic'.
-		// This is not ideal as each individual can have multiple of each;
-		// better to do before but we need to materialize
-		//getReasoner().flush();
-		//generateLeastCommonSubsumers(attClasses, attClasses);
-
-		//this.getOWLOntologyManager().removeAxioms(outputOntology, tempAxioms);
 		trim();
 		saveState("final-trimmed");
 	}
@@ -167,6 +161,28 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 	// --
 	// UTIL
 	// --
+	
+	protected void makeInstancesDirect() {
+		// x Type has_phenotype some C ==> x Type C
+		OWLObjectProperty hasPhenotype = getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE);
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
+		for (OWLClassAssertionAxiom caa : outputOntology.getAxioms(AxiomType.CLASS_ASSERTION)) {
+			OWLClassExpression ex = caa.getClassExpression();
+			OWLIndividual i = caa.getIndividual();
+			if (ex instanceof OWLObjectSomeValuesFrom) {
+				OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)ex;
+				if (svf.getProperty().equals(hasPhenotype)) {
+					rmAxioms.add(caa);
+					newAxioms.add(getOWLDataFactory().getOWLClassAssertionAxiom(svf.getFiller(), i));
+				}
+				
+			}
+		}
+		
+		addAxiomsToOutput(newAxioms, false);
+		removeAxiomsFromOutput(rmAxioms, false);
+	}
 
 	/**
 	 * In MP we have
@@ -332,15 +348,27 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		OWLClass qualityCls = getOWLClassViaOBOSuffix(QUALITY);
 		OWLClass abnormalCls = getOWLClassViaOBOSuffix(ABNORMAL);
 
+		// Quality SubClassOf qualifier SOME abnormal
+		// (not globally true, approximation for analysis)
 		addAxiomToOutput(getOWLDataFactory().getOWLSubClassOfAxiom(qualityCls,
 				getOWLDataFactory().getOWLObjectSomeValuesFrom(getOWLObjectPropertyViaOBOSuffix(QUALIFIER), 
 						abnormalCls)),
 						false);
+		
+		// Quality EquivalentTo inheres_in some Thing
+		// (not globally true, approximation for analysis)
 		addAxiomToOutput(getOWLDataFactory().getOWLEquivalentClassesAxiom(qualityCls,
 				getOWLDataFactory().getOWLObjectSomeValuesFrom(getOWLObjectPropertyViaOBOSuffix(INHERES_IN), 
 						getOWLDataFactory().getOWLThing())),
 						false);
 
+		// Relational Qualities
+		// towards/depends_on SubProp of inheres_in
+		// TEMPORARY
+		addAxiomToOutput(getOWLDataFactory().getOWLSubObjectPropertyOfAxiom(getOWLObjectPropertyViaOBOSuffix(DEPENDS_ON),
+				getOWLObjectPropertyViaOBOSuffix(INHERES_IN)),
+				false);
+		
 	}
 
 
@@ -352,6 +380,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		List<OWLObjectPropertyExpression> chain = new ArrayList<OWLObjectPropertyExpression>();
 		chain.add(hphen);
 		chain.add(hpart);
+		// has_phenotype <- has_phenotype o has_part
 		addAxiomToOutput(getOWLDataFactory().getOWLSubPropertyChainOfAxiom(chain , hphen), false);
 	}
 
@@ -409,6 +438,10 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 			}
 			else if (frag.equals("inheres_in")) {
 				e2iri.put(p, this.getIRIViaOBOSuffix(INHERES_IN));
+				LOG.info("Mapping legacy property: "+p);
+			}
+			else if (frag.equals("towards")) {
+				e2iri.put(p, this.getIRIViaOBOSuffix(DEPENDS_ON));
 				LOG.info("Mapping legacy property: "+p);
 			}
 			else if (frag.equals("qualifier")) {

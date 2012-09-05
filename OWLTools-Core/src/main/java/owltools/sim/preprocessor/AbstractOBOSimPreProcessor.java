@@ -17,6 +17,7 @@ public abstract class AbstractOBOSimPreProcessor extends LCSEnabledSimPreProcess
 	public String RESULTS_IN_DEVELOPMENT_OF = "RO_0002296";
 	public String RESULTS_IN_MORPHOGENESIS_OF = "RO_0002298";
 	public String QUALIFIER = "RO_0002181";
+	public String DEPENDS_ON = "BFO_0000070";
 
 	public void makePartOfReflexive() {
 		makeReflexive(PART_OF);

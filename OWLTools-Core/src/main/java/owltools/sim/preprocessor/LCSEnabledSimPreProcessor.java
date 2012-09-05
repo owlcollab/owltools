@@ -21,7 +21,7 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 	protected Map<OWLClassExpressionPair, OWLClass> lcsCache = new HashMap<OWLClassExpressionPair, OWLClass>();
 	private Map< Set<Node<OWLClass>>, OWLClassExpression> csetToExpressionMap = new HashMap< Set<Node<OWLClass>>, OWLClassExpression>();
 	
-	protected double defaultLCSElementSimilarityThreshold = 0.75;
+	protected double defaultNewIntersectionSimJThreshold = 0.75;
 	
 	// this is public mainly so that it can be set in junit tests
 	public double defaultLCSElementFrequencyThreshold = 0.25;
@@ -118,6 +118,7 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 			}
 		}
 
+		// TODO: optimize this for all x all
 		// returns the set of named LCSs that already exist
 		Set<Node<OWLClass>> ccs = getNamedLowestCommonSubsumers(a,b);
 
@@ -140,33 +141,25 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 			if (classesToSkip.contains(c))
 				continue;
 			// TODO: add additional custom filtering here
+			/*
 			if (isUpperLevel(c)) {
 				// note that many upper level classes may already have been filtered out as possible candidates
 				classesToSkip.add(c);
 				continue;
 			}
-			boolean skip = false;
-			/*
-			for (OWLClassExpression eqx : c.getEquivalentClasses(outputOntology)) {
-				Set<OWLClass> zs = eqx.getClassesInSignature();
-				zs.retainAll(classesToSkip);
-				if (zs.size() > 0) {
-					LOG.info("Skipping "+c+" as it is equivalent to a class whose signature includes classes to ignore: "+zs);
-					skip = true;
-					break;
-				}
-			}
-			if (skip) {
-				// e.g. quality and inheres_in some <specificClass>
-				LOG.info("Skipping "+c+" as it is equivalent to a class whose signature includes classes to ignore");
-				continue;
-			}
 			*/
+			boolean skip = false;
+
 			if (leafClasses != null) {
 				Set<OWLClass> descs = getReasoner().getSubClasses(c, false).getFlattened();
 				descs.retainAll(leafClasses);
 				int numDescendants = descs.size();
-				if (numDescendants / ((float) leafClasses.size()) > defaultLCSElementFrequencyThreshold) {
+				String v = getProperty("newIntersectionFrequencyThreshold");
+				double thresh = defaultLCSElementFrequencyThreshold;
+				if (v != null && !v.equals("newIntersectionFrequencyThreshold")) {
+					thresh = Double.valueOf(v);
+				}
+				if (numDescendants / ((float) leafClasses.size()) > thresh) {
 					LOG.info("Skipping "+c+" as it has "+numDescendants+" out of "+leafClasses.size());
 					classesToSkip.add(c);
 					continue;				
@@ -185,9 +178,8 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 				continue;
 			}
 			
-			// TODO: do this in a more java-esque way
-			double lcsElementSimilarityThreshold = defaultLCSElementSimilarityThreshold;
-			String v = System.getenv("OWLSIM_LSS_INTERSECTION_SIMILARITY_THRESHOLD");
+			double lcsElementSimilarityThreshold = defaultNewIntersectionSimJThreshold;
+			String v = getProperty("newIntersectionSimJThreshold");
 			if (v != null && !v.equals("")) {
 				lcsElementSimilarityThreshold = Double.valueOf(v);
 			}
@@ -198,6 +190,8 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 			// classes first? Based on simple %?
 			for (Node<OWLClass> n2 : ccs) {
 				OWLClass c2 = n2.getRepresentativeElement();
+				if (c2.equals(c))
+					continue;
 				
 				int numAncestors2 = this.getNamedReflexiveSubsumers(c2).size();
 				// prioritize the one with highest score.
@@ -208,6 +202,7 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 					if (sim > lcsElementSimilarityThreshold) {
 						LOG.info("SKIPPING: "+c+" ; too similar to "+n2+" SIM: "+sim);
 						skip = true;
+						break;
 					}
 				}
 			}
