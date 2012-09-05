@@ -105,6 +105,19 @@ public class AxiomAnnotationTools {
 	}
 	
 	/**
+	 * Mark the given axiom as inferred. Uses the factory to re-create the axiom
+	 * with the updated annotations.
+	 * 
+	 * @param axiom
+	 * @param factory
+	 * @return changed axiom
+	 */
+	public static OWLAxiom markAsInferredAxiom(OWLAxiom axiom, OWLDataFactory factory) {
+		
+		return updateInferredAxiom(axiom, factory, true);
+	}
+	
+	/**
 	 * Mark the given axioms as inferred.<br>
 	 * <b>Side effect</b>: Removes the axiom in the given ontology and creates a
 	 * new axiom with the changed annotations. Returns the new changed axiom.
@@ -129,7 +142,8 @@ public class AxiomAnnotationTools {
 	}
 	
 	/**
-	 * Mark the given axioms as inferred. Use the factory to re-create the axioms with the updated annotations.
+	 * Mark the given axioms as inferred. Uses the factory to re-create the
+	 * axioms with the updated annotations.
 	 * 
 	 * @param axioms
 	 * @param factory
