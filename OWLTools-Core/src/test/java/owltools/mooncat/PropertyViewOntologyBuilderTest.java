@@ -305,7 +305,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 			}
 			assertTrue(ok1);
 			LOG.info("class assertions:"+numClassAssertions);
-			assertEquals(12, numClassAssertions); // TODO - CHECK
+			assertEquals(13, numClassAssertions); // TODO - CHECK
 			LOG.info(pvob.getViewEntities().size());
 			assertEquals(23, pvob.getViewEntities().size());
 		}
