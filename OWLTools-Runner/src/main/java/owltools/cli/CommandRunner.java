@@ -1919,6 +1919,8 @@ public class CommandRunner {
 	public void assertInferredSubClassAxioms(Opts opts) throws Exception {
 		boolean removeRedundant = true;
 		boolean checkConsistency = true; 
+		boolean useIsInferred = false;
+		boolean ignoreNonInferredForRemove = false;
 		
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--removeRedundant"))
@@ -1926,11 +1928,21 @@ public class CommandRunner {
 			else if (opts.nextEq("--keepRedundant")) {
 				removeRedundant = false;
 			}
+			else if (opts.nextEq("--markIsInferred")) {
+				useIsInferred = true;
+			}
+			else if (opts.nextEq("--useIsInferred")) {
+				useIsInferred = true;
+				ignoreNonInferredForRemove = true;
+			}
+			else if (opts.nextEq("--ignoreNonInferredForRemove")) {
+				ignoreNonInferredForRemove = true;
+			}
 			else {
 				break;
 			}
 		}
-		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency);
+		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove);
 	}
 
 	private OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 

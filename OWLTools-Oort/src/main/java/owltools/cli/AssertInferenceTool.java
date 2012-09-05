@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -32,6 +33,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.RemoveImport;
 
 import owltools.InferenceBuilder;
+import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.OWLPrettyPrinter;
@@ -51,6 +53,8 @@ public class AssertInferenceTool {
 		boolean removeRedundant = true;
 		boolean checkConsistency = true; // TODO implement an option to override this?
 		boolean dryRun = false;
+		boolean useIsInferred = false;
+		boolean ignoreNonInferredForRemove = false;
 		List<String> inputs = new ArrayList<String>();
 		String outputFileName = null;
 		String outputFileFormat = null;
@@ -86,6 +90,16 @@ public class AssertInferenceTool {
 			else if (opts.nextEq("--catalog-xml")) {
 				opts.info("CATALOG-FILE", "uses the specified file as a catalog");
 				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
+			}
+			else if (opts.nextEq("--markIsInferred")) {
+				useIsInferred = true;
+			}
+			else if (opts.nextEq("--useIsInferred")) {
+				useIsInferred = true;
+				ignoreNonInferredForRemove = true;
+			}
+			else if (opts.nextEq("--ignoreNonInferredForRemove")) {
+				ignoreNonInferredForRemove = true;
 			}
 			else {
 				inputs.add(opts.nextOpt());
@@ -132,7 +146,7 @@ public class AssertInferenceTool {
 		}
 		
 		// assert inferences
-		assertInferences(graph, removeRedundant, checkConsistency);
+		assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove);
 		
 		if (dryRun == false) {
 			// write ontology
@@ -220,10 +234,12 @@ public class AssertInferenceTool {
 	 * @param graph
 	 * @param removeRedundant set to false to not remove redundant super class relations
 	 * @param checkConsistency
+	 * @param useIsInferred 
+	 * @param ignoreNonInferredForRemove
 	 * @throws InconsistentOntologyException 
 	 */
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
-			boolean checkConsistency) throws InconsistentOntologyException
+			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove) throws InconsistentOntologyException
 	{
 		OWLOntology ontology = graph.getSourceOntology();
 		OWLOntologyManager manager = ontology.getOWLOntologyManager();
@@ -253,16 +269,38 @@ public class AssertInferenceTool {
 			
 			// add inferences
 			logger.info("Start adding inferred axioms, count: " + inferences.size());
-			manager.addAxioms(ontology, new HashSet<OWLAxiom>(inferences));
+			Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>(inferences);
+			if (useIsInferred) {
+				newAxioms = AxiomAnnotationTools.markAsInferredAxiom(newAxioms, factory);
+			}
+			manager.addAxioms(ontology, newAxioms);
 			logger.info("Finished adding inferred axioms");
 			
+			OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
 			// optional
 			// remove redundant
 			if (removeRedundant) {
 				Collection<OWLAxiom> redundantAxioms = builder.getRedundantAxioms();
 				if (redundantAxioms != null && !redundantAxioms.isEmpty()) {
 					logger.info("Start removing redundant axioms, count: "+redundantAxioms.size());
-					manager.removeAxioms(ontology, new HashSet<OWLAxiom>(redundantAxioms));
+					Set<OWLAxiom> redundantAxiomSet = new HashSet<OWLAxiom>(redundantAxioms);
+					if (useIsInferred) {
+						Iterator<OWLAxiom> iterator = redundantAxiomSet.iterator();
+						while (iterator.hasNext()) {
+							OWLAxiom axiom = iterator.next();
+							boolean wasInferred = AxiomAnnotationTools.isMarkedAsInferredAxiom(axiom);
+							if (wasInferred == false) {
+								if (ignoreNonInferredForRemove) {
+									logger.info("Ignoring uninferred axiom during remove redundant: "+owlpp.render(axiom));
+								}
+								else {
+									logger.info("Removing uninferred axiom during remove redundant: "+owlpp.render(axiom));
+									iterator.remove();
+								}
+							}
+						}
+					}
+					manager.removeAxioms(ontology, redundantAxiomSet);
 					logger.info("Finished removing redundant axioms");
 				}
 			}
@@ -284,7 +322,6 @@ public class AssertInferenceTool {
 				final List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = builder.getEquivalentNamedClassPairs();
 				final int eqCount = equivalentNamedClassPairs.size();
 				if (eqCount > 0) {
-					OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
 					logger.error("Found equivalencies between named classes");
 					for (OWLEquivalentClassesAxiom eca : equivalentNamedClassPairs) {
 						logger.error("EQUIVALENT_CLASS_PAIR: "+owlpp.render(eca));
