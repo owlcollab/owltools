@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.obolibrary.obo2owl.Obo2Owl;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -274,7 +275,59 @@ public class AxiomAnnotationTools {
 	}
 	
 	/**
-	 * Visitor which return a new axiom of the same type with the new annotations.
+	 * Remove axiom annotations, which do not comply with the OBO-Basic level,
+	 * i.e. trailing qualifier values in OBO.
+	 * 
+	 * @param ontology
+	 */
+	public static void reduceAxiomAnnotationsToOboBasic(OWLOntology ontology) {
+		for(OWLAxiom axiom : ontology.getAxioms()) {
+			AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(axiom, ontology);
+		}
+	}
+	
+	/**
+	 * Remove axiom annotations, which do not comply with the OBO-Basic level,
+	 * i.e. trailing qualifier values in OBO.<br>
+	 * <b>Side effect</b>: This removes the old axiom and adds the new axiom to
+	 * the given ontology. The method also returns the new axiom to enable
+	 * chaining.
+	 * 
+	 * @param axiom
+	 * @param ontology
+	 * @return axiom
+	 */
+	public static OWLAxiom reduceAxiomAnnotationsToOboBasic(OWLAxiom axiom, OWLOntology ontology) {
+		Set<OWLAnnotation> annotations = axiom.getAnnotations();
+		if (annotations != null && !annotations.isEmpty()) {
+			boolean changed = false;
+			Set<OWLAnnotation> newAnnotations = new HashSet<OWLAnnotation>();
+			for (OWLAnnotation owlAnnotation : annotations) {
+				OWLAnnotationProperty p = owlAnnotation.getProperty();
+				IRI iri = p.getIRI();
+				/*
+				 * if the property IRI is not in a predefined annotation property in 
+				 * Obo2Owl assume that it's not OBO-Basic
+				 */
+				if (Obo2Owl.annotationPropertyMap.containsValue(iri) == false) {
+					// remove axiom annotation
+					changed = true;
+				}
+				else {
+					newAnnotations.add(owlAnnotation);
+				}
+			}
+			if (changed) {
+				// only update the axiom if the annotations have been changed
+				OWLAxiom newAxiom = AxiomAnnotationTools.changeAxiomAnnotations(axiom, newAnnotations, ontology);
+				return newAxiom;
+			}
+		}
+		return axiom;
+	}
+	
+	/**
+	 * Visitor which returns a new axiom of the same type with the new annotations.
 	 */
 	public static class AxiomAnnotationsChanger implements OWLAxiomVisitorEx<OWLAxiom> {
 		

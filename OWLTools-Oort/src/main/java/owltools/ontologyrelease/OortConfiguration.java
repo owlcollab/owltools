@@ -61,6 +61,7 @@ public class OortConfiguration {
 	private boolean writeSubsets = true;
 	private boolean justifyAssertedSubclasses = false;
 	private String justifyAssertedSubclassesFrom = null;
+	private boolean useIsInferred = false;
 	private Set<String> sourceOntologyPrefixes = null;
 	private boolean executeOntologyChecks = true;
 	private boolean forceRelease = false;
@@ -383,6 +384,20 @@ public class OortConfiguration {
 
 	public void setJustifyAssertedSubclasses(boolean isJustifyAssertedSubclasses) {
 		this.justifyAssertedSubclasses = isJustifyAssertedSubclasses;
+	}
+
+	/**
+	 * @return the useIsInferred
+	 */
+	public boolean isUseIsInferred() {
+		return useIsInferred;
+	}
+
+	/**
+	 * @param useIsInferred the useIsInferred to set
+	 */
+	public void setUseIsInferred(boolean useIsInferred) {
+		this.useIsInferred = useIsInferred;
 	}
 
 	public boolean isAutoDetectBridgingOntology() {

@@ -43,12 +43,16 @@ public class OWLToolsTestBasics {
 	}
 	
 	protected static void renderOBO(OBODoc oboDoc) throws IOException {
+		System.out.println(renderOBOtoString(oboDoc));
+	}
+	
+	protected static String renderOBOtoString(OBODoc oboDoc) throws IOException {
 		OBOFormatWriter writer = new OBOFormatWriter();
 		writer.setCheckStructure(true);
 		StringWriter out = new StringWriter();
 		BufferedWriter stream = new BufferedWriter(out);
 		writer.write(oboDoc, stream);
 		stream.close();
-		System.out.println(out.getBuffer());
+		return out.getBuffer().toString();
 	}
 }

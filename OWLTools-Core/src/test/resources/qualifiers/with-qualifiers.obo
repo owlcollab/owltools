@@ -1,0 +1,270 @@
+format-version: 1.2
+date: 06:09:2012 11:01
+saved-by: foobar
+auto-generated-by: OBO-Edit 2.3
+subsetdef: goslim_aspergillus "Aspergillus GO slim"
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_metagenomics "Metagenomics GO slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+subsetdef: high_level_annotation_qc "High-level terms not to be used for direct annotation"
+subsetdef: mf_needs_review "Catalytic activity terms in need of attention"
+subsetdef: virus_checked "Viral overhaul terms"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+default-namespace: gene_ontology
+remark: cvs version: $Revision: 2325 $
+ontology: go
+
+[Term]
+id: GO:0000001
+name: mitochondrion inheritance
+namespace: biological_process
+def: "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." [GOC:mcc, PMID:10873824, PMID:11389764]
+synonym: "mitochondrial inheritance" EXACT []
+is_a: GO:0048308 ! organelle inheritance
+is_a: GO:0048311 {is_inferred="true"} ! mitochondrion distribution
+
+[Term]
+id: GO:0000002
+name: mitochondrial genome maintenance
+namespace: biological_process
+def: "The maintenance of the structure and integrity of the mitochondrial genome; includes replication and segregation of the mitochondrial chromosome." [GOC:ai, GOC:vw]
+is_a: GO:0007005 {is_inferred="true"} ! mitochondrion organization
+
+[Term]
+id: GO:0000003
+name: reproduction
+namespace: biological_process
+alt_id: GO:0019952
+alt_id: GO:0050876
+def: "The production by an organism of new individuals that contain some portion of their genetic material inherited from that organism." [GOC:go_curators, GOC:isa_complete, ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "reproductive physiological process" EXACT []
+xref: Wikipedia:Reproduction
+is_a: GO:0008150 {is_inferred="true"} ! biological_process
+
+[Term]
+id: GO:0000005
+name: ribosomal chaperone activity
+namespace: molecular_function
+def: "OBSOLETE. Assists in the correct assembly of ribosomes or ribosomal subunits in vivo, but is not a component of the assembled ribosome when performing its normal biological function." [GOC:jl, PMID:12150913]
+comment: This term was made obsolete because it refers to a class of gene products and a biological process rather than a molecular function.
+is_obsolete: true
+consider: GO:0042254
+
+[Term]
+id: GO:0000006
+name: high affinity zinc uptake transmembrane transporter activity
+namespace: molecular_function
+def: "Catalysis of the transfer of a solute or solutes from one side of a membrane to the other according to the reaction: Zn2+(out) = Zn2+(in), probably powered by proton motive force. In high affinity transport the transporter is able to bind the solute even if it is only present at very low concentrations." [TC:2.A.5.1.1]
+is_a: GO:0005385 {foobar="something"} ! zinc ion transmembrane transporter activity
+
+[Term]
+id: GO:0005385
+name: zinc ion transmembrane transporter activity
+namespace: molecular_function
+def: "Catalysis of the transfer of zinc (Zn) ions from one side of a membrane to the other." [GOC:dgf]
+subset: gosubset_prok
+synonym: "cobalt, zinc uptake permease activity" RELATED []
+synonym: "zinc, cadmium uptake permease activity" RELATED []
+synonym: "zinc, cadmium, cobalt, nickel, lead-efflux ATPase activity" RELATED []
+synonym: "zinc, iron permease activity" NARROW []
+xref: Reactome:REACT_100060 "ZnT2 facilitates zinc vesicular sequestration, Caenorhabditis elegans"
+xref: Reactome:REACT_100128 "ZnT2 facilitates zinc vesicular sequestration, Arabidopsis thaliana"
+xref: Reactome:REACT_100475 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Dictyostelium discoideum"
+xref: Reactome:REACT_100814 "ZnT3 transports zinc into synaptic vesicles, Escherichia coli"
+xref: Reactome:REACT_101619 "ZnT1 mediates the efflux of zinc from the cell, Danio rerio"
+xref: Reactome:REACT_102944 "ZnT3 transports zinc into synaptic vesicles, Taeniopygia guttata"
+xref: Reactome:REACT_103555 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Rattus norvegicus"
+xref: Reactome:REACT_103999 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Danio rerio"
+xref: Reactome:REACT_104320 "ZnT3 transports zinc into synaptic vesicles, Canis familiaris"
+xref: Reactome:REACT_104747 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Xenopus tropicalis"
+xref: Reactome:REACT_105375 "ZnT3 transports zinc into synaptic vesicles, Xenopus tropicalis"
+xref: Reactome:REACT_106184 "ZnT3 transports zinc into synaptic vesicles, Danio rerio"
+xref: Reactome:REACT_107793 "ZnT6 transports zinc into the golgi apparatus, Mus musculus"
+xref: Reactome:REACT_107978 "ZnT3 transports zinc into synaptic vesicles, Arabidopsis thaliana"
+xref: Reactome:REACT_108684 "ZnT3 transports zinc into synaptic vesicles, Plasmodium falciparum"
+xref: Reactome:REACT_109118 "ZnT6 transports zinc into the golgi apparatus, Canis familiaris"
+xref: Reactome:REACT_109163 "ZnT1 mediates the efflux of zinc from the cell, Taeniopygia guttata"
+xref: Reactome:REACT_110174 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Mus musculus"
+xref: Reactome:REACT_110828 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Arabidopsis thaliana"
+xref: Reactome:REACT_110830 "ZnT2 facilitates zinc vesicular sequestration, Plasmodium falciparum"
+xref: Reactome:REACT_113068 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Arabidopsis thaliana"
+xref: Reactome:REACT_113230 "ZnT7 transports zinc into the golgi apparatus, Arabidopsis thaliana"
+xref: Reactome:REACT_113286 "ZnT7 transports zinc into the golgi apparatus, Oryza sativa"
+xref: Reactome:REACT_115265 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Oryza sativa"
+xref: Reactome:REACT_15499 "Formation of Proinsulin-Zinc-Calcium Complex, Homo sapiens"
+xref: Reactome:REACT_20502 "ZnT3 transports zinc into synaptic vesicles, Homo sapiens"
+xref: Reactome:REACT_20512 "ZnT7 transports zinc into the golgi apparatus, Homo sapiens"
+xref: Reactome:REACT_20516 "ZIP8 mediates zinc influx into cells, Homo sapiens"
+xref: Reactome:REACT_20535 "Znt7 transports zinc into the golgi apparatus, Mus musculus"
+xref: Reactome:REACT_20536 "hZIP10 mediates zinc influx into cells, Homo sapiens"
+xref: Reactome:REACT_20544 "Znt3 transports zinc into synaptic vesicles, Mus musculus"
+xref: Reactome:REACT_20545 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Homo sapiens"
+xref: Reactome:REACT_20575 "ZIP7 mediates zinc efflux from the endoplasmic reticulum, Homo sapiens"
+xref: Reactome:REACT_20607 "ZnT6 transports zinc into the golgi apparatus, Homo sapiens"
+xref: Reactome:REACT_20614 "ZnT1 mediates the efflux of zinc from the cell, Homo sapiens"
+xref: Reactome:REACT_20621 "mZIP5 mediates zinc uptake by cells, Mus musculus"
+xref: Reactome:REACT_20622 "Znt2 facilitates zinc vesicular sequestration, Rattus norvegicus"
+xref: Reactome:REACT_20628 "rZip10 mediates zinc influx into cells, Rattus norvegicus"
+xref: Reactome:REACT_20641 "hZIP5 mediates zinc uptake by cells, Homo sapiens"
+xref: Reactome:REACT_20648 "ZIP6 and ZIP14 mediate zinc influx into cells, Homo sapiens"
+xref: Reactome:REACT_20673 "hZIP1-4 mediate zinc uptake by cells, Homo sapiens"
+xref: Reactome:REACT_20674 "ZnT2 facilitates zinc vesicular sequestration, Homo sapiens"
+xref: Reactome:REACT_20678 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Homo sapiens"
+xref: Reactome:REACT_28580 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Drosophila melanogaster"
+xref: Reactome:REACT_28956 "ZnT2 facilitates zinc vesicular sequestration, Staphylococcus aureus N315"
+xref: Reactome:REACT_29130 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Mus musculus"
+xref: Reactome:REACT_29501 "ZnT7 transports zinc into the golgi apparatus, Canis familiaris"
+xref: Reactome:REACT_30238 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Danio rerio"
+xref: Reactome:REACT_31087 "ZnT6 transports zinc into the golgi apparatus, Gallus gallus"
+xref: Reactome:REACT_31110 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Oryza sativa"
+xref: Reactome:REACT_31271 "ZnT2 facilitates zinc vesicular sequestration, Mus musculus"
+xref: Reactome:REACT_31543 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Taeniopygia guttata"
+xref: Reactome:REACT_31568 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Gallus gallus"
+xref: Reactome:REACT_32226 "ZnT1 mediates the efflux of zinc from the cell, Mus musculus"
+xref: Reactome:REACT_32805 "ZnT7 transports zinc into the golgi apparatus, Rattus norvegicus"
+xref: Reactome:REACT_34034 "ZnT3 transports zinc into synaptic vesicles, Drosophila melanogaster"
+xref: Reactome:REACT_34087 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Rattus norvegicus"
+xref: Reactome:REACT_34194 "ZnT7 transports zinc into the golgi apparatus, Dictyostelium discoideum"
+xref: Reactome:REACT_34314 "ZnT6 transports zinc into the golgi apparatus, Taeniopygia guttata"
+xref: Reactome:REACT_34361 "ZnT7 transports zinc into the golgi apparatus, Taeniopygia guttata"
+xref: Reactome:REACT_34790 "ZnT2 facilitates zinc vesicular sequestration, Bos taurus"
+xref: Reactome:REACT_77641 "Formation of Proinsulin-Zinc-Calcium Complex, Canis familiaris"
+xref: Reactome:REACT_77688 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Xenopus tropicalis"
+xref: Reactome:REACT_78251 "ZnT2 facilitates zinc vesicular sequestration, Escherichia coli"
+xref: Reactome:REACT_78732 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Caenorhabditis elegans"
+xref: Reactome:REACT_78801 "ZnT2 facilitates zinc vesicular sequestration, Canis familiaris"
+xref: Reactome:REACT_79074 "ZnT7 transports zinc into the golgi apparatus, Danio rerio"
+xref: Reactome:REACT_79384 "ZnT6 transports zinc into the golgi apparatus, Danio rerio"
+xref: Reactome:REACT_79443 "ZnT7 transports zinc into the golgi apparatus, Bos taurus"
+xref: Reactome:REACT_79563 "ZnT2 facilitates zinc vesicular sequestration, Oryza sativa"
+xref: Reactome:REACT_79648 "ZnT6 transports zinc into the golgi apparatus, Caenorhabditis elegans"
+xref: Reactome:REACT_79684 "Formation of Proinsulin-Zinc-Calcium Complex, Gallus gallus"
+xref: Reactome:REACT_80034 "ZnT7 transports zinc into the golgi apparatus, Gallus gallus"
+xref: Reactome:REACT_80143 "ZnT7 transports zinc into the golgi apparatus, Drosophila melanogaster"
+xref: Reactome:REACT_80930 "ZnT6 transports zinc into the golgi apparatus, Bos taurus"
+xref: Reactome:REACT_82550 "ZnT1 mediates the efflux of zinc from the cell, Rattus norvegicus"
+xref: Reactome:REACT_82559 "ZnT1 mediates the efflux of zinc from the cell, Xenopus tropicalis"
+xref: Reactome:REACT_83166 "ZnT6 transports zinc into the golgi apparatus, Rattus norvegicus"
+xref: Reactome:REACT_84057 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Gallus gallus"
+xref: Reactome:REACT_84376 "Formation of Proinsulin-Zinc-Calcium Complex, Taeniopygia guttata"
+xref: Reactome:REACT_84515 "ZnT6 transports zinc into the golgi apparatus, Xenopus tropicalis"
+xref: Reactome:REACT_84672 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Sus scrofa"
+xref: Reactome:REACT_85242 "ZnT2 facilitates zinc vesicular sequestration, Dictyostelium discoideum"
+xref: Reactome:REACT_85968 "ZnT1 mediates the efflux of zinc from the cell, Schizosaccharomyces pombe"
+xref: Reactome:REACT_86417 "ZnT1 mediates the efflux of zinc from the cell, Saccharomyces cerevisiae"
+xref: Reactome:REACT_87480 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Taeniopygia guttata"
+xref: Reactome:REACT_87820 "ZnT3 transports zinc into synaptic vesicles, Staphylococcus aureus N315"
+xref: Reactome:REACT_87889 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Saccharomyces cerevisiae"
+xref: Reactome:REACT_88029 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Plasmodium falciparum"
+xref: Reactome:REACT_88379 "ZnT1 mediates the efflux of zinc from the cell, Dictyostelium discoideum"
+xref: Reactome:REACT_89344 "ZnT7 transports zinc into the golgi apparatus, Sus scrofa"
+xref: Reactome:REACT_89552 "Formation of Proinsulin-Zinc-Calcium Complex, Mus musculus"
+xref: Reactome:REACT_89921 "ZnT2 facilitates zinc vesicular sequestration, Gallus gallus"
+xref: Reactome:REACT_90004 "Formation of Proinsulin-Zinc-Calcium Complex, Danio rerio"
+xref: Reactome:REACT_90282 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Staphylococcus aureus N315"
+xref: Reactome:REACT_90711 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Escherichia coli"
+xref: Reactome:REACT_90713 "Formation of Proinsulin-Zinc-Calcium Complex, Rattus norvegicus"
+xref: Reactome:REACT_90907 "ZnT1 mediates the efflux of zinc from the cell, Bos taurus"
+xref: Reactome:REACT_91034 "ZnT7 transports zinc into the golgi apparatus, Xenopus tropicalis"
+xref: Reactome:REACT_91236 "ZnT8 transports zinc into the secretory vesicles of pancreatic beta cells specifically, Canis familiaris"
+xref: Reactome:REACT_92180 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Canis familiaris"
+xref: Reactome:REACT_92330 "ZnT2 facilitates zinc vesicular sequestration, Drosophila melanogaster"
+xref: Reactome:REACT_93110 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Bos taurus"
+xref: Reactome:REACT_93189 "ZnT3 transports zinc into synaptic vesicles, Oryza sativa"
+xref: Reactome:REACT_93725 "ZnT3 transports zinc into synaptic vesicles, Bos taurus"
+xref: Reactome:REACT_93889 "ZnT3 transports zinc into synaptic vesicles, Dictyostelium discoideum"
+xref: Reactome:REACT_94328 "ZnT2 facilitates zinc vesicular sequestration, Xenopus tropicalis"
+xref: Reactome:REACT_94483 "Formation of Proinsulin-Zinc-Calcium Complex, Xenopus tropicalis"
+xref: Reactome:REACT_94791 "ZnT1 mediates the efflux of zinc from the cell, Drosophila melanogaster"
+xref: Reactome:REACT_95274 "ZnT6 transports zinc into the golgi apparatus, Sus scrofa"
+xref: Reactome:REACT_95344 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Caenorhabditis elegans"
+xref: Reactome:REACT_95882 "ZnT5 transports zinc into secretory granules in pancreatic beta cells, Schizosaccharomyces pombe"
+xref: Reactome:REACT_97340 "Formation of Proinsulin-Zinc-Calcium Complex, Bos taurus"
+xref: Reactome:REACT_97796 "ZnT3 transports zinc into synaptic vesicles, Rattus norvegicus"
+xref: Reactome:REACT_98988 "ZnT3 transports zinc into synaptic vesicles, Caenorhabditis elegans"
+xref: Reactome:REACT_99089 "ZnT1 mediates the efflux of zinc from the cell, Canis familiaris"
+xref: Reactome:REACT_99464 "ZnT1 mediates the efflux of zinc from the cell, Gallus gallus"
+xref: Reactome:REACT_99797 "ZnT2 facilitates zinc vesicular sequestration, Taeniopygia guttata"
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0007005
+name: mitochondrion organization
+namespace: biological_process
+def: "A process that is carried out at the cellular level which results in the assembly, arrangement of constituent parts, or disassembly of a mitochondrion; includes mitochondrial morphogenesis and distribution, and replication of the mitochondrial genome as well as synthesis of new mitochondrial components." [GOC:dph, GOC:jl, GOC:mah, GOC:sgd_curators, PMID:9786946]
+subset: goslim_generic
+subset: goslim_pir
+subset: goslim_pombe
+subset: goslim_yeast
+synonym: "mitochondria organization" EXACT [GOC:mah]
+synonym: "mitochondrion organisation" EXACT [GOC:mah]
+synonym: "mitochondrion organization and biogenesis" RELATED [GOC:curators]
+is_a: GO:0008150 {is_inferred="true"} ! biological_process
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_pombe
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "biological process" EXACT []
+synonym: "biological process unknown" NARROW []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+
+[Term]
+id: GO:0042254
+name: ribosome biogenesis
+namespace: biological_process
+alt_id: GO:0007046
+def: "A cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits; includes transport to the sites of protein synthesis." [GOC:ma]
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_pir
+subset: goslim_pombe
+subset: gosubset_prok
+synonym: "ribosomal chaperone activity" RELATED []
+synonym: "ribosome biogenesis and assembly" EXACT []
+xref: Wikipedia:Ribosome_biogenesis
+is_a: GO:0008150 {is_inferred="true"} ! biological_process
+
+[Term]
+id: GO:0048308
+name: organelle inheritance
+namespace: biological_process
+def: "The partitioning of organelles between daughter cells at cell division." [GOC:jid]
+subset: goslim_pir
+subset: goslim_yeast
+is_a: GO:0008150 {is_inferred="true"} ! biological_process
+
+[Term]
+id: GO:0048311
+name: mitochondrion distribution
+namespace: biological_process
+def: "Any process that establishes the spatial arrangement of mitochondria between and within cells." [GOC:jid]
+synonym: "distribution of mitochondria" EXACT []
+synonym: "mitochondrial distribution" EXACT []
+synonym: "positioning of mitochondria" RELATED []
+is_a: GO:0008150 {is_inferred="true"} ! biological_process
+
