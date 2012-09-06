@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
@@ -254,7 +255,7 @@ public class OWLHandler {
 		mooncat = new Mooncat(graph);
 		OWLOntology subOnt = 
 			mooncat.makeSubsetOntology(tObjs,
-					IRI.create("http://purl.obolibrary.org/obo/temporary"));
+					IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"temporary"));
 		for (OWLAxiom axiom : subOnt.getAxioms()) {
 			print(axiom); // TODO
 		}
@@ -480,7 +481,7 @@ public class OWLHandler {
 	// always remember to remove
 	private OWLOntology getTemporaryOntology() throws OWLOntologyCreationException {
 		UUID uuid = UUID.randomUUID();
-		IRI iri = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
+		IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"temporary/"+uuid.toString());
 		//OWLOntology tmpOnt = graph.getManager().getOntology(iri);
 		//if (iri == null)
 		return graph.getManager().createOntology(iri);

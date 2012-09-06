@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
@@ -317,7 +318,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 			if (isAssumeOBOStyleIRIs) {
 				String baseId = Owl2Obo.getIdentifier(vcIRI);
 				String relId = Owl2Obo.getIdentifier(vpIRI);
-				vcIRIstr = "http://purl.obolibrary.org/obo/"
+				vcIRIstr = Obo2OWLConstants.DEFAULT_IRI_PREFIX
 					+ baseId.replace(":", "_") + sep
 					+ relId.replace("_", "-").replace(":", "-");
 			}

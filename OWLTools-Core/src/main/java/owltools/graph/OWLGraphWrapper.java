@@ -15,6 +15,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
@@ -140,7 +141,7 @@ public class OWLGraphWrapper {
 
 	private static Logger LOG = Logger.getLogger(OWLGraphWrapper.class);
 
-	public static final String DEFAULT_IRI_PREFIX = "http://purl.obolibrary.org/obo/";
+	public static final String DEFAULT_IRI_PREFIX = Obo2OWLConstants.DEFAULT_IRI_PREFIX;
 
 	@Deprecated
 	OWLOntology ontology; // this is the ontology used for querying. may be the merge of sourceOntology+closure

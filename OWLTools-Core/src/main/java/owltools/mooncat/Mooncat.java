@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -67,7 +68,7 @@ public class Mooncat {
 	private final static Logger LOG = Logger.getLogger(Mooncat.class);
 	
 	// TODO move this to some constants class or enum
-	private static final IRI importedMarkerIRI = IRI.create("http://purl.obolibrary.org/obo/IAO_0000412");
+	private static final IRI importedMarkerIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"IAO_0000412");
 
 	OWLOntologyManager manager;
 	OWLDataFactory dataFactory;

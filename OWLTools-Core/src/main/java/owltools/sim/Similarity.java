@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -264,9 +265,9 @@ public abstract class Similarity {
 	protected String[] splitIRI(IRI x) {
 		String s = x.toString();
 		String id = null;
-		if (s.startsWith("http://purl.obolibrary.org/obo/")) {
-			id = s.replaceAll("http://purl.obolibrary.org/obo/", "");
-			return new String[]{"http://purl.obolibrary.org/obo/",id};
+		if (s.startsWith(Obo2OWLConstants.DEFAULT_IRI_PREFIX)) {
+			id = s.replaceAll(Obo2OWLConstants.DEFAULT_IRI_PREFIX, "");
+			return new String[]{Obo2OWLConstants.DEFAULT_IRI_PREFIX,id};
 		}
 		for (String del : new String[]{"#","/",":"}) {
 			if (s.contains(del)) {

@@ -35,6 +35,7 @@ import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.coode.parsers.common.SystemErrorEcho;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
@@ -360,7 +361,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--create-ontology")) {
 				String iri = opts.nextOpt();
 				if (!iri.startsWith("http:")) {
-					iri = "http://purl.obolibrary.org/obo/"+iri;
+					iri = Obo2OWLConstants.DEFAULT_IRI_PREFIX+iri;
 				}
 				g = new OWLGraphWrapper(iri);
 			}

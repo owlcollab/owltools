@@ -1,5 +1,6 @@
 package owltools.sim.preprocessor;
 
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -36,7 +37,7 @@ public abstract class AbstractOBOSimPreProcessor extends LCSEnabledSimPreProcess
 	}
 
 	protected IRI getIRIViaOBOSuffix(String iriSuffix) {
-		return IRI.create("http://purl.obolibrary.org/obo/"+iriSuffix);
+		return IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+iriSuffix);
 	}
 
 }

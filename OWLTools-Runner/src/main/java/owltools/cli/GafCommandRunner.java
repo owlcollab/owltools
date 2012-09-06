@@ -14,6 +14,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
@@ -98,7 +99,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		if (iri != null) {
 			if (!iri.startsWith("http:")) {
-				iri = "http://purl.obolibrary.org/obo/"+iri;
+				iri = Obo2OWLConstants.DEFAULT_IRI_PREFIX+iri;
 				if (!iri.endsWith(".owl"))
 					iri = iri + ".owl";
 			}

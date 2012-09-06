@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -109,7 +110,7 @@ public class CompactGraphClosureReader extends AbstractClosureReader {
 		if (s.contains(":"))
 			return s;
 		// TODO - make this more generic
-		return "http://purl.obolibrary.org/obo/"+s;
+		return Obo2OWLConstants.DEFAULT_IRI_PREFIX+s;
 	}
 
 }

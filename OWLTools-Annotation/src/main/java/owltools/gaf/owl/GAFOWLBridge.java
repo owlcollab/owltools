@@ -9,6 +9,7 @@ import java.util.Set;
 import javax.lang.model.element.AnnotationValue;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -86,11 +87,11 @@ public class GAFOWLBridge {
 	}
 
 	private void addVocabMap(Vocab v, String s) {
-		vocabMap.put(v, IRI.create("http://purl.obolibrary.org/obo/"+s));
+		vocabMap.put(v, IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+s));
 	}
 
 	private void addVocabMap(Vocab v, String s, String label) {
-		IRI iri = IRI.create("http://purl.obolibrary.org/obo/"+s);
+		IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+s);
 		vocabMap.put(v, iri);
 		OWLDataFactory fac = graph.getDataFactory();
 		addAxiom(fac.getOWLAnnotationAssertionAxiom(fac.getRDFSLabel(),

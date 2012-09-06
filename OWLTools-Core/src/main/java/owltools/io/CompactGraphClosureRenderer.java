@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -25,7 +26,7 @@ import owltools.graph.OWLQuantifiedProperty;
  */
 public class CompactGraphClosureRenderer extends AbstractClosureRenderer implements GraphRenderer {
 
-	String base = "http://purl.obolibrary.org/obo/";
+	String base = Obo2OWLConstants.DEFAULT_IRI_PREFIX;
 	
 	public CompactGraphClosureRenderer(PrintStream stream) {
 		super(stream);

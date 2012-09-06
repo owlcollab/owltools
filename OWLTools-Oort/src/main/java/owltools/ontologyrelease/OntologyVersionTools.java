@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -44,7 +45,7 @@ public class OntologyVersionTools {
 		}
 	};
 	
-	private static final Pattern oboVersionIRIPattern = Pattern.compile("http://purl.obolibrary.org/obo/\\S+/([1-9][0-9]{3}-[0-9]{2}-[0-9]{2})/\\S+.owl");
+	private static final Pattern oboVersionIRIPattern = Pattern.compile(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"\\S+/([1-9][0-9]{3}-[0-9]{2}-[0-9]{2})/\\S+.owl");
 	private static final Pattern oboInOWLRemarkPattern = Pattern.compile("[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}");
 	
 	private OntologyVersionTools() {
@@ -250,7 +251,7 @@ public class OntologyVersionTools {
 	}
 	
 	private static IRI createVersionIRI(String ontologyId, String fn, Date date) {
-		IRI versionIRI = IRI.create("http://purl.obolibrary.org/obo/"+ontologyId+"/"+format(date)+"/"+fn+".owl");
+		IRI versionIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+format(date)+"/"+fn+".owl");
 		return versionIRI;
 	}
 	

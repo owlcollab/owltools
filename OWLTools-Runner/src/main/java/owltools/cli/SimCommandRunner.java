@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -314,7 +315,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 					}
 					lcsh.add(lcs);
 					String label = owlpp.render(lcs);
-					IRI iri = IRI.create("http://purl.obolibrary.org/obo/U_"+
+					IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"U_"+
 							g.getIdentifier(a).replaceAll(":", "_")+"_" 
 							+"_"+g.getIdentifier(b).replaceAll(":", "_"));
 					OWLClass namedClass = g.getDataFactory().getOWLClass(iri);
