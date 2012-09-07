@@ -1010,7 +1010,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		if (oortConfig.isJustifyAssertedSubclasses()) {
 			OWLReasoner owlReasoner = infBuilder.getReasoner(ont);
 			for (OWLSubClassOfAxiom ax : removedSubClassOfAxioms) {
-				if (!inferredAxioms.contains(ax)) {
+				OWLSubClassOfAxiom noAnnotations = ax.getAxiomWithoutAnnotations();
+				if (!inferredAxioms.contains(noAnnotations)) {
 					OWLClassExpression superClass = ax.getSuperClass();
 					boolean entailed = false;
 					if (superClass.isAnonymous() == false) {
