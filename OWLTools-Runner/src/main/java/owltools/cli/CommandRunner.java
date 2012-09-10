@@ -4,9 +4,11 @@ import java.awt.Color;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
@@ -1945,6 +1947,49 @@ public class CommandRunner {
 		}
 		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove);
 	}
+	
+	@CLIMethod("--create-biochebi")
+	public void createBioChebi(Opts opts) throws Exception {
+		String output = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o|--output")) {
+				output = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		if (g == null) {
+			// load default template
+			InputStream stream = loadResource("bio-chebi-input.owl");
+			g = new OWLGraphWrapper(pw.getManager().loadOntologyFromOntologyDocument(stream));
+		}
+		BioChebiGenerator.createBioChebi(g);
+		if (output != null) {
+			OWLOntology ontology = g.getSourceOntology();
+			File outFile = new File(output);
+			ontology.getOWLOntologyManager().saveOntology(ontology, IRI.create(outFile));
+		}
+	}
+
+	private InputStream loadResource(String name) {
+		InputStream inputStream = getClass().getResourceAsStream(name);
+		if (inputStream == null) {
+			inputStream = ClassLoader.getSystemResourceAsStream(name);
+		}
+		if (inputStream == null) {
+			File file = new File(name);
+			if (file.isFile() && file.canRead()) {
+				try {
+					return new FileInputStream(file);
+				} catch (FileNotFoundException exception) {
+					// intentionally empty
+				}
+			}
+		}
+		return inputStream;
+	}
+
 
 	private OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 
 			OWLOntologyManager manager) {
