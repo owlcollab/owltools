@@ -1962,6 +1962,9 @@ public class CommandRunner {
 		if (g == null) {
 			// load default template
 			InputStream stream = loadResource("bio-chebi-input.owl");
+			if (stream == null) {
+				throw new RuntimeException("Could not load default bio chebi input file: 'bio-chebi-input.owl'");
+			}
 			g = new OWLGraphWrapper(pw.getManager().loadOntologyFromOntologyDocument(stream));
 		}
 		BioChebiGenerator.createBioChebi(g);
