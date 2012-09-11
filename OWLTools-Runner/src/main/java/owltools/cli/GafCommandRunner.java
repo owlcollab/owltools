@@ -221,7 +221,7 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			
 			// write violations
-			writeAnnotationRuleViolations(result, reportFile);
+			writeAnnotationRuleViolations(result, ruleEngine, reportFile);
 			
 			System.err.print("Summary:");
 			for(ViolationType type : result.getTypes()) {
@@ -262,12 +262,12 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	private void writeAnnotationRuleViolations(AnnotationRulesEngineResult result, File reportFile) throws IOException {
+	private void writeAnnotationRuleViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, File reportFile) throws IOException {
 		LOG.info("Start writing violations to report file: "+gafReportFile);
 		PrintWriter writer = null;
 		try {
 			writer = new PrintWriter(reportFile);
-			AnnotationRulesEngineResult.renderViolations(result, writer);
+			AnnotationRulesEngineResult.renderViolations(result, engine, writer);
 		} finally {
 			IOUtils.closeQuietly(writer);
 			LOG.info("Finished writing violations to report file.");

@@ -38,6 +38,50 @@ public class AnnotationRulesEngine {
 	}
 	
 	
+	/**
+	 * Retrieve the corresponding rule for a given rule id.
+	 * 
+	 * @param id
+	 * @return rule or null
+	 */
+	public AnnotationRule getRule(String id) {
+		if (id == null) {
+			return null;
+		}
+		List<AnnotationRule> annotationRules = rulesFactory.getGeneAnnotationRules();
+		if (annotationRules != null) {
+			for (AnnotationRule annotationRule : annotationRules) {
+				if (id.equals(annotationRule.getRuleId())) {
+					return annotationRule;
+				}
+			}
+		}
+		List<AnnotationRule> documentRules = rulesFactory.getGafDocumentRules();
+		if (documentRules != null) {
+			for (AnnotationRule annotationRule : documentRules) {
+				if (id.equals(annotationRule.getRuleId())) {
+					return annotationRule;
+				}
+			}
+		}
+		List<AnnotationRule> owlRules = rulesFactory.getOwlRules();
+		if (owlRules != null) {
+			for (AnnotationRule annotationRule : owlRules) {
+				if (id.equals(annotationRule.getRuleId())) {
+					return annotationRule;
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Validate the given {@link GafDocument}.
+	 * 
+	 * @param doc
+	 * @return result
+	 * @throws AnnotationRuleCheckException
+	 */
 	public AnnotationRulesEngineResult validateAnnotations(GafDocument doc) throws AnnotationRuleCheckException{
 		
 		List<AnnotationRule> annotationRules = rulesFactory.getGeneAnnotationRules();
@@ -241,9 +285,10 @@ public class AnnotationRulesEngine {
 		 * A simple tab delimited print-out of the result.
 		 * 
 		 * @param result
+		 * @param engine
 		 * @param writer
 		 */
-		public static void renderViolations(AnnotationRulesEngineResult result, PrintWriter writer) {
+		public static void renderViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, PrintWriter writer) {
 			List<ViolationType> types = result.getTypes();
 			if (types.isEmpty()) {
 				// do nothing
@@ -256,12 +301,15 @@ public class AnnotationRulesEngine {
 				List<String> ruleIds = new ArrayList<String>(violations.keySet());
 				Collections.sort(ruleIds);
 				for (String ruleId : ruleIds) {
+					AnnotationRule rule = engine.getRule(ruleId);
 					List<AnnotationRuleViolation> violationList = violations.get(ruleId);
 					writer.print("# ");
 					writer.print(ruleId);
-					writer.print(' ');
+					writer.print('\t');
+					printEscaped(rule.getName(), writer, true);
+					writer.print('\t');
 					writer.print(type.name());
-					writer.print("  count: ");
+					writer.print("\tcount:\t");
 					writer.print(violationList.size());
 					writer.println();
 					for (AnnotationRuleViolation violation : violationList) {

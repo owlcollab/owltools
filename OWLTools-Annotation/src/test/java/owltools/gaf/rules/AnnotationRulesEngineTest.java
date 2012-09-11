@@ -69,7 +69,7 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 
 	private static void renderViolations(AnnotationRulesEngineResult result) {
 		final PrintWriter writer = new PrintWriter(System.out);
-		AnnotationRulesEngineResult.renderViolations(result, writer);
+		AnnotationRulesEngineResult.renderViolations(result, engine, writer);
 		writer.close();
 	}
 	

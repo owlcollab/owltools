@@ -2,8 +2,11 @@ package owltools.gaf.rules;
 
 import java.io.File;
 import java.net.URI;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -26,6 +29,14 @@ import owltools.graph.OWLGraphWrapper;
 public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 
 	private static Logger LOG = Logger.getLogger(AnnotationRulesFactoryImpl.class);
+	
+	public static final ThreadLocal<DateFormat> status_df = new ThreadLocal<DateFormat>() {
+
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("yyyy-MM-dd");
+		}
+	};
 	
 	private final List<AnnotationRule> annotationRules;
 	private final List<AnnotationRule> documentRules;
@@ -81,18 +92,31 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	private void loadJava(Document doc) {
 		try{
 			XPath javaRule = XPath.newInstance("//implementation/script[@language='java']");			
-			Iterator<?> itr = javaRule.selectNodes(doc).iterator();
+			List<?> regexRules = javaRule.selectNodes(doc);
 
-			while(itr.hasNext()){
-				Element script = (Element)itr.next();
-				Element idElement = script.getParentElement().getParentElement().getParentElement().getChild("id");
-				String id = "";
-
-				if(idElement != null){
-					id = idElement.getTextNormalize();
+			for (Object obj : regexRules) {
+				final Element scriptElement = (Element) obj;
+				final Element ruleElement = scriptElement.getParentElement().getParentElement().getParentElement();
+				final String id = getElementValue(ruleElement.getChild("id"), "");
+				final String title = getElementValue(ruleElement.getChild("title"), "");
+				final String description = getElementValue(ruleElement.getChild("description"), null);
+				
+				String status = null;
+				Date date = null;
+				final Element statusElement = ruleElement.getChild("status");
+				if (statusElement != null) {
+					status = statusElement.getTextNormalize();
+					String dateString = statusElement.getAttributeValue("date", (String) null);
+					if (dateString != null) {
+						try {
+							date = status_df.get().parse(dateString);
+						} catch (ParseException e) {
+							LOG.warn("Could not parse String as status date: "+dateString, e);
+						}
+					}
 				}
 
-				String className = script.getAttributeValue("source");
+				String className = scriptElement.getAttributeValue("source");
 				if(className != null){
 					try{
 						AnnotationRule rule = getClassForName(className);
@@ -101,6 +125,10 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 						}
 						else {
 							rule.setRuleId(id);
+							rule.setName(title);
+							rule.setDescription(description);
+							rule.setStatus(status);
+							rule.setDate(date);
 							if (rule.isAnnotationLevel()) {
 								annotationRules.add(rule);
 							}
@@ -120,16 +148,24 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 			LOG.error(ex.getMessage(), ex);
 		}
 	}
+	
+	private String getElementValue(Element element, String defaultValue) {
+		if (element == null) {
+			return defaultValue;
+		}
+		String value = element.getTextNormalize();
+		return value;
+	}
 
 	private void loadRegex(Document doc) {
 		try{
 			XPath regexRule = XPath.newInstance("//implementation/script[@language='regex']");			
 			List<?> regexRules = regexRule.selectNodes(doc);
 
-			for(Object obj: regexRules){
-				Element script = (Element) obj;
+			for (Object obj : regexRules) {
+				Element scriptElement = (Element) obj;
 
-				String regex = script.getTextNormalize();
+				String regex = scriptElement.getTextNormalize();
 				boolean isCaseInsensitive = regex.endsWith("/i");
 
 				//java doesn't like the /^ switch so it is replaced by ^
@@ -137,32 +173,42 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 				//java does not support the /i case in-sensitivity switch so it is removed
 				regex = regex.replace("/i", "");
 
-				//title is child of the rule element
-				Element title= script.getParentElement().getParentElement().getParentElement().getChild("title");
-
-
-				String titleString = "";
-				if(title != null){
-					titleString = title.getTextNormalize();
+				final Element ruleElement = scriptElement.getParentElement().getParentElement().getParentElement();
+				
+				final String id = getElementValue(ruleElement.getChild("id"), "");
+				final String title = getElementValue(ruleElement.getChild("title"), "");
+				final String description = getElementValue(ruleElement.getChild("description"), null);
+				
+				String status = null;
+				Date date = null;
+				final Element statusElement = ruleElement.getChild("status");
+				if (statusElement != null) {
+					status = statusElement.getTextNormalize();
+					String dateString = statusElement.getAttributeValue("date", (String) null);
+					if (dateString != null) {
+						try {
+							date = status_df.get().parse(dateString);
+						} catch (ParseException e) {
+							LOG.warn("Could not parse String as status date: "+dateString, e);
+						}
+					}
 				}
 
-				Element idElement = title.getParentElement().getChild("id");
-				String id = "";
-				if(idElement != null){
-					id = idElement.getTextNormalize();
-				}
+				Pattern pattern;
 
-				Pattern pattern = null;
-
-				if(isCaseInsensitive)
+				if (isCaseInsensitive) {
 					pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-				else
+				} else {
 					pattern = Pattern.compile(regex);
-
+				}
 
 				AnnotationRegularExpressionFromXMLRule rule = new AnnotationRegularExpressionFromXMLRule();
 				rule.setRuleId(id);
-				rule.setErrorMessage(titleString);
+				rule.setName(title);
+				rule.setDescription(description);
+				rule.setStatus(status);
+				rule.setDate(date);
+				rule.setErrorMessage(title);
 				rule.setPattern(pattern);
 				rule.setRegex(regex);
 
