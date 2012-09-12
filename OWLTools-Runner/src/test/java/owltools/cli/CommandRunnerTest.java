@@ -15,16 +15,12 @@ import owltools.OWLToolsTestBasics;
  * no attempt made to check results
  * 
  */
-public class CommandRunnerTest extends OWLToolsTestBasics {
-	
-	CommandRunner runner;
+public class CommandRunnerTest extends AbstractCommandRunnerTest {
 	
 	@Test
 	public void testRunner() throws Exception {
-		runner = new CommandRunner();
-		String path = getResource("ceph.obo").getAbsolutePath();
-		System.out.println("Loading: "+path);
-		run(path);
+		init();
+		load("ceph.obo");
 		run("-a tentacle");
 		run("--reasoner-query -r elk -l tentacle");
 		String[] args = {
@@ -39,18 +35,6 @@ public class CommandRunnerTest extends OWLToolsTestBasics {
 		
 		run("--incoming-edges tentacle");
 	}
-	
-	private void run(String[] args) throws Exception {
-		runner.run(args);
-	}
-	private void run(String argStr) throws Exception {
-		run(argStr.split(" "));
-	}
-	
-	private void run(String[] args, String[] expectedLines) {
-		// TODO
-	}
-	
 	
 	
 }
