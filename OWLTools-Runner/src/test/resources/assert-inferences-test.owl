@@ -1,0 +1,21 @@
+Prefix: : <http://purl.obolibrary.org/obo/test/>
+
+Ontology: <http://purl.obolibrary.org/obo/test.owl>
+
+ObjectProperty: :part_of
+
+Class: :skeletal_element
+Class: :bone
+  SubClassOf: :skeletal_element
+
+Class: :hindlimb_bone
+  EquivalentTo: :bone and :part_of some :hindlimb
+
+Class: :humerus
+  SubClassOf: :bone, :part_of some :hindlimb
+
+Class: :hindlimb
+
+Individual: :humerus1 Types: :humerus
+Individual: :bone2 Types: :bone, :part_of some :hindlimb
+
