@@ -327,31 +327,7 @@ public class InferenceBuilder{
 
 		// CHECK FOR REDUNDANCY
 		logger.info("Checking for redundant assertions caused by inferences");
-		redundantAxioms = new HashSet<OWLAxiom>();
-		for (OWLClass cls : ontology.getClassesInSignature()) {
-			Set<OWLClassExpression> supers = cls.getSuperClasses(ontology);
-			for (OWLAxiom ax : axiomsToAdd) {
-				if (ax instanceof OWLSubClassOfAxiom) {
-					OWLSubClassOfAxiom sax = (OWLSubClassOfAxiom)ax;
-					if (sax.getSubClass().equals(cls)) {
-						supers.add(sax.getSuperClass());
-					}
-				}
-			}
-			for (OWLClassExpression sup : supers) {
-				if (sup instanceof OWLClass) {
-					if (sup.isOWLThing()) {
-						redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup));
-						continue;
-					}
-					for (OWLClass sup2 : reasoner.getSuperClasses(sup,false).getFlattened()) {
-						if (supers.contains(sup2)) {
-							redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup2) );
-						}
-					}
-				}
-			}
-		}
+		redundantAxioms = getRedundantAxioms(axiomsToAdd, ontology, reasoner, dataFactory);
 
 		axiomsToAdd.addAll(equivAxiomsToAdd);
 
@@ -359,6 +335,62 @@ public class InferenceBuilder{
 
 		return axiomsToAdd;
 
+	}
+
+	/**
+	 * Search for redundant axioms.
+	 * 
+	 * @param axiomsToAdd
+	 * @param ontology
+	 * @param reasoner
+	 * @param dataFactory
+	 * @return set of all redundant axioms
+	 */
+	protected Set<OWLAxiom> getRedundantAxioms(List<OWLAxiom> axiomsToAdd, OWLOntology ontology,
+			OWLReasoner reasoner, OWLDataFactory dataFactory)
+	{
+		Set<OWLAxiom> redundantAxioms = new HashSet<OWLAxiom>();
+		for (OWLClass cls : ontology.getClassesInSignature()) {
+			updateRedundant(cls, ontology, axiomsToAdd, redundantAxioms, reasoner, dataFactory);
+		}
+		return redundantAxioms;
+	}
+
+	/**
+	 * Update the set of redundant axioms for the given {@link OWLClass} cls.
+	 * 
+	 * @param cls
+	 * @param ontology
+	 * @param axiomsToAdd
+	 * @param redundantAxioms
+	 * @param reasoner
+	 * @param dataFactory
+	 */
+	protected static void updateRedundant(OWLClass cls, OWLOntology ontology, List<OWLAxiom> axiomsToAdd,
+			Set<OWLAxiom> redundantAxioms, OWLReasoner reasoner, OWLDataFactory dataFactory)
+	{
+		Set<OWLClassExpression> supers = cls.getSuperClasses(ontology);
+		for (OWLAxiom ax : axiomsToAdd) {
+			if (ax instanceof OWLSubClassOfAxiom) {
+				OWLSubClassOfAxiom sax = (OWLSubClassOfAxiom)ax;
+				if (sax.getSubClass().equals(cls)) {
+					supers.add(sax.getSuperClass());
+				}
+			}
+		}
+		for (OWLClassExpression sup : supers) {
+			if (sup instanceof OWLClass) {
+				if (sup.isOWLThing()) {
+					redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup));
+					continue;
+				}
+				for (OWLClass sup2 : reasoner.getSuperClasses(sup,false).getFlattened()) {
+					if (supers.contains(sup2)) {
+						redundantAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sup2) );
+					}
+				}
+			}
+		}
 	}
 
 
