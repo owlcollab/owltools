@@ -67,6 +67,18 @@ fields:
     type: string
     property: [getAnnotationPropertyValues, alt_id]
     cardinality: multi
+  - id: replaced_by
+    description: Term that replaces this term.
+    display_name: Replaced By
+    type: string
+    property: [getAnnotationPropertyValues, replaced_by]
+    cardinality: multi
+  - id: consider
+    description: Others terms you might want to look at.
+    display_name: Consider
+    type: string
+    property: [getAnnotationPropertyValues, consider]
+    cardinality: multi
   - id: subset
     description: Term subset.
     display_name: Subset
