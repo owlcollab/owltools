@@ -56,6 +56,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.InferenceBuilder;
+import owltools.ThreadedInferenceBuilder;
 import owltools.cli.Opts;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
@@ -949,7 +950,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		final OWLDataFactory factory = manager.getOWLDataFactory();
 		final Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
 		final Set<RemoveAxiom> removedSubClassOfAxiomChanges = new HashSet<RemoveAxiom>();
-		final InferenceBuilder infBuilder = new InferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL());
+		int threads = oortConfig.getThreads();
+		final InferenceBuilder infBuilder;
+		if (threads > 1) {
+			infBuilder = new ThreadedInferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL(), threads);
+		}
+		else {
+			infBuilder = new InferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL());
+		}
 
 		// optionally remove a subset of the axioms we want to attempt to recapitulate
 		if (oortConfig.isJustifyAssertedSubclasses()) {

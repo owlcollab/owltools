@@ -22,6 +22,8 @@ import owltools.graph.OWLGraphWrapper;
 /**
  * Partial parallel implementation of {@link InferenceBuilder}. 
  * Uses threads to parallelize the task of finding redundant axioms.
+ * 
+ * TODO Use thread count also as limit for ELK.
  */
 public class ThreadedInferenceBuilder extends InferenceBuilder {
 

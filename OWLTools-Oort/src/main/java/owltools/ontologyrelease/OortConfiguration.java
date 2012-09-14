@@ -91,6 +91,7 @@ public class OortConfiguration {
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
 	private static final OWLOntologyFormat owlOFNFormat = new LabelFunctionalFormat(); 
 
+	private int threads = 1;
 	
 	private List<OntologyCheck> ontologyChecks = getDefaultOntologyChecks();
 	
@@ -742,6 +743,20 @@ public class OortConfiguration {
 		this.ontologyChecks = ontologyChecks;
 	}
 
+	/**
+	 * @return the threads
+	 */
+	public int getThreads() {
+		return threads;
+	}
+
+	/**
+	 * @param threads the threads to set
+	 */
+	public void setThreads(int threads) {
+		this.threads = threads;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -854,6 +869,7 @@ public class OortConfiguration {
 		putValue(properties, "queryOntologyReferenceIsIRI", config.queryOntologyReferenceIsIRI);
 		putValue(properties, "removeQueryOntologyReference", config.removeQueryOntologyReference);
 		putValue(properties, "ontologyChecks", config.ontologyChecks);
+		putValue(properties, "threads", config.threads);
 		return properties;
 	}
 	
@@ -889,6 +905,10 @@ public class OortConfiguration {
 	
 	private static void putValue(Properties properties, String key, boolean value) {
 		properties.put(key, Boolean.toString(value));
+	}
+	
+	private static void putValue(Properties properties, String key, int value) {
+		properties.put(key, Integer.toString(value));
 	}
 	
 	private static void putValue(Properties properties, String key, String value) {
@@ -962,6 +982,7 @@ public class OortConfiguration {
 		config.queryOntologyReferenceIsIRI = getValue(properties, "queryOntologyReferenceIsIRI", config.queryOntologyReferenceIsIRI);
 		config.removeQueryOntologyReference = getValue(properties, "removeQueryOntologyReference", config.removeQueryOntologyReference);
 		config.ontologyChecks = getClassValues(properties, "ontologyChecks", getDefaultOntologyChecks());
+		config.threads = getValue(properties, "threads", config.threads);
 	}
 	
 	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {
@@ -986,6 +1007,14 @@ public class OortConfiguration {
 		String property = properties.getProperty(key, null);
 		if (property != null) {
 			return Boolean.valueOf(property);
+		}
+		return defaultValue;
+	}
+	
+	private static int getValue(Properties properties, String key, int defaultValue) {
+		String property = properties.getProperty(key, null);
+		if (property != null) {
+			return Integer.valueOf(property);
 		}
 		return defaultValue;
 	}
