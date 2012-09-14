@@ -16,6 +16,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
  * Tools for checking and managing ontology data.
@@ -84,35 +85,57 @@ public class OntologyMetaDataTools {
 	public static void checkAnnotationCardinality(OWLOntology ontology, AnnotationCardinalityConfictHandler handler) throws AnnotationCardinalityException {
 		final OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		final OWLDataFactory factory = manager.getOWLDataFactory();
-		final OWLAnnotationProperty lap = factory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI());
+		final OWLAnnotationProperty defProperty = factory.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI());
+		final OWLAnnotationProperty commentProperty = factory.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_COMMENT.getIRI());
 		
 		for (OWLClass owlClass : ontology.getClassesInSignature(true)) {
-			checkOwlEntity(owlClass, lap, ontology, handler, manager);
+			checkOwlEntity(owlClass, defProperty, commentProperty, ontology, handler, manager);
 		}
 		for (OWLObjectProperty owlProperty : ontology.getObjectPropertiesInSignature(true)) {
-			checkOwlEntity(owlProperty, lap, ontology, handler, manager);
+			checkOwlEntity(owlProperty, defProperty, commentProperty, ontology, handler, manager);
 		}
 	}
 
 	private static void checkOwlEntity(OWLEntity owlClass,
-			final OWLAnnotationProperty lap, OWLOntology ontology,
+			final OWLAnnotationProperty defProperty,
+			final OWLAnnotationProperty commentProperty,
+			OWLOntology ontology,
 			AnnotationCardinalityConfictHandler handler,
 			final OWLOntologyManager manager)
 			throws AnnotationCardinalityException 
 	{
-		// check cardinality constraint for definition
 		Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(owlClass.getIRI());
 		Set<OWLAnnotationAssertionAxiom> defAxioms = new HashSet<OWLAnnotationAssertionAxiom>();
+		Set<OWLAnnotationAssertionAxiom> commentAxioms = new HashSet<OWLAnnotationAssertionAxiom>();
 		for (OWLAnnotationAssertionAxiom axiom : axioms) {
-			if (lap.equals(axiom.getProperty())) {
+			final OWLAnnotationProperty current = axiom.getProperty();
+			if (defProperty.equals(current)) {
 				defAxioms.add(axiom);
 			}
+			else if (commentProperty.equals(current)) {
+				commentAxioms.add(axiom);
+			}
 		}
+		
+		// check cardinality constraint for definition
 		if (defAxioms.size() > 1) {
 			// handle conflict
 			// if conflict is not resolvable, throws exception
-			List<OWLAnnotationAssertionAxiom> changed = handler.handleConflict(owlClass, lap, defAxioms);
+			List<OWLAnnotationAssertionAxiom> changed = handler.handleConflict(owlClass, defProperty, defAxioms);
 			for(OWLAnnotationAssertionAxiom axiom : defAxioms) {
+				manager.removeAxiom(ontology, axiom);
+			}
+			for(OWLAnnotationAssertionAxiom axiom : changed) {
+				manager.addAxiom(ontology, axiom);
+			}
+		}
+		
+		// check cardinality constraint for annotation, which translate to comment tags in OBO
+		if (commentAxioms.size() > 1) {
+			// handle conflict
+			// if conflict is not resolvable, throws exception
+			List<OWLAnnotationAssertionAxiom> changed = handler.handleConflict(owlClass, commentProperty, commentAxioms);
+			for(OWLAnnotationAssertionAxiom axiom : commentAxioms) {
 				manager.removeAxiom(ontology, axiom);
 			}
 			for(OWLAnnotationAssertionAxiom axiom : changed) {
@@ -144,6 +167,12 @@ public class OntologyMetaDataTools {
 				// take the first one in the collection
 				// (may be random)
 				LOGGER.warn("Fixing multiple definition tags for entity: "+entity.getIRI());
+				return Collections.singletonList(annotations.iterator().next());
+			}
+			else if (OWLRDFVocabulary.RDFS_COMMENT.getIRI().equals(property.getIRI())) {
+				// take the first one in the collection
+				// (may be random)
+				LOGGER.warn("Fixing multiple comment tags for entity: "+entity.getIRI());
 				return Collections.singletonList(annotations.iterator().next());
 			}
 			throw new AnnotationCardinalityException("Could not resolve conflict for property: "+property);
