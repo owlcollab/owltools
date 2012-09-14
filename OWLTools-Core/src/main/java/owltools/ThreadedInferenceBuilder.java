@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -26,6 +27,8 @@ import owltools.graph.OWLGraphWrapper;
  * TODO Use thread count also as limit for ELK.
  */
 public class ThreadedInferenceBuilder extends InferenceBuilder {
+	
+	private static final Logger LOG = Logger.getLogger(ThreadedInferenceBuilder.class);
 
 	private final int threads;
 	private final ExecutorService executor;
@@ -41,7 +44,7 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 	{
 		super(graph, factory, enforceEL);
 		this.threads = threads;
-		this.executor = Executors.newFixedThreadPool(threads);
+		this.executor = createThreadPool(threads);
 	}
 
 	/**
@@ -55,7 +58,7 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 	{
 		super(graph, reasonerName, enforceEL);
 		this.threads = threads;
-		this.executor = Executors.newFixedThreadPool(threads);
+		this.executor = createThreadPool(threads);
 	}
 
 	/**
@@ -66,7 +69,7 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 	public ThreadedInferenceBuilder(OWLGraphWrapper graph, String reasonerName, int threads) {
 		super(graph, reasonerName);
 		this.threads = threads;
-		this.executor = Executors.newFixedThreadPool(threads);
+		this.executor = createThreadPool(threads);
 	}
 
 	/**
@@ -76,13 +79,19 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 	public ThreadedInferenceBuilder(OWLGraphWrapper graph, int threads) {
 		super(graph);
 		this.threads = threads;
-		this.executor = Executors.newFixedThreadPool(threads);
+		this.executor = createThreadPool(threads);
+	}
+
+	private ExecutorService createThreadPool(int threads) {
+		LOG.info("Creating thread pool with "+threads+" threads for inference builder");
+		return Executors.newFixedThreadPool(threads);
 	}
 
 	@Override
 	protected Set<OWLAxiom> getRedundantAxioms(List<OWLAxiom> axiomsToAdd, OWLOntology ontology,
 			OWLReasoner reasoner, OWLDataFactory dataFactory)
 	{
+		LOG.info("Start parallel execution.");
 		List<Future<Set<OWLAxiom>>> futures = new ArrayList<Future<Set<OWLAxiom>>>();
 		List<OWLClass> workSet = new ArrayList<OWLClass>();
 		final Set<OWLClass> allClasses = ontology.getClassesInSignature();
@@ -111,6 +120,7 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 					result.addAll(set);
 				}
 			}
+			LOG.info("Finished parallel execution.");
 			return result;
 		} catch (InterruptedException exception) {
 			throw new RuntimeException(exception);
