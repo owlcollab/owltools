@@ -312,6 +312,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opts.nextEq("--write-label-owl")) {
 				oortConfig.setWriteLabelOWL(true);
 			}
+			else if (opts.nextEq("--threads")) {
+				oortConfig.setThreads(Integer.parseInt(opts.nextOpt()));
+			}
 			else if (opts.nextEq("--ontology-checks")) {
 				Set<String> addFlags = new HashSet<String>(); 
 				Set<String> removeFlags = new HashSet<String>();
