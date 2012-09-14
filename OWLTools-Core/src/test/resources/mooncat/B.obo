@@ -5,6 +5,7 @@ ontology: b
 [Term]
 id: B:0000001
 name: b1
+comment: "comment b"
 
 
 [Term]
@@ -12,3 +13,4 @@ id: C:0000001
 name: c1
 namespace: c
 def: "Definition for term c1 in B" [GOC:test, GOC:test2]
+comment: "comment c in B"

@@ -6,3 +6,4 @@ ontology: c
 id: C:0000001
 name: c1
 def: "Definition for term c1" [GOC:test, GOC:test2]
+comment: "comment c"

@@ -23,10 +23,16 @@ import owltools.mooncat.OntologyMetaDataTools;
  * case simulates conflicting values for a single term definition from 
  * different ontology files.
  */
-public class DuplicateDefinitionMooncatTest extends OWLToolsTestBasics {
+public class CardinalityCheckAndRepairMooncatTest extends OWLToolsTestBasics {
 
-	private static boolean RENDER_ONTOLOGY_FLAG = true;
+	private static boolean RENDER_ONTOLOGY_FLAG = false;
 	
+	/**
+	 * Test and repair cardinalities of DEF and COMMENT tags after merging
+	 * ontologies (B contains MIREOTed terms from C) via {@link Mooncat}.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void testMireot() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
@@ -47,7 +53,10 @@ public class DuplicateDefinitionMooncatTest extends OWLToolsTestBasics {
 			renderOBO(oboDoc);
 		}
 		Frame termFrame = oboDoc.getTermFrame("C:0000001");
-		Collection<Clause> clauses = termFrame.getClauses(OboFormatTag.TAG_DEF);
-		assertEquals(1, clauses.size());
+		Collection<Clause> defClauses = termFrame.getClauses(OboFormatTag.TAG_DEF);
+		assertEquals(1, defClauses.size());
+		
+		Collection<Clause> commentClauses = termFrame.getClauses(OboFormatTag.TAG_COMMENT);
+		assertEquals(1, commentClauses.size());
 	}
 }
