@@ -54,7 +54,7 @@ fields:
     property: []
   - id: taxon_label
     description: "Derived from C13 + ncbi_taxonomy.obo."
-    display_name: Taxon label
+    display_name: Taxon
     type: string
     property: []
     searchable: true
@@ -169,7 +169,7 @@ fields:
 #     property: []
   - id: bioentity
     description: "Column 1 + columns 2."
-    display_name: Bioentity ID
+    display_name: Gene Product
     type: string
     property: []
   - id: bioentity_label
