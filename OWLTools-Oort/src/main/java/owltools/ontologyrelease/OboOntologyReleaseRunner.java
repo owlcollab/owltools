@@ -688,6 +688,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 			// TODO: option to save as imports
 		}
+		else if (oortConfig.isRepairAnnotationCardinality()) {
+			logger.info("Checking and repair annotation cardinality constrains");
+			OboInOwlCardinalityTools.checkAnnotationCardinality(mooncat.getOntology());
+		}
 
 		if (oortConfig.isExecuteOntologyChecks()) {
 			CheckSummary summary = ontologyChecks.afterMireot(mooncat.getGraph());
