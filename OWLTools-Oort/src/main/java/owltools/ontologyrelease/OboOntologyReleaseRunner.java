@@ -315,6 +315,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opts.nextEq("--threads")) {
 				oortConfig.setThreads(Integer.parseInt(opts.nextOpt()));
 			}
+			else if (opts.nextEq("--run-obo-basic-dag-check")) {
+				oortConfig.setRunOboBasicDagCheck(true);
+			}
 			else if (opts.nextEq("--ontology-checks")) {
 				Set<String> addFlags = new HashSet<String>(); 
 				Set<String> removeFlags = new HashSet<String>();
@@ -920,28 +923,30 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Removing axiom annotations which are equivalent to trailing qualifiers");
 			AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(mooncat.getOntology());
 			
-			logger.info("Start - Verifying DAG requirement for OBO Basic.");
-			List<List<OWLObject>> cycles = OboBasicDagCheck.findCycles(mooncat.getGraph());
-			if (cycles != null && !cycles.isEmpty()) {
-				StringBuilder sb = new StringBuilder();
-				for (List<OWLObject> cycle : cycles) {
-					sb.append("Cycle[");
-					for (OWLObject owlObject : cycle) {
-						sb.append(' ');
-						sb.append(owlpp.render(owlObject));
+			if (oortConfig.isRunOboBasicDagCheck()) {
+				logger.info("Start - Verifying DAG requirement for OBO Basic.");
+				List<List<OWLObject>> cycles = OboBasicDagCheck.findCycles(mooncat.getGraph());
+				if (cycles != null && !cycles.isEmpty()) {
+					StringBuilder sb = new StringBuilder();
+					for (List<OWLObject> cycle : cycles) {
+						sb.append("Cycle[");
+						for (OWLObject owlObject : cycle) {
+							sb.append(' ');
+							sb.append(owlpp.render(owlObject));
+						}
+						sb.append("]\n");
+
 					}
-					sb.append("]\n");
-					
+					if (!oortConfig.isForceRelease()) {
+						sb.insert(0, "OBO Basic is not a DAG, found the following cycles:\n");
+						throw new OboOntologyReleaseRunnerCheckException(sb.toString());
+					}
+					else {
+						logger.warn("Force Release: ignore "+cycles.size()+" cycle(s) in basic ontology, cycles: "+sb.toString());
+					}
 				}
-				if (!oortConfig.isForceRelease()) {
-					sb.insert(0, "OBO Basic is not a DAG, found the following cycles:\n");
-					throw new OboOntologyReleaseRunnerCheckException(sb.toString());
-				}
-				else {
-					logger.warn("Force Release: ignore "+cycles.size()+" cycle(s) in basic ontology, cycles: "+sb.toString());
-				}
+				logger.info("Finished - Verifying DAG requirement for OBO Basic.");
 			}
-			logger.info("Finished - Verifying DAG requirement for OBO Basic.");
 			
 			saveInAllFormats(ontologyId, "simple", gciOntology);
 			logger.info("Creating simple ontology completed");

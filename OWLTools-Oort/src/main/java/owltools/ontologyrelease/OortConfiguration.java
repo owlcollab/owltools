@@ -93,6 +93,8 @@ public class OortConfiguration {
 
 	private int threads = 1;
 	
+	private boolean runOboBasicDagCheck = false;
+	
 	private List<OntologyCheck> ontologyChecks = getDefaultOntologyChecks();
 	
 	private static List<OntologyCheck> getDefaultOntologyChecks() {
@@ -757,6 +759,20 @@ public class OortConfiguration {
 		this.threads = threads;
 	}
 
+	/**
+	 * @return the runOboBasicDagCheck
+	 */
+	public boolean isRunOboBasicDagCheck() {
+		return runOboBasicDagCheck;
+	}
+
+	/**
+	 * @param runOboBasicDagCheck the runOboBasicDagCheck to set
+	 */
+	public void setRunOboBasicDagCheck(boolean runOboBasicDagCheck) {
+		this.runOboBasicDagCheck = runOboBasicDagCheck;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -870,6 +886,7 @@ public class OortConfiguration {
 		putValue(properties, "removeQueryOntologyReference", config.removeQueryOntologyReference);
 		putValue(properties, "ontologyChecks", config.ontologyChecks);
 		putValue(properties, "threads", config.threads);
+		putValue(properties, "runOboBasicDagCheck", config.runOboBasicDagCheck);
 		return properties;
 	}
 	
@@ -983,6 +1000,7 @@ public class OortConfiguration {
 		config.removeQueryOntologyReference = getValue(properties, "removeQueryOntologyReference", config.removeQueryOntologyReference);
 		config.ontologyChecks = getClassValues(properties, "ontologyChecks", getDefaultOntologyChecks());
 		config.threads = getValue(properties, "threads", config.threads);
+		config.runOboBasicDagCheck = getValue(properties, "runOboBasicDagCheck", config.runOboBasicDagCheck);
 	}
 	
 	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {
