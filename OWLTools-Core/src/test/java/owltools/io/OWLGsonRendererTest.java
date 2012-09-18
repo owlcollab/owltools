@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 
 import org.junit.Test;
@@ -32,37 +33,47 @@ import owltools.io.OWLGsonRenderer;
 
 public class OWLGsonRendererTest extends OWLToolsTestBasics {
 
+	private static final boolean RENDER_FLAG = false;
 
 	@Test
 	public void testAxioms() throws Exception{
 		OWLGraphWrapper  wrapper = getOBO2OWLOntologyWrapper("caro.obo");
-		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(System.out));
+		final StringWriter stringWriter = new StringWriter();
+		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(stringWriter));
 		OWLOntology ont = wrapper.getSourceOntology();
-		for (OWLClass c : ont.getClassesInSignature()) {
-			
-		}
 		for (OWLAxiom a : ont.getAxioms()) {
 			gr.render(a);
+		}
+		if (RENDER_FLAG) {
+			System.out.println(stringWriter.toString());
 		}
 	}
 
 	@Test
 	public void testGEdges() throws Exception{
 		OWLGraphWrapper  wrapper = getOBO2OWLOntologyWrapper("caro.obo");
-		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(System.out));
+		final StringWriter stringWriter = new StringWriter();
+		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(stringWriter));
 		OWLOntology ont = wrapper.getSourceOntology();
 		for (OWLClass c : ont.getClassesInSignature()) {
 			for (OWLGraphEdge e : wrapper.getOutgoingEdgesClosure(c)) {
 				gr.render(e);
 			}
 		}
+		if (RENDER_FLAG) {
+			System.out.println(stringWriter.toString());
+		}
 	}
 
 	@Test
 	public void testOnt() throws Exception{
 		OWLGraphWrapper  wrapper = getOBO2OWLOntologyWrapper("caro.obo");
-		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(System.out));
+		final StringWriter stringWriter = new StringWriter();
+		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(stringWriter));
 		gr.render(wrapper.getSourceOntology());
+		if (RENDER_FLAG) {
+			System.out.println(stringWriter.toString());
+		}
 	}
 
 	
@@ -74,4 +85,5 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 		OWLGraphWrapper wrapper = new OWLGraphWrapper(ontology);
 		return wrapper;
 	}
+	
 }

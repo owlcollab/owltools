@@ -43,6 +43,8 @@ import owltools.io.ParserWrapper;
  */
 public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
+	private static boolean RENDER_ONTOLOGY_FLAG = false;
+	
 	private Logger LOG = Logger.getLogger(PropertyViewOntologyBuilderTest.class);
 
 	OWLGraphWrapper g;
@@ -102,9 +104,10 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 			OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
 
 
-			for (OWLAxiom a : ivo.getAxioms()) {
-				LOG.info("GO: "+pp.render(a));
-				//LOG.info(a);
+			if (RENDER_ONTOLOGY_FLAG) {
+				for (OWLAxiom a : ivo.getAxioms()) {
+					LOG.info("GO: " + pp.render(a));
+				}
 			}
 			LOG.info("Logical axioms: "+ivo.getLogicalAxiomCount());
 
@@ -159,18 +162,20 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
 		pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
 		OWLOntology avo = pvob.getAssertedViewOntology();
-		for (OWLAxiom a : avo.getAxioms()) {
-			LOG.info("ASSERTED_VIEW_ONT: "+a);
+		if (RENDER_ONTOLOGY_FLAG) {
+			for (OWLAxiom a : avo.getAxioms()) {
+				LOG.info("ASSERTED_VIEW_ONT: " + a);
+			}
 		}
-
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		try {
 			pvob.buildInferredViewOntology(reasoner);
-			for (OWLEntity e : pvob.getViewEntities()) {
-				LOG.info(" VE: "+e);
+			if (RENDER_ONTOLOGY_FLAG) {
+				for (OWLEntity e : pvob.getViewEntities()) {
+					LOG.info(" VE: " + e);
+				}
 			}
-
 			// TODO - less dumb way
 			Set<String> m = new HashSet<String>();
 			m.add("EquivalentClasses(<http://purl.obolibrary.org/obo/#left_autopod-RO_0002206> <http://purl.obolibrary.org/obo/#right_autopod-RO_0002206> )");
@@ -179,10 +184,14 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 			OWLOntology ivo = pvob.getInferredViewOntology();
 			for (OWLAxiom a : ivo.getAxioms()) {
 				if (a instanceof OWLEquivalentClassesAxiom) {
-					System.out.println("\""+a+"\"");
+					if (RENDER_ONTOLOGY_FLAG) {
+						System.out.println("\"" + a + "\"");
+					}
 				}
 				if (m.contains(a.toString())) {
-					System.out.println("FOUND: \""+a+"\"");
+					if (RENDER_ONTOLOGY_FLAG) {
+						System.out.println("FOUND: \"" + a + "\"");
+					}
 					m.remove(a.toString());
 				}
 				//m.put(a.toString(), true);
@@ -214,20 +223,23 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
 		pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
 		OWLOntology avo = pvob.getAssertedViewOntology();
-		for (OWLAxiom a : avo.getAxioms()) {
-			LOG.info("ASSERTED_VIEW_ONT: "+a);
+		if (RENDER_ONTOLOGY_FLAG) {
+			for (OWLAxiom a : avo.getAxioms()) {
+				LOG.info("ASSERTED_VIEW_ONT: " + a);
+			}
 		}
-
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		try {
 			LOG.info("Building inferred view");
 			pvob.buildInferredViewOntology(reasoner);
-			for (OWLEntity e : pvob.getViewEntities()) {
-				LOG.info(" VE: "+e);
-			}
-			for (OWLAxiom a : pvob.getInferredViewOntology().getAxioms()) {
-				LOG.info(" VA: "+a);
+			if (RENDER_ONTOLOGY_FLAG) {
+				for (OWLEntity e : pvob.getViewEntities()) {
+					LOG.info(" VE: " + e);
+				}
+				for (OWLAxiom a : pvob.getInferredViewOntology().getAxioms()) {
+					LOG.info(" VA: " + a);
+				}
 			}
 		}
 		finally {
@@ -268,10 +280,11 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
 		pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
 		OWLOntology avo = pvob.getAssertedViewOntology();
-		for (OWLAxiom a : avo.getAxioms()) {
-			LOG.info("ASSERTED_VIEW_ONT: "+a);
+		if (RENDER_ONTOLOGY_FLAG) {
+			for (OWLAxiom a : avo.getAxioms()) {
+				LOG.info("ASSERTED_VIEW_ONT: " + a);
+			}
 		}
-
 		OWLReasonerFactory rf = new ElkReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		try {
@@ -285,7 +298,9 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 
 			// iterate through all view entities - this should be the filtered set of view classes plus individuals.
 			for (OWLEntity e : pvob.getViewEntities()) {
-				LOG.info(" VE: "+e+" LABEL:"+g.getLabel(e));
+				if (RENDER_ONTOLOGY_FLAG) {
+					LOG.info(" VE: " + e + " LABEL:" + g.getLabel(e));
+				}
 				if (e instanceof OWLClass) {
 					if (g.getLabel(e) != null && g.getLabel(e).equals("involves limb")) {
 						ok1 = true;
@@ -296,7 +311,9 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 						Set<OWLClassAssertionAxiom> caas = pvob.getInferredViewOntology().getClassAssertionAxioms((OWLNamedIndividual) e);
 
 						for (OWLClassAssertionAxiom caa : caas) {
-							LOG.info("  CAA:"+pp.render(caa));
+							if (RENDER_ONTOLOGY_FLAG) {
+								LOG.info("  CAA:" + pp.render(caa));
+							}
 							numClassAssertions++;
 						}	
 					}

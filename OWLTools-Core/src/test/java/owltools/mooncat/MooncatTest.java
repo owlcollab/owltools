@@ -15,6 +15,8 @@ import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
 
 public class MooncatTest extends OWLToolsTestBasics {
+	
+	private static boolean RENDER_ONTOLOGY_FLAG = false;
 
 	@Test
 	public void testMireot() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
@@ -26,20 +28,24 @@ public class MooncatTest extends OWLToolsTestBasics {
 		Mooncat m = new Mooncat(g);
 		m.addReferencedOntology(pw.parseOWL("http://purl.obolibrary.org/obo/caro.owl"));
 		
-
-		for (OWLEntity e : m.getExternalReferencedEntities()) {
-			System.out.println("e="+e);
-		}
-		for (OWLObject e : m.getClosureOfExternalReferencedEntities()) {
-			System.out.println("c="+e);
-		}
-		for (OWLAxiom ax : m.getClosureAxiomsOfExternalReferencedEntities()) {
-			System.out.println("M_AX:"+ax);
+		if (RENDER_ONTOLOGY_FLAG) {
+			for (OWLEntity e : m.getExternalReferencedEntities()) {
+				System.out.println("e="+e);
+			}
+			for (OWLObject e : m.getClosureOfExternalReferencedEntities()) {
+				System.out.println("c="+e);
+			}
+			for (OWLAxiom ax : m.getClosureAxiomsOfExternalReferencedEntities()) {
+				System.out.println("M_AX:"+ax);
+			}
 		}
 		
 		m.mergeOntologies();
-		for (OWLAxiom ax : m.getOntology().getAxioms()) {
-			System.out.println(ax);
+		
+		if (RENDER_ONTOLOGY_FLAG) {
+			for (OWLAxiom ax : m.getOntology().getAxioms()) {
+				System.out.println(ax);
+			}
 		}
 	}
 	

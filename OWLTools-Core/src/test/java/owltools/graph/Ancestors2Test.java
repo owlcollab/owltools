@@ -17,17 +17,20 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.Config;
-import owltools.graph.OWLQuantifiedProperty.Quantifier;
 
 public class Ancestors2Test extends OWLToolsTestBasics {
 
+	private static boolean RENDER_ONTOLOGY_FLAG = false;
+	
 	@Test
 	public void testIntersectionsReturnedInClosure() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLObject obj = g.getOWLObject("http://example.org#o1");
 		boolean ok = false;
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosureReflexive(obj)) {
-			System.out.println(e);
+			if (RENDER_ONTOLOGY_FLAG) {
+				System.out.println(e);
+			}
 			if (e.getTarget() instanceof OWLObjectIntersectionOf)
 				ok = true;
 		}
@@ -40,7 +43,9 @@ public class Ancestors2Test extends OWLToolsTestBasics {
 		OWLObject obj = g.getOWLObject("http://example.org#deformed_hippocampus");
 		boolean ok = false;
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosureReflexive(obj)) {
-			System.out.println(e);
+			if (RENDER_ONTOLOGY_FLAG) {
+				System.out.println(e);
+			}
 			if (e.getTarget() instanceof OWLRestriction)
 				ok = true;
 		}
@@ -56,8 +61,10 @@ public class Ancestors2Test extends OWLToolsTestBasics {
 		OWLObject obj = g.getOWLObject("http://example.org#o1");
 		OWLObject eye = g.getOWLObject("http://example.org#eye");
 		boolean ok = true;
-		for (OWLGraphEdge e : g.getOutgoingEdges(obj)) {
-			System.out.println("DIRECT EDGE:"+e);
+		if (RENDER_ONTOLOGY_FLAG) {
+			for (OWLGraphEdge e : g.getOutgoingEdges(obj)) {
+				System.out.println("DIRECT EDGE:" + e);
+			}
 		}
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosureReflexive(obj)) {
 			//System.out.println("EDGE:"+e);
@@ -88,7 +95,9 @@ public class Ancestors2Test extends OWLToolsTestBasics {
 		OWLObject i = g.getOWLObject("http://example.org#o1");
 		boolean ok = false;
 		for (OWLObject e : g.queryDescendants(c)) {
-			System.out.println("ORG:"+e);
+			if (RENDER_ONTOLOGY_FLAG) {
+				System.out.println("ORG:" + e);
+			}
 			if (e.equals(i))
 				ok = true;
 		}
