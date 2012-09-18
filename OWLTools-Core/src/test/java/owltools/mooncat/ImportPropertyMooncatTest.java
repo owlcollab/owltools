@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 
 import org.junit.Test;
+import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.Clause;
 import org.obolibrary.oboformat.model.Frame;
@@ -15,8 +16,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
-import owltools.mooncat.Mooncat;
-import owltools.mooncat.OntologyMetaDataTools;
 
 /**
  * Tests for the detection of import properties during 
@@ -24,7 +23,7 @@ import owltools.mooncat.OntologyMetaDataTools;
  */
 public class ImportPropertyMooncatTest extends OWLToolsTestBasics {
 
-	private static boolean RENDER_ONTOLOGY_FLAG = true;
+	private static boolean RENDER_ONTOLOGY_FLAG = false;
 	
 	/**
 	 * Test a conflict in a relation with a direct import
@@ -45,7 +44,7 @@ public class ImportPropertyMooncatTest extends OWLToolsTestBasics {
 		m.mergeOntologies();
 		
 		OWLOntology sourceOntology = g.getSourceOntology();
-		OntologyMetaDataTools.checkAnnotationCardinality(sourceOntology);
+		OboInOwlCardinalityTools.checkAnnotationCardinality(sourceOntology);
 		
 		Owl2Obo owl2Obo = new Owl2Obo();
 		OBODoc oboDoc = owl2Obo.convert(sourceOntology);
@@ -91,7 +90,7 @@ public class ImportPropertyMooncatTest extends OWLToolsTestBasics {
 		m.mergeOntologies();
 		
 		OWLOntology sourceOntology = g.getSourceOntology();
-		OntologyMetaDataTools.checkAnnotationCardinality(sourceOntology);
+		OboInOwlCardinalityTools.checkAnnotationCardinality(sourceOntology);
 		
 		Owl2Obo owl2Obo = new Owl2Obo();
 		OBODoc oboDoc = owl2Obo.convert(sourceOntology);

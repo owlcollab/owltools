@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.Clause;
 import org.obolibrary.oboformat.model.Frame;
@@ -17,8 +18,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
-import owltools.mooncat.Mooncat;
-import owltools.mooncat.OntologyMetaDataTools;
 
 /**
  * Tests for the mal-formed and duplicate subsetdef tags after mireot. 
@@ -26,7 +25,7 @@ import owltools.mooncat.OntologyMetaDataTools;
  */
 public class SubsetDefMooncatTest extends OWLToolsTestBasics {
 
-	private static boolean RENDER_ONTOLOGY_FLAG = true;
+	private static boolean RENDER_ONTOLOGY_FLAG = false;
 	
 	/**
 	 * Test for missing comments and duplicate header entries.
@@ -46,7 +45,7 @@ public class SubsetDefMooncatTest extends OWLToolsTestBasics {
 		m.mergeOntologies();
 		
 		OWLOntology sourceOntology = g.getSourceOntology();
-		OntologyMetaDataTools.checkAnnotationCardinality(sourceOntology);
+		OboInOwlCardinalityTools.checkAnnotationCardinality(sourceOntology);
 		
 		Owl2Obo owl2Obo = new Owl2Obo();
 		OBODoc oboDoc = owl2Obo.convert(sourceOntology);

@@ -22,6 +22,8 @@ import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
+import org.obolibrary.obo2owl.OboInOwlCardinalityTools.AnnotationCardinalityException;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.InvalidXrefMapException;
@@ -67,8 +69,6 @@ import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
-import owltools.mooncat.OntologyMetaDataTools;
-import owltools.mooncat.OntologyMetaDataTools.AnnotationCardinalityException;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
@@ -680,7 +680,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			mooncat.mergeOntologies();
 			if (oortConfig.isRepairAnnotationCardinality()) {
 				logger.info("Checking and repair annotation cardinality constrains");
-				OntologyMetaDataTools.checkAnnotationCardinality(mooncat.getOntology());
+				OboInOwlCardinalityTools.checkAnnotationCardinality(mooncat.getOntology());
 			}
 			saveInAllFormats(ontologyId, "merged", gciOntology);
 
