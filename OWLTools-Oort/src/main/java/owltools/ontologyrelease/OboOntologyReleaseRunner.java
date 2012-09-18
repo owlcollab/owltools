@@ -920,6 +920,29 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Removing axiom annotations which are equivalent to trailing qualifiers");
 			AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(mooncat.getOntology());
 			
+			logger.info("Start - Verifying DAG requirement for OBO Basic.");
+			List<List<OWLObject>> cycles = OboBasicDagCheck.findCycles(mooncat.getGraph());
+			if (cycles != null && !cycles.isEmpty()) {
+				StringBuilder sb = new StringBuilder();
+				for (List<OWLObject> cycle : cycles) {
+					sb.append("Cycle[");
+					for (OWLObject owlObject : cycle) {
+						sb.append(' ');
+						sb.append(owlpp.render(owlObject));
+					}
+					sb.append("]\n");
+					
+				}
+				if (!oortConfig.isForceRelease()) {
+					sb.insert(0, "OBO Basic is not a DAG, found the following cycles:\n");
+					throw new OboOntologyReleaseRunnerCheckException(sb.toString());
+				}
+				else {
+					logger.warn("Force Release: ignore "+cycles.size()+" cycle(s) in basic ontology, cycles: "+sb.toString());
+				}
+			}
+			logger.info("Finished - Verifying DAG requirement for OBO Basic.");
+			
 			saveInAllFormats(ontologyId, "simple", gciOntology);
 			logger.info("Creating simple ontology completed");
 
