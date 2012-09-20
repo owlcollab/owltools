@@ -213,16 +213,42 @@ public class InferenceBuilder{
 	 * @return inferred axioms
 	 */
 	public List<OWLAxiom> buildInferences(boolean alwaysAssertSuperClasses) {
-		List<OWLAxiom> axiomsToAdd = new ArrayList<OWLAxiom>();
-
-		List<OWLAxiom> equivAxiomsToAdd = new ArrayList<OWLAxiom>();
-
-		OWLDataFactory dataFactory = graph.getDataFactory();
 
 		OWLOntology ontology = graph.getSourceOntology();
-
 		reasoner = getReasoner(ontology);
 
+		Inferences inferences = buildInferences(ontology, reasoner, alwaysAssertSuperClasses);
+		
+		equivalentNamedClassPairs = inferences.equivalentNamedClassPairs;
+		redundantAxioms = inferences.redundantAxioms;
+		
+		return inferences.axiomsToAdd;
+		
+
+	}
+	
+	/**
+	 * Results of building inferences.
+	 */
+	static class Inferences {
+		List<OWLAxiom> axiomsToAdd = new ArrayList<OWLAxiom>();
+		List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = new ArrayList<OWLEquivalentClassesAxiom>();
+		Set<OWLAxiom> redundantAxioms = new HashSet<OWLAxiom>();
+	}
+	
+	/**
+	 * Thread safe and state-less function to generate the inferences for the given ontology and reasoner.
+	 * 
+	 * @param ontology
+	 * @param reasoner
+	 * @param alwaysAssertSuperClasses
+	 * @return inferences object (never null)
+	 */
+	Inferences buildInferences(OWLOntology ontology, OWLReasoner reasoner, boolean alwaysAssertSuperClasses) {
+		List<OWLAxiom> equivAxiomsToAdd = new ArrayList<OWLAxiom>();
+		OWLDataFactory dataFactory = ontology.getOWLOntologyManager().getOWLDataFactory();
+		Inferences inferences = new Inferences();
+		
 		logger.info("Finding asserted equivalencies...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 
@@ -260,11 +286,11 @@ public class InferenceBuilder{
 					logger.debug("Inferred Equiv: " + cls + " == " + ec);
 				}
 				if (ec instanceof OWLClass && !ec.equals(cls)) {
-					OWLEquivalentClassesAxiom eca = graph.getDataFactory().getOWLEquivalentClassesAxiom(cls, ec);
+					OWLEquivalentClassesAxiom eca = dataFactory.getOWLEquivalentClassesAxiom(cls, ec);
 					if (logger.isDebugEnabled()) {
 						logger.info("Equivalent Named Class Pair: "+eca);
 					}
-					equivalentNamedClassPairs.add(eca);
+					inferences.equivalentNamedClassPairs.add(eca);
 				}
 
 
@@ -318,7 +344,7 @@ public class InferenceBuilder{
 					
 					// include any inferred axiom that is NOT already asserted in the ontology
 					if (!isAsserted) {						
-						axiomsToAdd.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
+						inferences.axiomsToAdd.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
 					}
 
 				}
@@ -327,15 +353,15 @@ public class InferenceBuilder{
 
 		// CHECK FOR REDUNDANCY
 		logger.info("Checking for redundant assertions caused by inferences");
-		redundantAxioms = getRedundantAxioms(axiomsToAdd, ontology, reasoner, dataFactory);
+		redundantAxioms = getRedundantAxioms(inferences.axiomsToAdd, ontology, reasoner, dataFactory);
 
-		axiomsToAdd.addAll(equivAxiomsToAdd);
+		inferences.axiomsToAdd.addAll(equivAxiomsToAdd);
 
 		logger.info("Done building inferences");
-
-		return axiomsToAdd;
-
+		
+		return inferences;
 	}
+	
 
 	/**
 	 * Search for redundant axioms.

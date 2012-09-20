@@ -58,6 +58,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.InferenceBuilder;
+import owltools.JustifyAssertionsTool;
+import owltools.JustifyAssertionsTool.JustifyResult;
 import owltools.ThreadedInferenceBuilder;
 import owltools.cli.Opts;
 import owltools.gaf.GafDocument;
@@ -1013,69 +1015,65 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		logger.info("Creating inferences");				
 		List<OWLAxiom> inferredAxioms = infBuilder.buildInferences();
 
-		// ASSERT INFERRED LINKS
-		// TODO: ensure there is a subClassOf axiom for ALL classes that have an equivalence axiom
-		for(OWLAxiom ax: inferredAxioms) {
-			if (ax instanceof OWLSubClassOfAxiom && 
-					((OWLSubClassOfAxiom)ax).getSuperClass().isOWLThing()) {
-				continue;
-			}
-			String ppax = owlpp.render(ax);
-
-			if (oortConfig.isUseIsInferred()) {
-				ax = AxiomAnnotationTools.markAsInferredAxiom(ax, factory);
-			}
-			manager.applyChange(new AddAxiom(ont, ax));
-			String info;
-			if (oortConfig.isJustifyAssertedSubclasses()) {
-				if (removedSubClassOfAxioms.contains(ax)) {
-					info = "EXISTS, ENTAILED";
-				}
-				else {
-					info = "NEW, INFERRED";
-				}
-			}
-			else {
-				info = "NEW, INFERRED";
-			}
-			if (ax instanceof OWLSubClassOfAxiom && 
-					!(((OWLSubClassOfAxiom)ax).getSuperClass() instanceof OWLClass)) {
-				// because the reasoner API can only generated subclass axioms with named superclasses,
-				// we assume that any that have anonymous expressions as superclasses were generated
-				// by the inference builder in the process of translating equivalence axioms
-				// to weaker subclass axioms
-				info = "NEW, TRANSLATED";
-			}
-			String rptLine = info+"\t"+ppax;
-			reasonerReportLines.add(rptLine);
-			logger.info(rptLine);
-		}
 		if (oortConfig.isJustifyAssertedSubclasses()) {
-			OWLReasoner owlReasoner = infBuilder.getReasoner(ont);
-			for (OWLSubClassOfAxiom ax : removedSubClassOfAxioms) {
-				OWLSubClassOfAxiom noAnnotations = ax.getAxiomWithoutAnnotations();
-				if (!inferredAxioms.contains(noAnnotations)) {
-					OWLClassExpression superClass = ax.getSuperClass();
-					boolean entailed = false;
-					if (superClass.isAnonymous() == false) {
-						NodeSet<OWLClass> superClasses = owlReasoner.getSuperClasses(ax.getSubClass(), false);
-						entailed = superClasses.containsEntity(superClass.asOWLClass());
-					}
-					if (entailed) {
-						reasonerReportLines.add("EXISTS, REDUNDANT\t"+owlpp.render(ax));
-					}
-					else {
-						reasonerReportLines.add("EXISTS, NOT-ENTAILED\t"+owlpp.render(ax));
-						// add it back.
-						//  note that we won't have entailments that came from this
-						manager.addAxiom(ont, ax);
-					}
+			OWLReasoner reasoner = infBuilder.getReasoner(ont);
+			JustifyResult result = JustifyAssertionsTool.justifySubClasses(ont, reasoner, removedSubClassOfAxioms, inferredAxioms);
+			for (OWLAxiom ax : result.getExistsEntailed()) {
+				// add to ontology and report
+				addAxiom("EXISTS, ENTAILED", ax, ont, manager, factory, reasonerReportLines);
+			}
+			for (OWLAxiom ax : result.getNewInferred()) {
+				// add to ontology and report
+				addAxiom("NEW, INFERRED", ax, ont, manager, factory, reasonerReportLines);
+			}
+			for (OWLAxiom ax : result.getExistsRedundant()) {
+				// report only
+				String rptLine = "EXISTS, REDUNDANT\t"+owlpp.render(ax);
+				reasonerReportLines.add(rptLine);
+				logger.info(rptLine);
+			}
+			for (OWLAxiom ax : result.getExistsNotEntailed()) {
+				// add to ontology and report
+				manager.applyChange(new AddAxiom(ont, ax));
+				String rptLine = "EXISTS, NOT-ENTAILED\t"+owlpp.render(ax);
+				reasonerReportLines.add(rptLine);
+				logger.info(rptLine);
+			}
+		}
+		else {
+			// default for non-justify mode
+			for(OWLAxiom ax: inferredAxioms) {
+				if (ax instanceof OWLSubClassOfAxiom && 
+						((OWLSubClassOfAxiom)ax).getSuperClass().isOWLThing()) {
+					// ignore owlThing as superClass
+					continue;
 				}
+				String info = "NEW, INFERRED";
+				if (ax instanceof OWLSubClassOfAxiom && 
+						!(((OWLSubClassOfAxiom)ax).getSuperClass() instanceof OWLClass)) {
+					// because the reasoner API can only generated subclass axioms with named superclasses,
+					// we assume that any that have anonymous expressions as superclasses were generated
+					// by the inference builder in the process of translating equivalence axioms
+					// to weaker subclass axioms
+					info = "NEW, TRANSLATED";
+				}
+				addAxiom(info, ax, ont, manager, factory, reasonerReportLines);
 			}
 		}
 		logger.info("Inferences creation completed");
 		
 		return infBuilder;
+	}
+	
+	private void addAxiom(String info, OWLAxiom ax, OWLOntology ont, OWLOntologyManager manager, OWLDataFactory factory, List<String> reasonerReportLines) {
+		if (oortConfig.isUseIsInferred()) {
+			ax = AxiomAnnotationTools.markAsInferredAxiom(ax, factory);
+		}
+		manager.applyChange(new AddAxiom(ont, ax));
+		String ppax = owlpp.render(ax);
+		String rptLine = info+"\t"+ppax;
+		reasonerReportLines.add(rptLine);
+		logger.info(rptLine);
 	}
 
 	/**
@@ -1101,7 +1099,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	{
 		final OWLGraphWrapper g = mooncat.getGraph();
 		final OWLOntology ont = g.getSourceOntology();
-		final OWLDataFactory df = g.getDataFactory();
 		String from = oortConfig.getJustifyAssertedSubclassesFrom();
 		final Set<OWLClass> markedClasses;
 		OWLClass fromClass = from == null ? null: g.getOWLClassByIdentifier(from);
@@ -1171,7 +1168,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			RemoveAxiom rmax = new RemoveAxiom(ont, a);
 			removedSubClassOfAxiomChanges.add(rmax);
-			removedSubClassOfAxioms.add(df.getOWLSubClassOfAxiom(a.getSubClass(), a.getSuperClass()));
+			removedSubClassOfAxioms.add(a);
 		}
 	}
 	
@@ -1190,12 +1187,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			if (AxiomAnnotationTools.isMarkedAsInferredAxiom(a)) {
 				RemoveAxiom rmax = new RemoveAxiom(ont, a);
 				removedSubClassOfAxiomChanges.add(rmax);
-				/* 
-				 * remember the axiom without annotations, otherwise 
-				 * the contains method does not find it in the set for 
-				 * checks employed to create the reasoner report 
-				 */
-				removedSubClassOfAxioms.add(a.getAxiomWithoutAnnotations());
+				removedSubClassOfAxioms.add(a);
 			}
 		}
 	}
