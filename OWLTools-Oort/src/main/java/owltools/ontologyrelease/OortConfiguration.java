@@ -62,6 +62,7 @@ public class OortConfiguration {
 	private boolean justifyAssertedSubclasses = false;
 	private String justifyAssertedSubclassesFrom = null;
 	private boolean useIsInferred = false;
+	private boolean removeTrailingQualifiers = false;
 	private Set<String> sourceOntologyPrefixes = null;
 	private boolean executeOntologyChecks = true;
 	private boolean forceRelease = false;
@@ -401,6 +402,20 @@ public class OortConfiguration {
 	 */
 	public void setUseIsInferred(boolean useIsInferred) {
 		this.useIsInferred = useIsInferred;
+	}
+
+	/**
+	 * @return the removeTrailingQualifiers
+	 */
+	public boolean isRemoveTrailingQualifiers() {
+		return removeTrailingQualifiers;
+	}
+
+	/**
+	 * @param removeTrailingQualifiers the removeTrailingQualifiers to set
+	 */
+	public void setRemoveTrailingQualifiers(boolean removeTrailingQualifiers) {
+		this.removeTrailingQualifiers = removeTrailingQualifiers;
 	}
 
 	public boolean isAutoDetectBridgingOntology() {

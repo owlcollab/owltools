@@ -251,6 +251,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opts.nextEq("--useIsInferred")) {
 				oortConfig.setUseIsInferred(true);
 			}
+			else if (opts.nextEq("--remove-trailing-qualifiers")) {
+				oortConfig.setRemoveTrailingQualifiers(true);
+			}
 			else if (opts.nextEq("--allow-equivalent-pairs")) {
 				oortConfig.setAllowEquivalentNamedClassPairs(true);
 			}
@@ -811,6 +814,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						logger.warn("Force Release: ignore "+summary.errorCount+" errors from ontology check, error message: "+summary.message);
 					}
 				}
+			}
+			if (oortConfig.isRemoveTrailingQualifiers()) {
+				// remove all axiom annotations which translate to trailing qualifiers
+				AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(mooncat.getOntology());
+				
 			}
 			saveInAllFormats(ontologyId, null, gciOntology);
 		} // --end of building main ontology
