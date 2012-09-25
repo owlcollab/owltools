@@ -137,16 +137,18 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			if(cls != null ){
 				//	System.err.println(clsId);
 			
-				// Add to annotation and bioentity isa_partof closures.
+				// Add to annotation and bioentity isa_partof closures; label and id.
 				List<String> idClosure = graph.getIsaPartofIDClosure(cls);
 				List<String> labelClosure = graph.getIsaPartofLabelClosure(cls);
 				annotation_doc.addField("isa_partof_closure", idClosure);
 				annotation_doc.addField("isa_partof_closure_label", labelClosure);
 				for( String tlabel : labelClosure){
 					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tlabel);
-					addFieldUnique(bioentity_doc, "isa_partof_closure", tlabel);
 				}
-					
+				for( String tid : idClosure){
+					addFieldUnique(bioentity_doc, "isa_partof_closure", tid);
+				}
+	
 				// Compile closure maps to JSON.
 				Map<String, String> isa_partof_map = graph.getIsaPartofClosureMap(cls);
 				if( ! isa_partof_map.isEmpty() ){
