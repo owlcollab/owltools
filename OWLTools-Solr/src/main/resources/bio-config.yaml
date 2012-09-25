@@ -1,5 +1,5 @@
 ####
-#### The bioentoty description file for GOlr and AmiGO.
+#### The bioentity description file for GOlr and AmiGO.
 ####
 id: bbop_bio
 description: A description of bioentities file for GOlr.
@@ -7,7 +7,8 @@ display_name: Bioentities
 document_category: bioentity
 weight: 30
 boost_weights: id^2.0 label^2.0
-result_weights: label^2.0 id^1.0
+result_weights: label^4.0 id^3.0 type^2.0 db^1.0
+filter_weights: db^4.0 type^3.0 taxon_label^2.0 isa_partof_closure_label^1.0
 fields:
   - id: id
     description: Bioentity ID.

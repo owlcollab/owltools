@@ -8,6 +8,8 @@ display_name: Evidence Aggregate
 document_category: annotation_evidence_aggregate
 weight: 10
 boost_weights: annotation_class^2.0 annotation_class_label^1.0 bioentity^2.0 bioentity_label^1.0
+result_weights: bioentity_label^4.0 annotation_class_label^3.0
+filter_weights: evidence_closure^4.0 evidence_with^3.0
 fields:
   - id: id
     description: Bioentity id.

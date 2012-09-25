@@ -8,6 +8,7 @@ document_category: ontology_class
 weight: 40
 boost_weights: id^2.0 label^2.0 description^1.0 comment^0.5 synonym^1.0 alternate_id^1.0
 result_weights: label^10.0 id^8.0 description^6.0 source^4.0 synonym^3.0 alternate_id^2.0 comment^1.0
+filter_weights: source^4.0 subset^2.0 isa_partof_closure_label^1.0 is_obsolete^0.0
 fields:
   - id: id
     description: Term acc/ID.
