@@ -51,6 +51,7 @@ public class GafCommandRunner extends CommandRunner {
 	
 	public GafDocument gafdoc = null;
 	
+	private String gafReportSummaryFile = null;
 	private String gafReportFile = null;
 	
 	public OWLGraphWrapper eco = null;
@@ -211,17 +212,25 @@ public class GafCommandRunner extends CommandRunner {
 			AnnotationRulesEngineResult result = ruleEngine.validateAnnotations(gafdoc);
 			LOG.info("Finished validating GAF");
 			File reportFile = new File(gafReportFile);
+			File summaryFile = null;
+			if (gafReportSummaryFile != null) {
+				summaryFile = new File(gafReportSummaryFile);
+			}
 			
 			// no violations found, delete previous error file (if it exists)
 			if (result.isEmpty()) {
 				System.out.println("No violations found for gaf.");
 				FileUtils.deleteQuietly(reportFile);
 				FileUtils.write(reportFile, ""); // create empty file
+				if (summaryFile != null) {
+					FileUtils.deleteQuietly(summaryFile);
+					FileUtils.write(summaryFile, ""); // create empty file
+				}
 				return;
 			}
 			
 			// write violations
-			writeAnnotationRuleViolations(result, ruleEngine, reportFile);
+			writeAnnotationRuleViolations(result, ruleEngine, reportFile, summaryFile);
 			
 			System.err.print("Summary:");
 			for(ViolationType type : result.getTypes()) {
@@ -262,13 +271,20 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	private void writeAnnotationRuleViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, File reportFile) throws IOException {
+	private void writeAnnotationRuleViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
+			File reportFile, File summaryFile) throws IOException
+	{
 		LOG.info("Start writing violations to report file: "+gafReportFile);
 		PrintWriter writer = null;
+		PrintWriter summaryWriter = null;
 		try {
+			if (summaryFile != null) {
+				summaryWriter = new PrintWriter(summaryFile);
+			}
 			writer = new PrintWriter(reportFile);
-			AnnotationRulesEngineResult.renderViolations(result, engine, writer);
+			AnnotationRulesEngineResult.renderViolations(result, engine, writer, summaryWriter);
 		} finally {
+			IOUtils.closeQuietly(summaryWriter);
 			IOUtils.closeQuietly(writer);
 			LOG.info("Finished writing violations to report file.");
 		}
@@ -278,6 +294,13 @@ public class GafCommandRunner extends CommandRunner {
 	public void setGAFReportFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafReportFile = opts.nextOpt();
+		}
+	}
+	
+	@CLIMethod("--gaf-report-summary-file")
+	public void setGAFReportSummaryFile(Opts opts) {
+		if (opts.hasArgs()) {
+			gafReportSummaryFile = opts.nextOpt();
 		}
 	}
 	

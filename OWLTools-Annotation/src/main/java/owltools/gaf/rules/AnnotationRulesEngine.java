@@ -289,6 +289,18 @@ public class AnnotationRulesEngine {
 		 * @param writer
 		 */
 		public static void renderViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, PrintWriter writer) {
+			renderViolations(result, engine, writer, null);
+		}
+		
+		/**
+		 * A simple tab delimited print-out of the result and a simple summary.
+		 * 
+		 * @param result
+		 * @param engine
+		 * @param writer
+		 * @param summaryWriter
+		 */
+		public static void renderViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, PrintWriter writer, PrintWriter summaryWriter) {
 			List<ViolationType> types = result.getTypes();
 			if (types.isEmpty()) {
 				// do nothing
@@ -296,6 +308,11 @@ public class AnnotationRulesEngine {
 			}
 			writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
 			writer.println("#------------");
+			if (summaryWriter != null) {
+				summaryWriter.println("*GAF Validation Summary*");
+				summaryWriter.println("Errors are reported first.");
+				summaryWriter.println();
+			}
 			for(ViolationType type : types) {
 				Map<String, List<AnnotationRuleViolation>> violations = result.getViolations(type);
 				List<String> ruleIds = new ArrayList<String>(violations.keySet());
@@ -312,6 +329,19 @@ public class AnnotationRulesEngine {
 					writer.print("\tcount:\t");
 					writer.print(violationList.size());
 					writer.println();
+					
+					if (summaryWriter != null) {
+						summaryWriter.print("For rule ");
+						summaryWriter.print(ruleId);
+						summaryWriter.print(' ');
+						summaryWriter.print(rule.getName());
+						summaryWriter.print(" there is/are ");
+						summaryWriter.print(violationList.size());
+						summaryWriter.print(" violation(s) with type ");
+						summaryWriter.print(type.name());
+						summaryWriter.println();
+						summaryWriter.println();
+					}
 					for (AnnotationRuleViolation violation : violationList) {
 						writer.print(violation.getLineNumber());
 						writer.print('\t');
