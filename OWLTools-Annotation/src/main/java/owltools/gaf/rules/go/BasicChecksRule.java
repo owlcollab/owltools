@@ -118,8 +118,12 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		
 		if(cols.length>15){
 			checkCardinality(cols[15], 15,"Column 16: DB Object Type", row, 0,3, set,a);
-			checkCardinality(cols[16], 16,"Column 17: DB Object Type", row, 0,3, set,a);
+			if (cols.length>16) {
+				// check otherwise, there is an un-informative array-out-of-bound exception for an optional value
+				checkCardinality(cols[16], 16,"Column 17: DB Object Type", row, 0,3, set,a);
+			}
 		}
+		
 		
 		//check date format
 		String dtString = cols[GAFParser.DATE];
