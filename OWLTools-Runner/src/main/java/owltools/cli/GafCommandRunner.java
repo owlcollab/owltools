@@ -5,9 +5,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,6 +27,7 @@ import owltools.cli.tools.CLIMethod;
 import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.GafParserListener;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
@@ -50,6 +53,7 @@ public class GafCommandRunner extends CommandRunner {
 	private static final Logger LOG = Logger.getLogger(GafCommandRunner.class);
 	
 	public GafDocument gafdoc = null;
+	private GafParserReport parserReport = null;
 	
 	private String gafReportSummaryFile = null;
 	private String gafReportFile = null;
@@ -64,9 +68,40 @@ public class GafCommandRunner extends CommandRunner {
 	 */
 	@CLIMethod("--gaf")
 	public void gaf(Opts opts) throws Exception {
-		opts.info("GAF-FILE", "parses GAF and makes this the current GAF document");
-		GafObjectsBuilder builder = new GafObjectsBuilder();
+		opts.info("GAF-FILE [--createReport]", "parses GAF and makes this the current GAF document");
 		final String input = opts.nextOpt();
+		boolean createReport = false;
+		if (opts.hasOpts() && opts.nextEq("--createReport")) {
+			createReport = true;
+		}
+		
+		GafObjectsBuilder builder = new GafObjectsBuilder();
+		if (createReport) {
+			parserReport = new GafParserReport();
+			builder.getParser().addParserListener(new GafParserListener() {
+				
+				@Override
+				public boolean reportWarnings() {
+					return true;
+				}
+				
+				@Override
+				public void parsing(String line, int lineNumber) {
+					// intentionally empty
+				}
+				
+				@Override
+				public void parserWarning(String message, String line, int lineNumber) {
+					parserReport.warnings.add(new GafParserMessages(message, line, lineNumber));
+				}
+				
+				@Override
+				public void parserError(String errorMessage, String line, int lineNumber) {
+					parserReport.errors.add(new GafParserMessages(errorMessage, line, lineNumber));
+				}
+			});
+			
+		}
 		LOG.info("Start loading GAF from: "+input);
 		gafdoc = builder.buildDocument(input);
 		if (gafdoc == null) {
@@ -200,6 +235,43 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
+	
+	
+	private static class GafParserReport {
+		
+		final List<GafParserMessages> errors = new ArrayList<GafParserMessages>();
+		final List<GafParserMessages> warnings = new ArrayList<GafParserMessages>();
+		
+		boolean hasWarningsOrErrors() {
+			return !warnings.isEmpty() || !errors.isEmpty();
+		}
+		
+		boolean hasWarnings() {
+			return !warnings.isEmpty();
+		}
+		
+		boolean hasErrors() {
+			return !errors.isEmpty();
+		}
+		
+		boolean hasNothingToReport() {
+			return warnings.isEmpty() && errors.isEmpty();
+		}
+	}
+	
+	private static class GafParserMessages {
+		
+		String errorMessage;
+		String line;
+		int lineNumber;
+		
+		GafParserMessages(String errorMessage, String line, int lineNumber) {
+			this.errorMessage = errorMessage;
+			this.line = line;
+			this.lineNumber = lineNumber;
+		}
+	}
+	
 	@CLIMethod("--gaf-run-checks")
 	public void runGAFChecks(Opts opts) throws Exception {
 		if (g != null && gafdoc != null && gafReportFile != null) {
@@ -218,7 +290,7 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			
 			// no violations found, delete previous error file (if it exists)
-			if (result.isEmpty()) {
+			if ((parserReport == null || parserReport.hasNothingToReport()) && result.isEmpty()) {
 				System.out.println("No violations found for gaf.");
 				FileUtils.deleteQuietly(reportFile);
 				FileUtils.write(reportFile, ""); // create empty file
@@ -229,10 +301,17 @@ public class GafCommandRunner extends CommandRunner {
 				return;
 			}
 			
-			// write violations
-			writeAnnotationRuleViolations(result, ruleEngine, reportFile, summaryFile);
+			// write parse errors and rule violations
+			writeParseErrorsAndRuleViolations(parserReport, result, ruleEngine, reportFile, summaryFile);
 			
-			System.err.print("Summary:");
+			if (parserReport != null && parserReport.hasWarningsOrErrors()) {
+				System.err.print("Parser summary Error count: ");
+				System.err.print(parserReport.errors.size());
+				System.err.print(" Warning count: ");
+				System.err.println(parserReport.warnings.size());
+			}
+			
+			System.err.print("Rule summary:");
 			for(ViolationType type : result.getTypes()) {
 				System.err.print(" ");
 				System.err.print(type.name());
@@ -244,11 +323,15 @@ public class GafCommandRunner extends CommandRunner {
 			
 			
 			// handle error vs warnings
-			if (result.hasErrors()) {
+			if (parserReport != null && parserReport.hasErrors()) {
+				System.out.println("GAF Validation NOT successful. There is at least one PARSER ERROR.");
+				exit(-1); // end with an error code to indicate to Jenkins, that it has errors
+			}
+			else  if (result.hasErrors()) {
 				System.out.println("GAF Validation NOT successful. There is at least one ERROR.");
 				exit(-1); // end with an error code to indicate to Jenkins, that it has errors
 			}
-			else if (result.hasWarnings()){
+			else if (result.hasWarnings() || (parserReport != null && parserReport.hasWarnings())){
 				System.out.println("GAF Validation NOT successful. There is at least one WARNING.");
 				// print magic string for Jenkins (Text-finder Plug-in) to indicate an unstable build.
 			}
@@ -271,7 +354,8 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	private void writeAnnotationRuleViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
+	private void writeParseErrorsAndRuleViolations(GafParserReport parserReport, 
+			AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
 			File reportFile, File summaryFile) throws IOException
 	{
 		LOG.info("Start writing violations to report file: "+gafReportFile);
@@ -282,12 +366,73 @@ public class GafCommandRunner extends CommandRunner {
 				summaryWriter = new PrintWriter(summaryFile);
 			}
 			writer = new PrintWriter(reportFile);
+			if (parserReport != null && parserReport.hasWarningsOrErrors()) {
+				writeParseErrors(parserReport, writer, summaryWriter);
+			}
 			AnnotationRulesEngineResult.renderViolations(result, engine, writer, summaryWriter);
 		} finally {
 			IOUtils.closeQuietly(summaryWriter);
 			IOUtils.closeQuietly(writer);
 			LOG.info("Finished writing violations to report file.");
 		}
+	}
+	
+	private void writeParseErrors(GafParserReport report, PrintWriter writer, PrintWriter summaryWriter) throws IOException {
+		if (summaryWriter != null) {
+			summaryWriter.println("*GAF Parser Summary*");
+			summaryWriter.println();
+			if (report.hasErrors()) {
+				summaryWriter.println("There are "+report.errors.size()+" GAF parser errors.");
+				summaryWriter.println();
+			}
+			if (report.hasWarnings()) {
+				summaryWriter.println("There are "+report.warnings.size()+" GAF parser warnings.");
+				summaryWriter.println();
+			}
+		}
+		writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
+		writer.println("#------------");
+		writer.print("# ");
+		writer.print('\t');
+		writer.print("GAF Parser");
+		writer.print('\t');
+		writer.print("ERROR");
+		writer.print("\tcount:\t");
+		writer.print(report.errors.size());
+		writer.println();
+		for (GafParserMessages gafParserError : report.errors) {
+			writer.print(gafParserError.lineNumber);
+			writer.print('\t');
+			writer.print('\t');
+			writer.print("PARSER ERROR");
+			writer.print('\t');
+			writer.print(gafParserError.errorMessage);
+			writer.print('\t');
+			writer.print(gafParserError.line);
+			writer.println();
+		}
+		
+		writer.println("#------------");
+		writer.print("# ");
+		writer.print('\t');
+		writer.print("GAF Parser");
+		writer.print('\t');
+		writer.print("WARNING");
+		writer.print("\tcount:\t");
+		writer.print(report.warnings.size());
+		writer.println();
+		for (GafParserMessages gafParserError : report.warnings) {
+			writer.print(gafParserError.lineNumber);
+			writer.print('\t');
+			writer.print('\t');
+			writer.print("WARNING");
+			writer.print('\t');
+			writer.print(gafParserError.errorMessage);
+			writer.print('\t');
+			writer.print(gafParserError.line);
+			writer.println();
+		}
+		writer.println("#------------");
 	}
 	
 	@CLIMethod("--gaf-report-file")

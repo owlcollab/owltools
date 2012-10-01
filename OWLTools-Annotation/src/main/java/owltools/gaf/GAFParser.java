@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -107,6 +108,14 @@ public class GAFParser {
 				fireParsing();
 				
 				this.currentCols = this.currentRow.split("\\t", -1);
+				if (expectedNumCols == 17 && currentCols.length == 16) {
+					LOG.warn("Fix missing tab for GAF 2.0 format in line: "+lineNumber);
+					// repair
+					// add an empty "" to the array
+					this.currentCols = Arrays.copyOf(currentCols, 17);
+					this.currentCols[16] = "";
+					fireParsingWarning("Fix missing tab for GAF 2.0 format, expected 17 columns but found only 16.");
+				}
 				if (currentCols.length != expectedNumCols) {
 
 					String error = "Got invalid number of columns for row (expected "
@@ -119,15 +128,13 @@ public class GAFParser {
 						String v =error;
 						voilations.add(v);
 						fireParsingError(error);
-	//					errors.add(error);
 						LOG.error(error + " : " + this.currentRow);
 						return next();
 					}else{
+						fireParsingWarning(error);
 						LOG.warn(error + " : " + this.currentRow);
 					}
-				}/*else{
-					performBasicChecks(this.currentCols);
-				}*/
+				}
 				return true;
 			}
 			
@@ -147,6 +154,14 @@ public class GAFParser {
 	private void fireParsingError(String message){
 		for(GafParserListener listner: parserListeners){
 			listner.parserError(message, this.currentRow, lineNumber);
+		}
+	}
+	
+	private void fireParsingWarning(String message){
+		for(GafParserListener listner: parserListeners){
+			if (listner.reportWarnings()) {
+				listner.parserWarning(message, this.currentRow, lineNumber);
+			}
 		}
 	}
 	
