@@ -1,0 +1,56 @@
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: : <http://purl.obolibrary.org/obo/TEST_>
+
+Ontology: <http://purl.obolibrary.org/obo/test.owl>
+
+Class: :a
+  Annotations: rdfs:comment "Root of the core hierarchy which will be used to classify the derived hierarchy. The NR hierarchy is d < c < b < a. We also include a redundant indirect link from d to a"^^xsd:string
+
+Class: :b
+ SubClassOf: :a
+
+Class: :c
+ SubClassOf: :b
+
+Class: :d
+ SubClassOf: :c
+ SubClassOf: 
+  Annotations: rdfs:comment "An example of a trivial redundant link: d is connected to a via c < b"
+  :a
+
+Class: :a_development
+  Annotations: rdfs:comment "Root of the derived hierarchy. the Direct-Inferred hierarchy should be d_dev < c_dev < b_dev < a_dev."^^xsd:string
+  EquivalentTo: :has_output some :a
+
+Class: :b_development
+ SubClassOf: 
+  Annotations: rdfs:comment "Direct-Inferred AND Asserted. If this link were not asserted, it would be inferred as a DIRECT superclass. This would always be retained in the public ontology, but may be removed in editors version unless asserted-direct-superclasses is set"^^xsd:string
+   :a_development
+ EquivalentTo: :has_output some :b
+
+Class: :c_development
+ EquivalentTo: :has_output some :c
+
+Class: :d_development
+ Annotations: rdfs:comment "should be inferred subclass of c_development. For testing we include two redundant indirect links to a and b development, both of whoch should be removed. One of these is explicitly annotated as being redundant"^^xsd:string
+ SubClassOf: 
+   Annotations: rdfs:comment "Indirect-Inferred AND Asserted. Should be removed (unless user wants to retain assertion of indirect axioms with annotations)."^^xsd:string
+   :b_development
+ SubClassOf: 
+   :a_development
+  EquivalentTo: :has_output some :d
+
+ObjectProperty: :has_output
+AnnotationProperty: rdfs:label
+
+
+
+
+
+
+
+
