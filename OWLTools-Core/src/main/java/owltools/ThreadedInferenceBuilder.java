@@ -96,17 +96,19 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 		List<OWLClass> workSet = new ArrayList<OWLClass>();
 		final Set<OWLClass> allClasses = ontology.getClassesInSignature();
 		int chunkSize = allClasses.size() / threads;
+		int threadCount = 1;
 		for (OWLClass cls : allClasses) {
 			workSet.add(cls);
 			if (workSet.size() == chunkSize) {
-				GetRedundantAxiomsTask task = new GetRedundantAxiomsTask(workSet, ontology, reasoner, dataFactory);
+				GetRedundantAxiomsTask task = new GetRedundantAxiomsTask(workSet, ontology, reasoner, dataFactory, Integer.toString(threadCount));
+				threadCount += 1;
 				futures.add(executor.submit(task));
 				workSet = new ArrayList<OWLClass>();
 			}
 			
 		}
 		if (!workSet.isEmpty()) {
-			GetRedundantAxiomsTask task = new GetRedundantAxiomsTask(workSet, ontology, reasoner, dataFactory);
+			GetRedundantAxiomsTask task = new GetRedundantAxiomsTask(workSet, ontology, reasoner, dataFactory, Integer.toString(threadCount));
 			futures.add(executor.submit(task));
 		}
 		try {
@@ -131,13 +133,15 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 
 	private static class GetRedundantAxiomsTask implements Callable<Set<OWLAxiom>> {
 		
+		private final String id;
 		private final List<OWLClass> workSet;
 		private final OWLOntology ontology;
 		private final OWLReasoner reasoner;
 		private final OWLDataFactory dataFactory;
 
-		GetRedundantAxiomsTask(List<OWLClass> workSet, OWLOntology ontology, OWLReasoner reasoner, OWLDataFactory dataFactory) {
+		GetRedundantAxiomsTask(List<OWLClass> workSet, OWLOntology ontology, OWLReasoner reasoner, OWLDataFactory dataFactory, String id) {
 			super();
+			this.id = id;
 			this.workSet = workSet;
 			this.ontology = ontology;
 			this.reasoner = reasoner;
@@ -146,10 +150,19 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 
 		@Override
 		public Set<OWLAxiom> call() throws Exception {
+			int size = workSet.size();
+			int steps = (size / 10) + 1;
+			LOG.info("Start thread "+id+" with classes count: "+size);
 			Set<OWLAxiom> redundantAxioms = new HashSet<OWLAxiom>();
+			int count = 0;
 			for (OWLClass cls : workSet) {
 				updateRedundant(cls, ontology, redundantAxioms, reasoner, dataFactory);
+				count += 1;
+				if (count % steps == 0) {
+					LOG.info("Thread "+id+" Progress: "+count+"/"+size);
+				}
 			}
+			LOG.info("Done thread "+id);
 			return redundantAxioms;
 		}
 		
