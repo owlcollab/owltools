@@ -2,9 +2,6 @@ package org.bbop.gui;
 
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -23,18 +20,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.JComponent;
-import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
-import javax.swing.event.InternalFrameAdapter;
-import javax.swing.event.InternalFrameEvent;
 
-import org.apache.log4j.Logger;
 import org.bbop.graph.DefaultNodeFactory;
 import org.bbop.graph.DefaultNodeLabelProvider;
 import org.bbop.graph.DefaultTypeColorManager;
@@ -90,18 +79,13 @@ import edu.umd.cs.piccolo.util.PPickPath;
 
 public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvider {
 
-	//initialize logger
-	protected final static Logger logger = Logger.getLogger(GraphCanvas.class);
-
-	protected static final Object CURRENT_DECORATOR_ANIMATIONS = new Object();
-
-//	public static final long DEFAULT_LAYOUT_DURATION = 1000;
-	public static final long DEFAULT_LAYOUT_DURATION = 750;
+	// generated
+	private static final long serialVersionUID = 3863061306003913893L;
 	
-	// If user selects (in another component) too many things at once, Graph Editor will ignore the selection event.
-	public static final short TOO_MANY_SELECTED = 10;
-
-	public static final Comparator<Object> LAYOUT_ORDERING_COMPARATOR = new Comparator<Object>() {
+	private static final Object CURRENT_DECORATOR_ANIMATIONS = new Object();
+	private static final long DEFAULT_LAYOUT_DURATION = 750;
+	
+	private static final Comparator<Object> LAYOUT_ORDERING_COMPARATOR = new Comparator<Object>() {
 
 		@Override
 		public int compare(Object o1, Object o2) {
@@ -122,15 +106,11 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 
 	};
 
-	// generated
-	private static final long serialVersionUID = 3863061306003913893L;
-
 	@SuppressWarnings("unchecked")
-	public static void decorateNode(PRoot root, PNode canvas, Collection<NodeDecorator> decorators, 
+	static void decorateNode(PRoot root, PNode canvas, Collection<NodeDecorator> decorators, 
 			boolean noAnimation, boolean postLayout)
 	{
-		Collection<PActivity> currentActivities = (Collection<PActivity>) canvas
-				.getAttribute(CURRENT_DECORATOR_ANIMATIONS);
+		Collection<PActivity> currentActivities = (Collection<PActivity>) canvas.getAttribute(CURRENT_DECORATOR_ANIMATIONS);
 		if (currentActivities == null) {
 			currentActivities = new LinkedList<PActivity>();
 			canvas.addAttribute(CURRENT_DECORATOR_ANIMATIONS, currentActivities);
@@ -153,36 +133,20 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 		}
 	}
 
-	private JInternalFrame internalFrame;
-
 	private boolean isLayingOut = false;
-
-	private boolean isLive = true;
-
-	private KeyListener keyListener;
-
-	private Image layoutCacheImage;
-
-	private long layoutDuration = new Long(System.getProperty(
-			"LAYOUT_DURATION", DEFAULT_LAYOUT_DURATION + ""));
-
 
 	private OWLObject focus = null;
 
 	private PNode newLayer;
-	private final JPanel placementPanel = new JPanel();
-	private LinkedList<Runnable> postLayoutQueue = new LinkedList<Runnable>();
 	private PActivity relayoutActivity;
 
-	private ExpandCollapseListener expandCollapseListener = new ExpandCollapseListener() {
-		
-		@Override
-		public void expandStateChanged(ExpansionEvent e) {
-			relayout();
-		}
-	};
-	
     private static class CanvasConfig {
+    	
+    	static boolean useFocusPicker = false; 		// does not make sense for this application
+    	static boolean useToolTip = true; 			// tooltips are always nice
+    	static boolean useZoomWidget = true;		// allow to 
+    	static boolean useBoundsGuarantor = false;	// the bounds generator refocuses on the current nodes,
+    												// this is a bit too dynamic if you allow also collapsible nodes
     	
     	NodeLabelProvider nodeLabelProvider;
     	NodeSizeProvider nodeSizeProvider;
@@ -190,6 +154,7 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 
     	LinkDatabaseLayoutEngine layoutEngine;
     	
+    	KeyListener keyListener;
     	MouseListener mouseListener;
 
     	MouseMotionListener mouseMotionListener;
@@ -201,6 +166,7 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 
     	List<ViewBehavior> viewBehaviors = new LinkedList<ViewBehavior>();
 
+    	private long layoutDuration = DEFAULT_LAYOUT_DURATION;
     	boolean disableAnimations = false;
 
     	Collection<NodeDecorator> decorators = new LinkedList<NodeDecorator>();
@@ -225,45 +191,45 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 		config.nodeLabelProvider = new HTMLNodeLabelProvider("<center><font face='Arial'>$name$</font></center>", new DefaultNodeLabelProvider(graph));
 		config.nodeSizeProvider = new LabelBasedNodeSizeProvider(config.nodeLabelProvider);
 		
-		addViewBehavior(new FocusPicker());
-		addViewBehavior(new TooltipBehavior());
-		addViewBehavior(new ZoomWidgetBehavior(8, 20));
-		addViewBehavior(new BoundsGuarantor() {
-			@Override
-			protected void installDefaultCyclers() {
-				addBoundsGuarantor(new ZoomToAllGuarantor(canvas));
-			}
-		});
+		if (CanvasConfig.useFocusPicker) {
+			addViewBehavior(new FocusPicker());
+		}
+		if (CanvasConfig.useToolTip) {
+			addViewBehavior(new TooltipBehavior());
+		}
+		if (CanvasConfig.useZoomWidget) {
+			addViewBehavior(new ZoomWidgetBehavior(8, 20));
+		}
+		if (CanvasConfig.useBoundsGuarantor) {
+			addViewBehavior(new BoundsGuarantor() {
+				@Override
+				protected void installDefaultCyclers() {
+					addBoundsGuarantor(new ZoomToAllGuarantor(canvas));
+				}
+			});
+		}
 		addViewBehavior(new LinkButtonBehavior());
+		
 		
 		DefaultTypeColorManager typeManager = new DefaultTypeColorManager(graph);
 		config.nodeFactory = new DefaultNodeFactory(typeManager, typeManager, config.nodeLabelProvider, new LinkTooltipFactory(graph));
 		
 		config.database = new DefaultLinkDatabase(graph, reasoner);
 		config.collapsibleDatabase = new CollapsibleLinkDatabase(config.database);
-		config.collapsibleDatabase.addListener(expandCollapseListener);
-//		config.layoutEngine = new LinkDatabaseLayoutEngine(config.database , graphLayout, config.nodeFactory, config.nodeSizeProvider, config.nodeLabelProvider);
+		config.collapsibleDatabase.addListener(new ExpandCollapseListener() {
+			
+			@Override
+			public void expandStateChanged(ExpansionEvent e) {
+				relayout();
+			}
+		});
 		config.layoutEngine = new LinkDatabaseLayoutEngine(config.collapsibleDatabase , graphLayout, config.nodeFactory, config.nodeSizeProvider, config.nodeLabelProvider);
 		
 		setPanEventHandler(new SingleCameraPanHandler());
 		getPanEventHandler().setAutopan(false);
 		setAutoscrolls(false);
-		placementPanel.setOpaque(false);
-
-		
 		
 		installListeners();
-	}
-
-	public void addPostLayoutAction(Runnable r) {
-		postLayoutQueue.add(r);
-	}
-
-	protected void completeQueuedActions() {
-		while (!postLayoutQueue.isEmpty()) {
-			Runnable r = postLayoutQueue.removeFirst();
-			r.run();
-		}
 	}
 
 	@Override
@@ -273,16 +239,6 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 
 	public void decorate() {
 		decorateNode(getRoot(), getLayer(), config.decorators, false, false);
-	}
-
-	public void destroyPopupFrame() {
-		if (internalFrame != null) {
-			remove(internalFrame);
-			internalFrame.dispose();
-			internalFrame = null;
-			repaint();  // This repaint is needed so that dialog boxes containing lists of child terms close cleanly when the 'X' is pressed
-						// in non-animated mode in the Graph Editor.
-		}
 	}
 
 	public void dim() {
@@ -335,7 +291,7 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 	}
 
 	public long getLayoutDuration() {
-		return layoutDuration;
+		return config.layoutDuration;
 	}
 
 	public LinkDatabase getLinkDatabase() {
@@ -637,8 +593,8 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 			addMouseWheelListener(config.mouseWheelListener);
 		}
 
-		if (keyListener == null) {
-			keyListener = new KeyListener() {
+		if (config.keyListener == null) {
+			config.keyListener = new KeyListener() {
 				@Override
 				public void keyPressed(KeyEvent e) {
 					sendInputEventToInputManager(e, KeyEvent.KEY_PRESSED);
@@ -654,7 +610,7 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 					sendInputEventToInputManager(e, KeyEvent.KEY_TYPED);
 				}
 			};
-			addKeyListener(keyListener);
+			addKeyListener(config.keyListener);
 		}
 	}
 
@@ -666,7 +622,6 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 				getZoomEventHandler().setMaxScale(getMaxZoom());
 				float minZoom = getMinZoom();
 				getZoomEventHandler().setMinScale(minZoom);
-				completeQueuedActions();
 			}
 
 			@Override
@@ -702,57 +657,10 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 		return isLayingOut;
 	}
 
-	public boolean isLive() {
-		return isLive;
-	}
-
-	@Override
-	public void paint(Graphics g) {
-		if (getDisableAnimations() && isLayingOut() && layoutCacheImage != null) {
-			g.drawImage(layoutCacheImage, 0, 0, null);
-		} else
-			super.paint(g);
-	}
-
 	public void panToObjects() {
 		PBounds centerBounds = getLayer().getFullBoundsReference();
 		getCamera().animateViewToCenterBounds(centerBounds, false,
 				getLayoutDuration());
-	}
-
-	public void popupInFrame(JComponent component, String title, int x, int y) {
-		destroyPopupFrame();
-
-		internalFrame = new JInternalFrame(title, true, true, false, false);
-		internalFrame.setDefaultCloseOperation(JInternalFrame.DO_NOTHING_ON_CLOSE);
-		internalFrame.addInternalFrameListener(new InternalFrameAdapter() {
-
-			@Override
-			public void internalFrameClosing(InternalFrameEvent e) {
-				destroyPopupFrame();
-			}
-		});
-		JScrollPane pane = new JScrollPane(
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		pane.getViewport().setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
-		pane.setViewportView(component);
-		internalFrame.getRootPane().setOpaque(false);
-		pane.setOpaque(false);
-		pane.setCorner(JScrollPane.LOWER_RIGHT_CORNER, new JPanel());
-		pane.getViewport().setOpaque(false);
-		internalFrame.setContentPane(pane);
-		internalFrame.pack();
-		Dimension d = new Dimension(Math.min(internalFrame.getWidth(),
-				getWidth()), Math.min(internalFrame.getHeight(), getHeight()));
-		internalFrame.setSize(d);
-		if (x + d.getWidth() > getWidth())
-			x -= (x + d.getWidth()) - getWidth();
-		if (y + d.getHeight() > getHeight())
-			y -= (y + d.getHeight()) - getHeight();
-		internalFrame.setLocation(x, y);
-		add(internalFrame);
-		internalFrame.setVisible(true);
 	}
 
 	public void relayout() {
@@ -785,9 +693,9 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 		}
 		relayoutActivity.setDelegate(new PActivityDelegate() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public void activityFinished(PActivity activity) {
-				// decorate();
 				isLayingOut = false;
 				newLayer = null;
 
@@ -855,19 +763,6 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 		}
 	}
 	
-	public void setLive(boolean isLive) {
-		this.isLive = isLive;
-		repaint(); // in order to change background color
-	}
-
-	public void setPlacementPanelVisible(boolean isVisible) {
-		if (isVisible) {
-			add(placementPanel, "Center");
-		} else {
-			remove(placementPanel);
-		}
-	}
-
 	public void show(Collection<OWLObject> pcs, boolean zoom) {
 		PBounds b = getBounds(pcs);
 		getCamera().animateViewToCenterBounds(b, zoom, getLayoutDuration());
@@ -931,11 +826,12 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 		Collection<OWLObject> out = new HashSet<OWLObject>();
 		for (OWLObject io : config.collapsibleDatabase.getObjects()) {
 			out.add(io);
-//			for (Link link : config.database.getParents(io)) {
-//				// TODO
-//				out.add(link);
-//			}
 		}
 		return out;
+	}
+	
+	public void reset() {
+		config.collapsibleDatabase.setVisibleObjects(config.database.getRoots(), false);
+		relayout();
 	}
 }
