@@ -38,7 +38,8 @@ public class LinkButtonBehavior implements ViewBehavior {
 		EXPAND_PARENTS(true, false, false), 
 		EXPAND_CHILDREN(true, true, false), 
 		COLLAPSE_PARENTS(false, false, false),
-		COLLAPSE_CHILDREN(false, true, false);
+		COLLAPSE_CHILDREN(false, true, false),
+		CLOSE(false, false, true);
 
 		protected int height = 30;
 
