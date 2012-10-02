@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import org.coode.oppl.ParserFactory;
 import org.coode.oppl.exceptions.RuntimeExceptionHandler;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
+import org.coode.owlapi.turtle.TurtleOntologyFormat;
 import org.coode.parsers.common.SystemErrorEcho;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
@@ -41,6 +43,7 @@ import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
+import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -106,6 +109,8 @@ import owltools.io.GraphClosureRenderer;
 import owltools.io.GraphReader;
 import owltools.io.GraphRenderer;
 import owltools.io.ImportClosureSlurper;
+import owltools.io.OWLGsonRenderer;
+import owltools.io.OWLJSONFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
@@ -396,6 +401,16 @@ public class CommandRunner {
 				Mooncat m = new Mooncat(g);
 				m.removeExternalEntities();
 			}
+			else if (opts.nextEq("--remove-dangling")) {
+				Mooncat m = new Mooncat(g);
+				m.removeDanglingAxioms();
+			}
+			else if (opts.nextEq("--make-subset-by-properties")) {
+				Set<OWLObjectProperty> props = this.resolveObjectPropertyList(opts);
+				Mooncat m = new Mooncat(g);
+				m.retainAxiomsInPropertySubset(g.getSourceOntology(),props,reasoner);
+				m.removeDanglingAxioms();
+			}
 			else if (opts.nextEq("--info")) {
 				opts.info("","show ontology statistics");
 				for (OWLOntology ont : g.getAllOntologies()) {
@@ -455,6 +470,29 @@ public class CommandRunner {
 					g.getManager().removeAxioms(o, aas);
 
 				}
+			}
+			else if (opts.nextEq("--apply-patch")) {
+				opts.info("minusAxiomsOntology plusAxiomsOntology", "applies 'patch' to current ontology");
+				OWLOntology ontMinus = pw.parse(opts.nextOpt());
+				OWLOntology ontPlus = pw.parse(opts.nextOpt());
+				OWLOntology src = g.getSourceOntology();
+				Set<OWLAxiom> rmAxioms = ontMinus.getAxioms();
+				Set<OWLAxiom> addAxioms = ontPlus.getAxioms();
+				int numPre = src.getAxiomCount();
+				LOG.info("Removing "+rmAxioms.size()+" axioms from src, current axiom count="+numPre);
+				g.getManager().removeAxioms(src, rmAxioms);
+				int numPost = src.getAxiomCount();
+				LOG.info("Removed axioms from src, new axiom count="+numPost);
+				if (numPre-numPost != rmAxioms.size()) {
+					LOG.error("Some axioms not found!");
+				}
+				LOG.info("Adding "+addAxioms.size()+" axioms to src, current axiom count="+numPost);
+				g.getManager().addAxioms(src, addAxioms);
+				LOG.info("Added "+addAxioms.size()+" axioms to src, new count="+src.getAxiomCount());
+				if (src.getAxiomCount() - numPost != addAxioms.size()) {
+					LOG.error("Some axioms already there!");
+				}
+				
 			}
 			else if (opts.nextEq("--translate-xrefs-to-equivs")) {
 				// TODO
@@ -585,14 +623,17 @@ public class CommandRunner {
 				for (OWLOntology o : g.getAllOntologies()) {
 					LOG.info("Ontology:"+o);
 					IRI oi = o.getOntologyID().getOntologyIRI();
+					// Note: using the owl:imports property triggers the OWLAPI to load ths import
+					IRI fakeImportsPropertyIRI = IRI.create("http://www.geneontology.org/formats/oboInOwl#imports");
 					for (OWLAnnotation ann : o.getAnnotations()) {
 						OWLAnnotationAssertionAxiom aaa = mdg.getDataFactory().getOWLAnnotationAssertionAxiom(oi, ann);
 						LOG.info("  adding ontology metadata assertion:"+aaa);
 						mdg.getManager().addAxiom(mdo,aaa); 
 					}
 					for (OWLImportsDeclaration oid : o.getImportsDeclarations()) {
+						// TODO - change vocabulary
 						OWLAnnotationAssertionAxiom aaa = 
-							mdg.getDataFactory().getOWLAnnotationAssertionAxiom(g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.OWL_IMPORTS.getIRI()),
+							mdg.getDataFactory().getOWLAnnotationAssertionAxiom(g.getDataFactory().getOWLAnnotationProperty(fakeImportsPropertyIRI),
 									oi, oid.getIRI());
 						mdg.getManager().addAxiom(mdo, aaa);
 					}
@@ -958,7 +999,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--make-ontology-from-results")) {
-
+				opts.info("", "takes the most recent reasoner query and generates a subset ontology using ONLY classes from results");
 				String subOntologyIRI = opts.nextOpt();
 				Set<OWLAxiom> subsetAxioms = new HashSet<OWLAxiom>();
 				Set <OWLObjectProperty> objPropsUsed = new HashSet<OWLObjectProperty>();
@@ -1570,11 +1611,20 @@ public class CommandRunner {
 				}
 				if (opts.nextEq("-f")) {
 					String ofmtname = opts.nextOpt();
-					if (ofmtname.equals("manchester")) {
+					if (ofmtname.equals("manchester") || ofmtname.equals("omn")) {
 						ofmt = new ManchesterOWLSyntaxOntologyFormat();
 					}
-					if (ofmtname.equals("functional")) {
+					else if (ofmtname.equals("functional") || ofmtname.equals("ofn")) {
 						ofmt = new OWLFunctionalSyntaxOntologyFormat();
+					}
+					else if (ofmtname.equals("turtle") || ofmtname.equals("ttl")) {
+						ofmt = new TurtleOntologyFormat();
+					}
+					else if (ofmtname.equals("xml") || ofmtname.equals("owx")) {
+						ofmt = new OWLXMLOntologyFormat();
+					}
+					else if (ofmtname.equals("ojs")) {
+						ofmt = new OWLJSONFormat();
 					}
 					else if (ofmtname.equals("obo")) {
 						ofmt = new OBOOntologyFormat();
@@ -2172,6 +2222,12 @@ public class CommandRunner {
 		reasoner = reasonerFactory.createReasoner(ont);
 		return reasoner;
 	}
+	
+	private void removeDanging() {
+		Mooncat m = new Mooncat(g);
+		m.removeDanglingAxioms();
+	}
+
 
 	private void catOntologies(Opts opts) throws OWLOntologyCreationException, IOException {
 		opts.info("[-r|--ref-ont ONT] [-i|--use-imports]", "Catenate ontologies taking only referenced subsets of supporting onts.\n"+
@@ -2256,6 +2312,14 @@ public class CommandRunner {
 		return objs;
 	}
 
+	public Set<OWLObjectProperty> resolveObjectPropertyList(Opts opts) {
+		List<String> ids = opts.nextList();
+		Set<OWLObjectProperty> objs = new HashSet<OWLObjectProperty>();
+		for (String id: ids) {
+			objs.add( this.resolveObjectProperty(id) );
+		}
+		return objs;
+	}
 
 	// todo - move to util
 	public OWLObject resolveEntity(Opts opts) {

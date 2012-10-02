@@ -1,9 +1,12 @@
 package owltools.cli;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
@@ -40,6 +43,7 @@ import owltools.sim.SimpleOwlSim.EnrichmentResult;
 import owltools.sim.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
+import owltools.sim.SimpleOwlSim.SimProperty;
 import owltools.sim.preprocessor.NullSimPreProcessor;
 import owltools.sim.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim.preprocessor.SimPreProcessor;
@@ -59,13 +63,36 @@ public class SimCommandRunner extends SolrCommandRunner {
 	private String similarityAlgorithmName = "JaccardSimilarity";
 	SimpleOwlSim sos;
 	SimPreProcessor pproc;
+	//private double minimumMaxIC = 4.0;
+	//private double minimumSimJ = 0.25;
+	Properties simProperties = null;
+
+	private void initProperties() {
+		simProperties = new Properties();
+
+		simProperties.setProperty(SimProperty.minimumMaxIC.toString(), "4.0");
+		simProperties.setProperty(SimProperty.minimumSimJ.toString(), "0.25");
+	}
+
+	public String getProperty(SimProperty p) {
+		if (simProperties == null) {
+			initProperties();
+		}
+		return simProperties.getProperty(p.toString());
+	}
+
+	private Double getPropertyAsDouble(SimProperty p) {
+		String v = getProperty(p);
+		return Double.valueOf(v);
+	}
+
 
 	@CLIMethod("--sim-method")
 	public void setSimMethod(Opts opts) {
 		opts.info("metric", "sets deafult similarity metric. Type --all to show all TODO");
 		similarityAlgorithmName = opts.nextOpt();
 	}
-	
+
 	@CLIMethod("--sim-all")
 	public void simAll(Opts opts) throws SimilarityAlgorithmException {
 		opts.info("", "calculates similarity between all pairs");
@@ -84,19 +111,19 @@ public class SimCommandRunner extends SolrCommandRunner {
 		se.calculateSimilarityAllByAll(similarityAlgorithmName, minScore);
 		//System.out.println(metric.getClass().getName());
 	}
-	
+
 	@CLIMethod("--save-sim")
 	public void saveSim(Opts opts) throws Exception {
 		opts.info("FILE", "saves similarity results as an OWL ontology. Use after --sim or --sim-all");
 		pw.saveOWL(simOnt, opts.nextOpt(),g);
 	}
-	
+
 	@CLIMethod("--merge-sim")
 	public void mergeSim(Opts opts) throws Exception {
 		opts.info("FILE", "merges similarity results into source OWL ontology. Use after --sim or --sim-all");
 		g.mergeOntology(simOnt);
 	}
-	
+
 	@CLIMethod("--sim")
 	public void sim(Opts opts) throws Exception {
 		Reporter reporter = new Reporter(g);
@@ -254,7 +281,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 			}
 		}
 	}
-	
+
 	@CLIMethod("--lcsx")
 	public void lcsx(Opts opts) {
 		owlpp = new OWLPrettyPrinter(g);
@@ -272,7 +299,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 		System.out.println("LCS:"+owlpp.render(lcs));
 	}
-	
+
 	@CLIMethod("--lcsx-all")
 	public void lcsxAll(Opts opts) throws Exception {
 		opts.info("LABEL", "ont 1");
@@ -335,7 +362,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 			}					
 		}
 	}
-	
+
 	@CLIMethod("--get-ic")
 	public void getIC(Opts opts) {
 		opts.info("LABEL [-p COMPARISON_PROPERTY_URI]", "calculate information content for class");
@@ -349,7 +376,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 		System.out.println(obj+ " "+" // IC:"+se.getInformationContent(obj));
 
 	}
-	
+
 	@CLIMethod("--ancestors-with-ic")
 	public void getAncestorsWithIC(Opts opts) {
 		opts.info("LABEL [-p COMPARISON_PROPERTY_URI]", "list edges in graph closure to root nodes, with the IC of the target node");
@@ -367,7 +394,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 			System.out.println("  TARGET IC:"+se.getInformationContent(e.getTarget()));
 		}
 	}
-	
+
 	@CLIMethod("--all-class-ic")
 	public void allClassIC(Opts opts) throws Exception {
 		opts.info("", "show calculated Information Content for all classes");
@@ -381,55 +408,151 @@ public class SimCommandRunner extends SolrCommandRunner {
 			}
 		}
 	}
-	
+
+	// -------------------------
+	// NEW
+	// -------------------------
+
 	/**
 	 * performs all by all individual comparison
 	 * @param opts 
 	 */
 	public void runOwlSim(Opts opts) {
+		sos.setSimProperties(simProperties);
 		owlpp = new OWLPrettyPrinter(g);
+		if (opts.nextEq("-q")) {
+			runOwlSimOnQuery(opts, opts.nextOpt());
+			return;
+		}
 		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
-		for (OWLEntity i : insts) {
-			for (OWLEntity j : insts) {
-				if (i.equals(j))
-					continue;
-				showSim((OWLNamedIndividual)i,(OWLNamedIndividual)j);
+		LOG.info("All by all for "+insts.size()+" individuals");
+		for (OWLNamedIndividual i : insts) {
+			for (OWLNamedIndividual j : insts) {
+				// similarity is symmetrical
+				if (isComparable(i,j)) {
+					showSim(i,j);
+				}
+			}
+		}
+		LOG.info("FINISHED All by all for "+insts.size()+" individuals");
+	}
+
+	private void runOwlSimOnQuery(Opts opts, String q) {
+		System.out.println("Query: "+q);
+		OWLNamedIndividual qi = (OWLNamedIndividual) resolveEntity(q);
+		System.out.println("Query Individual: "+qi);
+		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
+		for (OWLNamedIndividual j : insts) {
+			showSim(qi,j);
+		}
+
+	}
+
+	private boolean isComparable(OWLNamedIndividual i, OWLNamedIndividual j) {
+		String cmp = getProperty(SimProperty.compare);
+		if (cmp == null) {
+			return i.compareTo(j) > 0;
+		}
+		else {
+			String[] idspaces = cmp.split(",");
+			if (i.getIRI().toString().contains("/"+idspaces[0]+"_") &&
+					j.getIRI().toString().contains("/"+idspaces[1]+"_")) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+
+	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
+		if ( maxic.score < getPropertyAsDouble(SimProperty.minimumMaxIC)) {
+			return;
+		}
+		float s = sos.getElementJaccardSimilarity(i, j);
+		if (s < getPropertyAsDouble(SimProperty.minimumSimJ)) {
+			return;
+		}
+		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
+
+		System.out.println("SimJ\t"+renderPair(i,j)+"\t"+s);
+
+		System.out.println("MaxIC\t"+renderPair(i,j)+"\t"+maxic.score+"\t"+show(maxic.attributeClassSet));
+
+		System.out.println("BMAasym\t"+renderPair(i,j)+"\t"+bma.score+"\t"+show(bma.attributeClassSet));	
+	}
+
+	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j) {
+		return i+"\t"+owlpp.render(i)+"\t"+j+"\t"+owlpp.render(j);
+	}
+
+
+	protected void loadProperties(Opts opts) throws IOException {
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-p|--properties")) {
+				loadProperties(opts.nextOpt());
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+
+	private void loadProperties(String fn) throws IOException {
+		simProperties = new Properties();
+		FileInputStream myInputStream = new FileInputStream(fn);
+		simProperties.load(myInputStream);        
+		String myPropValue = simProperties.getProperty("propKey");
+		//-------------------------------------------------
+		String key = "";
+		String value = "";
+		for (Map.Entry<Object, Object> propItem : simProperties.entrySet()) {
+			key = (String) propItem.getKey();
+			value = (String) propItem.getValue();
+			System.out.println("# "+key + " = "+value);
+		}
+		//-------------------------------------------------
+		myInputStream.close(); // better in finally block
+		//-------------------------------------------------
+	}
+
+	@CLIMethod("--phenosim")
+	public void phenoSim(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		loadProperties(opts);
+		try {
+			pproc = new PhenoSimHQEPreProcessor();
+			pproc.setSimProperties(simProperties);
+
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
+			pproc.preprocess();
+			pproc.getReasoner().flush();
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.setSimPreProcessor(pproc);
+			sos.createElementAttributeMapFromOntology();
+			sos.saveOntology("/tmp/phenosim-analysis-ontology.owl");
+			runOwlSim(opts);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			if (sos.getReasoner() != null) {
+				sos.getReasoner().dispose();
+			}
+		}
+		finally {
+			LOG.info("clearing up...");
+			if (sos.getReasoner() != null) {
+				sos.getReasoner().dispose();
 			}
 		}
 
 	}
-	
-	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
-		
-		float s = sos.getElementJaccardSimilarity(i, j);
-		System.out.println("SimJ( "+i+" , "+j+" ) = "+s);
 
-		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
-		System.out.println("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+show(maxic.attributeClassSet));
-
-		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
-		System.out.println("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+show(bma.attributeClassSet));	
-	}
-	
-
-	
-	@CLIMethod("--phenosim")
-	public void phenoSim(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
-		pproc = new PhenoSimHQEPreProcessor();
-		pproc.setInputOntology(g.getSourceOntology());
-		pproc.setOutputOntology(g.getSourceOntology());
-		pproc.preprocess();
-		pproc.getReasoner().flush();
-		sos = new SimpleOwlSim(g.getSourceOntology());
-		sos.setSimPreProcessor(pproc);
-		sos.createElementAttributeMapFromOntology();
-		sos.saveOntology("/tmp/phenosim-analysis-ontology.owl");
-		runOwlSim(opts);
-		sos.getReasoner().dispose();
-	}
-	
 	@CLIMethod("--sim-resume")
 	public void simResume(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		loadProperties(opts);
 		OWLOntology ont = pw.parse("file:///tmp/phenosim-analysis-ontology.owl");
 		if (g == null) {
 			g =	new OWLGraphWrapper(ont);
@@ -438,85 +561,49 @@ public class SimCommandRunner extends SolrCommandRunner {
 			System.out.println("adding support ont "+ont);
 			g.addSupportOntology(ont);
 		}
-		pproc = new NullSimPreProcessor();
-		pproc.setInputOntology(g.getSourceOntology());
-		pproc.setOutputOntology(g.getSourceOntology());
-		sos = new SimpleOwlSim(g.getSourceOntology());
-		sos.setSimPreProcessor(pproc);
-		sos.createElementAttributeMapFromOntology();
-		runOwlSim(opts);
-	}
-
-	
-	@CLIMethod("--sim-basic")
-	public void simBasic(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
-		pproc = new NullSimPreProcessor();
-		pproc.setInputOntology(g.getSourceOntology());
-		pproc.setOutputOntology(g.getSourceOntology());
-		sos = new SimpleOwlSim(g.getSourceOntology());
-		sos.setSimPreProcessor(pproc);
-		sos.createElementAttributeMapFromOntology();
-		runOwlSim(opts);
-	}
-
-
-	
-	/*
-	
-	// NEW
-	@CLIMethod("--owlsim-init")
-	public void owlsimInit(Opts opts) throws OWLOntologyCreationException {
-		sos = new SimpleOwlSim(g.getSourceOntology());
-		//sos.setAttributesFromOntology(g.getSourceOntology());
-	}
-	
-	// NEW
-	@CLIMethod("--owlsim-create-sim-ont")
-	public void owlsimCreateSimOnt(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
-		if (sos == null) {
+		try {
+			pproc = new NullSimPreProcessor();
+			pproc.setSimProperties(simProperties);
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
 			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.setSimPreProcessor(pproc);
+			sos.createElementAttributeMapFromOntology();
+			runOwlSim(opts);
 		}
-		sos.generateGroupingClasses();
-	}
-	
-	@CLIMethod("--owlsim-fn")
-	public void owlsimFn(Opts opts) throws OWLOntologyCreationException {
-		sos.setBaseFileName(opts.nextOpt());
-	}
-
-	
-	// NEW
-	@CLIMethod("--owlsim-view-property")
-	public void owlsimAddViewProperty(Opts opts) throws OWLOntologyCreationException {
-		sos.addViewProperty(this.resolveObjectProperty(opts.nextOpt()));
-	}
-	// NEW
-	@CLIMethod("--owlsim-source-view-property")
-	public void owlsimAddSourceViewProperty(Opts opts) throws OWLOntologyCreationException {
-		sos.addSourceViewProperty(this.resolveObjectProperty(opts.nextOpt()));
-	}
-
-	// NEW
-	@CLIMethod("--owlsim-elements-all-by-all")
-	public void owlsimElementsAllByAll(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
-		if (sos == null) {
-			sos = new SimpleOwlSim(g.getSourceOntology());
-		}
-		//sos.setAttributesFromOntology(g.getSourceOntology());
-		sos.generateGroupingClasses();
-		
-		Set<OWLEntity> humans = sos.getAllElements();
-		for (OWLEntity i : humans) {
-			for (OWLEntity j : humans) {
-				if (i.equals(j))
-					continue;
-				showSim((OWLNamedIndividual)i,(OWLNamedIndividual)j);
+		catch (Exception e) {
+			e.printStackTrace();
+			if (sos.getReasoner() != null) {
+				sos.getReasoner().dispose();
 			}
 		}
+		finally {
+			sos.getReasoner().dispose();
+		}
 	}
-	
-	*/
-	
+
+
+	@CLIMethod("--sim-basic")
+	public void simBasic(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		loadProperties(opts);
+		try {
+			pproc = new NullSimPreProcessor();
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.setSimPreProcessor(pproc);
+			sos.createElementAttributeMapFromOntology();
+			runOwlSim(opts);
+		}
+		finally {
+			sos.getReasoner().dispose();
+		}
+	}
+
+
+
+
+
 	// NEW
 	@CLIMethod("--enrichment-analysis")
 	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
@@ -555,7 +642,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	private String show(Set<OWLClassExpression> cset) {
 		StringBuffer sb = new StringBuffer();
 		for (OWLClassExpression c : cset) {
-			sb.append(owlpp.render(c) + " ; ");
+			sb.append(owlpp.render(c) + "\t");
 		}
 		return sb.toString();
 	}
@@ -563,7 +650,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 
 	/*
-	
+
 	// NEW
 	@CLIMethod("--owlsim-all-by-all")
 	public void owlsimAllByAll(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
@@ -575,10 +662,10 @@ public class SimCommandRunner extends SolrCommandRunner {
 	public void owlsimDispose(Opts opts) throws OWLOntologyCreationException {
 		sos.getReasoner().dispose();
 	}
-	*/
-	
+	 */
+
 	/*
-			
+
 	// NEW
 	@CLIMethod("--owlsim-lcsx")
 	public void owlsimLcsx(Opts opts) throws OWLOntologyCreationException {
@@ -586,7 +673,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.generatePropertyViews();
 		}
-		
+
 		owlpp = new OWLPrettyPrinter(g);
 
 		opts.info("LABEL", "anonymous class expression 1");
@@ -597,13 +684,13 @@ public class SimCommandRunner extends SolrCommandRunner {
 		System.out.println(a+ " // "+a.getClass());
 		System.out.println(b+ " // "+b.getClass());
 
-		
+
 		//OWLClassExpression lcs = sos.getLowestCommonSubsumer((OWLClass)a, (OWLClass)b);
 		OWLClassExpression lcs = sos.getLowestCommonSubsumerClass((OWLClass)a, (OWLClass)b);
 
 		System.out.println("LCS:"+owlpp.render(lcs));
 	}
-	
-	*/
+
+	 */
 
 }
