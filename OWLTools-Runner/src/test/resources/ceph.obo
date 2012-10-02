@@ -1077,11 +1077,6 @@ name: brachial photophore
 def: "photophore at base of gill" [http://tolweb.org/accessory/Cephalopod_Photophore_Terminology?acc_id=2015]
 is_a: CEPH:0000198 ! photophore
 
-[Term]
-id: CEPH:0000290
-name: anal photophore
-def: "photophore at side of anus" [http://tolweb.org/accessory/Cephalopod_Photophore_Terminology?acc_id=2015]
-is_a: CEPH:0000198 ! photophore
 
 [Term]
 id: CEPH:0000199
@@ -3054,7 +3049,7 @@ name: develops from
 
 [Typedef]
 id: part_of
-name: part of
+name: part_of
 is_transitive: true
 xref: BFO:0000050
 
