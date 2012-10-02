@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse version="3.0"?>
+
+<plugin>
+   <extension id="OboGraphView"
+              point="org.protege.editor.core.application.ViewComponent">
+      <label value="OBO Graph View Component"/>
+      <class value="org.bbop.graph.view.OboGraphView"/>
+      <category value="@org.protege.ontologycategory"/>
+   </extension>
+   
+   
+</plugin>
