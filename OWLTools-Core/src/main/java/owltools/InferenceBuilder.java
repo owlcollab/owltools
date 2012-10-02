@@ -353,7 +353,7 @@ public class InferenceBuilder{
 
 		// CHECK FOR REDUNDANCY
 		logger.info("Checking for redundant assertions caused by inferences");
-		redundantAxioms = getRedundantAxioms(inferences.axiomsToAdd, ontology, reasoner, dataFactory);
+		inferences.redundantAxioms = getRedundantAxioms(inferences.axiomsToAdd, ontology, reasoner, dataFactory);
 
 		inferences.axiomsToAdd.addAll(equivAxiomsToAdd);
 
