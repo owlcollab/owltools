@@ -2,6 +2,7 @@ package owltools;
 
 import static org.junit.Assert.*;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.ParserWrapper;
 
 /**
  * Tests for {@link InferenceBuilder}.
@@ -51,6 +53,22 @@ public class InferenceBuilderTest extends OWLToolsTestBasics {
 		if (!inferences.isEmpty()) {
 			fail("Do not expect any new inferences, but was: "+inferences);
 		}
+	}
+	
+	@Test
+	public void testNewAndRedundant() throws Exception {
+		
+		ParserWrapper pw = new ParserWrapper();
+		OWLOntology ontology = pw.parseOWL(getResourceIRI("inference_builder_test.omn"));
+		
+		OWLGraphWrapper graph  = new OWLGraphWrapper(ontology);
+		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
+		
+		List<OWLAxiom> newInferences = builder.buildInferences();
+		assertEquals(2, newInferences.size());
+
+		Collection<OWLAxiom> redundantAxioms = builder.getRedundantAxioms();
+		assertEquals(3, redundantAxioms.size());
 	}
 
 }

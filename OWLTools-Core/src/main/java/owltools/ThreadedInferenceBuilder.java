@@ -88,7 +88,7 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 	}
 
 	@Override
-	protected Set<OWLAxiom> getRedundantAxioms(List<OWLAxiom> axiomsToAdd, OWLOntology ontology,
+	protected Set<OWLAxiom> getRedundantAxioms(OWLOntology ontology,
 			OWLReasoner reasoner, OWLDataFactory dataFactory)
 	{
 		LOG.info("Start parallel execution.");
@@ -99,14 +99,14 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 		for (OWLClass cls : allClasses) {
 			workSet.add(cls);
 			if (workSet.size() == chunkSize) {
-				GetRedundantAxiomsTask task = new GetRedundantAxiomsTask(workSet, ontology, reasoner, axiomsToAdd, dataFactory);
+				GetRedundantAxiomsTask task = new GetRedundantAxiomsTask(workSet, ontology, reasoner, dataFactory);
 				futures.add(executor.submit(task));
 				workSet = new ArrayList<OWLClass>();
 			}
 			
 		}
 		if (!workSet.isEmpty()) {
-			GetRedundantAxiomsTask task = new GetRedundantAxiomsTask(workSet, ontology, reasoner, axiomsToAdd, dataFactory);
+			GetRedundantAxiomsTask task = new GetRedundantAxiomsTask(workSet, ontology, reasoner, dataFactory);
 			futures.add(executor.submit(task));
 		}
 		try {
@@ -134,15 +134,13 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 		private final List<OWLClass> workSet;
 		private final OWLOntology ontology;
 		private final OWLReasoner reasoner;
-		private final List<OWLAxiom> axiomsToAdd;
 		private final OWLDataFactory dataFactory;
 
-		GetRedundantAxiomsTask(List<OWLClass> workSet, OWLOntology ontology, OWLReasoner reasoner, List<OWLAxiom> axiomsToAdd, OWLDataFactory dataFactory) {
+		GetRedundantAxiomsTask(List<OWLClass> workSet, OWLOntology ontology, OWLReasoner reasoner, OWLDataFactory dataFactory) {
 			super();
 			this.workSet = workSet;
 			this.ontology = ontology;
 			this.reasoner = reasoner;
-			this.axiomsToAdd = axiomsToAdd;
 			this.dataFactory = dataFactory;
 		}
 
@@ -150,7 +148,7 @@ public class ThreadedInferenceBuilder extends InferenceBuilder {
 		public Set<OWLAxiom> call() throws Exception {
 			Set<OWLAxiom> redundantAxioms = new HashSet<OWLAxiom>();
 			for (OWLClass cls : workSet) {
-				updateRedundant(cls, ontology, axiomsToAdd, redundantAxioms, reasoner, dataFactory);
+				updateRedundant(cls, ontology, redundantAxioms, reasoner, dataFactory);
 			}
 			return redundantAxioms;
 		}
