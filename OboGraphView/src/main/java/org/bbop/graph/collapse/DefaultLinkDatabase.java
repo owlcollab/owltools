@@ -98,7 +98,7 @@ public class DefaultLinkDatabase implements LinkDatabase {
 	}
 
 	@Override
-	public Collection<OWLObject> getRoots() {
+	public Set<OWLObject> getRoots() {
 		return roots;
 	}
 
@@ -116,7 +116,7 @@ public class DefaultLinkDatabase implements LinkDatabase {
 	}
 
 	@Override
-	public Collection<OWLObject> getDescendants(OWLObject term, boolean includeSelf) {
+	public Set<OWLObject> getDescendants(OWLObject term, boolean includeSelf) {
 		if (term instanceof OWLClass) {
 			OWLClass cls = (OWLClass) term;
 			Set<OWLClass> descendants = reasoner.getSubClasses(cls, false).getFlattened();
@@ -125,10 +125,10 @@ public class DefaultLinkDatabase implements LinkDatabase {
 				if (descendant.isOWLThing() || descendant.isOWLNothing()) {
 					continue;
 				}
-				if (includeSelf == false && cls.equals(descendant)) {
-					continue;
-				}
 				result.add(descendant);
+			}
+			if (includeSelf) {
+				result.add(term);
 			}
 			if (result.isEmpty() == false) {
 				return result;
@@ -138,7 +138,7 @@ public class DefaultLinkDatabase implements LinkDatabase {
 	}
 
 	@Override
-	public Collection<OWLObject> getAncestors(OWLObject term, boolean includeSelf) {
+	public Set<OWLObject> getAncestors(OWLObject term, boolean includeSelf) {
 		if (term instanceof OWLClass) {
 			OWLClass cls = (OWLClass) term;
 			Set<OWLClass> ancestors = reasoner.getSuperClasses(cls, false).getFlattened();
@@ -147,16 +147,31 @@ public class DefaultLinkDatabase implements LinkDatabase {
 				if (ancestor.isOWLThing() || ancestor.isOWLNothing()) {
 					continue;
 				}
-				if (includeSelf == false && cls.equals(ancestor)) {
-					continue;
-				}
 				result.add(ancestor);
+			}
+			if (includeSelf) {
+				result.add(term);
 			}
 			if (result.isEmpty() == false) {
 				return result;
 			}
 		}
 		return Collections.emptySet();
+	}
+
+	@Override
+	public Set<OWLObject> getAncestors(Set<OWLObject> terms, boolean includeSelf) {
+		Set<OWLObject> allAncestors = new HashSet<OWLObject>();
+		for (OWLObject owlObject : terms) {
+			Set<OWLObject> ancestors = getAncestors(owlObject, includeSelf);
+			if (ancestors != null) {
+				allAncestors.addAll(ancestors);
+			}
+		}
+		if (allAncestors.isEmpty()) {
+			return Collections.emptySet();
+		}
+		return allAncestors;
 	}
 
 }

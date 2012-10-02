@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -177,6 +178,8 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
     	
     	Collection<RelayoutListener> layoutListeners = new ArrayList<RelayoutListener>();
     	
+    	Set<OWLObject> intialSelection;
+    	
     	LinkDatabase database;
     	CollapsibleLinkDatabase collapsibleDatabase;
     }
@@ -184,10 +187,10 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
     private final CanvasConfig config;
 
 
-	public GraphCanvas(GraphLayout graphLayout, OWLGraphWrapper graph, OWLReasoner reasoner) {
+	public GraphCanvas(GraphLayout graphLayout, OWLGraphWrapper graph, OWLReasoner reasoner, Set<OWLObject> intialSelection) {
 		super();
 		config = new CanvasConfig();
-		
+		config.intialSelection = intialSelection;
 		config.nodeLabelProvider = new HTMLNodeLabelProvider("<center><font face='Arial'>$name$</font></center>", new DefaultNodeLabelProvider(graph));
 		config.nodeSizeProvider = new LabelBasedNodeSizeProvider(config.nodeLabelProvider);
 		
@@ -215,7 +218,10 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 		config.nodeFactory = new DefaultNodeFactory(typeManager, typeManager, config.nodeLabelProvider, new LinkTooltipFactory(graph));
 		
 		config.database = new DefaultLinkDatabase(graph, reasoner);
-		config.collapsibleDatabase = new CollapsibleLinkDatabase(config.database);
+		if (config.intialSelection == null || config.intialSelection.isEmpty()) {
+			config.intialSelection = config.database.getRoots();
+		}
+		config.collapsibleDatabase = new CollapsibleLinkDatabase(config.database, config.intialSelection);
 		config.collapsibleDatabase.addListener(new ExpandCollapseListener() {
 			
 			@Override
@@ -831,7 +837,14 @@ public class GraphCanvas extends ExtensibleCanvas implements RightClickMenuProvi
 	}
 	
 	public void reset() {
-		config.collapsibleDatabase.setVisibleObjects(config.database.getRoots(), false);
+		config.collapsibleDatabase.setVisibleObjects(config.intialSelection, false);
 		relayout();
 	}
+	
+	public void setSelected(Set<OWLObject> objects) {
+		Set<OWLObject> nodes = config.database.getAncestors(objects, true);
+		config.collapsibleDatabase.setVisibleObjects(nodes, false);
+		relayout();
+	}
+	
 }

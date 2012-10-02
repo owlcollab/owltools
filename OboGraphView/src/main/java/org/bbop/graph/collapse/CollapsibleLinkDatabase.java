@@ -22,9 +22,9 @@ public class CollapsibleLinkDatabase implements LinkDatabase {
 	private Collection<OWLObject> defaultVisibleObjects = new LinkedList<OWLObject>();
 	private final List<ExpandCollapseListener> listeners = new LinkedList<ExpandCollapseListener>();
 	
-	public CollapsibleLinkDatabase(LinkDatabase linkDatabase) {
+	public CollapsibleLinkDatabase(LinkDatabase linkDatabase, Set<OWLObject> initialSelection) {
 		this.linkDatabase = linkDatabase;
-		defaultVisibleObjects.addAll(linkDatabase.getRoots());
+		defaultVisibleObjects.addAll(linkDatabase.getAncestors(initialSelection, true));
 		recache();
 	}
 
@@ -230,18 +230,23 @@ public class CollapsibleLinkDatabase implements LinkDatabase {
 
 
 	@Override
-	public Collection<OWLObject> getRoots() {
+	public Set<OWLObject> getRoots() {
 		return linkDatabase.getRoots();
 	}
 
 	@Override
-	public Collection<OWLObject> getDescendants(OWLObject term, boolean includeSelf) {
+	public Set<OWLObject> getDescendants(OWLObject term, boolean includeSelf) {
 		return linkDatabase.getDescendants(term, includeSelf);
 	}
 
 	@Override
-	public Collection<OWLObject> getAncestors(OWLObject term, boolean includeSelf) {
+	public Set<OWLObject> getAncestors(OWLObject term, boolean includeSelf) {
 		return linkDatabase.getAncestors(term, includeSelf);
+	}
+
+	@Override
+	public Set<OWLObject> getAncestors(Set<OWLObject> terms, boolean includeSelf) {
+		return linkDatabase.getAncestors(terms, includeSelf);
 	}
 
 }

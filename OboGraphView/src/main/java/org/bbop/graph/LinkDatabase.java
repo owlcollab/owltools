@@ -1,6 +1,7 @@
 package org.bbop.graph;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -96,9 +97,11 @@ public interface LinkDatabase {
 	
 	public boolean hasParents(OWLObject lo);
 	
-	public Collection<OWLObject> getRoots();
+	public Set<OWLObject> getRoots();
 	
-	public Collection<OWLObject> getDescendants(OWLObject term, boolean includeSelf);
+	public Set<OWLObject> getDescendants(OWLObject term, boolean includeSelf);
 	
-	public Collection<OWLObject> getAncestors(OWLObject term, boolean includeSelf);
+	public Set<OWLObject> getAncestors(OWLObject term, boolean includeSelf);
+	
+	public Set<OWLObject> getAncestors(Set<OWLObject> terms, boolean includeSelf);
 }
