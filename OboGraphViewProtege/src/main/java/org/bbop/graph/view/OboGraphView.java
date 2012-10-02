@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -51,8 +52,10 @@ public class OboGraphView extends AbstractOWLViewComponent {
 	private final JButton updateButton;
 	
 	private GraphViewCanvas canvas = null;
+	private final JPanel invalidPanel;
 
 	public OboGraphView() {
+		super();
 		ontologyChangeListener = new OWLOntologyChangeListener() {
 			
 			@Override
@@ -67,7 +70,9 @@ public class OboGraphView extends AbstractOWLViewComponent {
 				final OWLSelectionModel selectionModel = getOWLWorkspace().getOWLSelectionModel();
 				final OWLClass owlClass = selectionModel.getLastSelectedClass();
 				if (owlClass != null && canvas != null) {
-					canvas.setSelected(Collections.<OWLObject>singleton(owlClass));
+					if (!owlClass.isOWLThing() && !owlClass.isOWLNothing()) {
+						canvas.setSelected(Collections.<OWLObject>singleton(owlClass));
+					}
 				}
 			}
 		};
@@ -86,11 +91,14 @@ public class OboGraphView extends AbstractOWLViewComponent {
 				});
 			}
 		});
-		
+		invalidPanel = new JPanel();
+		invalidPanel.add(new JLabel("Invalid"));
 	}
 
 	@Override
 	protected void initialiseOWLView() throws Exception {
+		LOGGER.info("Init OBO View");
+		setLayout(new BorderLayout());
 		add(contentPanel, BorderLayout.CENTER);
 		add(updateButton, BorderLayout.SOUTH);
 		
@@ -119,17 +127,18 @@ public class OboGraphView extends AbstractOWLViewComponent {
 	
 	private synchronized void setInvalid() {
 		valid = false;
-		if (canvas != null) {
-			contentPanel.remove(canvas);
-			canvas = null;
-		}
+		canvas = null;
+		contentPanel.removeAll();
+		validate();
 	}
 	
 	private synchronized void setValid(GraphViewCanvas canvas) {
 		this.canvas = canvas;
+		contentPanel.removeAll();
 		contentPanel.add(canvas);
 		valid = true;
 		validate();
+		canvas.panToObjects();
 	}
 	
 	private synchronized void update() {
@@ -149,7 +158,7 @@ public class OboGraphView extends AbstractOWLViewComponent {
 				
 				OWLGraphWrapper graph = new OWLGraphWrapper(ontology);
 				Set<OWLObject> selection = null;
-				if (selectedClass != null) {
+				if (selectedClass != null && !selectedClass.isOWLNothing() && !selectedClass.isOWLThing()) {
 					selection = Collections.<OWLObject>singleton(selectedClass);
 				}
 				GraphViewCanvas canvas = new GraphViewCanvas(graph, reasoner, selection);

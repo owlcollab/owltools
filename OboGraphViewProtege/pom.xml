@@ -23,7 +23,7 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.3</version>
 				<configuration>
-					<finalName>org.geneontology.lego.protege</finalName>
+					<finalName>org.bbop.graph.view.protege</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
 					<attach>false</attach>
 					<outputDirectory>${project.basedir}/build</outputDirectory>
@@ -89,6 +89,16 @@
 			<groupId>org.bbop</groupId>
 			<artifactId>OboGraphView</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-apibinding</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-owlapi</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>protege</groupId>
