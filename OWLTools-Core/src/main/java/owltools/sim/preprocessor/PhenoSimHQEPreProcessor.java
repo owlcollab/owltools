@@ -371,6 +371,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		
 	}
 
+	
 
 	// this should already be present, but we assert in anyway to be sure
 	private void addPhenotypePropertyChain() {

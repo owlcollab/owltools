@@ -507,6 +507,7 @@ public class OWLGraphWrapper {
 		for (OWLOntology o : imports) {
 			if (o.equals(sourceOntology))
 				continue;
+			LOG.info("Adding "+o.getAxioms().size()+" from "+o);
 			manager.addAxioms(sourceOntology, o.getAxioms());
 		}
 		Set<OWLImportsDeclaration> oids = sourceOntology.getImportsDeclarations();
@@ -2744,7 +2745,7 @@ public class OWLGraphWrapper {
 	public List<String> getDefXref(OWLObject c){
 		OWLAnnotationProperty lap = getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI()); 
 		OWLAnnotationProperty xap = getAnnotationProperty(OboFormatTag.TAG_XREF.getTag());
-
+		
 		List<String> list = new ArrayList<String>();
 
 		if(c instanceof OWLEntity){

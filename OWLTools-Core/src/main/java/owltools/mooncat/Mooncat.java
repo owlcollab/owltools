@@ -29,11 +29,15 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import owltools.graph.OWLGraphEdge;
@@ -66,7 +70,7 @@ import owltools.graph.OWLQuantifiedProperty;
 public class Mooncat {
 
 	private final static Logger LOG = Logger.getLogger(Mooncat.class);
-	
+
 	// TODO move this to some constants class or enum
 	private static final IRI importedMarkerIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"IAO_0000412");
 
@@ -158,7 +162,7 @@ public class Mooncat {
 		// TODO - imports
 		graph.addSupportOntology(refOnt);
 	}
-	
+
 	public void mergeIntoReferenceOntology(OWLOntology ont) throws OWLOntologyCreationException { 
 		LOG.info("Merging "+ont+" into reference ontology");
 		graph.mergeOntology(ont);
@@ -224,11 +228,11 @@ public class Mooncat {
 	 */
 	public void mergeOntologies() {
 		// refresh existing MIREOT set
-		LOG.info("Flushing external (IAO_0000412)... (but will not remove dangling)");
+		LOG.info("Removing entities marked with IAO_0000412 (imported_from) -- will not remove dangling classes at this stage");
 		removeExternalOntologyClasses(false);
 
 		OWLOntology srcOnt = graph.getSourceOntology();
-		LOG.info("getting closure...");
+		LOG.info("Getting all referenced objects, finding their graph closure, and all axioms that mention entities in this closure");
 		Set<OWLAxiom> axioms = getClosureAxiomsOfExternalReferencedEntities();
 
 		// add ALL subannotprop axioms
@@ -265,6 +269,8 @@ public class Mooncat {
 		axioms.addAll(sapAxioms);
 	}
 
+	// If sourceOntologyPrefixes is set, this this test succeeds or fails depending on whether obj.IRI starts with one of these prefixes;
+	// otherwise, obj is external if it is declared in a referencedontology
 	private boolean isInExternalOntology(OWLEntity obj) {
 		if (sourceOntologyPrefixes != null && sourceOntologyPrefixes.size() > 0) {
 			//LOG.info("  prefixes: "+sourceOntologyPrefixes);
@@ -346,11 +352,11 @@ public class Mooncat {
 	public Set<OWLObject> getClosureOfExternalReferencedEntities() {
 		// the closure set, to be returned
 		Set<OWLObject> objs = new HashSet<OWLObject>();
-		
+
 		// set of entities in external ontologies referenced in source ontology
 		Set<OWLEntity> refs = getExternalReferencedEntities();
 		LOG.info("direct external referenced entities: "+refs.size());
-		
+
 		// build the closure
 		for (OWLEntity ref : refs) {
 			// todo - allow per-relation control
@@ -616,7 +622,7 @@ public class Mooncat {
 	public void removeDanglingAxioms() {
 		removeDanglingAxioms(getOntology());
 	}
-	
+
 	public Set<OWLAxiom> getDanglingAxioms(OWLOntology ont) {
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLClass obj : ont.getClassesInSignature()) {
@@ -755,7 +761,7 @@ public class Mooncat {
 				}
 			}
 		}
-		
+
 		// Note that the OWLAPI is slow to remove axioms from an existing ontology.
 		// It is more efficient to remove the axioms from the seed set first.
 		// In order to do this, we make a temporary sub-ontology with all the axioms,
@@ -766,12 +772,12 @@ public class Mooncat {
 		LOG.info("Removing "+rmAxioms.size()+" dangling axioms from "+subOntIRI);
 		axioms.removeAll(rmAxioms);
 		subOnt = manager.createOntology(axioms, subOntIRI);
-		
+
 		this.removeDanglingAxioms(subOnt);
 		return subOnt;
 
 	}
-	
+
 	/**
 	 * Check, if the named object has the annotation property IAO:0000412, 
 	 * declaring the object as imported.
@@ -800,7 +806,9 @@ public class Mooncat {
 	public void removeExternalOntologyClasses(boolean removeDangling) {
 		OWLOntology ont = graph.getSourceOntology();
 		removeExternalEntities(true, ont);
+		// todo - make this optional
 		for(OWLOntology refOnt : getReferencedOntologies()) {
+			LOG.info("Removing imported entities (IAO_0000412) from:"+refOnt);
 			removeExternalEntities(false, refOnt);
 		}
 		if (removeDangling) {
@@ -808,7 +816,7 @@ public class Mooncat {
 			removeDanglingAxioms(ont);
 		}
 	}
-	
+
 	public void removeExternalEntities() {
 		removeExternalEntities(this.getOntology());
 	}
@@ -822,16 +830,22 @@ public class Mooncat {
 	public void removeExternalEntities(OWLOntology ont) {
 		removeExternalEntities(true, ont);
 	}
-		
-	// removes entities marked with IAO_0000412 
-	// classes are only removed when main is true
-	public void removeExternalEntities(boolean main, OWLOntology ont) {
+
+	/**
+	 * removes external entities:
+	 *  - anything marked with IAO_0000412 is removed
+	 *  - if isMain is true then anything that is also present in an external ontology is removed
+	 * 
+	 * @param isMain
+	 * @param ont
+	 */
+	public void removeExternalEntities(boolean isMain, OWLOntology ont) {
 		Set<OWLEntity> objs = ont.getSignature(false);
 		Set<OWLClass> rmClasses = new HashSet<OWLClass>();
 		Set<OWLObjectProperty> rmProperties = new HashSet<OWLObjectProperty>();
 		Set<OWLIndividual> rmIndividuals = new HashSet<OWLIndividual>();
 		LOG.info("removing external entities marked with IAO_0000412 from: "+ont);
-		if (main) {
+		if (isMain) {
 			LOG.info("testing " + objs.size()
 					+ " objs to see if they are contained in the follow referenced ontologies: "
 					+ getReferencedOntologies());
@@ -839,7 +853,7 @@ public class Mooncat {
 		for (OWLEntity obj : objs) {
 			final boolean isMarked = isImportMarkedEntity(obj, ont);
 			if (obj instanceof OWLClass) {
-				if ((main && isInExternalOntology(obj)) || isMarked) {
+				if ((isMain && isInExternalOntology(obj)) || isMarked) {
 					rmClasses.add((OWLClass) obj);
 				}
 			}
@@ -883,7 +897,7 @@ public class Mooncat {
 			translateDisjointsToEquivalents(ont, getManager(), dataFactory);
 		}
 	}
-	
+
 	/**
 	 * For every pair X DisjointWith Y, generate an axiom
 	 * A and Y = Nothing
@@ -907,6 +921,59 @@ public class Mooncat {
 				}
 			}
 		}
+	}
+
+	public static void retainAxiomsInPropertySubset(OWLOntology ont, Set<OWLObjectProperty> filterProps) {
+		retainAxiomsInPropertySubset(ont, filterProps, null);
+	}
+
+	public static void retainAxiomsInPropertySubset(OWLOntology ont, Set<OWLObjectProperty> filterProps, OWLReasoner reasoner) {
+		LOG.info("Removing axioms that use properties not in set: "+filterProps);
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
+		OWLDataFactory df = ont.getOWLOntologyManager().getOWLDataFactory();
+		for (OWLAxiom ax : ont.getAxioms()) {
+			Set<OWLObjectProperty> ps = ax.getObjectPropertiesInSignature();
+			ps.removeAll(filterProps);
+			if (ps.size() > 0) {
+				rmAxioms.add(ax);
+				
+				// rewrite as weaker axioms
+				if (reasoner != null) {
+					if (ax instanceof OWLSubClassOfAxiom) {
+						OWLSubClassOfAxiom sca = (OWLSubClassOfAxiom)ax;
+						if (!sca.getSubClass().isAnonymous()) {
+							if (sca.getSuperClass() instanceof OWLObjectSomeValuesFrom) {
+								OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom) sca.getSuperClass();
+								OWLObjectPropertyExpression p = svf.getProperty();
+								Set<OWLObjectPropertyExpression> sps = reasoner.getSuperObjectProperties(p, false).getFlattened();
+								sps.retainAll(filterProps);
+								for (OWLObjectPropertyExpression sp : sps) {
+									OWLObjectSomeValuesFrom newSvf = df.getOWLObjectSomeValuesFrom(sp, svf.getFiller());
+									OWLSubClassOfAxiom newSca = df.getOWLSubClassOfAxiom(sca.getSubClass(), newSvf);
+									LOG.info("REWRITE: "+sca+" --> "+newSca);
+									newAxioms.add(newSca);
+								}
+							}
+						}
+					}
+					//else if (ax instanceof OWLEquivalentClassesAxiom) {
+					//	((OWLEquivalentClassesAxiom)ax).getClassExpressions();
+					//}
+				}
+			}
+		}
+		LOG.info("Removing "+rmAxioms.size()+" axioms");
+		ont.getOWLOntologyManager().removeAxioms(ont, rmAxioms);
+		LOG.info("Adding "+newAxioms.size()+" axioms");
+		ont.getOWLOntologyManager().addAxioms(ont, newAxioms);
+	}
+
+
+
+	public void retainAxiomsInPropertySubset(Set<OWLObjectProperty> props) {
+		retainAxiomsInPropertySubset(this.getOntology(), props);
+
 	}
 
 }

@@ -7,10 +7,13 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLProperty;
 
 import owltools.graph.OWLGraphEdge;
@@ -63,7 +66,11 @@ public abstract class AbstractClosureRenderer implements GraphRenderer {
 
 	public void render(OWLGraphWrapper g) {
 		graph = g;
-		for (OWLObject obj : g.getAllOWLObjects()) {
+		
+		Set<OWLObject> objs = new HashSet<OWLObject>(g.getSourceOntology().getClassesInSignature(false));
+		objs.addAll(g.getSourceOntology().getIndividualsInSignature(false));
+
+		for (OWLObject obj : objs) {
 			for (OWLGraphEdge e : g.getOutgoingEdgesClosure(obj)) {
 				render(e);
 			}

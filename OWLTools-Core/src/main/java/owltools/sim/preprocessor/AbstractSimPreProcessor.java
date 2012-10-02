@@ -691,5 +691,10 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 			}
 		}
 	}
+	
+	public OWLObjectProperty getAboxProperty() {
+		return null;
+	}
+
 
 }

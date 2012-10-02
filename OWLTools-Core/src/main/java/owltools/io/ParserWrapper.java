@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.List;
 
@@ -37,6 +38,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.OWLJSONFormat;
 
 /**
  * Convenience class wrapping org.oboformat that abstracts away underlying details of ontology format or location
@@ -205,7 +207,7 @@ public class ParserWrapper {
 		saveOWL(ont, owlFormat, file, graph);
 	}
 	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file, OWLGraphWrapper graph) throws OWLOntologyStorageException {
-		if (owlFormat instanceof OBOOntologyFormat) {
+		if ((owlFormat instanceof OBOOntologyFormat) || (owlFormat instanceof OWLJSONFormat)) {
 			try {
 				FileOutputStream os = new FileOutputStream(new File(file));
 				saveOWL(ont, owlFormat, os, graph);
@@ -238,6 +240,26 @@ public class ParserWrapper {
 				throw new OWLOntologyStorageException("Could not create temporary OBO ontology.", e);
 			} catch (IOException e) {
 				throw new OWLOntologyStorageException("Could not write ontology to output stream.", e);
+			}
+			finally {
+				if (bw != null) {
+					try {
+						bw.close();
+					} catch (IOException e) {
+						LOG.warn("Could not close writer.", e);
+					}
+				}
+			}
+		}
+		else if (owlFormat instanceof OWLJSONFormat) {
+			
+			BufferedWriter bw = null;
+			try {
+				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
+				//OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream))));
+				OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(outputStream));
+				gr.render(ont);
+				gr.flush();
 			}
 			finally {
 				if (bw != null) {
@@ -316,6 +338,14 @@ public class ParserWrapper {
 		public String getDefaultOboNamespace() {
 			return defaultOboNamespace;
 		}
+	}
+	
+	public static void main(String[] args) throws OWLOntologyCreationException, IOException {
+		ParserWrapper pw = new ParserWrapper();
+		OWLOntologyIRIMapper mapper = new CatalogXmlIRIMapper("/Users/cjm/cvs/uberon/phenoscape-vocab/homology/catalog-v001.xml");
+		pw.addIRIMapper(mapper);
+
+		OWLOntology o = pw.parse("/Users/cjm/cvs/uberon/phenoscape-vocab/homology/test2.owl");
 	}
 	
 

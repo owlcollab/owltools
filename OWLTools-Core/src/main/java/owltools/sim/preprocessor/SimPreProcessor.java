@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -98,6 +99,8 @@ public interface SimPreProcessor {
 	public void setOWLPrettyPrinter(OWLPrettyPrinter owlpp);
 
 	public void setSimProperties(Properties simProperties);
+	
+	public OWLObjectProperty getAboxProperty();
 
 
 }
