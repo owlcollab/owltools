@@ -158,84 +158,13 @@ public class LinkButtonBehavior implements ViewBehavior {
 			OWLObject lo = (OWLObject) button.getAttribute("node");
 			final ButtonLocations loc = (ButtonLocations) button.getAttribute("buttonType");
 			if (loc.isClose()) {
-				if (event.isLeftMouseButton())
+				if (event.isLeftMouseButton()) {
 					canvas.removeVisibleObjects(Collections.singleton(lo));
+				}
 				return;
 			}
 
-			if (event.isRightMouseButton()) {
-//				MouseEvent me = (MouseEvent) event.getSourceSwingEvent();
-//				JPanel panel = new JPanel() {
-//
-//					@Override
-//					public void paint(Graphics g) {
-//						super.paint(g);
-//					}
-//
-//					@Override
-//					protected void paintChildren(Graphics g) {
-//						super.paintChildren(g);
-//					}
-//
-//					@Override
-//					public void paintComponent(Graphics g) {
-//						Graphics2D g2 = (Graphics2D) g;
-//						Composite c = g2.getComposite();
-//						g2.setComposite(AlphaComposite.getInstance(
-//								AlphaComposite.SRC_OVER, .8f));
-//						super.paintComponent(g);
-//						g2.setComposite(c);
-//					}
-//				};
-//				panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-//				List<Link> showThese = new ArrayList<Link>(getLinksToShow(lo, loc.isChildren()));
-//				Collections.sort(showThese, new Comparator<Link>() {
-//
-//					@Override
-//					public int compare(Link o1, Link o2) {
-//						OWLObject lo1;
-//						OWLObject lo2;
-//						if (loc.isChildren()) {
-//							lo1 = o1.getChild();
-//							lo2 = o2.getChild();
-//						} else {
-//							lo1 = o1.getParent();
-//							lo2 = o2.getParent();
-//						}
-//						return lo1.getName().compareToIgnoreCase(lo2.getName());
-//					}
-//
-//				});
-//				for (Link link : showThese) {
-//					OWLObject obj;
-//					if (loc.isChildren())
-//						obj = link.getSource();
-//					else
-//						obj = link.getTarget();
-//					final OWLObject finalObj = obj;
-//					final JCheckBox checkBox = new JCheckBox(finalObj.toString()
-//							+ " (via " + link.getType() + ")", canvas.getVisibleObjects().contains(link));
-//					checkBox.setOpaque(false);
-//					checkBox.addActionListener(new ActionListener() {
-//
-//						public void actionPerformed(ActionEvent e) {
-//							if (checkBox.isSelected()) {
-//								canvas.addVisibleObjects(Collections
-//										.singleton(finalObj));
-//							} else
-//								canvas.removeVisibleObjects(Collections
-//										.singleton(finalObj));
-//						}
-//					});
-//					panel.add(checkBox);
-//				}
-//				canvas.popupInFrame(panel, "Select "
-//						+ (loc.isChildren() ? "child" : "parent")
-//						+ " nodes to display", me.getX(), me.getY());
-
-				// right click do nothing for now !
-				
-			} else if (loc.isExpand()) {
+			if (loc.isExpand()) {
 				canvas.addVisibleObjects(getLinksToShow(lo, loc.isChildren()));
 			} else {
 				Collection<OWLObject> removeUs = new LinkedList<OWLObject>();
