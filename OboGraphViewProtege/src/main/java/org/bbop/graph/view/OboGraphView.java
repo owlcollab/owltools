@@ -50,6 +50,7 @@ public class OboGraphView extends AbstractOWLViewComponent {
 	
 	private final JPanel contentPanel;
 	private final JButton updateButton;
+	private final JButton resetButton;
 	
 	private GraphViewCanvas canvas = null;
 	private final JPanel invalidPanel;
@@ -91,16 +92,32 @@ public class OboGraphView extends AbstractOWLViewComponent {
 				});
 			}
 		});
+		resetButton = new JButton("Reset View");
+		resetButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						reset();
+					}
+				});
+			}
+		});
 		invalidPanel = new JPanel();
-		invalidPanel.add(new JLabel("Invalid"));
+		invalidPanel.add(new JLabel("<html><body><h1>Synchronization Required</h1><div>The current OBO-style graph view panel is invalid.</div><div>Please use the <b>'Synchronize View'</b> Button to create the view.</div></body></html>"));
 	}
 
 	@Override
 	protected void initialiseOWLView() throws Exception {
-		LOGGER.info("Init OBO View");
 		setLayout(new BorderLayout());
 		add(contentPanel, BorderLayout.CENTER);
-		add(updateButton, BorderLayout.SOUTH);
+		JPanel buttonPanel = new  JPanel();
+		buttonPanel.add(updateButton);
+		buttonPanel.add(resetButton);
+		add(buttonPanel, BorderLayout.SOUTH);
 		
 		// register listener for ontology changes
 		final OWLModelManager manager = getOWLModelManager();
@@ -129,6 +146,7 @@ public class OboGraphView extends AbstractOWLViewComponent {
 		valid = false;
 		canvas = null;
 		contentPanel.removeAll();
+		contentPanel.add(invalidPanel);
 		validate();
 	}
 	
@@ -167,6 +185,12 @@ public class OboGraphView extends AbstractOWLViewComponent {
 			} catch (Exception e) {
 				handleError(owlWorkspace, e);
 			}
+		}
+	}
+	
+	private synchronized void reset() {
+		if (valid && canvas != null) {
+			canvas.reset();
 		}
 	}
 	
