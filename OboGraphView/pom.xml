@@ -4,7 +4,9 @@
 	<groupId>org.bbop</groupId>
 	<artifactId>OboGraphView</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<build>
 		<plugins>
 			<plugin>
@@ -54,6 +56,10 @@
 				<exclusion>
 					<artifactId>slf4j-log4j12</artifactId>
 					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-apibinding</artifactId>
 				</exclusion>
 				<exclusion>
 					<artifactId>factplusplus</artifactId>
