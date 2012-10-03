@@ -8,12 +8,17 @@ import java.util.Set;
 import org.bbop.graph.LinkDatabase;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
+import owltools.graph.OWLQuantifiedProperty;
 
 public class DefaultLinkDatabase implements LinkDatabase {
 
@@ -61,6 +66,27 @@ public class DefaultLinkDatabase implements LinkDatabase {
 				}
 				links.add(new Link(source, target, null));
 			}
+			
+			Set<OWLGraphEdge> incomingEdges = graph.getIncomingEdges(target);
+			for (OWLGraphEdge owlGraphEdge : incomingEdges) {
+				OWLQuantifiedProperty quantifiedProperty = owlGraphEdge.getSingleQuantifiedProperty();
+				if (quantifiedProperty.isSubClassOf()) {
+					OWLObject source = owlGraphEdge.getSource();
+					if (source.isTopEntity() || source.isBottomEntity()) {
+						continue;
+					}
+					links.add(new Link(source, target, null));
+				}
+				else if (quantifiedProperty.isSomeValuesFrom()) {
+					OWLObject source = owlGraphEdge.getSource();
+					if (source.isTopEntity() || source.isBottomEntity()) {
+						continue;
+					}
+					OWLObjectProperty p = quantifiedProperty.getProperty();
+					links.add(new Link(source, target, p));
+				}
+			}
+			
 			if (links.isEmpty() == false) {
 				return links;
 			}
@@ -80,6 +106,27 @@ public class DefaultLinkDatabase implements LinkDatabase {
 				}
 				links.add(new Link(source, target, null));
 			}
+			
+			Set<OWLGraphEdge> outgoingEdges = graph.getOutgoingEdges(source);
+			for (OWLGraphEdge owlGraphEdge : outgoingEdges) {
+				OWLQuantifiedProperty quantifiedProperty = owlGraphEdge.getSingleQuantifiedProperty();
+				if (quantifiedProperty.isSubClassOf()) {
+					OWLObject target = owlGraphEdge.getTarget();
+					if (target.isTopEntity() || target.isBottomEntity()) {
+						continue;
+					}
+					links.add(new Link(source, target, null));
+				}
+				else if (quantifiedProperty.isSomeValuesFrom()) {
+					OWLObject target = owlGraphEdge.getTarget();
+					if (target.isTopEntity() || target.isBottomEntity()) {
+						continue;
+					}
+					OWLObjectProperty p = quantifiedProperty.getProperty();
+					links.add(new Link(source, target, p));
+				}
+			}
+			
 			if (links.isEmpty() == false) {
 				return links;
 			}
@@ -127,6 +174,21 @@ public class DefaultLinkDatabase implements LinkDatabase {
 				}
 				result.add(descendant);
 			}
+			for(OWLObject owlObject : graph.getDescendants(cls)) {
+				if (owlObject.isBottomEntity() || owlObject.isTopEntity()) {
+					continue;
+				}
+				if (owlObject instanceof OWLClass) {
+					result.add(owlObject);
+				}
+				else if (owlObject instanceof OWLObjectSomeValuesFrom) {
+					OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom) owlObject;
+					OWLClassExpression filler = some.getFiller();
+					if (filler.isAnonymous() == false) {
+						result.add(filler);
+					}
+				}
+			}
 			if (includeSelf) {
 				result.add(term);
 			}
@@ -149,6 +211,22 @@ public class DefaultLinkDatabase implements LinkDatabase {
 				}
 				result.add(ancestor);
 			}
+			for(OWLObject owlObject : graph.getAncestors(cls)) {
+				if (owlObject.isBottomEntity() || owlObject.isTopEntity()) {
+					continue;
+				}
+				if (owlObject instanceof OWLClass) {
+					result.add(owlObject);
+				}
+				else if (owlObject instanceof OWLObjectSomeValuesFrom) {
+					OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom) owlObject;
+					OWLClassExpression filler = some.getFiller();
+					if (filler.isAnonymous() == false) {
+						result.add(filler);
+					}
+				}
+			}
+			
 			if (includeSelf) {
 				result.add(term);
 			}

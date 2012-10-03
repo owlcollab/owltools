@@ -26,7 +26,7 @@ public class TestCanvas {
 	public static void main(String[] args) throws Exception {
 
 		loadAndShow("src/test/resources/simple.obo", "CARO:0007", "CARO:0003");
-//		loadAndShow("src/test/resources/go/gene_ontology_write.obo", "GO:0000006");
+//		loadAndShow("src/test/resources/go/gene_ontology_write.obo", "GO:0007406");
 //		loadAndShow("src/test/resources/caro.obo");
 		
 	}
