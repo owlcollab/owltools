@@ -737,25 +737,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				try {
 					infBuilder = handleInferences(ontologyId, reasonerReportLines, gciOntology);
 
-					// CONSISTENCY CHECK
-					if (oortConfig.isCheckConsistency()) {
-						logger.info("Checking consistency");
-						List<String> incs = infBuilder.performConsistencyChecks();
-						if (incs.size() > 0) {
-							for (String inc  : incs) {
-								String message = "PROBLEM\t" + inc;
-								reasonerReportLines.add(message);
-								logger.error(message);
-							}
-							// TODO: proper exception mechanism - delay until end?
-							if (!oortConfig.isForceRelease()) {
-								saveReasonerReport(ontologyId, reasonerReportLines);
-								throw new OboOntologyReleaseRunnerCheckException("Found problems during intial checks.",incs, "Use ForceRelease option to ignore this warning.");
-							}
-						}
-						logger.info("Checking consistency completed");
-					}
-
 					// TEST FOR EQUIVALENT NAMED CLASS PAIRS
 					if (true) {
 						if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
@@ -984,9 +965,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	 * @throws OWLOntologyStorageException
 	 * @throws IOException
 	 * @throws OWLOntologyCreationException
+	 * @throws OboOntologyReleaseRunnerCheckException
 	 */
 	private InferenceBuilder handleInferences(String ontologyId, List<String> reasonerReportLines, OWLOntology gciOntology)
-			throws OWLOntologyStorageException, IOException, OWLOntologyCreationException
+			throws OWLOntologyStorageException, IOException, OWLOntologyCreationException, OboOntologyReleaseRunnerCheckException
 	{
 		logger.info("Using reasoner to add/retract links in main ontology");
 		OWLGraphWrapper g = mooncat.getGraph();
@@ -995,15 +977,35 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		final OWLDataFactory factory = manager.getOWLDataFactory();
 		final Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
 		final Set<RemoveAxiom> removedSubClassOfAxiomChanges = new HashSet<RemoveAxiom>();
-		int threads = oortConfig.getThreads();
+//		int threads = oortConfig.getThreads();
 		final InferenceBuilder infBuilder;
-		if (threads > 1) {
-			infBuilder = new ThreadedInferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL(), threads);
-		}
-		else {
+//		if (threads > 1) {
+//			infBuilder = new ThreadedInferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL(), threads);
+//		}
+//		else {
 			infBuilder = new InferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL());
-		}
+//		}
 
+		// CONSISTENCY CHECK
+		// A consistent ontology is a primary for sensible reasoning results. 
+		if (oortConfig.isCheckConsistency()) {
+			logger.info("Checking consistency");
+			List<String> incs = infBuilder.performConsistencyChecks();
+			if (incs.size() > 0) {
+				for (String inc  : incs) {
+					String message = "PROBLEM\t" + inc;
+					reasonerReportLines.add(message);
+					logger.error(message);
+				}
+				// TODO: proper exception mechanism - delay until end?
+				if (!oortConfig.isForceRelease()) {
+					saveReasonerReport(ontologyId, reasonerReportLines);
+					throw new OboOntologyReleaseRunnerCheckException("Found problems during intial checks.",incs, "Use ForceRelease option to ignore this warning.");
+				}
+			}
+			logger.info("Checking consistency completed");
+		}
+		
 		// optionally remove a subset of the axioms we want to attempt to recapitulate
 		if (oortConfig.isJustifyAssertedSubclasses()) {
 			if (oortConfig.isUseIsInferred()) {
