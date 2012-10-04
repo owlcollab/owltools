@@ -1,5 +1,12 @@
 #!/bin/sh
 DIRNAME=`dirname $0`
-java -Xmx2524M -jar $DIRNAME/owltools-oort-all.jar  "$@"
+
+JAVAARGS="-Xmx2524M"
+
+if [ $OORT_MEMORY ]
+then
+  JAVAARGS="-Xmx$OORT_MEMORY"
+fi
+java $JAVAARGS -jar $DIRNAME/owltools-oort-all.jar  "$@"
 
 
