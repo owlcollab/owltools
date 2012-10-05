@@ -72,8 +72,7 @@ public class NameRedundancyCheck extends AbstractCheck {
 				String label = graph.getLabel(owlObject);
 				
 				if (label == null) {
-					String id = graph.getIdentifier(owlObject);
-					out.add(new CheckWarning("HAS_NAME_CHECK", "The ID: '"+id+"' has no label.", isFatal(), iri));
+					out.add(new CheckWarning("HAS_NAME_CHECK", "The term with IRI: "+iri.toQuotedString()+" has no label.", isFatal(), iri));
 					continue;
 				}
 				
