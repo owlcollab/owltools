@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.EcoTools;
@@ -42,6 +43,7 @@ import owltools.gaf.rules.AnnotationRulesFactory;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
+import owltools.mooncat.Mooncat;
 
 /**
  * GAF tools for command-line, includes validation of GAF files.
@@ -235,7 +237,42 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	
+	@CLIMethod("--extract-ontology-subset-by-gaf")
+	public void extractOntologySubsetByGaf(Opts opts) throws OWLOntologyCreationException {
+		opts.info("", "makes an ontology subset using closure of all terms used in GAF");
+		IRI subOntIRI = IRI.create("http://purl.obolibrary.org/obo/"+g.getOntologyId()+"-gaf-subset");
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-u|--uri|--iri")) {
+				subOntIRI = IRI.create(opts.nextOpt());
+			}
+			else {
+				break;
+			}
+		}
+		Mooncat m = new Mooncat(g);
+		Set<OWLClass> cs = new HashSet<OWLClass>();
+		LOG.info("Annotations: "+gafdoc.getGeneAnnotations().size());
+		Set<String> unmatchedIds = new HashSet<String>();
+		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
+			OWLClass c = g.getOWLClassByIdentifier(a.getCls());
+			//LOG.info(" C:"+c);
+			if (c == null) {
+				unmatchedIds.add(a.getCls());
+				continue;
+			}
+			cs.add(c);
+		}
+		if (unmatchedIds.size() > 0) {
+			LOG.error("GAF contains "+unmatchedIds.size()+" unmatched IDs");
+			for (String id : unmatchedIds) {
+				LOG.error("UNMATCHED: "+id);
+			}
+		}
+		LOG.info("Making subset ontology seeded from "+cs.size()+" classes");
+		g.setSourceOntology(m.makeSubsetOntology(cs, subOntIRI ));
+		LOG.info("Made subset ontology; # classes = "+cs.size());
+	}
+
 	
 	private static class GafParserReport {
 		
