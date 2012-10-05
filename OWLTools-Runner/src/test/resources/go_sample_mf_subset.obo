@@ -1,0 +1,259 @@
+format-version: 1.2
+ontology: http://x.org/foo
+
+[Term]
+id: GO:0000166
+name: nucleotide binding
+namespace: molecular_function
+is_a: GO:0005488 ! binding
+
+[Term]
+id: GO:0003674
+name: molecular_function
+namespace: molecular_function
+alt_id: GO:0005554
+comment: Note that, in addition to forming the root of the molecular function ontology, this term is recommended for use for the annotation of gene products whose molecular function is unknown. Note that when this term is used for annotation, it indicates that no information was available about the molecular function of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+
+[Term]
+id: GO:0003676
+name: nucleic acid binding
+namespace: molecular_function
+is_a: GO:0005488 ! binding
+
+[Term]
+id: GO:0003677
+name: DNA binding
+namespace: molecular_function
+is_a: GO:0003676 ! nucleic acid binding
+
+[Term]
+id: GO:0003723
+name: RNA binding
+namespace: molecular_function
+is_a: GO:0003676 ! nucleic acid binding
+
+[Term]
+id: GO:0003951
+name: NAD+ kinase activity
+namespace: molecular_function
+is_a: GO:0016301 ! kinase activity
+
+[Term]
+id: GO:0004017
+name: adenylate kinase activity
+namespace: molecular_function
+is_a: GO:0019205 ! nucleobase-containing compound kinase activity
+
+[Term]
+id: GO:0004386
+name: helicase activity
+namespace: molecular_function
+comment: Note that most helicases catalyze processive duplex unwinding.
+is_a: GO:0017111 ! nucleoside-triphosphatase activity
+
+[Term]
+id: GO:0004809
+name: tRNA (guanine-N2-)-methyltransferase activity
+namespace: molecular_function
+is_a: GO:0016740 ! transferase activity
+
+[Term]
+id: GO:0004857
+name: enzyme inhibitor activity
+namespace: molecular_function
+is_a: GO:0003674 ! molecular_function
+relationship: regulates GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0005488
+name: binding
+namespace: molecular_function
+comment: For ligands that bind to signal transducing receptors, consider the molecular function term 'receptor binding ; GO:0005102' and its children.
+is_a: GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0005506
+name: iron ion binding
+namespace: molecular_function
+is_a: GO:0046872 ! metal ion binding
+
+[Term]
+id: GO:0005509
+name: calcium ion binding
+namespace: molecular_function
+is_a: GO:0046872 ! metal ion binding
+
+[Term]
+id: GO:0005515
+name: protein binding
+namespace: molecular_function
+alt_id: GO:0045308
+is_a: GO:0005488 ! binding
+
+[Term]
+id: GO:0005524
+name: ATP binding
+namespace: molecular_function
+is_a: GO:0000166 ! nucleotide binding
+
+[Term]
+id: GO:0008026
+name: ATP-dependent helicase activity
+namespace: molecular_function
+is_a: GO:0004386 ! helicase activity
+is_a: GO:0016887 ! ATPase activity
+
+[Term]
+id: GO:0008270
+name: zinc ion binding
+namespace: molecular_function
+is_a: GO:0046872 ! metal ion binding
+
+[Term]
+id: GO:0010577
+name: metalloenzyme activator activity
+namespace: molecular_function
+is_a: GO:0003674 ! molecular_function
+relationship: regulates GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0016301
+name: kinase activity
+namespace: molecular_function
+comment: Note that this term encompasses all activities that transfer a single phosphate group; although ATP is by far the most common phosphate donor, reactions using other phosphate donors are included in this term.
+is_a: GO:0016740 ! transferase activity
+
+[Term]
+id: GO:0016491
+name: oxidoreductase activity
+namespace: molecular_function
+comment: Note that enzymes of class EC:1.97.-.- should also be annotated to this term.
+is_a: GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0016702
+name: oxidoreductase activity, acting on single donors with incorporation of molecular oxygen, incorporation of two atoms of oxygen
+namespace: molecular_function
+is_a: GO:0016491 ! oxidoreductase activity
+
+[Term]
+id: GO:0016705
+name: oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen
+namespace: molecular_function
+comment: Note that enzymes of class EC:1.14.99.- should also be annotated to this term.
+is_a: GO:0016491 ! oxidoreductase activity
+
+[Term]
+id: GO:0016740
+name: transferase activity
+namespace: molecular_function
+is_a: GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0016787
+name: hydrolase activity
+namespace: molecular_function
+is_a: GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0016881
+name: acid-amino acid ligase activity
+namespace: molecular_function
+is_a: GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0016887
+name: ATPase activity
+namespace: molecular_function
+alt_id: GO:0004002
+is_a: GO:0017111 ! nucleoside-triphosphatase activity
+
+[Term]
+id: GO:0017111
+name: nucleoside-triphosphatase activity
+namespace: molecular_function
+is_a: GO:0016787 ! hydrolase activity
+
+[Term]
+id: GO:0019205
+name: nucleobase-containing compound kinase activity
+namespace: molecular_function
+is_a: GO:0016301 ! kinase activity
+
+[Term]
+id: GO:0030295
+name: protein kinase activator activity
+namespace: molecular_function
+is_a: GO:0003674 ! molecular_function
+relationship: positively_regulates GO:0016301 ! kinase activity
+relationship: regulates GO:0016301 ! kinase activity
+
+[Term]
+id: GO:0031418
+name: L-ascorbic acid binding
+namespace: molecular_function
+is_a: GO:0005488 ! binding
+
+[Term]
+id: GO:0033971
+name: hydroxyisourate hydrolase activity
+namespace: molecular_function
+is_a: GO:0016787 ! hydrolase activity
+
+[Term]
+id: GO:0035091
+name: phosphatidylinositol binding
+namespace: molecular_function
+is_a: GO:0005488 ! binding
+
+[Term]
+id: GO:0042393
+name: histone binding
+namespace: molecular_function
+is_a: GO:0005515 ! protein binding
+
+[Term]
+id: GO:0043014
+name: alpha-tubulin binding
+namespace: molecular_function
+is_a: GO:0005515 ! protein binding
+
+[Term]
+id: GO:0046872
+name: metal ion binding
+namespace: molecular_function
+is_a: GO:0005488 ! binding
+
+[Typedef]
+id: has_part
+name: has_part
+namespace: gene_ontology
+is_transitive: true
+
+[Typedef]
+id: negatively_regulates
+name: negatively_regulates
+namespace: gene_ontology
+holds_over_chain: results_in negatively_regulates
+is_a: regulates
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: gene_ontology
+is_transitive: true
+
+[Typedef]
+id: positively_regulates
+name: positively_regulates
+namespace: gene_ontology
+holds_over_chain: results_in positively_regulates
+is_a: regulates
+
+[Typedef]
+id: regulates
+name: regulates
+namespace: gene_ontology
+holds_over_chain: results_in regulates
+transitive_over: part_of
+
