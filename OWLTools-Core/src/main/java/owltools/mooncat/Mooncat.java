@@ -922,11 +922,31 @@ public class Mooncat {
 			}
 		}
 	}
+	
+	/**
+	 * 
+	 * @param props
+	 */
+	public void retainAxiomsInPropertySubset(Set<OWLObjectProperty> props) {
+		retainAxiomsInPropertySubset(this.getOntology(), props);
+	}
 
+	/**
+	 * @param ont
+	 * @param filterProps
+	 */
 	public static void retainAxiomsInPropertySubset(OWLOntology ont, Set<OWLObjectProperty> filterProps) {
 		retainAxiomsInPropertySubset(ont, filterProps, null);
 	}
 
+	/**
+	 * given an ontology *ont* and a set of object properties *filterProps*, remove all axioms from ontology that
+	 * have an object property P in their signature where P is not in *filterProps*
+	 * 
+	 * @param ont
+	 * @param filterProps
+	 * @param reasoner
+	 */
 	public static void retainAxiomsInPropertySubset(OWLOntology ont, Set<OWLObjectProperty> filterProps, OWLReasoner reasoner) {
 		LOG.info("Removing axioms that use properties not in set: "+filterProps);
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
@@ -971,9 +991,6 @@ public class Mooncat {
 
 
 
-	public void retainAxiomsInPropertySubset(Set<OWLObjectProperty> props) {
-		retainAxiomsInPropertySubset(this.getOntology(), props);
 
-	}
 
 }
