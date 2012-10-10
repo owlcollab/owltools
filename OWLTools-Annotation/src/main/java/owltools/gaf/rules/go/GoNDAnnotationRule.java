@@ -55,6 +55,7 @@ public class GoNDAnnotationRule extends AbstractAnnotationRule {
 				"CGD_REF:CAL0125086",
 				"RGD:1598407",
 				"TAIR:Communication:1345790",
+				"TAIR:Communication:501683652",
 				"AspGD_REF:ASPL0000111607"));
 					
 	}
@@ -70,7 +71,7 @@ public class GoNDAnnotationRule extends AbstractAnnotationRule {
 			}
 			String referenceId = a.getReferenceId();
 			if (ndXrefs.contains(referenceId) == false) {
-				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "ND annotations to root require reference ID", a, violationType);
+				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "ND annotations to root require reference ID", a, ViolationType.Warning);
 				return Collections.singleton(violation);
 			}
 		}
