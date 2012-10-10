@@ -51,8 +51,9 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		// error
 		assertTrue(result.hasErrors());
 		Map<String, List<AnnotationRuleViolation>> errors = result.getViolations(ViolationType.Error);
-		assertEquals(3, errors.size()); // 3 rules with Errors
+		assertEquals(4, errors.size()); // 4 rules with Errors
 		assertEquals(2, errors.get("GO_AR:0000001").size());
+		assertEquals(1, errors.get("GO_AR:0000011").size());
 		assertEquals(7, errors.get("GO_AR:0000013").size());
 		assertEquals(1, errors.get("GO_AR:0000014").size());
 		

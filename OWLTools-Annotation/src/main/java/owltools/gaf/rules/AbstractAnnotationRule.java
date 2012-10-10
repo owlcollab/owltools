@@ -15,6 +15,7 @@ public abstract class AbstractAnnotationRule implements AnnotationRule {
 	private String status;
 	private Date date;
 	private String description;
+	private Date grandFatheringDate = null;
 	
 	public abstract Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a);
 	
@@ -93,6 +94,21 @@ public abstract class AbstractAnnotationRule implements AnnotationRule {
 	@Override
 	public boolean isOwlDocumentLevel() {
 		return false;
+	}
+
+	@Override
+	public boolean hasGrandFathering() {
+		return getGrandFatheringDate() != null;
+	}
+
+	@Override
+	public Date getGrandFatheringDate() {
+		return grandFatheringDate;
+	}
+
+	@Override
+	public void setGrandFatheringDate(Date date) {
+		grandFatheringDate = date;
 	}
 	
 }

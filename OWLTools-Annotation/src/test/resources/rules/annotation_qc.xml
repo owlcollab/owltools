@@ -660,6 +660,11 @@ WHERE  ( evidence.code = 'ND'
 					GO database
 				</input>
 			</implementation>
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000011" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
+			</implementation>
 		</implementation_list>
 		<status date="2010-04-01">
 			Proposed

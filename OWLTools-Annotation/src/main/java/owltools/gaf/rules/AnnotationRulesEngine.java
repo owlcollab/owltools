@@ -1,9 +1,11 @@
 package owltools.gaf.rules;
 
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +20,7 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
+import owltools.gaf.rules.go.BasicChecksRule;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 import owltools.graph.OWLGraphWrapper;
 
@@ -100,7 +103,9 @@ public class AnnotationRulesEngine {
 		try{
 			for(GeneAnnotation annotation : doc.getGeneAnnotations()){
 				for(AnnotationRule rule : annotationRules){
-					result.addViolations(rule.getRuleViolations(annotation));
+					if (!isGrandFatheredAnnotation(annotation, rule)) {
+						result.addViolations(rule.getRuleViolations(annotation));
+					}
 				}
 			}
 			if (documentRules != null && !documentRules.isEmpty()) {
@@ -125,6 +130,23 @@ public class AnnotationRulesEngine {
 		}
 		LOG.info("Finished validation of annotations.");
 		return result;
+	}
+	
+	private boolean isGrandFatheredAnnotation(GeneAnnotation annotation, AnnotationRule rule) {
+		if (rule.hasGrandFathering()) {
+			String dateString = annotation.getLastUpdateDate();
+			try {
+				Date date = BasicChecksRule.dtFormat.get().parse(dateString);
+				if (date.before(rule.getGrandFatheringDate())) {
+					// is grand fathered
+					return true;
+				}
+			} catch (ParseException e) {
+				// ignore
+			}
+		}
+		
+		return false;
 	}
 	
 	

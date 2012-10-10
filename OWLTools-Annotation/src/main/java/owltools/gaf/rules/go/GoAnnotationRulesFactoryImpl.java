@@ -54,6 +54,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		namedRules.put(GoICAnnotationRule.PERMANENT_JAVA_ID, new GoICAnnotationRule(eco));
 		namedRules.put(GoIDAAnnotationRule.PERMANENT_JAVA_ID, new GoIDAAnnotationRule(eco));
 		namedRules.put(GoIPIAnnotationRule.PERMANENT_JAVA_ID, new GoIPIAnnotationRule(eco));
+		namedRules.put(GoNDAnnotationRule.PERMANENT_JAVA_ID, new GoNDAnnotationRule(eco));
 		logger.info("Finished preparing ontology checks");
 	}
 	

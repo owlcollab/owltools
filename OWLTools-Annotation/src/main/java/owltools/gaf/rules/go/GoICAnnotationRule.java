@@ -1,8 +1,10 @@
 package owltools.gaf.rules.go;
 
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.gaf.EcoTools;
@@ -36,6 +38,14 @@ public class GoICAnnotationRule extends AbstractAnnotationRule {
 		
 		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "IC");
 		evidences = EcoTools.getCodes(ecoClasses, eco, true);
+		
+		// TODO remove hard coded date once the date is available from the annotation_qc.xml
+		final String grandFatheringDateString = "20120101";
+		try {
+			setGrandFatheringDate(BasicChecksRule.dtFormat.get().parse(grandFatheringDateString));
+		} catch (ParseException e) {
+			Logger.getLogger(GoICAnnotationRule.class).error("Could not grand fathering date: "+grandFatheringDateString, e);
+		}
 	}
 	
 	@Override

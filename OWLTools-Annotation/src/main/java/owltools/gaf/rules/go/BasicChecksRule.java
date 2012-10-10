@@ -35,7 +35,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 
 	private static Logger LOG = Logger.getLogger(BasicChecksRule.class);
 	
-	private static ThreadLocal<SimpleDateFormat> dtFormat = new ThreadLocal<SimpleDateFormat>(){
+	public static ThreadLocal<SimpleDateFormat> dtFormat = new ThreadLocal<SimpleDateFormat>(){
 
 		@Override
 		protected SimpleDateFormat initialValue() {

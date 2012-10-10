@@ -125,4 +125,32 @@ public interface AnnotationRule {
 	 */
 	public boolean isOwlDocumentLevel();
 	
+	/**
+	 * Indicate the use of grand fathering, meaning do not report violations for
+	 * this rule for annotations older than the given grand fathering date
+	 * cut-off.
+	 * 
+	 * @return true, if the rule requires grand fathering
+	 * @see #getGrandFatheringDate()
+	 */
+	public boolean hasGrandFathering();
+	
+	/**
+	 * Return the cut-off date for grand fathering the rule. Has only a valid
+	 * value if {@link #hasGrandFathering()} is true.
+	 * 
+	 * @return date
+	 * @see #hasGrandFathering()
+	 */
+	public Date getGrandFatheringDate();
+	
+	/**
+	 * Set the cut-off date for grand fathering the rule. A null value
+	 * deactivates the grand fathering.
+	 * 
+	 * @param date
+	 * @see #hasGrandFathering()
+	 */
+	public void setGrandFatheringDate(Date date);
+	
 }
