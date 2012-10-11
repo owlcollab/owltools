@@ -117,7 +117,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 				}
 
 				// TODO add parsing for grand fathering date
-				Date grandFatheringDate = null;
+//				Date grandFatheringDate = null;
 				
 				String className = scriptElement.getAttributeValue("source");
 				if(className != null){
@@ -132,7 +132,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 							rule.setDescription(description);
 							rule.setStatus(status);
 							rule.setDate(date);
-							rule.setGrandFatheringDate(grandFatheringDate);
+//							rule.setGrandFatheringDate(grandFatheringDate);
 							if (rule.isAnnotationLevel()) {
 								annotationRules.add(rule);
 							}
@@ -199,7 +199,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 				}
 				
 				// TODO add parsing for grand fathering date
-				Date grandFatheringDate = null;
+//				Date grandFatheringDate = null;
 				
 
 				Pattern pattern;
@@ -216,7 +216,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 				rule.setDescription(description);
 				rule.setStatus(status);
 				rule.setDate(date);
-				rule.setGrandFatheringDate(grandFatheringDate);
+//				rule.setGrandFatheringDate(grandFatheringDate);
 				rule.setErrorMessage(title);
 				rule.setPattern(pattern);
 				rule.setRegex(regex);
