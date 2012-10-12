@@ -9,6 +9,8 @@ import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
@@ -16,7 +18,15 @@ import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
+import owltools.graph.OWLGraphWrapper;
+import owltools.io.CatalogXmlIRIMapper;
+import owltools.io.ParserWrapper;
 
+/**
+ * Tests for {@link AnnotationRulesEngine}.
+ *
+ * TODO currently this is excluded from the test suite due to excessive runtime (Taxon check using HermiT).
+ */
 public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 
 	private static boolean renderViolations = false;
@@ -27,15 +37,16 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 	public static void setUpBeforeClass() throws Exception {
 		String qcfile = LOCATION + "annotation_qc.xml";
 		String xrfabbslocation = LOCATION + "GO.xrf_abbs";
-		List<String> taxonomylocation = Arrays.asList(LOCATION + "taxon/gene_ontology_ext.obo", 
-				LOCATION + "taxon/ncbi_taxon_slim.obo",
-				LOCATION + "taxon/taxon_go_triggers.obo", 
-				LOCATION + "taxon/taxon_union_terms.obo");
+		ParserWrapper p = new ParserWrapper();
 		
-		String ecolocation = getResourceIRIString("eco.obo");
+		OWLOntologyIRIMapper mapper = new CatalogXmlIRIMapper(getResource("rules/ontology/extensions/catalog-v001.xml"));
+		p.addIRIMapper(mapper);
+		
+		OWLOntology goTaxon = p.parse("http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl");
+		OWLOntology eco = p.parseOBOFiles(Arrays.asList(getResource("eco.obo").getAbsolutePath()));
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
-				qcfile, xrfabbslocation, taxonomylocation, ecolocation);
+				qcfile, xrfabbslocation, new OWLGraphWrapper(goTaxon), new OWLGraphWrapper(eco));
 		engine = new AnnotationRulesEngine(rulesFactory);
 	}
 
@@ -54,7 +65,7 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		assertEquals(4, errors.size()); // 4 rules with Errors
 		assertEquals(2, errors.get("GO_AR:0000001").size());
 		assertEquals(1, errors.get("GO_AR:0000011").size());
-		assertEquals(7, errors.get("GO_AR:0000013").size());
+		assertEquals(1, errors.get("GO_AR:0000013").size());
 		assertEquals(1, errors.get("GO_AR:0000014").size());
 		
 		// warning

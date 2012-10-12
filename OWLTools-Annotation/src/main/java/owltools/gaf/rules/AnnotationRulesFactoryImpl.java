@@ -136,10 +136,10 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 							if (rule.isAnnotationLevel()) {
 								annotationRules.add(rule);
 							}
-							else if (rule.isDocumentLevel()) {
+							if (rule.isDocumentLevel()) {
 								documentRules.add(rule);
 							}
-							else if(rule.isOwlDocumentLevel()) {
+							if(rule.isOwlDocumentLevel()) {
 								owlRules.add(rule);
 							}
 						}

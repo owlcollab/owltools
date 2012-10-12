@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -38,12 +39,13 @@ public class GAFOWLBridge {
 	private Map<Vocab,IRI> vocabMap = new HashMap<Vocab,IRI>();
 	private Map<String,OWLObjectProperty> shorthandMap = new HashMap<String,OWLObjectProperty>();
 
-	private enum BioentityMapping { NONE, CLASS_EXPRESSION, INDIVIDUAL };
+	public enum BioentityMapping { NONE, CLASS_EXPRESSION, NAMED_CLASS, INDIVIDUAL };
 
 	// config
 	private BioentityMapping bioentityMapping = BioentityMapping.CLASS_EXPRESSION;
 	private boolean isGenerateIndividuals = true;
 
+	public static IRI GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI = IRI.create("http://gaf/line_number");
 
 	public enum Vocab {
 		ACTIVELY_PARTICIPATES_IN, PART_OF,
@@ -99,6 +101,19 @@ public class GAFOWLBridge {
 				fac.getOWLLiteral(label)));
 	}
 
+	/**
+	 * @return the bioentityMapping
+	 */
+	public BioentityMapping getBioentityMapping() {
+		return bioentityMapping;
+	}
+
+	/**
+	 * @param bioentityMapping the bioentityMapping to set
+	 */
+	public void setBioentityMapping(BioentityMapping bioentityMapping) {
+		this.bioentityMapping = bioentityMapping;
+	}
 
 	public boolean isGenerateIndividuals() {
 		return isGenerateIndividuals;
@@ -204,17 +219,57 @@ public class GAFOWLBridge {
 		if (bioentityMapping != BioentityMapping.NONE) {
 			// PROTOTYPE RELATIONSHIP
 			OWLObjectProperty pProto = getGeneAnnotationObjectProperty(Vocab.PROTOTYPICALLY);
-			OWLClassExpression ce = null;
 			if (bioentityMapping == BioentityMapping.INDIVIDUAL) {
 				//  E.g. Shh[cls] SubClassOf has_proto VALUE _:x, where _:x Type act_ptpt_in SOME 'heart dev'
 				OWLAnonymousIndividual anonInd = fac.getOWLAnonymousIndividual();
 				axioms.add(fac.getOWLClassAssertionAxiom(r, anonInd));
-				ce = fac.getOWLObjectHasValue(pProto, anonInd);
+				OWLClassExpression ce = fac.getOWLObjectHasValue(pProto, anonInd);
+				axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
+			}
+			else if (bioentityMapping == BioentityMapping.NAMED_CLASS) {
+				IRI iri = graph.getIRIByIdentifier(geneAnnotationId);
+				OWLClass owlClass = fac.getOWLClass(iri);
+				axioms.add(fac.getOWLDeclarationAxiom(owlClass));
+				
+				// line number
+				int lineNumber = a.getSource().getLineNumber();
+				OWLAnnotationProperty property = fac.getOWLAnnotationProperty(GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI);
+				OWLAnnotation annotation = fac.getOWLAnnotation(property, fac.getOWLLiteral(lineNumber));
+				axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
+				
+				// label
+				Bioentity bioentity = a.getBioentityObject();
+				String fullName = bioentity.getFullName();
+				if (fullName == null) {
+					fullName = bioentity.getId();
+				}
+				else {
+					fullName = "'"+fullName+"' ("+bioentity.getId()+")";
+				}
+				String clsId = a.getCls();
+				
+				String clsLabel = clsId;
+				final OWLObject owlObject = graph.getOWLObjectByIdentifier(clsId);
+				if (owlObject != null) {
+					String s = graph.getLabel(owlObject);
+					if (s != null) {
+						clsLabel = "'"+s+"' ("+clsId+")";
+					}
+				}
+						
+				
+				String label = fullName + " - " + clsLabel;
+				annotation = fac.getOWLAnnotation(fac.getRDFSLabel(), fac.getOWLLiteral(label));
+				axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
+				
+				// logical definition
+				axioms.add(fac.getOWLEquivalentClassesAxiom(owlClass, x));
 			}
 			else {
-				ce = fac.getOWLObjectSomeValuesFrom(pProto, r);
+				OWLClassExpression ce = fac.getOWLObjectSomeValuesFrom(pProto, r);
+				axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
 			}
-			axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
+			
 		}
 
 		// experimental: annotation assertions

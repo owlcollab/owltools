@@ -1,61 +1,56 @@
 package owltools.gaf.rules;
 
+import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLNamedObject;
+import org.apache.log4j.Logger;
+import org.semanticweb.HermiT.Configuration;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
 
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
-import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLQuantifiedProperty;
+import owltools.io.OWLPrettyPrinter;
 
 /**
  * Checks if an annotation is valid according to taxon constraints.
  * 
- * @author cjm
  */
 public class AnnotationTaxonRule extends AbstractAnnotationRule {
+
+	private static final Logger logger = Logger.getLogger(AnnotationTaxonRule.class);
 	
 	private final OWLGraphWrapper graph;
-	private final OWLObject rNever;
-	private final OWLObject rOnly;
 	
 	/**
-	 * @param graph The {@link OWLGraphWrapper} with merged-in taxon constraints
-	 * @param neverId
-	 * @param onlyId 
+	 * @param graph
 	 */
-	public AnnotationTaxonRule(OWLGraphWrapper graph, String neverId, String onlyId) {
-		
-		if(graph == null){
-			throw new IllegalArgumentException("OWLGraphWrapper may not be null");
-		}
+	public AnnotationTaxonRule(OWLGraphWrapper graph) {
 		this.graph = graph;
-		rNever = graph.getOWLObjectPropertyByIdentifier(neverId);
-		rOnly = graph.getOWLObjectPropertyByIdentifier(onlyId);
 	}
 
 	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
-		return _getRuleViolations(a.getCls(), a.getBioentityObject().getNcbiTaxonId(),a);
-	}
-
-	public boolean check(String annotationCls, String taxonCls) {
-		return getRuleViolations(annotationCls, taxonCls).size() == 0;
-	
-	}
-
-	public Set<AnnotationRuleViolation> getRuleViolations(String annotationCls, String taxonCls) {
-		return _getRuleViolations(annotationCls, taxonCls,null);
-	}
-	
-	private Set<AnnotationRuleViolation> _getRuleViolations(String annotationCls, String taxonCls, GeneAnnotation a) {
+		// check that all identifiers, required for a taxon check, can be resolved.
 		
-		if(taxonCls == null){
+		String annotationCls = a.getCls();
+		String taxonCls = a.getBioentityObject().getNcbiTaxonId();
+		
+		if (taxonCls == null) {
 			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "Taxon id is null", a);
 			return Collections.singleton(v);
 		}
@@ -72,63 +67,107 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 			return Collections.singleton(v);
 		}
 		
-		Set<AnnotationRuleViolation> violations = new HashSet<AnnotationRuleViolation>();
-		Set<OWLGraphEdge> edges = graph.getOutgoingEdgesClosure(cls);
-		String evidenceCode = a.getEvidenceCls();
-
-		for (OWLGraphEdge ge : edges) {
-			OWLObject tgt = ge.getTarget();
-			if (!(tgt instanceof OWLNamedObject))
-				continue;
-			OWLObject p = graph.getOWLClass(tgt);
-			if (p == null) {
-				continue;
-			}
-			OWLQuantifiedProperty qp = ge.getLastQuantifiedProperty();
-			if (qp.isQuantified() && qp.getProperty().equals(rOnly)) {
-				// ONLY
-				if (!graph.getAncestorsReflexive(tax).contains(p)) {
-					StringBuilder sb = new StringBuilder();
-					sb.append("The term ");
-					renderEntity(sb, cls, graph);
-					sb.append(" requires the taxon ");
-					renderEntity(sb, p, graph);
-					sb.append(", but ");
-					renderEntity(sb, tax, graph);
-					sb.append(" does not match this constraint");
-					sb.append(" (").append(evidenceCode).append(")");
-					
-					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), sb.toString(), a);
-					violations.add(v);
-				}
-			}
-			else if (qp.isQuantified() && qp.getProperty().equals(rNever)) {
-				// NEVER
-				if (graph.getAncestorsReflexive(tax).contains(p)) {
-					StringBuilder sb = new StringBuilder();
-					sb.append("The term ");
-					renderEntity(sb, cls, graph);
-					sb.append(" may not be used with ");
-					renderEntity(sb, tax, graph);
-					sb.append(" reason: excluded ancestor ");
-					renderEntity(sb, p, graph);
-					sb.append(" (").append(evidenceCode).append(")");
-					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), sb.toString(), a);
-					violations.add(v);
-				}
-			}
-		}
-		return violations;	
+		return Collections.emptySet();
 	}
 	
-	private void renderEntity(StringBuilder sb, OWLObject o, OWLGraphWrapper graph) {
-		sb.append(graph.getIdentifier(o));
-		String label = graph.getLabel(o);
-		if (label != null) {
-			sb.append(" '");
-			sb.append(label);
-			sb.append('\'');
-		}
+	@Override
+	public boolean isOwlDocumentLevel() {
+		return true;
 	}
+
+	@Override
+	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph) {
+		
+		// use Hermit, as GO has inverse_of relations between part_of and has_part
+		OWLReasonerFactory factory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();
+		final OWLOntology ontology = graph.getSourceOntology();
+		final Configuration configuration = new Configuration();
+		configuration.reasonerProgressMonitor = new ReasonerProgressMonitor() {
+			
+			@Override
+			public void reasonerTaskStopped() {
+				logger.info("HermiT reasoning task - Finished.");
+				
+			}
+			
+			@Override
+			public void reasonerTaskStarted(String taskName) {
+				logger.info("HermiT reasoning task - Start: "+taskName);
+				
+			}
+			
+			double lastProgress = 0.0d;
+			
+			@Override
+			public void reasonerTaskProgressChanged(int value, int max) {
+				double progress = value / (double) max;
+				if (Math.abs(progress - lastProgress) > 0.05d) {
+					NumberFormat percentFormat = NumberFormat.getPercentInstance();
+					percentFormat.setMaximumFractionDigits(1);
+					logger.info("HermiT reasoning task - Progress: "+percentFormat.format(progress));
+					lastProgress = progress;
+				}
+			}
+			
+			@Override
+			public void reasonerTaskBusy() {
+				// do nothing
+			}
+		};
+		OWLReasoner reasoner = factory.createReasoner(ontology, configuration);
+		try {
+			boolean consistent = reasoner.isConsistent();
+			if (!consistent) {
+				return Collections.singleton(new AnnotationRuleViolation(getRuleId(), "Logic inconsistency in combined annotations and ontology detected."));
+			}
+
+			Node<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses();
+			if (unsatisfiableClasses != null) {
+				Set<AnnotationRuleViolation> result = new HashSet<AnnotationRuleViolation>();
+				OWLDataFactory fact = ontology.getOWLOntologyManager().getOWLDataFactory();
+				final OWLAnnotationProperty lineProperty = fact.getOWLAnnotationProperty(GAFOWLBridge.GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI);
+				OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
+				Set<OWLClass> entities = unsatisfiableClasses.getEntities();
+				for (OWLClass c : entities) {
+					if (c.isBottomEntity() || c.isTopEntity()) {
+						continue;
+					}
+					Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(c.getIRI());
+					Set<Integer> lineNumbers = new HashSet<Integer>();
+					for (OWLAnnotationAssertionAxiom axiom : axioms) {
+						if (lineProperty.equals(axiom.getProperty())) {
+							OWLAnnotationValue value = axiom.getValue();
+							if (value instanceof OWLLiteral) {
+								OWLLiteral literal = (OWLLiteral) value;
+								String stringValue = literal.getLiteral();
+								try {
+									Integer lineNumber = new Integer(stringValue);
+									lineNumbers.add(lineNumber);
+								} catch (NumberFormatException e) {
+									// ignore error
+								}
+							}
+						}
+					}
+					if (lineNumbers.isEmpty() == false) {
+						for (Integer lineNumber : lineNumbers) {
+							AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "unsatifiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Error);
+							violation.setLineNumber(lineNumber.intValue());
+							result.add(violation);
+						}
+						
+					}
+					
+				}
+				return result;
+			}
+			return Collections.emptySet();
+		}
+		finally {
+			reasoner.dispose();
+		}
+		
+	}
+
 }
 

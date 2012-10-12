@@ -25,6 +25,7 @@ public class GoIPIAnnotationRuleTest extends OWLToolsTestBasics {
 		GafObjectsBuilder builder = new GafObjectsBuilder();
 		GafDocument gafdoc = builder.buildDocument(getResource("test_gene_association_mgi.gaf"));
 		AnnotationRule rule = new GoIPIAnnotationRule(getGraph("eco.obo"));
+		assertTrue(rule.hasGrandFathering());
 		List<GeneAnnotation> annotations = gafdoc.getGeneAnnotations();
 		
 		List<AnnotationRuleViolation> allViolations = new ArrayList<AnnotationRuleViolation>();

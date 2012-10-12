@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.elk.owlapi.ElkReasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.reasoner.Node;
@@ -16,6 +17,11 @@ import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 
+/**
+ * This check using the {@link ElkReasoner} will not detect unsatisfiable
+ * classes, which result from inverse_of object properties. ELK does not support
+ * this at the moment.
+ */
 public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 	
 	/**

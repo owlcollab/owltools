@@ -1,0 +1,258 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY obo "http://purl.obolibrary.org/obo/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY oboInOwl "http://www.geneontology.org/formats/oboInOwl#" >
+    <!ENTITY x-disjoint "http://purl.obolibrary.org/obo/go/extensions/x-disjoint#" >
+]>
+
+
+<rdf:RDF xmlns="&obo;go/extensions/x-disjoint.owl#"
+     xml:base="&obo;go/extensions/x-disjoint.owl"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:x-disjoint="&obo;go/extensions/x-disjoint#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#">
+    <owl:Ontology rdf:about="&obo;go/extensions/x-disjoint.owl">
+        <oboInOwl:hasOBOFormatVersion rdf:datatype="&xsd;string">1.2</oboInOwl:hasOBOFormatVersion>
+        <oboInOwl:date rdf:datatype="&xsd;string">2008-05-08T08:11:45Z</oboInOwl:date>
+        <oboInOwl:auto-generated-by rdf:datatype="&xsd;string">OBO-Edit 2.000-beta38</oboInOwl:auto-generated-by>
+        <oboInOwl:remark rdf:datatype="&xsd;string">cvs version: $Revision: 1.3 $</oboInOwl:remark>
+        <oboInOwl:default-namespace rdf:datatype="&xsd;string">gene_ontology</oboInOwl:default-namespace>
+        <owl:imports rdf:resource="&obo;go.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <owl:AnnotationProperty rdf:about="&obo;go/extensions/x-disjoint#goslim_generic">
+        <rdfs:comment rdf:datatype="&xsd;string">Generic GO slim</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="&oboInOwl;SubsetProperty"/>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&obo;go/extensions/x-disjoint#goslim_goa">
+        <rdfs:comment rdf:datatype="&xsd;string">GOA and proteome slim</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="&oboInOwl;SubsetProperty"/>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;hasOBOFormatVersion">
+        <rdfs:label rdf:datatype="&xsd;string">has_obo_format_version</rdfs:label>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;remark"/>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;auto-generated-by"/>
+    <owl:AnnotationProperty rdf:about="&rdfs;label"/>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;default-namespace"/>
+    <owl:AnnotationProperty rdf:about="&rdfs;comment"/>
+    <owl:AnnotationProperty rdf:about="&obo;go/extensions/x-disjoint#goslim_pir">
+        <rdfs:comment rdf:datatype="&xsd;string">PIR GO slim</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="&oboInOwl;SubsetProperty"/>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;date"/>
+    <owl:AnnotationProperty rdf:about="&obo;go/extensions/x-disjoint#goslim_candida">
+        <rdfs:comment rdf:datatype="&xsd;string">Candida GO slim</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="&oboInOwl;SubsetProperty"/>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;hasOBONamespace">
+        <rdfs:label rdf:datatype="&xsd;string">has_obo_namespace</rdfs:label>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&obo;go/extensions/x-disjoint#gosubset_prok">
+        <rdfs:comment rdf:datatype="&xsd;string">Prokaryotic GO subset</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="&oboInOwl;SubsetProperty"/>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&obo;go/extensions/x-disjoint#goslim_plant">
+        <rdfs:comment rdf:datatype="&xsd;string">Plant GO slim</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="&oboInOwl;SubsetProperty"/>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;SubsetProperty">
+        <rdfs:label rdf:datatype="&xsd;string">subset_property</rdfs:label>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&obo;go/extensions/x-disjoint#goslim_yeast">
+        <rdfs:comment rdf:datatype="&xsd;string">Yeast GO slim</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="&oboInOwl;SubsetProperty"/>
+    </owl:AnnotationProperty>
+    <owl:AnnotationProperty rdf:about="&oboInOwl;id"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0005576 -->
+
+    <owl:Class rdf:about="&obo;GO_0005576">
+        <rdfs:label rdf:datatype="&xsd;string">extracellular region</rdfs:label>
+        <oboInOwl:id rdf:datatype="&xsd;string">GO:0005576</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">cellular_component</oboInOwl:hasOBONamespace>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0005623 -->
+
+    <owl:Class rdf:about="&obo;GO_0005623">
+        <owl:disjointWith rdf:resource="&obo;GO_0019012"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0031012"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0032991"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0043226"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0055044"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0005634 -->
+
+    <rdf:Description rdf:about="&obo;GO_0005634">
+        <owl:disjointWith rdf:resource="&obo;GO_0005829"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0044445"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0005829 -->
+
+    <rdf:Description rdf:about="&obo;GO_0005829">
+        <owl:disjointWith rdf:resource="&obo;GO_0044428"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0019012 -->
+
+    <owl:Class rdf:about="&obo;GO_0019012">
+        <owl:disjointWith rdf:resource="&obo;GO_0031012"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0032991"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0043226"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0055044"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0031012 -->
+
+    <owl:Class rdf:about="&obo;GO_0031012">
+        <owl:disjointWith rdf:resource="&obo;GO_0032991"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0043226"/>
+        <owl:disjointWith rdf:resource="&obo;GO_0055044"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0031974 -->
+
+    <owl:Class rdf:about="&obo;GO_0031974">
+        <owl:disjointWith rdf:resource="&obo;GO_0045202"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0031975 -->
+
+    <owl:Class rdf:about="&obo;GO_0031975"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0032991 -->
+
+    <owl:Class rdf:about="&obo;GO_0032991">
+        <owl:disjointWith rdf:resource="&obo;GO_0055044"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0043226 -->
+
+    <owl:Class rdf:about="&obo;GO_0043226">
+        <owl:disjointWith rdf:resource="&obo;GO_0055044"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0043227 -->
+
+    <owl:Class rdf:about="&obo;GO_0043227">
+        <owl:disjointWith rdf:resource="&obo;GO_0043228"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0043228 -->
+
+    <owl:Class rdf:about="&obo;GO_0043228"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044421 -->
+
+    <owl:Class rdf:about="&obo;GO_0044421">
+        <owl:disjointWith rdf:resource="&obo;GO_0044464"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044428 -->
+
+    <owl:Class rdf:about="&obo;GO_0044428">
+        <owl:disjointWith rdf:resource="&obo;GO_0044445"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044445 -->
+
+    <rdf:Description rdf:about="&obo;GO_0044445"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044464 -->
+
+    <rdf:Description rdf:about="&obo;GO_0044464"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0045202 -->
+
+    <rdf:Description rdf:about="&obo;GO_0045202"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0055044 -->
+
+    <rdf:Description rdf:about="&obo;GO_0055044"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.2.3.1824) http://owlapi.sourceforge.net -->
+

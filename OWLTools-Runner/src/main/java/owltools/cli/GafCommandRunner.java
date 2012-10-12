@@ -36,6 +36,7 @@ import owltools.gaf.inference.Prediction;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.owl.GAFOWLBridge;
+import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
@@ -122,6 +123,7 @@ public class GafCommandRunner extends CommandRunner {
 		String iri = null;
 		String out = null;
 		boolean isSkipIndividuals = false;
+		BioentityMapping bioentityMapping = null;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-n"))
 				iri = opts.nextOpt();
@@ -130,6 +132,20 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			else if (opts.nextEq("-c") || opts.nextEq("--skip-individuals")) {
 				isSkipIndividuals = true;
+			}
+			else if (opts.nextEq("--named-class")) {
+				isSkipIndividuals = true;
+				bioentityMapping = BioentityMapping.NAMED_CLASS;
+			}
+			else if (opts.nextEq("--none")) {
+				bioentityMapping = BioentityMapping.NONE;
+			}
+			else if (opts.nextEq("--class-expression")) {
+				isSkipIndividuals = true;
+				bioentityMapping = BioentityMapping.CLASS_EXPRESSION;
+			}
+			else if (opts.nextEq("--individual")) {
+				bioentityMapping = BioentityMapping.INDIVIDUAL;
 			}
 			else
 				break;
@@ -151,6 +167,9 @@ public class GafCommandRunner extends CommandRunner {
 			bridge = new GAFOWLBridge(g);
 		}
 		bridge.setGenerateIndividuals(!isSkipIndividuals);
+		if (bioentityMapping != null) {
+			bridge.setBioentityMapping(bioentityMapping);
+		}
 		LOG.info("Start converting GAF to OWL");
 		bridge.translate(gafdoc);
 		LOG.info("Finished converting GAF to OWL");

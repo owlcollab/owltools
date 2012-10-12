@@ -19,9 +19,9 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.owl.GAFOWLBridge;
+import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.go.BasicChecksRule;
-import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 import owltools.graph.OWLGraphWrapper;
 
 public class AnnotationRulesEngine {
@@ -29,11 +29,6 @@ public class AnnotationRulesEngine {
 	private static Logger LOG = Logger.getLogger(AnnotationRulesEngine.class);
 	
 	private final AnnotationRulesFactory rulesFactory;
-	
-	public AnnotationRulesEngine(){
-		this(new GoAnnotationRulesFactoryImpl());
-	}
-	
 	
 	public AnnotationRulesEngine(AnnotationRulesFactory rulesFactory){
 		this.rulesFactory = rulesFactory;
@@ -117,10 +112,11 @@ public class AnnotationRulesEngine {
 			if (owlRules != null && !owlRules.isEmpty() && graph != null) {
 				GAFOWLBridge bridge = new GAFOWLBridge(graph);
 				bridge.setGenerateIndividuals(false);
+				bridge.setBioentityMapping(BioentityMapping.NAMED_CLASS);
 				OWLOntology translated = bridge.translate(doc);
 				OWLGraphWrapper translatedGraph = new OWLGraphWrapper(translated);
 				for(AnnotationRule rule : owlRules) {
-					rule.getRuleViolations(translatedGraph);
+					result.addViolations(rule.getRuleViolations(translatedGraph));
 				}
 			}
 			

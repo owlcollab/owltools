@@ -12,20 +12,21 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 
+import owltools.gaf.rules.AnnotationTaxonRule;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 
 /**
- * 
- * 
  * @author cjm
- *
+ * @deprecated There is now a taxon checks using an OWL resoner. This
+ *             implementation may over-report violations, i.e. taxon constrains
+ *             should not be propagated over regulates relations.
+ * @see AnnotationTaxonRule
  */
+@Deprecated
 public class TaxonConstraintsEngine {
 
-	// TODO - unduplicate GOLD code
-
-	protected static Logger LOG = Logger.getLogger(TaxonConstraintsEngine.class);
+	private final static Logger LOG = Logger.getLogger(TaxonConstraintsEngine.class);
 
 	private OWLGraphWrapper graph;
 
@@ -36,7 +37,7 @@ public class TaxonConstraintsEngine {
 	/**
 	 * @param cid
 	 * @param taxId
-	 * @return
+	 * @return boolean
 	 */
 	public boolean isClassApplicable(String cid, String taxId) {
 		return isClassApplicable(graph.getOWLClassByIdentifier(cid),
@@ -46,9 +47,9 @@ public class TaxonConstraintsEngine {
 	/**
 	 * returns true if testOntologyCls is applicable for testTax
 	 * 
-	 * @param testOntologyCls
+	 * @param c
 	 * @param testTax
-	 * @return
+	 * @return boolean
 	 */
 	public boolean isClassApplicable(OWLClass c, OWLClass testTax) {
 		Set<OWLObject> taxAncs = graph.getAncestorsReflexive(testTax);

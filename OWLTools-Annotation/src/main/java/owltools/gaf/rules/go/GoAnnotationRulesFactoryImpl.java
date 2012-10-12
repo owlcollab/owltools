@@ -1,12 +1,9 @@
 package owltools.gaf.rules.go;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.gaf.rules.AnnotationRule;
 import owltools.gaf.rules.AnnotationRulesFactoryImpl;
@@ -20,25 +17,23 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 
 	private final Map<String, AnnotationRule> namedRules;
 	
-	public GoAnnotationRulesFactoryImpl() {
+	public GoAnnotationRulesFactoryImpl(ParserWrapper parserWrapper) {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
 				"http://www.geneontology.org/doc/GO.xrf_abbs",
-				Arrays.asList("http://www.geneontology.org/ontology/editors/gene_ontology_write.obo",
-					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/taxon_go_triggers.obo",
-					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/ncbi_taxon_slim.obo",
-					"http://www.geneontology.org/quality_control/annotation_checks/taxon_checks/taxon_union_terms.obo"),
-					"http://purl.obolibrary.org/obo/eco.owl");
+				parserWrapper,
+				"http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl",
+				"http://purl.obolibrary.org/obo/eco.owl");
+	}
+	
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, ParserWrapper p, String go, String eco) {
+		this(qcfile, xrfabbslocation, getGO(p, go), getEco(p, eco));
 	}
 	
 	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, OWLGraphWrapper eco) {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
 				"http://www.geneontology.org/doc/GO.xrf_abbs", graph, eco);
 	}
-	
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, List<String> ontologies, String eco) {
-		this(qcfile, xrfabbslocation, getOntologies(ontologies), getEco(eco));
-	}
-	
+
 	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, OWLGraphWrapper eco) {
 		super(qcfile, graph);
 		logger.info("Start preparing ontology checks");
@@ -57,30 +52,19 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		namedRules.put(GoNDAnnotationRule.PERMANENT_JAVA_ID, new GoNDAnnotationRule(eco));
 		logger.info("Finished preparing ontology checks");
 	}
-	
-	private static OWLGraphWrapper getOntologies(List<String> ontologylocations) {
+
+	private static OWLGraphWrapper getGO(ParserWrapper p, String location) {
 		try {
-			ParserWrapper p = new ParserWrapper();
-			OWLGraphWrapper wrapper = null;
-			for (String location : ontologylocations) {
-				if(wrapper==null){
-					wrapper = p.parseToOWLGraph(location);
-				}else{
-					wrapper.addSupportOntology(p.parse(location));
-				}
-			}
-			for(OWLOntology sont: wrapper.getSupportOntologySet()){
-				wrapper.mergeOntology(sont);
-			}
-			return wrapper;
+			OWLGraphWrapper graph =  p.parseToOWLGraph(location);
+			return graph;
+			
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 	
-	private static OWLGraphWrapper getEco(String location) {
+	private static OWLGraphWrapper getEco(ParserWrapper p, String location) {
 		try {
-			ParserWrapper p = new ParserWrapper();
 			OWLGraphWrapper wrapper = p.parseToOWLGraph(location);
 			return wrapper;
 		} catch (Exception e) {

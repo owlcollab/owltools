@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog prefer="public">
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/go-taxon-groupings.owl" uri="go-taxon-groupings.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/gorel.owl" uri="gorel.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/rel-chemical.owl" uri="rel-chemical.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/stimulus.owl" uri="stimulus.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/uchebi.owl" uri="uchebi.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-anatomy-importer.owl" uri="x-anatomy-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-bfo-importer.owl" uri="x-bfo-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-bfo.owl" uri="x-bfo.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-bp-protein.owl" uri="x-bp-protein.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-cc-internal.owl" uri="x-cc-internal.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-cell-importer.owl" uri="x-cell-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-cell-parts.owl" uri="x-cell-parts.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-cell.owl" uri="x-cell.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-cellular-importer.owl" uri="x-cellular-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-chemical-importer.owl" uri="x-chemical-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-chemical.owl" uri="x-chemical.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-chemical-basic.owl" uri="x-chemical-basic.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-chemical-uchebi.owl" uri="x-chemical-uchebi.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-cell.owl" uri="x-cell.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-taxon.owl" uri="x-taxon.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-disjoint-importer.owl" uri="x-disjoint-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-disjoint.owl" uri="x-disjoint.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-fly-anatomy.owl" uri="x-fly-anatomy.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-fungal-anatomy.owl" uri="x-fungal-anatomy.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-metazoan-anatomy-importer.owl" uri="x-metazoan-anatomy-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-metazoan-anatomy.owl" uri="x-metazoan-anatomy.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-mf-protein.owl" uri="x-mf-protein.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-plant-anatomy-importer.owl" uri="x-plant-anatomy-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-plant-anatomy.owl" uri="x-plant-anatomy.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-signaling-importer.owl" uri="x-signaling-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-signaling.owl" uri="x-signaling.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-stimulus.owl" uri="x-stimulus.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl" uri="x-taxon-importer.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-taxon.owl" uri="x-taxon.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-upper-anatomy.owl" uri="x-upper-anatomy.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl" uri="../external/ncbitaxon-subsets/taxslim.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim-disjoint-over-in-taxon.owl" uri="../external/ncbitaxon-subsets/taxslim-disjoint-over-in-taxon.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/ro/ro-el.owl" uri="../external/obo-relations/ro-el.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go.owl" uri="../go.owl"/>
+</catalog>
