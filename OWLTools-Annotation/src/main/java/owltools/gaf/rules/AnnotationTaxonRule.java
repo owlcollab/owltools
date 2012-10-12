@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.Configuration;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
@@ -77,44 +78,10 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 
 	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph) {
-		
-		// use Hermit, as GO has inverse_of relations between part_of and has_part
-		OWLReasonerFactory factory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();
 		final OWLOntology ontology = graph.getSourceOntology();
-		final Configuration configuration = new Configuration();
-		configuration.reasonerProgressMonitor = new ReasonerProgressMonitor() {
-			
-			@Override
-			public void reasonerTaskStopped() {
-				logger.info("HermiT reasoning task - Finished.");
-				
-			}
-			
-			@Override
-			public void reasonerTaskStarted(String taskName) {
-				logger.info("HermiT reasoning task - Start: "+taskName);
-				
-			}
-			
-			double lastProgress = 0.0d;
-			
-			@Override
-			public void reasonerTaskProgressChanged(int value, int max) {
-				double progress = value / (double) max;
-				if (Math.abs(progress - lastProgress) > 0.05d) {
-					NumberFormat percentFormat = NumberFormat.getPercentInstance();
-					percentFormat.setMaximumFractionDigits(1);
-					logger.info("HermiT reasoning task - Progress: "+percentFormat.format(progress));
-					lastProgress = progress;
-				}
-			}
-			
-			@Override
-			public void reasonerTaskBusy() {
-				// do nothing
-			}
-		};
-		OWLReasoner reasoner = factory.createReasoner(ontology, configuration);
+		
+//		OWLReasoner reasoner = createHermit(ontology);
+		OWLReasoner reasoner = createElk(ontology);
 		try {
 			boolean consistent = reasoner.isConsistent();
 			if (!consistent) {
@@ -167,6 +134,52 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 			reasoner.dispose();
 		}
 		
+	}
+
+	private OWLReasoner createElk(OWLOntology ontology) {
+		ElkReasonerFactory factory = new ElkReasonerFactory();
+		return factory.createReasoner(ontology);
+	}
+	
+	private OWLReasoner createHermit(final OWLOntology ontology) {
+		// use Hermit, as GO has inverse_of relations between part_of and has_part
+		OWLReasonerFactory factory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();
+		
+		final Configuration configuration = new Configuration();
+		configuration.reasonerProgressMonitor = new ReasonerProgressMonitor() {
+			
+			@Override
+			public void reasonerTaskStopped() {
+				logger.info("HermiT reasoning task - Finished.");
+				
+			}
+			
+			@Override
+			public void reasonerTaskStarted(String taskName) {
+				logger.info("HermiT reasoning task - Start: "+taskName);
+				
+			}
+			
+			double lastProgress = 0.0d;
+			
+			@Override
+			public void reasonerTaskProgressChanged(int value, int max) {
+				double progress = value / (double) max;
+				if (Math.abs(progress - lastProgress) > 0.05d) {
+					NumberFormat percentFormat = NumberFormat.getPercentInstance();
+					percentFormat.setMaximumFractionDigits(1);
+					logger.info("HermiT reasoning task - Progress: "+percentFormat.format(progress));
+					lastProgress = progress;
+				}
+			}
+			
+			@Override
+			public void reasonerTaskBusy() {
+				// do nothing
+			}
+		};
+		OWLReasoner reasoner = factory.createReasoner(ontology, configuration);
+		return reasoner;
 	}
 
 }
