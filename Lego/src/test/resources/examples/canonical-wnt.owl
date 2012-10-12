@@ -1,0 +1,275 @@
+Prefix: : <http://purl.obolibrary.org/obo/>
+Prefix: i: <http://purl.obolibrary.org/obo/test/inst_>
+Prefix: dc: <http://purl.org/dc/elements/1.1/>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+
+Ontology: <http://purl.obolibrary.org/obo/go/examples/change-me.owl>
+
+Import: <http://purl.obolibrary.org/obo/go.owl>
+Import: <http://purl.obolibrary.org/obo/go/extensions/lego-relations.owl>
+Import: <http://purl.obolibrary.org/obo/omeo/Mus_musculus-uniprot-labels.owl>
+
+AnnotationProperty: rdfs:label
+
+    
+AnnotationProperty: rdfs:comment
+
+    
+Datatype: rdf:PlainLiteral
+
+    
+ObjectProperty: directly_activates
+
+    
+ObjectProperty: RO_0002212
+
+    
+ObjectProperty: RO_0002213
+
+    
+ObjectProperty: has_input
+
+    
+ObjectProperty: enabled_by
+
+    
+ObjectProperty: BFO_0000050
+
+    
+ObjectProperty: BFO_0000051
+
+    
+ObjectProperty: directly_inhibits
+
+    
+Class: <http://purl.obolibrary.org/obo/go/examples/change-me.owl#negative_regulation_of_catabolic_proteolysis_process>
+
+    EquivalentTo: 
+        GO_0031330
+         and GO_0045861
+    
+    SubClassOf: 
+        GO_0008150
+    
+    
+Class: GO_0005515
+
+    
+Class: GO_0042177
+
+    
+Class: GO_0048018
+
+    
+Class: UniProtKB_Q02248
+
+    
+Class: UniProtKB_Q61086
+
+    
+Class: GO_0045861
+
+    
+Class: GO_0045862
+
+    
+Class: UniProtKB_O88572
+
+    
+Class: UniProtKB_O35625
+
+    
+Class: UniProtKB_P17553
+
+    
+Class: GO_0005109
+
+    
+Class: GO_0006511
+
+    
+Class: GO_0060575
+
+    
+Class: GO_0042813
+
+    
+Class: GO_0008150
+
+    
+Class: UniProtKB_P51141
+
+    
+Class: GO_0060070
+
+    
+Class: GO_0045732
+
+    
+Class: GO_0043235
+
+    
+Class: GO_0031330
+
+    
+Class: GO_0000981
+
+    
+Class: GO_0031331
+
+    
+Class: <http://purl.obolibrary.org/obo/go/examples/change-me.owl#positive_regulation_of_catabolic_proteolysis_process>
+
+    EquivalentTo: 
+        GO_0031331
+         and GO_0045862
+    
+    SubClassOf: 
+        GO_0008150
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000010>
+
+    Annotations: 
+        rdfs:label "fzd3-lrp5 receptor complex"
+    
+    Types: 
+        GO_0043235,
+        (BFO_0000051 some UniProtKB_O88572)
+         and (BFO_0000051 some UniProtKB_Q61086)
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000001>
+
+    Annotations: 
+        rdfs:label "Axin activity"
+    
+    Types: 
+        GO_0005515,
+        enabled_by some UniProtKB_O35625
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000004>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000002>
+
+    Annotations: 
+        rdfs:label "LRP5 activity"
+    
+    Types: 
+        GO_0042813,
+        enabled_by some UniProtKB_O88572
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000005>,
+     directly_inhibits  <http://purl.obolibrary.org/obo/go/lego/TB_0000001>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000011>
+
+    Annotations: 
+        rdfs:label "beta-catenin activity"
+    
+    Types: 
+        enabled_by some UniProtKB_Q02248,
+        GO_0000981
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000005>
+
+    Annotations: 
+        rdfs:label "negative regulation of beta-catenin destruction in the cytoplasm"
+    
+    Types: 
+        GO_0042177
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>,
+     RO_0002212  <http://purl.obolibrary.org/obo/go/lego/TB_0000006>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000006>
+
+    Annotations: 
+        rdfs:label "beta-catenin destruction"
+    
+    Types: 
+        GO_0006511,
+        has_input some UniProtKB_Q02248
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000003>
+
+    Annotations: 
+        rdfs:label "Dvl1 activity"
+    
+    Types: 
+        enabled_by some UniProtKB_P51141,
+        GO_0005109
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000005>,
+     RO_0002212  <http://purl.obolibrary.org/obo/go/lego/TB_0000001>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000004>
+
+    Annotations: 
+        rdfs:label "positive regulation of beta-catenin destruction in the cytoplasm"
+    
+    Types: 
+        GO_0045732
+    
+    Facts:  
+     RO_0002213  <http://purl.obolibrary.org/obo/go/lego/TB_0000006>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000009>
+
+    Annotations: 
+        rdfs:label "Wnt3 frizzled receptor activity"
+    
+    Types: 
+        enabled_by some UniProtKB_Q61086,
+        GO_0042813
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>,
+     directly_activates  <http://purl.obolibrary.org/obo/go/lego/TB_0000003>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000008>
+
+    Annotations: 
+        rdfs:comment "Should this be a sub-type of binding as well?  Right now you can't have two is_a parents.",
+        rdfs:label "frizzled receptor agonist activity"
+    
+    Types: 
+        GO_0048018,
+        enabled_by some UniProtKB_P17553
+    
+    Facts:  
+     directly_activates  <http://purl.obolibrary.org/obo/go/lego/TB_0000002>,
+     directly_activates  <http://purl.obolibrary.org/obo/go/lego/TB_0000009>,
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000005>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000007>
+
+    Annotations: 
+        rdfs:label "Wnt3 signaling pathway"
+    
+    Types: 
+        GO_0060070
+    
+    

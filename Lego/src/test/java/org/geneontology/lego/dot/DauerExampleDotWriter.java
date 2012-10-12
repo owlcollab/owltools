@@ -11,9 +11,11 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
 
 /**
@@ -21,8 +23,11 @@ import owltools.io.ParserWrapper;
  */
 public class DauerExampleDotWriter {
 
-	static void write(String input, final String output, String name) throws Exception {
+	static void write(String input, final String output, String name, String catalogXml) throws Exception {
 		ParserWrapper p = new ParserWrapper();
+		if (catalogXml != null) {
+			p.addIRIMapper(new CatalogXmlIRIMapper(catalogXml));
+		}
 		IRI iri = IRI.create(new File(input));
 		final OWLOntology ontology = p.parseOWL(iri);
 		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
@@ -31,33 +36,39 @@ public class DauerExampleDotWriter {
 
 		OWLReasonerFactory factory = new ElkReasonerFactory();
 		
-		LegoDotWriter writer = new LegoDotWriter(g, factory.createReasoner(ontology)) {
-
-			BufferedWriter fileWriter = null;
-			
-			@Override
-			protected void open() throws IOException {
-				fileWriter = new BufferedWriter(new FileWriter(new File(output)));
-			}
-
-			@Override
-			protected void close() {
-				IOUtils.closeQuietly(fileWriter);
-			}
-
-			@Override
-			protected void appendLine(CharSequence line) throws IOException {
-				System.out.println(line);
-				fileWriter.append(line).append('\n');
-			}
-		};
-		writer.renderDot(individuals, name, true);
+		final OWLReasoner reasoner = factory.createReasoner(ontology);
+		try {
+			LegoDotWriter writer = new LegoDotWriter(g, reasoner) {
+	
+				BufferedWriter fileWriter = null;
+				
+				@Override
+				protected void open() throws IOException {
+					fileWriter = new BufferedWriter(new FileWriter(new File(output)));
+				}
+	
+				@Override
+				protected void close() {
+					IOUtils.closeQuietly(fileWriter);
+				}
+	
+				@Override
+				protected void appendLine(CharSequence line) throws IOException {
+					System.out.println(line);
+					fileWriter.append(line).append('\n');
+				}
+			};
+			writer.renderDot(individuals, name, true);
+		}
+		finally {
+			reasoner.dispose();
+		}
 	}
 	
 	public static void main(String[] args) throws Exception {
 		// create work dir
 		File file = new File("out");
 		file.mkdirs();
-		write("src/test/resources/dauer-merged.owl", "out/dauer.dot", "dauer");
+		write("src/test/resources/dauer-merged.owl", "out/dauer.dot", "dauer", null);
 	}
 }

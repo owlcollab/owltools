@@ -12,6 +12,6 @@ public class Nedd4DotWriter {
 		// create work dir
 		File file = new File("out");
 		file.mkdirs();
-		DauerExampleDotWriter.write("src/test/resources/NEDD4-merged.owl", "out/NEDD4.dot", "NEDD4");
+		DauerExampleDotWriter.write("src/test/resources/NEDD4-merged.owl", "out/NEDD4.dot", "NEDD4", null);
 	}
 }

@@ -14,8 +14,10 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -209,8 +211,8 @@ public abstract class LegoDotWriter {
 			OWLPrettyPrinter owlpp, Set<OWLClassAssertionAxiom> axioms)
 			throws UnExpectedStructureException, IOException
 	{
-		OWLClass typeClass = getType(individual);
-		OWLClass molecularFunction = typeClass;
+		OWLClassExpression typeClass = getType(individual);
+		OWLClassExpression molecularFunction = typeClass;
 		OWLClass activeEntity = null;
 		List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
 		List<OWLClassExpression> unknowns = new ArrayList<OWLClassExpression>();
@@ -253,13 +255,13 @@ public abstract class LegoDotWriter {
 			}
 		}
 		
-		String label;
+		CharSequence label;
 		// render node
 		if (molecularFunction == null) {
 			label="?";
 		}
 		else {
-			label = graph.getLabelOrDisplayId(molecularFunction);
+			label = getLabel(molecularFunction, owlpp);
 		}
 		
 		StringBuilder line = new StringBuilder(nodeId(individual));
@@ -272,7 +274,7 @@ public abstract class LegoDotWriter {
 			line.append("<TD>").append(graph.getLabelOrDisplayId(activeEntity)).append("</TD></TR><TR>");
 		}
 		
-		line.append("<TD BGCOLOR=\"lightblue\" COLSPAN=\"2\">").append(insertLineBrakes(label)).append("</TD>");
+		line.append("<TD BGCOLOR=\"lightblue\" COLSPAN=\"2\">").append(label).append("</TD>");
 		for(OWLClassExpression cellularLocation : cellularLocations) {
 			String location;
 			if (!cellularLocation.isAnonymous()) {
@@ -306,7 +308,7 @@ public abstract class LegoDotWriter {
 			OWLPrettyPrinter owlpp, Set<OWLClassAssertionAxiom> axioms)
 			throws UnExpectedStructureException, IOException
 	{
-		OWLClass parentClass = getType(individual);
+		OWLClassExpression parentClass = getType(individual);
 		List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
 		List<OWLClassExpression> unknowns = new ArrayList<OWLClassExpression>();
 		for (OWLClassAssertionAxiom axiom : axioms) {
@@ -340,20 +342,20 @@ public abstract class LegoDotWriter {
 			}
 		}
 		
-		String label;
+		CharSequence label;
 		// render node
 		if (parentClass == null) {
 			label="?";
 		}
 		else {
-			label = graph.getLabelOrDisplayId(parentClass);
+			label = getLabel(parentClass, owlpp);
 		}
 		
 		StringBuilder line = new StringBuilder(nodeId(individual));
 		line.append(" [shape=plaintext,label=");
 		line.append('<'); // start HTML markup
 		line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
-		line.append("<TR><TD>").append(insertLineBrakes(label)).append("</TD>");
+		line.append("<TR><TD>").append(label).append("</TD>");
 		for(OWLClassExpression cellularLocation : cellularLocations) {
 			String location;
 			if (!cellularLocation.isAnonymous()) {
@@ -389,30 +391,85 @@ public abstract class LegoDotWriter {
 			OWLObjectPropertyExpression property = object.getProperty();
 			OWLClassExpression filler = object.getFiller();
 			line.append("<TR><TD>");
-			line.append(insertLineBrakes(getLabel(property, owlpp)));
+			line.append(getLabel(property, owlpp));
 			line.append("</TD><TD>");
-			line.append(insertLineBrakes(getLabel(filler, owlpp)));
+			line.append(getLabel(filler, owlpp));
 			line.append("</TD></TR>");
 		}
 		else {
 			line.append("<TR><TD COLSPAN=\"2\">");
-			line.append(insertLineBrakes(getLabel(expression, owlpp)));
+			line.append(getLabel(expression, owlpp));
 			line.append("</TD></TR>");
 		}
 	}
 	
-	private String getLabel(OWLClassExpression expression, OWLPrettyPrinter owlpp) {
-		if (expression.isAnonymous()) {
-			return owlpp.render(expression);
+	private CharSequence getLabel(OWLClassExpression expression, OWLPrettyPrinter owlpp) {
+		if (expression instanceof OWLClass) {
+			return insertLineBrakes(graph.getLabelOrDisplayId(expression));
 		}
-		return graph.getLabelOrDisplayId(expression);
+		else if (expression instanceof OWLObjectIntersectionOf) {
+			StringBuilder sb = new StringBuilder();
+			OWLObjectIntersectionOf intersectionOf = (OWLObjectIntersectionOf) expression;
+			sb.append("<TABLE>");
+			for (OWLClassExpression ce : intersectionOf.getOperands()) {
+				sb.append("<TR><TD>");
+				if (ce instanceof OWLClass) {
+					sb.append(insertLineBrakes(graph.getLabelOrDisplayId((OWLClass)ce)));
+				}
+				else if (ce instanceof OWLObjectSomeValuesFrom){
+					OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom) ce;
+					OWLObjectPropertyExpression property = some.getProperty();
+					if (property.isAnonymous()) {
+						sb.append(owlpp.render(property));
+					}
+					else {
+						sb.append(insertLineBrakes(graph.getLabelOrDisplayId(property.asOWLObjectProperty())));
+					}
+					sb.append(" <B>some</B> ");
+					OWLClassExpression filler = some.getFiller();
+					if (filler instanceof OWLClass) {
+						sb.append(insertLineBrakes(graph.getLabelOrDisplayId((OWLClass)filler)));
+					}
+					else {
+						sb.append(insertLineBrakes(escape(owlpp.render(filler))));
+					}
+				}
+				else {
+					sb.append(insertLineBrakes(escape(ce.toString())));
+				}
+				sb.append("</TD></TR>");
+			}
+			sb.append("</TABLE>");
+			return sb.toString();
+		}
+		return insertLineBrakes(escape(owlpp.render(expression)));
 	}
 	
-	private String getLabel(OWLObjectPropertyExpression expression, OWLPrettyPrinter owlpp) {
-		if (expression.isAnonymous()) {
-			return owlpp.render(expression);
+	private String escape(CharSequence cs) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < cs.length(); i++) {
+			char c = cs.charAt(i);
+			if (c == '<') {
+				sb.append("&lt;");
+			}
+			else if (c == '>') {
+				sb.append("&gt;");
+			}
+			else if (c == '&') {
+				sb.append("&amp;");
+			}
+			else {
+				sb.append(c);
+			}
 		}
-		return graph.getLabelOrDisplayId(expression);
+		return sb.toString();
+	}
+	
+	private CharSequence getLabel(OWLObjectPropertyExpression expression, OWLPrettyPrinter owlpp) {
+		if (expression.isAnonymous()) {
+			return insertLineBrakes(escape(owlpp.render(expression)));
+		}
+		return insertLineBrakes(graph.getLabelOrDisplayId(expression));
 	}
 
 	static final int DEFAULT_LINE_LENGTH = 60;
@@ -421,16 +478,19 @@ public abstract class LegoDotWriter {
 		return StringTools.insertLineBrakes(s, DEFAULT_LINE_LENGTH, "<BR/>");
 	}
 	
-	private OWLClass getType(OWLNamedIndividual individual) throws UnExpectedStructureException {
+	private OWLClassExpression getType(OWLNamedIndividual individual) throws UnExpectedStructureException {
 		NodeSet<OWLClass> types = reasoner.getTypes(individual, true);
 		if (types.isEmpty() || types.isBottomSingleton() || types.isTopSingleton()) {
 			return null;
 		}
 		Set<OWLClass> set = types.getFlattened();
-		if (set.size() != 1) {
-			throw new UnExpectedStructureException("Too many types for the Individual: "+individual+" types: "+types);
+		
+		if (set.size() == 1) {
+			return set.iterator().next();
 		}
-		return set.iterator().next();
+		OWLDataFactory fac = graph.getManager().getOWLDataFactory();
+		OWLObjectIntersectionOf intersectionOf = fac.getOWLObjectIntersectionOf(set);
+		return intersectionOf;
 		
 	}
 	

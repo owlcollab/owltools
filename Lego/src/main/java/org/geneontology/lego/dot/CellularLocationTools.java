@@ -10,6 +10,7 @@ import java.util.Set;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
@@ -20,9 +21,19 @@ import owltools.graph.OWLGraphWrapper;
 
 public class CellularLocationTools {
 
-	static OWLClassExpression searchCellularLocation(OWLClass cls, OWLGraphWrapper graph, Set<OWLObjectProperty> occurs_in) {
+	static OWLClassExpression searchCellularLocation(OWLClassExpression cls, OWLGraphWrapper graph, Set<OWLObjectProperty> occurs_in) {
 		Queue<OWLClass> queue = new Queue<OWLClass>();
-		queue.add(cls);
+		if (cls instanceof OWLClass) {
+			queue.add((OWLClass) cls);
+		}
+		else if (cls instanceof OWLObjectIntersectionOf) {
+			OWLObjectIntersectionOf intersectionOf = (OWLObjectIntersectionOf) cls;
+			for (OWLClassExpression ce : intersectionOf.getOperands()) {
+				if (ce instanceof OWLClass) {
+					queue.add((OWLClass) ce);
+				}
+			}
+		}
 		return searchCellularLocation(queue, graph, occurs_in);
 	}
 	
