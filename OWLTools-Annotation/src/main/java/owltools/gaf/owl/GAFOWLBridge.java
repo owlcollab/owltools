@@ -85,7 +85,7 @@ public class GAFOWLBridge {
 		addVocabMap(Vocab.ACTIVELY_PARTICIPATES_IN, "RO_0002217", "actively participates in");
 		addVocabMap(Vocab.PROTOTYPICALLY, "RO_0002214", "has prototype"); // canonically?
 		addVocabMap(Vocab.DESCRIBES, "IAO_0000136", "is about");
-		addVocabMap(Vocab.IN_TAXON, "RO_0002162", "is about");
+		addVocabMap(Vocab.IN_TAXON, "RO_0002162", "in taxon");
 	}
 
 	private void addVocabMap(Vocab v, String s) {
