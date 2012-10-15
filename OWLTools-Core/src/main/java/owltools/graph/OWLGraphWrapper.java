@@ -2189,15 +2189,17 @@ public class OWLGraphWrapper {
 	}
 
 	/**
-	 * tests if an OWLObject has been declared obsolete in the source ontology
+	 * tests if an OWLObject has been declared obsolete in the graph.
 	 * 
 	 * @param c
 	 * @return boolean
 	 */
 	public boolean isObsolete(OWLObject c) {
-		for (OWLAnnotation ann : ((OWLEntity)c).getAnnotations(getSourceOntology())) {
-			if (ann.isDeprecatedIRIAnnotation()) {
-				return true;
+		for (OWLOntology ont : getAllOntologies()) {
+			for (OWLAnnotation ann : ((OWLEntity)c).getAnnotations(ont)) {
+				if (ann.isDeprecatedIRIAnnotation()) {
+					return true;
+				}
 			}
 		}
 		return false;
