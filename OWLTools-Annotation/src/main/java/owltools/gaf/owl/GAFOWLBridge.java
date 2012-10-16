@@ -316,7 +316,13 @@ public class GAFOWLBridge {
 
 	private OWLObjectProperty getGeneAnnotationRelation(GeneAnnotation a) {
 		String relation = a.getRelation();
-		Vocab v = Vocab.valueOf(relation.toUpperCase());
+		Vocab v = null;
+		try {
+			v = Vocab.valueOf(relation.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			// ignore error
+			// this is thrown, if there is no corresponding constant for the input 
+		}
 		if (v != null)
 			return getGeneAnnotationObjectProperty(v);
 		OWLObjectProperty op = graph.getOWLObjectPropertyByIdentifier(relation);

@@ -1,6 +1,8 @@
 package owltools.gaf.rules;
 
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,26 +92,36 @@ public class AnnotationRulesEngine {
  		}
 		
 		AnnotationRulesEngineResult result = new AnnotationRulesEngineResult();
-		final int ruleCount = annotationRules.size() 
-				+ (documentRules != null ? documentRules.size() : 0)
-				+ (owlRules != null ? owlRules.size() : 0);
 		
-		LOG.info("Start validation of annotations with "+ruleCount+" rules.");
+		LOG.info("Start validation on annotation level with "+annotationRules.size()+" rules.");
 		try{
-			for(GeneAnnotation annotation : doc.getGeneAnnotations()){
+			final List<GeneAnnotation> geneAnnotations = doc.getGeneAnnotations();
+			int count = 0;
+			double size = geneAnnotations.size(); // store as double to avoid repeated conversion
+			double last = 0.0d;
+			for(GeneAnnotation annotation : geneAnnotations){
 				for(AnnotationRule rule : annotationRules){
 					if (!isGrandFatheredAnnotation(annotation, rule)) {
 						result.addViolations(rule.getRuleViolations(annotation));
 					}
 				}
+				count += 1;
+				double current = count / size;
+				if (Math.abs(current - last) > 0.05d) {
+					NumberFormat percentInstance = DecimalFormat.getPercentInstance();
+					LOG.info("Progress: "+percentInstance.format(current));
+					last = current;
+				}
 			}
 			if (documentRules != null && !documentRules.isEmpty()) {
+				LOG.info("Start validation on document level with "+documentRules.size()+" rules.");
 				for (AnnotationRule rule : documentRules) {
 					result.addViolations(rule.getRuleViolations(doc));
 				}
 			}
 			OWLGraphWrapper graph = rulesFactory.getGraph();
 			if (owlRules != null && !owlRules.isEmpty() && graph != null) {
+				LOG.info("Start validation using OWL representation with "+owlRules.size()+" rules.");
 				GAFOWLBridge bridge = new GAFOWLBridge(graph);
 				bridge.setGenerateIndividuals(false);
 				bridge.setBioentityMapping(BioentityMapping.NAMED_CLASS);
