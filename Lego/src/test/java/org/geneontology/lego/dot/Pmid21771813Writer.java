@@ -8,6 +8,6 @@ public class Pmid21771813Writer {
 		// create work dir
 		File file = new File("out");
 		file.mkdirs();
-		DauerExampleDotWriter.write("src/test/resources/lr-asymmetry-pmid21771813.owl", "out/pmid21771813.dot", "lr asymmetry - PMID 21771813 ", null);
+		ExampleWriter.write("src/test/resources/lr-asymmetry-pmid21771813.owl", "out/pmid21771813.dot", "lr asymmetry - PMID 21771813 ", null);
 	}
 }

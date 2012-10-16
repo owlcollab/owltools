@@ -21,7 +21,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 import org.geneontology.annotation.view.GraphvizImageRenderer.GraphvizConfigurationError;
-import org.geneontology.lego.dot.LegoDotWriter.UnExpectedStructureException;
+import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.protege.editor.core.ui.util.UIUtil;
 import org.protege.editor.owl.model.OWLModelManager;
 import org.protege.editor.owl.model.OWLWorkspace;

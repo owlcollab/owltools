@@ -5,25 +5,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import org.geneontology.lego.model.LegoLink;
+import org.geneontology.lego.model.LegoNode;
+import org.geneontology.lego.model.LegoTools;
+import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
@@ -31,38 +26,16 @@ import owltools.io.OWLPrettyPrinter;
 
 /**
  * Rudimentary implementation of a DOT writer for the LEGO annotations in OWL.
- * 
- * Uses the 'docs/lego-owl-mappings.txt' file as guide-line.
  */
-public abstract class LegoDotWriter {
+public abstract class LegoDotWriter implements LegoRenderer {
 
+	private static final String MF_COLOR = "lightblue";
+	private static final String CMF_COLOR = "lightsalmon";
+	private static final String CC_COLOR = "yellow";
+	
 	private final OWLGraphWrapper graph;
 	private final OWLReasoner reasoner;
-	private final Set<OWLObjectProperty> occurs_in;
-	private final Set<OWLObjectProperty> enabled_by;
 
-	public static class UnExpectedStructureException extends Exception {
-
-		// generated
-		private static final long serialVersionUID = -3343544020570925182L;
-
-		/**
-		 * @param message
-		 * @param cause
-		 */
-		public UnExpectedStructureException(String message, Throwable cause) {
-			super(message, cause);
-		}
-
-		/**
-		 * @param message
-		 */
-		public UnExpectedStructureException(String message) {
-			super(message);
-		}
-		
-	}
-	
 	/**
 	 * Create a new writer for the given ontology and reasoner.
 	 * 
@@ -73,30 +46,29 @@ public abstract class LegoDotWriter {
 		super();
 		this.graph = graph;
 		this.reasoner = reasoner;
-		this.enabled_by = findProperties(graph, "http://purl.obolibrary.org/obo/enabled_by"); // enabled_by
-		this.occurs_in = findProperties(graph, "http://purl.obolibrary.org/obo/BFO_0000066", "http://purl.obolibrary.org/obo/occurs_in"); // occurs_in
 	}
 	
-	private static Set<OWLObjectProperty> findProperties(OWLGraphWrapper graph, String...iris) {
-		Set<OWLObjectProperty> properties = new HashSet<OWLObjectProperty>();
-		for (String iri : iris) {
-			properties.add(graph.getDataFactory().getOWLObjectProperty(IRI.create(iri)));
-		}
-		return properties;
+	@Override
+	public void render(Collection<OWLNamedIndividual> individuals, String name, boolean renderKey)
+			throws IOException, UnExpectedStructureException
+	{
+		LegoTools tools = new LegoTools(graph, reasoner);
+		Collection<LegoNode> nodes = tools.createLegoNodes(individuals);
+		renderLego(nodes, name, renderKey);
 	}
 	
 	/**
-	 * Render a dot file for the given individuals (aka set of annotations).
+	 * Render the given collection of nodes ({@link LegoNode}) 
 	 * 
-	 * @param individuals
-	 * @param name name of the graph to be used in the dot file (optional)
+	 * @param nodes
+	 * @param name name of the graph (optional)
 	 * @param renderKey
 	 * @throws IOException
-	 * @throws UnExpectedStructureException thrown, if there are unexpected axioms.
 	 */
-	public void renderDot(Collection<OWLNamedIndividual> individuals, String name, boolean renderKey)
-			throws IOException, UnExpectedStructureException {
-
+	public void renderLego(Collection<LegoNode> nodes, String name, boolean renderKey)
+			throws IOException 
+	{
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
 		try {
 			open();
 			// start dot
@@ -108,8 +80,8 @@ public abstract class LegoDotWriter {
 
 			// individual nodes
 			Map<String, String> legend = new HashMap<String, String>();
-			for (OWLNamedIndividual individual : individuals) {
-				renderIndividualsNode(individual, legend);
+			for (LegoNode node : nodes) {
+				renderNodeAndLinks(node, owlpp, legend);
 			}
 			if (!legend.isEmpty() && renderKey) {
 				appendLine("");
@@ -144,149 +116,99 @@ public abstract class LegoDotWriter {
 		
 	}
 	
-	private void renderIndividualsNode(OWLNamedIndividual individual, Map<String, String> legend) throws IOException, UnExpectedStructureException {
+	private void renderNodeAndLinks(LegoNode node, OWLPrettyPrinter owlpp, Map<String, String> legend) throws IOException {
 		
-		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
-		OWLOntology sourceOntology = graph.getSourceOntology();
-		
-		Set<OWLClassAssertionAxiom> axioms = sourceOntology.getClassAssertionAxioms(individual);
-		LegoIndividualType type = getIndividualType(individual, axioms);
-		if (LegoIndividualType.Unknown == type) {
-			throw new UnExpectedStructureException("Could not determine lego type for individual: "+individual+" with Axioms: "+axioms);
-		}
-		else if (LegoIndividualType.MolecularAnnotation == type) {
-			// annoton
-			createAnnatonNode(individual, owlpp, axioms);
-			
-		}
-		else if (LegoIndividualType.MolecularContext == type) {
-			// context
-			createContextNode(individual, owlpp, axioms);
-		}
-		
+		// node
+		renderLegoNode(node, owlpp);
 		
 		// render links
-		Set<OWLObjectPropertyAssertionAxiom> propertyAxioms = sourceOntology.getObjectPropertyAssertionAxioms(individual);
-		for (OWLObjectPropertyAssertionAxiom propertyAxiom : propertyAxioms) {
-			OWLIndividual object = propertyAxiom.getObject();
-			if (object instanceof OWLNamedIndividual == false) {
-				throw new UnExpectedStructureException("Expected a named individual for a link: "+propertyAxiom);
-			}
-			OWLNamedIndividual namedTarget = (OWLNamedIndividual) object;
-			OWLObjectPropertyExpression property = propertyAxiom.getProperty();
-			String linkLabel = graph.getLabelOrDisplayId(property);
-			if ("directly_inhibits".equals(linkLabel)) {
-				appendLine("");
-				appendLine("// edge", 1);
-				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [arrowhead=tee];", 1);
-				if (!legend.containsKey("directly_inhibits")) {
-					legend.put("directly_inhibits", "[arrowhead=tee]");
+		Collection<LegoLink> links = node.getLinks();
+		if (links != null) {
+			final CharSequence source = nodeId(node.getIndividual());
+			for (LegoLink link : links) {
+				CharSequence target = nodeId(link.getNamedTarget());
+				String linkLabel = graph.getLabelOrDisplayId(link.getProperty());
+				if ("directly_inhibits".equals(linkLabel)) {
+					appendLine("");
+					appendLine("// edge", 1);
+					appendLine(source+" -> "+target+" [arrowhead=tee];", 1);
+					if (!legend.containsKey("directly_inhibits")) {
+						legend.put("directly_inhibits", "[arrowhead=tee]");
+					}
 				}
-			}
-			else if ("part_of".equals(linkLabel) || "part of".equals(linkLabel)) {
-				appendLine("");
-				appendLine("// edge", 1);
-				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [color=\"#C0C0C0\"];", 1);
-				if (!legend.containsKey("part_of")) {
-					legend.put("part_of", "[color=\"#C0C0C0\"]");
+				else if ("part_of".equals(linkLabel) || "part of".equals(linkLabel)) {
+					appendLine("");
+					appendLine("// edge", 1);
+					appendLine(source+" -> "+target+" [color=\"#C0C0C0\"];", 1);
+					if (!legend.containsKey("part_of")) {
+						legend.put("part_of", "[color=\"#C0C0C0\"]");
+					}
 				}
-			}
-			else if ("directly_activates".equals(linkLabel)) {
-				appendLine("");
-				appendLine("// edge", 1);
-				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [arrowhead=open];", 1);
-				if (!legend.containsKey("directly_activates")) {
-					legend.put("directly_activates", "[arrowhead=open]");
+				else if ("directly_activates".equals(linkLabel)) {
+					appendLine("");
+					appendLine("// edge", 1);
+					appendLine(source+" -> "+target+" [arrowhead=open];", 1);
+					if (!legend.containsKey("directly_activates")) {
+						legend.put("directly_activates", "[arrowhead=open]");
+					}
 				}
-			}
-			else {
-				appendLine("");
-				appendLine("// edge", 1);
-				appendLine(nodeId(individual)+" -> "+nodeId(namedTarget)+" [label="+quote(linkLabel)+"];", 1);
+				else {
+					appendLine("");
+					appendLine("// edge", 1);
+					appendLine(source+" -> "+target+" [label="+quote(linkLabel)+"];", 1);
+				}
 			}
 		}
 	}
 
-	private void createAnnatonNode(OWLNamedIndividual individual,
-			OWLPrettyPrinter owlpp, Set<OWLClassAssertionAxiom> axioms)
-			throws UnExpectedStructureException, IOException
-	{
-		OWLClassExpression typeClass = getType(individual);
-		OWLClassExpression molecularFunction = typeClass;
-		OWLClass activeEntity = null;
-		List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
-		List<OWLClassExpression> unknowns = new ArrayList<OWLClassExpression>();
-		
-		for (OWLClassAssertionAxiom axiom : axioms) {
-			OWLClassExpression expression = axiom.getClassExpression();
-			if (expression.isClassExpressionLiteral()) {
-				// assume it's molecularFunction
-				// ignore, use reasoner to retrieve type
-			}
-			else if (expression instanceof OWLObjectSomeValuesFrom) {
-				OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
-				OWLObjectPropertyExpression property = object.getProperty();
-				OWLClassExpression clsExp = object.getFiller();
-				if (enabled_by.contains(property) && !clsExp.isAnonymous()) {
-					// active entity
-					if (activeEntity != null) {
-						throw new UnExpectedStructureException("The individual: "+owlpp.render(individual)+" has multiple 'enabled_by' declarations.");
-					}
-					activeEntity = clsExp.asOWLClass();
-				}
-				else if (occurs_in.contains(property)) {
-					// cellular location
-					cellularLocations.add(clsExp);
-				}
-				else {
-					unknowns.add(expression);
-				}
-			}
-			else {
-				unknowns.add(expression);
-			}
-		}
-		
-		if (cellularLocations.isEmpty()) {
-			// check super classes for cellular location information
-			OWLClassExpression cellularLocation = CellularLocationTools.searchCellularLocation(typeClass, graph, occurs_in);
-			if (cellularLocation != null) {
-				cellularLocations.add(cellularLocation);
-			}
-		}
+	private void renderLegoNode(LegoNode node, OWLPrettyPrinter owlpp) throws IOException {
 		
 		CharSequence label;
 		// render node
-		if (molecularFunction == null) {
+		if (node.getType() == null) {
 			label="?";
 		}
 		else {
-			label = getLabel(molecularFunction, owlpp);
+			label = getLabel(node.getType(), owlpp);
 		}
 		
-		StringBuilder line = new StringBuilder(nodeId(individual));
+		StringBuilder line = new StringBuilder(nodeId(node.getIndividual()));
 		line.append(" [shape=plaintext,label=");
 		line.append('<'); // start HTML markup
-		line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"><TR>");
 		
+		line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
+		
+		OWLClass activeEntity = node.getActiveEntity();
 		if (activeEntity != null) {
 			// render activeEntity as box on top of the activity 
-			line.append("<TD>").append(graph.getLabelOrDisplayId(activeEntity)).append("</TD></TR><TR>");
+			line.append("<TR><TD>").append(graph.getLabelOrDisplayId(activeEntity)).append("</TD></TR>");
+		}
+		if (node.isCmf()) {
+			line.append("<TR><TD BGCOLOR=\""+CMF_COLOR+"\" COLSPAN=\"2\">").append(label).append("</TD>");
+		}
+		else if (node.isMf()) {
+			line.append("<TR><TD BGCOLOR=\""+MF_COLOR+"\" COLSPAN=\"2\">").append(label).append("</TD>");
+		}
+		else {
+			line.append("<TR><TD COLSPAN=\"2\">").append(label).append("</TD>");
 		}
 		
-		line.append("<TD BGCOLOR=\"lightblue\" COLSPAN=\"2\">").append(label).append("</TD>");
-		for(OWLClassExpression cellularLocation : cellularLocations) {
-			String location;
-			if (!cellularLocation.isAnonymous()) {
-				location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
+		Collection<OWLClassExpression> cellularLocations = node.getCellularLocation();
+		if (cellularLocations != null) {
+			for(OWLClassExpression cellularLocation : cellularLocations) {
+				String location;
+				if (!cellularLocation.isAnonymous()) {
+					location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
+				}
+				else {
+					location = owlpp.render(cellularLocation);
+				}
+				line.append("<TD BGCOLOR=\""+CC_COLOR+"\">").append(location).append("</TD>");
 			}
-			else {
-				location = owlpp.render(cellularLocation);
-			}
-			line.append("<TD BGCOLOR=\"yellow\">").append(location).append("</TD>");
 		}
 		line.append("</TR>");
-		if (!unknowns.isEmpty()) {
+		Collection<OWLClassExpression> unknowns = node.getUnknowns();
+		if (unknowns != null && !unknowns.isEmpty()) {
 			line.append("<TR><TD COLSPAN=\"2\">");
 			line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
 			for (OWLClassExpression expression : unknowns) {
@@ -300,89 +222,14 @@ public abstract class LegoDotWriter {
 		line.append("];");
 		
 		appendLine("");
-		appendLine("// annoton", 1);
-		appendLine(line, 1);
-	}
-
-	private void createContextNode(OWLNamedIndividual individual,
-			OWLPrettyPrinter owlpp, Set<OWLClassAssertionAxiom> axioms)
-			throws UnExpectedStructureException, IOException
-	{
-		OWLClassExpression parentClass = getType(individual);
-		List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
-		List<OWLClassExpression> unknowns = new ArrayList<OWLClassExpression>();
-		for (OWLClassAssertionAxiom axiom : axioms) {
-			OWLClassExpression expression = axiom.getClassExpression();
-			if (expression.isClassExpressionLiteral()) {
-				// assume it's biological process
-				// ignore, use reasoner to retrieve type
-			}
-			else  if (expression instanceof OWLObjectSomeValuesFrom) {
-				OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
-				OWLObjectPropertyExpression property = object.getProperty();
-				OWLClassExpression clsExp = object.getFiller();
-				if (occurs_in.contains(property)) {
-					// cellular location
-					cellularLocations.add(clsExp);
-				}
-				else {
-					unknowns.add(expression);
-				}
-			}
-			else {
-				unknowns.add(expression);
-			}
-		}
-		
-		if (cellularLocations.isEmpty()) {
-			// check super classes for cellular location information
-			OWLClassExpression cellularLocation = CellularLocationTools.searchCellularLocation(parentClass, graph, occurs_in);
-			if (cellularLocation != null) {
-				cellularLocations.add(cellularLocation);
-			}
-		}
-		
-		CharSequence label;
-		// render node
-		if (parentClass == null) {
-			label="?";
+		if (node.isMf() || node.isCmf()) {
+			appendLine("// annoton", 1);
 		}
 		else {
-			label = getLabel(parentClass, owlpp);
+			appendLine("// context", 1);
 		}
-		
-		StringBuilder line = new StringBuilder(nodeId(individual));
-		line.append(" [shape=plaintext,label=");
-		line.append('<'); // start HTML markup
-		line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
-		line.append("<TR><TD>").append(label).append("</TD>");
-		for(OWLClassExpression cellularLocation : cellularLocations) {
-			String location;
-			if (!cellularLocation.isAnonymous()) {
-				location = graph.getLabelOrDisplayId(cellularLocation.asOWLClass());
-			}
-			else {
-				location = owlpp.render(cellularLocation);
-			}
-			line.append("<TD BGCOLOR=\"yellow\">").append(location).append("</TD>");
-		}
-		line.append("</TR>");
-		if (!unknowns.isEmpty()) {
-			line.append("<TR><TD>");
-			line.append("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">");
-			for (OWLClassExpression expression : unknowns) {
-				renderAdditionalNodeExpression(line, expression, owlpp);
-			}
-			line.append("</TABLE>");
-			line.append("</TD></TR>");
-		}
-		line.append("</TABLE>");
-		line.append('>'); // end HTML markup
-		line.append("];");
-		
-		appendLine("");
-		appendLine("// context", 1);
 		appendLine(line, 1);
+		
 	}
 	
 	private void renderAdditionalNodeExpression(StringBuilder line, OWLClassExpression expression, OWLPrettyPrinter owlpp) {
@@ -478,22 +325,6 @@ public abstract class LegoDotWriter {
 		return StringTools.insertLineBrakes(s, DEFAULT_LINE_LENGTH, "<BR/>");
 	}
 	
-	private OWLClassExpression getType(OWLNamedIndividual individual) throws UnExpectedStructureException {
-		NodeSet<OWLClass> types = reasoner.getTypes(individual, true);
-		if (types.isEmpty() || types.isBottomSingleton() || types.isTopSingleton()) {
-			return null;
-		}
-		Set<OWLClass> set = types.getFlattened();
-		
-		if (set.size() == 1) {
-			return set.iterator().next();
-		}
-		OWLDataFactory fac = graph.getManager().getOWLDataFactory();
-		OWLObjectIntersectionOf intersectionOf = fac.getOWLObjectIntersectionOf(set);
-		return intersectionOf;
-		
-	}
-	
 	private CharSequence nodeId(OWLNamedIndividual individual) {
 		return nodeId(individual.getIRI());
 	}
@@ -503,37 +334,6 @@ public abstract class LegoDotWriter {
 		return quote(iriString);
 	}
 	
-	private static enum LegoIndividualType {
-		MolecularAnnotation,
-		MolecularContext,
-		Unknown
-	}
-	
-	private LegoIndividualType getIndividualType(OWLNamedIndividual individual, Set<OWLClassAssertionAxiom> axioms) {
-		boolean hasEnabledBy = false;
-		boolean hasLiteral = false;
-		for (OWLClassAssertionAxiom axiom : axioms) {
-			OWLClassExpression expression = axiom.getClassExpression();
-			if (expression.isClassExpressionLiteral()) {
-				hasLiteral = true;
-			} else if (expression instanceof OWLObjectSomeValuesFrom) {
-				OWLObjectSomeValuesFrom object = (OWLObjectSomeValuesFrom) expression;
-				OWLObjectPropertyExpression property = object.getProperty();
-				if (enabled_by.contains(property)) {
-					hasEnabledBy = true;
-				}
-			}
-		}
-		if (hasLiteral == false ) {
-			// literal is required
-			return LegoIndividualType.Unknown;
-		}
-		if (hasEnabledBy) {
-			return LegoIndividualType.MolecularAnnotation;
-		}
-		return LegoIndividualType.MolecularContext;
-	}
-
 	private CharSequence quote(CharSequence cs) {
 		StringBuilder sb = new StringBuilder();
 		sb.append('"');

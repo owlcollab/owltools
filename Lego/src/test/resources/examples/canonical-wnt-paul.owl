@@ -1,0 +1,492 @@
+Prefix: : <http://purl.obolibrary.org/obo/>
+Prefix: i: <http://purl.obolibrary.org/obo/test/inst_>
+Prefix: dc: <http://purl.org/dc/elements/1.1/>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+
+Ontology: <http://purl.obolibrary.org/obo/go/examples/canonical-wnt.owl>
+
+Import: <http://purl.obolibrary.org/obo/go.owl>
+Import: <http://purl.obolibrary.org/obo/go/extensions/lego-relations.owl>
+Import: <http://purl.obolibrary.org/obo/omeo/Mus_musculus-uniprot-labels.owl>
+
+AnnotationProperty: rdfs:label
+
+    
+AnnotationProperty: rdfs:comment
+
+    
+Datatype: rdf:PlainLiteral
+
+    
+ObjectProperty: BFO_0000066
+
+    
+ObjectProperty: directly_activates
+
+    
+ObjectProperty: RO_0002212
+
+    
+ObjectProperty: indirectly_enables_action_of
+
+    
+ObjectProperty: RO_0002213
+
+    
+ObjectProperty: has_input
+
+    
+ObjectProperty: enabled_by
+
+    
+ObjectProperty: occurs_in
+
+    
+ObjectProperty: BFO_0000050
+
+    
+ObjectProperty: BFO_0000051
+
+    
+ObjectProperty: directly_inhibits
+
+    
+Class: GO_0043565
+
+    
+Class: GO_0042177
+
+    
+Class: GO_0048018
+
+    
+Class: UniProtKB_Q61086
+
+    
+Class: GO_0016566
+
+    
+Class: UniProtKB_O88572
+
+    
+Class: GO_0030877
+
+    
+Class: GO_0003700
+
+    
+Class: GO_0030674
+
+    
+Class: GO_0005615
+
+    
+Class: GO_0065007
+
+    
+Class: GO_0042813
+
+    
+Class: <http://purl.obolibrary.org/obo/go/lego/TB_0000101>
+
+    Annotations: 
+        rdfs:label "positive regulation of ubiquitin-dependent protein catabolic process"@en
+    
+    EquivalentTo: 
+        GO_0065007
+         and (RO_0002213 some GO_0006511)
+    
+    SubClassOf: 
+        GO_0008150
+    
+    
+Class: <http://purl.obolibrary.org/obo/go/lego/TB_0000100>
+
+    Annotations: 
+        rdfs:label "negative regulation of ubiquitin-dependent protein catabolic process"@en
+    
+    EquivalentTo: 
+        GO_0065007
+         and (RO_0002212 some GO_0006511)
+    
+    SubClassOf: 
+        GO_0008150
+    
+    
+Class: PR_000000001
+
+    
+Class: UniProtKB_P51141
+
+    
+Class: UniProtKB_Q2NL51
+
+    
+Class: GO_0005829
+
+    
+Class: GO_0005634
+
+    
+Class: GO_0060070
+
+    
+Class: GO_0031146
+
+    
+Class: GO_0045732
+
+    
+Class: GO_0043235
+
+    
+Class: GO_0031330
+
+    
+Class: GO_0031331
+
+    
+Class: GO_0005515
+
+    
+Class: GO_0005575
+
+    
+Class: GO_0019005
+
+    
+Class: GO_0004672
+
+    
+Class: UniProtKB_Q02248
+
+    
+Class: UniProtKB_Q5SQA3
+
+    
+Class: GO_0045861
+
+    
+Class: GO_0005886
+
+    
+Class: GO_0045862
+
+    
+Class: GO_0004842
+
+    
+Class: UniProtKB_O35625
+
+    
+Class: GO_0003674
+
+    
+Class: UniProtKB_P17553
+
+    
+Class: GO_0005109
+
+    
+Class: GO_0006511
+
+    
+Class: UniProtKB_Q9WV60
+
+    
+Class: GO_0060575
+
+    
+Class: UniProtKB_Q61315
+
+    
+Class: UniProtKB_Q6PJ87
+
+    
+Class: GO_0008150
+
+    
+Class: UniProtKB_Q3ULA2
+
+    
+Class: UniProtKB_P27782
+
+    
+Class: GO_0000981
+
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000103>
+
+    Annotations: 
+        rdfs:label "Lrp6-Axin1 binding"@en
+    
+    Types: 
+        GO_0005515,
+        BFO_0000066 some GO_0005829,
+        has_input some UniProtKB_O35625,
+        enabled_by some UniProtKB_O88572
+    
+    Facts:  
+     directly_inhibits  <http://purl.obolibrary.org/obo/go/lego/TB_0000001>,
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000009>
+    
+    
+Individual: GO_6000002
+
+    Annotations: 
+        rdfs:label "SCF complex activity"@en
+    
+    Types: 
+        has_input some UniProtKB_Q02248,
+        enabled_by some GO_0019005,
+        occurs_in some GO_0005829,
+        GO_0004842
+    
+    Facts:  
+     BFO_0000050  GO_6000003
+    
+    
+Individual: GO_6000003
+
+    Annotations: 
+        rdfs:label "proteasomal degradation of beta-catenin"@en
+    
+    Types: 
+        has_input some UniProtKB_Q02248,
+        occurs_in some GO_0005829,
+        GO_0031146
+    
+    
+Individual: GO_6000004
+
+    Annotations: 
+        rdfs:label "GSK3beta activity"@en
+    
+    Types: 
+        has_input some UniProtKB_Q02248,
+        enabled_by some UniProtKB_Q9WV60,
+        occurs_in some GO_0005829,
+        GO_0004672
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>,
+     BFO_0000050  GO_6000005,
+     directly_activates  GO_6000001
+    
+    
+Individual: GO_6000005
+
+    Annotations: 
+        rdfs:label "Beta-catenin destruction complex activity"@en
+    
+    Types: 
+        occurs_in some GO_0005829,
+        enabled_by some GO_0030877,
+        GO_0003674
+    
+    
+Individual: GO_6000000
+
+    Annotations: 
+        rdfs:label "CK1 activity"@en
+    
+    Types: 
+        has_input some UniProtKB_Q02248,
+        occurs_in some GO_0005829,
+        GO_0004672,
+        enabled_by some UniProtKB_Q6PJ87
+    
+    Facts:  
+     BFO_0000050  GO_6000005,
+     directly_activates  GO_6000001,
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>
+    
+    
+Individual: GO_6000001
+
+    Annotations: 
+        rdfs:label "BTRC activity"@en
+    
+    Types: 
+        has_input some UniProtKB_Q02248,
+        GO_0005515,
+        occurs_in some GO_0005829,
+        enabled_by some UniProtKB_Q3ULA2
+    
+    Facts:  
+     BFO_0000050  GO_6000002,
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>,
+     directly_inhibits  <http://purl.obolibrary.org/obo/go/lego/TB_0000011>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000009>
+
+    Annotations: 
+        rdfs:label "Wnt3 frizzled-LRP5-LRP6 receptor activity"
+    
+    Types: 
+        (enabled_by some UniProtKB_O88572)
+         and (enabled_by some UniProtKB_Q61086),
+        GO_0042813,
+        BFO_0000066 some GO_0005886
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000008>
+
+    Annotations: 
+        rdfs:comment "Should this be a sub-type of binding as well?  Right now you can't have two is_a parents.",
+        rdfs:label "Wnt-frizzled binding"
+    
+    Types: 
+        BFO_0000066 some GO_0005615,
+        GO_0005515,
+        has_input some UniProtKB_O88572,
+        has_input some UniProtKB_Q61086,
+        enabled_by some UniProtKB_P17553
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000009>,
+     directly_activates  <http://purl.obolibrary.org/obo/go/lego/TB_0000103>,
+     directly_activates  <http://purl.obolibrary.org/obo/go/lego/TB_0000006>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000007>
+
+    Annotations: 
+        rdfs:label "Wnt3 signaling pathway"
+    
+    Types: 
+        GO_0060070
+    
+    
+Individual: GO_6000006
+
+    Annotations: 
+        rdfs:label "Wnt target gene activity"@en
+    
+    Types: 
+        occurs_in some GO_0005575,
+        enabled_by some PR_000000001,
+        GO_0003674
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000001>
+
+    Annotations: 
+        rdfs:label "Beta-catenin destruction complex scaffolding activity"
+    
+    Types: 
+        has_input some UniProtKB_Q02248,
+        GO_0030674,
+        (enabled_by some UniProtKB_O35625)
+         and (enabled_by some UniProtKB_Q61315),
+        BFO_0000066 some GO_0005829,
+        has_input some UniProtKB_Q6PJ87,
+        has_input some UniProtKB_Q9WV60
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>,
+     directly_activates  GO_6000004,
+     BFO_0000050  GO_6000005,
+     directly_activates  GO_6000000
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000010>
+
+    Annotations: 
+        rdfs:label "TCF-Groucho binding"
+    
+    Types: 
+        GO_0005515,
+        occurs_in some GO_0005634,
+        enabled_by some UniProtKB_P27782,
+        has_input some UniProtKB_Q5SQA3
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000004>,
+     directly_activates  <http://purl.obolibrary.org/obo/go/lego/TB_0000005>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000011>
+
+    Annotations: 
+        rdfs:label "beta-catenin activity"
+    
+    Types: 
+        enabled_by some UniProtKB_Q02248,
+        GO_0005515,
+        has_input some UniProtKB_P27782,
+        BFO_0000066 some GO_0005634
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>,
+     directly_inhibits  <http://purl.obolibrary.org/obo/go/lego/TB_0000010>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000005>
+
+    Annotations: 
+        rdfs:label "TCF-DNA binding"
+    
+    Types: 
+        GO_0043565,
+        occurs_in some GO_0005634,
+        enabled_by some UniProtKB_P27782
+    
+    Facts:  
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000004>,
+     directly_inhibits  GO_6000006
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000006>
+
+    Annotations: 
+        rdfs:label "Dvl1-Fz3 binding"
+    
+    Types: 
+        GO_0005515,
+        occurs_in some GO_0005829,
+        enabled_by some UniProtKB_Q61086,
+        has_input some UniProtKB_P51141
+    
+    Facts:  
+     directly_activates  <http://purl.obolibrary.org/obo/go/lego/TB_0000003>,
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000009>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000003>
+
+    Annotations: 
+        rdfs:label "Dvl1 activity"
+    
+    Types: 
+        BFO_0000066 some GO_0005829,
+        enabled_by some UniProtKB_P51141,
+        GO_0003674
+    
+    Facts:  
+     directly_inhibits  <http://purl.obolibrary.org/obo/go/lego/TB_0000001>,
+     BFO_0000050  <http://purl.obolibrary.org/obo/go/lego/TB_0000007>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/go/lego/TB_0000004>
+
+    Annotations: 
+        rdfs:label "Transcriptional repression complex activity"
+    
+    Types: 
+        GO_0003700,
+        occurs_in some GO_0005634,
+        (enabled_by some UniProtKB_P27782)
+         and (enabled_by some UniProtKB_Q5SQA3)
+    
+    

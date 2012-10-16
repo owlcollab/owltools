@@ -11,7 +11,8 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.geneontology.lego.dot.LegoDotWriter;
-import org.geneontology.lego.dot.LegoDotWriter.UnExpectedStructureException;
+import org.geneontology.lego.dot.LegoRenderer;
+import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -80,7 +81,7 @@ public class GraphvizImageRenderer {
 		
 		try {
 			// Step 1: render dot file
-			LegoDotWriter dotWriter = new LegoDotWriter(graph, reasoner) {
+			LegoRenderer dotWriter = new LegoDotWriter(graph, reasoner) {
 				
 				private PrintWriter writer = null;
 				
@@ -101,7 +102,7 @@ public class GraphvizImageRenderer {
 				
 			};
 			Set<OWLNamedIndividual> individuals = graph.getSourceOntology().getIndividualsInSignature();
-			dotWriter.renderDot(individuals, null, true);
+			dotWriter.render(individuals, null, true);
 			
 			// Step 2: render png file using graphiz (i.e. dot)
 			Runtime r = Runtime.getRuntime();

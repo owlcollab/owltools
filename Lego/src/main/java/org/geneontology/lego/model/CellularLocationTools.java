@@ -1,4 +1,4 @@
-package org.geneontology.lego.dot;
+package org.geneontology.lego.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +21,7 @@ import owltools.graph.OWLGraphWrapper;
 
 public class CellularLocationTools {
 
-	static OWLClassExpression searchCellularLocation(OWLClassExpression cls, OWLGraphWrapper graph, Set<OWLObjectProperty> occurs_in) {
+	public static OWLClassExpression searchCellularLocation(OWLClassExpression cls, OWLGraphWrapper graph, Set<OWLObjectProperty> occurs_in) {
 		Queue<OWLClass> queue = new Queue<OWLClass>();
 		if (cls instanceof OWLClass) {
 			queue.add((OWLClass) cls);
