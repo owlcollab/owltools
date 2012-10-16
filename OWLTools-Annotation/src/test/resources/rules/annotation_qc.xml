@@ -230,6 +230,13 @@ WHERE  evidence.code IN ('NAS','TAS','IDA','IMP','IGC','IEP','ND','IC','RCA','EX
 		<status date="2010-04-01">
 			Approved
 		</status>
+		<implementation_list>
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000004" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
+			</implementation>
+		</implementation_list>
 	</rule>
 	<rule>
 		<id>

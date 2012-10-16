@@ -25,11 +25,11 @@ import owltools.io.ParserWrapper;
 /**
  * Tests for {@link AnnotationRulesEngine}.
  *
- * TODO currently this is excluded from the test suite due to excessive runtime (Taxon check using HermiT).
+ * TODO currently this is excluded from the test suite due to incomplete check for taxon violations.
  */
 public class AnnotationRulesEngineSingleTest extends OWLToolsTestBasics {
 
-	private static boolean renderViolations = true;
+	private static boolean renderViolations = false;
 	private static final String LOCATION = "src/test/resources/rules/";
 	private static AnnotationRulesEngine engine = null;
 

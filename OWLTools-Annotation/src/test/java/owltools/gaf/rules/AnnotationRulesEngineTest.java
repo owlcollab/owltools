@@ -25,7 +25,7 @@ import owltools.io.ParserWrapper;
 /**
  * Tests for {@link AnnotationRulesEngine}.
  *
- * TODO currently this is excluded from the test suite due to excessive runtime (Taxon check using HermiT).
+ * TODO currently this is excluded from the test suite due to incomplete check for taxon violations.
  */
 public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 
@@ -59,15 +59,6 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		if (renderViolations) {
 			renderViolations(result);
 		}
-		// error
-		assertTrue(result.hasErrors());
-		Map<String, List<AnnotationRuleViolation>> errors = result.getViolations(ViolationType.Error);
-		assertEquals(4, errors.size()); // 4 rules with Errors
-		assertEquals(2, errors.get("GO_AR:0000001").size());
-		assertEquals(1, errors.get("GO_AR:0000011").size());
-		assertEquals(1, errors.get("GO_AR:0000013").size());
-		assertEquals(1, errors.get("GO_AR:0000014").size());
-		
 		// warning
 		assertTrue(result.hasWarnings());
 		Map<String, List<AnnotationRuleViolation>> warnings = result.getViolations(ViolationType.Warning);
@@ -76,7 +67,18 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		assertEquals(1, warnings.get("GO_AR:0000018").size());
 		
 		// recommendation
-		assertFalse(result.hasRecommendations());
+		assertTrue(result.hasRecommendations());
+		Map<String, List<AnnotationRuleViolation>> recommendations = result.getViolations(ViolationType.Recommendation);
+		assertEquals(5, recommendations.get("GO_AR:0000004").size());
+		
+		// error
+		assertTrue(result.hasErrors());
+		Map<String, List<AnnotationRuleViolation>> errors = result.getViolations(ViolationType.Error);
+		assertEquals(4, errors.size()); // 4 rules with Errors
+		assertEquals(2, errors.get("GO_AR:0000001").size());
+		assertEquals(1, errors.get("GO_AR:0000011").size());
+		assertEquals(1, errors.get("GO_AR:0000013").size());
+		assertEquals(1, errors.get("GO_AR:0000014").size());
 	}
 
 	private static void renderViolations(AnnotationRulesEngineResult result) {

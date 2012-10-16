@@ -3,6 +3,8 @@ package owltools.gaf;
 import static junit.framework.Assert.*;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -27,10 +29,7 @@ public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 		assertFalse(doc.getGeneAnnotations().isEmpty());
 		
 		Set<GeneAnnotation> anns = doc.getGeneAnnotations("MGI:MGI:1916529");
-		for (GeneAnnotation ann : anns) {
-			System.out.println("ANN: "+ann);
-		}
-		assertTrue(anns.size() == 3);
+		assertEquals(3, anns.size());
 	}
 	
 	@Test
@@ -47,7 +46,20 @@ public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 		
 		assertFalse(doc.getGeneAnnotations().isEmpty());
 
-
+	}
+	
+	@Test
+	public void testCompoundWithExpression() throws Exception {
+		GafObjectsBuilder builder = new GafObjectsBuilder();
+		GafDocument doc = builder.buildDocument(getResource("compound_with_expression.gaf"));
+		
+		List<GeneAnnotation> geneAnnotations = doc.getGeneAnnotations();
+		assertEquals(1, geneAnnotations.size());
+		GeneAnnotation ann = geneAnnotations.get(0);
+		String withExpression = ann.getWithExpression();
+		assertTrue(withExpression.contains("|"));
+		Collection<WithInfo> withInfos = ann.getWithInfos();
+		assertTrue(withInfos.size() > 1);
 	}
 	
 }
