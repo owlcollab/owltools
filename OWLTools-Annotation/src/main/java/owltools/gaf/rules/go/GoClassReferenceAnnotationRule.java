@@ -3,7 +3,6 @@ package owltools.gaf.rules.go;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.gaf.GeneAnnotation;
@@ -34,26 +33,19 @@ public class GoClassReferenceAnnotationRule extends AbstractAnnotationRule {
 
 		HashSet<AnnotationRuleViolation> set = new HashSet<AnnotationRuleViolation>();
 		String id = a.getCls();
-		String cls = id.replace(":", "_");
-
-		OWLClass owlClass = graph.getOWLClass(Obo2OWLConstants.DEFAULT_IRI_PREFIX + cls);
+		OWLClass owlClass = graph.getOWLClassByIdentifier(id);
 
 		if (owlClass == null) {
-			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(),
-					"The id '"+id+"' in the annotation is a dangling reference", a);
-			set.add(v);
+			set.add(new AnnotationRuleViolation(getRuleId(),
+					"The id '"+id+"' in the annotation is a dangling reference", a));
 		}
-
-		boolean isObsolete = graph.getIsObsolete(owlClass);
-
-		if (isObsolete) {
-			AnnotationRuleViolation arv = new AnnotationRuleViolation(getRuleId(),
-					"The id '"+id+"' in the annotation is an obsolete class", a);
-			
-			// arv.setSuggestedReplacements(suggestedReplacements)
-			set.add(arv);
+		else {
+			boolean isObsolete = graph.isObsolete(owlClass);
+			if (isObsolete) {
+				set.add(new AnnotationRuleViolation(getRuleId(),
+						"The id '"+id+"' in the annotation is an obsolete class", a));
+			}
 		}
-
 		return set;
 	}
 
