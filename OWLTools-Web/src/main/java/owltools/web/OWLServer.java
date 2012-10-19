@@ -106,7 +106,12 @@ public class OWLServer extends AbstractHandler
 		OWLReasonerFactory reasonerFactory = null;
 		OWLReasoner reasoner = null;
 		LOG.info("Creating reasoner:"+reasonerName);
-		if (reasonerName == null || reasonerName.equals("factpp"))
+		if (reasonerName == null || reasonerName.equals("default")) {
+			if (graph.getReasoner() != null)
+				return graph.getReasoner();
+			reasonerFactory = new ElkReasonerFactory();
+		}
+		else if (reasonerName == null || reasonerName.equals("factpp"))
 			reasonerFactory = new FaCTPlusPlusReasonerFactory();
 		else if (reasonerName.equals("hermit")) {
 			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			

@@ -14,7 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
-import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.obolibrary.macro.ManchesterSyntaxTool;
+import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
@@ -66,8 +67,8 @@ public class OWLHandler {
 		AXIOM, ENTITY, EDGE, ONTOLOGY
 	}
 	public enum Param {
-		id, taxid,
-		format, direct
+		id, iri, label, taxid, expression,
+		format, direct, reflexive
 	}
 
 	public OWLHandler(OWLServer owlserver, OWLGraphWrapper graph,  HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -137,18 +138,64 @@ public class OWLHandler {
 		println("</ul>");
 	}
 
-	public void getSuperClassesCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	/**
+	 * Params: direct, (id | expression)
+	 * @throws OWLOntologyCreationException
+	 * @throws OWLOntologyStorageException
+	 * @throws IOException
+	 * @throws ParserException 
+	 */
+	public void getSubClassesCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, ParserException {
 		headerOWL();
-		boolean direct = getParamAsBoolean(Param.direct, true);
+		boolean direct = getParamAsBoolean(Param.direct, false);
 		OWLReasoner r = getReasoner();
-		OWLClass cls = (OWLClass) this.resolveEntity();
+		OWLClassExpression cls = this.resolveClassExpression();
+		LOG.info("finding subclasses of: "+cls+" using "+r);
+		int n = 0;
+		for (OWLClass sc : r.getSubClasses(cls, direct).getFlattened()) {
+			print(sc);
+			n++;
+		}
+		if (getParamAsBoolean(Param.reflexive, true)) {
+			for (OWLClass sc : r.getEquivalentClasses(cls)) {
+				print(sc);
+			}
+			n++;
+		}
+		LOG.info("results: "+n);
+	}
+	
+	/**
+	 * Params: direct, (id | expression)
+	 * @throws OWLOntologyCreationException
+	 * @throws OWLOntologyStorageException
+	 * @throws IOException
+	 * @throws ParserException 
+	 */
+	public void getSuperClassesCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, ParserException {
+		headerOWL();
+		boolean direct = getParamAsBoolean(Param.direct, false);
+		OWLReasoner r = getReasoner();
+		OWLClassExpression cls = this.resolveClassExpression();
 		LOG.info("finding superclasses of: "+cls);
 		LOG.info("R:"+r.getSuperClasses(cls, direct));
 		for (OWLClass sc : r.getSuperClasses(cls, direct).getFlattened()) {
 			print(sc);
 		}
+		if (getParamAsBoolean(Param.reflexive, true)) {
+			for (OWLClass sc : r.getEquivalentClasses(cls)) {
+				print(sc);
+			}	
+		}
 	}
 
+
+	/**
+	 * Params: direct
+	 * @throws OWLOntologyCreationException
+	 * @throws OWLOntologyStorageException
+	 * @throws IOException
+	 */
 	public void allSubClassOfCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
 		headerOWL();
 		boolean direct = getParamAsBoolean(Param.direct, true);
@@ -234,7 +281,7 @@ public class OWLHandler {
 	 * generates a sub-ontology consisting only of classes specified using the id param.
 	 * If the include_ancestors param is true, then the transitive closure of the input classes is
 	 * included. otherwise, intermediate classes are excluded and paths are filled.
-	 * @see Mooncat#makeSubsetOntology(Set, IRI)
+	 * @see Mooncat#makeMinimalSubsetOntology(Set, IRI)
 	 */
 	public void makeSubsetOntologyCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
 		headerOWL();
@@ -254,8 +301,8 @@ public class OWLHandler {
 		Mooncat mooncat;
 		mooncat = new Mooncat(graph);
 		OWLOntology subOnt = 
-			mooncat.makeSubsetOntology(tObjs,
-					IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"temporary"));
+			mooncat.makeMinimalSubsetOntology(tObjs,
+					IRI.create("http://purl.obolibrary.org/obo/temporary"));
 		for (OWLAxiom axiom : subOnt.getAxioms()) {
 			print(axiom); // TODO
 		}
@@ -295,6 +342,8 @@ public class OWLHandler {
 
 	private OWLObject resolveEntity() {
 		String id = getParam(Param.id);
+		if (!id.contains(":"))
+			id = id.replace("_", ":");
 		return graph.getOWLObjectByIdentifier(id);
 	}
 
@@ -302,6 +351,23 @@ public class OWLHandler {
 		String id = getParam(Param.id);
 		return graph.getOWLClassByIdentifier(id);
 	}
+	private OWLClass resolveClassByLabel() {
+		String id = getParam(Param.label);
+		return (OWLClass) graph.getOWLObjectByLabel(id);
+	}
+
+	
+	private OWLClassExpression resolveClassExpression() throws ParserException {
+		if (hasParam(Param.id)) { 
+			return resolveClass();
+		}
+		
+		String expr = getParam(Param.expression);
+		ManchesterSyntaxTool parser = new ManchesterSyntaxTool(graph.getSourceOntology(), graph.getSupportOntologySet());
+		return parser.parseManchesterExpression(expr);
+	}
+
+
 
 
 	private Set<OWLObject> resolveEntityList() {
@@ -399,7 +465,7 @@ public class OWLHandler {
 	private void print(OWLObject obj) throws IOException {
 		String fmt = getFormat();
 		if (fmt.equals("pretty"))
-			print(owlpp.render(obj));
+			println(owlpp.render(obj));
 		else if (fmt.equals("json")) {
 			//JSONPrinter jsonp = new JSONPrinter(response.getWriter());
 			//jsonp.render(obj);
@@ -407,16 +473,16 @@ public class OWLHandler {
 		}
 		else if (isOWLOntologyFormat()) {
 			// TODO - place objects into ontology, eg as subclass of result
-			print(obj.toString());
+			println(obj.toString());
 		}
 		else {
 			// TODO - do this more generically, e.g. within owlpp
 			if (getParam("idstyle") != null && obj instanceof OWLNamedObject) {
 				if (getParam("idstyle").toLowerCase().equals("obo")) {
-					print(graph.getIdentifier(obj));
+					println(graph.getIdentifier(obj));
 				}
 				else {
-					print(obj.toString());
+					println(obj.toString());
 				}
 			}
 			else 
@@ -481,7 +547,7 @@ public class OWLHandler {
 	// always remember to remove
 	private OWLOntology getTemporaryOntology() throws OWLOntologyCreationException {
 		UUID uuid = UUID.randomUUID();
-		IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"temporary/"+uuid.toString());
+		IRI iri = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
 		//OWLOntology tmpOnt = graph.getManager().getOntology(iri);
 		//if (iri == null)
 		return graph.getManager().createOntology(iri);
@@ -520,9 +586,16 @@ public class OWLHandler {
 	private OWLReasoner getReasoner() {
 		String rn = getParam("reasoner");
 		if (rn == null) {
-			rn = "structural";
+			rn = "default";
 		}
 		return owlserver.getReasoner(rn);
+	}
+
+	private boolean hasParam(Param p) {
+		String v = request.getParameter(p.toString());
+		if (v == null || v.equals(""))
+			return false;
+		return true;
 	}
 
 	private String getParam(Param p) {
