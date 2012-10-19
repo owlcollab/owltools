@@ -727,7 +727,13 @@ WHERE  ( evidence.code = 'ND'
 	<title>Dual species taxon check</title>
 	<contact>go-discuss@lists.stanford.edu</contact>
 	<description format="html">Dual species annotations are used to capture information about multi-organism interactions. The first taxon ID should be that of the species encoding the gene product, and the second should be the taxon of the other species in the interaction. Where the interaction is between organisms of the same species, both taxon IDs should be the same. These annotations should be used only in conjunction with terms that have the biological process term 'GO:0051704 : multi-organism process' or the cellular component term 'GO:0044215 : other organism' as an ancestor.</description>
-	<implementation_list />
+	<implementation_list>
+		<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000015" />
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
+			</implementation>
+	</implementation_list>
 <!--
 ## all multi-spp interactions:
 SELECT DISTINCT

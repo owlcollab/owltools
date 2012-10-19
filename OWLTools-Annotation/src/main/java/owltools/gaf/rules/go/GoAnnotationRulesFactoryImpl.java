@@ -51,6 +51,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		namedRules.put(GoIPIAnnotationRule.PERMANENT_JAVA_ID, new GoIPIAnnotationRule(eco));
 		namedRules.put(GoNDAnnotationRule.PERMANENT_JAVA_ID, new GoNDAnnotationRule(eco));
 		namedRules.put(GOReciprocalAnnotationRule.PERMANENT_JAVA_ID, new GOReciprocalAnnotationRule(graph, eco));
+		namedRules.put(GoMultipleTaxonRule.PERMANENT_JAVA_ID, new GoMultipleTaxonRule(graph));
 		logger.info("Finished preparing ontology checks");
 	}
 
