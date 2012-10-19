@@ -313,7 +313,7 @@ public class Mooncat {
 	 * 
 	 * Example: if the source ontology is cl, and cl contains axioms that reference go:1, go:2, ...
 	 * and go is in the set of referenced ontologies, then {go:1,go:2,...} will be in the returned set.
-	 * It is irrelevant whether go:1, ... is declared in the source (e.g. MIREOTED)
+	 * It is irrelevant whether go:1, ... is declared in the source (e.g. MIREOTed)
 	 * 
 	 * Note this only returns direct references. See
 	 * {@link #getClosureOfExternalReferencedEntities()} for closure of references
@@ -412,9 +412,7 @@ public class Mooncat {
 	}
 
 	/**
-	 * "slim down" an ontology.
-	 * 
-	 * Given a set of objects (e.g. a GO slim), find axioms constituting sub-ontology
+	 * Given a set of objects (e.g. a GO slim), find axioms constituting sub-ontology - i.e. "slimmed down" axioms
 	 * 
 	 * Steps:
 	 * <ul>
@@ -662,6 +660,18 @@ public class Mooncat {
 		}
 	}
 
+	public OWLOntology makeClosureSubsetOntology(Set<OWLClass> subset, IRI subOntIRI) throws OWLOntologyCreationException {
+		Set<OWLObject> objs = getClosureOfExternalReferencedEntities();
+		Set<OWLAxiom> axioms = getAxiomsForSubset(objs);
+
+
+
+		OWLOntology subOnt = manager.createOntology(axioms, subOntIRI);
+
+		return subOnt;
+
+	}
+
 	/**
 	 * Given a set of classes (e.g. those corresponding to an obo-subset or go-slim), and an ontology
 	 * in which these are declared, generate a sub-ontology.
@@ -677,8 +687,25 @@ public class Mooncat {
 	 * @return subOntology
 	 * @throws OWLOntologyCreationException
 	 */
-	public OWLOntology makeSubsetOntology(Set<OWLClass> subset, IRI subOntIRI) throws OWLOntologyCreationException {
+	public OWLOntology makeMinimalSubsetOntology(Set<OWLClass> subset, IRI subOntIRI) throws OWLOntologyCreationException {
+		return makeMinimalSubsetOntology(subset, subOntIRI, false, true);
+	}
+	public OWLOntology makeMinimalSubsetOntology(Set<OWLClass> subset, IRI subOntIRI, boolean isFillGaps) throws OWLOntologyCreationException {
+		return makeMinimalSubsetOntology(subset, subOntIRI, isFillGaps, true);
+	}
+	public OWLOntology makeMinimalSubsetOntology(Set<OWLClass> subset, IRI subOntIRI, boolean isFillGaps, Boolean isSpanGaps) throws OWLOntologyCreationException {
 		OWLOntology o = getOntology();
+
+		if (isFillGaps) {
+			Set<OWLClass> extSet = new HashSet<OWLClass>();
+			for (OWLClass c : subset) {
+				for (OWLObject p : graph.getAncestors(c))
+					if (p instanceof OWLClass)
+						extSet.add((OWLClass)p);
+			}
+			subset.addAll(extSet);
+		}
+
 		Set<IRI> iriExcludeSubset = new HashSet<IRI>(); // classes to exclude
 		for (OWLClass c : getGraph().getSourceOntology().getClassesInSignature()) {
 			if (!subset.contains(c))
@@ -726,35 +753,38 @@ public class Mooncat {
 		LOG.info("Checking closure for: "+subset.size());
 
 		// transitive reduction
-		for (OWLClass x : subset) {
-			Set<OWLGraphEdge> edges = getGraph().getOutgoingEdgesClosure(x);
-			for (OWLGraphEdge e : edges) {
-				if (subset.contains(e.getTarget())) {
-					List<OWLQuantifiedProperty> qpl = e.getQuantifiedPropertyList();
-					if (qpl.size() == 1) {
-						boolean isRedundant = false;
-						OWLQuantifiedProperty qp = qpl.get(0);
-						for (OWLGraphEdge e2 : edges) {
-							if (subset.contains(e2.getTarget())) {
-								for (OWLGraphEdge e3 : getGraph().getOutgoingEdgesClosure(e2.getTarget())) {
-									if (e3.getTarget().equals(e.getTarget())) {
-										OWLGraphEdge e4 = getGraph().combineEdgePair(e.getSource(), e2, e3, 0);
-										if (e4 != null && e4.getQuantifiedPropertyList().equals(qpl)) {
-											isRedundant = true;
+		if (!isFillGaps && isSpanGaps) {
+			// if gaps are not filled, then they are spanned
+			for (OWLClass x : subset) {
+				Set<OWLGraphEdge> edges = getGraph().getOutgoingEdgesClosure(x);
+				for (OWLGraphEdge e : edges) {
+					if (subset.contains(e.getTarget())) {
+						List<OWLQuantifiedProperty> qpl = e.getQuantifiedPropertyList();
+						if (qpl.size() == 1) {
+							boolean isRedundant = false;
+							OWLQuantifiedProperty qp = qpl.get(0);
+							for (OWLGraphEdge e2 : edges) {
+								if (subset.contains(e2.getTarget())) {
+									for (OWLGraphEdge e3 : getGraph().getOutgoingEdgesClosure(e2.getTarget())) {
+										if (e3.getTarget().equals(e.getTarget())) {
+											OWLGraphEdge e4 = getGraph().combineEdgePair(e.getSource(), e2, e3, 0);
+											if (e4 != null && e4.getQuantifiedPropertyList().equals(qpl)) {
+												isRedundant = true;
+											}
 										}
 									}
 								}
 							}
-						}
-						if (!isRedundant) {
-							if (qp.isSubClassOf()) {
-								axioms.add(dataFactory.getOWLSubClassOfAxiom((OWLClass)e.getSource(), (OWLClass)e.getTarget()));
-							}
-							else if (qp.hasProperty()) {
-								axioms.add(dataFactory.getOWLSubClassOfAxiom((OWLClass)e.getSource(), 
-										dataFactory.getOWLObjectSomeValuesFrom(qp.getProperty(), (OWLClass)e.getTarget())));
-							}
-							else {
+							if (!isRedundant) {
+								if (qp.isSubClassOf()) {
+									axioms.add(dataFactory.getOWLSubClassOfAxiom((OWLClass)e.getSource(), (OWLClass)e.getTarget()));
+								}
+								else if (qp.hasProperty()) {
+									axioms.add(dataFactory.getOWLSubClassOfAxiom((OWLClass)e.getSource(), 
+											dataFactory.getOWLObjectSomeValuesFrom(qp.getProperty(), (OWLClass)e.getTarget())));
+								}
+								else {
+								}
 							}
 						}
 					}
@@ -922,7 +952,7 @@ public class Mooncat {
 			}
 		}
 	}
-	
+
 	/**
 	 * 
 	 * @param props
@@ -957,7 +987,7 @@ public class Mooncat {
 			ps.removeAll(filterProps);
 			if (ps.size() > 0) {
 				rmAxioms.add(ax);
-				
+
 				// rewrite as weaker axioms
 				if (reasoner != null) {
 					if (ax instanceof OWLSubClassOfAxiom) {

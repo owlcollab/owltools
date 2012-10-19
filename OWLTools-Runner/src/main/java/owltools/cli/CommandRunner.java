@@ -3,10 +3,12 @@ package owltools.cli;
 import java.awt.Color;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,6 +27,7 @@ import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.coode.oppl.AnnotationBasedSymbolTableFactory;
@@ -114,9 +117,13 @@ import owltools.io.OWLJSONFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
+import owltools.mooncat.BridgeExtractor;
 import owltools.mooncat.Mooncat;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
+import owltools.mooncat.ontologymetadata.ImportChainDotWriter;
+import owltools.mooncat.ontologymetadata.ImportChainExtractor;
+import owltools.mooncat.ontologymetadata.OntologyMetadataMarkdownWriter;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.GraphReasonerFactory;
@@ -492,7 +499,7 @@ public class CommandRunner {
 				if (src.getAxiomCount() - numPost != addAxioms.size()) {
 					LOG.error("Some axioms already there!");
 				}
-				
+
 			}
 			else if (opts.nextEq("--translate-xrefs-to-equivs")) {
 				// TODO
@@ -618,36 +625,47 @@ public class CommandRunner {
 					else
 						break;
 				}
-				OWLGraphWrapper mdg  = new OWLGraphWrapper(mdoIRI);
-				OWLOntology mdo = mdg.getSourceOntology();
-				for (OWLOntology o : g.getAllOntologies()) {
-					LOG.info("Ontology:"+o);
-					IRI oi = o.getOntologyID().getOntologyIRI();
-					// Note: using the owl:imports property triggers the OWLAPI to load ths import
-					IRI fakeImportsPropertyIRI = IRI.create("http://www.geneontology.org/formats/oboInOwl#imports");
-					for (OWLAnnotation ann : o.getAnnotations()) {
-						OWLAnnotationAssertionAxiom aaa = mdg.getDataFactory().getOWLAnnotationAssertionAxiom(oi, ann);
-						LOG.info("  adding ontology metadata assertion:"+aaa);
-						mdg.getManager().addAxiom(mdo,aaa); 
-					}
-					for (OWLImportsDeclaration oid : o.getImportsDeclarations()) {
-						// TODO - change vocabulary
-						OWLAnnotationAssertionAxiom aaa = 
-							mdg.getDataFactory().getOWLAnnotationAssertionAxiom(g.getDataFactory().getOWLAnnotationProperty(fakeImportsPropertyIRI),
-									oi, oid.getIRI());
-						mdg.getManager().addAxiom(mdo, aaa);
-					}
-					IRI v = o.getOntologyID().getVersionIRI();
-					if (v != null) {
-						OWLAnnotationAssertionAxiom aaa = 
-							mdg.getDataFactory().getOWLAnnotationAssertionAxiom(g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.OWL_VERSION_IRI.getIRI()),
-									oi, v);
-						mdg.getManager().addAxiom(mdo, aaa);
-
-					}
-
-				}
+				OWLOntology mdo = ImportChainExtractor.extractOntologyMetadata(g, mdoIRI);
 				g.setSourceOntology(mdo);
+			}
+			else if (opts.nextEq("--write-imports-dot")) {
+				opts.info("OUT", "writes imports chain as dot file");
+				String output = opts.nextOpt();
+				ImportChainDotWriter writer = new ImportChainDotWriter(g);
+				writer.renderDot(g.getSourceOntology(), g.getOntologyId(), output, true);
+			}
+			else if (opts.nextEq("--ontology-metadata-to-markdown")) {
+				opts.info("OUT", "writes md from ontology metadata");
+				String output = opts.nextOpt();
+				BufferedWriter fileWriter = new BufferedWriter(new FileWriter(new File(output)));
+				String s = OntologyMetadataMarkdownWriter.renderMarkdown(g, ".", true);
+				fileWriter.write(s);
+				fileWriter.close();
+			}
+			else if (opts.nextEq("--extract-bridge-ontologies")) {
+				opts.info("OUT", "");
+				String dir = "bridge/";
+				String ontId = null;
+				boolean isRemoveBridgeAxiomsFromSource = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-d")) {
+						dir = opts.nextOpt();
+					}
+					else if (opts.nextEq("-x")) {
+						isRemoveBridgeAxiomsFromSource = true;
+					}
+					else if (opts.nextEq("-s")) {
+						ontId = opts.nextOpt();
+					}
+					else {
+						break;
+					}
+				}
+				BridgeExtractor be = new BridgeExtractor(g.getSourceOntology());
+				be.subDir = dir;
+				be.extractBridgeOntologies(ontId, isRemoveBridgeAxiomsFromSource);
+				be.saveBridgeOntologies(dir);
+
 			}
 			else if (opts.nextEq("--oppl")) {
 				opts.info("[--dry-run] [[-i OPPL-SCRIPT-FILE] | OPPL-STRING]", "runs an oppl script");
@@ -999,45 +1017,72 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--make-ontology-from-results")) {
-				opts.info("", "takes the most recent reasoner query and generates a subset ontology using ONLY classes from results");
+				// TODO - use Mooncat
+				opts.info("[-m] [-f] IRI", "takes the most recent reasoner query and generates a subset ontology using ONLY classes from results");
+				boolean followClosure = false;
+				boolean useMooncat = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-f|--follow-closure|--file-gaps"))
+						followClosure = true;
+					else if (opts.nextEq("-m|--use-mooncat"))
+						useMooncat = true;
+					else
+						break;
+				}
+				if (followClosure) useMooncat = true;
 				String subOntologyIRI = opts.nextOpt();
-				Set<OWLAxiom> subsetAxioms = new HashSet<OWLAxiom>();
-				Set <OWLObjectProperty> objPropsUsed = new HashSet<OWLObjectProperty>();
-				for (OWLOntology mergeOntology : g.getAllOntologies()) {
-					for (OWLObject cls : owlObjectCachedSet) {
-						if (cls instanceof OWLClass) {
-							for (OWLAxiom ax : mergeOntology.getAxioms((OWLClass)cls)) {
-								boolean ok = true;
-								for (OWLClass refCls : ax.getClassesInSignature()) {
-									if (!owlObjectCachedSet.contains(refCls)) {
-										LOG.info("Skipping: "+ax);
-										ok = false;
-										break;
-									}
-								}
-								if (ok)
-									subsetAxioms.add(ax);
-							}
-							for (OWLAxiom ax : mergeOntology.getAnnotationAssertionAxioms(((OWLClass)cls).getIRI())) {
-								subsetAxioms.add(ax);
-							}
-						}
-						subsetAxioms.add(g.getDataFactory().getOWLDeclarationAxiom(((OWLClass)cls)));
+				if (useMooncat) {
+					Mooncat m = new Mooncat(g);
+					Set<OWLClass> cs = new HashSet<OWLClass>();
+					for (OWLObject obj : owlObjectCachedSet) {
+						if (obj instanceof OWLClass)
+							cs.add((OWLClass) obj);
 					}
+					// TODO
+					OWLOntology subOnt = m.makeMinimalSubsetOntology(cs, IRI.create(subOntologyIRI), followClosure);
+					g.setSourceOntology(subOnt);
 				}
-				for (OWLAxiom ax : subsetAxioms) {
-					objPropsUsed.addAll(ax.getObjectPropertiesInSignature());
-				}
-				for (OWLObjectProperty p : objPropsUsed) {
-					for (OWLOntology mergeOntology : g.getAllOntologies()) {
-						subsetAxioms.addAll(mergeOntology.getAxioms(p));
-						subsetAxioms.addAll(mergeOntology.getAnnotationAssertionAxioms(p.getIRI()));
-					}
-				}
+				else {
 
-				OWLOntology subOnt = g.getManager().createOntology(IRI.create(subOntologyIRI));
-				g.getManager().addAxioms(subOnt, subsetAxioms);
-				g.setSourceOntology(subOnt);
+					Set<OWLAxiom> subsetAxioms = new HashSet<OWLAxiom>();
+					Set <OWLObjectProperty> objPropsUsed = new HashSet<OWLObjectProperty>();
+					for (OWLOntology mergeOntology : g.getAllOntologies()) {
+						for (OWLObject cls : owlObjectCachedSet) {
+							if (cls instanceof OWLClass) {
+								// TODO - translate equivalence axioms; assume inferred for now
+								for (OWLAxiom ax : mergeOntology.getAxioms((OWLClass)cls)) {
+									boolean ok = true;
+									for (OWLClass refCls : ax.getClassesInSignature()) {
+										if (!owlObjectCachedSet.contains(refCls)) {
+											LOG.info("Skipping: "+ax);
+											ok = false;
+											break;
+										}
+									}
+									if (ok)
+										subsetAxioms.add(ax);
+								}
+								for (OWLAxiom ax : mergeOntology.getAnnotationAssertionAxioms(((OWLClass)cls).getIRI())) {
+									subsetAxioms.add(ax);
+								}
+							}
+							subsetAxioms.add(g.getDataFactory().getOWLDeclarationAxiom(((OWLClass)cls)));
+						}
+					}
+					for (OWLAxiom ax : subsetAxioms) {
+						objPropsUsed.addAll(ax.getObjectPropertiesInSignature());
+					}
+					for (OWLObjectProperty p : objPropsUsed) {
+						for (OWLOntology mergeOntology : g.getAllOntologies()) {
+							subsetAxioms.addAll(mergeOntology.getAxioms(p));
+							subsetAxioms.addAll(mergeOntology.getAnnotationAssertionAxioms(p.getIRI()));
+						}
+					}
+
+					OWLOntology subOnt = g.getManager().createOntology(IRI.create(subOntologyIRI));
+					g.getManager().addAxioms(subOnt, subsetAxioms);
+					g.setSourceOntology(subOnt);
+				}
 			}
 			else if (opts.nextEq("--reasoner-ask-all")) {
 				opts.info("[-r REASONERNAME] [-s] [-a] AXIOMTYPE", "list all inferred equivalent named class pairs");
@@ -2105,7 +2150,7 @@ public class CommandRunner {
 		boolean checkConsistency = true; 
 		boolean useIsInferred = false;
 		boolean ignoreNonInferredForRemove = false;
-		
+		boolean checkForNamedClassEquivalencies = true;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--removeRedundant"))
 				removeRedundant = true;
@@ -2122,13 +2167,16 @@ public class CommandRunner {
 			else if (opts.nextEq("--ignoreNonInferredForRemove")) {
 				ignoreNonInferredForRemove = true;
 			}
+			else if (opts.nextEq("--allowEquivalencies")) {
+				checkForNamedClassEquivalencies = false;
+			}
 			else {
 				break;
 			}
 		}
-		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove);
+		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies);
 	}
-	
+
 	@CLIMethod("--create-biochebi")
 	public void createBioChebi(Opts opts) throws Exception {
 		String output = null;
@@ -2222,7 +2270,7 @@ public class CommandRunner {
 		reasoner = reasonerFactory.createReasoner(ont);
 		return reasoner;
 	}
-	
+
 	private void removeDanging() {
 		Mooncat m = new Mooncat(g);
 		m.removeDanglingAxioms();

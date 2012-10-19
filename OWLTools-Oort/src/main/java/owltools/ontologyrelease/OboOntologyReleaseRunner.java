@@ -382,7 +382,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			gafs = new ArrayList<String>();
 			paths = new ArrayList<String>();
 			for(String path : allPaths) {
-				if (path.endsWith(".obo") || path.endsWith(".owl")) {
+                                // TODO - be a bit more sophisticated about this
+				if (path.endsWith(".obo") || path.endsWith(".owl") || path.endsWith(".ofn") || path.endsWith(".owx") || path.endsWith(".omn")) {
 					paths.add(path);
 				}
 				else {
@@ -502,6 +503,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("The following prefixes will be used to determine "+
 					"which classes belong in source:"+oortConfig.getSourceOntologyPrefixes());
 			mooncat.setSourceOntologyPrefixes(oortConfig.getSourceOntologyPrefixes());
+		}
+		
+		if (oortConfig.isRepairAnnotationCardinality()) {
+			logger.info("Checking and repair annotation cardinality constrains");
+			OboInOwlCardinalityTools.checkAnnotationCardinality(mooncat.getOntology());
 		}
 
 		if (oortConfig.isExecuteOntologyChecks()) {
@@ -830,7 +836,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				String fn = "subsets/"+subset;
 
 				IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+fn+".owl");
-				OWLOntology subOnt = mooncat.makeSubsetOntology(objs,iri);
+				OWLOntology subOnt = mooncat.makeMinimalSubsetOntology(objs,iri);
 				logger.info("subOnt:"+subOnt+" #axioms:"+subOnt.getAxiomCount());
 				saveOntologyInAllFormats(ontologyId, fn, subOnt, gciOntology);
 			}

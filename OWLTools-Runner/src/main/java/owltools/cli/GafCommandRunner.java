@@ -288,7 +288,7 @@ public class GafCommandRunner extends CommandRunner {
 			}
 		}
 		LOG.info("Making subset ontology seeded from "+cs.size()+" classes");
-		g.setSourceOntology(m.makeSubsetOntology(cs, subOntIRI ));
+		g.setSourceOntology(m.makeMinimalSubsetOntology(cs, subOntIRI, true));
 		LOG.info("Made subset ontology; # classes = "+cs.size());
 	}
 

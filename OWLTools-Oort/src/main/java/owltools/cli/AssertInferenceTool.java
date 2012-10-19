@@ -241,6 +241,12 @@ public class AssertInferenceTool {
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
 			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove) throws InconsistentOntologyException
 	{
+		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true);
+	}
+	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
+			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove,
+			boolean checkForNamedClassEquivalencies) throws InconsistentOntologyException
+	{
 		OWLOntology ontology = graph.getSourceOntology();
 		OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		OWLDataFactory factory = manager.getOWLDataFactory();
@@ -326,7 +332,9 @@ public class AssertInferenceTool {
 					for (OWLEquivalentClassesAxiom eca : equivalentNamedClassPairs) {
 						logger.error("EQUIVALENT_CLASS_PAIR: "+owlpp.render(eca));
 					}
-					throw new InconsistentOntologyException("Found equivalencies between named classes, count: " + eqCount);
+					if (checkForNamedClassEquivalencies) {
+						throw new InconsistentOntologyException("Found equivalencies between named classes, count: " + eqCount);
+					}
 				}
 				logger.info("Finished checking consistency");
 			}
