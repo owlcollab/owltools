@@ -26,6 +26,107 @@ import owltools.io.ParserWrapper;
  */
 public class EcoTools {
 	
+	public static final String ECO_PURL = "http://purl.obolibrary.org/obo/eco.owl";
+	
+	private final OWLGraphWrapper eco;
+	private final OWLReasoner reasoner;
+	
+	public EcoTools (ParserWrapper pw) throws OWLOntologyCreationException, IOException {
+		this(loadECO(pw));
+	}
+	
+	public EcoTools(OWLGraphWrapper eco) {
+		this.eco = eco;
+		OWLReasonerFactory factory = new ElkReasonerFactory();
+		final OWLOntology sourceOntology = eco.getSourceOntology();
+		reasoner = factory.createReasoner(sourceOntology);
+	}
+	
+	/**
+	 * Retrieve the ECO classes for the given GO annotation codes.
+	 * 
+	 * @param goCodes
+	 * @return set of ECO classes
+	 */
+	public Set<OWLClass> getClassesForGoCodes(String...goCodes) {
+		return getClassesForGoCodes(asSet(goCodes));
+	}
+	
+	/**
+	 * Retrieve the ECO classes for the given GO annotation codes.
+	 * 
+	 * @param goCodes
+	 * @return set of ECO classes
+	 */
+	public Set<OWLClass> getClassesForGoCodes(Set<String> goCodes) {
+		if (goCodes == null || goCodes.isEmpty()) {
+			return Collections.emptySet();
+		}
+		Set<OWLClass> classes = new HashSet<OWLClass>();
+		Set<OWLObject> allOWLObjects = eco.getAllOWLObjects();
+		for (OWLObject owlObject : allOWLObjects) {
+			if (owlObject instanceof OWLClass) {
+				List<ISynonym> synonyms = eco.getOBOSynonyms(owlObject);
+				if (synonyms != null && !synonyms.isEmpty()) {
+					for (ISynonym synonym : synonyms) {
+						if (goCodes.contains(synonym.getLabel())) {
+							classes.add((OWLClass) owlObject);
+						}
+					}
+				}
+			}
+		}
+		return classes;
+	}
+	
+	public Set<String> getCodes(Set<OWLClass> classes) {
+		return getCodes(classes, false);
+	}
+	
+	public Set<String> getCodes(Set<OWLClass> classes, boolean includeDescendants) {
+		Set<String> codes = new HashSet<String>();
+		
+		if (includeDescendants) {
+			// use reasoner to infer descendants
+			Set<OWLClass> allSubClasses = new HashSet<OWLClass>();
+			for (OWLClass owlClass : classes) {
+				allSubClasses.add(owlClass);
+				NodeSet<OWLClass> nodeSet = reasoner.getSubClasses(owlClass, false);
+				for(Node<OWLClass> node : nodeSet) {
+					if (node.isTopNode() == false && node.isBottomNode() == false) {
+						allSubClasses.addAll(node.getEntities());
+					}
+				}
+			}
+			classes = allSubClasses;
+		}
+		for (OWLClass owlClass : classes) {
+			final String oboId = eco.getIdentifier(owlClass);
+			if (oboId == null) {
+				continue;
+			}
+			codes.add(oboId);
+			List<ISynonym> synonyms = eco.getOBOSynonyms(owlClass);
+			if (synonyms != null && !synonyms.isEmpty()) {
+				for (ISynonym synonym : synonyms) {
+					final String synLabel = synonym.getLabel();
+					if (synLabel.length() <= 4) {
+						// TODO replace the length hack with a proper way to identify the codes
+						// do not rely on SCOPE, there are currently inconsistencies in ECO
+						// NOT all GO codes are EXACT synonyms
+						codes.add(synLabel);
+					}
+				}
+			}
+		}
+		return codes;
+	}
+	
+	public void dispose() {
+		reasoner.dispose();
+	}
+	
+	
 	/**
 	 * Load the evidence code ontology (ECO) from its default PURL.
 	 * 
@@ -35,7 +136,7 @@ public class EcoTools {
 	 * @throws OWLOntologyCreationException 
 	 */
 	public static OWLGraphWrapper loadECO(ParserWrapper pw) throws IOException, OWLOntologyCreationException {
-		return pw.parseToOWLGraph("http://purl.obolibrary.org/obo/eco.owl");
+		return pw.parseToOWLGraph(ECO_PURL);
 	}
 	
 	/**
