@@ -10,17 +10,17 @@ package owltools.graph.shunt;
  */
 public class OWLShuntEdge {
 	
-	public String subject_id = null;
-	public String object_id = null;
-	public String predicate_id = null;
+	public String sub = null;
+	public String obj = null;
+	public String pred = null;
 	
 	/**
 	 * @param subject_id
 	 * @param object_id
 	 */
 	public OWLShuntEdge(String subject_id, String object_id) {
-		this.subject_id = subject_id;
-		this.object_id = object_id;
+		this.sub = subject_id;
+		this.obj = object_id;
 	}
 	
 	/**
@@ -29,9 +29,9 @@ public class OWLShuntEdge {
 	 * @param predicate_id
 	 */
 	public OWLShuntEdge(String subject_id, String object_id, String predicate_id) {
-		this.subject_id = subject_id;
-		this.object_id = object_id;
-		this.predicate_id = predicate_id;
+		this.sub = subject_id;
+		this.obj = object_id;
+		this.pred = predicate_id;
 	}
 
 	/* (non-Javadoc)
@@ -42,11 +42,11 @@ public class OWLShuntEdge {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((object_id == null) ? 0 : object_id.hashCode());
+				+ ((obj == null) ? 0 : obj.hashCode());
 		result = prime * result
-				+ ((predicate_id == null) ? 0 : predicate_id.hashCode());
+				+ ((pred == null) ? 0 : pred.hashCode());
 		result = prime * result
-				+ ((subject_id == null) ? 0 : subject_id.hashCode());
+				+ ((sub == null) ? 0 : sub.hashCode());
 		return result;
 	}
 
@@ -54,28 +54,28 @@ public class OWLShuntEdge {
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(Object thing) {
+		if (this == thing)
 			return true;
-		if (obj == null)
+		if (thing == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if (getClass() != thing.getClass())
 			return false;
-		OWLShuntEdge other = (OWLShuntEdge) obj;
-		if (object_id == null) {
-			if (other.object_id != null)
+		OWLShuntEdge other = (OWLShuntEdge) thing;
+		if (obj == null) {
+			if (other.obj != null)
 				return false;
-		} else if (!object_id.equals(other.object_id))
+		} else if (!obj.equals(other.obj))
 			return false;
-		if (predicate_id == null) {
-			if (other.predicate_id != null)
+		if (pred == null) {
+			if (other.pred != null)
 				return false;
-		} else if (!predicate_id.equals(other.predicate_id))
+		} else if (!pred.equals(other.pred))
 			return false;
-		if (subject_id == null) {
-			if (other.subject_id != null)
+		if (sub == null) {
+			if (other.sub != null)
 				return false;
-		} else if (!subject_id.equals(other.subject_id))
+		} else if (!sub.equals(other.sub))
 			return false;
 		return true;
 	}

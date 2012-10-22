@@ -14,8 +14,8 @@ public class OWLShuntNode {
 
 	public String id = null;
 	public String type = null;
-	public String label = null;
-	public String metadata = null;
+	public String lbl = null;
+	public String meta = null;
 
 	/**
 	 * @param id
@@ -30,7 +30,7 @@ public class OWLShuntNode {
 	 */
 	public OWLShuntNode(String id, String label) {
 		this.id = id;
-		this.label = label;
+		this.lbl = label;
 	}
 	
 	/**
@@ -39,7 +39,7 @@ public class OWLShuntNode {
 	 */
 	public OWLShuntNode(OWLGraphWrapper g, OWLObject o) {
 		this.id = g.getIdentifier(o);
-		this.label = g.getLabel(o);
+		this.lbl = g.getLabel(o);
 	}
 
 	/**
@@ -74,28 +74,28 @@ public class OWLShuntNode {
 	 * @return the label
 	 */
 	public String getLabel() {
-		return label;
+		return lbl;
 	}
 
 	/**
 	 * @param label the label to set
 	 */
 	public void setLabel(String label) {
-		this.label = label;
+		this.lbl = label;
 	}
 	
 	/**
 	 * @return the metadata
 	 */
 	public String getMetadata() {
-		return metadata;
+		return meta;
 	}
 	
 	/**
 	 * @param metadata the metadata to set
 	 */
 	public void setMetadata(String metadata) {
-		this.metadata = metadata;
+		this.meta = metadata;
 	}
 
 	/* (non-Javadoc)
