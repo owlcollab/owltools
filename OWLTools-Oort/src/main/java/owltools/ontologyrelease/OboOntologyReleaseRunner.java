@@ -47,6 +47,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -60,7 +61,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import owltools.InferenceBuilder;
 import owltools.JustifyAssertionsTool;
 import owltools.JustifyAssertionsTool.JustifyResult;
-import owltools.ThreadedInferenceBuilder;
 import owltools.cli.Opts;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
@@ -521,40 +521,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				}
 			}
 		}
-		String version = OntologyVersionTools.getOntologyVersion(mooncat.getOntology());
-		if (version != null) {
-			if (OntologyVersionTools.isOBOOntologyVersion(version)) {
-				Date versionDate = OntologyVersionTools.parseVersion(version);
-				version = OntologyVersionTools.format(versionDate);
-				logger.info("Set ontology version from standard purl: "+version);
-			}
-			else {
-				logger.info("Using version as given: "+version);
-			}
-		}
-		else {
-			version = OntologyVersionTools.getOboInOWLVersion(mooncat.getOntology());
-			logger.info("Extracted version from remark field: "+version);
-		}
-
-		if (version == null) {
-			// TODO add an option to set the version manually
-		}
+		
+		final String ontologyId = handleOntologyId();
+		final String version = handleVersion(ontologyId);
 
 		if (oortConfig.isWriteLabelOWL()) {
 			mooncat.getManager().addOntologyStorer(new LabelFunctionalSyntaxOntologyStorer());
 		}
 		
-		
-		version = buildVersionInfo(version);
-		logger.info("Version: "+version);
-		OntologyVersionTools.setOboInOWLVersion(mooncat.getOntology(), version);
-		// the versionIRI for in the ontologyID is set during write out, 
-		// as they are specific to the file name
-
-		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
-		ontologyId = ontologyId.replaceAll(".obo$", ""); // temp workaround
-
 		// ----------------------------------------
 		// Macro expansion
 		// ----------------------------------------
@@ -601,7 +575,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					logger.info("Generating bridge ontology:"+tOntId);
 					Obo2Owl obo2owl = new Obo2Owl();
 					OWLOntology tOnt = obo2owl.convert(tdoc);
-					saveOntologyInAllFormats(tOntId, tOntId, tOnt, null);
+					saveOntologyInAllFormats(tOntId, tOnt, null, false);
 				}
 			} catch (InvalidXrefMapException e) {
 				logger.info("Problem during Xref expansion: "+e.getMessage(), e);
@@ -836,9 +810,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				String fn = "subsets/"+subset;
 
 				IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+fn+".owl");
-				OWLOntology subOnt = mooncat.makeMinimalSubsetOntology(objs,iri);
+				OWLOntology subOnt = mooncat.makeMinimalSubsetOntology(objs, iri);
 				logger.info("subOnt:"+subOnt+" #axioms:"+subOnt.getAxiomCount());
-				saveOntologyInAllFormats(ontologyId, fn, subOnt, gciOntology);
+				saveOntologyInAllFormats(fn, subOnt, gciOntology, false);
 			}
 
 		}
@@ -959,6 +933,39 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return success;
 	}
 
+	private String handleOntologyId() {
+		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
+		ontologyId = ontologyId.replaceAll(".obo$", ""); // TODO temp workaround
+		return ontologyId;
+	}
+
+	private String handleVersion(String ontologyId) {
+		// TODO add an option to set/overwrite the version manually via command-line
+		// TODO re-use/create a method in obo2owl for creating an version IRI
+		String version;
+		OWLOntology ontology = mooncat.getOntology();
+		OWLOntologyID owlOntologyId = ontology.getOntologyID();
+		IRI versionIRI = owlOntologyId.getVersionIRI();
+		if (versionIRI == null) {
+			// set a new version IRI using the current date
+			version = OntologyVersionTools.format(new Date());
+			IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+version+"/"+ontologyId+".owl");
+			
+			OWLOntologyManager m = mooncat.getManager();
+			m.applyChange(new SetOntologyID(ontology, new OWLOntologyID(owlOntologyId.getOntologyIRI(), versionIRI)));
+		}
+		else {
+			String versionIRIString = versionIRI.toString();
+			version = OntologyVersionTools.parseVersion(versionIRIString);
+			if (version == null) {
+				// use the whole IRI? escape?
+				logger.error("Could not parse a version from ontolgy version IRI: "+versionIRIString);
+				version = versionIRIString;
+			}
+		}
+		return version;
+	}
+	
 	/**
 	 * Handle all the inference and optional justification steps for the main ontology.
 	 * Adds all findings to the reasoner report.
@@ -1221,11 +1228,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	}
 
 	private void saveInAllFormats(String ontologyId, String ext, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
-		String fn = ext == null ? ontologyId :  ontologyId + "-" + ext;
-		saveOntologyInAllFormats(ontologyId, fn, ontologyToSave, gciOntology);
+		if (ext == null || ext.isEmpty()) {
+			saveOntologyInAllFormats(ontologyId, ontologyToSave, gciOntology, false);
+		}
+		else {
+			saveOntologyInAllFormats(ontologyId + "-" + ext, ontologyToSave, gciOntology, true);
+		}
 	}
 
-	private void saveOntologyInAllFormats(String ontologyId, String fileNameBase, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveOntologyInAllFormats(String fileNameBase, OWLOntology ontologyToSave, OWLOntology gciOntology, boolean changeOntologyId) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
 		logger.info("Saving: "+fileNameBase);
 
@@ -1234,34 +1245,22 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// if we add a new ontology id, remember the change, to restore the original 
 		// ontology id after writing into a file.
 		SetOntologyID reset = null;
-		Date date = null;
-
-		// check if there is an existing version
-		// if it is of unknown format do not modify
-		String version = OntologyVersionTools.getOntologyVersion(ontologyToSave);
-		if (version == null) {
-			// did not find a version in the ontology id, try OboInOwl instead
-			date = OntologyVersionTools.getOboInOWLVersionDate(ontologyToSave);
-		}
-		else if(OntologyVersionTools.isOBOOntologyVersion(version)) {
-			// try to retrieve the existing version and parse it.
-			date = OntologyVersionTools.parseVersion(version);
-
-			// if parsing was unsuccessful, use current date
-			if (date == null) {
-				// fall back, if there was an parse error use current date.
-				date = new Date();
-			}
-		}
 
 		boolean writeOWL = !oortConfig.isSkipFormat("owl");
 		boolean writeOWX = !oortConfig.isSkipFormat("owx");
 		boolean writeOFN = oortConfig.isWriteLabelOWL();
 		
-		if (date != null && (writeOWL || writeOWX)) {
-			SetOntologyID change = OntologyVersionTools.setOntologyVersion(ontologyToSave, date, ontologyId, fileNameBase);
+		if (changeOntologyId && (writeOWL || writeOWX)) {
+			final OWLOntologyID owlOntologyID = ontologyToSave.getOntologyID();
+			final IRI versionIRI = owlOntologyID.getVersionIRI();
+
+			// create temporary id using the file name base to distinguish between the different release types
+			final IRI newOntologyIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+fileNameBase+".owl");
+			final OWLOntologyID newOWLOntologyID = new OWLOntologyID(newOntologyIRI, versionIRI);
+			manager.applyChange(new SetOntologyID(ontologyToSave, newOWLOntologyID));
+			
 			// create change axiom with original id
-			reset = new SetOntologyID(ontologyToSave, change.getOriginalOntologyID());
+			reset = new SetOntologyID(ontologyToSave, owlOntologyID);
 		}
 
 		if (writeOWL) {
