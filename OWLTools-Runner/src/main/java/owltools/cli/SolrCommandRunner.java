@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.flex.FlexCollection;
+import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
@@ -245,13 +246,16 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 
+		EcoTools eco = new EcoTools(g);
+		
 		List<String> files = opts.nextList();
 		for (String file : files) {
 			LOG.info("Parsing GAF: " + file);
 			GafObjectsBuilder builder = new GafObjectsBuilder();
 			gafdoc = builder.buildDocument(file);
-			loadGAFDoc(url, gafdoc);
+			loadGAFDoc(url, gafdoc, eco);
 		}
+		eco.dispose();
 	}
 	
 	/**
@@ -269,10 +273,13 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			exit(1);
 		}
 
+		EcoTools eco = new EcoTools(g);
+
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 		// Doc load.
-		loadGAFDoc(url, gafdoc);
+		loadGAFDoc(url, gafdoc, eco);
+		eco.dispose();
 	}
 		
 	/**
@@ -374,10 +381,11 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	/*
 	 * Wrapper multiple places where there is direct GAF loading.
 	 */
-	private void loadGAFDoc(String url, GafDocument gafdoc) throws IOException{
+	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco) throws IOException{
 
 		// Doc load.
 		GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
+		loader.setEcoTools(eco);
 		loader.setGafDocument(gafdoc);
 		loader.setGraph(g);
 		try {

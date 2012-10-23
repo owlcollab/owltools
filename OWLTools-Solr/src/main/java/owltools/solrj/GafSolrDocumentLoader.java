@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.gaf.Bioentity;
+import owltools.gaf.EcoTools;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -31,6 +32,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(GafSolrDocumentLoader.class);
 
+	EcoTools eco = null;
 	GafDocument gafDocument;
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
 	int current_doc_number;
@@ -46,6 +48,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 	public void setGafDocument(GafDocument gafDocument) {
 		this.gafDocument = gafDocument;
+	}
+
+	public void setEcoTools(EcoTools inEco) {
+		this.eco = inEco;
 	}
 
 	@Override
@@ -91,10 +97,20 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		bioentity_doc.addField("label", esym);
 		bioentity_doc.addField("db", edb);
 		bioentity_doc.addField("type", e.getTypeCls());
+
+		// BUG/TODO:
+		// Taxon and taxon closure calculations.
 		String taxId = e.getNcbiTaxonId();
 		bioentity_doc.addField("taxon", taxId);
 		addLabelField(bioentity_doc, "taxon_label", taxId);
+		// Add taxon_closure and taxon_closure_label.
+		//OWLObject tcls = graph.getOWLObjectByIdentifier(taxId);
+		//List<String> taxonClosure = graph.getIsaPartofIDClosure(tcls);
+		//List<String> taxonClosureLabel = graph.getIsaPartofLabelClosure(tcls);
+		//bioentity_doc.addField("taxon_closure", taxonClosure);
+		//bioentity_doc.addField("taxon_closure_label", taxonClosureLabel);
 
+		// Something that we'll need for the annotation evidence aggregate later.
 		Map<String,SolrInputDocument> evAggDocMap = new HashMap<String,SolrInputDocument>();
 		
 		// Annotation doc
@@ -115,11 +131,18 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			addLabelField(annotation_doc, "taxon_label", taxId);
 
 			annotation_doc.addField("reference", refId);
-			// TODO - ev. closure
-			annotation_doc.addField("evidence_type", a.getEvidenceCls());
-			//annotation_doc.addField("evidence_with", a.getWithExpression());
+			String evidence_type = a.getEvidenceCls();
+			annotation_doc.addField("evidence_type", evidence_type);
 
+			// TODO/BUG:
+			// Evidence type closure.
+			//Set<OWLClass> ecoClasses = eco.getClassesForGoCodes(graph, evidence_type);
+			//OWLObject ecls = graph.getOWLObjectByIdentifier(evidence_type);
+			//List<String> evidenceTypeClosure = graph.getIsaPartofIDClosure(ecls);
+			//annotation_doc.addField("evidence_type_closure", evidenceTypeClosure);
+			
 			// Drag in "with" (col 8).
+			//annotation_doc.addField("evidence_with", a.getWithExpression());
 			for (WithInfo wi : a.getWithInfos()) {
 				annotation_doc.addField("evidence_with", wi.getWithXref());
 			}
@@ -180,17 +203,16 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						addLabelField(ev_agg_doc, "taxon_label", taxId);
 					}
 	
-					//evidence_type is single valued
-					//aggDoc.addField("evidence_type", a.getEvidenceCls());
-	
 					// Drag in "with" (col 8), this time for ev_agg.
 					for (WithInfo wi : a.getWithInfos()) {
 						ev_agg_doc.addField("evidence_with", wi.getWithXref());
 					}
 	
 					//aggDoc.getFieldValues(name)
-					// TODO:
-					ev_agg_doc.addField("evidence_closure", a.getEvidenceCls());
+					// BUG/TODO:
+					//evidence_type is single valued
+					//aggDoc.addField("evidence_type", a.getEvidenceCls());	
+					ev_agg_doc.addField("evidence_type_closure", a.getEvidenceCls());
 				}
 			}
 
@@ -254,10 +276,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 //
 //				//aggDoc.getFieldValues(name)
 //				// TODO:
-//				ev_agg_doc.addField("evidence_closure", a.getEvidenceCls());
+//				ev_agg_doc.addField("evidence_type_closure", a.getEvidenceCls());
 //			}
 			
-			// c16
+			// Column 16.
 			Map<String,String> ann_ext_map = new HashMap<String,String>(); // capture labels/ids			
 			for (ExtensionExpression ee : a.getExtensionExpressions()) {
 				ee.getRelation();	// TODO
