@@ -35,7 +35,7 @@ public class EcoTools {
 	
 	private final OWLGraphWrapper eco;
 	private final OWLReasoner reasoner;
-	private final boolean disposeReasoner;
+	private final boolean disposeReasonerP;
 	
 	private final Map<String, Set<OWLClass>> mappingCache = new HashMap<String, Set<OWLClass>>();
 	
@@ -51,6 +51,10 @@ public class EcoTools {
 	 * @see #dispose()
 	 */
 	public EcoTools (OWLGraphWrapper graph, OWLReasoner reasoner, boolean disposeReasoner) throws UnknownOWLOntologyException, OWLOntologyCreationException {
+
+		// This has bitten me, so let's try and bew specific...
+		if( reasoner == null ){ throw new Error("No reasoner was specified for use with the EcoTools. Add a reasoner for the command line"); }
+		
 		// assume the graph wrapper is more than eco
 		// try to find ECO by its purl
 		Set<OWLOntology> allOntologies = graph.getAllOntologies();
@@ -74,7 +78,7 @@ public class EcoTools {
 		}
 		
 		this.reasoner = reasoner;
-		this.disposeReasoner = disposeReasoner;
+		this.disposeReasonerP = disposeReasoner;
 	}
 	
 	/**
@@ -98,7 +102,7 @@ public class EcoTools {
 		OWLReasonerFactory factory = new ElkReasonerFactory();
 		final OWLOntology sourceOntology = eco.getSourceOntology();
 		reasoner = factory.createReasoner(sourceOntology);
-		disposeReasoner = true;
+		disposeReasonerP = true;
 	}
 	
 	/**
@@ -196,7 +200,6 @@ public class EcoTools {
 			return Collections.emptySet();
 		}
 		return result;
-		
 	}
 	
 	/**
@@ -204,7 +207,7 @@ public class EcoTools {
 	 */
 	public void dispose() {
 		mappingCache.clear();
-		if (disposeReasoner) {
+		if (disposeReasonerP) {
 			reasoner.dispose();
 		}
 	}

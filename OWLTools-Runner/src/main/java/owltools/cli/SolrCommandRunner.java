@@ -245,8 +245,10 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	public void loadGafsSolr(Opts opts) throws Exception {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
-
-		EcoTools eco = new EcoTools(g);
+		
+		// We should already have added the reasoner elsewhere on the commandline,
+		// So there should be real no extra overhead here.
+		EcoTools eco = new EcoTools(g, g.getReasoner(), true);
 		
 		List<String> files = opts.nextList();
 		for (String file : files) {
@@ -273,7 +275,9 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			exit(1);
 		}
 
-		EcoTools eco = new EcoTools(g);
+		// We should already have added the reasoner elsewhere on the commandline,
+		// So there should be real no extra overhead here.
+		EcoTools eco = new EcoTools(g, g.getReasoner(), true);
 
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);

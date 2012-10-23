@@ -248,7 +248,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--elk")) {
 				reasonerName = "elk";
 			}
-			else if (opts.nextEq("--use-reasoner")) {
+			else if (opts.nextEq("--use-reasoner|--set-reasoner-name")) {
 				reasonerName =  opts.nextOpt();
 			}
 			else if (opts.nextEq("--reasoner")) {

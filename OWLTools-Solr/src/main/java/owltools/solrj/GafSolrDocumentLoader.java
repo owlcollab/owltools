@@ -35,6 +35,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	EcoTools eco = null;
 	GafDocument gafDocument;
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
+	//int doc_limit_trigger = 1; // the number of documents to add before pushing out to solr
 	int current_doc_number;
 	
 	public GafSolrDocumentLoader(String url) throws MalformedURLException {
@@ -134,13 +135,14 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			String evidence_type = a.getEvidenceCls();
 			annotation_doc.addField("evidence_type", evidence_type);
 
-			// TODO/BUG:
 			// Evidence type closure.
-			//Set<OWLClass> ecoClasses = eco.getClassesForGoCodes(graph, evidence_type);
-			//OWLObject ecls = graph.getOWLObjectByIdentifier(evidence_type);
-			//List<String> evidenceTypeClosure = graph.getIsaPartofIDClosure(ecls);
-			//annotation_doc.addField("evidence_type_closure", evidenceTypeClosure);
-			
+			Set<OWLClass> ecoClasses = eco.getClassesForGoCode(evidence_type);
+			Set<OWLClass> ecoSuper = eco.getAnchestors(ecoClasses, true);
+			for( OWLClass es : ecoSuper ){
+				String itemID = es.toStringID();
+				addLabelField(annotation_doc, "evidence_type_closure", itemID);
+			}
+
 			// Drag in "with" (col 8).
 			//annotation_doc.addField("evidence_with", a.getWithExpression());
 			for (WithInfo wi : a.getWithInfos()) {
@@ -208,11 +210,14 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						ev_agg_doc.addField("evidence_with", wi.getWithXref());
 					}
 	
-					//aggDoc.getFieldValues(name)
-					// BUG/TODO:
-					//evidence_type is single valued
-					//aggDoc.addField("evidence_type", a.getEvidenceCls());	
-					ev_agg_doc.addField("evidence_type_closure", a.getEvidenceCls());
+					// Evidence type closure.
+					// TODO: I /think/ thos cycles through, but I need to check...
+					//ev_agg_doc.addField("evidence_type_closure", a.getEvidenceCls());					
+					for( OWLClass es : ecoSuper ){
+						String esID = es.toStringID();
+						addLabelField(ev_agg_doc, "evidence_type_closure", esID);
+					}
+
 				}
 			}
 
