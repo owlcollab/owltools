@@ -575,7 +575,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					logger.info("Generating bridge ontology:"+tOntId);
 					Obo2Owl obo2owl = new Obo2Owl();
 					OWLOntology tOnt = obo2owl.convert(tdoc);
-					saveOntologyInAllFormats(tOntId, tOnt, null, false);
+					saveOntologyInAllFormats(ontologyId, tOntId, version, tOnt, null, true);
 				}
 			} catch (InvalidXrefMapException e) {
 				logger.info("Problem during Xref expansion: "+e.getMessage(), e);
@@ -594,7 +594,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		if (oortConfig.isAsserted()) {
 			logger.info("Creating Asserted Ontology (copy of original)");
-			saveInAllFormats(ontologyId, "non-classified", gciOntology);
+			saveInAllFormats(ontologyId, "non-classified", version, gciOntology);
 			logger.info("Asserted Ontology Creation Completed");
 		}
 		
@@ -670,7 +670,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logger.info("Checking and repair annotation cardinality constrains");
 				OboInOwlCardinalityTools.checkAnnotationCardinality(mooncat.getOntology());
 			}
-			saveInAllFormats(ontologyId, "merged", gciOntology);
+			saveInAllFormats(ontologyId, "merged", version, gciOntology);
 
 			logger.info("Number of dangling classes in source (post-merge): "+mooncat.getDanglingClasses().size());
 
@@ -715,7 +715,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				
 				InferenceBuilder infBuilder = null;
 				try {
-					infBuilder = handleInferences(ontologyId, reasonerReportLines, gciOntology);
+					infBuilder = handleInferences(ontologyId, version, reasonerReportLines, gciOntology);
 
 					// TEST FOR EQUIVALENT NAMED CLASS PAIRS
 					if (true) {
@@ -781,7 +781,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(mooncat.getOntology());
 				
 			}
-			saveInAllFormats(ontologyId, null, gciOntology);
+			saveInAllFormats(ontologyId, null, version, gciOntology);
 		} // --end of building main ontology
 
 		// TODO
@@ -812,7 +812,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+fn+".owl");
 				OWLOntology subOnt = mooncat.makeMinimalSubsetOntology(objs, iri);
 				logger.info("subOnt:"+subOnt+" #axioms:"+subOnt.getAxiomCount());
-				saveOntologyInAllFormats(fn, subOnt, gciOntology, false);
+				saveOntologyInAllFormats(ontologyId, fn, version, subOnt, gciOntology, true);
 			}
 
 		}
@@ -821,7 +821,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		if(oortConfig.isWriteELOntology()) {
 			logger.info("Creating EL ontology");
 			OWLGraphWrapper elGraph = InferenceBuilder.enforceEL(mooncat.getGraph());
-			saveInAllFormats(ontologyId, "el", elGraph.getSourceOntology(), gciOntology);
+			saveInAllFormats(ontologyId, "el", version, elGraph.getSourceOntology(), gciOntology);
 			logger.info("Finished Creating EL ontology");
 		}
 
@@ -837,7 +837,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logger.info("Removing "+rmAxs.size()+" EquivalentClasses axioms from simple");
 			mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
 			
-			saveInAllFormats(ontologyId, "relaxed", gciOntology);
+			saveInAllFormats(ontologyId, "relaxed", version, gciOntology);
 			logger.info("Creating relaxed ontology completed");
 		}
 		
@@ -919,7 +919,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logger.info("Finished - Verifying DAG requirement for OBO Basic.");
 			}
 			
-			saveInAllFormats(ontologyId, "simple", gciOntology);
+			saveInAllFormats(ontologyId, "simple", version, gciOntology);
 			logger.info("Creating simple ontology completed");
 
 		}		
@@ -971,6 +971,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	 * Adds all findings to the reasoner report.
 	 * 
 	 * @param ontologyId
+	 * @param version
 	 * @param reasonerReportLines
 	 * @param gciOntology
 	 * @return infBuilder
@@ -980,7 +981,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	 * @throws OWLOntologyCreationException
 	 * @throws OboOntologyReleaseRunnerCheckException
 	 */
-	private InferenceBuilder handleInferences(String ontologyId, List<String> reasonerReportLines, OWLOntology gciOntology)
+	private InferenceBuilder handleInferences(String ontologyId, String version, List<String> reasonerReportLines, OWLOntology gciOntology)
 			throws OWLOntologyStorageException, IOException, OWLOntologyCreationException, OboOntologyReleaseRunnerCheckException
 	{
 		logger.info("Using reasoner to add/retract links in main ontology");
@@ -990,14 +991,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		final OWLDataFactory factory = manager.getOWLDataFactory();
 		final Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = new HashSet<OWLSubClassOfAxiom>();
 		final Set<RemoveAxiom> removedSubClassOfAxiomChanges = new HashSet<RemoveAxiom>();
-//		int threads = oortConfig.getThreads();
-		final InferenceBuilder infBuilder;
-//		if (threads > 1) {
-//			infBuilder = new ThreadedInferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL(), threads);
-//		}
-//		else {
-			infBuilder = new InferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL());
-//		}
+		final InferenceBuilder infBuilder = new InferenceBuilder(g, oortConfig.getReasonerName(), oortConfig.isEnforceEL());
 
 		// CONSISTENCY CHECK
 		// A consistent ontology is a primary for sensible reasoning results. 
@@ -1032,7 +1026,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			for (RemoveAxiom rmax : removedSubClassOfAxiomChanges) {
 				manager.applyChange(rmax);
 			}
-			saveInAllFormats(ontologyId, "minimal", gciOntology);
+			saveInAllFormats(ontologyId, "minimal", version, gciOntology);
 		}
 
 		logger.info("Creating inferences");				
@@ -1218,25 +1212,26 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	/**
 	 * @param ontologyId
 	 * @param ext
+	 * @param version
 	 * @param gciOntology
 	 * @throws OWLOntologyStorageException
 	 * @throws IOException
 	 * @throws OWLOntologyCreationException
 	 */
-	private void saveInAllFormats(String ontologyId, String ext, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
-		saveInAllFormats(ontologyId, ext, mooncat.getOntology(), gciOntology);
+	private void saveInAllFormats(String ontologyId, String ext, String version, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+		saveInAllFormats(ontologyId, ext, version, mooncat.getOntology(), gciOntology);
 	}
 
-	private void saveInAllFormats(String ontologyId, String ext, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveInAllFormats(String ontologyId, String ext, String version, OWLOntology ontologyToSave, OWLOntology gciOntology) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 		if (ext == null || ext.isEmpty()) {
-			saveOntologyInAllFormats(ontologyId, ontologyToSave, gciOntology, false);
+			saveOntologyInAllFormats(ontologyId, ontologyId, version, ontologyToSave, gciOntology, false);
 		}
 		else {
-			saveOntologyInAllFormats(ontologyId + "-" + ext, ontologyToSave, gciOntology, true);
+			saveOntologyInAllFormats(ontologyId, ontologyId + "-" + ext, version, ontologyToSave, gciOntology, true);
 		}
 	}
 
-	private void saveOntologyInAllFormats(String fileNameBase, OWLOntology ontologyToSave, OWLOntology gciOntology, boolean changeOntologyId) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
+	private void saveOntologyInAllFormats(String idspace, String fileNameBase, String version, OWLOntology ontologyToSave, OWLOntology gciOntology, boolean changeOntologyId) throws OWLOntologyStorageException, IOException, OWLOntologyCreationException {
 
 		logger.info("Saving: "+fileNameBase);
 
@@ -1252,11 +1247,15 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		
 		if (changeOntologyId && (writeOWL || writeOWX)) {
 			final OWLOntologyID owlOntologyID = ontologyToSave.getOntologyID();
-			final IRI versionIRI = owlOntologyID.getVersionIRI();
-
+			
 			// create temporary id using the file name base to distinguish between the different release types
-			final IRI newOntologyIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+fileNameBase+".owl");
-			final OWLOntologyID newOWLOntologyID = new OWLOntologyID(newOntologyIRI, versionIRI);
+			// pattern: OBO_PREFIX / ID-SPACE / NAME .owl
+			final IRI newOntologyIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+idspace+"/"+fileNameBase+".owl");
+			
+			// create temporary version IRI
+			// pattern: OBO_PREFIX / ID-SPACE / VERSION / NAME .owl
+			final IRI newVersionIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+idspace+"/"+version+"/"+fileNameBase+".owl");
+			final OWLOntologyID newOWLOntologyID = new OWLOntologyID(newOntologyIRI, newVersionIRI);
 			manager.applyChange(new SetOntologyID(ontologyToSave, newOWLOntologyID));
 			
 			// create change axiom with original id
