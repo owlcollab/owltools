@@ -107,7 +107,9 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		LOG.info("Start loading GAF from: "+input);
 		gafdoc = builder.buildDocument(input);
-		parserReport.lineCount = builder.getParser().getLineNumber();
+		if (parserReport != null) {
+			parserReport.lineCount = builder.getParser().getLineNumber();
+		}
 		if (gafdoc == null) {
 			LOG.error("The GAF parsing finished with an empty result.");
 			exit(-1);
