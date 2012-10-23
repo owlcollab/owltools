@@ -61,8 +61,7 @@ public class DLQueryTool {
 		
 		// create query ontology
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-		IRI tempIRI = new OWLOntologyID().getOntologyIRI();
-		OWLOntology queryOntology = m.createOntology(tempIRI, graph.getAllOntologies());
+		OWLOntology queryOntology = m.createOntology(IRI.generateDocumentIRI(), graph.getAllOntologies());
 		OWLDataFactory f = m.getOWLDataFactory();
 		OWLClass qc = f.getOWLClass(IRI.create("http://owltools.org/Q"));
 		OWLEquivalentClassesAxiom ax = f.getOWLEquivalentClassesAxiom(ce, qc);

@@ -414,6 +414,12 @@ public class PropertyViewOntologyBuilder {
 	 * @throws OWLOntologyCreationException
 	 */
 	public void buildViewOntology(IRI avoIRI, IRI ivoIRI) throws OWLOntologyCreationException {
+		if (avoIRI == null) {
+			avoIRI = IRI.generateDocumentIRI();
+		}
+		if (ivoIRI == null) {
+			ivoIRI = IRI.generateDocumentIRI();
+		}
 		Set<OWLOntology> imports = new HashSet<OWLOntology>();
 		imports.add(sourceOntology);
 		if (!elementsOntology.equals(sourceOntology))
