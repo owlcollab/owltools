@@ -107,6 +107,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		LOG.info("Start loading GAF from: "+input);
 		gafdoc = builder.buildDocument(input);
+		parserReport.lineCount = builder.getParser().getLineNumber();
 		if (gafdoc == null) {
 			LOG.error("The GAF parsing finished with an empty result.");
 			exit(-1);
@@ -295,6 +296,8 @@ public class GafCommandRunner extends CommandRunner {
 	
 	private static class GafParserReport {
 		
+		int lineCount = 0;
+		
 		final List<GafParserMessages> errors = new ArrayList<GafParserMessages>();
 		final List<GafParserMessages> warnings = new ArrayList<GafParserMessages>();
 		
@@ -358,7 +361,13 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			
 			// write parse errors and rule violations
-			writeParseErrorsAndRuleViolations(parserReport, result, ruleEngine, reportFile, summaryFile);
+			createAllReportFiles(parserReport, result, ruleEngine, reportFile, summaryFile);
+			
+			// no violations found, delete previous error file (if it exists)
+			if ((parserReport == null || parserReport.hasNothingToReport()) && result.isEmpty()) {
+				System.out.println("No violations found for gaf.");
+				return;
+			}
 			
 			if (parserReport != null && parserReport.hasWarningsOrErrors()) {
 				System.err.print("Parser summary Error count: ");
@@ -410,18 +419,43 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	private void writeParseErrorsAndRuleViolations(GafParserReport parserReport, 
+	private void createAllReportFiles(GafParserReport parserReport, 
 			AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
 			File reportFile, File summaryFile) throws IOException
 	{
-		LOG.info("Start writing violations to report file: "+gafReportFile);
+		LOG.info("Start writing reports to file: "+gafReportFile);
 		PrintWriter writer = null;
 		PrintWriter summaryWriter = null;
 		try {
 			if (summaryFile != null) {
 				summaryWriter = new PrintWriter(summaryFile);
+				// Print GAF statistics
+				summaryWriter.println("*GAF summary*");
+				summaryWriter.println();
+				summaryWriter.print("Found ");
+				summaryWriter.print(result.getAnnotationCount());
+				summaryWriter.print(" annotations");
+				if (parserReport != null) {
+					summaryWriter.print(" in ");
+					summaryWriter.print(parserReport.lineCount);
+					summaryWriter.print(" lines");
+				}
+				summaryWriter.println(".");
+				summaryWriter.println();
+				
 			}
 			writer = new PrintWriter(reportFile);
+			writer.println("#------------");
+			writer.print("# Validation for ");
+			writer.print(result.getAnnotationCount());
+			writer.print("# annotations");
+			if (parserReport != null) {
+				writer.print(" in ");
+				writer.print(parserReport.lineCount);
+				writer.print(" lines");
+			}
+			writer.println();
+			writer.println("#------------");
 			if (parserReport != null && parserReport.hasWarningsOrErrors()) {
 				writeParseErrors(parserReport, writer, summaryWriter);
 			}
@@ -429,7 +463,7 @@ public class GafCommandRunner extends CommandRunner {
 		} finally {
 			IOUtils.closeQuietly(summaryWriter);
 			IOUtils.closeQuietly(writer);
-			LOG.info("Finished writing violations to report file.");
+			LOG.info("Finished writing reports to file.");
 		}
 	}
 	

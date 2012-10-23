@@ -97,7 +97,9 @@ public class AnnotationRulesEngine {
 		try{
 			final List<GeneAnnotation> geneAnnotations = doc.getGeneAnnotations();
 			int count = 0;
-			double size = geneAnnotations.size(); // store as double to avoid repeated conversion
+			final int length = geneAnnotations.size();
+			result.setAnnotationCount(length);
+			double size = (double) length; // store as double to avoid repeated conversion
 			double last = 0.0d;
 			for(GeneAnnotation annotation : geneAnnotations){
 				for(AnnotationRule rule : annotationRules){
@@ -162,6 +164,8 @@ public class AnnotationRulesEngine {
 	 * Results for a run of the {@link AnnotationRulesEngine}.
 	 */
 	public static class AnnotationRulesEngineResult {
+		
+		private int annotationCount;
 		
 		private final Map<ViolationType, Map<String, List<AnnotationRuleViolation>>> typedViolations;
 		
@@ -323,6 +327,20 @@ public class AnnotationRulesEngine {
 		}
 		
 		/**
+		 * @return the annotationCount
+		 */
+		public int getAnnotationCount() {
+			return annotationCount;
+		}
+
+		/**
+		 * @param annotationCount the annotationCount to set
+		 */
+		public void setAnnotationCount(int annotationCount) {
+			this.annotationCount = annotationCount;
+		}
+
+		/**
 		 * A simple tab delimited print-out of the result and a simple summary.
 		 * 
 		 * @param result
@@ -331,15 +349,21 @@ public class AnnotationRulesEngine {
 		 * @param summaryWriter
 		 */
 		public static void renderViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, PrintWriter writer, PrintWriter summaryWriter) {
+			if (summaryWriter != null) {
+				summaryWriter.println("*GAF Validation Summary*");
+			}
 			List<ViolationType> types = result.getTypes();
 			if (types.isEmpty()) {
-				// do nothing
+				writer.print("# No errors, warnings, or recommendations to report.");
+				if (summaryWriter != null) {
+					summaryWriter.println("No errors, warnings, or recommendations to report.");
+					summaryWriter.println();
+				}
 				return;
 			}
 			writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
 			writer.println("#------------");
 			if (summaryWriter != null) {
-				summaryWriter.println("*GAF Validation Summary*");
 				summaryWriter.println("Errors are reported first.");
 				summaryWriter.println();
 			}
