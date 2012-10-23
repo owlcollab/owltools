@@ -49,6 +49,7 @@ import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -65,6 +66,7 @@ import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -91,6 +93,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
@@ -372,6 +375,20 @@ public class CommandRunner {
 								g.getDataFactory().getOWLImportsDeclaration(IRI.create(importIRI)));
 					g.getManager().applyChange(ai);
 				}
+			}
+			else if (opts.nextEq("--add-ontology-annotation")) {
+				OWL2Datatype dt = OWL2Datatype.XSD_STRING;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-u"))
+						dt = OWL2Datatype.XSD_ANY_URI;
+					else
+						break;
+				}
+				IRI p = IRI.create(opts.nextOpt());
+				OWLLiteral v = g.getDataFactory().getOWLLiteral(opts.nextOpt(), dt);
+				 OWLAnnotation ann = g.getDataFactory().getOWLAnnotation(g.getDataFactory().getOWLAnnotationProperty(p), v);
+				AddOntologyAnnotation addAnn = new AddOntologyAnnotation(g.getSourceOntology(), ann);
+				g.getManager().applyChange(addAnn);
 			}
 			else if (opts.nextEq("--create-ontology")) {
 				String iri = opts.nextOpt();
@@ -845,12 +862,13 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--reasoner-query")) {
 				opts.info("[-r reasonername] [-m] [-d] [-a] [-x] [-c IRI] (--stdin | CLASS-EXPRESSION)", 
-						"Queries current ontology for descendants of CE using reasoner.\n"+
+						"Queries current ontology for descendants, ancestors and equivalents of CE using reasoner.\n"+
 				"Enclose all labels in quotes (--stdin only). E.g. echo \"'part of' some 'tentacle'\" | owltools ceph.owl --reasoner-query --stdin");
 				boolean isManifest = false;
 				boolean isDescendants = true;
 				boolean isIndividuals = false;
 				boolean isAncestors = true;
+				boolean isEquivalents = true;
 				boolean isExtended = false;
 				boolean isCache = false;
 				boolean isRemoveUnsatisfiable = false;
@@ -872,14 +890,22 @@ public class CommandRunner {
 						isManifest = true;
 					}
 					else if (opts.nextEq("-d")) {
+						opts.info("", "show descendants, but not ancestors (default is both + equivs)");
 						isDescendants = true;
 						isAncestors = false;
 					}
 					else if (opts.nextEq("-a")) {
+						opts.info("", "show ancestors, but not descendants (default is both + equivs)");
+						isDescendants = false;
+						isAncestors = true;
+					}
+					else if (opts.nextEq("-e")) {
+						opts.info("", "show equivalents only (default is ancestors + descendants + equivs)");
 						isDescendants = false;
 						isAncestors = true;
 					}
 					else if (opts.nextEq("-i")) {
+						opts.info("", "show inferred individuals, as well as ancestors/descendants/equivalents");
 						isIndividuals = true;
 					}
 					else if (opts.nextEq("--stdin")) {
@@ -959,6 +985,13 @@ public class CommandRunner {
 							//results.add(r);
 							if (!isCache)
 								System.out.println("D: "+owlpp.render(r));
+						}
+					}
+					if (isEquivalents) {
+						for (OWLClass r : reasoner.getEquivalentClasses(ce).getEntities()) {
+							results.add(r);
+							if (!isCache)
+								System.out.println("E: "+owlpp.render(r));
 						}
 					}
 					if (isDescendants) {
