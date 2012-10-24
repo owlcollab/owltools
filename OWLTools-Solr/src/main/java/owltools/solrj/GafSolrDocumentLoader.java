@@ -109,11 +109,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		bioentity_doc.addField("type", e.getTypeCls());
 
 		// Various taxon and taxon closure calculations, including map.
-		String taxId = e.getNcbiTaxonId();
-		bioentity_doc.addField("taxon", taxId);
-		addLabelField(bioentity_doc, "taxon_label", taxId);
+		String etaxid = e.getNcbiTaxonId();
+		bioentity_doc.addField("taxon", etaxid);
+		addLabelField(bioentity_doc, "taxon_label", etaxid);
 		// Add taxon_closure and taxon_closure_label.
-		OWLClass tcls = graph.getOWLClassByIdentifier(taxId);
+		OWLClass tcls = graph.getOWLClassByIdentifier(etaxid);
 		Set<OWLClass> taxSuper = taxo.getAncestors(tcls, true);
 		// Collect information: ids and labels.
 		List<String> taxIDClosure = new ArrayList<String>();
@@ -125,17 +125,19 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			taxIDClosure.add(tid);
 			taxLabelClosure.add(tlbl);
 			taxon_closure_map.put(tid, tlbl);
-			taxon_closure_map.put(tlbl, tid); // TODO/BUG: is the reverse necessary?
 		}
 		// Add the collections to the document.
-		addLabelFields(bioentity_doc, "taxon_closure", taxIDClosure);
-		addLabelFields(bioentity_doc, "taxon_closure_label", taxLabelClosure);
-		// Compile closure maps to JSON and add to the document.
+		bioentity_doc.addField("taxon_closure", taxIDClosure);
+		bioentity_doc.addField("taxon_closure_label", taxLabelClosure);
+		// Compile closure map to JSON and add to the document.
+		String jsonized_taxon_map = null;
 		if( ! taxon_closure_map.isEmpty() ){
-			String jsonized_taxon_map = gson.toJson(taxon_closure_map);
-			bioentity_doc.addField("taxon_closure_map", jsonized_taxon_map);
+			jsonized_taxon_map = gson.toJson(taxon_closure_map);
+			if( jsonized_taxon_map != null ){
+				bioentity_doc.addField("taxon_closure_map", jsonized_taxon_map);
+			}
 		}
-
+		
 		// Something that we'll need for the annotation evidence aggregate later.
 		Map<String,SolrInputDocument> evAggDocMap = new HashMap<String,SolrInputDocument>();
 		
@@ -148,20 +150,24 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 			// Annotation document base.
 			annotation_doc.addField("document_category", "annotation");
-			annotation_doc.addField("id", eid + "_:_" + clsId); // TODO - make unique
 			annotation_doc.addField("bioentity", eid);
 			annotation_doc.addField("bioentity_label", esym);
-			annotation_doc.addField("source", a.getAssignedBy());
-			annotation_doc.addField("date", a.getLastUpdateDate());
-			annotation_doc.addField("taxon", taxId);
-			addLabelField(annotation_doc, "taxon_label", taxId);
+			String asrc = a.getAssignedBy();
+			annotation_doc.addField("source", asrc);
+			String adate = a.getLastUpdateDate();
+			annotation_doc.addField("date", adate);
+			annotation_doc.addField("taxon", etaxid);
+			addLabelField(annotation_doc, "taxon_label", etaxid);
 
 			annotation_doc.addField("reference", refId);
-			String evidence_type = a.getEvidenceCls();
-			annotation_doc.addField("evidence_type", evidence_type);
+			String a_ev_type = a.getEvidenceCls();
+			annotation_doc.addField("evidence_type", a_ev_type);
+
+			// BUG/TODO: Make the ID /really/ unique - ask Chris
+			annotation_doc.addField("id", eid + "_:_" + clsId + "_:_" + a_ev_type + "_:_" + asrc + "_:_" + etaxid + "_:_" + adate);
 
 			// Evidence type closure.
-			Set<OWLClass> ecoClasses = eco.getClassesForGoCode(evidence_type);
+			Set<OWLClass> ecoClasses = eco.getClassesForGoCode(a_ev_type);
 			Set<OWLClass> ecoSuper = eco.getAncestors(ecoClasses, true);
 			List<String> ecoIDClosure = new ArrayList<String>();
 			for( OWLClass es : ecoSuper ){
@@ -186,7 +192,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			OWLObject cls = graph.getOWLObjectByIdentifier(clsId);
 			// TODO: This may be a bug workaround, or it may be the way things are.
 			// getOWLObjectByIdentifier returns null on alt_ids, so skip them for now.
-			if(cls != null ){
+			if( cls != null ){
 				//	System.err.println(clsId);
 			
 				// Add to annotation and bioentity isa_partof closures; label and id.
@@ -233,8 +239,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						ev_agg_doc.addField("bioentity_label", esym);
 						ev_agg_doc.addField("annotation_class", tid);
 						ev_agg_doc.addField("annotation_class_label", tlabel);
-						ev_agg_doc.addField("taxon", taxId);
-						addLabelField(ev_agg_doc, "taxon_label", taxId);
+						ev_agg_doc.addField("taxon", etaxid);
+						addLabelField(ev_agg_doc, "taxon_label", etaxid);
 					}
 	
 					// Drag in "with" (col 8), this time for ev_agg.
