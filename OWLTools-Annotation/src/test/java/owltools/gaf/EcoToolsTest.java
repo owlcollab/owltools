@@ -31,10 +31,22 @@ public class EcoToolsTest extends OWLToolsTestBasics{
 
 		// Setup environment.
 		ParserWrapper pw = new ParserWrapper();
-		OWLOntology ont = pw.parse(getResourceIRIString("eco.obo"));
-		g = new OWLGraphWrapper(ont);
+
+		//NOTE: Yes, the GO here is unnecessary, but we're trying to also catch a certain behavior
+		// where auxilery ontologies are not caught. The best wat to do that here is to load ECO
+		// second and then do the merge.
+		OWLOntology ont_main = pw.parse(getResourceIRIString("go_xp_predictor_test_subset.obo"));
+		OWLOntology ont_scnd = pw.parse(getResourceIRIString("eco.obo"));
+		g = new OWLGraphWrapper(ont_main);
+		g.addSupportOntology(ont_scnd);
+		
+		// NOTE: This step is necessary or things will get ignored!
+		// (This cropped-up in the loader at one point.)
+		for (OWLOntology ont : g.getSupportOntologySet())
+			g.mergeOntology(ont);
+		
 		OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
-		r = reasonerFactory.createReasoner(ont);
+		r = reasonerFactory.createReasoner(g.getSourceOntology());
 		g.setReasoner(r);
 	}
 	
