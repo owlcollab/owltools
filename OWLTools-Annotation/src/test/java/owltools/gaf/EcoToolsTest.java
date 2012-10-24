@@ -91,7 +91,7 @@ public class EcoToolsTest extends OWLToolsTestBasics{
 		String igiLabel = g.getLabel(igi);
 		assertEquals("genetic interaction evidence used in manual assertion", igiLabel);
 				
-		// Since we're reflexive, our seven ancestors should be:
+		// Since we're reflexive, our six ancestors should be:
 		Set<String> foo = new HashSet<String>();
 	    foo.add("evidence"); // ECO:0000000
 	    foo.add("experimental evidence"); // ECO:0000006

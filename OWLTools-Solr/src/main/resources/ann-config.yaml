@@ -73,7 +73,7 @@ fields:
     searchable: true
   - id: isa_partof_closure
     description: "Closure of ids/accs over isa and partof."
-    display_name: isa/partof closure (ids)
+    display_name: Is-a/Part-of closure
     type: string
     cardinality: multi
     property: []

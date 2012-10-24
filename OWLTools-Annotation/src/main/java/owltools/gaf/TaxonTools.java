@@ -80,67 +80,27 @@ public class TaxonTools {
 		this.reasoner = reasoner;
 		this.disposeReasonerP = disposeReasoner;
 	}
-		
-	/**
-	 * Retrieve the ECO classes for the given GO annotation codes.
-	 * 
-	 * @param goCode
-	 * @return set of ECO classes
-	 */
-	public Set<OWLClass> getClassesForGoCode(String goCode) {
-		if (goCode == null) {
-			return Collections.emptySet();
-		}
-		Set<OWLClass> classes = mappingCache.get(goCode);
-		if (classes == null) {
-			// only synchronize for write operations
-			synchronized (mappingCache) {
-				classes = new HashSet<OWLClass>();	
-				Set<OWLObject> allOWLObjects = taxo.getAllOWLObjects();
-				for (OWLObject owlObject : allOWLObjects) {
-					if (owlObject instanceof OWLClass) {
-						List<ISynonym> synonyms = taxo.getOBOSynonyms(owlObject);
-						if (synonyms != null && !synonyms.isEmpty()) {
-							for (ISynonym synonym : synonyms) {
-								if (goCode.equals(synonym.getLabel())) {
-									classes.add((OWLClass) owlObject);
-								}
-							}
-						}
-					}
-				}
-				if (classes.isEmpty()) {
-					classes = Collections.emptySet();
-				}
-				mappingCache.put(goCode, classes);
-
-			}
-		}
-		return classes;
-	}
-	
+			
 	/**
 	 * Wrapper method for the reasoner.
 	 * 
-	 * @param sources
+	 * @param taxonClass
 	 * @param reflexive
 	 * @return set of super classes
 	 */
-	public Set<OWLClass> getAnchestors(Set<OWLClass> sources, boolean reflexive) {
-		if (sources == null || sources.isEmpty()) {
+	public Set<OWLClass> getAncestors(OWLClass taxonClass, boolean reflexive) {
+		if (taxonClass == null) {
 			return Collections.emptySet();
 		}
 		Set<OWLClass> result = new HashSet<OWLClass>();
-		for (OWLClass source : sources) {
-			Set<OWLClass> set = reasoner.getSuperClasses(source, false).getFlattened();
-			for (OWLClass cls : set) {
-				if (cls.isBuiltIn() == false) {
-					result.add(cls);
-				}
+		Set<OWLClass> set = reasoner.getSuperClasses(taxonClass, false).getFlattened();
+		for (OWLClass cls : set) {
+			if (cls.isBuiltIn() == false) {
+				result.add(cls);
 			}
 		}
 		if (reflexive) {
-			result.addAll(sources);
+			result.add(taxonClass);
 		}
 		if (result.isEmpty()) {
 			return Collections.emptySet();

@@ -108,17 +108,33 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		bioentity_doc.addField("db", edb);
 		bioentity_doc.addField("type", e.getTypeCls());
 
-		// BUG/TODO:
-		// Taxon and taxon closure calculations.
+		// Various taxon and taxon closure calculations, including map.
 		String taxId = e.getNcbiTaxonId();
 		bioentity_doc.addField("taxon", taxId);
 		addLabelField(bioentity_doc, "taxon_label", taxId);
 		// Add taxon_closure and taxon_closure_label.
-		//OWLObject tcls = graph.getOWLObjectByIdentifier(taxId);
-		//List<String> taxonClosure = graph.getIsaPartofIDClosure(tcls);
-		//List<String> taxonClosureLabel = graph.getIsaPartofLabelClosure(tcls);
-		//bioentity_doc.addField("taxon_closure", taxonClosure);
-		//bioentity_doc.addField("taxon_closure_label", taxonClosureLabel);
+		OWLClass tcls = graph.getOWLClassByIdentifier(taxId);
+		Set<OWLClass> taxSuper = taxo.getAncestors(tcls, true);
+		// Collect information: ids and labels.
+		List<String> taxIDClosure = new ArrayList<String>();
+		List<String> taxLabelClosure = new ArrayList<String>();
+		Map<String,String> taxon_closure_map = new HashMap<String,String>();
+		for( OWLClass ts : taxSuper ){
+			String tid = graph.getIdentifier(ts);
+			String tlbl = graph.getLabel(ts);
+			taxIDClosure.add(tid);
+			taxLabelClosure.add(tlbl);
+			taxon_closure_map.put(tid, tlbl);
+			taxon_closure_map.put(tlbl, tid); // TODO/BUG: is the reverse necessary?
+		}
+		// Add the collections to the document.
+		addLabelFields(bioentity_doc, "taxon_closure", taxIDClosure);
+		addLabelFields(bioentity_doc, "taxon_closure_label", taxLabelClosure);
+		// Compile closure maps to JSON and add to the document.
+		if( ! taxon_closure_map.isEmpty() ){
+			String jsonized_taxon_map = gson.toJson(taxon_closure_map);
+			bioentity_doc.addField("taxon_closure_map", jsonized_taxon_map);
+		}
 
 		// Something that we'll need for the annotation evidence aggregate later.
 		Map<String,SolrInputDocument> evAggDocMap = new HashMap<String,SolrInputDocument>();

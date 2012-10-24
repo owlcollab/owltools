@@ -63,13 +63,13 @@ fields:
     searchable: true
   - id: isa_partof_closure
     description: "Closure of ids/accs over isa and partof."
-    display_name: isa/partof closure
+    display_name: Is-a/Part-of closure
     type: string
     cardinality: multi
     property: []
   - id: isa_partof_closure_label
     description: "Closure of labels over isa and partof."
-    display_name: isa/partof label closure
+    display_name: Is-a/Part-of closure (labels)
     type: string
     cardinality: multi
     property: []
