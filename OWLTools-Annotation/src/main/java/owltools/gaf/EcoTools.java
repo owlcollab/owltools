@@ -150,7 +150,7 @@ public class EcoTools {
 	 * @param reflexive
 	 * @return set of super classes
 	 */
-	public Set<OWLClass> getAnchestors(Set<OWLClass> sources, boolean reflexive) {
+	public Set<OWLClass> getAncestors(Set<OWLClass> sources, boolean reflexive) {
 		if (sources == null || sources.isEmpty()) {
 			return Collections.emptySet();
 		}

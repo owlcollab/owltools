@@ -2,6 +2,7 @@ package owltools.solrj;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import owltools.gaf.EcoTools;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.TaxonTools;
 import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLQuantifiedProperty;
@@ -33,6 +35,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	private static Logger LOG = Logger.getLogger(GafSolrDocumentLoader.class);
 
 	EcoTools eco = null;
+	TaxonTools taxo = null;
+
 	GafDocument gafDocument;
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
 	//int doc_limit_trigger = 1; // the number of documents to add before pushing out to solr
@@ -54,6 +58,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	public void setEcoTools(EcoTools inEco) {
 		this.eco = inEco;
 	}
+	
+	public void setTaxonTools(TaxonTools inTaxo) {
+		this.taxo = inTaxo;
+	}
+
 
 	@Override
 	public void load() throws SolrServerException, IOException {
@@ -137,11 +146,13 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 			// Evidence type closure.
 			Set<OWLClass> ecoClasses = eco.getClassesForGoCode(evidence_type);
-			Set<OWLClass> ecoSuper = eco.getAnchestors(ecoClasses, true);
+			Set<OWLClass> ecoSuper = eco.getAncestors(ecoClasses, true);
+			List<String> ecoIDClosure = new ArrayList<String>();
 			for( OWLClass es : ecoSuper ){
 				String itemID = es.toStringID();
-				addLabelField(annotation_doc, "evidence_type_closure", itemID);
+				ecoIDClosure.add(itemID);
 			}
+			addLabelFields(annotation_doc, "evidence_type_closure", ecoIDClosure);
 
 			// Drag in "with" (col 8).
 			//annotation_doc.addField("evidence_with", a.getWithExpression());
@@ -181,15 +192,20 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					annotation_doc.addField("isa_partof_closure_map", jsonized_isa_partof_map);
 				}
 	
+				// When we cycle, we'll also want to do some stuff to track all of the evidence codes we see.
+				List<String> aggEvIDClosure = new ArrayList<String>();
+				List<String> aggEvWiths = new ArrayList<String>();
+
 				// Cycle through and pick up all the associated bits for the terms in the closure.
+				SolrInputDocument ev_agg_doc = null;
 				for( String tid : idClosure ){
 	
 					String tlabel = isa_partof_map.get(tid);				
 					//OWLObject c = graph.getOWLObjectByIdentifier(tid);
 	
-					// Annotation evidence aggregate base.
+					// Only have to do the annotation evidence aggregate base once.
+					// Otherwise, just skip over and add the multi fields separately.
 					String evAggId = eid + "_:ev:_" + clsId;
-					SolrInputDocument ev_agg_doc;
 					if (evAggDocMap.containsKey(evAggId)) {
 						ev_agg_doc = evAggDocMap.get(evAggId);	
 					} else {
@@ -207,19 +223,20 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	
 					// Drag in "with" (col 8), this time for ev_agg.
 					for (WithInfo wi : a.getWithInfos()) {
-						ev_agg_doc.addField("evidence_with", wi.getWithXref());
+						aggEvWiths.add(wi.getWithXref());
 					}
 	
-					// Evidence type closure.
-					// TODO: I /think/ thos cycles through, but I need to check...
-					//ev_agg_doc.addField("evidence_type_closure", a.getEvidenceCls());					
-					for( OWLClass es : ecoSuper ){
-						String esID = es.toStringID();
-						addLabelField(ev_agg_doc, "evidence_type_closure", esID);
-					}
+					// Make note for the evidence type closure.
+					aggEvIDClosure.add(a.getEvidenceCls());					
+				}
 
+				// If there was actually a doc created/there, add the cumulative fields to it.
+				if( ev_agg_doc != null ){
+					addLabelFields(ev_agg_doc, "evidence_type_closure", aggEvIDClosure);
+					addLabelFields(ev_agg_doc, "evidence_with", aggEvWiths);
 				}
 			}
+
 
 //			Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
 //			OWLObject c = graph.getOWLObjectByIdentifier(clsId);
@@ -341,6 +358,25 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		String label = graph.getLabel(obj);
 		if (label != null)
 			d.addField(field, label);
+	}
+	
+	private void addLabelFields(SolrInputDocument d, String field, List<String> ids) {
+
+		List<String> labelAccumu = new ArrayList<String>();
+		
+		for( String id : ids ){
+			OWLObject obj = graph.getOWLObjectByIdentifier(id);
+			if (obj != null){
+				String label = graph.getLabel(obj);
+				if (label != null){
+					labelAccumu.add(label);
+				}
+			}
+		}
+		
+		if( ! labelAccumu.isEmpty() ){
+			d.addField(field, labelAccumu);
+		}
 	}
 
 	private Set<String> edgeToField(OWLGraphEdge edge) {

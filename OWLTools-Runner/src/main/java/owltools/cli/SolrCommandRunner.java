@@ -25,6 +25,7 @@ import owltools.flex.FlexCollection;
 import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.TaxonTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
@@ -249,15 +250,18 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// We should already have added the reasoner elsewhere on the commandline,
 		// So there should be real no extra overhead here.
 		EcoTools eco = new EcoTools(g, g.getReasoner(), true);
+		TaxonTools taxo = new TaxonTools(g, g.getReasoner(), true);
 		
 		List<String> files = opts.nextList();
 		for (String file : files) {
 			LOG.info("Parsing GAF: " + file);
 			GafObjectsBuilder builder = new GafObjectsBuilder();
 			gafdoc = builder.buildDocument(file);
-			loadGAFDoc(url, gafdoc, eco);
+			loadGAFDoc(url, gafdoc, eco, taxo);
 		}
+		
 		eco.dispose();
+		taxo.dispose();
 	}
 	
 	/**
@@ -278,12 +282,15 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// We should already have added the reasoner elsewhere on the commandline,
 		// So there should be real no extra overhead here.
 		EcoTools eco = new EcoTools(g, g.getReasoner(), true);
+		TaxonTools taxo = new TaxonTools(g, g.getReasoner(), true);
 
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 		// Doc load.
-		loadGAFDoc(url, gafdoc, eco);
+		loadGAFDoc(url, gafdoc, eco, taxo);
+
 		eco.dispose();
+		taxo.dispose();
 	}
 		
 	/**
@@ -385,11 +392,12 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	/*
 	 * Wrapper multiple places where there is direct GAF loading.
 	 */
-	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco) throws IOException{
+	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco, TaxonTools taxo) throws IOException{
 
 		// Doc load.
 		GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
 		loader.setEcoTools(eco);
+		loader.setTaxonTools(taxo);
 		loader.setGafDocument(gafdoc);
 		loader.setGraph(g);
 		try {
