@@ -54,7 +54,7 @@ fields:
     property: []
   - id: taxon_label
     description: "Derived from C13 + ncbi_taxonomy.obo."
-    display_name: Taxon
+    display_name: Taxon label
     type: string
     property: []
     searchable: true
@@ -66,7 +66,7 @@ fields:
     property: []
   - id: taxon_closure_label
     description: "Labels derived from C13 + ncbi_taxonomy.obo."
-    display_name: Taxon label closure
+    display_name: Taxon closure (labels)
     type: string
     cardinality: multi
     property: []
