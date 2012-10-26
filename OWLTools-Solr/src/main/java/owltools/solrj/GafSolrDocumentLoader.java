@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 	EcoTools eco = null;
 	TaxonTools taxo = null;
+	PANTHERForest pset = null;
 
 	GafDocument gafDocument;
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
@@ -63,6 +65,9 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		this.taxo = inTaxo;
 	}
 
+	public void setPANTHERSet(PANTHERForest inPSet) {
+		this.pset = inPSet;
+	}
 
 	@Override
 	public void load() throws SolrServerException, IOException {
@@ -136,6 +141,23 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			if( jsonized_taxon_map != null ){
 				bioentity_doc.addField("taxon_closure_map", jsonized_taxon_map);
 			}
+		}
+		
+		// Optionally, pull information from the PANTHER file set.
+		List<String> pantherFamilies = new ArrayList<String>();
+		if( pset != null && pset.getNumberOfFilesInSet() > 0 ){
+			Set<PANTHERTree> pTrees = pset.getAssociatedTrees(eid);
+			if( pTrees != null ){
+				Iterator<PANTHERTree> piter = pTrees.iterator();
+				while( piter.hasNext() ){
+					PANTHERTree ptree = piter.next();
+					pantherFamilies.add(ptree.getTreeName());
+				}
+			}
+		}
+		// Optionally, actually /add/ the PANTHER family data to the document.
+		if( ! pantherFamilies.isEmpty() ){
+			bioentity_doc.addField("family_tag", pantherFamilies);			
 		}
 		
 		// Something that we'll need for the annotation evidence aggregate later.

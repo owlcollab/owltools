@@ -6,7 +6,10 @@ import static junit.framework.Assert.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -16,30 +19,30 @@ import org.junit.Test;
 
 import owltools.graph.shunt.OWLShuntGraph;
 
-public class PANTHERToolsTest {
+public class PANTHERForestTest {
 
 	@Test
-	public void testTreeloading() throws IOException{
+	public void testSetloading() throws IOException{
 
 		// Get the files we need.
 		File pDir = getResource(".");
 		FileFilter pFileFilter = new WildcardFileFilter("PTHR*.tree");
-		File[] pFiles = pDir.listFiles(pFileFilter);
-		for( File pFile : pFiles ){
-			System.err.println("Processing PANTHER tree: " + pFile.getAbsolutePath());
-			PANTHERTools ptool = new PANTHERTools(pFile);
+		List<File> pTreeFiles = new ArrayList<File>(Arrays.asList(pDir.listFiles(pFileFilter))); // i hate java
 
-			System.err.println(ptool.getNHXString());
-			System.err.println(ptool.getTreeName());
+		PANTHERForest pSet = new PANTHERForest(pTreeFiles);
+		
+		// Trivial
+		assertNotNull("Hope so", pSet);
+		assertEquals("We should have two trees", 2, pSet.getNumberOfFilesInSet());
 
-			// Trivial
-			OWLShuntGraph g = ptool.getOWLShuntGraph();
-			assertNotNull(g);
-
-			System.err.println(g.toJSON());
-//			assertEquals("At least a string",
-//					g.toJSON().getClass().equals(String.class));
-		}
+		// Contents.
+		assertNull("Not in (A)", pSet.getAssociatedTrees(""));
+		assertNull("Not in (B)", pSet.getAssociatedTrees(null));
+		assertNull("Not in (C)", pSet.getAssociatedTrees("GO:0022008"));
+		assertEquals("Has in (A)", "PTHR10000",
+				pSet.getAssociatedTrees("UniProtKB:Q4Q8D0").iterator().next().getTreeName());
+		assertEquals("Has in (B)", "PTHR24041",
+				pSet.getAssociatedTrees("ENSEMBL:ENSG00000169894").iterator().next().getTreeName());
 	}
 	
 	// A little helper from Chris stolen from somewhere else...

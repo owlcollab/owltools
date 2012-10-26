@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
@@ -35,7 +37,8 @@ import owltools.graph.shunt.OWLShuntNode;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
-import owltools.solrj.PANTHERTools;
+import owltools.solrj.PANTHERForest;
+import owltools.solrj.PANTHERTree;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 
@@ -49,6 +52,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	
 	private String globalSolrURL = null;
 	private ConfigManager aconf = null;
+	private PANTHERForest pSet = null;
 
 	/**
 	 * Output (STDOUT) a XML segment to put into the Solr schema file after reading the YAML file.
@@ -260,7 +264,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			LOG.info("Parsing GAF: " + file);
 			GafObjectsBuilder builder = new GafObjectsBuilder();
 			gafdoc = builder.buildDocument(file);
-			loadGAFDoc(url, gafdoc, eco, taxo);
+			loadGAFDoc(url, gafdoc, eco, taxo, pSet);
 		}
 		
 		eco.dispose();
@@ -290,7 +294,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 		// Doc load.
-		loadGAFDoc(url, gafdoc, eco, taxo);
+		loadGAFDoc(url, gafdoc, eco, taxo, pSet);
 
 		eco.dispose();
 		taxo.dispose();
@@ -326,6 +330,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	
 	/**
 	 * Used for applying the panther trees to the currently data run.
+	 * This must be run before the command is given to load a GAF.
 	 * 
 	 * @param opts
 	 * @throws Exception
@@ -333,22 +338,27 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	@CLIMethod("--solr-load-panther")
 	public void processPantherTrees(Opts opts) throws Exception {
 
-		// Go through the listed directories and process each PANTHER tree
-		// file separately.
+		// Go through the listed directories and collect the PANTHER
+		// tree files.
 		List<String> treeDirs = opts.nextList();
+		List<File> pFilesCollection = new ArrayList<File>();
 		while( ! treeDirs.isEmpty() ){
 			String tDirName = treeDirs.remove(0);
 			LOG.info("Using directory for PANTHER tree discovery: " + tDirName );
 			File pDir = new File(tDirName);
 			FileFilter pFileFilter = new WildcardFileFilter("PTHR*.tree");
 			File[] pFiles = pDir.listFiles(pFileFilter);
-			for( File pFile : pFiles ){
-				LOG.info("Processing PANTHER tree: " + pFile.getAbsolutePath());
-				PANTHERTools ptool = new PANTHERTools(pFile);
-				
-				// TODO:
+			if( pFiles !=null ){
+				for( File pFile : pFiles ){
+					pFilesCollection.add(pFile);
+					//LOG.info("Processing PANTHER tree: " + pFile.getAbsolutePath());
+				}			
 			}
 		}
+		
+		// Process the files and ready them for use in the Loader.
+		pSet = new PANTHERForest(pFilesCollection);
+		LOG.info("Found " + pSet.getNumberOfFilesInSet() + " trees and " + pSet.getNumberOfIdentifiersInSet() + " identifiers.");
 	}
 
 	/**
@@ -422,12 +432,13 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	/*
 	 * Wrapper multiple places where there is direct GAF loading.
 	 */
-	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco, TaxonTools taxo) throws IOException{
+	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco, TaxonTools taxo, PANTHERForest pset) throws IOException{
 
 		// Doc load.
 		GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
 		loader.setEcoTools(eco);
 		loader.setTaxonTools(taxo);
+		loader.setPANTHERSet(pset);
 		loader.setGafDocument(gafdoc);
 		loader.setGraph(g);
 		try {

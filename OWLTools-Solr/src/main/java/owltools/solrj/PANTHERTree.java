@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.forester.io.parsers.nhx.NHXFormatException;
 import org.forester.io.parsers.nhx.NHXParser;
 import org.forester.io.parsers.util.PhylogenyParserException;
@@ -43,19 +44,22 @@ import owltools.io.ParserWrapper;
 /**
  * Methods to simplify the work with the Newick-ish output we get from PANTHER. 
  */
-public class PANTHERTools {
+public class PANTHERTree {
 	
+	private static final Logger LOG = Logger.getLogger(PANTHERTree.class);
+
 	private final String treeName;
 	private final String treeStr;
 	private final String[] treeAnns;
-	
+	private final Set<String> groupSet;
+
 	/**
 	 * Create an instance for the given path
 	 * 
 	 * @param path
 	 * @throws IOException 
 	 */
-	public PANTHERTools (File pFile) throws IOException {
+	public PANTHERTree (File pFile) throws IOException {
 
 		if( pFile == null ){ throw new Error("No file was specified..."); }
 		
@@ -78,6 +82,9 @@ public class PANTHERTools {
 				treeName = StringUtils.substringBefore(filename, ".");
 			}
 		}
+		
+		groupSet = new HashSet<String>();
+		readyAnnotationDataCache();
 	}
 	
 	/**
@@ -153,84 +160,62 @@ public class PANTHERTools {
 		return g;
 	}
 	
-//	/**
-//	 * Return the complete OWL shunt graph repesentation of the phylogenic tree.
-//	 */
-//	public Map<String,> getOWLShuntGraph(){
-//		
-//		OWLShuntGraph g = new OWLShuntGraph();
-//		
-//		// Parse the Newick tree down to something usable.
-//		NHXParser p = new NHXParser();
-//		Phylogeny[] phys = null;
-//
-//	}		
+	/**
+	 * Return a globally "unique" identifier for an internal ID. 
+	 */
+	public String uuidInternal(String str){
+		return treeName + ":" + str;
+	}
+	
+	/**
+	 * Return a Set of 
+	 */
+	private void readyAnnotationDataCache(){
 		
-//	/**
-//	 * Wrapper method for the reasoner.
-//	 * 
-//	 * @param taxonClass
-//	 * @param reflexive
-//	 * @return set of super classes
-//	 */
-//	public Set<OWLClass> getAncestors(OWLClass taxonClass, boolean reflexive) {
-//		if (taxonClass == null) {
-//			return Collections.emptySet();
-//		}
-//		Set<OWLClass> result = new HashSet<OWLClass>();
-//		Set<OWLClass> set = reasoner.getSuperClasses(taxonClass, false).getFlattened();
-//		for (OWLClass cls : set) {
-//			if (cls.isBuiltIn() == false) {
-//				result.add(cls);
-//			}
-//		}
-//		if (reflexive) {
-//			result.add(taxonClass);
-//		}
-//		if (result.isEmpty()) {
-//			return Collections.emptySet();
-//		}
-//		return result;
-//		
-//	}
-//	
-//	/**
-//	 * Wrapper method for the reasoner
-//	 * 
-//	 * @param sources
-//	 * @param reflexive
-//	 * @return set of sub classes
-//	 */
-//	public Set<OWLClass> getDescendents(Set<OWLClass> sources, boolean reflexive) {
-//		if (sources == null || sources.isEmpty()) {
-//			return Collections.emptySet();
-//		}
-//		Set<OWLClass> result = new HashSet<OWLClass>();
-//		for (OWLClass source : sources) {
-//			Set<OWLClass> set = reasoner.getSubClasses(source, false).getFlattened();
-//			for (OWLClass cls : set) {
-//				if (cls.isBuiltIn() == false) {
-//					result.add(cls);
-//				}
-//			}
-//		}
-//		if (reflexive) {
-//			result.addAll(sources);
-//		}
-//		if (result.isEmpty()) {
-//			return Collections.emptySet();
-//		}
-//		return result;
-//	}
-//	
-//	/**
-//	 * Clean up the internal data structures, usually done as last operation.
-//	 */
-//	public void dispose() {
-//		mappingCache.clear();
-//		if (disposeReasonerP) {
-//			reasoner.dispose();
-//		}
-//	}
+		//Map<String,String> idToInit = new HashMap<String,String>();
+		//Map<String,Set<String>> initToId = new HashMap<String,Set<String>>();
+		
+		// Parse down every annotation line.
+		for( String aLine : treeAnns ){
+			
+			// First, get rid of the terminal semicolon.
+			String cleanALine = StringUtils.chop(aLine);
+			
+			// Split out the sections.
+			String[] sections = StringUtils.split(cleanALine, "|");
+			if( sections.length != 3 ) throw new Error("Expected three sections in " + treeName);
 
+			// // Isolate the initial internal identifier.
+			// String initSection = sections[0];
+			// String initID = StringUtils.substringBefore(initSection, ":");
+
+			// Isolate and convert the rest. This is done as individuals
+			// And not a loop for now to higlight the fact that I think this will become
+			// rather more complicated later on.
+			String rawIdentifierOne = sections[1];
+			String rawIdentifierTwo = sections[2];
+			String oneID = StringUtils.replaceChars(rawIdentifierOne, '=', ':');
+			String twoID = StringUtils.replaceChars(rawIdentifierTwo, '=', ':');
+
+			// // Now make a map from the initial identitifer to the other two, the other
+			// two to the identifier, and a batch Set for the existence of just the 
+			// other two.
+			//
+			// String finalInitID = uuidInternal(initID);
+			// Existence.
+			groupSet.add(oneID);
+			groupSet.add(twoID);
+			//LOG.info("groupSet in: " + oneID);
+			//LOG.info("groupSet in: " + twoID);
+		}
+		
+	}		
+
+	/**
+	 * Return a set of all identifiers associated with this family.
+	 */
+	public Set<String> associatedIdentifierSet(){
+		return groupSet;
+	}		
+		
 }
