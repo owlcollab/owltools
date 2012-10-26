@@ -13,7 +13,8 @@ public class OWLShuntEdge {
 	public String sub = null;
 	public String obj = null;
 	public String pred = null;
-	
+	public String meta = null;
+
 	/**
 	 * @param subject_id
 	 * @param object_id
@@ -32,6 +33,20 @@ public class OWLShuntEdge {
 		this.sub = subject_id;
 		this.obj = object_id;
 		this.pred = predicate_id;
+	}
+
+	/**
+	 * @return the metadata
+	 */
+	public String getMetadata() {
+		return meta;
+	}
+	
+	/**
+	 * @param metadata the metadata to set
+	 */
+	public void setMetadata(String metadata) {
+		this.meta = metadata;
 	}
 
 	/* (non-Javadoc)

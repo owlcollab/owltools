@@ -1,12 +1,14 @@
 package owltools.cli;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
@@ -33,6 +35,7 @@ import owltools.graph.shunt.OWLShuntNode;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
+import owltools.solrj.PANTHERTools;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 
@@ -317,6 +320,33 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				//GafObjectsBuilder builder = new GafObjectsBuilder();
 				//gafdoc = builder.buildDocument(car, cdr);
 				//loadGAFDoc(url, gafdoc);
+			}
+		}
+	}
+	
+	/**
+	 * Used for applying the panther trees to the currently data run.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-load-panther")
+	public void processPantherTrees(Opts opts) throws Exception {
+
+		// Go through the listed directories and process each PANTHER tree
+		// file separately.
+		List<String> treeDirs = opts.nextList();
+		while( ! treeDirs.isEmpty() ){
+			String tDirName = treeDirs.remove(0);
+			LOG.info("Using directory for PANTHER tree discovery: " + tDirName );
+			File pDir = new File(tDirName);
+			FileFilter pFileFilter = new WildcardFileFilter("PTHR*.tree");
+			File[] pFiles = pDir.listFiles(pFileFilter);
+			for( File pFile : pFiles ){
+				LOG.info("Processing PANTHER tree: " + pFile.getAbsolutePath());
+				PANTHERTools ptool = new PANTHERTools(pFile);
+				
+				// TODO:
 			}
 		}
 	}
