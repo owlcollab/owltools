@@ -131,18 +131,18 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			taxLabelClosure.add(tlbl);
 			taxon_closure_map.put(tid, tlbl);
 		}
-		// Add the collections to the document.
-		bioentity_doc.addField("taxon_closure", taxIDClosure);
-		bioentity_doc.addField("taxon_closure_label", taxLabelClosure);
 		// Compile closure map to JSON and add to the document.
 		String jsonized_taxon_map = null;
 		if( ! taxon_closure_map.isEmpty() ){
 			jsonized_taxon_map = gson.toJson(taxon_closure_map);
-			if( jsonized_taxon_map != null ){
-				bioentity_doc.addField("taxon_closure_map", jsonized_taxon_map);
-			}
 		}
-		
+		// Optionally, if there is enough taxon for a map, add the collections to the document.
+		if( jsonized_taxon_map != null ){
+			bioentity_doc.addField("taxon_closure", taxIDClosure);
+			bioentity_doc.addField("taxon_closure_label", taxLabelClosure);
+			bioentity_doc.addField("taxon_closure_map", jsonized_taxon_map);
+		}
+
 		// Optionally, pull information from the PANTHER file set.
 		List<String> pantherFamilies = new ArrayList<String>();
 		if( pset != null && pset.getNumberOfFilesInSet() > 0 ){
@@ -184,6 +184,18 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("reference", refId);
 			String a_ev_type = a.getEvidenceCls();
 			annotation_doc.addField("evidence_type", a_ev_type);
+
+			// Optionally, if there is enough taxon for a map, add the collections to the document.
+			if( jsonized_taxon_map != null ){
+				annotation_doc.addField("taxon_closure", taxIDClosure);
+				annotation_doc.addField("taxon_closure_label", taxLabelClosure);
+				annotation_doc.addField("taxon_closure_map", jsonized_taxon_map);
+			}
+
+			// Optionally, actually /add/ the PANTHER family data to the document.
+			if( ! pantherFamilies.isEmpty() ){
+				annotation_doc.addField("family_tag", pantherFamilies);			
+			}
 
 			// BUG/TODO: Make the ID /really/ unique - ask Chris
 			annotation_doc.addField("id", eid + "_:_" + clsId + "_:_" + a_ev_type + "_:_" + asrc + "_:_" + etaxid + "_:_" + adate);
@@ -263,6 +275,18 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						ev_agg_doc.addField("annotation_class_label", tlabel);
 						ev_agg_doc.addField("taxon", etaxid);
 						addLabelField(ev_agg_doc, "taxon_label", etaxid);
+
+						// Optionally, if there is enough taxon for a map, add the collections to the document.
+						if( jsonized_taxon_map != null ){
+							ev_agg_doc.addField("taxon_closure", taxIDClosure);
+							ev_agg_doc.addField("taxon_closure_label", taxLabelClosure);
+							ev_agg_doc.addField("taxon_closure_map", jsonized_taxon_map);
+						}
+
+						// Optionally, actually /add/ the PANTHER family data to the document.
+						if( ! pantherFamilies.isEmpty() ){
+							ev_agg_doc.addField("family_tag", pantherFamilies);			
+						}
 					}
 	
 					// Drag in "with" (col 8), this time for ev_agg.
