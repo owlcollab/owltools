@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
@@ -145,19 +146,27 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 		// Optionally, pull information from the PANTHER file set.
 		List<String> pantherFamilies = new ArrayList<String>();
+		List<String> pantherTreeGraphs = new ArrayList<String>();
 		if( pset != null && pset.getNumberOfFilesInSet() > 0 ){
 			Set<PANTHERTree> pTrees = pset.getAssociatedTrees(eid);
 			if( pTrees != null ){
 				Iterator<PANTHERTree> piter = pTrees.iterator();
+				int pcnt = 0; // DEBUG
 				while( piter.hasNext() ){
+					pcnt++; // DEBUG
 					PANTHERTree ptree = piter.next();
 					pantherFamilies.add(ptree.getTreeName());
+					pantherTreeGraphs.add(ptree.getOWLShuntGraph().toJSON());
+					if( pcnt > 1 ){ // DEBUG
+						LOG.info("Belongs to multiple families: " + StringUtils.join(pantherFamilies, ", "));
+					}
 				}
 			}
 		}
 		// Optionally, actually /add/ the PANTHER family data to the document.
 		if( ! pantherFamilies.isEmpty() ){
 			bioentity_doc.addField("family_tag", pantherFamilies);			
+			bioentity_doc.addField("phylo_graph", pantherTreeGraphs);			
 		}
 		
 		// Something that we'll need for the annotation evidence aggregate later.

@@ -289,12 +289,12 @@ fields:
     cardinality: multi
     searchable: true
     property: []
-  - id: phylo_graph
-    description: JSON blob form of the phylogenic tree.
-    display_name: This should not be displayed
-    type: string
-    property: []
-    indexed: false
+  # - id: phylo_graph
+  #   description: JSON blob form of the phylogenic tree.
+  #   display_name: This should not be displayed
+  #   type: string
+  #   property: []
+  #   indexed: false
   - id: phylo_ancestor_closure
     description: All ancestors of this entity.
     display_name: Phylogenic ancestors
