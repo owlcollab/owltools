@@ -4,4 +4,7 @@
   <uri id="User Entered Import Resolution" name="http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine" uri="wine.owl"/>
   <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/mutual-import-1.owl" uri="mutual-import-1.owl"/>
   <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/mutual-import-2.owl" uri="mutual-import-2.owl"/>
+  <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/test-a.owl" uri="test-a.owl"/>
+  <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/test-a2.owl" uri="test-a2.owl"/>
+  <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/test-b.owl" uri="test-b.owl"/>
 </catalog>
