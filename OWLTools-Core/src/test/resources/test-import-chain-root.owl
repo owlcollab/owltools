@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.obolibrary.org/obo/go.owl#"
+     xml:base="http://purl.obolibrary.org/obo/go.owl"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:foaf="http://xmlns.com/foaf/0.1/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://purl.obolibrary.org/obo/test/test-import-chain-root.owl">
+        <foaf:homepage rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI">http://wiki.geneontology.org/index.php/Ontology_extensions</foaf:homepage>
+        <dc:creator xml:lang="en">Gene Ontology Consortium</dc:creator>
+        <dc:publisher xml:lang="en">Gene Ontology Consortium</dc:publisher>
+        <dc:title xml:lang="en">Test root of import chain hierarchy</dc:title>
+        <dc:description xml:lang="en">      this is the root a toot. This is a long description blah
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ghys j u uuuu sss  </dc:description>
+        <rdfs:comment xml:lang="en">
+          foo
+        </rdfs:comment>
+        <owl:imports rdf:resource="http://purl.obolibrary.org/obo/test-a.owl"/>
+        <owl:imports rdf:resource="http://purl.obolibrary.org/obo/test-b.owl"/>
+    </owl:Ontology>
+      <owl:Class rdf:about="http://purl.obolibrary.org/obo/UBERON_0000002">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">uterine cervix</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/UBERON_0001560"/>
+      </owl:Class>
+</rdf:RDF>
