@@ -36,17 +36,17 @@ import owltools.sim.MultiSimilarity;
 import owltools.sim.OWLObjectPair;
 import owltools.sim.Reporter;
 import owltools.sim.SimEngine;
-import owltools.sim.SimpleOwlSim;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
-import owltools.sim.SimpleOwlSim.EnrichmentConfig;
-import owltools.sim.SimpleOwlSim.EnrichmentResult;
-import owltools.sim.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
-import owltools.sim.SimpleOwlSim.SimProperty;
-import owltools.sim.preprocessor.NullSimPreProcessor;
-import owltools.sim.preprocessor.PhenoSimHQEPreProcessor;
-import owltools.sim.preprocessor.SimPreProcessor;
+import owltools.sim2.SimpleOwlSim;
+import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
+import owltools.sim2.SimpleOwlSim.EnrichmentResult;
+import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
+import owltools.sim2.SimpleOwlSim.SimProperty;
+import owltools.sim2.preprocessor.NullSimPreProcessor;
+import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
+import owltools.sim2.preprocessor.SimPreProcessor;
 import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
 
 /**

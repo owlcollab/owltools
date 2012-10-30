@@ -19,8 +19,8 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
-import owltools.sim.SimpleOwlSim;
-import owltools.sim.preprocessor.AutomaticSimPreProcessor;
+import owltools.sim2.SimpleOwlSim;
+import owltools.sim2.preprocessor.AutomaticSimPreProcessor;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder
@@ -41,7 +41,7 @@ public class AutomaticSimPreProcessorTest extends OWLToolsTestBasics {
 
 	@Test
 	public void testAutoSimOnGO() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
-		/*
+	
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResourceIRIString("go-subset-t1.obo"));
 		g = new OWLGraphWrapper(sourceOntol);
@@ -58,7 +58,6 @@ public class AutomaticSimPreProcessorTest extends OWLToolsTestBasics {
 		pproc.setInputOntology(sourceOntol);
 		pproc.setOutputOntology(sourceOntol);
 		pproc.preprocess();
-		*/
 
 	}
 

@@ -1,4 +1,4 @@
-package owltools.sim.preprocessor;
+package owltools.sim2.preprocessor;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -19,17 +19,13 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
  * @author cjm
  *
  */
-public class BruteForceSimPreProcessor extends LCSEnabledSimPreProcessor {
+public class NullSimPreProcessor extends LCSEnabledSimPreProcessor {
 	
-	private Logger LOG = Logger.getLogger(BruteForceSimPreProcessor.class);
+	private Logger LOG = Logger.getLogger(NullSimPreProcessor.class);
 
 	
 	public void preprocess() {
-		
-		// TODO - this generates a cross-product of all properties....
-		for (OWLObjectProperty p : inputOntology.getObjectPropertiesInSignature(true)) {
-			createPropertyView(p);
-		}
+	
 	}
 
 	

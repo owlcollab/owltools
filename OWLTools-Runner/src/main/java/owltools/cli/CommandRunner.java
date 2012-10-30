@@ -119,6 +119,7 @@ import owltools.io.OWLGsonRenderer;
 import owltools.io.OWLJSONFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import owltools.io.TableRenderer;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.BridgeExtractor;
 import owltools.mooncat.Mooncat;
@@ -467,6 +468,13 @@ public class CommandRunner {
 				ChadoGraphClosureRenderer gcw = new ChadoGraphClosureRenderer(opts.nextOpt());
 				gcw.isChain = isChain;
 				gcw.render(g);				
+			}
+			else if (opts.nextEq("--export-table")) {
+				opts.info("OUTPUTFILENAME",
+				"saves the ontology in tabular format (PARTIALLY IMPLEMENTED)");
+				String out = opts.nextOpt();
+				TableRenderer tr = new TableRenderer(out);
+				tr.render(g);				
 			}
 			else if (opts.nextEq("--remove-annotation-assertions")) {
 				boolean isPreserveLabels = false;
@@ -902,7 +910,7 @@ public class CommandRunner {
 					else if (opts.nextEq("-e")) {
 						opts.info("", "show equivalents only (default is ancestors + descendants + equivs)");
 						isDescendants = false;
-						isAncestors = true;
+						isAncestors = false;
 					}
 					else if (opts.nextEq("-i")) {
 						opts.info("", "show inferred individuals, as well as ancestors/descendants/equivalents");

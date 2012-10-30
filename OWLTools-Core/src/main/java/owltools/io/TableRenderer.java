@@ -26,13 +26,13 @@ import owltools.graph.OWLQuantifiedProperty;
  * @author cjm
  *
  */
-public abstract class AbstractClosureRenderer extends AbstractRenderer implements GraphRenderer {
+public class TableRenderer extends AbstractRenderer implements GraphRenderer {
 
-	public AbstractClosureRenderer(PrintStream stream) {
+	public TableRenderer(PrintStream stream) {
 		super(stream);
 	}
 
-	public AbstractClosureRenderer(String file) {
+	public TableRenderer(String file) {
 		super(file);
 	}
 	
@@ -44,15 +44,27 @@ public abstract class AbstractClosureRenderer extends AbstractRenderer implement
 		objs.addAll(g.getSourceOntology().getIndividualsInSignature(false));
 
 		for (OWLObject obj : objs) {
-			for (OWLGraphEdge e : g.getOutgoingEdgesClosure(obj)) {
-				render(e);
-			}
+			if (obj.equals(g.getDataFactory().getOWLNothing()))
+				continue;
+			if (obj.equals(g.getDataFactory().getOWLThing()))
+				continue;
+			if (obj instanceof OWLNamedObject)
+				render((OWLNamedObject)obj);
 		}
 		stream.close();
 	}
 	
 
-	public abstract void render(OWLGraphEdge e);
+	// TODO - make this configurable
+	private void render(OWLNamedObject obj) {
+		print(obj.getIRI().toString());
+		sep();
+		print(graph.getLabel(obj));
+		sep();
+		print(graph.getDef(obj));
+		nl();
+	}
+
 	
 
 }

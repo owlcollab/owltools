@@ -23,8 +23,8 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
-import owltools.sim.preprocessor.PhenoSimHQEPreProcessor;
-import owltools.sim.preprocessor.SimPreProcessor;
+import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
+import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder

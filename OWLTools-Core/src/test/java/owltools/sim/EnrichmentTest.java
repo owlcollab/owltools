@@ -27,9 +27,10 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
-import owltools.sim.SimpleOwlSim.EnrichmentConfig;
-import owltools.sim.SimpleOwlSim.EnrichmentResult;
-import owltools.sim.preprocessor.AutomaticSimPreProcessor;
+import owltools.sim2.SimpleOwlSim;
+import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
+import owltools.sim2.SimpleOwlSim.EnrichmentResult;
+import owltools.sim2.preprocessor.AutomaticSimPreProcessor;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder

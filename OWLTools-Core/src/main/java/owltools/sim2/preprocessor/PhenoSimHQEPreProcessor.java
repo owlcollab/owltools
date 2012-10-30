@@ -1,4 +1,4 @@
-package owltools.sim.preprocessor;
+package owltools.sim2.preprocessor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -144,6 +144,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		//  * i1 Type: has_phenotype some (has_part some (Q and inheres_in some E))
 		// [auto-generated labels for the latter may look odd]
 		// NEW
+		//  TODO - auto-detect this
 		createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PART), inheresInSomeThing, "%s phenotype");
 		//createPropertyView(getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE), phenotypeClasses, "%s phenotype");
 		saveState("phenotypes");
@@ -253,7 +254,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 				continue;
 			}
 			else {
-				LOG.info("Filtering out:"+c);
+				LOG.info("Excluding from entity set:"+c);
 			}
 		}
 

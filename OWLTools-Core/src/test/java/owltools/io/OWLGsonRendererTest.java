@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.OWLToolsTestBasics;
@@ -33,7 +34,7 @@ import owltools.io.OWLGsonRenderer;
 
 public class OWLGsonRendererTest extends OWLToolsTestBasics {
 
-	private static final boolean RENDER_FLAG = false;
+	private static final boolean RENDER_FLAG = true;
 
 	@Test
 	public void testAxioms() throws Exception{
@@ -73,6 +74,9 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 		gr.render(wrapper.getSourceOntology());
 		if (RENDER_FLAG) {
 			System.out.println(stringWriter.toString());
+			ParserWrapper pw = new ParserWrapper();
+			OWLOntologyFormat owlFormat = new OWLJSONFormat();
+			pw.saveOWL(wrapper.getSourceOntology(), owlFormat , "/tmp/foo.json", wrapper);
 		}
 	}
 

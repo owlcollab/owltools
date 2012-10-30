@@ -17,8 +17,13 @@ import owltools.OWLToolsTestBasics;
  */
 public class CommandRunnerTest extends AbstractCommandRunnerTest {
 	
+
 	@Test
-	public void testRunner() throws Exception {
+	public void testTableRenderer() throws Exception {
+		init();
+		load("ceph.obo");
+		run("--export-table /tmp/z");
+				
 	}
 	
 	

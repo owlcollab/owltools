@@ -25,9 +25,10 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
-import owltools.sim.SimpleOwlSim.ScoreAttributesPair;
-import owltools.sim.preprocessor.PhenoSimHQEPreProcessor;
-import owltools.sim.preprocessor.SimPreProcessor;
+import owltools.sim2.SimpleOwlSim;
+import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
+import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
+import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder
@@ -85,6 +86,47 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 			reasoner.dispose();
 		}
 	}
+	
+	@Test
+	public void testPhenoSimMouse() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOWL(getResourceIRIString("test_phenotype.owl"));
+		g =  new OWLGraphWrapper(sourceOntol);
+		 owlpp = new OWLPrettyPrinter(g);
+		
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+			pproc = new PhenoSimHQEPreProcessor();
+			pproc.setInputOntology(sourceOntol);
+			pproc.setOutputOntology(sourceOntol);
+			pproc.setReasoner(reasoner);
+			pproc.setOWLPrettyPrinter(owlpp);
+			((PhenoSimHQEPreProcessor)pproc).defaultLCSElementFrequencyThreshold = 0.7;
+
+			//sos.setSimPreProcessor(pproc);
+			//sos.preprocess();
+			pproc.preprocess();
+			reasoner.flush();
+
+			sos = new SimpleOwlSim(sourceOntol);
+			sos.setSimPreProcessor(pproc);
+			sos.createElementAttributeMapFromOntology();
+
+			sos.saveOntology("/tmp/z.owl");
+
+			reasoner.flush();
+			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
+					showSim(i,j);
+				}
+			}
+		}
+		finally {
+			reasoner.dispose();
+		}
+	}
+
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
 		

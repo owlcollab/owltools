@@ -1,4 +1,4 @@
-package owltools.sim;
+package owltools.sim2;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,7 +30,8 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.sim.preprocessor.SimPreProcessor;
+import owltools.sim2.ClassExpressionPair;
+import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
  * 
@@ -60,8 +61,8 @@ public class SimpleOwlSim {
 	private Map<OWLNamedIndividual,Set<OWLClass>> elementToAttributesMap;
 	private Map<OWLNamedIndividual,Set<Node<OWLClass>>> elementToInferredAttributesMap;
 	private Map<OWLClass,Set<OWLNamedIndividual>> attributeToElementsMap;
-	private Map<OWLClassExpressionPair, ScoreAttributePair> lcsICcache;
-	private Map<OWLClassExpressionPair, Set<Node<OWLClass>>> csCache;
+	private Map<ClassExpressionPair, ScoreAttributePair> lcsICcache;
+	private Map<ClassExpressionPair, Set<Node<OWLClass>>> csCache;
 	private Map<OWLClass,Double> icCache;
 	Map<OWLClass, Integer> attributeElementCount = null;
 	private Map<OWLClassExpression,OWLClass> lcsExpressionToClass = new HashMap<OWLClassExpression,OWLClass>();
@@ -96,9 +97,9 @@ public class SimpleOwlSim {
 		elementToAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
 		elementToInferredAttributesMap = new HashMap<OWLNamedIndividual,Set<Node<OWLClass>>>();
 		attributeToElementsMap = new HashMap<OWLClass,Set<OWLNamedIndividual>>();
-		lcsICcache = new HashMap<OWLClassExpressionPair, ScoreAttributePair>();
+		lcsICcache = new HashMap<ClassExpressionPair, ScoreAttributePair>();
 		icCache = new HashMap<OWLClass,Double>();
-		csCache = new HashMap<OWLClassExpressionPair, Set<Node<OWLClass>>>();
+		csCache = new HashMap<ClassExpressionPair, Set<Node<OWLClass>>>();
 	}
 
 	/**
@@ -313,7 +314,7 @@ public class SimpleOwlSim {
 	 * @return
 	 */
 	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClassExpression a, OWLClassExpression b) {
-		OWLClassExpressionPair pair = new OWLClassExpressionPair(a,b); // TODO - optimize - assume named classes
+		ClassExpressionPair pair = new ClassExpressionPair(a,b); // TODO - optimize - assume named classes
 		if (csCache.containsKey(pair))
 			return new HashSet<Node<OWLClass>>(csCache.get(pair));
 		Set<Node<OWLClass>> nodes = getNamedReflexiveSubsumers(a);
@@ -396,7 +397,7 @@ public class SimpleOwlSim {
 	 * @return Lowest common Subsumer plus its Information Content
 	 */
 	public ScoreAttributePair getLowestCommonSubsumerIC(OWLClassExpression a, OWLClassExpression b) {
-		OWLClassExpressionPair pair = new OWLClassExpressionPair(a,b);
+		ClassExpressionPair pair = new ClassExpressionPair(a,b);
 		if (lcsICcache.containsKey(pair)) {
 			return lcsICcache.get(pair); // don't make a copy, assume unmodified
 		}
