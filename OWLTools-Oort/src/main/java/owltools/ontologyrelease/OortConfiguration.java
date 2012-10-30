@@ -48,6 +48,7 @@ public class OortConfiguration {
 	private boolean writeELOntology = false;
 	private boolean asserted = false;
 	private boolean simple = false;
+	private List<String> filterSimpleProperties = null;
 	private boolean relaxed = false;
 	private boolean allowFileOverWrite = false;
 	private boolean expandXrefs = false;
@@ -198,6 +199,20 @@ public class OortConfiguration {
 	 */
 	public void setSimple(boolean simple) {
 		this.simple = simple;
+	}
+
+	/**
+	 * @return the filterSimpleProperties
+	 */
+	public List<String> getFilterSimpleProperties() {
+		return filterSimpleProperties;
+	}
+
+	/**
+	 * @param filterSimpleProperties the filterSimpleProperties to set
+	 */
+	public void setFilterSimpleProperties(List<String> filterSimpleProperties) {
+		this.filterSimpleProperties = filterSimpleProperties;
 	}
 
 	/**

@@ -43,6 +43,7 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -229,6 +230,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opts.nextEq("--simple")) {
 				oortConfig.setSimple(true);
 			}
+			else if (opts.nextEq("--simple-filtered")) {
+				oortConfig.setSimple(true);
+				List<String> properties = new ArrayList<String>();
+				oortConfig.setFilterSimpleProperties(properties);
+				while (opts.hasOpts() == false) {
+					properties.add(opts.nextOpt());
+				}
+			}
 			else if (opts.nextEq("--relaxed")) {
 				oortConfig.setRelaxed(true);
 			}
@@ -335,7 +344,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 						removeFlags.add(opts.nextOpt());
 					}
 					else if (opts.nextEq("-c|--clear")) {
-						
+						clear = true;
 					}
 					else
 						break;
@@ -846,82 +855,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// ----------------------------------------
 		// this is the same as MAIN, with certain axiom REMOVED
 		if (oortConfig.isSimple()) {
-
-			logger.info("Creating simple ontology");
-
-			Owl2Obo owl2obo = new Owl2Obo();
-
-			Set<RemoveImport> ris = new HashSet<RemoveImport>();
-			for (OWLImportsDeclaration oid : mooncat.getOntology().getImportsDeclarations()) {
-				ris.add( new RemoveImport(mooncat.getOntology(), oid) );
-			}
-			for (RemoveImport ri : ris) {
-				mooncat.getManager().applyChange(ri);
-			}
-
-
-			logger.info("Guessing core ontology (in future this can be overridden)");
-
-			Set<OWLClass> coreSubset = new HashSet<OWLClass>();
-			for (OWLClass c : mooncat.getOntology().getClassesInSignature()) {
-				String idSpace = owl2obo.getIdentifier(c).replaceAll(":.*", "").toLowerCase();
-				if (idSpace.equals(ontologyId.toLowerCase())) {
-					coreSubset.add(c);
-				}
-			}
-
-			logger.info("Estimated core ontology number of classes: "+coreSubset.size());
-			if (coreSubset.size() == 0) {
-				// TODO - make the core subset configurable
-				logger.error("cannot determine core subset - simple file will include everything");
-			}
-			else {
-				mooncat.removeSubsetComplementClasses(coreSubset, true);
-			}
-
-			if (!oortConfig.isRelaxed()) {
-				// if relaxed was created, than the equivalence axioms, have already been removed
-				Set<OWLEquivalentClassesAxiom> rmAxs = mooncat.getOntology().getAxioms(AxiomType.EQUIVALENT_CLASSES);
-				logger.info("Removing "+rmAxs.size()+" EquivalentClasses axioms from simple");
-				mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
-			}
-			mooncat.removeDanglingAxioms();
-
-			/*
-			 * before saving as simple ontology remove certain axiom annotations 
-			 * to comply with OBO-Basic level.
-			 */
-			logger.info("Removing axiom annotations which are equivalent to trailing qualifiers");
-			AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(mooncat.getOntology());
-			
-			if (oortConfig.isRunOboBasicDagCheck()) {
-				logger.info("Start - Verifying DAG requirement for OBO Basic.");
-				List<List<OWLObject>> cycles = OboBasicDagCheck.findCycles(mooncat.getGraph());
-				if (cycles != null && !cycles.isEmpty()) {
-					StringBuilder sb = new StringBuilder();
-					for (List<OWLObject> cycle : cycles) {
-						sb.append("Cycle[");
-						for (OWLObject owlObject : cycle) {
-							sb.append(' ');
-							sb.append(owlpp.render(owlObject));
-						}
-						sb.append("]\n");
-
-					}
-					if (!oortConfig.isForceRelease()) {
-						sb.insert(0, "OBO Basic is not a DAG, found the following cycles:\n");
-						throw new OboOntologyReleaseRunnerCheckException(sb.toString());
-					}
-					else {
-						logger.warn("Force Release: ignore "+cycles.size()+" cycle(s) in basic ontology, cycles: "+sb.toString());
-					}
-				}
-				logger.info("Finished - Verifying DAG requirement for OBO Basic.");
-			}
-			
-			saveInAllFormats(ontologyId, "simple", version, gciOntology);
-			logger.info("Creating simple ontology completed");
-
+			handleSimpleOntology(graph, ontologyId, version, gciOntology);
 		}		
 
 
@@ -931,6 +865,111 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		boolean success = commit(version);
 		return success;
+	}
+
+	private void handleSimpleOntology(OWLGraphWrapper graph, String ontologyId, 
+			String version, OWLOntology gciOntology) throws OboOntologyReleaseRunnerCheckException,
+			OWLOntologyStorageException, IOException, OWLOntologyCreationException
+	{
+		logger.info("Creating simple ontology");
+
+		Owl2Obo owl2obo = new Owl2Obo();
+
+		Set<RemoveImport> ris = new HashSet<RemoveImport>();
+		for (OWLImportsDeclaration oid : mooncat.getOntology().getImportsDeclarations()) {
+			ris.add( new RemoveImport(mooncat.getOntology(), oid) );
+		}
+		for (RemoveImport ri : ris) {
+			mooncat.getManager().applyChange(ri);
+		}
+
+		List<String> filterProperties = oortConfig.getFilterSimpleProperties();
+		if (filterProperties != null) {
+			logger.info("Using a property filter for simple ontology.");
+			Set<OWLObjectProperty> filterProps = new HashSet<OWLObjectProperty>();
+			for (String s : filterProperties) {
+				OWLObjectProperty property = graph.getOWLObjectProperty(s);
+				if (property == null) {
+					property = graph.getOWLObjectPropertyByIdentifier(s);
+				}
+				if (property == null) {
+					logger.error("Could not find OWLObjectProperty for: "+s);
+				}
+				else {
+					filterProps.add(property);
+				}
+			}
+			if (filterProps.isEmpty()) {
+				logger.info("Property filter will remove all relations, except subClassOf/is_a.");
+			}
+			else {
+				logger.info("Property filter will retain subClassOf/is_a and the following relationships: "+filterProps);
+			}
+			Mooncat.retainAxiomsInPropertySubset(mooncat.getOntology(), filterProps);
+			logger.info("");
+		}
+
+		logger.info("Guessing core ontology (in future this can be overridden)");
+
+		Set<OWLClass> coreSubset = new HashSet<OWLClass>();
+		for (OWLClass c : mooncat.getOntology().getClassesInSignature()) {
+			String idSpace = owl2obo.getIdentifier(c).replaceAll(":.*", "").toLowerCase();
+			if (idSpace.equals(ontologyId.toLowerCase())) {
+				coreSubset.add(c);
+			}
+		}
+
+		logger.info("Estimated core ontology number of classes: "+coreSubset.size());
+		if (coreSubset.size() == 0) {
+			// TODO - make the core subset configurable
+			logger.error("cannot determine core subset - simple file will include everything");
+		}
+		else {
+			mooncat.removeSubsetComplementClasses(coreSubset, true);
+		}
+
+		if (!oortConfig.isRelaxed()) {
+			// if relaxed was created, than the equivalence axioms, have already been removed
+			Set<OWLEquivalentClassesAxiom> rmAxs = mooncat.getOntology().getAxioms(AxiomType.EQUIVALENT_CLASSES);
+			logger.info("Removing "+rmAxs.size()+" EquivalentClasses axioms from simple");
+			mooncat.getManager().removeAxioms(mooncat.getOntology(), rmAxs);
+		}
+		mooncat.removeDanglingAxioms();
+
+		/*
+		 * before saving as simple ontology remove certain axiom annotations 
+		 * to comply with OBO-Basic level.
+		 */
+		logger.info("Removing axiom annotations which are equivalent to trailing qualifiers");
+		AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(mooncat.getOntology());
+		
+		if (oortConfig.isRunOboBasicDagCheck()) {
+			logger.info("Start - Verifying DAG requirement for OBO Basic.");
+			List<List<OWLObject>> cycles = OboBasicDagCheck.findCycles(mooncat.getGraph());
+			if (cycles != null && !cycles.isEmpty()) {
+				StringBuilder sb = new StringBuilder();
+				for (List<OWLObject> cycle : cycles) {
+					sb.append("Cycle[");
+					for (OWLObject owlObject : cycle) {
+						sb.append(' ');
+						sb.append(owlpp.render(owlObject));
+					}
+					sb.append("]\n");
+
+				}
+				if (!oortConfig.isForceRelease()) {
+					sb.insert(0, "OBO Basic is not a DAG, found the following cycles:\n");
+					throw new OboOntologyReleaseRunnerCheckException(sb.toString());
+				}
+				else {
+					logger.warn("Force Release: ignore "+cycles.size()+" cycle(s) in basic ontology, cycles: "+sb.toString());
+				}
+			}
+			logger.info("Finished - Verifying DAG requirement for OBO Basic.");
+		}
+		
+		saveInAllFormats(ontologyId, "simple", version, gciOntology);
+		logger.info("Creating simple ontology completed");
 	}
 
 	private String handleOntologyId() {
