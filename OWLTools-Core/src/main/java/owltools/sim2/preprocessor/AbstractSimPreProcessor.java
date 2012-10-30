@@ -65,39 +65,58 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	protected Logger LOG = Logger.getLogger(AbstractSimPreProcessor.class);
 	private OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
 
+	@Override
 	public OWLOntology getInputOntology() {
 		return inputOntology;
 	}
 
+	@Override
 	public void setInputOntology(OWLOntology inputOntology) {
 		this.inputOntology = inputOntology;
 		if (outputOntology == null)
 			outputOntology = inputOntology;
 	}
 
+	@Override
 	public OWLOntology getOutputOntology() {
 		return outputOntology;
 	}
 
+	@Override
 	public void setOutputOntology(OWLOntology outputOntology) {
 		this.outputOntology = outputOntology;
 	}
 
-	public OWLReasoner getReasoner() {
+	@Override
+	public synchronized OWLReasoner getReasoner() {
 		if (reasoner == null) {
 			reasoner = reasonerFactory.createReasoner(outputOntology); // buffering
 		}
 		return reasoner;
 	}
 
-	public void setReasoner(OWLReasoner reasoner) {
+	@Override
+	public synchronized void setReasoner(OWLReasoner reasoner) {
+		if (this.reasoner != null && reasoner != this.reasoner) {
+			reasoner.dispose();
+		}
 		this.reasoner = reasoner;
 	}
 
+	@Override
 	public void setReasonerFactory(OWLReasonerFactory reasonerFactory) {
 		this.reasonerFactory = reasonerFactory;
 	}
 
+	@Override
+	public synchronized void dispose() {
+		if (reasoner != null) {
+			reasoner.dispose();
+			reasoner = null;
+		}
+	}
+
+	@Override
 	public void setOWLPrettyPrinter(OWLPrettyPrinter owlpp) {
 		this.owlpp = owlpp;
 	}
@@ -107,6 +126,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		return simProperties;
 	}
 
+	@Override
 	public void setSimProperties(Properties simProperties) {
 		this.simProperties = simProperties;
 	}
@@ -128,11 +148,15 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 
 	}
 
+	@Override
 	public Set<OWLClass> getViewClasses(OWLClass c) {
 		return viewMap.get(c);
 	}
 
+	@Override
 	public abstract void preprocess();
+	
+	@Override
 	public abstract OWLClassExpression getLowestCommonSubsumer(OWLClassExpression a, OWLClassExpression b);
 
 	public void makeReflexive(OWLObjectProperty p) {
@@ -692,6 +716,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		}
 	}
 	
+	@Override
 	public OWLObjectProperty getAboxProperty() {
 		return null;
 	}

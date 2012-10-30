@@ -35,7 +35,7 @@ public interface SimPreProcessor {
 	 * 
 	 * This method returns all the view classes generated for any given input ontology class
 	 * 
-	 * @param class
+	 * @param c
 	 * @return
 	 */
 	public Set<OWLClass> getViewClasses(OWLClass c);
@@ -63,7 +63,7 @@ public interface SimPreProcessor {
 	 * Note that this can have the same value as the input ontology. In this case all new
 	 * declarations and axioms are added to the same ontology
 	 * 
-	 * @param inputOntology
+	 * @param outputOntology
 	 */
 	public void setOutputOntology(OWLOntology outputOntology);
 	
@@ -76,6 +76,7 @@ public interface SimPreProcessor {
 
 	/**
 	 * @return reasoner object. Typically an Elk instance
+	 * @see #dispose()
 	 */
 	public OWLReasoner getReasoner();
 
@@ -83,6 +84,7 @@ public interface SimPreProcessor {
 	 * Sets the reasoner. The reasoner should have been instantiated with the output ontology 
 	 * 
 	 * @param reasoner
+	 * @see #dispose()
 	 */
 	public void setReasoner(OWLReasoner reasoner);
 	
@@ -102,5 +104,11 @@ public interface SimPreProcessor {
 	
 	public OWLObjectProperty getAboxProperty();
 
+	/**
+	 * Clean the current instance, i.e. dispose of the reasoner.
+	 * 
+	 * @see #getReasoner()
+	 */
+	public void dispose();
 
 }

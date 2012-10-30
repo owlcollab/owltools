@@ -49,9 +49,14 @@ public class InferenceBuilderTest extends OWLToolsTestBasics {
 		
 		// check that the inference builder does not report a new inferred axiom
 		InferenceBuilder builder = new InferenceBuilder(graph);
-		List<OWLAxiom> inferences = builder.buildInferences();
-		if (!inferences.isEmpty()) {
-			fail("Do not expect any new inferences, but was: "+inferences);
+		try {
+			List<OWLAxiom> inferences = builder.buildInferences();
+			if (!inferences.isEmpty()) {
+				fail("Do not expect any new inferences, but was: "+inferences);
+			}
+		}
+		finally {
+			builder.dispose();
 		}
 	}
 	
@@ -63,12 +68,16 @@ public class InferenceBuilderTest extends OWLToolsTestBasics {
 		
 		OWLGraphWrapper graph  = new OWLGraphWrapper(ontology);
 		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
-		
-		List<OWLAxiom> newInferences = builder.buildInferences();
-		assertEquals(2, newInferences.size());
+		try {
+			List<OWLAxiom> newInferences = builder.buildInferences();
+			assertEquals(2, newInferences.size());
 
-		Collection<OWLAxiom> redundantAxioms = builder.getRedundantAxioms();
-		assertEquals(3, redundantAxioms.size());
+			Collection<OWLAxiom> redundantAxioms = builder.getRedundantAxioms();
+			assertEquals(3, redundantAxioms.size());
+		}
+		finally {
+			builder.dispose();
+		}
 	}
 
 }

@@ -537,14 +537,11 @@ public class SimCommandRunner extends SolrCommandRunner {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			if (sos.getReasoner() != null) {
-				sos.getReasoner().dispose();
-			}
 		}
 		finally {
 			LOG.info("clearing up...");
-			if (sos.getReasoner() != null) {
-				sos.getReasoner().dispose();
+			if (pproc != null) {
+				pproc.dispose();
 			}
 		}
 
@@ -573,12 +570,11 @@ public class SimCommandRunner extends SolrCommandRunner {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			if (sos.getReasoner() != null) {
-				sos.getReasoner().dispose();
-			}
 		}
 		finally {
-			sos.getReasoner().dispose();
+			if (pproc != null) {
+				pproc.dispose();
+			}
 		}
 	}
 
@@ -596,7 +592,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 			runOwlSim(opts);
 		}
 		finally {
-			sos.getReasoner().dispose();
+			pproc.dispose();
 		}
 	}
 

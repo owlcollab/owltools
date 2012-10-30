@@ -211,14 +211,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			if (sos.getReasoner() != null) {
-				sos.getReasoner().dispose();
-			}
 		}
 		finally {
 			LOG.info("clearing up...");
-			if (sos.getReasoner() != null) {
-				sos.getReasoner().dispose();
+			if (pproc != null) {
+				pproc.dispose();
 			}
 		}
 
@@ -247,12 +244,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			if (sos.getReasoner() != null) {
-				sos.getReasoner().dispose();
-			}
 		}
 		finally {
-			sos.getReasoner().dispose();
+			if (pproc != null) {
+				pproc.dispose();
+			}
 		}
 	}
 
@@ -271,7 +267,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			runOwlSim(opts);
 		}
 		finally {
-			sos.getReasoner().dispose();
+			pproc.dispose();
 		}
 	}
 

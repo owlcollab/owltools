@@ -124,9 +124,14 @@ public class JustifyAssertionsTool {
 	public static JustifyResult justifySubClasses(OWLOntology ontology, OWLReasoner reasoner, Set<OWLSubClassOfAxiom> axioms) {
 		
 		InferenceBuilder infBuilder = new InferenceBuilder(null, (OWLReasonerFactory) null, false);
-		Inferences inferences = infBuilder.buildInferences(ontology, reasoner, true);
-		List<OWLAxiom> inferredAxioms = inferences.axiomsToAdd;
-		return justifySubClasses(ontology, reasoner, axioms, inferredAxioms);
+		try {
+			Inferences inferences = infBuilder.buildInferences(ontology, reasoner, true);
+			List<OWLAxiom> inferredAxioms = inferences.axiomsToAdd;
+			return justifySubClasses(ontology, reasoner, axioms, inferredAxioms);
+		}
+		finally {
+			infBuilder.dispose();
+		}
 	}
 	
 	/**

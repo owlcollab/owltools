@@ -80,38 +80,42 @@ public class ReasonerDiff {
 		
 		graph.mergeImportClosure();
 		InferenceBuilder builder = new InferenceBuilder(graph, reasonerName);
-		
-		Set<OWLAxiom> inferredAxioms = new HashSet<OWLAxiom>();
-		
-		OWLOntology ontology = graph.getSourceOntology();
-		OWLDataFactory dataFactory = ontology.getOWLOntologyManager().getOWLDataFactory();
-		
-		OWLReasoner reasoner = builder.getReasoner(ontology);
-		for (OWLClass cls : ontology.getClassesInSignature()) {
-			NodeSet<OWLClass> scs = reasoner.getSuperClasses(cls, true);
-			for (Node<OWLClass> scSet : scs) {
-				for (OWLClass sc : scSet) {
-					if (sc.isOWLThing()) {
-						continue; // do not report subclasses of owl:Thing
-					}
-					// we do not want to report inferred subclass links
-					// if they are already asserted in the ontology
-					boolean isAsserted = false;
-					for (OWLClassExpression asc : cls.getSuperClasses(ontology)) {
-						if (asc.equals(sc)) {
-							// we don't want to report this
-							isAsserted = true;
+		try {
+			Set<OWLAxiom> inferredAxioms = new HashSet<OWLAxiom>();
+
+			OWLOntology ontology = graph.getSourceOntology();
+			OWLDataFactory dataFactory = ontology.getOWLOntologyManager().getOWLDataFactory();
+
+			OWLReasoner reasoner = builder.getReasoner(ontology);
+			for (OWLClass cls : ontology.getClassesInSignature()) {
+				NodeSet<OWLClass> scs = reasoner.getSuperClasses(cls, true);
+				for (Node<OWLClass> scSet : scs) {
+					for (OWLClass sc : scSet) {
+						if (sc.isOWLThing()) {
+							continue; // do not report subclasses of owl:Thing
 						}
-					}
-					// include any inferred axiom that is NOT already asserted in the ontology
-					if (!isAsserted) {						
-						inferredAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
+						// we do not want to report inferred subclass links
+						// if they are already asserted in the ontology
+						boolean isAsserted = false;
+						for (OWLClassExpression asc : cls.getSuperClasses(ontology)) {
+							if (asc.equals(sc)) {
+								// we don't want to report this
+								isAsserted = true;
+							}
+						}
+						// include any inferred axiom that is NOT already asserted in the ontology
+						if (!isAsserted) {						
+							inferredAxioms.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
+						}
 					}
 				}
 			}
+			return inferredAxioms;
+		}
+		finally {
+			builder.dispose();
 		}
 		
-		return inferredAxioms;
 	}
 	
 }

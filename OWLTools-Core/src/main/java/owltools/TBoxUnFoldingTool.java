@@ -62,19 +62,22 @@ public class TBoxUnFoldingTool {
 		this.graph = graph;
 		this.ontology = graph.getSourceOntology();
 		
-		InferenceBuilder inferenceBuilder = new InferenceBuilder(graph, reasonerName);
-		OWLReasoner reasoner = inferenceBuilder.getReasoner(ontology);
+		final InferenceBuilder inferenceBuilder = new InferenceBuilder(graph, reasonerName);
+		final OWLReasoner reasoner = inferenceBuilder.getReasoner(ontology);
 		
-		Set<OWLClass> unfoldClasses = new HashSet<OWLClass>();
-		
-		for(String parent : parents) {
-			OWLClass parentClass = graph.getOWLClassByIdentifier(parent);
-			NodeSet<OWLClass> nodeSet = reasoner.getSubClasses(parentClass , false);
-			if (nodeSet != null && !nodeSet.isEmpty() && !nodeSet.isBottomSingleton()) {
-				unfoldClasses.addAll(nodeSet.getFlattened());
+		final Set<OWLClass> unfoldClasses = new HashSet<OWLClass>();
+		try {
+			for(String parent : parents) {
+				OWLClass parentClass = graph.getOWLClassByIdentifier(parent);
+				NodeSet<OWLClass> nodeSet = reasoner.getSubClasses(parentClass , false);
+				if (nodeSet != null && !nodeSet.isEmpty() && !nodeSet.isBottomSingleton()) {
+					unfoldClasses.addAll(nodeSet.getFlattened());
+				}
 			}
 		}
-		inferenceBuilder.dispose();
+		finally {
+			inferenceBuilder.dispose();
+		}
 		
 		if (unfoldClasses.isEmpty()) {
 			throw new RuntimeException("No classes found for given parents.");

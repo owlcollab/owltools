@@ -41,58 +41,63 @@ public class OortReasonerTest extends OWLToolsTestBasics {
 		OWLOntology owlOntology = p.parse(getResourceIRIString("foo.obo"));
 		OWLGraphWrapper graph = new OWLGraphWrapper(owlOntology);
 		InferenceBuilder b = new InferenceBuilder(graph, "hermit");
-		List<OWLAxiom> axioms = b.buildInferences();
-		for(OWLAxiom ax: axioms) {
-			if (ax instanceof OWLSubClassOfAxiom && 
-					((OWLSubClassOfAxiom)ax).getSuperClass().isOWLThing()) {
-				continue;
+		try {
+			List<OWLAxiom> axioms = b.buildInferences();
+			for(OWLAxiom ax: axioms) {
+				if (ax instanceof OWLSubClassOfAxiom && 
+						((OWLSubClassOfAxiom)ax).getSuperClass().isOWLThing()) {
+					continue;
+				}
+				graph.getManager().applyChange(new AddAxiom(owlOntology, ax));
 			}
-			graph.getManager().applyChange(new AddAxiom(owlOntology, ax));
-		}
-		for(OWLAxiom ax : b.getRedundantAxioms()) {
-			graph.getManager().applyChange(new RemoveAxiom(owlOntology, ax));					
-		}
-		Owl2Obo owl2Obo = new Owl2Obo();
-		OBODoc oboDoc = owl2Obo.convert(owlOntology);
-		
-		if (renderObo) {
-			OBOFormatWriter w = new OBOFormatWriter();
-			StringWriter s = new StringWriter();
-			BufferedWriter writer = new BufferedWriter(s);
-			w.write(oboDoc, writer);
-			writer.close();
-			System.out.println(s.getBuffer().toString());
-		}
-		Frame termFrame = oboDoc.getTermFrame("test:2234");
-		Collection<Clause> intersections = termFrame.getClauses(OboFormatTag.TAG_INTERSECTION_OF);
-		// check that the intersection is preserved
-		assertEquals(2, intersections.size());
-		boolean found1 = false;
-		boolean found2 = false;
-		for (Clause clause : intersections) {
-			Collection<Object> values = clause.getValues();
-			if (values.size() == 1) {
-				found1 = "test:1234".equals(clause.getValue());
+			for(OWLAxiom ax : b.getRedundantAxioms()) {
+				graph.getManager().applyChange(new RemoveAxiom(owlOntology, ax));					
 			}
-			else if (values.size() == 2) {
-				found2 = "rtest:1234".equals(clause.getValue()) && "test:3234".equals(clause.getValue2());
+			Owl2Obo owl2Obo = new Owl2Obo();
+			OBODoc oboDoc = owl2Obo.convert(owlOntology);
+
+			if (renderObo) {
+				OBOFormatWriter w = new OBOFormatWriter();
+				StringWriter s = new StringWriter();
+				BufferedWriter writer = new BufferedWriter(s);
+				w.write(oboDoc, writer);
+				writer.close();
+				System.out.println(s.getBuffer().toString());
 			}
+			Frame termFrame = oboDoc.getTermFrame("test:2234");
+			Collection<Clause> intersections = termFrame.getClauses(OboFormatTag.TAG_INTERSECTION_OF);
+			// check that the intersection is preserved
+			assertEquals(2, intersections.size());
+			boolean found1 = false;
+			boolean found2 = false;
+			for (Clause clause : intersections) {
+				Collection<Object> values = clause.getValues();
+				if (values.size() == 1) {
+					found1 = "test:1234".equals(clause.getValue());
+				}
+				else if (values.size() == 2) {
+					found2 = "rtest:1234".equals(clause.getValue()) && "test:3234".equals(clause.getValue2());
+				}
+			}
+			assertTrue("IS_A part of the intersection not found", found1);
+			assertTrue("RELATIONSHIP part of intersection not found", found2);
+
+			// also check that the base relations are added
+			// is_a
+			Collection<Clause> isas = termFrame.getClauses(OboFormatTag.TAG_IS_A);
+			assertEquals(1, isas.size());
+			assertEquals("test:1234", isas.iterator().next().getValue());
+
+			// relationship
+			Collection<Clause> rels = termFrame.getClauses(OboFormatTag.TAG_RELATIONSHIP);
+			assertEquals(1, rels.size());
+			Clause rel = rels.iterator().next();
+			assertEquals("rtest:1234", rel.getValue());
+			assertEquals("test:3234", rel.getValue2());
 		}
-		assertTrue("IS_A part of the intersection not found", found1);
-		assertTrue("RELATIONSHIP part of intersection not found", found2);
-		
-		// also check that the base relations are added
-		// is_a
-		Collection<Clause> isas = termFrame.getClauses(OboFormatTag.TAG_IS_A);
-		assertEquals(1, isas.size());
-		assertEquals("test:1234", isas.iterator().next().getValue());
-		
-		// relationship
-		Collection<Clause> rels = termFrame.getClauses(OboFormatTag.TAG_RELATIONSHIP);
-		assertEquals(1, rels.size());
-		Clause rel = rels.iterator().next();
-		assertEquals("rtest:1234", rel.getValue());
-		assertEquals("test:3234", rel.getValue2());
+		finally {
+			b.dispose();
+		}
 		
 	}
 

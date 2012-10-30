@@ -55,9 +55,13 @@ public class AutomaticSimPreProcessorTest extends OWLToolsTestBasics {
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
 		
 		AutomaticSimPreProcessor pproc = new AutomaticSimPreProcessor();
-		pproc.setInputOntology(sourceOntol);
-		pproc.setOutputOntology(sourceOntol);
-		pproc.preprocess();
+		try {
+			pproc.setInputOntology(sourceOntol);
+			pproc.setOutputOntology(sourceOntol);
+			pproc.preprocess();
+		} finally {
+			pproc.dispose();
+		}
 
 	}
 

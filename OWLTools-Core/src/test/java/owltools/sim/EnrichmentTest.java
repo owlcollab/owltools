@@ -80,7 +80,7 @@ public class EnrichmentTest extends OWLToolsTestBasics {
 
 			for (OWLNamedIndividual ind : sourceOntol.getIndividualsInSignature()) {
 				System.out.println(ind);
-				for (OWLClass c : sos.getReasoner().getTypes(ind, true).getFlattened()) {
+				for (OWLClass c : reasoner.getTypes(ind, true).getFlattened()) {
 					System.out.println("  T:"+c);
 				}
 			}
