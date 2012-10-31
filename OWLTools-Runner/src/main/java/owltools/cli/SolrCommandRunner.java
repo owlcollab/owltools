@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.common.SolrException;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -443,6 +444,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		loader.setGraph(g);
 		try {
 			loader.load();
+		} catch (SolrException e) {
+			e.printStackTrace();
 		} catch (SolrServerException e) {
 			e.printStackTrace();
 		}
