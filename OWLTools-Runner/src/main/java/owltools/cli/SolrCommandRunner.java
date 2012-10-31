@@ -444,7 +444,11 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		loader.setGraph(g);
 		try {
 			loader.load();
-		} catch (SolrException e) {
+		} catch (java.lang.NullPointerException e) { // can trigger when the GAF is empty
+			LOG.warn("Possible empty GAF: " + url);
+			e.printStackTrace();
+		} catch (SolrException e) { // can trigger when there is more than one PANTHER tree
+			LOG.warn("Possible PANTHER error: " + url);
 			e.printStackTrace();
 		} catch (SolrServerException e) {
 			e.printStackTrace();
