@@ -577,14 +577,26 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			try {
 				// TODO - make this configurable.
 				// currently uses the name "MAIN-bridge-to-EXT" for all
-				xe = new XrefExpander(parser.getOBOdoc(), ontologyId+"-bridge-to");
-				xe.expandXrefs(); // generate imported obo docs from xrefs
-				for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
-					String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
-					logger.info("Generating bridge ontology:"+tOntId);
-					Obo2Owl obo2owl = new Obo2Owl();
-					OWLOntology tOnt = obo2owl.convert(tdoc);
-					saveOntologyInAllFormats(ontologyId, tOntId, version, tOnt, null, true);
+				final OBODoc obodoc = parser.getOBOdoc();
+				if (obodoc == null) {
+					final String message = "Creating Bridge Ontologies is only applicable for OBO ontologies as source.";
+					if (!oortConfig.isForceRelease()) {
+						throw new OboOntologyReleaseRunnerCheckException(message);
+					}
+					else {
+						logger.warn("Force Release: ignore "+message);
+					}
+				}
+				else {
+					xe = new XrefExpander(obodoc, ontologyId+"-bridge-to");
+					xe.expandXrefs(); // generate imported obo docs from xrefs
+					for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
+						String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
+						logger.info("Generating bridge ontology:"+tOntId);
+						Obo2Owl obo2owl = new Obo2Owl();
+						OWLOntology tOnt = obo2owl.convert(tdoc);
+						saveOntologyInAllFormats(ontologyId, tOntId, version, tOnt, null, true);
+					}
 				}
 			} catch (InvalidXrefMapException e) {
 				logger.info("Problem during Xref expansion: "+e.getMessage(), e);
