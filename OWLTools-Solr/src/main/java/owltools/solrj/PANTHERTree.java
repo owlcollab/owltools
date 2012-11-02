@@ -139,8 +139,13 @@ public class PANTHERTree {
 				// Gather the node information and add it to the graph.
 				PhylogenyNode pNode = pIter.next();
 				int nid = pNode.getId();
-				String id_str = Integer.toString(nid);
+				// Make node ids global.
+				String id_str = uuidInternal(Integer.toString(nid));
+				// Sensible label or use the id.
 				String lbl = pNode.getName();
+				if( lbl == null || lbl == "" ){
+					lbl = id_str;
+				}
 				OWLShuntNode n = new OWLShuntNode(id_str);
 				n.setLabel(lbl);
 				g.addNode(n);
@@ -149,13 +154,16 @@ public class PANTHERTree {
 				List<PhylogenyNode> children = pNode.getDescendants();
 				for( PhylogenyNode kid : children ){
 					int enid = kid.getId();
-					String enid_str = Integer.toString(enid);
+					String enid_str = uuidInternal(Integer.toString(enid));
 					OWLShuntEdge e = new OWLShuntEdge(id_str, enid_str);
+					// Have the distance as string for the metatdata.
 					e.setMetadata(Double.toString(kid.getDistanceToParent()));
 					g.addEdge(e);
 				}
 			}
 		}
+		
+		// TODO: Assemble closures?
 		
 		return g;
 	}

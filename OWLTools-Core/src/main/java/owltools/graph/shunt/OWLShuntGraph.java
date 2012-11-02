@@ -1,6 +1,9 @@
 package owltools.graph.shunt;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.Gson;
@@ -24,6 +27,10 @@ public class OWLShuntGraph {
 	public Set<OWLShuntNode> nodes = new HashSet<OWLShuntNode>();
 	public Set<OWLShuntEdge> edges = new HashSet<OWLShuntEdge>();
 
+	private Map<String,Set<String>> childToParents = new HashMap<String,Set<String>>();
+	private Map<String,Set<String>> parentToChildren = new HashMap<String,Set<String>>();
+	//private Set<String> roots = null;
+	
 	/**
 	 * Empty constructor.
 	 */
@@ -67,9 +74,119 @@ public class OWLShuntGraph {
 	 * @return boolean, true if new elt added
 	 */
 	public boolean addEdge(OWLShuntEdge e){
+
+		String cid = e.sub;
+		String pid = e.obj;
+
+		// First, mark the child to parents relationship.
+		// First, make sure there is a set there.
+		if( ! childToParents.containsKey(pid) ){
+			childToParents.put(pid, new HashSet<String>());
+		}
+		// Then add the relation if it is not in the set.
+		Set<String> oya = childToParents.get(pid);
+		if( ! oya.contains(cid) ){
+			oya.add(cid);
+		}
+		
+		// Now mark the parent to children relationships.
+		// First, make sure there is a set there.
+		if( ! parentToChildren.containsKey(cid) ){
+			parentToChildren.put(cid, new HashSet<String>());
+		}
+		// Then add the relation if it is not in the set.
+		Set<String> kids = parentToChildren.get(cid);
+		if( ! kids.contains(pid) ){
+			kids.add(pid);
+		}
+		
+		// Standard return.
 		return edges.add(e);
 	}
+
+	/**
+	 * Return the set of parents of a node as IDs.
+	 * 
+	 * @param nodeID
+	 * @return Set of strings
+	 */
+	public Set<String> getParents(String nodeID){
+		Set<String> retset = new HashSet<String>();
+
+		if( childToParents.containsKey(nodeID) ){
+			retset = childToParents.get(nodeID);
+		}
+		
+		return retset;
+	}
 	
+	/**
+	 * Return the set of children of a node as IDs.
+	 * 
+	 * @param nodeID
+	 * @return Set of strings
+	 */
+	public Set<String> getChildren(String nodeID){
+		Set<String> retset = new HashSet<String>();
+
+		if( parentToChildren.containsKey(nodeID) ){
+			retset = parentToChildren.get(nodeID);
+		}
+		
+		return retset;
+	}
+	
+	/**
+	 * Return the set of graph roots (no parents) as IDs.
+	 * 
+	 * @param nodeID
+	 * @return Set of strings
+	 */
+	public Set<String> getRoots(){
+		
+		Set<String> roots = new HashSet<String>();
+
+		// Cycle through the nodes and see who has a parent.
+		for( OWLShuntNode node : nodes ){
+			Set<String> parents = getParents(node.id);
+			if( parents == null || parents.isEmpty() ){
+				roots.add(node.id);
+			}
+		}
+		
+		return roots;
+	}
+	
+	/**
+	 * Return the set of graph leaves (no children) as IDs.
+	 * 
+	 * @param nodeID
+	 * @return Set of strings
+	 */
+	public Set<String> getLeaves(){
+		
+		Set<String> leaves = new HashSet<String>();
+
+		// Cycle through the nodes and see who has a child.
+		for( OWLShuntNode node : nodes ){
+			Set<String> kids = getChildren(node.id);
+			if( kids == null || kids.isEmpty() ){
+				leaves.add(node.id);
+			}
+		}
+		
+		return leaves;
+	}
+	
+	/**
+	 * Get a depth-first iterator for the graph.
+	 * 
+	 * @return JSON form of the shunt graph structure
+	 */
+	public Iterator<String> iterator(){
+		return new OWLShuntGraphDFIterator(this);
+	}
+
 	/**
 	 * 
 	 * @return JSON form of the shunt graph structure
