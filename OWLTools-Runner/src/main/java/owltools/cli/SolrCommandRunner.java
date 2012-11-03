@@ -251,7 +251,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @throws Exception
 	 */
 	@CLIMethod("--solr-load-gafs")
-	public void loadGafsSolr(Opts opts) throws Exception {
+	public void loadGAFsSolr(Opts opts) throws Exception {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 		
@@ -443,9 +443,10 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		loader.setGafDocument(gafdoc);
 		loader.setGraph(g);
 		try {
+			LOG.info("Loading: " + url + " with: " + gafdoc.getDocumentPath());
 			loader.load();
 		} catch (java.lang.NullPointerException e) { // can trigger when the GAF is empty
-			LOG.warn("Possible empty GAF: " + url);
+			LOG.warn("Huh...some null pointer exception...good luck! At: " + url + " with: " + gafdoc.getDocumentPath());
 			e.printStackTrace();
 		} catch (SolrException e) { // can trigger when there is more than one PANTHER tree
 			LOG.warn("Possible PANTHER error: " + url);

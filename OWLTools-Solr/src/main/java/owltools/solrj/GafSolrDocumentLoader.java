@@ -73,6 +73,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	@Override
 	public void load() throws SolrServerException, IOException {
 		gafDocument.index();
+		LOG.info("Loading: " + gafDocument.getDocumentPath());
 		for (Bioentity e : gafDocument.getBioentities()) {
 			add(e);
 			current_doc_number++;
@@ -147,6 +148,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		// Optionally, pull information from the PANTHER file set.
 		List<String> pantherFamilies = new ArrayList<String>();
 		List<String> pantherTreeGraphs = new ArrayList<String>();
+		List<String> pantherTreeAnnAncestors = new ArrayList<String>();
+		List<String> pantherTreeAnnDescendants = new ArrayList<String>();
 		if( pset != null && pset.getNumberOfFilesInSet() > 0 ){
 			Set<PANTHERTree> pTrees = pset.getAssociatedTrees(eid);
 			if( pTrees != null ){
@@ -157,6 +160,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					PANTHERTree ptree = piter.next();
 					pantherFamilies.add(ptree.getTreeName());
 					pantherTreeGraphs.add(ptree.getOWLShuntGraph().toJSON());
+					pantherTreeAnnAncestors = new ArrayList<String>(ptree.getAncestorAnnotations(eid));
+					pantherTreeAnnDescendants = new ArrayList<String>(ptree.getDescendantAnnotations(eid));
 					if( pcnt > 1 ){ // DEBUG
 						LOG.info("Belongs to multiple families: " + StringUtils.join(pantherFamilies, ", "));
 					}
@@ -165,8 +170,14 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		}
 		// Optionally, actually /add/ the PANTHER family data to the document.
 		if( ! pantherFamilies.isEmpty() ){
-			bioentity_doc.addField("family_tag", pantherFamilies);			
-			bioentity_doc.addField("phylo_graph", pantherTreeGraphs);			
+			bioentity_doc.addField("family_tag", pantherFamilies);
+			bioentity_doc.addField("phylo_graph", pantherTreeGraphs);
+			if( ! pantherTreeAnnAncestors.isEmpty() ){
+				bioentity_doc.addField("phylo_ancestor_closure", pantherTreeAnnAncestors);
+			}
+			if( ! pantherTreeAnnDescendants.isEmpty() ){
+				bioentity_doc.addField("phylo_descendant_closure", pantherTreeAnnDescendants);
+			}
 		}
 		
 		// Something that we'll need for the annotation evidence aggregate later.

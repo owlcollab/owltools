@@ -183,7 +183,7 @@ public class OWLShuntGraph {
 	 * 
 	 * @return JSON form of the shunt graph structure
 	 */
-	public Iterator<String> iterator(){
+	public Iterator<String> iteratorDF(){
 		return new OWLShuntGraphDFIterator(this);
 	}
 
