@@ -33,7 +33,7 @@ public class PANTHERForestTest {
 		
 		// Trivial
 		assertNotNull("Hope so", pSet);
-		assertEquals("We should have two trees", 2, pSet.getNumberOfFilesInSet());
+		assertEquals("We should have two trees", 3, pSet.getNumberOfFilesInSet());
 
 		// Contents.
 		assertNull("Not in (A)", pSet.getAssociatedTrees(""));
