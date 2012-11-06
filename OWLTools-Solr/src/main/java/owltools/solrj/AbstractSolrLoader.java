@@ -14,7 +14,7 @@ import org.apache.solr.common.SolrInputDocument;
 import owltools.graph.OWLGraphWrapper;
 
 /**
- * root class for loading ontologies or ontology-related data into a solr server
+ * Root class for loading ontologies or ontology-related data into a Solr instance
  * using web services and the solrj library
  * 
  * @author cjm

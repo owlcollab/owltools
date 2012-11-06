@@ -35,11 +35,11 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
 import owltools.graph.shunt.OWLShuntNode;
+import owltools.panther.PANTHERForest;
+import owltools.panther.PANTHERTree;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
-import owltools.solrj.PANTHERForest;
-import owltools.solrj.PANTHERTree;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 

@@ -1,4 +1,4 @@
-package owltools.solrj;
+package owltools.panther;
 
 
 import static junit.framework.Assert.*;
@@ -18,6 +18,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import owltools.graph.shunt.OWLShuntGraph;
+import owltools.panther.PANTHERForest;
 
 public class PANTHERForestTest {
 

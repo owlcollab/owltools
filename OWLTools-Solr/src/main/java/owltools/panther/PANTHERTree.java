@@ -1,4 +1,4 @@
-package owltools.solrj;
+package owltools.panther;
 
 import java.io.File;
 import java.io.IOException;

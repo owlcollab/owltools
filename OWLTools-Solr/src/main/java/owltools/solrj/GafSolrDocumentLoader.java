@@ -29,9 +29,16 @@ import owltools.gaf.TaxonTools;
 import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLQuantifiedProperty;
+import owltools.panther.PANTHERForest;
+import owltools.panther.PANTHERTree;
 
 import com.google.gson.*;
 
+/**
+ * A very specific class for the specific use case of loading in a GAF-like document into a Solr index.
+ * This method is very non-generic and GO-specific, and does not use the YAML configuration files to make
+ * things easy for mirroring a BBOP-JS constrained SOlr index.
+ */
 public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(GafSolrDocumentLoader.class);

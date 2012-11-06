@@ -11,6 +11,10 @@ import owltools.flex.FlexCollection;
 import owltools.flex.FlexDocument;
 import owltools.flex.FlexLine;
 
+/**
+ * A slightly generic class for loading a Solr index compatible with the constraints defined by a BBOP-JS Solr index.
+ * The load is entirely defined by a YAML file and functions in the OWLGraphWrapper {@link owltools.graph.OWLGraphWrapper}.
+ */
 public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);

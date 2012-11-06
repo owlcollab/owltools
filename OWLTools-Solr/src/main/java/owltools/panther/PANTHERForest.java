@@ -1,4 +1,4 @@
-package owltools.solrj;
+package owltools.panther;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +42,8 @@ import owltools.graph.shunt.OWLShuntNode;
 import owltools.io.ParserWrapper;
 
 /**
- * Methods to simplify the work with the Newick-ish output we get from PANTHER. 
+ * Methods to simplify the work with sets of PANTHER trees.
+ * See: {@link owltools.panther.PANTHERTree}.
  */
 public class PANTHERForest {
 	
