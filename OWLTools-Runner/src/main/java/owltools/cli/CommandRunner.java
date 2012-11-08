@@ -1086,10 +1086,16 @@ public class CommandRunner {
 				boolean followClosure = false;
 				boolean useMooncat = false;
 				while (opts.hasOpts()) {
-					if (opts.nextEq("-f|--follow-closure|--file-gaps"))
+					if (opts.nextEq("-f|--follow-closure|--fill-gaps")) {
+						opts.info("", 
+							"using mooncat will have the effect of including the graph closure of all results in the output ontology");
 						followClosure = true;
-					else if (opts.nextEq("-m|--use-mooncat"))
+					}
+					else if (opts.nextEq("-m|--use-mooncat")) {
+						opts.info("", 
+								"using mooncat will have the effect of including the graph closure of all results in the output ontology");
 						useMooncat = true;
+					}
 					else
 						break;
 				}
