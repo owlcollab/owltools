@@ -73,7 +73,7 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 			sos.setSimPreProcessor(pproc);
 			sos.createElementAttributeMapFromOntology();
 
-			sos.saveOntology("/tmp/z.owl");
+			//sos.saveOntology("/tmp/z.owl");
 
 			reasoner.flush();
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
@@ -113,7 +113,7 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 			sos.setSimPreProcessor(pproc);
 			sos.createElementAttributeMapFromOntology();
 
-			sos.saveOntology("/tmp/z.owl");
+			//sos.saveOntology("/tmp/z.owl");
 
 			reasoner.flush();
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
