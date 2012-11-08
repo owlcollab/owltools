@@ -31,6 +31,7 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.sim2.ClassExpressionPair;
+import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
@@ -65,18 +66,47 @@ public class SimpleOwlSim {
 	private Map<ClassExpressionPair, Set<Node<OWLClass>>> csCache;
 	private Map<OWLClass,Double> icCache;
 	Map<OWLClass, Integer> attributeElementCount = null;
-	private Map<OWLClassExpression,OWLClass> lcsExpressionToClass = new HashMap<OWLClassExpression,OWLClass>();
+	//private Map<OWLClassExpression,OWLClass> lcsExpressionToClass = new HashMap<OWLClassExpression,OWLClass>();
+	
+	/**
+	 * Base similarity metric - may be applied at individual
+	 * or class level
+	 */
+	public enum Metric { 
+		JACCARD, 
+		OVERLAP, 
+		NORMALIZED_OVERLAP, 
+		DICE,
+		IC_MCS,
+		GIC };
+		
+	/**
+	 * Asymmetric metrics can be applied in either of two directions,
+	 * or both can be aggregated
+	 */
+	public enum Direction { 
+		/**
+		 * Asymmetric, matching all annotations on first element
+		 */
+		A_TO_B, 
+		/**
+		 * Asymmetric, matching all annotations on second element
+		 */
+		B_TO_A,
+		/**
+		 * Symmetric - taking average of both directions
+		 */
+		AVERAGE };
 
 	private Properties simProperties;
 
 
 
-	@Deprecated
-	public enum Stage {VIEW, LCS};
-	@Deprecated
-	public String baseFileName = null;
-
-	public enum SimProperty {
+	/**
+	 * Set of tags that can be used in configuration 
+	 *
+	 */
+	public enum SimConfigurationProperty {
 		minimumMaxIC, minimumSimJ,
 		compare;
 	}
@@ -192,47 +222,12 @@ public class SimpleOwlSim {
 		addIgnoreSubClassesOf(owlDataFactory.getOWLClass(iri));
 	}
 
-	public String getBaseFileName() {
-		return baseFileName;
-	}
-
-	public void setBaseFileName(String baseFileName) {
-		this.baseFileName = baseFileName;
-	}
 
 	private Set<OWLObjectProperty> getAllObjectProperties() {
 		return sourceOntology.getObjectPropertiesInSignature();
 	}
 
-	/**
-	 * NEW: 
-	 * externalize preprocessing to separate class
-	 * 
-	 */
 
-	/*
-	private void preprocess() {
-		this.simPreProcessor.setInputOntology(sourceOntology);
-		this.simPreProcessor.setInputOntology(sourceOntology);
-		this.simPreProcessor.preprocess();
-	}
-	 */
-
-
-	@Deprecated
-	public void saveOntology(Stage stage) throws FileNotFoundException, OWLOntologyStorageException {
-		if (this.baseFileName != null) {
-			this.saveOntology(baseFileName +"-" + stage + ".owl");
-		}
-	}
-
-	@Deprecated
-	public void saveOntology(String fn) throws FileNotFoundException, OWLOntologyStorageException {
-		FileOutputStream os = new FileOutputStream(new File(fn));
-		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
-
-		owlOntologyManager.saveOntology(sourceOntology, owlFormat, os);
-	}
 
 	public OWLReasoner getReasoner() {
 		return simPreProcessor.getReasoner();
@@ -351,6 +346,32 @@ public class SimpleOwlSim {
 		return commonSubsumerNodes;
 	}
 
+	public double getAttributeSimilarity(OWLClassExpression a, OWLClassExpression b, Metric metric) {
+		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b);
+		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a);
+		cu.addAll(getNamedReflexiveSubsumers(b));
+		// TODO - DRY
+		if (metric.equals(Metric.JACCARD)) {
+			return ci.size() / (float)cu.size();
+		}
+		else if (metric.equals(Metric.OVERLAP)) {
+			return ci.size();
+		}
+		else if (metric.equals(Metric.NORMALIZED_OVERLAP)) {
+			return ci.size() / Math.min(getNamedReflexiveSubsumers(a).size(), getNamedReflexiveSubsumers(b).size());
+		}
+		else if (metric.equals(Metric.DICE)) {
+			return 2 * ci.size() / ( (getNamedReflexiveSubsumers(a).size() + getNamedReflexiveSubsumers(b).size()) );
+		}
+		else if (metric.equals(Metric.JACCARD)) {
+			return ci.size() / (float)cu.size();
+		}
+		else {
+			LOG.error("No such metric: "+metric);
+			return 0;
+		}
+	}
+
 
 
 	/**
@@ -362,7 +383,7 @@ public class SimpleOwlSim {
 	 * @param b
 	 * @return SimJ of two attribute classes
 	 */
-	public float getAttributeJaccardSimilarity(OWLClassExpression a, OWLClassExpression b) {
+	public double getAttributeJaccardSimilarity(OWLClassExpression a, OWLClassExpression b) {
 		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b);
 		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a);
 		cu.addAll(getNamedReflexiveSubsumers(b));
@@ -383,6 +404,30 @@ public class SimpleOwlSim {
 		cu.addAll(getInferredAttributes(j));
 		return ci.size() / (float)cu.size();
 	}
+	
+	/**
+	 * <img src="http://www.pubmedcentral.nih.gov/picrender.fcgi?artid=2238903&blobname=gkm806um8.jpg" alt="formula for simGIC"/>
+	 * 
+	 * 
+	 * @param i
+	 * @param j
+	 * @return 
+	 */
+	public double getElementGraphInformationContentSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) {
+		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(i,j);
+		Set<Node<OWLClass>> cu = getInferredAttributes(i);
+		cu.addAll(getInferredAttributes(j));
+		double sumICboth = 0;
+		double sumICunion = 0;
+		for (Node<OWLClass> c : ci) {
+			sumICboth += getInformationContentForAttribute(c.getRepresentativeElement());
+		}
+		for (Node<OWLClass> c : cu) {
+			sumICunion += getInformationContentForAttribute(c.getRepresentativeElement());
+		}
+		return sumICboth / sumICunion;	
+	}
+
 
 	/**
 	 * CACHED
@@ -475,7 +520,27 @@ public class SimpleOwlSim {
 	 * @return pair
 	 */
 	public ScoreAttributesPair getSimilarityBestMatchAverageAsym(OWLNamedIndividual i, OWLNamedIndividual j) {
+		return getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
+	}
+	
+	public ScoreAttributesPair getSimilarityBestMatchAverageAsym(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric) {
+		return getSimilarityBestMatchAverage(i, j, metric, Direction.A_TO_B);
+	}
+	
+	public ScoreAttributesPair getSimilarityBestMatchAverage(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric, Direction dir) {
 
+		if (dir.equals(Direction.B_TO_A)) {
+			return getSimilarityBestMatchAverage(j, i, metric, Direction.A_TO_B);
+		}
+		if (dir.equals(Direction.AVERAGE)) {
+			LOG.error("TODO - make this more efficient");
+			ScoreAttributesPair bma1 = getSimilarityBestMatchAverage(i, j, metric, Direction.A_TO_B);
+			ScoreAttributesPair bma2 = getSimilarityBestMatchAverage(j, i, metric, Direction.A_TO_B);
+			Set<OWLClassExpression> atts = new HashSet<OWLClassExpression>(bma1.attributeClassSet);
+			atts.addAll(bma2.attributeClassSet);
+			ScoreAttributesPair bma = new ScoreAttributesPair((bma1.score + bma2.score)/2, bma1.attributeClassSet);
+		}
+		
 		// no cache - assume only called once for each pair
 		List<ScoreAttributesPair> bestMatches = new ArrayList<ScoreAttributesPair>();
 		Set<OWLClassExpression> atts = new HashSet<OWLClassExpression>();
@@ -485,8 +550,20 @@ public class SimpleOwlSim {
 			ScoreAttributesPair best = new ScoreAttributesPair(0.0);
 
 			for (OWLClass t2 : this.getAttributesForElement(j)) {
-				ScoreAttributePair sap = getLowestCommonSubsumerIC(t1, t2);
+				ScoreAttributePair sap;
+				if (metric.equals(Metric.IC_MCS)) {
+					sap = getLowestCommonSubsumerIC(t1, t2);
+				}
+				else if (metric.equals(Metric.JACCARD)) {
+					// todo
+					sap = new ScoreAttributePair(getAttributeJaccardSimilarity(t1, t2), null);
+				}
+				else {
+					LOG.warn("NOT IMPLEMENTED: "+metric);
+					sap = null;
+				}
 				if (Math.abs(sap.score - best.score) < 0.001) {
+					// identical or near identical score
 					best.addAttributeClass(sap.attributeClass);
 				}
 				if (sap.score > best.score) {

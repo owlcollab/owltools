@@ -133,6 +133,7 @@ import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.GraphReasonerFactory;
 import owltools.reasoner.LazyExpressionMaterializingReasonerFactory;
 import owltools.reasoner.OWLExtendedReasoner;
+import owltools.sim2.preprocessor.ABoxUtils;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
@@ -224,10 +225,29 @@ public class CommandRunner {
 	public void run(String[] args) throws Exception {
 		Opts opts = new Opts(args);
 		run(opts);
+		if (reasoner != null) {
+			LOG.info("disposing of "+reasoner);
+			reasoner.dispose();
+		}
 	}
 
 	public void run(Opts opts) throws Exception {
+		runSingleIteration(opts);
+		if (reasoner != null) {
+			LOG.info("disposing of "+reasoner);
+			reasoner.dispose();
+		}
+	}
+	
+	public void runSingleIteration(String[] args) throws Exception {
+		Opts opts = new Opts(args);
+		runSingleIteration(opts);
+	}
 
+	
+	public void runSingleIteration(Opts opts) throws Exception {
+
+			
 		Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = null;
 		GraphicsConfig gfxCfg = new GraphicsConfig();
 		//Configuration config = new PropertiesConfiguration("owltools.properties");
@@ -274,6 +294,9 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--reasoner-dispose")) {
 				reasoner.dispose();
+			}
+			else if (opts.nextEq("--reasoner-flush")) {
+				reasoner.flush();
 			}
 			else if (opts.nextEq("--no-reasoner")) {
 				reasonerName = "";
@@ -1125,6 +1148,23 @@ public class CommandRunner {
 					g.setSourceOntology(subOnt);
 				}
 			}
+			else if (opts.nextEq("--map-abox-to-results")) {
+				Set<OWLClass> cs = new HashSet<OWLClass>();
+				for (OWLObject obj : owlObjectCachedSet) {
+					if (obj instanceof OWLClass)
+						cs.add((OWLClass) obj);
+				}
+				ABoxUtils.mapClassAssertionsUp(g.getSourceOntology(), reasoner, cs, null);
+			}
+			else if (opts.nextEq("--map-abox-to-namespace")) {
+				String ns = opts.nextOpt();
+				Set<OWLClass> cs = new HashSet<OWLClass>();
+				for (OWLClass c : g.getSourceOntology().getClassesInSignature(true)) {
+					if (c.getIRI().toString().startsWith(ns))
+						cs.add(c);
+				}
+				ABoxUtils.mapClassAssertionsUp(g.getSourceOntology(), reasoner, cs, null);
+			}
 			else if (opts.nextEq("--reasoner-ask-all")) {
 				opts.info("[-r REASONERNAME] [-s] [-a] AXIOMTYPE", "list all inferred equivalent named class pairs");
 				boolean isReplaceOntology = false;
@@ -1805,6 +1845,21 @@ public class CommandRunner {
 
 				g.getConfig().excludeMetaClass = c;	
 			}
+			else if (opts.nextEq("--load-instances")) {
+				TableToAxiomConverter ttac = new TableToAxiomConverter(g);
+				ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
+				ttac.config.isSwitchSubjectObject = true;
+				String f = opts.nextOpt();
+				System.out.println("tabfile: "+f);
+				ttac.parse(f);			
+			}
+			else if (opts.nextEq("--load-labels")) {
+				TableToAxiomConverter ttac = new TableToAxiomConverter(g);
+				ttac.config.setPropertyToLabel();
+				ttac.config.axiomType = AxiomType.ANNOTATION_ASSERTION;
+				String f = opts.nextOpt();
+				ttac.parse(f);			
+			}
 			else if (opts.nextEq("--parse-tsv")) {
 				opts.info("[-s] [-p PROPERTY] [-a AXIOMTYPE] [-t INDIVIDUALSTYPE] FILE", "parses a tabular file to OWL axioms");
 				TableToAxiomConverter ttac = new TableToAxiomConverter(g);
@@ -2159,30 +2214,6 @@ public class CommandRunner {
 			}
 		}
 
-		/*
-
-		OWLGraphWrapper g;
-		if (paths.size() == 0) {
-			throw new Error("must specify at least one file");
-		}
-
-		if (paths.size() > 1) {
-			if (merge) {
-				// note: currently we can only merge obo files
-				pw.parseOBOFiles(paths);
-			}
-			else {
-				throw new Error("cannot load multiple files unless --merge is set");
-			}
-		}
-		else {
-			g =	pw.parseToOWLGraph(paths.get(0));
-		}
-		 */
-
-		if (reasoner != null) {
-			reasoner.dispose();
-		}
 	}
 
 	@CLIMethod("--assert-inferred-subclass-axioms")

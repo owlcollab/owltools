@@ -43,8 +43,8 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 				"anatomical structure development","tissue development", "organ development",
 				"organ", "blastula","epiblast","blastodic", "viscus", "abdomen organ"
 		};
-		fixObjectProperties();
-		makeInstancesDirect(); // NEW
+		fixObjectProperties(); // repair ontology
+		makeHasPhenotypeInstancesDirect(); // NEW x Type has_phenotype some C ==> x Type C
 		makeDevelopmentMorphologyLinks();
 		ignoreClasses(new HashSet<String>(Arrays.asList(excludeLabels)));
 		addPhenotypePropertyChain();
@@ -76,39 +76,43 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		// (not truly reflexive, but an approximation for this analysis)
 		makeReflexive(COMPOSED_PRIMARILY_OF);
 
-		// Get all "E" classes - i.e. everything except qualities
-		// this is filtered to include only classes that are useful for grouping classes
-		Set<OWLClass> entityClasses = getPhenotypeEntityClasses();
-		LOG.info("Num entity classes:"+entityClasses.size());
+		// ENTITY VIEWS
+		if (true) {
 
-		// VIEW: composed_primarily_of
-		// E.g. "composed primarily of some hair cell".
-		// only build this view for parents of a cpo relationship
-		createPropertyView(cpo, filterByDirectProperty(entityClasses, cpo), "%s-based entity");
+			// Get all "E" classes - i.e. everything except qualities
+			// this is filtered to include only classes that are useful for grouping classes
+			Set<OWLClass> entityClasses = getPhenotypeEntityClasses();
+			LOG.info("Num entity classes:"+entityClasses.size());
 
-		// VIEW: develops_from
-		// E.g. "develops from some limb bud".
-		// only build this view for parents of a df relationship
-		createPropertyView(df, filterByDirectProperty(entityClasses, df), "%s or derivative");
-		//createPropertyView(df, entityClasses, "%s or derivative");
-		//filterUnused(dfAxioms);
+			// VIEW: composed_primarily_of
+			// E.g. "composed primarily of some hair cell".
+			// only build this view for parents of a cpo relationship
+			createPropertyView(cpo, filterByDirectProperty(entityClasses, cpo), "%s-based entity");
 
-		// TODO - affected X => qualifier abnormal
+			// VIEW: develops_from
+			// E.g. "develops from some limb bud".
+			// only build this view for parents of a df relationship
+			createPropertyView(df, filterByDirectProperty(entityClasses, df), "%s or derivative");
+			//createPropertyView(df, entityClasses, "%s or derivative");
+			//filterUnused(dfAxioms);
 
-		// VIEW: part_of
-		// E.g. "part of some limb"
-		createPropertyView(getOWLObjectPropertyViaOBOSuffix(PART_OF), entityClasses, "%s structure");
+			// TODO - affected X => qualifier abnormal
 
-		// Maintain a list of new E classes
-		// E.g. E = {limb, limb structure, limb bud, limb bud derivative}
-		entityClasses.addAll(newClasses);
-		entityClasses.add(owlThing);
+			// VIEW: part_of
+			// E.g. "part of some limb"
+			createPropertyView(getOWLObjectPropertyViaOBOSuffix(PART_OF), entityClasses, "%s structure");
 
-		// VIEW: inheres_in
-		// the resulting classes are dependent continuants, on the same footing as qualities;
-		// intersections can be made with these
-		newClasses = new HashSet<OWLClass>();
-		createPropertyView(inheresIn, entityClasses, "affected %s");
+			// Maintain a list of new E classes
+			// E.g. E = {limb, limb structure, limb bud, limb bud derivative}
+			entityClasses.addAll(newClasses);
+			entityClasses.add(owlThing);
+
+			// VIEW: inheres_in
+			// the resulting classes are dependent continuants, on the same footing as qualities;
+			// intersections can be made with these
+			newClasses = new HashSet<OWLClass>();
+			createPropertyView(inheresIn, entityClasses, "affected %s");
+		}
 
 		saveState("views");
 
@@ -119,9 +123,10 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		// Assume: <PhenoClass> = has_part some (Q and inheres_in some E)
 		//     or: Individual: <i> Types: has_phenotype some has_part some (Q and inheres_in some E)
 		OWLClass phenotypeRootClass = materializeClassExpression( getOWLDataFactory().getOWLObjectSomeValuesFrom(hasPart, owlThing) );
-		Set<OWLClass> thingsWithParts = materializeClassExpressionsReferencedBy(hasPart);
+		Set<OWLClass> compositePhenotypeClasses = materializeClassExpressionsReferencedBy(hasPart);
+		LOG.info("things with parts: "+compositePhenotypeClasses.size());
 		flush();
-		generateLeastCommonSubsumers(thingsWithParts);
+		generateLeastCommonSubsumers(compositePhenotypeClasses);
 		saveState("qe-intersections");
 		flush();
 
@@ -133,7 +138,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		//flush();
 		Set<OWLClass> phenotypeClasses = getReflexiveSubClasses(inheresInSomeThing); // DEP?
 		LOG.info("num inheres in some owl:Thing = "+phenotypeClasses.size());
-		
+
 		// add all MP, HP, etc - these have form "has_part some ..."
 		phenotypeClasses.addAll(getReflexiveSubClasses(phenotypeRootClass)); // DEP?
 		LOG.info(" + has part some owl:Thing = "+phenotypeClasses.size());
@@ -162,9 +167,10 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 	// --
 	// UTIL
 	// --
-	
-	protected void makeInstancesDirect() {
+
+	protected void makeHasPhenotypeInstancesDirect() {
 		// x Type has_phenotype some C ==> x Type C
+		LOG.info("x Type has_phenotype some C ==> x Type C");
 		OWLObjectProperty hasPhenotype = getOWLObjectPropertyViaOBOSuffix(HAS_PHENOTYPE);
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
@@ -177,10 +183,10 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 					rmAxioms.add(caa);
 					newAxioms.add(getOWLDataFactory().getOWLClassAssertionAxiom(svf.getFiller(), i));
 				}
-				
+
 			}
 		}
-		
+		LOG.info("making instances direct: +"+newAxioms.size()+ " -"+rmAxioms.size());
 		addAxiomsToOutput(newAxioms, false);
 		removeAxiomsFromOutput(rmAxioms, false);
 	}
@@ -202,7 +208,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		String oppl =
 			"SELECT ?P EquivalentTo "+RESULTS_IN_MORPHOGENESIS_OF+" SOME ?U "+
 			"BEGIN ADD ('inheres in' some ?P) SubClassOf (morphology and 'inheres in' some ?U)";
-			*/
+		 */
 		LOG.info("making dev-morph links");
 		OWLObjectProperty rimo = this.getOWLObjectPropertyViaOBOSuffix(RESULTS_IN_MORPHOGENESIS_OF);
 		OWLObjectProperty rido = this.getOWLObjectPropertyViaOBOSuffix(RESULTS_IN_DEVELOPMENT_OF);
@@ -355,7 +361,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 				getOWLDataFactory().getOWLObjectSomeValuesFrom(getOWLObjectPropertyViaOBOSuffix(QUALIFIER), 
 						abnormalCls)),
 						false);
-		
+
 		// Quality EquivalentTo inheres_in some Thing
 		// (not globally true, approximation for analysis)
 		addAxiomToOutput(getOWLDataFactory().getOWLEquivalentClassesAxiom(qualityCls,
@@ -369,10 +375,10 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		addAxiomToOutput(getOWLDataFactory().getOWLSubObjectPropertyOfAxiom(getOWLObjectPropertyViaOBOSuffix(DEPENDS_ON),
 				getOWLObjectPropertyViaOBOSuffix(INHERES_IN)),
 				false);
-		
+
 	}
 
-	
+
 
 	// this should already be present, but we assert in anyway to be sure
 	private void addPhenotypePropertyChain() {

@@ -43,7 +43,7 @@ import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
 import owltools.sim2.SimpleOwlSim.EnrichmentResult;
 import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
-import owltools.sim2.SimpleOwlSim.SimProperty;
+import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
@@ -70,18 +70,18 @@ public class SimCommandRunner extends SolrCommandRunner {
 	private void initProperties() {
 		simProperties = new Properties();
 
-		simProperties.setProperty(SimProperty.minimumMaxIC.toString(), "4.0");
-		simProperties.setProperty(SimProperty.minimumSimJ.toString(), "0.25");
+		simProperties.setProperty(SimConfigurationProperty.minimumMaxIC.toString(), "4.0");
+		simProperties.setProperty(SimConfigurationProperty.minimumSimJ.toString(), "0.25");
 	}
 
-	public String getProperty(SimProperty p) {
+	public String getProperty(SimConfigurationProperty p) {
 		if (simProperties == null) {
 			initProperties();
 		}
 		return simProperties.getProperty(p.toString());
 	}
 
-	private Double getPropertyAsDouble(SimProperty p) {
+	private Double getPropertyAsDouble(SimConfigurationProperty p) {
 		String v = getProperty(p);
 		return Double.valueOf(v);
 	}
@@ -449,7 +449,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	}
 
 	private boolean isComparable(OWLNamedIndividual i, OWLNamedIndividual j) {
-		String cmp = getProperty(SimProperty.compare);
+		String cmp = getProperty(SimConfigurationProperty.compare);
 		if (cmp == null) {
 			return i.compareTo(j) > 0;
 		}
@@ -467,11 +467,11 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
 		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
-		if ( maxic.score < getPropertyAsDouble(SimProperty.minimumMaxIC)) {
+		if ( maxic.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
 			return;
 		}
 		float s = sos.getElementJaccardSimilarity(i, j);
-		if (s < getPropertyAsDouble(SimProperty.minimumSimJ)) {
+		if (s < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
 			return;
 		}
 		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
@@ -532,7 +532,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.setSimPreProcessor(pproc);
 			sos.createElementAttributeMapFromOntology();
-			sos.saveOntology("/tmp/phenosim-analysis-ontology.owl");
+			//sos.saveOntology("/tmp/phenosim-analysis-ontology.owl");
 			runOwlSim(opts);
 		}
 		catch (Exception e) {
