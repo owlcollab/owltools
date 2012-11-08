@@ -25,12 +25,11 @@ public class AbstractCommandRunnerTest extends OWLToolsTestBasics {
 	
 	protected void load(String file) throws Exception {
 		String path = getResource(file).getAbsolutePath();
-		System.out.println("Loading: "+path);
 		run(path);		
 	}
 	
 	protected void run(String[] args) throws Exception {
-		runner.run(args);
+		runner.runSingleIteration(args);
 	}
 	protected void run(String argStr) throws Exception {
 		run(argStr.split(" "));
@@ -40,6 +39,9 @@ public class AbstractCommandRunnerTest extends OWLToolsTestBasics {
 		// TODO
 	}
 	
-	
+	public String path(String in) {
+		return getResource(in).getAbsolutePath();
+	}
+
 	
 }
