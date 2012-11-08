@@ -119,15 +119,24 @@ public class EcoTools {
 		if (classes == null) {
 			// only synchronize for write operations
 			synchronized (mappingCache) {
+				final String goXref = createGoEcoXref(goCode);
 				classes = new HashSet<OWLClass>();	
 				Set<OWLObject> allOWLObjects = eco.getAllOWLObjects();
 				for (OWLObject owlObject : allOWLObjects) {
+					if (eco.isObsolete(owlObject)) {
+						continue;
+					}
+					
 					if (owlObject instanceof OWLClass) {
+						
 						List<ISynonym> synonyms = eco.getOBOSynonyms(owlObject);
 						if (synonyms != null && !synonyms.isEmpty()) {
 							for (ISynonym synonym : synonyms) {
 								if (goCode.equals(synonym.getLabel())) {
-									classes.add((OWLClass) owlObject);
+									if (hasGoEcoXref(goXref, synonym)) {
+										classes.add((OWLClass) owlObject);
+										break;
+									}
 								}
 							}
 						}
@@ -141,6 +150,22 @@ public class EcoTools {
 			}
 		}
 		return classes;
+	}
+	
+	static String createGoEcoXref(String code) {
+		return "GOECO:"+code;
+	}
+	
+	static boolean hasGoEcoXref(String goXref, ISynonym synonym) {
+		Set<String> xrefs = synonym.getXrefs();
+		if (xrefs != null && !xrefs.isEmpty()) {
+			for(String xref : xrefs) {
+				if (goXref.equals(xref)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -264,12 +289,18 @@ public class EcoTools {
 		Set<OWLClass> classes = new HashSet<OWLClass>();
 		Set<OWLObject> allOWLObjects = eco.getAllOWLObjects();
 		for (OWLObject owlObject : allOWLObjects) {
+			if (eco.isObsolete(owlObject)) {
+				continue;
+			}
 			if (owlObject instanceof OWLClass) {
 				List<ISynonym> synonyms = eco.getOBOSynonyms(owlObject);
 				if (synonyms != null && !synonyms.isEmpty()) {
 					for (ISynonym synonym : synonyms) {
-						if (goCodes.contains(synonym.getLabel())) {
-							classes.add((OWLClass) owlObject);
+						final String label = synonym.getLabel();
+						if (goCodes.contains(label)) {
+							if (hasGoEcoXref(createGoEcoXref(label), synonym)) {
+								classes.add((OWLClass) owlObject);
+							}
 						}
 					}
 				}
