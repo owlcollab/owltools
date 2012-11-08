@@ -435,6 +435,14 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco, TaxonTools taxo, PANTHERForest pset) throws IOException{
 
+		// Seth's head explodes with non-end return!
+		// TODO: Ask Chris if there is any reason to have null on empty GAFs.
+		// Better to just have an empty doc that we can still get meta-information out of.
+		if( gafdoc == null ){
+			LOG.warn("Huh, it looks like I'm going to skip an empty GAF...");// + gafdoc.getDocumentPath());
+			return;
+		}
+		
 		// Doc load.
 		GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
 		loader.setEcoTools(eco);
@@ -446,7 +454,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			LOG.info("Loading: " + url + " with: " + gafdoc.getDocumentPath());
 			loader.load();
 		} catch (java.lang.NullPointerException e) { // can trigger when the GAF is empty
-			LOG.warn("Huh...some null pointer exception...good luck! At: " + url + " with: " + gafdoc.getDocumentPath());
+			LOG.warn("Huh...some null pointer exception...good luck! At: " + url + ", " + gafdoc.getDocumentPath());
 			e.printStackTrace();
 		} catch (SolrException e) { // can trigger when there is more than one PANTHER tree
 			LOG.warn("Possible PANTHER error: " + url);
