@@ -2229,6 +2229,8 @@ public class CommandRunner {
 		boolean useIsInferred = false;
 		boolean ignoreNonInferredForRemove = false;
 		boolean checkForNamedClassEquivalencies = true;
+		String reportFile = null;
+		
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--removeRedundant"))
 				removeRedundant = true;
@@ -2248,11 +2250,23 @@ public class CommandRunner {
 			else if (opts.nextEq("--allowEquivalencies")) {
 				checkForNamedClassEquivalencies = false;
 			}
+			else if (opts.nextEq("--reportFile")) {
+				reportFile = opts.nextOpt();
+			}
 			else {
 				break;
 			}
 		}
-		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies);
+		BufferedWriter reportWriter = null;
+		if (reportFile != null) {
+			reportWriter = new BufferedWriter(new FileWriter(reportFile));
+		}
+		
+		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies, reportWriter);
+		
+		if (reportWriter != null) {
+			reportWriter.close();
+		}
 	}
 
 	@CLIMethod("--create-biochebi")

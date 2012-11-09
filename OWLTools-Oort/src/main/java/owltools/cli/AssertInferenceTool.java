@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -58,6 +59,7 @@ public class AssertInferenceTool {
 		List<String> inputs = new ArrayList<String>();
 		String outputFileName = null;
 		String outputFileFormat = null;
+		String reportFile = null;
 		
 		// parse command line parameters
 		while (opts.hasArgs()) {
@@ -100,6 +102,9 @@ public class AssertInferenceTool {
 			}
 			else if (opts.nextEq("--ignoreNonInferredForRemove")) {
 				ignoreNonInferredForRemove = true;
+			}
+			else if (opts.nextEq("--reportFile")) {
+				reportFile = opts.nextOpt();
 			}
 			else {
 				inputs.add(opts.nextOpt());
@@ -145,8 +150,17 @@ public class AssertInferenceTool {
 			outputFileFormat = outputFileFormat.toLowerCase();
 		}
 		
+		BufferedWriter reportWriter = null;
+		if (reportFile != null) {
+			reportWriter = new BufferedWriter(new FileWriter(reportFile));
+		}
+		
 		// assert inferences
-		assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove);
+		assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, reportWriter);
+		
+		if (reportWriter != null) {
+			reportWriter.close();
+		}
 		
 		if (dryRun == false) {
 			// write ontology
@@ -236,16 +250,21 @@ public class AssertInferenceTool {
 	 * @param checkConsistency
 	 * @param useIsInferred 
 	 * @param ignoreNonInferredForRemove
+	 * @param reportWriter (optional)
 	 * @throws InconsistentOntologyException 
+	 * @throws IOException 
 	 */
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
-			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove) throws InconsistentOntologyException
+			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove, 
+			BufferedWriter reportWriter) 
+			throws InconsistentOntologyException, IOException
 	{
-		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true);
+		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true, reportWriter);
 	}
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
 			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove,
-			boolean checkForNamedClassEquivalencies) throws InconsistentOntologyException
+			boolean checkForNamedClassEquivalencies, BufferedWriter reportWriter) 
+			throws InconsistentOntologyException, IOException
 	{
 		OWLOntology ontology = graph.getSourceOntology();
 		OWLOntologyManager manager = ontology.getOWLOntologyManager();
@@ -282,7 +301,17 @@ public class AssertInferenceTool {
 			manager.addAxioms(ontology, newAxioms);
 			logger.info("Finished adding inferred axioms");
 			
-			OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
+			final OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
+			if (reportWriter != null) {
+				reportWriter.append("Added axioms (count "+newAxioms.size()+"):\n");
+				for (OWLAxiom newAxiom : newAxioms) {
+					reportWriter.append("ADD\t");
+					reportWriter.append(owlpp.render(newAxiom));
+					reportWriter.append('\n');
+				}
+			}
+			
+			
 			// optional
 			// remove redundant
 			if (removeRedundant) {
@@ -295,19 +324,23 @@ public class AssertInferenceTool {
 						while (iterator.hasNext()) {
 							OWLAxiom axiom = iterator.next();
 							boolean wasInferred = AxiomAnnotationTools.isMarkedAsInferredAxiom(axiom);
-							if (wasInferred == false) {
-								if (ignoreNonInferredForRemove) {
-									logger.info("Ignoring uninferred axiom during remove redundant: "+owlpp.render(axiom));
-								}
-								else {
-									logger.info("Removing uninferred axiom during remove redundant: "+owlpp.render(axiom));
-									iterator.remove();
-								}
+							if (wasInferred == false && ignoreNonInferredForRemove == true) {
+								logger.info("Ignoring redundant axiom, as axiom wasn't marked as inferred: "+owlpp.render(axiom));
+								iterator.remove();
 							}
 						}
 					}
 					manager.removeAxioms(ontology, redundantAxiomSet);
 					logger.info("Finished removing redundant axioms");
+				}
+				
+				if (reportWriter != null) {
+					reportWriter.append("Removed axioms (count "+redundantAxioms.size()+"):\n");
+					for (OWLAxiom redundantAxiom : redundantAxioms) {
+						reportWriter.append("REMOVE\t");
+						reportWriter.append(owlpp.render(redundantAxiom));
+						reportWriter.append('\n');
+					}
 				}
 			}
 			
