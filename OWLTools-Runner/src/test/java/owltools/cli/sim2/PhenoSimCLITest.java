@@ -26,9 +26,9 @@ public class PhenoSimCLITest extends AbstractCommandRunnerTest {
 
 	// TODO: find a smaller example
 	
-	@Ignore
+	//@Ignore
 	@Test
-	public void testSimRunner() throws Exception {
+	public void testPhenoSimRunner() throws Exception {
 		init();
 		load("mp-ns-xp.owl");
 		run("--load-instances "+path("mgi-g2p-100.txt"));
@@ -37,6 +37,17 @@ public class PhenoSimCLITest extends AbstractCommandRunnerTest {
 		//run("-o -f obo /tmp/foo.obo");
 		
 	}
-	
+
+	@Test
+	public void testPhenoSimAttsRunner() throws Exception {
+		init();
+		load("mp-ns-xp.owl");
+		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--phenosim-attribute-matrix -p "+path("test-sim.properties")+" -o phenosim.out");
+		
+		//run("-o -f obo /tmp/foo.obo");
+		
+	}
+
 	
 }
