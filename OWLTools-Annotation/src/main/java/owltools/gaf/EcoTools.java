@@ -119,7 +119,7 @@ public class EcoTools {
 		if (classes == null) {
 			// only synchronize for write operations
 			synchronized (mappingCache) {
-				final String goXref = createGoEcoXref(goCode);
+				final Set<String> goXref = createGoEcoXrefs(goCode);
 				classes = new HashSet<OWLClass>();	
 				Set<OWLObject> allOWLObjects = eco.getAllOWLObjects();
 				for (OWLObject owlObject : allOWLObjects) {
@@ -152,15 +152,18 @@ public class EcoTools {
 		return classes;
 	}
 	
-	static String createGoEcoXref(String code) {
-		return "GOECO:"+code;
+	static Set<String> createGoEcoXrefs(String code) {
+		Set<String> set = new HashSet<String>(3);
+		set.add("GO:"+code);
+		set.add("GOECO:"+code);
+		return set;
 	}
 	
-	static boolean hasGoEcoXref(String goXref, ISynonym synonym) {
+	static boolean hasGoEcoXref(Set<String> goXrefs, ISynonym synonym) {
 		Set<String> xrefs = synonym.getXrefs();
 		if (xrefs != null && !xrefs.isEmpty()) {
 			for(String xref : xrefs) {
-				if (goXref.equals(xref)) {
+				if (goXrefs.contains(xref)) {
 					return true;
 				}
 			}
@@ -298,7 +301,7 @@ public class EcoTools {
 					for (ISynonym synonym : synonyms) {
 						final String label = synonym.getLabel();
 						if (goCodes.contains(label)) {
-							if (hasGoEcoXref(createGoEcoXref(label), synonym)) {
+							if (hasGoEcoXref(createGoEcoXrefs(label), synonym)) {
 								classes.add((OWLClass) owlObject);
 							}
 						}
