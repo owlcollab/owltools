@@ -1,14 +1,10 @@
 package owltools.cli.sim2;
 
-import static junit.framework.Assert.*;
-
-import java.io.File;
-
 import org.junit.Ignore;
 import org.junit.Test;
 
-import owltools.OWLToolsTestBasics;
 import owltools.cli.AbstractCommandRunnerTest;
+import owltools.cli.CommandRunner;
 import owltools.cli.Sim2CommandRunner;
 
 /**
@@ -26,7 +22,7 @@ public class PhenoSimCLITest extends AbstractCommandRunnerTest {
 
 	// TODO: find a smaller example
 	
-	//@Ignore
+	@Ignore("Missing resource: mp-ns-xp.owl")
 	@Test
 	public void testPhenoSimRunner() throws Exception {
 		init();
@@ -38,7 +34,7 @@ public class PhenoSimCLITest extends AbstractCommandRunnerTest {
 		
 	}
 
-	@Ignore
+	@Ignore("Missing resource: mp-ns-xp.owl")
 	@Test
 	public void testPhenoSimAttsRunner() throws Exception {
 		init();
