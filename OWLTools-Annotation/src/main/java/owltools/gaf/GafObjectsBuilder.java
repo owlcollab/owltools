@@ -112,7 +112,7 @@ public class GafObjectsBuilder {
 	 * {@link #getNextSplitDocument()} method stops calling next method of the GafParser
 	 * and returns the {@link GafDocument} object build with the number of rows
 	 * 
-	 * @return gafDocument or null
+	 * @return gafDocument
 	 * @throws IOException
 	 */
 	public GafDocument getNextSplitDocument() throws IOException{
@@ -143,7 +143,7 @@ public class GafObjectsBuilder {
 		
 		
 		
-		return gafDocument.getBioentities().isEmpty() ? null: gafDocument;
+		return gafDocument;
 
 	}
 	
