@@ -38,6 +38,7 @@ public class PhenoSimCLITest extends AbstractCommandRunnerTest {
 		
 	}
 
+	@Ignore
 	@Test
 	public void testPhenoSimAttsRunner() throws Exception {
 		init();
