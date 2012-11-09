@@ -83,7 +83,6 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	@CLIMethod("--merge-sim")
 	public void mergeSim(Opts opts) throws Exception {
-		opts.info("FILE", "merges similarity results into source OWL ontology. Use after --sim or --sim-all");
 		g.mergeOntology(simOnt);
 	}
 
@@ -303,6 +302,36 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 
 	}
+	
+	@CLIMethod("--phenosim-attribute-matrix")
+	public void phenoSimAttributeMatrix(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		loadProperties(opts);
+		try {
+			pproc = new PhenoSimHQEPreProcessor();
+			pproc.setSimProperties(simProperties);
+
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
+			pproc.preprocess();
+			pproc.getReasoner().flush();
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.setSimPreProcessor(pproc);
+			sos.createElementAttributeMapFromOntology();
+			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
+			attributeAllByAll(opts);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			LOG.info("clearing up...");
+			if (pproc != null) {
+				pproc.dispose();
+			}
+		}
+
+	}
+
 
 	@CLIMethod("--sim-resume")
 	public void simResume(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
