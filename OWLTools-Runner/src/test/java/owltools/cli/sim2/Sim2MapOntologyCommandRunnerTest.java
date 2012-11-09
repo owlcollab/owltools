@@ -11,10 +11,8 @@ import owltools.cli.AbstractCommandRunnerTest;
 import owltools.cli.Sim2CommandRunner;
 
 /**
- * Tests for {@link CommandRunner}.
- * 
- * these are somewhat ad-hoc at the moment - output is written to stdout;
- * no attempt made to check results
+ * Tests a pipeline in which a MP and HP annotations are loaded, a subset is made for the nervous system,
+ * and all annotations are mapped to HP
  * 
  */
 public class Sim2MapOntologyCommandRunnerTest extends AbstractCommandRunnerTest {
