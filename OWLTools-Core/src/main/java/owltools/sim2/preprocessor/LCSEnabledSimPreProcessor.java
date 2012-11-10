@@ -34,6 +34,11 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 		generateLeastCommonSubsumers(types);
 	}
 	
+	/**
+	 * generates new LCS grouping classes
+	 * 
+	 * @param leafClasses
+	 */
 	public void generateLeastCommonSubsumers(Set<OWLClass> leafClasses) {
 
 		LOG.info("Generating LCSs en masse; leaf classes "+leafClasses.size());
