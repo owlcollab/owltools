@@ -12,9 +12,17 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLNamedObject;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -93,5 +101,67 @@ public class ABoxUtils {
 		}
 		return nrcs;
 	}
+
+	/**
+	 * generates SubClassOf axioms from ClassAssertion axioms
+	 * 
+	 * Note that property assertions are currently ignored
+	 * 
+	 * @param srcOnt
+	 * @throws OWLOntologyCreationException 
+	 */
+	public static void translateABoxToTBox(OWLOntology srcOnt) throws OWLOntologyCreationException {
+		Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		OWLOntologyManager owlOntologyManager = srcOnt.getOWLOntologyManager();
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		for (OWLNamedIndividual i : srcOnt.getIndividualsInSignature()) {
+			rmAxioms.add(owlDataFactory.getOWLDeclarationAxiom(i));
+			OWLClass c = owlDataFactory.getOWLClass(i.getIRI()); // pun
+			axs.add(owlDataFactory.getOWLDeclarationAxiom(c));
+			
+			// ClassAssertion -> SubClass
+			for (OWLClassExpression ce : i.getTypes(srcOnt)) {
+			}
+			for (OWLClassAssertionAxiom ax : srcOnt.getClassAssertionAxioms(i)) {
+				rmAxioms.add(ax);
+				axs.add(owlDataFactory.getOWLSubClassOfAxiom(c, ax.getClassExpression()));
+			}
+			for (OWLObjectPropertyAssertionAxiom ax : srcOnt.getObjectPropertyAssertionAxioms(i)) {
+				if (ax.getObject().isAnonymous()) {
+					LOG.error("anon individuals not supported");
+					continue;
+				}
+				rmAxioms.add(ax);
+				OWLClass ce = owlDataFactory.getOWLClass(((OWLNamedObject) ax.getObject()).getIRI());
+				axs.add(owlDataFactory.getOWLSubClassOfAxiom(c,
+						owlDataFactory.getOWLObjectSomeValuesFrom(ax.getProperty(), ce)));
+			}
+		}
+		for (OWLSameIndividualAxiom ax : srcOnt.getAxioms(AxiomType.SAME_INDIVIDUAL)) {
+			rmAxioms.add(ax);
+			Set<OWLClassExpression> xs = new HashSet<OWLClassExpression>();
+			for (OWLIndividual i : ax.getIndividuals()) {
+				if (i.isAnonymous()){
+					LOG.error("anon individuals not supported");
+					continue;
+				}
+				xs.add(owlDataFactory.getOWLClass(((OWLNamedObject) i).getIRI()));
+			}
+			axs.add(owlDataFactory.getOWLEquivalentClassesAxiom(xs));
+		}
+
+		for (OWLAxiom axiom : axs) {
+			LOG.info("Tbox2Abox: "+axiom);
+			owlOntologyManager.addAxiom(srcOnt, axiom);
+		}
+		for (OWLAxiom axiom : rmAxioms) {
+			LOG.info("Tbox2Abox: "+axiom);
+			owlOntologyManager.removeAxiom(srcOnt, axiom);
+		}
+		// TODO - in future communicate leaf nodes a different way
+	}
+
+
 
 }
