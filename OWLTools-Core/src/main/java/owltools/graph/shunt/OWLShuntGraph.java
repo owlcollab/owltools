@@ -27,8 +27,8 @@ public class OWLShuntGraph {
 	public Set<OWLShuntNode> nodes = new HashSet<OWLShuntNode>();
 	public Set<OWLShuntEdge> edges = new HashSet<OWLShuntEdge>();
 
-	private Map<String,Set<String>> childToParents = new HashMap<String,Set<String>>();
-	private Map<String,Set<String>> parentToChildren = new HashMap<String,Set<String>>();
+	private transient Map<String,Set<String>> childToParents = new HashMap<String,Set<String>>();
+	private transient Map<String,Set<String>> parentToChildren = new HashMap<String,Set<String>>();
 	//private Set<String> roots = null;
 	
 	/**
