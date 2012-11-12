@@ -121,7 +121,8 @@ public class BioChebiGenerator {
 				"http://purl.obolibrary.org/obo/RO_0002233",     // has input
 				"http://purl.obolibrary.org/obo/RO_0002234",     // has output
 				"http://purl.obolibrary.org/obo/GOREL_0000034",  // imports
-				"http://purl.obolibrary.org/obo/GOREL_0000035"   // exports
+				"http://purl.obolibrary.org/obo/GOREL_0000035",  // exports
+				"http://purl.obolibrary.org/obo/GOREL_0000036"   // regulates level of
 				); 
 
 		// create GCI expansion map
