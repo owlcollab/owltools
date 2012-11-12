@@ -17,5 +17,9 @@
     <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002233"/>
     
     <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002234"/>
+    
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000034"/>
+    
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000035"/>
 </rdf:RDF>
 

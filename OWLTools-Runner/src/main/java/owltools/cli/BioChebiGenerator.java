@@ -116,10 +116,13 @@ public class BioChebiGenerator {
 				"is conjugate acid of", 
 				"is conjugate base of");
 		Set<OWLObjectProperty> createProperties = getPropertiesByIRI(graph,
-				"http://purl.obolibrary.org/obo/BFO_0000057", 
-				"http://purl.obolibrary.org/obo/RO_0002313", 
-				"http://purl.obolibrary.org/obo/RO_0002233", 
-				"http://purl.obolibrary.org/obo/RO_0002234");
+				"http://purl.obolibrary.org/obo/BFO_0000057",    // has participant
+				"http://purl.obolibrary.org/obo/RO_0002313",     // transports or maintains localization of
+				"http://purl.obolibrary.org/obo/RO_0002233",     // has input
+				"http://purl.obolibrary.org/obo/RO_0002234",     // has output
+				"http://purl.obolibrary.org/obo/GOREL_0000034",  // imports
+				"http://purl.obolibrary.org/obo/GOREL_0000035"   // exports
+				); 
 
 		// create GCI expansion map
 		Map<OWLObjectProperty, Set<OWLObjectProperty>> expansionMap = new HashMap<OWLObjectProperty, Set<OWLObjectProperty>>();
