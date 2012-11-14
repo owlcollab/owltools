@@ -94,7 +94,7 @@ public class PANTHERTree {
 		
 		//LOG.info("Processing: " + getTreeName() + " with " + lines.length + " lines.");
 		annotationSet = new HashSet<String>();
-		generateGraph(); // this must come before annotation processing
+		//generateGraph(); // this must come before annotation processing
 		readyAnnotationDataCache();
 	}
 	
@@ -108,7 +108,14 @@ public class PANTHERTree {
 	/**
 	 * Return the raw Newick-type input string.
 	 */
-	public String getTreeName(){
+	public String getTreeLabel(){
+		return treeName;
+	}
+	
+	/**
+	 * Return the raw Newick-type input string.
+	 */
+	public String getTreeID(){
 		return treeName;
 	}
 	
@@ -360,7 +367,7 @@ public class PANTHERTree {
 	 * Technically, in our case, the labels should be unique if defined.
 	 */
 	private String uuidInternal(String nodeIdentifier){
-		return getTreeName() + ":" + nodeIdentifier;
+		return getTreeLabel() + ":" + nodeIdentifier;
 	}
 	
 	/**

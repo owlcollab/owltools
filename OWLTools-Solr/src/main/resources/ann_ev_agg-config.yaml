@@ -7,7 +7,7 @@ description: A description of annotation evidence aggregate for GOlr and AmiGO.
 display_name: Evidence Aggregate
 document_category: annotation_evidence_aggregate
 weight: 10
-boost_weights: annotation_class^2.0 annotation_class_label^1.0 bioentity^2.0 bioentity_label^1.0
+boost_weights: annotation_class^2.0 annotation_class_label^1.0 bioentity^2.0 bioentity_label^1.0 family_tag^1.0 family_tag_label^1.0
 result_weights: bioentity^4.0 annotation_class^3.0 taxon^2.0
 filter_weights: evidence_type_closure^4.0 evidence_with^3.0 taxon_closure_label^2.0
 fields:
@@ -75,7 +75,14 @@ fields:
     property: []
     searchable: true
   - id: family_tag
-    description: Families that this is associated with this entity.
+    description: Family IDs that are associated with this entity.
+    display_name: Family ID
+    type: string
+    cardinality: multi
+    searchable: true
+    property: []
+  - id: family_tag_label
+    description: Families that are associated with this entity.
     display_name: Family
     type: string
     cardinality: multi
@@ -87,15 +94,17 @@ fields:
   #   type: string
   #   property: []
   #   indexed: false
-  - id: phylo_ancestor_closure
-    description: All ancestors of this entity.
-    display_name: Phylogenic ancestors
-    type: string
-    cardinality: multi
-    property: []
-  - id: phylo_descendant_closure
-    description: All descendants of this entity.
-    display_name: Phylogenic descendants
-    type: string
-    cardinality: multi
-    property: []
+  ## TODO: Sleeping for now, but will re-add when the right
+  ## experimental GAFs start getting loaded as well.
+  # - id: phylo_ancestor_closure
+  #   description: All ancestors of this entity.
+  #   display_name: Phylogenic ancestors
+  #   type: string
+  #   cardinality: multi
+  #   property: []
+  # - id: phylo_descendant_closure
+  #   description: All descendants of this entity.
+  #   display_name: Phylogenic descendants
+  #   type: string
+  #   cardinality: multi
+  #   property: []

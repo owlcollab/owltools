@@ -41,9 +41,9 @@ public class PANTHERForestTest {
 		assertNull("Not in (B)", pSet.getAssociatedTrees(null));
 		assertNull("Not in (C)", pSet.getAssociatedTrees("GO:0022008"));
 		assertEquals("Has in (A)", "PTHR10000",
-				pSet.getAssociatedTrees("UniProtKB:Q4Q8D0").iterator().next().getTreeName());
+				pSet.getAssociatedTrees("UniProtKB:Q4Q8D0").iterator().next().getTreeLabel());
 		assertEquals("Has in (B)", "PTHR24041",
-				pSet.getAssociatedTrees("ENSEMBL:ENSG00000169894").iterator().next().getTreeName());
+				pSet.getAssociatedTrees("ENSEMBL:ENSG00000169894").iterator().next().getTreeLabel());
 	}
 	
 	// A little helper from Chris stolen from somewhere else...

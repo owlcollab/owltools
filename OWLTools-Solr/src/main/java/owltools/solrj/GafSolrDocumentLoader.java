@@ -118,7 +118,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		// Bioentity document base.
 		bioentity_doc.addField("document_category", "bioentity");
 		bioentity_doc.addField("id", eid);
-		bioentity_doc.addField("label", esym);
+		bioentity_doc.addField("bioentity", eid);
+		bioentity_doc.addField("bioentity_label", esym);
 		bioentity_doc.addField("db", edb);
 		bioentity_doc.addField("type", e.getTypeCls());
 
@@ -153,10 +154,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		}
 
 		// Optionally, pull information from the PANTHER file set.
-		List<String> pantherFamilies = new ArrayList<String>();
+		List<String> pantherFamilyIDs = new ArrayList<String>();
+		List<String> pantherFamilyLabels = new ArrayList<String>();
 		List<String> pantherTreeGraphs = new ArrayList<String>();
-		List<String> pantherTreeAnnAncestors = new ArrayList<String>();
-		List<String> pantherTreeAnnDescendants = new ArrayList<String>();
+		//List<String> pantherTreeAnnAncestors = new ArrayList<String>();
+		//List<String> pantherTreeAnnDescendants = new ArrayList<String>();
 		if( pset != null && pset.getNumberOfFilesInSet() > 0 ){
 			Set<PANTHERTree> pTrees = pset.getAssociatedTrees(eid);
 			if( pTrees != null ){
@@ -165,26 +167,28 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				while( piter.hasNext() ){
 					pcnt++; // DEBUG
 					PANTHERTree ptree = piter.next();
-					pantherFamilies.add(ptree.getTreeName());
+					pantherFamilyIDs.add(ptree.getTreeID());
+					pantherFamilyLabels.add(ptree.getTreeLabel());
 					pantherTreeGraphs.add(ptree.getOWLShuntGraph().toJSON());
-					pantherTreeAnnAncestors = new ArrayList<String>(ptree.getAncestorAnnotations(eid));
-					pantherTreeAnnDescendants = new ArrayList<String>(ptree.getDescendantAnnotations(eid));
+					//pantherTreeAnnAncestors = new ArrayList<String>(ptree.getAncestorAnnotations(eid));
+					//pantherTreeAnnDescendants = new ArrayList<String>(ptree.getDescendantAnnotations(eid));
 					if( pcnt > 1 ){ // DEBUG
-						LOG.info("Belongs to multiple families: " + StringUtils.join(pantherFamilies, ", "));
+						LOG.info("Belongs to multiple families: " + StringUtils.join(pantherFamilyIDs, ", "));
 					}
 				}
 			}
 		}
 		// Optionally, actually /add/ the PANTHER family data to the document.
-		if( ! pantherFamilies.isEmpty() ){
-			bioentity_doc.addField("family_tag", pantherFamilies);
+		if( ! pantherFamilyIDs.isEmpty() ){
+			bioentity_doc.addField("family_tag", pantherFamilyIDs);
+			bioentity_doc.addField("family_tag_label", pantherFamilyLabels);
 			bioentity_doc.addField("phylo_graph", pantherTreeGraphs);
-			if( ! pantherTreeAnnAncestors.isEmpty() ){
-				bioentity_doc.addField("phylo_ancestor_closure", pantherTreeAnnAncestors);
-			}
-			if( ! pantherTreeAnnDescendants.isEmpty() ){
-				bioentity_doc.addField("phylo_descendant_closure", pantherTreeAnnDescendants);
-			}
+			//if( ! pantherTreeAnnAncestors.isEmpty() ){
+			//	bioentity_doc.addField("phylo_ancestor_closure", pantherTreeAnnAncestors);
+			//}
+			//if( ! pantherTreeAnnDescendants.isEmpty() ){
+			//	bioentity_doc.addField("phylo_descendant_closure", pantherTreeAnnDescendants);
+			//}
 		}
 		
 		// Something that we'll need for the annotation evidence aggregate later.
@@ -220,8 +224,9 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 
 			// Optionally, actually /add/ the PANTHER family data to the document.
-			if( ! pantherFamilies.isEmpty() ){
-				annotation_doc.addField("family_tag", pantherFamilies);			
+			if( ! pantherFamilyIDs.isEmpty() ){
+				annotation_doc.addField("family_tag", pantherFamilyIDs);
+				annotation_doc.addField("family_tag_label", pantherFamilyLabels);
 			}
 
 			// BUG/TODO: Make the ID /really/ unique - ask Chris
@@ -311,8 +316,9 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						}
 
 						// Optionally, actually /add/ the PANTHER family data to the document.
-						if( ! pantherFamilies.isEmpty() ){
-							ev_agg_doc.addField("family_tag", pantherFamilies);			
+						if( ! pantherFamilyIDs.isEmpty() ){
+							ev_agg_doc.addField("family_tag", pantherFamilyIDs);			
+							ev_agg_doc.addField("family_tag_label", pantherFamilyLabels);
 						}
 					}
 	

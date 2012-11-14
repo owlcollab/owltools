@@ -6,20 +6,32 @@ description: A description of bioentities file for GOlr.
 display_name: Bioentities
 document_category: bioentity
 weight: 30
-boost_weights: id^2.0 label^2.0 family_tag^1.0
-result_weights: label^6.0 id^5.0 taxon^4.0 family_tag^3.0 type^2.0 db^1.0
-filter_weights: db^7.0 type^6.0 family_tag^5.0 taxon_closure_label^4.0 isa_partof_closure_label^3.0 phylo_ancestor_closure^2.0 phylo_descendant_closure^1.0
+boost_weights: bioentity^2.0 bioentity_label^2.0  isa_partof_closure_label^1.0 family_tag^1.0 family_tag_label^1.0
+result_weights: bioentity^6.0 taxon^4.0 family_tag^3.0 type^2.0 db^1.0
+filter_weights: db^7.0 type^6.0 family_tag_label^5.0 taxon_closure_label^4.0 isa_partof_closure_label^3.0
 fields:
   - id: id
     description: Bioentity ID.
     display_name: Acc
     type: string
     property: []
+  - id: bioentity
+    description: Bioentity ID.
+    display_name: Acc
+    type: string
+    property: []
+  - id: bioentity_label
+    description: Symbol or name.
+    display_name: Label
+    type: string
+    property: []
+    searchable: true
   - id: type
     description: "Column 12: type class id."
     display_name: Type class id
     type: string
     property: []
+## Old code:
 #   - id: type_label
 #     description: "Column 12: type class label."
 #     display_name: Type class label
@@ -74,6 +86,7 @@ fields:
     cardinality: multi
     property: []
     searchable: true
+## Old code.
 #   - id: regulates_closure
 #     description: "Closure of ids/accs over regulates."
 #     display_name: regulates closure
@@ -86,17 +99,12 @@ fields:
 #     type: string
 #     cardinality: multi
 #     property: []
-  - id: label
-    description: Symbol or name.
-    display_name: Label
-    type: string
-    property: []
-    searchable: true
   - id: db
     description: "Column 1: Identifier database."
     display_name: Database
     type: string
     property: []
+## Old code.
 #   - id: descriptive_name
 #     description: Full name or name.
 #     display_name: Full name
@@ -264,7 +272,14 @@ fields:
 #     cardinality: multi
 #     property: []
   - id: family_tag
-    description: Families that this is associated with this entity.
+    description: Family IDs that are associated with this entity.
+    display_name: Family ID
+    type: string
+    cardinality: multi
+    searchable: true
+    property: []
+  - id: family_tag_label
+    description: Families that are associated with this entity.
     display_name: Family
     type: string
     cardinality: multi
@@ -276,15 +291,17 @@ fields:
     type: string
     property: []
     indexed: false
-  - id: phylo_ancestor_closure
-    description: All phylogenic ancestor annotations to this entity.
-    display_name: Ancestor annotations
-    type: string
-    cardinality: multi
-    property: []
-  - id: phylo_descendant_closure
-    description: All phylogenic descendant annotations to this entity.
-    display_name: Descendant annotations
-    type: string
-    cardinality: multi
-    property: []
+## TODO: Sleeping for now, but will re-add when the right
+## experimental GAFs start getting loaded as well.
+# - id: phylo_ancestor_closure
+#   description: All phylogenic ancestor annotations to this entity.
+#   display_name: Ancestor annotations
+#   type: string
+#   cardinality: multi
+#   property: []
+# - id: phylo_descendant_closure
+#   description: All phylogenic descendant annotations to this entity.
+#   display_name: Descendant annotations
+#   type: string
+#   cardinality: multi
+#   property: []

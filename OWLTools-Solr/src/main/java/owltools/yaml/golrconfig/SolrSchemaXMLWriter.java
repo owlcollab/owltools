@@ -176,9 +176,11 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 		xml.writeAttribute("sortMissingLast", "true");
 		xml.writeStartElement("analyzer");
 		xml.writeStartElement("tokenizer");
-		//xml.writeAttribute("class", "solr.WhitespaceTokenizerFactory");
 		xml.writeAttribute("class", "solr.StandardTokenizerFactory");
 		xml.writeEndElement(); // </tokenizer>		
+		xml.writeStartElement("filter");
+		xml.writeAttribute("class", "solr.LowerCaseFilterFactory");
+		xml.writeEndElement(); // </filter>		
 		xml.writeEndElement(); // </analyzer>		
 		xml.writeEndElement(); // </fieldType>		
 

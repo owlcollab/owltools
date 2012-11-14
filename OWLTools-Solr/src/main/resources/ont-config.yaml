@@ -6,8 +6,8 @@ description: Test mapping of ontology class for GO.
 display_name: Ontology
 document_category: ontology_class
 weight: 40
-boost_weights: id^2.0 label^2.0 description^1.0 comment^0.5 synonym^1.0 alternate_id^1.0
-result_weights: label^10.0 id^8.0 description^6.0 source^4.0 synonym^3.0 alternate_id^2.0 comment^1.0
+boost_weights: annotation_class^2.0 annotation_class_label^2.0 description^1.0 comment^0.5 synonym^1.0 alternate_id^1.0
+result_weights: annotation_class^8.0 description^6.0 source^4.0 synonym^3.0 alternate_id^2.0 comment^1.0
 filter_weights: source^4.0 subset^2.0 isa_partof_closure_label^1.0 is_obsolete^0.0
 fields:
   - id: id
@@ -15,13 +15,15 @@ fields:
     display_name: Acc
     type: string
     property: [getIdentifier]
-#    transform: []
-#    - boolify
-  - id: label
+  - id: annotation_class
+    description: Term acc/ID.
+    display_name: Term ID
+    type: string
+    property: [getIdentifier]
+  - id: annotation_class_label
     description: Common term name.
     display_name: Term
     type: string
-    #property: [http://www.w3.org/2000/01/rdf-schema#label]
     property: [getLabel]
     searchable: true
 ## Ever used with terms?
