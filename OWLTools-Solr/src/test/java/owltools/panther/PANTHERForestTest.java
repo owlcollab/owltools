@@ -29,8 +29,9 @@ public class PANTHERForestTest {
 		File pDir = getResource(".");
 		FileFilter pFileFilter = new WildcardFileFilter("PTHR*.tree");
 		List<File> pTreeFiles = new ArrayList<File>(Arrays.asList(pDir.listFiles(pFileFilter))); // i hate java
-
-		PANTHERForest pSet = new PANTHERForest(pTreeFiles);
+		File tcFile = getResource("PANTHER7.2_HMM_classifications");
+		
+		PANTHERForest pSet = new PANTHERForest(tcFile, pTreeFiles);
 		
 		// Trivial
 		assertNotNull("Hope so", pSet);

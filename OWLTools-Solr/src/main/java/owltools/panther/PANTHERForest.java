@@ -50,7 +50,8 @@ public class PANTHERForest {
 	private static final Logger LOG = Logger.getLogger(PANTHERForest.class);
 
 	//private final String treeName;
-	private final Map<String,Set<PANTHERTree>> identifierMap;
+	private final Map<String,Set<PANTHERTree>> identifierToTreeMap;
+	private final Map<String,String> identifierToLabelMap;
 	public int fileCount = 0;
 	
 	/**
@@ -59,16 +60,47 @@ public class PANTHERForest {
 	 * @param pFilesCollection
 	 * @throws IOException 
 	 */
-	public PANTHERForest (List<File> pFilesCollection) throws IOException {
+	public PANTHERForest (File treeClassifications, List<File> pFilesCollection) throws IOException {
 
-		identifierMap = new HashMap<String,Set<PANTHERTree>>();
+		identifierToLabelMap = new HashMap<String,String>();
+		identifierToTreeMap = new HashMap<String,Set<PANTHERTree>>();
 
+		// First, loop through the HMM file and capture all of the label
+		// and id mapping that we have there.
+		String tcFileAsStr = FileUtils.readFileToString(treeClassifications);
+		String[] lines = StringUtils.split(tcFileAsStr, "\n");
+		for( String line : lines ){
+			
+			// We just want the first two columns right now, the rest can be considered garbage.
+			String[] columns = StringUtils.split(line, "\t");
+			if( columns != null && columns.length >= 2 ){
+				String tcID = columns[0];
+				String tcLabel = columns[1];
+				// Make sure that they're legit values.
+				if( tcID != null && tcLabel != null && ! tcID.equals("") && ! tcLabel.equals("") ){
+
+					// ...and "*FAMILY NOT NAMED*" is not considered informative in this world.
+					if( ! StringUtils.contains(tcLabel, "FAMILY NOT NAMED")){
+						// And, because all caps is crazy ugly...
+						identifierToLabelMap.put(tcID, StringUtils.lowerCase(tcLabel));
+					}
+				}
+			}
+		}
+		
 		// Loop through the incoming files to create a map from
 		// the annotation data back to a set of PANTHER tools
-		// associated with it
+		// associated with it.
 		for( File pFile : pFilesCollection ){
 			
 			PANTHERTree ptree = new PANTHERTree(pFile);
+			
+			// Set the label if we can find it in the set.
+			String pTreeID = ptree.getTreeID();
+			if( identifierToLabelMap.containsKey(pTreeID) ){
+				ptree.setTreeLabel(identifierToLabelMap.get(pTreeID));
+			}
+			
 			Set<String> aSet = ptree.associatedIdentifierSet();
 			fileCount++;
 			
@@ -77,14 +109,14 @@ public class PANTHERForest {
 				
 				// Either it's already int here or we have to 
 				// add it ourselves.
-				if( identifierMap.containsKey(id) ){
-					Set<PANTHERTree> pSet = identifierMap.get(id);
+				if( identifierToTreeMap.containsKey(id) ){
+					Set<PANTHERTree> pSet = identifierToTreeMap.get(id);
 					pSet.add(ptree);
-					identifierMap.put(id, pSet);
+					identifierToTreeMap.put(id, pSet);
 				}else{
 					Set<PANTHERTree> pSet = new HashSet<PANTHERTree>();
 					pSet.add(ptree);					
-					identifierMap.put(id, pSet);
+					identifierToTreeMap.put(id, pSet);
 				}
 			}
 		}
@@ -101,7 +133,7 @@ public class PANTHERForest {
 	 * Return the number of unique identifiers found in the set.
 	 */
 	public int getNumberOfIdentifiersInSet(){
-		return identifierMap.size();
+		return identifierToTreeMap.size();
 	}
 
 	/**
@@ -113,7 +145,7 @@ public class PANTHERForest {
 	public Set<PANTHERTree> getAssociatedTrees(String identifier){
 		Set<PANTHERTree> retSet = null;
 		
-		Set<PANTHERTree> pSet = identifierMap.get(identifier);
+		Set<PANTHERTree> pSet = identifierToTreeMap.get(identifier);
 		if( pSet != null && ! pSet.isEmpty()){
 			retSet = pSet;
 		}

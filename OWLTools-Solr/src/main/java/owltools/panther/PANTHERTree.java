@@ -50,8 +50,9 @@ public class PANTHERTree {
 	
 	private static final Logger LOG = Logger.getLogger(PANTHERTree.class);
 
-	private final String treeName;
-	private final String treeStr;
+	private String treeStr = "n/a";
+	private String treeID = "n/a";
+	private String treeLabel = "n/a";
 
 	//private int id_int = 0;
 	private String[] treeAnns;
@@ -88,13 +89,14 @@ public class PANTHERTree {
 				throw new Error("It looks like a bad PANTHER tree file.");
 			}else{
 				String filename = pFile.getName();
-				treeName = StringUtils.substringBefore(filename, ".");
+				treeID = StringUtils.substringBefore(filename, ".");
+				treeLabel = treeID;
 			}
 		}
 		
 		//LOG.info("Processing: " + getTreeName() + " with " + lines.length + " lines.");
 		annotationSet = new HashSet<String>();
-		//generateGraph(); // this must come before annotation processing
+		generateGraph(); // this must come before annotation processing
 		readyAnnotationDataCache();
 	}
 	
@@ -106,17 +108,25 @@ public class PANTHERTree {
 	}
 
 	/**
-	 * Return the raw Newick-type input string.
+	 * Return the tree label.
 	 */
 	public String getTreeLabel(){
-		return treeName;
+		return treeLabel;
 	}
-	
+
 	/**
-	 * Return the raw Newick-type input string.
+	 * Set the tree label.
+	 */
+	public String setTreeLabel(String lbl){
+		treeLabel = lbl;
+		return treeLabel;
+	}
+
+	/**
+	 * Return the tree identifier.
 	 */
 	public String getTreeID(){
-		return treeName;
+		return treeID;
 	}
 	
 	/**
@@ -180,65 +190,66 @@ public class PANTHERTree {
 		}
 		// Okay, we have a graph...
 
-		// Generate the ancestor closure information per-node.
-		// The trick here is that the iterator is depth-first, so
-		// our parents will be populated before we are and we can
-		// transfer the info immediately.
-		// Note that we're keeping track of the visitation order--
-		// we'll use that later.
-		ancestorClosureSet = new HashMap<String,Set<String>>(); 
-		Iterator<String> i = g.iteratorDF();
-		List<String> nodeOrder = new ArrayList<String>();
-		while( i.hasNext() ){
-			String nid = i.next();
-			nodeOrder.add(nid);
-
-			// Ready the closure for ourselves.
-			Set<String> close = new HashSet<String>();
-			
-			// Add the information of our parents to ourselves.
-			//LOG.info("node (anc): " + nid);
-			Set<String> parents = g.getParents(nid);
-			// For each of our parents, get their closure set and add it.
-			for( String parent : parents ){
-				Set<String> parentsClosure = ancestorClosureSet.get(parent);
-				for( String anc : parentsClosure ){
-					//LOG.info("\tclosure: " + anc);
-					close.add(anc);
-				}
-			}
-			// Add ourselves to the set as well.
-			close.add(nid);
-			
-			// Add the set to the closure.
-			ancestorClosureSet.put(nid, close);
-		}
-		
-		// Now play the visitation order backwards and
-		// collect the transitive descendant information.
-		descendantClosureSet = new HashMap<String,Set<String>>(); 
-		for( int in = (nodeOrder.size() -1); in >= 0; in-- ){
-			  String nid = nodeOrder.get(in);
-			  
-			// Ready the closure for ourselves.
-			Set<String> close = new HashSet<String>();
-				
-			// Add the information of our children to ourselves.
-			//LOG.info("node (desc): " + nid);
-			Set<String> kids = g.getChildren(nid);
-			for( String kid : kids ){
-				Set<String> childrenClosure = descendantClosureSet.get(kid);
-				for( String desc : childrenClosure ){
-					//LOG.info("\tclosure: " + desc);
-					close.add(desc);
-				}
-			}
-			// Add ourselves to the set.
-			close.add(nid);
-				
-			// Add the set to the closure.
-			descendantClosureSet.put(nid, close);
-		}
+// // TODO: This is sleeping until we need the closures again.
+//		// Generate the ancestor closure information per-node.
+//		// The trick here is that the iterator is depth-first, so
+//		// our parents will be populated before we are and we can
+//		// transfer the info immediately.
+//		// Note that we're keeping track of the visitation order--
+//		// we'll use that later.
+//		ancestorClosureSet = new HashMap<String,Set<String>>(); 
+//		Iterator<String> i = g.iteratorDF();
+//		List<String> nodeOrder = new ArrayList<String>();
+//		while( i.hasNext() ){
+//			String nid = i.next();
+//			nodeOrder.add(nid);
+//
+//			// Ready the closure for ourselves.
+//			Set<String> close = new HashSet<String>();
+//			
+//			// Add the information of our parents to ourselves.
+//			//LOG.info("node (anc): " + nid);
+//			Set<String> parents = g.getParents(nid);
+//			// For each of our parents, get their closure set and add it.
+//			for( String parent : parents ){
+//				Set<String> parentsClosure = ancestorClosureSet.get(parent);
+//				for( String anc : parentsClosure ){
+//					//LOG.info("\tclosure: " + anc);
+//					close.add(anc);
+//				}
+//			}
+//			// Add ourselves to the set as well.
+//			close.add(nid);
+//			
+//			// Add the set to the closure.
+//			ancestorClosureSet.put(nid, close);
+//		}
+//		
+//		// Now play the visitation order backwards and
+//		// collect the transitive descendant information.
+//		descendantClosureSet = new HashMap<String,Set<String>>(); 
+//		for( int in = (nodeOrder.size() -1); in >= 0; in-- ){
+//			  String nid = nodeOrder.get(in);
+//			  
+//			// Ready the closure for ourselves.
+//			Set<String> close = new HashSet<String>();
+//				
+//			// Add the information of our children to ourselves.
+//			//LOG.info("node (desc): " + nid);
+//			Set<String> kids = g.getChildren(nid);
+//			for( String kid : kids ){
+//				Set<String> childrenClosure = descendantClosureSet.get(kid);
+//				for( String desc : childrenClosure ){
+//					//LOG.info("\tclosure: " + desc);
+//					close.add(desc);
+//				}
+//			}
+//			// Add ourselves to the set.
+//			close.add(nid);
+//				
+//			// Add the set to the closure.
+//			descendantClosureSet.put(nid, close);
+//		}
 		
 		return g;
 	}
@@ -389,7 +400,7 @@ public class PANTHERTree {
 			
 			// Split out the sections.
 			String[] sections = StringUtils.split(cleanALine, "|");
-			if( sections.length != 3 ) throw new Error("Expected three sections in " + treeName);
+			if( sections.length != 3 ) throw new Error("Expected three sections in " + treeID);
 
 			// Isolate the initial internal identifier and map it to a node.
 			String initSection = sections[0];

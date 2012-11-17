@@ -333,12 +333,23 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * Used for applying the panther trees to the currently data run.
 	 * This must be run before the command is given to load a GAF.
 	 * 
+	 * The first argument in the list is for PANTHER7.2_HMM_classifications
+	 * or whatever it will be called.
+	 * 
+	 * The rest are for directories that contain the actual PANTHER trees.
+	 * 
 	 * @param opts
 	 * @throws Exception
 	 */
 	@CLIMethod("--solr-load-panther")
 	public void processPantherTrees(Opts opts) throws Exception {
 
+		// The first argument must be the associated HMM data dump.
+		String treeClassifications = opts.nextOpt();
+		LOG.info("Using file for PANTHER labels/classifications: " + treeClassifications);
+		File tcFile = new File(treeClassifications);		
+		
+		// The rest of the arguments are 
 		// Go through the listed directories and collect the PANTHER
 		// tree files.
 		List<String> treeDirs = opts.nextList();
@@ -358,7 +369,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		}
 		
 		// Process the files and ready them for use in the Loader.
-		pSet = new PANTHERForest(pFilesCollection);
+		pSet = new PANTHERForest(tcFile, pFilesCollection);
 		LOG.info("Found " + pSet.getNumberOfFilesInSet() + " trees and " + pSet.getNumberOfIdentifiersInSet() + " identifiers.");
 	}
 
@@ -455,11 +466,13 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			loader.load();
 		} catch (java.lang.NullPointerException e) { // can trigger when the GAF is empty
 			LOG.warn("Huh...some null pointer exception...good luck! At: " + url + ", " + gafdoc.getDocumentPath());
+			//LOG.warn("Message: " + e.getMessage());
 			e.printStackTrace();
 		} catch (SolrException e) { // can trigger when there is more than one PANTHER tree
 			LOG.warn("Possible PANTHER error: " + url);
 			e.printStackTrace();
 		} catch (SolrServerException e) {
+			LOG.warn("Something has gone south with Solr: " + url);
 			e.printStackTrace();
 		}
 	}
