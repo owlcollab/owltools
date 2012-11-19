@@ -43,6 +43,7 @@ import org.coode.parsers.common.SystemErrorEcho;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
@@ -552,6 +553,25 @@ public class CommandRunner {
 			else if (opts.nextEq("--translate-xrefs-to-equivs")) {
 				// TODO
 				//g.getXref(c);
+			}
+			else if (opts.nextEq("--repair-relations")) {
+				opts.info("", "replaces un-xrefed relations with correct IRIs");
+				OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
+				List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange> ();
+				for (OWLObjectProperty p : g.getSourceOntology().getObjectPropertiesInSignature()) {
+					IRI piri = p.getIRI();
+					if (piri.getFragment().equals("part_of")) {
+						List<OWLOntologyChange> ch = oer.changeIRI(piri, g.getIRIByIdentifier("BFO:0000050"));
+						changes.addAll(ch);						
+					}
+					if (piri.getFragment().equals("has_part")) {
+						List<OWLOntologyChange> ch = oer.changeIRI(piri, g.getIRIByIdentifier("BFO:0000051"));
+						changes.addAll(ch);						
+					}
+				}
+				LOG.info("Repairs: "+changes.size());
+				g.getManager().applyChanges(changes);
+				OboInOwlCardinalityTools.checkAnnotationCardinality(g.getSourceOntology());
 			}
 			else if (opts.nextEq("--rename-entity")) {
 				opts.info("OLD-IRI NEW-IRI", "used OWLEntityRenamer to switch IDs/IRIs");
@@ -1153,6 +1173,9 @@ public class CommandRunner {
 					g.getManager().addAxioms(subOnt, subsetAxioms);
 					g.setSourceOntology(subOnt);
 				}
+			}
+			else if (opts.nextEq("--abox-to-tbox")) {
+				ABoxUtils.translateABoxToTBox(g.getSourceOntology());
 			}
 			else if (opts.nextEq("--map-abox-to-results")) {
 				Set<OWLClass> cs = new HashSet<OWLClass>();
@@ -1948,16 +1971,20 @@ public class CommandRunner {
 				// TODO...
 			}
 			else if (opts.nextEq("--extract-module")) {
-				opts.info("SEED-OBJECTS", "Uses the OWLAPI module extractor");
+				opts.info("[-n IRI] [-d] [-m MODULE-TYPE] SEED-OBJECTS", "Uses the OWLAPI module extractor");
 				String modIRI = null;
 				ModuleType mtype = ModuleType.STAR;
 				boolean isTraverseDown = false;
+				boolean isMerge = false;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-n")) {
 						modIRI = opts.nextOpt();
 					}
 					else if (opts.nextEq("-d")) {
 						isTraverseDown = true;
+					}
+					else if (opts.nextEq("-c|--merge")) {
+						isMerge = true;
 					}
 					else if (opts.nextEq("-m") || opts.nextEq("--module-type")) {
 						opts.info("MODULE-TYPE", "One of: STAR (default), TOP, BOT, TOP_OF_BOT, BOT_OF_TOP");
@@ -1980,8 +2007,19 @@ public class CommandRunner {
 
 				OWLOntology baseOnt = g.getManager().createOntology(axioms);
 
-				Set<OWLObject> objs = this.resolveEntityList(opts);
-
+				Set<OWLObject> objs = new HashSet<OWLObject>();
+				if (isMerge) {
+					objs.addAll( g.getSourceOntology().getObjectPropertiesInSignature() );
+					objs.addAll( g.getSourceOntology().getClassesInSignature() );
+					for (OWLOntology ont : g.getSupportOntologySet())
+						g.mergeOntology(ont);
+					g.setSupportOntologySet(new HashSet<OWLOntology>());
+				}
+				else {
+					objs = this.resolveEntityList(opts);
+				}
+				LOG.info("OBJS: "+objs);
+				
 				Set<OWLEntity> seedSig = new HashSet<OWLEntity>();
 				if (isTraverseDown) {
 					OWLReasoner mr = this.createReasoner(baseOnt, reasonerName, g.getManager());

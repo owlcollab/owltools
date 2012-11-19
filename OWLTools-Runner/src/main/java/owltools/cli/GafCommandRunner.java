@@ -250,11 +250,13 @@ public class GafCommandRunner extends CommandRunner {
 	public void gafQuery(Opts opts) {
 		opts.info("LABEL", "extracts lines from a GAF file where the ontology term is a reflexive descendant of the query");
 		OWLObject obj = resolveEntity(opts);
+		// TODO - allow selection of relations
 		Set<OWLObject> descs = g.getDescendantsReflexive(obj);
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
 			OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
 			if (descs.contains(c)) {
-				System.out.println(g.getIdentifier(c)+"\t"+a.getBioentityObject()+"\t"+a.getBioentityObject().getSymbol());
+				// TODO: option to write entire GAF line
+				System.out.println(a.getBioentityObject()+"\t"+a.getBioentityObject().getSymbol()+"\t"+g.getIdentifier(c)+"\t"+g.getLabel(c));
 			}
 		}
 	}
