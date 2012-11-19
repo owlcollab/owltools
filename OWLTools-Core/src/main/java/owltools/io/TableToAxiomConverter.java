@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -160,6 +161,13 @@ public class TableToAxiomConverter {
 				//System.out.println("CA :"+ce+" "+obj);
 				ax = df.getOWLClassAssertionAxiom(ce,(OWLIndividual) resolveIndividual(obj));
 			}
+		}
+		else if (config.axiomType.equals(AxiomType.SAME_INDIVIDUAL)) {
+			OWLNamedIndividual c = (OWLNamedIndividual) resolveIndividual(sub);
+			OWLNamedIndividual e = (OWLNamedIndividual) resolveIndividual(obj);
+			axs.add(df.getOWLDeclarationAxiom(c));
+			axs.add(df.getOWLDeclarationAxiom(e));
+			ax = df.getOWLSameIndividualAxiom(c, e);
 		}
 		else if (config.axiomType.equals(AxiomType.SUBCLASS_OF)) {
 			OWLClass c = resolveClass(sub);

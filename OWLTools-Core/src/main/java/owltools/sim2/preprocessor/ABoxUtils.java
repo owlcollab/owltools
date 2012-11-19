@@ -152,11 +152,9 @@ public class ABoxUtils {
 		}
 
 		for (OWLAxiom axiom : axs) {
-			LOG.info("Tbox2Abox: "+axiom);
 			owlOntologyManager.addAxiom(srcOnt, axiom);
 		}
 		for (OWLAxiom axiom : rmAxioms) {
-			LOG.info("Tbox2Abox: "+axiom);
 			owlOntologyManager.removeAxiom(srcOnt, axiom);
 		}
 		// TODO - in future communicate leaf nodes a different way

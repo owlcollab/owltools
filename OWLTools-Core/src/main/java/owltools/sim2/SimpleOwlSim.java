@@ -539,6 +539,7 @@ public class SimpleOwlSim {
 			Set<OWLClassExpression> atts = new HashSet<OWLClassExpression>(bma1.attributeClassSet);
 			atts.addAll(bma2.attributeClassSet);
 			ScoreAttributesPair bma = new ScoreAttributesPair((bma1.score + bma2.score)/2, bma1.attributeClassSet);
+			return bma;
 		}
 		
 		// no cache - assume only called once for each pair

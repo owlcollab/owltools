@@ -5,8 +5,11 @@ import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import owltools.graph.OWLGraphWrapper;
 
@@ -50,11 +53,31 @@ public class OntologyMetadataMarkdownWriter {
 		if (oAnns.size() > 0) {
 			out.append("### Annotations:\n\n");
 			for (OWLAnnotation ann : oAnns) {
-				out.append(" * "+ann.getProperty().getIRI().toString()+": "+ann.getValue().toString()+"\n");
+				String annLabel = g.getLabelOrDisplayId(ann.getProperty());
+				OWLAnnotationValue v = ann.getValue();
+				String dv = v.toString();
+				if (v instanceof OWLLiteral) {
+					OWLLiteral lv = ((OWLLiteral)v);
+					dv = lv.getLiteral();
+					IRI dt = lv.getDatatype().getIRI();
+					//System.out.println("DT = "+dt);
+					if (dt.equals(OWL2Datatype.XSD_ANY_URI.getIRI())) {
+						dv = href(lv.getLiteral());
+					}
+				}
+				out.append(" * "+href(ann.getProperty().getIRI().toString(),annLabel)+" : "+dv+"\n");
 			}
 		}
 
 		return out.toString();
+	}
+
+	private static String href(String url) {
+		return href(url,url);
+	}
+
+	private static String href(String url, String label) {
+		return "["+label+"]("+url+")";
 	}
 
 	private static String rurl(OWLOntology im) {
