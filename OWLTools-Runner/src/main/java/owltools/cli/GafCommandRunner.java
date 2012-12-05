@@ -352,16 +352,10 @@ public class GafCommandRunner extends CommandRunner {
 				summaryFile = new File(gafReportSummaryFile);
 			}
 			
-			// no violations found, delete previous error file (if it exists)
-			if ((parserReport == null || parserReport.hasNothingToReport()) && result.isEmpty()) {
-				System.out.println("No violations found for gaf.");
-				FileUtils.deleteQuietly(reportFile);
-				FileUtils.write(reportFile, ""); // create empty file
-				if (summaryFile != null) {
-					FileUtils.deleteQuietly(summaryFile);
-					FileUtils.write(summaryFile, ""); // create empty file
-				}
-				return;
+			// delete previous report files (if they exist)
+			FileUtils.deleteQuietly(reportFile);
+			if (summaryFile != null) {
+				FileUtils.deleteQuietly(summaryFile);
 			}
 			
 			// write parse errors and rule violations
@@ -450,9 +444,9 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			writer = new PrintWriter(reportFile);
 			writer.println("#------------");
-			writer.print("# Validation for ");
+			writer.print("# Validation for #");
 			writer.print(result.getAnnotationCount());
-			writer.print("# annotations");
+			writer.print(" annotations");
 			if (parserReport != null) {
 				writer.print(" in ");
 				writer.print(parserReport.lineCount);

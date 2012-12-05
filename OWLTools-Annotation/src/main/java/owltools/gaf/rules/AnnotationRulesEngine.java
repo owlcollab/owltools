@@ -356,6 +356,7 @@ public class AnnotationRulesEngine {
 			if (types.isEmpty()) {
 				writer.print("# No errors, warnings, or recommendations to report.");
 				if (summaryWriter != null) {
+					summaryWriter.println();
 					summaryWriter.println("No errors, warnings, or recommendations to report.");
 					summaryWriter.println();
 				}
