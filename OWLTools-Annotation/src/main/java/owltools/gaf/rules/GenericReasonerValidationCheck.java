@@ -82,7 +82,7 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 					if (c.isBottomEntity() || c.isTopEntity()) {
 						continue;
 					}
-					violations.add(new AnnotationRuleViolation(getRuleId(), "unsatifiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Warning));
+					violations.add(new AnnotationRuleViolation(getRuleId(), "unsatisfiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Warning));
 				}
 				if (!violations.isEmpty()) {
 					return violations;

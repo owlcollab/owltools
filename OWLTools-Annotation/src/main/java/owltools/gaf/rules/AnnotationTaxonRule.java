@@ -118,7 +118,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 					}
 					if (lineNumbers.isEmpty() == false) {
 						for (Integer lineNumber : lineNumbers) {
-							AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "unsatifiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Error);
+							AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "unsatisfiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Error);
 							violation.setLineNumber(lineNumber.intValue());
 							result.add(violation);
 						}
