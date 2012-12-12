@@ -1,0 +1,93 @@
+ID                        : 1
+PARENT ID                 : 0
+RANK                      : no rank
+GC ID                     : 1
+SCIENTIFIC NAME           : root
+SYNONYM                   : all
+//
+ID                        : 2
+PARENT ID                 : 131567
+RANK                      : superkingdom
+GC ID                     : 11
+SCIENTIFIC NAME           : Bacteria
+GENBANK COMMON NAME       : eubacteria
+SYNONYM                   : not Bacteria Haeckel 1894
+IN-PART                   : Prokaryota
+IN-PART                   : Monera
+IN-PART                   : Procaryotae
+IN-PART                   : Prokaryotae
+BLAST NAME                : eubacteria
+//
+ID                        : 1653
+PARENT ID                 : 85007
+RANK                      : family
+GC ID                     : 11
+SCIENTIFIC NAME           : Corynebacteriaceae
+GENBANK COMMON NAME       : Coryneform bacteria
+//
+ID                        : 1716
+PARENT ID                 : 1653
+RANK                      : genus
+GC ID                     : 11
+SCIENTIFIC NAME           : Corynebacterium
+INCLUDES                  : Caseobacter
+//
+ID                        : 1760
+PARENT ID                 : 201174
+RANK                      : class
+GC ID                     : 11
+SCIENTIFIC NAME           : Actinobacteria
+GENBANK COMMON NAME       : high G+C Gram-positive bacteria
+SYNONYM                   : Actinomycetes
+SYNONYM                   : High GC gram-positive bacteria
+BLAST NAME                : high GC Gram+
+//
+ID                        : 2037
+PARENT ID                 : 85003
+RANK                      : order
+GC ID                     : 11
+SCIENTIFIC NAME           : Actinomycetales
+//
+ID                        : 38301
+PARENT ID                 : 1716
+RANK                      : species
+GC ID                     : 11
+SCIENTIFIC NAME           : Corynebacterium minutissimum
+SYNONYM                   : Corynebacterium minutissimum (ex Sarkany et al. '62) Collins & Jones '83 emend Yassin et al '02
+SYNONYM                   : "Corynebacterium minutissimum" Sarkany et al. 1962
+//
+ID                        : 85003
+PARENT ID                 : 1760
+RANK                      : subclass
+GC ID                     : 11
+SCIENTIFIC NAME           : Actinobacteridae
+//
+ID                        : 85007
+PARENT ID                 : 2037
+RANK                      : suborder
+GC ID                     : 11
+SCIENTIFIC NAME           : Corynebacterineae
+INCLUDES                  : Mycobacteria
+//
+ID                        : 131567
+PARENT ID                 : 1
+RANK                      : no rank
+GC ID                     : 1
+SCIENTIFIC NAME           : cellular organisms
+SYNONYM                   : biota
+//
+ID                        : 201174
+PARENT ID                 : 2
+RANK                      : phylum
+GC ID                     : 11
+SCIENTIFIC NAME           : Actinobacteria
+SYNONYM                   : 'Actinobacteria'
+SYNONYM                   : not Actinobacteria Cavalier-Smith 2002
+BLAST NAME                : actinobacteria
+//
+ID                        : 1223512
+PARENT ID                 : 38301
+RANK                      : no rank
+GC ID                     : 11
+SCIENTIFIC NAME           : Corynebacterium minutissimum NBRC 15361
+//
