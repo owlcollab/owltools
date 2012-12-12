@@ -261,20 +261,23 @@ public class InferenceBuilder{
 							if (x instanceof OWLRestriction) {
 								// we only include restrictions - note that if the operand is
 								// an OWLClass it will be inferred as a superclass (see below)
-								OWLSubClassOfAxiom sca = dataFactory.getOWLSubClassOfAxiom(cls, x);
-								if (!ontology.containsAxiom(sca))
+								if (hasAssertedSubClassAxiom(cls, x, ontology) == false) {
+									OWLSubClassOfAxiom sca = dataFactory.getOWLSubClassOfAxiom(cls, x);
 									equivAxiomsToAdd.add(sca);
+								}
 							}
 						}
 					}
 				}
 			}
-
 		}
 		logger.info("Finding inferred superclasses...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 			if (cls.isOWLNothing() || cls.isBottomEntity() || cls.isOWLThing()) {
 				continue; // do not report these
+			}
+			if (cls.getIRI().toString().toLowerCase().contains("temp")) {
+				System.out.println(cls);
 			}
 
 			// REPORT INFERRED EQUIVALENCE BETWEEN NAMED CLASSES
@@ -285,7 +288,7 @@ public class InferenceBuilder{
 				if (logger.isDebugEnabled()) {
 					logger.debug("Inferred Equiv: " + cls + " == " + ec);
 				}
-				if (ec instanceof OWLClass && !ec.equals(cls)) {
+				if (ec.equals(cls) == false) {
 					OWLEquivalentClassesAxiom eca = dataFactory.getOWLEquivalentClassesAxiom(cls, ec);
 					if (logger.isDebugEnabled()) {
 						logger.info("Equivalent Named Class Pair: "+eca);
@@ -309,45 +312,43 @@ public class InferenceBuilder{
 			// REPORT INFERRED SUBCLASSES NOT ALREADY ASSERTED
 
 			NodeSet<OWLClass> scs = reasoner.getSuperClasses(cls, true);
-			for (Node<OWLClass> scSet : scs) {
-				for (OWLClass sc : scSet) {
-					if (sc.isOWLThing()) {
-						continue; // do not report subclasses of owl:Thing
+			for (OWLClass sc : scs.getFlattened()) {
+				if (sc.isOWLThing()) {
+					continue; // do not report subclasses of owl:Thing
+				}
+
+				// we do not want to report inferred subclass links
+				// if they are already asserted in the ontology
+				boolean isAsserted = false;
+				for (OWLClassExpression asc : cls.getSuperClasses(ontology)) {
+					if (asc.equals(sc)) {
+						// we don't want to report this
+						isAsserted = true;
 					}
+				}
 
-					// we do not want to report inferred subclass links
-					// if they are already asserted in the ontology
-					boolean isAsserted = false;
-					for (OWLClassExpression asc : cls.getSuperClasses(ontology)) {
-						if (asc.equals(sc)) {
-							// we don't want to report this
-							isAsserted = true;
-						}
-					}
+				if (!alwaysAssertSuperClasses) {
+					// when generating obo, we do NOT want equivalence axioms treated as
+					// assertions
+					for (OWLClassExpression ec : cls
+							.getEquivalentClasses(ontology)) {
 
-					if (!alwaysAssertSuperClasses) {
-						// when generating obo, we do NOT want equivalence axioms treated as
-						// assertions
-						for (OWLClassExpression ec : cls
-								.getEquivalentClasses(ontology)) {
-
-							if (ec instanceof OWLObjectIntersectionOf) {
-								OWLObjectIntersectionOf io = (OWLObjectIntersectionOf) ec;
-								for (OWLClassExpression op : io.getOperands()) {
-									if (op.equals(sc)) {
-										isAsserted = true;
-									}
+						if (ec instanceof OWLObjectIntersectionOf) {
+							OWLObjectIntersectionOf io = (OWLObjectIntersectionOf) ec;
+							for (OWLClassExpression op : io.getOperands()) {
+								if (op.equals(sc)) {
+									isAsserted = true;
 								}
 							}
 						}
 					}
-					
-					// include any inferred axiom that is NOT already asserted in the ontology
-					if (!isAsserted) {						
-						inferences.axiomsToAdd.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
-					}
-
 				}
+
+				// include any inferred axiom that is NOT already asserted in the ontology
+				if (!isAsserted) {						
+					inferences.axiomsToAdd.add(dataFactory.getOWLSubClassOfAxiom(cls, sc));
+				}
+
 			}
 		}
 
@@ -361,7 +362,30 @@ public class InferenceBuilder{
 		
 		return inferences;
 	}
-	
+
+	/**
+	 * Check the ontology for an existing subClassOf axiom with the given sub- and superclass. 
+	 * This search ignores axiom annotations (i.e. is_inferred=true).
+	 * 
+	 * WARNING: Do not use {@link OWLOntology#containsAxiomIgnoreAnnotations(OWLAxiom)}
+	 * In the current OWL-API, this seems to be very very slow.
+	 * 
+	 * @param subClass
+	 * @param superClass
+	 * @param ontology
+	 * @return true, if there is an axiom for this subClass statement.
+	 */
+	protected boolean hasAssertedSubClassAxiom(OWLClass subClass, OWLClassExpression superClass, OWLOntology ontology) {
+		Set<OWLSubClassOfAxiom> existing = ontology.getSubClassAxiomsForSubClass(subClass);
+		if (existing != null) {
+			for (OWLSubClassOfAxiom sca : existing) {
+				if (superClass.equals(sca.getSuperClass())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Search for redundant axioms.
