@@ -276,9 +276,6 @@ public class InferenceBuilder{
 			if (cls.isOWLNothing() || cls.isBottomEntity() || cls.isOWLThing()) {
 				continue; // do not report these
 			}
-			if (cls.getIRI().toString().toLowerCase().contains("temp")) {
-				System.out.println(cls);
-			}
 
 			// REPORT INFERRED EQUIVALENCE BETWEEN NAMED CLASSES
 			for (OWLClass ec : reasoner.getEquivalentClasses(cls)) {
