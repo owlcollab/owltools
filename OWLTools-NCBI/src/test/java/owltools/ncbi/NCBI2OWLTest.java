@@ -2,8 +2,6 @@ package owltools.ncbi;
 
 import static junit.framework.Assert.*;
 
-import java.io.File;
-
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
@@ -15,7 +13,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -23,7 +20,6 @@ import org.semanticweb.owlapi.model.AxiomType;
 
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 
-import owltools.ncbi.NCBIConverter;
 import owltools.ncbi.NCBIOWL;
 import owltools.ncbi.NCBI2OWL;
 

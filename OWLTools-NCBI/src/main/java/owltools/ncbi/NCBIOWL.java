@@ -13,14 +13,11 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 
-import org.obolibrary.obo2owl.Obo2Owl;
-import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 
 import owltools.ncbi.NCBIConverter;
@@ -106,7 +103,7 @@ public class NCBIOWL extends NCBIConverter {
 	 * properties.
 	 */
 	private static HashMap<String,String> initializeFieldMap() {
-		HashMap<String,String> map = new HashMap();
+		HashMap<String,String> map = new HashMap<String,String>();
 		map.put("acronym",             "oio:hasBroadSynonym");
 		map.put("anamorph",            "oio:hasRelatedSynonym");
 		map.put("blast name",          "oio:hasRelatedSynonym");
@@ -133,6 +130,7 @@ public class NCBIOWL extends NCBIConverter {
 	 *
 	 * @see org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary
 	 * @return the ontology, ready for adding taxa
+	 * @throws OWLOntologyCreationException
 	 */
 	public static OWLOntology createOWLOntology()
 			throws OWLOntologyCreationException {
@@ -210,7 +208,7 @@ public class NCBIOWL extends NCBIConverter {
 	/**
 	 * Load an ontology from a file.
 	 *
-	 * @param inputPath the path to the OWL file
+	 * @param inputFile the path to the OWL file
 	 * @return the loaded ontology
 	 * @throws OWLOntologyCreationException if the ontology can't be loaded
 	 */

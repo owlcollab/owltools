@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -17,7 +16,6 @@ import java.text.SimpleDateFormat;
 import org.apache.log4j.Logger;
 
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -113,13 +111,16 @@ public class NCBI2OWL extends NCBIConverter {
 	 * Read a data file and create an OWL representation.
 	 *
 	 * @param inputPath the path to the input data file (e.g. taxonomy.dat)
+	 * @return OWL ontology
 	 * @throws IOException if the paths do not resolve
 	 * @throws OWLOntologyCreationException if OWLAPI fails to create an
 	 *	empty ontology
 	 * @throws OWLOntologyStorageException if OWLAPI can't save the file
 	 */
 	public static OWLOntology convertToOWL(String inputPath)
-			throws IOException, OWLOntologyCreationException {
+			throws IOException, OWLOntologyCreationException,
+			OWLOntologyStorageException
+	{
 		// Create the ontology.
 		OWLOntology ontology = NCBIOWL.createOWLOntology();
 
@@ -131,7 +132,7 @@ public class NCBI2OWL extends NCBIConverter {
 
 		// Version the ontology using the date of the source file.
 		SimpleDateFormat day = new SimpleDateFormat("yyyy-MM-dd");
-		String date = sdf.format(file.lastModified());
+		String date = day.format(file.lastModified());
 		annotate(ontology, "owl:versionIRI",
 			IRI.create(OBO + "ncbitaxon/" + date + "/ncbitaxon.owl"));
 
@@ -162,6 +163,7 @@ public class NCBI2OWL extends NCBIConverter {
 	 * @param inputPath the path to the input data file (e.g. taxonomy.dat)
 	 * @param outputPath the path to the output OWL file
 	 *	(e.g. ncbi_taxonomy.owl).
+	 * @return OWL ontology
 	 * @throws IOException if the paths do not resolve
 	 * @throws OWLOntologyCreationException if OWLAPI fails to create an
 	 *	empty ontology

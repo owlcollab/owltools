@@ -10,12 +10,9 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
@@ -349,8 +346,8 @@ public class OWLConverter {
 	 *
 	 * @param ontology the current ontology
 	 * @param subject the subject of the annotation
-	 * @param type a CURIE string for the type of synonym
-	 * @param property a CURIE string for the property
+	 * @param typeCURIE a CURIE string for the type of synonym
+	 * @param propertyCURIE a CURIE string for the property
 	 * @param value the string value of the synonym
 	 * @return the axiom
 	 */
@@ -413,7 +410,7 @@ public class OWLConverter {
 	 * annotation property.
 	 *
 	 * @param ontology the current ontology
-	 * @param subject the subject
+	 * @param taxon the subject
 	 * @param property the property
 	 * @return null or the label content
 	 */

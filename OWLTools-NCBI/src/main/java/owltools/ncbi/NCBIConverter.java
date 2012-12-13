@@ -1,7 +1,6 @@
 package owltools.ncbi;
 
 import java.util.Set;
-import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 
@@ -11,9 +10,6 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
-
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
-import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
 /**
  * Provides common methods for working with NCBI.
