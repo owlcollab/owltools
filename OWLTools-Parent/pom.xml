@@ -260,5 +260,6 @@
 		<module>../OWLTools-Runner</module>
 		<module>../OWLTools-Solr</module>
 		<module>../OWLTools-Web</module>
+		<module>../OWLTools-NCBI</module>
 	</modules>
 </project>
