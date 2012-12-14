@@ -2,6 +2,7 @@
 use strict;
 my $ns;
 my %d = ();
+my %nsh = ();
 my %fmth = ();
 
 my $md_url = 'http://obo.cvs.sourceforge.net/viewvc/obo/obo/website/cgi-bin/ontologies.txt';
@@ -34,6 +35,11 @@ foreach my $mdf (@mdfiles) {
             my ($t,$v) = ($1,$2);
             if ($t eq 'namespace') {
                 $ns = $v;
+                print STDERR "NS: $ns\n";
+                $nsh{$ns}++;
+                if ($nsh{$ns} > 1) {
+                    print STDERR "NS PRESENT TWICE: $ns\n";
+                }
             }
             elsif ($t eq 'download') {
                 if ($v && !$d{$ns}) {
@@ -51,6 +57,7 @@ foreach my $mdf (@mdfiles) {
             }
             elsif ($t eq 'format') {
                 $fmth{$ns} = $v;
+                print STDERR "NS: $ns FMT: $v\n";
             }
         }
         else {
@@ -60,12 +67,19 @@ foreach my $mdf (@mdfiles) {
     close(F);
 }
 
+foreach my $ns (keys %nsh) {
+    if (!$d{$ns}) {
+        print STDERR "NO DOWNLOAD: $ns\n";
+    }
+}
+
 my @targets = ();
 my @rules = ();
 foreach my $ns (keys %d)  {
     next unless $ns;
     my $ont = lc($ns);
     my $fmt = $fmth{$ns};
+    print STDERR "ONT: $ont FMT: '$fmt'\n";
     next if $ont eq 'lipro'; # hermit does not complete
     next unless $fmt eq 'obo' || $fmt eq 'owl';
 
@@ -79,7 +93,7 @@ foreach my $ns (keys %d)  {
     push(@rules, "$srcf: stamp\n\twget --no-check-certificate '$d{$ns}' -O \$@.tmp && ( cmp \$@.tmp \$@ && echo identical || cp \$@.tmp \$@)");
 
     # then build
-    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$< > \$@.tmp && mv \$@.tmp \$@.log");
+    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$< > \$@.fail && mv \$@.fail \$@.log");
     push(@rules, "$ont/$ont.obo: $ont/$ont.owl");
 
     # then release
