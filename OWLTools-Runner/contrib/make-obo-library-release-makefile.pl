@@ -93,7 +93,7 @@ foreach my $ns (keys %d)  {
     push(@rules, "$srcf: stamp\n\twget --no-check-certificate '$d{$ns}' -O \$@.tmp && ( cmp \$@.tmp \$@ && echo identical || cp \$@.tmp \$@)");
 
     # then build
-    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$< > \$@.fail && mv \$@.fail \$@.log");
+    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$< > \$@.fail 2>&1  && mv \$@.fail \$@.log");
     push(@rules, "$ont/$ont.obo: $ont/$ont.owl");
 
     # then release
