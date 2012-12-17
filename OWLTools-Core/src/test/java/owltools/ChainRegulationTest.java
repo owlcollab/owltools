@@ -1,12 +1,8 @@
 package owltools;
 
-import java.io.IOException;
-
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -15,7 +11,7 @@ import owltools.io.ParserWrapper;
 public class ChainRegulationTest extends OWLToolsTestBasics {
 
 	@Test
-	public void testConvertXPs() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void testConvertXPs() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g =
 			pw.parseToOWLGraph(getResourceIRIString("positive_regulation_of_anti_apoptosis.obo"));

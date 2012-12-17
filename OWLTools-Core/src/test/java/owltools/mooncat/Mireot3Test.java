@@ -1,6 +1,5 @@
 package owltools.mooncat;
 
-import java.io.IOException;
 import java.util.Set;
 
 import org.junit.Test;
@@ -8,20 +7,17 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
-import owltools.mooncat.Mooncat;
 
 public class Mireot3Test extends OWLToolsTestBasics {
 
 	private static boolean RENDER_ONTOLOGY_FLAG = false;
 	
 	@Test
-	public void testMireot() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void testMireot() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		
 		// this test ontology has a class defined using a caro class, and imports caro_local

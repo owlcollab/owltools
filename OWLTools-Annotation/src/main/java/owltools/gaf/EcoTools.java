@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -87,8 +88,9 @@ public class EcoTools {
 	 * @param pw
 	 * @throws OWLOntologyCreationException
 	 * @throws IOException
+	 * @throws OBOFormatParserException
 	 */
-	public EcoTools (ParserWrapper pw) throws OWLOntologyCreationException, IOException {
+	public EcoTools (ParserWrapper pw) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		this(loadECO(pw));
 	}
 	
@@ -248,8 +250,9 @@ public class EcoTools {
 	 * @return eco ontology graph
 	 * @throws IOException 
 	 * @throws OWLOntologyCreationException 
+	 * @throws OBOFormatParserException
 	 */
-	public static OWLGraphWrapper loadECO(ParserWrapper pw) throws IOException, OWLOntologyCreationException {
+	public static OWLGraphWrapper loadECO(ParserWrapper pw) throws IOException, OWLOntologyCreationException, OBOFormatParserException {
 		return pw.parseToOWLGraph(ECO_PURL);
 	}
 	

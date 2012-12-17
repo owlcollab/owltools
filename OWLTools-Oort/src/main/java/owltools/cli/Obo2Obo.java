@@ -104,7 +104,7 @@ public class Obo2Obo {
 		try {
 			oboDoc = oboParser.parse(oboInputFileName);
 		} catch (IOException e) {
-			System.err.println("An error occured during the load of the input file '"+oboInputFileName+"' with the error message:/n"+e.getMessage());
+			System.err.println("An error occured during the load of the input file '"+oboInputFileName+"' with the error message:\n"+e.getMessage());
 			System.exit(-1);
 			return;
 		}

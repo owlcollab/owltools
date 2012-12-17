@@ -3,6 +3,7 @@ package owltools.sim;
 import java.io.IOException;
 import java.util.Set;
 
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -68,12 +69,12 @@ public abstract class AbstractSimEngineTest extends OWLToolsTestBasics {
 	}
 
 	
-	protected OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException, IOException {
+	protected OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		ParserWrapper pw = new ParserWrapper();
 		return pw.parseToOWLGraph(getResourceIRIString(file));
 	}
 	
-	protected OWLGraphWrapper getOntologyWrapperFromURL(String url) throws OWLOntologyCreationException, IOException {
+	protected OWLGraphWrapper getOntologyWrapperFromURL(String url) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		ParserWrapper pw = new ParserWrapper();
 		return pw.parseToOWLGraph(url);
 	}

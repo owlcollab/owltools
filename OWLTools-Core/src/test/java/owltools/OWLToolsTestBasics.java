@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 import org.obolibrary.oboformat.model.OBODoc;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -36,7 +37,7 @@ public class OWLToolsTestBasics {
 		return IRI.create(file);
 	}
 	
-	protected static OWLGraphWrapper getGraph(String filename) throws OWLOntologyCreationException, IOException {
+	protected static OWLGraphWrapper getGraph(String filename) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		ParserWrapper pw = new ParserWrapper();
 		OWLOntology obodoc = pw.parse(getResource(filename).getAbsolutePath());
 		return new OWLGraphWrapper(obodoc);

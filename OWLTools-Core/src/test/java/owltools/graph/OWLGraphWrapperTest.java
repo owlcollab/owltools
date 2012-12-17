@@ -3,9 +3,7 @@ package owltools.graph;
 import static junit.framework.Assert.*;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -18,7 +16,6 @@ import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper.ISynonym;
@@ -90,7 +87,7 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 		assertEquals(4, all.size());
 	}
 	
-	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws OWLOntologyCreationException, FileNotFoundException, IOException{
+	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws Exception{
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(new BufferedReader(new FileReader(getResource(file))));
 		Obo2Owl bridge = new Obo2Owl();

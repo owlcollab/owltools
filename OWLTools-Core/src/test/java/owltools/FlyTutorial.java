@@ -3,7 +3,6 @@ package owltools;
 import static junit.framework.Assert.*;
 
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -20,8 +19,6 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLProperty;
 import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
@@ -34,7 +31,7 @@ import owltools.io.ParserWrapper;
 public class FlyTutorial extends OWLToolsTestBasics {
 
 	@Test
-	public void demo() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void demo() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("FBbt.owl"));
 		OWLOntology ont = g.getSourceOntology();

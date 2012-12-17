@@ -20,6 +20,7 @@ import org.obolibrary.oboformat.model.FrameMergeException;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -84,20 +85,20 @@ public class ParserWrapper {
 	public void removeIRIMapper(OWLOntologyIRIMapper mapper) {
 		manager.removeIRIMapper(mapper);
 	}
-	public OWLGraphWrapper parseToOWLGraph(String iriString) throws OWLOntologyCreationException, IOException {
+	public OWLGraphWrapper parseToOWLGraph(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		return new OWLGraphWrapper(parse(iriString));		
 	}
-	public OWLGraphWrapper parseToOWLGraph(String iriString, boolean isMergeImportClosure) throws OWLOntologyCreationException, IOException {
+	public OWLGraphWrapper parseToOWLGraph(String iriString, boolean isMergeImportClosure) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		return new OWLGraphWrapper(parse(iriString), isMergeImportClosure);		
 	}
 
-	public OWLOntology parse(String iriString) throws OWLOntologyCreationException, IOException {
+	public OWLOntology parse(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		if (iriString.endsWith(".obo"))
 			return parseOBO(iriString);
 		return parseOWL(iriString);		
 	}
 
-	public OWLOntology parseOBO(String source) throws IOException, OWLOntologyCreationException {
+	public OWLOntology parseOBO(String source) throws IOException, OWLOntologyCreationException, OBOFormatParserException {
 		OBOFormatParser p = new OBOFormatParser();
 		LOG.info("Parsing: "+source);
 		final String id;
@@ -129,7 +130,7 @@ public class ParserWrapper {
 		return ontology;
 	}
 
-	public OWLOntology parseOBOFiles(List<String> files) throws IOException, OWLOntologyCreationException, FrameMergeException {
+	public OWLOntology parseOBOFiles(List<String> files) throws IOException, OWLOntologyCreationException, OBOFormatParserException, FrameMergeException {
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = null;
 		for (String f : files) {
@@ -340,7 +341,7 @@ public class ParserWrapper {
 		}
 	}
 	
-	public static void main(String[] args) throws OWLOntologyCreationException, IOException {
+	public static void main(String[] args) throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLOntologyIRIMapper mapper = new CatalogXmlIRIMapper("/Users/cjm/cvs/uberon/phenoscape-vocab/homology/catalog-v001.xml");
 		pw.addIRIMapper(mapper);

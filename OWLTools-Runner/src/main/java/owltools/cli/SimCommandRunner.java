@@ -1,7 +1,6 @@
 package owltools.cli;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -10,14 +9,13 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
-import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -519,7 +517,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	}
 
 	@CLIMethod("--phenosim")
-	public void phenoSim(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void phenoSim(Opts opts) throws Exception {
 		loadProperties(opts);
 		try {
 			pproc = new PhenoSimHQEPreProcessor();
@@ -548,7 +546,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	}
 
 	@CLIMethod("--sim-resume")
-	public void simResume(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void simResume(Opts opts) throws Exception {
 		loadProperties(opts);
 		OWLOntology ont = pw.parse("file:///tmp/phenosim-analysis-ontology.owl");
 		if (g == null) {
@@ -580,7 +578,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 
 	@CLIMethod("--sim-basic")
-	public void simBasic(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void simBasic(Opts opts) throws Exception {
 		loadProperties(opts);
 		try {
 			pproc = new NullSimPreProcessor();
@@ -649,13 +647,13 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 	// NEW
 	@CLIMethod("--owlsim-all-by-all")
-	public void owlsimAllByAll(Opts opts) throws OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException {
+	public void owlsimAllByAll(Opts opts) throws Exception {
 		sos = new SimpleOwlSim(g.getSourceOntology());
 		sos.generateGroupingClasses();
 	}
 	// NEW
 	@CLIMethod("--owlsim-dispose")
-	public void owlsimDispose(Opts opts) throws OWLOntologyCreationException {
+	public void owlsimDispose(Opts opts) throws Exception {
 		sos.getReasoner().dispose();
 	}
 	 */
@@ -664,7 +662,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 	// NEW
 	@CLIMethod("--owlsim-lcsx")
-	public void owlsimLcsx(Opts opts) throws OWLOntologyCreationException {
+	public void owlsimLcsx(Opts opts) throws Exception {
 		if (sos == null) {
 			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.generatePropertyViews();

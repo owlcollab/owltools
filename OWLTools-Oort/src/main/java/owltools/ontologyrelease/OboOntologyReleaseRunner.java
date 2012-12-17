@@ -28,7 +28,7 @@ import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.InvalidXrefMapException;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
-import org.obolibrary.oboformat.parser.OBOFormatDanglingReferenceException;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.owl.LabelFunctionalSyntaxOntologyStorer;
@@ -142,9 +142,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return false;
 	}
 
-	public static void main(String[] args) throws IOException,
-	OWLOntologyCreationException, OWLOntologyStorageException,
-	OBOFormatDanglingReferenceException {
+	public static void main(String[] args) throws Exception {
 
 		OortConfiguration oortConfig = new OortConfiguration();
 		
@@ -378,8 +376,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	}
 
 	public boolean createRelease(Vector<String> allPaths) throws IOException, 
-	OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException,
-	OboOntologyReleaseRunnerCheckException, AnnotationCardinalityException
+		OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException,
+		OboOntologyReleaseRunnerCheckException, AnnotationCardinalityException,
+		OBOFormatParserException
 	{
 		if (allPaths.isEmpty()) {
 			logger.error("No files to load found, please specify at least one ontology file.");

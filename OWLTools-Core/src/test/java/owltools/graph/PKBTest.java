@@ -2,17 +2,13 @@ package owltools.graph;
 
 import static junit.framework.Assert.*;
 
-import java.io.IOException;
 import java.util.Set;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.OWLToolsTestBasics;
-import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
 public class PKBTest extends OWLToolsTestBasics {
@@ -31,7 +27,7 @@ public class PKBTest extends OWLToolsTestBasics {
 		assertTrue(true);
 	}
 
-	private OWLGraphWrapper getOntologyWrapper() throws OWLOntologyCreationException, IOException{
+	private OWLGraphWrapper getOntologyWrapper() throws Exception{
 		ParserWrapper pw = new ParserWrapper();
 		OWLOntology ont = pw.parse(getResourceIRIString("PKB_all.owl"));
 		return new OWLGraphWrapper(ont);

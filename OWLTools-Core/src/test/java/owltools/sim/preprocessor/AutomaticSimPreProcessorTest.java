@@ -1,7 +1,5 @@
 package owltools.sim.preprocessor;
 
-import java.io.IOException;
-
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
@@ -10,9 +8,7 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
@@ -40,7 +36,7 @@ public class AutomaticSimPreProcessorTest extends OWLToolsTestBasics {
 
 
 	@Test
-	public void testAutoSimOnGO() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
+	public void testAutoSimOnGO() throws Exception, MathException {
 	
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResourceIRIString("go-subset-t1.obo"));

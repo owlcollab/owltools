@@ -2,21 +2,15 @@ package owltools;
 
 import static junit.framework.Assert.*;
 
-import java.io.IOException;
 import java.util.Set;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
-import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -29,7 +23,7 @@ import owltools.io.ParserWrapper;
 public class GetObjectsTest extends OWLToolsTestBasics {
 
 	@Test
-	public void testGetEntity() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void testGetEntity() throws Exception {
 		for (int i=0; i<3; i++) {
 			ParserWrapper pw = new ParserWrapper();
 			OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("caro.obo"));

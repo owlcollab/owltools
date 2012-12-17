@@ -6,6 +6,7 @@ import java.util.Set;
 import static org.junit.Assert.*;
 
 import org.obolibrary.macro.ManchesterSyntaxTool;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -29,12 +30,12 @@ public abstract class AbstractReasonerTest extends OWLToolsTestBasics {
 
 
 	
-	protected OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException, IOException {
+	protected OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		ParserWrapper pw = new ParserWrapper();
 		return pw.parseToOWLGraph(getResourceIRIString(file));
 	}
 	
-	protected OWLGraphWrapper getOntologyWrapperFromURL(String url) throws OWLOntologyCreationException, IOException {
+	protected OWLGraphWrapper getOntologyWrapperFromURL(String url) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		ParserWrapper pw = new ParserWrapper();
 		return pw.parseToOWLGraph(url);
 	}

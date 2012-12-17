@@ -2,7 +2,6 @@ package owltools.sim;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.math.MathException;
@@ -14,12 +13,9 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.OWLToolsTestBasics;
@@ -50,7 +46,7 @@ public class EnrichmentTest extends OWLToolsTestBasics {
 
 
 	@Test
-	public void enrichmentTestGO() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
+	public void enrichmentTestGO() throws Exception, MathException {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResourceIRIString("go-subset-t1.obo"));
 		g = new OWLGraphWrapper(sourceOntol);

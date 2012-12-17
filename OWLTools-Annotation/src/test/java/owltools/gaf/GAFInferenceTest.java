@@ -2,17 +2,12 @@ package owltools.gaf;
 
 import static junit.framework.Assert.*;
 
-import java.io.IOException;
 import java.util.Set;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.OWLToolsTestBasics;
-import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
-import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
@@ -22,7 +17,7 @@ import owltools.io.ParserWrapper;
 public class GAFInferenceTest extends OWLToolsTestBasics{
 
 	@Test
-	public void testParser() throws IOException, OWLOntologyCreationException{
+	public void testParser() throws Exception{
 		GafObjectsBuilder builder = new GafObjectsBuilder();
 
 		GafDocument gafdoc = builder.buildDocument(getResource("xp_inference_test.gaf"));

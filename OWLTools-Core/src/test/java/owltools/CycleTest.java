@@ -2,13 +2,10 @@ package owltools;
 
 import static junit.framework.Assert.*;
 
-import java.io.IOException;
 import java.util.Set;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
@@ -16,10 +13,10 @@ import owltools.io.ParserWrapper;
 public class CycleTest {
 
 	@Test
-	public void testConvertXPs() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void testConvertXPs() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g =
-			pw.parseToOWLGraph("http://purl.org/obo/obo/FBbt.obo");
+			pw.parseToOWLGraph("http://purl.obolibrary.org/obo/fbbt.obo");
 		OWLObject c = g.getOWLObjectByIdentifier("FBbt:00005048"); // tracheolar cell
 		
 		Set<OWLObject> ancs = g.getAncestorsReflexive(c);

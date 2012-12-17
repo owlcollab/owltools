@@ -2,8 +2,6 @@ package owltools.mooncat;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.Set;
 
 import org.apache.log4j.Level;
@@ -17,7 +15,6 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -70,7 +67,7 @@ public class QuerySubsetGeneratorTest extends OWLToolsTestBasics {
 		assertTrue(oboDoc.getTermFrames().size() > neuronAndBrainClassCount); // includes all the parents
 	}
 	
-	private synchronized OWLGraphWrapper getSourceGraph() throws OWLOntologyCreationException, IOException {
+	private synchronized OWLGraphWrapper getSourceGraph() throws Exception {
 		String resourceIRI = getResourceIRIString("mooncat/fly_anatomy.obo");
 		ParserWrapper wrapper = new ParserWrapper();
 		return new OWLGraphWrapper(wrapper.parseOBO(resourceIRI));

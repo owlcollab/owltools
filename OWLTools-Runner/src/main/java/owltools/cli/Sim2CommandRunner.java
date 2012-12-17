@@ -275,7 +275,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	}
 
 	@CLIMethod("--phenosim")
-	public void phenoSim(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void phenoSim(Opts opts) throws Exception {
 		loadProperties(opts);
 		try {
 			pproc = new PhenoSimHQEPreProcessor();
@@ -304,7 +304,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	}
 	
 	@CLIMethod("--phenosim-attribute-matrix")
-	public void phenoSimAttributeMatrix(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void phenoSimAttributeMatrix(Opts opts) throws Exception {
 		loadProperties(opts);
 		try {
 			pproc = new PhenoSimHQEPreProcessor();
@@ -334,7 +334,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 
 	@CLIMethod("--sim-resume")
-	public void simResume(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void simResume(Opts opts) throws Exception {
 		loadProperties(opts);
 		OWLOntology ont = pw.parse("file:///tmp/phenosim-analysis-ontology.owl");
 		if (g == null) {
@@ -366,7 +366,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 
 	@CLIMethod("--sim-basic")
-	public void simBasic(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void simBasic(Opts opts) throws Exception {
 		// assumes that individuals in abox are of types named classes in tbox
 		loadProperties(opts);
 		try {
@@ -385,7 +385,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 
 	@CLIMethod("--sim-compare-atts")
-	public void simAttMatch(Opts opts) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void simAttMatch(Opts opts) throws Exception {
 		// assumes that individuals in abox are of types named classes in tbox
 		loadProperties(opts);
 		try {
