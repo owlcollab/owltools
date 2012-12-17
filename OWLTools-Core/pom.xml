@@ -46,6 +46,8 @@
 						<exclude>owltools/gfx/LegoVizTest.java</exclude>
 						<exclude>owltools/sim/PhenologSimTest.java</exclude>
 						<exclude>owltools/sim/PhenoSimTest.java</exclude>
+						<exclude>owltools/CycleTest.java</exclude>
+						<exclude>owltools/FlyTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
