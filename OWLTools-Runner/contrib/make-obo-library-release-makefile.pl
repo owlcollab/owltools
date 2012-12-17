@@ -53,7 +53,7 @@ foreach my $mdf (@mdfiles) {
             }
             elsif ($t eq 'prerelease_download') {
                 # always takes priority..
-                $d{$ns} = $v;
+                ##$d{$ns} = $v;
             }
             elsif ($t eq 'format') {
                 $fmth{$ns} = $v;
@@ -95,6 +95,8 @@ foreach my $ns (keys %d)  {
     # then build
     push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$< > \$@.fail 2>&1  && mv \$@.fail \$@.log");
     push(@rules, "$ont/$ont.obo: $ont/$ont.owl");
+    push(@rules, "$ont/$ont-obo-diff.html: $ont/$ont.obo\n".
+        "\t(test -f \$<.LAST || cp \$< \$<.LAST ) ;compare-obo-files.pl -f1 \$<.LAST -f2 \$< -m html txt rss --rss-path . -o $ont/$ont-obo-diff --config html/ontology_name=$ont && cp \$<.LAST \$<");
 
     # then release
     #push(@rules, "../$ont.%: $ont/$ont.%\n\tcp \$< \$@");
