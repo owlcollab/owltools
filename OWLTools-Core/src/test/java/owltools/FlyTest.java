@@ -16,7 +16,7 @@ public class FlyTest {
 	public void testConvertXPs() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g =
-			pw.parseToOWLGraph("http://purl.org/obo/obo/FBbt.obo");
+			pw.parseToOWLGraph("http://purl.obolibrary.org/obo/fbbt.obo");
 		OWLObject wmb = g.getOWLObjectByIdentifier("FBbt:00004326"); // wing margin bristle
 		OWLObject eso = g.getOWLObjectByIdentifier("FBbt:00005168"); // external sensory organ
 		
