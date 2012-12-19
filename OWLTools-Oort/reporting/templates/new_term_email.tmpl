@@ -1,0 +1,20 @@
+<html>
+<p>These are the new terms in the [% ontology_name %] as of [% nice_date %].</p>
+[%	FOREACH t IN f2_only.keys.sort %]
+<p>[% t %] ; [% f2_term_hash.$t.name.0 %]<br>
+[% f2_term_hash.$t.namespace.0 %]<br>
+[% f2_term_hash.$t.def.0 %]<br>
+[%				tlt = [];
+				str = '';
+				FOREACH l IN term_links.keys.sort;
+					str = '<a href="' _ term_links.$l.url_prefix _ t _ term_links.$l.url_suffix _ '">' _ term_links.$l.text _ '</a>';
+					tlt.push(str);
+				END;
+				IF tlt.size > 0;
+					tlt.join("&nbsp;| ");
+				END;
+			%]</p>
+[%	END %]
+
+<p>Signed,<br><br>The [% ontology_name %] File Watching Daemon[% IF report_info_url %]<br><a href="[% report_info_url %]">Ontology report info</a>[% END %]</p>
+</html>

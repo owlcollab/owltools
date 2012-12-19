@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="[% install_dir %]/stylesheets/stylesheet.css"?>
+<rss version="2.0">
+	<channel>
+		<title>[% ontology_name %]: Definition changes</title>
+		<link>[% ontology_url %]</link>
+		<description>RSS feed of definition changes in the [% ontology_name %]</description>
+		<language>en</language>
+		<pubDate>[% full_date %]</pubDate>
+		<lastBuildDate>[% full_date %]</lastBuildDate>
+		<webMaster>[% webmaster %]</webMaster>
+
+[%	FOREACH t IN data.changed.keys.sort;
+%]		<item>
+			<title>[% t %] ; [% data.f2.$t.name %]</title>
+			<link>[% primary.url_prefix _ t _ primary.url_suffix %]</link>
+			<description>
+			<![CDATA[
+[%		IF data.f1.$t.name != data.f2.$t.name; %]
+			<p>(was [% data.f1.$t.name %])</p>
+[%		END;
+			'<div class="zero">';
+		IF data.db_data;
+			'<p class="fbox">Annotations: ';
+
+			IF data.f2.$t.indirect && data.f2.$t.indirect != 0;
+				'<a href="' _ assoc.url_prefix _ t _ assoc.url_suffix _ '">' _ data.f2.$t.indirect _ ' / ' _ data.f2.$t.direct _ ' direct</a>';
+			ELSE;
+				'0';
+			END;
+			' (as of ' _ (data.db_data.release_type || "unknown DB type") _ ', ' _ (data.db_data.release_name || "unknown DB release name") _ '</p>';
+		END; ## data.db_data
+
+%]<p class="clearR"><b>OLD</b>: [% data.f1.$t.def_diffs %]
+<br><b>NEW</b>: [% data.f2.$t.def_diffs %]</p>
+[%				## list of links to term in different browsers
+				tlt = [];
+				str = '';
+				FOREACH l IN term_links.keys.sort;
+					str = '<a href="' _ term_links.$l.url_prefix _ t _ term_links.$l.url_suffix _ '">' _ term_links.$l.text _ '</a>';
+					tlt.push(str);
+				END;
+				IF tlt.size > 0;
+					'<p>' _ tlt.join("&nbsp;| ") _ '</p>';
+				END;
+%]</div>]]>
+			</description>
+			<pubDate>[% full_date %]</pubDate>
+			<guid>[% primary.url_prefix _ t _ primary.url_suffix %]</guid>
+		</item>
+[%	END;
+	old_data;
+%]	</channel>
+</rss>

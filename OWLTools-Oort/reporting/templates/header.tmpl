@@ -1,0 +1,21 @@
+<div id="header">
+	<p id="top"><a href="http://www.geneontology.org/"> the Gene Ontology </a></p>
+	<form title="Search the GO database or the GO website" action="http://www.geneontology.org/cgi-bin/chooser.cgi" method="get" name="searchBox">
+			<fieldset class="R" id="topSrchDiv"><legend>Search</legend><label for="topSrchInput" accesskey="4" title="Search GO; access key 4" class="b">Search</label><input type="text" id="topSrchInput" name="search_query" title="Enter a search phrase" class="textBox">
+			<br>
+			<label for="topSrchSelect" class="noDisplay">Search type </label>
+			<select id="topSrchSelect" name="search_constraint">
+				<option title="Search the GO database for a gene product" value="gp" selected>
+					gene or protein name
+				</option>
+				<option title="Search the GO database for a GO term or ID" value="terms">
+					GO term or ID
+				</option>
+				<option title="Search the GO website" value="website">
+					GO website
+				</option>
+			</select>
+			<input title="Submit your query" type="submit" value="go!" class="button">
+		</fieldset>
+	</form>
+</div>

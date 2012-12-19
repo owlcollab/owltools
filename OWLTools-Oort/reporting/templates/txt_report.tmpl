@@ -1,0 +1,244 @@
+[% ontology_name %]
+Ontology Comparison Report
+==========================
+
+Files used:
+- file 1 (old): [% f1_file_data %]
+- file 2 (new): [% f2_file_data %]
+[% IF no_ontology_changes %]
+No ontology changes found!
+[% ELSE %]
+NEW TERMS
+=========
+[% IF f2_only %]
+ID	name	namespace
+[% 	FOREACH t IN f2_only.keys.sort;
+ %][% t %]	[% f2_term_hash.$t.name.0 %]	[% f2_term_hash.$t.namespace.0 || '' %][% IF subset %]	[% f2.$t.anc.join(", ") %][% END %]
+[% 	END;
+	ELSE %]
+None
+[% END %]
+
+OBSOLETIONS
+===========
+[%	IF f2_obsoletes;
+		FOREACH t IN f2_obsoletes.keys.sort;
+			t _ ', ' _ f2_term_hash.$t.name.0;
+			IF f1_term_hash.$t.namespace;
+				' (' _ f1_term_hash.$t.namespace.0 _ ')';
+			END;
+			'
+';
+			IF level == 'l';
+				IF f2_term_hash.$t.comment;
+					'	' _ f2_term_hash.$t.comment.0 _ '
+';
+				END;
+				IF f2_term_hash.$t.replaced_by;
+					'	Replaced by: ' _ f2_term_hash.$t.replaced_by.join(", ") _ '
+';
+				END;
+				IF f2_term_hash.$t.consider;
+					'	Consider: ' _ f2_term_hash.$t.consider.join(", ") _ '
+';
+				END;
+			END;
+		END;
+	ELSE %]
+None
+[% END %]
+
+TERM MERGES
+===========
+[% IF f1_to_f2_merge;
+		FOREACH t IN f1_to_f2_merge.keys.sort;
+			merge = f1_to_f2_merge.$t;
+%][% t %], [% f1_term_hash.$t.name.0 %] was merged into [% merge %], [% f2_term_hash.$merge.name.0 %]
+[% 	END;
+	ELSE %]
+None
+[% END %]
+
+TERM CHANGES
+============
+[%	IF ! term_changes %]
+None
+[%	ELSIF level == 's' %]
+[% term_changes.size %] terms edited.
+[%	ELSIF level == 'm' %]
+KEY:  'A' : added, 'D' : deleted, 'C' : changed
+
+Term ID	[%
+		FOREACH a IN term_change_attribs;
+			a _ '	';
+		END %]
+[%		
+		FOREACH t IN term_changes.keys.sort;
+		t _ '	';
+			FOREACH a IN term_change_attribs;
+				IF term_changes.$t.$a;
+					IF single_value_attribs.$a;
+						IF term_changes.$t.$a.f1 && term_changes.$t.$a.f2;
+							'C';
+						ELSIF term_changes.$t.$a.f1;
+							'D';
+						ELSIF term_changes.$t.$a.f2;
+							'A';
+						END;
+					ELSE;  # not single value attrib
+						IF term_changes.$t.$a.f1;
+							term_changes.$t.$a.f1.size _ ' D';
+						END;
+						IF term_changes.$t.$a.f1 && term_changes.$t.$a.f2;
+							', ';
+						END;
+						IF term_changes.$t.$a.f2;
+							term_changes.$t.$a.f2.size _ ' A';
+						END;
+					END;
+				END;
+				'	';
+			END; %]
+[%		END;
+	ELSIF level == 'l';
+		FOREACH t IN term_changes.keys.sort %]
+[% t %] : [% f2_term_hash.$t.name.0 %]
+[%			FOREACH a IN term_change_attribs;
+				IF term_changes.$t.$a;
+					IF term_changes.$t.$a.f1;
+						FOREACH x IN term_changes.$t.$a.f1;
+							%]- [% a %]: [% x %]
+[%
+						END;
+					END;
+					IF term_changes.$t.$a.f2;
+						FOREACH x IN term_changes.$t.$a.f2;
+							%]+ [% a %]: [% x %]
+[%
+						END;
+					END;
+				END;
+			END; ## end FOREACH a IN term_change_attribs
+		END; ## end FOREACH t IN term_changes.keys.sort; %]
+[%	END %]
+
+[% IF other && (other.f2_only || other.f1_only || other.both); %]
+OTHER STANZA TYPES
+==================
+[%		IF other.f2_only %]
+New Stanzas
+==========-
+
+Stanza type	ID	Name
+[% 			FOREACH s_type IN other.f2_only.keys.sort;
+				FOREACH t IN other.f2_only.$s_type.keys.sort;
+			%][% s_type %]	[% t %]	[% other.f2_only.$s_type.$t.name || '' %]
+[% 				END;
+			END %]
+
+[%		END;
+	 	IF other.f1_only %]
+Stanzas removed
+==============-
+
+Stanza type	ID	Name
+[% 			FOREACH s_type IN other.f1_only.keys.sort;
+				FOREACH t IN other.f1_only.$s_type.keys.sort;
+%][% s_type %]	[% t %]	[% other.f1_only.$s_type.$t.name || '' %]
+[% 				END;
+			END %]
+
+[%		END;
+		IF other.both %]
+Stanzas Edited
+==============
+
+Stanza type	ID	Name
+[% 			FOREACH s_type IN other.both.keys.sort;
+				FOREACH t IN other.both.$s_type.keys.sort;
+%][% s_type %]	[% t %]	[% other.both.$s_type.$t.name || '' %]
+[% 				END;
+			END %]
+[%		END %]
+[%	END; ## other %]
+FILE STATS
+==========
+
+Term counts for the old and new files
+
+Ontology	Old file	New file	Change
+[% sign = '+';
+	FOREACH o IN ontology_list.keys;
+		total_row = o.replace('_', ' ') _ "	";
+		def_row = '	';
+		IF f1_stats.by_ns.$o;
+			total_row = total_row _ f1_stats.by_ns.$o.total _ "	";
+			def_row = def_row _ "(" _ f1_stats.by_ns.$o.def _ " defined)	";
+		ELSE;
+			total_row = total_row _ '-	';
+			def_row = def_row _ "	";
+		END;
+
+		IF f2_stats.by_ns.$o;
+			total_row = total_row _ f2_stats.by_ns.$o.total _ "	";
+			def_row = def_row _ "(" _ f2_stats.by_ns.$o.def _ " defined)	";
+		ELSE;
+			total_row = total_row _ '-	';
+			def_row = def_row _ "	";
+		END;
+
+		IF delta.$o;
+			IF delta.$o > 0;
+				total_row = total_row _ sign ;
+			END;
+			total_row = total_row _ delta.$o;
+		END;
+		total_row %]
+[%		def_row %]
+[%	END %]
+Obsolete	[% f1_stats.obs %]	[% f2_stats.obs %]	[% 
+	IF delta.obs > 0; sign; END;
+	delta.obs %]
+	([% f1_stats.obs_percent %]% of total)	 ([% f2_stats.obs_percent %]% of total)	([%
+	IF delta.obs_percent > 0; sign; END;
+	delta.obs_percent %]%)
+
+Totals	[% f1_stats.extant %]	[% f2_stats.extant %]	[% IF delta.total > 0; sign; END; delta.total %] ([% 
+	IF delta.total_percent > 0; sign; END;
+	delta.total_percent %]%)
+	[% f1_stats.def_not_obs %] ([% f1_stats.def_extant_percent %]%) defined	[% f2_stats.def_not_obs %] ([% f2_stats.def_extant_percent %]%) defined	
+	[% f1_stats.total %] inc. obs	[% f2_stats.total %] inc. obs
+
+
+[% IF f1_only || f1_obsoletes || f2_to_f1_merge %]
+FILE ERRORS
+===========
+
+[% IF f1_only %]
+Terms lost
+==========
+ID	name	namespace
+[% 	FOREACH t IN f1_only.keys.sort;
+%][% t %]	[% f1_term_hash.$t.name.0 %]	[% f1_term_hash.$t.namespace.0 || '' %]
+[% 	END;
+	END;
+
+	IF f1_obsoletes %]
+Terms resurrected from obsolete-dom
+===================================
+ID	name	namespace
+[% 		FOREACH t IN f1_obsoletes.keys.sort;
+%][% t %]	[% f2_term_hash.$t.name.0 %]	[% f2_term_hash.$t.namespace.0 || '' %]
+[% 		END;
+	END;
+
+	IF f2_to_f1_merge %]
+Term splits
+===========
+[% 	FOREACH t IN f2_to_f1_merge.keys.sort;
+			merge = f2_to_f1_merge.$t
+%][% t %], [% f2_term_hash.$t.name.0 %] was split from [% merge %], [% f1_term_hash.$merge.name.0 %]
+[% 	END;
+	END;
+END %]
+[% END %]

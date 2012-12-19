@@ -1,0 +1,38 @@
+<html>
+<p>
+The following [% ontology_name %] terms have been made obsolete as of [% nice_date %]:
+</p>
+[%	FOREACH t IN f2_obsoletes.keys.sort %]
+<p>[% t %] ; [% f2_term_hash.$t.name.0 %]<br>
+[%				IF f2_term_hash.$t.comment;
+					f2_term_hash.$t.comment.0 _ '<br>';
+				END;
+				IF f2_term_hash.$t.replaced_by;
+					rplc_links = [];
+					FOREACH r IN f2_term_hash.$t.replaced_by;
+						rplc_links.push('<a href="' _ primary.url_prefix _ r _ primary.url_suffix '">' _ r _ '</a>');
+					END; %]
+Replaced by: [% rplc_links.join(", ") %]<br>
+[%
+				END;
+				IF f2_term_hash.$t.consider;
+					cons_links = [];
+					FOREACH r IN f2_term_hash.$t.consider;
+						cons_links.push('<a href="' _ primary.url_prefix _ r _ primary.url_suffix '">' _ r _ '</a>');
+					END; %]
+Consider: [% cons_links.join(", ") %]<br>
+[%
+				END;
+				tlt = [];
+				str = '';
+				FOREACH l IN term_links.keys.sort;
+					str = '<a href="' _ term_links.$l.url_prefix _ t _ term_links.$l.url_suffix _ '">' _ term_links.$l.text _ '</a>';
+					tlt.push(str);
+				END;
+				IF tlt.size > 0;
+					tlt.join("&nbsp;| ");
+				END;
+			%]</p>
+[% END %]
+<p>Signed,<br><br>The [% ontology_name %] File Watching Daemon[% IF report_info_url %]<br><a href="[% report_info_url %]">Ontology report info</a>[% END %]</p>
+</html>

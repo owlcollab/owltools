@@ -1,0 +1,29 @@
+! [% ontology_name %] definition changes
+!
+! Files used:
+! file 1 (old): [% data.f1_date || "date unknown" %], cvs revision [% data.f1_cvs || "unknown" %]
+! file 2 (new): [% data.f2_date || "date unknown" %], cvs revision [% data.f2_cvs || "unknown" %]
+[% IF data.db_data;
+%]! Database: [% data.db_data.release_type || "unknown DB type" %], [% data.db_data.release_name || "unknown DB release name" %]
+[% END %]
+![% IF no_ontology_changes %]
+! No definition changes found
+[% ELSE %]
+! Format of first line of each entry:
+! Term ID : term name  ( total # annots / # direct annots)
+
+[% FOREACH t IN data.changed.keys.sort %]
+[% t %] : [% data.f2.$t.name %]   [%
+		IF data.db_data;
+			IF data.f2.$t.indirect && data.f2.$t.indirect != 0;
+	%]([% data.f2.$t.indirect %] / [% data.f2.$t.direct || "0" %] direct)[%
+			ELSE;
+%](0 annotations)[%
+			END;
+		END %]
+[% 	IF data.f1.$t.name != data.f2.$t.name %](was [% data.f1.$t.name %])
+[% 	END; %]OLD: [% data.f1.$t.def %]
+NEW: [% data.f2.$t.def %]
+
+[% END %]
+[% END %]

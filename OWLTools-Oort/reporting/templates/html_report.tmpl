@@ -1,0 +1,528 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	  "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<title>[% ontology_name %] New Additions, Deletions, Substitutions: A Report</title>
+	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+	<link rel="stylesheet" type="text/css" href="[% install_dir %]stylesheets/stylesheet.css">
+	<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="[% install_dir %]stylesheets/ie-fix.css"><![endif]-->
+	<script src="[% install_dir %]enhancer.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="paddedfullpage">
+[% INCLUDE header.tmpl %]
+<div id="wrapper">
+	<div id="main">
+<h1>[% ontology_name %]: Ontology Comparison Report</h1>
+<p>Files used:</p>
+<ul>
+<li><b>file 1 (old)</b>: [% f1_file_data %]</li>
+<li><b>file 2 (new)</b>: [% f2_file_data %]</li>
+</ul>
+[% IF no_ontology_changes %]
+<p>No ontology changes found.</p>
+[% ELSE %]
+		<div id="navPage">
+			<ul>
+				<li class="h2">
+					<a href="#new">New terms</a>
+				</li>
+				<li class="h2">
+					<a href="#obs">Obsoletions</a>
+				</li>
+				<li class="h2">
+					<a href="#merge">Term merges</a>
+				</li>
+				<li class="h2">
+					<a href="#change">Term changes</a>
+				</li>
+[% IF other && (other.f2_only || other.f1_only || other.both); -%]
+				<li class="h2">
+					<a href="#other">Other Stanza Types</a>
+				</li>
+[%- END %]
+				<li class="h2">
+					<a href="#stats">File Stats</a>
+				</li>
+[% IF f1_only || f1_obsoletes || f1_to_f2_split -%]
+				<li class="h2">
+					<a href="#err">Files Errors</a>
+				</li>
+[%- END %]
+			</ul>
+		</div>
+<div id="new" class="block">
+<h2>New terms</h2>
+
+[% IF f2_only %]
+<table class="stripey w100" >
+<thead>
+<tr>
+<th class="w-mid">ID</th>
+<th>name</th>
+<th class="w-wide">namespace</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH t IN f2_only.keys.sort %]
+<tr>
+<td>[% IF primary.url_prefix %]<a href="[% primary.url_prefix _ t _ primary.url_suffix %]">[% t %]</a>[% ELSE %][% t %][% END %]</td>
+<td>[% IF primary.url_prefix %]<a href="[% primary.url_prefix _ t _ primary.url_suffix %]">[% f2_term_hash.$t.name.0 %]</a>[% ELSE %][% f2_term_hash.$t.name.0 %][% END %]</td>
+<td>[% f2_term_hash.$t.namespace.0 || '' %]</td>
+</tr>
+[% 	END %]
+</tbody>
+</table>
+[% ELSE %]
+<p>None</p>
+[% END %]
+</div>
+
+<div id="obs" class="block">
+<h2>Obsoletions</h2>
+
+[% IF f2_obsoletes %]
+<table class="stripey w100" >
+<thead>
+<tr>
+<th class="w-mid">ID</th>
+<th>name</th>
+<th class="w-wide">namespace</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH t IN f2_obsoletes.keys.sort %]
+<tr>
+<td>[% IF primary.url_prefix %]<a href="[% primary.url_prefix _ t _ primary.url_suffix %]">[% t %]</a>[% ELSE %][% t %][% END %]</td>
+<td>[% IF primary.url_prefix %]<a href="[% primary.url_prefix _ t _ primary.url_suffix %]">[% f2_term_hash.$t.name.0 %]</a>[% ELSE %][% f2_term_hash.$t.name.0 %][% END %]
+[%		IF level == 'l';
+			IF f2_term_hash.$t.replaced_by;
+				'<br>Replaced by: ' _ f2_term_hash.$t.replaced_by.join(", ");
+			END;
+			IF f2_term_hash.$t.consider;
+				'<br>Consider: ' _ f2_term_hash.$t.consider.join(", ");
+			END;
+			IF f2_term_hash.$t.comment;
+				'<br>' _ f2_term_hash.$t.comment.0;
+			END;
+		END %]
+</td>
+<td>[% f1_term_hash.$t.namespace.0 || '' %]</td>
+</tr>
+[% 	END %]
+</tbody>
+</table>
+[% ELSE %]
+<p>None</p>
+[% END %]
+</div>
+
+<div id="merge" class="block">
+<h2>Term merges</h2>
+
+[% IF f1_to_f2_merge %]
+<table class="stripey w100" >
+<thead>
+<tr>
+<th class="w-mid">Old ID</th>
+<th>Old name</th>
+<th class="w-mid">Merged into</th>
+<th>Merged term name</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH t IN f1_to_f2_merge.keys.sort;
+			merge = f1_to_f2_merge.$t %]
+<tr><td>[% t %]</td><td>[% f1_term_hash.$t.name.0 %]</td><td>[% merge %]</td><td>[% f2_term_hash.$merge.name.0 %]</td>
+[% 	END %]
+</tbody>
+</table>
+[% ELSE %]
+<p>None</p>
+[% END %]
+</div>
+
+<div id="change" class="block">
+<h2>Term changes</h2>
+[%		IF ! term_changes %]
+<p>None</p>
+[% 		ELSIF level == 's' %]
+<p>[% term_changes.size %] terms edited.</p>
+[% 		ELSIF level == 'm' %]
+<p>KEY:  'A' : added, 'D' : deleted, 'C' : changed (for properties with only one value)</p>
+<table class="stripey col-based" summary="Additions, deletions and changes to ontology terms between old and new versions of the ontology">
+<caption>Changes in term-related data</caption>
+<thead>
+<tr><th scope="col">Term ID</th>
+[%	FOREACH a IN term_change_attribs; %]
+<td scope="col">[% a %]</td>
+[%	END %]
+</tr>
+</thead>
+[%	IF term_changes.size > 10 %]
+<tfoot>
+<tr><th>Term ID</th>
+[%		FOREACH a IN term_change_attribs %]
+<th>[% a %]</th>
+[%		END %]
+</tr>
+</tfoot>
+[%	END %]
+<tbody>
+[%	FOREACH t IN term_changes.keys.sort %]
+<tr><th scope="row">[% 
+		IF primary.url_prefix;
+	%]<a href="[% primary.url_prefix _ t _ primary.url_suffix %]">[% t %]<br>[% f2_term_hash.$t.name.0 %]</a>[% 
+		ELSE;
+	%][% t %]<br>[% f2_term_hash.$t.name.0 %][%
+		END; %]</th>
+[% 		FOREACH a IN term_change_attribs %]
+<td>[%
+			IF term_changes.$t.$a;
+				IF single_value_attribs.$a;
+					IF full_details;
+						IF term_changes.$t.$a.f1;
+							%]<del title="Removed [% a %]">[% term_changes.$t.$a.f1.0 %]</del>[%
+						END;
+						IF term_changes.$t.$a.f1 && term_changes.$t.$a.f2;
+							'<br>';
+						END;
+						IF term_changes.$t.$a.f2;
+							%]<ins title="Added [% a %]">[% term_changes.$t.$a.f2.0 %]</ins>[%
+						END;
+					ELSE; ## ! full_details
+						IF term_changes.$t.$a.f1 && term_changes.$t.$a.f2;
+							%]<span title="Changed [% a %]">C</span>[%
+						ELSIF term_changes.$t.$a.f1;
+							%]<span title="Deleted [% a %]">D</span>[%
+						ELSIF term_changes.$t.$a.f2;
+							%]<span title="Added [% a %]">A</span>[%
+						END;
+					END;
+				ELSE;  # not single value attrib
+					IF full_details;
+						IF term_changes.$t.$a.f1;
+							%]<del>[% term_changes.$t.$a.f1.join('</del>
+<br>
+<del>') %]</del>
+[%
+						END;
+						IF term_changes.$t.$a.f1 && term_changes.$t.$a.f2;
+							'<br>';
+						END;
+						IF term_changes.$t.$a.f2;
+							%]<ins>[% term_changes.$t.$a.f2.join('</ins>
+<br>
+<ins>') %]</ins>
+[%
+						END;
+					ELSE; ## ! full_details
+						txt = "";
+						title = a _ ": ";
+						IF term_changes.$t.$a.f1;
+							txt = txt _ term_changes.$t.$a.f1.size _ " D";
+							title = title _ term_changes.$t.$a.f1.size _ " removed";
+						END;
+						IF term_changes.$t.$a.f1 && term_changes.$t.$a.f2;
+							txt = txt _ ', ';
+							title = title _ ', ';
+						END;
+						IF term_changes.$t.$a.f2;
+							txt = txt _ term_changes.$t.$a.f2.size _ " A";
+							title = title _ term_changes.$t.$a.f2.size _ " added";
+						END;
+							%]<span title="[% title %]">[% txt %]</span>[%
+					END;
+				END;
+			ELSE; ## no term_changes
+			%] [%
+			END; %]</td>
+[%		END; ## end FOREACH a IN term_change_attribs %]
+</tr>
+[%	END; ## end FOREACH t IN term_changes.keys.sort;
+%]
+</tbody>
+</table>
+[%		ELSE; # level = 'l', two_col_layout %]
+
+<table class="stripey w100" summary="Additions, deletions and changes to ontology terms between old and new versions of the ontology">
+<caption>Changes in term-related data</caption>
+<thead>
+<tr>
+<th scope="col" class="w50">File 1 ([% f1_date || 'date unknown' %], [% f1_cvs || 'CVS revision unknown' %])</th>
+<th scope="col" class="w50">File 2 ([% f2_date || 'date unknown' %], [% f2_cvs || 'CVS revision unknown' %])</th>
+</tr>
+</thead>
+</table>
+
+[%	FOREACH t IN term_changes.keys.sort %]
+<table class="w100">
+<tbody>
+<tr><th colspan="2">[%
+		IF primary.url_prefix;
+			%]<a href="[% primary.url_prefix _ t _ primary.url_suffix %]">[% t %] : [% f2_term_hash.$t.name.0 %]</a>[%
+		ELSE;
+			%][% t %] : [% f2_term_hash.$t.name.0 %][% 
+		END; %]</th></tr>
+<tr><td class="w50">
+[% 		FOREACH a IN term_change_attribs;
+			IF term_changes.$t.$a;
+				IF term_changes.$t.$a.f1;
+					'<b>' _ a _ '</b><br>';
+					IF single_value_attribs.$a;
+						'<del>' _ term_changes.$t.$a.f1.0 _ '</del><br>';
+					ELSE;  # not single value attrib
+						'<del>' _ term_changes.$t.$a.f1.sort.join('</del>
+<br>
+<del>') _ '</del><br>
+';
+					END;
+				END;
+			END;
+		END; %]
+</td>
+<td>
+[% 		FOREACH a IN term_change_attribs;
+			IF term_changes.$t.$a;
+				IF term_changes.$t.$a.f2;
+					'<b>' _ a _ '</b><br>';
+					IF single_value_attribs.$a;
+						'<ins>' _ term_changes.$t.$a.f2.0 _ '</ins><br>';
+					ELSE;  # not single value attrib
+						'<ins>' _ term_changes.$t.$a.f2.sort.join('</ins>
+<br>
+<ins>') _ '</ins><br>
+';
+					END;
+				END;
+			END;
+		END; ## end FOREACH a IN term_change_attribs %]
+</td></tr>
+</tbody>
+</table>
+[%	END; ## end FOREACH t IN term_changes.keys.sort; %]
+<!--/table-->
+[%		END; %]
+</div>
+
+[% IF other && (other.f2_only || other.f1_only || other.both); %]
+<div id="other" class="block">
+<h2>Other Stanza Types</h2>
+[% IF other.f2_only %]
+<h3>New Stanzas</h3>
+<table class="stripey w100">
+<thead>
+<tr>
+<th>Stanza type</th>
+<th>ID</th>
+<th>name</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH s_type IN other.f2_only.keys.sort;
+			FOREACH t IN other.f2_only.$s_type.keys.sort %]
+<tr>
+<td>[% s_type %]</td>
+<td>[% t %]</td>
+<td>[% other.f2_only.$s_type.$t.name || '' %]</td>
+</tr>
+[% 		END;
+		END %]
+</tbody>
+</table>
+[% END %]
+[% IF other.f1_only %]
+<h3>Stanzas removed</h3>
+<table class="stripey w100">
+<thead>
+<tr>
+<th>Stanza type</th>
+<th>ID</th>
+<th>name</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH s_type IN other.f1_only.keys.sort;
+			FOREACH t IN other.f1_only.$s_type.keys.sort %]
+<tr>
+<td>[% s_type %]</td>
+<td>[% t %]</td>
+<td>[% other.f1_only.$s_type.$t.name || '' %]</td>
+</tr>
+[% 		END;
+		END %]
+</tbody>
+</table>
+[% END %]
+[% IF other.both %]
+<h3>Stanzas Edited</h3>
+<table class="stripey w100">
+<thead>
+<tr>
+<th>Stanza type</th>
+<th>ID</th>
+<th>name</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH s_type IN other.both.keys.sort;
+			FOREACH t IN other.both.$s_type.keys.sort %]
+<tr>
+<td>[% s_type %]</td>
+<td>[% t %]</td>
+<td>[% other.both.$s_type.$t.name || '' %]</td>
+</tr>
+[% 		END;
+		END %]
+</tbody>
+</table>
+[% END %]
+</div>
+[% END; %]
+
+<div id="stats" class="block">
+<h2>File Stats</h2>
+
+<table class="stripey w100">
+<caption>Term counts for the old and new files</caption>
+<thead class="C">
+<tr>
+<th scope="col" class="C">Ontology</th>
+<th scope="col" class="C">Old file</th>
+<th scope="col" class="C">New file</th>
+<th scope="col" class="C">Change</th>
+</tr>
+</thead>
+<tbody class="R">
+[% sign = '+';
+	FOREACH o IN ontology_list.keys %]
+<tr>
+<td scope="row">[% o.replace('_', ' ') %]</td>
+<td>
+[% IF f1_stats.by_ns.$o %]
+[% f1_stats.by_ns.$o.total %]<br>[% f1_stats.by_ns.$o.def %] ([% f1_stats.by_ns.$o.def_percent %]%) defined
+[% ELSE %]
+-
+[% END %]
+</td>
+<td>
+[% IF f2_stats.by_ns.$o %]
+[% f2_stats.by_ns.$o.total %]<br>[% f2_stats.by_ns.$o.def %] ([% f2_stats.by_ns.$o.def_percent %]%) defined
+[% ELSE %]
+-
+[% END %]
+</td>
+<td>[% IF delta.$o > 0; sign ; END; delta.$o %]
+</td>
+</tr>
+[% END %]
+</tbody>
+<tbody class="obs R">
+<tr>
+<td>Obsolete</td>
+<td>[% f1_stats.obs %]<br>([% f1_stats.obs_percent %]% of total)</td>
+<td>[% f2_stats.obs %]<br>([% f2_stats.obs_percent %]% of total)</td>
+<td>
+[% IF delta.obs > 0; sign; END;
+	delta.obs %] ([%
+	IF delta.obs_percent > 0; sign; END;
+	delta.obs_percent %]%)
+</td>
+</tr>
+</tbody>
+<tbody class="total R">
+<tr>
+<td scope="row">Totals</td>
+<td>
+[% f1_stats.extant %]<br>[% f1_stats.def_not_obs %] ([% f1_stats.def_extant_percent %]%) defined<br>[% f1_stats.total %] inc. obsoletes
+</td>
+<td>
+[% f2_stats.extant %]<br>[% f2_stats.def_not_obs %] ([% f2_stats.def_extant_percent %]%) defined<br>[% f2_stats.total %] inc. obsoletes
+</td>
+<td>
+[% IF delta.total > 0; sign; END;
+	delta.total %] ([%
+	IF delta.total_percent > 0; sign; END;
+	delta.total_percent %]%)</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+[% IF f1_only || f1_obsoletes || f1_to_f2_split %]
+<div id="err" class="block">
+<h2>File Errors</h2>
+
+[% IF f1_only %]
+<h3>Terms lost</h3>
+
+<table class="stripey w100">
+<thead>
+<tr>
+<th class="w-mid">ID</th>
+<th>name</th>
+<th class="w-wide">namespace</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH t IN f1_only.keys.sort %]
+<tr>
+<td>[% t %]</td>
+<td>[% f1_term_hash.$t.name.0 %]</td>
+<td>[% f1_term_hash.$t.namespace.0 || '' %]</td>
+</tr>
+[% 	END %]
+</tbody>
+</table>
+[% END;
+
+	IF f1_obsoletes %]
+<h3>Terms resurrected from obsolete-dom</h3>
+<table class="stripey w100">
+<thead>
+<tr>
+<th class="w-mid">ID</th>
+<th>name</th>
+<th class="w-wide">namespace</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH t IN f1_obsoletes.keys.sort %]
+<tr><td>[% t %]</td><td>[% f2_term_hash.$t.name.0 %]</td><td>[% (f2_term_hash.$t.namespace.0 || 'unknown' ) %]</td></tr>
+[% 	END %]
+</tbody>
+</table>
+[% END;
+
+	IF f1_to_f2_split %]
+<h3>Term splits</h3>
+<table class="stripey w100">
+<thead>
+<tr>
+<th class="w-mid">Source term ID</th>
+<th>Source term name</th>
+<th class="w-mid">Split term ID</th>
+<th>Split term name</th>
+</tr>
+</thead>
+<tbody>
+[% 	FOREACH t IN f1_to_f2_split.keys.sort;
+		split = f1_to_f2_split.$t %]
+<tr><td>[% split %]</td><td>[% f1_term_hash.$split.name.0 %]</td><td>[% t %]</td><td>[% f2_term_hash.$t.name.0 %]</td></tr>
+[% 	END %]
+</tbody>
+</table>
+[% END %]
+</div>
+[% END %]
+[% END; ## end no_ontology_changes %]
+[% IF report_info_url %]<p><a href="[% report_info_url %]">Ontology report info</a></p>[% END %]
+
+</div>
+</div>
+[% INCLUDE footer.tmpl %]
+</div>
+
+</body>
+</html>
+

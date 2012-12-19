@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="[% install_dir %]/stylesheets/stylesheet.css"?>
+<rss version="2.0">
+	<channel>
+		<title>[% ontology_name %]: Obsolete term feed</title>
+		<link>[% ontology_url %]</link>
+		<description>RSS feed of terms obsoleted from the [% ontology_name %]</description>
+		<language>en</language>
+		<pubDate>[% full_date %]</pubDate>
+		<lastBuildDate>[% full_date %]</lastBuildDate>
+		<webMaster>[% webmaster %]</webMaster>
+[%	FOREACH t IN f2_obsoletes.keys.sort %]
+		<item>
+			<title>[% t %] ; [% f2_term_hash.$t.name.0 %]</title>
+			<link>[% primary.url_prefix _ t _ primary.url_suffix %]</link>
+			<description>
+			<![CDATA[<p>[% f2_term_hash.$t.namespace.0 %]<br>
+[%				IF f2_term_hash.$t.comment;
+					f2_term_hash.$t.comment.0 _ '<br>';
+#					USE Dumper; Dumper.dump( f2_term_hash.$t.comment.0 );
+				END;
+				IF f2_term_hash.$t.replaced_by;
+					rplc_links = [];
+					FOREACH r IN f2_term_hash.$t.replaced_by;
+						rplc_links.push('<a href="' _ primary.url_prefix _ r _ primary.url_suffix '">' _ r _ '</a>');
+					END; %]
+Replaced by: [% rplc_links.join(", ") %]<br>[%
+				END;
+				IF f2_term_hash.$t.consider;
+					cons_links = [];
+					FOREACH r IN f2_term_hash.$t.consider;
+						cons_links.push('<a href="' _ primary.url_prefix _ r _ primary.url_suffix '">' _ r _ '</a>');
+					END; %]
+Consider: [% cons_links.join(", ") %]<br>[%
+				END;
+				## list of links to term in different browsers
+				tlt = [];
+				str = '';
+				FOREACH l IN term_links.keys.sort;
+					str = '<a href="' _ term_links.$l.url_prefix _ t _ term_links.$l.url_suffix _ '">' _ term_links.$l.text _ '</a>';
+					tlt.push(str);
+				END;
+				IF tlt.size > 0;
+					tlt.join("&nbsp;| ");
+				END;
+			%]</p>]]>
+			</description>
+			<pubDate>[% full_date %]</pubDate>
+			<guid>[% primary.url_prefix _ t _ primary.url_suffix %]</guid>
+		</item>
+[%	END;
+	old_data;
+	%]
+	</channel>
+</rss>

@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	  "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<title>[% ontology_name %] Definition Changes</title>
+	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+	<link rel="stylesheet" type="text/css" href="[% install_dir %]/stylesheets/stylesheet.css">
+	<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="[% install_dir %]/stylesheets/ie-fix.css"><![endif]-->
+	<script src="[% install_dir %]/enhancer.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="paddedfullpage">
+[% INCLUDE header.tmpl %]
+<div id="wrapper">
+	<div id="main">
+<h1>[% ontology_name %] Definition Changes</h1>
+<p>Files used:</p>
+<ul>
+<li><b>file 1 (old)</b>: [% data.f1_date || "date unknown" %], cvs revision [% data.f1_cvs || "unknown" %]</li>
+<li><b>file 2 (new)</b>: [% data.f2_date || "date unknown" %], cvs revision [% data.f2_cvs || "unknown" %]</li>
+[% IF data.db_data %]<li><b>Database</b>: [% data.db_data.release_type || "unknown DB type" %], [% data.db_data.release_name || "unknown DB release name" %]</li>
+[% END %]
+</ul>
+[% IF no_ontology_changes %]
+<p>No ontology changes found.</p>
+[% ELSE %]
+<div class="block">
+<h2>Terms with changed definitions</h2>
+[% FOREACH t IN data.changed.keys.sort %]
+<div class="zero">
+[%		IF data.db_data;
+%]<p class="fbox">[%
+			IF data.f2.$t.indirect && data.f2.$t.indirect != 0;
+	%]<a href="[% assoc.url_prefix _ t _ assoc.url_suffix %]">[% data.f2.$t.indirect %] / [% data.f2.$t.direct %] direct</a>[%
+			ELSE;
+%]0 annotations[%
+			END;
+%]</p>
+[%		END;
+%]<h3><a href="[% primary.url_prefix _ t _ primary.url_suffix %]">[% t %] : [% data.f2.$t.name %]</a></h3>[%
+		IF data.f1.$t.name != data.f2.$t.name %]
+<p>(was [% data.f1.$t.name %])</p>[%
+		END %]
+<p class="clearR"><b>OLD</b>: [% data.f1.$t.def_diffs %]
+<br><b>NEW</b>: [% data.f2.$t.def_diffs %]</p>
+</div>
+[% END; ## end foreach in data.changed %]
+</div>
+[% END; ## end no_ontology_changes %]
+[% IF report_info_url %]<p><a href="[% report_info_url %]">Ontology report info</a></p>[% END %]
+</div>
+</div>
+[% INCLUDE footer.tmpl %]
+</div>
+</body>
+</html>
