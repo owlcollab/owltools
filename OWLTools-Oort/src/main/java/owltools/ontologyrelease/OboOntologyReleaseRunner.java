@@ -154,7 +154,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		int exitCode = 0;
 		try {
-			boolean success = oorr.createRelease(oortConfig.getPaths());
+			boolean success = oorr.createRelease();
 			String message;
 			if (success) {
 				message = "Finished release manager process";
@@ -375,6 +375,42 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 	}
 
+	/**
+	 * Create a release, use the {@link OortConfiguration} instance specified the in constructor. 
+	 * 
+	 * @return true if the release was successful
+	 * @throws IOException
+	 * @throws OWLOntologyCreationException
+	 * @throws FileNotFoundException
+	 * @throws OWLOntologyStorageException
+	 * @throws OboOntologyReleaseRunnerCheckException
+	 * @throws AnnotationCardinalityException
+	 * @throws OBOFormatParserException
+	 */
+	public boolean createRelease() throws IOException, 
+	OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException,
+	OboOntologyReleaseRunnerCheckException, AnnotationCardinalityException,
+	OBOFormatParserException
+	{
+		return createRelease(oortConfig.getPaths());
+	}
+	
+	/**
+	 * Create a release.
+	 * 
+	 * @param allPaths
+	 * @return true if the release was successful
+	 * @throws IOException
+	 * @throws OWLOntologyCreationException
+	 * @throws FileNotFoundException
+	 * @throws OWLOntologyStorageException
+	 * @throws OboOntologyReleaseRunnerCheckException
+	 * @throws AnnotationCardinalityException
+	 * @throws OBOFormatParserException
+	 * 
+	 * @Deprecated use the {@link #createRelease()} instead. This method will be private in the next release.
+	 */
+	@Deprecated
 	public boolean createRelease(Vector<String> allPaths) throws IOException, 
 		OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException,
 		OboOntologyReleaseRunnerCheckException, AnnotationCardinalityException,

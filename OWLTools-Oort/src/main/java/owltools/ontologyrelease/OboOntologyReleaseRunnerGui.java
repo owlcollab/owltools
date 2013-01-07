@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -95,7 +94,6 @@ public class OboOntologyReleaseRunnerGui {
 				@Override
 				public void run() {
 					try {
-						Vector<String> paths = parameters.getPaths();
 						File base = parameters.getBase();
 						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(parameters, base) {
 
@@ -122,7 +120,7 @@ public class OboOntologyReleaseRunnerGui {
 							}
 							
 						};
-						boolean success = oorr.createRelease(paths);
+						boolean success = oorr.createRelease();
 						String message;
 						if (success) {
 							message = "Finished release manager process";
