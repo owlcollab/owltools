@@ -723,12 +723,12 @@ sub generate_stats {
 
 	foreach my $x qw(obs def_not_obs total)
 	{	$vars->{delta}{$x} = $vars->{f2_stats}{$x} - $vars->{f1_stats}{$x};
-		$vars->{delta}{$x . "_percent"} = sprintf("%.1f", $vars->{delta}{$x} / $vars->{f1_stats}{$x} * 100);
+		$vars->{delta}{$x . "_percent"} = sprintf("%.1f", $vars->{delta}{$x} / $vars->{f1_stats}{$x} * 100) if  $vars->{f1_stats}{$x};
 	}
 
 	foreach my $x qw( f1 f2 )
 	{	$vars->{$x."_stats"}{extant} = $vars->{$x."_stats"}{total} - $vars->{$x."_stats"}{obs};
-		$vars->{$x."_stats"}{def_extant_percent} = sprintf("%.1f", $vars->{$x."_stats"}{def_not_obs} / $vars->{$x."_stats"}{extant} * 100);
+		$vars->{$x."_stats"}{def_extant_percent} = sprintf("%.1f", $vars->{$x."_stats"}{def_not_obs} / $vars->{$x."_stats"}{extant} * 100) if $vars->{$x."_stats"}{extant};
 	}
 
 	foreach my $o (keys %{$vars->{ontology_list}})

@@ -493,6 +493,36 @@ sub parse_options {
 				$opt->{r2} =~ s/(^["']|["']$)//g;
 			}
 		}
+		elsif ($o eq '--rss-path') {
+			if (@$args && $args->[0] !~ /^\-/)
+			{	$opt->{rss_path} = shift @$args;
+                                $opt->{rss_path} .= '/' unless $opt->{rss_path} =~ /\/$/;
+			}
+		}
+		elsif ($o eq '--config') {
+                    if (@$args && $args->[0] !~ /^\-/) {
+                        my $a = shift @$args;
+                        if ($a =~ /(.+)\s*=(.*)/) {
+                            my ($k,$v) = ($1,$2);
+                            my @lookup = split(/\//,$k);
+                            if (@lookup ==1) {
+                                $opt->{$k} = $v;
+                            }
+                            elsif (@lookup ==2) {
+                                $opt->{$lookup[0]}->{$lookup[1]} = $v;
+                            }
+                            elsif (@lookup ==3) {
+                                $opt->{$lookup[0]}->{$lookup[1]}->{$lookup[2]} = $v;
+                            }
+                            else {
+                                die "@lookup";
+                            }
+                        }
+                        else {
+                            die $a;
+                        }
+                    }
+		}
 		elsif ($o eq '-o' || $o eq '--output') {
 			if (@$args && $args->[0] !~ /^\-/)
 			{	$opt->{output} = shift @$args;
