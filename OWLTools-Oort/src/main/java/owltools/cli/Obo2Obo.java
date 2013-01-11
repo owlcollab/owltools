@@ -16,11 +16,11 @@ import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.OBODocNameProvider;
-import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
+import owltools.io.ParserWrapper.OboAndOwlNameProvider;
 
 /**
  * Read an OBO file and write it back out as OBO, useful for sorting hand-edited OBO files.
@@ -149,7 +149,7 @@ public class Obo2Obo {
 		// setup name provider
 		NameProvider provider;
 		if (graph != null) {
-			provider = new MergedNameProvider(oboDoc, graph);
+			provider = new OboAndOwlNameProvider(oboDoc, graph);
 		}
 		else {
 			provider = new OBODocNameProvider(oboDoc);
@@ -213,27 +213,4 @@ public class Obo2Obo {
 				"            Allows multiple supports and catalog xml files");
 	}
 	
-	static class MergedNameProvider extends OBODocNameProvider {
-
-		private final OWLGraphWrapper graph;
-		
-		MergedNameProvider(OBODoc oboDoc, OWLGraphWrapper wrapper) {
-			super(oboDoc);
-			this.graph = wrapper;
-		}
-
-		@Override
-		public String getName(String id) {
-			String name = super.getName(id);
-			if (name != null) {
-				return name;
-			}
-			OWLObject owlObject = graph.getOWLObjectByIdentifier(id);
-			if (owlObject != null) {
-				name = graph.getLabel(owlObject);
-			}
-			return name;
-		}
-
-	}
 }

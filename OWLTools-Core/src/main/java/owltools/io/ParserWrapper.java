@@ -18,11 +18,12 @@ import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.obolibrary.oboformat.model.OBODoc;
-import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
+import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
+import org.obolibrary.oboformat.writer.OBOFormatWriter.OBODocNameProvider;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
@@ -39,7 +40,6 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.io.OWLJSONFormat;
 
 /**
  * Convenience class wrapping org.oboformat that abstracts away underlying details of ontology format or location
@@ -231,7 +231,7 @@ public class ParserWrapper {
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
 				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
 				if (graph != null) {
-					oboWriter.write(doc, bw, new OWLGraphWrapperNameProvider(graph, doc));
+					oboWriter.write(doc, bw, new OboAndOwlNameProvider(doc, graph));
 				}
 				else {
 					oboWriter.write(doc, bw);
@@ -282,7 +282,11 @@ public class ParserWrapper {
 	}
 
 	/**
-	 * Provide names for the {@link OBOFormatWriter} using an {@link OWLGraphWrapper}.
+	 * Provide names for the {@link OBOFormatWriter} using an
+	 * {@link OWLGraphWrapper}.
+	 * 
+	 * @see OboAndOwlNameProvider use the {@link OboAndOwlNameProvider}, the
+	 *      pure OWL lookup is problematic for relations.
 	 */
 	public static class OWLGraphWrapperNameProvider implements NameProvider {
 		private final OWLGraphWrapper graph;
@@ -312,7 +316,10 @@ public class ParserWrapper {
 		/**
 		 * @param graph
 		 * @param oboDoc
+		 * 
+		 * If an {@link OBODoc} is available use {@link OboAndOwlNameProvider}.
 		 */
+		@Deprecated
 		public OWLGraphWrapperNameProvider(OWLGraphWrapper graph, OBODoc oboDoc) {
 			super();
 			this.graph = graph;
@@ -339,6 +346,34 @@ public class ParserWrapper {
 		public String getDefaultOboNamespace() {
 			return defaultOboNamespace;
 		}
+	}
+	
+	/**
+	 * Provide names for the {@link OBOFormatWriter} using an {@link OBODoc}
+	 * first and an {@link OWLGraphWrapper} as secondary.
+	 */
+	public static class OboAndOwlNameProvider extends OBODocNameProvider {
+
+		private final OWLGraphWrapper graph;
+		
+		public OboAndOwlNameProvider(OBODoc oboDoc, OWLGraphWrapper wrapper) {
+			super(oboDoc);
+			this.graph = wrapper;
+		}
+
+		@Override
+		public String getName(String id) {
+			String name = super.getName(id);
+			if (name != null) {
+				return name;
+			}
+			OWLObject owlObject = graph.getOWLObjectByIdentifier(id);
+			if (owlObject != null) {
+				name = graph.getLabel(owlObject);
+			}
+			return name;
+		}
+
 	}
 	
 	public static void main(String[] args) throws Exception {
