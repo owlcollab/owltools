@@ -370,7 +370,11 @@ public class CardinalityContraintsTools {
 				}
 			}
 			if (changed) {
+				if (newOperands.size() == 1) {
+					return HandlerResult.modified(newOperands.iterator().next());
+				}
 				return HandlerResult.modified(factory.getOWLObjectIntersectionOf(newOperands));
+				
 			}
 			return null;
 		}
@@ -393,6 +397,9 @@ public class CardinalityContraintsTools {
 				}
 			}
 			if (changed) {
+				if (newOperands.size() == 1) {
+					return HandlerResult.modified(newOperands.iterator().next());
+				}
 				return HandlerResult.modified(factory.getOWLObjectUnionOf(newOperands));
 			}
 			return null;

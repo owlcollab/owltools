@@ -1,0 +1,38 @@
+format-version: 1.2
+ontology: test
+
+[Term]
+id: TEST:0001
+
+[Term]
+id: TEST:0002
+
+[Term]
+id: TEST:0003
+
+[Term]
+id: TEST:0004
+
+[Term]
+id: TEST:1000
+intersection_of: TEST:0001
+intersection_of: connects TEST:0002 {cardinality="1"}
+
+[Term]
+id: TEST:1001
+intersection_of: TEST:0002
+intersection_of: connects TEST:0002 {minCardinality="1"}
+
+[Term]
+id: TEST:1002
+intersection_of: TEST:0003
+intersection_of: connects TEST:0002 {maxCardinality="2"}
+
+[Term]
+id: TEST:1003
+intersection_of: TEST:0004
+intersection_of: connects TEST:0002 {minCardinality="1", maxCardinality="2"}
+
+[Typedef]
+id: connects
+name: connects
