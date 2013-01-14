@@ -1,5 +1,6 @@
 package owltools.graph;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -87,24 +88,98 @@ public class CardinalityContraintsTools {
 	}
 	
 	/**
-	 * Visitor pattern. Find axioms containing cardinality constraints and
-	 * replace them with weaker axioms. Currently only done for
-	 * {@link OWLSubClassOfAxiom} and {@link OWLEquivalentClassesAxiom}.
+	 * Find the axioms with cardinality constraints. Creates also the weaker
+	 * axioms as potential replacement.
+	 * 
+	 * @param ontology
+	 * @return reporter with the axiom potential changes
 	 */
-	static class CardinalityRemover implements OWLAxiomVisitor {
+	public static CardinalityReporter findCardinalityConstraints(OWLOntology ontology) {
+		CardinalityReporter reporter = new CardinalityReporter(ontology);
+		for(OWLAxiom axiom : ontology.getAxioms()) {
+			axiom.accept(reporter);
+		}
+		return reporter;
+	}
+	
+	public static class CardinalityReporter extends CardinalityHandler {
+		
+		private final Set<OWLAxiom> removed = new HashSet<OWLAxiom>();
+		private final Set<OWLAxiom> added = new HashSet<OWLAxiom>();
+
+		CardinalityReporter(OWLOntology ontology) {
+			super(ontology);
+		}
+
+		@Override
+		protected void remove(OWLOntology ontology, OWLAxiom axiom) {
+			removed.add(axiom);
+		}
+
+		@Override
+		protected void add(OWLOntology ontology, OWLAxiom axiom) {
+			added.add(axiom);
+		}
+
+		/**
+		 * @return the removed
+		 */
+		public final Set<OWLAxiom> getRemoved() {
+			return Collections.unmodifiableSet(removed);
+		}
+
+		/**
+		 * @return the added
+		 */
+		public final Set<OWLAxiom> getAdded() {
+			return Collections.unmodifiableSet(added);
+		}
+		
+	}
+	
+	static class CardinalityRemover extends CardinalityHandler {
+		
+		private final OWLOntologyManager manager;
+
+		public CardinalityRemover(OWLOntology ontology) {
+			super(ontology);
+			manager = ontology.getOWLOntologyManager();
+		}
+
+		@Override
+		protected void remove(OWLOntology ontology, OWLAxiom axiom) {
+			manager.removeAxiom(ontology, axiom);
+		}
+
+		@Override
+		protected void add(OWLOntology ontology, OWLAxiom axiom) {
+			manager.addAxiom(ontology, axiom);
+		}
+		
+	}
+	
+	/**
+	 * Visitor pattern. Abstract class to find axioms containing cardinality
+	 * constraints. Currently only done for {@link OWLSubClassOfAxiom} and
+	 * {@link OWLEquivalentClassesAxiom}.
+	 */
+	abstract static class CardinalityHandler implements OWLAxiomVisitor {
 		
 		private final OWLDataFactory factory;
-		private final OWLOntologyManager manager;
 		private final OWLOntology ontology;
 		
 		private final CardinalityExpressionHandler handler;
 		
-		public CardinalityRemover(OWLOntology ontology) {
+		public CardinalityHandler(OWLOntology ontology) {
 			this.ontology = ontology;
-			manager = ontology.getOWLOntologyManager();
+			OWLOntologyManager manager = ontology.getOWLOntologyManager();
 			factory = manager.getOWLDataFactory();
 			handler = new CardinalityExpressionHandler(factory);
 		}
+		
+		protected abstract void remove(OWLOntology ontology, OWLAxiom axiom);
+		
+		protected abstract void add(OWLOntology ontology, OWLAxiom axiom);
 
 		@Override
 		public void visit(OWLSubAnnotationPropertyOfAxiom axiom) {
@@ -127,21 +202,21 @@ public class CardinalityContraintsTools {
 			if (modifiedSubClass != null || modifiedSuperClass != null) {
 				if (modifiedSubClass != null) {
 					if (modifiedSubClass.remove) {
-						manager.removeAxiom(ontology, axiom);
+						remove(ontology, axiom);
 						return;
 					}
 					subClass = modifiedSubClass.modified;
 				}
 				if (modifiedSuperClass != null) {
 					if (modifiedSuperClass.remove) {
-						manager.removeAxiom(ontology, axiom);
+						remove(ontology, axiom);
 						return;
 					}
 					superClass = modifiedSuperClass.modified;
 				}
-				manager.removeAxiom(ontology, axiom);
+				remove(ontology, axiom);
 				OWLSubClassOfAxiom newAxiom = factory.getOWLSubClassOfAxiom(subClass, superClass, axiom.getAnnotations());
-				manager.addAxiom(ontology, newAxiom);
+				add(ontology, newAxiom);
 			}
 		}
 
@@ -246,7 +321,7 @@ public class CardinalityContraintsTools {
 				if (result != null) {
 					if (result.remove) {
 						// skip handling and immediately remove and return
-						manager.removeAxiom(ontology, axiom);
+						remove(ontology, axiom);
 						return;
 					}
 					changed = true;
@@ -257,9 +332,9 @@ public class CardinalityContraintsTools {
 				}
 			}
 			if (changed) {
-				manager.removeAxiom(ontology, axiom);
+				remove(ontology, axiom);
 				OWLEquivalentClassesAxiom newAxiom = factory.getOWLEquivalentClassesAxiom(newExpressions, axiom.getAnnotations());
-				manager.addAxiom(ontology, newAxiom);
+				add(ontology, newAxiom);
 			}
 		}
 
