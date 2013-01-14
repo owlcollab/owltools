@@ -510,10 +510,17 @@ WHERE  term.acc IN ( 'GO:0050896', 'GO:0007610', 'GO:0051716', 'GO:0009628',
 					GO database
 				</input>
 			</implementation>
+			<!-- 
 			<implementation>
 				<script language="regex">
 /^(.*?\t){4}GO:00(00998|01071|06950|07610|0960[57]|09628|09719|42221|4858[345]|50896|51716)/
 				</script>
+				<input format="gaf1.0" />
+				<input format="gaf2.0" />
+			</implementation>
+			 -->
+			<implementation status="active">
+				<script language="java" source="org.geneontology.rules.GO_AR_0000008" />
 				<input format="gaf1.0" />
 				<input format="gaf2.0" />
 			</implementation>
