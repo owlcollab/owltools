@@ -176,6 +176,26 @@ public class GeneAnnotation {
 
 
 
+	public GeneAnnotation(GeneAnnotation ann) {
+		super();
+		this.bioentity = ann.bioentity;
+		this.bioentityObject = ann.bioentityObject;
+		this.isContributesTo = ann.isContributesTo;
+		this.isIntegralTo = ann.isIntegralTo;
+		this.compositeQualifier = ann.compositeQualifier;
+		this.cls = ann.cls;
+		this.referenceId = ann.referenceId;
+		this.evidenceCls = ann.evidenceCls;
+		this.withExpression = ann.withExpression;
+		this.actsOnTaxonId = ann.actsOnTaxonId;
+		this.lastUpdateDate = ann.lastUpdateDate;
+		this.assignedBy = ann.assignedBy;
+		this.extensionExpression = ann.extensionExpression;
+		this.geneProductForm = ann.geneProductForm;
+		this.gafDocument = ann.gafDocument;
+		this.isChanged = true;
+	}
+
 	public String getBioentity() {
 		return bioentity;
 	}

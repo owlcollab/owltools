@@ -177,4 +177,9 @@ public class GafDocument{
 		annotations.add(ga);
 	}
 
+	public void setGeneAnnotations(List<GeneAnnotation> newAnns) {
+		annotations = newAnns;
+		
+	}
+
 }

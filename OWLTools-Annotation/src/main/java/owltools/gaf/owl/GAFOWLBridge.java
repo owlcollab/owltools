@@ -35,7 +35,7 @@ public class GAFOWLBridge {
 	private static final Logger LOG = Logger.getLogger(GAFOWLBridge.class);
 
 	private OWLOntology targetOntology;
-	private OWLGraphWrapper graph;
+	protected OWLGraphWrapper graph;
 	private Map<Vocab,IRI> vocabMap = new HashMap<Vocab,IRI>();
 	private Map<String,OWLObjectProperty> shorthandMap = new HashMap<String,OWLObjectProperty>();
 
@@ -175,6 +175,7 @@ public class GAFOWLBridge {
 		OWLDataFactory fac = graph.getDataFactory();
 		OWLClass e = getOWLClass(a.getBioentity());
 		OWLClassExpression annotatedToClass = getOWLClass(a.getCls());
+		// c16
 		Collection<ExtensionExpression> exts = a.getExtensionExpressions();
 		if (exts != null && !exts.isEmpty()) {
 			HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
@@ -294,7 +295,7 @@ public class GAFOWLBridge {
 	}
 
 
-	private OWLObjectProperty getObjectPropertyByShorthand(String id) {
+	protected OWLObjectProperty getObjectPropertyByShorthand(String id) {
 		if (shorthandMap.containsKey(id)) {
 			return shorthandMap.get(id);
 		}
@@ -333,7 +334,7 @@ public class GAFOWLBridge {
 	}
 
 
-	private OWLClass getOWLClass(String id) {
+	protected OWLClass getOWLClass(String id) {
 		IRI iri = graph.getIRIByIdentifier(id);
 		return graph.getDataFactory().getOWLClass(iri);
 	}
