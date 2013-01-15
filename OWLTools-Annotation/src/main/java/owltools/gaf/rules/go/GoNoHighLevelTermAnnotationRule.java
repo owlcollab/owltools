@@ -9,6 +9,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
+import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -21,6 +22,8 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 	 * This is not supposed to be changed. 
 	 */
 	public static final String PERMANENT_JAVA_ID = "org.geneontology.rules.GO_AR_0000008";
+	
+	private static final ViolationType level = ViolationType.Warning;
 	
 	private final String high_level_subset = "high_level_annotation_qc";
 	private final OWLGraphWrapper go;
@@ -44,7 +47,7 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 					for (String subset : subsets) {
 						if (high_level_subset.equals(subset)) {
 							String message = "Do not annotate to: "+cls+" The term is considered to high level, as marked via the subset tag: "+high_level_subset;
-							return Collections.singleton(new AnnotationRuleViolation(getRuleId(), message , a));
+							return Collections.singleton(new AnnotationRuleViolation(getRuleId(), message , a, level));
 						}
 					}
 				}
