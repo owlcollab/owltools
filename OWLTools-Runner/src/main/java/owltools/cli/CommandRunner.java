@@ -239,16 +239,16 @@ public class CommandRunner {
 			reasoner.dispose();
 		}
 	}
-	
+
 	public void runSingleIteration(String[] args) throws Exception {
 		Opts opts = new Opts(args);
 		runSingleIteration(opts);
 	}
 
-	
+
 	public void runSingleIteration(Opts opts) throws Exception {
 
-			
+
 		Set<OWLSubClassOfAxiom> removedSubClassOfAxioms = null;
 		GraphicsConfig gfxCfg = new GraphicsConfig();
 		//Configuration config = new PropertiesConfiguration("owltools.properties");
@@ -411,7 +411,7 @@ public class CommandRunner {
 				}
 				IRI p = IRI.create(opts.nextOpt());
 				OWLLiteral v = g.getDataFactory().getOWLLiteral(opts.nextOpt(), dt);
-				 OWLAnnotation ann = g.getDataFactory().getOWLAnnotation(g.getDataFactory().getOWLAnnotationProperty(p), v);
+				OWLAnnotation ann = g.getDataFactory().getOWLAnnotation(g.getDataFactory().getOWLAnnotationProperty(p), v);
 				AddOntologyAnnotation addAnn = new AddOntologyAnnotation(g.getSourceOntology(), ann);
 				g.getManager().applyChange(addAnn);
 			}
@@ -711,15 +711,17 @@ public class CommandRunner {
 				fileWriter.close();
 			}
 			else if (opts.nextEq("--extract-bridge-ontologies")) {
-				opts.info("OUT", "");
+				opts.info("[-d OUTDIR] [-x] [-s]", "");
 				String dir = "bridge/";
 				String ontId = null;
 				boolean isRemoveBridgeAxiomsFromSource = false;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-d")) {
+						opts.info("DIR", "bridge files are generated in this directory. Default: ./bridge/");
 						dir = opts.nextOpt();
 					}
 					else if (opts.nextEq("-x")) {
+						opts.info("", "If specified, bridge axioms are removed from the source");
 						isRemoveBridgeAxiomsFromSource = true;
 					}
 					else if (opts.nextEq("-s")) {
@@ -1108,12 +1110,12 @@ public class CommandRunner {
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-f|--follow-closure|--fill-gaps")) {
 						opts.info("", 
-							"using mooncat will have the effect of including the graph closure of all results in the output ontology");
+						"using mooncat will have the effect of including the graph closure of all results in the output ontology");
 						followClosure = true;
 					}
 					else if (opts.nextEq("-m|--use-mooncat")) {
 						opts.info("", 
-								"using mooncat will have the effect of including the graph closure of all results in the output ontology");
+						"using mooncat will have the effect of including the graph closure of all results in the output ontology");
 						useMooncat = true;
 					}
 					else
@@ -2019,7 +2021,7 @@ public class CommandRunner {
 					objs = this.resolveEntityList(opts);
 				}
 				LOG.info("OBJS: "+objs);
-				
+
 				Set<OWLEntity> seedSig = new HashSet<OWLEntity>();
 				if (isTraverseDown) {
 					OWLReasoner mr = this.createReasoner(baseOnt, reasonerName, g.getManager());
@@ -2083,6 +2085,7 @@ public class CommandRunner {
 				boolean isFilterUnused = false;
 				boolean isABoxToTBox = false;
 				boolean isReplace = false;
+				boolean noReasoner = false;
 				String avFile =  null;
 				String viewIRI = "http://example.org/";
 				while (opts.hasOpts()) {
@@ -2093,6 +2096,10 @@ public class CommandRunner {
 					else if (opts.nextEq("-r")) {
 						opts.info("REASONERNAME", "e.g. elk");
 						reasonerName = opts.nextOpt();
+					}
+					else if (opts.nextEq("--no-reasoner|nr")) {
+						opts.info("", "do not build an inferred view ontology");
+						noReasoner = true;
 					}
 					else if (opts.nextEq("--prefix")) {
 						opts.info("STR", "each class in O(P) will have this prefix in its label");
@@ -2127,7 +2134,7 @@ public class CommandRunner {
 						annotOntol = g.getSourceOntology();
 					}
 					else if (opts.nextEq("--i2c")) {
-						opts.info("", "if set, translate individuals to classes (e.g. for reasoning with Elk)");
+						opts.info("", "if set, translate individuals to classes (e.g. for reasoning with Elk). NO LONGER REQUIRED");
 						isABoxToTBox = true;
 					}
 					else
@@ -2148,8 +2155,14 @@ public class CommandRunner {
 				OWLOntology avo = pvob.getAssertedViewOntology();
 				if (avFile != null)
 					pw.saveOWL(avo, avFile, g);
-				OWLReasoner vr = createReasoner(avo, reasonerName, g.getManager());
-				pvob.buildInferredViewOntology(vr);
+				if (noReasoner) {
+					pvob.setInferredViewOntology(pvob.getAssertedViewOntology());
+				}
+				else {
+					OWLReasoner vr = createReasoner(avo, reasonerName, g.getManager());
+					pvob.buildInferredViewOntology(vr);
+					vr.dispose();
+				}
 				// save
 				if (outFile != null)
 					pw.saveOWL(pvob.getInferredViewOntology(), outFile, g);
@@ -2159,8 +2172,72 @@ public class CommandRunner {
 				else {
 					g.addSupportOntology(pvob.getInferredViewOntology());
 				}
-				vr.dispose();
+			}
+			else if (opts.nextEq("--materialize-property-inferences|mpi")) {
+				opts.info("", "reasoned property view. Alternative to --bpvo");
+				// TODO - incorporate this into sparql query
+				Set<OWLObjectProperty> vps = new HashSet<OWLObjectProperty>();
+				boolean isMerge = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p")) {
+						opts.info("PROPERTY-ID-OR-LABEL", "The ObjectProperty P that is used to build the view");
+						OWLObjectProperty viewProperty = resolveObjectProperty(opts.nextOpt());
+						vps.add(viewProperty);
+					}
+					else if (opts.nextEq("--merge|m")) {
+						isMerge = true;
+					}
+					else {
+						break;
+					}
+				}
+				OWLOntology vOnt = g.getManager().createOntology();
+				Set<OWLClass> allvcs = new HashSet<OWLClass>();
+				for (OWLObjectProperty vp : vps) {
+					PropertyViewOntologyBuilder pvob = 
+						new PropertyViewOntologyBuilder(g.getSourceOntology(), vp);
+					pvob.buildViewOntology();
+					OWLOntology avo = pvob.getAssertedViewOntology();
+					Set<OWLClass> vcs = avo.getClassesInSignature();
+					LOG.info("view for "+vp+" num view classes: "+vcs.size());
+					allvcs.addAll(vcs);
+					g.mergeOntology(avo); // todo - more sophisticated
+				}
+				if (reasoner == null) {
+					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+					LOG.info("created reasoner: "+reasoner);
+				}
+				for (OWLClass c : g.getSourceOntology().getClassesInSignature(true)) {
+					Set<OWLClass> scs = reasoner.getSuperClasses(c, false).getFlattened();
+					for (OWLClass sc : scs) {
+						OWLSubClassOfAxiom sca = g.getDataFactory().getOWLSubClassOfAxiom(c, sc);
+						g.getManager().addAxiom(vOnt, sca);
+					}
+					// inferred (named classes) plus asserted (include class expressions)
+					Set<OWLClassExpression> ecs = c.getEquivalentClasses(g.getSourceOntology());
+					ecs.addAll(reasoner.getEquivalentClasses(c).getEntities());
+					for (OWLClassExpression ec : ecs) {
+						if (ec.equals(c))
+							continue;
+						OWLEquivalentClassesAxiom eca = g.getDataFactory().getOWLEquivalentClassesAxiom(c, ec);
+						g.getManager().addAxiom(vOnt, eca);
+						
+						// bidirectional subclass axioms for each equivalent pair
+						OWLSubClassOfAxiom sca1 = g.getDataFactory().getOWLSubClassOfAxiom(c, ec);
+						g.getManager().addAxiom(vOnt, sca1);
 
+						OWLSubClassOfAxiom sca2 = g.getDataFactory().getOWLSubClassOfAxiom(ec, c);
+						g.getManager().addAxiom(vOnt, sca2);
+
+					}
+				}
+				// TODO - turn allvcs into bnodes
+				if (isMerge) {
+					g.mergeOntology(vOnt);
+				}
+				else {
+					g.setSourceOntology(vOnt);
+				}
 			}
 			else if (opts.nextEq("--report-profile")) {
 				g.getProfiler().report();
@@ -2268,7 +2345,7 @@ public class CommandRunner {
 		boolean ignoreNonInferredForRemove = false;
 		boolean checkForNamedClassEquivalencies = true;
 		String reportFile = null;
-		
+
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--removeRedundant"))
 				removeRedundant = true;
@@ -2299,9 +2376,9 @@ public class CommandRunner {
 		if (reportFile != null) {
 			reportWriter = new BufferedWriter(new FileWriter(reportFile));
 		}
-		
+
 		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies, reportWriter);
-		
+
 		if (reportWriter != null) {
 			reportWriter.close();
 		}

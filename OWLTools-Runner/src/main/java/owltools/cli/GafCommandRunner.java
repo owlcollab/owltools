@@ -33,8 +33,10 @@ import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
+import owltools.gaf.io.GafWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.XgmmlWriter;
+import owltools.gaf.owl.AnnotationExtensionFolder;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
@@ -118,6 +120,23 @@ public class GafCommandRunner extends CommandRunner {
 			LOG.info("Finished loading GAF.");
 		}
 	}
+	
+	@CLIMethod("--write-gaf")
+	public void writeGaf(Opts opts) throws OWLException {
+		String ofn = opts.nextOpt();
+		GafWriter gw = new GafWriter();
+		gw.setStream(ofn);
+		gw.write(gafdoc);
+	}
+	
+	@CLIMethod("--gaf-fold-extensions")
+	public void foldGafExtensions(Opts opts) throws Exception {
+		AnnotationExtensionFolder aef = new AnnotationExtensionFolder(g);
+		aef.fold(gafdoc);
+		AssertInferenceTool.assertInferences(g, false, false, false, false, false, null);
+
+	}
+
 	
 	@CLIMethod("--gaf2owl")
 	public void gaf2Owl(Opts opts) throws OWLException {
