@@ -157,6 +157,10 @@ public class PropertyViewOntologyBuilder {
 		this.viewProperty = viewProperty;
 		init();
 	}
+	
+	public PropertyViewOntologyBuilder(OWLOntology sourceOntology, OWLObjectProperty viewProperty) {
+		this(sourceOntology, sourceOntology, viewProperty);
+	}
 
 	/**
 	 * @param owlDataFactory
