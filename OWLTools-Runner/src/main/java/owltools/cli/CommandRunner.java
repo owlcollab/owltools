@@ -18,6 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,8 @@ import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.coode.oppl.AnnotationBasedSymbolTableFactory;
@@ -44,7 +47,13 @@ import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
+import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.oboformat.model.Frame;
+import org.obolibrary.oboformat.model.OBODoc;
+import org.obolibrary.oboformat.parser.OBOFormatParser;
+import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
@@ -2408,6 +2417,142 @@ public class CommandRunner {
 			OWLOntology ontology = g.getSourceOntology();
 			File outFile = new File(output);
 			ontology.getOWLOntologyManager().saveOntology(ontology, IRI.create(outFile));
+		}
+	}
+	
+	@CLIMethod("--create-slim")
+	public void createSlim(Opts opts) throws Exception {
+		String idResource = null;
+		String outputOwl = null;
+		String outputObo = null;
+		String oldOwl = null;
+		String oldObo = null;
+		IRI ontologyIRI = null;
+		
+		// parse CLI options
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--output-owl")) {
+				outputOwl = opts.nextOpt();
+			}
+			else if (opts.nextEq("--output-obo")) {
+				outputObo = opts.nextOpt();
+			}
+			else if (opts.nextEq("-i|--ids")) {
+				idResource = opts.nextOpt();
+			}
+			else if (opts.nextEq("--old-owl")) {
+				oldOwl = opts.nextOpt();
+			}
+			else if (opts.nextEq("--old-obo")) {
+				oldObo = opts.nextOpt();
+			}
+			else if (opts.nextEq("--iri")) {
+				String iriString = opts.nextOpt();
+				ontologyIRI = IRI.create(iriString);
+			}
+			else {
+				break;
+			}
+		}
+		// check required parameters
+		if (idResource == null) {
+			throw new RuntimeException("No identifier resource specified. A list of terms is required to create a slim.");
+		}
+		if (outputOwl == null && outputObo == null) {
+			throw new RuntimeException("No output file specified. At least one output file (obo or owl) is needed.");
+		}
+		if (ontologyIRI == null) {
+			throw new RuntimeException("No IRI found. An ontology IRI is required.");
+		}
+		// set of all OWL classes required in the slim.
+		Set<OWLClass> seeds = new HashSet<OWLClass>();
+		
+		// create map of alternate identifiers for fast lookup
+		Map<String, OWLObject> objectsByAltId = g.getAllOWLObjectsByAltId();
+		
+		// load list of identifiers from file
+		LineIterator lineIterator = FileUtils.lineIterator(new File(idResource));
+		while (lineIterator.hasNext()) {
+			String line = lineIterator.next();
+			addId(line, seeds, objectsByAltId);
+		}
+		
+		// (optional) load previous slim in OWL.
+		// Check that all classes are also available in the new base ontology.
+		if (oldOwl != null) {
+			OWLOntologyManager tempManager = OWLManager.createOWLOntologyManager();
+			OWLOntology oldSlim = tempManager.loadOntologyFromOntologyDocument(new File(oldOwl));
+			OWLGraphWrapper oldSlimGraph = new OWLGraphWrapper(oldSlim);
+			Set<OWLClass> classes = oldSlim.getClassesInSignature();
+			for (OWLClass owlClass : classes) {
+				boolean found = false;
+				for(OWLOntology o : g.getAllOntologies()) {
+					if (o.getDeclarationAxioms(owlClass).isEmpty() == false) {
+						found = true;
+						seeds.add(owlClass);
+						break;
+					}
+				}
+				if (!found) {
+					LOG.warn("Could not find old class ("+oldSlimGraph.getIdentifier(owlClass)+") in new ontology.");
+				}
+			}
+			
+		}
+		// (optional) load previous slim in OBO format.
+		// Check that all classes are also available in the new base ontology.
+		if (oldObo != null) {
+			OBOFormatParser p = new OBOFormatParser();
+			OBODoc oboDoc = p.parse(new File(oldObo));
+			Collection<Frame> termFrames = oboDoc.getTermFrames();
+			if (termFrames != null) {
+				for (Frame frame : termFrames) {
+					String id = frame.getId();
+					addId(id, seeds, objectsByAltId);
+				}
+			}
+		}
+		// sanity check
+		if (seeds.isEmpty()) {
+			throw new RuntimeException("There are no classes in the seed set for the slim generation. Id problem or empty id resource?");
+		}
+		
+		// create the slim
+		Mooncat mooncat = new Mooncat(g);
+		OWLOntology slim = mooncat.makeMinimalSubsetOntology(seeds, ontologyIRI);
+		mooncat = null;
+		
+		// write the output
+		if (outputOwl != null) {
+			File outFile = new File(outputOwl);
+			slim.getOWLOntologyManager().saveOntology(slim, IRI.create(outFile));
+		}
+		if (outputObo != null) {
+			Owl2Obo owl2Obo = new Owl2Obo();
+			OBODoc oboDoc = owl2Obo.convert(slim);
+			OBOFormatWriter w = new OBOFormatWriter();
+			w.write(oboDoc, outputObo);
+		}
+		
+	}
+	
+	private void addId(String id, Set<OWLClass> seeds, Map<String, OWLObject> altIds) {
+		id = StringUtils.trimToNull(id);
+		if (id != null) {
+			OWLClass cls = g.getOWLClassByIdentifier(id);
+			if (cls != null) {
+				seeds.add(cls);
+			}
+			else {
+				OWLObject owlObject = altIds.get(id);
+				if (owlObject != null && owlObject instanceof OWLClass) {
+					LOG.warn("Retrieving class "+g.getIdentifier(owlObject)+" by alt_id: "+id+"\nPlease consider updating your idenitifers.");
+					seeds.add((OWLClass) owlObject);
+				}
+				else {
+					LOG.warn("Could not find a class for id: "+id);
+				}
+			}
 		}
 	}
 
