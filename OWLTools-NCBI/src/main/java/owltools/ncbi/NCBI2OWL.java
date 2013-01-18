@@ -5,17 +5,21 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import java.text.SimpleDateFormat;
 
 import org.apache.log4j.Logger;
 
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -61,10 +65,12 @@ public class NCBI2OWL extends NCBIConverter {
 	 * Command line usage information.
 	 */
 	protected static String usage = 
-		"usage: ncbi-converter [-ca] <input.dat> <output.owl> [axioms.txt]\n\n" +
+		"usage: ncbi-converter [-ca] <input.dat> <output.owl> [axioms.txt] -m [merged.dmp] -t [taxdmp.zip]\n\n" +
 		"       -c   Convert to OWL.\n" +
 		"       -a   Print axiom list.\n" +
-		"       -ca  Convert and print axiom list.";
+		"       -ca  Convert and print axiom list.\n"+
+		"       -m   Extract alternate identifier information from the given merged.dmp file.\n"+
+		"       -t   Extract alternate identifier information from the taxdmp.zip file.\n";
 
 
 	/**
@@ -75,38 +81,139 @@ public class NCBI2OWL extends NCBIConverter {
 	 */
 	public static void main(String[] args) {
 		try {
-			switch (args.length) {
-				case 0:
-					convertToOWL("taxonomy.dat",
-						"ncbitaxon.owl");
-					return;
-				case 2:
-					convertToOWL(args[0], args[1]);
-					return;
-				case 3: 
-					if (args[0].equals("-c")) {
-						convertToOWL(args[1], args[2]);
-						return;
-					} else if (args[0].equals("-a")) {
-						checkAxioms(args[1], args[2]);
+			boolean printAxioms = false;
+			boolean checkAxioms = false;
+			
+			String inputDat = null;
+			String mergedDmp = null;
+			String taxdmp = null;
+			String outputOwl = null;
+			
+			String axiomFile = "axioms.txt";
+			
+			for (int i = 0; i < args.length; i++) {
+				String current = args[i];
+				if (current.charAt(0) == '-') {
+					// option
+					if ("-ca".equals(current)) {
+						printAxioms = true;
+					}
+					if ("-a".equals(current)) {
+						checkAxioms = true;
+					}
+					else if ("-c".equals(current)) {
+						// do nothing
+					}
+					else if ("-m".equals(current)) {
+						if ((i+1) < args.length ) {
+							i++;
+							mergedDmp = args[i];
+						}
+						else {
+							mergedDmp = "merged.dmp ";
+						}
+					}
+					else if ("-t".equals(current)) {
+						if ((i+1) < args.length ) {
+							i++;
+							taxdmp = args[i];
+						}
+						else {
+							taxdmp = "taxdmp.zip";
+						}
+					}
+					else {
+						// unknown option
+						error("unknown option: "+current);
 						return;
 					}
-				case 4:
-					if (args[0].equals("-ca")) {
-						OWLOntology ontology =
-							convertToOWL(args[1],
-								args[2]);
-						printAxioms(ontology, args[3]);
+				}
+				else {
+					// treat as value
+					if (inputDat == null) {
+						inputDat = current;
+					}
+					else if (outputOwl == null) {
+						outputOwl = current;
+					}
+					else if (printAxioms) {
+						axiomFile = current;
+					}
+					else {
+						error("Unexpected number of input parameters.");
 						return;
 					}
+				}
 			}
+			
+			if (inputDat == null) {
+				// default input name
+				inputDat = "taxonomy.dat";
+			}
+			
+			// check input file
+			final File inputFile = new File(inputDat);
+			if (!inputFile.exists()) {
+				error("The specified input file doesn't exist: "+inputDat);
+				return;
+			}
+			if (!inputFile.isFile()) {
+				error("The specified input file is not a file: "+inputDat);
+				return;
+			} 
+			if (!inputFile.canRead()) {
+				error("The specified input file can't be read, please check the permissions: "+inputDat);
+				return;
+			}
+			
+			if (outputOwl == null) {
+				// default output name
+				outputOwl = "ncbitaxon.owl";
+			}
+			// check output file
+			final File outputFile = new File(outputOwl);
+			if (outputFile.isDirectory()) {
+				error("The specified output file is a directory: "+outputOwl);
+				return;
+			} 
+			if (outputFile.exists() && !outputFile.canWrite()) {
+				error("The specified output file can't be over written, please check the permissions: "+outputOwl);
+				return;
+			}
+			
+			// start converting taxonomy.
+			if (checkAxioms) {
+				checkAxioms(inputDat, outputOwl);
+			}
+			else {
+				InputStream mergeInfo = null;
+				if (mergedDmp != null) {
+					mergeInfo = new FileInputStream(mergedDmp);
+				}
+				else if (taxdmp != null) {
+					ZipFile zipFile = new ZipFile(taxdmp);
+					ZipEntry entry = zipFile.getEntry("merged.dmp");
+					mergeInfo = zipFile.getInputStream(entry);
+				}
+				OWLOntology ontology = convertToOWL(inputDat, outputOwl, mergeInfo);
+				if (printAxioms) {
+					printAxioms(ontology, axiomFile);
+				}
+			}
+			
 		} catch (Exception e) {
-			System.out.println("Error: " + e.toString());
-			System.out.println(usage);
+			error(e.getMessage());
 		}
-		System.out.println(usage);
 	}
 
+	public static void error(String msg) {
+		System.err.println("Error: "+msg);
+		System.err.println();
+		System.err.println(usage);
+		// exit with error code.
+		System.exit(-1);
+	}
+	
 	/**
 	 * Read a data file and create an OWL representation.
 	 *
@@ -127,34 +234,35 @@ public class NCBI2OWL extends NCBIConverter {
 		// Read the input file.
 		File file = new File(inputPath);
 		FileInputStream fis = new FileInputStream(file);
-		BufferedReader br = new BufferedReader(
-			new InputStreamReader(fis));
-
-		// Version the ontology using the date of the source file.
-		SimpleDateFormat day = new SimpleDateFormat("yyyy-MM-dd");
-		String date = day.format(file.lastModified());
-		annotate(ontology, "owl:versionIRI",
-			IRI.create(OBO + "ncbitaxon/" + date + "/ncbitaxon.owl"));
-
-		// Handle each line of the file in turn.
-		// Labels should be unique, so we keep a list of them.
-		HashSet<String> labels = new HashSet<String>();
-		OWLClass taxon = null;
-		String line;
-		int lineNumber = 0;
-		while ((line = br.readLine()) != null) {
-			taxon = handleLine(ontology, labels, taxon,
-					line, lineNumber);
-			lineNumber++;
-			if (lineNumber % 10000 == 0) {
-				logger.debug("At line " + lineNumber);
+		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+		try {
+			// Version the ontology using the date of the source file.
+			SimpleDateFormat day = new SimpleDateFormat("yyyy-MM-dd");
+			String date = day.format(file.lastModified());
+			annotate(ontology, "owl:versionIRI",
+				IRI.create(OBO + "ncbitaxon/" + date + "/ncbitaxon.owl"));
+	
+			// Handle each line of the file in turn.
+			// Labels should be unique, so we keep a list of them.
+			HashSet<String> labels = new HashSet<String>();
+			OWLClass taxon = null;
+			String line;
+			int lineNumber = 0;
+			while ((line = br.readLine()) != null) {
+				taxon = handleLine(ontology, labels, taxon,
+						line, lineNumber);
+				lineNumber++;
+				if (lineNumber % 10000 == 0) {
+					logger.debug("At line " + lineNumber);
+				}
 			}
+			logger.debug("Finished reading lines: " + lineNumber);
+			logger.debug("Filled ontology. Axioms: " +
+				ontology.getAxiomCount());
+			return ontology;
+		}finally {
+			br.close();
 		}
-
-		logger.debug("Finished reading lines: " + lineNumber);
-		logger.debug("Filled ontology. Axioms: " +
-			ontology.getAxiomCount());
-		return ontology;
 	}
 
 	/**
@@ -172,16 +280,95 @@ public class NCBI2OWL extends NCBIConverter {
 	public static OWLOntology convertToOWL(String inputPath,
 			String outputPath) throws IOException,
 			OWLOntologyCreationException,
+			OWLOntologyStorageException
+	{
+		return convertToOWL(inputPath, outputPath, null);
+	}
+	
+	/**
+	 * Read a data file, create an OWL representation, and save an OWL file.
+	 * Create alternate identifiers from the merge.dmp file information
+	 *
+	 * @param inputPath the path to the input data file (e.g. taxonomy.dat)
+	 * @param outputPath the path to the output OWL file
+	 *	(e.g. ncbi_taxonomy.owl).
+	 * @param mergeInfo the input stream of the merged information
+	 * @return OWL ontology
+	 * @throws IOException if the paths do not resolve
+	 * @throws OWLOntologyCreationException if OWLAPI fails to create an
+	 *	empty ontology
+	 * @throws OWLOntologyStorageException if OWLAPI can't save the file
+	 */
+	public static OWLOntology convertToOWL(String inputPath,
+			String outputPath, InputStream mergeInfo) throws IOException,
+			OWLOntologyCreationException,
 			OWLOntologyStorageException {
 		File outputFile = new File(outputPath);
 		IRI outputIRI = IRI.create(outputFile);
 		OWLOntology ontology = convertToOWL(inputPath);
-
+		
+		if (mergeInfo != null) {
+			addAltIds(ontology, mergeInfo);
+		}
 		logger.debug("Saving ontology...");
 
 		ontology.getOWLOntologyManager().saveOntology(
 			ontology, outputIRI);
 		return ontology;
+	}
+	
+	private static void addAltIds(OWLOntology ontology, InputStream mergeInfo) throws IOException {
+		logger.debug("Adding alternative identifiers from merge information.");
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(mergeInfo));
+		try {
+			// OWL stuff
+			OWLAnnotationProperty ap = NCBIOWL.setupAltIdProperty(ontology);
+
+			// read stream
+			String line;
+			while((line = reader.readLine()) != null) {
+				line = line.trim();
+				// minimum length 4, expected format:
+				// [0-9]+\s*\|[0-9]+\s*\|
+				// number(aka obsolete/alt id) whitespaces* pipe number(aka merged) whitespace* pipe
+				String altIdString = null;
+				String merged = null;
+
+				if (line.length() >= 4) {
+					int start = 0;
+					for (int i = 0; i < line.length(); i++) {
+						char c= line.charAt(i);
+						if ('|' == c) {
+							if (start == 0) {
+								altIdString = line.substring(start, i);
+								start = i + 1;
+							}
+							else {
+								merged = line.substring(start, i);
+								break;
+							}
+						}
+						else if (Character.isWhitespace(c) || Character.isDigit(c)) {
+							// expected characters
+							// read until pipe symbol
+						}
+						else {
+							// unexpected character
+							break;
+						}
+					}
+				}
+				if (altIdString != null && merged != null) {
+					NCBIOWL.addAltId(ontology, merged, altIdString, ap);
+				}
+				else {
+					logger.warn("Could not parse line in merge info: "+line);
+				}
+			}
+		}
+		finally {
+			reader.close();
+		}
 	}
 
 	/**
