@@ -369,8 +369,9 @@ public class NCBI2OWL extends NCBIConverter {
 	}
 	
 	/**
-	 * Extract a map of unique names from the names.dmp input stream.
-	 * The map contains only the values from the unique name column.
+	 * Extract a map of unique names from the names.dmp input stream. The map
+	 * contains only the values from the unique name column for the type of
+	 * "scientific name".
 	 * 
 	 * @param nameInfo
 	 * @return unique names
@@ -387,7 +388,8 @@ public class NCBI2OWL extends NCBIConverter {
 				if (split != null && split.size() > 3) {
 					String id = split.get(0);
 					String uniqueName = split.get(2);
-					if (id != null && uniqueName != null) {
+					String type = split.get(3);
+					if (id != null && uniqueName != null && type != null && "scientific name".equals(type)) {
 						uniqueNames.put(id, uniqueName);
 					}
 				}
