@@ -1,33 +1,31 @@
 package owltools.ncbi;
 
-import java.io.File;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
-
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import java.text.SimpleDateFormat;
-
 import org.apache.log4j.Logger;
-
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-
-import owltools.ncbi.NCBIOWL;
-import owltools.ncbi.NCBIConverter;
 
 /**
  * Provides static methods for converting NCBI Taxonomy data files into
@@ -65,12 +63,14 @@ public class NCBI2OWL extends NCBIConverter {
 	 * Command line usage information.
 	 */
 	protected static String usage = 
-		"usage: ncbi-converter [-ca] <input.dat> <output.owl> [axioms.txt] -m [merged.dmp] -t [taxdmp.zip]\n\n" +
+		"usage: ncbi-converter [-ca] <input.dat> <output.owl> [axioms.txt] [-m [merged.dmp]] [-t [taxdmp.zip]] [-n [names.dmp]] [-l [citations.dmp]]\n\n" +
 		"       -c   Convert to OWL.\n" +
 		"       -a   Print axiom list.\n" +
 		"       -ca  Convert and print axiom list.\n"+
 		"       -m   Extract alternate identifier information from the given merged.dmp file.\n"+
-		"       -t   Extract alternate identifier information from the taxdmp.zip file.\n";
+		"       -t   Extract alternate identifier, unique name, and citation information from the taxdmp.zip file.\n"+
+		"       -n   Extract unique name information from given names.dmp file.\n"+
+		"       -l   Extract literature citation information from the given citation.dmp file\n";
 
 
 	/**
@@ -86,6 +86,8 @@ public class NCBI2OWL extends NCBIConverter {
 			
 			String inputDat = null;
 			String mergedDmp = null;
+			String namesDmp = null;
+			String citationDmp = null;
 			String taxdmp = null;
 			String outputOwl = null;
 			
@@ -110,7 +112,25 @@ public class NCBI2OWL extends NCBIConverter {
 							mergedDmp = args[i];
 						}
 						else {
-							mergedDmp = "merged.dmp ";
+							mergedDmp = "merged.dmp";
+						}
+					}
+					else if ("-n".equals(current)) {
+						if ((i+1) < args.length ) {
+							i++;
+							namesDmp = args[i];
+						}
+						else {
+							namesDmp = "names.dmp";
+						}
+					}
+					else if ("-l".equals(current)) {
+						if ((i+1) < args.length ) {
+							i++;
+							citationDmp = args[i];
+						}
+						else {
+							citationDmp = "citations.dmp";
 						}
 					}
 					else if ("-t".equals(current)) {
@@ -195,7 +215,26 @@ public class NCBI2OWL extends NCBIConverter {
 					ZipEntry entry = zipFile.getEntry("merged.dmp");
 					mergeInfo = zipFile.getInputStream(entry);
 				}
-				OWLOntology ontology = convertToOWL(inputDat, outputOwl, mergeInfo);
+				InputStream citationInfo = null;
+				if (citationDmp != null) {
+					citationInfo = new FileInputStream(citationDmp);
+				}
+				else if (taxdmp != null) {
+					ZipFile zipFile = new ZipFile(taxdmp);
+					ZipEntry entry = zipFile.getEntry("citations.dmp");
+					citationInfo = zipFile.getInputStream(entry);
+				}
+				
+				Map<String, String> uniqueNames = null;
+				if (namesDmp != null) {
+					uniqueNames = loadUniqueNames(new FileInputStream(namesDmp));
+				}
+				else if (taxdmp != null) {
+					ZipFile zipFile = new ZipFile(taxdmp);
+					ZipEntry entry = zipFile.getEntry("names.dmp");
+					uniqueNames = loadUniqueNames(zipFile.getInputStream(entry));
+				}
+				OWLOntology ontology = convertToOWL(inputDat, outputOwl, mergeInfo, citationInfo, uniqueNames);
 				if (printAxioms) {
 					printAxioms(ontology, axiomFile);
 				}
@@ -218,13 +257,14 @@ public class NCBI2OWL extends NCBIConverter {
 	 * Read a data file and create an OWL representation.
 	 *
 	 * @param inputPath the path to the input data file (e.g. taxonomy.dat)
+	 * @param uniqueNames 
 	 * @return OWL ontology
 	 * @throws IOException if the paths do not resolve
 	 * @throws OWLOntologyCreationException if OWLAPI fails to create an
 	 *	empty ontology
 	 * @throws OWLOntologyStorageException if OWLAPI can't save the file
 	 */
-	public static OWLOntology convertToOWL(String inputPath)
+	public static OWLOntology convertToOWL(String inputPath, Map<String, String> uniqueNames)
 			throws IOException, OWLOntologyCreationException,
 			OWLOntologyStorageException
 	{
@@ -249,7 +289,7 @@ public class NCBI2OWL extends NCBIConverter {
 			String line;
 			int lineNumber = 0;
 			while ((line = br.readLine()) != null) {
-				taxon = handleLine(ontology, labels, taxon,
+				taxon = handleLine(ontology, uniqueNames, labels, taxon,
 						line, lineNumber);
 				lineNumber++;
 				if (lineNumber % 10000 == 0) {
@@ -271,6 +311,7 @@ public class NCBI2OWL extends NCBIConverter {
 	 * @param inputPath the path to the input data file (e.g. taxonomy.dat)
 	 * @param outputPath the path to the output OWL file
 	 *	(e.g. ncbi_taxonomy.owl).
+	 * @param uniqueNames
 	 * @return OWL ontology
 	 * @throws IOException if the paths do not resolve
 	 * @throws OWLOntologyCreationException if OWLAPI fails to create an
@@ -278,11 +319,12 @@ public class NCBI2OWL extends NCBIConverter {
 	 * @throws OWLOntologyStorageException if OWLAPI can't save the file
 	 */
 	public static OWLOntology convertToOWL(String inputPath,
-			String outputPath) throws IOException,
+			String outputPath,
+			Map<String, String> uniqueNames) throws IOException,
 			OWLOntologyCreationException,
 			OWLOntologyStorageException
 	{
-		return convertToOWL(inputPath, outputPath, null);
+		return convertToOWL(inputPath, outputPath, null, null, uniqueNames);
 	}
 	
 	/**
@@ -293,6 +335,8 @@ public class NCBI2OWL extends NCBIConverter {
 	 * @param outputPath the path to the output OWL file
 	 *	(e.g. ncbi_taxonomy.owl).
 	 * @param mergeInfo the input stream of the merged information
+	 * @param citationInfo the input stream of the citation information
+	 * @param uniqueNames
 	 * @return OWL ontology
 	 * @throws IOException if the paths do not resolve
 	 * @throws OWLOntologyCreationException if OWLAPI fails to create an
@@ -300,21 +344,169 @@ public class NCBI2OWL extends NCBIConverter {
 	 * @throws OWLOntologyStorageException if OWLAPI can't save the file
 	 */
 	public static OWLOntology convertToOWL(String inputPath,
-			String outputPath, InputStream mergeInfo) throws IOException,
+			String outputPath, InputStream mergeInfo,
+			InputStream citationInfo,
+			Map<String, String> uniqueNames) throws IOException,
 			OWLOntologyCreationException,
 			OWLOntologyStorageException {
 		File outputFile = new File(outputPath);
 		IRI outputIRI = IRI.create(outputFile);
-		OWLOntology ontology = convertToOWL(inputPath);
+		OWLOntology ontology = convertToOWL(inputPath, uniqueNames);
 		
 		if (mergeInfo != null) {
 			addAltIds(ontology, mergeInfo);
 		}
+		
+		if (citationInfo != null) {
+			addCitationInfo(ontology, citationInfo);
+		}
+		
 		logger.debug("Saving ontology...");
 
 		ontology.getOWLOntologyManager().saveOntology(
 			ontology, outputIRI);
 		return ontology;
+	}
+	
+	/**
+	 * Extract a map of unique names from the names.dmp input stream.
+	 * The map contains only the values from the unique name column.
+	 * 
+	 * @param nameInfo
+	 * @return unique names
+	 * @throws IOException
+	 */
+	static Map<String, String> loadUniqueNames(InputStream nameInfo) throws IOException {
+		Map<String, String> uniqueNames = new HashMap<String, String>();
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(nameInfo));
+		try {
+			// read stream
+			String line;
+			while((line = reader.readLine()) != null) {
+				List<String> split = splitDmpLine(line);
+				if (split != null && split.size() > 3) {
+					String id = split.get(0);
+					String uniqueName = split.get(2);
+					if (id != null && uniqueName != null) {
+						uniqueNames.put(id, uniqueName);
+					}
+				}
+			}
+		}
+		finally {
+			reader.close();
+		}
+		return uniqueNames;
+	}
+	
+	/**
+	 * Split the string at the separator '|'. Return empty string and strings
+	 * containing only whitespaces as null.
+	 * 
+	 * @param line
+	 * @return list of values
+	 * 
+	 * This method is package private for testing purposes.
+	 */
+	static List<String> splitDmpLine(String line) {
+		List<String> list = new ArrayList<String>();
+		int start = 0;
+		for (int i = 0; i < line.length(); i++) {
+			char c= line.charAt(i);
+			if ('|' == c) {
+				String field = line.substring(start, i);
+				// trim to null
+				field = field.trim();
+				final int length = field.length();
+				if (length == 0 || (length == 1 && Character.isWhitespace(field.charAt(0)))) {
+					field = null;
+				}
+				// add to list, do NOT skip null values
+				list.add(field);
+				
+				// update index
+				start = i + 1;
+			}
+		}
+		return list;
+	}
+	
+	/**
+	 * Extract literature citation information from the citation.dmp stream and add them to the ontology.
+	 * Currently extract PMIDs only.
+	 * 
+	 * @param ontology
+	 * @param citationInfo
+	 * @throws IOException
+	 */
+	private static void addCitationInfo(OWLOntology ontology, InputStream citationInfo) throws IOException {
+		logger.debug("Adding citation information.");
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(citationInfo));
+		try {
+			String line;
+			while((line = reader.readLine()) != null) {
+				List<String> split = splitDmpLine(line);
+				if (split != null && split.size() >= 7) {
+					String pubmed_id = split.get(2);
+					String medline_id = split.get(3);
+					String taxon_list = split.get(6); // whitespace separate list of taxon ids
+					if ((pubmed_id != null || medline_id != null) && taxon_list != null) {
+						String value = null;
+						// "0" denotes no information
+						if (pubmed_id != null && "0".equals(pubmed_id) == false) {
+							value = pubmed_id;
+						}
+						else if (medline_id != null && "0".equals(medline_id) == false) {
+							value = medline_id;
+						}
+						
+						if (value != null) {
+							for(String taxon : splitTaxonList(taxon_list)) {
+								
+								// get OWLClass 
+								IRI iri = createNCBIIRI(taxon);
+								OWLClass cls = ontology.getOWLOntologyManager().getOWLDataFactory().getOWLClass(iri);
+								// check that the class exists, i.e. is declared
+								if (ontology.getDeclarationAxioms(cls).isEmpty() == false) {
+									// add xref
+									annotate(ontology, cls , "oio:hasDbXref", "PMID:"+value);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		finally {
+			reader.close();
+		}
+	}
+	
+	
+	/**
+	 * split a string into substring using whitespaces as separator.
+	 * Assumes that there are no leading or trailing whitespaces.
+	 * 
+	 * @param string
+	 * @return list of taxons (never null)
+	 */
+	static List<String> splitTaxonList(String string) {
+		List<String> list = new ArrayList<String>();
+		int start = 0;
+		for (int i = 0; i < string.length(); i++) {
+			char c = string.charAt(i);
+			if (Character.isWhitespace(c)) {
+				final String substring = string.substring(start, i);
+				if (substring.length() > 0) {
+					list.add(substring);
+				}
+				start = i + 1;
+			}
+		}
+		if (start < (string.length() - 1)) {
+			list.add(string.substring(start));
+		}
+		return list;
 	}
 	
 	private static void addAltIds(OWLOntology ontology, InputStream mergeInfo) throws IOException {
@@ -386,6 +578,7 @@ public class NCBI2OWL extends NCBIConverter {
 	 * <ul>
 	 *
 	 * @param ontology the current ontology
+	 * @param uniqueLabels map of unique labels as extracted from the dmp files
 	 * @param labels a list to check that labels are unique
 	 * @param taxon the current class or null
 	 * @param line the line to handle
@@ -393,6 +586,7 @@ public class NCBI2OWL extends NCBIConverter {
 	 * @return null or the taxon for the next line
 	 */
 	protected static OWLClass handleLine(OWLOntology ontology,
+			Map<String, String> uniqueLabels,
 			HashSet<String> labels, OWLClass taxon,
 			String line, int lineNumber) {
 		if (line.trim().equals("//")) { return taxon; }
@@ -439,13 +633,26 @@ public class NCBI2OWL extends NCBIConverter {
 				}
 			}
 		} else if (fieldName.equals("scientific name")) {
-			String label = fieldValue;
-			if (labels.contains(label)) {
-				String id = getTaxonID(taxon);
-				label = label + " [NCBITaxon:" + id + "]";
+			// handle the scientific name
+			// if there is a unique name us it and add the original value as exact synonym
+			final String id = getTaxonID(taxon);
+			String uniqueLabel = null;
+			if (uniqueLabels != null) {
+				uniqueLabel = uniqueLabels.get(id);
 			}
-			annotate(ontology, taxon, "rdfs:label", label);
-			labels.add(label);
+			String label = fieldValue;
+			if (uniqueLabel != null) {
+				annotate(ontology, taxon, "rdfs:label", uniqueLabel);
+				labels.add(uniqueLabel);
+				synonym(ontology, taxon, "ncbitaxon:scientific_name", "oio:hasExactSynonym", label);
+			}
+			else {
+				if (labels.contains(label)) {
+					label = label + " [NCBITaxon:" + id + "]";
+				}
+				annotate(ontology, taxon, "rdfs:label", label);
+				labels.add(label);
+			}
 		} else if (fieldName.equals("includes")) { // TODO: handle?
 		} else if (fieldName.equals("gc id")) {
 			String value = "GC_ID:" + fieldValue;

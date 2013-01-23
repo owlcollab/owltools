@@ -1,7 +1,9 @@
 package owltools.ncbi;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
@@ -100,7 +102,7 @@ public class NCBI2OWLTest {
 		String outputPath = "sample.owl";
 
 		try {
-			OWLOntology ontology = NCBI2OWL.convertToOWL(inputPath);
+			OWLOntology ontology = NCBI2OWL.convertToOWL(inputPath, null);
 			
 			// Uncomment these lines to save the file and axioms
 			//String outputPath = "create.owl";
@@ -379,4 +381,41 @@ public class NCBI2OWLTest {
                     NCBI2OWL.parseLine(line, 0));
 	}
 
+	/**
+	 * Test the expected return values for a given set of lines in the dmp format.
+	 */
+	@Test
+	public void testSplitDmpLine() {
+		assertSplitDmpLine("", Collections.<String>emptyList()); // empty line return empty list
+		assertSplitDmpLine("|", Collections.<String>singletonList(null));
+		assertSplitDmpLine("5658    |       Leishmania      |       Leishmania <genus>      |       scientific name |", 
+				Arrays.asList("5658", "Leishmania", "Leishmania <genus>", "scientific name"));
+		assertSplitDmpLine("5659    |       Leishmania (Leishmania) amazonensis     |               |       synonym |", 
+				Arrays.asList("5659", "Leishmania (Leishmania) amazonensis", null, "synonym"));
+	}
+	
+	private void assertSplitDmpLine(String line, List<String> expected) {
+		List<String> split = NCBI2OWL.splitDmpLine(line);
+		assertArrayEquals(expected.toArray(new String[expected.size()]), 
+				split.toArray(new String[split.size()]));
+	}
+	
+	/**
+	 * Test the expected return values for splitting a whitespace separated list of ids.
+	 */
+	@Test
+	public void testSplitTaxonIds() {
+		assertSplitTaxonIds("", Collections.<String>emptyList());
+		assertSplitTaxonIds(" ", Collections.<String>emptyList());
+		assertSplitTaxonIds("555", Collections.singletonList("555"));
+		assertSplitTaxonIds("555 556", Arrays.asList("555","556"));
+		assertSplitTaxonIds("555  556", Arrays.asList("555","556"));
+		assertSplitTaxonIds("555  556 557 558   559", Arrays.asList("555","556","557","558","559"));
+	}
+	
+	private void assertSplitTaxonIds(String line, List<String> expected) {
+		List<String> split = NCBI2OWL.splitTaxonList(line);
+		assertArrayEquals(expected.toArray(new String[expected.size()]), 
+				split.toArray(new String[split.size()]));
+	}
 }
