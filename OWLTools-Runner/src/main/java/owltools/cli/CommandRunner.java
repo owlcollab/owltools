@@ -2290,8 +2290,9 @@ public class CommandRunner {
 					g.addSupportOntology(ont);
 				}
 			}
-			else if (opts.hasArgs()) {
-				// check first if it as an annotated method
+			else {
+				// check first if there is a matching annotated method
+				// always check, to support introspection via '-h'
 				boolean called = false;
 				Method[] methods = getClass().getMethods();
 				for (Method method : methods) {
@@ -2316,31 +2317,31 @@ public class CommandRunner {
 					continue;
 				}
 
-				// Default is to treat argument as an ontology
-				String f  = opts.nextOpt();
-				try {
-					OWLOntology ont = pw.parse(f);
-					if (g == null) {
-						g =	new OWLGraphWrapper(ont);
+				if (opts.hasArgs()) {
+					// Default is to treat argument as an ontology
+					String f  = opts.nextOpt();
+					try {
+						OWLOntology ont = pw.parse(f);
+						if (g == null) {
+							g =	new OWLGraphWrapper(ont);
+						}
+						else {
+							System.out.println("adding support ont "+ont);
+							g.addSupportOntology(ont);
+						}
+
 					}
-					else {
-						System.out.println("adding support ont "+ont);
-						g.addSupportOntology(ont);
+					catch (Exception e) {
+						System.err.println("could not parse:"+f+" Exception:"+e);
+						exit(1);
 					}
-
 				}
-				catch (Exception e) {
-					System.err.println("could not parse:"+f+" Exception:"+e);
-					exit(1);
+				else {
+					if (opts.isHelpMode()) {
+						helpFooter();
+						// should only reach here in help mode
+					}
 				}
-
-
-				//paths.add(opt);
-			}
-			else {
-				if (opts.isHelpMode())
-					helpFooter();
-				// should only reach here in help mode
 			}
 		}
 
