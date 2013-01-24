@@ -58,6 +58,7 @@ public class NCBI2OWLTest {
 		+ 9 // SYNONYM
 		+ 4 // IN-PART
 		+ 3 // BLAST NAME
+		+ 2 // exact synonym annotations for Actinobacteria
 		;
 
 	/**
@@ -214,6 +215,7 @@ public class NCBI2OWLTest {
 		values.add(expandAnnotation(curie, "oio:hasOBONamespace", "ncbi_taxonomy"));
 		values.add(expandAnnotation(curie, "oio:hasDbXref", "GC_ID:11"));
 		values.add(expandLabel(curie, "rdfs:label", "Actinobacteria [NCBITaxon:201174]"));
+		values.add(expandSynonym(curie, "ncbitaxon:scientific_name", "oio:hasExactSynonym", "Actinobacteria"));
 		values.add(expandSynonym(curie, "ncbitaxon:synonym", "oio:hasRelatedSynonym", "'Actinobacteria'"));
 		values.add(expandSynonym(curie, "ncbitaxon:synonym", "oio:hasRelatedSynonym", "not Actinobacteria Cavalier-Smith 2002"));
 		values.add(expandSynonym(curie, "ncbitaxon:blast_name", "oio:hasRelatedSynonym", "actinobacteria"));

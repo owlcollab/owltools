@@ -305,6 +305,31 @@ public class OWLConverter {
 		return annotation;
 	}
 
+	protected static OWLAnnotationAssertionAxiom updateAnnotation(OWLOntology ontology,
+			OWLEntity subject, String propertyCURIE, String value)
+	{
+		final OWLOntologyManager manager = ontology.getOWLOntologyManager();
+		final OWLDataFactory factory = manager.getOWLDataFactory();
+		OWLLiteral literal = factory.getOWLLiteral(value);
+		IRI iri = format.getIRI(propertyCURIE);
+		OWLAnnotationProperty property = factory.getOWLAnnotationProperty(iri);
+		
+		// remove old axioms
+		Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(subject.getIRI());
+		for (OWLAnnotationAssertionAxiom axiom : axioms) {
+			if (property.equals(axiom.getProperty())) {
+				manager.removeAxiom(ontology, axiom);
+			}
+		}
+		
+		// add new axiom
+		OWLAnnotationAssertionAxiom axiom = factory.getOWLAnnotationAssertionAxiom(property, 
+				subject.getIRI(), literal);
+	
+		manager.addAxiom(ontology, axiom);
+		return axiom;
+	}
+	
 	/**
 	 * Add an synonym annotation, plus an annotation on that annotation
 	 * that specified the type of synonym. The second annotation has the

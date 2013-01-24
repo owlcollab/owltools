@@ -10,11 +10,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -284,27 +285,120 @@ public class NCBI2OWL extends NCBIConverter {
 	
 			// Handle each line of the file in turn.
 			// Labels should be unique, so we keep a list of them.
-			HashSet<String> labels = new HashSet<String>();
+			Map<String, List<OWLClass>> labels = new HashMap<String, List<OWLClass>>();
 			OWLClass taxon = null;
 			String line;
 			int lineNumber = 0;
 			while ((line = br.readLine()) != null) {
-				taxon = handleLine(ontology, uniqueNames, labels, taxon,
+				taxon = handleLine(ontology, labels, taxon,
 						line, lineNumber);
 				lineNumber++;
 				if (lineNumber % 10000 == 0) {
 					logger.debug("At line " + lineNumber);
 				}
 			}
+			logger.debug("Resolving duplicate label issues");
+			for(Entry<String, List<OWLClass>> entry : labels.entrySet()) {
+				List<OWLClass> classes = entry.getValue();
+				if (classes.size() > 1) {
+					final String originalLabel = entry.getKey();
+					Map<OWLClass, String> newLabels = createUniqueLabels(classes, originalLabel, uniqueNames);
+					for (OWLClass owlClass : newLabels.keySet()) {
+						final String newLabel = newLabels.get(owlClass);
+						
+						// update rdfs:label annotation
+						updateAnnotation(ontology, owlClass, "rdfs:label", newLabel);
+						
+						// add as synonym
+						synonym(ontology, owlClass, "ncbitaxon:scientific_name", 
+								"oio:hasExactSynonym", originalLabel);
+					}
+				}
+			}
+			
 			logger.debug("Finished reading lines: " + lineNumber);
-			logger.debug("Filled ontology. Axioms: " +
-				ontology.getAxiomCount());
+			logger.debug("Filled ontology. Axioms: " + ontology.getAxiomCount());
 			return ontology;
 		}finally {
 			br.close();
 		}
 	}
-
+	
+	/**
+	 * <p>
+	 * Create a set of unique labels for given set of classes with the same
+	 * label. There are three possible modi:
+	 * <ul>
+	 * <li><b>Default:</b> Use the unique label information. Up to one entry is
+	 * allowed to have no match in the unique labels. There the original label
+	 * remains unchanged.</li>
+	 * <li><b>Mixed:</b>If there are multiple non-matched entries, generate
+	 * unique labels for these using the taxon id.</li>
+	 * <li><b>Generate:</b> If there is no unique name information use the taxon
+	 * id to create a unique label.</li>
+	 * <ul>
+	 * </p>
+	 * <p>
+	 * The returned map contains only the classes, which need to be updated.
+	 * </p>
+	 * 
+	 * @param classes
+	 * @param label
+	 * @param uniqueNames
+	 * @return map of classes with new unique labels
+	 */
+	private static Map<OWLClass, String> createUniqueLabels(List<OWLClass> classes, 
+			String label, Map<String, String> uniqueNames) {
+		
+		Map<OWLClass, String> newLabels = new HashMap<OWLClass, String>();
+		if (uniqueNames != null) {
+			// check that maximum one term has no unique name
+			int nullCount = 0;
+			for (OWLClass cls : classes) {
+				String id = getTaxonID(cls);
+				String unique = uniqueNames.get(id);
+				if (unique == null) {
+					nullCount += 1;
+				}
+			}
+			
+			if (nullCount <= 1) {
+				// Default mode
+				// use the unique label data
+				for (OWLClass cls : classes) {
+					String id = getTaxonID(cls);
+					String unique = uniqueNames.get(id);
+					if (unique != null) {
+						newLabels.put(cls, unique);
+					}
+				}
+			}
+			else {
+				// Mixed mode
+				// use the unique label data and generate unique labels
+				for (OWLClass cls : classes) {
+					String id = getTaxonID(cls);
+					String unique = uniqueNames.get(id);
+					if (unique != null) {
+						newLabels.put(cls, unique);
+					}
+					else {
+						newLabels.put(cls, label + " [NCBITaxon:" + id + "]");
+					}
+				}
+			}
+		}
+		else {
+			// Generation mode
+			// generate unique labels for all taxa
+			for (OWLClass cls : classes) {
+				String id = getTaxonID(cls);
+				newLabels.put(cls, label + " [NCBITaxon:" + id + "]");
+			}
+		}
+		return newLabels;
+	}
+	
 	/**
 	 * Read a data file, create an OWL representation, and save an OWL file.
 	 *
@@ -580,7 +674,6 @@ public class NCBI2OWL extends NCBIConverter {
 	 * <ul>
 	 *
 	 * @param ontology the current ontology
-	 * @param uniqueLabels map of unique labels as extracted from the dmp files
 	 * @param labels a list to check that labels are unique
 	 * @param taxon the current class or null
 	 * @param line the line to handle
@@ -588,8 +681,7 @@ public class NCBI2OWL extends NCBIConverter {
 	 * @return null or the taxon for the next line
 	 */
 	protected static OWLClass handleLine(OWLOntology ontology,
-			Map<String, String> uniqueLabels,
-			HashSet<String> labels, OWLClass taxon,
+			Map<String, List<OWLClass>> labels, OWLClass taxon,
 			String line, int lineNumber) {
 		if (line.trim().equals("//")) { return taxon; }
 
@@ -635,25 +727,22 @@ public class NCBI2OWL extends NCBIConverter {
 				}
 			}
 		} else if (fieldName.equals("scientific name")) {
-			// handle the scientific name
-			// if there is a unique name us it and add the original value as exact synonym
-			final String id = getTaxonID(taxon);
-			String uniqueLabel = null;
-			if (uniqueLabels != null) {
-				uniqueLabel = uniqueLabels.get(id);
-			}
 			String label = fieldValue;
-			if (uniqueLabel != null) {
-				annotate(ontology, taxon, "rdfs:label", uniqueLabel);
-				labels.add(uniqueLabel);
-				synonym(ontology, taxon, "ncbitaxon:scientific_name", "oio:hasExactSynonym", label);
+			annotate(ontology, taxon, "rdfs:label", label);
+			
+			// track terms with equal labels
+			// the assignment of unique labels is done in a separate step
+			List<OWLClass> classes = labels.get(label);
+			if (classes == null || classes.isEmpty()) {
+				labels.put(label, Collections.singletonList(taxon));
+			}
+			else if (classes.size() == 1) {
+				classes = new ArrayList<OWLClass>(classes);
+				classes.add(taxon);
+				labels.put(label, classes);
 			}
 			else {
-				if (labels.contains(label)) {
-					label = label + " [NCBITaxon:" + id + "]";
-				}
-				annotate(ontology, taxon, "rdfs:label", label);
-				labels.add(label);
+				classes.add(taxon);
 			}
 		} else if (fieldName.equals("includes")) { // TODO: handle?
 		} else if (fieldName.equals("gc id")) {
