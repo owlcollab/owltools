@@ -32,10 +32,10 @@ sub get_config {
 	level => 'm',
 
 	## email settings
-	email_from  => 'aireland@lbl.gov',
+	email_from  => 'jenkins@ladle.lbl.gov',
 	email_to    => 'go-watchers@lists.stanford.edu',
 #	email_to    => 'aireland@lbl.gov',
-	email_bcc   => '',
+	email_bcc   => 'cjmungall@lbl.gov',
 
 	## database settings
 	dbname      => $ENV{GO_DBNAME} || 'go_latest_lite',
