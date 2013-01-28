@@ -7,9 +7,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -24,6 +27,8 @@ import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
@@ -31,7 +36,9 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
+import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.InferenceBuilder;
 import owltools.graph.AxiomAnnotationTools;
@@ -282,6 +289,7 @@ public class AssertInferenceTool {
 				removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
 			}
 		}
+		AssertInferenceReport report = new AssertInferenceReport(graph);
 		
 		// Inference builder
 		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
@@ -303,12 +311,8 @@ public class AssertInferenceTool {
 			
 			final OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
 			if (reportWriter != null) {
-				reportWriter.append("Added axioms (count "+newAxioms.size()+"):\n");
-				for (OWLAxiom newAxiom : newAxioms) {
-					reportWriter.append("ADD\t");
-					reportWriter.append(owlpp.render(newAxiom));
-					reportWriter.append('\n');
-				}
+				report.putAxioms(newAxioms, "ADD");
+				reportWriter.append("Added axioms (count "+newAxioms.size()+")\n");
 			}
 			
 			
@@ -335,13 +339,13 @@ public class AssertInferenceTool {
 				}
 				
 				if (reportWriter != null) {
-					reportWriter.append("Removed axioms (count "+redundantAxioms.size()+"):\n");
-					for (OWLAxiom redundantAxiom : redundantAxioms) {
-						reportWriter.append("REMOVE\t");
-						reportWriter.append(owlpp.render(redundantAxiom));
-						reportWriter.append('\n');
-					}
+					reportWriter.append("Removed axioms (count "+redundantAxioms.size()+")\n");
+					report.putAxioms(redundantAxioms, "REMOVE");
 				}
+			}
+			
+			if (reportWriter != null) {
+				report.printReport(reportWriter);
 			}
 			
 			// checks
@@ -378,6 +382,121 @@ public class AssertInferenceTool {
 		
 		// remove additional import axioms
 		manager.applyChanges(removeImportChanges);
+	}
+	
+	static class AssertInferenceReport {
+		
+		private final OWLGraphWrapper graph;
+		OWLPrettyPrinter owlpp;
+		private Map<OWLClassExpression, List<Line>> lines = new HashMap<OWLClassExpression, List<Line>>();
+		private List<String> others = new ArrayList<String>();
+
+		AssertInferenceReport(OWLGraphWrapper graph) {
+			this.graph = graph;
+			owlpp = new OWLPrettyPrinter(graph);
+		}
+
+		static class Line {
+			String type;
+			String msg;
+			
+			Line(String type, String msg) {
+				this.type = type;
+				this.msg = msg;
+			}
+		}
+		
+		public void putAxiom(OWLAxiom ax, final String type) {
+			ax.accept(new OWLAxiomVisitorAdapter(){
+
+				@Override
+				public void visit(OWLEquivalentClassesAxiom axiom) {
+					StringBuilder sb = new StringBuilder();
+					sb.append(type);
+					sb.append('\t');
+					sb.append("EQ:");
+					for(OWLClassExpression expr : axiom.getClassExpressions()) {
+						sb.append(' ');
+						if (expr.isAnonymous()) {
+							sb.append(owlpp.render(expr));
+						}
+						else {
+							final OWLClass sCls = expr.asOWLClass();
+							sb.append(graph.getIdentifier(sCls));
+							final String label = graph.getLabel(sCls);
+							if (label != null) {
+								sb.append(" '");
+								sb.append(label);
+								sb.append('\'');
+							}
+						}
+					}
+					
+					others.add(sb.toString());
+				}
+
+				@Override
+				public void visit(OWLSubClassOfAxiom axiom) {
+					OWLClassExpression subClass = axiom.getSubClass();
+					List<Line> current = lines.get(subClass);
+					if (current == null) {
+						current = new ArrayList<Line>();
+						lines.put(subClass, current);
+					}
+					StringBuilder sb = new StringBuilder();
+					if (subClass.isAnonymous()) {
+						sb.append(owlpp.render(subClass));
+					}
+					else {
+						final OWLClass sCls = subClass.asOWLClass();
+						sb.append(graph.getIdentifier(sCls));
+						final String label = graph.getLabel(sCls);
+						if (label != null) {
+							sb.append(" '");
+							sb.append(label);
+							sb.append('\'');
+						}
+					}
+					sb.append(' ');
+					OWLClassExpression superClass = axiom.getSuperClass();
+					if (superClass.isAnonymous()) {
+						sb.append(owlpp.render(superClass));
+					}
+					else {
+						final OWLClass sCls = superClass.asOWLClass();
+						sb.append(graph.getIdentifier(sCls));
+						final String label = graph.getLabel(sCls);
+						if (label != null) {
+							sb.append(" '");
+							sb.append(label);
+							sb.append('\'');
+						}
+					}
+					current.add(new Line(type, sb.toString()));
+				}
+				
+			});
+		}
+		
+		public void putAxioms(Collection<OWLAxiom> axioms, String type) {
+			for (OWLAxiom owlAxiom : axioms) {
+				putAxiom(owlAxiom, type);
+			}
+		}
+		
+		public void printReport(BufferedWriter writer) throws IOException {
+			List<OWLClassExpression> keys = new ArrayList<OWLClassExpression>(lines.keySet());
+			Collections.sort(keys);
+			for (OWLClassExpression owlClass : keys) {
+				List<Line> current = lines.get(owlClass);
+				for (Line line : current) {
+					writer.append(line.type);
+					writer.append('\t');
+					writer.append(line.msg);
+					writer.append('\n');
+				}
+			}
+		}
 	}
 	
 	private static class InconsistentOntologyException extends Exception {
