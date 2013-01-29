@@ -46,8 +46,18 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 				if (subsets != null && !subsets.isEmpty()) {
 					for (String subset : subsets) {
 						if (high_level_subset.equals(subset)) {
-							String message = "Do not annotate to: "+cls+" The term is considered to high level, as marked via the subset tag: "+high_level_subset;
-							return Collections.singleton(new AnnotationRuleViolation(getRuleId(), message , a, level));
+							StringBuilder sb = new StringBuilder();
+							sb.append("Do not annotate to: ");
+							sb.append(cls);
+							String label = go.getLabel(owlClass);
+							if (label != null) {
+								sb.append(" '");
+								sb.append(label);
+								sb.append("'");
+							}
+							sb.append(" The term is considered to high level, as marked via the subset tag: ");
+							sb.append(high_level_subset);
+							return Collections.singleton(new AnnotationRuleViolation(getRuleId(), sb.toString() , a, level));
 						}
 					}
 				}
