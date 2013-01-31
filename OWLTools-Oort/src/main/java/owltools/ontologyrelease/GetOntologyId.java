@@ -72,11 +72,11 @@ public class GetOntologyId extends Task {
 		}
 	}
 	
-	   /**
-     * Validate that the task parameters are valid.
-     *
-     * @throws BuildException if parameters are invalid
-     */
+//	   /**
+//     * Validate that the task parameters are valid.
+//     *
+//     * @throws BuildException if parameters are invalid
+//     */
   /*  private void validate()
          throws BuildException {
         if (null == ontologyLocation) {

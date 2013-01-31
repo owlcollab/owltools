@@ -81,6 +81,9 @@ public class OortConfiguration {
 	private boolean gafToOwl = false;
 	private String catalogXML = null;
 	
+	private String errorReportFile = null;
+	private String traceReportFile = null;
+	
 	private boolean writeLabelOWL = false;
 	
 	private boolean useQueryOntology = false;
@@ -803,6 +806,34 @@ public class OortConfiguration {
 		this.runOboBasicDagCheck = runOboBasicDagCheck;
 	}
 
+	/**
+	 * @return the errorReportFile
+	 */
+	public String getErrorReportFile() {
+		return errorReportFile;
+	}
+
+	/**
+	 * @param errorReportFile the errorReportFile to set
+	 */
+	public void setErrorReportFile(String errorReportFile) {
+		this.errorReportFile = errorReportFile;
+	}
+
+	/**
+	 * @return the traceReportFile
+	 */
+	public String getTraceReportFile() {
+		return traceReportFile;
+	}
+
+	/**
+	 * @param traceReportFile the traceReportFile to set
+	 */
+	public void setTraceReportFile(String traceReportFile) {
+		this.traceReportFile = traceReportFile;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -917,6 +948,8 @@ public class OortConfiguration {
 		putValue(properties, "ontologyChecks", config.ontologyChecks);
 		putValue(properties, "threads", config.threads);
 		putValue(properties, "runOboBasicDagCheck", config.runOboBasicDagCheck);
+		putValue(properties, "errorReportFile", config.errorReportFile);
+		putValue(properties, "traceReportFile", config.traceReportFile);
 		return properties;
 	}
 	
@@ -1031,6 +1064,8 @@ public class OortConfiguration {
 		config.ontologyChecks = getClassValues(properties, "ontologyChecks", getDefaultOntologyChecks());
 		config.threads = getValue(properties, "threads", config.threads);
 		config.runOboBasicDagCheck = getValue(properties, "runOboBasicDagCheck", config.runOboBasicDagCheck);
+		config.errorReportFile = getValue(properties, "errorReportFile", config.errorReportFile);
+		config.traceReportFile = getValue(properties, "traceReportFile", config.traceReportFile);
 	}
 	
 	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {

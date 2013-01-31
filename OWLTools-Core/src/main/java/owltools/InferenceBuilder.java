@@ -173,13 +173,13 @@ public class InferenceBuilder{
 			if (reasonerFactoryName == null) {
 				reasonerFactoryName = reasonerFactory.getClass().getSimpleName();
 			}
-			logger.info("Creating reasoner using: "+reasonerFactoryName);
+			logInfo("Creating reasoner using: "+reasonerFactoryName);
 			reasoner = reasonerFactory.createReasoner(ontology);
 			String reasonerName = reasoner.getReasonerName();
 			if (reasonerName == null) {
 				reasonerName = reasoner.getClass().getSimpleName();
 			}
-			logger.info("Created reasoner: "+reasonerName);
+			logInfo("Created reasoner: "+reasonerName);
 		}
 		return reasoner;
 	}
@@ -249,7 +249,7 @@ public class InferenceBuilder{
 		OWLDataFactory dataFactory = ontology.getOWLOntologyManager().getOWLDataFactory();
 		Inferences inferences = new Inferences();
 		
-		logger.info("Finding asserted equivalencies...");
+		logInfo("Finding asserted equivalencies...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 
 			for (OWLClassExpression ec : cls.getEquivalentClasses(ontology)) {
@@ -271,7 +271,7 @@ public class InferenceBuilder{
 				}
 			}
 		}
-		logger.info("Finding inferred superclasses...");
+		logInfo("Finding inferred superclasses...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 			if (cls.isOWLNothing() || cls.isBottomEntity() || cls.isOWLThing()) {
 				continue; // do not report these
@@ -282,13 +282,13 @@ public class InferenceBuilder{
 				if (cls.equals(ec))
 					continue;
 				
-				if (logger.isDebugEnabled()) {
-					logger.debug("Inferred Equiv: " + cls + " == " + ec);
+				if (isDebug()) {
+					logDebug("Inferred Equiv: " + cls + " == " + ec);
 				}
 				if (ec.equals(cls) == false) {
 					OWLEquivalentClassesAxiom eca = dataFactory.getOWLEquivalentClassesAxiom(cls, ec);
-					if (logger.isDebugEnabled()) {
-						logger.info("Equivalent Named Class Pair: "+eca);
+					if (isDebug()) {
+						logDebug("Equivalent Named Class Pair: "+eca);
 					}
 					inferences.equivalentNamedClassPairs.add(eca);
 				}
@@ -350,12 +350,12 @@ public class InferenceBuilder{
 		}
 
 		// CHECK FOR REDUNDANCY
-		logger.info("Checking for redundant assertions caused by inferences");
+		logInfo("Checking for redundant assertions caused by inferences");
 		inferences.redundantAxioms = getRedundantAxioms(ontology, reasoner, dataFactory);
 
 		inferences.axiomsToAdd.addAll(equivAxiomsToAdd);
 
-		logger.info("Done building inferences");
+		logInfo("Done building inferences");
 		
 		return inferences;
 	}
@@ -456,10 +456,10 @@ public class InferenceBuilder{
 		reasoner = getReasoner(ont);
 		long t1 = System.currentTimeMillis();
 
-		logger.info("Consistency check started............");
+		logInfo("Consistency check started............");
 		boolean consistent = reasoner.isConsistent();
 
-		logger.info("Is the ontology consistent ....................." + consistent + ", " + (System.currentTimeMillis()-t1)/100);
+		logInfo("Is the ontology consistent ....................." + consistent + ", " + (System.currentTimeMillis()-t1)/100);
 
 		if(!consistent){
 			errors.add("The ontology '" + graph.getOntologyId() + " ' is not consistent");
@@ -473,7 +473,7 @@ public class InferenceBuilder{
 		Node<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses();
 		if (unsatisfiableClasses.getSize() > 0) {
 			for(OWLClass cls : unsatisfiableClasses.getEntities()) {
-				logger.info("unsat: "+cls.getIRI());
+				logInfo("unsat: "+cls.getIRI());
 				if (cls.equals(nothing)) {
 					// nothing to see here, move along
 					continue;
@@ -519,6 +519,18 @@ public class InferenceBuilder{
 			reasoner.dispose();
 			reasoner = null;
 		}
+	}
+	
+	protected void logInfo(String msg) {
+		logger.info(msg);
+	}
+	
+	protected boolean isDebug() {
+		return logger.isDebugEnabled();
+	}
+	
+	protected void logDebug(String msg) {
+		logger.debug(msg);
 	}
 
 }

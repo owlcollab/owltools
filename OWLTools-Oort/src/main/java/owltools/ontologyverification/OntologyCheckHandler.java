@@ -5,33 +5,31 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import owltools.graph.OWLGraphWrapper;
+import owltools.ontologyrelease.logging.LogHandler;
 import owltools.ontologyverification.OntologyCheckRunner.TimePoint;
 
 /**
- * Handle the ontology checks for an ontology and its reporting 
- * via a {@link Logger}.
+ * Handle the ontology checks for an ontology and its reporting to the {@link LogHandler}.
  *
  */
 public class OntologyCheckHandler {
 
-	private static final Logger logger = Logger.getLogger(OntologyCheckHandler.class);
-	
 	private final OntologyCheckRunner runner;
 	private final boolean isWarningFatal;
+	private final List<LogHandler> handlers;
 	
 	/**
 	 * Create a new instance.
 	 * 
 	 * @param isWarningFatal if true all warnings are treated as errors.
 	 * @param checks list of ontology checks
+	 * @param handlers
 	 */
-	public OntologyCheckHandler(boolean isWarningFatal, List<OntologyCheck> checks) {
+	public OntologyCheckHandler(boolean isWarningFatal, List<OntologyCheck> checks, List<LogHandler> handlers) {
 		super();
 		this.isWarningFatal = isWarningFatal;
+		this.handlers = handlers;
 		runner = new OntologyCheckRunner(checks);
 	}
 	
@@ -133,15 +131,8 @@ public class OntologyCheckHandler {
 		}
 		sb.append('\n');
 		sb.append(summary(results.size(), successCount, warningCount, errorCount, internalErrorCount));
-		Level level = Level.INFO;
-		if (warningCount > 0) {
-			level = Level.WARN;
-		}
 		boolean hasErrors = errorCount > 0 || internalErrorCount > 0;
-		if (hasErrors) {
-			level = Level.ERROR;
-		}
-		log(sb, level);
+		report(sb, timePoint);
 		if (hasErrors) {
 			return CheckSummary.error(errorCount, createExceptionMessage(ontologyId, errorCount, internalErrorCount));
 		}
@@ -149,8 +140,10 @@ public class OntologyCheckHandler {
 		
 	}
 
-	protected void log(StringBuilder sb, Level level) {
-		logger.log(level, sb.toString());
+	protected void report(StringBuilder sb, TimePoint timePoint) {
+		for (LogHandler handler : handlers) {
+			handler.report("OntologyCheck-"+timePoint.name(), sb.toString());
+		}
 	}
 
 	private String createExceptionMessage(String ontologyId, int errorCount, int internalErrorCount) {

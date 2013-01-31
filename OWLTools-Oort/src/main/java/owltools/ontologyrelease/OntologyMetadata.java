@@ -10,9 +10,7 @@ import java.util.Vector;
 
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -261,7 +259,7 @@ public class OntologyMetadata {
 
 
 
-	private void generateDatum(MetadataField mf, MetadataQualifier mq, Object qv, List list) {
+	private void generateDatum(MetadataField mf, MetadataQualifier mq, Object qv, List<?> list) {
 		generateDatum(mf,mq,qv);
 		for (Object item : list) {
 			print("\t");

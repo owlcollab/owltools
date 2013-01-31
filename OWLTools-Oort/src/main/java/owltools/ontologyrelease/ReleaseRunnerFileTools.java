@@ -10,10 +10,12 @@ import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+
+import owltools.ontologyrelease.logging.LogHandler;
 
 
 /**
@@ -30,23 +32,24 @@ abstract class ReleaseRunnerFileTools {
 	private final File base;
 	private final File staging;
 	private final File lockFile;
-	private final Logger logger;
 	private final boolean useReleasesFolder;
+	private final List<LogHandler> handlers;
 
 	/**
 	 * @param base directory
-	 * @param logger
 	 * @param useReleasesFolder 
 	 * @param ignoreLock
+	 * @param handlers
 	 * @throws IOException
 	 */
-	ReleaseRunnerFileTools(File base, Logger logger, boolean useReleasesFolder, boolean ignoreLock) throws IOException {
+	ReleaseRunnerFileTools(File base, boolean useReleasesFolder, boolean ignoreLock, List<LogHandler> handlers) throws IOException {
 		super();
-		this.logger = logger;
+		this.handlers = handlers;
 		this.useReleasesFolder = useReleasesFolder;
 		
 		// base
 		this.base = base;
+		
 		
 		checkFolder(base);
 		
@@ -63,7 +66,7 @@ abstract class ReleaseRunnerFileTools {
 			}
 			FileUtils.touch(lockFile);
 		}
-		logger.info("Using staging folder for release manager: "+staging.getAbsolutePath());
+		logInfo("Using staging folder for release manager: "+staging.getAbsolutePath());
 		
 		// clean staging
 		cleanDirectory(staging, STAGING_DIRECTORY_LOCK_FILE_NAME);
@@ -94,8 +97,44 @@ abstract class ReleaseRunnerFileTools {
 		// create sub folder
 		stagingFile.getParentFile().mkdirs();
 		
-		logger.info("saving to " + stagingFile.getAbsolutePath());
+		logInfo("saving to " + stagingFile.getAbsolutePath());
 		return new FileOutputStream(stagingFile);
+	}
+	
+	protected void logInfo(String msg) {
+		for (LogHandler handler : handlers) {
+			handler.logInfo(msg);
+		}
+	}
+	
+	protected void logWarn(String msg) {
+		for (LogHandler handler : handlers) {
+			handler.logWarn(msg, null);
+		}
+	}
+	
+	protected void logWarn(String msg, Exception e) {
+		for (LogHandler handler : handlers) {
+			handler.logWarn(msg, e);
+		}
+	}
+	
+	protected void logError(String msg) {
+		for (LogHandler handler : handlers) {
+			handler.logError(msg, null);
+		}
+	}
+	
+	protected void logError(String msg, Exception e) {
+		for (LogHandler handler : handlers) {
+			handler.logError(msg, e);
+		}
+	}
+	
+	protected void report(String reportName, CharSequence content) {
+		for (LogHandler handler : handlers) {
+			handler.report(reportName, content);
+		}
 	}
 	
 	/**
@@ -154,7 +193,7 @@ abstract class ReleaseRunnerFileTools {
 	private void cleanDirectory(final File folder, final String...ignores) throws IOException {
 		File[] files = folder.listFiles(createIngoreFilter(ignores));
 		if (files.length > 0) {
-			logger.info("Cleaning folder: "+folder.getAbsolutePath());
+			logInfo("Cleaning folder: "+folder.getAbsolutePath());
 			for (File file : files) {
 				if (!FileUtils.isSymlink(file)) {
 					// if file is symlink, do not recurse, only delete the link.

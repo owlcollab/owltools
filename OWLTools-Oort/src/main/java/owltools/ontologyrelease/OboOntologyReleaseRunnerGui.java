@@ -2,9 +2,8 @@ package owltools.ontologyrelease;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -12,82 +11,57 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggingEvent;
-
 import owltools.ontologyrelease.gui.OortGuiConfiguration;
 import owltools.ontologyrelease.gui.OortGuiMainFrame;
+import owltools.ontologyrelease.logging.ErrorReportFileHandler;
+import owltools.ontologyrelease.logging.GuiLogHandler;
+import owltools.ontologyrelease.logging.LogHandler;
+import owltools.ontologyrelease.logging.TraceReportFileHandler;
 
 /**
  * GUI access for ontology release runner.
  */
 public class OboOntologyReleaseRunnerGui {
 
-	private final static Logger logger = Logger.getLogger(OboOntologyReleaseRunnerGui.class);
-	
-	// SimpleDateFormat is NOT thread safe
-	// encapsulate as thread local
-	private final static ThreadLocal<DateFormat> df = new ThreadLocal<DateFormat>(){
-
-		@Override
-		protected DateFormat initialValue() {
-			return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		}
-	};
-	
 	public static void main(String[] args) throws IOException {
-
+		
 		// parse command-line
 		OortGuiConfiguration parameters = new OortGuiConfiguration();  
 		OboOntologyReleaseRunner.parseOortCommandLineOptions(args, parameters);
 		
 		// setup logger for GUI
-		Logger rootLogger = Logger.getRootLogger();
-		final BlockingQueue<String> logQueue =  new ArrayBlockingQueue<String>(100);
+		final List<LogHandler> handlers = new ArrayList<LogHandler>();
 		
-		rootLogger.addAppender(new AppenderSkeleton() {
-			
-			public boolean requiresLayout() {
-				return false;
-			}
-			
-			public void close() {
-				// do nothing
-			}
-			
-			@Override
-			protected void append(LoggingEvent event) {
-				try {
-					StringBuilder sb = new StringBuilder();
-					sb.append(df.get().format(new Date(event.timeStamp)));
-					sb.append(' ');
-					sb.append(event.getLevel());
-					sb.append(' ');
-					sb.append(event.getRenderedMessage());
-					logQueue.put(sb.toString());
-				} catch (InterruptedException e) {
-					logger.fatal("Interruped during wait for writing to the message panel.", e);
-				}
-			}
-		});
+		final BlockingQueue<String> logQueue =  new ArrayBlockingQueue<String>(100);
+		handlers.add(new GuiLogHandler(logQueue));
+		
+		
+		// setup additional log handlers
+		if (parameters.getErrorReportFile() != null) {
+			handlers.add(new ErrorReportFileHandler(parameters.getBase(), parameters.getErrorReportFile()));
+		}
+		if (parameters.getTraceReportFile() != null) {
+			handlers.add(new TraceReportFileHandler(parameters.getBase(), parameters.getTraceReportFile()));
+		}
 		
 		// Start GUI
-		new ReleaseGuiMainFrameRunner(logQueue, parameters );
+		new ReleaseGuiMainFrameRunner(logQueue, parameters, handlers);
 	}
 
 	private static final class ReleaseGuiMainFrameRunner extends OortGuiMainFrame {
 		
 		// generated
 		private static final long serialVersionUID = -8690322825608397262L;
+		private final List<LogHandler> handlers;
 		
-		private ReleaseGuiMainFrameRunner(BlockingQueue<String> logQueue, OortGuiConfiguration parameters) {
+		private ReleaseGuiMainFrameRunner(BlockingQueue<String> logQueue, OortGuiConfiguration parameters, List<LogHandler> handlers) {
 			super(logQueue, parameters);
+			this.handlers = handlers;
 		}
 	
 		@Override
 		protected void executeRelease(final OortGuiConfiguration parameters) {
-			logger.info("Starting release manager process");
+			logInfo("Starting release manager process");
 			disableReleaseButton();
 			// execute the release in a separate Thread, otherwise the GUI might be blocked.
 			Thread t = new Thread() {
@@ -95,7 +69,7 @@ public class OboOntologyReleaseRunnerGui {
 				public void run() {
 					try {
 						File base = parameters.getBase();
-						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(parameters, base) {
+						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(parameters, base, handlers) {
 
 							@Override
 							protected boolean allowFileOverwrite(File file) throws IOException {
@@ -128,19 +102,19 @@ public class OboOntologyReleaseRunnerGui {
 						else {
 							message = "Finished release manager process, but no release was created.";
 						}
-						logger.info(message);
+						logInfo(message);
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, message);
 					} catch (OboOntologyReleaseRunnerCheckException e) {
 						String message = "Stopped Release process. Reason: \n"+e.renderMessageString();
-						logger.error(message, e);
+						logError(message, e);
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, createMultiLineLabel(message), "OORT Release Problem", JOptionPane.ERROR_MESSAGE);
 					} catch (Exception e) {
 						String message = "Internal error: \n"+ e.getMessage();
-						logger.error(message, e);
+						logError(message, e);
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, createMultiLineLabel(message), "Error", JOptionPane.ERROR_MESSAGE);
 					} catch (Throwable e) {
 						String message = "Internal error: \n"+ e.getMessage();
-						logger.fatal(message, e);
+						logError(message, e);
 						JOptionPane.showMessageDialog(ReleaseGuiMainFrameRunner.this, createMultiLineLabel(message), "FatalError", JOptionPane.ERROR_MESSAGE);
 					}
 					finally {
@@ -149,6 +123,18 @@ public class OboOntologyReleaseRunnerGui {
 				}
 			};
 			t.start();
+		}
+		
+		protected void logInfo(String msg) {
+			for (LogHandler handler : handlers) {
+				handler.logInfo(msg);
+			}
+		}
+		
+		protected void logError(String msg, Throwable e) {
+			for (LogHandler handler : handlers) {
+				handler.logError(msg, e);
+			}
 		}
 	}
 	
