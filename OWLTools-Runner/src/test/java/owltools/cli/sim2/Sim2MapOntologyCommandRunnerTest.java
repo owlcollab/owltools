@@ -37,7 +37,7 @@ public class Sim2MapOntologyCommandRunnerTest extends AbstractCommandRunnerTest 
 		run("-o file:///tmp/foo.owl");
 		run("--reasoner elk");
 		run("--map-abox-to-namespace http://purl.obolibrary.org/obo/HP_");
-		run("--sim-basic -p "+path("test-sim.properties") + " -o test100.out");
+		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
 		run("-o -f obo /tmp/foo.obo");
 		
 	}

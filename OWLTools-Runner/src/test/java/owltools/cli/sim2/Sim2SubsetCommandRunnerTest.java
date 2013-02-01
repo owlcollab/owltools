@@ -35,7 +35,7 @@ public class Sim2SubsetCommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--load-labels "+path("mgi-labels.txt"));
 		//load("Mus_musculus-label.owl");
 		//load("Mus_musculus-label.obo");
-		run("--sim-basic -p "+path("test-sim.properties") + " -o test100.out");
+		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
 		//run("--sim-basic");
 		
 		//run("-o -f obo /tmp/foo.obo");
