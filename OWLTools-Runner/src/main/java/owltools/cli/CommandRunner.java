@@ -12,8 +12,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -52,6 +52,7 @@ import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
+import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.expression.ParserException;
@@ -104,7 +105,6 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gfx.GraphicsConfig;
@@ -125,10 +125,10 @@ import owltools.io.GraphClosureRenderer;
 import owltools.io.GraphReader;
 import owltools.io.GraphRenderer;
 import owltools.io.ImportClosureSlurper;
-import owltools.io.OWLGsonRenderer;
 import owltools.io.OWLJSONFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import owltools.io.ParserWrapper.OWLGraphWrapperNameProvider;
 import owltools.io.TableRenderer;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.BridgeExtractor;
@@ -2421,6 +2421,170 @@ public class CommandRunner {
 		}
 	}
 	
+	/**
+	 * Retain only subclass of axioms and intersection of axioms if they contain
+	 * a class in it's signature of a given set of parent terms.
+	 * 
+	 * For example, to create the x-chemical.owl do the following steps:
+	 * <ol>
+	 *   <li>Load ChEBI as main ontology graph</li>
+	 *   <li>(Optional) load go, recommended for OBO write</li>
+	 *   <li>Setup reasoner: '--elk --init-reasoner'</li>
+	 *   <li>'--filter-extension-file'</li>
+	 *   <li>Load extensions file using: '-e' or '--extension-file'</li>
+	 *   <li>Add required root terms: '-t' or '--term', use multiple paramteres to add multiple terms</li>
+	 *   <li>Set ontology IRI for filtered file: '-id' or '--ontology-id'</li>
+	 *   <li> set output files:
+	 *       <ul>
+	 *       	<li>OWL: '-owl|--output-owl' owl-filename</li>
+	 *          <li>OBO: '-obo|--output-obo' obo-filename</li>
+	 *       </ul>
+	 *   </li>
+	 *   <li>(Optional) set version: '-v' or '--version'</li>
+	 * </ol>
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--filter-extension-file")
+	public void filterExtensionFile(Opts opts) throws Exception {
+		String extensionFile = null;
+		final Set<OWLClass> rootTerms = new HashSet<OWLClass>();
+		String ontologyIRI = null;
+		String outputFileOwl = null;
+		String outputFileObo = null;
+		String versionIRI = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-e|--extension-file")) {
+				extensionFile = opts.nextOpt();
+			}
+			else if (opts.nextEq("-id|--ontology-id")) {
+				ontologyIRI = opts.nextOpt();
+			}
+			else if (opts.nextEq("-owl|--output-owl")) {
+				outputFileOwl = opts.nextOpt();
+			}
+			else if (opts.nextEq("-obo|--output-obo")) {
+				outputFileObo = opts.nextOpt();
+			}
+			else if (opts.nextEq("-v|--version")) {
+				versionIRI = opts.nextOpt();
+			}
+			else if (opts.nextEq("-t|--term")) {
+				String term = opts.nextOpt();
+				OWLClass owlClass = g.getOWLClassByIdentifier(term);
+				if (owlClass != null) {
+					rootTerms.add(owlClass);
+				}
+				else {
+					throw new RuntimeException("Could not find a class for id: "+term);
+				}
+			}
+			else {
+				break;
+			}
+		}
+		if (extensionFile == null) {
+			throw new RuntimeException("No extension file was specified.");
+		}
+		if (rootTerms.isEmpty()) {
+			throw new RuntimeException("At least one term is required for filtering");
+		}
+		if (ontologyIRI == null) {
+			throw new RuntimeException("An ontology IRI is required.");
+		}
+		
+		// create new parser and new OWLOntologyManager
+		ParserWrapper p = new ParserWrapper();
+		final OWLOntology work = p.parse(extensionFile);
+		
+		// update ontology ID
+		final OWLOntologyID oldId = work.getOntologyID();
+		final IRI oldVersionIRI = oldId != null ? oldId.getVersionIRI() : null;
+		
+		final OWLOntologyID newID;
+		final IRI newOntologyIRI = IRI.create(ontologyIRI);
+		if (versionIRI != null) {
+			final IRI newVersionIRI = IRI.create(versionIRI);
+			newID = new OWLOntologyID(newOntologyIRI, newVersionIRI);
+		}
+		else if (oldVersionIRI != null) {
+			newID = new OWLOntologyID(newOntologyIRI, oldVersionIRI);
+		}
+		else {
+			newID = new OWLOntologyID(newOntologyIRI);
+		}
+		
+		// filter axioms
+		Set<OWLAxiom> allAxioms = work.getAxioms();
+		for(OWLClass cls : work.getClassesInSignature()) {
+			Set<OWLClassAxiom> current = work.getAxioms(cls);
+			if (hasFilterClass(current, rootTerms) == false) {
+				allAxioms.removeAll(work.getDeclarationAxioms(cls));
+				allAxioms.removeAll(current);
+				allAxioms.removeAll(work.getAnnotationAssertionAxioms(cls.getIRI()));
+			}
+		}
+		
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntology filtered = manager.createOntology(newID);
+		manager.addAxioms(filtered, allAxioms);
+		
+		// write ontology
+		// owl
+		if (outputFileOwl != null) {
+			OutputStream outputStream = new FileOutputStream(outputFileOwl);
+			try {
+				manager.saveOntology(filtered, new RDFXMLOntologyFormat(), outputStream);
+			}
+			finally {
+				outputStream.close();
+			}
+		}
+		// obo
+		if (outputFileObo != null) {
+			Owl2Obo owl2Obo = new Owl2Obo();
+			OBODoc doc = owl2Obo.convert(filtered);
+			
+			OBOFormatWriter writer = new OBOFormatWriter();
+			BufferedWriter fileWriter = null;
+			try {
+				fileWriter = new BufferedWriter(new FileWriter(outputFileObo));
+				NameProvider nameprovider = new OWLGraphWrapperNameProvider(g);
+				writer.write(doc, fileWriter, nameprovider);
+			}
+			finally {
+				IOUtils.closeQuietly(fileWriter);
+			}
+		}
+	}
+	
+	/**
+	 * Check that there is an axiom, which use a class (in its signature) that
+	 * has a ancestor in the root term set.
+	 * 
+	 * @param axioms set to check
+	 * @param rootTerms set root of terms
+	 * @return boolean
+	 */
+	private boolean hasFilterClass(Set<OWLClassAxiom> axioms, Set<OWLClass> rootTerms) {
+		if (axioms != null && !axioms.isEmpty()) {
+			for (OWLClassAxiom ax : axioms) {
+				if (ax instanceof OWLEquivalentClassesAxiom) {
+					Set<OWLClass> signature = ax.getClassesInSignature();
+					for (OWLClass sigCls : signature) {
+						NodeSet<OWLClass> superClasses = reasoner.getSuperClasses(sigCls, false);
+						for(OWLClass root : rootTerms) {
+							if (superClasses.containsEntity(root)) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
 	@CLIMethod("--create-slim")
 	public void createSlim(Opts opts) throws Exception {
 		String idResource = null;
@@ -2624,7 +2788,7 @@ public class CommandRunner {
 		return reasoner;
 	}
 
-	private void removeDanging() {
+	private void removeDangling() {
 		Mooncat m = new Mooncat(g);
 		m.removeDanglingAxioms();
 	}
