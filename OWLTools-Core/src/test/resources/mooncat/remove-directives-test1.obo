@@ -1,0 +1,15 @@
+ontology: test1
+logical-definition-view-relation: part_of
+
+[Term]
+id: X:1
+intersection_of: X:2
+intersection_of: occurs_in X:3
+
+[Typedef]
+id: part_of
+xref: BFO:0000050
+
+[Typedef]
+id: occurs_in
+xref: BFO:0000066

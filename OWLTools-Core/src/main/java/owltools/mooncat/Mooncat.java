@@ -6,10 +6,12 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
@@ -36,7 +38,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
@@ -227,6 +229,9 @@ public class Mooncat {
 	 * "graph-complete", then add these axioms to source ontology
 	 */
 	public void mergeOntologies() {
+		// remove directives which only make sense, while working in non-merged ontologies 
+		removeDirectives();
+		
 		// refresh existing MIREOT set
 		LOG.info("Removing entities marked with IAO_0000412 (imported_from) -- will not remove dangling classes at this stage");
 		removeExternalOntologyClasses(false);
@@ -244,6 +249,29 @@ public class Mooncat {
 			}
 		}
 		manager.addAxioms(srcOnt, axioms);
+	}
+
+
+
+	private void removeDirectives() {
+		// TODO decide: move the set of directives into a constant/static collection?
+		
+		Set<IRI> directivesIRIs = new HashSet<IRI>();
+		directivesIRIs.add(Obo2OWLVocabulary.IRI_OIO_LogicalDefinitionViewRelation.getIRI());
+		directivesIRIs.add(Obo2OWLVocabulary.IRI_OIO_treatXrefsAsEquivalent.getIRI());
+		directivesIRIs.add(Obo2OWLVocabulary.IRI_OIO_treatXrefsAsGenusDifferentia.getIRI());
+		directivesIRIs.add(Obo2OWLVocabulary.IRI_OIO_treatXrefsAsHasSubClass.getIRI());
+		directivesIRIs.add(Obo2OWLVocabulary.IRI_OIO_treatXrefsAsIsA.getIRI());
+		directivesIRIs.add(Obo2OWLVocabulary.IRI_OIO_treatXrefsAsRelationship.getIRI());
+		directivesIRIs.add(Obo2OWLVocabulary.IRI_OIO_treatXrefsAsReverseGenusDifferentia.getIRI());
+		
+		OWLOntology o = graph.getSourceOntology();
+		for(OWLAnnotation ann : o.getAnnotations()) {
+			final OWLAnnotationProperty property = ann.getProperty();
+			if (directivesIRIs.contains(property.getIRI())) {
+				manager.applyChange(new RemoveOntologyAnnotation(o, ann));
+			}
+		}
 	}
 
 

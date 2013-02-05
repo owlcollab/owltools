@@ -1,0 +1,20 @@
+ontology: test2
+
+[Term]
+id: X:2
+
+[Term]
+id: X:3
+intersection_of: X:4
+intersection_of: occurs_in X:5 
+
+[Term]
+id: X:4
+
+[Term]
+id: X:5
+
+[Typedef]
+id: occurs_in
+xref: BFO:0000066
+
