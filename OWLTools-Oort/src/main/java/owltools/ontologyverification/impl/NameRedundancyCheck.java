@@ -69,7 +69,7 @@ public class NameRedundancyCheck extends AbstractCheck {
             	
             	OWLEntity owlEntity = (OWLEntity) owlObject;
             	final IRI iri = owlEntity.getIRI();
-				String label = graph.getLabel(owlObject);
+				final String label = graph.getLabel(owlObject);
 				
 				if (label == null) {
 					out.add(new CheckWarning("HAS_NAME_CHECK", "The term with IRI: "+iri.toQuotedString()+" has no label.", isFatal(), iri));
@@ -91,7 +91,7 @@ public class NameRedundancyCheck extends AbstractCheck {
 						// local synonym check
 						if (localSynoyms.add(synonymLabel) == false) {
 							// there is a synonym with the same label already
-							String message = "Duplicate synonym '"+synonymLabel+"' label for IRI: "+iri;
+							String message = "Duplicate synonym '"+synonymLabel+"' label for IRI: "+iri+" '"+label+"'";
 							out.add(new CheckWarning(getID(), message , isFatal(), iri, OboFormatTag.TAG_SYNONYM.getTag()));
 						}
  					}
@@ -104,14 +104,9 @@ public class NameRedundancyCheck extends AbstractCheck {
             	Set<OWLEntity> entities = entry.getValue();
             	if (entities.size() > 1) {
 					// multiple entities with the same primary label
-            		List<IRI> iris = new ArrayList<IRI>(entities.size());
             		StringBuilder sb = new StringBuilder("Duplicate label '");
-            		sb.append(label).append("' for IRIs:");
-            		for (OWLEntity entity : entities) {
-						IRI iri = entity.getIRI();
-						iris.add(iri);
-						sb.append(' ').append(iri.toQuotedString());
-					}
+            		sb.append(label).append("' for IRIs: ");
+            		List<IRI> iris = renderEntities(entities, sb, graph);
 					out.add(new CheckWarning(getID(), sb.toString(), isFatal(), iris, OboFormatTag.TAG_NAME.getTag()));
 				}
             	Set<OWLEntity> conflictingSynonyms = synonyms.get(label);
@@ -130,12 +125,8 @@ public class NameRedundancyCheck extends AbstractCheck {
 	            		iris.add(mainIRI);
 	            		StringBuilder sb = new StringBuilder("Primary label '");
 	            		sb.append(label).append("' ").append(mainIRI.toQuotedString());
-	            		sb.append(" re-used as EXACT synonym for IRIs:");
-	            		for(OWLEntity synonymEntity : cleaned) {
-	            			IRI synonymIRI = synonymEntity.getIRI();
-							iris.add(synonymIRI);
-							sb.append(' ').append(synonymIRI.toQuotedString());
-	            		}
+	            		sb.append(" re-used as EXACT synonym for IRIs: ");
+	            		iris = renderEntities(cleaned, sb, graph, iris);
 	            		out.add(new CheckWarning(getID(), sb.toString(), isFatal(), iris, OboFormatTag.TAG_SYNONYM.getTag()));
             		}
 				}
@@ -161,6 +152,31 @@ public class NameRedundancyCheck extends AbstractCheck {
 				set.add(value);
 			}
 		}
+	}
+	
+	private List<IRI> renderEntities(Collection<? extends OWLEntity> entities, StringBuilder sb, OWLGraphWrapper g) {
+		List<IRI> iris = new ArrayList<IRI>(entities.size());
+		return renderEntities(entities, sb, g, iris);
+	}
+	
+	private List<IRI> renderEntities(Collection<? extends OWLEntity> entities, StringBuilder sb, OWLGraphWrapper g, List<IRI> iris) {
+		boolean first = true;
+		for(OWLEntity entity : entities) {
+			String entityLabel = g.getLabel(entity);
+			IRI iri = entity.getIRI();
+			iris.add(iri);
+			if (first) {
+				first = false;
+			}
+			else {
+				sb.append("; ");
+			}
+			sb.append(iri.toQuotedString());
+			if (entityLabel != null) {
+				sb.append(" '").append(entityLabel).append("'");
+			}
+		}
+		return iris;
 	}
 
 }
