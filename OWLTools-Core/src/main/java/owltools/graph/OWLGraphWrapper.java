@@ -153,8 +153,8 @@ public class OWLGraphWrapper {
 	OWLReasoner reasoner = null;
 	Config config = new Config();
 
-	private Map<OWLObject,Set<OWLGraphEdge>> edgeBySource;
-	private Map<OWLObject,Set<OWLGraphEdge>> edgeByTarget;
+	private Map<OWLObject,Set<OWLGraphEdge>> edgeBySource = null;
+	private Map<OWLObject,Set<OWLGraphEdge>> edgeByTarget = null;
 	public Map<OWLObject,Set<OWLGraphEdge>> inferredEdgeBySource = null; // public to serialize
 	private Map<OWLObject,Set<OWLGraphEdge>> inferredEdgeByTarget = null;
 
@@ -857,44 +857,62 @@ public class OWLGraphWrapper {
 		return edges;
 	}
 
+	private final Object edgeCacheMutex = new Object();
 
 	/**
 	 * caches full outgoing and incoming edges
 	 * 
 	 * in general you should not need to call this directly;
 	 * used internally by this class.
+	 * 
+	 * @see OWLGraphWrapper#clearCachedEdges()
 	 */
 	public void cacheEdges() {
-		edgeBySource = new HashMap<OWLObject,Set<OWLGraphEdge>>();
-		edgeByTarget = new HashMap<OWLObject,Set<OWLGraphEdge>>();
-
-		// initialize with all named objects in ontology
-		Stack<OWLObject> allObjs = new Stack<OWLObject>();
-		allObjs.addAll(getAllOWLObjects());
-
-		Set<OWLObject> visisted = new HashSet<OWLObject>();
-
-		while (allObjs.size() > 0) {
-			OWLObject s = allObjs.pop();
-			if (visisted.contains(s))
-				continue;
-			visisted.add(s);
-			if (!edgeBySource.containsKey(s))
-				edgeBySource.put(s, new HashSet<OWLGraphEdge>());
-			for (OWLGraphEdge edge : getPrimitiveOutgoingEdges(s)) {
-				edgeBySource.get(s).add(edge);
-				OWLObject t = edge.getTarget();
-				if (!edgeByTarget.containsKey(t))
-					edgeByTarget.put(t, new HashSet<OWLGraphEdge>());
-				edgeByTarget.get(t).add(edge);
-
-				// we also want to get all edges from class expressions;
-				// class expressions aren't in the initial signature, but
-				// we add them here when we encounter them
-				if (t instanceof OWLClassExpression) {
-					allObjs.add(t);
+		synchronized (edgeCacheMutex) {
+			edgeBySource = new HashMap<OWLObject,Set<OWLGraphEdge>>();
+			edgeByTarget = new HashMap<OWLObject,Set<OWLGraphEdge>>();
+	
+			// initialize with all named objects in ontology
+			Stack<OWLObject> allObjs = new Stack<OWLObject>();
+			allObjs.addAll(getAllOWLObjects());
+	
+			Set<OWLObject> visisted = new HashSet<OWLObject>();
+	
+			while (allObjs.size() > 0) {
+				OWLObject s = allObjs.pop();
+				if (visisted.contains(s))
+					continue;
+				visisted.add(s);
+				if (!edgeBySource.containsKey(s))
+					edgeBySource.put(s, new HashSet<OWLGraphEdge>());
+				for (OWLGraphEdge edge : getPrimitiveOutgoingEdges(s)) {
+					edgeBySource.get(s).add(edge);
+					OWLObject t = edge.getTarget();
+					if (!edgeByTarget.containsKey(t))
+						edgeByTarget.put(t, new HashSet<OWLGraphEdge>());
+					edgeByTarget.get(t).add(edge);
+	
+					// we also want to get all edges from class expressions;
+					// class expressions aren't in the initial signature, but
+					// we add them here when we encounter them
+					if (t instanceof OWLClassExpression) {
+						allObjs.add(t);
+					}
 				}
 			}
+		}
+	}
+	
+	
+	/**
+	 *  Clear the current edge cache.
+	 *  
+	 *  @see OWLGraphWrapper#cacheEdges()
+	 */
+	public void clearCachedEdges() {
+		synchronized (edgeCacheMutex) {
+			edgeBySource = null;
+			edgeByTarget = null;
 		}
 	}
 
@@ -925,8 +943,13 @@ public class OWLGraphWrapper {
 	}
 
 	private void ensureEdgesCached() {
-		if (edgeByTarget == null)
+		boolean buildCache = false;
+		synchronized (edgeCacheMutex) {
+			buildCache = (edgeByTarget == null || edgeBySource == null);
+		}
+		if (buildCache) {
 			cacheEdges();
+		}
 
 	}
 
