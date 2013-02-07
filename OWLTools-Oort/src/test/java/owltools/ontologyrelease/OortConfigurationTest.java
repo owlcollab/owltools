@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
@@ -27,6 +28,34 @@ public class OortConfigurationTest {
 	
 	public static void afterClass() throws Exception {
 		FileUtils.deleteQuietly(tempFile);
+	}
+	
+	@Test
+	public void testParseOortParamters() throws Exception {
+		
+		OortConfiguration oortConfig = new OortConfiguration();
+		String[] args = new String[] {
+			"--ignoreLock", 
+			"--skip-release-folder",
+			"--skip-format", "owx", 
+			"--outdir", ".", 
+			"--allow-overwrite", 
+			"--asserted", 
+			"--simple", 
+			"--reasoner", "hermit", 
+			"editors/gene_ontology_write.obo", 
+			"extensions/x-disjoint.owl"
+		};
+		OboOntologyReleaseRunner.parseOortCommandLineOptions(args, oortConfig);
+		
+		Vector<String> paths = oortConfig.getPaths();
+		assertArrayEquals(new String[]{
+				"editors/gene_ontology_write.obo", 
+				"extensions/x-disjoint.owl"}, 
+		paths.toArray());
+		
+		assertTrue(oortConfig.isIgnoreLockFile());
+		assertEquals("hermit", oortConfig.getReasonerName());
 	}
 	
 	/**

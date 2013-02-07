@@ -411,8 +411,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				}
 				
 			}
-			
-			if (opts.hasArgs()) {
+			else if (opts.hasArgs()) {
 				oortConfig.addPath(opts.nextOpt());
 			}
 			else {
