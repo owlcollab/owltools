@@ -2257,6 +2257,7 @@ is_a: regulates  ! regulates
 [Typedef]
 id: regulates
 name: regulates
+xref: RO:0002211
 namespace: gene_ontology
 transitive_over: part_of  ! part_of
 
