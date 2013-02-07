@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
 
@@ -90,6 +91,7 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLProperty;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -133,6 +135,7 @@ import owltools.io.TableRenderer;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.BridgeExtractor;
 import owltools.mooncat.Mooncat;
+import owltools.mooncat.PropertyExtractor;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
 import owltools.mooncat.ontologymetadata.ImportChainDotWriter;
@@ -464,6 +467,7 @@ public class CommandRunner {
 				m.removeDanglingAxioms();
 			}
 			else if (opts.nextEq("--make-subset-by-properties")) {
+				opts.info("PROPERTY-LIST","make an ontology subset that excludes axioms that use properties not in the specified set. The property list should be terminated by //");
 				Set<OWLObjectProperty> props = this.resolveObjectPropertyList(opts);
 				Mooncat m = new Mooncat(g);
 				m.retainAxiomsInPropertySubset(g.getSourceOntology(),props,reasoner);
@@ -719,11 +723,45 @@ public class CommandRunner {
 				fileWriter.write(s);
 				fileWriter.close();
 			}
+			else if (opts.nextEq("--extract-properties")) {
+				opts.info("[-p PROP]* [--list PLIST]", "extracts properties from source ontology");
+				Set<OWLProperty> props = new HashSet<OWLProperty>();
+				boolean useProps = false;
+				UUID uuid = UUID.randomUUID();
+				IRI newIRI = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p")) {
+						props.add(this.resolveObjectProperty(opts.nextOpt()));
+						useProps = true;
+					}
+					else if (opts.nextEq("--list")) {
+						Set<OWLObjectProperty> nprops = this.resolveObjectPropertyList(opts);
+						props.addAll(nprops);
+						useProps = true;
+					}
+					else {
+						break;
+					}
+				}
+				
+				PropertyExtractor pe;
+				pe = new PropertyExtractor(g.getSourceOntology());
+				OWLOntology pont;
+				if (useProps) {
+					pont = pe.extractPropertyOntology(newIRI, props);
+				}
+				else {
+					pont = pe.extractPropertyOntology(newIRI, g.getSupportOntologySet().iterator().next());
+				}
+				
+				g.setSourceOntology(pont);
+			}
 			else if (opts.nextEq("--extract-bridge-ontologies")) {
 				opts.info("[-d OUTDIR] [-x] [-s]", "");
 				String dir = "bridge/";
 				String ontId = null;
 				boolean isRemoveBridgeAxiomsFromSource = false;
+				RDFXMLOntologyFormat fmt = new RDFXMLOntologyFormat();
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-d")) {
 						opts.info("DIR", "bridge files are generated in this directory. Default: ./bridge/");
@@ -743,7 +781,7 @@ public class CommandRunner {
 				BridgeExtractor be = new BridgeExtractor(g.getSourceOntology());
 				be.subDir = dir;
 				be.extractBridgeOntologies(ontId, isRemoveBridgeAxiomsFromSource);
-				be.saveBridgeOntologies(dir);
+				be.saveBridgeOntologies(dir, fmt);
 
 			}
 			else if (opts.nextEq("--oppl")) {
