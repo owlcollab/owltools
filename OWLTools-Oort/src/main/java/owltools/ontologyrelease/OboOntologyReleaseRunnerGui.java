@@ -27,7 +27,10 @@ public class OboOntologyReleaseRunnerGui {
 		
 		// parse command-line
 		OortGuiConfiguration parameters = new OortGuiConfiguration();  
-		OboOntologyReleaseRunner.parseOortCommandLineOptions(args, parameters);
+		boolean isHelp = OboOntologyReleaseRunner.parseOortCommandLineOptions(args, parameters);
+		if (isHelp) {
+			return;
+		}
 		
 		// setup logger for GUI
 		final List<LogHandler> handlers = new ArrayList<LogHandler>();

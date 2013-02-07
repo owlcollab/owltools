@@ -151,7 +151,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		try {
 			OortConfiguration oortConfig = new OortConfiguration();
 			
-			parseOortCommandLineOptions(args, oortConfig);
+			boolean isHelp = parseOortCommandLineOptions(args, oortConfig);
+			if (isHelp) {
+				System.exit(exitCode);
+			}
 			
 			final List<LogHandler> handlers = new ArrayList<LogHandler>();
 			handlers.add(log4jHandler);
@@ -191,20 +194,31 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		System.exit(exitCode);
 	}
 
-	static void parseOortCommandLineOptions(String[] args, OortConfiguration oortConfig) throws IOException {
+	/**
+	 * Parse the CLI parameters into the configuration object.
+	 * 
+	 * @param args
+	 * @param oortConfig
+	 * @return true, if the parameters contain the help flag.
+	 * @throws IOException
+	 */
+	static boolean parseOortCommandLineOptions(String[] args, OortConfiguration oortConfig) throws IOException {
 		
 		Opts opts = new Opts(args);
 		while (opts.hasArgs()) {
 
 
 			if (opts.nextEq("--h|--help|-h")) {
-				usage();
-				System.exit(0);
+				// Do not return after finding the help flag.
+				// Go through all checks first, to print the options on system out.
+				help();
+				opts.setHelpMode(true);
 			}
-			else if (opts.nextEq("-outdir|--outdir")) { 
+			
+			if (opts.nextEq("--outdir|-outdir")) { 
 				oortConfig.setBase(new File(opts.nextOpt())); 
 			}
-			else if (opts.nextEq("-reasoner|--reasoner")) {
+			else if (opts.nextEq("--reasoner|-reasoner")) {
 				// TODO - deprecate "-reasoner"
 				oortConfig.setReasonerName(opts.nextOpt());
 			}
@@ -397,10 +411,17 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				}
 				
 			}
-			else {
+			
+			if (opts.hasArgs()) {
 				oortConfig.addPath(opts.nextOpt());
 			}
+			else {
+				if (opts.isHelpMode()) {
+					return true; // has help
+				}
+			}
 		}
+		return false; // no help
 	}
 
 	/**
@@ -1532,22 +1553,13 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return true;
 	}
 
-	private static void usage() {
+	private static void help() {
 		System.out.println("This utility builds an ontology release. This tool is supposed to be run " +
 		"from the location where a particular ontology releases are to be maintained.");
-		System.out.println("\n");
+		System.out.println();
 		System.out.println("bin/ontology-release-runner [OPTIONAL OPTIONS] ONTOLOGIES-FILES");
-		System.out
-		.println("Multiple obo or owl files are separated by a space character in the place of the ONTOLOGIES-FILES arguments.");
-		System.out.println("\n");
+		System.out.println("Multiple obo or owl files are separated by a space character in the place of the ONTOLOGIES-FILES arguments.");
+		System.out.println();
 		System.out.println("OPTIONS:");
-		System.out
-		.println("\t\t (-outdir ~/work/myontology) The path where the release will be produced.");
-		System.out
-		.println("\t\t (--reasoner hermit) This option provides name of reasoner to be used to build inference computation.");
-		System.out
-		.println("\t\t (--asserted) This unary option produces ontology without inferred assertions");
-		System.out
-		.println("\t\t (--simple) This unary option produces ontology without included/supported ontologies");
 	}
 }
