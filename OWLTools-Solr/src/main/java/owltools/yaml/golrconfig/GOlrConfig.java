@@ -9,7 +9,7 @@ public class GOlrConfig {
 	public String display_name;
 	public String document_category;
 	public int weight;
-	public String searchable_extension;
+	//public String searchable_extension;
 	public String boost_weights;
 	public String filter_weights;
 	public String result_weights;
@@ -20,7 +20,7 @@ public class GOlrConfig {
 	
 	// Define the defaults for optional fields.
 	public GOlrConfig() {
-		searchable_extension = "_searchable";
+		//searchable_extension = "_searchable";
 		weight = 0;
 		boost_weights = "";
 		filter_weights = "";
