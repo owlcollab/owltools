@@ -1,7 +1,6 @@
 package owltools.graph;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -75,7 +74,6 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
@@ -162,6 +160,8 @@ public class OWLGraphWrapper {
 	// parent = UnionOf( ..., child, ...)
 	private Map<OWLObject,Set<OWLObject>> extraSubClassOfEdges = null;
 
+	private final Object edgeCacheMutex = new Object();
+	
 	private Profiler profiler = new Profiler();
 
 
@@ -591,29 +591,33 @@ public class OWLGraphWrapper {
 	}
 
 	private Set<OWLObject> getOutgoingEdgesViaReverseUnion(OWLObject child) {
-		if (extraSubClassOfEdges == null)
-			cacheReverseUnionMap();
-		if (extraSubClassOfEdges.containsKey(child)) 
-			return new HashSet<OWLObject>(extraSubClassOfEdges.get(child));
-		else
-			return new HashSet<OWLObject>();
+		synchronized (edgeCacheMutex) {
+			if (extraSubClassOfEdges == null)
+				cacheReverseUnionMap();
+			if (extraSubClassOfEdges.containsKey(child)) 
+				return new HashSet<OWLObject>(extraSubClassOfEdges.get(child));
+			else
+				return new HashSet<OWLObject>();
+		}
 	}
 
 
 	private void cacheReverseUnionMap() {
-		extraSubClassOfEdges = new HashMap<OWLObject, Set<OWLObject>>();
-		for (OWLOntology o : getAllOntologies()) {
-			for (OWLClass cls : o.getClassesInSignature()) {
-				for (OWLEquivalentClassesAxiom eca : o.getEquivalentClassesAxioms(cls)) {
-					for (OWLClassExpression ce : eca.getClassExpressions()) {
-						if (ce instanceof OWLObjectUnionOf) {
-							for (OWLObject child : ((OWLObjectUnionOf)ce).getOperands()) {
-								if (extraSubClassOfEdges.containsKey(child)) {
-									extraSubClassOfEdges.get(child).add(cls);
-								}
-								else {
-									extraSubClassOfEdges.put(child, new HashSet<OWLObject>());
-									extraSubClassOfEdges.get(child).add(cls);
+		synchronized (edgeCacheMutex) {
+			extraSubClassOfEdges = new HashMap<OWLObject, Set<OWLObject>>();
+			for (OWLOntology o : getAllOntologies()) {
+				for (OWLClass cls : o.getClassesInSignature()) {
+					for (OWLEquivalentClassesAxiom eca : o.getEquivalentClassesAxioms(cls)) {
+						for (OWLClassExpression ce : eca.getClassExpressions()) {
+							if (ce instanceof OWLObjectUnionOf) {
+								for (OWLObject child : ((OWLObjectUnionOf)ce).getOperands()) {
+									if (extraSubClassOfEdges.containsKey(child)) {
+										extraSubClassOfEdges.get(child).add(cls);
+									}
+									else {
+										extraSubClassOfEdges.put(child, new HashSet<OWLObject>());
+										extraSubClassOfEdges.get(child).add(cls);
+									}
 								}
 							}
 						}
@@ -857,8 +861,6 @@ public class OWLGraphWrapper {
 		return edges;
 	}
 
-	private final Object edgeCacheMutex = new Object();
-
 	/**
 	 * caches full outgoing and incoming edges
 	 * 
@@ -866,6 +868,9 @@ public class OWLGraphWrapper {
 	 * used internally by this class.
 	 * 
 	 * @see OWLGraphWrapper#clearCachedEdges()
+	 * @see OWLGraphWrapper#getPrimitiveIncomingEdges(OWLObject)
+	 * @see OWLGraphWrapper#getPrimitiveOutgoingEdges(OWLObject)
+	 * @see OWLGraphWrapper#getEdgesBetween(OWLObject, OWLObject)
 	 */
 	public void cacheEdges() {
 		synchronized (edgeCacheMutex) {
@@ -913,6 +918,9 @@ public class OWLGraphWrapper {
 		synchronized (edgeCacheMutex) {
 			edgeBySource = null;
 			edgeByTarget = null;
+			inferredEdgeBySource = null;
+			inferredEdgeByTarget = null;
+			extraSubClassOfEdges = null;
 		}
 	}
 
@@ -1055,99 +1063,100 @@ public class OWLGraphWrapper {
 	 * @return closure of edges originating from source
 	 */
 	public Set<OWLGraphEdge> getOutgoingEdgesClosure(OWLObject s) {
-
-		if (config.isCacheClosure) {
-			if (inferredEdgeBySource == null)
-				inferredEdgeBySource = new HashMap<OWLObject,Set<OWLGraphEdge>>();
-			if (inferredEdgeBySource.containsKey(s)) {
-				return new HashSet<OWLGraphEdge>(inferredEdgeBySource.get(s));
+		synchronized (edgeCacheMutex) {
+			if (config.isCacheClosure) {
+				if (inferredEdgeBySource == null)
+					inferredEdgeBySource = new HashMap<OWLObject,Set<OWLGraphEdge>>();
+				if (inferredEdgeBySource.containsKey(s)) {
+					return new HashSet<OWLGraphEdge>(inferredEdgeBySource.get(s));
+				}
 			}
-		}
-		profiler.startTaskNotify("getOutgoingEdgesClosure");
-
-		Stack<OWLGraphEdge> edgeStack = new Stack<OWLGraphEdge>();
-		Set<OWLGraphEdge> closureSet = new HashSet<OWLGraphEdge>();
-		//Set<OWLGraphEdge> visitedSet = new HashSet<OWLGraphEdge>();
-		Set<OWLObject> visitedObjs = new HashSet<OWLObject>();
-		Map<OWLObject,Set<OWLGraphEdge>> visitedMap = new HashMap<OWLObject,Set<OWLGraphEdge>>();
-		visitedObjs.add(s);
-		visitedMap.put(s, new HashSet<OWLGraphEdge>());
-
-		// initialize. we seed the search with a reflexive identity edge DEPR
-		//edgeStack.add(new OWLGraphEdge(s,s,null,Quantifier.IDENTITY,ontology));
-
-		// seed stack
-		edgeStack.addAll(getPrimitiveOutgoingEdges(s));
-		closureSet.addAll(edgeStack);
-		while (!edgeStack.isEmpty()) {
-			OWLGraphEdge ne = edgeStack.pop();
-			//System.out.println("NEXT: "+ne+" //stack: "+edgeStack);
-			int nextDist = ne.getDistance() + 1;
-			Set<OWLGraphEdge> extSet = getPrimitiveOutgoingEdges(ne.getTarget());
-			for (OWLGraphEdge extEdge : extSet) {
-				//System.out.println("   EXT:"+extEdge);
-				OWLGraphEdge nu = combineEdgePair(s, ne, extEdge, nextDist);
-				if (nu == null)
-					continue;
-				//if (!isKeepEdge(nu))
-				//	continue;
-
-				OWLObject nuTarget = nu.getTarget();
-				//System.out.println("     COMBINED:"+nu);
-
-				// check for cycles. this is not as simple as
-				// checking if we have visited the node, as we are interested
-				// in different paths to the same node.
-				// todo - check if there is an existing path to this node
-				//  that is shorter
-				//if (!visitedSet.contains(nu)) {
-				boolean isEdgeVisited = false;
-				if (visitedObjs.contains(nuTarget)) {
-					// we have potentially visited this edge before
-
-
-					// TODO - this is temporary. need to check edge not node
-					//isEdgeVisited = true;
-					/*
-					 */
-					//System.out.println("checking to see if  visisted "+nu);
-					//System.out.println(nu.getFinalQuantifiedProperty());
-					for (OWLGraphEdge ve : visitedMap.get(nuTarget)) {
-						//System.out.println(" ve:"+ve.getFinalQuantifiedProperty());
-						if (ve.getFinalQuantifiedProperty().equals(nu.getFinalQuantifiedProperty())) {
-							//System.out.println("already visited: "+nu);
-							isEdgeVisited = true;
+			profiler.startTaskNotify("getOutgoingEdgesClosure");
+	
+			Stack<OWLGraphEdge> edgeStack = new Stack<OWLGraphEdge>();
+			Set<OWLGraphEdge> closureSet = new HashSet<OWLGraphEdge>();
+			//Set<OWLGraphEdge> visitedSet = new HashSet<OWLGraphEdge>();
+			Set<OWLObject> visitedObjs = new HashSet<OWLObject>();
+			Map<OWLObject,Set<OWLGraphEdge>> visitedMap = new HashMap<OWLObject,Set<OWLGraphEdge>>();
+			visitedObjs.add(s);
+			visitedMap.put(s, new HashSet<OWLGraphEdge>());
+	
+			// initialize. we seed the search with a reflexive identity edge DEPR
+			//edgeStack.add(new OWLGraphEdge(s,s,null,Quantifier.IDENTITY,ontology));
+	
+			// seed stack
+			edgeStack.addAll(getPrimitiveOutgoingEdges(s));
+			closureSet.addAll(edgeStack);
+			while (!edgeStack.isEmpty()) {
+				OWLGraphEdge ne = edgeStack.pop();
+				//System.out.println("NEXT: "+ne+" //stack: "+edgeStack);
+				int nextDist = ne.getDistance() + 1;
+				Set<OWLGraphEdge> extSet = getPrimitiveOutgoingEdges(ne.getTarget());
+				for (OWLGraphEdge extEdge : extSet) {
+					//System.out.println("   EXT:"+extEdge);
+					OWLGraphEdge nu = combineEdgePair(s, ne, extEdge, nextDist);
+					if (nu == null)
+						continue;
+					//if (!isKeepEdge(nu))
+					//	continue;
+	
+					OWLObject nuTarget = nu.getTarget();
+					//System.out.println("     COMBINED:"+nu);
+	
+					// check for cycles. this is not as simple as
+					// checking if we have visited the node, as we are interested
+					// in different paths to the same node.
+					// todo - check if there is an existing path to this node
+					//  that is shorter
+					//if (!visitedSet.contains(nu)) {
+					boolean isEdgeVisited = false;
+					if (visitedObjs.contains(nuTarget)) {
+						// we have potentially visited this edge before
+	
+	
+						// TODO - this is temporary. need to check edge not node
+						//isEdgeVisited = true;
+						/*
+						 */
+						//System.out.println("checking to see if  visisted "+nu);
+						//System.out.println(nu.getFinalQuantifiedProperty());
+						for (OWLGraphEdge ve : visitedMap.get(nuTarget)) {
+							//System.out.println(" ve:"+ve.getFinalQuantifiedProperty());
+							if (ve.getFinalQuantifiedProperty().equals(nu.getFinalQuantifiedProperty())) {
+								//System.out.println("already visited: "+nu);
+								isEdgeVisited = true;
+							}
+						}
+						if (!isEdgeVisited) {
+							visitedMap.get(nuTarget).add(nu);
 						}
 					}
-					if (!isEdgeVisited) {
+					else {
+						visitedObjs.add(nuTarget);
+						visitedMap.put(nuTarget, new HashSet<OWLGraphEdge>());
 						visitedMap.get(nuTarget).add(nu);
 					}
-				}
-				else {
-					visitedObjs.add(nuTarget);
-					visitedMap.put(nuTarget, new HashSet<OWLGraphEdge>());
-					visitedMap.get(nuTarget).add(nu);
-				}
-
-				if (!isEdgeVisited) {
-					//System.out.println("      *NOT VISITED:"+nu+" visistedSize:"+visitedSet.size());
-					if (nu.getTarget() instanceof OWLNamedObject || 
-							config.isIncludeClassExpressionsInClosure) {
-						closureSet.add(nu);
+	
+					if (!isEdgeVisited) {
+						//System.out.println("      *NOT VISITED:"+nu+" visistedSize:"+visitedSet.size());
+						if (nu.getTarget() instanceof OWLNamedObject || 
+								config.isIncludeClassExpressionsInClosure) {
+							closureSet.add(nu);
+						}
+						edgeStack.add(nu);
+						//visitedSet.add(nu);		
+	
 					}
-					edgeStack.add(nu);
-					//visitedSet.add(nu);		
-
+	
 				}
-
 			}
+	
+			if (config.isCacheClosure) {
+				inferredEdgeBySource.put(s, new HashSet<OWLGraphEdge>(closureSet));
+			}
+			profiler.endTaskNotify("getOutgoingEdgesClosure");
+			return closureSet;
 		}
-
-		if (config.isCacheClosure) {
-			inferredEdgeBySource.put(s, new HashSet<OWLGraphEdge>(closureSet));
-		}
-		profiler.endTaskNotify("getOutgoingEdgesClosure");
-		return closureSet;
 	}
 
 	/**
@@ -1823,97 +1832,98 @@ public class OWLGraphWrapper {
 	 * @return all edges connecting all descendants of target to target
 	 */
 	public Set<OWLGraphEdge> getIncomingEdgesClosure(OWLObject t) {
-
-		if (config.isCacheClosure) {
-			if (inferredEdgeByTarget == null)
-				inferredEdgeByTarget = new HashMap<OWLObject,Set<OWLGraphEdge>>();
-			if (inferredEdgeByTarget.containsKey(t)) {
-				return new HashSet<OWLGraphEdge>(inferredEdgeByTarget.get(t));
+		synchronized (edgeCacheMutex) {
+			if (config.isCacheClosure) {
+				if (inferredEdgeByTarget == null)
+					inferredEdgeByTarget = new HashMap<OWLObject,Set<OWLGraphEdge>>();
+				if (inferredEdgeByTarget.containsKey(t)) {
+					return new HashSet<OWLGraphEdge>(inferredEdgeByTarget.get(t));
+				}
 			}
-		}
-		profiler.startTaskNotify("getIncomingEdgesClosure");
-
-		Stack<OWLGraphEdge> edgeStack = new Stack<OWLGraphEdge>();
-		Set<OWLGraphEdge> closureSet = new HashSet<OWLGraphEdge>();
-		//Set<OWLGraphEdge> visitedSet = new HashSet<OWLGraphEdge>();
-		Set<OWLObject> visitedObjs = new HashSet<OWLObject>();
-		Map<OWLObject,Set<OWLGraphEdge>> visitedMap = new HashMap<OWLObject,Set<OWLGraphEdge>>();
-		visitedObjs.add(t);
-		visitedMap.put(t, new HashSet<OWLGraphEdge>());
-
-		// initialize -
-		// note that edges are always from src to tgt. here we are extending down from tgt to src
-
-		//edgeStack.add(new OWLGraphEdge(t,t,ontology,new OWLQuantifiedProperty()));
-		edgeStack.addAll(getPrimitiveIncomingEdges(t));
-		closureSet.addAll(edgeStack);
-
-		while (!edgeStack.isEmpty()) {
-			OWLGraphEdge ne = edgeStack.pop();
-
-			int nextDist = ne.getDistance() + 1;
-
-			// extend down from this edge; e.g. [s, extEdge + ne, tgt] 
-			Set<OWLGraphEdge> extSet = getPrimitiveIncomingEdges(ne.getSource());
-			for (OWLGraphEdge extEdge : extSet) {
-
-				// extEdge o ne --> nu
-				//OWLGraphEdge nu = combineEdgePairDown(ne, extEdge, nextDist);
-				OWLGraphEdge nu = combineEdgePair(extEdge.getSource(), extEdge, ne, nextDist);
-				if (nu == null)
-					continue;
-
-				// TODO - no longer required?
-				//if (!isKeepEdge(nu))
-				//	continue;
-
-				OWLObject nusource = nu.getSource();
-
-				boolean isEdgeVisited = false;
-				if (visitedObjs.contains(nusource)) {
-					//isEdgeVisited = true;
-					for (OWLGraphEdge ve : visitedMap.get(nusource)) {
-						//System.out.println(" ve:"+ve.getFinalQuantifiedProperty());
-						if (ve.getFirstQuantifiedProperty().equals(nu.getFirstQuantifiedProperty())) {
-							//System.out.println("already visited: "+nu);
-							// always favor the shorter path
-							if (ve.getQuantifiedPropertyList().size() <= nu.getQuantifiedPropertyList().size()) {
-								isEdgeVisited = true;
+			profiler.startTaskNotify("getIncomingEdgesClosure");
+	
+			Stack<OWLGraphEdge> edgeStack = new Stack<OWLGraphEdge>();
+			Set<OWLGraphEdge> closureSet = new HashSet<OWLGraphEdge>();
+			//Set<OWLGraphEdge> visitedSet = new HashSet<OWLGraphEdge>();
+			Set<OWLObject> visitedObjs = new HashSet<OWLObject>();
+			Map<OWLObject,Set<OWLGraphEdge>> visitedMap = new HashMap<OWLObject,Set<OWLGraphEdge>>();
+			visitedObjs.add(t);
+			visitedMap.put(t, new HashSet<OWLGraphEdge>());
+	
+			// initialize -
+			// note that edges are always from src to tgt. here we are extending down from tgt to src
+	
+			//edgeStack.add(new OWLGraphEdge(t,t,ontology,new OWLQuantifiedProperty()));
+			edgeStack.addAll(getPrimitiveIncomingEdges(t));
+			closureSet.addAll(edgeStack);
+	
+			while (!edgeStack.isEmpty()) {
+				OWLGraphEdge ne = edgeStack.pop();
+	
+				int nextDist = ne.getDistance() + 1;
+	
+				// extend down from this edge; e.g. [s, extEdge + ne, tgt] 
+				Set<OWLGraphEdge> extSet = getPrimitiveIncomingEdges(ne.getSource());
+				for (OWLGraphEdge extEdge : extSet) {
+	
+					// extEdge o ne --> nu
+					//OWLGraphEdge nu = combineEdgePairDown(ne, extEdge, nextDist);
+					OWLGraphEdge nu = combineEdgePair(extEdge.getSource(), extEdge, ne, nextDist);
+					if (nu == null)
+						continue;
+	
+					// TODO - no longer required?
+					//if (!isKeepEdge(nu))
+					//	continue;
+	
+					OWLObject nusource = nu.getSource();
+	
+					boolean isEdgeVisited = false;
+					if (visitedObjs.contains(nusource)) {
+						//isEdgeVisited = true;
+						for (OWLGraphEdge ve : visitedMap.get(nusource)) {
+							//System.out.println(" ve:"+ve.getFinalQuantifiedProperty());
+							if (ve.getFirstQuantifiedProperty().equals(nu.getFirstQuantifiedProperty())) {
+								//System.out.println("already visited: "+nu);
+								// always favor the shorter path
+								if (ve.getQuantifiedPropertyList().size() <= nu.getQuantifiedPropertyList().size()) {
+									isEdgeVisited = true;
+								}
 							}
 						}
+						if (!isEdgeVisited) {
+							visitedMap.get(nusource).add(nu);
+						}
+	
 					}
-					if (!isEdgeVisited) {
+					else {
+						visitedObjs.add(nusource);
+						visitedMap.put(nusource, new HashSet<OWLGraphEdge>());
 						visitedMap.get(nusource).add(nu);
 					}
-
-				}
-				else {
-					visitedObjs.add(nusource);
-					visitedMap.put(nusource, new HashSet<OWLGraphEdge>());
-					visitedMap.get(nusource).add(nu);
-				}
-
-				if (!isEdgeVisited) {
-					if (nu.getSource() instanceof OWLNamedObject || 
-							config.isIncludeClassExpressionsInClosure) {
-						closureSet.add(nu);
+	
+					if (!isEdgeVisited) {
+						if (nu.getSource() instanceof OWLNamedObject || 
+								config.isIncludeClassExpressionsInClosure) {
+							closureSet.add(nu);
+						}
+						edgeStack.add(nu);
+						//visitedSet.add(nu);		
+	
 					}
-					edgeStack.add(nu);
-					//visitedSet.add(nu);		
-
+	
 				}
-
 			}
+	
+			if (config.isCacheClosure) {
+				inferredEdgeByTarget.put(t, new HashSet<OWLGraphEdge>(closureSet));
+			}
+	
+	
+	
+			profiler.endTaskNotify("getIncomingEdgesClosure");
+			return closureSet;
 		}
-
-		if (config.isCacheClosure) {
-			inferredEdgeByTarget.put(t, new HashSet<OWLGraphEdge>(closureSet));
-		}
-
-
-
-		profiler.endTaskNotify("getIncomingEdgesClosure");
-		return closureSet;
 	}
 
 	/**

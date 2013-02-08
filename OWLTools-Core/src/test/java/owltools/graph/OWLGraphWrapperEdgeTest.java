@@ -5,8 +5,14 @@ import static junit.framework.Assert.*;
 import java.util.Set;
 
 import org.junit.Test;
+import org.semanticweb.owlapi.model.AddAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 import owltools.OWLToolsTestBasics;
 
@@ -63,6 +69,36 @@ public class OWLGraphWrapperEdgeTest extends OWLToolsTestBasics {
 		
 		assertTrue("require FOO:0004 as a part_of child of FOO:003:", kid_p);
 		
+	}
+	
+	@Test
+	public void testEdgeCache() throws Exception {
+		OWLGraphWrapper g = getGraph("graph/cache-test.obo");
+		
+		OWLOntology o = g.getSourceOntology();
+		OWLOntologyManager m = o.getOWLOntologyManager();
+		OWLDataFactory f = m.getOWLDataFactory();
+		
+		OWLClass orphan = g.getOWLClassByIdentifier("FOO:0004");
+		OWLClass root = g.getOWLClassByIdentifier("FOO:0001");
+		
+		g.getEdgesBetween(orphan, root); //just to trigger the cache
+		
+		OWLSubClassOfAxiom ax = f.getOWLSubClassOfAxiom(orphan, root);
+		AddAxiom addAx = new AddAxiom(o, ax);
+		m.applyChange(addAx);
+		
+		Set<OWLGraphEdge> edges = g.getEdgesBetween(orphan, root);
+		assertNotNull(edges);
+		
+		assertEquals(0, edges.size());
+		
+		g.clearCachedEdges(); // test clear cache method
+		
+		edges = g.getEdgesBetween(orphan, root);
+		assertNotNull(edges);
+		
+		assertEquals(1, edges.size());
 	}
 	
 }
