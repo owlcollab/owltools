@@ -44,7 +44,7 @@ addition custom vocabulary elements).
 The OWL API provides methods for querying and processing the axioms
 and expressions in an OWL ontology. The OWL API also provides a
 unified programmatic layer for accessing a variety of OWL reasoners
-(Elk, FaCT++, JCEL, and HermiT).
+(Elk, JFact, JCEL, and HermiT).
 </p>
 
 <p>

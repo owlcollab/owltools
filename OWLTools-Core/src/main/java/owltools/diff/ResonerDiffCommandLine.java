@@ -27,6 +27,7 @@ public class ResonerDiffCommandLine {
 				" --catalog-xml specify an catalog.xml file for IRI mapping (OPTIONAL)\n" +
 				" --reasoner ["+InferenceBuilder.REASONER_HERMIT+"|"+
 					InferenceBuilder.REASONER_ELK+"|"+
+					InferenceBuilder.REASONER_JFACT+"|"+
 					InferenceBuilder.REASONER_JCEL+"] (OPTIONAL)\n");
 	}
 

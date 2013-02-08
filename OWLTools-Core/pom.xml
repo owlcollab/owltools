@@ -115,5 +115,9 @@
 			<groupId>org.coode</groupId>
 			<artifactId>oppl2</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.owlapi</groupId>
+			<artifactId>jfact</artifactId>
+		</dependency>
 	</dependencies>
 </project>

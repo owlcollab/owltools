@@ -28,6 +28,7 @@ import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
 
 import owltools.graph.OWLGraphWrapper;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
+import uk.ac.manchester.cs.jfact.JFactFactory;
  
 public class OWLServer extends AbstractHandler
 {
@@ -118,6 +119,9 @@ public class OWLServer extends AbstractHandler
 		}
 		else if (reasonerName.equals("elk")) {
 			reasonerFactory = new ElkReasonerFactory();	
+		}
+		else if (reasonerName.equals("jfact")) {
+			reasonerFactory = new JFactFactory();	
 		}
 		else if (reasonerName.equals("jcel")) {
 			reasoner = new JcelReasoner(ont);

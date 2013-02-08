@@ -33,6 +33,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.reasoner.PlaceholderJcelFactory;
+import uk.ac.manchester.cs.jfact.JFactFactory;
 
 /**
  * This class build inferred axioms of an ontology.
@@ -46,6 +47,7 @@ public class InferenceBuilder{
 	public static final String REASONER_HERMIT = "hermit";
 	public static final String REASONER_JCEL = "jcel";
 	public static final String REASONER_ELK = "elk";
+	public static final String REASONER_JFACT = "jfact";
 
 	private final OWLReasonerFactory reasonerFactory;
 	private volatile OWLReasoner reasoner = null;
@@ -82,6 +84,9 @@ public class InferenceBuilder{
 		}
 		else if (REASONER_ELK.equals(reasonerName)) {
 			return new ElkReasonerFactory();
+		}
+		else if (REASONER_JFACT.equals(reasonerName)) {
+			return new JFactFactory();
 		}
 		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
 	}

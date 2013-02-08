@@ -149,6 +149,7 @@ import owltools.reasoner.OWLExtendedReasoner;
 import owltools.sim2.preprocessor.ABoxUtils;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
+import uk.ac.manchester.cs.jfact.JFactFactory;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 import de.derivo.sparqldlapi.Query;
@@ -276,7 +277,7 @@ public class CommandRunner {
 			//String opt = opts.nextOpt();
 			//System.out.println("processing arg: "+opt);
 			if (opts.nextEq("--pellet")) {
-				System.err.println("The Pellet reasoner is no longer supported, use Hermit '--hermit' or ELK '--elk' instead");
+				System.err.println("The Pellet reasoner is no longer supported, use Hermit '--hermit', JFACT '--jfact', or ELK '--elk' instead");
 				exit(-1);
 			}
 			else if (opts.nextEq("--hermit")) {
@@ -284,6 +285,9 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--elk")) {
 				reasonerName = "elk";
+			}
+			else if (opts.nextEq("--jfact")) {
+				reasonerName = "jfact";
 			}
 			else if (opts.nextEq("--use-reasoner|--set-reasoner-name")) {
 				reasonerName =  opts.nextOpt();
@@ -2790,6 +2794,9 @@ public class CommandRunner {
 		}
 		else if (reasonerName.equals("ogr")) {
 			reasonerFactory = new GraphReasonerFactory();			
+		}
+		else if (reasonerName.equals("jfact")) {
+			reasonerFactory = new JFactFactory();
 		}
 		else if (reasonerName.equals("elk")) {
 			reasonerFactory = new ElkReasonerFactory();	
