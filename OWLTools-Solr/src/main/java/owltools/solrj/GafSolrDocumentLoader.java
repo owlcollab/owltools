@@ -108,6 +108,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		String eid = e.getId();
 		String esym = e.getSymbol();
 		String edb = e.getDb();
+		String etype = e.getTypeCls();
+		String ename = e.getFullName();
 		//LOG.info("Adding: " + eid + " " + esym);
 		
 		// We'll need this for serializing later.
@@ -120,8 +122,9 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		bioentity_doc.addField("id", eid);
 		bioentity_doc.addField("bioentity", eid);
 		bioentity_doc.addField("bioentity_label", esym);
-		bioentity_doc.addField("db", edb);
-		bioentity_doc.addField("type", e.getTypeCls());
+		//bioentity_doc.addField("bioentity_name", ename);
+		bioentity_doc.addField("source", edb);
+		bioentity_doc.addField("type", etype);
 
 		// Various taxon and taxon closure calculations, including map.
 		String etaxid = e.getNcbiTaxonId();
@@ -201,21 +204,32 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			String clsId = a.getCls();
 			String refId = a.getReferenceId();
 
-			// Annotation document base.
-			annotation_doc.addField("document_category", "annotation");
-			annotation_doc.addField("bioentity", eid);
-			annotation_doc.addField("bioentity_label", esym);
-			String asrc = a.getAssignedBy();
-			annotation_doc.addField("source", asrc);
-			String adate = a.getLastUpdateDate();
-			annotation_doc.addField("date", adate);
-			annotation_doc.addField("taxon", etaxid);
-			addLabelField(annotation_doc, "taxon_label", etaxid);
-
-			annotation_doc.addField("reference", refId);
+			// Annotation document base from static and previous bioentity.
+			annotation_doc.addField("document_category", "annotation"); // n/a
+			annotation_doc.addField("source", edb); // Col. 1 (from bioentity above)
+			annotation_doc.addField("bioentity", eid); // Col. 2 (from bioentity above)
+			annotation_doc.addField("bioentity_label", esym); // Col. 3 (from bioentity above)
+			String aqual = a.getCompositeQualifier();
+			annotation_doc.addField("qualifier", aqual);  // Col. 4
+			annotation_doc.addField("annotation_class", clsId); // Col. 5
+			addLabelField(annotation_doc, "annotation_class_label", clsId); // n/a
+			annotation_doc.addField("reference", refId); // Col. 6
 			String a_ev_type = a.getEvidenceCls();
-			annotation_doc.addField("evidence_type", a_ev_type);
-
+			annotation_doc.addField("evidence_type", a_ev_type); // Col. 7
+			// NOTE: Col. 8 below...
+			// TODO: Aspect: Col. 9 (from ontology?)
+			//annotation_doc.addField("bioentity_name", ename); // Col. 10 (from bioentity above)
+			// TODO: Synonyms: Col. 11 (should be from bioentity above)
+			annotation_doc.addField("type", etype); // Col. 12 (from bioentity above)
+			annotation_doc.addField("taxon", etaxid); // Col. 13(?) (from bioentity above)
+			addLabelField(annotation_doc, "taxon_label", etaxid); // n/a
+			String adate = a.getLastUpdateDate();
+			annotation_doc.addField("date", adate);  // Col. 14
+			String assgnb = a.getAssignedBy();
+			annotation_doc.addField("assigned_by", assgnb); // Col. 15
+			// NOTE: Col. 16 below...
+			annotation_doc.addField("bioentity_isoform", a.getGeneProductForm()); // Col. 17
+			
 			// Optionally, if there is enough taxon for a map, add the collections to the document.
 			if( jsonized_taxon_map != null ){
 				annotation_doc.addField("taxon_closure", taxIDClosure);
@@ -230,7 +244,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 
 			// BUG/TODO: Make the ID /really/ unique - ask Chris
-			annotation_doc.addField("id", eid + "_:_" + clsId + "_:_" + a_ev_type + "_:_" + asrc + "_:_" + etaxid + "_:_" + adate);
+			annotation_doc.addField("id", eid + "_:_" + clsId + "_:_" + a_ev_type + "_:_" + assgnb + "_:_" + etaxid + "_:_" + adate);
 
 			// Evidence type closure.
 			Set<OWLClass> ecoClasses = eco.getClassesForGoCode(a_ev_type);
@@ -247,9 +261,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			for (WithInfo wi : a.getWithInfos()) {
 				annotation_doc.addField("evidence_with", wi.getWithXref());
 			}
-
-			annotation_doc.addField("annotation_class", clsId);
-			addLabelField(annotation_doc, "annotation_class_label", clsId);
 
 			///
 			/// isa_partof_closure

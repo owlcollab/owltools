@@ -11,20 +11,20 @@ import java.util.Collections;
 public class GeneAnnotation {
 
 	protected String bioentity;
-	protected Bioentity bioentityObject;
+	protected Bioentity bioentityObject; // should encompass columns 1-3, 10(?), 12, 13(?), 17(?)
 	protected boolean isContributesTo;
 	protected boolean isIntegralTo;
-	protected String compositeQualifier;
-	protected String relation;
-	protected String cls;
-	protected String referenceId;	
-	protected String evidenceCls;
-	protected String withExpression;
-	protected String actsOnTaxonId;
-	protected String lastUpdateDate; //TODO: convert it to date
-	protected String assignedBy;
-	protected String extensionExpression;
-	protected String geneProductForm;
+	protected String compositeQualifier; // Col. 4(?)
+	protected String relation; // ???
+	protected String cls; // Col. 5
+	protected String referenceId;	// Col. 6
+	protected String evidenceCls; // Col. 7
+	protected String withExpression; // Col. 8
+	protected String actsOnTaxonId; // ???
+	protected String lastUpdateDate; // Col. 14 //TODO: convert it to date
+	protected String assignedBy; // Col. 15
+	protected String extensionExpression; // Col. 16
+	protected String geneProductForm; // Col. 17(!?)
 	protected String gafDocument;
 	
 	protected Collection<WithInfo> withInfoList;
@@ -144,11 +144,9 @@ public class GeneAnnotation {
 		this("", false, false, "", "", "", "", "", "", "", "", "", "", "");
 	}
 	
-	
 	void setGafDocumetObject(GafDocument gafDocumentObject){
 		this.gafDocumentObject = gafDocumentObject;
 	}
-	
 	
 	public GeneAnnotation(String bioentity, boolean isContributesTo,
 			boolean isIntegralTo, String compositeQualifier, String cls,

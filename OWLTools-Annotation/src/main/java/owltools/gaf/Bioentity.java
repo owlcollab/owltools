@@ -2,12 +2,13 @@ package owltools.gaf;
 
 public class Bioentity{
 
-	protected String id;
-	protected String symbol;
-	protected String fullName;
-	protected String typeCls;
-	protected String ncbiTaxonId;
-	protected String db;
+	protected String db; // Col. 1
+	protected String id; // Col. 2
+	protected String symbol; // Col. 3
+	protected String fullName; // Col. 10(?)
+	// TODO: Synonyms ? // Col. 11(?)
+	protected String typeCls; // Col. 12
+	protected String ncbiTaxonId; // Col. 13(?)
 	protected String gafDocument;
 	
 	public Bioentity(){

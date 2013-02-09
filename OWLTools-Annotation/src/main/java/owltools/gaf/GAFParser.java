@@ -263,41 +263,50 @@ public class GAFParser {
 		}
 	}
 	
+	// Col. 1
 	public String getDb(){
 		checkNext();
 		
 		return this.currentCols[DB];
 	}
 	
+	// Col. 2
 	public String  getDbObjectId(){
 		checkNext();
 		
 		return this.currentCols[DB_OBJECT_ID];
 	}
 	
+	// Col. 3
 	public String  getDbObjectSymbol(){
 		checkNext();
 		
 		return this.currentCols[DB_OBJECT_SYMBOL];
 	}
 	
+	// Col. 4
 	public String  getQualifier(){
 		checkNext();
 		
 		return this.currentCols[QUALIFIER];
 	}
 
+	// Col. 5
 	public String  getGOId(){
 		checkNext();
 		
 		return this.currentCols[GOID];
 	}
+	
+	// Col. 6
 	public String  getReference(){
 		checkNext();
 		
 		return this.currentCols[REFERENCE];
 		
 	}
+	
+	// Col. 7
 	public String  getEvidence(){
 	
 		checkNext();
@@ -305,18 +314,24 @@ public class GAFParser {
 		return this.currentCols[EVIDENCE];
 		
 	}
+	
+	// Col. 8
 	public String  getWith(){
 		checkNext();
 		
 		return this.currentCols[WITH];
 
 	}
+	
+	// Col. 9
 	public String  getAspect(){
 		checkNext();
 		
 		return this.currentCols[ASPECT];
 
 	}
+	
+	// Col. 10
 	public String  getDbObjectName(){
 		checkNext();
 		
@@ -326,36 +341,48 @@ public class GAFParser {
 		return s;
 
 	}
+	
+	// Col. 11
 	public String  getDbObjectSynonym(){
 		checkNext();
 		
 		return this.currentCols[DB_OBJECT_SYNONYM];
 
 	}
+	
+	// Col. 12
 	public String  getDBObjectType(){
 		checkNext();
 		
 		return this.currentCols[DB_OBJECT_TYPE];
 
 	}
+	
+	// Col. 13
 	public String  getTaxon(){
 		checkNext();
 		
 		return this.currentCols[TAXON];
 
 	}
+	
+	// Col. 14
 	public String  getDate(){
 		checkNext();
 		
 		return this.currentCols[DATE];
 
 	}
+	
+	// Col. 15
 	public String  getAssignedBy(){
 		checkNext();
 		
 		return this.currentCols[ASSIGNED_BY];
 
 	}
+	
+	// Col. 16
 	public String  getAnnotationExtension(){
 		checkNext();
 
@@ -366,6 +393,8 @@ public class GAFParser {
 		return null;
 		
 	}
+	
+	// Col. 17
 	public String  getGeneProjectFormId(){
 		checkNext();
 
