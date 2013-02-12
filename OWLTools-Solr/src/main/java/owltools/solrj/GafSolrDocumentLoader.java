@@ -110,6 +110,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		String edb = e.getDb();
 		String etype = e.getTypeCls();
 		String ename = e.getFullName();
+		String edbid = e.getDBID();
 		//LOG.info("Adding: " + eid + " " + esym);
 		
 		// We'll need this for serializing later.
@@ -121,6 +122,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		bioentity_doc.addField("document_category", "bioentity");
 		bioentity_doc.addField("id", eid);
 		bioentity_doc.addField("bioentity", eid);
+		bioentity_doc.addField("bioentity_internal_id", edbid);
 		bioentity_doc.addField("bioentity_label", esym);
 		bioentity_doc.addField("bioentity_name", ename);
 		bioentity_doc.addField("source", edb);
@@ -213,7 +215,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// Annotation document base from static and previous bioentity.
 			annotation_doc.addField("document_category", "annotation"); // n/a
 			annotation_doc.addField("source", edb); // Col. 1 (from bioentity above)
-			annotation_doc.addField("bioentity", eid); // Col. 2 (from bioentity above)
+			annotation_doc.addField("bioentity", eid); // n/a, should be c1+c2.
+			annotation_doc.addField("bioentity_internal_id", edbid); // Col. 2 (from bioentity above)
 			annotation_doc.addField("bioentity_label", esym); // Col. 3 (from bioentity above)
 			String aqual = a.getCompositeQualifier();
 			annotation_doc.addField("qualifier", aqual);  // Col. 4

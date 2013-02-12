@@ -38,6 +38,9 @@ public class Bioentity{
 		return this.getId();
 	}
 	
+	/*
+	 * Should return "column 1" + "column 2".
+	 */
 	public String getId() {
 		return id;
 	}
@@ -77,9 +80,20 @@ public class Bioentity{
 	public void setNcbiTaxonId(String ncbiTaxonId) {
 		this.ncbiTaxonId = ncbiTaxonId;
 	}
-
+	
+	/*
+	 * Should return "column 1".
+	 */
 	public String getDb() {
 		return db;
+	}
+
+	/*
+	 * Return the ID in the database (the "column 2" in the usual id: "column 1" + "column 2").
+	 */
+	public String getDBID(){
+		int len = getDb().length();
+		return getId().substring(len + 1); // +1 to take care of the ':'
 	}
 
 	public void setDb(String db) {
