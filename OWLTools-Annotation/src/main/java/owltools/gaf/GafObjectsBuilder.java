@@ -185,13 +185,17 @@ public class GafObjectsBuilder {
 		}else
 			ncbiTaxonId = taxons[0];
 		
-		//String db = parser.getDbObjectSynonym();
 		String db = parser.getDb();
 		
 		Bioentity entity = new Bioentity(id, symbol, fullName, typeCls, "NCBITaxon:" + ncbiTaxonId, db, gafDocument.getId());
 		
+		// Handle parsing out the synonyms separately.
+		String syns[] = parser.getDbObjectSynonym().split("\\|");
+		for( String syn : syns ){
+			entity.addSynonym(syn);
+		}
+
 		gafDocument.addBioentity(entity);
-		
 
 		return entity;
 	}
@@ -283,7 +287,7 @@ public class GafObjectsBuilder {
 		
 		GeneAnnotation ga = new GeneAnnotation(entity.getId(),
 				isContributesTo, isIntegeralTo, compositeQualifier, clsId, referenceId, evidenceCls, 
-				withExpression, actsOnTaxonId, lastUpdateDate, assignedBy,extensionExpression, geneProductForm, gafDocument.getId());
+				withExpression, aspect, actsOnTaxonId, lastUpdateDate, assignedBy,extensionExpression, geneProductForm, gafDocument.getId());
 		ga.setBioentityObject(entity);
 		ga.setRelation(relation);
 		AnnotationSource source = new AnnotationSource(parser.getCurrentRow(), parser.getLineNumber(), gafDocument.getId());

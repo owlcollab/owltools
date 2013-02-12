@@ -20,11 +20,12 @@ public class GeneAnnotation {
 	protected String referenceId;	// Col. 6
 	protected String evidenceCls; // Col. 7
 	protected String withExpression; // Col. 8
+	protected String aspect; // Col. 9
 	protected String actsOnTaxonId; // ???
 	protected String lastUpdateDate; // Col. 14 //TODO: convert it to date
 	protected String assignedBy; // Col. 15
 	protected String extensionExpression; // Col. 16
-	protected String geneProductForm; // Col. 17(!?)
+	protected String geneProductForm; // Col. 17
 	protected String gafDocument;
 	
 	protected Collection<WithInfo> withInfoList;
@@ -99,7 +100,8 @@ public class GeneAnnotation {
 		
 		s.append(this.withExpression).append("\t");
 		
-		s.append("\t");
+		//s.append("\t"); // TODO/BUG: Without this, it is not a legal GAF?!
+		s.append(this.aspect).append("\t");
 		
 		s.append(dbObjectName).append("\t");
 		
@@ -141,7 +143,7 @@ public class GeneAnnotation {
 	
 	
 	public GeneAnnotation(){
-		this("", false, false, "", "", "", "", "", "", "", "", "", "", "");
+		this("", false, false, "", "", "", "", "", "", "", "", "", "", "", "");
 	}
 	
 	void setGafDocumetObject(GafDocument gafDocumentObject){
@@ -151,7 +153,7 @@ public class GeneAnnotation {
 	public GeneAnnotation(String bioentity, boolean isContributesTo,
 			boolean isIntegralTo, String compositeQualifier, String cls,
 			String referenceId, String evidenceCls, String withExpression,
-			String actsOnTaxonId, String lastUpdateDate, String assignedBy,
+			String aspect, String actsOnTaxonId, String lastUpdateDate, String assignedBy,
 			String extensionExpression, String geneProductForm,
 			String gafDocument) {
 
@@ -163,6 +165,7 @@ public class GeneAnnotation {
 		this.referenceId = referenceId;
 		this.evidenceCls = evidenceCls;
 		this.withExpression = withExpression;
+		this.aspect = aspect;
 		this.actsOnTaxonId = actsOnTaxonId;
 		this.lastUpdateDate = lastUpdateDate;
 		this.assignedBy = assignedBy;
@@ -185,6 +188,7 @@ public class GeneAnnotation {
 		this.referenceId = ann.referenceId;
 		this.evidenceCls = ann.evidenceCls;
 		this.withExpression = ann.withExpression;
+		this.aspect = ann.aspect;
 		this.actsOnTaxonId = ann.actsOnTaxonId;
 		this.lastUpdateDate = ann.lastUpdateDate;
 		this.assignedBy = ann.assignedBy;
@@ -255,6 +259,14 @@ public class GeneAnnotation {
 
 	public String getActsOnTaxonId() {
 		return actsOnTaxonId;
+	}
+
+	public void setAspect(String inAspect){
+		this.aspect = inAspect;
+	}
+
+	public String getAspect(){
+		return aspect;
 	}
 
 	public void setActsOnTaxonId(String actsOnTaxonId) {

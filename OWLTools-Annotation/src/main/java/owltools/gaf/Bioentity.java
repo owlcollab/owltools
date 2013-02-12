@@ -1,12 +1,15 @@
 package owltools.gaf;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Bioentity{
 
 	protected String db; // Col. 1
 	protected String id; // Col. 2
 	protected String symbol; // Col. 3
 	protected String fullName; // Col. 10(?)
-	// TODO: Synonyms ? // Col. 11(?)
+	protected List<String> synonyms; // Col. 11
 	protected String typeCls; // Col. 12
 	protected String ncbiTaxonId; // Col. 13(?)
 	protected String gafDocument;
@@ -14,6 +17,9 @@ public class Bioentity{
 	public Bioentity(){
 	}
 	
+	/*
+	 * This constructor assumes that there are no
+	 */
 	public Bioentity(String id, String symbol, String fullName, String typeCls,
 			String ncbiTaxonId, String db, String gafDocument) {
 		this();
@@ -24,6 +30,7 @@ public class Bioentity{
 		this.ncbiTaxonId = ncbiTaxonId;
 		this.db = db;
 		this.gafDocument = gafDocument;
+		this.synonyms = new ArrayList<String>(); // start with something tolerable
 	}
 
 	// added by Sven so I could dump Collection<Bioentity> objects and remain sane
@@ -87,5 +94,14 @@ public class Bioentity{
 		this.gafDocument = gafDocument;
 	}
 
-	
+	public void addSynonym(String syn) {
+		this.synonyms.add(syn);
+	}
+
+	/*
+	 * Copy out all of our collected synonyms as an List of Strings.
+	 */
+	public List<String> getSynonyms() {
+		return new ArrayList<String>(this.synonyms);
+	}
 }

@@ -122,10 +122,16 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		bioentity_doc.addField("id", eid);
 		bioentity_doc.addField("bioentity", eid);
 		bioentity_doc.addField("bioentity_label", esym);
-		//bioentity_doc.addField("bioentity_name", ename);
+		bioentity_doc.addField("bioentity_name", ename);
 		bioentity_doc.addField("source", edb);
 		bioentity_doc.addField("type", etype);
 
+		// A little more work for the synonyms.
+		List<String> esynonyms = e.getSynonyms();
+		if( ! esynonyms.isEmpty() ){
+			bioentity_doc.addField("synonym", esynonyms);
+		}
+		
 		// Various taxon and taxon closure calculations, including map.
 		String etaxid = e.getNcbiTaxonId();
 		bioentity_doc.addField("taxon", etaxid);
@@ -216,10 +222,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("reference", refId); // Col. 6
 			String a_ev_type = a.getEvidenceCls();
 			annotation_doc.addField("evidence_type", a_ev_type); // Col. 7
-			// NOTE: Col. 8 below...
-			// TODO: Aspect: Col. 9 (from ontology?)
-			//annotation_doc.addField("bioentity_name", ename); // Col. 10 (from bioentity above)
-			// TODO: Synonyms: Col. 11 (should be from bioentity above)
+			// NOTE: Col. 8 generation is below...
+			String a_aspect = a.getAspect();
+			annotation_doc.addField("aspect", a_aspect); // Col. 9
+			annotation_doc.addField("bioentity_name", ename); // Col. 10 (from bioentity above)
+			annotation_doc.addField("synonym", esynonyms); // Col. 11 (from bioentity above)
 			annotation_doc.addField("type", etype); // Col. 12 (from bioentity above)
 			annotation_doc.addField("taxon", etaxid); // Col. 13(?) (from bioentity above)
 			addLabelField(annotation_doc, "taxon_label", etaxid); // n/a
@@ -227,7 +234,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("date", adate);  // Col. 14
 			String assgnb = a.getAssignedBy();
 			annotation_doc.addField("assigned_by", assgnb); // Col. 15
-			// NOTE: Col. 16 below...
+			// NOTE: Col. generation is 16 below...
 			annotation_doc.addField("bioentity_isoform", a.getGeneProductForm()); // Col. 17
 			
 			// Optionally, if there is enough taxon for a map, add the collections to the document.
