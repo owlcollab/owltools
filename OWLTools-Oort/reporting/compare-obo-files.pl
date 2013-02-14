@@ -484,6 +484,7 @@ sub run_script {
 	if ($options->{mode}{email} || $options->{mode}{rss})
 	{
 		## make sure that we need to create the new files
+            ## Is this too conservative? --cjm
 		if ($output->{f2_only} && scalar keys %{$output->{f2_only}} > 0)
 		{	$output->{report}{new}++;
 		}
@@ -517,6 +518,9 @@ sub run_script {
 				delete $options->{mode}{email};
 			}
 		}
+                else {
+                    print STDERR "No report\n";                    
+                }
 	}
 
 	output_data( options => $options, output => { %$output, %{$defaults->{html}} }, tt => $tt );
@@ -549,8 +553,11 @@ sub create_email {
 
 	foreach my $x qw( obs new )
 	{	## check whether we need to produce the report
+                print STDERR "Checking: $x\n";
 		if (! $args{output}->{report} || ! $args{output}->{report}{$x})
-		{	next;
+		{	
+                    print STDERR "Skipping report for: $x\n";
+                    next;
 		}
 		$logger->info("Processing the $x report...");
 		my $body;
@@ -560,6 +567,7 @@ sub create_email {
 			\$body )
 		|| die $tt->error(), "\n";
 
+                print STDERR "SENDING TO: $args{options}->{email_to}\n";
 		# Construct the MIME::Lite object.
 		my $mail = MIME::Lite->new(
 			From     => $args{options}->{email_from},
