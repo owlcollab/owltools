@@ -1093,7 +1093,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		if (versionIRI == null) {
 			// set a new version IRI using the current date
 			version = OntologyVersionTools.format(new Date());
-			versionIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+version+"/"+ontologyId+".owl");
+			versionIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+oortConfig.getVersionSubdirectory()+"/"+version+"/"+ontologyId+".owl");
 			
 			OWLOntologyManager m = mooncat.getManager();
 			m.applyChange(new SetOntologyID(ontology, new OWLOntologyID(owlOntologyId.getOntologyIRI(), versionIRI)));

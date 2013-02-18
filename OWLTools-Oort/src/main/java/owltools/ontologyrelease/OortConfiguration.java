@@ -80,6 +80,7 @@ public class OortConfiguration {
 	private Set<String> skipFormatSet = new HashSet<String>();
 	private boolean gafToOwl = false;
 	private String catalogXML = null;
+	private String versionSubdirectory = "releases";
 	
 	private String errorReportFile = null;
 	private String traceReportFile = null;
@@ -643,6 +644,21 @@ public class OortConfiguration {
 	 */
 	public void setCatalogXML(String catalogXML) {
 		this.catalogXML = catalogXML;
+	}
+	
+	
+	/**
+	 * @return the versionSubdirectory. Default: "releases"
+	 */
+	public String getVersionSubdirectory() {
+		return versionSubdirectory;
+	}
+
+	/**
+	 * @param versionSubdirectory the versionSubdirectory to set
+	 */
+	public void setVersionSubdirectory(String versionSubdirectory) {
+		this.versionSubdirectory = versionSubdirectory;
 	}
 
 	/**
