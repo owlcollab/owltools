@@ -28,10 +28,12 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	/**
 	 * More fun init.
 	 * 
-	 * @param aconf
+	 * This does not really work--just for testing some methods.
+	 * 
 	 * @param in_graph
 	 */
-	public FlexCollection() {
+	public FlexCollection(OWLGraphWrapper in_graph) {
+		graph = in_graph;
 		docs = new ArrayList<FlexDocument>();
 	}
 
@@ -55,9 +57,7 @@ public class FlexCollection implements Iterable<FlexDocument> {
 		}else{
 			for (OWLObject obj : graph.getAllOWLObjects()) {
 				docs.add(wring(obj, config));
-				//add(collect(obj, graph, config));
 			}	
-			//addAllAndCommit();
 		}
 	}
 
@@ -90,21 +90,20 @@ public class FlexCollection implements Iterable<FlexDocument> {
 //
 //		return method;
 //	}
-
+	
 	/**
 	 * Get properly formatted output from the OWLGraphWrapper.
 	 * 
 	 * @see #getExtStringList
 	 * @param oobj
-	 * @param owlfunction
+	 * @param owlfunction "s-expression"
 	 * @return a (possibly null) string return value
 	 */
-	private String getExtString(OWLObject oobj, ArrayList <String> function_sexpr){
+	//private String getExtString(OWLObject oobj, ArrayList <String> function_sexpr){
+	public String getExtString(OWLObject oobj, ArrayList <String> function_sexpr){
 
 		String retval = null;
 		
-		// TODO: Anybody got a better idea about this? Also see #getExtStringList.
-
 		// Let's tease out the thing that we're going to try and call.
 		// As it stands now, the list should behave essentially the same way as a list sexpr.
 		if( function_sexpr.size() == 0 ){
@@ -114,17 +113,20 @@ public class FlexCollection implements Iterable<FlexDocument> {
 			// Pull out the OWLGraphWrapper function.
 			String owlfunction = function_sexpr.get(0);
 
-			// Try to invoke said method, but with different numbers of args depending.
+			// Note that this list may be empty ().
+			List<String> foo = function_sexpr.subList(1, function_sexpr.size());
+			ArrayList <String> fargs = new ArrayList<String>(foo);
+
+//			LOG.info("1: " + owlfunction);
+//			LOG.info("2: " + fargs);
+//			LOG.info("3: " + fargs.size());
+//			LOG.info("4: " + OWLObject.class.toString());
+//			LOG.info("5: " + fargs.getClass().toString());
+
+			// Try to invoke said method.
 			try {
-				if( function_sexpr.size() == 1 ){
-					java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class);
-					retval = (method != null) ? (String) method.invoke(graph, oobj) : null;
-				}else if( function_sexpr.size() == 2 ){
-					java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, function_sexpr.get(1).getClass());
-					retval = (method != null) ? (String) method.invoke(graph, oobj, function_sexpr.get(1)) : null;
-				}else{
-					throw new Error("not currently able to handle more than one String argument");
-				}
+				java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, fargs.getClass());
+				retval = (method != null) ? (String) method.invoke(graph, oobj, fargs) : null;
 			} catch (SecurityException e) {
 				LOG.info("ERROR: apparently a security problem with: " + owlfunction);
 				e.printStackTrace();
@@ -148,15 +150,14 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 * 
 	 * @see #getExtString
 	 * @param oobj
-	 * @param owlfunction
+	 * @param owlfunction "s-expression"
 	 * @return a (possibly empty) string list of returned values
 	 */
 	@SuppressWarnings("unchecked")
-	private List<String> getExtStringList(OWLObject oobj, ArrayList <String> function_sexpr){
+	//private List<String> getExtStringList(OWLObject oobj, ArrayList <String> function_sexpr){
+	public List<String> getExtStringList(OWLObject oobj, ArrayList <String> function_sexpr){
 
-		List<String> retvals = new ArrayList<String>();
-
-		// TODO: Anybody got a better idea about this? Also see #getExtString.
+		ArrayList<String> retvals = new ArrayList<String>();
 
 		// First, let's tease out the thing that we're going to try and call.
 		// As it stands now, the list should behave essentially the same way as a list sexpr.
@@ -164,19 +165,17 @@ public class FlexCollection implements Iterable<FlexDocument> {
 			// Nil returns null.
 		}else if( function_sexpr.size() > 0){
 		
+			// Pull out the OWLGraphWrapper function.
 			String owlfunction = function_sexpr.get(0);
+
+			// Note that this list may be empty ().
+			List<String> foo = function_sexpr.subList(1, function_sexpr.size());
+			ArrayList <String> fargs = new ArrayList<String>(foo);
 
 			// Try to invoke said method.
 			try {
-				if( function_sexpr.size() == 1 ){
-					java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class);
-					retvals = (method != null) ? (List<String>) method.invoke(graph, oobj) : new ArrayList<String>();
-				}else if( function_sexpr.size() == 2 ){
-					java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, function_sexpr.get(1).getClass());
-					retvals = (method != null) ? (List<String>) method.invoke(graph, oobj, function_sexpr.get(1)) : new ArrayList<String>();
-				}else{
-					throw new Error("not currently able to handle more than one String argument");
-				}
+				java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, fargs.getClass());
+				retvals = (method != null) ? (ArrayList<String>) method.invoke(graph, oobj, fargs) : new ArrayList<String>();
 			} catch (SecurityException e) {
 				LOG.info("ERROR: apparently a security problem with: " + owlfunction);
 				e.printStackTrace();

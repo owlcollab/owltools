@@ -1625,7 +1625,8 @@ public class OWLGraphWrapper {
 		// proof of concept right now; optimization later.
 		// Basically, toss anything that is not of distance 1--we already got
 		// reflexive above.
-		for (OWLGraphEdge e : getIncomingEdges(x)) {
+		//for (OWLGraphEdge e : getIncomingEdges(x)) {
+		for (OWLGraphEdge e : getPrimitiveIncomingEdges(x)) { // TODO: use getIsaPartofClosureMap as a reference for how this should be done
 			OWLObject t = e.getSource();
 			if( t instanceof OWLNamedObject ){
 
@@ -1693,6 +1694,21 @@ public class OWLGraphWrapper {
 		return graphSegment;
 	}
 
+//	/**
+//	 * Gets all ancestors and direct descendents (distance == 1) that are OWLNamedObjects.
+//	 * i.e. excludes anonymous class expressions
+//	 * 
+//	 * This is a curried FlexLoader s-expression version of {@link #getSegmentShuntGraph(OWLObject)}.
+//	 * 
+//	 * @param x
+//	 * @param sargs
+//	 * @return set of named ancestors and direct descendents
+//	 * @see #getSegmentShuntGraph(OWLObject)
+//	 */
+//	public OWLShuntGraph getSegmentShuntGraph(OWLObject x, ArrayList<String> sargs) {
+//		return getSegmentShuntGraph(x);
+//	}
+
 	/**
 	 * Gets all ancestors that are OWLNamedObjects.
 	 * i.e. excludes anonymous class expressions
@@ -1735,6 +1751,20 @@ public class OWLGraphWrapper {
 	}
 
 	/**
+	 * Return a JSONized version of the output of getSegmentShuntGraph
+	 *
+	 * This is a curried FlexLoader s-expression version of {@link #getSegmentShuntGraphJSON(OWLObject)}.
+	 *
+	 * @param x
+	 * @param sargs
+	 * @return String representing part of the stepwise OWL graph
+	 * @see #getSegmentShuntGraphJSON(OWLObject)
+	 */
+	public String getSegmentShuntGraphJSON(OWLObject x, ArrayList<String> sargs) {
+		return getSegmentShuntGraphJSON(x);
+	}
+
+	/**
 	 * Return a JSONized version of the output of getLineageShuntGraph
 	 *
 	 * @param x
@@ -1748,6 +1778,20 @@ public class OWLGraphWrapper {
 		return graphSegment.toJSON();
 	}
 
+	/**
+	 * Return a JSONized version of the output of getLineageShuntGraph
+	 *
+	 * This is a curried FlexLoader s-expression version of {@link #getLineageShuntGraphJSON(OWLObject)}.
+	 *
+	 * @param x
+	 * @param sargs
+	 * @return String representing part of the transitive OWL graph
+	 * @see #getLineageShuntGraphJSON(OWLObject)
+	 */
+	public String getLineageShuntGraphJSON(OWLObject x, ArrayList<String> sargs) {
+		return getLineageShuntGraphJSON(x);
+	}	
+	
 	/**
 	 * gets all descendants d of x, where d is reachable by any path. Excludes self
 	 * 
@@ -2207,6 +2251,24 @@ public class OWLGraphWrapper {
 	public String getLabel(OWLObject c) {
 		return getAnnotationValue(c, getDataFactory().getRDFSLabel());
 	}
+	
+	
+	/**
+	 * fetches the rdfs:label for an OWLObject
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getLabel(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return label
+	 * 
+	 * @see #getLabel(OWLObject)
+	 */
+	public String getLabel(OWLObject c, ArrayList<String> sargs) {
+		return getLabel(c);
+	}
+
+	
 	public String getLabelOrDisplayId(OWLObject c) {
 		String label = getLabel(c);
 		if (label == null) {
@@ -2246,6 +2308,23 @@ public class OWLGraphWrapper {
 	 * @return comment of null
 	 */
 	public String getComment(OWLObject c) {
+		OWLAnnotationProperty lap = getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_COMMENT.getIRI()); 
+
+		return getAnnotationValue(c, lap);
+	}
+
+
+	/**
+	 * gets the value of rdfs:comment for an OWLObject
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getComment(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return comment of null
+	 * @see #getComment(OWLObject)
+	 */
+	public String getComment(OWLObject c, ArrayList<String> sargs) {
 		OWLAnnotationProperty lap = getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_COMMENT.getIRI()); 
 
 		return getAnnotationValue(c, lap);
@@ -2321,7 +2400,6 @@ public class OWLGraphWrapper {
 	 * 
 	 * assumes zero or one def
 	 * 
-	 * 
 	 * It returns the definition text (encoded as def in obo format and IAO_0000115 annotation property in OWL format) of a class
 	 * @param c
 	 * @return definition
@@ -2332,6 +2410,22 @@ public class OWLGraphWrapper {
 		return getAnnotationValue(c, lap);
 	}
 
+	/**
+	 * Gets the textual definition of an OWLObject
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getDef(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return definition
+	 * 
+	 * @see #getDef(OWLObject)
+	 */
+	public String getDef(OWLObject c, ArrayList<String> sargs) {
+		return getDef(c);
+	}
+	
+	
 	/**
 	 * It returns the value of the is_metadata_tag tag.
 	 * @param c could OWLClass or OWLObjectProperty
@@ -2355,6 +2449,19 @@ public class OWLGraphWrapper {
 		//OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_SUBSET.getTag());
 		OWLAnnotationProperty lap = getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_inSubset.getIRI());
 		return getAnnotationValues(c, lap);
+	}
+
+	/**
+	 * It returns the value of the subset tag.
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getSubsets(OWLObject)}.
+	 * 
+	 * @param c could OWLClass or OWLObjectProperty
+	 * @return values
+	 * @see #getSubsets(OWLObject)
+	 */
+	public List<String> getSubsets(OWLObject c, ArrayList<String> sargs) {
+		return getSubsets(c);
 	}
 
 	/**
@@ -2471,10 +2578,15 @@ public class OWLGraphWrapper {
 
 	/**
 	 * It returns the value of the is-obsolete tag.
+	 * 
+	 * The odd signature is for use with FlexLoader.
+	 * 
 	 * @param c could OWLClass or OWLObjectProperty
+	 * @param sargs (unsused)
+	 * 
 	 * @return String
 	 */
-	public String getIsObsoleteBinaryString(OWLObject c) {
+	public String getIsObsoleteBinaryString(OWLObject c, ArrayList<String> sargs) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_IS_OBSELETE.getTag()); 
 		String val = getAnnotationValue(c, lap);
 		return val == null ? "false": "true";
@@ -2494,6 +2606,29 @@ public class OWLGraphWrapper {
 		return getAnnotationValue(c, lap);
 	}
 
+	
+	/**
+	 * Get the annotation property value for a tag.
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getAnnotationPropertyValue(OWLObject, String)}.
+	 * 
+	 * Currently, this function will only accept an argument of length 1.
+	 * 
+	 * @param c
+	 * @param tags
+	 * @return String
+	 * @see #getAnnotationPropertyValues(OWLObject c, String tag)
+	 */
+	public String getAnnotationPropertyValue(OWLObject c, ArrayList<String> tags) {
+		String retval = null;
+		if( tags != null && tags.size() == 1 ){
+			String tag = tags.get(0);
+			retval = getAnnotationPropertyValue(c, tag);
+			
+		}
+		return retval;
+	}
+
 	/**
 	 * Get the annotation property values for a tag.
 	 * 
@@ -2505,6 +2640,27 @@ public class OWLGraphWrapper {
 	public List<String> getAnnotationPropertyValues(OWLObject c, String tag) {
 		OWLAnnotationProperty lap = getAnnotationProperty(tag);
 		return getAnnotationValues(c, lap);
+	}
+
+	/**
+	 * Get the annotation property values for a tag.
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getAnnotationPropertyValues(OWLObject, String)}.
+	 * 
+	 * Currently, this function will only accept an argument of length 1.
+	 * 
+	 * @see #getAnnotationPropertyValues(OWLObject c, String tag)
+	 * @param c
+	 * @param tags
+	 * @return String List
+	 */
+	public List<String> getAnnotationPropertyValues(OWLObject c, ArrayList<String> tags) {
+		List<String> retvals = new ArrayList<String>();
+		if( tags != null && tags.size() == 1 ){
+			String tag = tags.get(0);
+			retvals = getAnnotationPropertyValues(c, tag);			
+		}
+		return retvals;
 	}
 
 	/**
@@ -2570,7 +2726,23 @@ public class OWLGraphWrapper {
 		return getAnnotationValue(c, lap);
 	}
 
+	
+	/**
+	 * It returns the value of the OBO-namespace tag.
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getNamespace(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return namespace
+	 * 
+	 * @see #getNamespace(OWLObject)
+	 */
+	public String getNamespace(OWLObject c, ArrayList<String> sargs) {
+		return getNamespace(c);
+	}
 
+	
 	/**
 	 * It returns the value of the created_by tag
 	 * @param c
@@ -2801,6 +2973,22 @@ public class OWLGraphWrapper {
 		return list;
 	}
 
+	
+	/**
+	 * Get the definition xrefs (IAO_0000115)
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getDefXref(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return list of definition xrefs
+	 * @see #getDefXref(OWLObject)
+	 */
+	public List<String> getDefXref(OWLObject c, ArrayList<String> sargs){
+		return getDefXref(c);
+	}
+
+	
 	/**
 	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
 	 * Intended for GOlr loading.
@@ -2858,6 +3046,21 @@ public class OWLGraphWrapper {
 	}
 
 	/**
+	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
+	 * Intended for GOlr loading.
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getIsaPartofIDClosure(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return list of is_partof_closure ids
+	 * @see #getIsaPartofIDClosure(OWLObject)
+	 */
+	public List<String> getIsaPartofIDClosure(OWLObject c, ArrayList<String> sargs){
+		return getIsaPartofIDClosure(c);
+	}
+
+	/**
 	 * Return a overlaps with getIsaPartofIDClosure and stuff in GafSolrDocumentLoader.
 	 * Intended for GOlr loading.
 	 * 
@@ -2868,6 +3071,21 @@ public class OWLGraphWrapper {
 		Map<String, String> foo = getIsaPartofClosureMap(c);
 		List<String> bar = new ArrayList<String>(foo.values());
 		return bar;
+	}
+
+	/**
+	 * Return a overlaps with getIsaPartofIDClosure and stuff in GafSolrDocumentLoader.
+	 * Intended for GOlr loading.
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getIsaPartofLabelClosure(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return list of is_partof_closure labels
+	 * @see #getIsaPartofLabelClosure(OWLObject)
+	 */
+	public List<String> getIsaPartofLabelClosure(OWLObject c, ArrayList<String> sargs){
+		return getIsaPartofLabelClosure(c);
 	}
 
 	/**
@@ -2957,10 +3175,13 @@ public class OWLGraphWrapper {
 	/**
 	 * It returns String Listof synonyms.
 	 * 
+	 * The strange signature is due to being used for FlexLoader.
+	 * 
 	 * @param c
+	 * @param sargs (unused)
 	 * @return string list of synonyms
 	 */
-	public List<String> getOBOSynonymStrings(OWLObject c) {
+	public List<String> getOBOSynonymStrings(OWLObject c, ArrayList<String> sargs) {
 
 		List<String> synStrings = new ArrayList<String>();
 
@@ -3260,6 +3481,22 @@ public class OWLGraphWrapper {
 	 */
 	public String getIdentifier(OWLObject owlObject) {
 		return Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
+	}
+
+
+	/**
+	 * Same as {@link #getIdentifier(OWLObject)} but a different profile to support the FloexLoader.
+	 * 
+	 * The s-expressions arguments go unused.
+	 * 
+	 * @param owlObject
+	 * @param sargs (unused)
+	 * @return OBO-style identifier, using obo2owl mapping
+	 * 
+	 * @see #getIdentifier(OWLObject)
+	 */
+	public String getIdentifier(OWLObject owlObject, ArrayList<String> sargs) {
+		return getIdentifier(owlObject);
 	}
 
 
