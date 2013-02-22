@@ -47,6 +47,40 @@ else
     fi
 fi
 
+## Walk through all the command line arguments and see if they are a
+## -Jvm flag; if so, add to JAVAPATH; otherwise, either add them to
+## the JAVAARGS or the CMDARGS depending.
+for ARG in "$@"
+do
+    ## Bourne shell does not have slice/substr builtins, so we'll fall
+    ## back onto expr to take care ofthat lifting.
+    ONE_TO_FIVE=`expr substr $ARG 1 5`
+    FIVE_PLUS=`expr substr $ARG 5 127`
+    ONE_TO_TWO=`expr substr $ARG 1 2`
+    TWO_PLUS=`expr substr $ARG 2 127`
+    ## DEBUG
+    ## Let's see how the command line is parsed if we declare DEBUG=1.
+    if [ $DEBUG ]
+    then
+	echo "ARG: $ARG"
+	echo "ONE_TO_FIVE: ${ONE_TO_FIVE}"
+	echo "FIVE_PLUS: ${FIVE_PLUS}"
+	echo "ONE_TO_TWO: ${ONE_TO_TWO}"
+	echo "TWO_PLUS: ${TWO_PLUS}"
+    fi
+    if [ "${ONE_TO_FIVE}" = "-Jvm=" ]
+    then
+    	JAVAPATH="${FIVE_PLUS}";
+    else
+     	if [ "${ONE_TO_TWO}" = "-J" ]
+    	then
+    	    JAVAARGS="${JAVAARGS} '${TWO_PLUS}'"
+    	else
+    	    CMDARGS="${CMDARGS} '${ARG}'"
+    	fi
+    fi
+    shift 1;
+done
 
 ## Add to CLASSPATH using CLASSPATH_RELATIVE.
 CLASSPATH=""
