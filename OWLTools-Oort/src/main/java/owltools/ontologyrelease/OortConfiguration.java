@@ -26,6 +26,7 @@ import owltools.ontologyverification.OntologyCheck;
 import owltools.ontologyverification.impl.CycleCheck;
 import owltools.ontologyverification.impl.DanglingReferenceCheck;
 import owltools.ontologyverification.impl.NameRedundancyCheck;
+import owltools.ontologyverification.impl.ObsoleteClassInSignature;
 import owltools.ontologyverification.impl.SelfReferenceInDefinition;
 
 /**
@@ -108,6 +109,7 @@ public class OortConfiguration {
 		checks.add(new SelfReferenceInDefinition());
 		checks.add(new NameRedundancyCheck());
 		checks.add(new DanglingReferenceCheck());
+		checks.add(new ObsoleteClassInSignature());
 		return checks;
 	}
 	
@@ -123,6 +125,9 @@ public class OortConfiguration {
 		}
 		else if (CycleCheck.SHORT_HAND.equals(shortName)) {
 			return new CycleCheck();
+		}
+		else if (ObsoleteClassInSignature.SHORT_HAND.equals(shortName)) {
+			return new ObsoleteClassInSignature();
 		}
 		return null;
 	}
@@ -140,6 +145,9 @@ public class OortConfiguration {
 		else if (check instanceof CycleCheck) {
 			return CycleCheck.SHORT_HAND;
 		}
+		else if (check instanceof ObsoleteClassInSignature) {
+			return ObsoleteClassInSignature.SHORT_HAND;
+		}
 		return null;
 	}
 	
@@ -154,6 +162,7 @@ public class OortConfiguration {
 		checks.add(new NameRedundancyCheck());
 		checks.add(new DanglingReferenceCheck());
 		checks.add(new CycleCheck());
+		checks.add(new ObsoleteClassInSignature());
 		return checks;
 	}
 	
