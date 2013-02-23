@@ -2990,12 +2990,68 @@ public class OWLGraphWrapper {
 
 	
 	/**
+	 * Return a map of id to label for the closure of the ontology using the supplied relation id list and .isSubClassOf().
+	 * 
+	 * Intended for GOlr loading.
+	 * 
+	 * @param c
+	 * @param relation_ids
+	 * @return map of ids to their displayable labels
+	 */
+	public Map<String,String> getRelationClosureMap(OWLObject c, ArrayList<String> relation_ids){
+
+		Map<String,String> relation_map = new HashMap<String,String>(); // capture labels/ids
+
+		// Our relation collection.
+		HashSet<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
+		//final OWLObjectProperty partOfProperty = getOWLObjectPropertyByIdentifier("BFO:0000050");
+		for( String rel_id : relation_ids ){
+			props.add(getOWLObjectPropertyByIdentifier(rel_id));
+		}
+		
+		Set<OWLGraphEdge> edges = getOutgoingEdgesClosureReflexive(c);
+		for (OWLGraphEdge owlGraphEdge : edges) {
+			OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
+			//if (qp.isSubClassOf() || partOfProperty.equals(qp.getProperty())) {
+			if (qp.isSubClassOf() || props.contains(qp.getProperty())) {
+				OWLObject target = owlGraphEdge.getTarget();
+				if (target instanceof OWLClass) {
+					final String id = getIdentifier(target);
+					final String label = getLabelOrDisplayId(target);
+					relation_map.put(id, label);
+				}else if (target instanceof OWLObjectSomeValuesFrom) {
+					OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom)target;
+					if (props.contains(some.getProperty())) {
+						OWLClassExpression clsexp = some.getFiller();
+						if( ! clsexp.isAnonymous()){
+							OWLClass cls = clsexp.asOWLClass();
+							final String id = getIdentifier(cls);
+							final String label = getLabelOrDisplayId(cls);
+							relation_map.put(id, label);
+						}
+					}
+				}
+			}else if (qp.isIdentity()) {
+				final String id = getIdentifier(c);
+				final String label = getLabelOrDisplayId(c);
+				relation_map.put(id, label);
+			}else {
+				//System.out.println(owlGraphEdge);
+			}
+		}
+		
+		return relation_map;
+	}
+
+	
+	/**
 	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
 	 * Intended for GOlr loading.
 	 * 
 	 * @param c
 	 * @return map of is_partof_closure ids to their displayable labels
 	 */
+	@Deprecated
 	public Map<String,String> getIsaPartofClosureMap(OWLObject c){
 
 		Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
@@ -3039,6 +3095,7 @@ public class OWLGraphWrapper {
 	 * @param c
 	 * @return list of is_partof_closure ids
 	 */
+	@Deprecated
 	public List<String> getIsaPartofIDClosure(OWLObject c){
 		Map<String, String> foo = getIsaPartofClosureMap(c);
 		List<String> bar = new ArrayList<String>(foo.keySet());
@@ -3056,8 +3113,24 @@ public class OWLGraphWrapper {
 	 * @return list of is_partof_closure ids
 	 * @see #getIsaPartofIDClosure(OWLObject)
 	 */
+	@Deprecated
 	public List<String> getIsaPartofIDClosure(OWLObject c, ArrayList<String> sargs){
 		return getIsaPartofIDClosure(c);
+	}
+
+	/**
+	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
+	 * 
+	 * Intended for GOlr loading.
+	 * 
+	 * @param c
+	 * @param relation_ids
+	 * @return list of is_partof_closure ids
+	 */
+	public List<String> getRelationIDClosure(OWLObject c, ArrayList<String> relation_ids){
+		Map<String, String> foo = getRelationClosureMap(c, relation_ids);
+		List<String> bar = new ArrayList<String>(foo.keySet());
+		return bar;
 	}
 
 	/**
@@ -3067,6 +3140,7 @@ public class OWLGraphWrapper {
 	 * @param c
 	 * @return list of is_partof_closure labels
 	 */
+	@Deprecated
 	public List<String> getIsaPartofLabelClosure(OWLObject c){
 		Map<String, String> foo = getIsaPartofClosureMap(c);
 		List<String> bar = new ArrayList<String>(foo.values());
@@ -3084,8 +3158,23 @@ public class OWLGraphWrapper {
 	 * @return list of is_partof_closure labels
 	 * @see #getIsaPartofLabelClosure(OWLObject)
 	 */
+	@Deprecated
 	public List<String> getIsaPartofLabelClosure(OWLObject c, ArrayList<String> sargs){
 		return getIsaPartofLabelClosure(c);
+	}
+
+	/**
+	 * Return a overlaps with getIsaPartofIDClosure and stuff in GafSolrDocumentLoader.
+	 * Intended for GOlr loading.
+	 * 
+	 * @param c
+	 * @param relation_ids
+	 * @return list of is_partof_closure labels
+	 */
+	public List<String> getRelationLabelClosure(OWLObject c, ArrayList<String> relation_ids){
+		Map<String, String> foo = getRelationClosureMap(c, relation_ids);
+		List<String> bar = new ArrayList<String>(foo.values());
+		return bar;
 	}
 
 	/**

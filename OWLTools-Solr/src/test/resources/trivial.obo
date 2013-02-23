@@ -8,17 +8,23 @@ alt_id: a:0000001
 alt_id: AY:0000001
 name: a1
 
-
 [Term]
 id: A:0000002
 name: a2
 is_a: A:0000001 ! a1
-intersection_of: A:0000001 ! a1
-intersection_of: B:0000001
 
 [Term]
 id: A:0000003
 name: a3
 is_a: A:0000001 ! a1
-intersection_of: A:0000001 ! a1
-intersection_of: C:0000001 
+
+[Term]
+id: A:0000004
+name: a4
+is_a: A:0000003 ! a3
+relationship: part_of A:0000002 ! a2
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050

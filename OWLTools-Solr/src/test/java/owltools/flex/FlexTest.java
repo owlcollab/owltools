@@ -1,6 +1,5 @@
 package owltools.flex;
 
-
 import static junit.framework.Assert.*;
 
 import java.io.File;
@@ -25,9 +24,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.shunt.OWLShuntGraph;
-import owltools.io.ParserWrapper;
-import owltools.panther.PANTHERForest;
 
 public class FlexTest {
 
