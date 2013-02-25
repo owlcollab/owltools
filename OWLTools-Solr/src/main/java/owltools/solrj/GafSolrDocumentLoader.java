@@ -28,6 +28,7 @@ import owltools.gaf.GeneAnnotation;
 import owltools.gaf.TaxonTools;
 import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 import owltools.panther.PANTHERForest;
 import owltools.panther.PANTHERTree;
@@ -205,7 +206,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		// Something that we'll need for the annotation evidence aggregate later.
 		Map<String,SolrInputDocument> evAggDocMap = new HashMap<String,SolrInputDocument>();
 		
-		// Annotation doc
+		// Annotation doc.
+		// We'll also need to be collecting some aggregate information, like for the GP term closures, which will be 
+		// added at the end of this section.
+		Map<String, String> isap_map = new HashMap<String, String>();
+		Map<String, String> reg_map = new HashMap<String, String>();
 		for (GeneAnnotation a : gafDocument.getGeneAnnotations(e.getId())) {
 			SolrInputDocument annotation_doc = new SolrInputDocument();
 
@@ -282,34 +287,59 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			if( cls != null ){
 				//	System.err.println(clsId);
 			
-				// Add to annotation and bioentity isa_partof closures; label and id.
-				List<String> idClosure = graph.getIsaPartofIDClosure(cls);
-				List<String> labelClosure = graph.getIsaPartofLabelClosure(cls);
-				annotation_doc.addField("isa_partof_closure", idClosure);
-				annotation_doc.addField("isa_partof_closure_label", labelClosure);
-				for( String tlabel : labelClosure){
-					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tlabel);
-				}
-				for( String tid : idClosure){
-					addFieldUnique(bioentity_doc, "isa_partof_closure", tid);
-				}
+				// Is-a part-of closures.
+				ArrayList<String> isap = new ArrayList<String>();
+				isap.add("BFO:0000050");
+				Map<String, String> curr_isap_map = addClosureToAnnAndBio(isap, "isa_partof_closure", "isa_partof_closure_label", "isa_partof_closure_map",
+									                                      cls, graph, annotation_doc, bioentity_doc, gson);
+				isap_map.putAll(curr_isap_map); // add to aggregate map
+				
+//				// Add to annotation and bioentity isa_partof closures; label and id.
+//				List<String> idClosure = graph.getRelationIDClosure(cls, isap);
+//				List<String> labelClosure = graph.getRelationLabelClosure(cls, isap);
+//				annotation_doc.addField("isa_partof_closure", idClosure);
+//				annotation_doc.addField("isa_partof_closure_label", labelClosure);
+//				for( String tlabel : labelClosure){
+//					addFieldUnique(bioentity_doc, "isa_partof_closure_label", tlabel);
+//				}
+//				for( String tid : idClosure){
+//					addFieldUnique(bioentity_doc, "isa_partof_closure", tid);
+//				}
+//	
+//				// Compile closure maps to JSON.
+//				Map<String, String> isa_partof_map = graph.getRelationClosureMap(cls, isap);
+//				if( ! isa_partof_map.isEmpty() ){
+//					String jsonized_isa_partof_map = gson.toJson(isa_partof_map);
+//					annotation_doc.addField("isa_partof_closure_map", jsonized_isa_partof_map);
+//				}
 	
-				// Compile closure maps to JSON.
-				Map<String, String> isa_partof_map = graph.getIsaPartofClosureMap(cls);
-				if( ! isa_partof_map.isEmpty() ){
-					String jsonized_isa_partof_map = gson.toJson(isa_partof_map);
-					annotation_doc.addField("isa_partof_closure_map", jsonized_isa_partof_map);
-				}
-	
+				// Regulates closures.
+				ArrayList<String> reg = new ArrayList<String>();
+				reg.add("BFO:0000050");
+				reg.add("RO:0002211");
+				reg.add("RO:0002212");
+				reg.add("RO:0002213");
+				Map<String, String> curr_reg_map = addClosureToAnnAndBio(reg, "regulates_closure", "regulates_closure_label", "regulates_closure_map",
+						  			               cls, graph, annotation_doc, bioentity_doc, gson);
+				reg_map.putAll(curr_reg_map); // add to aggregate map
+				
+				///
+				/// Next, work on the evidence aggregate...
+				///
+				
+				// Bug/TODO: This is a bit os a slowdown since we're not reusing our work from above here anymore.
+				List<String> idIsapClosure = graph.getRelationIDClosure(cls, isap);
+				Map<String, String> isaPartofMap = graph.getRelationClosureMap(cls, isap);
+
 				// When we cycle, we'll also want to do some stuff to track all of the evidence codes we see.
 				List<String> aggEvIDClosure = new ArrayList<String>();
 				List<String> aggEvWiths = new ArrayList<String>();
 
 				// Cycle through and pick up all the associated bits for the terms in the closure.
 				SolrInputDocument ev_agg_doc = null;
-				for( String tid : idClosure ){
+				for( String tid : idIsapClosure ){
 	
-					String tlabel = isa_partof_map.get(tid);				
+					String tlabel = isaPartofMap.get(tid);				
 					//OWLObject c = graph.getOWLObjectByIdentifier(tid);
 	
 					// Only have to do the annotation evidence aggregate base once.
@@ -456,6 +486,18 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// Finally add doc.
 			add(annotation_doc);
 		}
+		
+		// Add the necessary aggregates to the bio doc. These cannot be done incrementally like the multi-valued closures
+		// sonce there can only be a single map.
+		if( ! isap_map.isEmpty() ){
+			String jsonized_cmap = gson.toJson(isap_map);
+			bioentity_doc.addField("isa_partof_closure_map", jsonized_cmap);
+		}
+		if( ! reg_map.isEmpty() ){
+			String jsonized_cmap = gson.toJson(reg_map);
+			bioentity_doc.addField("regulates_closure_map", jsonized_cmap);
+		}
+		
 		add(bioentity_doc);
 
 		for (SolrInputDocument ev_agg_doc : evAggDocMap.values()) {
@@ -501,33 +543,59 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		}
 	}
 
-	private Set<String> edgeToField(OWLGraphEdge edge) {
-		List<OWLQuantifiedProperty> qpl = edge.getQuantifiedPropertyList();
-		if (qpl.size() == 0) {
-			return Collections.singleton("isa_partof");
+//	private Set<String> edgeToField(OWLGraphEdge edge) {
+//		List<OWLQuantifiedProperty> qpl = edge.getQuantifiedPropertyList();
+//		if (qpl.size() == 0) {
+//			return Collections.singleton("isa_partof");
+//		}
+//		else if (qpl.size() == 1) {
+//			return qpToFields(qpl.get(0));
+//		}
+//		else {
+//			return Collections.EMPTY_SET;
+//		}
+//	}
+//
+//	private Set<String> qpToFields(OWLQuantifiedProperty qp) {
+//		if (qp.isSubClassOf()) {
+//			return Collections.singleton("isa_partof");
+//		}
+//		else {
+//			// TODO
+//			return Collections.singleton("isa_partof");
+//		}
+//		//return Collections.EMPTY_SET;
+//	}
+
+	/*	
+	 * Add specified closure of OWLObject to annotation and bioentity docs.
+	 */
+	private Map<String, String> addClosureToAnnAndBio(ArrayList<String> relations, String closureName, String closureNameLabel, String closureMap,
+			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc, Gson gson){
+		
+		// Add closures to doc; label and id.
+		List<String> idClosure = graph.getRelationIDClosure(cls, relations);
+		List<String> labelClosure = graph.getRelationLabelClosure(cls, relations);
+		ann_doc.addField(closureName, idClosure);
+		ann_doc.addField(closureNameLabel, labelClosure);
+		for( String tid : idClosure){
+			addFieldUnique(bio_doc, closureName, tid);
 		}
-		else if (qpl.size() == 1) {
-			return qpToFields(qpl.get(0));
+		for( String tlabel : labelClosure){
+			addFieldUnique(bio_doc, closureNameLabel, tlabel);
 		}
-		else {
-			return Collections.EMPTY_SET;
+
+		// Compile closure maps to JSON.
+		Map<String, String> cmap = graph.getRelationClosureMap(cls, relations);
+		if( ! cmap.isEmpty() ){
+			String jsonized_cmap = gson.toJson(cmap);
+			ann_doc.addField(closureMap, jsonized_cmap);
+			// NOTE: This is harder since we'd be adding multiple, so the is done on a collector variable elsewhere.
+			//bio_doc.addField(closureMap, jsonized_cmap);
 		}
+
+		
+		return cmap;
 	}
-
-	private Set<String> qpToFields(OWLQuantifiedProperty qp) {
-		if (qp.isSubClassOf()) {
-			return Collections.singleton("isa_partof");
-		}
-		else {
-			// TODO
-			return Collections.singleton("isa_partof");
-		}
-		//return Collections.EMPTY_SET;
-	}
-
-
-
-
-
 
 }
