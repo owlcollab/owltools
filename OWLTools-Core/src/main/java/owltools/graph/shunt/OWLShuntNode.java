@@ -1,5 +1,7 @@
 package owltools.graph.shunt;
 
+import java.util.Map;
+
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
@@ -15,7 +17,7 @@ public class OWLShuntNode {
 	public String id = null;
 	public String type = null;
 	public String lbl = null;
-	public String meta = null;
+	public Map<String,String> meta = null;
 
 	/**
 	 * @param id
@@ -87,14 +89,14 @@ public class OWLShuntNode {
 	/**
 	 * @return the metadata
 	 */
-	public String getMetadata() {
+	public Map<String,String> getMetadata() {
 		return meta;
 	}
 	
 	/**
 	 * @param metadata the metadata to set
 	 */
-	public void setMetadata(String metadata) {
+	public void setMetadata(Map<String,String> metadata) {
 		this.meta = metadata;
 	}
 

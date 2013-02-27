@@ -45,6 +45,11 @@ public class PANTHERTreeTest {
 		assertFalse("Does not contain E", aSet.contains("AN7"));
 		assertFalse("Does not contain F", aSet.contains(":"));
 		assertFalse("Does not contain G", aSet.contains("GO:0022008"));
+		
+//		// Okay, now let's look at the generated graph a little.
+//		OWLShuntGraph sg = ptree.getOWLShuntGraph();
+//		String sg_json = sg.toJSON();
+//		sg_json.toString();
 	}
 	
 //	@Test

@@ -35,6 +35,8 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import com.google.gson.Gson;
+
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.shunt.OWLShuntEdge;
@@ -132,6 +134,7 @@ public class PANTHERTree {
 	/**
 	 * Generate graph information for the tree as it currently stands.
 	 */
+	@SuppressWarnings("unchecked")
 	private OWLShuntGraph generateGraph(){
 		
 		g = new OWLShuntGraph();
@@ -158,6 +161,7 @@ public class PANTHERTree {
 		}
 		
 		// Assemble the graph(s, whence the for loop) from the parser.
+		Gson gson = new Gson(); // I'll be doing this a bunch
 		for( Phylogeny phy : phys ){
 
 			// First, add all of the nodes to the graph.
@@ -175,6 +179,23 @@ public class PANTHERTree {
 				}
 				OWLShuntNode n = new OWLShuntNode(id_str);
 				n.setLabel(lbl);
+				
+				// Grab dup/spec and layout(?) data.
+				boolean dupP = pNode.isDuplication();
+				boolean specP = pNode.isSpeciation();
+				int ind = -2;
+				try {
+					ind = pNode.getChildNodeIndex();
+				}catch(UnsupportedOperationException uoe) {
+				      ind = -1;
+				}
+				Map<String,String> mmap = new HashMap<String,String>();
+				mmap.put("duplication_p", Boolean.toString(dupP));
+				mmap.put("speciation_p", Boolean.toString(specP));
+				mmap.put("layout_index", Integer.toString(ind));
+				n.setMetadata(mmap);
+				
+				// Add the new node to the graph.
 				g.addNode(n);
 				
 				// Next, gather the edge information and add it to the graph.
@@ -183,7 +204,9 @@ public class PANTHERTree {
 					String enid_str = uuidInternal(kid);
 					OWLShuntEdge e = new OWLShuntEdge(id_str, enid_str);
 					// Have the distance as string for the metatdata.
-					e.setMetadata(Double.toString(kid.getDistanceToParent()));
+					Map<String,String> emap = new HashMap<String,String>();
+					emap.put("distance", Double.toString(kid.getDistanceToParent()));
+					e.setMetadata(emap);
 					g.addEdge(e);
 				}
 			}

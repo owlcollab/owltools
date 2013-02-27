@@ -1,5 +1,7 @@
 package owltools.graph.shunt;
 
+import java.util.Map;
+
 /**
  * An edge reduced to nothing; for use with OWLShuntGraph.
  * 
@@ -13,7 +15,7 @@ public class OWLShuntEdge {
 	public String sub = null;
 	public String obj = null;
 	public String pred = null;
-	public String meta = null;
+	public Map<String,String> meta = null;
 
 	/**
 	 * @param subject_id
@@ -38,14 +40,14 @@ public class OWLShuntEdge {
 	/**
 	 * @return the metadata
 	 */
-	public String getMetadata() {
+	public Map<String,String> getMetadata() {
 		return meta;
 	}
 	
 	/**
 	 * @param metadata the metadata to set
 	 */
-	public void setMetadata(String metadata) {
+	public void setMetadata(Map<String,String> metadata) {
 		this.meta = metadata;
 	}
 
