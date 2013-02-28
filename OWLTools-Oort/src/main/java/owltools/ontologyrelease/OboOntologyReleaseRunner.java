@@ -73,6 +73,7 @@ import owltools.mooncat.Mooncat;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
+import owltools.ontologyrelease.logging.ExplicitReportFileHandler;
 import owltools.ontologyrelease.logging.Log4jHandler;
 import owltools.ontologyrelease.logging.LogHandler;
 import owltools.ontologyrelease.logging.ErrorReportFileHandler;
@@ -99,9 +100,17 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	OortConfiguration oortConfig;
 
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base, List<LogHandler> handlers) throws IOException {
-		super(base, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile(), handlers);
+		super(base, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile(), addDefaultHandlers(handlers, base));
 		this.oortConfig = oortConfig;
 		this.ontologyChecks = new OntologyCheckHandler(false, oortConfig.getOntologyChecks(), handlers);
+	}
+	
+	static List<LogHandler> addDefaultHandlers(List<LogHandler> handlers, File base) {
+		// setup default report files
+		Set<String> suffixes = new HashSet<String>();
+		suffixes.add("-reasoner-report.txt");
+		handlers.add(ExplicitReportFileHandler.createSuffixFiltered(suffixes, base));
+		return handlers;
 	}
 
 	/**
