@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -48,9 +47,22 @@ public class ObsoleteClassInSignature extends AbstractCheck {
 					Set<OWLClass> signature = axiom.getClassesInSignature();
 					for (OWLClass signatureClass : signature) {
 						if (graph.isObsolete(signatureClass)) {
-							final IRI iri = signatureClass.getIRI();
-							String message = "Obsolete class "+iri+" in axiom: "+pp.render(axiom);
-							warnings.add(new CheckWarning(getID(), message , isFatal(), owlClass.getIRI()));
+							StringBuilder sb = new StringBuilder();
+							sb.append("Obsolete class ");
+							String id = graph.getIdentifier(signatureClass);
+							if (id != null) {
+								sb.append(id);
+								String sigLabel = graph.getLabel(signatureClass);
+								if (sigLabel != null) {
+									sb.append(" '").append(sigLabel).append('\'');
+								}
+							}
+							else {
+								sb.append(signatureClass.getIRI());
+							}
+							sb.append(" in axiom: ");
+							sb.append(pp.render(axiom));
+							warnings.add(new CheckWarning(getID(), sb.toString() , isFatal(), owlClass.getIRI()));
 						}
 					}
 				}
