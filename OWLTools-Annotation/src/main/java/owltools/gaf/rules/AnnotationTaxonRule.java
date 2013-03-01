@@ -3,6 +3,7 @@ package owltools.gaf.rules;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -36,11 +37,13 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 	private static final Logger logger = Logger.getLogger(AnnotationTaxonRule.class);
 	
 	private final OWLGraphWrapper graph;
+	private final Map<String, OWLObject> allOWLObjectsByAltId;
 	
 	/**
 	 * @param graph
 	 */
 	public AnnotationTaxonRule(OWLGraphWrapper graph) {
+		allOWLObjectsByAltId = graph.getAllOWLObjectsByAltId();
 		this.graph = graph;
 	}
 
@@ -64,9 +67,19 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 			return Collections.singleton(v);
 		}
 		if (tax == null) {
-			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "Could not retrieve a class for taxonCls: "+taxonCls, a, ViolationType.Warning);
-			return Collections.singleton(v);
+			tax = allOWLObjectsByAltId.get(taxonCls);
+			
+			if (tax == null) {
+				AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "Could not retrieve a class for taxonCls: "+taxonCls, a, ViolationType.Warning);
+				return Collections.singleton(v);
+			}
+			else {
+				String mainTaxId = graph.getIdentifier(tax);
+				AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "Use of out-dated taxon identifier: "+taxonCls+" is replaced by "+mainTaxId, a, ViolationType.Warning);
+				return Collections.singleton(v);
+			}
 		}
+		
 		
 		return Collections.emptySet();
 	}
