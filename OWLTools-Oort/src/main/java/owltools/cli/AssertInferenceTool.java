@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,10 +18,12 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
@@ -28,6 +31,7 @@ import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
@@ -38,6 +42,9 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
+import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.InferenceBuilder;
@@ -67,6 +74,8 @@ public class AssertInferenceTool {
 		String outputFileName = null;
 		String outputFileFormat = null;
 		String reportFile = null;
+		
+		boolean all = false;
 		
 		// parse command line parameters
 		while (opts.hasArgs()) {
@@ -112,6 +121,10 @@ public class AssertInferenceTool {
 			}
 			else if (opts.nextEq("--reportFile")) {
 				reportFile = opts.nextOpt();
+			}
+			else if (opts.nextEq("--all")) {
+				all = true;
+				Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
 			}
 			else {
 				inputs.add(opts.nextOpt());
@@ -162,8 +175,12 @@ public class AssertInferenceTool {
 			reportWriter = new BufferedWriter(new FileWriter(reportFile));
 		}
 		
-		// assert inferences
-		assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, reportWriter);
+		if (all == true) {
+			assertAllInferences(graph);
+		}else {
+			// assert inferences
+			assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, reportWriter);
+		}
 		
 		if (reportWriter != null) {
 			reportWriter.close();
@@ -289,7 +306,7 @@ public class AssertInferenceTool {
 				removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
 			}
 		}
-		AssertInferenceReport report = new AssertInferenceReport(graph);
+		DefaultAssertInferenceReport report = new DefaultAssertInferenceReport(graph);
 		
 		// Inference builder
 		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
@@ -384,14 +401,14 @@ public class AssertInferenceTool {
 		manager.applyChanges(removeImportChanges);
 	}
 	
-	static class AssertInferenceReport {
+	static class DefaultAssertInferenceReport {
 		
 		private final OWLGraphWrapper graph;
 		OWLPrettyPrinter owlpp;
 		private Map<OWLClassExpression, List<Line>> lines = new HashMap<OWLClassExpression, List<Line>>();
 		private List<String> others = new ArrayList<String>();
 
-		AssertInferenceReport(OWLGraphWrapper graph) {
+		DefaultAssertInferenceReport(OWLGraphWrapper graph) {
 			this.graph = graph;
 			owlpp = new OWLPrettyPrinter(graph);
 		}
@@ -509,4 +526,175 @@ public class AssertInferenceTool {
 		}
 	}
 
+	public static void assertAllInferences(OWLGraphWrapper graph) {
+		final OWLOntology ontology = graph.getSourceOntology();
+		final OWLOntologyManager manager = ontology.getOWLOntologyManager();
+		final OWLDataFactory factory = manager.getOWLDataFactory();
+		
+		// create ontology with imports and create set of changes to remove the additional imports
+		List<OWLOntologyChange> removeImportChanges = new ArrayList<OWLOntologyChange>();
+		Set<OWLOntology> supportOntologySet = graph.getSupportOntologySet();
+		for (OWLOntology support : supportOntologySet) {
+			IRI ontologyIRI = support.getOntologyID().getOntologyIRI();
+			OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(ontologyIRI);
+			List<OWLOntologyChange> change = manager.applyChange(new AddImport(ontology, importDeclaration));
+			if (!change.isEmpty()) {
+				// the change was successful, create remove import for later
+				removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
+			}
+		}
+		final OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+		final OWLReasoner reasoner = reasonerFactory.createReasoner(ontology);
+		try {
+			logger.info("Start check all");
+			// check all classes from the main ontology
+			AllInferenceReport report = new AllInferenceReport();
+			Set<OWLClass> classes = ontology.getClassesInSignature(false);
+			int count = 0;
+			int total = classes.size();
+//			int step = total / 100;
+//			if (step <= 4) {
+//				step = 5;
+//			}
+			int step = 50;
+			for (final OWLClass owlClass : classes) {
+				count += 1;
+				// get axioms for the current class
+				Set<OWLClassAxiom> axioms = ontology.getAxioms(owlClass);
+				
+				handleAxioms(owlClass, axioms, ontology, manager, factory, reasoner, report);
+//				handleAxioms2(owlClass, axioms, ontology, manager, factory, reasoner, report);
+				if (count % step == 0) {
+					logger.info("Current count "+count+" of "+total);
+				}
+				if (count == 200) {
+					break;
+				}
+			}
+			PrintWriter writer = new PrintWriter(System.out);
+			report.printReport(writer);
+			writer.close();
+		}
+		finally {
+			reasoner.dispose();
+		}
+		// remove additional import axioms
+		manager.applyChanges(removeImportChanges);
+	}
+
+	@SuppressWarnings("unused")
+	private static void handleAxioms2(final OWLClass owlClass,
+			Set<OWLClassAxiom> axioms, final OWLOntology ontology,
+			final OWLOntologyManager manager, final OWLDataFactory factory,
+			final OWLReasoner reasoner, AllInferenceReport report)
+	{
+		for (OWLClassAxiom axiom : axioms) {
+			// only check the axiom if it isn't marked
+			if (AxiomAnnotationTools.isMarkedAsInferredAxiom(axiom) == false) {
+				axiom.accept(new OWLAxiomVisitorAdapter(){
+
+					@Override
+					public void visit(OWLSubClassOfAxiom axiom) {
+						// check sub class axiom
+						if (axiom.getSubClass().equals(owlClass)) {
+							// only update the axiom if the sub class is the current class
+							OWLClassExpression ce = axiom.getSuperClass();
+							if (ce.isAnonymous() == false) {
+								// ignore anonymous super classes
+								final OWLClass superClass = ce.asOWLClass();
+								
+								// remove axiom and flush reasoner
+								manager.removeAxiom(ontology, axiom);
+								reasoner.flush();
+								
+								// ask reasoner
+								NodeSet<OWLClass> superClasses = reasoner.getSuperClasses(owlClass, true);
+								if (superClasses.containsEntity(superClass)) {
+									// is inferred
+									// add markup and add to ontology
+									OWLAxiom markedAxiom = AxiomAnnotationTools.markAsInferredAxiom(axiom, factory);
+									manager.addAxiom(ontology, markedAxiom);
+								}
+								else {
+									// not inferred 
+									// add original axiom back into ontology
+									manager.addAxiom(ontology, axiom);
+								}
+							}
+						}
+					}
+				});
+			}
+		}
+	}
+
+	private static void handleAxioms(final OWLClass owlClass,
+			Set<OWLClassAxiom> axioms, final OWLOntology ontology,
+			final OWLOntologyManager manager, final OWLDataFactory factory,
+			final OWLReasoner reasoner, AllInferenceReport report)
+	{
+		report.classes += 1;
+		// only look at sub class of axioms with a named superClass and subClass is currentClass
+		Set<OWLSubClassOfAxiom> subClassAxioms = new HashSet<OWLSubClassOfAxiom>();
+		for (OWLClassAxiom axiom : axioms) {
+			if (axiom instanceof OWLSubClassOfAxiom) {
+				OWLSubClassOfAxiom subClassAxiom = (OWLSubClassOfAxiom) axiom;
+				if (owlClass.equals(subClassAxiom.getSubClass())) {
+					OWLClassExpression ce = subClassAxiom.getSuperClass();
+					if (ce.isAnonymous() == false) {
+						subClassAxioms.add(subClassAxiom);
+					}
+				}
+			}
+		}
+		// check that the axioms are not already inferred
+		boolean requireUpdate = false;
+		if (subClassAxioms.isEmpty() == false) {
+			for (OWLSubClassOfAxiom owlSubClassOfAxiom : subClassAxioms) {
+				if (AxiomAnnotationTools.isMarkedAsInferredAxiom(owlSubClassOfAxiom) == false) {
+					requireUpdate = true;
+				}
+			}
+		}
+		if (requireUpdate) {
+			report.handledClasses += 1;
+			report.checkedAxioms += subClassAxioms.size();
+			manager.removeAxioms(ontology, subClassAxioms);
+			reasoner.flush();
+			NodeSet<OWLClass> superClasses = reasoner.getSuperClasses(owlClass, false);
+			Set<OWLAxiom> addSet = new HashSet<OWLAxiom>();
+			for (OWLSubClassOfAxiom subClassAxiom : subClassAxioms) {
+				if (superClasses.containsEntity(subClassAxiom.getSuperClass().asOWLClass())) {
+					// is inferred
+					// add markup and add to ontology
+					OWLAxiom markedAxiom = AxiomAnnotationTools.markAsInferredAxiom(subClassAxiom, factory);
+					report.annotatedAxioms += 1;
+					addSet.add(markedAxiom);
+				}
+				else {
+					// not inferred 
+					// add original axiom back into ontology
+					addSet.add(subClassAxiom);
+				}
+			}
+			manager.addAxioms(ontology, addSet);
+		}
+	}
+	
+	static class AllInferenceReport {
+		
+		int classes = 0;
+		int handledClasses = 0;
+		
+		int checkedAxioms = 0;
+		int annotatedAxioms = 0;
+		
+		void printReport(PrintWriter writer) {
+			writer.println("Classes:           "+classes);
+			writer.println("Handled Classes:   "+handledClasses);
+			writer.println("Axioms:            "+checkedAxioms);
+			writer.println("Annotated Axioms:  "+annotatedAxioms);
+			writer.flush();
+		}
+	}
 }
