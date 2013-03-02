@@ -162,6 +162,9 @@ public class OWLGraphWrapper {
 
 	private final Object edgeCacheMutex = new Object();
 	
+	// A cache of an arbitrary relationship closure for a certain object.
+	private Map<OWLObject,Map<ArrayList<String>,Map<String,String>>> mgrcmCache = null;
+	
 	private Profiler profiler = new Profiler();
 
 
@@ -1625,8 +1628,8 @@ public class OWLGraphWrapper {
 		// proof of concept right now; optimization later.
 		// Basically, toss anything that is not of distance 1--we already got
 		// reflexive above.
-		//for (OWLGraphEdge e : getIncomingEdges(x)) {
-		for (OWLGraphEdge e : getPrimitiveIncomingEdges(x)) { // TODO: use getIsaPartofClosureMap as a reference for how this should be done
+		for (OWLGraphEdge e : getIncomingEdges(x)) { // TODO: use getIsaPartofClosureMap as a reference for how this should be done
+		//for (OWLGraphEdge e : getPrimitiveIncomingEdges(x)) { // this failed--maybe faster, but dropped our regulates
 			OWLObject t = e.getSource();
 			if( t instanceof OWLNamedObject ){
 
@@ -2997,8 +3000,39 @@ public class OWLGraphWrapper {
 	 * @param c
 	 * @param relation_ids
 	 * @return map of ids to their displayable labels
+	 * @see #getRelationClosureMapEngine(OWLObject, ArrayList)
 	 */
 	public Map<String,String> getRelationClosureMap(OWLObject c, ArrayList<String> relation_ids){
+
+		Map<String,String> retmap = new HashMap<String,String>();
+
+		//private Map<OWLObject,Map<ArrayList<String>,Map<String,String>>> mgrcmCache = null;
+		if( mgrcmCache == null ){ // initialize the cache, if necessary
+				mgrcmCache = new HashMap<OWLObject,Map<ArrayList<String>,Map<String,String>>>();
+		}
+		if( mgrcmCache.containsKey(c) == false ){ // assemble level 1, if necessary
+			mgrcmCache.put(c, new HashMap<ArrayList<String>,Map<String,String>>());
+		}
+		if( mgrcmCache.get(c).containsKey(relation_ids) == false ){ // generate
+			retmap = getRelationClosureMapEngine(c, relation_ids);
+			mgrcmCache.get(c).put(relation_ids, retmap);
+		}else{ // return found
+			retmap = mgrcmCache.get(c).get(relation_ids);
+		}
+		
+		return retmap;
+	}
+		
+	/**
+	 * Generator for the cache in {@link #getRelationClosureMap(OWLObject, ArrayList)}.
+	 * 
+	 * @param c
+	 * @param relation_ids
+	 * @return map of ids to their displayable labels
+	 * @see #getRelationClosureMap(OWLObject, ArrayList)
+	 */
+	public Map<String,String> getRelationClosureMapEngine(OWLObject c, ArrayList<String> relation_ids){
+	//private Map<String,String> getRelationClosureMapEngine(OWLObject c, ArrayList<String> relation_ids){
 
 		Map<String,String> relation_map = new HashMap<String,String>(); // capture labels/ids
 
