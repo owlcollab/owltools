@@ -107,9 +107,9 @@ public class OWLGraphShuntTest extends OWLToolsTestBasics {
 		assertEquals("n11", g.hasNode(new OWLShuntNode("GO:0022008")), true);
 		assertEquals("n12", g.hasNode(new OWLShuntNode("GO:0048699")), true);
 		assertEquals("n13", g.hasNode(new OWLShuntNode("GO:0042063")), true);
-		assertEquals("n13", g.hasNode(new OWLShuntNode("GO:0050768")), true);
-		assertEquals("n13", g.hasNode(new OWLShuntNode("GO:0050769")), true);
-		assertEquals("n13", g.hasNode(new OWLShuntNode("GO:0050767")), true);
+		assertEquals("n14", g.hasNode(new OWLShuntNode("GO:0050768")), true);
+		assertEquals("n15", g.hasNode(new OWLShuntNode("GO:0050769")), true);
+		assertEquals("n16", g.hasNode(new OWLShuntNode("GO:0050767")), true);
 
 		// Now let's go through and exhaust this subgraph...edges.
 		assertEquals("edge count okay", g.edges.size(), 19);
