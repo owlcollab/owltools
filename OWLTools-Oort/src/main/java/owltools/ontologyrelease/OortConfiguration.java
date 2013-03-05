@@ -104,6 +104,8 @@ public class OortConfiguration {
 	
 	private List<OntologyCheck> ontologyChecks = getDefaultOntologyChecks();
 	
+	private boolean removeRedunantAxioms = true;
+	
 	private static List<OntologyCheck> getDefaultOntologyChecks() {
 		List<OntologyCheck> checks = new ArrayList<OntologyCheck>();
 		checks.add(new SelfReferenceInDefinition());
@@ -859,6 +861,20 @@ public class OortConfiguration {
 		this.traceReportFile = traceReportFile;
 	}
 
+	/**
+	 * @return the removeRedunantAxioms
+	 */
+	public boolean isRemoveRedunantAxioms() {
+		return removeRedunantAxioms;
+	}
+
+	/**
+	 * @param removeRedunantAxioms the removeRedunantAxioms to set
+	 */
+	public void setRemoveRedunantAxioms(boolean removeRedunantAxioms) {
+		this.removeRedunantAxioms = removeRedunantAxioms;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -975,6 +991,7 @@ public class OortConfiguration {
 		putValue(properties, "runOboBasicDagCheck", config.runOboBasicDagCheck);
 		putValue(properties, "errorReportFile", config.errorReportFile);
 		putValue(properties, "traceReportFile", config.traceReportFile);
+		putValue(properties, "removeRedunantAxioms", config.removeRedunantAxioms);
 		return properties;
 	}
 	
@@ -1091,6 +1108,7 @@ public class OortConfiguration {
 		config.runOboBasicDagCheck = getValue(properties, "runOboBasicDagCheck", config.runOboBasicDagCheck);
 		config.errorReportFile = getValue(properties, "errorReportFile", config.errorReportFile);
 		config.traceReportFile = getValue(properties, "traceReportFile", config.traceReportFile);
+		config.removeRedunantAxioms = getValue(properties, "removeRedunantAxioms", config.removeRedunantAxioms);
 	}
 	
 	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {

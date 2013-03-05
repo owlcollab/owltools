@@ -380,6 +380,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			else if (opts.nextEq("--run-obo-basic-dag-check")) {
 				oortConfig.setRunOboBasicDagCheck(true);
 			}
+			else if (opts.nextEq("--skip-remove-redundant")) {
+				oortConfig.setRemoveRedunantAxioms(false);
+			}
 			else if (opts.nextEq("--error-report")) {
 				String errorReportFile = "error-report.txt";
 				if (opts.hasArgs() && !opts.hasOpts()) {
@@ -871,21 +874,26 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					}
 
 					// REDUNDANT AXIOMS
-					logInfo("Finding redundant axioms");
-					for (OWLAxiom ax : infBuilder.getRedundantAxioms()) {
-						// TODO - in future do not remove axioms that are annotated
-						logInfo("Removing redundant axiom:"+ax+" // " + owlpp.render(ax));
-						reasonerReportLines.add("REDUNDANT\t"+owlpp.render(ax));
-						// note that the actual axiom in the ontology may be different, but with the same
-						// structure; i.e. with annotations
-						for (OWLAxiom axInOnt : mooncat.getOntology().getAxiomsIgnoreAnnotations(ax)) {
-							logInfo("  Actual axiom: "+axInOnt);
-							mooncat.getManager().applyChange(new RemoveAxiom(mooncat.getOntology(), axInOnt));	
+					if (oortConfig.isRemoveRedunantAxioms()) {
+						logInfo("Finding redundant axioms");
+						for (OWLAxiom ax : infBuilder.getRedundantAxioms()) {
+							// TODO - in future do not remove axioms that are annotated
+							logInfo("Removing redundant axiom:"+ax+" // " + owlpp.render(ax));
+							reasonerReportLines.add("REDUNDANT\t"+owlpp.render(ax));
+							// note that the actual axiom in the ontology may be different, but with the same
+							// structure; i.e. with annotations
+							for (OWLAxiom axInOnt : mooncat.getOntology().getAxiomsIgnoreAnnotations(ax)) {
+								logInfo("  Actual axiom: "+axInOnt);
+								mooncat.getManager().applyChange(new RemoveAxiom(mooncat.getOntology(), axInOnt));	
+							}
+	
 						}
-
+	
+						logInfo("Redundant axioms removed");
 					}
-
-					logInfo("Redundant axioms removed");
+					else {
+						logInfo("Skipping removal of redundant axioms");
+					}
 					
 					saveReasonerReport(ontologyId, reasonerReportLines);
 				}
