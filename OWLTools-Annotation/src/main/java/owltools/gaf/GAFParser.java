@@ -143,6 +143,15 @@ public class GAFParser {
 					this.currentCols[16] = "";
 					fireParsingWarning("Fix missing tab for GAF 2.0 format, expected 17 columns but found only 16.");
 				}
+				if (expectedNumCols == 17 && currentCols.length == 15) {
+					LOG.warn("Fix missing tabs for GAF 2.0 format in line: "+lineNumber);
+					// repair
+					// add two empty "" to the array
+					this.currentCols = Arrays.copyOf(currentCols, 17);
+					this.currentCols[15] = "";
+					this.currentCols[16] = "";
+					fireParsingWarning("Fix missing tab for GAF 2.0 format, expected 17 columns but found only 15.");
+				}
 				if (currentCols.length != expectedNumCols) {
 
 					String error = "Got invalid number of columns for row (expected "
