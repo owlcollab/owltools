@@ -194,11 +194,13 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		String url = sortOutSolrURL(globalSolrURL);				
 
 		// Grab the intermediate form.
+		LOG.info("Assembling FlexCollection...");
 		FlexCollection flex = new FlexCollection(aconf, g);
 		
 		// Actual ontology class loading.
 		try {
 			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, flex);
+			LOG.info("Trying ontology flex load.");
 			loader.load();
 		} catch (SolrServerException e) {
 			LOG.info("Ontology load at: " + url + " failed!");
