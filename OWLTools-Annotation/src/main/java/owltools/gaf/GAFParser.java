@@ -16,6 +16,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -71,43 +73,68 @@ public class GAFParser {
 	}
 	
 	/**
-	 * Method declaration
+	 * Try to parse a next line, may skip lines until a line is parsed successfully or the file ends.
 	 * 
-	 * @return true, if next was successful
+	 * @return true, if there is a next line.
 	 * @throws IOException
 	 */
 	public boolean next() throws IOException{
+		
+		while (true) {
+			ReadState state = loadNext();
+			if (state == ReadState.success) {
+				return true;
+			}
+			else if (state == ReadState.no) {
+				return false;
+			}
+			// default ReadState.next
+			// continue loop
+		}
+	}
+	
+	/**
+	 * Using a recursive call to check if a next line exists, may lead to an over flow.
+	 * Use a while loop with a function call, which has a tri-state return value.
+	 * 
+	 * @return ReadState
+	 * @throws IOException
+	 */
+	private ReadState loadNext() throws IOException{
 		if(reader != null){
 			currentRow  = reader.readLine();
 			if(currentRow == null){
-				return false;
+				return ReadState.no;
 			}
 
 			lineNumber++;
 			if(DEBUG)
 				LOG.debug("Parsing Row: " +lineNumber + " -- " +currentRow);
 
-			if (this.currentRow.trim().length() == 0) {
+			final String trimmedLine = StringUtils.trimToEmpty(currentRow);
+			if (trimmedLine.length() == 0) {
 				LOG.warn("Blank Line");
-				return next();
-			}else if (currentRow.startsWith(GAF_COMMENT)) {
+				return ReadState.next;
+			}else if (trimmedLine.startsWith(GAF_COMMENT)) {
 				
 				if(gafVersion<1){
 				
-					if (isFormatDeclaration(currentRow)) {
-						gafVersion = parseGafVersion(currentRow);
+					if (isFormatDeclaration(trimmedLine)) {
+						gafVersion = parseGafVersion(trimmedLine);
 						if (gafVersion == 2.0) {
 							expectedNumCols = 17;
 						}
 					}
 				}
-				return next();
+				return ReadState.next;
 			}else{
 				
 				
 				fireParsing();
 				
-				this.currentCols = this.currentRow.split("\\t", -1);
+				// use more efficient implementation to split line
+				// this.currentRow.split("\\t", -1);
+				this.currentCols = StringUtils.splitPreserveAllTokens(this.currentRow, '\t');
 				if (expectedNumCols == 17 && currentCols.length == 16) {
 					LOG.warn("Fix missing tab for GAF 2.0 format in line: "+lineNumber);
 					// repair
@@ -129,19 +156,25 @@ public class GAFParser {
 						voilations.add(v);
 						fireParsingError(error);
 						LOG.error(error + " : " + this.currentRow);
-						return next();
+						return ReadState.next;
 					}else{
 						fireParsingWarning(error);
 						LOG.warn(error + " : " + this.currentRow);
 					}
 				}
-				return true;
+				return ReadState.success;
 			}
 			
 		}
 		
-		return false;
+		return ReadState.no;
 			
+	}
+	
+	private enum ReadState {
+		success,
+		no,
+		next
 	}
 	
 	private void fireParsing(){
