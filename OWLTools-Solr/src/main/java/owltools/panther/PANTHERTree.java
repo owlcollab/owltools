@@ -21,6 +21,8 @@ import org.forester.io.parsers.nhx.NHXParser;
 import org.forester.io.parsers.util.PhylogenyParserException;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
+import org.forester.phylogeny.data.NodeData;
+import org.forester.phylogeny.data.PropertiesMap;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
@@ -81,18 +83,24 @@ public class PANTHERTree {
 		
 		// The first line is the tree in Newick-ish form, the rest is the annotation info
 		// that needs to be parsed later on.
-		if( lines.length < 2 ){
-			throw new Error("Does not look like a usable PANTHER tree file.");
+		if( lines.length < 3 ){
+			throw new Error("Does not look like a usable PANTHER tree file: " + pFile.getName());
 		}else{
-			treeStr = lines[0];
-			treeAnns = Arrays.copyOfRange(lines, 1, lines.length);
 			
-			if( treeAnns == null || treeStr == null || treeStr.equals("") || treeAnns.length < 1 ){
+			// The human tree name.
+			treeLabel = StringUtils.removeStart(lines[0], "NAME=");
+
+			// The raw tree.
+			treeStr = lines[1];
+
+			// The raw annotations associated with the tree.
+			treeAnns = Arrays.copyOfRange(lines, 2, lines.length);
+			
+			if( treeAnns == null || treeStr == null || treeLabel == null || treeStr.equals("") || treeLabel.equals("") || treeAnns.length < 1 ){
 				throw new Error("It looks like a bad PANTHER tree file.");
 			}else{
 				String filename = pFile.getName();
 				treeID = StringUtils.substringBefore(filename, ".");
-				treeLabel = treeID;
 			}
 		}
 		
@@ -137,6 +145,8 @@ public class PANTHERTree {
 	@SuppressWarnings("unchecked")
 	private OWLShuntGraph generateGraph(){
 		
+		if( g == null ){
+		
 		g = new OWLShuntGraph();
 		
 		// Parse the Newick tree down to something usable.
@@ -160,8 +170,16 @@ public class PANTHERTree {
 			throw new Error("error while parsing newick tree");
 		}
 		
+//		// Okay, now here, since the PANTHER data is bad and we can't actually get access to the 
+//		// spec/dupe stuff through the normal API, we're going to try and wring that data out with 
+//		// a regexp on the raw input string. We'll then match those ids to the ones in the loop below.
+//		String raw = getNHXString();
+//		// The spec is :Ev=duplications>speciations>gene losses>event type>duplication type 
+//		// But PANTHER only inmplements :Ev=duplications>speciations,
+//		// 
+		
 		// Assemble the graph(s, whence the for loop) from the parser.
-		Gson gson = new Gson(); // I'll be doing this a bunch
+		//Gson gson = new Gson(); // I'll be doing this a bunch
 		for( Phylogeny phy : phys ){
 
 			// First, add all of the nodes to the graph.
@@ -181,19 +199,35 @@ public class PANTHERTree {
 				n.setLabel(lbl);
 				
 				// Grab dup/spec and layout(?) data.
-				boolean dupP = pNode.isDuplication();
+				boolean dupP = pNode.isDuplication(); // these two seem to do nothing
 				boolean specP = pNode.isSpeciation();
 				int ind = -2;
 				try {
 					ind = pNode.getChildNodeIndex();
 				}catch(UnsupportedOperationException uoe) {
-				      ind = -1;
+				      ind = -1; // probably the root
 				}
 				Map<String,String> mmap = new HashMap<String,String>();
 				mmap.put("duplication_p", Boolean.toString(dupP));
 				mmap.put("speciation_p", Boolean.toString(specP));
 				mmap.put("layout_index", Integer.toString(ind));
 				n.setMetadata(mmap);
+				
+//				if( specP ){
+//					LOG.info("spec: " + Boolean.toString(specP));
+//				}
+//				if( dupP ){
+//					LOG.info("dup: " + Boolean.toString(dupP));
+//				}
+				
+//				// TODO: Try and grab some stuff more directly.
+//				NodeData ndata = pNode.getNodeData();
+//				//String foo = ndata.asText().toString();
+//				PropertiesMap nprops = ndata.getProperties();
+//				String bar;
+//				if( nprops != null ){
+//					bar = nprops.toString();
+//				}
 				
 				// Add the new node to the graph.
 				g.addNode(n);
@@ -210,6 +244,7 @@ public class PANTHERTree {
 					g.addEdge(e);
 				}
 			}
+		}
 		}
 		// Okay, we have a graph...
 

@@ -23,7 +23,8 @@ public class PANTHERTreeTest {
 	public void testTreeloading() throws IOException{
 
 		// Get the files we need.
-		File pFile = getResource("PTHR10000.orig.tree");
+		//File pFile = getResource("PTHR10000.orig.tree");
+		File pFile = getResource("PTHR10000.arbre");
 		PANTHERTree ptree = new PANTHERTree(pFile);
 		
 //		// Trivial
@@ -32,12 +33,12 @@ public class PANTHERTreeTest {
 
 		Set<String> aSet = ptree.associatedIdentifierSet();
 			
-		assertTrue("Contains A", aSet.contains("TAIR:locus:2043535"));
+		assertTrue("Contains A", aSet.contains("TAIR:At1g18640"));
 		assertTrue("Contains B", aSet.contains("ENTREZ:3405244"));
 		assertTrue("Contains C", aSet.contains("UniProtKB:Q4Q8D0"));
-		assertTrue("Contains D", aSet.contains("NCBI:XP_650942"));
+		assertTrue("Contains D", aSet.contains("NCBI:XP_001671160"));
 		assertTrue("Contains E", aSet.contains("ZFIN:ZDB-GENE-050809-127"));
-		assertTrue("Contains F", aSet.contains("ENSEMBL:ENSCINP00000026490"));
+		assertTrue("Contains F", aSet.contains("ENSEMBL:AGAP012247"));
 		assertFalse("Does not contain A", aSet.contains("TAIR:locus:2033535"));
 		assertFalse("Does not contain B", aSet.contains("TAIR=locus=2043535"));
 		assertFalse("Does not contain C", aSet.contains("ZFIN=ZDB-GENE-050809-127"));

@@ -344,32 +344,33 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	@CLIMethod("--solr-load-panther")
 	public void processPantherTrees(Opts opts) throws Exception {
 
-		// The first argument must be the associated HMM data dump.
-		String treeClassifications = opts.nextOpt();
-		LOG.info("Using file for PANTHER labels/classifications: " + treeClassifications);
-		File tcFile = new File(treeClassifications);		
+//		// The first argument must be the associated HMM data dump.
+//		String treeClassifications = opts.nextOpt();
+//		LOG.info("Using file for PANTHER labels/classifications: " + treeClassifications);
+//		File tcFile = new File(treeClassifications);		
 		
 		// The rest of the arguments are 
 		// Go through the listed directories and collect the PANTHER
 		// tree files.
-		List<String> treeDirs = opts.nextList();
-		List<File> pFilesCollection = new ArrayList<File>();
-		while( ! treeDirs.isEmpty() ){
-			String tDirName = treeDirs.remove(0);
-			LOG.info("Using directory for PANTHER tree discovery: " + tDirName );
-			File pDir = new File(tDirName);
-			FileFilter pFileFilter = new WildcardFileFilter("PTHR*.tree");
-			File[] pFiles = pDir.listFiles(pFileFilter);
-			if( pFiles !=null ){
-				for( File pFile : pFiles ){
-					pFilesCollection.add(pFile);
-					//LOG.info("Processing PANTHER tree: " + pFile.getAbsolutePath());
-				}			
-			}
-		}
+		String treeDir = opts.nextOpt();
+		//List<File> pFilesCollection = new ArrayList<File>();
+//		while( ! treeDirs.isEmpty() ){
+//			String tDirName = treeDirs.remove(0);
+//			LOG.info("Using directory for PANTHER tree discovery: " + tDirName );
+//			File pDir = new File(tDirName);
+//			//FileFilter pFileFilter = new WildcardFileFilter("PTHR*.tree");
+//			File[] pFiles = pDir.listFiles(pFileFilter);
+//			if( pFiles !=null ){
+//				for( File pFile : pFiles ){
+//					pFilesCollection.add(pFile);
+//					//LOG.info("Processing PANTHER tree: " + pFile.getAbsolutePath());
+//				}			
+//			}
+//		}
 		
 		// Process the files and ready them for use in the Loader.
-		pSet = new PANTHERForest(tcFile, pFilesCollection);
+		File pDir = new File(treeDir);
+		pSet = new PANTHERForest(pDir);
 		LOG.info("Found " + pSet.getNumberOfFilesInSet() + " trees and " + pSet.getNumberOfIdentifiersInSet() + " identifiers.");
 	}
 
