@@ -191,6 +191,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			log4jHandler.logInfo(message);
 			log4jHandler.logInfo("Done!");
+		} catch (OboOntologyReleaseRunnerCheckException e) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Stopped Release process. Hint: ");
+			sb.append(e.getHint());
+			List<String> reasons = e.getReasons();
+			if (reasons != null) {
+				sb.append(" Reasons: ");
+				for (String reason : reasons) {
+					sb.append('\n').append(reason);
+				}
+			}
+			log4jHandler.logError(sb.toString(), e);
+			exitCode = -1;
 		} catch (Throwable e) {
 			log4jHandler.logError("Stopped Release process. Reason: "+e.getMessage(), e);
 			exitCode = -1;
