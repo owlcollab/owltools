@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -63,9 +64,9 @@ public class FlexCollection implements Iterable<FlexDocument> {
 
 				// Status.
 				c++;
-				if( c % 1000 == 0 ){
+				//if( c % 1000 == 0 ){
 					LOG.info("Loaded: " + c + " of " + t + ".");
-				}
+				//}
 				
 			}	
 		}
@@ -254,6 +255,8 @@ public class FlexCollection implements Iterable<FlexDocument> {
 			ArrayList <String> prop_meth_and_args = field.property;
 			String card = field.cardinality;
 
+			LOG.info("Add: (" + StringUtils.join(prop_meth_and_args, " ") + ")");
+			
 			// Select between the single and multi styles.
 			if( card.equals("single") ){
 				String val = getExtString(obj, prop_meth_and_args);
