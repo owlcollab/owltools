@@ -165,9 +165,6 @@ public class OWLGraphWrapper {
 	// A cache of an arbitrary relationship closure for a certain object.
 	private Map<OWLObject,Map<ArrayList<String>,Map<String,String>>> mgrcmCache = null;
 	
-	// A cache so we prevent masses of new repeat string instances from being endlessly generated.
-	public static Map<String, String> repeatStringCacher = new HashMap<String, String>();
-	
 	private Profiler profiler = new Profiler();
 
 
@@ -2255,13 +2252,7 @@ public class OWLGraphWrapper {
 	 * @return label
 	 */
 	public String getLabel(OWLObject c) {
-		String lbl = getAnnotationValue(c, getDataFactory().getRDFSLabel());
-		String cachedLabel = repeatStringCacher.get(lbl);
-		if( cachedLabel == null ){
-			repeatStringCacher.put(lbl, lbl);
-			cachedLabel = lbl;
-		}
-		return cachedLabel;
+		return getAnnotationValue(c, getDataFactory().getRDFSLabel());
 	}
 	
 	
@@ -3612,13 +3603,7 @@ public class OWLGraphWrapper {
 	 * @return OBO-style identifier, using obo2owl mapping
 	 */
 	public String getIdentifier(OWLObject owlObject) {
-		String id = Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
-		String cachedID = repeatStringCacher.get(id);
-		if( cachedID == null ){
-			repeatStringCacher.put(id, id);
-			cachedID = id;
-		}
-		return cachedID;
+		return Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
 	}
 
 	/**
