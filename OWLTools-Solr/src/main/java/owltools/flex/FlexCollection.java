@@ -55,8 +55,18 @@ public class FlexCollection implements Iterable<FlexDocument> {
 		if( graph == null ){
 			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
 		}else{
+			int c = 0;
+			int t = graph.getAllOWLObjects().size();
+			LOG.info("Loading collection with: " + t + " objects.");
 			for (OWLObject obj : graph.getAllOWLObjects()) {
 				docs.add(wring(obj, config));
+
+				// Status.
+				c++;
+				if( c % 1000 == 0 ){
+					LOG.info("Loaded: " + c + " of " + t + ".");
+				}
+				
 			}	
 		}
 	}
