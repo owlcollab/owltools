@@ -10,14 +10,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import owltools.graph.OWLGraphWrapper;
 import owltools.graph.shunt.OWLShuntGraph;
 import owltools.panther.PANTHERTree;
 
 public class PANTHERTreeTest {
+
+	private static Logger LOG = Logger.getLogger(OWLGraphWrapper.class);
 
 	@Test
 	public void testTreeloading() throws IOException{
@@ -47,10 +51,10 @@ public class PANTHERTreeTest {
 		assertFalse("Does not contain F", aSet.contains(":"));
 		assertFalse("Does not contain G", aSet.contains("GO:0022008"));
 		
-//		// Okay, now let's look at the generated graph a little.
-//		OWLShuntGraph sg = ptree.getOWLShuntGraph();
-//		String sg_json = sg.toJSON();
-//		sg_json.toString();
+		// DEBUG: Okay, now let's look at the generated graph a little.
+		//OWLShuntGraph sg = ptree.getOWLShuntGraph();
+		//String sg_json = sg.toJSON();
+		//LOG.info(sg_json.toString());
 	}
 	
 //	@Test

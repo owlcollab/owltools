@@ -108,6 +108,7 @@ public class PANTHERTree {
 		annotationSet = new HashSet<String>();
 		generateGraph(); // this must come before annotation processing
 		readyAnnotationDataCache();
+		matchAnnotationsIntoGraph();
 	}
 	
 	/**
@@ -175,7 +176,7 @@ public class PANTHERTree {
 //		// a regexp on the raw input string. We'll then match those ids to the ones in the loop below.
 //		String raw = getNHXString();
 //		// The spec is :Ev=duplications>speciations>gene losses>event type>duplication type 
-//		// But PANTHER only inmplements :Ev=duplications>speciations,
+//		// But PANTHER only implements :Ev=duplications>speciations,
 //		// 
 		
 		// Assemble the graph(s, whence the for loop) from the parser.
@@ -436,7 +437,7 @@ public class PANTHERTree {
 	 * Technically, in our case, the labels should be unique if defined.
 	 */
 	private String uuidInternal(String nodeIdentifier){
-		return getTreeLabel() + ":" + nodeIdentifier;
+		return getTreeID() + ":" + nodeIdentifier;
 	}
 	
 	/**
@@ -510,5 +511,27 @@ public class PANTHERTree {
 	public Set<String> associatedIdentifierSet(){
 		return annotationSet;
 	}		
-		
+
+	/**
+	 * Cycle through the nodes and try to add annotation metadata by matching on the label.
+	 */
+	private void matchAnnotationsIntoGraph(){
+
+		for( OWLShuntNode n : g.nodes ){
+
+			// This should be the ID that's used in the GP map.
+			String maybeID = uuidInternal(n.lbl);
+			if( nodeToGpMap.containsKey(maybeID) ){
+
+				Map<String, String> md = n.getMetadata();
+				
+				Set<String> gpSet = nodeToGpMap.get(maybeID);				
+				md.put("annotations", StringUtils.join(gpSet, "|"));
+
+				n.setMetadata(md);
+			}
+		}
+	}
+
 }
+
