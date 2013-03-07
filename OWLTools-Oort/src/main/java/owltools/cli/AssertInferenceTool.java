@@ -18,6 +18,8 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
@@ -76,6 +78,7 @@ public class AssertInferenceTool {
 		String reportFile = null;
 		
 		boolean all = false;
+		String idsInputFile = null;
 		
 		// parse command line parameters
 		while (opts.hasArgs()) {
@@ -123,6 +126,14 @@ public class AssertInferenceTool {
 				reportFile = opts.nextOpt();
 			}
 			else if (opts.nextEq("--all")) {
+				// check all classes for un-marked inferred links
+				all = true;
+				Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
+			}
+			else if (opts.nextEq("--all-ids-input-file")) {
+				// check all classes (from the id file, one per line)
+				// for un-marked inferred links
+				idsInputFile = opts.nextOpt();
 				all = true;
 				Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
 			}
@@ -176,7 +187,7 @@ public class AssertInferenceTool {
 		}
 		
 		if (all == true) {
-			assertAllInferences(graph);
+			assertAllInferences(graph, idsInputFile);
 		}else {
 			// assert inferences
 			assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, reportWriter);
@@ -526,10 +537,12 @@ public class AssertInferenceTool {
 		}
 	}
 
-	public static void assertAllInferences(OWLGraphWrapper graph) {
+	public static void assertAllInferences(OWLGraphWrapper graph, String idsInputFile) {
 		final OWLOntology ontology = graph.getSourceOntology();
 		final OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		final OWLDataFactory factory = manager.getOWLDataFactory();
+		
+		Set<String> ids = loadIdsInputFile(idsInputFile);
 		
 		// create ontology with imports and create set of changes to remove the additional imports
 		List<OWLOntologyChange> removeImportChanges = new ArrayList<OWLOntologyChange>();
@@ -551,13 +564,15 @@ public class AssertInferenceTool {
 			AllInferenceReport report = new AllInferenceReport();
 			Set<OWLClass> classes = ontology.getClassesInSignature(false);
 			int count = 0;
-			int total = classes.size();
-//			int step = total / 100;
-//			if (step <= 4) {
-//				step = 5;
-//			}
-			int step = 50;
+			int total = ids != null ? ids.size() : classes.size();
+			int step = 100;
 			for (final OWLClass owlClass : classes) {
+				if (ids != null) {
+					String id = graph.getIdentifier(owlClass);
+					if (ids.contains(id) == false) {
+						continue;
+					}
+				}
 				count += 1;
 				// get axioms for the current class
 				Set<OWLClassAxiom> axioms = ontology.getAxioms(owlClass);
@@ -566,9 +581,6 @@ public class AssertInferenceTool {
 //				handleAxioms2(owlClass, axioms, ontology, manager, factory, reasoner, report);
 				if (count % step == 0) {
 					logger.info("Current count "+count+" of "+total);
-				}
-				if (count == 200) {
-					break;
 				}
 			}
 			PrintWriter writer = new PrintWriter(System.out);
@@ -580,6 +592,37 @@ public class AssertInferenceTool {
 		}
 		// remove additional import axioms
 		manager.applyChanges(removeImportChanges);
+	}
+	
+	private static Set<String> loadIdsInputFile(String input) {
+		if (input != null) {
+			File inputFile = new File(input);
+			if (inputFile.exists() && inputFile.isFile() && inputFile.canRead()) {
+				Set<String> ids = new HashSet<String>();
+				LineIterator iterator = null;
+				try {
+					iterator = FileUtils.lineIterator(inputFile);
+					while (iterator.hasNext()) {
+						String line = iterator.next();
+						line = StringUtils.trimToNull(line);
+						if (line != null) {
+							ids.add(line);
+						}
+					}
+					logger.info("Finished loading input file: "+input+"\n id count: "+ids.size());
+					return ids;
+				} catch (IOException e) {
+					logger.warn("Could not load ids file: "+input, e);
+				}
+				finally {
+					LineIterator.closeQuietly(iterator);
+				}
+			}
+			else {
+				logger.warn("Could not load ids file: "+input);
+			}
+		}
+		return null;
 	}
 
 	@SuppressWarnings("unused")
