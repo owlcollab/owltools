@@ -26,6 +26,13 @@ intersection_of: part_of FOO:0005 ! dangling
 id: FOO:0005
 name: other root
 
+[Term]
+id: FOO:0006
+name: right3
+is_a: FOO:0003 ! root
+intersection_of: FOO:0003 ! root
+intersection_of: part_of FOO:0006 ! dangling
+
 [Typedef]
 id: part_of
 name: part_of
