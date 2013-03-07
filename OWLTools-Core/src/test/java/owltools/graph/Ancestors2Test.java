@@ -16,7 +16,7 @@ import org.semanticweb.owlapi.model.OWLRestriction;
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapper.Config;
+import owltools.graph.OWLGraphWrapperEdges.Config;
 
 public class Ancestors2Test extends OWLToolsTestBasics {
 

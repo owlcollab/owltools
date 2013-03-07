@@ -19,7 +19,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapper.Config;
+import owltools.graph.OWLGraphWrapperEdges.Config;
 import owltools.graph.OWLQuantifiedProperty;
 
 public class GraphExclusionTest extends OWLToolsTestBasics {
