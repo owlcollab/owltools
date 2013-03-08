@@ -1,0 +1,26 @@
+format-version: 1.2
+ontology: test
+
+[Term]
+id: TEST:0001
+name: "Test 1"
+
+[Typedef]
+id: has_participant
+name: has participant
+xref: BFO:0000057
+
+[Typedef]
+id: regulates_o_has_participant
+name: regulates_o_has_participant
+def: "This is the combination of the regulates relation with the has_participant relation." [GOC:mtg_berkeley_2013]
+xref: GOREL:0001016
+equivalent_to_chain: regulates has_participant
+domain: BFO:0000007 ! process
+range: ENTITY_UNION:0000008
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+is_transitive: true

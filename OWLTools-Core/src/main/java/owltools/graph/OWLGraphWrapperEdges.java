@@ -1,5 +1,6 @@
 package owltools.graph;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,6 +12,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -1664,6 +1666,58 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		return subsumers;
 	}
 
+	/**
+	 * If available, return the elements of the equivalent property chain.
+	 * 
+	 * @param id the id of the property to be expanded
+	 * @return the chain as a list or null if no chain was found
+	 */
+	public List<OWLObjectProperty> expandRelationChain(String id) {
+		IRI iriByIdentifier = getIRIByIdentifier(id);
+		OWLObjectProperty p = getOWLObjectProperty(iriByIdentifier);
+		if (p == null) {
+			IRI iri = getIRIByLabel(id);
+			if (iri != null) {
+				p = getOWLObjectProperty(iri);
+			}
+		}
+		if (p != null) {
+			return expandRelationChain(p);
+		}
+		return null;
+	}
+	
+	/**
+	 * If available, return the elements of the equivalent property chain.
+	 * 
+	 * WARNING: If multiple chains exist, only the first one is returned.
+	 * 
+	 * @param property the property to be expanded
+	 * @return the chain as a list or null if no chain was found
+	 */
+	public List<OWLObjectProperty> expandRelationChain(OWLObjectProperty property) {
+
+		// TODO currently it return the first chain it finds.
+		for (OWLOntology owlOntology : getAllOntologies()) {
+
+			Set<OWLSubPropertyChainOfAxiom> axioms = owlOntology.getAxioms(AxiomType.SUB_PROPERTY_CHAIN_OF);
+			for (OWLSubPropertyChainOfAxiom subPropertyChainOf : axioms) {
+				if (property.equals(subPropertyChainOf.getSuperProperty())) {
+					List<OWLObjectPropertyExpression> chain = subPropertyChainOf.getPropertyChain();
+					List<OWLObjectProperty> expanded = new ArrayList<OWLObjectProperty>();
+					for (OWLObjectPropertyExpression e : chain) {
+						if (e.isAnonymous() == false) {
+							expanded.add(e.asOWLObjectProperty());
+						}
+					}
+					if (expanded.isEmpty() == false) {
+						return expanded;
+					}
+				}
+			}
+		}
+		return null;
+	}
 
 }
 
