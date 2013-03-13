@@ -773,26 +773,42 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return Owl2Obo.getIdentifier(iriId);
 	}
 
-	// TODO - use Obo2Owl.oboIdToIRI()
 	public IRI getIRIByIdentifier(String id) {
-		// TODO - provide a static method for doing this
+		
+		// special magic for finding IRIs from a non-standard identifier
+		// This is the case for relations (OWLObject properties) with a short hand
+		// or for relations with a non identifiers with-out a colon, e.g. negative_regulation
+		if (!id.contains(":")) {
+			final OWLAnnotationProperty shortHand = getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_shorthand.getIRI());
+			final OWLAnnotationProperty oboIdInOwl = getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
+			for (OWLOntology o : getAllOntologies()) {
+				for(OWLObjectProperty p : o.getObjectPropertiesInSignature()) {
+					// check for short hand or obo ID in owl
+					Set<OWLAnnotation> annotations = p.getAnnotations(o);
+					if (annotations != null) {
+						for (OWLAnnotation owlAnnotation : annotations) {
+							OWLAnnotationProperty property = owlAnnotation.getProperty();
+							if (shortHand.equals(property) || oboIdInOwl.equals(property)) {
+								OWLAnnotationValue value = owlAnnotation.getValue();
+								if (value != null && value instanceof OWLLiteral) {
+									OWLLiteral literal = (OWLLiteral) value;
+									String shortHandLabel = literal.getLiteral();
+									if (id.equals(shortHandLabel)) {
+										return p.getIRI();
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		
+		// otherwise use the obo2owl method
 		Obo2Owl b = new Obo2Owl();
 		b.setObodoc(new OBODoc());
 		return b.oboIdToIRI(id);
-		/*
-		new oboIdToIRI()
-		String[] parts = id.split(":", 2);
-		String s;
-		if (parts.length <2) {
-			// TODO!
-			s = "http://purl.obolibrary.org/obo/TODO_"+parts[0];
-		}
-		else {
-			s = "http://purl.obolibrary.org/obo/"+parts[0]+"_"+parts[1];
-		}
-
-		return IRI.create(s);
-		 */
 	}
 
 	/**
@@ -803,16 +819,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 */
 	public OWLObject getOWLObjectByIdentifier(String id) {
 		IRI iri = getIRIByIdentifier(id);
-		if (getOWLClass(iri) != null) {
-			return getOWLClass(iri);
-		}
-		else if (getOWLIndividual(iri) != null) {
-			return getOWLIndividual(iri);
-		}
-		else if (getOWLObjectProperty(iri) != null) {
-			return getOWLObjectProperty(iri);
-		}
-		return null;
+		return getOWLObject(iri);
 	}
 
 	/**
@@ -822,7 +829,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return OWLObjectProperty with id or null
 	 */
 	public OWLObjectProperty getOWLObjectPropertyByIdentifier(String id) {
-		return getDataFactory().getOWLObjectProperty(getIRIByIdentifier(id));
+		return getOWLObjectProperty(getIRIByIdentifier(id));
 	}
 
 	/**
@@ -832,7 +839,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return OWLNamedIndividual with id or null
 	 */
 	public OWLNamedIndividual getOWLIndividualByIdentifier(String id) {
-		return getDataFactory().getOWLNamedIndividual(getIRIByIdentifier(id));
+		return getOWLIndividual(getIRIByIdentifier(id));
 	}
 
 	/**

@@ -24,3 +24,7 @@ id: part_of
 name: part_of
 xref: BFO:0000050
 is_transitive: true
+
+[Typedef]
+id: foo_bar
+name: foo_bar

@@ -1673,14 +1673,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @return the chain as a list or null if no chain was found
 	 */
 	public List<OWLObjectProperty> expandRelationChain(String id) {
-		IRI iriByIdentifier = getIRIByIdentifier(id);
-		OWLObjectProperty p = getOWLObjectProperty(iriByIdentifier);
-		if (p == null) {
-			IRI iri = getIRIByLabel(id);
-			if (iri != null) {
-				p = getOWLObjectProperty(iri);
-			}
-		}
+		OWLObjectProperty p = getOWLObjectPropertyByIdentifier(id);
 		if (p != null) {
 			return expandRelationChain(p);
 		}
