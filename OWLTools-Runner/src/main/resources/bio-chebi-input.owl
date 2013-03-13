@@ -18,10 +18,10 @@
     
     <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002234"/>
     
-    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000034"/>
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002340"/>
     
-    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000035"/>
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002345"/>
     
-    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000036"/>
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002313"/>
 </rdf:RDF>
 
