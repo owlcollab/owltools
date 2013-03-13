@@ -99,6 +99,8 @@ public class GafObjectsBuilder {
 		this.docId = docId;
 		this.documentPath = path;
 
+		LOG.info("Building document: [" + fileName + "] @ [" + path + "]");
+		
 		parser.parse(fileName);
 		
 		isSplitted = false;

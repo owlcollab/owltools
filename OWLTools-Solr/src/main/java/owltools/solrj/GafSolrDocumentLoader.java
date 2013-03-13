@@ -81,7 +81,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	@Override
 	public void load() throws SolrServerException, IOException {
 		gafDocument.index();
-		LOG.info("Loading: " + gafDocument.getDocumentPath());
+		LOG.info("Iteratively loading: " + gafDocument.getDocumentPath());
 		for (Bioentity e : gafDocument.getBioentities()) {
 			add(e);
 			current_doc_number++;
@@ -180,21 +180,24 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					pcnt++; // DEBUG
 					PANTHERTree ptree = piter.next();
 					pantherFamilyIDs.add(ptree.getTreeID());
-					pantherFamilyLabels.add(ptree.getTreeLabel());
+					pantherFamilyLabels.add(StringUtils.lowerCase(ptree.getTreeLabel()));
 					pantherTreeGraphs.add(ptree.getOWLShuntGraph().toJSON());
 					//pantherTreeAnnAncestors = new ArrayList<String>(ptree.getAncestorAnnotations(eid));
 					//pantherTreeAnnDescendants = new ArrayList<String>(ptree.getDescendantAnnotations(eid));
 					if( pcnt > 1 ){ // DEBUG
-						LOG.info("Belongs to multiple families: " + StringUtils.join(pantherFamilyIDs, ", "));
+						LOG.info("Belongs to multiple families (" + eid + "): " + StringUtils.join(pantherFamilyIDs, ", "));
 					}
 				}
 			}
 		}
 		// Optionally, actually /add/ the PANTHER family data to the document.
 		if( ! pantherFamilyIDs.isEmpty() ){
-			bioentity_doc.addField("family_tag", pantherFamilyIDs);
-			bioentity_doc.addField("family_tag_label", pantherFamilyLabels);
-			bioentity_doc.addField("phylo_graph", pantherTreeGraphs);
+			// BUG/TODO (but probably not ours): We only store the one tree for now as we're assuming that there is just one family.
+			// Unfortunately, PANTHER still produces data that sez sometimes something belongs to more than one
+			// family (eg something with fly in PTHR10919 PTHR10032), so we block it and just choose the first.
+			bioentity_doc.addField("family_tag", pantherFamilyIDs.get(0));
+			bioentity_doc.addField("family_tag_label", pantherFamilyLabels.get(0));
+			bioentity_doc.addField("phylo_graph", pantherTreeGraphs.get(0));
 			//if( ! pantherTreeAnnAncestors.isEmpty() ){
 			//	bioentity_doc.addField("phylo_ancestor_closure", pantherTreeAnnAncestors);
 			//}
@@ -456,12 +459,12 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// Column 16.
 			Map<String,String> ann_ext_map = new HashMap<String,String>(); // capture labels/ids			
 			for (ExtensionExpression ee : a.getExtensionExpressions()) {
-				ee.getRelation();	// TODO
 				String eeid = ee.getCls();
 				OWLObject eObj = graph.getOWLObjectByIdentifier(eeid);
 				annotation_doc.addField("annotation_extension_class", eeid);	
-				addLabelField(annotation_doc, "annotation_extension_class_label", eeid);
-
+				String eLabel = addLabelField(annotation_doc, "annotation_extension_class_label", eeid);
+				if( eLabel == null ) eLabel = eeid; // ensure the label
+				
 				if (eObj != null) {
 					for (OWLGraphEdge edge : graph.getOutgoingEdgesClosureReflexive(eObj)) {
 						OWLObject t = edge.getTarget();
@@ -473,6 +476,33 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						annotation_doc.addField("annotation_extension_class_closure_label", annExtLabel);
 						ann_ext_map.put(annExtID, annExtLabel);
 						ann_ext_map.put(annExtLabel, annExtID);
+					}
+				}
+
+				// Ugly. Hand roll out the data for the c16 special handler. Have mercy on me--I'm going
+				// to just do this by hand since it's a limited case and I don't want to mess with Gson right now.
+				String complicated_c16r = ee.getRelation();
+				if( complicated_c16r != null ){
+					List<OWLObjectProperty> relations = graph.expandRelationChain(complicated_c16r);
+					if( relations != null ){
+
+						ArrayList<String> relChunk = new ArrayList<String>();
+						for( OWLObjectProperty rel : relations ){
+							// TODO: These do not seem to work particularly.
+							String rID = graph.getIdentifier(rel);
+							String rLabel = graph.getLabel(rel);
+							if( rLabel == null ) rLabel = rID; // ensure the label
+							relChunk.add("{\"id\": \"" + rID + "\", \"label\": \"" + rLabel + "\"}");
+						}
+						String finalSpan = StringUtils.join(relChunk, ", ");
+					
+						// Assemble final JSON blob.
+						String aeJSON = "{\"handler\": \"amigo.handler.owl_class_expression\", \"relationship\": {\"relation\": [" + 
+								finalSpan +
+								"], \"id\": \"" + eeid + "\", \"label\": \"" + eLabel + "\"}}";
+					
+						annotation_doc.addField("annotation_extension_class_handler", aeJSON);
+						//LOG.info("added complicated c16: (" + eeid + ", " + eLabel + ") " + aeJSON);
 					}
 				}
 			}
@@ -515,13 +545,18 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	}
 
 
-	private void addLabelField(SolrInputDocument d, String field, String id) {
+	private String addLabelField(SolrInputDocument d, String field, String id) {
+		String retstr = null;
+		
 		OWLObject obj = graph.getOWLObjectByIdentifier(id);
 		if (obj == null)
-			return;
+			return retstr;
+
 		String label = graph.getLabel(obj);
 		if (label != null)
 			d.addField(field, label);
+		
+		return label;
 	}
 	
 	private void addLabelFields(SolrInputDocument d, String field, List<String> ids) {

@@ -263,24 +263,31 @@ public class GAFParser {
 			throw new IOException("File '" + file + "' file not found");
 		}
 		
+		//
+		//LOG.info("ends with: " + Boolean.toString(file.endsWith(file)));
+		//LOG.info("is: [" + file.toString() + "]");
+		
 		InputStream is = null;
 		
 		if(file.startsWith("http://")){
 			URL url = new URL(file);
-			
 			is = url.openStream();
+			LOG.info("Open stream as URL");
 		}else if(file.startsWith("file:/")){
 			is = new FileInputStream(new File(new URI(file)));
+			LOG.info("Open stream as file URI");
 		}else{
 			is = new FileInputStream(file);
+			LOG.info("Open stream as file");
 		}
 		
 		if(file.endsWith(".gz")){
 			is = new GZIPInputStream(is);
+			LOG.info("Will decompress (.gz)");
 		}
-		
-		parse(new InputStreamReader(is));
-		
+
+		InputStreamReader isr = new InputStreamReader(is);
+		parse(isr);
 	}
 
 	

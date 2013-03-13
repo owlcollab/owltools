@@ -40,9 +40,64 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 
 	/**
+	 * Convert a list of relationship IDs to a hash set of OWLObjectProperties.
+	 * 
+	 * @param relation_ids
+	 * @return property hash
+	 * @see #getRelationClosureMapEngine(OWLObject, ArrayList)
+	 */
+	private HashSet<OWLObjectProperty> relationshipIDsToPropertySet(List<String> relation_ids){
+		HashSet<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
+		for( String rel_id : relation_ids ){
+			props.add(getOWLObjectPropertyByIdentifier(rel_id));
+		}
+		return props;
+	}
+
+	/**
+	 * Classify the an edge and target as a human readable string for further processing.
+	 * 
+	 * @param the edge under consideration
+	 * @param our properties set
+	 * @return null, "simplesubclass", "typesubclass", or "identity".
+	 * @see #getRelationClosureMap(OWLObject, ArrayList)
+	 * @see #addDirectDescendentsToShuntGraph(OWLObject, OWLShuntGraph)
+	 * @see #addStepwiseAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
+	 * @see #addTransitiveAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
+	 */
+	private String classifyRelationship(OWLGraphEdge owlGraphEdge, OWLObject edgeDirector, Set<OWLObjectProperty> props){
+		
+		String retval = null;
+		
+		OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
+		if( qp.isSubClassOf() || props.contains(qp.getProperty()) ){
+			//OWLObject target = owlGraphEdge.getTarget();
+			if( edgeDirector instanceof OWLClass ){
+				retval = "simplesubclass";
+			}else if( edgeDirector instanceof OWLObjectSomeValuesFrom ){
+				OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom)edgeDirector;
+				if( props.contains(some.getProperty()) ){
+					OWLClassExpression clsexp = some.getFiller();
+					if( ! clsexp.isAnonymous()){
+						retval = "typesubclass";
+					}
+				}
+			}
+		}else if( qp.isIdentity() ){
+			retval = "identity";
+		}else{
+			//System.out.println(owlGraphEdge);
+		}
+		
+		return retval;
+	}
+
+	/**
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
 	 * 
+	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
+	 *
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
@@ -55,31 +110,49 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 		OWLShuntNode tn = new OWLShuntNode(topicID, topicLabel);
 		g.addNode(tn);
 
-		// Next, get all of the named ancestors and add them to our shunt graph.
-		// We need some traversal code going up!
+		// NEW VERSION
+		ArrayList<String> rel_ids = new ArrayList<String>();
+		rel_ids.add("BFO:0000050");
+		rel_ids.add("RO:0002211");
+		rel_ids.add("RO:0002212");
+		rel_ids.add("RO:0002213");
+		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
 		for (OWLGraphEdge e : getOutgoingEdges(x)) {
-			OWLObject t = e.getTarget();
-			if (t instanceof OWLNamedObject){				
+			OWLObject target = e.getTarget();
+			String rel = classifyRelationship(e, target, props);
 
-				// Figure out object.
-				String objectID = getIdentifier(t);
-				String objectLabel = getLabel(t);
+			if( rel != null ){
 
-				// Edge.
-				String elabel = getEdgeLabel(e);
+				// Placeholders.
+				String objectID = null;
+				String objectLabel = null;
+				String elabel = null;
+				
+				if( rel == "simplesubclass" ){
+					objectID = getIdentifier(target);
+					objectLabel = getLabelOrDisplayId(target);
+					elabel = getEdgeLabel(e);
+				}else if( rel == "typesubclass" ){
+					OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom)target;
+					OWLClassExpression clsexp = some.getFiller();
+					OWLClass cls = clsexp.asOWLClass();
+					objectID = getIdentifier(cls);
+					objectLabel = getLabelOrDisplayId(cls);
+					elabel = getEdgeLabel(e);
+				}
 				
 				// Only add when subject, object, and relation are properly defined.
-				if( elabel != null &&
+				if(	elabel != null &&
 					topicID != null && ! topicID.equals("") &&
 					objectID != null &&	! objectID.equals("") ){
-				
+	
 					// Add node.
 					OWLShuntNode sn = new OWLShuntNode(objectID, objectLabel);
 					boolean wuzAdded = g.addNode(sn);
 
 					// Recur on node if it already wasn't there.
 					if( wuzAdded ){
-						addStepwiseAncestorsToShuntGraph(t, g);
+						addStepwiseAncestorsToShuntGraph(target, g);
 					}
 				
 					//Add edge 
@@ -88,6 +161,41 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 				}
 			}
 		}
+
+// ORIGINAL VERSION
+//		// Next, get all of the named ancestors and add them to our shunt graph.
+//		// We need some traversal code going up!
+//		for (OWLGraphEdge e : getOutgoingEdges(x)) {
+//			OWLObject t = e.getTarget();
+//			if (t instanceof OWLNamedObject){				
+//
+//				// Figure out object.
+//				String objectID = getIdentifier(t);
+//				String objectLabel = getLabel(t);
+//
+//				// Edge.
+//				String elabel = getEdgeLabel(e);
+//				
+//				// Only add when subject, object, and relation are properly defined.
+//				if( elabel != null &&
+//					topicID != null && ! topicID.equals("") &&
+//					objectID != null &&	! objectID.equals("") ){
+//				
+//					// Add node.
+//					OWLShuntNode sn = new OWLShuntNode(objectID, objectLabel);
+//					boolean wuzAdded = g.addNode(sn);
+//
+//					// Recur on node if it already wasn't there.
+//					if( wuzAdded ){
+//						addStepwiseAncestorsToShuntGraph(t, g);
+//					}
+//				
+//					//Add edge 
+//					OWLShuntEdge se = new OWLShuntEdge(topicID, objectID, elabel);
+//					g.addEdge(se);
+//				}
+//			}
+//		}
 		
 		return g;
 	}
@@ -96,6 +204,8 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
 	 * 
+	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
+	 *
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
@@ -108,19 +218,46 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 		OWLShuntNode tn = new OWLShuntNode(topicID, topicLabel);
 		g.addNode(tn);
 
-		// Next, get all of the named ancestors and add them to our shunt graph.
-		// We need some traversal code going up!
+		// NEW VERSION
+		ArrayList<String> rel_ids = new ArrayList<String>();
+		rel_ids.add("BFO:0000050");
+		rel_ids.add("RO:0002211");
+		rel_ids.add("RO:0002212");
+		rel_ids.add("RO:0002213");
+		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
 		for (OWLGraphEdge e : getOutgoingEdgesClosure(x)) {
-			OWLObject t = e.getTarget();
-			if (t instanceof OWLNamedObject){				
+			OWLObject target = e.getTarget();
+			
+//			if( "GO:0007399".equals(getIdentifier(target))){
+//				System.out.println();
+//			}
+			
+			String rel = classifyRelationship(e, target, props);
 
-				// Figure out object.
-				String objectID = getIdentifier(t);
-				String objectLabel = getLabel(t);
+			if( rel != null ){
 
-				// Edge.
-				String elabel = getEdgeLabel(e);
+				// Placeholders.
+				String objectID = null;
+				String objectLabel = null;
+				String elabel = null;
 				
+				if( rel == "simplesubclass" ){
+					objectID = getIdentifier(target);
+					objectLabel = getLabelOrDisplayId(target);
+					elabel = getEdgeLabel(e);
+				}else if( rel == "typesubclass" ){
+					OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom)target;
+					OWLClassExpression clsexp = some.getFiller();
+					OWLClass cls = clsexp.asOWLClass();
+					objectID = getIdentifier(cls);
+					objectLabel = getLabelOrDisplayId(cls);
+					elabel = getEdgeLabel(e);
+				}
+				
+//				if( "GO:0007399".equals(objectID)){
+//					System.out.println();
+//				}
+
 				// Only add when subject, object, and relation are properly defined.
 				if(	elabel != null &&
 					topicID != null && ! topicID.equals("") &&
@@ -137,6 +274,36 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 			}
 		}
 		
+// ORIGINAL VERSION
+//		// Next, get all of the named ancestors and add them to our shunt graph.
+//		// We need some traversal code going up!
+//		for (OWLGraphEdge e : getOutgoingEdgesClosure(x)) {
+//			OWLObject t = e.getTarget();
+//			if (t instanceof OWLNamedObject){				
+//
+//				// Figure out object.
+//				String objectID = getIdentifier(t);
+//				String objectLabel = getLabel(t);
+//
+//				// Edge.
+//				String elabel = getEdgeLabel(e);
+//				
+//				// Only add when subject, object, and relation are properly defined.
+//				if(	elabel != null &&
+//					topicID != null && ! topicID.equals("") &&
+//					objectID != null &&	! objectID.equals("") ){
+//				
+//					// Add the node.
+//					OWLShuntNode on = new OWLShuntNode(objectID, objectLabel);
+//					g.addNode(on);
+//
+//					// And the edges.
+//					OWLShuntEdge se = new OWLShuntEdge(topicID, objectID, elabel);
+//					g.addEdge(se);
+//				}
+//			}
+//		}
+	
 		return g;
 	}
 
@@ -144,6 +311,8 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	 * Add a set of edges, as descendents to x in OWLShuntGraph g.
 	 * This is reflexive.
 	 * 
+	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
+	 *
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
@@ -155,24 +324,37 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 		String topicLabel = getLabel(x);
 		OWLShuntNode tn = new OWLShuntNode(topicID, topicLabel);
 		g.addNode(tn);
+		
+		// NEW VERSION
+		ArrayList<String> rel_ids = new ArrayList<String>();
+		rel_ids.add("BFO:0000050");
+		rel_ids.add("RO:0002211");
+		rel_ids.add("RO:0002212");
+		rel_ids.add("RO:0002213");
+		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
+		for (OWLGraphEdge e : getIncomingEdges(x)) {
+			OWLObject source = e.getSource();
+			String rel = classifyRelationship(e, source, props);
 
-		// Next, get all of the immediate descendents.
-		// Yes, this could be done more efficiently by reworking 
-		// getIncomingEdgesClosure for our case, but I'm heading towards
-		// proof of concept right now; optimization later.
-		// Basically, toss anything that is not of distance 1--we already got
-		// reflexive above.
-		for (OWLGraphEdge e : getIncomingEdges(x)) { // TODO: use getIsaPartofClosureMap as a reference for how this should be done
-		//for (OWLGraphEdge e : getPrimitiveIncomingEdges(x)) { // this failed--maybe faster, but dropped our regulates
-			OWLObject t = e.getSource();
-			if( t instanceof OWLNamedObject ){
+			if( rel != null ){
 
-				// Figure out subject.
-				String subjectID = getIdentifier(t);
-				String subjectLabel = getLabel(t);
+				// Placeholders.
+				String subjectID = null;
+				String subjectLabel = null;
+				String elabel = null;
 
-				// Figure edge out.
-				String elabel = getEdgeLabel(e);
+				if( rel == "simplesubclass" ){
+					subjectID = getIdentifier(source);
+					subjectLabel = getLabelOrDisplayId(source);
+					elabel = getEdgeLabel(e);
+				}else if( rel == "typesubclass" ){
+					OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom)source;
+					OWLClassExpression clsexp = some.getFiller();
+					OWLClass cls = clsexp.asOWLClass();
+					subjectID = getIdentifier(cls);
+					subjectLabel = getLabelOrDisplayId(cls);
+					elabel = getEdgeLabel(e);
+				}
 
 				// Only add when subject, object, and relation are properly defined.
 				if( elabel != null &&
@@ -186,15 +368,50 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 					//Add edge.
 					OWLShuntEdge se = new OWLShuntEdge(subjectID, topicID, elabel);
 					g.addEdge(se);
-
-					// TODO/BUG: detecting that only "is_a" children are being found--make
-					// a test case and see what people see.
-//					if( ! elabel.equals("is_a") ){
-//						LOG.info("Edge label: "+ elabel);						
-//					}
 				}
 			}
-		}	
+		}
+		
+// ORIGINAL VERSION
+//		// Next, get all of the immediate descendents.
+//		// Yes, this could be done more efficiently by reworking 
+//		// getIncomingEdgesClosure for our case, but I'm heading towards
+//		// proof of concept right now; optimization later.
+//		// Basically, toss anything that is not of distance 1--we already got
+//		// reflexive above.
+//		for (OWLGraphEdge e : getIncomingEdges(x)) { // TODO: use getIsaPartofClosureMap as a reference for how this should be done
+//		//for (OWLGraphEdge e : getPrimitiveIncomingEdges(x)) { // this failed--maybe faster, but dropped our regulates
+//			OWLObject t = e.getSource();
+//			if( t instanceof OWLNamedObject ){
+//
+//				// Figure out subject.
+//				String subjectID = getIdentifier(t);
+//				String subjectLabel = getLabel(t);
+//
+//				// Figure edge out.
+//				String elabel = getEdgeLabel(e);
+//
+//				// Only add when subject, object, and relation are properly defined.
+//				if( elabel != null &&
+//					topicID != null && ! topicID.equals("") &&
+//					subjectID != null && ! subjectID.equals("") ){
+//
+//					// Add node.
+//					OWLShuntNode sn = new OWLShuntNode(subjectID, subjectLabel);
+//					g.addNode(sn);
+//
+//					//Add edge.
+//					OWLShuntEdge se = new OWLShuntEdge(subjectID, topicID, elabel);
+//					g.addEdge(se);
+//
+//					// TODO/BUG: detecting that only "is_a" children are being found--make
+//					// a test case and see what people see.
+////					if( ! elabel.equals("is_a") ){
+////						LOG.info("Edge label: "+ elabel);						
+////					}
+//				}
+//			}
+//		}	
 
 		return g;
 	}

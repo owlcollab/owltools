@@ -65,7 +65,7 @@ public class FlexCollection implements Iterable<FlexDocument> {
 				// Status.
 				c++;
 				if( c % 1000 == 0 ){
-					LOG.info("Loaded: " + c + " of " + t + ".");
+					LOG.info("Loaded: " + Integer.toString(c) + " of " + Integer.toString(t) + ".");
 				}
 			}	
 		}

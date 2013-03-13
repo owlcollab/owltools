@@ -677,6 +677,19 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return list;
 	}
 
+	/**
+	 * get the values of of the obo xref tag
+	 * 
+	 * This is a curried FlexLoader s-expression version of {@link #getXref(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return It returns null if no xref annotation is found.
+	 * @see #getXref(OWLObject)
+	 */
+	public List<String> getXref(OWLObject c, ArrayList<String> sargs){
+		return getXref(c);
+	}
 
 	/**
 	 * Get the definition xrefs (IAO_0000115)

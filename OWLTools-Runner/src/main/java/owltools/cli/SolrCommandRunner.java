@@ -264,7 +264,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		
 		List<String> files = opts.nextList();
 		for (String file : files) {
-			LOG.info("Parsing GAF: " + file);
+			LOG.info("Parsing GAF: [" + file + "]");
 			GafObjectsBuilder builder = new GafObjectsBuilder();
 			gafdoc = builder.buildDocument(file);
 			loadGAFDoc(url, gafdoc, eco, taxo, pSet);
@@ -465,14 +465,14 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		loader.setGafDocument(gafdoc);
 		loader.setGraph(g);
 		try {
-			LOG.info("Loading: " + url + " with: " + gafdoc.getDocumentPath());
+			LOG.info("Loading server at: " + url + " with: " + gafdoc.getDocumentPath());
 			loader.load();
 		} catch (java.lang.NullPointerException e) { // can trigger when the GAF is empty
 			LOG.warn("Huh...some null pointer exception...good luck! At: " + url + ", " + gafdoc.getDocumentPath());
 			//LOG.warn("Message: " + e.getMessage());
 			e.printStackTrace();
 		} catch (SolrException e) { // can trigger when there is more than one PANTHER tree
-			LOG.warn("Possible PANTHER error: " + url);
+			LOG.warn("Possible PANTHER error: " + url + " with: " + e.toString());
 			e.printStackTrace();
 		} catch (SolrServerException e) {
 			LOG.warn("Something has gone south with Solr: " + url);
