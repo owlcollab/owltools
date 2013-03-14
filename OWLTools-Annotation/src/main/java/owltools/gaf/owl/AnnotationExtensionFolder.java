@@ -45,7 +45,7 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 		OWLClass annotatedToClass = getOWLClass(ann.getCls());
 		// c16
 		Collection<ExtensionExpression> exts = ann.getExtensionExpressions();
-		if (exts != null && !exts.isEmpty()) {
+		if (annotatedToClass != null && exts != null && !exts.isEmpty()) {
 
 			// TODO - fix model so that disjunctions and conjunctions are supported.
 			//  treat all as disjunction for now
@@ -53,7 +53,13 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 				HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
 				ops.add(annotatedToClass);
 				OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
+				if (p == null) {
+					continue;
+				}
 				OWLClass filler = getOWLClass(ext.getCls());
+				if (filler == null) {
+					continue;
+				}
 				//LOG.info(" EXT:"+p+" "+filler);
 				ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
 
