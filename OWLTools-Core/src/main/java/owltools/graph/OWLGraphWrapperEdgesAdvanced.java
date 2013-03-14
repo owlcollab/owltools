@@ -46,7 +46,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	 * @return property hash
 	 * @see #getRelationClosureMapEngine(OWLObject, ArrayList)
 	 */
-	private HashSet<OWLObjectProperty> relationshipIDsToPropertySet(List<String> relation_ids){
+	HashSet<OWLObjectProperty> relationshipIDsToPropertySet(List<String> relation_ids){
 		HashSet<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
 		for( String rel_id : relation_ids ){
 			props.add(getOWLObjectPropertyByIdentifier(rel_id));
@@ -65,7 +65,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	 * @see #addStepwiseAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
 	 * @see #addTransitiveAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
 	 */
-	private String classifyRelationship(OWLGraphEdge owlGraphEdge, OWLObject edgeDirector, Set<OWLObjectProperty> props){
+	String classifyRelationship(OWLGraphEdge owlGraphEdge, OWLObject edgeDirector, Set<OWLObjectProperty> props){
 		
 		String retval = null;
 		
