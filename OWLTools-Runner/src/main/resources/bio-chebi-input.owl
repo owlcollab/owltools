@@ -22,6 +22,6 @@
     
     <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002345"/>
     
-    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002313"/>
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002332"/>
 </rdf:RDF>
 
