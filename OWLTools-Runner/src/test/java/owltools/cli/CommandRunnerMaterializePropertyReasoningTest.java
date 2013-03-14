@@ -23,7 +23,7 @@ public class CommandRunnerMaterializePropertyReasoningTest extends AbstractComma
 		init();
 		load("ceph.obo");
 		run("--reasoner elk");
-		run("--materialize-property-inferences -p BFO_0000050");
+		run("--materialize-property-inferences -p part_of");
 		run("-o -f turtle file:///tmp/z.ttl");
 	}
 }

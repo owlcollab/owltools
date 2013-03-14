@@ -2232,7 +2232,13 @@ public class CommandRunner {
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-p")) {
 						opts.info("PROPERTY-ID-OR-LABEL", "The ObjectProperty P that is used to build the view");
-						OWLObjectProperty viewProperty = resolveObjectProperty(opts.nextOpt());
+						String s = opts.nextOpt();
+						OWLObjectProperty viewProperty = resolveObjectProperty(s);
+						if (viewProperty == null) {
+							String msg = "Could not find an OWLObjectProperty for string: "+s;
+							LOG.error(msg);
+							throw new IOException(msg);
+						}
 						vps.add(viewProperty);
 					}
 					else if (opts.nextEq("--merge|m")) {
