@@ -788,7 +788,9 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 					if (annotations != null) {
 						for (OWLAnnotation owlAnnotation : annotations) {
 							OWLAnnotationProperty property = owlAnnotation.getProperty();
-							if (shortHand.equals(property) || oboIdInOwl.equals(property)) {
+							if ((shortHand != null && shortHand.equals(property)) 
+									|| (oboIdInOwl != null && oboIdInOwl.equals(property)))
+							{
 								OWLAnnotationValue value = owlAnnotation.getValue();
 								if (value != null && value instanceof OWLLiteral) {
 									OWLLiteral literal = (OWLLiteral) value;
