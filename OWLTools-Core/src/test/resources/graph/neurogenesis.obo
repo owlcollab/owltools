@@ -1,0 +1,112 @@
+format-version: 1.2
+date: 13:03:2013 17:11
+
+[Term]
+id: GO:0008150
+name: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+namespace: biological_process
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+
+[Term]
+id: GO:0009987
+name: cellular process
+alt_id: GO:0008151
+alt_id: GO:0050875
+namespace: biological_process
+def: "Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators, GOC:isa_complete]
+is_a: GO:0008150
+
+[Term]
+id: GO:0044763
+name: single-organism cellular process
+namespace: biological_process
+def: "Any process that is carried out at the cellular level, occurring within a single organism." [GOC:jl]
+is_a: GO:0044699
+is_a: GO:0009987
+
+[Term]
+id: GO:0048869
+name: cellular developmental process
+namespace: biological_process
+def: "A biological process whose specific outcome is the progression of a cell over time from an initial condition to a later condition." [GOC:isa_complete]
+is_a: GO:0044763
+is_a: GO:0032502
+
+[Term]
+id: GO:0030154
+name: cell differentiation
+namespace: biological_process
+def: "The process in which relatively unspecialized cells, e.g. embryonic or regenerative cells, acquire specialized structural and/or functional features that characterize the cells, tissues, or organs of the mature organism or some other relatively stable phase of the organism's life history. Differentiation includes the processes involved in commitment of a cell to a specific fate and its subsequent development to the mature state." [ISBN:0198506732]
+is_a: GO:0048869
+
+[Term]
+id: GO:0022008
+name: neurogenesis
+namespace: biological_process
+def: "Generation of cells within the nervous system." [GOC:cls, GOC:curators, GOC:dgh, GOC:dph, GOC:jid, GOC:mtg_15jun06, GO_REF:0000021]
+comment: This term was added by GO_REF:0000021.
+is_a: GO:0030154
+relationship: part_of GO:0007399
+
+[Term]
+id: GO:0032502
+name: developmental process
+namespace: biological_process
+def: "A biological process whose specific outcome is the progression of an integrated living unit: an anatomical structure (which may be a subcellular structure, cell, tissue, or organ), or organism over time from an initial condition to a later condition." [GOC:isa_complete]
+is_a: GO:0008150
+
+[Term]
+id: GO:0048856
+name: anatomical structure development
+namespace: biological_process
+def: "The biological process whose specific outcome is the progression of an anatomical structure from an initial condition to its mature state. This process begins with the formation of the structure and ends with the mature structure, whatever form that may be including its natural destruction. An anatomical structure is any biological entity that occupies space and is distinguished from its surroundings. Anatomical structures can be macroscopic such as a carpel, or microscopic such as an acrosome." [GOC:mtg_15jun06, GO_REF:0000021]
+is_a: GO:0032502
+
+[Term]
+id: GO:0048731
+name: system development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of an organismal system over time, from its formation to the mature structure. A system is a regularly interacting or interdependent group of organs or tissues that work together to carry out a given biological process." [GOC:dph, GOC:jid]
+is_a: GO:0048856
+relationship: part_of GO:0007275
+
+[Term]
+id: GO:0007399
+name: nervous system development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of nervous tissue over time, from its formation to its mature state." [GOC:dgh]
+is_a: GO:0048731
+
+[Term]
+id: GO:0007275
+name: multicellular organismal development
+namespace: biological_process
+def: "The biological process whose specific outcome is the progression of a multicellular organism over time from an initial condition (e.g. a zygote or a young adult) to a later condition (e.g. a multicellular animal or an aged adult)." [GOC:dph, GOC:ems, GOC:isa_complete, GOC:tb]
+is_a: GO:0032502
+is_a: GO:0044707
+
+[Term]
+id: GO:0032501
+name: multicellular organismal process
+alt_id: GO:0050874
+namespace: biological_process
+def: "Any biological process, occurring at the level of a multicellular organism, pertinent to its function." [GOC:curators, GOC:dph, GOC:isa_complete, GOC:tb]
+is_a: GO:0008150
+
+[Term]
+id: GO:0044707
+name: single-multicellular organism process
+namespace: biological_process
+def: "A biological process occurring within a single, multicellular organism." [GOC:jl]
+is_a: GO:0044699
+is_a: GO:0032501
+
+[Term]
+id: GO:0044699
+name: single-organism process
+namespace: biological_process
+def: "A biological process that involves only one organism." [GOC:jl]
+is_a: GO:0008150
