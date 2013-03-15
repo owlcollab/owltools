@@ -483,13 +483,14 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				// to just do this by hand since it's a limited case and I don't want to mess with Gson right now.
 				String complicated_c16r = ee.getRelation();
 				if( complicated_c16r != null ){
-					List<OWLObjectProperty> relations = graph.expandRelationChain(complicated_c16r);
+					List<OWLObjectProperty> relations = graph.getRelationOrChain(complicated_c16r);
 					if( relations != null ){
 
 						ArrayList<String> relChunk = new ArrayList<String>();
 						for( OWLObjectProperty rel : relations ){
 							// TODO: These do not seem to work particularly.
-							String rID = graph.getIdentifier(rel);
+							// Use the IRI to get the BFO:0000050 as ID for the part_of OWLObjectProperty
+							String rID = graph.getIdentifier(rel.getIRI());
 							String rLabel = graph.getLabel(rel);
 							if( rLabel == null ) rLabel = rID; // ensure the label
 							relChunk.add("{\"id\": \"" + rID + "\", \"label\": \"" + rLabel + "\"}");
@@ -503,6 +504,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					
 						annotation_doc.addField("annotation_extension_class_handler", aeJSON);
 						//LOG.info("added complicated c16: (" + eeid + ", " + eLabel + ") " + aeJSON);
+					}
+					else {
+						// TODO
+						// the c16r is unknown to the ontology
+						// render it just a normal label, without the link.
 					}
 				}
 			}

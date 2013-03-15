@@ -1,6 +1,7 @@
 package owltools.graph;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1668,14 +1669,22 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * If available, return the elements of the equivalent property chain.
+	 * Return the {@link OWLObjectProperty} as a list with one element or if available, the equivalent chain.
+	 * If the id does not map to an known property, return null.
 	 * 
-	 * @param id the id of the property to be expanded
-	 * @return the chain as a list or null if no chain was found
+	 * @param id the id of the property
+	 * @return list or null
 	 */
-	public List<OWLObjectProperty> expandRelationChain(String id) {
+	public List<OWLObjectProperty> getRelationOrChain(String id) {
 		OWLObjectProperty p = getOWLObjectPropertyByIdentifier(id);
 		if (p != null) {
-			return expandRelationChain(p);
+			final List<OWLObjectProperty> chain = expandRelationChain(p);
+			if (chain != null) {
+				return chain;
+			}
+			else {
+				return Collections.singletonList(p);
+			}
 		}
 		return null;
 	}

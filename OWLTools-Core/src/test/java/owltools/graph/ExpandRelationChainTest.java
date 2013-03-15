@@ -23,9 +23,17 @@ public class ExpandRelationChainTest extends OWLToolsTestBasics {
 		//OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		//manager.saveOntology(ontology, IRI.create(new File("expand_rel.owl")));
 
-		List<OWLObjectProperty> relations = graph.expandRelationChain("regulates_o_has_participant");
+		List<OWLObjectProperty> relations = graph.getRelationOrChain("regulates_o_has_participant");
 		
 		assertEquals(2, relations.size());
+		
+		// if no chain exists return the property itself
+		relations = graph.getRelationOrChain("foo_bar");
+		
+		assertEquals(1, relations.size());
+		
+		
+		assertNull(graph.getRelationOrChain("foo_bar_2")); // this does not exist, expect null
 	}
 
 }
