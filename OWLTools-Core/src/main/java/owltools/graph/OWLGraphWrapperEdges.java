@@ -49,6 +49,7 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
+import owltools.io.OWLPrettyPrinter;
 import owltools.profile.Profiler;
 
 /**
@@ -1693,31 +1694,57 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * If available, return the elements of the equivalent property chain.
 	 * 
 	 * WARNING: If multiple chains exist, only the first one is returned.
+	 * This should not happen for any ontology converted from OBO to OWL,
+	 * as multiple equivalent_to chains are a violation of OBO specification.
 	 * 
 	 * @param property the property to be expanded
 	 * @return the chain as a list or null if no chain was found
 	 */
 	public List<OWLObjectProperty> expandRelationChain(OWLObjectProperty property) {
-
-		// TODO currently it return the first chain it finds.
+		
+		// get all OWLSubPropertyChainOfAxiom from all ontologies in this graph for a given property 
+		Set<OWLSubPropertyChainOfAxiom> relevant = new HashSet<OWLSubPropertyChainOfAxiom>();
 		for (OWLOntology owlOntology : getAllOntologies()) {
-
 			Set<OWLSubPropertyChainOfAxiom> axioms = owlOntology.getAxioms(AxiomType.SUB_PROPERTY_CHAIN_OF);
+			// filter for relevant axioms
+			// this is only required because the OWL-API is missing a method
+			
 			for (OWLSubPropertyChainOfAxiom subPropertyChainOf : axioms) {
 				if (property.equals(subPropertyChainOf.getSuperProperty())) {
-					List<OWLObjectPropertyExpression> chain = subPropertyChainOf.getPropertyChain();
-					List<OWLObjectProperty> expanded = new ArrayList<OWLObjectProperty>();
-					for (OWLObjectPropertyExpression e : chain) {
-						if (e.isAnonymous() == false) {
-							expanded.add(e.asOWLObjectProperty());
-						}
-					}
-					if (expanded.isEmpty() == false) {
-						return expanded;
-					}
+					relevant.add(subPropertyChainOf);
 				}
 			}
 		}
+		
+		// print warning, there should be either one or no axiom.
+		if (relevant.size() > 1) {
+			OWLPrettyPrinter pp = new OWLPrettyPrinter(this);
+			StringBuilder sb = new StringBuilder("Found multiple OWLSubPropertyChainOfAxioms for property: ");
+			sb.append(property.getIRI());
+			sb.append("\nAxioms:");
+			for (OWLSubPropertyChainOfAxiom axiom : relevant) {
+				sb.append(pp.render(axiom));
+				sb.append('\n');
+			}
+			LOG.warn(sb.toString());
+		}
+		
+		// extract the chain
+		for (OWLSubPropertyChainOfAxiom subPropertyChainOf : relevant) {
+			List<OWLObjectPropertyExpression> chain = subPropertyChainOf.getPropertyChain();
+			List<OWLObjectProperty> expanded = new ArrayList<OWLObjectProperty>();
+			for (OWLObjectPropertyExpression e : chain) {
+				// currently only one level of nesting expected
+				if (e.isAnonymous() == false) {
+					expanded.add(e.asOWLObjectProperty());
+				}
+			}
+			if (expanded.isEmpty() == false) {
+				return expanded;
+			}
+		}
+		
+		// default value
 		return null;
 	}
 

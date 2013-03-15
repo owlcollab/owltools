@@ -5,9 +5,7 @@ import java.util.Set;
 
 import org.semanticweb.owlapi.io.OWLObjectRenderer;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -16,15 +14,23 @@ import org.semanticweb.owlapi.util.SimpleRenderer;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
+import owltools.graph.OWLGraphWrapperExtended;
 import owltools.graph.OWLQuantifiedProperty;
 
+/**
+ * Use a {@link OWLGraphWrapper} or {@link OWLGraphWrapperExtended} to render
+ * {@link OWLAxiom}, {@link OWLGraphEdge}, or {@link OWLQuantifiedProperty} in
+ * better human readable form.<br>
+ * <br>
+ * Hint: Every {@link OWLGraphWrapper} is also a {@link OWLGraphWrapperExtended}. 
+ */
 public class OWLPrettyPrinter {
-	OWLGraphWrapper graph;
+	OWLGraphWrapperExtended graph;
 
 	OWLObjectRenderer renderer;
 	ShortFormProvider shortFormProvider;
 
-	public OWLPrettyPrinter(OWLGraphWrapper graph, OWLObjectRenderer r) {
+	public OWLPrettyPrinter(OWLGraphWrapperExtended graph, OWLObjectRenderer r) {
 		super();
 		this.graph = graph;
 		shortFormProvider = new LabelProvider(graph);
@@ -33,7 +39,7 @@ public class OWLPrettyPrinter {
 	}
 
 
-	public OWLPrettyPrinter(OWLGraphWrapper graph) {
+	public OWLPrettyPrinter(OWLGraphWrapperExtended graph) {
 		super();
 		this.graph = graph;
 		shortFormProvider = new LabelProvider(graph);
@@ -110,12 +116,12 @@ public class OWLPrettyPrinter {
 
 	public class LabelProvider implements ShortFormProvider  {
 
-		OWLGraphWrapper graph;
+		OWLGraphWrapperExtended graph;
 		boolean hideIds = false;
 		boolean quoteLabels = true;
 
 
-		public LabelProvider(OWLGraphWrapper graph) {
+		public LabelProvider(OWLGraphWrapperExtended graph) {
 			super();
 			this.graph = graph;
 		}
