@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.io.FileUtils;
@@ -2235,9 +2237,9 @@ public class CommandRunner {
 						String s = opts.nextOpt();
 						OWLObjectProperty viewProperty = resolveObjectProperty(s);
 						if (viewProperty == null) {
-							String msg = "Could not find an OWLObjectProperty for string: "+s;
-							LOG.error(msg);
-							throw new IOException(msg);
+							// the method resolveObjectProperty, will log already a error
+							// escalate to an exception 
+							throw new IOException("Could not find an OWLObjectProperty for string: "+s);
 						}
 						vps.add(viewProperty);
 					}
@@ -2932,7 +2934,10 @@ public class CommandRunner {
 		List<String> ids = opts.nextList();
 		Set<OWLObjectProperty> objs = new HashSet<OWLObjectProperty>();
 		for (String id: ids) {
-			objs.add( this.resolveObjectProperty(id) );
+			final OWLObjectProperty prop = this.resolveObjectProperty(id);
+			if (prop != null) {
+				objs.add(prop);
+			}
 		}
 		return objs;
 	}
@@ -2952,6 +2957,9 @@ public class CommandRunner {
 		if (obj != null)
 			return obj;		
 		obj = g.getOWLObjectByIdentifier(id);
+		if (obj == null) {
+			LOG.error("Could not find an OWLObject for id: '"+id+"'");
+		}
 		return obj;
 	}
 
@@ -2964,7 +2972,15 @@ public class CommandRunner {
 		if (i != null) {
 			return g.getDataFactory().getOWLObjectProperty(i);
 		}
-		return g.getOWLObjectPropertyByIdentifier(id);
+		OWLObjectProperty prop = g.getOWLObjectPropertyByIdentifier(id);
+		if (prop == null && IdTools.isIRIStyleIdSuffix(id)) {
+			id = IdTools.convertToOboStyleId(id);
+			prop = g.getOWLObjectPropertyByIdentifier(id);
+		}
+		if (prop == null) {
+			LOG.error("Could not find an OWLObjectProperty for id: '"+id+"'");
+		}
+		return prop;
 	}
 	public OWLClass resolveClass(String id) {
 		IRI i = null;
