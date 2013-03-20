@@ -34,6 +34,11 @@ public class ExpandRelationChainTest extends OWLToolsTestBasics {
 		
 		
 		assertNull(graph.getRelationOrChain("foo_bar_2")); // this does not exist, expect null
+		
+		// check that occurs_in is not expanded
+		relations = graph.getRelationOrChain("occurs_in");
+		assertEquals(1, relations.size());
+		assertEquals("occurs in", graph.getLabel(relations.get(0)));
 	}
 
 }

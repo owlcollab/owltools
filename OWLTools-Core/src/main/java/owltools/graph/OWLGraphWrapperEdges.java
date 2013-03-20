@@ -12,10 +12,13 @@ import java.util.Stack;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
+import org.obolibrary.obo2owl.Obo2Owl;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -1702,6 +1705,10 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 */
 	public List<OWLObjectProperty> expandRelationChain(OWLObjectProperty property) {
 		
+		// create the annotation property which marks sub property chain as a valid expansion for a property
+		IRI iri = IRI.create(Obo2Owl.IRI_PROP_isReversiblePropertyChain);
+		final OWLAnnotationProperty prop = getDataFactory().getOWLAnnotationProperty(iri);
+		
 		// get all OWLSubPropertyChainOfAxiom from all ontologies in this graph for a given property 
 		Set<OWLSubPropertyChainOfAxiom> relevant = new HashSet<OWLSubPropertyChainOfAxiom>();
 		for (OWLOntology owlOntology : getAllOntologies()) {
@@ -1710,7 +1717,25 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 			// this is only required because the OWL-API is missing a method
 			
 			for (OWLSubPropertyChainOfAxiom subPropertyChainOf : axioms) {
-				if (property.equals(subPropertyChainOf.getSuperProperty())) {
+				Set<OWLAnnotation> annotations = subPropertyChainOf.getAnnotations(prop);
+				boolean isReversiblePropertyChain = false;
+				if (annotations != null && !annotations.isEmpty()) {
+					for (OWLAnnotation owlAnnotation : annotations) {
+						OWLAnnotationValue value = owlAnnotation.getValue();
+						if (value instanceof OWLLiteral) {
+							OWLLiteral lit = (OWLLiteral) value;
+							if (lit.isBoolean()) {
+								isReversiblePropertyChain = lit.parseBoolean();
+							}
+							else {
+								String litString = lit.getLiteral();
+								isReversiblePropertyChain = "true".equalsIgnoreCase(litString);
+							}
+							
+						}
+					}
+				}
+				if (isReversiblePropertyChain && property.equals(subPropertyChainOf.getSuperProperty())) {
 					relevant.add(subPropertyChainOf);
 				}
 			}
