@@ -218,7 +218,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			SolrInputDocument annotation_doc = new SolrInputDocument();
 
 			String clsId = a.getCls();
-			String refId = a.getReferenceId();
 
 			// Annotation document base from static and previous bioentity.
 			annotation_doc.addField("document_category", "annotation"); // n/a
@@ -230,7 +229,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("qualifier", aqual);  // Col. 4
 			annotation_doc.addField("annotation_class", clsId); // Col. 5
 			addLabelField(annotation_doc, "annotation_class_label", clsId); // n/a
-			annotation_doc.addField("reference", refId); // Col. 6
+			// NOTE: Col. 6 generation is below...
 			String a_ev_type = a.getEvidenceCls();
 			annotation_doc.addField("evidence_type", a_ev_type); // Col. 7
 			// NOTE: Col. 8 generation is below...
@@ -273,6 +272,13 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				ecoIDClosure.add(itemID);
 			}
 			addLabelFields(annotation_doc, "evidence_type_closure", ecoIDClosure);
+
+			// Drag in the reference (col 6). It unfortunately might be multi-valued with a pipe separation.
+			String refIdStr = a.getReferenceId();
+			String[] refIds = StringUtils.split(refIdStr, "|");
+			for( String refId : refIds ){
+				annotation_doc.addField("reference", refId);
+			}
 
 			// Drag in "with" (col 8).
 			//annotation_doc.addField("evidence_with", a.getWithExpression());
@@ -488,7 +494,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 						ArrayList<String> relChunk = new ArrayList<String>();
 						for( OWLObjectProperty rel : relations ){
-							// TODO: These do not seem to work particularly.
 							// Use the IRI to get the BFO:0000050 as ID for the part_of OWLObjectProperty
 							String rID = graph.getIdentifier(rel.getIRI());
 							String rLabel = graph.getLabel(rel);
@@ -504,11 +509,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					
 						annotation_doc.addField("annotation_extension_class_handler", aeJSON);
 						//LOG.info("added complicated c16: (" + eeid + ", " + eLabel + ") " + aeJSON);
-					}
-					else {
-						// TODO
-						// the c16r is unknown to the ontology
-						// render it just a normal label, without the link.
+					}else{
+						// The c16r is unknown to the ontology--render it as just a normal label, without the link.
+						annotation_doc.addField("annotation_extension_class_handler", complicated_c16r);
+						LOG.info("added unknown c16: " + complicated_c16r);
 					}
 				}
 			}
