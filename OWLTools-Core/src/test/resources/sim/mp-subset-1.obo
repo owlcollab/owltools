@@ -1,0 +1,2673 @@
+format-version: 1.2
+subsetdef: CvDC_Terms "NHLBI Cardiovascular Development Consortium (CvDC) Terms"
+subsetdef: Europhenome_Terms "Terms in use by Europhenome"
+subsetdef: Sanger_Terms "Terms in use by Mouse Genetics Project, Sanger Institute, Wellcome Trust Genome Campus"
+ontology: mp-gaf-subset
+
+[Term]
+id: MP:0000001
+name: mammalian phenotype
+namespace: MPheno.ontology
+def: "the observable morphological, physiological, behavioral and other characteristics of mammalian organisms that are manifested through development and lifespan" [MGI:csmith]
+
+[Term]
+id: MP:0000003
+name: abnormal adipose tissue morphology
+namespace: MPheno.ontology
+alt_id: MP:0000011
+def: "any structural anomaly of the connective tissue composed of fat cells enmeshed in areolar tissue" [MESH:A10.165.114, MGI:cwg]
+synonym: "adipose tissue abnormalities" BROAD []
+synonym: "adipose tissue dysplasia" EXACT []
+is_a: MP:0005375 ! adipose tissue phenotype
+
+[Term]
+id: MP:0000010
+name: abnormal abdominal fat pad morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the encapsulated adipose tissue in the abdomen" [PMID:8941642]
+synonym: "abnormal abdominal fat depot morphology" EXACT []
+is_a: MP:0005334 ! abnormal fat pad morphology
+
+[Term]
+id: MP:0000018
+name: small ears
+namespace: MPheno.ontology
+def: "outer ears of a smaller than normal size" [MGI:cwg]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "decreased ear size" EXACT []
+synonym: "microtia" EXACT []
+synonym: "reduced ear size" EXACT []
+synonym: "reduced pinna size" EXACT []
+is_a: MP:0002177 ! abnormal outer ear morphology
+
+[Term]
+id: MP:0000249
+name: abnormal blood vessel physiology
+namespace: MPheno.ontology
+def: "any functional anomaly of any of the tubes that convey blood including the arteries, arterioles, capillaries, venules, and veins" [ISBN:0-683-40008-8]
+synonym: "abnormal blood vessel function" EXACT []
+synonym: "blood vessel defects" BROAD []
+synonym: "blood vessel physiology abnormalities" EXACT []
+is_a: MP:0001544 ! abnormal cardiovascular system physiology
+
+[Term]
+id: MP:0000367
+name: abnormal coat/ hair morphology
+namespace: MPheno.ontology
+def: "any anomaly in the color, structure, growth, or texture of the hair" [MGI:csmith]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "abnormal coat/ hair" BROAD []
+synonym: "abnormal pelage morphology" EXACT []
+synonym: "coat/ hair abnormalities" BROAD []
+synonym: "coat/ hair anomalies" BROAD []
+is_a: MP:0010678 ! abnormal skin adnexa morphology
+
+[Term]
+id: MP:0000428
+name: abnormal craniofacial morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the face and/or cranium" [ISBN:0-683-40008-8]
+subset: Sanger_Terms
+synonym: "craniofacial abnormalities" BROAD []
+synonym: "craniofacial defects" BROAD []
+synonym: "craniofacial dysplasia" EXACT []
+is_a: MP:0005382 ! craniofacial phenotype
+
+[Term]
+id: MP:0000432
+name: abnormal head morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the portion of the body containing the brain and organs of sight, hearing, taste, and smell" [ISBN:0-683-40008-8]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "head abnormalities" BROAD []
+is_a: MP:0000428 ! abnormal craniofacial morphology
+
+[Term]
+id: MP:0000435
+name: shortened head
+namespace: MPheno.ontology
+def: "reduced anterior-posterior length of the head" [PMID:9256350]
+subset: Europhenome_Terms
+synonym: "brachycephaly" RELATED []
+is_a: MP:0011495 ! abnormal head shape
+
+[Term]
+id: MP:0000572
+name: abnormal autopod morphology
+namespace: MPheno.ontology
+alt_id: Fyler:4170
+alt_id: MP:0004271
+def: "any structural anomaly of the distal elements of the limb of vertebrates including the pedal or prehensile appendages (e.g. hand, foot, paw, phalanges and/or digits)" [MGI:csmith, PMID:12560810]
+subset: CvDC_Terms
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "abnormal foot morphology" NARROW []
+synonym: "abnormal hand morphology" NARROW []
+synonym: "abnormal paw morphology" NARROW []
+synonym: "abnormal paw/hand/foot morphology" EXACT []
+synonym: "abnormal paws" NARROW []
+synonym: "hand and/or foot anomaly" BROAD []
+synonym: "paw abnormalities" NARROW []
+synonym: "paw/hand/foot dysplasia" EXACT []
+is_a: MP:0002109 ! abnormal limb morphology
+
+[Term]
+id: MP:0000639
+name: abnormal adrenal gland morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the pair of endocrine glands located above the kidney that are responsible for steroid hormone secretion from the cortex and neurotransmitter (such as epinephrine and norepinephrine) secretion from the medulla" [ISBN:0-683-40008-8]
+synonym: "abnormal adrenal body morphology" EXACT []
+synonym: "abnormal adrenal capsule morphology" EXACT []
+synonym: "abnormal adrenal glands" BROAD []
+synonym: "abnormal adrenal morphology" EXACT []
+synonym: "abnormal suprarenal body morphology" EXACT []
+synonym: "abnormal suprarenal capsule morphology" EXACT []
+synonym: "abnormal suprarenal gland morphology" EXACT []
+synonym: "adrenal gland dysplasia" EXACT []
+is_a: MP:0002163 ! abnormal gland morphology
+
+[Term]
+id: MP:0000653
+name: abnormal sex gland morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of any of the organized aggregations of cells that function as secretory or excretory organs and are associated with reproduction" [MGI:cwg]
+synonym: "abnormal sex glands" BROAD []
+synonym: "sex gland dysplasia" EXACT []
+is_a: MP:0002160 ! abnormal reproductive system morphology
+is_a: MP:0002163 ! abnormal gland morphology
+
+[Term]
+id: MP:0000685
+name: abnormal immune system morphology
+namespace: MPheno.ontology
+def: "any structural anomaly in the organs or cells associated with the development and formation of lymphocytes" [MGI:cwg]
+synonym: "immune system abnormalities" BROAD []
+synonym: "immune system dysplasia" EXACT []
+synonym: "lymphoid system abnormalities" BROAD []
+synonym: "lymphopoietic system abnormalities" BROAD []
+is_a: MP:0005387 ! immune system phenotype
+
+[Term]
+id: MP:0000746
+name: weakness
+namespace: MPheno.ontology
+def: "state of being infirm or less strong than normal" [PMID:9420327]
+is_a: MP:0004262 ! abnormal physical strength
+
+[Term]
+id: MP:0000771
+name: abnormal brain size
+namespace: MPheno.ontology
+def: "deviation from the average range of brain size for an organism" [MGI:csmith]
+synonym: "brain size abnormalities" EXACT []
+is_a: MP:0002152 ! abnormal brain morphology
+
+[Term]
+id: MP:0000778
+name: abnormal nervous system tract morphology
+namespace: MPheno.ontology
+def: "any structural anomaly in the structure of any bundle of myelinated nerve fibers following a defined path through the brain and/or spinal cord" [MGI:pvb]
+synonym: "abnormal tract" BROAD []
+is_a: MP:0003632 ! abnormal nervous system morphology
+
+[Term]
+id: MP:0000780
+name: abnormal corpus callosum morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of a thick bundle of nerve fibers comprising a commissural plate connecting the two cerebral hemispheres; it consists of contralateral axon projections that provides communications between the right and left cerebral hemispheres" [ISBN:0-683-40008-8, MGI:csmith]
+synonym: "corpus callosum dysplasia" EXACT []
+is_a: MP:0008219 ! abnormal dorsal telencephalic commissure morphology
+is_a: MP:0008540 ! abnormal cerebrum morphology
+
+[Term]
+id: MP:0000781
+name: decreased corpus callosum size
+namespace: MPheno.ontology
+def: "smaller commissural plate interconnecting the cortical hemispheres of the brain" [ISBN:0-683-40008-8, PMID:9010203]
+subset: Sanger_Terms
+synonym: "decreased size of corpus callosum" EXACT []
+synonym: "reduced corpus callosum size" EXACT []
+synonym: "reduced size of corpus callosum" EXACT []
+is_a: MP:0000780 ! abnormal corpus callosum morphology
+
+[Term]
+id: MP:0000783
+name: abnormal forebrain morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the part of the brain developed from the most rostral of the three primary vesicles of the embryonic neural tube from which the diencephalon and telencephalon are derived" [NLX:birnlex_1509, PMID:9010203]
+synonym: "forebrain dysplasia" EXACT []
+is_a: MP:0002152 ! abnormal brain morphology
+
+[Term]
+id: MP:0000787
+name: abnormal telencephalon morphology
+namespace: MPheno.ontology
+alt_id: MP:0000782
+def: "any structural anomaly of the paired anteriolateral division of the embryonic prosencephalon plus the lamina terminalis from which the olfactory lobes, cerebral cortex, and subcortical nuclei are derived" [ISBN:0-683-40008-8, MESH:A08.186.211.730.885]
+synonym: "telencephalon dysplasia" EXACT []
+is_a: MP:0000783 ! abnormal forebrain morphology
+
+[Term]
+id: MP:0000788
+name: abnormal cerebral cortex morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of thin layer of grey matter on the surface of the cerebral hemisphere that develops from the telencephalon and folds into gyri; it is responsible for intellectual faculties and higher mental functions" [MESH:A08.186.211.730.885.287.500]
+synonym: "abnormal pallium morphology" EXACT []
+synonym: "cerebral cortex dysplasia" EXACT []
+synonym: "pallium dysplasia" EXACT []
+is_a: MP:0008540 ! abnormal cerebrum morphology
+
+[Term]
+id: MP:0000790
+name: abnormal stratification in cerebral cortex
+namespace: MPheno.ontology
+def: "abnormal formation or pattern of the layers of the cerebral cortex" [J:64289, MGI:csmith]
+synonym: "abnormal cerebral cortex stratification" EXACT []
+synonym: "abnormal stratification in neocortex" EXACT []
+is_a: MP:0000788 ! abnormal cerebral cortex morphology
+
+[Term]
+id: MP:0000792
+name: abnormal cortical marginal zone morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the developing superficial cortical layer located just under the pia matter" [MGI:csmith, PMID:1812236]
+synonym: "abnormal MZ morphology" EXACT []
+synonym: "cortical marginal zone dysplasia" EXACT []
+is_a: MP:0000934 ! abnormal telencephalon development
+
+[Term]
+id: MP:0000801
+name: abnormal temporal lobe morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the lower lateral part of the cerebral hemisphere" [MESH:A08.186.211.730.885.287.500.863]
+synonym: "temporal lobe dysplasia" EXACT []
+is_a: MP:0008540 ! abnormal cerebrum morphology
+
+[Term]
+id: MP:0000807
+name: abnormal hippocampus morphology
+namespace: MPheno.ontology
+alt_id: MP:0000806
+alt_id: MP:0000810
+def: "any structural anomaly of the deep lying structure of the cerebrum involved with memory storage and spatial navigation" [ISBN:0-12-402035-6, MGI:csmith, PMID:9010203]
+comment: The synonym abnormal hippocampal formation is a frequently used synonym in the literature for the hippocampus. It is unfortunate that it implies a developmental process. There is also a lack of consensus relating to terms describing the hippocampus and/or the adjacent cerebral cortex with the term hippocampus sometimes referring to the hippocampal formation (or region) and sometimes only to the Ammon gyrus (Ammon's horn). In this ontology, we have used hippocampus to mean the entire formation (region).
+synonym: "abnormal hippocampal formation morphology" RELATED []
+synonym: "abnormal hippocampal region" BROAD []
+synonym: "abnormal hippocampus" BROAD []
+synonym: "abnormal hippocampus region" BROAD []
+synonym: "hippocampal defects" BROAD []
+synonym: "hippocampus dysplasia" EXACT []
+is_a: MP:0000787 ! abnormal telencephalon morphology
+is_a: MP:0000801 ! abnormal temporal lobe morphology
+is_a: MP:0004166 ! abnormal limbic system morphology
+
+[Term]
+id: MP:0000812
+name: abnormal dentate gyrus morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of one of two interlocking gyri of the hippocampus formation that contains granule cells, which project to the pyramidal cells and interneurons of the CA3 region of the ammon gyrus" [ISBN:0-683-40008-8, MGI:csmith, PMID:9010203]
+synonym: "abnormal area dentata morphology" EXACT []
+synonym: "abnormal dentate gyrus of hippocampal formation morphology" EXACT []
+synonym: "abnormal fascia dentata morphology" EXACT []
+synonym: "dentate gyrus dysplasia" EXACT []
+is_a: MP:0000807 ! abnormal hippocampus morphology
+
+[Term]
+id: MP:0000813
+name: abnormal hippocampus layer morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the layers of the laminar structure of the hippocampus" [ISBN:0-683-40008-8, MGI:csmith, PMID:9010203]
+synonym: "abnormal hippocampal laminar structure" EXACT []
+synonym: "abnormal laminar structure of hippocampus" EXACT []
+is_a: MP:0000807 ! abnormal hippocampus morphology
+
+[Term]
+id: MP:0000819
+name: abnormal olfactory bulb morphology
+namespace: MPheno.ontology
+alt_id: MP:0000943
+def: "any structural anomaly of the forebrain region that coordinates neuronal signaling involved in the perception of smell; it receives input from the sensory neurons and outputs to the olfactory cortex" [ISBN:0-683-40008-8, ISBN:0838580343]
+synonym: "abnormal olfactory bulb" EXACT []
+xref: MA:0000194
+is_a: MP:0009944 ! abnormal olfactory lobe morphology
+
+[Term]
+id: MP:0000822
+name: abnormal brain ventricle morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the system of four communicating cavities within the brain that are continuous with the central canal of the spinal cord" [ISBN:0-683-40008-8]
+synonym: "abnormal ventricle" BROAD []
+synonym: "brain ventricle dysplasia" EXACT []
+is_a: MP:0002200 ! abnormal brain ventricle/choroid plexus morphology
+
+[Term]
+id: MP:0000823
+name: abnormal lateral ventricle morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the cavity in each of the cerebral hemispheres derived from the cavity of the embryonic neural tube; they are separated from each other by the septum pellucidum, and each communicates with the third ventricle by the foramen of Monro, through which also the choroid plexuses of the lateral ventricles become continuous with that of the third ventricle" [MESH:A08.186.211.276.650, MGI:cwg]
+synonym: "abnormal lateral ventricles" BROAD []
+synonym: "lateral ventricle dysplasia" EXACT []
+is_a: MP:0000787 ! abnormal telencephalon morphology
+is_a: MP:0000822 ! abnormal brain ventricle morphology
+
+[Term]
+id: MP:0000825
+name: dilated lateral ventricles
+namespace: MPheno.ontology
+alt_id: MP:0000824
+def: "the luminal space of the lateral ventricles is increased in volume or area, usually with an increase in contained fluid, in the cavity in each of the cerebral hemispheres derived from the cavity of the embryonic neural tube; they are separated from each other by the septum pellucidum, and each communicates with the third ventricle by the foramen of Monro, through which also the choroid plexuses of the lateral ventricles become continuous with that of the third ventricle" [ISBN:0-683-40008-8, MESH:A08.186.211.276.650, MGI:csmith, PMID:9010203]
+synonym: "dilated ventricle of cerebral hemisphere" EXACT []
+synonym: "dilated ventriculus lateralis" EXACT []
+synonym: "lateral ventricle dilation" EXACT []
+is_a: MP:0000823 ! abnormal lateral ventricle morphology
+
+[Term]
+id: MP:0000841
+name: abnormal hindbrain morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the caudal region of the brain; includes cerebellum, pons and medulla oblongata" [ISBN:0-683-40008-8, PMID:9362461]
+synonym: "abnormal rhombencephalon morphology" RELATED []
+synonym: "hindbrain dysplasia" EXACT []
+is_a: MP:0002152 ! abnormal brain morphology
+
+[Term]
+id: MP:0000847
+name: abnormal metencephalon morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the anterior part of the rhombencephalon" [ISBN:0-683-40008-8, MESH:A08.186.211.132.810.428]
+synonym: "metencephalon dysplasia" EXACT []
+is_a: MP:0000841 ! abnormal hindbrain morphology
+
+[Term]
+id: MP:0000849
+name: abnormal cerebellum morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the part of the metencephalon that lies in the posterior cranial fossa dorsal to the pons and medulla that is concerned with the coordination of movement and learning of motor skills" [ISBN:0838580343, PMID:9778510]
+synonym: "cerebellar dysplasia" EXACT []
+synonym: "cerebellum dysplasia" EXACT []
+is_a: MP:0000847 ! abnormal metencephalon morphology
+
+[Term]
+id: MP:0000852
+name: small cerebellum
+namespace: MPheno.ontology
+def: "reduced size of cerebellum" [MGI:csmith]
+synonym: "decreased cerebellum size" EXACT []
+synonym: "reduced cerebellum size" EXACT []
+is_a: MP:0000849 ! abnormal cerebellum morphology
+
+[Term]
+id: MP:0000853
+name: absent cerebellar foliation
+namespace: MPheno.ontology
+def: "missing small branches of the cerebellar lobules" [ISBN:0838580343, MGI:tc, PMID:10716451]
+synonym: "absence of cerebellum foliation" EXACT []
+synonym: "lack of cerebellar foliation" EXACT []
+synonym: "lack of cerebellum foliation" EXACT []
+synonym: "loss of cerebellar foliation" EXACT []
+synonym: "loss of cerebellum foliation" EXACT []
+is_a: MP:0000857 ! abnormal cerebellar foliation
+
+[Term]
+id: MP:0000854
+name: abnormal cerebellum development
+namespace: MPheno.ontology
+def: "aberrant or incomplete differentiation of the part of the metencephalon that lies dorsal to the pons and medulla behind the brain stem and controls balance for walking and standing, modulates the force and range of movement and is involved in the learning of motor skills" [ISBN:0-683-40008-8]
+synonym: "abnormal cerebellar development" EXACT []
+is_a: MP:0000849 ! abnormal cerebellum morphology
+is_a: MP:0006108 ! abnormal hindbrain development
+
+[Term]
+id: MP:0000857
+name: abnormal cerebellar foliation
+namespace: MPheno.ontology
+def: "any anomaly of the pattern of the ten cerebellar lobules; in mammals, the vermis portion of the cerebellum has a foliation pattern along the AP axis that is distinct from the lateral cerebellar hemispheres and the intermediate zone that separates the vermis from the lateral hemispheres; in addition, each of the ten basic lobules can be subdivided into sublobules but strain and species differences are reported" [ISBN:0838580343, PMID:17506688]
+is_a: MP:0000854 ! abnormal cerebellum development
+is_a: MP:0009964 ! abnormal cerebellum lobule morphology
+
+[Term]
+id: MP:0000872
+name: abnormal cerebellum external granule cell layer morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the transient layer of the cerebellar cortex present during development which is composed of the dividing and migrating granule cells" [MGI:tc]
+synonym: "abnormal EGL" BROAD []
+synonym: "abnormal external germinal layer morphology" EXACT []
+synonym: "abnormal external granule cell layer morphology" BROAD []
+synonym: "abnormal external granule layer morphology" EXACT []
+is_a: MP:0000854 ! abnormal cerebellum development
+
+[Term]
+id: MP:0000875
+name: abnormal cerebellar Purkinje cell layer
+namespace: MPheno.ontology
+def: "any structural anomaly of the cell layer that lies just underneath the molecular layer of the cerebellar cortex; it contains the neuronal cell bodies of the Purkinje cells that are arranged side by side in a single layer, and candelabrum interneurons are vertically oriented between the Purkinje cells" [ISBN:0-683-40008-8]
+synonym: "abnormal Purkinje cell layer" EXACT []
+is_a: MP:0009956 ! abnormal cerebellar layer morphology
+
+[Term]
+id: MP:0000877
+name: abnormal Purkinje cell morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the neurons located at the interface of the molecular and internal granule layers of the cerebellar cortex; these inhibitory neurons provide the output of the cerebellar cortex through axons that project into the white matter, and extensive dendritic trees from the Purkinje cells extend upward in a single plane into the molecular layer where they synapse with parallel fibers of granule cells" [ISBN:0838580343]
+synonym: "abnormal Purkinje cells" BROAD []
+synonym: "abnormal Purkinje neuron morphology" EXACT []
+is_a: MP:0000875 ! abnormal cerebellar Purkinje cell layer
+is_a: MP:0002882 ! abnormal neuron morphology
+
+[Term]
+id: MP:0000884
+name: delaminated Purkinje cell layer
+namespace: MPheno.ontology
+def: "splitting or disorganization of the layer of large neuron cell bodies between the molecular and granular layers of the cerebellum" [ISBN:0-683-40008-8, PMID:10742104]
+is_a: MP:0000875 ! abnormal cerebellar Purkinje cell layer
+
+[Term]
+id: MP:0000885
+name: ectopic Purkinje cell
+namespace: MPheno.ontology
+def: "Purkinje cell body resides in places other than the Purkinje cell layer in the cerebellum" [MGI:tc, PMID:10716451]
+synonym: "heterotopic Purkinje cell" EXACT []
+is_a: MP:0000877 ! abnormal Purkinje cell morphology
+is_a: MP:0011723 ! ectopic neuron
+
+[Term]
+id: MP:0000886
+name: abnormal cerebellar granule layer
+namespace: MPheno.ontology
+def: "any structural anomaly of the innermost cortical layer of the cerebellum; contains densely packed small neurons, mostly granule cells with some Golgi cells are found at the outer border" [ISBN:0-683-40008-8, ISBN:0838580343]
+synonym: "abnormal granule layer morphology" EXACT []
+synonym: "abnormal IGL" BROAD []
+synonym: "abnormal internal granule cell layer morphology" EXACT []
+synonym: "abnormal internal granule layer morphology" EXACT []
+is_a: MP:0009956 ! abnormal cerebellar layer morphology
+
+[Term]
+id: MP:0000889
+name: abnormal cerebellar molecular layer
+namespace: MPheno.ontology
+def: "any structural anomaly of the outermost layer of the cerebral cortex that contains the parallel fibers of the granule cells, interneurons such as stellate and basket cells, and the dendrites of the underlying Purkinje cells" [ISBN:0-683-40008-8, PMID:9010203]
+synonym: "abnormal molecular layer" EXACT []
+is_a: MP:0009956 ! abnormal cerebellar layer morphology
+
+[Term]
+id: MP:0000913
+name: abnormal brain development
+namespace: MPheno.ontology
+alt_id: MP:0001888
+def: "aberrant or incomplete differentiation of the brain" [MGI:csmith, PMID:9753320]
+synonym: "brain development abnormalities" EXACT []
+xref: GO:0007420
+is_a: MP:0002152 ! abnormal brain morphology
+is_a: MP:0003861 ! abnormal nervous system development
+
+[Term]
+id: MP:0000929
+name: open neural tube
+namespace: MPheno.ontology
+alt_id: MP:0000931
+alt_id: MP:0005436
+def: "failure of completion of the last step in the formation of the neural tube, where the paired neural folds are brought together and fuse at the dorsal midline" [J:62571, MGI:csmith, PMID:9949198]
+synonym: "failure of neural tube closure" EXACT []
+synonym: "hydrocele spinalis" EXACT []
+synonym: "schistorrhachis" EXACT []
+synonym: "spina bifida" BROAD []
+is_a: MP:0003720 ! abnormal neural tube closure
+
+[Term]
+id: MP:0000934
+name: abnormal telencephalon development
+namespace: MPheno.ontology
+def: "malformed or incomplete differentiation of the anterior division of the embryonic prosencephalon" [ISBN:0-683-40008-8, MGI:csmith, PMID:9753320]
+is_a: MP:0000787 ! abnormal telencephalon morphology
+is_a: MP:0003232 ! abnormal forebrain development
+
+[Term]
+id: MP:0000937
+name: abnormal motor neuron morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of cells that innervate an effector (muscle or glandular) tissue and are responsible for transmission of motor impulses" [ISBN:0-683-40008-8, MGI:csmith]
+synonym: "abnormal motoneuron morphology" EXACT []
+synonym: "abnormal motor neurons" BROAD []
+synonym: "motor neuron abnormalities" BROAD []
+synonym: "motor neuron dysplasia" EXACT []
+is_a: MP:0002882 ! abnormal neuron morphology
+is_a: MP:0008503 ! abnormal spinal cord grey matter morphology
+
+[Term]
+id: MP:0000950
+name: abnormal seizure response to pharmacological agent
+namespace: MPheno.ontology
+alt_id: MP:0001497
+def: "anomaly in the seizure activity response that is brought about by treatment with pharmacological agents" [MGI:csmith]
+synonym: "pharmacologically induced seizures" RELATED []
+is_a: MP:0009357 ! abnormal seizure response to inducing agent
+is_a: MP:0009745 ! abnormal behavioral response to xenobiotic
+
+[Term]
+id: MP:0000955
+name: abnormal spinal cord morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the cylindrical tissue of the vertebral canal that extends from the medulla oblongata to the conus medullaris" [MGI:csmith]
+synonym: "spinal cord abnormalities" BROAD []
+synonym: "spinal cord dysplasia" EXACT []
+is_a: MP:0003632 ! abnormal nervous system morphology
+
+[Term]
+id: MP:0001116
+name: small gonad
+namespace: MPheno.ontology
+def: "reduced size of the testis or the ovary" [ISBN:0-683-40008-8, J:34193]
+synonym: "hypogonad" EXACT []
+synonym: "hypogonadism" EXACT []
+synonym: "reduced gonad size" EXACT []
+is_a: MP:0002211 ! abnormal primary sex determination
+
+[Term]
+id: MP:0001117
+name: absent gametes
+namespace: MPheno.ontology
+def: "absence of mature reproductive cells, ovum or spermatozoon, capable of fusing with a cell of similar origin, but opposite sex to give a zygote" [ISBN:0-683-40008-8, J:34193]
+synonym: "absence of gametes" EXACT []
+is_a: MP:0001124 ! abnormal gametes
+is_a: MP:0004806 ! absent germ cells
+
+[Term]
+id: MP:0001119
+name: abnormal female reproductive system morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the organs associated with producing offspring in the gender that bears the offspring" [ISBN:0-683-40008-8]
+synonym: "abnormal female reproductive anatomy" EXACT []
+synonym: "female reproductive anatomy dysplasia" EXACT []
+is_a: MP:0002160 ! abnormal reproductive system morphology
+
+[Term]
+id: MP:0001120
+name: abnormal uterus morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the female muscular organ of gestation in which the developing embryo or fetus is nourished until birth" [MGI:csmith]
+synonym: "abnormal metra morphology" EXACT []
+synonym: "abnormal uterine morphology" EXACT []
+synonym: "uterine dysplasia" EXACT []
+synonym: "uterus dysplasia" EXACT []
+is_a: MP:0009209 ! abnormal internal female genitalia morphology
+
+[Term]
+id: MP:0001124
+name: abnormal gametes
+namespace: MPheno.ontology
+def: "anomaly of any mature reproductive cell, ovum or spermatozoon, capable of fusing with a cell of similar origin, but opposite sex, to produce a zygote" [ISBN:0-683-40008-8]
+is_a: MP:0002208 ! abnormal germ cell morphology
+
+[Term]
+id: MP:0001126
+name: abnormal ovary morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the female reproductive gland containing the germ cells" [ISBN:0-683-40008-8]
+synonym: "abnormal gonad morphology" BROAD []
+synonym: "abnormal ovarian morphology" EXACT []
+synonym: "abnormal ovaries" BROAD []
+synonym: "ovarian dysplasia" EXACT []
+synonym: "ovary dysplasia" EXACT []
+is_a: MP:0000653 ! abnormal sex gland morphology
+is_a: MP:0009209 ! abnormal internal female genitalia morphology
+
+[Term]
+id: MP:0001127
+name: small ovary
+namespace: MPheno.ontology
+def: "reduced size of the female reproductive gland containing the germ cells" [ISBN:0-683-40008-8]
+synonym: "decreased ovary size" EXACT []
+synonym: "reduced ovary size" EXACT []
+synonym: "small ovaries" EXACT []
+is_a: MP:0001116 ! small gonad
+is_a: MP:0004853 ! abnormal ovary size
+
+[Term]
+id: MP:0001145
+name: abnormal male reproductive system morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the organs associated with producing offspring in the gender that produces spermatozoa" [ISBN:0-683-40008-8]
+synonym: "abnormal male reproductive anatomy" EXACT []
+synonym: "male reproductive anatomy dysplasia" EXACT []
+is_a: MP:0002160 ! abnormal reproductive system morphology
+
+[Term]
+id: MP:0001146
+name: abnormal testis morphology
+namespace: MPheno.ontology
+alt_id: MP:0003206
+def: "any structural anomaly of the male reproductive glands" [ISBN:0-683-40008-8]
+subset: Europhenome_Terms
+synonym: "abnormal didymus morphology" EXACT []
+synonym: "abnormal gonad morphology" BROAD []
+synonym: "abnormal male gonad morphology" EXACT []
+synonym: "abnormal orchis morphology" EXACT []
+synonym: "abnormal testes morphology" EXACT []
+synonym: "abnormal testicle morphology" EXACT []
+synonym: "abnormal testiculus morphology" EXACT []
+synonym: "testicular dysplasia" EXACT []
+synonym: "testis dysplasia" EXACT []
+is_a: MP:0000653 ! abnormal sex gland morphology
+is_a: MP:0009205 ! abnormal internal male genitalia morphology
+
+[Term]
+id: MP:0001147
+name: small testis
+namespace: MPheno.ontology
+def: "reduced size of the male reproductive glands" [ISBN:0-683-40008-8]
+subset: Europhenome_Terms
+synonym: "decreased testis size" EXACT []
+synonym: "microorchidism" EXACT []
+synonym: "microrchidia" EXACT []
+synonym: "reduced testis size" EXACT []
+synonym: "small male gonad" EXACT []
+synonym: "small testes" EXACT []
+synonym: "small testicles" EXACT []
+is_a: MP:0001116 ! small gonad
+is_a: MP:0004849 ! abnormal testis size
+
+[Term]
+id: MP:0001156
+name: abnormal spermatogenesis
+namespace: MPheno.ontology
+def: "incomplete maturation or aberrant formation of the male gametes" [J:58959]
+synonym: "abnormal sperm development" EXACT []
+is_a: MP:0001929 ! abnormal gametogenesis
+
+[Term]
+id: MP:0001175
+name: abnormal lung morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the paired lobed visceral organs of respiration in the pulmonary cavity of the thorax where aeration of the blood normally occurs" [ISBN:0-683-40008-8]
+synonym: "abnormal lung" BROAD []
+synonym: "lung dysplasia" EXACT []
+is_a: MP:0002132 ! abnormal respiratory system morphology
+
+[Term]
+id: MP:0001259
+name: abnormal body weight
+namespace: MPheno.ontology
+def: "anomaly in average weight compared to controls" [MGI:cwg]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "abnormal weight" EXACT []
+is_a: MP:0003956 ! abnormal body size
+
+[Term]
+id: MP:0001262
+name: decreased body weight
+namespace: MPheno.ontology
+def: "lower than normal average weight" [PMID:10709991]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "decreased weight" EXACT []
+synonym: "low body weight" EXACT []
+synonym: "reduced body weight" EXACT []
+synonym: "reduced weight" EXACT []
+is_a: MP:0001259 ! abnormal body weight
+is_a: MP:0001265 ! decreased body size
+
+[Term]
+id: MP:0001265
+name: decreased body size
+namespace: MPheno.ontology
+def: "smaller than average body weight, height and/or length of an organism compared to controls" [ISBN:0-683-40008-8, PMID:7854452]
+synonym: "decreased size" EXACT []
+synonym: "dwarf" NARROW []
+synonym: "reduced body size" EXACT []
+synonym: "reduced size" EXACT []
+synonym: "runt" EXACT []
+synonym: "runted" EXACT []
+synonym: "runting" EXACT []
+synonym: "small body size" EXACT []
+xref: GO:0040007
+xref: GO:0040014
+is_a: MP:0003956 ! abnormal body size
+
+[Term]
+id: MP:0001286
+name: abnormal eye development
+namespace: MPheno.ontology
+def: "malformation or arrest of differentiation of the visual organ" [ISBN:0-683-40008-8, MGI:csmith, PMID:9753320]
+subset: Sanger_Terms
+synonym: "eye development abnormalities" EXACT []
+xref: GO:0001654
+is_a: MP:0002092 ! abnormal eye morphology
+
+[Term]
+id: MP:0001379
+name: abnormal penile erection
+namespace: MPheno.ontology
+def: "altered ability to achieve a rigid state of the penis obtained in the condition in which the erectile tissue is filled with blood" [ISBN:0-683-40008-8]
+is_a: MP:0003698 ! abnormal male reproductive system physiology
+is_a: MP:0009697 ! abnormal copulation
+
+[Term]
+id: MP:0001392
+name: abnormal locomotor behavior
+namespace: MPheno.ontology
+def: "altered ability or inability to move from place to place in response to stimuli" [MGI:csmith]
+synonym: "abnormal locomotion" EXACT []
+synonym: "abnormal locomotor activity" EXACT []
+synonym: "abnormal locomotory behavior" EXACT []
+is_a: MP:0003491 ! abnormal voluntary movement
+
+[Term]
+id: MP:0001402
+name: hypoactivity
+namespace: MPheno.ontology
+alt_id: MP:0001419
+def: "general reduced locomotor activity; reduced movement from one place to another or having a decreased state of activity" [ISBN:0-683-40008-8, MGI:csmith]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "decreased locomotor activity" EXACT []
+synonym: "hypoactive" EXACT []
+synonym: "hypolocomotion" EXACT []
+synonym: "reduced activity in horizontal open field test" EXACT []
+synonym: "underactive" EXACT []
+is_a: MP:0003313 ! abnormal locomotor activation
+
+[Term]
+id: MP:0001405
+name: impaired coordination
+namespace: MPheno.ontology
+alt_id: MP:0001517
+alt_id: MP:0001518
+alt_id: MP:0001519
+alt_id: MP:0001520
+alt_id: MP:0001521
+def: "reduced ability to execute integrated movements of muscle" [ISBN:0-683-40008-8, MGI:csmith]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "impaired motor coordination" EXACT []
+synonym: "impaired motor coordination in balance beam test" NARROW []
+synonym: "impaired motor coordination in hanging wire test" NARROW []
+synonym: "impaired motor coordination in platform test" NARROW []
+synonym: "impaired motor coordination in rotarod test" NARROW []
+synonym: "impaired motor coordination in thin rod test" NARROW []
+is_a: MP:0001516 ! abnormal motor coordination/ balance
+
+[Term]
+id: MP:0001463
+name: abnormal spatial learning
+namespace: MPheno.ontology
+alt_id: MP:0001466
+alt_id: MP:0001467
+def: "anomaly in the ability to ascertain or acquire spatial location information in order to improve navigation or other behavior using such location cues" [MGI:CFG, MGI:csmith]
+synonym: "spatial learning abnormalities" EXACT []
+synonym: "spatial learning impairment in morris water maze test" NARROW []
+synonym: "visible learning impairment in morris water maze test" NARROW []
+is_a: MP:0002063 ! abnormal learning/memory/conditioning
+
+[Term]
+id: MP:0001468
+name: abnormal temporal memory
+namespace: MPheno.ontology
+def: "anomaly in the ability to recall temporal events and stimuli" [MGI:CFG]
+synonym: "temporal memory abnormalities" EXACT []
+is_a: MP:0002063 ! abnormal learning/memory/conditioning
+
+[Term]
+id: MP:0001469
+name: abnormal contextual conditioning behavior
+namespace: MPheno.ontology
+def: "anomaly in the ability of an animal to learn and remember an association between an aversive experience (the unconditioned stimulus (US), usually a shock) and the neutral, unchanging environment (the conditioned stimulus (CS), or the environmental context in this case)" [MGI:CFG]
+synonym: "abnormal contextual fear conditioning" EXACT []
+synonym: "contextual conditioning anomalies" EXACT []
+synonym: "contextual fear conditioning abnormalities" EXACT []
+is_a: MP:0001468 ! abnormal temporal memory
+is_a: MP:0002062 ! abnormal associative learning
+
+[Term]
+id: MP:0001475
+name: reduced long term depression
+namespace: MPheno.ontology
+def: "less than the normal, persistent activity-dependent decrease in synaptic efficacy between neurons, often following slow, weak stimulation of CA1 neurons" [ISBN:0838580343, MGI:csmith]
+synonym: "deficient long term depression" EXACT []
+synonym: "deficient LTD" EXACT []
+synonym: "reduced long-term depression" EXACT []
+is_a: MP:0001898 ! abnormal long term depression
+
+[Term]
+id: MP:0001491
+name: unresponsive to tactile stimuli
+namespace: MPheno.ontology
+alt_id: MP:0001971
+alt_id: MP:0001976
+def: "absence of reflex action normally induced by touch or pain" [MGI:csmith]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "absent pain responsiveness in pin prick test" EXACT []
+synonym: "absent pain responsiveness in tail pinch test" EXACT []
+synonym: "tactile analgesia" RELATED []
+is_a: MP:0004270 ! analgesia
+is_a: MP:0005316 ! abnormal response to tactile stimuli
+
+[Term]
+id: MP:0001510
+name: abnormal coat appearance
+namespace: MPheno.ontology
+def: "anomaly in the visual apsect of the coat or hair" [ISBN:0-683-40008-8]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "abnormal appearance of the fur" EXACT []
+is_a: MP:0000367 ! abnormal coat/ hair morphology
+
+[Term]
+id: MP:0001516
+name: abnormal motor coordination/ balance
+namespace: MPheno.ontology
+def: "altered ability of an animal to maintain skillful and effective interaction of movements or maintenance of equilibrium" [MGI:csmith]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "impaired proprioception" EXACT []
+is_a: MP:0002066 ! abnormal motor capabilities/coordination/movement
+
+[Term]
+id: MP:0001544
+name: abnormal cardiovascular system physiology
+namespace: MPheno.ontology
+alt_id: MP:0000302
+alt_id: MP:0001623
+alt_id: MP:0001626
+alt_id: MP:0002130
+def: "any functional anomaly of the heart or vascular tissue" [MGI:csmith]
+synonym: "abnormal cardiovascular function" EXACT []
+synonym: "abnormal circulatory system physiology" EXACT []
+synonym: "abnormal heart function" NARROW []
+synonym: "circulatory system physiology abnormalities" EXACT []
+synonym: "heart/cardiovascular system: other functional anomalies" EXACT []
+synonym: "other abnormal cardiovascular system physiology" EXACT []
+xref: MGI:2173590
+is_a: MP:0005385 ! cardiovascular system phenotype
+
+[Term]
+id: MP:0001672
+name: abnormal embryogenesis/ development
+namespace: MPheno.ontology
+def: "anomaly in the establishment of the characteristic configuration of the embryonic body" [ISBN:0-683-40008-8]
+synonym: "embryogenesis/ development abnormalities" EXACT []
+xref: GO:0007275
+is_a: MP:0005380 ! embryogenesis phenotype
+
+[Term]
+id: MP:0001688
+name: abnormal somite development
+namespace: MPheno.ontology
+def: "any anomaly in the formation of any of the paired, metamerically arranged cell masses formed in the embryonic paraxial mesoderm" [ISBN:0-683-40008-8]
+synonym: "abnormal metablastic segment development" EXACT []
+is_a: MP:0002085 ! abnormal embryonic tissue morphology
+
+[Term]
+id: MP:0001697
+name: abnormal embryo size
+namespace: MPheno.ontology
+def: "any anomaly in the proportions of embryo compared to littermates (sensu Mus: up to E14, or the completion of organogenesis)" [MGI:cwg]
+is_a: MP:0001672 ! abnormal embryogenesis/ development
+is_a: MP:0002088 ! abnormal embryonic growth/weight/body size
+is_a: MP:0010866 ! abnormal prenatal body size
+
+[Term]
+id: MP:0001698
+name: decreased embryo size
+namespace: MPheno.ontology
+def: "smaller proportions of an embryo compared to littermates or other controls (sensu Mus: up to E14, or the completion of organogenesis)" [J:61790]
+synonym: "reduced embryo size" EXACT []
+synonym: "small embryo" EXACT []
+is_a: MP:0001697 ! abnormal embryo size
+
+[Term]
+id: MP:0001731
+name: abnormal postnatal growth
+namespace: MPheno.ontology
+def: "anomaly in reaching a developmental stage or stages after birth" [MGI:il]
+is_a: MP:0002089 ! abnormal postnatal growth/weight/body size
+
+[Term]
+id: MP:0001732
+name: postnatal growth retardation
+namespace: MPheno.ontology
+def: "slow or limited development after birth" [ISBN:0-683-40008-8]
+synonym: "atelia" NARROW []
+synonym: "ateliosis" NARROW []
+synonym: "decreased growth rate" EXACT []
+synonym: "reduced growth rate" EXACT []
+synonym: "stunted growth" EXACT []
+is_a: MP:0001731 ! abnormal postnatal growth
+
+[Term]
+id: MP:0001764
+name: abnormal homeostasis
+namespace: MPheno.ontology
+def: "anomaly in the processes involved in the maintenance of an internal equilibrium of various functions and chemical or protein composition of the fluids and tissues" [ISBN:0-683-40008-8]
+synonym: "abnormal homeostatic process" EXACT []
+synonym: "homeostasis abnormalities" EXACT []
+is_a: MP:0005376 ! homeostasis/metabolism phenotype
+
+[Term]
+id: MP:0001784
+name: abnormal fluid regulation
+namespace: MPheno.ontology
+def: "any anomaly in the control of intracellular and/or extracellular fluid" [MGI:cwg]
+is_a: MP:0001764 ! abnormal homeostasis
+
+[Term]
+id: MP:0001879
+name: abnormal lymphatic vessel morphology
+namespace: MPheno.ontology
+alt_id: MP:0000309
+alt_id: MP:0001638
+alt_id: MP:0001639
+def: "any structural anomaly of the network of vessels which carries lymph around the body" [ISBN:0-683-40008-8, MGI:tc]
+synonym: "lymphatic system abnormalities" BROAD []
+synonym: "lymphatic system dysplasia" EXACT []
+is_a: MP:0000685 ! abnormal immune system morphology
+
+[Term]
+id: MP:0001898
+name: abnormal long term depression
+namespace: MPheno.ontology
+alt_id: MP:0001474
+def: "change from the normal, persistent activity-dependent decrease in synaptic efficacy between neurons, often following slow, weak stimulation of neurons" [ISBN:0838580343, MGI:csmith]
+synonym: "abnormal long-term depression" EXACT []
+synonym: "abnormal LTD" EXACT []
+is_a: MP:0002915 ! abnormal synaptic depression
+
+[Term]
+id: MP:0001919
+name: abnormal reproductive system physiology
+namespace: MPheno.ontology
+def: "any functional anomaly of the organs associated with producing offspring" [MGI:csmith]
+synonym: "reproductive system physiology anomalies" EXACT []
+is_a: MP:0005389 ! reproductive system phenotype
+
+[Term]
+id: MP:0001924
+name: infertility
+namespace: MPheno.ontology
+alt_id: MP:0001371
+def: "inability to produce live offspring" [J:47225]
+synonym: "infertile" EXACT []
+synonym: "sterile" EXACT []
+synonym: "sterility" EXACT []
+is_a: MP:0002161 ! abnormal fertility/fecundity
+
+[Term]
+id: MP:0001925
+name: male infertility
+namespace: MPheno.ontology
+def: "inability of male to produce live offspring" [ISBN:0-683-40008-8]
+synonym: "male infertile" EXACT []
+synonym: "male sterile" EXACT []
+synonym: "male sterility" EXACT []
+is_a: MP:0001924 ! infertility
+is_a: MP:0003698 ! abnormal male reproductive system physiology
+
+[Term]
+id: MP:0001926
+name: female infertility
+namespace: MPheno.ontology
+def: "inability of female to produce live offspring" [ISBN:0-683-40008-8]
+synonym: "female infertile" EXACT []
+synonym: "female sterile" EXACT []
+synonym: "female sterility" EXACT []
+is_a: MP:0001924 ! infertility
+is_a: MP:0003699 ! abnormal female reproductive system physiology
+
+[Term]
+id: MP:0001927
+name: abnormal estrous cycle
+namespace: MPheno.ontology
+def: "failure of progression or aberrant timing of the regular female reproductive cycle of non-primate placental mammals that is under hormonal control and includes a period of heat (mating receptivity), followed by ovulation and complex changes in the reproductive tract, followed by reabsorbtion of the endometrium if pregnancy does not occur" [MGI:csmith]
+synonym: "abnormal estrus cycle" EXACT []
+synonym: "abnormal oestrous cycle" EXACT []
+is_a: MP:0009344 ! abnormal ovulation cycle
+
+[Term]
+id: MP:0001929
+name: abnormal gametogenesis
+namespace: MPheno.ontology
+def: "defective formation or differentiation of germ cells" [ISBN:0-683-40008-8, MGI:csmith]
+is_a: MP:0002160 ! abnormal reproductive system morphology
+
+[Term]
+id: MP:0001943
+name: abnormal respiration
+namespace: MPheno.ontology
+alt_id: Fyler:4200
+def: "anomaly in the movement of gases into and out of the lung" [ISBN:0-683-40008-8, MGI:cwg]
+subset: CvDC_Terms
+synonym: "respiratory anomaly" EXACT []
+is_a: MP:0002133 ! abnormal respiratory system physiology
+
+[Term]
+id: MP:0001951
+name: abnormal breathing pattern
+namespace: MPheno.ontology
+alt_id: MP:0001955
+def: "irregular or atypical breathing pattern, or absence of breathing" [ISBN:0-683-40008-8, PMID:7914451]
+synonym: "irregular breathing" EXACT []
+is_a: MP:0002327 ! abnormal respiratory function
+
+[Term]
+id: MP:0001953
+name: respiratory failure
+namespace: MPheno.ontology
+def: "cessation of or failure to commence breathing" [J:60159, MGI:csmith]
+is_a: MP:0001943 ! abnormal respiration
+
+[Term]
+id: MP:0001954
+name: respiratory distress
+namespace: MPheno.ontology
+alt_id: MP:0002317
+def: "physical difficulty or inability to breathe; shortness of breath" [ISBN:0-683-40008-8, MESH:C08.618.326, PMID:10357937]
+synonym: "dyspnea" EXACT []
+synonym: "gasping" EXACT []
+synonym: "labored breathing" EXACT []
+synonym: "shortness of breath" EXACT []
+is_a: MP:0001951 ! abnormal breathing pattern
+
+[Term]
+id: MP:0001968
+name: abnormal touch/ nociception
+namespace: MPheno.ontology
+def: "change in the ability to sense contact with objects or in the ability to sense pain, most often registered by mechanoreceptors in the skin and mucous membranes" [MGI:cwg]
+synonym: "touch/ nociception abnormalities" EXACT []
+synonym: "touch/ nociception defects" EXACT []
+is_a: MP:0002067 ! abnormal sensory capabilities/reflexes/nociception
+is_a: MP:0010771 ! integument phenotype
+
+[Term]
+id: MP:0001970
+name: abnormal pain threshold
+namespace: MPheno.ontology
+def: "increased or decreased average level of perception of pain" [J:17792]
+is_a: MP:0001968 ! abnormal touch/ nociception
+
+[Term]
+id: MP:0001973
+name: increased thermal nociceptive threshold
+namespace: MPheno.ontology
+def: "a greater than average point at which thermal pain sensation is first detectable" [ISBN:0-471-31639-3]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "decreased thermal nociception" EXACT []
+synonym: "prolonged latency in hot plate test" EXACT []
+synonym: "thermal hypoalgesia" EXACT []
+is_a: MP:0002733 ! abnormal thermal nociception
+is_a: MP:0003043 ! hypoalgesia
+
+[Term]
+id: MP:0002062
+name: abnormal associative learning
+namespace: MPheno.ontology
+def: "anomaly in the ability to change the frequency or form of a behavior as a result of the influence of the environment" [MGI:csmith]
+synonym: "abnormal conditioning behavior" EXACT []
+synonym: "neurological/behavioral: conditioning defect" EXACT []
+xref: MGI:2173567
+is_a: MP:0002063 ! abnormal learning/memory/conditioning
+
+[Term]
+id: MP:0002063
+name: abnormal learning/memory/conditioning
+namespace: MPheno.ontology
+alt_id: MP:0001449
+def: "altered ability to receive, store, process or recall informational stimuli" [MGI:csmith]
+synonym: "abnormal learning/ memory" EXACT []
+synonym: "neurological/behavioral: learning/memory anomalies" EXACT []
+synonym: "neurological/behavioral: learning/memory impairment" EXACT []
+xref: MGI:2173568
+is_a: MP:0004924 ! abnormal behavior
+
+[Term]
+id: MP:0002064
+name: seizures
+namespace: MPheno.ontology
+alt_id: MP:0000946
+alt_id: MP:0001493
+def: "sudden and often acute manifestation of epileptic attack, sometimes convulsive" [MGI:csmith]
+synonym: "neurological/behavioral: seizures/epilepsy" BROAD []
+synonym: "seizures/epilepsy" BROAD []
+xref: MGI:2173569
+is_a: MP:0003633 ! abnormal nervous system physiology
+is_a: MP:0004924 ! abnormal behavior
+
+[Term]
+id: MP:0002066
+name: abnormal motor capabilities/coordination/movement
+namespace: MPheno.ontology
+def: "altered ability to coordinate voluntary movement or repetitive, compulsive movements" [MGI:csmith]
+synonym: "neurological/behavioral: motor capabilities/coordination/movement anomalies" EXACT []
+xref: MGI:2173571
+is_a: MP:0004924 ! abnormal behavior
+
+[Term]
+id: MP:0002067
+name: abnormal sensory capabilities/reflexes/nociception
+namespace: MPheno.ontology
+def: "inability or altered ability to respond to a sensory stimulus" [MGI:csmith]
+synonym: "neurological/behavioral: sensory capabilities/reflexes/nociception abnormalities" EXACT []
+xref: MGI:2173572
+is_a: MP:0004924 ! abnormal behavior
+
+[Term]
+id: MP:0002073
+name: abnormal hair growth
+namespace: MPheno.ontology
+alt_id: MP:0000409
+def: "absence or reduced amount of hair or abnormal onset of hair growth cycle or development, or abnormal hair pattern" [MGI:csmith, MGI:llw2]
+subset: Sanger_Terms
+synonym: "coat: hair growth defects" EXACT []
+synonym: "hair growth abnormalities" EXACT []
+xref: MGI:2173539
+is_a: MP:0001510 ! abnormal coat appearance
+
+[Term]
+id: MP:0002080
+name: prenatal lethality
+namespace: MPheno.ontology
+alt_id: MP:0001645
+alt_id: MP:0001707
+def: "death anytime between fertilization and birth (Mus: approximately E18.5)" [MGI:csmith]
+comment: Note that the name of this term has previously been embryonic lethality. In many species, the terms prenatal lethality and embryonic lethality are used interchangeably. However, this is not technically correct and we have modified this ontology to define the prenatal period to include the embryonic stages distinctly from the fetal stages. The names embryonic lethality and embryonic death have been retained as a narrow synonyms to aid in searching for those species that may use these terms as synonyms.
+subset: Sanger_Terms
+synonym: "antenatal lethality" EXACT []
+synonym: "embryonic death" NARROW []
+synonym: "embryonic lethality" NARROW []
+synonym: "survival: embryonic lethality" NARROW []
+synonym: "survival: prenatal lethality" EXACT []
+xref: MGI:2173525
+is_a: MP:0010769 ! abnormal survival
+is_a: MP:0010770 ! preweaning lethality
+
+[Term]
+id: MP:0002081
+name: perinatal lethality
+namespace: MPheno.ontology
+alt_id: MP:0001644
+def: "death anytime within the perinatal period (Mus: E18.5 through postnatal day 1)" [MGI:csmith]
+synonym: "perinatal death" EXACT []
+synonym: "stillborn" BROAD []
+synonym: "survival: perinatal lethality" EXACT []
+xref: MGI:2173526
+is_a: MP:0010769 ! abnormal survival
+is_a: MP:0010832 ! lethality during fetal growth through weaning
+
+[Term]
+id: MP:0002082
+name: postnatal lethality
+namespace: MPheno.ontology
+alt_id: MP:0001643
+def: "premature death anytime between the neonatal period and weaning age (Mus: P1 to approximately 3 weeks of age)" [MGI:csmith]
+synonym: "postnatal death" EXACT []
+synonym: "survival: postnatal lethality" EXACT []
+xref: MGI:2173527
+is_a: MP:0010769 ! abnormal survival
+is_a: MP:0010832 ! lethality during fetal growth through weaning
+
+[Term]
+id: MP:0002083
+name: premature death
+namespace: MPheno.ontology
+alt_id: MP:0001642
+alt_id: MP:0001646
+alt_id: MP:0001662
+def: "death after weaning age, but before the normal life span (Mus: after 3 weeks of age)" [MGI:csmith]
+synonym: "abnormal survival/ lethality" EXACT []
+synonym: "reduced life span" EXACT []
+synonym: "reduced lifespan" EXACT []
+synonym: "short life span" EXACT []
+synonym: "shorter life span" EXACT []
+synonym: "survival: premature death" EXACT []
+xref: MGI:2173528
+is_a: MP:0010769 ! abnormal survival
+
+[Term]
+id: MP:0002085
+name: abnormal embryonic tissue morphology
+namespace: MPheno.ontology
+alt_id: MP:0001673
+def: "any structural anomaly or development of any embryonic tissue resulting in morphological abnormality" [MGI:csmith]
+synonym: "abnormal embryogenesis" RELATED []
+synonym: "embryogenesis: embryonic tissue dysmorphology" EXACT []
+synonym: "embryonic tissue dysplasia" EXACT []
+xref: MGI:2173530
+is_a: MP:0001672 ! abnormal embryogenesis/ development
+
+[Term]
+id: MP:0002088
+name: abnormal embryonic growth/weight/body size
+namespace: MPheno.ontology
+def: "limited or accelerated growth or development apparent during the embryonic period (sensu Mus: up to E14, or the completion of organogenesis)" [MGI:csmith]
+synonym: "growth/weight/body size abnormality: embryonic" EXACT []
+xref: MGI:2173533
+is_a: MP:0004196 ! abnormal prenatal growth/weight/body size
+
+[Term]
+id: MP:0002089
+name: abnormal postnatal growth/weight/body size
+namespace: MPheno.ontology
+alt_id: MP:0001252
+def: "increased or decreased average body size, weight or growth characteristic abnormalities manifesting after birth" [MGI:csmith]
+subset: Europhenome_Terms
+synonym: "abnormal trunk/ body shape" EXACT []
+synonym: "growth/weight/body size abnormality: postnatal" EXACT []
+synonym: "trunk/ body shape abnormalities" EXACT []
+xref: GO:0040007
+xref: GO:0040014
+xref: MGI:2173534
+is_a: MP:0005378 ! growth/size phenotype
+
+[Term]
+id: MP:0002092
+name: abnormal eye morphology
+namespace: MPheno.ontology
+alt_id: Fyler:4863
+alt_id: MP:0001285
+alt_id: MP:0001294
+alt_id: MP:0001295
+alt_id: MP:0004104
+def: "any structural anomaly of the spheroid organ and optic nerve that serves to detect light" [ISBN:0-683-40008-8, MGI:csmith]
+subset: CvDC_Terms
+subset: Europhenome_Terms
+synonym: "abnormal eyes morphology" EXACT []
+synonym: "abnormal ocular orb morphology" EXACT []
+synonym: "eye abnormalities" BROAD []
+synonym: "eye dysplasia" EXACT []
+synonym: "eye malformation" EXACT []
+synonym: "eye tissue abnormalities" BROAD []
+synonym: "eye: dysmorphology" EXACT []
+synonym: "ocular dysplasia" EXACT []
+synonym: "opthalmic malformation" EXACT []
+synonym: "visual system abnormalities" BROAD []
+synonym: "visual system defects" BROAD []
+xref: GO:0001654
+xref: MGI:2173536
+is_a: MP:0005391 ! vision/eye phenotype
+
+[Term]
+id: MP:0002102
+name: abnormal ear morphology
+namespace: MPheno.ontology
+alt_id: Fyler:4867
+alt_id: MP:0000014
+alt_id: MP:0000016
+def: "any structural anomaly of any of the structures involved in the ear or vestibular system" [MGI:csmith]
+subset: CvDC_Terms
+subset: Europhenome_Terms
+synonym: "abnormal auditory/ vestibular system morphology" BROAD []
+synonym: "abnormal ear development/ ear malformation" NARROW []
+synonym: "auditory/ vestibular system abnormalities" EXACT []
+synonym: "auditory/ vestibular system defects" EXACT []
+synonym: "ear dysplasia" EXACT []
+synonym: "ears: dysmorphology" EXACT []
+xref: GO:0042471
+xref: MGI:2173556
+is_a: MP:0005377 ! hearing/vestibular/ear phenotype
+
+[Term]
+id: MP:0002109
+name: abnormal limb morphology
+namespace: MPheno.ontology
+alt_id: MP:0000546
+def: "any structural anomaly of the projecting paired appendages of an animal trunk, used in particular for movement and grasping; usually denotes the arm and/or legs in mammalian species" [MGI:csmith]
+synonym: "extremities: limb dysmorphology" EXACT []
+synonym: "limb abnormalities" BROAD []
+synonym: "limb dysplasia" EXACT []
+xref: MGI:2173549
+is_a: MP:0005371 ! limbs/digits/tail phenotype
+
+[Term]
+id: MP:0002111
+name: abnormal tail morphology
+namespace: MPheno.ontology
+alt_id: MP:0000584
+alt_id: MP:0005173
+def: "any structural anomaly of the flexible elongated appendage located at the caudal end of the torso in many species; it is usually continuous with the vertebral column" [MGI:csmith]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+synonym: "abnormal tail structure" EXACT []
+synonym: "extremities: tail dysmorphology" EXACT []
+synonym: "tail abnormalities" BROAD []
+synonym: "tail dysplasia" EXACT []
+synonym: "tail structure abnormalities" EXACT []
+xref: MGI:2173551
+is_a: MP:0005371 ! limbs/digits/tail phenotype
+
+[Term]
+id: MP:0002132
+name: abnormal respiratory system morphology
+namespace: MPheno.ontology
+alt_id: Fyler:4235
+alt_id: MP:0001174
+def: "any structural anomaly of pulmonary tissues" [MGI:csmith]
+subset: CvDC_Terms
+synonym: "pulmonary malformation" EXACT []
+synonym: "respiratory system dysplasia" EXACT []
+synonym: "respiratory system: dysmorphology" EXACT []
+xref: MGI:2173592
+is_a: MP:0005388 ! respiratory system phenotype
+
+[Term]
+id: MP:0002133
+name: abnormal respiratory system physiology
+namespace: MPheno.ontology
+def: "any functional anomaly of the pulmonary system; inability or reduced ability to intake and exchange oxygen and carbon dioxide with the environment" [MGI:csmith]
+synonym: "respiratory system dysfunction" EXACT []
+synonym: "respiratory system physiology abnormalities" EXACT []
+synonym: "respiratory system: respiratory distress/failure/functional anomalies" EXACT []
+xref: MGI:2173593
+is_a: MP:0005388 ! respiratory system phenotype
+
+[Term]
+id: MP:0002151
+name: abnormal neural tube morphology/development
+namespace: MPheno.ontology
+alt_id: Fyler:4339
+alt_id: MP:0000922
+def: "any structural anomaly of or development of the embryonic neural tube" [MGI:csmith]
+subset: CvDC_Terms
+synonym: "abnormal neural tube morphology" NARROW []
+synonym: "central nervous system: neural tube defects" BROAD []
+synonym: "neural tube defects" BROAD []
+synonym: "neural tube dysplasia" NARROW []
+xref: GO:0007420
+xref: MGI:2173611
+is_a: MP:0002085 ! abnormal embryonic tissue morphology
+is_a: MP:0003861 ! abnormal nervous system development
+
+[Term]
+id: MP:0002152
+name: abnormal brain morphology
+namespace: MPheno.ontology
+alt_id: MP:0000770
+alt_id: MP:0000775
+def: "any structural anomaly of the brain, one of the two components of the central nervous system and the center of thought and emotion; controls coordination, bodily activities and the interpretation of information from the senses (sight, hearing, smell, etc.)" [http://cancerweb.ncl.ac.uk, MGI:csmith]
+synonym: "abnormal brain structure" EXACT []
+synonym: "brain abnormalities" BROAD []
+synonym: "brain dysplasia" EXACT []
+synonym: "brain structure abnormalities" EXACT []
+synonym: "central nervous system: brain dysmorphology" EXACT []
+xref: MGI:2173612
+is_a: MP:0003632 ! abnormal nervous system morphology
+
+[Term]
+id: MP:0002160
+name: abnormal reproductive system morphology
+namespace: MPheno.ontology
+alt_id: MP:0001114
+alt_id: MP:0001115
+def: "structural or developmental anomaly of any of the tissues involved in the reproductive system" [MGI:csmith]
+synonym: "abnormal reproductive anatomy" EXACT []
+synonym: "abnormal reproductive system" BROAD []
+synonym: "reproductive system abnormalities" EXACT []
+synonym: "reproductive system defects" EXACT []
+synonym: "reproductive system dysplasia" EXACT []
+synonym: "reproductive system: dysmorphology" EXACT []
+xref: MGI:2173620
+is_a: MP:0005389 ! reproductive system phenotype
+
+[Term]
+id: MP:0002161
+name: abnormal fertility/fecundity
+namespace: MPheno.ontology
+alt_id: MP:0001920
+def: "anomaly in the reproductive capability of an organism or population to produce live offspring" [MGI:csmith]
+subset: Sanger_Terms
+synonym: "abnormal fecundity" EXACT []
+synonym: "reproductive system: fertility/fecundity anomalies" EXACT []
+xref: MGI:2173621
+is_a: MP:0001919 ! abnormal reproductive system physiology
+
+[Term]
+id: MP:0002163
+name: abnormal gland morphology
+namespace: MPheno.ontology
+alt_id: MP:0000594
+def: "any structural anomaly of an organ that functions as a secretory or excretory organ" [MGI:csmith]
+synonym: "abnormal glands morphology" EXACT []
+synonym: "gland abnormalities" BROAD []
+synonym: "glands: dysmorphology" EXACT []
+synonym: "glandular dysplasia" EXACT []
+xref: MGI:2173623
+is_a: MP:0005379 ! endocrine/exocrine gland phenotype
+
+[Term]
+id: MP:0002177
+name: abnormal outer ear morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of any components of the auricles or external acoustic meatus" [ISBN:0-683-40008-8, MGI:csmith]
+subset: Sanger_Terms
+synonym: "abnormal pinna morphology" EXACT []
+synonym: "dysplastic pinna" EXACT []
+synonym: "outer ear dysplasia" EXACT []
+is_a: MP:0000432 ! abnormal head morphology
+is_a: MP:0002102 ! abnormal ear morphology
+
+[Term]
+id: MP:0002199
+name: abnormal brain commissure morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of any of the nerve fiber tracts that span the longitudinal fissure between the cerebral and/or cerebellar hemispheres of the brain" [ISBN:0-683-40008-8, MGI:csmith]
+synonym: "abnormal commissure" BROAD []
+is_a: MP:0000778 ! abnormal nervous system tract morphology
+is_a: MP:0008026 ! abnormal brain white matter morphology
+
+[Term]
+id: MP:0002200
+name: abnormal brain ventricle/choroid plexus morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the brain ventricles or their associated choroid plexuses" [ISBN:0-683-40008-8]
+synonym: "abnormal brain ventricle/choroid plexus" EXACT []
+synonym: "abnormal choroid/ventricle" EXACT []
+is_a: MP:0002152 ! abnormal brain morphology
+
+[Term]
+id: MP:0002206
+name: abnormal CNS synaptic transmission
+namespace: MPheno.ontology
+def: "defect in the communication from a neuron to a target across a synapse in the central nervous system" [MESH:G04.335.880.850]
+synonym: "abnormal CNS neurotransmission" EXACT []
+synonym: "abnormal synaptic transmission" BROAD []
+is_a: MP:0003635 ! abnormal synaptic transmission
+
+[Term]
+id: MP:0002208
+name: abnormal germ cell morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the germ cell, that is, any of the reproductive (generative) cells of a multicellular organism, whether they are undifferentiated or fully differentiated" [ISBN:0-683-40008-8]
+is_a: MP:0001929 ! abnormal gametogenesis
+
+[Term]
+id: MP:0002209
+name: decreased germ cell number
+namespace: MPheno.ontology
+def: "reduced numbers of any of the reproductive (generative) cells of a multicellular organism, whether they are undifferentiated or fully differentiated" [ISBN:0-683-40008-8, MGI:pvb]
+synonym: "decreased number of germ cells" EXACT []
+synonym: "germ cell depletion" EXACT []
+synonym: "germ cell hypoplasia" EXACT []
+synonym: "reduced germ cell number" EXACT []
+synonym: "reduced number of germ cells" EXACT []
+is_a: MP:0002208 ! abnormal germ cell morphology
+
+[Term]
+id: MP:0002210
+name: abnormal sex determination
+namespace: MPheno.ontology
+alt_id: MP:0001936
+def: "anomaly of primary or secondary sexual development or characteristics" [MGI:cwg]
+synonym: "abnormal sexual differentiation" EXACT []
+is_a: MP:0002160 ! abnormal reproductive system morphology
+
+[Term]
+id: MP:0002211
+name: abnormal primary sex determination
+namespace: MPheno.ontology
+def: "aberrant gonadal development resulting in either abnormal or absent gonads or the development of gonads inconsistent with the chromosomal sex" [MGI:csmith, MGI:llw2]
+synonym: "abnormal gonad development" EXACT []
+is_a: MP:0002210 ! abnormal sex determination
+
+[Term]
+id: MP:0002286
+name: cryptorchism
+namespace: MPheno.ontology
+alt_id: Fyler:4493
+def: "failure of one or both of the testes to descend into the scrotum around the time of birth" [MGI:csmith]
+subset: CvDC_Terms
+synonym: "abdominal testes" EXACT []
+synonym: "absence of scrotal testes" EXACT []
+synonym: "cryptorchidism" EXACT []
+synonym: "undescended testes" EXACT []
+is_a: MP:0001146 ! abnormal testis morphology
+
+[Term]
+id: MP:0002327
+name: abnormal respiratory function
+namespace: MPheno.ontology
+def: "anomaly in any measure of the processes involved in respiration" [MGI:cwg]
+is_a: MP:0001943 ! abnormal respiration
+
+[Term]
+id: MP:0002557
+name: abnormal social/conspecific interaction
+namespace: MPheno.ontology
+alt_id: MP:0001351
+def: "deviation of the normal behavior of animals towards each other" [MGI:csmith]
+subset: Europhenome_Terms
+synonym: "abnormal social behavior" EXACT []
+synonym: "abnormal socialization" EXACT []
+synonym: "neurological/behavioral: social/conspecific interaction anomalies" EXACT []
+is_a: MP:0004924 ! abnormal behavior
+
+[Term]
+id: MP:0002566
+name: abnormal sexual interaction
+namespace: MPheno.ontology
+alt_id: MP:0001369
+alt_id: MP:0001370
+alt_id: MP:0001374
+def: "altered initiation, failure of initiation or incomplete mating behavior" [MGI:csmith]
+synonym: "abnormal breeding" EXACT []
+synonym: "abnormal breeding/mating" EXACT []
+synonym: "abnormal mating" EXACT []
+synonym: "abnormal mating behavior" RELATED []
+is_a: MP:0002557 ! abnormal social/conspecific interaction
+
+[Term]
+id: MP:0002637
+name: small uterus
+namespace: MPheno.ontology
+def: "reduced size of the female muscular organ of gestation" [MGI:csmith]
+synonym: "decreased uterine size" EXACT []
+synonym: "decreased uterus size" EXACT []
+synonym: "reduced uterine size" EXACT []
+synonym: "reduced uterus size" EXACT []
+synonym: "small metra" EXACT []
+is_a: MP:0004902 ! abnormal uterus size
+
+[Term]
+id: MP:0002673
+name: abnormal sperm number
+namespace: MPheno.ontology
+def: "increased or decreased numbers of spermatozoa" [MGI:pvb]
+synonym: "abnormal sperm count" EXACT []
+is_a: MP:0001929 ! abnormal gametogenesis
+
+[Term]
+id: MP:0002733
+name: abnormal thermal nociception
+namespace: MPheno.ontology
+alt_id: MP:0001972
+def: "abnormal capability to sense pain elicited by thermal stimulation" [MGI:pvb]
+synonym: "abnormal response to temperature" EXACT []
+is_a: MP:0001968 ! abnormal touch/ nociception
+
+[Term]
+id: MP:0002739
+name: abnormal olfactory bulb development
+namespace: MPheno.ontology
+def: "abnormality in the progression of the formation of the olfactory bulb" [J:65380, MGI:pvb]
+is_a: MP:0000819 ! abnormal olfactory bulb morphology
+is_a: MP:0000913 ! abnormal brain development
+
+[Term]
+id: MP:0002758
+name: long tail
+namespace: MPheno.ontology
+def: "increased length of tail relative to average of a given strain" [MGI:pvb]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+is_a: MP:0002111 ! abnormal tail morphology
+
+[Term]
+id: MP:0002762
+name: ectopic cerebellar granule cells
+namespace: MPheno.ontology
+def: "granule cell body resides in a place other than the external or internal granule layer of the cerebellum" [J:4978]
+synonym: "ectopic granule cells" BROAD []
+synonym: "ectopic granule neuron" BROAD []
+synonym: "heterotopic granule cells" BROAD []
+xref: CL:0001031
+is_a: MP:0004098 ! abnormal cerebellar granule cell morphology
+is_a: MP:0011723 ! ectopic neuron
+
+[Term]
+id: MP:0002768
+name: small adrenal glands
+namespace: MPheno.ontology
+def: "reduced size of the pair of endocrine glands located above the kidney that are responsible for steroid hormone secretion from the cortex and neurotransmitter (such as epinephrine and norepinephrine) secretion from the medulla" [ISBN:0-683-40008-8]
+synonym: "decreased adrenal gland size" EXACT []
+synonym: "reduced adrenal gland size" EXACT []
+is_a: MP:0000639 ! abnormal adrenal gland morphology
+
+[Term]
+id: MP:0002772
+name: brachypodia
+namespace: MPheno.ontology
+def: "abnormally short feet" [J:31930, MGI:il]
+is_a: MP:0000572 ! abnormal autopod morphology
+
+[Term]
+id: MP:0002802
+name: abnormal discrimination learning
+namespace: MPheno.ontology
+def: "anomaly in the ability to exhibit a differential response to different stimuli that is achieved by the reinforcement of the desired response for each particular stimulus" [MGI:CFG]
+synonym: "discrimination learning abnormalities" EXACT []
+is_a: MP:0002063 ! abnormal learning/memory/conditioning
+
+[Term]
+id: MP:0002881
+name: long hair
+namespace: MPheno.ontology
+def: "increased average length of the coat hairs" [MGI:csmith]
+subset: Sanger_Terms
+is_a: MP:0002073 ! abnormal hair growth
+
+[Term]
+id: MP:0002882
+name: abnormal neuron morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the cells of the nervous system that receive, conduct, and transmit impulses" [MESH:A08.663]
+synonym: "neuron dysplasia" EXACT []
+is_a: MP:0003632 ! abnormal nervous system morphology
+
+[Term]
+id: MP:0002883
+name: chromatolysis
+namespace: MPheno.ontology
+def: "the dissolution of the granules of chromophil substance in a nerve cell body that may occur in injured cells or axons" [MGI:dlb]
+is_a: MP:0002882 ! abnormal neuron morphology
+
+[Term]
+id: MP:0002906
+name: increased susceptibility to pharmacologically induced seizures
+namespace: MPheno.ontology
+def: "inability to withstand doses of pharmacological drugs that induce seizure activity in normal animals; exhibit a lower threshold to induce seizure activity" [MGI:csmith]
+synonym: "decreased resistance to pharmacologically induced seizures" EXACT []
+synonym: "susceptibility to pharmacologically induced seizures" RELATED []
+is_a: MP:0000950 ! abnormal seizure response to pharmacological agent
+
+[Term]
+id: MP:0002915
+name: abnormal synaptic depression
+namespace: MPheno.ontology
+def: "changes in the duration of the reduction of effectiveness of synaptic connections between neurons and target after repetitive stimulation" [ISBN:0838580343]
+is_a: MP:0002206 ! abnormal CNS synaptic transmission
+
+[Term]
+id: MP:0002950
+name: abnormal neural crest cell migration
+namespace: MPheno.ontology
+def: "any anomaly in the dispersion of the transient and migratory group of cells that emerge from the dorsal region of the neural tube and migrate to many peripheral locations to form various tissues of the adult" [ISBN:0838580343]
+synonym: "abnormal NCC migration" EXACT []
+is_a: MP:0003091 ! abnormal cell migration
+is_a: MP:0008932 ! abnormal embryonic tissue physiology
+
+[Term]
+id: MP:0002969
+name: impaired social transmission of food preference
+namespace: MPheno.ontology
+def: "defect in the ability to recall and prefer foods associated with odors recently smelled on the breath of other mice; an indicator of defects in learning and memory of olfactory cues" [PMID:10792055]
+is_a: MP:0002802 ! abnormal discrimination learning
+
+[Term]
+id: MP:0003043
+name: hypoalgesia
+namespace: MPheno.ontology
+def: "decreased sensitivity to painful stimuli; can be due to chemical intervention, neuropathies or due to damage to soft tissue containing nociceptors or injury to a peripheral nerve; it can be primary (at the site of the injury) or secondary (in the surrounding undamaged area)" [MESH:C10.597.751.791.400, MGI:anna, MGI:csmith]
+synonym: "increased pain threshold" EXACT []
+is_a: MP:0001970 ! abnormal pain threshold
+
+[Term]
+id: MP:0003091
+name: abnormal cell migration
+namespace: MPheno.ontology
+def: "any anomaly in the movement of cells from one site to another, often occuring during developmental or chemotactic processes" [GO:0016477, MGI:csmith]
+is_a: MP:0005621 ! abnormal cell physiology
+
+[Term]
+id: MP:0003232
+name: abnormal forebrain development
+namespace: MPheno.ontology
+def: "anomaly in the formation or patterning of the anterior primitive cerebral vesicle; most rostral of three primary vesicles of the embryonic neural tube" [J:93081, MGI:smb]
+is_a: MP:0000783 ! abnormal forebrain morphology
+is_a: MP:0000913 ! abnormal brain development
+
+[Term]
+id: MP:0003313
+name: abnormal locomotor activation
+namespace: MPheno.ontology
+def: "altered ability or desire of an animal to initiate locomotor activity" [MGI:csmith]
+subset: Europhenome_Terms
+is_a: MP:0001392 ! abnormal locomotor behavior
+
+[Term]
+id: MP:0003415
+name: priapism
+namespace: MPheno.ontology
+def: "prolonged penile erection, often painful and without sexual desire" [MESH:C12.294.494.786, MGI:smb]
+is_a: MP:0001379 ! abnormal penile erection
+
+[Term]
+id: MP:0003491
+name: abnormal voluntary movement
+namespace: MPheno.ontology
+def: "anomaly in coordinated movements executed with a purpose and can be improved by learning and/or experience" [MGI:Nmice]
+is_a: MP:0002066 ! abnormal motor capabilities/coordination/movement
+
+[Term]
+id: MP:0003631
+name: nervous system phenotype
+namespace: MPheno.ontology
+alt_id: MP:0005368
+alt_id: MP:0005383
+def: "the observable morphological and physiological characteristics of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that are manifested through development and lifespan" [MGI:csmith]
+synonym: "central nervous system phenotype" NARROW []
+synonym: "CNS phenotype" NARROW []
+synonym: "peripheral nervous system phenotype" NARROW []
+synonym: "PNS phenotype" NARROW []
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0003632
+name: abnormal nervous system morphology
+namespace: MPheno.ontology
+alt_id: Fyler:4135
+alt_id: Fyler:4300
+alt_id: MP:0000769
+alt_id: MP:0000957
+alt_id: MP:0002153
+alt_id: MP:0002157
+alt_id: MP:0002170
+alt_id: MP:0002171
+def: "any structural anomaly of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that receive and interpret stimuli and transmit impulses to effector organs to control body functions" [MGI:csmith]
+subset: CvDC_Terms
+synonym: "abnormal central nervous system morphology" NARROW []
+synonym: "abnormal peripheral nervous system" NARROW []
+synonym: "abnormal peripheral nervous system morphology" NARROW []
+synonym: "central nervous system abnormalities" NARROW []
+synonym: "central nervous system anomaly" NARROW []
+synonym: "central nervous system defects" NARROW []
+synonym: "central nervous system: other dysmorphology" NARROW []
+synonym: "nervous system dysplasia" EXACT []
+synonym: "neurologic malformation" EXACT []
+synonym: "other abnormal central nervous system morphology" NARROW []
+synonym: "peripheral nervous system abnormalities" NARROW []
+synonym: "peripheral nervous system abnormality" NARROW []
+synonym: "peripheral nervous system anomaly" NARROW []
+synonym: "peripheral nervous system defects" NARROW []
+synonym: "peripheral nervous system: dysmorphology" NARROW []
+xref: GO:0007417
+xref: MGI:2173613
+xref: MGI:2173617
+is_a: MP:0003631 ! nervous system phenotype
+
+[Term]
+id: MP:0003633
+name: abnormal nervous system physiology
+namespace: MPheno.ontology
+alt_id: MP:0000945
+alt_id: MP:0001887
+alt_id: MP:0001910
+alt_id: MP:0001918
+alt_id: MP:0002155
+alt_id: MP:0002158
+def: "any functional anomaly of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that receive and interpret stimuli and transmit impulses to effector organs to control body functions" [MGI:csmith]
+synonym: "abnormal brain function" NARROW []
+synonym: "abnormal central nervous system physiology" NARROW []
+synonym: "abnormal peripheral nervous system physiology" NARROW []
+synonym: "central nervous system functional abnormalities" NARROW []
+synonym: "central nervous system: other functional anomalies" NARROW []
+synonym: "peripheral nervous system: functional anomalies" NARROW []
+xref: MGI:2173615
+xref: MGI:2173618
+is_a: MP:0003631 ! nervous system phenotype
+
+[Term]
+id: MP:0003635
+name: abnormal synaptic transmission
+namespace: MPheno.ontology
+alt_id: MP:0002202
+def: "defect in the communication from a neuron to a target across a synapse" [MESH:G04.335.880.850]
+synonym: "abnormal neurotransmission" EXACT []
+is_a: MP:0003633 ! abnormal nervous system physiology
+
+[Term]
+id: MP:0003660
+name: chylothorax
+namespace: MPheno.ontology
+def: "an accumulation of chyle (fluid consisting of lymph and emulsified fats that is formed in the small intestine during digestion of fatty foods and taken up by the lymph vessels) in the pleural space" [ISBN:0-683-40008-8]
+synonym: "chylopleura" EXACT []
+synonym: "chylous hydrothorax" EXACT []
+is_a: MP:0010334 ! pleural effusion
+
+[Term]
+id: MP:0003698
+name: abnormal male reproductive system physiology
+namespace: MPheno.ontology
+def: "any functional anomaly of the male organs associated with producing offspring" [MGI:csmith]
+is_a: MP:0001919 ! abnormal reproductive system physiology
+
+[Term]
+id: MP:0003699
+name: abnormal female reproductive system physiology
+namespace: MPheno.ontology
+def: "any functional anomaly of the female organs associated with producing offspring" [MGI:csmith]
+is_a: MP:0001919 ! abnormal reproductive system physiology
+
+[Term]
+id: MP:0003720
+name: abnormal neural tube closure
+namespace: MPheno.ontology
+def: "any anomaly in the last step in the formation of the neural tube, where the paired neural folds are brought together and fuse at the dorsal midline" [J:99099, MGI:monikat]
+synonym: "abnormal neural fold fusion" EXACT []
+synonym: "abnormal neural tube fusion" EXACT []
+is_a: MP:0002151 ! abnormal neural tube morphology/development
+
+[Term]
+id: MP:0003861
+name: abnormal nervous system development
+namespace: MPheno.ontology
+def: "impaired or altered growth of the components of the nervous system" [MGI:csmith]
+is_a: MP:0003632 ! abnormal nervous system morphology
+
+[Term]
+id: MP:0003956
+name: abnormal body size
+namespace: MPheno.ontology
+def: "anomaly in the average body weight, height and/or length of an organism compared to controls" [MGI:csmith]
+subset: Europhenome_Terms
+is_a: MP:0002089 ! abnormal postnatal growth/weight/body size
+
+[Term]
+id: MP:0004038
+name: lymphangiectasis
+namespace: MPheno.ontology
+alt_id: Fyler:4042
+alt_id: MP:0010201
+def: "dilation of the lymphatic vessels, the basic process that may result in the formation of a lymphangioma" [ISBN:0-683-40008-8, MGI:anna]
+subset: CvDC_Terms
+synonym: "dilated lymphatic vessels" EXACT []
+synonym: "lymphatic vessel dilation" EXACT []
+synonym: "lymphectasia" EXACT []
+synonym: "telangiectasia lymphatica" EXACT []
+is_a: MP:0010200 ! enlarged lymphatic vessel
+
+[Term]
+id: MP:0004077
+name: abnormal striatum morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of a large cluster of dopaminergic nerve cells, consisting of the caudate nucleus and the putamen, that controls movement, balance, and walking" [ISBN:0838580343]
+synonym: "abnormal neostriatum morphology" EXACT []
+synonym: "abnormal striate body" EXACT []
+is_a: MP:0000787 ! abnormal telencephalon morphology
+is_a: MP:0006007 ! abnormal basal ganglion morphology
+
+[Term]
+id: MP:0004097
+name: abnormal cerebellar cortex morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the thin mantle of grey matter that covers the surface of each cerebral hemisphere, including the six layers of nerve cells and the nerve pathways that connect them; together, these regions are responsible for the processes of conscious thought, perception, emotion and memory as well as advanced motor function" [ISBN:0838580343, MGI:csmith]
+is_a: MP:0000849 ! abnormal cerebellum morphology
+
+[Term]
+id: MP:0004098
+name: abnormal cerebellar granule cell morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the small neurons of the cerebellar granule cell layer that send parallel fibers to the upper molecular layer, where they synapse with Purkinje cell dendrites" [ISBN:0838580343]
+synonym: "abnormal cerebellar granule neuron morphology" EXACT []
+synonym: "abnormal granule cell" BROAD []
+synonym: "abnormal granule neuron" BROAD []
+xref: CL:0001031
+is_a: MP:0000886 ! abnormal cerebellar granule layer
+
+[Term]
+id: MP:0004166
+name: abnormal limbic system morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of any of a collection of structures in the brain involved in emotion, motivation and emotional aspects of memory; these structures act together to control the endocrine system and the autonomic nervous system" [MGI:csmith]
+is_a: MP:0000783 ! abnormal forebrain morphology
+
+[Term]
+id: MP:0004196
+name: abnormal prenatal growth/weight/body size
+namespace: MPheno.ontology
+def: "limited or accelerated growth or development apparent before birth" [MGI:csmith]
+is_a: MP:0005378 ! growth/size phenotype
+
+[Term]
+id: MP:0004262
+name: abnormal physical strength
+namespace: MPheno.ontology
+def: "altered ability of an organism to exert force on physical objects or of the body to support its load" [MGI:csmith]
+is_a: MP:0002066 ! abnormal motor capabilities/coordination/movement
+
+[Term]
+id: MP:0004270
+name: analgesia
+namespace: MPheno.ontology
+def: "inability to sense pain" [MGI:csmith]
+is_a: MP:0001968 ! abnormal touch/ nociception
+
+[Term]
+id: MP:0004806
+name: absent germ cells
+namespace: MPheno.ontology
+def: "absence of germ cells, that is, any of the reproductive (generative) cells of a multicellular organism, whether they are undifferentiated or fully differentiated" [ISBN:0-683-40008-8]
+is_a: MP:0002209 ! decreased germ cell number
+
+[Term]
+id: MP:0004849
+name: abnormal testis size
+namespace: MPheno.ontology
+def: "anomaly in the size of the male reproductive glands" [MGI:csmith]
+subset: Europhenome_Terms
+synonym: "abnormal testes size" EXACT []
+is_a: MP:0001146 ! abnormal testis morphology
+
+[Term]
+id: MP:0004853
+name: abnormal ovary size
+namespace: MPheno.ontology
+def: "anomaly in the average size of the female reproductive gland containing the germ cells" [MGI:csmith]
+is_a: MP:0001126 ! abnormal ovary morphology
+
+[Term]
+id: MP:0004889
+name: increased energy expenditure
+namespace: MPheno.ontology
+def: "increase in the number of calories used per unit time or decrease in weight gain for a given amount of food eaten" [MGI:smb]
+subset: Sanger_Terms
+is_a: MP:0005450 ! abnormal energy expenditure
+
+[Term]
+id: MP:0004901
+name: decreased male germ cell number
+namespace: MPheno.ontology
+def: "reduced numbers of male germ cells whether they are undifferentiated or fully differentiated" [MGI:llw2, MGI:smb]
+synonym: "decreased number of male germ cells" EXACT []
+synonym: "male germ cell hypoplasia" RELATED []
+synonym: "reduced male germ cell number" EXACT []
+is_a: MP:0002209 ! decreased germ cell number
+is_a: MP:0006362 ! abnormal male germ cell morphology
+
+[Term]
+id: MP:0004902
+name: abnormal uterus size
+namespace: MPheno.ontology
+def: "anomaly in the size of the female organ of gestation" [MGI:csmith]
+synonym: "abnormal metra size" EXACT []
+synonym: "abnormal metral size" EXACT []
+synonym: "abnormal uterine size" EXACT []
+is_a: MP:0001120 ! abnormal uterus morphology
+
+[Term]
+id: MP:0004924
+name: abnormal behavior
+namespace: MPheno.ontology
+def: "any anomaly in the actions, reactions, or performance of an organism in response to external or internal stimuli compared to controls" [MGI:csmith]
+subset: Sanger_Terms
+synonym: "abnormal general behavior" RELATED []
+is_a: MP:0005386 ! behavior/neurological phenotype
+
+[Term]
+id: MP:0005076
+name: abnormal cell differentiation
+namespace: MPheno.ontology
+def: "anomaly in the process whereby relatively unspecialized cells, e. g. embryonic or regenerative cells, acquire specialized structural and/or functional features that characterize the cells, tissues, or organs of the mature organism or some other relatively stable phase of the organism's life history" [MGI:cwg]
+xref: GO:0030154
+is_a: MP:0005621 ! abnormal cell physiology
+
+[Term]
+id: MP:0005159
+name: azoospermia
+namespace: MPheno.ontology
+def: "a condition where there is no measurable level of spermatozoa in the semen" [MGI:llw2]
+synonym: "absence of sperm" EXACT []
+synonym: "absent sperm" EXACT []
+synonym: "aspermia" EXACT []
+is_a: MP:0001117 ! absent gametes
+is_a: MP:0001156 ! abnormal spermatogenesis
+is_a: MP:0002673 ! abnormal sperm number
+is_a: MP:0004901 ! decreased male germ cell number
+
+[Term]
+id: MP:0005316
+name: abnormal response to tactile stimuli
+namespace: MPheno.ontology
+def: "anomaly in the reflex action normally induced by touch or pain" [MGI:csmith]
+subset: Europhenome_Terms
+subset: Sanger_Terms
+is_a: MP:0001968 ! abnormal touch/ nociception
+
+[Term]
+id: MP:0005334
+name: abnormal fat pad morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the encapsulated adipose tissue" [MGI:cwg]
+synonym: "abnormal fat body morphology" EXACT []
+is_a: MP:0000003 ! abnormal adipose tissue morphology
+
+[Term]
+id: MP:0005336
+name: abnormal inguinal fat pad morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the encapsulated adipose tissue found in the groin" [J:84541, MGI:cwg]
+synonym: "abnormal inguinal fat depot morphology" EXACT []
+is_a: MP:0000010 ! abnormal abdominal fat pad morphology
+
+[Term]
+id: MP:0005371
+name: limbs/digits/tail phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005375
+name: adipose tissue phenotype
+namespace: MPheno.ontology
+def: "the observable morphological and physiological characteristics of mammalian fat tissue that are manifested through development and lifespan" [MGI:csmith]
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005376
+name: homeostasis/metabolism phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005377
+name: hearing/vestibular/ear phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005378
+name: growth/size phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005379
+name: endocrine/exocrine gland phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005380
+name: embryogenesis phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005382
+name: craniofacial phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005384
+name: cellular phenotype
+namespace: MPheno.ontology
+synonym: "cell phenotype" EXACT []
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005385
+name: cardiovascular system phenotype
+namespace: MPheno.ontology
+def: "the observable morphological and physiological characteristics of the mammalian heart, blood vessels, or circulatory system that are manifested through development and lifespan" [MGI:csmith]
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005386
+name: behavior/neurological phenotype
+namespace: MPheno.ontology
+alt_id: MP:0001350
+def: "the observable actions or reactions of mammalian organisms that are manifested through development and lifespan" [MGI:csmith]
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005387
+name: immune system phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005388
+name: respiratory system phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005389
+name: reproductive system phenotype
+namespace: MPheno.ontology
+synonym: "reproduction phenotype" EXACT []
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005391
+name: vision/eye phenotype
+namespace: MPheno.ontology
+is_a: MP:0000001 ! mammalian phenotype
+
+[Term]
+id: MP:0005448
+name: abnormal energy balance
+namespace: MPheno.ontology
+def: "aberrant intake or expenditure of calories as compared to the normal state" [MGI:cwg]
+subset: Europhenome_Terms
+is_a: MP:0001764 ! abnormal homeostasis
+
+[Term]
+id: MP:0005450
+name: abnormal energy expenditure
+namespace: MPheno.ontology
+def: "utilization of calories that differs from normal" [MGI:cwg]
+synonym: "abnormal energy metabolism" EXACT []
+is_a: MP:0005448 ! abnormal energy balance
+
+[Term]
+id: MP:0005452
+name: abnormal adipose tissue amount
+namespace: MPheno.ontology
+def: "more or less than the normal total amount of connective tissue composed of fat cells" [MGI:cwg]
+synonym: "abnormal body fat amount" RELATED []
+is_a: MP:0000003 ! abnormal adipose tissue morphology
+
+[Term]
+id: MP:0005457
+name: abnormal percent body fat
+namespace: MPheno.ontology
+def: "more or less fat, relative to controls, as a percentage of total body weight" [MGI:cwg]
+is_a: MP:0005452 ! abnormal adipose tissue amount
+
+[Term]
+id: MP:0005459
+name: decreased percent body fat
+namespace: MPheno.ontology
+def: "less fat, relative to controls, as a percentage of total body weight" [MGI:cwg]
+subset: Sanger_Terms
+synonym: "reduced percent body fat" EXACT []
+is_a: MP:0005457 ! abnormal percent body fat
+
+[Term]
+id: MP:0005621
+name: abnormal cell physiology
+namespace: MPheno.ontology
+def: "any functional anomaly of the vital processes of the cell" [ISBN:0-683-40008-8, MGI:hdene]
+is_a: MP:0005384 ! cellular phenotype
+
+[Term]
+id: MP:0005657
+name: abnormal neural plate morphology
+namespace: MPheno.ontology
+def: "any structural anomaly or absence of the flat, thickened layer of ectodermal cells in the neuroectodermal area of the embryo's dorsal surface that develops into the neural tube and neural crest" [ISBN:0-683-40008-8, MGI:hdene]
+is_a: MP:0002085 ! abnormal embryonic tissue morphology
+is_a: MP:0003861 ! abnormal nervous system development
+
+[Term]
+id: MP:0005659
+name: decreased susceptibility to diet-induced obesity
+namespace: MPheno.ontology
+def: "less likely to become excessively fat or to increase fat in the subcutaneous connective tissue as a result of consuming a diet geared to increase body fat" [MGI:cwg]
+synonym: "increased resistance to diet-induced obesity" EXACT []
+is_a: MP:0004889 ! increased energy expenditure
+is_a: MP:0010182 ! decreased susceptibility to weight gain
+
+[Term]
+id: MP:0006007
+name: abnormal basal ganglion morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of any of a group of nuclei associated with the ability to carry out willed movements, including the caudate, putamen, nucleus accumbens, globus pallidus, substantia nigra, and subthalamic nucleus" [MGI:smb]
+synonym: "abnormal basal ganglia morphology" EXACT []
+is_a: MP:0000783 ! abnormal forebrain morphology
+
+[Term]
+id: MP:0006108
+name: abnormal hindbrain development
+namespace: MPheno.ontology
+def: "anomaly in the formation or pattering of the caudal region of the brain" [MGI:smb]
+is_a: MP:0000913 ! abnormal brain development
+
+[Term]
+id: MP:0006362
+name: abnormal male germ cell morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of male germ cells whether they are undifferentiated or fully differentiated" [MGI:llw2]
+is_a: MP:0002208 ! abnormal germ cell morphology
+
+[Term]
+id: MP:0006378
+name: abnormal spermatogonia morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the large unspecialized male germ cells that give rise to spermatocytes" [ISBN:0-8036-0655-99, MGI:smb]
+synonym: "abnormal spermatogonium" EXACT []
+is_a: MP:0006362 ! abnormal male germ cell morphology
+
+[Term]
+id: MP:0008026
+name: abnormal brain white matter morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the regions of the brain that are largely or entirely composed of myelinated nerve cell axons and contain few or no neural cell bodies or dendrites" [MGI:csmith]
+synonym: "abnormal brain alba morphology" EXACT []
+synonym: "abnormal brain white substance morphology" EXACT []
+is_a: MP:0002152 ! abnormal brain morphology
+
+[Term]
+id: MP:0008219
+name: abnormal dorsal telencephalic commissure morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the fiber tracts that connect the dorsal region of the two cerebral hemispheres and span the longitudinal fissure, including the corpus callosum and hippocampal commissure" [PMID:16715082]
+synonym: "abnormal dorsal commissure" EXACT []
+is_a: MP:0002199 ! abnormal brain commissure morphology
+
+[Term]
+id: MP:0008284
+name: abnormal hippocampus pyramidal cell layer
+namespace: MPheno.ontology
+subset: Sanger_Terms
+synonym: "abnormal stratum pyramidale morphology" EXACT []
+is_a: MP:0000813 ! abnormal hippocampus layer morphology
+
+[Term]
+id: MP:0008285
+name: abnormal hippocampus granule cell layer
+namespace: MPheno.ontology
+synonym: "abnormal stratum granulare morphology" EXACT []
+is_a: MP:0000813 ! abnormal hippocampus layer morphology
+
+[Term]
+id: MP:0008439
+name: abnormal cortical plate morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the outer neural tube region in which post-mitotic neuroblasts migrate along radial glia to form the adult cortical layers" [MGI:csmith, PMID:1812236]
+synonym: "abnormal CP morphology" EXACT []
+synonym: "abnormal immature cerebral cortex morphology" EXACT []
+is_a: MP:0000934 ! abnormal telencephalon development
+
+[Term]
+id: MP:0008440
+name: abnormal subplate morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the transient outer neural tube region that contains the first generated post-mitotic neurons that receive synaptic input from thalamic axons and in turn project axons to the developing cortical plate" [MGI:csmith, PMID:8210173]
+synonym: "abnormal SP morphology" EXACT []
+is_a: MP:0000934 ! abnormal telencephalon development
+
+[Term]
+id: MP:0008441
+name: thin cortical plate
+namespace: MPheno.ontology
+def: "reduced thickness of the outer neural tube region in which post-mitotic neuroblasts migrate along radial glia to form the adult cortical layers" [MGI:csmith, PMID:1812236]
+is_a: MP:0008439 ! abnormal cortical plate morphology
+
+[Term]
+id: MP:0008489
+name: slow postnatal weight gain
+namespace: MPheno.ontology
+def: "the weight gain over a span of postnatal developmental time is slower than controls, with or without ever attaining a similar weight to controls as adults" [MGI:csmith]
+synonym: "postnatal slow weight gain" EXACT []
+synonym: "reduced body weight gain" EXACT []
+is_a: MP:0001262 ! decreased body weight
+is_a: MP:0001732 ! postnatal growth retardation
+
+[Term]
+id: MP:0008503
+name: abnormal spinal cord grey matter morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the ridge-shaped grey matter of the spinal cord that extends longitudinally through the center of each half of the spinal cord, and are largely or entirely composed of nerve cell bodies and their dendrites and some supportive tissue" [ISBN:0-683-40008-8, MGI:llw2]
+synonym: "abnormal spinal cord gray columns morphology" EXACT []
+synonym: "abnormal spinal cord gray matter morphology" EXACT []
+synonym: "abnormal spinal cord grey columns morphology" EXACT []
+synonym: "abnormal spinal cord mantle layer morphology" RELATED []
+xref: MA:0000002
+is_a: MP:0000955 ! abnormal spinal cord morphology
+
+[Term]
+id: MP:0008540
+name: abnormal cerebrum morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the largest part of the brain, derived from the telencephalon, and is composed of a right and a left hemisphere each which contains an outer cerebral cortex and a subcortical basal ganglia; cerebral functions include sensorimotor, emotional, and intellectual activities" [MESH:A08.186.211.730.885.287]
+synonym: "abnormal cerebral hemispheres" EXACT []
+synonym: "cerebrum dysplasia" RELATED []
+is_a: MP:0000787 ! abnormal telencephalon morphology
+
+[Term]
+id: MP:0008903
+name: abnormal mesenteric fat pad morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the encapsulated adipose tissue associated with the mesentery" [MGI:csmith]
+synonym: "abnormal mesenteric fat depot morphology" EXACT []
+synonym: "mesenteric fat pad dysplasia" EXACT []
+is_a: MP:0000010 ! abnormal abdominal fat pad morphology
+
+[Term]
+id: MP:0008932
+name: abnormal embryonic tissue physiology
+namespace: MPheno.ontology
+def: "any functional anomaly in any of the tissues of the embryo proper" [MGI:smb]
+is_a: MP:0001672 ! abnormal embryogenesis/ development
+
+[Term]
+id: MP:0008974
+name: proportional dwarf
+namespace: MPheno.ontology
+def: "abnormally undersized with both limbs and trunk symmetrically shorter; usually due to chemical, endocrine, nutritional or nonosseous influences" [ISBN:0-683-40008-8, MGI:csmith]
+comment: In humans, dwarfism is defined as a condition in which the standing height of a person is below the third percentile.
+synonym: "proportional dwarfism" EXACT []
+is_a: MP:0001265 ! decreased body size
+
+[Term]
+id: MP:0009198
+name: abnormal male genitalia morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the masculine organs of reproduction or generation, external or internal" [MGI:anna]
+synonym: "abnormal male genitals" EXACT []
+synonym: "abnormal male organa genitalia" EXACT []
+synonym: "abnormal masculine genital organs" EXACT []
+is_a: MP:0001145 ! abnormal male reproductive system morphology
+
+[Term]
+id: MP:0009205
+name: abnormal internal male genitalia morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the internal masculine genital organs, including the testes, epididymides, deferent ducts, seminal vesicles, prostate, ejaculatory ducts, and bulbourethral glands" [MGI:anna]
+synonym: "abnormal internal male genital organs" EXACT []
+synonym: "abnormal internal male genitals" EXACT []
+synonym: "abnormal organa genitalia masculina interna" EXACT []
+is_a: MP:0009198 ! abnormal male genitalia morphology
+
+[Term]
+id: MP:0009208
+name: abnormal female genitalia morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the feminine organs of reproduction or generation, external or internal" [MGI:anna]
+synonym: "abnormal female genitals" EXACT []
+synonym: "abnormal female organa genitalia" EXACT []
+synonym: "abnormal feminine genital organs" EXACT []
+is_a: MP:0001119 ! abnormal female reproductive system morphology
+
+[Term]
+id: MP:0009209
+name: abnormal internal female genitalia morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the internal feminine genital organs, including the ovaries, uterine tubes, uterus, uterine cervix, and vagina" [MGI:anna]
+synonym: "abnormal internal female genital organs" EXACT []
+synonym: "abnormal internal female genitals" EXACT []
+synonym: "abnormal organa genitalia feminina interna" EXACT []
+is_a: MP:0009208 ! abnormal female genitalia morphology
+
+[Term]
+id: MP:0009293
+name: decreased inguinal fat pad weight
+namespace: MPheno.ontology
+def: "less than average weight of the encapsulated adipose tissue found in the groin" [MGI:csmith]
+synonym: "decreased inguinal fat depot weight" EXACT []
+synonym: "reduced inguinal fat depot weight" EXACT []
+synonym: "reduced inguinal fat pad weight" EXACT []
+is_a: MP:0005336 ! abnormal inguinal fat pad morphology
+
+[Term]
+id: MP:0009299
+name: decreased mesenteric fat pad weight
+namespace: MPheno.ontology
+def: "less than average weight of the encapsulated adipose tissue associated with the mesentery" [MGI:csmith]
+synonym: "decreased mesenteric fat depot weight" EXACT []
+synonym: "reduced mesenteric fat depot weight" EXACT []
+synonym: "reduced mesenteric fat pad weight" EXACT []
+is_a: MP:0008903 ! abnormal mesenteric fat pad morphology
+
+[Term]
+id: MP:0009344
+name: abnormal ovulation cycle
+namespace: MPheno.ontology
+def: "any anomaly in the type of sexual cycle seen in female mammals, with physiologic changes in the endometrium that recur at regular intervals during the reproductive years" [GO:0042698]
+is_a: MP:0003699 ! abnormal female reproductive system physiology
+
+[Term]
+id: MP:0009357
+name: abnormal seizure response to inducing agent
+namespace: MPheno.ontology
+def: "anomaly in the seizure activity response to an agent that normally can induce uncontrolled electrical activity in the brain, producing a physical convulsion and/or minor change in physical behavior" [MGI:llw2]
+synonym: "induced seizures" EXACT []
+is_a: MP:0002064 ! seizures
+
+[Term]
+id: MP:0009672
+name: abnormal birth weight
+namespace: MPheno.ontology
+def: "anomaly in average weight at birth compared to controls" [RGD:cur]
+is_a: MP:0009701 ! abnormal birth body size
+
+[Term]
+id: MP:0009674
+name: decreased birth weight
+namespace: MPheno.ontology
+def: "reduction in average weight at birth compared to controls" [RGD:cur]
+synonym: "reduced birth weight" EXACT []
+is_a: MP:0009672 ! abnormal birth weight
+is_a: MP:0009703 ! decreased birth body size
+
+[Term]
+id: MP:0009697
+name: abnormal copulation
+namespace: MPheno.ontology
+def: "an anomaly in sexual union that normally enables the transfer of ejaculate (sperm) from male to female, sometimes resulting in the fertilization of an egg" [GO:0007620, MGI:llw2]
+synonym: "abnormal coitus" EXACT []
+is_a: MP:0001919 ! abnormal reproductive system physiology
+
+[Term]
+id: MP:0009701
+name: abnormal birth body size
+namespace: MPheno.ontology
+alt_id: MP:0009700
+def: "anomaly in average body size at birth compared to controls" [MGI:anna]
+synonym: "abnormal birth weight/body size" EXACT []
+is_a: MP:0005378 ! growth/size phenotype
+
+[Term]
+id: MP:0009703
+name: decreased birth body size
+namespace: MPheno.ontology
+def: "reduction in average body size at birth compared to controls" [MGI:anna]
+synonym: "reduced birth body size" EXACT []
+is_a: MP:0009701 ! abnormal birth body size
+
+[Term]
+id: MP:0009718
+name: absent Purkinje cell layer
+namespace: MPheno.ontology
+def: "there is no evidence of the cell layer that lies just underneath the molecular layer of the cerebellar cortex, normally containing the neuronal cell bodies of the Purkinje cells arranged side by side in a single layer, and candelabrum interneurons vertically oriented between the Purkinje cells" [MGI:llw2]
+is_a: MP:0000875 ! abnormal cerebellar Purkinje cell layer
+
+[Term]
+id: MP:0009745
+name: abnormal behavioral response to xenobiotic
+namespace: MPheno.ontology
+def: "any anomaly in the behavioral response induced by a foreign compound, such as consumption preference, induced hyperactivity or stereotypic behavior" [MGI:csmith]
+synonym: "abnormal behavioral response to xenobiotics" EXACT []
+is_a: MP:0004924 ! abnormal behavior
+
+[Term]
+id: MP:0009937
+name: abnormal neuron differentiation
+namespace: MPheno.ontology
+alt_id: MP:0006008
+def: "abnormal growth or development of the cells of the nervous system that receive, conduct, and transmit impulses" [MGI:csmith]
+comment: The definition of the previous ID MP:0006008 [abnormal neurogenesis] specified only the growth or development of neurons; this is not the accepted definition of neurogenesis in GO:0022008 or most dictionary resources; these include all cells of the nervous system including glia. A new term of abnormal neuron differentiation was created that matched the definition and MP:0006008 [abnormal neurogenesis] has been merged into it.
+synonym: "abnormal neuronal differentiation" RELATED []
+is_a: MP:0002882 ! abnormal neuron morphology
+is_a: MP:0003861 ! abnormal nervous system development
+is_a: MP:0005076 ! abnormal cell differentiation
+created_by: csmith
+creation_date: 2010-02-02T01:43:56Z
+
+[Term]
+id: MP:0009938
+name: abnormal hippocampus granule cell morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the small neurons of the hippocampal granule cell layer" [MGI:csmith]
+synonym: "abnormal hippocampal granule cell morphology" EXACT []
+synonym: "abnormal hippocampus granule neuron morphology" EXACT []
+xref: CL:0001033
+is_a: MP:0008285 ! abnormal hippocampus granule cell layer
+is_a: MP:0009939 ! abnormal hippocampus neuron morphology
+created_by: csmith
+creation_date: 2010-02-02T02:23:28Z
+
+[Term]
+id: MP:0009939
+name: abnormal hippocampus neuron morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of one or more neurons residing in the hippocampal region of the brain" [MGI:smb]
+synonym: "abnormal hippocampal neuron morphology" EXACT []
+is_a: MP:0000807 ! abnormal hippocampus morphology
+is_a: MP:0002882 ! abnormal neuron morphology
+created_by: csmith
+creation_date: 2010-02-02T02:50:11Z
+
+[Term]
+id: MP:0009940
+name: abnormal hippocampus pyramidal cell morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the projection neuron in the pyramidal layer of the hippocampus" [MGI:csmith]
+synonym: "abnormal hippocampus projection neuron morphology" EXACT []
+synonym: "abnormal hippocampus pyramidal neuron morphology" EXACT []
+is_a: MP:0008284 ! abnormal hippocampus pyramidal cell layer
+is_a: MP:0009939 ! abnormal hippocampus neuron morphology
+created_by: csmith
+creation_date: 2010-02-02T02:52:01Z
+
+[Term]
+id: MP:0009944
+name: abnormal olfactory lobe morphology
+namespace: MPheno.ontology
+xref: MA:0002413
+is_a: MP:0000787 ! abnormal telencephalon morphology
+created_by: csmith
+creation_date: 2010-02-04T11:26:33Z
+
+[Term]
+id: MP:0009956
+name: abnormal cerebellar layer morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the laminar structure of the cerebellar cortex comprising the gray matter of the cerebellum" [MGI:csmith]
+xref: MA:0000201
+is_a: MP:0004097 ! abnormal cerebellar cortex morphology
+created_by: csmith
+creation_date: 2010-02-04T02:19:31Z
+
+[Term]
+id: MP:0009964
+name: abnormal cerebellum lobule morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the ten gyri of the cerebellar cortex" [ISBN:0-683-40008-8]
+synonym: "abnormal cerebellar folia morphology" EXACT []
+synonym: "abnormal cerebellar gyri morphology" EXACT []
+is_a: MP:0004097 ! abnormal cerebellar cortex morphology
+created_by: csmith
+creation_date: 2010-02-05T12:37:36Z
+
+[Term]
+id: MP:0009969
+name: abnormal cerebral cortex pyramidal cell morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the projection neurons in the pyramidal cell layer of the cerebral cortex" [ISBN:0-683-40008-8]
+synonym: "abnormal cerebral cortex projection neuron morphology" EXACT []
+synonym: "abnormal cerebral cortex pyramidal neuron morphology" EXACT []
+is_a: MP:0000788 ! abnormal cerebral cortex morphology
+is_a: MP:0002882 ! abnormal neuron morphology
+created_by: csmith
+creation_date: 2010-02-08T01:32:27Z
+
+[Term]
+id: MP:0010182
+name: decreased susceptibility to weight gain
+namespace: MPheno.ontology
+def: "smaller increase in body weight over time when compared to the average increase in weight on the same diet, with equal energy (calorie) intake" [MGI:csmith]
+is_a: MP:0011117 ! abnormal susceptibility to weight gain
+created_by: csmith
+creation_date: 2010-06-04T03:16:40Z
+
+[Term]
+id: MP:0010200
+name: enlarged lymphatic vessel
+namespace: MPheno.ontology
+def: "increased size of the network of vessels which carries lymph around the body" [ISBN:0-683-40008-8]
+is_a: MP:0001879 ! abnormal lymphatic vessel morphology
+created_by: csmith
+creation_date: 2010-06-11T10:41:07Z
+
+[Term]
+id: MP:0010334
+name: pleural effusion
+namespace: MPheno.ontology
+def: "accumulation of excess fluid in the pleural cavity" [MGI:csmith]
+synonym: "hydrothorax" EXACT []
+is_a: MP:0001784 ! abnormal fluid regulation
+is_a: MP:0002133 ! abnormal respiratory system physiology
+created_by: csmith
+creation_date: 2010-08-13T03:49:42Z
+
+[Term]
+id: MP:0010678
+name: abnormal skin adnexa morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the tissue or structures associated with or embedded in the skin such as hair and hair follicles, sweat glands, sebaceous glands and claws or nails" [MGI:csmith]
+synonym: "abnormal skin accessory structure morphology" EXACT []
+synonym: "abnormal skin appendage morphology" EXACT []
+is_a: MP:0010771 ! integument phenotype
+created_by: csmith
+creation_date: 2010-10-20T12:27:31Z
+
+[Term]
+id: MP:0010768
+name: mortality/aging
+namespace: MPheno.ontology
+alt_id: MP:0005372
+alt_id: MP:0005373
+alt_id: MP:0005374
+def: "characteristics involving the ability of an organism to live and age normally throughout development and life span" [MGI:csmith]
+synonym: "lethality-embryonic/perinatal" NARROW []
+synonym: "lethality-postnatal" NARROW []
+synonym: "lethality-prenatal/perinatal" NARROW []
+synonym: "life span-post-weaning/aging" NARROW []
+synonym: "lifespan" RELATED []
+synonym: "survival" RELATED []
+is_a: MP:0000001 ! mammalian phenotype
+created_by: csmith
+creation_date: 2011-01-07T09:57:14Z
+
+[Term]
+id: MP:0010769
+name: abnormal survival
+namespace: MPheno.ontology
+def: "deviation from the expected viability or life span of an organism" [MGI:csmith]
+synonym: "abnormal life span" NARROW []
+synonym: "lethality" EXACT []
+is_a: MP:0010768 ! mortality/aging
+created_by: csmith
+creation_date: 2011-01-07T10:07:26Z
+
+[Term]
+id: MP:0010770
+name: preweaning lethality
+namespace: MPheno.ontology
+def: "death anytime between fertilization and weaning age (Mus: approximately 3-4 weeks of age)" [MGI:Sanger_Karp]
+subset: Sanger_Terms
+is_a: MP:0010769 ! abnormal survival
+created_by: csmith
+creation_date: 2011-01-07T11:39:57Z
+
+[Term]
+id: MP:0010771
+name: integument phenotype
+namespace: MPheno.ontology
+alt_id: MP:0005392
+alt_id: MP:0005393
+def: "the observable morphological and physiological characteristics of the skin and its associated structures, such as the hair, nails, sweat glands, sebaceous glands and other secretory glands" [MGI:csmith]
+subset: Sanger_Terms
+synonym: "skin/coat/nails phenotype" NARROW []
+synonym: "touch/vibrissae phenotype" NARROW []
+is_a: MP:0000001 ! mammalian phenotype
+created_by: csmith
+creation_date: 2011-01-11T12:31:48Z
+
+[Term]
+id: MP:0010832
+name: lethality during fetal growth through weaning
+namespace: MPheno.ontology
+def: "death anytime between the completion of organogenesis and weaning age (Mus: E14 to approximately 3 weeks of age)" [MGI:csmith]
+is_a: MP:0010770 ! preweaning lethality
+created_by: csmith
+creation_date: 2011-02-15T02:48:40Z
+
+[Term]
+id: MP:0010866
+name: abnormal prenatal body size
+namespace: MPheno.ontology
+def: "anomaly in the average body weight, height and/or length of an organism compared to controls at anytime prior to birth" [MGI:csmith]
+is_a: MP:0004196 ! abnormal prenatal growth/weight/body size
+created_by: csmith
+creation_date: 2011-02-23T11:05:22Z
+
+[Term]
+id: MP:0011117
+name: abnormal susceptibility to weight gain
+namespace: MPheno.ontology
+def: "anomaly in body weight over time when compared to the average increase in weight on the same diet, with equal energy (calorie) intake" [MGI:csmith]
+is_a: MP:0001259 ! abnormal body weight
+created_by: csmith
+creation_date: 2011-05-20T11:20:20Z
+
+[Term]
+id: MP:0011495
+name: abnormal head shape
+namespace: MPheno.ontology
+def: "any anomaly in the characteristic surface outline or contour of a head of an organism" [MGI:csmith]
+is_a: MP:0000432 ! abnormal head morphology
+created_by: csmith
+creation_date: 2011-11-18T02:53:23Z
+
+[Term]
+id: MP:0011723
+name: ectopic neuron
+namespace: MPheno.ontology
+def: "appearance of a neuron or group of neurons in a region where it is not normally found" [MGI:csmith]
+synonym: "neuronal ectopia" EXACT []
+synonym: "neuronal heterotopia" EXACT []
+is_a: MP:0002882 ! abnormal neuron morphology
+created_by: csmith
+creation_date: 2012-09-27T02:37:58Z
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: MPheno.ontology
+is_transitive: true
+
