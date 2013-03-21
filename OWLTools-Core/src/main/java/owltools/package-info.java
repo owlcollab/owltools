@@ -21,7 +21,7 @@
  * <li>Graphical rendering is handled by the {@link owltools.gfx} package, see {@link owltools.gfx.OWLGraphLayoutRenderer} for QuickGO rendering
  * <li>Input/Output for various formats is in the {@link owltools.io} package (not much there yet)
  * <li>MIREOT-like support in the {@link owltools.mooncat} package (used in Oort)
- * <li>Semantic similarity in {@link owltools.sim}
+ * <li>Semantic similarity in {@link owltools.sim2}
  * <li>Phenolog analyses in {@link owltools.phenolog}
  * </ul>
  * 

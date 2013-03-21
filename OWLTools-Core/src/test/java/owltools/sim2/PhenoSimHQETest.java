@@ -1,4 +1,4 @@
-package owltools.sim;
+package owltools.sim2;
 
 import static org.junit.Assert.*;
 

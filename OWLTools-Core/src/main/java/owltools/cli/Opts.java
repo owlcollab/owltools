@@ -1,8 +1,11 @@
 package owltools.cli;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * Helper for easy handling of command line parameters and input.
@@ -124,6 +127,12 @@ public class Opts {
 		String opt = args[i];
 		i++;
 		return opt;
+	}
+	public File nextFile() {
+		String opt = args[i];
+		i++;
+		File f = FileUtils.getFile(opt);
+		return f;
 	}
 	public String peekArg() {
 		if (hasArgs())

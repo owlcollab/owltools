@@ -5,15 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNaryBooleanClassExpression;
@@ -23,6 +22,8 @@ import org.semanticweb.owlapi.model.OWLObjectCardinalityRestriction;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLQuantifiedObjectRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.OWLUnaryPropertyAxiom;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLQuantifiedProperty;
@@ -31,6 +32,8 @@ import com.google.gson.Gson;
 
 public class OWLGsonRenderer {
 	PrintWriter writer;
+
+	private static Logger LOG = Logger.getLogger(OWLGsonRenderer.class);
 
 	Gson gson = new Gson();
 
@@ -130,6 +133,12 @@ public class OWLGsonRenderer {
 			// disjoint & equivClasses
 			arr = convertSet(((OWLNaryClassAxiom)a).getClassExpressions());
 		}
+		else if (a instanceof OWLUnaryPropertyAxiom) {
+			OWLUnaryPropertyAxiom upa = ((OWLUnaryPropertyAxiom)a);
+			arr = new Object[] {
+					convert(upa.getProperty())
+			};
+		}
 		else if (a instanceof OWLAnnotationAssertionAxiom) {
 			OWLAnnotationAssertionAxiom ax = (OWLAnnotationAssertionAxiom)a;
 			arr = new Object[] {
@@ -139,11 +148,14 @@ public class OWLGsonRenderer {
 			};
 		}
 		else if (a instanceof OWLDeclarationAxiom) {
+			OWLEntity e = ((OWLDeclarationAxiom)a).getEntity();
 			arr = new Object[]{
-					convert(((OWLDeclarationAxiom)a).getEntity())
+					e.getEntityType().getName(),
+					convert(e)
 			};
 		}
 		else {
+			LOG.warn("no conversion for "+a);
 			arr = new Object[0];
 		}
 		m.put("args", arr);

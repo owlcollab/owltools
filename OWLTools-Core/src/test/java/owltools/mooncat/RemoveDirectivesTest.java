@@ -23,7 +23,7 @@ import owltools.io.ParserWrapper;
 public class RemoveDirectivesTest extends OWLToolsTestBasics {
 
 	// set this to true for debugging the ontology content
-	public static boolean USE_SYSTEM_OUT = false;
+	public static boolean USE_SYSTEM_OUT = true;
 	
 	@Test
 	public void testRemove() throws Exception {

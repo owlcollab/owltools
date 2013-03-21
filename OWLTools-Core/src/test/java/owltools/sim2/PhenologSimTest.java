@@ -1,4 +1,4 @@
-package owltools.sim;
+package owltools.sim2;
 
 import org.junit.Ignore;
 import org.junit.Test;

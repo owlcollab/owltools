@@ -14,7 +14,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 
 /**
- * uses all properties as view properties
+ * uses all properties as view properties, no role chains
  * 
  * @author cjm
  *

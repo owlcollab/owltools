@@ -1,4 +1,4 @@
-package owltools.sim;
+package owltools.sim2;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;

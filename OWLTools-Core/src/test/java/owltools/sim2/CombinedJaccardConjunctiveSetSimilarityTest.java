@@ -1,31 +1,24 @@
-package owltools.sim;
+package owltools.sim2;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.sim.CombinedJaccardConjunctiveSetSimilarity;
 import owltools.sim.ConjunctiveSetSimilarity;
 import owltools.sim.SimEngine;
 
-/**
- * tests ConjunctiveSetSimilarity
- * 
- * @author cjm
- *
- */
-public class ConjunctiveSetSimilarityTest extends AbstractSimEngineTest {
+public class CombinedJaccardConjunctiveSetSimilarityTest extends AbstractSimEngineTest {
 
 	@Test
 	public void testSim() throws Exception{
 		OWLGraphWrapper  wrapper =  getOntologyWrapper("lcstest3.owl");
-		ConjunctiveSetSimilarity sa = new ConjunctiveSetSimilarity();
+		CombinedJaccardConjunctiveSetSimilarity sa = new CombinedJaccardConjunctiveSetSimilarity();
 		OWLObject a = wrapper.getOWLObject("http://example.org#axon_terminals_degenerated_in_ca2");
 		OWLObject b = wrapper.getOWLObject("http://example.org#axon_terminals_degenerated_in_ca3");
 		SimEngine se = new SimEngine(wrapper);
-		sa.calculate(se, b, a);
+		sa.calculate(se, a, b);
 		sa.print();
-		
 	}	
-
 	
 }
