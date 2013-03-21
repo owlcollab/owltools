@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 
 import owltools.OWLToolsTestBasics;
+import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.GeneAnnotation;
@@ -32,7 +33,8 @@ public class GoNoHighLevelTermAnnotationRuleTest extends OWLToolsTestBasics {
 		p.addIRIMapper(mapper);
 		OWLOntology go = p.parse("http://purl.obolibrary.org/obo/go.owl");
 		
-		AnnotationRule rule = new GoNoHighLevelTermAnnotationRule(new OWLGraphWrapper(go));
+		OWLGraphWrapper eco = EcoTools.loadECO(p);
+		AnnotationRule rule = new GoNoHighLevelTermAnnotationRule(new OWLGraphWrapper(go), eco);
 		List<GeneAnnotation> annotations = gafdoc.getGeneAnnotations();
 		
 		List<AnnotationRuleViolation> allViolations = new ArrayList<AnnotationRuleViolation>();
