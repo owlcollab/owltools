@@ -2665,9 +2665,3 @@ is_a: MP:0002882 ! abnormal neuron morphology
 created_by: csmith
 creation_date: 2012-09-27T02:37:58Z
 
-[Typedef]
-id: part_of
-name: part_of
-namespace: MPheno.ontology
-is_transitive: true
-
