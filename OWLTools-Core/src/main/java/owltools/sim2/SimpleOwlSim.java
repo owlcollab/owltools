@@ -476,7 +476,7 @@ public class SimpleOwlSim {
 			LOG.warn("LCS of "+a+" + "+b+" = {}");
 			sap = new ScoreAttributePair(0.0, owlDataFactory.getOWLThing());
 		}
-		LOG.info("LCS_IC\t"+a+"\t"+b+"\t"+sap.attributeClass+"\t"+sap.score);
+		LOG.debug("LCS_IC\t"+a+"\t"+b+"\t"+sap.attributeClass+"\t"+sap.score);
 		lcsICcache.put(pair, sap);	
 		return sap;
 	}

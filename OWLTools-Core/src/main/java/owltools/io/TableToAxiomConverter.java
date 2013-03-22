@@ -99,6 +99,9 @@ public class TableToAxiomConverter {
 
 	public void parse(String fn) throws IOException {
 		File myFile = new File(fn);
+		parse(myFile);
+	}
+	public void parse(File myFile) throws IOException {
 		FileReader fileReader = new FileReader(myFile);
 		BufferedReader reader = new BufferedReader(fileReader);
 		String line;
