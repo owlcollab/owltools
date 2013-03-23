@@ -5,14 +5,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLClass;
-
-import owltools.gaf.EcoTools;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
-import owltools.graph.OWLGraphWrapper;
 
 /**
  * GO_AR:0000003
@@ -37,10 +34,10 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 		return Collections.unmodifiableSet(set);
 	}
 
-	public GoBindingCheckWithFieldRule(OWLGraphWrapper eco) {
+	public GoBindingCheckWithFieldRule(TraversingEcoMapper eco) {
 		super();
-		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "NAS","TAS","IDA","IMP","IGC","IEP","ND","IC","RCA","EXP", "IGI");
-		evidences = EcoTools.getCodes(ecoClasses, eco);
+		Set<String> codes = new HashSet<String>(Arrays.asList("NAS","TAS","IDA","IMP","IGC","IEP","ND","IC","RCA","EXP", "IGI"));
+		evidences = eco.getAllValidEvidenceIds(codes, false);
 	}
 	
 	@Override

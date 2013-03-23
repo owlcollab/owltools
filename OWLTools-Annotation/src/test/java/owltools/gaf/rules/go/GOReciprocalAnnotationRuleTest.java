@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 
-import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.rules.AnnotationRule;
@@ -17,7 +16,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
 
-public class GOReciprocalAnnotationRuleTest  extends OWLToolsTestBasics {
+public class GOReciprocalAnnotationRuleTest extends AbstractRuleTestHelper {
 
 	@Test
 	public void test() throws Exception {
@@ -30,7 +29,7 @@ public class GOReciprocalAnnotationRuleTest  extends OWLToolsTestBasics {
 		OWLOntology goTaxon = p.parse("http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl");
 		
 		
-		AnnotationRule rule = new GOReciprocalAnnotationRule(new OWLGraphWrapper(goTaxon), getGraph("eco.obo"));
+		AnnotationRule rule = new GOReciprocalAnnotationRule(new OWLGraphWrapper(goTaxon), eco);
 		
 		Set<AnnotationRuleViolation> violations = rule.getRuleViolations(gafdoc);
 		assertEquals(5, violations.size());

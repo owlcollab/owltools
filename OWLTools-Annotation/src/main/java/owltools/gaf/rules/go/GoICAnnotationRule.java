@@ -5,14 +5,12 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.owlapi.model.OWLClass;
 
-import owltools.gaf.EcoTools;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
-import owltools.graph.OWLGraphWrapper;
 
 /**
  *  GO_AR:0000016
@@ -32,12 +30,10 @@ public class GoICAnnotationRule extends AbstractAnnotationRule {
 	
 	private final Set<String> evidences;
 	
-	public GoICAnnotationRule(OWLGraphWrapper eco) {
+	public GoICAnnotationRule(TraversingEcoMapper eco) {
 		this.message = MESSAGE;
 		this.violationType = ViolationType.Warning;
-		
-		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "IC");
-		evidences = EcoTools.getCodes(ecoClasses, eco, true);
+		evidences = eco.getAllValidEvidenceIds("IC", true);
 		
 		// TODO remove hard coded date once the date is available from the annotation_qc.xml
 		final String grandFatheringDateString = "20120101";

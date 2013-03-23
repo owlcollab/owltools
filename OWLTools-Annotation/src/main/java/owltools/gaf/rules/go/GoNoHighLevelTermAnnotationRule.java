@@ -7,8 +7,8 @@ import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
 
-import owltools.gaf.EcoTools;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
@@ -39,11 +39,10 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 	 * @param go
 	 * @param eco
 	 */
-	public GoNoHighLevelTermAnnotationRule(OWLGraphWrapper go, OWLGraphWrapper eco) {
+	public GoNoHighLevelTermAnnotationRule(OWLGraphWrapper go, TraversingEcoMapper eco) {
 		super();
 		this.go = go;
-		Set<OWLClass> ieaClasses = EcoTools.getClassesForGoCodes(eco, "IEA");
-		ieaEvidenceCodes = EcoTools.getCodes(ieaClasses, eco, true);
+		ieaEvidenceCodes = eco.getAllValidEvidenceIds("IEA", true);
 	}
 
 	@Override

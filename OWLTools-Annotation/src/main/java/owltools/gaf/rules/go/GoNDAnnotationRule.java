@@ -5,14 +5,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLClass;
-
-import owltools.gaf.EcoTools;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
-import owltools.graph.OWLGraphWrapper;
 
 /**
  * GO_AR:0000011
@@ -34,12 +31,11 @@ public class GoNDAnnotationRule extends AbstractAnnotationRule {
 	private final Set<String> rootIds;
 	private final Set<String> ndXrefs;
 	
-	public GoNDAnnotationRule(OWLGraphWrapper eco) {
+	public GoNDAnnotationRule(TraversingEcoMapper eco) {
 		this.message = MESSAGE;
 		this.violationType = ViolationType.Error;
 		
-		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "ND");
-		evidences = EcoTools.getCodes(ecoClasses, eco, true);
+		evidences = eco.getAllValidEvidenceIds("ND", true);
 		
 		rootIds = new HashSet<String>();
 		rootIds.addAll(Arrays.asList("GO:0005575", "GO:0003674", "GO:0008150"));

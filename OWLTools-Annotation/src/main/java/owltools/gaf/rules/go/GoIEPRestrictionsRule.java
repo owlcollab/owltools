@@ -10,8 +10,8 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import owltools.gaf.EcoTools;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
@@ -36,12 +36,11 @@ public class GoIEPRestrictionsRule extends AbstractAnnotationRule {
 	private final Set<String> evidences;
 	private final Set<String> classSubSet;
 
-	public GoIEPRestrictionsRule(OWLGraphWrapper graph, OWLGraphWrapper eco) {
+	public GoIEPRestrictionsRule(OWLGraphWrapper graph, TraversingEcoMapper eco) {
 		this.message = MESSAGE;
 		this.violationType = ViolationType.Warning;
 		
-		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "IEP");
-		evidences = EcoTools.getCodes(ecoClasses, eco, true);
+		evidences = eco.getAllValidEvidenceIds("IEP", true);
 		
 		classSubSet = new HashSet<String>();
 		

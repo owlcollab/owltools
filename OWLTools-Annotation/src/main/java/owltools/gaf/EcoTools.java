@@ -23,13 +23,19 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import owltools.gaf.eco.EcoMapper;
+import owltools.gaf.eco.EcoMapperFactory;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.io.ParserWrapper;
 
 /**
- * Methods to simplify the work with the evidence code ontology (ECO). 
+ * Methods to simplify the work with the evidence code ontology (ECO).
+ * 
+ * @deprecated use {@link EcoMapper}, {@link TraversingEcoMapper} and {@link EcoMapperFactory}.
  */
+@Deprecated
 public class EcoTools {
 	
 	public static final String ECO_PURL = "http://purl.obolibrary.org/obo/eco.owl";

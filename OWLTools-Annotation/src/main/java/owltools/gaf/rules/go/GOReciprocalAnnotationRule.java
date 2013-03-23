@@ -14,10 +14,10 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.Bioentity;
-import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.WithInfo;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
@@ -40,10 +40,9 @@ public class GOReciprocalAnnotationRule extends AbstractAnnotationRule {
 	private final Set<String> evidences;
 	private final Set<OWLClass> proteinBindingClasses;
 
-	public GOReciprocalAnnotationRule(OWLGraphWrapper graph, OWLGraphWrapper eco) {
+	public GOReciprocalAnnotationRule(OWLGraphWrapper graph, TraversingEcoMapper eco) {
 		this.graph = graph;
-		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "IPI");
-		evidences = EcoTools.getCodes(ecoClasses, eco, true);
+		evidences = eco.getAllValidEvidenceIds("IPI",  true);
 		
 		OWLClass proteinBindingCls = graph.getOWLClassByIdentifier(PROTEIN_BINDING_GO_ID);
 		if (proteinBindingCls == null) {

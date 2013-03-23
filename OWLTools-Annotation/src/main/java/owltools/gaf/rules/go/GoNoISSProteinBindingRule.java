@@ -3,14 +3,11 @@ package owltools.gaf.rules.go;
 import java.util.Collections;
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLClass;
-
-import owltools.gaf.EcoTools;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
-import owltools.graph.OWLGraphWrapper;
 
 /**
  * GO_AR:0000005
@@ -29,16 +26,14 @@ public class GoNoISSProteinBindingRule extends AbstractAnnotationRule {
 	private final String message;
 	private final ViolationType violationType;
 	
-	public GoNoISSProteinBindingRule(OWLGraphWrapper eco, ViolationType violationType) {
+	public GoNoISSProteinBindingRule(TraversingEcoMapper eco, ViolationType violationType) {
 		super();
 		this.message = MESSAGE;
 		this.violationType = violationType;
-		
-		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "ISS");
-		evidences = EcoTools.getCodes(ecoClasses, eco, true);
+		evidences = eco.getAllValidEvidenceIds("ISS", true);
 	}
 	
-	public GoNoISSProteinBindingRule(OWLGraphWrapper eco) {
+	public GoNoISSProteinBindingRule(TraversingEcoMapper eco) {
 		this(eco, ViolationType.Error);
 	}
 	

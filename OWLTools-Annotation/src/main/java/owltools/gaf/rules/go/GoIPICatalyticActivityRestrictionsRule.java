@@ -10,8 +10,8 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import owltools.gaf.EcoTools;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
@@ -36,12 +36,11 @@ public class GoIPICatalyticActivityRestrictionsRule extends AbstractAnnotationRu
 	private final Set<String> evidences;
 	private final Set<String> classSubSet;
 
-	public GoIPICatalyticActivityRestrictionsRule(OWLGraphWrapper graph, OWLGraphWrapper eco) {
+	public GoIPICatalyticActivityRestrictionsRule(OWLGraphWrapper graph, TraversingEcoMapper eco) {
 		this.message = MESSAGE;
 		this.violationType = ViolationType.Warning;
 		
-		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "IPI");
-		evidences = EcoTools.getCodes(ecoClasses, eco, true);
+		evidences = eco.getAllValidEvidenceIds("IPI", true);
 		
 		classSubSet = new HashSet<String>();
 		

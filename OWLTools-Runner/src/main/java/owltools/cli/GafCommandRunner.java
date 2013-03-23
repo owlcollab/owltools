@@ -25,11 +25,12 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.cli.tools.CLIMethod;
-import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.GafParserListener;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.EcoMapperFactory;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
@@ -44,7 +45,6 @@ import owltools.gaf.rules.AnnotationRulesEngine;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.AnnotationRulesFactory;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
-import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.Mooncat;
 
@@ -63,7 +63,7 @@ public class GafCommandRunner extends CommandRunner {
 	private String gafReportSummaryFile = null;
 	private String gafReportFile = null;
 	
-	public OWLGraphWrapper eco = null;
+	public TraversingEcoMapper eco = null;
 	
 	/**
 	 * Used for loading GAFs into memory
@@ -358,11 +358,19 @@ public class GafCommandRunner extends CommandRunner {
 	public void runGAFChecks(Opts opts) throws Exception {
 		if (g != null && gafdoc != null && gafReportFile != null) {
 			if (eco == null) {
-				eco = EcoTools.loadECO(pw);
+				eco = EcoMapperFactory.createTraversingEcoMapper(pw);
 			}
 			LOG.info("Start validating GAF");
-			AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco);
-			AnnotationRulesEngine ruleEngine = new AnnotationRulesEngine(rulesFactory );
+			AnnotationRulesEngine ruleEngine;
+			try {
+				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco);
+				ruleEngine = new AnnotationRulesEngine(rulesFactory);
+			}
+			finally {
+				eco.dispose();
+				eco = null;
+			}
+			
 			AnnotationRulesEngineResult result = ruleEngine.validateAnnotations(gafdoc);
 			LOG.info("Finished validating GAF");
 			File reportFile = new File(gafReportFile);

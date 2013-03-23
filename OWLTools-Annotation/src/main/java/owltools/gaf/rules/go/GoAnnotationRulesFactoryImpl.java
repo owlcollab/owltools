@@ -5,6 +5,9 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import owltools.gaf.eco.EcoMapper;
+import owltools.gaf.eco.EcoMapperFactory;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AnnotationRule;
 import owltools.gaf.rules.AnnotationRulesFactoryImpl;
 import owltools.gaf.rules.GenericReasonerValidationCheck;
@@ -29,12 +32,12 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		this(qcfile, xrfabbslocation, getGO(p, go), getEco(p, eco));
 	}
 	
-	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, OWLGraphWrapper eco) {
+	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, TraversingEcoMapper eco) {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
 				"http://www.geneontology.org/doc/GO.xrf_abbs", graph, eco);
 	}
 
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, OWLGraphWrapper eco) {
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, TraversingEcoMapper eco) {
 		super(qcfile, graph);
 		logger.info("Start preparing ontology checks");
 		namedRules = new HashMap<String, AnnotationRule>();
@@ -66,10 +69,10 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		}
 	}
 	
-	private static OWLGraphWrapper getEco(ParserWrapper p, String location) {
+	private static TraversingEcoMapper getEco(ParserWrapper p, String location) {
 		try {
-			OWLGraphWrapper wrapper = p.parseToOWLGraph(location);
-			return wrapper;
+			TraversingEcoMapper eco = EcoMapperFactory.createTraversingEcoMapper(p, location);
+			return eco;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

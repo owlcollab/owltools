@@ -3,14 +3,11 @@ package owltools.gaf.rules.go;
 import java.util.Collections;
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLClass;
-
-import owltools.gaf.EcoTools;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
-import owltools.graph.OWLGraphWrapper;
 
 /**
  * GO_AR:0000017
@@ -30,12 +27,10 @@ public class GoIDAAnnotationRule extends AbstractAnnotationRule {
 	
 	private final Set<String> evidences;
 	
-	public GoIDAAnnotationRule(OWLGraphWrapper eco) {
+	public GoIDAAnnotationRule(TraversingEcoMapper eco) {
 		this.message = MESSAGE;
 		this.violationType = ViolationType.Warning;
-		
-		Set<OWLClass> ecoClasses = EcoTools.getClassesForGoCodes(eco, "IDA");
-		evidences = EcoTools.getCodes(ecoClasses, eco, true);
+		evidences = eco.getAllValidEvidenceIds("IDA", true);
 	}
 	
 	@Override

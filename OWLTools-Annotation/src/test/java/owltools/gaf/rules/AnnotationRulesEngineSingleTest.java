@@ -3,7 +3,6 @@ package owltools.gaf.rules;
 import static org.junit.Assert.*;
 
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +14,8 @@ import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.eco.EcoMapperFactory;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
@@ -44,10 +45,10 @@ public class AnnotationRulesEngineSingleTest extends OWLToolsTestBasics {
 		p.addIRIMapper(mapper);
 		
 		OWLOntology goTaxon = p.parse("http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl");
-		OWLOntology eco = p.parseOBOFiles(Arrays.asList(getResource("eco.obo").getAbsolutePath()));
+		TraversingEcoMapper ecoMapper = EcoMapperFactory.createTraversingEcoMapper(p, getResourceIRIString("eco.obo"));
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
-				qcfile, xrfabbslocation, new OWLGraphWrapper(goTaxon), new OWLGraphWrapper(eco));
+				qcfile, xrfabbslocation, new OWLGraphWrapper(goTaxon), ecoMapper);
 		engine = new AnnotationRulesEngine(rulesFactory);
 	}
 
