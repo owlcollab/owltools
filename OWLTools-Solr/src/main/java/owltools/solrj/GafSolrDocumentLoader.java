@@ -53,7 +53,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	//int doc_limit_trigger = 1; // the number of documents to add before pushing out to solr
 	int current_doc_number;
 	
-	String panther_prefix = "PAINT_REF:";
+	String panther_prefix = "PANTHER:";
 	
 	public GafSolrDocumentLoader(String url) throws MalformedURLException {
 		super(url);
