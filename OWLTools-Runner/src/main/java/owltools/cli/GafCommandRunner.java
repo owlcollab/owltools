@@ -358,7 +358,7 @@ public class GafCommandRunner extends CommandRunner {
 	public void runGAFChecks(Opts opts) throws Exception {
 		if (g != null && gafdoc != null && gafReportFile != null) {
 			if (eco == null) {
-				eco = EcoMapperFactory.createTraversingEcoMapper(pw);
+				eco = EcoMapperFactory.createTraversingEcoMapper(pw).getMapper();
 			}
 			LOG.info("Start validating GAF");
 			AnnotationRulesEngine ruleEngine;

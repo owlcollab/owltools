@@ -45,7 +45,7 @@ public class AnnotationRulesEngineSingleTest extends OWLToolsTestBasics {
 		p.addIRIMapper(mapper);
 		
 		OWLOntology goTaxon = p.parse("http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl");
-		TraversingEcoMapper ecoMapper = EcoMapperFactory.createTraversingEcoMapper(p, getResourceIRIString("eco.obo"));
+		TraversingEcoMapper ecoMapper = EcoMapperFactory.createTraversingEcoMapper(p, getResourceIRIString("eco.obo")).getMapper();
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
 				qcfile, xrfabbslocation, new OWLGraphWrapper(goTaxon), ecoMapper);

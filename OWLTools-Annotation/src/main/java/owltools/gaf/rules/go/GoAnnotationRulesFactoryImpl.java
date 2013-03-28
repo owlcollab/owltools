@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import owltools.gaf.eco.EcoMapper;
 import owltools.gaf.eco.EcoMapperFactory;
+import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AnnotationRule;
 import owltools.gaf.rules.AnnotationRulesFactoryImpl;
@@ -29,7 +29,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 	}
 	
 	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, ParserWrapper p, String go, String eco) {
-		this(qcfile, xrfabbslocation, getGO(p, go), getEco(p, eco));
+		this(qcfile, xrfabbslocation, getGO(p, go), getEco(p, eco).getMapper());
 	}
 	
 	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, TraversingEcoMapper eco) {
@@ -69,10 +69,10 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		}
 	}
 	
-	private static TraversingEcoMapper getEco(ParserWrapper p, String location) {
+	private static OntologyMapperPair<TraversingEcoMapper> getEco(ParserWrapper p, String location) {
 		try {
-			TraversingEcoMapper eco = EcoMapperFactory.createTraversingEcoMapper(p, location);
-			return eco;
+			OntologyMapperPair<TraversingEcoMapper> pair = EcoMapperFactory.createTraversingEcoMapper(p, location);
+			return pair;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

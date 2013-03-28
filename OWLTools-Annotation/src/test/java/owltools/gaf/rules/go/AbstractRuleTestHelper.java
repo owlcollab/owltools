@@ -7,11 +7,14 @@ import org.junit.BeforeClass;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.eco.EcoMapperFactory;
+import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.gaf.eco.TraversingEcoMapper;
+import owltools.graph.OWLGraphWrapper;
 
 public abstract class AbstractRuleTestHelper extends OWLToolsTestBasics {
 
 	protected static TraversingEcoMapper eco = null;
+	protected static OWLGraphWrapper ecoGraph = null;
 	private static Level elkLogLevel = null;
 	private static Logger elkLogger = null;
 	
@@ -20,12 +23,17 @@ public abstract class AbstractRuleTestHelper extends OWLToolsTestBasics {
 		elkLogger = Logger.getLogger("org.semanticweb.elk");
 		elkLogLevel = elkLogger.getLevel();
 		elkLogger.setLevel(Level.ERROR);
-		eco = EcoMapperFactory.createTraversingEcoMapper();
+		final OntologyMapperPair<TraversingEcoMapper> pair = EcoMapperFactory.createTraversingEcoMapper();
+		eco = pair.getMapper();
+		ecoGraph = pair.getGraph();
 		
 	}
 	
 	@AfterClass
 	public static void afterClass() throws Exception {
+		if (ecoGraph != null) {
+			ecoGraph = null;
+		}
 		if (eco != null) {
 			eco.dispose();
 			eco = null;

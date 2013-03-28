@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -37,18 +38,47 @@ public class EcoMapperFactory {
 		// private constructor, no instances allowed
 	}
 	
+	public static class OntologyMapperPair<MAPPER extends EcoMapper> {
+		
+		private final OWLGraphWrapper graph;
+		private final MAPPER mapper;
+		
+		/**
+		 * @param graph
+		 * @param mapper
+		 */
+		OntologyMapperPair(OWLGraphWrapper graph, MAPPER mapper) {
+			this.graph = graph;
+			this.mapper = mapper;
+		}
+
+		/**
+		 * @return the graph
+		 */
+		public OWLGraphWrapper getGraph() {
+			return graph;
+		}
+
+		/**
+		 * @return the mapper
+		 */
+		public MAPPER getMapper() {
+			return mapper;
+		}
+	}
+	
 	/**
 	 * Create an instance of a {@link EcoMapper}. Uses a separate parser. Load
 	 * the ECO and mappings using their PURLs.
 	 * 
-	 * @return mapper
+	 * @return mapper pair
 	 * @throws OWLException
 	 * @throws IOException
 	 * 
 	 * @see EcoMapper#ECO_PURL
 	 * @see EcoMapper#ECO_MAPPING_PURL
 	 */
-	public static EcoMapper createEcoMapper() throws OWLException, IOException {
+	public static OntologyMapperPair<EcoMapper> createEcoMapper() throws OWLException, IOException {
 		return createEcoMapper(new ParserWrapper());
 	}
 	
@@ -58,14 +88,14 @@ public class EcoMapperFactory {
 	 * mappings using their PURLs.
 	 * 
 	 * @param p
-	 * @return mapper
+	 * @return mapper pair
 	 * @throws OWLException
 	 * @throws IOException
 	 * 
 	 * @see EcoMapper#ECO_PURL
 	 * @see EcoMapper#ECO_MAPPING_PURL
 	 */
-	public static EcoMapper createEcoMapper(ParserWrapper p) throws OWLException, IOException {
+	public static OntologyMapperPair<EcoMapper> createEcoMapper(ParserWrapper p) throws OWLException, IOException {
 		return createEcoMapper(p, EcoMapper.ECO_PURL);
 	}
 	
@@ -76,15 +106,18 @@ public class EcoMapperFactory {
 	 * 
 	 * @param p
 	 * @param location
-	 * @return mapper
+	 * @return mapper pair
 	 * @throws OWLException
 	 * @throws IOException
 	 * 
 	 * @see EcoMapper#ECO_MAPPING_PURL
 	 */
-	public static EcoMapper createEcoMapper(ParserWrapper p, String location) throws OWLException, IOException {
-		OWLOntology eco = p.parseOWL(location);
-		return createEcoMapper(new OWLGraphWrapper(eco));
+	public static OntologyMapperPair<EcoMapper> createEcoMapper(ParserWrapper p, String location) throws OWLException, IOException {
+		final OWLOntology eco = p.parseOWL(location);
+		final OWLGraphWrapper graph = new OWLGraphWrapper(eco);
+		final EcoMapper mapper = createEcoMapper(graph);
+		final OntologyMapperPair<EcoMapper> pair = new OntologyMapperPair<EcoMapper>(graph, mapper);
+		return pair ;
 	}
 	
 	/**
@@ -122,14 +155,14 @@ public class EcoMapperFactory {
 	 * {@link TraversingEcoMapper#dispose()} to ensure proper cleanup of the ELK
 	 * worker thread pool.
 	 * 
-	 * @return mapper
+	 * @return mapper pair
 	 * @throws OWLException
 	 * @throws IOException
 	 * 
 	 * @see EcoMapper#ECO_PURL
 	 * @see EcoMapper#ECO_MAPPING_PURL
 	 */
-	public static TraversingEcoMapper createTraversingEcoMapper() throws OWLException, IOException {
+	public static OntologyMapperPair<TraversingEcoMapper> createTraversingEcoMapper() throws OWLException, IOException {
 		return createTraversingEcoMapper(new ParserWrapper());
 	}
 	
@@ -150,7 +183,7 @@ public class EcoMapperFactory {
 	 * @see EcoMapper#ECO_PURL
 	 * @see EcoMapper#ECO_MAPPING_PURL
 	 */
-	public static TraversingEcoMapper createTraversingEcoMapper(ParserWrapper p) throws OWLException, IOException {
+	public static OntologyMapperPair<TraversingEcoMapper> createTraversingEcoMapper(ParserWrapper p) throws OWLException, IOException {
 		return createTraversingEcoMapper(p, EcoMapper.ECO_PURL);
 	}
 	
@@ -171,13 +204,15 @@ public class EcoMapperFactory {
 	 * 
 	 * @see EcoMapper#ECO_MAPPING_PURL
 	 */
-	public static TraversingEcoMapper createTraversingEcoMapper(ParserWrapper p, String location) throws OWLException, IOException {
+	public static OntologyMapperPair<TraversingEcoMapper> createTraversingEcoMapper(ParserWrapper p, String location) throws OWLException, IOException {
 		OWLOntology eco = p.parseOWL(EcoMapper.ECO_PURL_IRI);
 		OWLReasoner reasoner = reasonerFactor.createReasoner(eco);
 		Reader reader = null;
 		try {
+			OWLGraphWrapper ecoGraph = new OWLGraphWrapper(eco);
 			reader = createReader(EcoMapper.ECO_MAPPING_PURL);
-			return createTraversingEcoMapper(reader, eco, reasoner, true);
+			final TraversingEcoMapper mapper = createTraversingEcoMapper(reader, ecoGraph, reasoner, true);
+			return new OntologyMapperPair<TraversingEcoMapper>(ecoGraph, mapper);
 		}
 		finally {
 			IOUtils.closeQuietly(reader);
@@ -259,9 +294,8 @@ public class EcoMapperFactory {
 		return new FileReader(file);
 	}
 	
-	static TraversingEcoMapper createTraversingEcoMapper(Reader mappingsReader, OWLOntology eco, OWLReasoner reasoner, boolean disposeReasoner) throws IOException, OWLException {
-		OWLGraphWrapper ecoGraph = new OWLGraphWrapper(eco);
-		EcoMappings mappings = loadEcoMappings(mappingsReader, ecoGraph);
+	static TraversingEcoMapper createTraversingEcoMapper(Reader mappingsReader, OWLGraphWrapper eco, OWLReasoner reasoner, boolean disposeReasoner) throws IOException, OWLException {
+		EcoMappings mappings = loadEcoMappings(mappingsReader, eco);
 		return new TraversingEcoMapperImpl(mappings, reasoner, disposeReasoner);
 	}
 	

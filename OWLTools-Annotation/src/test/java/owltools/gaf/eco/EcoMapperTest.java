@@ -10,6 +10,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 
+import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -38,38 +39,40 @@ public class EcoMapperTest {
 	
 	@Test
 	public void checkMapping() throws Exception {
-		EcoMapper mapper = EcoMapperFactory.createEcoMapper();
+		final OntologyMapperPair<TraversingEcoMapper> pair = EcoMapperFactory.createTraversingEcoMapper();
+		TraversingEcoMapper mapper = pair.getMapper();
+		OWLGraphWrapper g = pair.getGraph();
 		
-		single(mapper, "0000269", "EXP");
-		single(mapper, "0000318", "IBA");
-		single(mapper, "0000319", "IBD");
-		single(mapper, "0000305", "IC");
-		single(mapper, "0000314", "IDA");
+		single(mapper, g, "0000269", "EXP");
+		single(mapper, g, "0000318", "IBA");
+		single(mapper, g, "0000319", "IBD");
+		single(mapper, g, "0000305", "IC");
+		single(mapper, g, "0000314", "IDA");
 		
-		single(mapper, "0000270", "IEP");
+		single(mapper, g, "0000270", "IEP");
 		
-		single(mapper, "0000316", "IGI");
-		single(mapper, "0000320", "IKR"); // same as IMR ?
-		single(mapper, "0000315", "IMP");
-		single(mapper, "0000320", "IMR"); // same as IKR ?
-		single(mapper, "0000021", "IPI");
-		single(mapper, "0000321", "IRD");
-		single(mapper, "0000247", "ISA");
-		single(mapper, "0000255", "ISM");
-		single(mapper, "0000266", "ISO");
-		single(mapper, "0000303", "NAS");
-		single(mapper, "0000307", "ND");
-		single(mapper, "0000245", "RCA");
-		single(mapper, "0000304", "TAS");
+		single(mapper, g, "0000316", "IGI");
+		single(mapper, g, "0000320", "IKR"); // same as IMR ?
+		single(mapper, g, "0000315", "IMP");
+		single(mapper, g, "0000320", "IMR"); // same as IKR ?
+		single(mapper, g, "0000021", "IPI");
+		single(mapper, g, "0000321", "IRD");
+		single(mapper, g, "0000247", "ISA");
+		single(mapper, g, "0000255", "ISM");
+		single(mapper, g, "0000266", "ISO");
+		single(mapper, g, "0000303", "NAS");
+		single(mapper, g, "0000307", "ND");
+		single(mapper, g, "0000245", "RCA");
+		single(mapper, g, "0000304", "TAS");
 		
-		multiple(mapper, 
+		multiple(mapper, g, 
 				Arrays.asList("0000317", "0000084"), 
 				"IGC", 
 				Arrays.asList("GO_REF:0000025"));
 		
-		multiple(mapper, 
-				Arrays.asList("0000203", "0000256", "0000203", "0000203",
-						"0000265", "0000265", "0000203", "0000265",
+		multiple(mapper, g, 
+				Arrays.asList("0000501", "0000256", "0000501", "0000501",
+						"0000265", "0000265", "0000501", "0000265",
 						"0000322", "0000323", "0000322", "0000323",
 						"0000265"), 
 				"IEA", 
@@ -77,26 +80,44 @@ public class EcoMapperTest {
 						"GO_REF:0000020", "GO_REF:0000023", "GO_REF:0000035", "GO_REF:0000037",
 						"GO_REF:0000038", "GO_REF:0000039", "GO_REF:0000040", "GO_REF:0000049"));
 		
-		multiple(mapper, 
+		multiple(mapper, g, 
 				Arrays.asList("0000250", "0000255", "0000031", "0000031", "0000031"), 
 				"ISS", 
 				Arrays.asList("GO_REF:0000011", "GO_REF:0000012", "GO_REF:0000018", "GO_REF:0000027"));
 	}
 	
-	private void single(EcoMapper mapper, String eco, String go) {
+	private void single(TraversingEcoMapper mapper, OWLGraphWrapper ecoGraph, String eco, String go) {
 		final OWLClass cls = mapper.getEcoClassForCode(go);
 		assertEquals("http://purl.obolibrary.org/obo/ECO_"+eco, cls.getIRI().toString());
 		Set<OWLClass> codes = mapper.getAllEcoClassesForCode(go);
 		assertEquals(1, codes.size());
 		assertEquals(cls, codes.iterator().next());
+		
+		checkEcoBranch(mapper, ecoGraph, cls);
+		
+	}
+
+	private void checkEcoBranch(TraversingEcoMapper mapper, OWLGraphWrapper g, final OWLClass cls) {
+		// check that the cls is a descendant of ECO:0000000 ! evidence
+		// but not of  ECO:0000217 ! assertion method
+		OWLClass e = g.getOWLClassByIdentifier("ECO:0000000");
+		assertNotNull(e);
+		OWLClass a = g.getOWLClassByIdentifier("ECO:0000217");
+		assertNotNull(a);
+		
+		Set<OWLClass> ancestors = mapper.getAncestors(cls, false);
+		String id = g.getIdentifier(cls);
+		assertTrue("The "+id+" class should be a descendant of ECO:0000000 ! evidence", ancestors.contains(e));
+		assertFalse("The "+id+" class may not be a descendant of ECO:0000217 ! assertion method", ancestors.contains(a));
 	}
 	
-	private void multiple(EcoMapper mapper, List<String> ecos, String go, List<String> refs) {
+	private void multiple(TraversingEcoMapper mapper, OWLGraphWrapper ecoGraph, List<String> ecos, String go, List<String> refs) {
 		final OWLClass cls = mapper.getEcoClassForCode(go);
 		final String first = ecos.get(0);
 		assertEquals("http://purl.obolibrary.org/obo/ECO_"+first, cls.getIRI().toString());
 		
 		assertEquals(refs.size() + 1, ecos.size());
+		checkEcoBranch(mapper, ecoGraph, cls);
 		
 		Set<OWLClass> all = new HashSet<OWLClass>();
 		all.add(cls);
@@ -107,6 +128,7 @@ public class EcoMapperTest {
 			OWLClass refCls = mapper.getEcoClassForCode(go, ref);
 			assertEquals("http://purl.obolibrary.org/obo/ECO_"+currentEco, refCls.getIRI().toString());
 			all.add(refCls);
+			checkEcoBranch(mapper, ecoGraph, refCls);
 		}
 		
 		Set<OWLClass> codes = mapper.getAllEcoClassesForCode(go);
