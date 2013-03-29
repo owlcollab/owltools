@@ -36,8 +36,8 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	Map<OWLClass,Set<OWLClassExpression>> simpleDefMap = new HashMap<OWLClass,Set<OWLClassExpression>>();
 	AnnotationExtensionFolder folder = null;
 	final OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+	public OWLReasoner reasoner;
 
-	OWLReasoner reasoner;
 	public FoldBasedPredictor(GafDocument gafDocument,
 			OWLGraphWrapper graph) {
 		super(gafDocument, graph);
@@ -47,29 +47,33 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	public void fold() {
 		folder = new AnnotationExtensionFolder(this.getGraph());
 		folder.fold(getGafDocument(), false); // do not replace
-		LOG.info("Candidate classes to deepen: "+folder.rewriteMap.size());
+		//LOG.info("Candidate classes to deepen: "+folder.rewriteMap.size());
 		reasoner = reasonerFactory.createReasoner(getGraph().getSourceOntology());
 	}
 
 	public Set<Prediction> predict(String bioentity) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		Set<GeneAnnotation> anns = getGafDocument().getGeneAnnotations(bioentity);
-		//LOG.info("N="+anns.size());
+		LOG.info("predicting for "+bioentity+" N="+anns.size());
 		for (GeneAnnotation ann : anns) {
 			//LOG.info(ann);
 			if (ann.getEvidenceCls().equals("ND")) {
 				continue;
 			}
 			OWLClass annotatedToClass = getGraph().getOWLClassByIdentifier(ann.getCls());
-			//LOG.info("?:"+annotatedToClass+" "+ann.getCls());
-			if (folder.rewriteMap.containsKey(annotatedToClass)) {
-				OWLClass rwCls = folder.rewriteMap.get(annotatedToClass);
-				//LOG.info("Test:"+annotatedToClass);			
-				//LOG.info("EQ:"+folder.foldedClassMap.get(rwCls));
-				Set<OWLClass> newClasses = getMSCs(annotatedToClass, rwCls);
-				for (OWLClass c : newClasses) {
-					LOG.info("MSC:"+c);
-					predictions.add(getPrediction(c, bioentity, ann.getCls()));
+			Collection<ExtensionExpression> exts = ann.getExtensionExpressions();
+			if (exts != null && exts.size() > 0) {
+				for (ExtensionExpression ext : exts) {
+					OWLClass rwCls = folder.mapExt(annotatedToClass, ext);
+					//LOG.info("?:"+annotatedToClass+" "+ann.getCls());
+					if (rwCls != null) {
+						//LOG.info(" rw To "+rwCls+ " "+getGraph().getLabel(rwCls));
+						Set<OWLClass> newClasses = getMSCs(annotatedToClass, rwCls);
+						for (OWLClass c : newClasses) {
+							//LOG.info("MSC:"+c);
+							predictions.add(getPrediction(ann, c, bioentity, ann.getCls()));
+						}
+					}
 				}
 			}
 			//Collection<GeneAnnotation> newAnns = folder.fold(getGafDocument(), ann);
@@ -79,11 +83,12 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		return predictions;
 	}
 
-	private Set<OWLClass> getMSCs(OWLClass orig, OWLClass c) {
+	private Set<OWLClass> getMSCs(OWLClass orig, OWLClass xpCls) {
 		Set<OWLClass> origAncs = reasoner.getSuperClasses(orig, false).getFlattened();
-		Set<OWLClass> ancs = reasoner.getSuperClasses(c, false).getFlattened();
-		ancs.addAll(reasoner.getEquivalentClasses(c).getEntities());
+		Set<OWLClass> ancs = reasoner.getSuperClasses(xpCls, false).getFlattened();
+		ancs.addAll(reasoner.getEquivalentClasses(xpCls).getEntities());
 		Set<OWLClass> mscs = new HashSet<OWLClass>();
+		//LOG.info("anc( "+xpCls+" ) = "+ancs);
 		for (OWLClass anc : ancs) {
 			//LOG.info("anc = "+anc);
 			if (isPrecomposed(anc)) {
@@ -92,7 +97,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 				}
 			}
 		}
-		
+
 		return mscs;
 	}
 
@@ -100,9 +105,9 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		return !folder.foldedClassMap.containsKey(c);
 	}
 
-	protected Prediction getPrediction(OWLClass c, String bioentity, String with) {
+	protected Prediction getPrediction(GeneAnnotation ann, OWLClass c, String bioentity, String with) {
 		Prediction prediction = new Prediction();
-		GeneAnnotation annP = new GeneAnnotation();
+		GeneAnnotation annP = new GeneAnnotation(ann);
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidenceCls("IC");

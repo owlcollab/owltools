@@ -32,11 +32,10 @@ import owltools.graph.OWLGraphWrapper;
  * 
  */
 public class AnnotationExtensionFolder extends GAFOWLBridge {
-
+	
 	private static final Logger LOG = Logger.getLogger(AnnotationExtensionFolder.class);
 
 	int lastId = 0;
-	public Map <OWLClass,OWLClass> rewriteMap = null;
 	public Map <OWLClass,OWLClassExpression> foldedClassMap = null;
 	Map <OWLClassExpression,OWLClass> revFoldedClassMap = null;
 
@@ -78,7 +77,6 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 		if (foldedClassMap == null) {
 			foldedClassMap = new HashMap <OWLClass,OWLClassExpression>();
 			revFoldedClassMap = new HashMap <OWLClassExpression, OWLClass>();
-			rewriteMap = new HashMap<OWLClass,OWLClass>();
 		}
 
 		List<GeneAnnotation> newAnns = new ArrayList<GeneAnnotation>();
@@ -91,68 +89,13 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 			// TODO - fix model so that disjunctions and conjunctions are supported.
 			//  treat all as disjunction for now
 			for (ExtensionExpression ext : exts) {
-				HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
-				ops.add(annotatedToClass);
-				OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
-				if (p == null) {
+				OWLClass nc = mapExt(annotatedToClass, ext);
+				if (nc == null) {
 					continue;
 				}
-				OWLClass filler = getOWLClass(ext.getCls());
-				if (filler == null) {
-					continue;
-				}
-				//LOG.info(" EXT:"+p+" "+filler);
-				ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
-
-				OWLClassExpression cx = fac.getOWLObjectIntersectionOf(ops);
-
-				OWLClass nc;
-				IRI	ncIRI;
-				if (revFoldedClassMap.containsKey(cx)) {
-					nc = revFoldedClassMap.get(cx);
-					ncIRI = nc.getIRI();
-				}
-				else {
-
-					String idExt = ext.getRelation()+"-"+ext.getCls();
-					idExt = idExt.replaceAll(":", "_");
-
-					String nameExt;
-					OWLClass xc = graph.getOWLClassByIdentifier(ext.getCls());
-					if (xc != null) {
-						String extFillerLabel = graph.getLabelOrDisplayId(xc);
-						nameExt = ext.getRelation()+" some "+extFillerLabel;
-					}
-					else {
-						nameExt = ext.getRelation()+" some "+ext.getCls();
-					}
-					
-					
-
-					//IRI ncIRI = IRI.create(annotatedToClass.getIRI().toString()+"-"+idExt);
-					lastId++;
-					 ncIRI = IRI.create("http://purl.obolibrary.org/obo/GOTEMP_"+lastId);
-					 nc = fac.getOWLClass(ncIRI);
-					OWLEquivalentClassesAxiom eca = fac.getOWLEquivalentClassesAxiom(nc, cx);
-					graph.getManager().addAxiom(graph.getSourceOntology(), eca);
-					String annLabel = graph.getLabel(annotatedToClass);
-					if (annLabel == null) {
-						annLabel = ann.getCls();
-					}
-					OWLAnnotationAssertionAxiom aaa = fac.getOWLAnnotationAssertionAxiom(
-							fac.getRDFSLabel(),
-							ncIRI,
-							fac.getOWLLiteral(annLabel + " " + nameExt));
-					graph.getManager().addAxiom(graph.getSourceOntology(), aaa);
-					graph.getManager().addAxiom(graph.getSourceOntology(), fac.getOWLDeclarationAxiom(nc));
-					revFoldedClassMap.put(cx, nc);
-					foldedClassMap.put(nc, cx); // 
-				}
-
-				rewriteMap.put(annotatedToClass, nc);
 				GeneAnnotation newAnn = new GeneAnnotation(ann);
 				newAnn.setExtensionExpression("");
-				newAnn.setCls(graph.getIdentifier(ncIRI));
+				newAnn.setCls(graph.getIdentifier(nc));
 				newAnns.add(newAnn);
 				
 				LOG.debug("NEW: "+newAnn);
@@ -160,6 +103,70 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 		}
 		return newAnns;
 
+	}
+
+	public OWLClass mapExt(OWLClass annotatedToClass, ExtensionExpression ext) {
+		HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
+		ops.add(annotatedToClass);
+		OWLDataFactory fac = graph.getDataFactory();
+
+		OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
+		if (p == null) {
+			return null;
+		}
+		OWLClass filler = getOWLClass(ext.getCls());
+		if (filler == null) {
+			return null;
+		}
+		//LOG.info(" EXT:"+p+" "+filler);
+		ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
+
+		OWLClassExpression cx = fac.getOWLObjectIntersectionOf(ops);
+
+		OWLClass nc;
+		IRI	ncIRI;
+		if (revFoldedClassMap.containsKey(cx)) {
+			nc = revFoldedClassMap.get(cx);
+			ncIRI = nc.getIRI();
+		}
+		else {
+
+			String idExt = ext.getRelation()+"-"+ext.getCls();
+			idExt = idExt.replaceAll(":", "_");
+
+			String nameExt;
+			OWLClass xc = graph.getOWLClassByIdentifier(ext.getCls());
+			if (xc != null) {
+				String extFillerLabel = graph.getLabelOrDisplayId(xc);
+				nameExt = ext.getRelation()+" some "+extFillerLabel;
+			}
+			else {
+				nameExt = ext.getRelation()+" some "+ext.getCls();
+			}
+			
+			
+
+			//IRI ncIRI = IRI.create(annotatedToClass.getIRI().toString()+"-"+idExt);
+			lastId++;
+			 ncIRI = IRI.create("http://purl.obolibrary.org/obo/GOTEMP_"+lastId);
+			nc = fac.getOWLClass(ncIRI);
+			OWLEquivalentClassesAxiom eca = fac.getOWLEquivalentClassesAxiom(nc, cx);
+			graph.getManager().addAxiom(graph.getSourceOntology(), eca);
+			String annLabel = graph.getLabel(annotatedToClass);
+			if (annLabel == null) {
+				annLabel = graph.getIdentifier(annotatedToClass);
+			}
+			OWLAnnotationAssertionAxiom aaa = fac.getOWLAnnotationAssertionAxiom(
+					fac.getRDFSLabel(),
+					ncIRI,
+					fac.getOWLLiteral(annLabel + " " + nameExt));
+			graph.getManager().addAxiom(graph.getSourceOntology(), aaa);
+			graph.getManager().addAxiom(graph.getSourceOntology(), fac.getOWLDeclarationAxiom(nc));
+			revFoldedClassMap.put(cx, nc);
+			foldedClassMap.put(nc, cx); // 
+		}
+
+		return nc;
 	}
 
 	public Map<OWLClass, OWLClassExpression> getFoldedClassMap() {
