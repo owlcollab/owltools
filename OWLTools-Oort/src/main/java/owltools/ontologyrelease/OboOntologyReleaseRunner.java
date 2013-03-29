@@ -56,6 +56,7 @@ import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 import owltools.InferenceBuilder;
 import owltools.JustifyAssertionsTool;
@@ -350,6 +351,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				File file = new File(opts.nextOpt());
 				OortConfiguration.loadConfig(file , oortConfig);
 			}
+			else if (opts.nextEq("--rename-entity")) {
+				oortConfig.addRewriteIRIMap(IRI.create(opts.nextOpt()), 
+						IRI.create(opts.nextOpt()));
+			}
 			else if (opts.nextEq("--catalog-xml")) {
 				oortConfig.setCatalogXML(opts.nextOpt());
 			}
@@ -542,6 +547,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			for (OWLImportsDeclaration owlImportsDeclaration : importsDeclarations) {
 				manager.applyChange(new RemoveImport(sourceOntology, owlImportsDeclaration));
 			}
+		}
+		
+		// rewrite IRIs
+		//  used if two ontologies do not use the same IRI for the same concept
+		if (oortConfig.getRewriteIRIMap().size() > 0) {
+			OWLEntityRenamer oer = new OWLEntityRenamer(graph.getManager(), graph.getAllOntologies());
+			List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange> ();
+			for (IRI fromIRI : oortConfig.getRewriteIRIMap().keySet()) {
+				changes.addAll( oer.changeIRI(fromIRI, oortConfig.getRewriteIRIMap().get(fromIRI)) );
+			}
+			logInfo("IRI rewrites: "+changes.size());
+			graph.getManager().applyChanges(changes);
+			
 		}
 
 		mooncat = new Mooncat(graph);

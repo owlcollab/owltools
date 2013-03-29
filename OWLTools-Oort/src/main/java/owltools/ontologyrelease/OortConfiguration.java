@@ -8,8 +8,10 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
@@ -19,6 +21,7 @@ import org.apache.log4j.Logger;
 import org.obolibrary.owl.LabelFunctionalFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.InferenceBuilder;
@@ -93,6 +96,7 @@ public class OortConfiguration {
 	private String queryOntologyReference = null;
 	private boolean queryOntologyReferenceIsIRI = true;
 	private boolean removeQueryOntologyReference = false;
+	private Map<IRI,IRI> rewriteIRIMap = new HashMap<IRI,IRI>();
 
 	private OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
 	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
@@ -547,6 +551,33 @@ public class OortConfiguration {
 	 */
 	public void setWriteMetadata(boolean writeMetadata) {
 		this.writeMetadata = writeMetadata;
+	}
+	
+	
+
+	/**
+	 * @return Map of IRIs to be rewritten <from,to>
+	 */
+	public Map<IRI, IRI> getRewriteIRIMap() {
+		return rewriteIRIMap;
+	}
+
+	/**
+	 * @param sets map of IRIs to be rewritten <from,to>
+	 */
+	public void setRewriteIRIMap(Map<IRI, IRI> rewriteIRIMap) {
+		this.rewriteIRIMap = rewriteIRIMap;
+	}
+	
+	/**
+	 * Adds entry to rewrite map
+	 * @param from
+	 * @param to
+	 */
+	public void addRewriteIRIMap(IRI from, IRI to) {
+		if (rewriteIRIMap == null)
+			rewriteIRIMap = new HashMap<IRI,IRI>();
+		rewriteIRIMap.put(from, to);
 	}
 
 	/**
