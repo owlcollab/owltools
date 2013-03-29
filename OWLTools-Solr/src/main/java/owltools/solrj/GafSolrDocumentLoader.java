@@ -207,6 +207,12 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			//	bioentity_doc.addField("phylo_descendant_closure", pantherTreeAnnDescendants);
 			//}
 		}
+
+		// We're also going to want to make note of the direct annotations to this bioentity.
+		// This will mean getting ready and then storing all of c5 when we pass through through
+		// the annotation loop. We'll add to the document on the other side.
+		// Collect information: ids and labels.
+		Map<String,String> direct_list_map = new HashMap<String,String>();
 		
 		// Something that we'll need for the annotation evidence aggregate later.
 		Map<String,SolrInputDocument> evAggDocMap = new HashMap<String,SolrInputDocument>();
@@ -400,6 +406,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				}
 			}
 
+			// Let's piggyback on a little of the work above and cache the extra stuff that we'll be adding to the bioenity at the end
+			// for the direct annotations. c5 and ???.
+			String dlbl = graph.getLabel(cls);
+			direct_list_map.put(clsId, dlbl);
 
 //			Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
 //			OWLObject c = graph.getOWLObjectByIdentifier(clsId);
@@ -538,6 +548,21 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		if( ! reg_map.isEmpty() ){
 			String jsonized_cmap = gson.toJson(reg_map);
 			bioentity_doc.addField("regulates_closure_map", jsonized_cmap);
+		}
+
+		// Add c5 to bioentity.
+		// Compile closure map to JSON and add to the document.
+		String jsonized_direct_map = null;
+		if( ! direct_list_map.isEmpty() ){
+			jsonized_direct_map = gson.toJson(direct_list_map);
+		}
+		// Optionally, if there is enough direct annotations for a map, add the collections to the document.
+		if( jsonized_direct_map != null ){
+			List<String> directIDList = new ArrayList<String>(direct_list_map.keySet());
+			List<String> directLabelList = new ArrayList<String>(direct_list_map.values());
+			bioentity_doc.addField("annotation_class_list", directIDList);
+			bioentity_doc.addField("annotation_class_list_label", directLabelList);
+			bioentity_doc.addField("annotation_class_list_map", jsonized_direct_map);
 		}
 		
 		add(bioentity_doc);
