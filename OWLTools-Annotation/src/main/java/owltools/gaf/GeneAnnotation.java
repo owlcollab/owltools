@@ -361,6 +361,10 @@ public class GeneAnnotation {
 	public void setIsIntegralTo(boolean isIntegralTo) {
 		this.isIntegralTo = isIntegralTo;
 	}
+	
+	public void setExtensionExpressionList(Collection<ExtensionExpression> xs) {
+		extensionExpressionList = xs;
+	}
 
 	public Collection<ExtensionExpression> getExtensionExpressions(){
 		if(extensionExpressionList == null){

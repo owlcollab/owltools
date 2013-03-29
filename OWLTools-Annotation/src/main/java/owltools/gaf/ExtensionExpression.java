@@ -82,6 +82,9 @@ public class ExtensionExpression{
 		return true;
 	}
 	
+	public String toString() {
+		return id;
+	}
 	
 	
 }

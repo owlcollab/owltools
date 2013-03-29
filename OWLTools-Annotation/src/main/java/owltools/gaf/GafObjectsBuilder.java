@@ -258,14 +258,19 @@ public class GafObjectsBuilder {
 		String relation = null;
 		String aspect = parser.getAspect();
 		if (aspect.equals("F"))
-			relation = "actively_participates_in";
+			relation = "enables";
 		else if (aspect.equals("P"))
-			relation = "actively_participates_in";
+			relation = "involved_in";
 		else if (aspect.equals("C"))
 			relation = "part_of";
 		else
 			relation = aspect;
 		
+		if (isContributesTo)
+			relation = "contributes_to";
+		if (compositeQualifier.contains("colocalizes_with"))
+			relation = "colocalizes_with";
+				
 		String referenceId = parser.getReference();
 		
 		String evidenceCls = parser.getEvidence();

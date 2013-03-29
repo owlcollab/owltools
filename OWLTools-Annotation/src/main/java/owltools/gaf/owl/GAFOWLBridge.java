@@ -50,7 +50,7 @@ public class GAFOWLBridge {
 	public enum Vocab {
 		ACTIVELY_PARTICIPATES_IN, PART_OF,
 		DESCRIBES, SOURCE, PROTOTYPICALLY,
-		IN_TAXON
+		IN_TAXON, ENABLED_BY, INVOLVED_IN, CONTRIBUTES_TO, COLOCALIZES_WITH
 	}
 
 	public GAFOWLBridge(OWLGraphWrapper g) {
@@ -84,6 +84,10 @@ public class GAFOWLBridge {
 		addVocabMap(Vocab.PART_OF, "BFO_0000050");
 		addVocabMap(Vocab.ACTIVELY_PARTICIPATES_IN, "RO_0002217", "actively participates in");
 		addVocabMap(Vocab.PROTOTYPICALLY, "RO_0002214", "has prototype"); // canonically?
+		addVocabMap(Vocab.INVOLVED_IN, "RO_0002331", "involved in");
+		addVocabMap(Vocab.ENABLED_BY, "RO_0002333", "enabled by"); 
+		addVocabMap(Vocab.COLOCALIZES_WITH, "RO_0002325", "colocalizes with");
+		addVocabMap(Vocab.CONTRIBUTES_TO, "RO_0002326", "contributes to"); 
 		addVocabMap(Vocab.DESCRIBES, "IAO_0000136", "is about");
 		addVocabMap(Vocab.IN_TAXON, "RO_0002162", "in taxon");
 	}
@@ -175,13 +179,17 @@ public class GAFOWLBridge {
 		OWLDataFactory fac = graph.getDataFactory();
 		OWLClass e = getOWLClass(a.getBioentity());
 		OWLClassExpression annotatedToClass = getOWLClass(a.getCls());
-		// c16
+		// c16 - TODO - split '|'s into separate annotations
 		Collection<ExtensionExpression> exts = a.getExtensionExpressions();
 		if (exts != null && !exts.isEmpty()) {
 			HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
 			ops.add(annotatedToClass);
 			for (ExtensionExpression ext : exts) {
 				OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
+				if (p == null) {
+					LOG.error("cannot match: "+ext.getRelation());
+					p = fac.getOWLObjectProperty(IRI.create("http://purl.obolibrary.org/obo/go/unstable/"+ext.getRelation()));
+				}
 				OWLClass filler = getOWLClass(ext.getCls());
 				//LOG.info(" EXT:"+p+" "+filler);
 				ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
@@ -317,6 +325,7 @@ public class GAFOWLBridge {
 
 	private OWLObjectProperty getGeneAnnotationRelation(GeneAnnotation a) {
 		String relation = a.getRelation();
+		//LOG.info("Mapping: "+relation);
 		Vocab v = null;
 		try {
 			v = Vocab.valueOf(relation.toUpperCase());
@@ -330,7 +339,7 @@ public class GAFOWLBridge {
 		if (op != null)
 			return op;
 		// TODO
-		return getGeneAnnotationObjectProperty(Vocab.ACTIVELY_PARTICIPATES_IN);
+		return getGeneAnnotationObjectProperty(Vocab.INVOLVED_IN);
 	}
 
 
