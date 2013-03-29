@@ -37,6 +37,7 @@ public class PropertyExtractor {
 	private Logger LOG = Logger.getLogger(PropertyExtractor.class);
 	OWLOntology mainOntology;
 	boolean isExpansive = true;
+	public boolean isCreateShorthand = true;
 
 	public PropertyExtractor(OWLOntology propertyOntology) {
 		super();
@@ -124,7 +125,7 @@ public class PropertyExtractor {
 			}
 
 			// shorthand
-			if (true) {
+			if (isCreateShorthand) {
 				String id = g.getLabel(prop);
 				if (id != null) {
 					id = id.replaceAll(" ", "_");
