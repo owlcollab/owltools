@@ -1,0 +1,30 @@
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: : <http://purl.obolibrary.org/obo/terf_>
+Prefix: obo: <http://purl.obolibrary.org/obo/>
+Prefix: oo: <http://www.geneontology.org/formats/oboInOwl#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: dc: <http://purl.org/dc/elements/1.1/>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: scv: <http://purl.org/NET/scovo#>
+Prefix: definition: <http://purl.obolibrary.org/obo/IAO_0000115>
+Prefix: synonym: <http://purl.obolibrary.org/obo/IAO_0000118>
+
+Ontology: <http://purl.obolibrary.org/obo/test.owl>
+
+Individual: :i1
+  Facts: :p1 :i2
+  Types: :c1, :p2 some :c3
+
+Individual: :i2
+  Types: :c2
+
+Class: :c1
+Class: :c2
+Class: :c3
+
+ObjectProperty: :p1
+ObjectProperty: :p2
+
+
