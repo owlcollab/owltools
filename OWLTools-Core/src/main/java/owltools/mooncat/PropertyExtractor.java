@@ -76,8 +76,7 @@ public class PropertyExtractor {
 		mainOntology = ont;
 		return extractPropertyOntology(newIRI);
 	}
-
-
+	
 	/**
 	 */
 	public OWLOntology extractPropertyOntology(IRI newIRI, Set<OWLProperty> props) throws OWLOntologyCreationException {

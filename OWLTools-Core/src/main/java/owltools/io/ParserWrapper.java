@@ -51,6 +51,8 @@ public class ParserWrapper {
 	private static Logger LOG = Logger.getLogger(ParserWrapper.class);
 	OWLOntologyManager manager;
 	OBODoc obodoc;
+	boolean isCheckOboDoc = true;
+	
 	
 	public ParserWrapper() {
 		manager = OWLManager.createOWLOntologyManager(); // persist?
@@ -79,6 +81,15 @@ public class ParserWrapper {
 	public void setManager(OWLOntologyManager manager) {
 		this.manager = manager;
 	}
+	
+	public boolean isCheckOboDoc() {
+		return isCheckOboDoc;
+	}
+
+	public void setCheckOboDoc(boolean isCheckOboDoc) {
+		this.isCheckOboDoc = isCheckOboDoc;
+	}
+
 	public void addIRIMapper(OWLOntologyIRIMapper mapper) {
 		manager.addIRIMapper(mapper);
 	}
@@ -229,6 +240,7 @@ public class ParserWrapper {
 			try {
 				doc = bridge.convert(ont);
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
+				oboWriter.setCheckStructure(isCheckOboDoc); 
 				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
 				if (graph != null) {
 					oboWriter.write(doc, bw, new OboAndOwlNameProvider(doc, graph));

@@ -1,7 +1,9 @@
 package owltools.mooncat;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -1047,7 +1049,29 @@ public class Mooncat {
 		ont.getOWLOntologyManager().addAxioms(ont, newAxioms);
 	}
 
+	public Map<OWLObject,Set<OWLObject>> createSubsetMap(String ss) {
+		return createSubsetMap(graph.getOWLObjectsInSubset(ss));
+	}
+	
+	public Map<OWLObject,Set<OWLObject>> createSubsetMap(Set<OWLObject> subset) {
+		Map<OWLObject, Set<OWLObject>> ssm = new HashMap<OWLObject,Set<OWLObject>>();
+		for (OWLObject s : graph.getAllOWLObjects()) {
+			Set<OWLObject> ancs = graph.getAncestorsReflexive(s);
+			ancs.retainAll(subset);
+			removeRedundant(ancs);
+			ssm.put(s, ancs);
+		}
+		return ssm;
+	}
 
+	public void removeRedundant(Set<OWLObject> ancs) {
+		Set<OWLObject> rmObjs = new HashSet<OWLObject>();
+		for (OWLObject c : ancs) {
+			rmObjs.addAll(graph.getAncestors(c));
+		}
+		ancs.removeAll(rmObjs);
+		
+	}
 
 
 

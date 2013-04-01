@@ -1097,12 +1097,12 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	}
 
 	public Set<OWLObject> getAncestorsReflexive(OWLObject x) {
-		Set<OWLObject> ancs = getAncestors(x);
+		Set<OWLObject> ancs = new HashSet<OWLObject>(getAncestors(x));
 		ancs.add(x);
 		return ancs;
 	}
 	public Set<OWLObject> getAncestorsReflexive(OWLObject x, Set<OWLPropertyExpression> overProps) {
-		Set<OWLObject> ancs = getAncestors(x, overProps);
+		Set<OWLObject> ancs = new HashSet<OWLObject>(getAncestors(x, overProps));
 		ancs.add(x);
 		return ancs;
 	}
