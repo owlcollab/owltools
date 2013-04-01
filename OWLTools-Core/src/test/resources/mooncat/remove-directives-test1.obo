@@ -1,5 +1,6 @@
 ontology: test1
 logical-definition-view-relation: part_of
+synonymtypedef: foo "foo" EXACT
 
 [Term]
 id: X:1
