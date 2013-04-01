@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -85,6 +86,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyCharacteristicAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
@@ -97,6 +99,8 @@ import org.semanticweb.owlapi.model.OWLProperty;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
+import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
@@ -109,11 +113,14 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
+import owltools.gaf.GeneAnnotation;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
+import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
@@ -418,6 +425,30 @@ public class CommandRunner {
 								g.getDataFactory().getOWLImportsDeclaration(IRI.create(importIRI)));
 					g.getManager().applyChange(ai);
 				}
+			}
+			else if (opts.nextEq("--set-ontology-id")) {
+				opts.info("[-v VERSION-IRI][-a] IRI", "Sets the OWLOntologyID (i.e. IRI and versionIRI)");
+				IRI v = null;
+				IRI iri = null;
+				boolean isAnonymous = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-v|--version-iri")) {
+						v = IRI.create(opts.nextOpt());
+					}
+					else if (opts.nextEq("-a|--anonymous")) {
+						opts.info("", "if specified, do not specify an IRI");
+						isAnonymous = true;
+					}
+					else {
+						break;
+					}
+				}
+				if (!isAnonymous)
+					iri = IRI.create(opts.nextOpt());
+				OWLOntologyID oid = new OWLOntologyID(iri, v);
+				SetOntologyID soid;
+				soid = new SetOntologyID(g.getSourceOntology(), oid);
+				g.getManager().applyChange(soid);
 			}
 			else if (opts.nextEq("--add-ontology-annotation")) {
 				OWL2Datatype dt = OWL2Datatype.XSD_STRING;
@@ -733,6 +764,8 @@ public class CommandRunner {
 				opts.info("[-p PROP]* [--list PLIST]", "extracts properties from source ontology");
 				Set<OWLProperty> props = new HashSet<OWLProperty>();
 				boolean useProps = false;
+				boolean isCreateShorthand = true;
+
 				UUID uuid = UUID.randomUUID();
 				IRI newIRI = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
 				while (opts.hasOpts()) {
@@ -745,13 +778,17 @@ public class CommandRunner {
 						props.addAll(nprops);
 						useProps = true;
 					}
+					else if (opts.nextEq("--no-shorthand")) {
+						isCreateShorthand = false;
+					}
 					else {
 						break;
 					}
 				}
-				
+
 				PropertyExtractor pe;
 				pe = new PropertyExtractor(g.getSourceOntology());
+				pe.isCreateShorthand = isCreateShorthand;
 				OWLOntology pont;
 				if (useProps) {
 					pont = pe.extractPropertyOntology(newIRI, props);
@@ -759,8 +796,125 @@ public class CommandRunner {
 				else {
 					pont = pe.extractPropertyOntology(newIRI, g.getSupportOntologySet().iterator().next());
 				}
-				
+
 				g.setSourceOntology(pont);
+			}
+			else if (opts.nextEq("--extract-mingraph")) {
+				opts.info("", "Extracts a minimal graph ontology containing only label, subclass and equivalence axioms");
+				String idspace = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("--idspace")) {
+						opts.info("IDSPACE", "E.g. GO. If set, only the reflexive closure of this ontology will be included");
+						idspace = opts.nextOpt();
+					}
+					else {
+						break;
+					}
+				}
+
+				Set <OWLClass> seedClasses = new HashSet<OWLClass>();
+				OWLOntology src = g.getSourceOntology();
+				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+				axioms.addAll(src.getAxioms(AxiomType.SUBCLASS_OF));
+				axioms.addAll(src.getAxioms(AxiomType.EQUIVALENT_CLASSES));
+				for (OWLAnnotationAssertionAxiom aaa : src.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
+					if (aaa.getProperty().isLabel()) {
+						axioms.add(aaa);
+						//LOG.info("LABEL:"+aaa);
+					}
+				}
+				removeAxiomsReferencingDeprecatedClasses(axioms);
+				LOG.info("#axioms: "+axioms.size());
+				for (OWLClass c : src.getClassesInSignature()) {
+					String id = g.getIdentifier(c);
+					if (idspace == null || id.startsWith(idspace+":")) {
+						boolean isDep = false;
+						for (OWLAnnotation ann : c.getAnnotations(src)) {
+							if (ann.isDeprecatedIRIAnnotation()) {
+								isDep = true;
+								break;
+							}
+						}
+						if (!isDep) {
+							seedClasses.add(c);
+						}
+					}
+				}
+				LOG.info("#classes: "+seedClasses.size());
+				g.addSupportOntology(src);
+				OWLOntology newOnt = src.getOWLOntologyManager().createOntology(axioms);
+				Set<OWLClass> retainedClasses = removeUnreachableAxioms(newOnt, seedClasses);
+				for (OWLClass c : retainedClasses) {
+					newOnt.getOWLOntologyManager().addAxiom(newOnt, 
+							g.getDataFactory().getOWLDeclarationAxiom(c));
+				}
+
+				PropertyExtractor pe;
+				pe = new PropertyExtractor(src);
+				pe.isCreateShorthand = true;
+				OWLOntology pont;
+				HashSet<OWLProperty> props = new HashSet<OWLProperty>();
+				for (OWLObjectProperty p : newOnt.getObjectPropertiesInSignature()) {
+					props.add(p);
+				}
+				pont = pe.extractPropertyOntology(null, props);
+				axioms = new HashSet<OWLAxiom>();
+				for (OWLAxiom axiom : pont.getAxioms()) {
+					if (axiom instanceof OWLObjectPropertyCharacteristicAxiom) {
+						axioms.add(axiom);
+					}
+					else if (axiom instanceof OWLSubObjectPropertyOfAxiom) {
+						axioms.add(axiom);
+					}
+					else if (axiom instanceof OWLSubPropertyChainOfAxiom) {
+						axioms.add(axiom);
+					}
+					else if (axiom instanceof OWLAnnotationAssertionAxiom) {
+						OWLAnnotationAssertionAxiom aaa = (OWLAnnotationAssertionAxiom) axiom;
+						if (aaa.getProperty().isLabel()) {
+							axioms.add(axiom);
+						}
+						else if (aaa.getProperty().getIRI().toString().toLowerCase().contains("shorthand")) { // TODO: fix hack
+							axioms.add(axiom);
+						}
+						else if (aaa.getProperty().getIRI().toString().toLowerCase().contains("xref")) { // TODO: fix hack
+							axioms.add(axiom);
+						}
+					}
+					else if (axiom instanceof OWLDeclarationAxiom) {
+						axioms.add(axiom);
+					}
+				}
+				newOnt.getOWLOntologyManager().addAxioms(newOnt, axioms);
+				g.setSourceOntology(newOnt);				
+				//g.mergeOntology(pont);
+				AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(newOnt);
+				OboInOwlCardinalityTools.checkAnnotationCardinality(newOnt);
+			}
+			else if (opts.nextEq("--extract-axioms")) {
+				opts.info("[-t TYPE]", "Extracts axioms of specified type into the source ontology (existing source is moved to support)");
+				AxiomType axiomType = AxiomType.EQUIVALENT_CLASSES;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-t|--type")) {
+						opts.info("AxiomType", "OWL2 syntax for axiom type. Default is EquivalentClasses");
+						String axiomTypeStr = opts.nextOpt();
+						axiomType = AxiomType.getAxiomType(axiomTypeStr);
+						if (axiomType == null) {
+							throw new OptionException("invalid axiom type "+axiomTypeStr+" -- must be OWL2 syntax, e.g. 'SubClassOf'");		
+						}
+					}
+					else {
+						break;
+					}
+				}
+
+				OWLOntology src = g.getSourceOntology();
+				LOG.info("axiomType = "+axiomType);
+				Set<OWLAxiom> axioms = src.getAxioms(axiomType);
+				LOG.info("#axioms: "+axioms.size());
+				g.addSupportOntology(src);
+				OWLOntology newOnt = src.getOWLOntologyManager().createOntology(axioms);
+				g.setSourceOntology(newOnt);				
 			}
 			else if (opts.nextEq("--extract-bridge-ontologies")) {
 				opts.info("[-d OUTDIR] [-x] [-s]", "");
@@ -1815,6 +1969,7 @@ public class CommandRunner {
 			else if (opts.nextEq("-o|--output")) {
 				opts.info("FILE", "writes source ontology -- MUST BE specified as IRI, e.g. file://`pwd`/foo.owl");
 				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
+				
 				if ( g.getSourceOntology().getOntologyID() != null && g.getSourceOntology().getOntologyID().getOntologyIRI() != null) {
 					String ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
 					System.out.println("saving:"+ontURIStr);
@@ -1837,6 +1992,9 @@ public class CommandRunner {
 						ofmt = new OWLJSONFormat();
 					}
 					else if (ofmtname.equals("obo")) {
+						if (opts.nextEq("-n|--no-check")) {
+							pw.setCheckOboDoc(false);
+						}
 						ofmt = new OBOOntologyFormat();
 					}
 				}
@@ -2024,6 +2182,39 @@ public class CommandRunner {
 				p.parse(new File(opts.nextOpt()));		
 				System.out.println("Types:"+p.idMap.size());
 				// TODO...
+			}
+			else if (opts.nextEq("--extract-ontology-subset")) {
+				IRI subOntIRI = IRI.create("http://purl.obolibrary.org/obo/"+g.getOntologyId()+"-subset");
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-u|--uri|--iri")) {
+						subOntIRI = IRI.create(opts.nextOpt());
+					}
+					else {
+						break;
+					}
+				}
+				Mooncat m = new Mooncat(g);
+				Set<OWLClass> cs = new HashSet<OWLClass>();
+				Set<String> unmatchedIds = new HashSet<String>();
+				for (String line : FileUtils.readLines(opts.nextFile())) {
+					OWLClass c = g.getOWLClassByIdentifier(line);
+					if (c == null) {
+						unmatchedIds.add(line);
+						continue;
+					}
+					cs.add(c);
+
+				}
+				if (unmatchedIds.size() > 0) {
+					LOG.error("GAF contains "+unmatchedIds.size()+" unmatched IDs");
+					for (String id : unmatchedIds) {
+						LOG.error("UNMATCHED: "+id);
+					}
+				}
+				// todo
+				LOG.info("Making subset ontology seeded from "+cs.size()+" classes");
+				g.setSourceOntology(m.makeMinimalSubsetOntology(cs, subOntIRI, true));
+				LOG.info("Made subset ontology; # classes = "+cs.size());				
 			}
 			else if (opts.nextEq("--extract-module")) {
 				opts.info("[-n IRI] [-d] [-m MODULE-TYPE] SEED-OBJECTS", "Uses the OWLAPI module extractor");
@@ -2280,7 +2471,7 @@ public class CommandRunner {
 							continue;
 						OWLEquivalentClassesAxiom eca = g.getDataFactory().getOWLEquivalentClassesAxiom(c, ec);
 						g.getManager().addAxiom(vOnt, eca);
-						
+
 						// bidirectional subclass axioms for each equivalent pair
 						OWLSubClassOfAxiom sca1 = g.getDataFactory().getOWLSubClassOfAxiom(c, ec);
 						g.getManager().addAxiom(vOnt, sca1);
@@ -2397,6 +2588,58 @@ public class CommandRunner {
 
 	}
 
+	private Set<OWLClass> removeUnreachableAxioms(OWLOntology src,
+			Set<OWLClass> seedClasses) {
+		Stack<OWLClass> stack = new Stack<OWLClass>();
+		stack.addAll(seedClasses);
+		Set<OWLClass> visited = new HashSet<OWLClass>();
+		visited.addAll(stack);
+
+		while (!stack.isEmpty()) {
+			OWLClass elt = stack.pop();
+			Set<OWLClass> parents = new HashSet<OWLClass>();
+			Set<OWLClassExpression> xparents = elt.getSuperClasses(src);
+			xparents.addAll(elt.getEquivalentClasses(src));
+			for (OWLClassExpression x : xparents) {
+				parents.addAll(x.getClassesInSignature());
+			}
+			//parents.addAll(getReasoner().getSuperClasses(elt, true).getFlattened());
+			//parents.addAll(getReasoner().getEquivalentClasses(elt).getEntities());
+			parents.removeAll(visited);
+			stack.addAll(parents);
+			visited.addAll(parents);
+		}
+		
+		LOG.info("# in closure set to keep: "+visited.size());
+
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLClass c : src.getClassesInSignature()) {
+			if (!visited.contains(c)) {
+				//LOG.info("removing axioms for EL-unreachable class: "+c);
+				rmAxioms.addAll(src.getAxioms(c));
+				rmAxioms.add(src.getOWLOntologyManager().getOWLDataFactory().getOWLDeclarationAxiom(c));
+			}
+		}
+
+		src.getOWLOntologyManager().removeAxioms(src, rmAxioms);
+		LOG.info("Removed "+rmAxioms.size()+" axioms. Remaining: "+src.getAxiomCount());		
+		return visited;
+	}
+	
+	private void removeAxiomsReferencingDeprecatedClasses(Set<OWLAxiom> axioms) {
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLAxiom axiom : axioms) {
+			for (OWLClass c : axiom.getClassesInSignature()) {
+				if (g.isObsolete(c)) {
+					rmAxioms.add(axiom);
+					break;
+				}
+			}
+		}
+		axioms.removeAll(rmAxioms);
+	}
+
+
 	@CLIMethod("--assert-inferred-subclass-axioms")
 	public void assertInferredSubClassAxioms(Opts opts) throws Exception {
 		boolean removeRedundant = true;
@@ -2470,7 +2713,7 @@ public class CommandRunner {
 			ontology.getOWLOntologyManager().saveOntology(ontology, IRI.create(outFile));
 		}
 	}
-	
+
 	/**
 	 * Retain only subclass of axioms and intersection of axioms if they contain
 	 * a class in it's signature of a given set of parent terms.
@@ -2542,15 +2785,15 @@ public class CommandRunner {
 		if (ontologyIRI == null) {
 			throw new RuntimeException("An ontology IRI is required.");
 		}
-		
+
 		// create new parser and new OWLOntologyManager
 		ParserWrapper p = new ParserWrapper();
 		final OWLOntology work = p.parse(extensionFile);
-		
+
 		// update ontology ID
 		final OWLOntologyID oldId = work.getOntologyID();
 		final IRI oldVersionIRI = oldId != null ? oldId.getVersionIRI() : null;
-		
+
 		final OWLOntologyID newID;
 		final IRI newOntologyIRI = IRI.create(ontologyIRI);
 		if (versionIRI != null) {
@@ -2563,7 +2806,7 @@ public class CommandRunner {
 		else {
 			newID = new OWLOntologyID(newOntologyIRI);
 		}
-		
+
 		// filter axioms
 		Set<OWLAxiom> allAxioms = work.getAxioms();
 		for(OWLClass cls : work.getClassesInSignature()) {
@@ -2574,11 +2817,11 @@ public class CommandRunner {
 				allAxioms.removeAll(work.getAnnotationAssertionAxioms(cls.getIRI()));
 			}
 		}
-		
+
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		OWLOntology filtered = manager.createOntology(newID);
 		manager.addAxioms(filtered, allAxioms);
-		
+
 		// write ontology
 		// owl
 		if (outputFileOwl != null) {
@@ -2594,7 +2837,7 @@ public class CommandRunner {
 		if (outputFileObo != null) {
 			Owl2Obo owl2Obo = new Owl2Obo();
 			OBODoc doc = owl2Obo.convert(filtered);
-			
+
 			OBOFormatWriter writer = new OBOFormatWriter();
 			BufferedWriter fileWriter = null;
 			try {
@@ -2607,7 +2850,7 @@ public class CommandRunner {
 			}
 		}
 	}
-	
+
 	/**
 	 * Check that there is an axiom, which use a class (in its signature) that
 	 * has a ancestor in the root term set.
@@ -2634,7 +2877,7 @@ public class CommandRunner {
 		}
 		return false;
 	}
-	
+
 	@CLIMethod("--create-slim")
 	public void createSlim(Opts opts) throws Exception {
 		String idResource = null;
@@ -2643,7 +2886,7 @@ public class CommandRunner {
 		String oldOwl = null;
 		String oldObo = null;
 		IRI ontologyIRI = null;
-		
+
 		// parse CLI options
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--output-owl")) {
@@ -2681,17 +2924,17 @@ public class CommandRunner {
 		}
 		// set of all OWL classes required in the slim.
 		Set<OWLClass> seeds = new HashSet<OWLClass>();
-		
+
 		// create map of alternate identifiers for fast lookup
 		Map<String, OWLObject> objectsByAltId = g.getAllOWLObjectsByAltId();
-		
+
 		// load list of identifiers from file
 		LineIterator lineIterator = FileUtils.lineIterator(new File(idResource));
 		while (lineIterator.hasNext()) {
 			String line = lineIterator.next();
 			addId(line, seeds, objectsByAltId);
 		}
-		
+
 		// (optional) load previous slim in OWL.
 		// Check that all classes are also available in the new base ontology.
 		if (oldOwl != null) {
@@ -2712,7 +2955,7 @@ public class CommandRunner {
 					LOG.warn("Could not find old class ("+oldSlimGraph.getIdentifier(owlClass)+") in new ontology.");
 				}
 			}
-			
+
 		}
 		// (optional) load previous slim in OBO format.
 		// Check that all classes are also available in the new base ontology.
@@ -2731,12 +2974,12 @@ public class CommandRunner {
 		if (seeds.isEmpty()) {
 			throw new RuntimeException("There are no classes in the seed set for the slim generation. Id problem or empty id resource?");
 		}
-		
+
 		// create the slim
 		Mooncat mooncat = new Mooncat(g);
 		OWLOntology slim = mooncat.makeMinimalSubsetOntology(seeds, ontologyIRI);
 		mooncat = null;
-		
+
 		// write the output
 		if (outputOwl != null) {
 			File outFile = new File(outputOwl);
@@ -2748,9 +2991,9 @@ public class CommandRunner {
 			OBOFormatWriter w = new OBOFormatWriter();
 			w.write(oboDoc, outputObo);
 		}
-		
+
 	}
-	
+
 	private void addId(String id, Set<OWLClass> seeds, Map<String, OWLObject> altIds) {
 		id = StringUtils.trimToNull(id);
 		if (id != null) {

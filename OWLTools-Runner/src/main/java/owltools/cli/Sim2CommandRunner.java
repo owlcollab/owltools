@@ -382,6 +382,25 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.dispose();
 		}
 	}
+	
+	@CLIMethod("--sim-dl-query")
+	public void simDlQuery(Opts opts) throws Exception {
+		loadProperties(opts);
+		try {
+			// TODO
+			pproc = new NullSimPreProcessor();
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.setSimPreProcessor(pproc);
+			sos.createElementAttributeMapFromOntology();
+			runOwlSim(opts);
+		}
+		finally {
+			pproc.dispose();
+		}
+	}
+
 
 
 	@CLIMethod("--sim-compare-atts")
@@ -407,6 +426,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	// NEW
 	@CLIMethod("--enrichment-analysis")
 	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
+		opts.info("", "performs all by all enrichment");
 		owlpp = new OWLPrettyPrinter(g);
 		if (sos == null) {
 			sos = new SimpleOwlSim(g.getSourceOntology());

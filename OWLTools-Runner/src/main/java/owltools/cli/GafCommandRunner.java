@@ -33,11 +33,13 @@ import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
+import owltools.gaf.inference.FoldBasedPredictor;
 import owltools.gaf.inference.Prediction;
 import owltools.gaf.io.GafWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.owl.AnnotationExtensionFolder;
+import owltools.gaf.owl.AnnotationExtensionUnfolder;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
@@ -131,12 +133,39 @@ public class GafCommandRunner extends CommandRunner {
 	
 	@CLIMethod("--gaf-fold-extensions")
 	public void foldGafExtensions(Opts opts) throws Exception {
+		opts.info("", "takes a set of pre-loaded annotations and transforms this set such that any annotation with c16 extensions is replaced by a new term. See http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
 		AnnotationExtensionFolder aef = new AnnotationExtensionFolder(g);
 		aef.fold(gafdoc);
 		AssertInferenceTool.assertInferences(g, false, false, false, false, false, null);
-
 	}
-
+	
+	@CLIMethod("--gaf-unfold-extensions")
+	public void unfoldGafExtensions(Opts opts) throws Exception {
+		opts.info("", "takes a set of pre-loaded annotations and transforms this set adding info to c16 extensions. See http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
+		boolean isReplaceGenus = true;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-n|--no-replace")) {
+				isReplaceGenus = false;
+			}
+			else {
+				break;
+			}
+		}
+		AnnotationExtensionUnfolder aef = new AnnotationExtensionUnfolder(g);
+		aef.isReplaceGenus = isReplaceGenus;
+		aef.unfold(gafdoc);
+	}
+	
+	@CLIMethod("--gaf-fold-inferences")
+	public void gafFoldInferences(Opts opts) throws Exception {
+		opts.info("", "inferences. See: http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
+		FoldBasedPredictor fbp = new FoldBasedPredictor(gafdoc, g);
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
+		for (Prediction pred : fbp.getAllPredictions()) {
+			System.out.println(pred.render(owlpp));
+		}
+		fbp.reasoner.dispose();
+	}
 	
 	@CLIMethod("--gaf2owl")
 	public void gaf2Owl(Opts opts) throws OWLException {
@@ -316,6 +345,49 @@ public class GafCommandRunner extends CommandRunner {
 		LOG.info("Made subset ontology; # classes = "+cs.size());
 	}
 
+	@CLIMethod("--map2slim")
+	public void mapToSlim(Opts opts) throws OWLOntologyCreationException {
+		opts.info("[-s SUBSET-NAME] [-w GAF-OUTPUT]", "Maps annotations in a GAF to an ontology subset, e.g. goslim_pombe");
+		String subsetId = null;
+		String ofn = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-s|--subset")) {
+				opts.info("SUBSET-NAME", "id/name of subset. Must be in the loaded ontology. E.g. gosubset_prok");
+				subsetId = opts.nextOpt();
+			}
+			else if (opts.nextEq("-w|--write-gaf")) {
+				opts.info("FILENAME", "writes mapped GAF here");
+				ofn = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		Mooncat m = new Mooncat(g);
+		Map<OWLObject, Set<OWLObject>> ssm = m.createSubsetMap(subsetId);
+		LOG.info("Input set: "+ssm.keySet().size());
+		LOG.info("Annotations: "+gafdoc.getGeneAnnotations().size());
+		Set<String> unmatchedIds = new HashSet<String>();
+		List<GeneAnnotation> mappedAnns = new ArrayList<GeneAnnotation>();
+		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
+			OWLClass c = g.getOWLClassByIdentifier(a.getCls());
+			if (ssm.containsKey(c)) {
+				Set<OWLObject> mapped = ssm.get(c);
+				LOG.info("Mapping : "+c+" ---> "+mapped);
+				for (OWLObject mc : mapped) {
+					GeneAnnotation a2 = new GeneAnnotation(a);
+					a2.setCls(g.getIdentifier(mc));
+					mappedAnns.add(a2);
+				}
+			}
+		}
+		gafdoc.setGeneAnnotations(mappedAnns);
+		if (ofn != null) {
+			GafWriter gw = new GafWriter();
+			gw.setStream(ofn);
+			gw.write(gafdoc);
+		}
+	}
 	
 	private static class GafParserReport {
 		
