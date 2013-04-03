@@ -1,13 +1,17 @@
 package owltools.io;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
 
@@ -19,6 +23,7 @@ import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
+import org.obolibrary.oboformat.parser.OBOFormatConstants;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
@@ -106,9 +111,28 @@ public class ParserWrapper {
 	public OWLOntology parse(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		if (iriString.endsWith(".obo"))
 			return parseOBO(iriString);
-		return parseOWL(iriString);		
+		if (iriString.endsWith(".owl"))
+			return parseOWL(iriString);
+		if (isOboFile(iriString))
+			return parseOBO(iriString);
+		return parseOWL(iriString);
 	}
-
+	
+	public boolean isOboFile(String source) throws IOException, OWLOntologyCreationException, OBOFormatParserException {
+		if (isIRI(source))
+			return false; // assume anything from web is owl by default
+	    BufferedReader in = 
+	    	new BufferedReader(new InputStreamReader(new FileInputStream(source)));
+	    	//new BufferedReader(new InputStreamReader(url.openStream(), OBOFormatConstants.DEFAULT_CHARACTER_ENCODING));
+	    boolean isOboFile = false;
+	    for (int i=0; i<100; i++) {
+	    	String line = in.readLine();
+	    	if (line.startsWith("format-version:"))
+	    		isOboFile = true;
+	    }
+	    return isOboFile;
+	}
+		
 	public OWLOntology parseOBO(String source) throws IOException, OWLOntologyCreationException, OBOFormatParserException {
 		OBOFormatParser p = new OBOFormatParser();
 		LOG.info("Parsing: "+source);
