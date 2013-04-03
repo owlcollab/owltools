@@ -475,6 +475,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 //			}
 			
 			// Column 16.
+			// We only want to climb the is_a/part_of parts here.
+			ArrayList<String> aecc_rels = new ArrayList<String>();
+			aecc_rels.add("BFO:0000050");
+			// And capture the label and ID mappings for when we're done the loop.
 			Map<String,String> ann_ext_map = new HashMap<String,String>(); // capture labels/ids			
 			for (ExtensionExpression ee : a.getExtensionExpressions()) {
 				String eeid = ee.getCls();
@@ -483,19 +487,45 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				String eLabel = addLabelField(annotation_doc, "annotation_extension_class_label", eeid);
 				if( eLabel == null ) eLabel = eeid; // ensure the label
 				
+				///////////////
+				// New
+				///////////////
+				
+				// Get the closure maps.
 				if (eObj != null) {
-					for (OWLGraphEdge edge : graph.getOutgoingEdgesClosureReflexive(eObj)) {
-						OWLObject t = edge.getTarget();
-						if (!(t instanceof OWLClass))
-							continue;
-						String annExtID = graph.getIdentifier(t);
-						String annExtLabel = graph.getLabel(edge.getTarget());
-						annotation_doc.addField("annotation_extension_class_closure", annExtID);
-						annotation_doc.addField("annotation_extension_class_closure_label", annExtLabel);
-						ann_ext_map.put(annExtID, annExtLabel);
-						ann_ext_map.put(annExtLabel, annExtID);
+					Map<String, String> aecc_cmap = graph.getRelationClosureMap(eObj, aecc_rels);
+					if( ! aecc_cmap.isEmpty() ){
+						for( String aecc_id : aecc_cmap.keySet() ){
+							String aecc_lbl = aecc_cmap.get(aecc_id);
+						
+							// Add all items to the document.
+							annotation_doc.addField("annotation_extension_class_closure", aecc_id);
+							annotation_doc.addField("annotation_extension_class_closure_label", aecc_lbl);
+
+							// And make sure that both id and label are in the per-term map.
+							ann_ext_map.put(aecc_lbl, aecc_id);
+							ann_ext_map.put(aecc_id, aecc_lbl);
+						}
 					}
 				}
+
+//				///////////////
+//				// Old
+//				///////////////
+//				
+//				if (eObj != null) {
+//					for (OWLGraphEdge edge : graph.getOutgoingEdgesClosureReflexive(eObj)) {
+//						OWLObject t = edge.getTarget();
+//						if (!(t instanceof OWLClass))
+//							continue;
+//						String annExtID = graph.getIdentifier(t);
+//						String annExtLabel = graph.getLabel(edge.getTarget());
+//						annotation_doc.addField("annotation_extension_class_closure", annExtID);
+//						annotation_doc.addField("annotation_extension_class_closure_label", annExtLabel);
+//						ann_ext_map.put(annExtID, annExtLabel);
+//						ann_ext_map.put(annExtLabel, annExtID);
+//					}
+//				}
 
 				// Ugly. Hand roll out the data for the c16 special handler. Have mercy on me--I'm going
 				// to just do this by hand since it's a limited case and I don't want to mess with Gson right now.
@@ -529,7 +559,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				}
 			}
 
-			// Add annotation ext closure map to annotation doc.
+			// Add annotation ext closure map to annotation doc (needs to be outside loop since there are multiple extensions).
 			if( ! ann_ext_map.isEmpty() ){
 				String jsonized_ann_ext_map = gson.toJson(ann_ext_map);
 				annotation_doc.addField("annotation_extension_class_closure_map", jsonized_ann_ext_map);
@@ -641,6 +671,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 	/*	
 	 * Add specified closure of OWLObject to annotation and bioentity docs.
+	 * Not the map for bio.
 	 */
 	private Map<String, String> addClosureToAnnAndBio(ArrayList<String> relations, String closureName, String closureNameLabel, String closureMap,
 			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc, Gson gson){
