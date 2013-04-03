@@ -30,20 +30,32 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 	 */
 	private void generateAutomaticFields(GOlrField field, XMLStreamWriter xml) throws XMLStreamException{
 
-		// Detect whether we need to automatically add _label_closure mapping information.
-		Pattern p = Pattern.compile("(.*)_closure_label$");
-		Matcher fmatch = p.matcher(field.id);
-		if( fmatch.matches() ){
-			
-			// A map for:
-			String baseName = fmatch.group(1);
+		// Detect whether we need to automatically add _*_map mapping information.
+		// Work on either "list" or "closure".
+		Pattern pcl = Pattern.compile("(.*)_closure_label$");
+		Pattern pll = Pattern.compile("(.*)_list_label$");
+		Matcher clmatch = pcl.matcher(field.id);
+		Matcher llmatch = pll.matcher(field.id);
+
+		// See if it's one of the above.
+		String baseName = null;
+		String mtype = null;
+		if( clmatch.matches() ){
+			baseName = clmatch.group(1);
+			mtype = "_closure_map";
+		}else if( llmatch.matches() ){
+			baseName = llmatch.group(1);
+			mtype = "_list_map";
+		}
+		
+		if( mtype != null ){
 			
 			// NOTE: See comments below.
 			xml.writeComment(" Automatically created to capture mapping information ");
-			xml.writeComment(" between " + baseName + "_closure and " + baseName + "_closure_label.");
-			xml.writeComment(" It is not indexed for searching, but may be useful to the client. ");
+			xml.writeComment(" between " + baseName + "_(list|closure) and " + field.id + ".");
+			xml.writeComment(" It is not indexed for searching (JSON blob), but may be useful to the client. ");
 			xml.writeStartElement("field"); // <field>
-			xml.writeAttribute("name", baseName + "_closure_map");
+			xml.writeAttribute("name", baseName + mtype);
 			xml.writeAttribute("type", "string");
 			xml.writeAttribute("required", "false");
 			xml.writeAttribute("multiValued", "false");
@@ -51,7 +63,7 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 			xml.writeAttribute("stored", "true");
 			xml.writeEndElement(); // </field>
 		}
-	}
+}
 
 	/**
 	 * Just dump out the fields of our various lists.
