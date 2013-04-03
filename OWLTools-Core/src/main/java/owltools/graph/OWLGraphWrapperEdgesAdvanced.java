@@ -236,9 +236,9 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 			
 			String rel = classifyRelationship(e, target, props);
 
-			LOG.info("id: " + getIdentifier(target) + ", " + rel);
+			//LOG.info("id: " + getIdentifier(target) + ", " + rel);
 			if( rel != null ){
-				LOG.info("\tclass" + rel);
+				//LOG.info("\tclass" + rel);
 
 				// Placeholders.
 				String objectID = null;
@@ -268,7 +268,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 					// Add the node.
 					OWLShuntNode on = new OWLShuntNode(objectID, objectLabel);
 					g.addNode(on);
-					LOG.info("\tadding node: " + objectID + ": "+ Boolean.toString(g.hasNode(on)));
+					//LOG.info("\tadding node: " + objectID + ": "+ Boolean.toString(g.hasNode(on)));
 
 					// And the edges.
 					OWLShuntEdge se = new OWLShuntEdge(topicID, objectID, elabel);
