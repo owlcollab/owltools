@@ -779,8 +779,8 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		// This is the case for relations (OWLObject properties) with a short hand
 		// or for relations with a non identifiers with-out a colon, e.g. negative_regulation
 		if (!id.contains(":")) {
-			final OWLAnnotationProperty shortHand = getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_shorthand.getIRI());
-			final OWLAnnotationProperty oboIdInOwl = getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
+			final OWLAnnotationProperty shortHand = getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_shorthand.getIRI());
+			final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
 			for (OWLOntology o : getAllOntologies()) {
 				for(OWLObjectProperty p : o.getObjectPropertiesInSignature()) {
 					// check for short hand or obo ID in owl

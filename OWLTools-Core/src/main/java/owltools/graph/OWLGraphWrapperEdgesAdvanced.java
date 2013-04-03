@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -27,6 +28,8 @@ import owltools.graph.shunt.OWLShuntNode;
  */
 public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
+	private static Logger LOG = Logger.getLogger(OWLGraphWrapper.class);
+
 	protected OWLGraphWrapperEdgesAdvanced(OWLOntology ontology) throws UnknownOWLOntologyException, OWLOntologyCreationException {
 		super(ontology);
 	}
@@ -46,10 +49,13 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	 * @return property hash
 	 * @see #getRelationClosureMapEngine(OWLObject, ArrayList)
 	 */
-	HashSet<OWLObjectProperty> relationshipIDsToPropertySet(List<String> relation_ids){
+	public HashSet<OWLObjectProperty> relationshipIDsToPropertySet(List<String> relation_ids){
 		HashSet<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
 		for( String rel_id : relation_ids ){
-			props.add(getOWLObjectPropertyByIdentifier(rel_id));
+			OWLObjectProperty oop = getOWLObjectPropertyByIdentifier(rel_id);
+			if( oop != null ){
+				props.add(oop);
+			}
 		}
 		return props;
 	}
@@ -65,8 +71,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	 * @see #addStepwiseAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
 	 * @see #addTransitiveAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
 	 */
-	String classifyRelationship(OWLGraphEdge owlGraphEdge, OWLObject edgeDirector, Set<OWLObjectProperty> props){
-		
+	public String classifyRelationship(OWLGraphEdge owlGraphEdge, OWLObject edgeDirector, Set<OWLObjectProperty> props){		
 		String retval = null;
 		
 		OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
@@ -86,7 +91,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 		}else if( qp.isIdentity() ){
 			retval = "identity";
 		}else{
-			//System.out.println(owlGraphEdge);
+			System.out.println(owlGraphEdge);
 		}
 		
 		return retval;
@@ -225,16 +230,15 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 		rel_ids.add("RO:0002212");
 		rel_ids.add("RO:0002213");
 		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
-		for (OWLGraphEdge e : getOutgoingEdgesClosure(x)) {
+		Set<OWLGraphEdge> oge = getOutgoingEdgesClosure(x);
+		for( OWLGraphEdge e : oge ){
 			OWLObject target = e.getTarget();
-			
-//			if( "GO:0007399".equals(getIdentifier(target))){
-//				System.out.println();
-//			}
 			
 			String rel = classifyRelationship(e, target, props);
 
+			LOG.info("id: " + getIdentifier(target) + ", " + rel);
 			if( rel != null ){
+				LOG.info("\tclass" + rel);
 
 				// Placeholders.
 				String objectID = null;
@@ -253,10 +257,8 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 					objectLabel = getLabelOrDisplayId(cls);
 					elabel = getEdgeLabel(e);
 				}
-				
-//				if( "GO:0007399".equals(objectID)){
-//					System.out.println();
-//				}
+
+				LOG.info("\t(" + objectID + ", " + objectLabel + "): " + elabel);
 
 				// Only add when subject, object, and relation are properly defined.
 				if(	elabel != null &&
@@ -266,6 +268,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 					// Add the node.
 					OWLShuntNode on = new OWLShuntNode(objectID, objectLabel);
 					g.addNode(on);
+					LOG.info("\tadding node: " + objectID + ": "+ Boolean.toString(g.hasNode(on)));
 
 					// And the edges.
 					OWLShuntEdge se = new OWLShuntEdge(topicID, objectID, elabel);

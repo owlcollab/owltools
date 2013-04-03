@@ -1,5 +1,6 @@
 format-version: 1.2
 date: 13:03:2013 17:11
+ontology: go
 
 [Term]
 id: GO:0008150
@@ -110,3 +111,10 @@ name: single-organism process
 namespace: biological_process
 def: "A biological process that involves only one organism." [GOC:jl]
 is_a: GO:0008150
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_transitive: true
