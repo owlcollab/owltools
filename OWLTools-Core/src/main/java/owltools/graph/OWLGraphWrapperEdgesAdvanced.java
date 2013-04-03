@@ -258,7 +258,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 					elabel = getEdgeLabel(e);
 				}
 
-				LOG.info("\t(" + objectID + ", " + objectLabel + "): " + elabel);
+				//LOG.info("\t(" + objectID + ", " + objectLabel + "): " + elabel);
 
 				// Only add when subject, object, and relation are properly defined.
 				if(	elabel != null &&
