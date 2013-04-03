@@ -111,7 +111,7 @@ public class ParserWrapper {
 	public OWLOntology parse(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		if (iriString.endsWith(".obo"))
 			return parseOBO(iriString);
-		if (iriString.endsWith(".owl"))
+		if (iriString.endsWith(".owl") || iriString.endsWith(".omn") || iriString.endsWith(".ofn") || iriString.endsWith(".owx"))
 			return parseOWL(iriString);
 		if (isOboFile(iriString))
 			return parseOBO(iriString);
