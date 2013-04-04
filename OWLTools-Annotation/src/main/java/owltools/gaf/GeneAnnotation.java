@@ -1,6 +1,7 @@
 package owltools.gaf;
 
 import java.util.Collection;
+import org.apache.commons.lang3.StringUtils;
 import java.util.Collections;
 
 /**
@@ -364,6 +365,7 @@ public class GeneAnnotation {
 	
 	public void setExtensionExpressionList(Collection<ExtensionExpression> xs) {
 		extensionExpressionList = xs;
+		this.setExtensionExpression(StringUtils.join(xs, ","));
 	}
 
 	public Collection<ExtensionExpression> getExtensionExpressions(){

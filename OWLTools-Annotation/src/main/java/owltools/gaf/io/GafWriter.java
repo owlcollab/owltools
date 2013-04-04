@@ -53,8 +53,10 @@ public class GafWriter  {
 	
 
 	private void writeHeader(GafDocument gdoc) {
-		// TODO Auto-generated method stub
-		
+		print("!gaf-version: 2.0\n");
+		for (String comment : gdoc.getComments()) {
+			print("! "+comment+"\n");
+		}
 	}
 
 	private void write(GeneAnnotation ann) {
@@ -71,7 +73,7 @@ public class GafWriter  {
 		sep();
 		print(ann.getReferenceId());
 		sep();
-		print(ann.getExtensionExpression());
+		print(ann.getWithExpression());
 		sep();
 		print(ann.getWithExpression());
 		sep();

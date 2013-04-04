@@ -23,7 +23,8 @@ public class GafDocument{
 	protected transient Map<String, Set<ExtensionExpression>> extensionExpressions;
 	protected transient Map<String, Set<CompositeQualifier>> compositeQualifiers; 
 	protected transient List<GeneAnnotation> annotations;
-
+	protected transient List<String> comments = new ArrayList<String>();
+	
 	private Map<String,Set<GeneAnnotation>> annotationMap = null;
 
 
@@ -181,5 +182,20 @@ public class GafDocument{
 		annotations = newAnns;
 		
 	}
+
+	public List<String> getComments() {
+		return comments;
+	}
+
+	public void setComments(List<String> comments) {
+		this.comments = comments;
+	}
+
+	public void addComment(String c) {
+		this.comments.add(c);
+		
+	}
+	
+	
 
 }

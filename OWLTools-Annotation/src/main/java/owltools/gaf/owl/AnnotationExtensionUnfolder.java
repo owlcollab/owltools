@@ -49,16 +49,21 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 
 	public void unfold(GafDocument gdoc) throws MultipleUnfoldOptionsException {
 		List<GeneAnnotation> newAnns = new ArrayList<GeneAnnotation>();
+		int n = 0;
 		for (GeneAnnotation ann : gdoc.getGeneAnnotations()) {
 			Collection<GeneAnnotation> replacedAnns = unfold(gdoc, ann);
 			if (replacedAnns != null && replacedAnns.size() > 0) {
 				newAnns.addAll(replacedAnns);
+				n += replacedAnns.size();
 			}
 			else {
 				newAnns.add(ann);
 			}
 		}
 		gdoc.setGeneAnnotations(newAnns);
+		gdoc.addComment("This GAF has been processed using AnnotationExtensionUnfolder");
+		gdoc.addComment("Number expansions: "+n);
+		
 	}
 
 	/**
