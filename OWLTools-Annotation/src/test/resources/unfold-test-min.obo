@@ -1,0 +1,7 @@
+[Term]
+id: GO:0000018
+name: regulation of DNA recombination
+is_a: GO:0051052 ! regulation of DNA metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0006310 ! DNA recombination
+relationship: regulates GO:0006310 ! DNA recombination

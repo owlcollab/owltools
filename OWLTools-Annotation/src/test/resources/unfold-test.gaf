@@ -1,0 +1,4 @@
+UniProtKB	P16871	IL7R		GO:0000018	PMID:9495344	TAS		P	Interleukin-7 receptor subunit alpha	IL7RA_HUMAN|IL7R	protein	taxon:9606	20030904	PINC		
+UniProtKB	P52292	KPNA2		GO:0000018	PMID:8016130	TAS		P	Importin subunit alpha-2	IMA2_HUMAN|KPNA2|RCH1|SRP1	protein	taxon:9606	20030904	PINC		
+UniProtKB	P52294	KPNA1		GO:0000018	PMID:8052633	TAS		P	Importin subunit alpha-1	IMA1_HUMAN|KPNA1|RCH2	protein	taxon:9606	20030904	PINC		
+UniProtKB	Q9H4L7	SMARCAD1		GO:0000018	PMID:11031099	IEP		P	SWI/SNF-related matrix-associated actin-dependent regulator of chromatin subfamily A containing DEAD/H box 1	SMRCD_HUMAN|SMARCAD1|KIAA1122	protein	taxon:9606	20031105	UniProtKB		
