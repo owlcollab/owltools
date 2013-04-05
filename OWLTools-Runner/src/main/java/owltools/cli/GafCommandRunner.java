@@ -346,14 +346,30 @@ public class GafCommandRunner extends CommandRunner {
 	}
 
 	@CLIMethod("--map2slim")
-	public void mapToSlim(Opts opts) throws OWLOntologyCreationException {
+	public void mapToSlim(Opts opts) throws OWLOntologyCreationException, IOException {
 		opts.info("[-s SUBSET-NAME] [-w GAF-OUTPUT]", "Maps annotations in a GAF to an ontology subset, e.g. goslim_pombe");
 		String subsetId = null;
 		String ofn = null;
+		Set<OWLObject> subsetObjs = new HashSet<OWLObject>();
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-s|--subset")) {
 				opts.info("SUBSET-NAME", "id/name of subset. Must be in the loaded ontology. E.g. gosubset_prok");
 				subsetId = opts.nextOpt();
+			}
+			else if (opts.nextEq("--idfile")) {
+				List<String> lines = FileUtils.readLines(opts.nextFile());
+				for (String line : lines) {
+					String id = line;
+					id = id.replaceAll(" .*", "");
+					//LOG.info("ID:"+id);
+					OWLObject obj = g.getOWLObjectByIdentifier(id);
+					if (obj == null) {
+						LOG.error("Cannot find: "+id);
+					}
+					else {
+						subsetObjs.add(obj);
+					}
+				}
 			}
 			else if (opts.nextEq("-w|--write-gaf")) {
 				opts.info("FILENAME", "writes mapped GAF here");
@@ -363,8 +379,21 @@ public class GafCommandRunner extends CommandRunner {
 				break;
 			}
 		}
+
+		gafdoc.addComment("This GAF has been mapped to a subset:");
+
 		Mooncat m = new Mooncat(g);
-		Map<OWLObject, Set<OWLObject>> ssm = m.createSubsetMap(subsetId);
+		Map<OWLObject, Set<OWLObject>> ssm;
+		if (subsetId != null) {
+			LOG.info("Creating subset map for: "+subsetId);
+			gafdoc.addComment("Subset: "+subsetId);
+			ssm = m.createSubsetMap(subsetId);
+		}
+		else {
+			LOG.info("Creating subset map objects: "+subsetObjs.size());
+			gafdoc.addComment("Subset: user supplied list, size = "+subsetObjs.size());
+			ssm = m.createSubsetMap(subsetObjs);
+		}
 		LOG.info("Input set: "+ssm.keySet().size());
 		LOG.info("Annotations: "+gafdoc.getGeneAnnotations().size());
 		Set<String> unmatchedIds = new HashSet<String>();
@@ -373,7 +402,7 @@ public class GafCommandRunner extends CommandRunner {
 			OWLClass c = g.getOWLClassByIdentifier(a.getCls());
 			if (ssm.containsKey(c)) {
 				Set<OWLObject> mapped = ssm.get(c);
-				LOG.info("Mapping : "+c+" ---> "+mapped);
+				LOG.debug("Mapping : "+c+" ---> "+mapped);
 				for (OWLObject mc : mapped) {
 					GeneAnnotation a2 = new GeneAnnotation(a);
 					a2.setCls(g.getIdentifier(mc));
