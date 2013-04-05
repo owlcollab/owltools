@@ -398,9 +398,11 @@ public class GafCommandRunner extends CommandRunner {
 		LOG.info("Annotations: "+gafdoc.getGeneAnnotations().size());
 		Set<String> unmatchedIds = new HashSet<String>();
 		List<GeneAnnotation> mappedAnns = new ArrayList<GeneAnnotation>();
+		int n = 0;
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
 			OWLClass c = g.getOWLClassByIdentifier(a.getCls());
 			if (ssm.containsKey(c)) {
+				n++;
 				Set<OWLObject> mapped = ssm.get(c);
 				LOG.debug("Mapping : "+c+" ---> "+mapped);
 				for (OWLObject mc : mapped) {
@@ -410,6 +412,7 @@ public class GafCommandRunner extends CommandRunner {
 				}
 			}
 		}
+		gafdoc.addComment("Number of annotations rewritten: "+n);
 		gafdoc.setGeneAnnotations(mappedAnns);
 		if (ofn != null) {
 			GafWriter gw = new GafWriter();
