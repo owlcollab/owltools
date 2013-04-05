@@ -38,6 +38,10 @@ public class Bioentity{
 		return this.getId();
 	}
 	
+	public String getLocalId() {
+		return getId().replaceFirst("\\w+:", "");
+	}
+	
 	/*
 	 * Should return "column 1" + "column 2".
 	 */

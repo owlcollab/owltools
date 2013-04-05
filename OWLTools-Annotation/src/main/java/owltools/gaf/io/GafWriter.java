@@ -63,7 +63,7 @@ public class GafWriter  {
 		Bioentity e = ann.getBioentityObject();
 		print(e.getDb());
 		sep();
-		print(e.getId());
+		print(e.getLocalId());
 		sep();
 		print(e.getSymbol());
 		sep();
@@ -85,7 +85,8 @@ public class GafWriter  {
 		sep();
 		print(e.getTypeCls());
 		sep();
-		print(e.getNcbiTaxonId());
+		String taxon = e.getNcbiTaxonId().replaceAll("NCBITaxon", "taxon");
+		print(taxon);
 		sep();
 		print(ann.getLastUpdateDate());
 		sep();
