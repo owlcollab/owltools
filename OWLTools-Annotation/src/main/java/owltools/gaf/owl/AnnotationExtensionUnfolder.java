@@ -100,9 +100,12 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 							return null;
 						}
 						OWLClass c = (OWLClass)svf.getFiller();
+						// TODO
 						String p = graph.getLabel(svf.getProperty());
 						if (p == null)
 							p = graph.getIdentifier(svf.getProperty());
+						else
+							p = p.replaceAll(" ","_");
 						String y = graph.getIdentifier(c);
 						String id = p + "(" + y + ")";
 						exts.add(new ExtensionExpression(id, p, y));
