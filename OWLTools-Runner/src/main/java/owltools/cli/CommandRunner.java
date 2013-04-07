@@ -1969,7 +1969,7 @@ public class CommandRunner {
 			else if (opts.nextEq("-o|--output")) {
 				opts.info("FILE", "writes source ontology -- MUST BE specified as IRI, e.g. file://`pwd`/foo.owl");
 				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
-				
+
 				if ( g.getSourceOntology().getOntologyID() != null && g.getSourceOntology().getOntologyID().getOntologyIRI() != null) {
 					String ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
 					System.out.println("saving:"+ontURIStr);
@@ -2101,6 +2101,45 @@ public class CommandRunner {
 				ttac.config.axiomType = AxiomType.ANNOTATION_ASSERTION;
 				String f = opts.nextOpt();
 				ttac.parse(f);			
+			}
+			else if (opts.nextEq("--add-labels")) {
+				Set<Integer> colsToLabel = new HashSet<Integer>();
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-c|--column")) {
+						opts.info("COLNUMS", "number of col to label (starting from 1). Can be comma-separated list");
+						String v = opts.nextOpt();
+						for (String cn : v.split(",")) { 
+							colsToLabel.add(Integer.valueOf(cn)-1);
+						}
+					}
+					else {
+						break;
+					}
+				}	
+				LOG.info("Labeling: "+colsToLabel);
+				File f = opts.nextFile();
+				List<String> lines = FileUtils.readLines(f);
+				for (String line : lines) {
+					String[] vals = line.split("\\t");
+
+					for (int i=0; i<vals.length; i++) {
+						if (i>0)
+							System.out.print("\t");
+						System.out.print(vals[i]);
+						if (colsToLabel.contains(i)) {
+							String label = "NULL";
+							String v = vals[i];
+							if (v != null && !v.equals("") && !v.contains(" ")) {
+								OWLObject obj = g.getOWLObjectByIdentifier(v);
+								if (obj != null) {
+									label = g.getLabel(obj);
+								}
+							}
+							System.out.print("\t"+label);
+						}
+					}
+					System.out.println();
+				}
 			}
 			else if (opts.nextEq("--parse-tsv")) {
 				opts.info("[-s] [-p PROPERTY] [-a AXIOMTYPE] [-t INDIVIDUALSTYPE] FILE", "parses a tabular file to OWL axioms");
@@ -2609,7 +2648,7 @@ public class CommandRunner {
 			stack.addAll(parents);
 			visited.addAll(parents);
 		}
-		
+
 		LOG.info("# in closure set to keep: "+visited.size());
 
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
@@ -2625,7 +2664,7 @@ public class CommandRunner {
 		LOG.info("Removed "+rmAxioms.size()+" axioms. Remaining: "+src.getAxiomCount());		
 		return visited;
 	}
-	
+
 	private void removeAxiomsReferencingDeprecatedClasses(Set<OWLAxiom> axioms) {
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLAxiom axiom : axioms) {
