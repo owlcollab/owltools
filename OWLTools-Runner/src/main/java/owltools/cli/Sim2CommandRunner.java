@@ -421,11 +421,41 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 	}
 
+	// TODO
+	@CLIMethod("--enrichment-analysis")
+	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
+		opts.info("", "performs enrichment on gene set. TODO");
+		owlpp = new OWLPrettyPrinter(g);
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.createElementAttributeMapFromOntology();
+		}
+		EnrichmentConfig ec = new EnrichmentConfig();
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-p")) {
+				ec.pValueCorrectedCutoff = Double.parseDouble(opts.nextOpt());				
+			}
+			else if (opts.nextEq("-i")) {
+				ec.attributeInformationContentCutoff = Double.parseDouble(opts.nextOpt());				
+			}
+			else 
+				break;
+		}
+		sos.setEnrichmentConfig(ec);
+		OWLClass rc1 = this.resolveClass(opts.nextOpt());
+		OWLClass rc2 = this.resolveClass(opts.nextOpt());
+		OWLClass pc = g.getDataFactory().getOWLThing();
+		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1, rc2);
+		for (EnrichmentResult result : results) {
+			System.out.println(render(result));
+		}
+	}
+
 
 
 	// NEW
-	@CLIMethod("--enrichment-analysis")
-	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
+	@CLIMethod("--all-by-all-enrichment-analysis")
+	public void owlsimEnrichmentAnalysisAllByAll(Opts opts) throws Exception {
 		opts.info("", "performs all by all enrichment");
 		owlpp = new OWLPrettyPrinter(g);
 		if (sos == null) {
