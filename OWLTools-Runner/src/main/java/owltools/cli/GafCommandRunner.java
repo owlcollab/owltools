@@ -300,13 +300,16 @@ public class GafCommandRunner extends CommandRunner {
 		OWLObject obj = resolveEntity(opts);
 		// TODO - allow selection of relations
 		Set<OWLObject> descs = g.getDescendantsReflexive(obj);
+		List<GeneAnnotation> filtered = new ArrayList<GeneAnnotation>();
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
 			OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
 			if (descs.contains(c)) {
+				filtered.add(a);
 				// TODO: option to write entire GAF line
-				System.out.println(a.getBioentityObject()+"\t"+a.getBioentityObject().getSymbol()+"\t"+g.getIdentifier(c)+"\t"+g.getLabel(c));
+				//System.out.println(a.getBioentityObject()+"\t"+a.getBioentityObject().getSymbol()+"\t"+g.getIdentifier(c)+"\t"+g.getLabel(c));
 			}
 		}
+		gafdoc.setGeneAnnotations(filtered);
 	}
 	
 	@CLIMethod("--extract-ontology-subset-by-gaf")
