@@ -1018,7 +1018,12 @@ public class Mooncat {
 			if (ps.size() > 0) {
 				rmAxioms.add(ax);
 
-				// rewrite as weaker axioms
+				// if p not-in SubSet, and
+				//  A = X SubClassOf p Some Y,
+				// then rewrite as
+				//  A = X SubClassOf p' some Y, where p' SubPropertyOf p
+				// rewrite as weaker axioms.
+				// TOOD - Elk does not support superobjectprops - do in wrapper for now?
 				if (reasoner != null) {
 					if (ax instanceof OWLSubClassOfAxiom) {
 						OWLSubClassOfAxiom sca = (OWLSubClassOfAxiom)ax;
