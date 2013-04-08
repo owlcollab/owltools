@@ -52,14 +52,14 @@ public class GafWriter  {
 	}
 	
 
-	private void writeHeader(GafDocument gdoc) {
+	public void writeHeader(GafDocument gdoc) {
 		print("!gaf-version: 2.0\n");
 		for (String comment : gdoc.getComments()) {
 			print("! "+comment+"\n");
 		}
 	}
 
-	private void write(GeneAnnotation ann) {
+	public void write(GeneAnnotation ann) {
 		Bioentity e = ann.getBioentityObject();
 		print(e.getDb());
 		sep();
