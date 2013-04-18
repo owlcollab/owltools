@@ -27,7 +27,7 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 	
 	private static final ViolationType level = ViolationType.Warning;
 	
-	private final String high_level_subset = "high_level_annotation_qc";
+	private final String high_level_subset = "gocheck_do_not_annotate";
 	private final OWLGraphWrapper go;
 
 	private final String high_level_subset_manual = "high_level_annotation_manual_qc";
