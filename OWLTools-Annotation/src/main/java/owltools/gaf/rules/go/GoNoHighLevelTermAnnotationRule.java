@@ -1,6 +1,5 @@
 package owltools.gaf.rules.go;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -27,11 +26,10 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 	
 	private static final ViolationType level = ViolationType.Warning;
 	
-	private final String high_level_subset = "gocheck_do_not_annotate";
 	private final OWLGraphWrapper go;
-
-	private final String high_level_subset_manual = "high_level_annotation_manual_qc";
-	private final String high_level_subset_iea = "high_level_annotation_iea_qc";
+	
+	private final String gocheck_do_not_annotate = "gocheck_do_not_annotate";
+	private final String gocheck_do_not_manually_annotate = "gocheck_do_not_manually_annotate";
 	
 	private final Set<String> ieaEvidenceCodes;
 	
@@ -54,19 +52,14 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 				List<String> subsets = go.getSubsets(owlClass);
 				if (subsets != null && !subsets.isEmpty()) {
 					for (String subset : subsets) {
-						if (high_level_subset.equals(subset)) {
-							StringBuilder sb = new StringBuilder();
-							sb.append("Do not annotate to: ");
-							sb.append(cls);
-							String label = go.getLabel(owlClass);
-							if (label != null) {
-								sb.append(" '");
-								sb.append(label);
-								sb.append("'");
+						if (gocheck_do_not_annotate.equals(subset)) {
+							return createViolation(a, owlClass, subset);
+						}
+						else if (gocheck_do_not_manually_annotate.equals(subset)) {
+							String evidenceCode = a.getEvidenceCls();
+							if (evidenceCode != null && ieaEvidenceCodes.contains(evidenceCode) == false) {
+								return createViolation(a, owlClass, subset);
 							}
-							sb.append(" The term is considered to high level, as marked via the subset tag: ");
-							sb.append(high_level_subset);
-							return Collections.singleton(new AnnotationRuleViolation(getRuleId(), sb.toString() , a, level));
 						}
 					}
 				}
@@ -75,34 +68,7 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 		return null;
 	}
 
-	
-	Set<AnnotationRuleViolation> getRuleViolationsNew(GeneAnnotation a) {
-		String cls = a.getCls();
-		if (cls != null) {
-			OWLClass owlClass = go.getOWLClassByIdentifier(cls);
-			if (owlClass != null) {
-				String evidenceCode = a.getEvidenceCls();
-				List<String> subsets = go.getSubsets(owlClass);
-				if (subsets != null && !subsets.isEmpty()) {
-					if (evidenceCode != null) {
-						if (isIEA(evidenceCode)) {
-							if (isAntiSlimIEA(subsets)) {
-								return createViolation(a, owlClass, high_level_subset_iea, " for an inferred electronic annotation (IEA)");
-							}
-						}
-						else {
-							if (isAntiSlimManual(subsets)) {
-								return createViolation(a, owlClass, high_level_subset_manual, " for manual anotation");
-							}
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
-	
-	private Set<AnnotationRuleViolation> createViolation(GeneAnnotation a, OWLClass owlClass, String subset, String infix) {
+	private Set<AnnotationRuleViolation> createViolation(GeneAnnotation a, OWLClass owlClass, String subset) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Do not annotate to: ");
 		sb.append(go.getIdentifier(owlClass));
@@ -112,28 +78,9 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 			sb.append(label);
 			sb.append("'");
 		}
-		sb.append(" The term is considered to high level");
-		sb.append(infix);
-		sb.append(", as marked via the subset tag: ");
+		sb.append(" The term is considered to high level, as marked via the subset tag: ");
 		sb.append(subset);
 		return Collections.singleton(new AnnotationRuleViolation(getRuleId(), sb.toString() , a, level));
 	}
 
-	private boolean isIEA(String code) {
-		return ieaEvidenceCodes.contains(code);
-	}
-	
-	private boolean isAntiSlimManual(Collection<String> subsets) {
-		if (subsets != null) {
-			return subsets.contains(high_level_subset_manual);
-		}
-		return false;
-	}
-	
-	private boolean isAntiSlimIEA(Collection<String> subsets) {
-		if (subsets != null) {
-			return subsets.contains(high_level_subset_iea);
-		}
-		return false;
-	}
 }
