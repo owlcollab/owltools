@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import owltools.gaf.GafDocument;
@@ -16,6 +17,7 @@ import owltools.gaf.rules.AnnotationRuleViolation;
 
 public class BasicChecksRuleTest extends AbstractRuleTestHelper {
 
+	@Ignore
 	@Test
 	public void testOutdatedIEAs() throws Exception {
 		GafObjectsBuilder builder = new GafObjectsBuilder();
