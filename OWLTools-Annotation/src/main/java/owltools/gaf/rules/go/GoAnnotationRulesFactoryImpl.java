@@ -41,7 +41,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		super(qcfile, graph);
 		logger.info("Start preparing ontology checks");
 		namedRules = new HashMap<String, AnnotationRule>();
-		namedRules.put(BasicChecksRule.PERMANENT_JAVA_ID,  new BasicChecksRule(xrfabbslocation));
+		namedRules.put(BasicChecksRule.PERMANENT_JAVA_ID,  new BasicChecksRule(xrfabbslocation, eco));
 		namedRules.put(GoAnnotationTaxonRule.PERMANENT_JAVA_ID, new GoAnnotationTaxonRule(graph));
 		namedRules.put(GoClassReferenceAnnotationRule.PERMANENT_JAVA_ID, new GoClassReferenceAnnotationRule(graph));
 		namedRules.put(GenericReasonerValidationCheck.PERMANENT_JAVA_ID, new GenericReasonerValidationCheck());

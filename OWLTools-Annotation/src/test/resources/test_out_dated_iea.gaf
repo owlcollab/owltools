@@ -1,0 +1,7 @@
+!gaf-version: 2.0
+!
+! from Mouse Genome Database (MGD) & Gene Expression Database (GXD)
+! Modified for test purpose. 
+! NOT a valid submission file!!!!!!
+!
+MGI	MGI:1918918	0610007C21Rik		GO:0016021	MGI:MGI:1354194	IEA	SP_KW:KW-0812	C	RIKEN cDNA 0610007C21 gene	HSPC013|p18	protein	taxon:10090	20101003	UniProtKB		VEGA:OTTMUSP00000025430

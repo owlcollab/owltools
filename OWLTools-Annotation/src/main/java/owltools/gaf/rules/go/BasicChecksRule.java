@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,8 +17,10 @@ import org.apache.log4j.Logger;
 
 import owltools.gaf.GAFParser;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
+import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 
 /**
  * This class performs basic checks. See the GO_AR:0000001 rule in the 
@@ -35,7 +39,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 
 	private static Logger LOG = Logger.getLogger(BasicChecksRule.class);
 	
-	public static ThreadLocal<SimpleDateFormat> dtFormat = new ThreadLocal<SimpleDateFormat>(){
+	public static final ThreadLocal<SimpleDateFormat> dtFormat = new ThreadLocal<SimpleDateFormat>(){
 
 		@Override
 		protected SimpleDateFormat initialValue() {
@@ -44,12 +48,15 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 	};
 	
 	private final Set<String> db_abbreviations;
+	private final Set<String> ieaCodes;
 	
 	/**
 	 * @param xrefAbbsLocation
+	 * @param eco
 	 */
-	public BasicChecksRule(String xrefAbbsLocation) {
+	public BasicChecksRule(String xrefAbbsLocation, TraversingEcoMapper eco) {
 		db_abbreviations = buildAbbreviations(xrefAbbsLocation);
+		ieaCodes = eco.getAllValidEvidenceIds("IEA", true);
 	}
 	
 	private static Set<String> buildAbbreviations(String path){
@@ -128,7 +135,19 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		//check date format
 		String dtString = cols[GAFParser.DATE];
 		try{
-			dtFormat.get().parse(dtString);
+			// check that the date parses
+			Date annotationDate = dtFormat.get().parse(dtString);
+			
+			// check that IEA annotations are not older than one year
+			if (ieaCodes.contains(a.getEvidenceCls())) {
+				Calendar todayMinusOneYear = Calendar.getInstance();  
+				todayMinusOneYear.add(Calendar.YEAR, -1);
+				Date time = todayMinusOneYear.getTime();
+				if (annotationDate.before(time)) {
+					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "IEA evidence code present with a date more than a year old '"+dtString+"'" , a, ViolationType.Error);
+					set.add(v);
+				}
+			}
 		}catch(Exception ex){
 			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "The date in the column 14 is of incorrect format in the row: " , a);
 			set.add(v);
