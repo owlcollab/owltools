@@ -139,15 +139,15 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 			Date annotationDate = dtFormat.get().parse(dtString);
 			
 			// check that IEA annotations are not older than one year
-//			if (ieaCodes.contains(a.getEvidenceCls())) {
-//				Calendar todayMinusOneYear = Calendar.getInstance();  
-//				todayMinusOneYear.add(Calendar.YEAR, -1);
-//				Date time = todayMinusOneYear.getTime();
-//				if (annotationDate.before(time)) {
-//					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "IEA evidence code present with a date more than a year old '"+dtString+"'" , a, ViolationType.Error);
-//					set.add(v);
-//				}
-//			}
+			if (ieaCodes.contains(a.getEvidenceCls())) {
+				Calendar todayMinusOneYear = Calendar.getInstance();  
+				todayMinusOneYear.add(Calendar.YEAR, -1);
+				Date time = todayMinusOneYear.getTime();
+				if (annotationDate.before(time)) {
+					AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "IEA evidence code present with a date more than a year old '"+dtString+"'" , a, ViolationType.Error);
+					set.add(v);
+				}
+			}
 		}catch(Exception ex){
 			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "The date in the column 14 is of incorrect format in the row: " , a);
 			set.add(v);

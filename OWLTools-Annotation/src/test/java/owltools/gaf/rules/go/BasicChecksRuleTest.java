@@ -17,7 +17,6 @@ import owltools.gaf.rules.AnnotationRuleViolation;
 
 public class BasicChecksRuleTest extends AbstractRuleTestHelper {
 
-	@Ignore
 	@Test
 	public void testOutdatedIEAs() throws Exception {
 		GafObjectsBuilder builder = new GafObjectsBuilder();
