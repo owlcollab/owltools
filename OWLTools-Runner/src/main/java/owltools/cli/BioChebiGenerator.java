@@ -116,7 +116,7 @@ public class BioChebiGenerator {
 				"is conjugate acid of", 
 				"is conjugate base of");
 		Set<OWLObjectProperty> createProperties = getPropertiesByIRI(graph,
-				"http://purl.obolibrary.org/obo/BFO_0000057",    // has participant
+				"http://purl.obolibrary.org/obo/RO_0000057",    // has participant
 				"http://purl.obolibrary.org/obo/RO_0002313",     // transports or maintains localization of
 				"http://purl.obolibrary.org/obo/RO_0002233",     // has input
 				"http://purl.obolibrary.org/obo/RO_0002234",     // has output
