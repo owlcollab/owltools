@@ -10,7 +10,7 @@
         <owl:imports rdf:resource="http://purl.obolibrary.org/obo/chebi.owl"/>
     </owl:Ontology>    
 
-    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0000057"/>
     
     <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002313"/>
     
