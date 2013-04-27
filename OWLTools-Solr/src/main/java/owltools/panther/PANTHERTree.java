@@ -58,6 +58,11 @@ public class PANTHERTree {
 	private String treeID = "n/a";
 	private String treeLabel = "n/a";
 
+	private String panther_prefix = "PANTHER:";
+
+	// We'll need this for serializing later.
+	private Gson gson = new Gson();
+
 	//private int id_int = 0;
 	private String[] treeAnns;
 	private Set<String> annotationSet = null;
@@ -67,6 +72,13 @@ public class PANTHERTree {
 	private Map<String,String> gpToNodeMap = new HashMap <String,String>();
 	private Map<String,Set<String>> nodeToGpMap = new HashMap <String,Set<String>>();
 
+	// Capturing data for later output.
+	// As opposed to annotationSet from above (which is raw PANTHER data),
+	// these are populated as we go through the bioentities, so these are confirmed hits
+	// with our data.
+//	private Map<String,String> associated_terms = new HashMap <String,String>();
+	private Map<String,String> associated_gps = new HashMap <String,String>();
+	
 	/**
 	 * Create an instance for the given path
 	 * 
@@ -112,6 +124,50 @@ public class PANTHERTree {
 	}
 	
 	/**
+	 * Add an associated id/label for a term in this tree.
+	 * 
+	 * @param the id
+	 * @param the label
+	 */
+	public void addAssociatedGeneProduct(String bid, String blabel){
+		associated_gps.put(bid, blabel);		
+	}
+	
+	/**
+	 * Return the associated gene/product ids for this tree.
+	 * 
+	 * @return list of IDs
+	 */
+	public List<String> getAssociatedGeneProductIDs(){
+		return new ArrayList<String>(associated_gps.keySet());
+	}
+	
+	/**
+	 * Return the associated gene/product labels for this tree.
+	 * 
+	 * @return list of labels
+	 */
+	public List<String> getAssociatedGeneProductLabels(){
+		return new ArrayList<String>(associated_gps.keySet());
+	}
+	
+	/**
+	 * Return the mapping of associated gene/product ids to labels for this tree.
+	 * 
+	 * @return JSON string map
+	 */
+	public String getAssociatedGeneProductJSONMap(){
+
+		String jsonized_map = null;
+	
+		if( ! associated_gps.isEmpty() ){
+			jsonized_map = gson.toJson(associated_gps);
+		}
+
+		return jsonized_map;
+	}
+	
+	/**
 	 * Return the raw Newick-type input string.
 	 */
 	public String getNHXString(){
@@ -134,10 +190,17 @@ public class PANTHERTree {
 	}
 
 	/**
-	 * Return the tree identifier.
+	 * Return the tree internal identifier.
 	 */
 	public String getTreeID(){
 		return treeID;
+	}
+	
+	/**
+	 * Return the tree public (PANTHER) identifier.
+	 */
+	public String getPANTHERID(){
+		return panther_prefix + treeID;
 	}
 	
 	/**

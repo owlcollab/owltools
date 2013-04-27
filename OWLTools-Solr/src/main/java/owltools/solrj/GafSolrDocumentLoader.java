@@ -53,8 +53,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	//int doc_limit_trigger = 1; // the number of documents to add before pushing out to solr
 	int current_doc_number;
 	
-	String panther_prefix = "PANTHER:";
-	
 	public GafSolrDocumentLoader(String url) throws MalformedURLException {
 		super(url);
 		current_doc_number = 0;
@@ -181,14 +179,17 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				while( piter.hasNext() ){
 					pcnt++; // DEBUG
 					PANTHERTree ptree = piter.next();
-					pantherFamilyIDs.add(ptree.getTreeID());
+					pantherFamilyIDs.add(ptree.getPANTHERID());
 					pantherFamilyLabels.add(StringUtils.lowerCase(ptree.getTreeLabel()));
 					pantherTreeGraphs.add(ptree.getOWLShuntGraph().toJSON());
 					//pantherTreeAnnAncestors = new ArrayList<String>(ptree.getAncestorAnnotations(eid));
 					//pantherTreeAnnDescendants = new ArrayList<String>(ptree.getDescendantAnnotations(eid));
 					if( pcnt > 1 ){ // DEBUG
 						LOG.info("Belongs to multiple families (" + eid + "): " + StringUtils.join(pantherFamilyIDs, ", "));
-					}
+					}					
+					
+					// Store that we saw this for later use in the tree.
+					ptree.addAssociatedGeneProduct(eid, esym);
 				}
 			}
 		}
@@ -197,7 +198,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// BUG/TODO (but probably not ours): We only store the one tree for now as we're assuming that there is just one family.
 			// Unfortunately, PANTHER still produces data that sez sometimes something belongs to more than one
 			// family (eg something with fly in PTHR10919 PTHR10032), so we block it and just choose the first.
-			bioentity_doc.addField("panther_family", panther_prefix + pantherFamilyIDs.get(0));
+			bioentity_doc.addField("panther_family", pantherFamilyIDs.get(0));
 			bioentity_doc.addField("panther_family_label", pantherFamilyLabels.get(0));
 			bioentity_doc.addField("phylo_graph", pantherTreeGraphs.get(0));
 			//if( ! pantherTreeAnnAncestors.isEmpty() ){
@@ -264,7 +265,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 			// Optionally, actually /add/ the PANTHER family data to the document.
 			if( ! pantherFamilyIDs.isEmpty() ){
-				annotation_doc.addField("panther_family", panther_prefix + pantherFamilyIDs.get(0));
+				annotation_doc.addField("panther_family", pantherFamilyIDs.get(0));
 				annotation_doc.addField("panther_family_label", pantherFamilyLabels.get(0));
 			}
 
@@ -385,7 +386,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 						// Optionally, actually /add/ the PANTHER family data to the document.
 						if( ! pantherFamilyIDs.isEmpty() ){
-							ev_agg_doc.addField("panther_family", panther_prefix + pantherFamilyIDs.get(0));			
+							ev_agg_doc.addField("panther_family", pantherFamilyIDs.get(0));			
 							ev_agg_doc.addField("panther_family_label", pantherFamilyLabels.get(0));
 						}
 					}

@@ -40,6 +40,7 @@ import owltools.panther.PANTHERTree;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
+import owltools.solrj.PANTHERSolrDocumentLoader;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 
@@ -304,6 +305,31 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	}
 		
 	/**
+	 * Requires the --read-panther argument (or something else that fills the pSet object).
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-load-panther")
+	public void loadPANTHERSolr(Opts opts) throws Exception {
+		// Double check we're not going to do something silly, like try and
+		// use a null variable...
+		if( pSet == null ){
+			System.err.println("No PANTHER documents defined (maybe use '--read-panther <panther directory>') ");
+			exit(1);
+		}
+
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);
+		
+		// Doc load.
+		PANTHERSolrDocumentLoader loader = new PANTHERSolrDocumentLoader(url);
+		loader.setPANTHERSet(pSet);
+		loader.setGraph(g);
+		loader.load();
+	}
+		
+	/**
 	 * Used for loading a list of GPAD pairs into GOlr.
 	 * 
 	 * @param opts
@@ -343,7 +369,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @param opts
 	 * @throws Exception
 	 */
-	@CLIMethod("--solr-load-panther")
+	@CLIMethod("--read-panther")
 	public void processPantherTrees(Opts opts) throws Exception {
 
 //		// The first argument must be the associated HMM data dump.

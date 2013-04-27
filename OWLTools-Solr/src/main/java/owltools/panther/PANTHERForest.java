@@ -51,7 +51,8 @@ public class PANTHERForest {
 	private static final Logger LOG = Logger.getLogger(PANTHERForest.class);
 
 	//private final String treeName;
-	private final Map<String,Set<PANTHERTree>> identifierToTreeMap;
+	private final Map<String,Set<PANTHERTree>> bioentityIdentifierToTreeMap;
+	private final Map<String,PANTHERTree> treeIdentifierToTree;
 	//private final Map<String,String> identifierToLabelMap;
 	public int fileCount = 0;
 	
@@ -70,7 +71,8 @@ public class PANTHERForest {
 		List<File> pTreeFiles = new ArrayList<File>(arbreFiles);
 		
 //		identifierToLabelMap = new HashMap<String,String>();
-		identifierToTreeMap = new HashMap<String,Set<PANTHERTree>>();
+		bioentityIdentifierToTreeMap = new HashMap<String,Set<PANTHERTree>>();
+		treeIdentifierToTree = new HashMap<String,PANTHERTree>();
 //
 //		// First, loop through the HMM file and capture all of the label
 //		// and id mapping that we have there.
@@ -104,11 +106,10 @@ public class PANTHERForest {
 			
 			PANTHERTree ptree = new PANTHERTree(pFile);
 			
-//			// Set the label if we can find it in the set.
-//			String pTreeID = ptree.getTreeID();
-//			if( identifierToLabelMap.containsKey(pTreeID) ){
-//				ptree.setTreeLabel(identifierToLabelMap.get(pTreeID));
-//			}
+			// Set the tree into the set for later management.
+			// Clobber anything in our way.
+			String pID = ptree.getTreeID();
+			treeIdentifierToTree.put(pID, ptree);
 			
 			Set<String> aSet = ptree.associatedIdentifierSet();
 			fileCount++;
@@ -118,14 +119,14 @@ public class PANTHERForest {
 				
 				// Either it's already int here or we have to 
 				// add it ourselves.
-				if( identifierToTreeMap.containsKey(id) ){
-					Set<PANTHERTree> pSet = identifierToTreeMap.get(id);
+				if( bioentityIdentifierToTreeMap.containsKey(id) ){
+					Set<PANTHERTree> pSet = bioentityIdentifierToTreeMap.get(id);
 					pSet.add(ptree);
-					identifierToTreeMap.put(id, pSet);
+					bioentityIdentifierToTreeMap.put(id, pSet);
 				}else{
 					Set<PANTHERTree> pSet = new HashSet<PANTHERTree>();
 					pSet.add(ptree);					
-					identifierToTreeMap.put(id, pSet);
+					bioentityIdentifierToTreeMap.put(id, pSet);
 				}
 			}
 		}
@@ -142,11 +143,11 @@ public class PANTHERForest {
 	 * Return the number of unique identifiers found in the set.
 	 */
 	public int getNumberOfIdentifiersInSet(){
-		return identifierToTreeMap.size();
+		return bioentityIdentifierToTreeMap.size();
 	}
 
 	/**
-	 * Return the number of unique identifiers found in the set.
+	 * Return the number of unique bioentity identifiers found in the set.
 	 * If nothing was found, return null.
 	 * 
 	 * @param identifier
@@ -154,11 +155,30 @@ public class PANTHERForest {
 	public Set<PANTHERTree> getAssociatedTrees(String identifier){
 		Set<PANTHERTree> retSet = null;
 		
-		Set<PANTHERTree> pSet = identifierToTreeMap.get(identifier);
+		Set<PANTHERTree> pSet = bioentityIdentifierToTreeMap.get(identifier);
 		if( pSet != null && ! pSet.isEmpty()){
 			retSet = pSet;
 		}
 		
 		return retSet;
+	}
+
+	/**
+	 * Return the unique tree identifiers found in the forest.
+	 * If nothing was found, return null.
+	 */
+	public Set<String> getTreeIDSet(){
+		Set<String> pSet = treeIdentifierToTree.keySet();
+		return pSet;
+	}
+
+	/**
+	 * Return the tree for the tree unique identifier,
+	 * If nothing was found, return null.
+	 * 
+	 * @param the id of the tree we want
+	 */
+	public PANTHERTree getTreeByID(String tree_id){
+		return treeIdentifierToTree.get(tree_id);
 	}
 }
