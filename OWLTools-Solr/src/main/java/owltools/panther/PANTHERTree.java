@@ -100,6 +100,7 @@ public class PANTHERTree {
 		}else{
 			
 			// The human tree name.
+			//treeLabel = StringUtils.lowerCase(StringUtils.removeStart(lines[0], "NAME="));
 			treeLabel = StringUtils.removeStart(lines[0], "NAME=");
 
 			// The raw tree.
@@ -148,7 +149,7 @@ public class PANTHERTree {
 	 * @return list of labels
 	 */
 	public List<String> getAssociatedGeneProductLabels(){
-		return new ArrayList<String>(associated_gps.keySet());
+		return new ArrayList<String>(associated_gps.values());
 	}
 	
 	/**
@@ -181,13 +182,13 @@ public class PANTHERTree {
 		return treeLabel;
 	}
 
-	/**
-	 * Set the tree label.
-	 */
-	public String setTreeLabel(String lbl){
-		treeLabel = lbl;
-		return treeLabel;
-	}
+//	/**
+//	 * Set the tree label.
+//	 */
+//	public String setTreeLabel(String lbl){
+//		treeLabel = lbl;
+//		return treeLabel;
+//	}
 
 	/**
 	 * Return the tree internal identifier.
