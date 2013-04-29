@@ -147,6 +147,8 @@ import owltools.mooncat.Mooncat;
 import owltools.mooncat.PropertyExtractor;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
+import owltools.mooncat.SpeciesMergeUtil;
+import owltools.mooncat.SpeciesSubsetterUtil;
 import owltools.mooncat.ontologymetadata.ImportChainDotWriter;
 import owltools.mooncat.ontologymetadata.ImportChainExtractor;
 import owltools.mooncat.ontologymetadata.OntologyMetadataMarkdownWriter;
@@ -194,6 +196,7 @@ public class CommandRunner {
 	public OWLGraphWrapper g = null;
 	public OWLOntology queryOntology = null;
 	public boolean exitOnException = true;
+	public boolean isDisposeReasonerOnExit = true;
 
 	public OWLReasoner reasoner = null;
 	public String reasonerName = "hermit";
@@ -216,6 +219,7 @@ public class CommandRunner {
 	}
 
 	protected void exit(int code) {
+		
 		// if we are using this in a REPL context (e.g. owlrhino), we don't want to exit the shell
 		// on an error - reporting the error is sufficient
 		if (exitOnException)
@@ -248,7 +252,7 @@ public class CommandRunner {
 	public void run(String[] args) throws Exception {
 		Opts opts = new Opts(args);
 		run(opts);
-		if (reasoner != null) {
+		if (isDisposeReasonerOnExit && reasoner != null) {
 			LOG.info("disposing of "+reasoner);
 			reasoner.dispose();
 		}
@@ -256,7 +260,7 @@ public class CommandRunner {
 
 	public void run(Opts opts) throws Exception {
 		runSingleIteration(opts);
-		if (reasoner != null) {
+		if (isDisposeReasonerOnExit && reasoner != null) {
 			LOG.info("disposing of "+reasoner);
 			reasoner.dispose();
 		}
@@ -300,6 +304,9 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--use-reasoner|--set-reasoner-name")) {
 				reasonerName =  opts.nextOpt();
+			}
+			else if (opts.nextEq("--no-dispose")) {
+				this.isDisposeReasonerOnExit = false;
 			}
 			else if (opts.nextEq("--reasoner")) {
 				reasonerName = opts.nextOpt();
@@ -509,6 +516,53 @@ public class CommandRunner {
 				Mooncat m = new Mooncat(g);
 				m.retainAxiomsInPropertySubset(g.getSourceOntology(),props,reasoner);
 				m.removeDanglingAxioms();
+			}
+			else if (opts.nextEq("--make-species-subset")) {
+				opts.info("-t TAXCLASS","Creates a composite/merged species ontology");
+				OWLObjectProperty viewProperty = null;
+				OWLClass taxClass = null;
+				String suffix = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-t|--taxon")) {
+						taxClass = this.resolveClass(opts.nextOpt());
+					}
+					else if (opts.nextEq("-p|--property")) {
+						viewProperty = this.resolveObjectProperty(opts.nextOpt());
+					}
+					else
+						break;
+				}
+				SpeciesSubsetterUtil smu = new SpeciesSubsetterUtil(g);
+				smu.viewProperty = viewProperty;
+				smu.taxClass = taxClass;
+				smu.reasoner = reasoner;
+				smu.removeOtherSpecies();
+			}
+			else if (opts.nextEq("--merge-species-ontology")) {
+				opts.info("-t TAXCLASS","Creates a composite/merged species ontology");
+				OWLObjectProperty viewProperty = g.getOWLObjectPropertyByIdentifier("BFO:0000050");
+				OWLClass taxClass = null;
+				String suffix = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-t|--taxon")) {
+						taxClass = this.resolveClass(opts.nextOpt());
+					}
+					else if (opts.nextEq("-p|--property")) {
+						viewProperty = this.resolveObjectProperty(opts.nextOpt());
+					}
+					else if (opts.nextEq("-s|--suffix")) {
+						suffix = opts.nextOpt();
+					}
+					else
+						break;
+				}
+				SpeciesMergeUtil smu = new SpeciesMergeUtil(g);
+				smu.viewProperty = viewProperty;
+				smu.taxClass = taxClass;
+				smu.reasoner = reasoner;
+				if (suffix != null)
+					smu.suffix = suffix;
+				smu.merge();
 			}
 			else if (opts.nextEq("--info")) {
 				opts.info("","show ontology statistics");
