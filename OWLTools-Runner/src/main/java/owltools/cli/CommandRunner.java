@@ -517,6 +517,15 @@ public class CommandRunner {
 				m.retainAxiomsInPropertySubset(g.getSourceOntology(),props,reasoner);
 				m.removeDanglingAxioms();
 			}
+			else if (opts.nextEq("--list-class-axioms")) {
+				OWLClass c = resolveClass(opts.nextOpt());
+				System.out.println("Class = "+c);
+				owlpp = new OWLPrettyPrinter(g);
+				for (OWLClassAxiom ax : g.getSourceOntology().getAxioms(c)) {
+					System.out.println(ax);
+					//owlpp.print(ax);
+				}
+			}
 			else if (opts.nextEq("--make-species-subset")) {
 				opts.info("-t TAXCLASS","Creates a composite/merged species ontology");
 				OWLObjectProperty viewProperty = null;
@@ -546,6 +555,7 @@ public class CommandRunner {
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-t|--taxon")) {
 						taxClass = this.resolveClass(opts.nextOpt());
+						
 					}
 					else if (opts.nextEq("-p|--property")) {
 						viewProperty = this.resolveObjectProperty(opts.nextOpt());
@@ -3327,7 +3337,16 @@ public class CommandRunner {
 		if (i != null) {
 			return g.getDataFactory().getOWLClass(i);
 		}
-		return g.getDataFactory().getOWLClass(IRI.create(id));
+		OWLClass c = g.getOWLClassByIdentifier(id);
+		if (c == null && IdTools.isIRIStyleIdSuffix(id)) {
+			id = IdTools.convertToOboStyleId(id);
+			c = g.getOWLClassByIdentifier(id);
+		}
+		if (c == null) {
+			LOG.error("Could not find an OWLClass for id: '"+id+"'");
+			return g.getDataFactory().getOWLClass(IRI.create(id));
+		}
+		return c;
 	}
 
 	public void help() {
