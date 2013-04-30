@@ -185,16 +185,18 @@ public class AssertInferenceTool {
 		if (reportFile != null) {
 			reportWriter = new BufferedWriter(new FileWriter(reportFile));
 		}
-		
-		if (all == true) {
-			assertAllInferences(graph, idsInputFile);
-		}else {
-			// assert inferences
-			assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, reportWriter);
+		try {
+			if (all == true) {
+				assertAllInferences(graph, idsInputFile);
+			}else {
+				// assert inferences
+				assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, reportWriter);
+			}
 		}
-		
-		if (reportWriter != null) {
-			reportWriter.close();
+		finally {
+			if (reportWriter != null) {
+				reportWriter.close();
+			}
 		}
 		
 		if (dryRun == false) {
