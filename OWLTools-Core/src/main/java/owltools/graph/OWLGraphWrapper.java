@@ -236,11 +236,15 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 	 * The strange signature is due to being used for FlexLoader.
 	 * 
 	 * @param c
-	 * @param sargs (unused)
+	 * @param sargs (currently unused)
 	 * @return string list of synonyms
 	 */
 	public List<String> getOBOSynonymStrings(OWLObject c, ArrayList<String> sargs) {
 
+		// Buffer against later possible changes.
+		if( sargs == null )
+			sargs = new ArrayList<String>();
+		
 		List<String> synStrings = new ArrayList<String>();
 
 		// Term synonym gathering rather more irritating.

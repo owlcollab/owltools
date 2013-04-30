@@ -601,6 +601,17 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		for (SolrInputDocument ev_agg_doc : evAggDocMap.values()) {
 			add(ev_agg_doc);
 		}
+		
+		// Now repeat some of the same to help populate the "general" index for bioentities.
+		SolrInputDocument general_doc = new SolrInputDocument();
+		// Watch out for "id" collision!
+		general_doc.addField("id", "general_bioentity_" + eid);
+		general_doc.addField("entity", eid);
+		general_doc.addField("entity_label", esym);
+		general_doc.addField("document_category", "general");
+		general_doc.addField("category", "bioentity");
+		general_doc.addField("general_blob", ename + " " + StringUtils.join(esynonyms, " "));
+		add(general_doc);
 	}
 	
 	private void addFieldUnique(SolrInputDocument d, String field, String val) {

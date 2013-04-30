@@ -19,10 +19,13 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);
 	private FlexCollection collection = null;
-	
+	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
+	int current_doc_number;
+
 	public FlexSolrDocumentLoader(String url, FlexCollection c) throws MalformedURLException {
 		super(url);
 		collection = c;
+		current_doc_number = 0;
 	}
 	
 	@Override
@@ -33,8 +36,19 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 		for( FlexDocument d : collection ){
 			add(collect(d));
+			
+			// Incremental commits.
+			current_doc_number++;
+			if( current_doc_number % doc_limit_trigger == 0 ){
+				LOG.info("Processed " + doc_limit_trigger + " flex ontology docs at " + current_doc_number + " and committing...");
+				incrementalAddAndCommit();
+			}
 		}	
+
+		// Get the remainder of the docs in.
+		LOG.info("Doing clean-up (final) commit at " + current_doc_number + " ontology documents...");
 		addAllAndCommit();
+		LOG.info("Done.");
 	}
 	
 	/**

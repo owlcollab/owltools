@@ -39,7 +39,9 @@ import owltools.panther.PANTHERForest;
 import owltools.panther.PANTHERTree;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
+import owltools.solrj.OntologyGeneralSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
+import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
 import owltools.solrj.PANTHERSolrDocumentLoader;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
@@ -183,7 +185,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	}
 	
 	/**
-	 * Experimental flexible loader.
+	 * Experimental Flexible loader for ontologies.
 	 * 
 	 * @param opts
 	 * @throws Exception
@@ -207,23 +209,31 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			LOG.info("Ontology load at: " + url + " failed!");
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Trivial hard-wired (and optional) method for loading collected
+	 * ontology information into the "general" schema (general-config.yaml) for GO.
+	 * This is a very dumb, but easy to understand, loader.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-load-ontology-general")
+	public void generalLoadOntologySolr(Opts opts) throws Exception {
 
-//		// Check to see if the global url has been set.
-//		String url = sortOutSolrURL(opts, globalSolrURL);				
-//
-//		// Load remaining docs.
-//		List<String> files = opts.nextList();
-//		for (String file : files) {
-//			LOG.info("Parsing GAF: " + file);
-//			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url);
-//			loader.setGafDocument(gafdoc);
-//			loader.setGraph(g);
-//			try {
-//				loader.load();
-//			} catch (SolrServerException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);				
+
+		// Actual ontology class loading.
+		try {
+			OntologyGeneralSolrDocumentLoader loader = new OntologyGeneralSolrDocumentLoader(url, g);
+			LOG.info("Trying ontology general load.");
+			loader.load();
+		} catch (SolrServerException e) {
+			LOG.info("Ontology load at: " + url + " failed!");
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -307,6 +317,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	/**
 	 * Requires the --read-panther argument (or something else that fills the pSet object).
 	 * 
+	 * Read the PANTHER family data in to the family-config.yaml schema.
+	 * 
 	 * @param opts
 	 * @throws Exception
 	 */
@@ -324,6 +336,33 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		
 		// Doc load.
 		PANTHERSolrDocumentLoader loader = new PANTHERSolrDocumentLoader(url);
+		loader.setPANTHERSet(pSet);
+		loader.setGraph(g);
+		loader.load();
+	}
+		
+	/**
+	 * Requires the --read-panther argument (or something else that fills the pSet object).
+	 * 
+	 * Read the PANTHER family data in to the general-config.yaml schema.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-load-panther-general")
+	public void loadPANTHERGeneralSolr(Opts opts) throws Exception {
+		// Double check we're not going to do something silly, like try and
+		// use a null variable...
+		if( pSet == null ){
+			System.err.println("No PANTHER documents defined (maybe use '--read-panther <panther directory>') ");
+			exit(1);
+		}
+
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);
+		
+		// Doc load.
+		PANTHERGeneralSolrDocumentLoader loader = new PANTHERGeneralSolrDocumentLoader(url);
 		loader.setPANTHERSet(pSet);
 		loader.setGraph(g);
 		loader.load();

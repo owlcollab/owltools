@@ -748,7 +748,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	}
 
 	/**
-	 * Same as {@link #getIdentifier(OWLObject)} but a different profile to support the FloexLoader.
+	 * Same as {@link #getIdentifier(OWLObject)} but a different profile to support the FlexLoader.
 	 * 
 	 * The s-expressions arguments go unused.
 	 * 
