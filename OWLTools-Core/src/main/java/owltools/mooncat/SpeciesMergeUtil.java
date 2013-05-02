@@ -32,11 +32,12 @@ import owltools.graph.OWLGraphWrapper;
  * This utility is for making "composite" ontologies from the combination of a
  * species-specific ontology (e.g. ZFA) and a species-generic ontology (e.g.
  * Uberon or CL).
- * 
+ * See: @{link http://purl.obolibrary.org/obo/uberon/references/reference_0000028} 
+ *
  * The goal is to avoid having a lattice of classes in the merged ontology -
  * e.g. zebrafish brain, mouse brain, fly brain, generic brain, ... -- at the
  * same time, as much of the species-specific logic should be retained, but in a
- * way that is biologically and logically correct. E.g. we do not want to infer
+ * way that is biologically correct and logically valid. E.g. we do not want to infer
  * that all brains develop from a neural keel because the zebrafish brain does.
  * We do this by merging "duplicate" classes, but retaining species axioms as
  * "taxon GCIs".
@@ -45,6 +46,11 @@ import owltools.graph.OWLGraphWrapper;
  * 
  * <code>
  *   zfa:brain EquivalentTo ubr:brain and part_of some tax:7954
+ * </code>
+ * 
+ * These are available from URLs such as:
+ * <code>
+ *   http://purl.obolibrary.org/obo/uberon/bridge/uberon-bridge-to-zfa.owl
  * </code>
  * 
  * It uses a technique called "unfolding", whereby named classes (e.g.
@@ -75,6 +81,31 @@ import owltools.graph.OWLGraphWrapper;
  * where the expression appears on the RHS of a SubClassOf axiom, either as the
  * sole expression, or directly within a SomeValuesFrom expression.
  * 
+ * For example, we can replace
+ * <code>
+ *  (ubr:brain and part_of some tax:7954) SubClassOf develops_from some (ubr:neural keel and part_of some tax:7954)
+ *  ==>
+ *  (ubr:brain and part_of some tax:7954) SubClassOf develops_from some uber:neural keel
+ * </code>
+ * 
+ * In obo-format this is represented as:
+ * 
+ * <code>
+ * id: UBERON:nnn
+ * name: brain
+ * relationship: develops_from UBERON:mmmm {gci_relation="part_of",gci_filler="NCBITaxon:7954"} ! neural keel
+ * </code>
+ *
+ * <h2>Label replacement</h2>
+ * 
+ * As an additional step, this tool will replace all remaining labels in classes that satisfy (part_of some TAXON) with
+ * a user-configured suffixed label.
+ * 
+ * For example, the class "somite 23" from EHDAA2 may have no taxonomic equivalence axiom (we don't group
+ * most serially homologous structures based purely on position). It would therefore not be unfolded by the
+ * above technique. The same for the ZFA class "somite 23". To avoid confusion, these are relabeled
+ * "somite 23 (zebrafish)" and "somite 23 (human)". In future we may explore the use of the obo-forundry unique
+ * label here.
  * 
  * @author cjm
  * 
@@ -165,7 +196,7 @@ public class SpeciesMergeUtil {
 		}
 	}
 
-	public void merge() {
+	public void merge() throws UnmergeableOntologyException {
 
 		ont = graph.getSourceOntology();
 		mgr = ont.getOWLOntologyManager();
@@ -176,6 +207,11 @@ public class SpeciesMergeUtil {
 		// assume that all classes under consideration are in the direct
 		// ontology (which imports generic)
 		for (OWLClass c : ssClasses) {
+			if (c.isBottomEntity())
+				continue;
+			if (!reasoner.isSatisfiable(c)) {
+				throw new UnmergeableOntologyException("unsatisfiable class: "+c);
+			}
 			LOG.info("ssClass = " + c);
 			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 			Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
@@ -186,7 +222,7 @@ public class SpeciesMergeUtil {
 			}
 
 			for (OWLAxiom axiom : axioms) {
-				LOG.info("  axiom: " + axiom);
+				//LOG.info("  axiom: " + axiom);
 				OWLAxiom newAxiom;
 				if (axiom instanceof OWLSubClassOfAxiom)
 					newAxiom = tr((OWLSubClassOfAxiom) axiom);
@@ -324,6 +360,14 @@ public class SpeciesMergeUtil {
 		}
 
 		return null;
+	}
+	
+	public class UnmergeableOntologyException extends Exception {
+
+		public UnmergeableOntologyException(String msg) {
+			super(msg);
+		}
+		
 	}
 
 }
