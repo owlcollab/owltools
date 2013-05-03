@@ -23,6 +23,16 @@
 						<exclude>owltools/gaf/inference/ClassTaxonMatrixTest.java</exclude>
 						<!-- Ignored: currently failing -->
 						<exclude>owltools/gaf/rules/AnnotationRulesEngineSingleTest.java</exclude>
+						
+						<!-- Ignored due to excessive run-time on ladle -->
+						<exclude>owltools/gaf/rules/go/GOReciprocalAnnotationRuleTest.java</exclude>
+						<exclude>owltools/gaf/rules/go/GoClassReferenceAnnotationRuleTest.java</exclude>
+						<exclude>owltools/gaf/rules/go/GoIEPRestrictionsRuleTest.java</exclude>
+						<exclude>owltools/gaf/rules/go/GoIPICatalyticActivityRestrictionsRuleTest.java</exclude>
+						<exclude>owltools/gaf/rules/go/GoMultipleTaxonRuleTest.java</exclude>
+						<exclude>owltools/gaf/rules/go/GoNoHighLevelTermAnnotationRuleTest.java</exclude>
+						<exclude>owltools/gaf/rules/AnnotationRulesEngineTest.java</exclude>
+						
 					</excludes>
 				</configuration>
 			</plugin>
