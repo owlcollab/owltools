@@ -6,21 +6,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.rules.AnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 
-public class BasicChecksRuleTest extends AbstractRuleTestHelper {
+public class BasicChecksRuleTest extends AbstractEcoRuleTestHelper {
 
 	@Test
 	public void testOutdatedIEAs() throws Exception {
-		GafObjectsBuilder builder = new GafObjectsBuilder();
-		GafDocument gafdoc = builder.buildDocument(getResource("test_out_dated_iea.gaf"));
+		GafDocument gafdoc = loadGaf("test_out_dated_iea.gaf");
 		AnnotationRule rule = new BasicChecksRule("src/test/resources/rules/GO.xrf_abbs", eco);
 		List<GeneAnnotation> annotations = gafdoc.getGeneAnnotations();
 

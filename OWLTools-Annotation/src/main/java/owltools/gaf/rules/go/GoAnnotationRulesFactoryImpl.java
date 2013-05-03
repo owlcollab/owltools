@@ -1,9 +1,12 @@
 package owltools.gaf.rules.go;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
@@ -24,12 +27,20 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
 				"http://www.geneontology.org/doc/GO.xrf_abbs",
 				parserWrapper,
-				"http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl",
+				Arrays.asList(
+					"http://purl.obolibrary.org/obo/go/extensions/go-plus.owl",
+					"http://purl.obolibrary.org/obo/go/extensions/gorel.owl"
+				),
 				"http://purl.obolibrary.org/obo/eco.owl");
 	}
 	
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, ParserWrapper p, String go, String eco) {
-		this(qcfile, xrfabbslocation, getGO(p, go), getEco(p, eco).getMapper());
+	@Deprecated
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, ParserWrapper p, String go, String gorel, String eco) {
+		this(qcfile, xrfabbslocation, getGO(p, Arrays.asList(go, gorel)), getEco(p, eco).getMapper());
+	}
+	
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, ParserWrapper p, List<String> ont, String eco) {
+		this(qcfile, xrfabbslocation, getGO(p, ont), getEco(p, eco).getMapper());
 	}
 	
 	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, TraversingEcoMapper eco) {
@@ -43,7 +54,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		namedRules = new HashMap<String, AnnotationRule>();
 		namedRules.put(BasicChecksRule.PERMANENT_JAVA_ID,  new BasicChecksRule(xrfabbslocation, eco));
 		namedRules.put(GoAnnotationTaxonRule.PERMANENT_JAVA_ID, new GoAnnotationTaxonRule(graph));
-		namedRules.put(GoClassReferenceAnnotationRule.PERMANENT_JAVA_ID, new GoClassReferenceAnnotationRule(graph));
+		namedRules.put(GoClassReferenceAnnotationRule.PERMANENT_JAVA_ID, new GoClassReferenceAnnotationRule(graph, "GO:","CL:"));
 		namedRules.put(GenericReasonerValidationCheck.PERMANENT_JAVA_ID, new GenericReasonerValidationCheck());
 		namedRules.put(GoNoISSProteinBindingRule.PERMANENT_JAVA_ID, new GoNoISSProteinBindingRule(eco));
 		namedRules.put(GoBindingCheckWithFieldRule.PERMANENT_JAVA_ID, new GoBindingCheckWithFieldRule(eco));
@@ -59,9 +70,18 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		logger.info("Finished preparing ontology checks");
 	}
 
-	private static OWLGraphWrapper getGO(ParserWrapper p, String location) {
+	private static OWLGraphWrapper getGO(ParserWrapper p, List<String> ont) {
 		try {
-			OWLGraphWrapper graph =  p.parseToOWLGraph(location);
+			OWLGraphWrapper graph = null;
+			for (String location : ont) {
+				if (graph == null) {
+					graph = p.parseToOWLGraph(location);
+				}
+				else {
+					OWLOntology gorelOwl = p.parseOWL(location);
+					graph.addSupportOntology(gorelOwl);
+				}
+			}
 			return graph;
 			
 		} catch (Exception e) {

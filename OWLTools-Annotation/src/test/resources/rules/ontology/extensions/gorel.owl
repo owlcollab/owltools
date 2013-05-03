@@ -1,0 +1,1858 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations.owl#"
+     xml:base="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations.owl"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#"
+     xmlns:go_annotation_extension_relations="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#">
+    <owl:Ontology rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations.owl">
+        <oboInOwl:hasOBOFormatVersion rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.2</oboInOwl:hasOBOFormatVersion>
+        <oboInOwl:date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">13:07:2012 17:15</oboInOwl:date>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A collection of relations that can be used in GO annotation to create anonymous classes via col16.</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL ID ranges: CJM 1-500; PomBase/MAH 501-750; EBI/Emily 751-1000; CJM-xp 2000-3000</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Many of these relations are independently defined elsewhere, or will eventually be independently defined elsewhere.</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Notes:</rdfs:comment>
+        <oboInOwl:auto-generated-by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">OBO-Edit 2.2</oboInOwl:auto-generated-by>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">OBO-Format reminder:</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Some of these relations may also have declarations in the main GO file.</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The purpose of this ontology is to MIREOT these relations together, in one place.</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">They will have additional axioms attached here, such as domain and range constraints, that for technical reasons we do not yet put in the main GO file.</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">When interpreting domain/range constraints, remember that MF isa bfo:Process</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">equivalent_to_chain is used to define &quot;triad&quot; rules; e.g. R equivalent_to_chain R1 R2 means: if x R1 y and y R2 z then x R z.</rdfs:comment>
+        <oboInOwl:default-namespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:default-namespace>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">in a relationship x R y, x must be a subtype of the domain and y must be a subtype of the range</rdfs:comment>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">is_transitive is the same as R holds_over_chain R R.</rdfs:comment>
+        <oboInOwl:saved-by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">midori</oboInOwl:saved-by>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0100001 -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0100001">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">term replaced by</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_isReversiblePropertyChain -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_isReversiblePropertyChain"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#local_domain -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#local_domain"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#local_range -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#local_range"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#usage -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#usage"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#auto-generated-by -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#auto-generated-by"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#consider -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#consider">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">consider</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#date -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#date"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#default-namespace -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#default-namespace"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasAlternativeId -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasAlternativeId">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_alternative_id</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_broad_synonym</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasDbXref -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasDbXref">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">database_cross_reference</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasExactSynonym -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_exact_synonym</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_narrow_synonym</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasOBOFormatVersion -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasOBOFormatVersion">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_obo_format_version</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasOBONamespace -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasOBONamespace">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_obo_namespace</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#id -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#id"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#is_class_level -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#is_class_level"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#saved-by -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#saved-by"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#shorthand -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#shorthand">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">shorthand</rdfs:label>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.w3.org/2000/01/rdf-schema#comment -->
+
+    <owl:AnnotationProperty rdf:about="http://www.w3.org/2000/01/rdf-schema#comment"/>
+    
+
+
+    <!-- http://www.w3.org/2000/01/rdf-schema#label -->
+
+    <owl:AnnotationProperty rdf:about="http://www.w3.org/2000/01/rdf-schema#label"/>
+    
+
+
+    <!-- http://www.w3.org/2002/07/owl#deprecated -->
+
+    <owl:AnnotationProperty rdf:about="http://www.w3.org/2002/07/owl#deprecated"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000050 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/BFO_0000050">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">part_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000050</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies the cell, tissue, anatomical entity, biological process or developmental stage in which the molecular function or biological process occurs or the cellular component exists</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">part_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">part_of</oboInOwl:id>
+        <owl:inverseOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000051"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000051 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/BFO_0000051">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_part</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000051</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_part</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_part</oboInOwl:id>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000057 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/BFO_0000057">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_participant</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000057</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Do not use this relation directly</rdfs:comment>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies an entity affected by the gene product&apos;s participation in a molecular function or biological process</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_participant</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_participant</oboInOwl:shorthand>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000066 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/BFO_0000066">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">occurs_in</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000066</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 PO:0025131 UBERON:0001062</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies the cell, tissue, cellular component or anatomical entity in which the molecular function or biological process occurs</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Previous definition &quot;p occurs_in c if and only if all of the participants of p are part_of c.&quot; [BFO:cjm]</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">occurs_in</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">occurs_in</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000066"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000050"/>
+        </owl:propertyChainAxiom>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000050"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000066"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000001 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000001">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">happens_during</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000001</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a process during which a molecular function or biological process occurs</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Previous definition &quot;p happens_during q if and only if the temporal extent of p is part_of the temporal extent of q.&quot; Note that part_of between processes implies happens_during (we must use OWL to express this), but happens_during does not imply part_of. Note also that this relation holds between two processes. To link a physical entity to a process by duration, use exists_during. [BFO:cjm] Note that in order to express that part_of between processes implies during, we must use OWL.</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">happens_during</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">happens_during</oboInOwl:shorthand>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">occurs_during</oboInOwl:hasExactSynonym>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000002"/>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">occurs_during</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000001"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000002 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000002">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">during</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000002</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a process during which a molecular function or biological process occurs or a cellular component is present</go_annotation_extension_relations:usage>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">during</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">during</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000003 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000003">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localizes_to</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000004</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 PO:0025131 UBERON:0001062</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000003</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">OBSOLETE. c localizes_to d if c executes some function when it is part_of d.</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">TODO : check this one. Note Pombe is using different variant.</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localization_destination</oboInOwl:hasExactSynonym>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localizes_to</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localizes_to</oboInOwl:shorthand>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0000003"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000050"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localization_destination</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000003"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000004 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000004">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">dependent_on</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0003674 GO:0005575 GO:0008150 GO:0032991 MI:0315 MOD:00000 PR:000000001 SO:0000110 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000004</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a requirement under which the ontology term is observed to apply to the annotated gene product.</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">PomBase uses the more specific child relations, and avoids using dependent_on directly.</rdfs:comment>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">dependent_on</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">dependent_on</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000006 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000006">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target_cell</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000006</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:consider rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_input</oboInOwl:consider>
+        <oboInOwl:consider rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output</oboInOwl:consider>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target_cell</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target_cell</oboInOwl:shorthand>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">this relation has been obsoleted it was unclear whether the associated cell type id should correspond to the final mature or precursor cell. If the outcome of a process is a modified cell, then the relationships has_output or has_input along with a CL identifier respectively defining the precursor or mature cell type can be considered instead.</rdfs:comment>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000007 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000007">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target_anatomical_entity</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CARO:0000000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000007</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:consider rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_input</oboInOwl:consider>
+        <oboInOwl:consider rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output</oboInOwl:consider>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target_anatomical_entity</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target_anatomical_entity</oboInOwl:id>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">this relation has been obsoleted it was unclear whether the associated anatomical entity id should correspond to the final form  or precursor anatomical entity. If the outcome of a process is a modified anatomical entity, then relationships has_output or has_input along with a anatomy identifier respectively defining the precursor or mature anatomical entity id can be considered instead.</rdfs:comment>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000009 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000009">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localization_dependent_on</rdfs:label>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0003674 GO:0005575 GO:0008150 GO:0032991 MI:0315 MOD:00000 PR:000000001 SO:0000110 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0005575</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000009</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a requirement under which the gene product is located at the specified cellular component.</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Previous definition &quot;Located at CC only if (BP occurs) OR (feature is present in annotated gene product) OR (CC is present) OR (gene product is present)&quot; [GOC:mah]</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localization_dependent_on</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localization_dependent_on</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000004"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000010 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000010">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_sequence_feature</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A sequence feature, such as a protein domain or motif, of the annotated gene product required for its participation in Molecular Function or Biological Process.</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000010</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">SO:0000110</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasBroadSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_feature</oboInOwl:hasBroadSynonym>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_sequence_feature</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_sequence_feature</oboInOwl:id>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">strictly speaking, these fall outside the scope of GO, even with extended annotations</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000004"/>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_feature</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000010"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000011 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000011">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_regulator</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000011</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">annotated gene product requires regulation by the gene product or complex for its participation in the Molecular Function or Biological Process</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_regulator</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_regulator</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000004"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000012 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000012">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_substance</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string"> The annotated gene product participates in a Biological Process or executes a Molecular Function only in the presence of a substance</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000012</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_substance</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_substance</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000004"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000013 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000013">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_dependent_on</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0003674 GO:0005575 GO:0008150 GO:0032991 MI:0315 MOD:00000 PR:000000001 SO:0000110 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000013</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies an entity that was shown not to be required for the ontology term to apply to the annotated gene product.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">independent_of</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">independent_of</oboInOwl:hasExactSynonym>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_dependent_on</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_dependent_on</oboInOwl:id>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:rph</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">independent_of</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000013"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000014 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000014">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibits_protease</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0010466</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000014</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">OBSOLETE. Identifies a specific target of regulation of a MF</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">PR:000000001 SO:0000673</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This relation was made obsolete because it is undesirably specific and redundant with any GO term that would be used in col5. Annotations that used this might use a different, to-be-added, child of has_regulation_target that captures something about directness; this one would probably be direct.</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibits_protease</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibits_protease</oboInOwl:id>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000015 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000015">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_regulation_target</rdfs:label>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0065007</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000015</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies an entity (such as a gene, gene product, or complex) affected by a regulation Biological Process or regulator Molecular Function.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_regulation_target</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_regulation_target</oboInOwl:id>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">probably want to add one or two new subtypes that capture something about directness</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000017 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000017">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">protease_activator</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0010952</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000017</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">OBSOLETE. Identifies a specific target of regulation of a MF</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">PR:000000001 SO:0000673</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This relation was made obsolete because it is undesirably specific and redundant with any GO term that would be used in col5. Annotations that used this might use a different, to-be-added, child of has_regulation_target that captures something about directness; this one would be direct.</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">protease_activator</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">protease_activator</oboInOwl:id>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000018 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000018">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">stabilizes</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0031647</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000018</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies specific gene product stabilized in a protein stabilization process (or regulation thereof)</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">stabilizes</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">stabilizes</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000020 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000020">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_upstream_or_downstream_target</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0008150</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000020</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_upstream_or_downstream_target</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_upstream_or_downstream_target</oboInOwl:id>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000021 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000021">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_upstream_target</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0008150</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000021</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_upstream_target</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_upstream_target</oboInOwl:id>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000022 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000022">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_downstream_target</rdfs:label>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000022</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_downstream_target</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_downstream_target</oboInOwl:id>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000023 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000023">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">transcriptionally_regulates</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0006355</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000023</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">OBSOLETE. Identifies gene whose transcription is regulated</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This relation was made obsolete because it is undesirably specific and redundant with any GO term that would be used in col5. Annotations that used this might use a different, to-be-added, child of has_regulation_target that captures something about directness; this one would be indirect.</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <obo:IAO_0100001 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_regulation_target</obo:IAO_0100001>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">transcriptionally_regulates</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">transcriptionally_regulates</oboInOwl:id>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000024 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000024">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_during</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A BP during which an annotation does not apply, e.g. a localization not observed at the specified cell cycle phase (but observed in other phases).</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000024</oboInOwl:hasDbXref>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">domain can be any process or object or even quality</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_during</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_during</oboInOwl:id>
+        <oboInOwl:is_class_level rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</oboInOwl:is_class_level>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000025 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000025">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_happens_during</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A Molecular Function or Biological Process during which an annotation to a Molecular Function or Biological Process does not apply, e.g. involvement in a process not observed during the specified cell cycle phase (but observed in other phases).</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000025</oboInOwl:hasDbXref>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">does_not_happen_during</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_happens_during</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_happens_during</oboInOwl:shorthand>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_occurs_during</oboInOwl:hasExactSynonym>
+        <oboInOwl:is_class_level rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</oboInOwl:is_class_level>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000024"/>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_occurs_during</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000025"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">does_not_happen_during</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000025"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000026 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000026">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_exists_during</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A Molecular Function or Biological Process during which an annotation to a Cellular Component does not apply, e.g.  a localization not observed at the specified cell cycle phase (but observed in other phases).</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000004</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000026</oboInOwl:hasDbXref>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">does_not_exist_during</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_exists_during</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_exists_during</oboInOwl:id>
+        <oboInOwl:is_class_level rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</oboInOwl:is_class_level>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000024"/>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">does_not_exist_during</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000026"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000027 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000027">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">in_presence_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000027</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a chemical, gene product or complex in the presence of which an ontology term is observed to apply to the annotated gene product.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">in_presence_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">in_presence_of</oboInOwl:shorthand>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000028 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000028">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_localization</rdfs:label>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0005575</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0008150</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000028</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The annotated gene product participates in a Biological Process only if the gene product is located at a Cellular Component</go_annotation_extension_relations:usage>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">dependent_on_localization</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_localization</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_localization</oboInOwl:shorthand>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000004"/>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">dependent_on_localization</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000028"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000029 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000029">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_regulation_by</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000029</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">annotated gene product participates in Biological Process or executes Molecular Function activity only if regulated by action of gene product; regulation is indirect (or unknown whether direct or indirect)</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_regulation_by</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_regulation_by</oboInOwl:shorthand>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000030 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000030">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">modified_by</rdfs:label>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000030</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies the gene product that catalyzes a modification on the annotated gene product</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">MOD:00000</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">modified_by</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">modified_by</oboInOwl:id>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000031 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000031">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">condition</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000031</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a condition under which the ontology term is observed to apply to the annotated gene product</go_annotation_extension_relations:usage>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">assay_condition</oboInOwl:hasExactSynonym>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">condition</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">condition</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">under_condition</oboInOwl:hasExactSynonym>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">under_condition</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000031"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">assay_condition</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000031"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000032 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000032">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">exists_during</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000004</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000032</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a process during which a cellular component is present</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Previous definition &quot;c exists_during p if and only if the temporal extent bounded by the start and end of c is part_of the temporal extent of p.&quot; [BFO:cjm]</rdfs:comment>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">exists_during</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">exists_during</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000002"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000033 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000033">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_direct_regulator</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Annotated gene product requires direct regulation by the gene product or complex identified in the extension. Includes cases where the annotated gene product is a catalytic subunit of a complex and requires a regulatory subunit for activity as well as cases where the regulator acts directly but interacts transiently.</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0003674</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000033</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_direct_regulator</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_direct_regulator</oboInOwl:id>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">the gene product in the extension should be annotated to a &quot;regulator&quot; MF (implying that it acts directly to regulate the annotated gp activity)</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000029"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000501 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000501">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">occurs_at</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0005575 SO:0000110</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000501</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies the Cellular Component or sequence feature at which the Molecular Function or Biological Process is executed</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Previous definition &quot;P occurs_at C : the execution of P is located at C.&quot; [GOC:cjm, GOC:mah] This relation is not constrained with respect to whether C completely surrounds, or is adjacent to, the location where P is executed. Example: chromatin silencing at centromere unfolds_around centromere : Repression of transcription of centromeric DNA by the formation of heterochromatin.</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">occurs_at</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">occurs_at</oboInOwl:shorthand>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000502 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000502">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_modification</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Annotated gene product must be modified as described by extension to participate in the Molecular Function or Biological Process.</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000502</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">MOD:00000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Note this relation is not intended for use in GO annotation.  Discussion about using PR ID in column 17 instead; if we agree on that, this relation will be made obsolete</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_modification</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_modification</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000004"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000506 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000506">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_occurs_in</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">An entity (e.g. Cellular Component, cell type or anatomical entity) in which a Biological Process or Molecular Function does not occur. Opposite of occurs_in.</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 PO:0025131 UBERON:0001062</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000506</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_occurs_in</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_occurs_in</oboInOwl:id>
+        <oboInOwl:is_class_level rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</oboInOwl:is_class_level>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000507 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000507">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activated_by</rdfs:label>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0003674</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000507</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a chemical substance that increases the activity of the gene product.</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This relation should not be used to annotate one gene product regulating another&apos;s activity; a regulator MF or regulation BP should be used in such cases.</rdfs:comment>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activated_by</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activated_by</oboInOwl:shorthand>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activated_by_chemical</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activated_by_substance</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activity_increased_by</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activated_by_substance</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000507"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activity_increased_by</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000507"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activated_by_chemical</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000507"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000508 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000508">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibited_by</rdfs:label>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0003674</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000508</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a chemical substance that decreases the activity of the gene product.</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This relation should not be used to annotate one gene product regulating another&apos;s activity; a regulator MF or regulation BP should be used in such cases.</rdfs:comment>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activity_decreased_by</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibited_by</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibited_by</oboInOwl:id>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibited_by_chemical</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibited_by_substance</oboInOwl:hasExactSynonym>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibited_by_chemical</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000508"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibited_by_substance</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000508"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activity_decreased_by</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000508"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000509 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000509">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_occurs_at</rdfs:label>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">An entity (e.g. Cellular Component, cell type or anatomical entity) at which a Biological Process or Molecular Function does not occur. Opposite of occurs_at.</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0005575 SO:0000110</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000509</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_occurs_at</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">not_occurs_at</oboInOwl:id>
+        <oboInOwl:is_class_level rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</oboInOwl:is_class_level>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000751 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000751">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_indirect_input</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000505</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000751</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies an entity indirectly affected (bound, transported, modified, consumed or destroyed) by the gene product&apos;s participation in MF or BP.</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">If the entity is directly bound/acted upon by the gene product that is the subject of the annotation, then the relation: has_direct_input should be alternatively considered. [GOC:ecd]</rdfs:comment>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_indirect_input</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_indirect_input</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_indirect_target</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_indirect_target</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">indirectly_localizes</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">indirectly_localizes</oboInOwl:hasAlternativeId>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002233"/>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ecd</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">indirectly_localizes</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000751"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ecd</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_indirect_target</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000751"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000752 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000752">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_direct_input</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000019</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000504</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000752</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies an entity directly affected (bound, transported, modified, consumed or destroyed) by the gene product&apos;s participation in MF or BP.</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">If the entity is indirectly bound/acted upon by the gene product that is the subject of an annotation,  then the relation: has_indirect_input should be considered [GOC:ecd]</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">directly_localizes</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">directly_localizes</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_direct_input</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_direct_input</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_direct_target</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_direct_target</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_substrate</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_substrate</oboInOwl:hasNarrowSynonym>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002233"/>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ecd</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">directly_localizes</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000752"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ecd</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_direct_target</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000752"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ecd</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_substrate</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000752"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000754 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000754">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_target_sequence_feature</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000754</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a specific sequence feature required in the interacting gene product to enable the cellular component location or occurance of the function or process</go_annotation_extension_relations:usage>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">SO:0000110</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_target_sequence_feature</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">requires_target_sequence_feature</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/GOREL_0000004"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0000755 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0000755">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">in_absence_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000001</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000755</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies a chemical, gene product or complex in the absence of which an ontology term is observed to apply to the annotated gene product.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">in_absence_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">in_absence_of</oboInOwl:shorthand>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001000 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001000">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">axis_of</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001000</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">axis_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">axis_of</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001001 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001001">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_movement_of</rdfs:label>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Consider instead using transports_or_maintains_localization_of</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001001</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Relationship that links an entity with a process in which the entity moves from one location to another.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_movement_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_movement_of</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001002 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001002">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output_o_axis_of</rdfs:label>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: anterior/posterior pattern specification has_output_o_axis_of lateral plate mesoderm. Note that the output of this process is an *axis*, not the LPM itself. This relation chain allows us to use an anatomical structure as the slot value</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001002</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the has_output relation with the axis_of relation</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output_o_axis_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output_o_axis_of</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002234"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001000"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001002"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002234"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001000"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001003 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001003">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_output</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001003</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the has_output relation</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_output</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_output</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002234"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001003"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002234"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001004 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001004">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_occurs_in</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001004</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the occurs_in relation</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_occurs_in</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_occurs_in</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000066"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001004"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000066"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001005 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001005">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_movement_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to &apos;regulation of cell migration with &apos;regulates_o_results_in_movement_of(CL:0000653) in column 16 would mean that gene X is involved in the regulation of glomerular visceral epithelial cell migration.</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001005</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_movement_of relation</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_movement_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_movement_of</oboInOwl:shorthand>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001001"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001005"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001001"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001006 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001006">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">acts_on_population_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell proliferation with acts_on_population_of CL:0000057 means that gene X is involved in the proliferation of fibroblasts.</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001006</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship that links an entity with a process in which the process has more than one participant that is of the same entity type.</go_annotation_extension_relations:usage>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">acts_on_population_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">acts_on_population_of</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001007 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001007">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_agent</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cytokine production with has_agent of CL:0000057 (fibroblast) means that the fibroblast is producing the cytokine.</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001007</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship that links an entity with a process in which the entity participates in the process by serving as the continuant that is responsible for the execution of the process.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_agent</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_agent</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001008 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001008">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_acts_on_population_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001008</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the acts_on_population_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_acts_on_population_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_acts_on_population_of</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001006"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001008"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001006"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001010 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001010">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_acquisition_of_features_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001010</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_acquisition_of_features_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_acquisition_of_features_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_acquisition_of_features_of</oboInOwl:shorthand>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002315"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001010"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002315"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001011 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001011">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_agent</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001011</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the has_agent relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_agent</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_agent</oboInOwl:shorthand>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001007"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001011"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001007"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001012 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001012">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_maturation_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001012</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_maturation_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_maturation_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_maturation_of</oboInOwl:shorthand>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002299"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001012"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002299"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001016 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001016">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_participant</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001016</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the has_participant relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_participant</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_has_participant</oboInOwl:shorthand>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000057"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001016"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/BFO_0000057"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001019 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001019">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_division_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell division with results_in_division_of CL:0000057 (fibroblast) means that at the end of the process a single fibroblast has divided into two fibroblasts.</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001019</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship linking a entity and its participation in a process that results in the division of the entity into two entities of the same type.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_division_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_division_of</oboInOwl:shorthand>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001022 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001022">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_commitment_to</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001022</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_commitment_to relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_commitment_to</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_commitment_to</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002348"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001022"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002348"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001023 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001023">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_development_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001023</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_development_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_development_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_development_of</oboInOwl:shorthand>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002296"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001023"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002296"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001024 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001024">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_division_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001024</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_division_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_division_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_division_of</oboInOwl:shorthand>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001019"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001024"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GOREL_0001019"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001025 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001025">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_formation_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001025</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_formation_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_formation_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_formation_of</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002297"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001025"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002297"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001026 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001026">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_morphogenesis_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001026</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_morphogenesis_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_morphogenesis_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_morphogenesis_of</oboInOwl:shorthand>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002298"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001026"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002298"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001027 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001027">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_specification_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001027</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the regulates relation with the results_in_specification_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_specification_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_o_results_in_specification_of</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002356"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001027"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002356"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GOREL_0001029 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/GOREL_0001029">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output_o_product_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001029</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">PR:000000001 SO:0000673</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">This is the combination of the has_output relation with the results_in_specification_of relation.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output_o_product_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output_o_product_of</oboInOwl:id>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002234"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002204"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <obo:IAO_isReversiblePropertyChain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</obo:IAO_isReversiblePropertyChain>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GOREL_0001029"/>
+        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#propertyChainAxiom"/>
+        <owl:annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002234"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/RO_0002204"/>
+        </owl:annotatedTarget>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002204 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002204">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">gene_product_of</rdfs:label>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000002</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000004</go_annotation_extension_relations:local_domain>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001028</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002204</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">gene_product_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">gene_product_of</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">x has gene product of y if and only if y is a gene (SO:0000704) that participates in some gene expression process (GO:0010467) where the output of that process is either y or something that is ribosomally translated from x.</go_annotation_extension_relations:usage>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002233 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002233">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_input</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000016</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000503</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000753</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies an entity affected (bound, transported, modified, consumed or destroyed) by the gene product&apos;s participation in a molecular function or biological process</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Previous definition &quot;p has_input c if and only c participates_in p at the start of p and c is in some way bound, transported, modified, consumed or destroyed by p.&quot; If it is known whether the entity is directly or indirectly bound/acted upon by the gene product that is the subject of the annotation, then the relations has_direct_input or has_indirect_input should be alternatively considered.</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002233</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_input</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_input</oboInOwl:id>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localizes</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localizes</oboInOwl:hasAlternativeId>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ecd</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">localizes</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/RO_0002233"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym"/>
+    </owl:Axiom>
+    <owl:Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ecd</oboInOwl:hasDbXref>
+        <owl:annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_target</owl:annotatedTarget>
+        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/RO_0002233"/>
+        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </owl:Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002234 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002234">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CHEBI:24431 GO:0032991 MI:0315 PR:000000001 SO:0000673 SO:0000704</go_annotation_extension_relations:local_range>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Identifies an entity that is changed or created after participation in a molecular function or biological process</go_annotation_extension_relations:usage>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Previous definition &quot;p has_output c if c participates_in p at  the end of p and c is in some way changed by p or created by p.&quot; []</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002234</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">has_output</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002296 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002296">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_development_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 PO:0025131 UBERON:0001062</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell development with results_in_development_of CL:0000540 (neuron) means that gene x is involved in a process where a cell that has an identity of a neuron has gone through a progression from its formation to the resulting mature neuron.</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001009</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002296</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship linking an entity and its participation in a process that changes it through time from the formation of the entity to the resultant mature state.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_development_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_development_of</oboInOwl:shorthand>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002297 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002297">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results in formation of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to anatomical structure formation with results_in_formation_of UBERON:0000007 (pituitary gland) means that at the beginning of the process a pituitary gland does not exist and at the end of the process a pituitary gland exists.</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001020</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002297</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship linking a entity and its participation in a process whereby at the beginning of the process the entity does not exist and at the end of the process the entity exists.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_formation_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_formation_of</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002298 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002298">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_morphogenesis_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 PO:0025131 UBERON:0001062</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell morphogenesis with results_in_morphogenesis_of CL:0000540 (neuron) means that at the end of the process an input neuron has attained its shape.</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001015</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002298</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship that links an entity with the process that results in the formation and shaping of that entity over time from an immature to a mature state.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_morphogenesis_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_morphogenesis_of</oboInOwl:shorthand>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002299 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002299">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_maturation_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000 GO:0005575 GO:0008150 PO:0009012 PO:0025131 UBERON:0001062 ZFS:0100000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell maturation with results_in_maturation_of CL:0000057 (fibroblast) means that the fibroblast is mature at the end of the process.</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001013</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002299</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship that links an entity with a process that results in the progression of the entity over time that is independent of changes in it&apos;s shape and results in an end point state of that entity.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_maturation_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_maturation_of</oboInOwl:id>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002315 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002315">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_acquisition_of_features_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell differentiation with results_in_maturation_of CL:0000057 (fibroblast) means that at the end of the process the input cell that did not have features of a fibroblast, now has the features of a fibroblast.</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001014</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002315</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship that links a specified entity with the process that results in an unspecified entity acquiring the features and characteristics of the specified entity.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_acquisition_of_features_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_acquisition_of_features_of</oboInOwl:shorthand>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002332 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002332">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_level_of</rdfs:label>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000036</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002332</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_level_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates_level_of</oboInOwl:id>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002340 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002340">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">imports</rdfs:label>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000034</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002340</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">imports</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">imports</oboInOwl:shorthand>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002345 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002345">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">exports</rdfs:label>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0000035</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002345</oboInOwl:hasDbXref>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">exports</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">exports</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002348 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002348">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_commitment_to</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell commitment with results_in_commitment_to CL:0000540 (neuron) means that at the end of the process an unspecified cell has been specified and determined to develop into a neuron.</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001017</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002348</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship linking a cell and its participation in a process that results in the transition of a cell such that is can only develop into a single cell type.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_commitment_to</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_commitment_to</oboInOwl:shorthand>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002349 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002349">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_determination_of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell determination with results_in_determination_of CL:0000540 (neuron) means that at the end of the process an unspecified cell will develop into a neuron with no additional input.</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001018</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002349</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship linking a cell and its participation in a process that results in the transition of a cell such that is can only develop into a single cell type independent of its environment.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_determination_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_determination_of</oboInOwl:shorthand>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002356 -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002356">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results in specification of</rdfs:label>
+        <go_annotation_extension_relations:local_domain rdf:datatype="http://www.w3.org/2001/XMLSchema#string">BFO:0000007</go_annotation_extension_relations:local_domain>
+        <go_annotation_extension_relations:local_range rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CL:0000000</go_annotation_extension_relations:local_range>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Example of use: an annotation of gene X to cell determination with results_in_determination_of CL:0000540 (neuron) means that at the end of the process an unspecified cell will develop into a neuron if left in its environment. If the cell is moved, it may develop into a cell type other than a neuron.</rdfs:comment>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOREL:0001021</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002356</oboInOwl:hasDbXref>
+        <go_annotation_extension_relations:usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The relationship linking a cell and its participation in a process that results in the transition of a cell such that is can only develop into a single cell type when left in its environment.</go_annotation_extension_relations:usage>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">go/extensions/gorel</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_specification_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">results_in_specification_of</oboInOwl:shorthand>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates -->
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/go/extensions/go_annotation_extension_relations#regulates"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 0.5.4-SNAPSHOT) http://owlapi.sourceforge.net -->
+

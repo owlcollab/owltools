@@ -6,6 +6,9 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -32,10 +35,18 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 
 	private static boolean renderViolations = false;
 	private static final String LOCATION = "src/test/resources/rules/";
+	private static TraversingEcoMapper eco = null;
 	private static AnnotationRulesEngine engine = null;
+	
+	private static Level elkLogLevel = null;
+	private static Logger elkLogger = null;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		elkLogger = Logger.getLogger("org.semanticweb.elk");
+		elkLogLevel = elkLogger.getLevel();
+		elkLogger.setLevel(Level.ERROR);
+		
 		String qcfile = LOCATION + "annotation_qc.xml";
 		String xrfabbslocation = LOCATION + "GO.xrf_abbs";
 		ParserWrapper p = new ParserWrapper();
@@ -43,11 +54,14 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		OWLOntologyIRIMapper mapper = new CatalogXmlIRIMapper(getResource("rules/ontology/extensions/catalog-v001.xml"));
 		p.addIRIMapper(mapper);
 		
-		OWLOntology goTaxon = p.parse("http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl");
-		TraversingEcoMapper ecoMapper = EcoMapperFactory.createTraversingEcoMapper(p, getResourceIRIString("eco.obo")).getMapper();
+		OWLOntology goTaxon = p.parse("http://purl.obolibrary.org/obo/go/extensions/go-plus.owl");
+		OWLOntology gorel = p.parse("http://purl.obolibrary.org/obo/go/extensions/gorel.owl");
+		OWLGraphWrapper graph = new OWLGraphWrapper(goTaxon);
+		graph.addImport(gorel);
+		eco = EcoMapperFactory.createTraversingEcoMapper(p, getResourceIRIString("eco.obo")).getMapper();
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
-				qcfile, xrfabbslocation, new OWLGraphWrapper(goTaxon), ecoMapper);
+				qcfile, xrfabbslocation, graph, eco);
 		engine = new AnnotationRulesEngine(rulesFactory);
 	}
 
@@ -63,9 +77,11 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		// warning
 		assertTrue(result.hasWarnings());
 		Map<String, List<AnnotationRuleViolation>> warnings = result.getViolations(ViolationType.Warning);
-		assertEquals(2, warnings.size()); // 4 rules with Warnings
-		assertEquals(3, warnings.get("GO_AR:0000013").size());
-		assertEquals(1, warnings.get("GO_AR:0000018").size());
+		assertEquals(4, warnings.size()); // 4 rules with Warnings
+		assertEquals(2, warnings.get("GO_AR:0000008").size()); // do not annotate to high level terms
+		assertEquals(3, warnings.get("GO_AR:0000013").size()); // Taxon check warning
+		assertEquals(1, warnings.get("GO_AR:0000018").size()); // IPI annotations require a With/From entry
+		assertEquals(2, warnings.get("GO_AR:0000019").size()); // generic reasoner check
 		
 		// recommendation
 		assertTrue(result.hasRecommendations());
@@ -75,12 +91,11 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		// error
 		assertTrue(result.hasErrors());
 		Map<String, List<AnnotationRuleViolation>> errors = result.getViolations(ViolationType.Error);
-		assertEquals(5, errors.size()); // 5 rules with Errors
-		assertEquals(2, errors.get("GO_AR:0000001").size());
-		assertEquals(2, errors.get("GO_AR:0000008").size());
-		assertEquals(1, errors.get("GO_AR:0000011").size());
-		assertEquals(1, errors.get("GO_AR:0000013").size());
-		assertEquals(1, errors.get("GO_AR:0000014").size());
+		assertEquals(4, errors.size()); // 4 rules with Errors
+		assertEquals(154, errors.get("GO_AR:0000001").size()); // general errors + out-dated IEAs
+		assertEquals(1, errors.get("GO_AR:0000011").size()); // ND for root nodes only
+		assertEquals(2, errors.get("GO_AR:0000013").size()); // taxon check
+		assertEquals(1, errors.get("GO_AR:0000014").size()); // Dangling reference
 	}
 
 	private static void renderViolations(AnnotationRulesEngineResult result) {
@@ -89,4 +104,19 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		writer.close();
 	}
 	
+	@AfterClass
+	public static void afterClass() throws Exception {
+		if (engine != null) {
+			engine = null;
+		}
+		if (eco != null) {
+			eco.dispose();
+			eco = null;
+		}
+		if (elkLogLevel != null && elkLogger != null) {
+			elkLogger.setLevel(elkLogLevel);
+			elkLogger = null;
+			elkLogLevel = null;
+		}
+	}
 }

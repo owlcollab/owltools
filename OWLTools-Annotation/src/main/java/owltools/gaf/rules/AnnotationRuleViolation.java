@@ -168,8 +168,14 @@ public class AnnotationRuleViolation {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("AnnotationRuleViolation [");
-		builder.append("ruleId=");
-		builder.append(ruleId);
+		if(ruleId != null) {
+			builder.append("ruleId=");
+			builder.append(ruleId);
+		}
+		if(type != null) {
+			builder.append("type=");
+			builder.append(type.name());
+		}
 		if (lineNumber >= 0) {
 			builder.append(", ");
 			builder.append("lineNumber=");

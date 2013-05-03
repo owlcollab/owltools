@@ -23,8 +23,6 @@
 						<exclude>owltools/gaf/inference/ClassTaxonMatrixTest.java</exclude>
 						<!-- Ignored: currently failing -->
 						<exclude>owltools/gaf/rules/AnnotationRulesEngineSingleTest.java</exclude>
-						<!-- Ignored: currently failing -->
-						<exclude>owltools/gaf/rules/AnnotationRulesEngineTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>

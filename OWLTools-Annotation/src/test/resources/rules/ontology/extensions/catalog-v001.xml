@@ -39,4 +39,5 @@
     <uri id="foo" name="http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim-disjoint-over-in-taxon.owl" uri="../external/ncbitaxon-subsets/taxslim-disjoint-over-in-taxon.owl"/>
     <uri id="foo" name="http://purl.obolibrary.org/obo/ro/ro-el.owl" uri="../external/obo-relations/ro-el.owl"/>
     <uri id="foo" name="http://purl.obolibrary.org/obo/go.owl" uri="../go.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/go-plus.owl" uri="go-plus.owl"/>
 </catalog>

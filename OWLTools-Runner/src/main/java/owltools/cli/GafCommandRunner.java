@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.IRI;
@@ -464,36 +465,55 @@ public class GafCommandRunner extends CommandRunner {
 	@CLIMethod("--gaf-run-checks")
 	public void runGAFChecks(Opts opts) throws Exception {
 		if (g != null && gafdoc != null && gafReportFile != null) {
-			if (eco == null) {
-				eco = EcoMapperFactory.createTraversingEcoMapper(pw).getMapper();
-			}
-			LOG.info("Start validating GAF");
-			AnnotationRulesEngine ruleEngine;
+			AnnotationRulesEngine ruleEngine = null;
+			AnnotationRulesEngineResult result;
+			Level elkLogLevel = null;
+			Logger elkLogger = null;
 			try {
+				elkLogger = Logger.getLogger("org.semanticweb.elk");
+				elkLogLevel = elkLogger.getLevel();
+				elkLogger.setLevel(Level.ERROR);
+				
+				if (eco == null) {
+					eco = EcoMapperFactory.createTraversingEcoMapper(pw).getMapper();
+				}
+				LOG.info("Start validating GAF");
+			
 				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco);
 				ruleEngine = new AnnotationRulesEngine(rulesFactory);
+			
+				result = ruleEngine.validateAnnotations(gafdoc);
+				LOG.info("Finished validating GAF");
+				File reportFile = new File(gafReportFile);
+				File summaryFile = null;
+				if (gafReportSummaryFile != null) {
+					summaryFile = new File(gafReportSummaryFile);
+				}
+
+				// delete previous report files (if they exist)
+				FileUtils.deleteQuietly(reportFile);
+				if (summaryFile != null) {
+					FileUtils.deleteQuietly(summaryFile);
+				}
+
+				// write parse errors and rule violations
+				createAllReportFiles(parserReport, result, ruleEngine, reportFile, summaryFile);
+			
 			}
 			finally {
-				eco.dispose();
-				eco = null;
+				if (eco != null) {
+					eco.dispose();
+					eco = null;
+				}
+				if (ruleEngine != null) {
+					ruleEngine = null;
+				}
+				if (elkLogLevel != null && elkLogger != null) {
+					elkLogger.setLevel(elkLogLevel);
+					elkLogger = null;
+					elkLogLevel = null;
+				}
 			}
-			
-			AnnotationRulesEngineResult result = ruleEngine.validateAnnotations(gafdoc);
-			LOG.info("Finished validating GAF");
-			File reportFile = new File(gafReportFile);
-			File summaryFile = null;
-			if (gafReportSummaryFile != null) {
-				summaryFile = new File(gafReportSummaryFile);
-			}
-			
-			// delete previous report files (if they exist)
-			FileUtils.deleteQuietly(reportFile);
-			if (summaryFile != null) {
-				FileUtils.deleteQuietly(summaryFile);
-			}
-			
-			// write parse errors and rule violations
-			createAllReportFiles(parserReport, result, ruleEngine, reportFile, summaryFile);
 			
 			// no violations found, delete previous error file (if it exists)
 			if ((parserReport == null || parserReport.hasNothingToReport()) && result.isEmpty()) {
