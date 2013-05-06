@@ -181,16 +181,26 @@ public class GAFOWLBridge {
 		OWLClassExpression annotatedToClass = getOWLClass(a.getCls());
 		// c16 - TODO - split '|'s into separate annotations
 		Collection<ExtensionExpression> exts = a.getExtensionExpressions();
+		StringBuilder c16Label = null;
 		if (exts != null && !exts.isEmpty()) {
+			c16Label = new StringBuilder();
 			HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
 			ops.add(annotatedToClass);
 			for (ExtensionExpression ext : exts) {
-				OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
+				final String extRelation = ext.getRelation();
+				c16Label.append(" and (");
+				OWLObjectProperty p = getObjectPropertyByShorthand(extRelation);
 				if (p == null) {
-					LOG.error("cannot match: "+ext.getRelation());
-					p = fac.getOWLObjectProperty(IRI.create("http://purl.obolibrary.org/obo/go/unstable/"+ext.getRelation()));
+					LOG.error("cannot match: "+extRelation);
+					p = fac.getOWLObjectProperty(IRI.create("http://purl.obolibrary.org/obo/go/unstable/"+extRelation));
 				}
-				OWLClass filler = getOWLClass(ext.getCls());
+				appendRel(c16Label, p, extRelation);
+				c16Label.append(' ');
+				final String extCls = ext.getCls();
+				OWLClass filler = getOWLClass(extCls);
+				appendCls(c16Label, filler, extCls);
+				c16Label.append(')');
+				
 				//LOG.info(" EXT:"+p+" "+filler);
 				ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
 			}
@@ -250,32 +260,14 @@ public class GAFOWLBridge {
 				Bioentity bioentity = a.getBioentityObject();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append("'");
-				String symbol = bioentity.getSymbol();
-				if (symbol != null) {
-					labelBuilder.append(symbol).append(" - ");
-				}
-				String fullName = bioentity.getFullName();
-				if (fullName != null) {
-					labelBuilder.append(fullName).append("' (");
-					labelBuilder.append(bioentity.getId()).append(")");
-				}
-				else {
-					labelBuilder.append(bioentity.getId());
-				}
+				appendBioEntity(labelBuilder, bioentity);
 				labelBuilder.append(" - ");
 				
 				String clsId = a.getCls();
-				final OWLObject owlObject = graph.getOWLObjectByIdentifier(clsId);
-				if (owlObject != null) {
-					String s = graph.getLabel(owlObject);
-					if (s != null) {
-						labelBuilder.append("'").append(s).append("' (").append(clsId).append(")");
-					}
+				appendCls(labelBuilder, graph.getOWLObjectByIdentifier(clsId), clsId);
+				if (c16Label != null) {
+					labelBuilder.append(c16Label);
 				}
-				else {
-					labelBuilder.append(clsId);
-				}
-						
 				annotation = fac.getOWLAnnotation(fac.getRDFSLabel(), fac.getOWLLiteral(labelBuilder.toString()));
 				axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
 				
@@ -296,6 +288,52 @@ public class GAFOWLBridge {
 		}
 
 		addAxioms(axioms);
+	}
+	
+	private void appendRel(StringBuilder sb, OWLObjectProperty p, String fallback) {
+		if (p != null) {
+			String label = graph.getLabelOrDisplayId(p);
+			if (label.indexOf(' ') > 0) {
+				sb.append('\'').append(label).append('\'');
+			}
+			else {
+				sb.append(label);
+			}
+		}
+		else {
+			sb.append(fallback);
+		}
+	}
+	
+	private void appendCls(StringBuilder sb, OWLObject obj, String fallback) {
+		if (obj != null) {
+			String id = graph.getIdentifier(obj);
+			String label = graph.getLabel(obj);
+			if (label != null) {
+				sb.append("'").append(label).append("' (").append(id).append(")");
+			}
+			else {
+				sb.append(id);
+			}
+		}
+		else {
+			sb.append(fallback);
+		}
+	}
+	
+	private void appendBioEntity(StringBuilder sb, Bioentity bioentity) {
+		String symbol = bioentity.getSymbol();
+		if (symbol != null) {
+			sb.append(symbol).append(" - ");
+		}
+		String fullName = bioentity.getFullName();
+		if (fullName != null) {
+			sb.append(fullName).append("' (");
+			sb.append(bioentity.getId()).append(")");
+		}
+		else {
+			sb.append(bioentity.getId());
+		}
 	}
 
 	private void makeShorthandMap() {
