@@ -41,6 +41,7 @@ import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologyGeneralSolrDocumentLoader;
 import owltools.solrj.OntologySolrLoader;
+import owltools.solrj.OptimizeSolrDocumentLoader;
 import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
 import owltools.solrj.PANTHERSolrDocumentLoader;
 import owltools.yaml.golrconfig.ConfigManager;
@@ -441,6 +442,25 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		LOG.info("Found " + pSet.getNumberOfFilesInSet() + " trees and " + pSet.getNumberOfIdentifiersInSet() + " identifiers.");
 	}
 
+	/**
+	 * Requires the --solr-url argument.
+	 * 
+	 * Ignoring necessity, sends the optimize to the Solr index. I hope you have double the space!
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-optimize")
+	public void optimizeSolr(Opts opts) throws Exception {
+
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);
+		
+		// Doc load.
+		OptimizeSolrDocumentLoader optimizer = new OptimizeSolrDocumentLoader(url);
+		optimizer.load();
+	}
+	
 	/**
 	 * Used for generating output for units tests in other languages.
 	 * Output some JSON graph serializations.

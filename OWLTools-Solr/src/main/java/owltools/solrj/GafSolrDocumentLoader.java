@@ -92,8 +92,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		}
 		LOG.info("Doing cleanup commit.");
 		incrementalAddAndCommit(); // pick up anything that we didn't catch
-		//LOG.info("Optimizing.");
-		//server.optimize();
 		LOG.info("Done.");
 	}
 
