@@ -248,27 +248,35 @@ public class GAFOWLBridge {
 				
 				// label
 				Bioentity bioentity = a.getBioentityObject();
+				StringBuilder labelBuilder = new StringBuilder();
+				labelBuilder.append("'");
+				String symbol = bioentity.getSymbol();
+				if (symbol != null) {
+					labelBuilder.append(symbol).append(" - ");
+				}
 				String fullName = bioentity.getFullName();
-				if (fullName == null) {
-					fullName = bioentity.getId();
+				if (fullName != null) {
+					labelBuilder.append(fullName).append("' (");
+					labelBuilder.append(bioentity.getId()).append(")");
 				}
 				else {
-					fullName = "'"+fullName+"' ("+bioentity.getId()+")";
+					labelBuilder.append(bioentity.getId());
 				}
-				String clsId = a.getCls();
+				labelBuilder.append(" - ");
 				
-				String clsLabel = clsId;
+				String clsId = a.getCls();
 				final OWLObject owlObject = graph.getOWLObjectByIdentifier(clsId);
 				if (owlObject != null) {
 					String s = graph.getLabel(owlObject);
 					if (s != null) {
-						clsLabel = "'"+s+"' ("+clsId+")";
+						labelBuilder.append("'").append(s).append("' (").append(clsId).append(")");
 					}
 				}
+				else {
+					labelBuilder.append(clsId);
+				}
 						
-				
-				String label = fullName + " - " + clsLabel;
-				annotation = fac.getOWLAnnotation(fac.getRDFSLabel(), fac.getOWLLiteral(label));
+				annotation = fac.getOWLAnnotation(fac.getRDFSLabel(), fac.getOWLLiteral(labelBuilder.toString()));
 				axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
 				
 				// logical definition
