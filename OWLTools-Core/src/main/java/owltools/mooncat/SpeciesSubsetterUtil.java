@@ -92,7 +92,8 @@ public class SpeciesSubsetterUtil {
 		
 		rmAxioms = new HashSet<OWLAxiom>();
 		if (rootClass == null)
-			rootClass = graph.getOWLClassByIdentifier("UBERON:0001062");
+			rootClass = fac.getOWLThing();
+		//rootClass = graph.getOWLClassByIdentifier("UBERON:0001062");
 		LOG.info("AE = "+rootClass);
 		LOG.info("TC = "+taxClass);
 		OWLClassExpression rx = fac.getOWLObjectSomeValuesFrom(viewProperty,

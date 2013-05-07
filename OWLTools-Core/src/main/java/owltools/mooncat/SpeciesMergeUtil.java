@@ -8,8 +8,10 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
@@ -146,7 +148,7 @@ public class SpeciesMergeUtil {
 				+ " == " + rx);
 
 		ssClasses = reasoner.getSubClasses(rootSpeciesSpecificClass, false)
-				.getFlattened();
+		.getFlattened();
 		LOG.info("num ss Classes = " + ssClasses.size());
 		mgr.removeAxiom(ont, qax);
 		mgr.removeAxiom(ont,
@@ -181,7 +183,7 @@ public class SpeciesMergeUtil {
 							for (OWLClassExpression ux : oio.getOperands()) {
 								if (ux instanceof OWLClass) {
 									exmap.put(c, x); // e.g. fbbt:nn = ubr:nn
-														// and part_of dmel
+									// and part_of dmel
 									ecmap.put(c, (OWLClass) ux);
 									LOG.info("MAP: " + c + " --> " + ux
 											+ " // " + x);
@@ -213,6 +215,16 @@ public class SpeciesMergeUtil {
 				throw new UnmergeableOntologyException("unsatisfiable class: "+c);
 			}
 			LOG.info("ssClass = " + c);
+
+			// Do not preserve GCIs for upper-level classes
+			// TODO - makre this configurable
+			if (ecmap.containsKey(c)) {
+				if (isSkippable(ecmap.get(c))) {
+					LOG.info("Slipping: "+c);
+					continue;
+				}
+			}
+
 			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 			Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
 			axioms.addAll(ont.getAxioms(c));
@@ -221,6 +233,7 @@ public class SpeciesMergeUtil {
 				axioms.add(fac.getOWLSubClassOfAxiom(c, p));
 			}
 
+			// rewrite axioms
 			for (OWLAxiom axiom : axioms) {
 				//LOG.info("  axiom: " + axiom);
 				OWLAxiom newAxiom;
@@ -232,29 +245,28 @@ public class SpeciesMergeUtil {
 					newAxiom = tr(c, (OWLAnnotationAssertionAxiom) axiom);
 				else
 					newAxiom = null;
+				
+				if (newAxiom != null && ecmap.containsKey(c)) {
+					// avoid axioms like: (ubr:brain and part_of some fly) SubClassOf multi-tissue-structure
+					//  only keep rewritten axioms if they refer exlucsively to high-value classes.
+					//  however, non-unfolded classes will keep their axioms
+					for (OWLClass sc : newAxiom.getClassesInSignature()) {
+						if (isSkippable(sc)) {
+							newAxiom = null;
+							break;
+						}
+					}
+				}
 
 				if (newAxiom != null) {
+					
 					if (!newAxiom.getClassesInSignature().contains(
 							rootSpeciesSpecificClass))
 						newAxioms.add(newAxiom);
 				} else {
-
+					// failed to rewrite axiom - will not be added to set
 				}
 
-			}
-			if (ecmap.containsKey(c)) {
-				// redundant - remove declaration
-			} else {
-				// keep as leaf node - transfer all axioms
-				for (OWLAxiom ax : axioms) {
-					if (ax instanceof OWLSubClassOfAxiom) {
-
-					} else if (ax instanceof OWLEquivalentClassesAxiom) {
-
-					} else {
-
-					}
-				}
 			}
 
 			mgr.removeAxioms(ont, axioms);
@@ -286,6 +298,14 @@ public class SpeciesMergeUtil {
 	public OWLAxiom tr(OWLSubClassOfAxiom ax) {
 		OWLClassExpression trSub = trx(ax.getSubClass(), true);
 		OWLClassExpression trSuper = trx(ax.getSuperClass(), false);
+		/*
+		if (ecmap.containsKey(trSuper) && isSkippable(ecmap.get(trSuper))) {
+			return null;
+		}
+		if (trSuper instanceof OWLClass && isSkippable((OWLClass) trSuper)) {
+			return null;
+		}
+		*/
 		if (trSub == null)
 			return null;
 		if (trSuper == null)
@@ -293,7 +313,7 @@ public class SpeciesMergeUtil {
 		// E.g. (uber:1 and part_of fly) SubClassOf uber:1
 		if (trSub.getClassesInSignature().contains(trSuper))
 			return null;
-		
+
 		// e.g. (uber:neuron and part_of some fly) SubClassOf uber:cell -- already have uber:neuron SCA ubr>cell
 		if (!trSub.equals(ax.getSubClass()) &&
 				reasoner.getSuperClasses(ecmap.get(ax.getSubClass()), false).getFlattened().contains(trSuper)) {
@@ -305,7 +325,7 @@ public class SpeciesMergeUtil {
 			Set<OWLClass> ancs = new HashSet<OWLClass>();
 			ancs.addAll(reasoner.getSuperClasses(ecmap.get(ax.getSubClass()), false).getFlattened());
 			ancs.addAll(reasoner.getEquivalentClasses(ecmap.get(ax.getSubClass())).getEntities());
-			
+
 			for (OWLClass p : ancs) {
 				for (OWLSubClassOfAxiom sca : ont.getSubClassAxiomsForSubClass(p)) {
 					LOG.info("  CHECKING: "+sca.getSuperClass()+" == "+trSuper);
@@ -361,13 +381,42 @@ public class SpeciesMergeUtil {
 
 		return null;
 	}
-	
+
 	public class UnmergeableOntologyException extends Exception {
 
 		public UnmergeableOntologyException(String msg) {
 			super(msg);
 		}
-		
+
+	}
+	
+	public boolean isSkippable(OWLClass c) {
+		Set<OWLAnnotation> anns = c.getAnnotations(ont);
+		boolean isSkip = false;
+		for (OWLAnnotation ann : anns) {
+			String ap = ann.getProperty().getIRI().toString();
+			OWLAnnotationValue v = ann.getValue();
+			if (v instanceof IRI) {
+				IRI iv = (IRI)v;
+				if (ap.endsWith("inSubset")) {
+					// TODO - formalize this
+					if (iv.toString().contains("upper_level")) {
+						return true;
+					}
+					// this tag is used in uberon
+					if (iv.toString().contains("non_informative")) {
+						return true;
+					}
+					// hack: representation of early dev a bit problematic
+					// temporary: find a way to exclude these axiomatically
+					if (iv.toString().contains("early_development")) {
+						return true;
+					}
+				}
+
+			}
+		}	
+		return false;
 	}
 
 }
