@@ -47,12 +47,15 @@ public class JsCommandRunner extends Sim2CommandRunner {
 		String inlineScript = null;
 		String methodName = null; // optional
 		
-		while (opts.hasOpts()) {
+		while (opts.hasArgs()) {
 			if (opts.nextEq("-m") || opts.nextEq("--method")) {
 				methodName = opts.nextOpt();
 			}
 			else if (opts.nextEq("-i") || opts.nextEq("--inline")) {
 				inlineScript = opts.nextOpt();
+			}
+			else if (opts.nextEq("//")) {
+				break;
 			}
 			else {
 				scriptFiles.add(opts.nextOpt());

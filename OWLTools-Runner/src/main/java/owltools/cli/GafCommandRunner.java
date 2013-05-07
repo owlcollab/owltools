@@ -365,6 +365,7 @@ public class GafCommandRunner extends CommandRunner {
 				for (String line : lines) {
 					String id = line;
 					id = id.replaceAll(" .*", "");
+					id = id.replaceAll("\\t.*", "");
 					//LOG.info("ID:"+id);
 					OWLObject obj = g.getOWLObjectByIdentifier(id);
 					if (obj == null) {
@@ -403,6 +404,7 @@ public class GafCommandRunner extends CommandRunner {
 		Set<String> unmatchedIds = new HashSet<String>();
 		List<GeneAnnotation> mappedAnns = new ArrayList<GeneAnnotation>();
 		int n = 0;
+		gafdoc.addComment("Number of annotation in input set: "+gafdoc.getGeneAnnotations().size());
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
 			OWLClass c = g.getOWLClassByIdentifier(a.getCls());
 			if (ssm.containsKey(c)) {

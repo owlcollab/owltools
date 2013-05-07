@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -33,8 +34,10 @@ import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
+import owltools.sim2.preprocessor.AbstractSimPreProcessor;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
+import owltools.sim2.preprocessor.PropertyViewSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
@@ -257,7 +260,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 
 	private void loadProperties(String fn) throws IOException {
-		simProperties = new Properties();
+		if (simProperties == null)
+			this.initProperties();
 		FileInputStream myInputStream = new FileInputStream(fn);
 		simProperties.load(myInputStream);        
 		String myPropValue = simProperties.getProperty("propKey");
@@ -272,6 +276,20 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		//-------------------------------------------------
 		myInputStream.close(); // better in finally block
 		//-------------------------------------------------
+	}
+
+	@CLIMethod("--show-sim-properties")
+	public void showSimProperties(Opts opts) throws Exception {
+		for (Object k : simProperties.keySet()){
+			System.out.println(k+" = "+simProperties.getProperty(k.toString()));
+		}
+	}
+	@CLIMethod("--set-sim-property")
+	public void setSimProperty(Opts opts) throws Exception {
+		if (simProperties == null) {
+			simProperties = new Properties();
+		}
+		simProperties.setProperty(opts.nextOpt(), opts.nextOpt());
 	}
 
 	@CLIMethod("--phenosim")
@@ -302,7 +320,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 
 	}
-	
+
 	@CLIMethod("--phenosim-attribute-matrix")
 	public void phenoSimAttributeMatrix(Opts opts) throws Exception {
 		loadProperties(opts);
@@ -371,10 +389,21 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		loadProperties(opts);
 		try {
 			pproc = new NullSimPreProcessor();
+			if (simProperties.containsKey(SimConfigurationProperty.analysisRelation.toString())) {
+				pproc = new PropertyViewSimPreProcessor();
+				String relId = (String) simProperties.get((SimConfigurationProperty.analysisRelation.toString()));
+				OWLObjectProperty rel = g.getOWLObjectPropertyByIdentifier(relId);
+				PropertyViewSimPreProcessor xpproc = ((PropertyViewSimPreProcessor)pproc);
+				
+				LOG.info("View relation = "+rel);
+				xpproc.analysisRelation = rel;
+			}
+			pproc.setSimProperties(simProperties);
 			pproc.setInputOntology(g.getSourceOntology());
 			pproc.setOutputOntology(g.getSourceOntology());
 			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.setSimPreProcessor(pproc);
+			pproc.preprocess();
 			sos.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
 		}
@@ -382,7 +411,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.dispose();
 		}
 	}
-	
+
 	@CLIMethod("--sim-dl-query")
 	public void simDlQuery(Opts opts) throws Exception {
 		loadProperties(opts);

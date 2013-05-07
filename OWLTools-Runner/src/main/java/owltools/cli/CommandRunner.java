@@ -219,7 +219,7 @@ public class CommandRunner {
 	}
 
 	protected void exit(int code) {
-		
+
 		// if we are using this in a REPL context (e.g. owlrhino), we don't want to exit the shell
 		// on an error - reporting the error is sufficient
 		if (exitOnException)
@@ -531,6 +531,7 @@ public class CommandRunner {
 				OWLObjectProperty viewProperty = null;
 				OWLClass taxClass = null;
 				String suffix = null;
+				SpeciesSubsetterUtil smu = new SpeciesSubsetterUtil(g);
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-t|--taxon")) {
 						taxClass = this.resolveClass(opts.nextOpt());
@@ -538,10 +539,12 @@ public class CommandRunner {
 					else if (opts.nextEq("-p|--property")) {
 						viewProperty = this.resolveObjectProperty(opts.nextOpt());
 					}
+					else if (opts.nextEq("-r|--root")) {
+						smu.rootClass = this.resolveClass(opts.nextOpt());
+					}
 					else
 						break;
 				}
-				SpeciesSubsetterUtil smu = new SpeciesSubsetterUtil(g);
 				smu.viewProperty = viewProperty;
 				smu.taxClass = taxClass;
 				smu.reasoner = reasoner;
@@ -555,7 +558,7 @@ public class CommandRunner {
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-t|--taxon")) {
 						taxClass = this.resolveClass(opts.nextOpt());
-						
+
 					}
 					else if (opts.nextEq("-p|--property")) {
 						viewProperty = this.resolveObjectProperty(opts.nextOpt());
@@ -1132,6 +1135,33 @@ public class CommandRunner {
 					rmAxioms.addAll(ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION));
 					for (OWLNamedIndividual ind : ont.getIndividualsInSignature()) {
 						rmAxioms.add(g.getDataFactory().getOWLDeclarationAxiom(ind));
+					}
+					g.getManager().removeAxioms(ont, rmAxioms);
+				}
+			}
+			else if (opts.nextEq("--remove-tbox")) {
+				opts.info("", "removes all class axioms");
+				for (OWLOntology ont : g.getAllOntologies()) {
+					Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+					for (OWLAxiom ax : ont.getAxioms()) {
+						if (ax instanceof OWLClassAxiom) {
+							rmAxioms.add(ax);
+						}
+						else if (ax instanceof OWLDeclarationAxiom) {
+							if ( ((OWLDeclarationAxiom)ax).getEntity() instanceof OWLClass) {
+								rmAxioms.add(ax);
+							}
+						}
+						else if (ax instanceof OWLAnnotationAssertionAxiom) {
+							OWLAnnotationSubject subj = ((OWLAnnotationAssertionAxiom)ax).getSubject();
+							if (subj instanceof IRI) {
+								// warning - excessive pruning if there is punning
+								if (ont.getClassesInSignature(true).contains(g.getDataFactory().getOWLClass((IRI) subj))) {
+									rmAxioms.add(ax);
+								}
+							}
+						}
+
 					}
 					g.getManager().removeAxioms(ont, rmAxioms);
 				}
@@ -2071,6 +2101,20 @@ public class CommandRunner {
 					System.out.println("AX:"+a);
 				}
 			}
+			else if (opts.nextEq("--remove-axioms")) {
+				AxiomType t = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-t|--axiom-type")) {
+						t = AxiomType.getAxiomType(opts.nextOpt());
+					}
+					else {
+						break;
+					}
+				}
+				Set<OWLAxiom> axioms = g.getSourceOntology().getAxioms(t);
+				LOG.info("Removing axioms: "+axioms.size());
+				g.getManager().removeAxioms(g.getSourceOntology(), axioms);
+			}
 			else if (opts.nextEq("--translate-undeclared-to-classes")) {
 				for (OWLAnnotationAssertionAxiom a : g.getSourceOntology().getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
 					OWLAnnotationSubject sub = a.getSubject();
@@ -2155,6 +2199,15 @@ public class CommandRunner {
 				TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 				ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
 				ttac.config.isSwitchSubjectObject = true;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p|--property")) {
+						ttac.config.property = ((OWLNamedObject) resolveObjectProperty( opts.nextOpt())).getIRI();
+					}
+					else {
+						break;
+					}
+				}
+				
 				String f = opts.nextOpt();
 				System.out.println("tabfile: "+f);
 				ttac.parse(f);			
