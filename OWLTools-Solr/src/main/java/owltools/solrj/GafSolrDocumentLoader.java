@@ -608,7 +608,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		general_doc.addField("entity_label", esym);
 		general_doc.addField("document_category", "general");
 		general_doc.addField("category", "bioentity");
-		general_doc.addField("general_blob", ename + " " + StringUtils.join(esynonyms, " "));
+		general_doc.addField("general_blob", ename + " " + edbid + " " + StringUtils.join(esynonyms, " "));
 		add(general_doc);
 	}
 	
