@@ -107,6 +107,7 @@ public class SimpleOwlSim {
 	 *
 	 */
 	public enum SimConfigurationProperty {
+		analysisRelation,
 		minimumMaxIC, minimumSimJ,
 		compare;
 	}
@@ -295,6 +296,7 @@ public class SimpleOwlSim {
 			superclassMap = new HashMap<OWLClassExpression,Set<Node<OWLClass>>>();
 		}
 		superclassMap.put(a, new HashSet<Node<OWLClass>>(nodes));
+		LOG.info("# of superclasses of:"+a+" = "+nodes.size());
 		return nodes;
 	}
 
