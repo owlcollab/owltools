@@ -3,13 +3,18 @@ package owltools.cli;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -56,6 +61,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	private static final Logger LOG = Logger.getLogger(SolrCommandRunner.class);
 	
 	private String globalSolrURL = null;
+	private File globalSolrLogFile = null;
 	private ConfigManager aconf = null;
 	private PANTHERForest pSet = null;
 
@@ -139,6 +145,22 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	}
 	
 	/**
+	 * Set an optional file to use for logging load data (can be consumed by AmiGO 2).
+	 * 
+	 * @param opts
+	 */
+	@CLIMethod("--solr-log")
+	public void setSolrLogFile(Opts opts) {
+		String globalSolrLogFileName = opts.nextOpt(); // shift it off of null
+		globalSolrLogFile = FileUtils.getFile(globalSolrLogFileName);
+		if( globalSolrLogFile == null ){
+			LOG.info("Could not find/use file: " + globalSolrLogFileName);
+		}else{
+			LOG.info("Globally use GOlr log file: " + globalSolrLogFile.getAbsolutePath());
+		}
+	}
+	
+	/**
 	 * Manually purge the index to try again.
 	 * Since this cascade is currently ordered, can be used to purge before we load.
 	 * 
@@ -156,6 +178,16 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		SolrServer server = new CommonsHttpSolrServer(url);
 		try {
 			server.deleteByQuery("*:*");
+			
+			// Probably worked, so let's destroy the log if there is one.
+			if( globalSolrLogFile != null && globalSolrLogFile.exists() ){
+				boolean yes_p = globalSolrLogFile.delete();
+				if( yes_p ){
+					LOG.info("Deleted GOlr load log file.");
+				}else{
+					// Nothing there, doing nothing.
+				}
+			}
 		} catch (SolrServerException e) {
 			LOG.info("Purge at: " + url + " failed!");
 			e.printStackTrace();
@@ -163,27 +195,27 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		LOG.info("Purged: " + url);
 	}
 	
-	/**
-	 * Used for loading whatever ontology stuff we have into GOlr.
-	 * 
-	 * @param opts 
-	 * @throws Exception
-	 */
-	@Deprecated
-	@CLIMethod("--solr-load-ontology-old")
-	public void loadOntologySolr(Opts opts) throws Exception {
-		// Check to see if the global url has been set.
-		String url = sortOutSolrURL(globalSolrURL);				
-
-		// Actual ontology class loading.
-		try {
-			OntologySolrLoader loader = new OntologySolrLoader(url, g);
-			loader.load();
-		} catch (SolrServerException e) {
-			LOG.info("Ontology load at: " + url + " failed!");
-			e.printStackTrace();
-		}
-	}
+//	/**
+//	 * Used for loading whatever ontology stuff we have into GOlr.
+//	 * 
+//	 * @param opts 
+//	 * @throws Exception
+//	 */
+//	@Deprecated
+//	@CLIMethod("--solr-load-ontology-old")
+//	public void loadOntologySolr(Opts opts) throws Exception {
+//		// Check to see if the global url has been set.
+//		String url = sortOutSolrURL(globalSolrURL);				
+//
+//		// Actual ontology class loading.
+//		try {
+//			OntologySolrLoader loader = new OntologySolrLoader(url, g);
+//			loader.load();
+//		} catch (SolrServerException e) {
+//			LOG.info("Ontology load at: " + url + " failed!");
+//			e.printStackTrace();
+//		}
+//	}
 	
 	/**
 	 * Experimental Flexible loader for ontologies.
@@ -206,6 +238,17 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, flex);
 			LOG.info("Trying ontology flex load.");
 			loader.load();
+			
+			// Load likely successful--log it.
+			//optionallyLogLoad("ontology", ???);
+			// TODO: Well, this is a lame second best.
+			//for( OWLOntology o : g.getAllOntologies() ){
+			for( OWLOntology o : g.getManager().getOntologies() ){
+					
+				//optionallyLogLoad("ontology", o.getOntologyID().toString());
+				// This is "correct", but I'm only getting one.
+				optionallyLogLoad("ontology", o.getOntologyID().getOntologyIRI().toURI().toString());
+			}
 		} catch (SolrServerException e) {
 			LOG.info("Ontology load at: " + url + " failed!");
 			e.printStackTrace();
@@ -280,40 +323,46 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			GafObjectsBuilder builder = new GafObjectsBuilder();
 			gafdoc = builder.buildDocument(file);
 			loadGAFDoc(url, gafdoc, eco, taxo, pSet);
+			
+			// Load likely successful--log it.
+			optionallyLogLoad("gaf", file);
 		}
 		
 		eco.dispose();
 		taxo.dispose();
 	}
 	
-	/**
-	 * Requires the --gaf argument (or something else that fills the gafdoc object).
-	 * 
-	 * @param opts
-	 * @throws Exception
-	 */
-	@CLIMethod("--solr-load-gaf")
-	public void loadGafSolr(Opts opts) throws Exception {
-		// Double check we're not going to do something silly, like try and
-		// use a null variable...
-		if( gafdoc == null ){
-			System.err.println("No GAF document defined (maybe use '--gaf GAF-FILE') ");
-			exit(1);
-		}
-
-		// We should already have added the reasoner elsewhere on the commandline,
-		// So there should be real no extra overhead here.
-		EcoTools eco = new EcoTools(g, g.getReasoner(), true);
-		TaxonTools taxo = new TaxonTools(g, g.getReasoner(), true);
-
-		// Check to see if the global url has been set.
-		String url = sortOutSolrURL(globalSolrURL);
-		// Doc load.
-		loadGAFDoc(url, gafdoc, eco, taxo, pSet);
-
-		eco.dispose();
-		taxo.dispose();
-	}
+//	/**
+//	 * Requires the --gaf argument (or something else that fills the gafdoc object).
+//	 * 
+//	 * @param opts
+//	 * @throws Exception
+//	 */
+//	@CLIMethod("--solr-load-gaf")
+//	public void loadGafSolr(Opts opts) throws Exception {
+//		// Double check we're not going to do something silly, like try and
+//		// use a null variable...
+//		if( gafdoc == null ){
+//			System.err.println("No GAF document defined (maybe use '--gaf GAF-FILE') ");
+//			exit(1);
+//		}
+//
+//		// We should already have added the reasoner elsewhere on the commandline,
+//		// So there should be real no extra overhead here.
+//		EcoTools eco = new EcoTools(g, g.getReasoner(), true);
+//		TaxonTools taxo = new TaxonTools(g, g.getReasoner(), true);
+//
+//		// Check to see if the global url has been set.
+//		String url = sortOutSolrURL(globalSolrURL);
+//		// Doc load.
+//		loadGAFDoc(url, gafdoc, eco, taxo, pSet);
+//
+//		// Load likely successful--log it.
+//		optionallyLogLoad("gaf", gafdoc.getId());
+//
+//		eco.dispose();
+//		taxo.dispose();
+//	}
 		
 	/**
 	 * Requires the --read-panther argument (or something else that fills the pSet object).
@@ -527,6 +576,34 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		}
 		
 		return url;
+	}
+
+	
+	/*
+	 * Log out the URL, type, and date.
+	 */
+	private void optionallyLogLoad(String type, String uri){
+
+		// Naturally, if we haven't defined the file, skip the logging.
+		if( globalSolrLogFile != null ){
+
+			// Define the time right now.
+			//DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			String now = df.format(new Date());
+		
+			// Actually logging, don in an instant.
+			String ll = type + "\t" + now + "\t" + uri + "\n";
+			try {
+				FileUtils.writeStringToFile(globalSolrLogFile, ll, true);
+				LOG.info("Should be logging GOlr load at: " + globalSolrLogFile.getAbsolutePath());
+			} catch (IOException e) {
+				LOG.info("Unable to write to GOlr load log file at: " + globalSolrLogFile.getAbsolutePath());
+				e.printStackTrace();
+			}
+		}else{
+			LOG.info("Skip logging: No GOlr load log specified.");			
+		}
 	}
 	
 	/*
