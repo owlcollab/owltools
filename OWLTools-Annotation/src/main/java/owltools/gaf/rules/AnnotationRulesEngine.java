@@ -388,12 +388,21 @@ public class AnnotationRulesEngine {
 					if (summaryWriter != null) {
 						summaryWriter.print("For rule ");
 						summaryWriter.print(ruleId);
-						summaryWriter.print(' ');
+						summaryWriter.print(" (http://www.geneontology.org/GO.annotation_qc.shtml#");
+						summaryWriter.print(ruleId);
+						summaryWriter.print(")\n ");
 						summaryWriter.print(rule.getName());
-						summaryWriter.print(" there is/are ");
-						summaryWriter.print(violationList.size());
-						summaryWriter.print(" violation(s) with type ");
+						summaryWriter.print(", ");
+						if (violationList.size() == 1) {
+							summaryWriter.print("there is one violation with type ");
+						}
+						else {
+							summaryWriter.print("there are ");
+							summaryWriter.print(violationList.size());
+							summaryWriter.print(" violations with type ");
+						}
 						summaryWriter.print(type.name());
+						summaryWriter.print('.');
 						summaryWriter.println();
 						summaryWriter.println();
 					}
