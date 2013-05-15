@@ -50,6 +50,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.InferenceBuilder;
+import owltools.InferenceBuilder.AxiomPair;
 import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
@@ -68,7 +69,8 @@ public class AssertInferenceTool {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper graph = null;
 		boolean removeRedundant = true;
-		boolean checkConsistency = true; // TODO implement an option to override this?
+		boolean checkConsistency = true; // TODO provide a command-line option to override this.
+		boolean checkForPotentialRedundant = true;
 		boolean dryRun = false;
 		boolean useIsInferred = false;
 		boolean ignoreNonInferredForRemove = false;
@@ -137,6 +139,9 @@ public class AssertInferenceTool {
 				all = true;
 				Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
 			}
+			else if (opts.nextEq("--ignorePotentialRedundant")) {
+				checkForPotentialRedundant = false;
+			}
 			else {
 				inputs.add(opts.nextOpt());
 			}
@@ -190,7 +195,7 @@ public class AssertInferenceTool {
 				assertAllInferences(graph, idsInputFile);
 			}else {
 				// assert inferences
-				assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, reportWriter);
+				assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant, reportWriter);
 			}
 		}
 		finally {
@@ -296,11 +301,13 @@ public class AssertInferenceTool {
 			BufferedWriter reportWriter) 
 			throws InconsistentOntologyException, IOException
 	{
-		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true, reportWriter);
+		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true, true, reportWriter);
 	}
+	
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
 			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove,
-			boolean checkForNamedClassEquivalencies, BufferedWriter reportWriter) 
+			boolean checkForNamedClassEquivalencies, boolean checkForPotentialRedundant,
+			BufferedWriter reportWriter) 
 			throws InconsistentOntologyException, IOException
 	{
 		OWLOntology ontology = graph.getSourceOntology();
@@ -321,6 +328,8 @@ public class AssertInferenceTool {
 		}
 		DefaultAssertInferenceReport report = new DefaultAssertInferenceReport(graph);
 		
+		Set<OWLAxiom> newAxioms;
+		
 		// Inference builder
 		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
 		try {
@@ -332,7 +341,7 @@ public class AssertInferenceTool {
 			
 			// add inferences
 			logger.info("Start adding inferred axioms, count: " + inferences.size());
-			Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>(inferences);
+			newAxioms = new HashSet<OWLAxiom>(inferences);
 			if (useIsInferred) {
 				newAxioms = AxiomAnnotationTools.markAsInferredAxiom(newAxioms, factory);
 			}
@@ -404,6 +413,18 @@ public class AssertInferenceTool {
 					}
 				}
 				logger.info("Finished checking consistency");
+			}
+			if (checkForPotentialRedundant) {
+				logger.info("Running additional checks");
+				List<AxiomPair> axioms = builder.checkPotentialRedundantSubClassAxioms(newAxioms);
+				if (axioms != null) {
+					logger.error("Found potential problems");
+					for (AxiomPair pair : axioms) {
+						logger.error("POTENTIAL REDUNDANT AXIOMS: (1) "+owlpp.render(pair.getAxiomOne())+" (2) "+owlpp.render(pair.getAxiomTwo()));
+					}
+					throw new InconsistentOntologyException("Found potential redundant subClass axioms, count: " + axioms.size());
+				}
+				logger.info("Finished running additional checks");
 			}
 		}
 		finally {

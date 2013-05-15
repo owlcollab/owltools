@@ -9,6 +9,7 @@ import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -16,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
@@ -239,7 +241,8 @@ public class OWLGraphWrapperBasic {
 	}
 
 	/**
-	 * fetches all classes, individuals and object properties in all ontologies
+	 * fetches all classes, individuals and object properties in all ontologies.
+	 * This set is a copy. Changes are not reflected in the ontologies.
 	 * 
 	 * @return all named objects
 	 */
@@ -253,5 +256,50 @@ public class OWLGraphWrapperBasic {
 		return obs;
 	}
 
+	/**
+	 * Fetch all {@link OWLClass} objects from all ontologies. 
+	 * This set is a copy. Changes are not reflected in the ontologies.
+	 * 
+	 * @return set of all {@link OWLClass}
+	 */
+	public Set<OWLClass> getAllOWLClasses() {
+		Set<OWLClass> owlClasses = new HashSet<OWLClass>();
+		for (OWLOntology o : getAllOntologies()) {
+			owlClasses.addAll(o.getClassesInSignature());
+		}
+		return owlClasses;
+	}
+	
+	/**
+	 * Fetch all {@link OWLSubClassOfAxiom} axioms for a given subClass
+	 * ({@link OWLClass}) from all ontologies. This set is a copy. Changes are
+	 * not reflected in the ontologies.
+	 * 
+	 * @param owlClass
+	 * @return set of all {@link OWLSubClassOfAxiom}
+	 */
+	public Set<OWLSubClassOfAxiom> getAllOWLSubClassOfAxiomsForSubClass(OWLClass owlClass) {
+		Set<OWLSubClassOfAxiom> axioms = new HashSet<OWLSubClassOfAxiom>();
+		for (OWLOntology o : getAllOntologies()) {
+			axioms.addAll(o.getSubClassAxiomsForSubClass(owlClass));
+		}
+		return axioms;
+	}
+	
+	/**
+	 * Fetch all {@link OWLSubClassOfAxiom} axioms for a given superClass
+	 * ({@link OWLClass}) from all ontologies. This set is a copy. Changes are
+	 * not reflected in the ontologies.
+	 * 
+	 * @param owlClass
+	 * @return set of all {@link OWLSubClassOfAxiom}
+	 */
+	public Set<OWLSubClassOfAxiom> getAllOWLSubClassOfAxiomsForSuperClass(OWLClass owlClass) {
+		Set<OWLSubClassOfAxiom> axioms = new HashSet<OWLSubClassOfAxiom>();
+		for (OWLOntology o : getAllOntologies()) {
+			axioms.addAll(o.getSubClassAxiomsForSuperClass(owlClass));
+		}
+		return axioms;
+	}
 }
 

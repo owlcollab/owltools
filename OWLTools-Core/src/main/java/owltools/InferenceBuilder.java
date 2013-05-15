@@ -16,7 +16,9 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -490,6 +492,130 @@ public class InferenceBuilder{
 
 		return errors;
 
+	}
+	
+	public static class AxiomPair {
+		
+		final OWLAxiom axiomOne;
+		final OWLAxiom axiomTwo;
+		
+		/**
+		 * @param axiomOne
+		 * @param axiomTwo
+		 */
+		public AxiomPair(OWLAxiom axiomOne, OWLAxiom axiomTwo) {
+			this.axiomOne = axiomOne;
+			this.axiomTwo = axiomTwo;
+		}
+
+		/**
+		 * @return the axiomOne
+		 */
+		public OWLAxiom getAxiomOne() {
+			return axiomOne;
+		}
+		
+		/**
+		 * @return the axiomTwo
+		 */
+		public OWLAxiom getAxiomTwo() {
+			return axiomTwo;
+		}
+		
+	}
+	
+	/**
+	 * Check the list of axioms for potential redundant subClass axioms of type:
+	 * <pre>
+	 *   A SubClassOf R some B
+	 *    and
+	 *   A SubClassOf B
+	 * </pre>
+	 * 
+	 * @param inferredAxioms
+	 * @return list of axiom pairs
+	 */
+	public List<AxiomPair> checkPotentialRedundantSubClassAxioms(Collection<? extends OWLAxiom> inferredAxioms) {
+		List<AxiomPair> result = new ArrayList<AxiomPair>();
+		for(OWLAxiom axiom : inferredAxioms) {
+			if (axiom instanceof OWLSubClassOfAxiom) {
+				OWLSubClassOfAxiom main = (OWLSubClassOfAxiom) axiom;
+				OWLClassExpression mainSuperClassCE = main.getSuperClass();
+				if (mainSuperClassCE.isAnonymous()) {
+					continue;
+				}
+				OWLClassExpression mainSubClassCE = main.getSubClass();
+				if (mainSubClassCE.isAnonymous()) {
+					continue;
+				}
+				OWLClass mainSuperClass = mainSuperClassCE.asOWLClass();
+				OWLClass mainSubClass = mainSubClassCE.asOWLClass();
+				Set<OWLSubClassOfAxiom> subClassAxioms = graph.getAllOWLSubClassOfAxiomsForSubClass(mainSubClass);
+				if (subClassAxioms != null && subClassAxioms.size() > 1) {
+					for (OWLSubClassOfAxiom current : subClassAxioms) {
+						if (main == current) {
+							continue;
+						}
+						OWLClassExpression currentSuperClass = current.getSuperClass();
+						if (currentSuperClass.isAnonymous() && currentSuperClass instanceof OWLObjectSomeValuesFrom) {
+							OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) currentSuperClass;
+							if (mainSuperClass.equals(someValuesFrom.getFiller())) {
+								result.add(new AxiomPair(main, current));
+							}
+						}
+					}
+				}
+			}
+		}
+		if (result != null && !result.isEmpty()) {
+			return result;
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * Check all classes for potential redundant subClass axioms of type:
+	 * <pre>
+	 *   A SubClassOf R some B
+	 *    and
+	 *   A SubClassOf B
+	 * </pre>
+	 * 
+	 * @return list of axiom pairs
+	 */
+	public List<AxiomPair> checkPotentialRedundantSubClassAxioms() {
+		List<AxiomPair> result = new ArrayList<AxiomPair>();
+		for(OWLClass cls : graph.getAllOWLClasses()) {
+			Set<OWLSubClassOfAxiom> axioms = graph.getAllOWLSubClassOfAxiomsForSubClass(cls);
+			if (axioms.size() > 1) {
+				// only check sets with more than one axiom
+				for (OWLSubClassOfAxiom main : axioms) {
+					OWLClassExpression mainSuperClassCE = main.getSuperClass();
+					if (mainSuperClassCE.isAnonymous()) {
+						continue;
+					}
+					OWLClass mainSuperClass = mainSuperClassCE.asOWLClass();
+					for (OWLSubClassOfAxiom current : axioms) {
+						if (main == current) {
+							continue;
+						}
+						OWLClassExpression currentSuperClass = current.getSuperClass();
+						if (currentSuperClass.isAnonymous() && currentSuperClass instanceof OWLObjectSomeValuesFrom) {
+							OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) currentSuperClass;
+							if (mainSuperClass.equals(someValuesFrom.getFiller())) {
+								result.add(new AxiomPair(main, current));
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if (result != null && !result.isEmpty()) {
+			return result;
+		}
+		return null;
 	}
 
 	public Set<Set<OWLAxiom>> getExplaination(String c1, String c2, Quantifier quantifier){

@@ -110,6 +110,8 @@ public class OortConfiguration {
 	
 	private boolean removeRedunantAxioms = true;
 	
+	private boolean checkPotentialRedundant = true;
+	
 	private static List<OntologyCheck> getDefaultOntologyChecks() {
 		List<OntologyCheck> checks = new ArrayList<OntologyCheck>();
 		checks.add(new SelfReferenceInDefinition());
@@ -563,7 +565,7 @@ public class OortConfiguration {
 	}
 
 	/**
-	 * @param sets map of IRIs to be rewritten <from,to>
+	 * @param rewriteIRIMap map of IRIs to be rewritten <from,to>
 	 */
 	public void setRewriteIRIMap(Map<IRI, IRI> rewriteIRIMap) {
 		this.rewriteIRIMap = rewriteIRIMap;
@@ -906,6 +908,20 @@ public class OortConfiguration {
 		this.removeRedunantAxioms = removeRedunantAxioms;
 	}
 
+	/**
+	 * @return the checkPotentialRedundant
+	 */
+	public boolean isCheckPotentialRedundant() {
+		return checkPotentialRedundant;
+	}
+
+	/**
+	 * @param checkPotentialRedundant the checkPotentialRedundant to set
+	 */
+	public void setCheckPotentialRedundant(boolean checkPotentialRedundant) {
+		this.checkPotentialRedundant = checkPotentialRedundant;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -973,6 +989,8 @@ public class OortConfiguration {
 		builder.append(queryOntologyReferenceIsIRI);
 		builder.append(", removeQueryOntologyReference=");
 		builder.append(removeQueryOntologyReference);
+		builder.append(", checkPotentialRedundant=");
+		builder.append(checkPotentialRedundant);
 		builder.append("]");
 		return builder.toString();
 	}
@@ -1023,6 +1041,7 @@ public class OortConfiguration {
 		putValue(properties, "errorReportFile", config.errorReportFile);
 		putValue(properties, "traceReportFile", config.traceReportFile);
 		putValue(properties, "removeRedunantAxioms", config.removeRedunantAxioms);
+		putValue(properties, "checkPotentialRedundant", config.checkPotentialRedundant);
 		return properties;
 	}
 	
@@ -1140,6 +1159,7 @@ public class OortConfiguration {
 		config.errorReportFile = getValue(properties, "errorReportFile", config.errorReportFile);
 		config.traceReportFile = getValue(properties, "traceReportFile", config.traceReportFile);
 		config.removeRedunantAxioms = getValue(properties, "removeRedunantAxioms", config.removeRedunantAxioms);
+		config.checkPotentialRedundant = getValue(properties, "checkPotentialRedundant", config.checkPotentialRedundant);
 	}
 	
 	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {

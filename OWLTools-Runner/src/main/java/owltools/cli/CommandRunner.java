@@ -2850,6 +2850,7 @@ public class CommandRunner {
 		boolean useIsInferred = false;
 		boolean ignoreNonInferredForRemove = false;
 		boolean checkForNamedClassEquivalencies = true;
+		boolean checkForPotentialRedundant = true;
 		String reportFile = null;
 
 		while (opts.hasOpts()) {
@@ -2882,11 +2883,11 @@ public class CommandRunner {
 		if (reportFile != null) {
 			reportWriter = new BufferedWriter(new FileWriter(reportFile));
 		}
-
-		AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies, reportWriter);
-
-		if (reportWriter != null) {
-			reportWriter.close();
+		try {
+			AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies, checkForPotentialRedundant, reportWriter);
+		}
+		finally {
+			IOUtils.closeQuietly(reportWriter);
 		}
 	}
 

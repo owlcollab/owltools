@@ -59,6 +59,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 import owltools.InferenceBuilder;
+import owltools.InferenceBuilder.AxiomPair;
 import owltools.JustifyAssertionsTool;
 import owltools.JustifyAssertionsTool.JustifyResult;
 import owltools.cli.Opts;
@@ -74,10 +75,10 @@ import owltools.mooncat.Mooncat;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
 import owltools.ontologyrelease.OortConfiguration.MacroStrategy;
+import owltools.ontologyrelease.logging.ErrorReportFileHandler;
 import owltools.ontologyrelease.logging.ExplicitReportFileHandler;
 import owltools.ontologyrelease.logging.Log4jHandler;
 import owltools.ontologyrelease.logging.LogHandler;
-import owltools.ontologyrelease.logging.ErrorReportFileHandler;
 import owltools.ontologyrelease.logging.TraceReportFileHandler;
 import owltools.ontologyverification.OntologyCheck;
 import owltools.ontologyverification.OntologyCheckHandler;
@@ -387,6 +388,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			else if (opts.nextEq("--skip-remove-redundant")) {
 				oortConfig.setRemoveRedunantAxioms(false);
+			}
+			else if (opts.nextEq("--ignore-potential-redundant")) {
+				oortConfig.setCheckPotentialRedundant(false);
 			}
 			else if (opts.nextEq("--error-report")) {
 				String errorReportFile = "error-report.txt";
@@ -911,6 +915,26 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					}
 					else {
 						logInfo("Skipping removal of redundant axioms");
+					}
+					
+					if (oortConfig.isCheckPotentialRedundant()) {
+						logInfo("Check for potential redundant subClass axioms");
+						List<AxiomPair> potentialRedundants = infBuilder.checkPotentialRedundantSubClassAxioms();
+						if (potentialRedundants != null && !potentialRedundants.isEmpty()) {
+							logWarn("Found potential redundant subClass axioms");
+							List<String> reasons = new ArrayList<String>();
+							for (AxiomPair pair : potentialRedundants) {
+								String axiomOneString = owlpp.render(pair.getAxiomOne());
+								String axiomTwoString = owlpp.render(pair.getAxiomTwo());
+								reasons.add(axiomOneString+" "+axiomTwoString);
+								String message = "POTENTIAL_REDUNDANT\t"+axiomOneString+"\t"+axiomTwoString;
+								reasonerReportLines.add(message);
+							}
+							if (!oortConfig.isForceRelease()) {
+								saveReasonerReport(ontologyId, reasonerReportLines);
+								throw new OboOntologyReleaseRunnerCheckException("Found potential redundant subClass axioms", reasons, "Use ForceRelease option to ignore this warning.");
+							}
+						}
 					}
 					
 					saveReasonerReport(ontologyId, reasonerReportLines);

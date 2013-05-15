@@ -1,0 +1,25 @@
+format-version: 1.2
+ontology: test
+
+[Term]
+id: TEST:0001
+
+[Term]
+id: TEST:0002
+is_a: TEST:0001
+
+[Term]
+id: TEST:0003
+is_a: TEST:0002
+
+[Term]
+id: TEST:0004
+is_a: TEST:0002
+relationship: part_of TEST:0002
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_transitive: true
