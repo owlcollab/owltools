@@ -121,7 +121,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.6.4</version>
+			<version>1.7.2</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
@@ -134,7 +134,7 @@
 			<dependency>
 				<groupId>log4j</groupId>
 				<artifactId>log4j</artifactId>
-				<version>1.2.15</version>
+				<version>1.2.17</version>
 				<exclusions>
 					<exclusion>
 						<artifactId>mail</artifactId>
@@ -266,5 +266,6 @@
 		<module>../OWLTools-Solr</module>
 		<module>../OWLTools-Web</module>
 		<module>../OWLTools-NCBI</module>
+		<module>../OWLTools-Sim</module>
 	</modules>
 </project>
