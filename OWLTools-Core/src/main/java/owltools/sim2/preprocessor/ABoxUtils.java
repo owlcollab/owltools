@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
@@ -160,6 +161,21 @@ public class ABoxUtils {
 		// TODO - in future communicate leaf nodes a different way
 	}
 
-
+	/**
+	 * Creates a "fake" individual for every class. Uses punning.
+	 * 
+	 * @param srcOnt
+	 * @throws OWLOntologyCreationException
+	 */
+	public static void makeDefaultIndividuals(OWLOntology srcOnt) throws OWLOntologyCreationException {
+		OWLOntologyManager m = srcOnt.getOWLOntologyManager();
+		OWLDataFactory df = m.getOWLDataFactory();
+		for (OWLClass c : srcOnt.getClassesInSignature(true)) {
+			IRI iri = c.getIRI();
+			OWLNamedIndividual ind = df.getOWLNamedIndividual(iri);
+			m.addAxiom(srcOnt, df.getOWLDeclarationAxiom(ind));
+			m.addAxiom(srcOnt, df.getOWLClassAssertionAxiom(c, ind));
+		}
+	}
 
 }

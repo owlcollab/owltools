@@ -311,12 +311,10 @@ public class PropertyViewOntologyBuilder {
 	}
 	
 	
-	@Deprecated
 	public boolean isCreateReflexiveClasses() {
 		return isCreateReflexiveClasses;
 	}
 
-	@Deprecated
 	public void setCreateReflexiveClasses(boolean isCreateReflexiveClasses) {
 		this.isCreateReflexiveClasses = isCreateReflexiveClasses;
 	}
@@ -499,7 +497,6 @@ public class PropertyViewOntologyBuilder {
 			// note that the "entire structure" (E) is always a subclass of / more specific
 			// than the grouping structure (S). This is not a full SEP pattern as
 			// we do not have the proper part (P).
-			/*
 			if (isCreateReflexiveClasses) {
 				OWLObjectSomeValuesFrom svf =
 					owlDataFactory.getOWLObjectSomeValuesFrom(viewProperty, c);
@@ -507,7 +504,6 @@ public class PropertyViewOntologyBuilder {
 				owlOntologyManager.addAxiom(assertedViewOntology, sca);
 				LOG.info("REFLEXIVE: "+sca);
 			}
-			*/
 		}		
 	}
 

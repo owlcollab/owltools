@@ -46,15 +46,20 @@ public class SimpleOwlSim {
 
 	private Logger LOG = Logger.getLogger(SimpleOwlSim.class);
 
+	// Convenience handles for OWLAPI top-level objects
 	private OWLDataFactory owlDataFactory;
 	private OWLOntologyManager owlOntologyManager;
+	private OWLOntology sourceOntology;       
 
 	// TODO - more fine grained control over axes of classification
 	private Set<OWLClass> ignoreSubClassesOf = null;
+	
+	// the classes used to annotate the elements (genes, diseases, etc)
 	private Set<OWLClass> cachedAttributeClasses = null;
+	
+	// number of individuals in domain
 	private Integer corpusSize;
 
-	private OWLOntology sourceOntology;       
 	private SimPreProcessor simPreProcessor = null;
 	//private OWLOntology resultsOntology = null;
 
@@ -406,6 +411,22 @@ public class SimpleOwlSim {
 		cu.addAll(getInferredAttributes(j));
 		return ci.size() / (float)cu.size();
 	}
+	
+	/**
+	 * <pre>
+	 * | anc(a) &cap; anc(b) | / | anc(a)  |
+	 * </pre>
+	 * 
+	 * @param a
+	 * @param b
+	 * @return Asymmetric SimJ of two attribute classes
+	 */
+	public double getAsymmerticAttributeJaccardSimilarity(OWLClassExpression a, OWLClassExpression b) {
+		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b);
+		Set<Node<OWLClass>> d = getNamedReflexiveSubsumers(a);
+		return ci.size() / (float)d.size();
+	}
+
 	
 	/**
 	 * <img src="http://www.pubmedcentral.nih.gov/picrender.fcgi?artid=2238903&blobname=gkm806um8.jpg" alt="formula for simGIC"/>

@@ -689,6 +689,20 @@ public class Mooncat {
 			removeDanglingAxioms(o);
 		}
 	}
+	public void removeSubsetClasses(Set<OWLClass> rmSet, boolean removeDangling) {
+		OWLOntology o = getOntology();
+		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		for (OWLClass c : rmSet) {
+			rmAxioms.addAll(c.getAnnotationAssertionAxioms(o));
+			rmAxioms.addAll(o.getAxioms(c));
+		}
+		LOG.info("Removing "+rmAxioms.size() +" axioms");
+		graph.getManager().removeAxioms(o, rmAxioms);
+		if (removeDangling) {
+			LOG.info("Removing dangling axioms");
+			removeDanglingAxioms(o);
+		}
+	}
 
 	public OWLOntology makeClosureSubsetOntology(Set<OWLClass> subset, IRI subOntIRI) throws OWLOntologyCreationException {
 		Set<OWLObject> objs = getClosureOfExternalReferencedEntities();
