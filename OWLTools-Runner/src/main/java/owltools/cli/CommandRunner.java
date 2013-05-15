@@ -71,6 +71,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -522,8 +523,8 @@ public class CommandRunner {
 				System.out.println("Class = "+c);
 				owlpp = new OWLPrettyPrinter(g);
 				for (OWLClassAxiom ax : g.getSourceOntology().getAxioms(c)) {
-					System.out.println(ax);
-					//owlpp.print(ax);
+					//System.out.println(ax);
+					owlpp.print(ax);
 				}
 			}
 			else if (opts.nextEq("--make-species-subset")) {
@@ -1480,6 +1481,9 @@ public class CommandRunner {
 			else if (opts.nextEq("--abox-to-tbox")) {
 				ABoxUtils.translateABoxToTBox(g.getSourceOntology());
 			}
+			else if (opts.nextEq("--make-default-abox")) {
+				ABoxUtils.makeDefaultIndividuals(g.getSourceOntology());
+			}
 			else if (opts.nextEq("--map-abox-to-results")) {
 				Set<OWLClass> cs = new HashSet<OWLClass>();
 				for (OWLObject obj : owlObjectCachedSet) {
@@ -2115,6 +2119,32 @@ public class CommandRunner {
 				LOG.info("Removing axioms: "+axioms.size());
 				g.getManager().removeAxioms(g.getSourceOntology(), axioms);
 			}
+			else if (opts.nextEq("--remove-subset")) {
+				String subset = opts.nextOpt();
+				Set<OWLClass> cset = new HashSet<OWLClass>();
+				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
+					boolean isRemove = false;
+					Set<OWLAnnotation> anns = c.getAnnotations(g.getSourceOntology());
+					for (OWLAnnotation ann : anns) {
+						String ap = ann.getProperty().getIRI().toString();
+						OWLAnnotationValue v = ann.getValue();
+						if (v instanceof IRI) {
+							IRI iv = (IRI)v;
+							if (ap.endsWith("inSubset")) {
+								if (iv.toString().equals(subset) || iv.toString().endsWith("#"+subset)) {
+									isRemove = true;
+									break;
+								}
+							}
+						}
+					}
+					if (isRemove)
+						cset.add(c);
+				}
+				LOG.info("Removing "+cset.size()+" classes");
+				Mooncat m = new Mooncat(g);
+				m.removeSubsetClasses(cset, false);
+			}
 			else if (opts.nextEq("--translate-undeclared-to-classes")) {
 				for (OWLAnnotationAssertionAxiom a : g.getSourceOntology().getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
 					OWLAnnotationSubject sub = a.getSubject();
@@ -2207,7 +2237,7 @@ public class CommandRunner {
 						break;
 					}
 				}
-				
+
 				String f = opts.nextOpt();
 				System.out.println("tabfile: "+f);
 				ttac.parse(f);			
@@ -2573,14 +2603,19 @@ public class CommandRunner {
 					g.addSupportOntology(pvob.getInferredViewOntology());
 				}
 			}
-			else if (opts.nextEq("--materialize-property-inferences|mpi")) {
-				opts.info("", "reasoned property view. Alternative to --bpvo");
+			else if (opts.nextEq("--materialize-property-inferences|--mpi")) {
+				opts.info("[-p PROPERTY]... [-m|--merge]", "reasoned property view. Alternative to --bpvo");
 				// TODO - incorporate this into sparql query
 				Set<OWLObjectProperty> vps = new HashSet<OWLObjectProperty>();
+				Set<OWLObjectProperty> reflexiveVps = new HashSet<OWLObjectProperty>();
 				boolean isMerge = false;
+				boolean isPrereason = true;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-p")) {
 						opts.info("PROPERTY-ID-OR-LABEL", "The ObjectProperty P that is used to build the view");
+						boolean isReflexive = false;
+						if (opts.nextEq("-r|--reflexive"))
+							isReflexive = true;
 						String s = opts.nextOpt();
 						OWLObjectProperty viewProperty = resolveObjectProperty(s);
 						if (viewProperty == null) {
@@ -2589,19 +2624,29 @@ public class CommandRunner {
 							throw new IOException("Could not find an OWLObjectProperty for string: "+s);
 						}
 						vps.add(viewProperty);
+						if (isReflexive)
+							reflexiveVps.add(viewProperty);
 					}
-					else if (opts.nextEq("--merge|m")) {
+					else if (opts.nextEq("--merge|-m")) {
 						isMerge = true;
+					}
+					else if (opts.nextEq("--no-assert-inferences|-n")) {
+						isPrereason = false;
 					}
 					else {
 						break;
 					}
+				}
+				if (!isPrereason && !isMerge) {
+					LOG.warn("ontology will be empty!");
 				}
 				OWLOntology vOnt = g.getManager().createOntology();
 				Set<OWLClass> allvcs = new HashSet<OWLClass>();
 				for (OWLObjectProperty vp : vps) {
 					PropertyViewOntologyBuilder pvob = 
 						new PropertyViewOntologyBuilder(g.getSourceOntology(), vp);
+					if (reflexiveVps.contains(vp))
+						pvob.setCreateReflexiveClasses(true);
 					pvob.buildViewOntology();
 					OWLOntology avo = pvob.getAssertedViewOntology();
 					Set<OWLClass> vcs = avo.getClassesInSignature();
@@ -2609,32 +2654,34 @@ public class CommandRunner {
 					allvcs.addAll(vcs);
 					g.mergeOntology(avo); // todo - more sophisticated
 				}
-				if (reasoner == null) {
-					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
-					LOG.info("created reasoner: "+reasoner);
-				}
-				for (OWLClass c : g.getSourceOntology().getClassesInSignature(true)) {
-					Set<OWLClass> scs = reasoner.getSuperClasses(c, false).getFlattened();
-					for (OWLClass sc : scs) {
-						OWLSubClassOfAxiom sca = g.getDataFactory().getOWLSubClassOfAxiom(c, sc);
-						g.getManager().addAxiom(vOnt, sca);
+				if (isPrereason) {
+					if (reasoner == null) {
+						reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+						LOG.info("created reasoner: "+reasoner);
 					}
-					// inferred (named classes) plus asserted (include class expressions)
-					Set<OWLClassExpression> ecs = c.getEquivalentClasses(g.getSourceOntology());
-					ecs.addAll(reasoner.getEquivalentClasses(c).getEntities());
-					for (OWLClassExpression ec : ecs) {
-						if (ec.equals(c))
-							continue;
-						OWLEquivalentClassesAxiom eca = g.getDataFactory().getOWLEquivalentClassesAxiom(c, ec);
-						g.getManager().addAxiom(vOnt, eca);
+					for (OWLClass c : g.getSourceOntology().getClassesInSignature(true)) {
+						Set<OWLClass> scs = reasoner.getSuperClasses(c, false).getFlattened();
+						for (OWLClass sc : scs) {
+							OWLSubClassOfAxiom sca = g.getDataFactory().getOWLSubClassOfAxiom(c, sc);
+							g.getManager().addAxiom(vOnt, sca);
+						}
+						// inferred (named classes) plus asserted (include class expressions)
+						Set<OWLClassExpression> ecs = c.getEquivalentClasses(g.getSourceOntology());
+						ecs.addAll(reasoner.getEquivalentClasses(c).getEntities());
+						for (OWLClassExpression ec : ecs) {
+							if (ec.equals(c))
+								continue;
+							OWLEquivalentClassesAxiom eca = g.getDataFactory().getOWLEquivalentClassesAxiom(c, ec);
+							g.getManager().addAxiom(vOnt, eca);
 
-						// bidirectional subclass axioms for each equivalent pair
-						OWLSubClassOfAxiom sca1 = g.getDataFactory().getOWLSubClassOfAxiom(c, ec);
-						g.getManager().addAxiom(vOnt, sca1);
+							// bidirectional subclass axioms for each equivalent pair
+							OWLSubClassOfAxiom sca1 = g.getDataFactory().getOWLSubClassOfAxiom(c, ec);
+							g.getManager().addAxiom(vOnt, sca1);
 
-						OWLSubClassOfAxiom sca2 = g.getDataFactory().getOWLSubClassOfAxiom(ec, c);
-						g.getManager().addAxiom(vOnt, sca2);
+							OWLSubClassOfAxiom sca2 = g.getDataFactory().getOWLSubClassOfAxiom(ec, c);
+							g.getManager().addAxiom(vOnt, sca2);
 
+						}
 					}
 				}
 				// TODO - turn allvcs into bnodes
