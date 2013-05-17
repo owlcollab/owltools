@@ -207,7 +207,13 @@ public class CommandRunner {
 	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
 
 	protected ParserWrapper pw = new ParserWrapper();
-	protected OWLPrettyPrinter owlpp;
+	
+	/**
+	 * Use {@link #getPrettyPrinter()} to access a pre-configured or the default pretty printer.
+	 */
+	private OWLPrettyPrinter owlpp;
+	private String prettyPrinterFormat = null;
+	private boolean prettyPrinterHideIds = false;
 
 	public class OptionException extends Exception {
 
@@ -522,7 +528,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--list-class-axioms")) {
 				OWLClass c = resolveClass(opts.nextOpt());
 				System.out.println("Class = "+c);
-				owlpp = new OWLPrettyPrinter(g);
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
 				for (OWLClassAxiom ax : g.getSourceOntology().getAxioms(c)) {
 					//System.out.println(ax);
 					owlpp.print(ax);
@@ -822,7 +828,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--query-cw")) {
 				opts.info("", "closed-world query");
-				owlpp = new OWLPrettyPrinter(g);
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
 
 				for (OWLClass qc : queryExpressionMap.keySet()) {
 					System.out.println(" CWQueryClass: "+qc);
@@ -1327,7 +1333,7 @@ public class CommandRunner {
 
 				if (ce == null && expression == null)
 					expression = opts.nextOpt();
-				owlpp = new OWLPrettyPrinter(g);
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
 				Set<OWLClass> results = new HashSet<OWLClass>();
 				ManchesterSyntaxTool parser = new ManchesterSyntaxTool(g.getSourceOntology(), g.getSupportOntologySet());
 
@@ -1581,7 +1587,7 @@ public class CommandRunner {
 				Set<OWLAxiom> iAxioms = new HashSet<OWLAxiom>();
 				Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 				String q = opts.nextOpt().toLowerCase();
-				owlpp = new OWLPrettyPrinter(g);
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
 				OWLOntology ont = g.getSourceOntology();
 				for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
 					if (q.startsWith("e")) {
@@ -1677,7 +1683,7 @@ public class CommandRunner {
 						break;
 					}
 				}
-				owlpp = new OWLPrettyPrinter(g);
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
 
 				boolean isQueryProcessed = false;
 				if (reasoner == null) {
@@ -1942,7 +1948,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--descendants")) {
 				opts.info("LABEL", "show all descendant nodes");
 				OWLObject obj = resolveEntity( opts);
-				owlpp = new OWLPrettyPrinter(g);
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
 				System.out.println("#" + obj+ " "+obj.getClass()+" "+owlpp.render(obj));
 				Set<OWLObject> ds = g.getDescendants(obj);
 				for (OWLObject d : ds)
@@ -1959,7 +1965,7 @@ public class CommandRunner {
 			else if (opts.nextEq("-l") || opts.nextEq("--list-axioms")) {
 				opts.info("LABEL", "lists all axioms for entity matching LABEL");
 				OWLObject obj = resolveEntity( opts);
-				owlpp = new OWLPrettyPrinter(g);
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
 				owlpp.print("## Showing axiom for: "+obj);
 				Set<OWLAxiom> axioms = g.getSourceOntology().getReferencingAxioms((OWLEntity) obj);
 				owlpp.print(axioms);
@@ -1972,7 +1978,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--obsolete-class")) {
 				opts.info("LABEL", "Add a deprecation axiom");
 				OWLObject obj = resolveEntity( opts);
-				owlpp = new OWLPrettyPrinter(g);
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
 				owlpp.print("## Obsoleting: "+obj);
 				Set<OWLAxiom> refAxioms = g.getSourceOntology().getReferencingAxioms((OWLEntity) obj);
 				Set<OWLClassAxiom> axioms = g.getSourceOntology().getAxioms((OWLClass) obj);
@@ -3395,7 +3401,42 @@ public class CommandRunner {
 			System.out.println(owlpp.render(e));
 		}
 	}
-
+	
+	protected synchronized OWLPrettyPrinter getPrettyPrinter() {
+		if (owlpp == null) {
+			if ("Manchester".equals(prettyPrinterFormat)) {
+				owlpp = OWLPrettyPrinter.createManchesterSyntaxPrettyPrinter(g);
+			}
+			else {
+				// create default pretty printer
+				owlpp = new OWLPrettyPrinter(g);
+			}
+			if (prettyPrinterHideIds) {
+				owlpp.hideIds();
+			}
+			
+		}
+		return owlpp;
+	}
+	
+	@CLIMethod("--pretty-printer-settings")
+	public void handlePrettyPrinter(Opts opts) throws Exception {
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-m|--manchester")) {
+				prettyPrinterFormat = "Manchester";
+			}
+			else if (opts.nextEq("-f|-format")) {
+				prettyPrinterFormat = opts.nextOpt();
+			}
+			else if (opts.nextEq("--hide-ids")) {
+				prettyPrinterHideIds = true;
+			}
+			else {
+				break;
+			}
+		}
+	}
+	
 	public void summarizeOntology(OWLOntology ont) {
 		System.out.println("Ontology:"+ont);
 		System.out.println("  Classes:"+ont.getClassesInSignature().size());

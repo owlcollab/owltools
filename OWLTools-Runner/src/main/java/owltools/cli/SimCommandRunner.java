@@ -282,7 +282,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 
 	@CLIMethod("--lcsx")
 	public void lcsx(Opts opts) {
-		owlpp = new OWLPrettyPrinter(g);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 
 		opts.info("LABEL", "anonymous class expression 1");
 		OWLObject a = resolveEntity( opts);
@@ -328,7 +328,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 			}
 		}
 		Set<OWLClassExpression> lcsh = new HashSet<OWLClassExpression>();
-		owlpp = new OWLPrettyPrinter(g, new ManchesterOWLSyntaxOWLObjectRendererImpl());
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g, new ManchesterOWLSyntaxOWLObjectRendererImpl());
 		owlpp.hideIds();
 		for (OWLObject a : objs1) {
 			for (OWLObject b : objs2) {
@@ -417,7 +417,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	 */
 	public void runOwlSim(Opts opts) {
 		sos.setSimProperties(simProperties);
-		owlpp = new OWLPrettyPrinter(g);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (opts.nextEq("-q")) {
 			runOwlSimOnQuery(opts, opts.nextOpt());
 			return;
@@ -428,7 +428,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 			for (OWLNamedIndividual j : insts) {
 				// similarity is symmetrical
 				if (isComparable(i,j)) {
-					showSim(i,j);
+					showSim(i,j, owlpp);
 				}
 			}
 		}
@@ -440,8 +440,9 @@ public class SimCommandRunner extends SolrCommandRunner {
 		OWLNamedIndividual qi = (OWLNamedIndividual) resolveEntity(q);
 		System.out.println("Query Individual: "+qi);
 		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		for (OWLNamedIndividual j : insts) {
-			showSim(qi,j);
+			showSim(qi,j, owlpp);
 		}
 
 	}
@@ -463,7 +464,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 		}
 	}
 
-	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
 		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
 		if ( maxic.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
 			return;
@@ -474,14 +475,14 @@ public class SimCommandRunner extends SolrCommandRunner {
 		}
 		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
 
-		System.out.println("SimJ\t"+renderPair(i,j)+"\t"+s);
+		System.out.println("SimJ\t"+renderPair(i,j, owlpp)+"\t"+s);
 
-		System.out.println("MaxIC\t"+renderPair(i,j)+"\t"+maxic.score+"\t"+show(maxic.attributeClassSet));
+		System.out.println("MaxIC\t"+renderPair(i,j, owlpp)+"\t"+maxic.score+"\t"+show(maxic.attributeClassSet, owlpp));
 
-		System.out.println("BMAasym\t"+renderPair(i,j)+"\t"+bma.score+"\t"+show(bma.attributeClassSet));	
+		System.out.println("BMAasym\t"+renderPair(i,j, owlpp)+"\t"+bma.score+"\t"+show(bma.attributeClassSet, owlpp));	
 	}
 
-	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j) {
+	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
 		return i+"\t"+owlpp.render(i)+"\t"+j+"\t"+owlpp.render(j);
 	}
 
@@ -601,7 +602,7 @@ public class SimCommandRunner extends SolrCommandRunner {
 	// NEW
 	@CLIMethod("--enrichment-analysis")
 	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
-		owlpp = new OWLPrettyPrinter(g);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (sos == null) {
 			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.createElementAttributeMapFromOntology();
@@ -623,17 +624,17 @@ public class SimCommandRunner extends SolrCommandRunner {
 		OWLClass pc = g.getDataFactory().getOWLThing();
 		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1, rc2);
 		for (EnrichmentResult result : results) {
-			System.out.println(render(result));
+			System.out.println(render(result, owlpp));
 		}
 	}
 
-	private String render(EnrichmentResult r) {
+	private String render(EnrichmentResult r, OWLPrettyPrinter owlpp) {
 		return owlpp.render(r.sampleSetClass) +"\t"+ owlpp.render(r.enrichedClass)
 		+"\t"+ r.pValue +"\t"+ r.pValueCorrected;
 	}
 
 
-	private String show(Set<OWLClassExpression> cset) {
+	private String show(Set<OWLClassExpression> cset, OWLPrettyPrinter owlpp) {
 		StringBuffer sb = new StringBuffer();
 		for (OWLClassExpression c : cset) {
 			sb.append(owlpp.render(c) + "\t");

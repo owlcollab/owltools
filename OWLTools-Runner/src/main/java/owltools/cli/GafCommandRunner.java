@@ -242,7 +242,7 @@ public class GafCommandRunner extends CommandRunner {
 	
 	@CLIMethod("--gaf-xp-predict")
 	public void gafXpPredict(Opts opts) {
-		owlpp = new OWLPrettyPrinter(g);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (gafdoc == null) {
 			System.err.println("No gaf document (use '--gaf GAF-FILE') ");
 			exit(1);
@@ -258,7 +258,6 @@ public class GafCommandRunner extends CommandRunner {
 	@CLIMethod("--gaf-term-IC-values")
 	public void gafTermICValues(Opts opts) {
 		// TODO - ensure has_part and other relations are excluded
-		owlpp = new OWLPrettyPrinter(g);
 		Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
 		double corpusSize = gafdoc.getBioentities().size();
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
@@ -285,7 +284,6 @@ public class GafCommandRunner extends CommandRunner {
 	@CLIMethod("--gaf-term-counts")
 	public void gafTermCounts(Opts opts) {
 		// TODO - ensure has_part and other relations are excluded
-		owlpp = new OWLPrettyPrinter(g);
 		Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
 			OWLObject c = g.getOWLObjectByIdentifier(a.getCls());

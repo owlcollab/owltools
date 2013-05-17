@@ -80,7 +80,7 @@ public class TaxonCommandRunner extends GafCommandRunner {
 		String idspace = null;
 		if (opts.nextEq("-s"))
 			idspace = opts.nextOpt();
-		owlpp = new OWLPrettyPrinter(g);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		TaxonConstraintsEngine tce = new TaxonConstraintsEngine(g);
 		OWLClass tax = (OWLClass)this.resolveEntity(opts);
 		Set<OWLObject> taxAncs = g.getAncestorsReflexive(tax);

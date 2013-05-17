@@ -125,12 +125,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	public void attributeAllByAll(Opts opts) {
 		sos.setSimProperties(simProperties);
-		owlpp = new OWLPrettyPrinter(g);
 		Set<OWLClass> atts = sos.getAllAttributeClasses();
 		LOG.info("All by all for "+atts.size()+" classes");
 		//print a header in the file that details what was done
 		for (Object k : simProperties.keySet()){
-      resultOutStream.print("# "+k+" = "+simProperties.getProperty(k.toString()));
+			resultOutStream.print("# "+k+" = "+simProperties.getProperty(k.toString()));
 		}
 		for (OWLClass i : atts) {
 			for (OWLClass j : atts) {
@@ -151,7 +150,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 */
 	public void runOwlSim(Opts opts) {
 		sos.setSimProperties(simProperties);
-		owlpp = new OWLPrettyPrinter(g);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (opts.nextEq("-q")) {
 			runOwlSimOnQuery(opts, opts.nextOpt());
 			return;
@@ -170,7 +169,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			for (OWLNamedIndividual j : insts) {
 				// similarity is symmetrical
 				if (isComparable(i,j)) {
-					showSim(i,j);
+					showSim(i,j, owlpp);
 				}
 				else {
 					LOG.info("skipping "+i+" + "+j);
@@ -187,8 +186,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		OWLNamedIndividual qi = (OWLNamedIndividual) resolveEntity(q);
 		System.out.println("Query Individual: "+qi);
 		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		for (OWLNamedIndividual j : insts) {
-			showSim(qi,j);
+			showSim(qi,j, owlpp);
 		}
 
 	}
@@ -263,7 +263,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		//resultOutStream.println(a+"\t"+b+"\t"+simj+"\t"+lcs.score+"\t"+lcs.attributeClass);
 	}
 
-	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
 
 		int ni = sos.getAttributesForElement(i).size();
 		int nj = sos.getAttributesForElement(j).size();
@@ -280,32 +280,32 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			return;
 		}
 
-		resultOutStream.println("NumAnnots\t"+renderPair(i,j)+"\t"+ni+"\t"+nj+"\t"+(ni+nj)/2);
+		resultOutStream.println("NumAnnots\t"+renderPair(i,j, owlpp)+"\t"+ni+"\t"+nj+"\t"+(ni+nj)/2);
 
 		for (int m=0; m<metrics.length; m++) {
 			  if (metrics[m].equals(Metric.IC_MCS.toString())) {
 					ScoreAttributesPair bmaAsymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
-					resultOutStream.println("BMAasymIC\t"+renderPair(i,j)+"\t"+bmaAsymIC.score+"\t"+show(bmaAsymIC.attributeClassSet));	
+					resultOutStream.println("BMAasymIC\t"+renderPair(i,j, owlpp)+"\t"+bmaAsymIC.score+"\t"+show(bmaAsymIC.attributeClassSet, owlpp));	
           //TODO: do reciprocal BMA
 					ScoreAttributesPair bmaSymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.AVERAGE);		
-					resultOutStream.println("BMAsymIC\t"+renderPair(i,j)+"\t"+bmaSymIC.score+"\t"+show(bmaSymIC.attributeClassSet));	
+					resultOutStream.println("BMAsymIC\t"+renderPair(i,j, owlpp)+"\t"+bmaSymIC.score+"\t"+show(bmaSymIC.attributeClassSet, owlpp));	
 			  } else if (metrics[m].equals(Metric.JACCARD.toString())) {
 					ScoreAttributesPair bmaAsymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.A_TO_B);
-					resultOutStream.println("BMAasymJ\t"+renderPair(i,j)+"\t"+bmaAsymJ.score+"\t"+show(bmaAsymJ.attributeClassSet));	
+					resultOutStream.println("BMAasymJ\t"+renderPair(i,j, owlpp)+"\t"+bmaAsymJ.score+"\t"+show(bmaAsymJ.attributeClassSet, owlpp));	
           //TODO: do reciprocal BMA
 					ScoreAttributesPair bmaSymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.AVERAGE);
-					resultOutStream.println("BMAsymJ\t"+renderPair(i,j)+"\t"+bmaSymJ.score+"\t"+show(bmaSymJ.attributeClassSet));	
+					resultOutStream.println("BMAsymJ\t"+renderPair(i,j, owlpp)+"\t"+bmaSymJ.score+"\t"+show(bmaSymJ.attributeClassSet, owlpp));	
 			  } else if (metrics[m].equals(Metric.GIC.toString())) {
-					resultOutStream.println("SimGIC\t"+renderPair(i,j)+"\t"+sos.getElementGraphInformationContentSimilarity(i,j));
+					resultOutStream.println("SimGIC\t"+renderPair(i,j, owlpp)+"\t"+sos.getElementGraphInformationContentSimilarity(i,j));
 			  } else if (metrics[m].equals(Metric.MAXIC.toString())) {
-					resultOutStream.println("MaxIC\t"+renderPair(i,j)+"\t"+maxic.score+"\t"+show(maxic.attributeClassSet));
+					resultOutStream.println("MaxIC\t"+renderPair(i,j, owlpp)+"\t"+maxic.score+"\t"+show(maxic.attributeClassSet, owlpp));
 			  } else if (metrics[m].equals(Metric.SIMJ.toString())) {
-					resultOutStream.println("SimJ\t"+renderPair(i,j)+"\t"+s);
+					resultOutStream.println("SimJ\t"+renderPair(i,j, owlpp)+"\t"+s);
 	      }
 	  }
 	}
 
-	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j) {
+	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
 		//return i+"\t"+owlpp.render(i)+"\t"+j+"\t"+owlpp.render(j);
 		return owlpp.render(i)+"\t"+owlpp.render(j);
 	}
@@ -535,7 +535,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	@CLIMethod("--enrichment-analysis")
 	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
 		opts.info("", "performs enrichment on gene set. TODO");
-		owlpp = new OWLPrettyPrinter(g);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (sos == null) {
 			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.createElementAttributeMapFromOntology();
@@ -557,7 +557,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		OWLClass pc = g.getDataFactory().getOWLThing();
 		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1, rc2);
 		for (EnrichmentResult result : results) {
-			System.out.println(render(result));
+			System.out.println(render(result, owlpp));
 		}
 	}
 
@@ -567,7 +567,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	@CLIMethod("--all-by-all-enrichment-analysis")
 	public void owlsimEnrichmentAnalysisAllByAll(Opts opts) throws Exception {
 		opts.info("", "performs all by all enrichment");
-		owlpp = new OWLPrettyPrinter(g);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (sos == null) {
 			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.createElementAttributeMapFromOntology();
@@ -589,17 +589,17 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		OWLClass pc = g.getDataFactory().getOWLThing();
 		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1, rc2);
 		for (EnrichmentResult result : results) {
-			System.out.println(render(result));
+			System.out.println(render(result, owlpp));
 		}
 	}
 
-	private String render(EnrichmentResult r) {
+	private String render(EnrichmentResult r, OWLPrettyPrinter owlpp) {
 		return owlpp.render(r.sampleSetClass) +"\t"+ owlpp.render(r.enrichedClass)
 		+"\t"+ r.pValue +"\t"+ r.pValueCorrected;
 	}
 
 
-	private String show(Set<OWLClassExpression> cset) {
+	private String show(Set<OWLClassExpression> cset, OWLPrettyPrinter owlpp) {
 		StringBuffer sb = new StringBuffer();
 		for (OWLClassExpression c : cset) {
 			sb.append(owlpp.render(c) + "\t");
