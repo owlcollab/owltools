@@ -51,6 +51,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	private static final Logger LOG = Logger.getLogger(Sim2CommandRunner.class);
 
 	private OWLOntology simOnt = null;
+	private String defaultPropertiesFile = "default-sim.properties";
 	SimpleOwlSim sos;
 	SimPreProcessor pproc;
 	Properties simProperties = null;
@@ -59,9 +60,16 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	private void initProperties() {
 		simProperties = new Properties();
+    //TODO: load a default properties file
+		simProperties.setProperty(SimConfigurationProperty.minimumMaxIC.toString(), SimConfigurationProperty.minimumMaxIC.defaultValue());
+		simProperties.setProperty(SimConfigurationProperty.minimumSimJ.toString(), SimConfigurationProperty.minimumSimJ.defaultValue());
 
-		simProperties.setProperty(SimConfigurationProperty.minimumMaxIC.toString(), "4.0");
-		simProperties.setProperty(SimConfigurationProperty.minimumSimJ.toString(), "0.25");
+    /*by default, turn off metrics*/		
+//		String[] metrics = SimConfigurationProperty.scoringMetrics.toString().split(",");
+//		for (int i=0; i<Metric.values().length; i++) {
+//    	simProperties.setProperty(Metric.values()[i].toString(),"0");
+//    }    
+		simProperties.setProperty(SimConfigurationProperty.scoringMetrics.toString(),SimConfigurationProperty.scoringMetrics.defaultValue());    
 	}
 
 	public String getProperty(SimConfigurationProperty p) {
@@ -118,6 +126,10 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		owlpp = new OWLPrettyPrinter(g);
 		Set<OWLClass> atts = sos.getAllAttributeClasses();
 		LOG.info("All by all for "+atts.size()+" classes");
+		//print a header in the file that details what was done
+		for (Object k : simProperties.keySet()){
+      resultOutStream.print("# "+k+" = "+simProperties.getProperty(k.toString()));
+		}
 		for (OWLClass i : atts) {
 			for (OWLClass j : atts) {
 				showSim(i,j);
@@ -144,6 +156,14 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
 		LOG.info("All by all for "+insts.size()+" individuals");
+
+		//print a header in the file that details what was done
+    resultOutStream.println("# Properties for this run:");
+		for (Object k : simProperties.keySet()){
+      resultOutStream.println("# "+k+" = "+simProperties.getProperty(k.toString()));
+      //TODO: output if the property is default
+		}
+
 		for (OWLNamedIndividual i : insts) {
 			for (OWLNamedIndividual j : insts) {
 				// similarity is symmetrical
@@ -195,6 +215,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	}
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+
+		int ni = sos.getAttributesForElement(i).size();
+		int nj = sos.getAttributesForElement(j).size();
+
+		String[] metrics = getProperty(SimConfigurationProperty.scoringMetrics).split(",");
 		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
 		if ( maxic.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
 			numberOfPairsFiltered ++;
@@ -205,26 +230,30 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			numberOfPairsFiltered ++;
 			return;
 		}
-		ScoreAttributesPair bmaAsymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
-		ScoreAttributesPair bmaSymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.AVERAGE);
-		ScoreAttributesPair bmaAsymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.A_TO_B);
-		ScoreAttributesPair bmaSymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.AVERAGE);
 
-		int ni = sos.getAttributesForElement(i).size();
-		int nj = sos.getAttributesForElement(j).size();
 		resultOutStream.println("NumAnnots\t"+renderPair(i,j)+"\t"+ni+"\t"+nj+"\t"+(ni+nj)/2);
 
-		resultOutStream.println("SimJ\t"+renderPair(i,j)+"\t"+s);
-
-		resultOutStream.println("MaxIC\t"+renderPair(i,j)+"\t"+maxic.score+"\t"+show(maxic.attributeClassSet));
-
-		resultOutStream.println("BMAasymIC\t"+renderPair(i,j)+"\t"+bmaAsymIC.score+"\t"+show(bmaAsymIC.attributeClassSet));	
-		resultOutStream.println("BMAsymIC\t"+renderPair(i,j)+"\t"+bmaSymIC.score+"\t"+show(bmaSymIC.attributeClassSet));	
-
-		resultOutStream.println("BMAasymJ\t"+renderPair(i,j)+"\t"+bmaAsymJ.score);
-		resultOutStream.println("BMAsymJ\t"+renderPair(i,j)+"\t"+bmaSymJ.score);
-
-		resultOutStream.println("SimGIC\t"+renderPair(i,j)+"\t"+sos.getElementGraphInformationContentSimilarity(i,j));
+		for (int m=0; m<metrics.length; m++) {
+			  if (metrics[m].equals(Metric.IC_MCS.toString())) {
+					ScoreAttributesPair bmaAsymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
+					resultOutStream.println("BMAasymIC\t"+renderPair(i,j)+"\t"+bmaAsymIC.score+"\t"+show(bmaAsymIC.attributeClassSet));	
+          //TODO: do reciprocal BMA
+					ScoreAttributesPair bmaSymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.AVERAGE);		
+					resultOutStream.println("BMAsymIC\t"+renderPair(i,j)+"\t"+bmaSymIC.score+"\t"+show(bmaSymIC.attributeClassSet));	
+			  } else if (metrics[m].equals(Metric.JACCARD.toString())) {
+					ScoreAttributesPair bmaAsymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.A_TO_B);
+					resultOutStream.println("BMAasymJ\t"+renderPair(i,j)+"\t"+bmaAsymJ.score+"\t"+show(bmaAsymJ.attributeClassSet));	
+          //TODO: do reciprocal BMA
+					ScoreAttributesPair bmaSymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.AVERAGE);
+					resultOutStream.println("BMAsymJ\t"+renderPair(i,j)+"\t"+bmaSymJ.score+"\t"+show(bmaSymJ.attributeClassSet));	
+			  } else if (metrics[m].equals(Metric.GIC.toString())) {
+					resultOutStream.println("SimGIC\t"+renderPair(i,j)+"\t"+sos.getElementGraphInformationContentSimilarity(i,j));
+			  } else if (metrics[m].equals(Metric.MAXIC.toString())) {
+					resultOutStream.println("MaxIC\t"+renderPair(i,j)+"\t"+maxic.score+"\t"+show(maxic.attributeClassSet));
+			  } else if (metrics[m].equals(Metric.SIMJ.toString())) {
+					resultOutStream.println("SimJ\t"+renderPair(i,j)+"\t"+s);
+	      }
+	  }
 	}
 
 	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j) {
@@ -237,6 +266,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-p|--properties")) {
 				loadProperties(opts.nextOpt());
+	      //need to check if metrics are valid          	        
 			}
 			else if (opts.nextEq("--set")) {
 				simProperties.setProperty(opts.nextOpt(), opts.nextOpt());
@@ -256,6 +286,10 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				break;
 			}
 		}
+		//TODO:perhaps there should be a default simProperties file?
+		if (simProperties == null) {
+			initProperties();
+		}
 	}
 
 
@@ -264,24 +298,22 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			this.initProperties();
 		FileInputStream myInputStream = new FileInputStream(fn);
 		simProperties.load(myInputStream);        
-		String myPropValue = simProperties.getProperty("propKey");
-		//-------------------------------------------------
-		String key = "";
-		String value = "";
-		for (Map.Entry<Object, Object> propItem : simProperties.entrySet()) {
-			key = (String) propItem.getKey();
-			value = (String) propItem.getValue();
-			System.out.println("# "+key + " = "+value);
+
+		try {
+			showSimProperties(null);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		//-------------------------------------------------
+
 		myInputStream.close(); // better in finally block
-		//-------------------------------------------------
+
 	}
 
 	@CLIMethod("--show-sim-properties")
 	public void showSimProperties(Opts opts) throws Exception {
 		for (Object k : simProperties.keySet()){
-			System.out.println(k+" = "+simProperties.getProperty(k.toString()));
+			System.out.println("# "+k+" = "+simProperties.getProperty(k.toString()));
 		}
 	}
 	@CLIMethod("--set-sim-property")
