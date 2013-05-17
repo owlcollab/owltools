@@ -25,7 +25,11 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 
 	
 	/**
-	 * We expect this to be empty
+	 * We expect this to be empty. 
+	 * 
+	 * Reason: autopod-parts.obo is a pure partonomy. There are no common superclasses, because
+	 * there are no superclasses. It's necessary to create a view
+	 * 
 	 * @throws Exception
 	 */
 	@Test
@@ -42,6 +46,10 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 	}
 	
 	/**
+	 * This example uses an ontology that has grouping classes like "pedal digit bone".
+	 * 
+	 * It shoukd return sensible results even without a view
+	 * 
 	 * We expect g2 vs g3 at UBERON:0001449 'phalanx of pes' UBERON:0004248 'pedal digit bone'   
 	 * @throws Exception
 	 */
@@ -58,6 +66,19 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 		
 	}
 
+	/**
+	 * In this example we use an ontology that is pure partonomy
+	 * (e.g. digit part_of hand part_of limb)
+	 * 
+	 * We create a view using (reflexive) partOf, giving us
+	 *  digit SubClassOf digit-part
+	 *  digit-part SubClassOf  autopod-part
+	 *  autopod-part SubClassOf limb-part
+	 *
+	 * These should then be returned as common superclasses
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void testSimRunnerAnatWithView() throws Exception {
 		init();
