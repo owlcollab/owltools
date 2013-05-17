@@ -112,6 +112,8 @@ public class OortConfiguration {
 	
 	private boolean checkPotentialRedundant = true;
 	
+	private boolean versionReportFiles = false; 
+	
 	private static List<OntologyCheck> getDefaultOntologyChecks() {
 		List<OntologyCheck> checks = new ArrayList<OntologyCheck>();
 		checks.add(new SelfReferenceInDefinition());
@@ -922,6 +924,20 @@ public class OortConfiguration {
 		this.checkPotentialRedundant = checkPotentialRedundant;
 	}
 
+	/**
+	 * @return the versionReportFiles
+	 */
+	public boolean isVersionReportFiles() {
+		return versionReportFiles;
+	}
+
+	/**
+	 * @param versionReportFiles the versionReportFiles to set
+	 */
+	public void setVersionReportFiles(boolean versionReportFiles) {
+		this.versionReportFiles = versionReportFiles;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -991,6 +1007,8 @@ public class OortConfiguration {
 		builder.append(removeQueryOntologyReference);
 		builder.append(", checkPotentialRedundant=");
 		builder.append(checkPotentialRedundant);
+		builder.append(", versionReportFiles=");
+		builder.append(versionReportFiles);
 		builder.append("]");
 		return builder.toString();
 	}
@@ -1042,6 +1060,7 @@ public class OortConfiguration {
 		putValue(properties, "traceReportFile", config.traceReportFile);
 		putValue(properties, "removeRedunantAxioms", config.removeRedunantAxioms);
 		putValue(properties, "checkPotentialRedundant", config.checkPotentialRedundant);
+		putValue(properties, "versionReportFiles", config.versionReportFiles);
 		return properties;
 	}
 	
@@ -1160,6 +1179,7 @@ public class OortConfiguration {
 		config.traceReportFile = getValue(properties, "traceReportFile", config.traceReportFile);
 		config.removeRedunantAxioms = getValue(properties, "removeRedunantAxioms", config.removeRedunantAxioms);
 		config.checkPotentialRedundant = getValue(properties, "checkPotentialRedundant", config.checkPotentialRedundant);
+		config.versionReportFiles = getValue(properties, "versionReportFiles", config.versionReportFiles);
 	}
 	
 	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {

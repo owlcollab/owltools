@@ -2,6 +2,7 @@ package owltools;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,8 +17,9 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -494,7 +496,11 @@ public class InferenceBuilder{
 
 	}
 	
-	public static class AxiomPair {
+	public static class PotentialRedundant {
+		
+		final OWLClass a;
+		final OWLObjectProperty p;
+		final OWLClass b;
 		
 		final OWLAxiom axiomOne;
 		final OWLAxiom axiomTwo;
@@ -502,10 +508,17 @@ public class InferenceBuilder{
 		/**
 		 * @param axiomOne
 		 * @param axiomTwo
+		 * @param a
+		 * @param p
+		 * @param b
 		 */
-		public AxiomPair(OWLAxiom axiomOne, OWLAxiom axiomTwo) {
+		public PotentialRedundant(OWLAxiom axiomOne, OWLAxiom axiomTwo,
+				OWLClass a, OWLObjectProperty p, OWLClass b) {
 			this.axiomOne = axiomOne;
 			this.axiomTwo = axiomTwo;
+			this.a = a;
+			this.p = p;
+			this.b = b;
 		}
 
 		/**
@@ -521,6 +534,50 @@ public class InferenceBuilder{
 		public OWLAxiom getAxiomTwo() {
 			return axiomTwo;
 		}
+
+		/**
+		 * @return the a
+		 */
+		public OWLClass getClassA() {
+			return a;
+		}
+
+		/**
+		 * @return the p
+		 */
+		public OWLObjectProperty getProperty() {
+			return p;
+		}
+
+		/**
+		 * @return the b
+		 */
+		public OWLClass getClassB() {
+			return b;
+		}
+		
+		public static Comparator<PotentialRedundant> PRINT_COMPARATOR = new Comparator<PotentialRedundant>() {
+
+			@Override
+			public int compare(PotentialRedundant o1, PotentialRedundant o2) {
+				IRI p1 = o1.getProperty().getIRI();
+				IRI p2 = o2.getProperty().getIRI();
+				int compareTo = p1.compareTo(p2);
+				if (compareTo != 0) {
+					return compareTo;
+				}
+				IRI a1 = o1.getClassA().getIRI();
+				IRI a2 = o2.getClassA().getIRI();
+				compareTo = a1.compareTo(a2);
+				if (compareTo != 0) {
+					return compareTo;
+				}
+				IRI b1 = o1.getClassB().getIRI();
+				IRI b2 = o2.getClassB().getIRI();
+				compareTo = b1.compareTo(b2);
+				return compareTo;
+			}
+		};
 		
 	}
 	
@@ -535,8 +592,8 @@ public class InferenceBuilder{
 	 * @param inferredAxioms
 	 * @return list of axiom pairs
 	 */
-	public List<AxiomPair> checkPotentialRedundantSubClassAxioms(Collection<? extends OWLAxiom> inferredAxioms) {
-		List<AxiomPair> result = new ArrayList<AxiomPair>();
+	public List<PotentialRedundant> checkPotentialRedundantSubClassAxioms(Collection<? extends OWLAxiom> inferredAxioms) {
+		List<PotentialRedundant> result = new ArrayList<PotentialRedundant>();
 		for(OWLAxiom axiom : inferredAxioms) {
 			if (axiom instanceof OWLSubClassOfAxiom) {
 				OWLSubClassOfAxiom main = (OWLSubClassOfAxiom) axiom;
@@ -559,8 +616,11 @@ public class InferenceBuilder{
 						OWLClassExpression currentSuperClass = current.getSuperClass();
 						if (currentSuperClass.isAnonymous() && currentSuperClass instanceof OWLObjectSomeValuesFrom) {
 							OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) currentSuperClass;
-							if (mainSuperClass.equals(someValuesFrom.getFiller())) {
-								result.add(new AxiomPair(main, current));
+							final OWLClassExpression filler = someValuesFrom.getFiller();
+							if (mainSuperClass.equals(filler)) {
+								final OWLObjectPropertyExpression property = someValuesFrom.getProperty();
+								final OWLClassExpression subClass = current.getSubClass();
+								result.add(new PotentialRedundant(main, current, subClass.asOWLClass(), property.asOWLObjectProperty(), filler.asOWLClass()));
 							}
 						}
 					}
@@ -584,8 +644,8 @@ public class InferenceBuilder{
 	 * 
 	 * @return list of axiom pairs
 	 */
-	public List<AxiomPair> checkPotentialRedundantSubClassAxioms() {
-		List<AxiomPair> result = new ArrayList<AxiomPair>();
+	public List<PotentialRedundant> checkPotentialRedundantSubClassAxioms() {
+		List<PotentialRedundant> result = new ArrayList<PotentialRedundant>();
 		for(OWLClass cls : graph.getAllOWLClasses()) {
 			Set<OWLSubClassOfAxiom> axioms = graph.getAllOWLSubClassOfAxiomsForSubClass(cls);
 			if (axioms.size() > 1) {
@@ -603,8 +663,12 @@ public class InferenceBuilder{
 						OWLClassExpression currentSuperClass = current.getSuperClass();
 						if (currentSuperClass.isAnonymous() && currentSuperClass instanceof OWLObjectSomeValuesFrom) {
 							OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) currentSuperClass;
+							final OWLClassExpression filler = someValuesFrom.getFiller();
 							if (mainSuperClass.equals(someValuesFrom.getFiller())) {
-								result.add(new AxiomPair(main, current));
+								final OWLObjectPropertyExpression property = someValuesFrom.getProperty();
+								final OWLClassExpression subClass = current.getSubClass();
+								final PotentialRedundant redundant = new PotentialRedundant(main, current, subClass.asOWLClass(), property.asOWLObjectProperty(), filler.asOWLClass());
+								result.add(redundant);
 							}
 						}
 					}

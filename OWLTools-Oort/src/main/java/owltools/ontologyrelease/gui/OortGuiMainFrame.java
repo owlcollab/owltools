@@ -257,6 +257,9 @@ public class OortGuiMainFrame extends JFrame {
 			return false;
 		}
 		
+		// versionReportFiles
+		parameters.setVersionReportFiles(advancedPanel.versionReportFiles.isSelected());
+		
 		// base
 		String base = mainPanel.outputFolderTextField.getText();
 		if (base == null || base.length() < 1) {

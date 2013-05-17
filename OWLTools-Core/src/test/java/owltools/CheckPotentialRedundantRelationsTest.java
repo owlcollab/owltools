@@ -8,7 +8,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
-import owltools.InferenceBuilder.AxiomPair;
+import owltools.InferenceBuilder.PotentialRedundant;
 import owltools.graph.OWLGraphWrapper;
 
 public class CheckPotentialRedundantRelationsTest extends OWLToolsTestBasics {
@@ -19,9 +19,16 @@ public class CheckPotentialRedundantRelationsTest extends OWLToolsTestBasics {
 		
 		InferenceBuilder builder = new InferenceBuilder(graph);
 		
-		List<AxiomPair> axioms = builder.checkPotentialRedundantSubClassAxioms();
+		List<PotentialRedundant> redundants = builder.checkPotentialRedundantSubClassAxioms();
 		
-		assertEquals(1, axioms.size());
+		assertEquals(1, redundants.size());
+		PotentialRedundant potentialRedundant = redundants.get(0);
+		assertNotNull(potentialRedundant.getClassA());
+		assertEquals("TEST:0004", graph.getIdentifier(potentialRedundant.getClassA()));
+		assertNotNull(potentialRedundant.getProperty());
+		assertEquals("part_of", graph.getIdentifier(potentialRedundant.getProperty()));
+		assertNotNull(potentialRedundant.getClassB());
+		assertEquals("TEST:0002", graph.getIdentifier(potentialRedundant.getClassB()));
 	}
 	
 	@Test
@@ -31,8 +38,15 @@ public class CheckPotentialRedundantRelationsTest extends OWLToolsTestBasics {
 		InferenceBuilder builder = new InferenceBuilder(graph);
 		
 		Set<OWLAxiom> allAxioms = graph.getSourceOntology().getAxioms();
-		List<AxiomPair> axioms = builder.checkPotentialRedundantSubClassAxioms(allAxioms);
+		List<PotentialRedundant> redundants = builder.checkPotentialRedundantSubClassAxioms(allAxioms);
 		
-		assertEquals(1, axioms.size());
+		assertEquals(1, redundants.size());
+		PotentialRedundant potentialRedundant = redundants.get(0);
+		assertNotNull(potentialRedundant.getClassA());
+		assertEquals("TEST:0004", graph.getIdentifier(potentialRedundant.getClassA()));
+		assertNotNull(potentialRedundant.getProperty());
+		assertEquals("part_of", graph.getIdentifier(potentialRedundant.getProperty()));
+		assertNotNull(potentialRedundant.getClassB());
+		assertEquals("TEST:0002", graph.getIdentifier(potentialRedundant.getClassB()));
 	}
 }

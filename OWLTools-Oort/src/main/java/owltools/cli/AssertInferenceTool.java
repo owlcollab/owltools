@@ -50,7 +50,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.InferenceBuilder;
-import owltools.InferenceBuilder.AxiomPair;
+import owltools.InferenceBuilder.PotentialRedundant;
 import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
@@ -416,13 +416,22 @@ public class AssertInferenceTool {
 			}
 			if (checkForPotentialRedundant) {
 				logger.info("Running additional checks");
-				List<AxiomPair> axioms = builder.checkPotentialRedundantSubClassAxioms(newAxioms);
-				if (axioms != null) {
+				List<PotentialRedundant> potentialRedundants = builder.checkPotentialRedundantSubClassAxioms(newAxioms);
+				if (potentialRedundants != null) {
 					logger.error("Found potential problems");
-					for (AxiomPair pair : axioms) {
-						logger.error("POTENTIAL REDUNDANT AXIOMS: (1) "+owlpp.render(pair.getAxiomOne())+" (2) "+owlpp.render(pair.getAxiomTwo()));
+					
+					// before printing group by relationship and sort by class A
+					Collections.sort(potentialRedundants, PotentialRedundant.PRINT_COMPARATOR);
+					
+					for (PotentialRedundant redundant : potentialRedundants) {
+						StringBuilder sb = new StringBuilder("POTENTIAL REDUNDANT AXIOMS: ");
+						sb.append(owlpp.render(redundant.getClassA())).append(" ");
+						sb.append(owlpp.render(redundant.getProperty())).append(" ");
+						sb.append(owlpp.render(redundant.getClassB()));
+						sb.append(" is also a simple SubClassOf.");
+						logger.error(sb.toString());
 					}
-					throw new InconsistentOntologyException("Found potential redundant subClass axioms, count: " + axioms.size());
+					throw new InconsistentOntologyException("Found potential redundant subClass axioms, count: " + potentialRedundants.size());
 				}
 				logger.info("Finished running additional checks");
 			}

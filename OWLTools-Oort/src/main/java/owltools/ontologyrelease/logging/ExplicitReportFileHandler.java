@@ -7,10 +7,13 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import owltools.ontologyrelease.OortConfiguration;
+import owltools.ontologyrelease.ReleaseRunnerFileTools;
+
 public abstract class ExplicitReportFileHandler implements LogHandler {
 
-	public static LogHandler createNameFiltered(final Set<String> names, File outputFolder) {
-		return new ExplicitReportFileHandler(outputFolder) {
+	public static LogHandler createNameFiltered(final Set<String> names, OortConfiguration config) {
+		return new ExplicitReportFileHandler(config) {
 			
 			@Override
 			protected boolean doWriteReport(String reportName) {
@@ -19,8 +22,8 @@ public abstract class ExplicitReportFileHandler implements LogHandler {
 		};
 	}
 	
-	public static LogHandler createSuffixFiltered(final Set<String> suffixes, File outputFolder) {
-		return new ExplicitReportFileHandler(outputFolder) {
+	public static LogHandler createSuffixFiltered(final Set<String> suffixes, OortConfiguration config) {
+		return new ExplicitReportFileHandler(config) {
 			
 			@Override
 			protected boolean doWriteReport(String reportName) {
@@ -34,10 +37,10 @@ public abstract class ExplicitReportFileHandler implements LogHandler {
 		};
 	}
 	
-	private final File outputFolder;
+	private final OortConfiguration config;
 	
-	protected ExplicitReportFileHandler(File outputFolder) {
-		this.outputFolder = outputFolder;
+	protected ExplicitReportFileHandler(OortConfiguration config) {
+		this.config = config;
 	}
 	
 	@Override
@@ -66,6 +69,10 @@ public abstract class ExplicitReportFileHandler implements LogHandler {
 	
 	private void writeReportFile(String reportName, CharSequence content) {
 		try {
+			File outputFolder = config.getBase();
+			if (config.isVersionReportFiles()) {
+				outputFolder = new File(outputFolder, ReleaseRunnerFileTools.STAGING_DIRECTORY_NAME);
+			}
 			FileUtils.write(new File(outputFolder, reportName), content);
 		} catch (IOException e) {
 			Logger.getLogger(ExplicitReportFileHandler.class).error("Could not write report: "+reportName, e);

@@ -61,6 +61,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JCheckBox writeOWX;
 	final JCheckBox writeOBO;
 	
+	final JCheckBox versionReportFiles;
+	
 	final JCheckBox addSupportFromImports;
 	
 	final JCheckBox allowOverwrite;
@@ -111,6 +113,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		writeOBO = new JCheckBox();
 		writeOWL = new JCheckBox();
 		writeOWX = new JCheckBox();
+		
+		versionReportFiles = new JCheckBox();
 		
 		catalogXMLField = new JTextField();
 		
@@ -221,6 +225,12 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		addRowGap(panel, pos.nextRow(), 5);
 		
 		createFancyCheckBox(pos, "Justify Asserted Sub Classes", null, justifyAssertedSubclasses);
+		
+		// versionReportFiles
+		addRowGap(panel, pos.nextRow(), 5);
+		
+		createFancyCheckBox(pos, "Version Report Files", "<html><p>This will create the report files in the staging directory.<ul><li>The advantage is that the report files are included in the release folder (i.e. to compare between different versions.).</li> <li>A disadvantage is that the report files are only visible in the after a successfull run.</li></ul></p></html>", versionReportFiles);
+		
 		
 		addRowGap(panel, pos.nextRow(), 10);
 		
@@ -370,6 +380,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		writeOBO.setSelected(!skipFormats.contains("obo"));
 		writeOWL.setSelected(!skipFormats.contains("owl"));
 		writeOWX.setSelected(!skipFormats.contains("owx"));
+		
+		versionReportFiles.setSelected(configuration.isVersionReportFiles());
 		
 		catalogXMLField.setText("");
 		String catalogXML = configuration.getCatalogXML();

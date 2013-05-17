@@ -59,7 +59,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 import owltools.InferenceBuilder;
-import owltools.InferenceBuilder.AxiomPair;
+import owltools.InferenceBuilder.PotentialRedundant;
 import owltools.JustifyAssertionsTool;
 import owltools.JustifyAssertionsTool.JustifyResult;
 import owltools.cli.Opts;
@@ -102,16 +102,16 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	OortConfiguration oortConfig;
 
 	public OboOntologyReleaseRunner(OortConfiguration oortConfig, File base, List<LogHandler> handlers) throws IOException {
-		super(base, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile(), addDefaultHandlers(handlers, base));
+		super(base, oortConfig.isUseReleaseFolder(), oortConfig.isIgnoreLockFile(), addDefaultHandlers(handlers, oortConfig));
 		this.oortConfig = oortConfig;
 		this.ontologyChecks = new OntologyCheckHandler(false, oortConfig.getOntologyChecks(), handlers);
 	}
 	
-	static List<LogHandler> addDefaultHandlers(List<LogHandler> handlers, File base) {
+	static List<LogHandler> addDefaultHandlers(List<LogHandler> handlers, OortConfiguration config) {
 		// setup default report files
 		Set<String> suffixes = new HashSet<String>();
 		suffixes.add("-reasoner-report.txt");
-		handlers.add(ExplicitReportFileHandler.createSuffixFiltered(suffixes, base));
+		handlers.add(ExplicitReportFileHandler.createSuffixFiltered(suffixes, config));
 		return handlers;
 	}
 
@@ -391,6 +391,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			else if (opts.nextEq("--ignore-potential-redundant")) {
 				oortConfig.setCheckPotentialRedundant(false);
+			}
+			else if (opts.nextEq("--version-report-files")) {
+				oortConfig.setVersionReportFiles(true);
 			}
 			else if (opts.nextEq("--error-report")) {
 				String errorReportFile = "error-report.txt";
@@ -919,20 +922,24 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					
 					if (oortConfig.isCheckPotentialRedundant()) {
 						logInfo("Check for potential redundant subClass axioms");
-						List<AxiomPair> potentialRedundants = infBuilder.checkPotentialRedundantSubClassAxioms();
+						List<PotentialRedundant> potentialRedundants = infBuilder.checkPotentialRedundantSubClassAxioms();
 						if (potentialRedundants != null && !potentialRedundants.isEmpty()) {
 							logWarn("Found potential redundant subClass axioms");
 							List<String> reasons = new ArrayList<String>();
-							for (AxiomPair pair : potentialRedundants) {
-								String axiomOneString = owlpp.render(pair.getAxiomOne());
-								String axiomTwoString = owlpp.render(pair.getAxiomTwo());
-								reasons.add(axiomOneString+" "+axiomTwoString);
-								String message = "POTENTIAL_REDUNDANT\t"+axiomOneString+"\t"+axiomTwoString;
+							
+							// before printing group by relationship and sort by class A
+							Collections.sort(potentialRedundants, PotentialRedundant.PRINT_COMPARATOR);
+							
+							for (PotentialRedundant redundant : potentialRedundants) {
+								StringBuilder sb = new StringBuilder();
+								sb.append(owlpp.render(redundant.getClassA())).append(" ");
+								sb.append(owlpp.render(redundant.getProperty())).append(" ");
+								sb.append(owlpp.render(redundant.getClassB()));
+								sb.append(" is also a simple SubClassOf.");
+								final String reason = sb.toString();
+								reasons.add(reason);
+								String message = "POTENTIAL_REDUNDANT\t"+reason;
 								reasonerReportLines.add(message);
-							}
-							if (!oortConfig.isForceRelease()) {
-								saveReasonerReport(ontologyId, reasonerReportLines);
-								throw new OboOntologyReleaseRunnerCheckException("Found potential redundant subClass axioms", reasons, "Use ForceRelease option to ignore this warning.");
 							}
 						}
 					}

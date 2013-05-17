@@ -21,12 +21,12 @@ import owltools.ontologyrelease.logging.LogHandler;
 /**
  * Provide a staging directory for the release runners. 
  */
-abstract class ReleaseRunnerFileTools {
+public abstract class ReleaseRunnerFileTools {
 
 	private static final String EXTENSIONS_DIRECTORY_NAME = "extensions";
 	private static final String SUBSETS_DIRECTORY_NAME = "subsets";
 	private static final String RELEASE_DIRECTORY_NAME = "releases";
-	private static final String STAGING_DIRECTORY_NAME = "staging";
+	public static final String STAGING_DIRECTORY_NAME = "staging";
 	private static final String STAGING_DIRECTORY_LOCK_FILE_NAME = ".lock";
 	
 	private final File base;
