@@ -1,0 +1,809 @@
+format-version: 1.2
+ontology: autopod
+
+[Term]
+id: UBERON:0000153
+name: anterior region of body
+
+[Term]
+id: UBERON:0000154
+name: posterior region of body
+
+[Term]
+id: UBERON:0001436
+name: phalanx of manus
+relationship: part_of UBERON:0002389 ! manual digit
+relationship: part_of UBERON:0010688 ! skeleton of manual acropodium
+
+[Term]
+id: UBERON:0001440
+name: forelimb skeleton
+relationship: part_of UBERON:0002102 ! forelimb
+relationship: part_of UBERON:0012475 ! skeleton of pectoral complex
+
+[Term]
+id: UBERON:0001441
+name: hindlimb skeleton
+relationship: part_of UBERON:0002103 ! hindlimb
+relationship: part_of UBERON:0012476 ! skeleton of pelvic complex
+
+[Term]
+id: UBERON:0001442
+name: skeleton of manus
+relationship: part_of UBERON:0001440 ! forelimb skeleton
+relationship: part_of UBERON:0002398 ! manus
+
+[Term]
+id: UBERON:0001445
+name: skeleton of pes
+relationship: part_of UBERON:0001441 ! hindlimb skeleton
+relationship: part_of UBERON:0002387 ! pes
+
+[Term]
+id: UBERON:0001449
+name: phalanx of pes
+relationship: part_of UBERON:0001466 ! pedal digit
+relationship: part_of UBERON:0002387 ! pes
+relationship: part_of UBERON:0010696 ! skeleton of pedal acropodium
+
+[Term]
+id: UBERON:0001463
+name: manual digit 1
+relationship: part_of UBERON:0002398 ! manus
+relationship: part_of UBERON:0012141 ! manual digitopodium region
+
+[Term]
+id: UBERON:0001466
+name: pedal digit
+relationship: part_of UBERON:0002387 ! pes
+relationship: part_of UBERON:0012142 ! pedal digitopodium region
+
+[Term]
+id: UBERON:0002091
+name: appendicular skeleton
+relationship: part_of UBERON:0011249 ! appendicular skeletal system
+
+[Term]
+id: UBERON:0002102
+name: forelimb
+relationship: part_of UBERON:0000153 ! anterior region of body
+relationship: part_of UBERON:0010708 ! pectoral complex
+
+[Term]
+id: UBERON:0002103
+name: hindlimb
+relationship: part_of UBERON:0000154 ! posterior region of body
+relationship: part_of UBERON:0010709 ! pelvic complex
+
+[Term]
+id: UBERON:0002387
+name: pes
+relationship: part_of UBERON:0002103 ! hindlimb
+
+[Term]
+id: UBERON:0002389
+name: manual digit
+relationship: part_of UBERON:0002102 ! forelimb
+relationship: part_of UBERON:0002398 ! manus
+relationship: part_of UBERON:0012141 ! manual digitopodium region
+
+[Term]
+id: UBERON:0002398
+name: manus
+relationship: part_of UBERON:0002102 ! forelimb
+
+[Term]
+id: UBERON:0003435
+name: pedal digit nerve
+relationship: part_of UBERON:0001466 ! pedal digit
+
+[Term]
+id: UBERON:0003447
+name: digit nerve of manus
+relationship: part_of UBERON:0002389 ! manual digit
+
+[Term]
+id: UBERON:0003508
+name: pedal digit blood vessel
+relationship: part_of UBERON:0001466 ! pedal digit
+
+[Term]
+id: UBERON:0003522
+name: manual digit blood vessel
+relationship: part_of UBERON:0002389 ! manual digit
+
+[Term]
+id: UBERON:0003530
+name: pedal digit skin
+relationship: part_of UBERON:0001466 ! pedal digit
+
+[Term]
+id: UBERON:0003533
+name: manual digit skin
+relationship: part_of UBERON:0002389 ! manual digit
+
+[Term]
+id: UBERON:0003578
+name: pedal digit connective tissue
+relationship: part_of UBERON:0001466 ! pedal digit
+
+[Term]
+id: UBERON:0003597
+name: manual digit connective tissue
+relationship: part_of UBERON:0002389 ! manual digit
+
+[Term]
+id: UBERON:0003620
+name: manual digit 1 phalanx
+relationship: part_of UBERON:0001463 ! manual digit 1
+
+[Term]
+id: UBERON:0003622
+name: manual digit 2
+relationship: part_of UBERON:0002398 ! manus
+relationship: part_of UBERON:0012141 ! manual digitopodium region
+
+[Term]
+id: UBERON:0003623
+name: manual digit 3
+relationship: part_of UBERON:0002398 ! manus
+relationship: part_of UBERON:0012141 ! manual digitopodium region
+
+[Term]
+id: UBERON:0003624
+name: manual digit 4
+relationship: part_of UBERON:0002398 ! manus
+relationship: part_of UBERON:0012141 ! manual digitopodium region
+
+[Term]
+id: UBERON:0003625
+name: manual digit 5
+relationship: part_of UBERON:0002398 ! manus
+relationship: part_of UBERON:0012141 ! manual digitopodium region
+
+[Term]
+id: UBERON:0003631
+name: pedal digit 1
+relationship: part_of UBERON:0002387 ! pes
+relationship: part_of UBERON:0012142 ! pedal digitopodium region
+
+[Term]
+id: UBERON:0003632
+name: pedal digit 2
+relationship: part_of UBERON:0002387 ! pes
+relationship: part_of UBERON:0012142 ! pedal digitopodium region
+
+[Term]
+id: UBERON:0003633
+name: pedal digit 3
+relationship: part_of UBERON:0002387 ! pes
+relationship: part_of UBERON:0012142 ! pedal digitopodium region
+
+[Term]
+id: UBERON:0003634
+name: pedal digit 4
+relationship: part_of UBERON:0002387 ! pes
+
+[Term]
+id: UBERON:0003635
+name: pedal digit 5
+relationship: part_of UBERON:0002387 ! pes
+relationship: part_of UBERON:0012142 ! pedal digitopodium region
+
+[Term]
+id: UBERON:0003636
+name: manual digit 2 phalanx
+relationship: part_of UBERON:0003622 ! manual digit 2
+
+[Term]
+id: UBERON:0003637
+name: manual digit 3 phalanx
+relationship: part_of UBERON:0003623 ! manual digit 3
+
+[Term]
+id: UBERON:0003638
+name: manual digit 4 phalanx
+relationship: part_of UBERON:0003624 ! manual digit 4
+
+[Term]
+id: UBERON:0003639
+name: manual digit 5 phalanx
+relationship: part_of UBERON:0003625 ! manual digit 5
+
+[Term]
+id: UBERON:0003640
+name: pedal digit 1 phalanx
+relationship: part_of UBERON:0003631 ! pedal digit 1
+
+[Term]
+id: UBERON:0003641
+name: pedal digit 2 phalanx
+relationship: part_of UBERON:0003632 ! pedal digit 2
+
+[Term]
+id: UBERON:0003642
+name: pedal digit 3 phalanx
+relationship: part_of UBERON:0003633 ! pedal digit 3
+
+[Term]
+id: UBERON:0003659
+name: pedal digit muscle
+relationship: part_of UBERON:0001466 ! pedal digit
+
+[Term]
+id: UBERON:0003664
+name: manual digit muscle
+relationship: part_of UBERON:0002389 ! manual digit
+
+[Term]
+id: UBERON:0003862
+name: pedal digit 4 phalanx
+relationship: part_of UBERON:0003634 ! pedal digit 4
+
+[Term]
+id: UBERON:0003863
+name: pedal digit 5 phalanx
+relationship: part_of UBERON:0003635 ! pedal digit 5
+
+[Term]
+id: UBERON:0004248
+name: pedal digit bone
+relationship: part_of UBERON:0001445 ! skeleton of pes
+relationship: part_of UBERON:0001466 ! pedal digit
+
+[Term]
+id: UBERON:0004249
+name: manual digit bone
+relationship: part_of UBERON:0001442 ! skeleton of manus
+relationship: part_of UBERON:0002389 ! manual digit
+
+[Term]
+id: UBERON:0004311
+name: distal phalanx of manual digit 2
+relationship: part_of UBERON:0003622 ! manual digit 2
+
+[Term]
+id: UBERON:0004312
+name: distal phalanx of manual digit 3
+relationship: part_of UBERON:0003623 ! manual digit 3
+
+[Term]
+id: UBERON:0004313
+name: distal phalanx of manual digit 4
+relationship: part_of UBERON:0003624 ! manual digit 4
+
+[Term]
+id: UBERON:0004314
+name: distal phalanx of manual digit 5
+relationship: part_of UBERON:0003625 ! manual digit 5
+
+[Term]
+id: UBERON:0004315
+name: distal phalanx of pedal digit 1
+relationship: part_of UBERON:0003631 ! pedal digit 1
+
+[Term]
+id: UBERON:0004316
+name: distal phalanx of pedal digit 2
+relationship: part_of UBERON:0003632 ! pedal digit 2
+
+[Term]
+id: UBERON:0004317
+name: distal phalanx of pedal digit 3
+relationship: part_of UBERON:0003633 ! pedal digit 3
+
+[Term]
+id: UBERON:0004318
+name: distal phalanx of pedal digit 4
+relationship: part_of UBERON:0003634 ! pedal digit 4
+
+[Term]
+id: UBERON:0004319
+name: distal phalanx of pedal digit 5
+relationship: part_of UBERON:0003635 ! pedal digit 5
+
+[Term]
+id: UBERON:0004320
+name: middle phalanx of manual digit 2
+relationship: part_of UBERON:0003622 ! manual digit 2
+
+[Term]
+id: UBERON:0004321
+name: middle phalanx of manual digit 3
+relationship: part_of UBERON:0003623 ! manual digit 3
+
+[Term]
+id: UBERON:0004322
+name: middle phalanx of manual digit 4
+relationship: part_of UBERON:0003624 ! manual digit 4
+
+[Term]
+id: UBERON:0004323
+name: middle phalanx of manual digit 5
+relationship: part_of UBERON:0003625 ! manual digit 5
+
+[Term]
+id: UBERON:0004324
+name: middle phalanx of pedal digit 2
+relationship: part_of UBERON:0003632 ! pedal digit 2
+
+[Term]
+id: UBERON:0004325
+name: middle phalanx of pedal digit 3
+relationship: part_of UBERON:0003633 ! pedal digit 3
+
+[Term]
+id: UBERON:0004326
+name: middle phalanx of pedal digit 4
+relationship: part_of UBERON:0003634 ! pedal digit 4
+
+[Term]
+id: UBERON:0004327
+name: middle phalanx of pedal digit 5
+relationship: part_of UBERON:0003635 ! pedal digit 5
+
+[Term]
+id: UBERON:0004328
+name: proximal phalanx of manual digit 2
+relationship: part_of UBERON:0003622 ! manual digit 2
+
+[Term]
+id: UBERON:0004329
+name: proximal phalanx of manual digit 3
+relationship: part_of UBERON:0003623 ! manual digit 3
+
+[Term]
+id: UBERON:0004330
+name: proximal phalanx of manual digit 4
+relationship: part_of UBERON:0003624 ! manual digit 4
+
+[Term]
+id: UBERON:0004331
+name: proximal phalanx of manual digit 5
+relationship: part_of UBERON:0003625 ! manual digit 5
+
+[Term]
+id: UBERON:0004332
+name: proximal phalanx of pedal digit 1
+relationship: part_of UBERON:0003631 ! pedal digit 1
+
+[Term]
+id: UBERON:0004333
+name: proximal phalanx of pedal digit 2
+relationship: part_of UBERON:0003632 ! pedal digit 2
+
+[Term]
+id: UBERON:0004334
+name: proximal phalanx of pedal digit 3
+relationship: part_of UBERON:0003633 ! pedal digit 3
+
+[Term]
+id: UBERON:0004335
+name: proximal phalanx of pedal digit 4
+relationship: part_of UBERON:0003634 ! pedal digit 4
+
+[Term]
+id: UBERON:0004336
+name: proximal phalanx of pedal digit 5
+relationship: part_of UBERON:0003635 ! pedal digit 5
+
+[Term]
+id: UBERON:0005226
+name: pedal digit epithelium
+relationship: part_of UBERON:0001466 ! pedal digit
+
+[Term]
+id: UBERON:0005227
+name: manual digit epithelium
+relationship: part_of UBERON:0002389 ! manual digit
+
+[Term]
+id: UBERON:0005255
+name: pedal digit mesenchyme
+relationship: part_of UBERON:0001466 ! pedal digit
+
+[Term]
+id: UBERON:0005257
+name: manual digit mesenchyme
+relationship: part_of UBERON:0002389 ! manual digit
+
+[Term]
+id: UBERON:0005645
+name: manual digit 2 epithelium
+relationship: part_of UBERON:0003622 ! manual digit 2
+
+[Term]
+id: UBERON:0005646
+name: manual digit 3 epithelium
+relationship: part_of UBERON:0003623 ! manual digit 3
+
+[Term]
+id: UBERON:0005647
+name: manual digit 4 epithelium
+relationship: part_of UBERON:0003624 ! manual digit 4
+
+[Term]
+id: UBERON:0005648
+name: manual digit 5 epithelium
+relationship: part_of UBERON:0003625 ! manual digit 5
+
+[Term]
+id: UBERON:0005649
+name: pedal digit 2 epithelium
+relationship: part_of UBERON:0003632 ! pedal digit 2
+
+[Term]
+id: UBERON:0005650
+name: pedal digit 3 epithelium
+relationship: part_of UBERON:0003633 ! pedal digit 3
+
+[Term]
+id: UBERON:0005651
+name: pedal digit 4 epithelium
+relationship: part_of UBERON:0003634 ! pedal digit 4
+
+[Term]
+id: UBERON:0005652
+name: pedal digit 5 epithelium
+relationship: part_of UBERON:0003635 ! pedal digit 5
+
+[Term]
+id: UBERON:0005692
+name: manual digit 2 mesenchyme
+relationship: part_of UBERON:0003622 ! manual digit 2
+
+[Term]
+id: UBERON:0005693
+name: manual digit 3 mesenchyme
+relationship: part_of UBERON:0003623 ! manual digit 3
+
+[Term]
+id: UBERON:0005694
+name: manual digit 4 mesenchyme
+relationship: part_of UBERON:0003624 ! manual digit 4
+
+[Term]
+id: UBERON:0005695
+name: manual digit 5 mesenchyme
+relationship: part_of UBERON:0003625 ! manual digit 5
+
+[Term]
+id: UBERON:0005696
+name: pedal digit 2 mesenchyme
+relationship: part_of UBERON:0003632 ! pedal digit 2
+
+[Term]
+id: UBERON:0005697
+name: pedal digit 3 mesenchyme
+relationship: part_of UBERON:0003633 ! pedal digit 3
+
+[Term]
+id: UBERON:0005698
+name: pedal digit 4 mesenchyme
+relationship: part_of UBERON:0003634 ! pedal digit 4
+
+[Term]
+id: UBERON:0005699
+name: pedal digit 5 mesenchyme
+relationship: part_of UBERON:0003635 ! pedal digit 5
+
+[Term]
+id: UBERON:0010547
+name: pedal digit 1 metatarsal pre-cartilage condensation
+relationship: part_of UBERON:0010562 ! pedal digit 1 mesenchyme
+
+[Term]
+id: UBERON:0010548
+name: pedal digit 2 metatarsal pre-cartilage condensation
+relationship: part_of UBERON:0005696 ! pedal digit 2 mesenchyme
+
+[Term]
+id: UBERON:0010549
+name: pedal digit 3 metatarsal pre-cartilage condensation
+relationship: part_of UBERON:0005697 ! pedal digit 3 mesenchyme
+
+[Term]
+id: UBERON:0010550
+name: pedal digit 4 metatarsal pre-cartilage condensation
+relationship: part_of UBERON:0005698 ! pedal digit 4 mesenchyme
+
+[Term]
+id: UBERON:0010551
+name: pedal digit 5 metatarsal pre-cartilage condensation
+relationship: part_of UBERON:0005699 ! pedal digit 5 mesenchyme
+
+[Term]
+id: UBERON:0010557
+name: pedal digit 1 metatarsal cartilage condensation
+relationship: part_of UBERON:0010562 ! pedal digit 1 mesenchyme
+
+[Term]
+id: UBERON:0010558
+name: pedal digit 2 metatarsal cartilage condensation
+relationship: part_of UBERON:0005696 ! pedal digit 2 mesenchyme
+
+[Term]
+id: UBERON:0010559
+name: pedal digit 3 metatarsal cartilage condensation
+relationship: part_of UBERON:0005697 ! pedal digit 3 mesenchyme
+
+[Term]
+id: UBERON:0010560
+name: pedal digit 4 metatarsal cartilage condensation
+relationship: part_of UBERON:0005698 ! pedal digit 4 mesenchyme
+
+[Term]
+id: UBERON:0010561
+name: pedal digit 5 metatarsal cartilage condensation
+relationship: part_of UBERON:0005699 ! pedal digit 5 mesenchyme
+
+[Term]
+id: UBERON:0010562
+name: pedal digit 1 mesenchyme
+relationship: part_of UBERON:0003631 ! pedal digit 1
+
+[Term]
+id: UBERON:0010564
+name: manual digit 1 mesenchyme
+relationship: part_of UBERON:0001463 ! manual digit 1
+
+[Term]
+id: UBERON:0010565
+name: manual digit 1 metacarpus pre-cartilage condensation
+relationship: part_of UBERON:0010564 ! manual digit 1 mesenchyme
+
+[Term]
+id: UBERON:0010566
+name: manual digit 2 metacarpus pre-cartilage condensation
+relationship: part_of UBERON:0005692 ! manual digit 2 mesenchyme
+
+[Term]
+id: UBERON:0010567
+name: manual digit 3 metacarpus pre-cartilage condensation
+relationship: part_of UBERON:0005693 ! manual digit 3 mesenchyme
+
+[Term]
+id: UBERON:0010568
+name: manual digit 4 metacarpus pre-cartilage condensation
+relationship: part_of UBERON:0005694 ! manual digit 4 mesenchyme
+
+[Term]
+id: UBERON:0010569
+name: manual digit 5 metacarpus pre-cartilage condensation
+relationship: part_of UBERON:0005695 ! manual digit 5 mesenchyme
+
+[Term]
+id: UBERON:0010570
+name: manual digit 1 metacarpus cartilage condensation
+relationship: part_of UBERON:0010564 ! manual digit 1 mesenchyme
+
+[Term]
+id: UBERON:0010571
+name: manual digit 2 metacarpus cartilage condensation
+relationship: part_of UBERON:0005692 ! manual digit 2 mesenchyme
+
+[Term]
+id: UBERON:0010572
+name: manual digit 3 metacarpus cartilage condensation
+relationship: part_of UBERON:0005693 ! manual digit 3 mesenchyme
+
+[Term]
+id: UBERON:0010573
+name: manual digit 4 metacarpus cartilage condensation
+relationship: part_of UBERON:0005694 ! manual digit 4 mesenchyme
+
+[Term]
+id: UBERON:0010574
+name: manual digit 5 metacarpus cartilage condensation
+relationship: part_of UBERON:0005695 ! manual digit 5 mesenchyme
+
+[Term]
+id: UBERON:0010575
+name: manual digit 1 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0010564 ! manual digit 1 mesenchyme
+
+[Term]
+id: UBERON:0010576
+name: manual digit 2 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005692 ! manual digit 2 mesenchyme
+
+[Term]
+id: UBERON:0010577
+name: manual digit 3 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005693 ! manual digit 3 mesenchyme
+
+[Term]
+id: UBERON:0010578
+name: manual digit 4 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005694 ! manual digit 4 mesenchyme
+
+[Term]
+id: UBERON:0010579
+name: manual digit 5 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005695 ! manual digit 5 mesenchyme
+
+[Term]
+id: UBERON:0010580
+name: pedal digit 1 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0010562 ! pedal digit 1 mesenchyme
+
+[Term]
+id: UBERON:0010581
+name: pedal digit 2 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005696 ! pedal digit 2 mesenchyme
+
+[Term]
+id: UBERON:0010582
+name: pedal digit 3 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005697 ! pedal digit 3 mesenchyme
+
+[Term]
+id: UBERON:0010583
+name: pedal digit 4 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005698 ! pedal digit 4 mesenchyme
+
+[Term]
+id: UBERON:0010584
+name: pedal digit 5 phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005699 ! pedal digit 5 mesenchyme
+
+[Term]
+id: UBERON:0010585
+name: pedal digit phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005255 ! pedal digit mesenchyme
+
+[Term]
+id: UBERON:0010586
+name: manual digit phalanx pre-cartilage condensation
+relationship: part_of UBERON:0005257 ! manual digit mesenchyme
+
+[Term]
+id: UBERON:0010675
+name: manual digit 1 phalanx cartilage condensation
+relationship: part_of UBERON:0010564 ! manual digit 1 mesenchyme
+
+[Term]
+id: UBERON:0010676
+name: manual digit 2 phalanx cartilage condensation
+relationship: part_of UBERON:0005692 ! manual digit 2 mesenchyme
+
+[Term]
+id: UBERON:0010677
+name: manual digit 3 phalanx cartilage condensation
+relationship: part_of UBERON:0005693 ! manual digit 3 mesenchyme
+
+[Term]
+id: UBERON:0010678
+name: manual digit 4 phalanx cartilage condensation
+relationship: part_of UBERON:0005694 ! manual digit 4 mesenchyme
+
+[Term]
+id: UBERON:0010679
+name: manual digit 5 phalanx cartilage condensation
+relationship: part_of UBERON:0005695 ! manual digit 5 mesenchyme
+
+[Term]
+id: UBERON:0010680
+name: pedal digit 1 phalanx cartilage condensation
+relationship: part_of UBERON:0010562 ! pedal digit 1 mesenchyme
+
+[Term]
+id: UBERON:0010681
+name: pedal digit 2 phalanx cartilage condensation
+relationship: part_of UBERON:0005696 ! pedal digit 2 mesenchyme
+
+[Term]
+id: UBERON:0010682
+name: pedal digit 3 phalanx cartilage condensation
+relationship: part_of UBERON:0005697 ! pedal digit 3 mesenchyme
+
+[Term]
+id: UBERON:0010683
+name: pedal digit 4 phalanx cartilage condensation
+relationship: part_of UBERON:0005698 ! pedal digit 4 mesenchyme
+
+[Term]
+id: UBERON:0010684
+name: pedal digit 5 phalanx cartilage condensation
+relationship: part_of UBERON:0005699 ! pedal digit 5 mesenchyme
+
+[Term]
+id: UBERON:0010685
+name: pedal digit phalanx cartilage condensation
+relationship: part_of UBERON:0005255 ! pedal digit mesenchyme
+
+[Term]
+id: UBERON:0010686
+name: manual digit phalanx cartilage condensation
+relationship: part_of UBERON:0005257 ! manual digit mesenchyme
+
+[Term]
+id: UBERON:0010687
+name: pedal digit metatarsal pre-cartilage condensation
+relationship: part_of UBERON:0005255 ! pedal digit mesenchyme
+
+[Term]
+id: UBERON:0010688
+name: skeleton of manual acropodium
+relationship: part_of UBERON:0002398 ! manus
+relationship: part_of UBERON:0012151 ! skeleton of manual digitopodium
+
+[Term]
+id: UBERON:0010690
+name: manual digit 1 epithelium
+relationship: part_of UBERON:0001463 ! manual digit 1
+
+[Term]
+id: UBERON:0010693
+name: pedal digit 1 epithelium
+relationship: part_of UBERON:0003631 ! pedal digit 1
+
+[Term]
+id: UBERON:0010696
+name: skeleton of pedal acropodium
+relationship: part_of UBERON:0002387 ! pes
+relationship: part_of UBERON:0012152 ! skeleton of pedal digitopodium
+
+[Term]
+id: UBERON:0010698
+name: manual digit metacarpus pre-cartilage condensation
+relationship: part_of UBERON:0005257 ! manual digit mesenchyme
+
+[Term]
+id: UBERON:0010699
+name: manual digit metacarpus cartilage condensation
+relationship: part_of UBERON:0005257 ! manual digit mesenchyme
+
+[Term]
+id: UBERON:0010708
+name: pectoral complex
+
+[Term]
+id: UBERON:0010709
+name: pelvic complex
+
+[Term]
+id: UBERON:0011249
+name: appendicular skeletal system
+
+[Term]
+id: UBERON:0012141
+name: manual digitopodium region
+relationship: part_of UBERON:0002398 ! manus
+
+[Term]
+id: UBERON:0012142
+name: pedal digitopodium region
+relationship: part_of UBERON:0002387 ! pes
+
+[Term]
+id: UBERON:0012151
+name: skeleton of manual digitopodium
+relationship: part_of UBERON:0001442 ! skeleton of manus
+relationship: part_of UBERON:0002398 ! manus
+relationship: part_of UBERON:0012141 ! manual digitopodium region
+
+[Term]
+id: UBERON:0012152
+name: skeleton of pedal digitopodium
+relationship: part_of UBERON:0001445 ! skeleton of pes
+relationship: part_of UBERON:0002387 ! pes
+relationship: part_of UBERON:0012142 ! pedal digitopodium region
+
+[Term]
+id: UBERON:0012475
+name: skeleton of pectoral complex
+relationship: part_of UBERON:0002091 ! appendicular skeleton
+relationship: part_of UBERON:0010708 ! pectoral complex
+
+[Term]
+id: UBERON:0012476
+name: skeleton of pelvic complex
+relationship: part_of UBERON:0002091 ! appendicular skeleton
+relationship: part_of UBERON:0010709 ! pelvic complex
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+is_transitive: true
