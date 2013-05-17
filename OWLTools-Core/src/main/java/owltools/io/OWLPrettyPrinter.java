@@ -16,6 +16,7 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapperExtended;
 import owltools.graph.OWLQuantifiedProperty;
+import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
 
 /**
  * Use a {@link OWLGraphWrapper} or {@link OWLGraphWrapperExtended} to render
@@ -46,6 +47,17 @@ public class OWLPrettyPrinter {
 		renderer = new SimpleRenderer();
 		renderer.setShortFormProvider(shortFormProvider);
 
+	}
+	
+	/**
+	 * Create an {@link OWLPrettyPrinter}, which renders in OWL Manchester syntax.
+	 * 
+	 * @param graph
+	 * @return printer
+	 */
+	public static OWLPrettyPrinter createManchesterSyntaxPrettyPrinter(OWLGraphWrapperExtended graph) {
+		OWLObjectRenderer r = new ManchesterOWLSyntaxOWLObjectRendererImpl();
+		return new OWLPrettyPrinter(graph, r);
 	}
 
 	public String render(OWLObject obj) {
