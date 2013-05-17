@@ -78,30 +78,40 @@ public class SimpleOwlSim {
 	 * or class level
 	 */
 	public enum Metric { 
-		JACCARD, 
-		OVERLAP, 
-		NORMALIZED_OVERLAP, 
-		DICE,
-		IC_MCS,
-		GIC };
+		JACCARD("Best Match Average using Jaccard scoring"), 
+		OVERLAP(""), 
+		NORMALIZED_OVERLAP(""), 
+		DICE(""),
+		IC_MCS("Best Match Average using Information Content"),
+		GIC("GraphInformationContent"),
+		MAXIC("Maximum Information Content"),
+		SIMJ("Similarity based on Jaccard score"),
+		LCSIC("Least Common Subsumer Information Content Score");
+
+ 	  private final String description;
+    Metric(String description) {
+        this.description = description;
+    }
+    private String description() { return description; }
+    
+	};
 		
 	/**
 	 * Asymmetric metrics can be applied in either of two directions,
 	 * or both can be aggregated
 	 */
 	public enum Direction { 
-		/**
-		 * Asymmetric, matching all annotations on first element
-		 */
-		A_TO_B, 
-		/**
-		 * Asymmetric, matching all annotations on second element
-		 */
-		B_TO_A,
-		/**
-		 * Symmetric - taking average of both directions
-		 */
-		AVERAGE };
+		A_TO_B("Asymmetric, matching all annotations on first element"), 
+		B_TO_A("Asymmetric, matching all annotations on second element"),
+		AVERAGE("Symmetric - taking average of both directions");
+		
+ 	  private final String description;
+    Direction(String description) {
+        this.description = description;
+    }
+    private String description() { return description; }
+    
+	};
 
 	private Properties simProperties;
 
@@ -113,8 +123,28 @@ public class SimpleOwlSim {
 	 */
 	public enum SimConfigurationProperty {
 		analysisRelation,
-		minimumMaxIC, minimumSimJ,
-		compare;
+		minimumMaxIC("The miminum MaxIC threshold for filtering similarity results","4.0"), 
+		minimumSimJ("The minimum SimJ threshold for filtering similarity results","0.25"),
+		compare("ID prefixs to compare",""),
+		scoringMetrics("A comma separated list of Metrics to analyze",Metric.SIMJ.toString()),  /*a comma separated list of values that must match Metric*/
+		outputFormat;
+		
+ 	  private final String description;
+    private final String defaultValue;
+ 	  
+    SimConfigurationProperty() {
+      this.description = "";
+      this.defaultValue = null;
+   }
+    
+    SimConfigurationProperty(String description,String defaultValue) {
+        this.description = description;
+        this.defaultValue = defaultValue;
+    }
+    
+    private String description() { return description; }
+    public String defaultValue() { return defaultValue; }
+
 	}
 
 	/**

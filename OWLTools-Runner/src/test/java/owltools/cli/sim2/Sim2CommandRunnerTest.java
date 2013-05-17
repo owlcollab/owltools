@@ -33,11 +33,36 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		//load("Mus_musculus-label.owl");
 		//load("Mus_musculus-label.obo");
 		run("--sim-compare-atts -p "+path("test-sim.properties"));
+
+		//create a variety of sim property files and test here
+    //this one tests that it runs with the default properties
 		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
 		//run("--sim-basic");
 		
-		//run("-o -f obo /tmp/foo.obo");
-		
+		//run("-o -f obo /tmp/foo.obo");		
+	}
+	
+	@Test
+	public void testSimRunnerDefaultPropertiesFile() throws Exception {
+    //will load the default properties file
+		init();
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
+		run("--sim-basic -p "+path("default-sim.properties")+ " -o target/test100.default-sim.out");	
+		run("--show-sim-properties");
+//		run("--sim-basic -o target/test100.default.out");		
+	}
+	
+	@Test
+	public void testSimRunnerDefaultProperties() throws Exception {
+    //will load the default properties file
+		init();
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
+		run("--sim-basic -o target/test100.default.out");		
+		run("--show-sim-properties");
 	}
 
 	
