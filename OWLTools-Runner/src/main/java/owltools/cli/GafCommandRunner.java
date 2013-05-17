@@ -21,7 +21,9 @@ import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -43,6 +45,7 @@ import owltools.gaf.owl.AnnotationExtensionFolder;
 import owltools.gaf.owl.AnnotationExtensionUnfolder;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
+import owltools.gaf.owl.mapping.BasicABox;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
@@ -167,6 +170,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		fbp.reasoner.dispose();
 	}
+
 	
 	@CLIMethod("--gaf2owl")
 	public void gaf2Owl(Opts opts) throws OWLException {
@@ -175,6 +179,7 @@ public class GafCommandRunner extends CommandRunner {
 		String iri = null;
 		String out = null;
 		boolean isSkipIndividuals = false;
+		boolean isBasic = false;
 		BioentityMapping bioentityMapping = null;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-n"))
@@ -199,9 +204,18 @@ public class GafCommandRunner extends CommandRunner {
 			else if (opts.nextEq("--individual")) {
 				bioentityMapping = BioentityMapping.INDIVIDUAL;
 			}
+			else if (opts.nextEq("--basic")) {
+				isBasic = true;
+			}
 			else
 				break;
 
+		}
+		if (isBasic) {
+			bridge = new BasicABox(g);
+		}	
+		else {
+			bridge = new GAFOWLBridge(g);
 		}
 		if (iri != null) {
 			if (!iri.startsWith("http:")) {
@@ -212,11 +226,7 @@ public class GafCommandRunner extends CommandRunner {
 			// todo - save tgtOnt
 			OWLOntology tgtOnt = g.getManager().createOntology(IRI.create(iri));
 
-			bridge = new GAFOWLBridge(g, tgtOnt);
-		}
-		else {
-			// adds gaf axioms back into main ontology
-			bridge = new GAFOWLBridge(g);
+			bridge.setTargetOntology(tgtOnt);
 		}
 		bridge.setGenerateIndividuals(!isSkipIndividuals);
 		if (bioentityMapping != null) {
