@@ -1,0 +1,40 @@
+[Term]
+id: MP:1
+name: mp1
+def: "test mp1" []
+comment: comment mp1
+intersection_of: PATO:1
+intersection_of: r MA:1
+
+[Term]
+id: HP:1
+name: hp1
+def: "test hp1" []
+comment: comment hp1
+intersection_of: PATO:1
+intersection_of: r FMA:1
+
+[Term]
+id: MA:1
+name: ma1
+comment: ma1 comment
+synonym: "ma1 syn1" EXACT []
+synonym: "ma1 syn2" EXACT []
+
+[Term]
+id: FMA:1
+name: fma1
+def: "fma1 def" [FMA:FMA]
+synonym: "fma1 syn1" EXACT []
+synonym: "fma1 syn2" EXACT []
+
+[Term]
+id: U:1
+name: u1
+def: "u1 def" [U:U]
+equivalent_to: FMA:1
+equivalent_to: MA:1
+
+
+
+
