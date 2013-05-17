@@ -6,12 +6,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -208,10 +210,57 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 	}
 
+	boolean isHeaderLine = true;
+	/**
+	 * Write out attribute x attribute (class x class) similarity
+	 * @param a
+	 * @param b
+	 */
 	private void showSim(OWLClass a, OWLClass b) {
+		List<String> vals = new ArrayList<String>();
+		List<String> cols = new ArrayList<String>();
+		// elements
+		cols.add("A_ID");
+		vals.add(a.toString());
+		cols.add("A_Label");
+		vals.add(this.g.getLabel(a));
+		cols.add("B_ID");
+		vals.add(b.toString());
+		cols.add("B_Label");
+		vals.add(this.g.getLabel(b));
+
+		//scores
+		cols.add("SimJ_Score");
+		Double simj = sos.getAttributeJaccardSimilarity(a, b);
+		if ( simj < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
+			numberOfPairsFiltered ++;
+			return;
+		}
+
+		vals.add(simj.toString());
+		
+		cols.add("AsymSimJ_Score");
+		Double asimj = sos.getAsymmerticAttributeJaccardSimilarity(a, b);
+		vals.add(asimj.toString());
+		
+		cols.add("LCS_Score");
+		cols.add("LCS");
+		cols.add("LCS_Label");
 		ScoreAttributePair lcs = sos.getLowestCommonSubsumerIC(a, b);
-		double simj = sos.getAttributeJaccardSimilarity(a, b);
-		resultOutStream.println(a+"\t"+b+"\t"+simj+"\t"+lcs.score+"\t"+lcs.attributeClass);
+		if ( lcs.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
+			numberOfPairsFiltered ++;
+			return;
+		}
+		vals.add(lcs.score.toString());
+		vals.add(lcs.attributeClass.toString());
+		vals.add(g.getLabel(lcs.attributeClass));
+
+		if (isHeaderLine) {
+			resultOutStream.println(StringUtils.join(cols, "\t"));
+			isHeaderLine = false;
+		}
+		resultOutStream.println(StringUtils.join(vals, "\t"));
+		//resultOutStream.println(a+"\t"+b+"\t"+simj+"\t"+lcs.score+"\t"+lcs.attributeClass);
 	}
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
