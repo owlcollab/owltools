@@ -52,6 +52,7 @@ import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
@@ -698,15 +699,20 @@ public class CommandRunner {
 				g.getManager().applyChanges(changes);
 			}
 			else if (opts.nextEq("--merge-equivalent-classes")) {
-				opts.info("[-f FROM-URI-PREFIX]* [-t TO-URI-PREFIX]", "merges equivalent classes to a common ID space");
+				opts.info("[-f FROM-URI-PREFIX]* [-t TO-URI-PREFIX]", "merges equivalent classes, from source to target ontology");
 				List<String> prefixFroms = new Vector<String>();
 				String prefixTo = null;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-f")) {
-						prefixFroms.add(opts.nextOpt());
+						String pfx = opts.nextOpt();
+						if (!pfx.startsWith("http"))
+							pfx = "http://purl.obolibrary.org/obo/"+pfx+"_";
+						prefixFroms.add(pfx);
 					}
 					else if (opts.nextEq("-t")) {
 						prefixTo = opts.nextOpt();
+						if (!prefixTo.startsWith("http"))
+							prefixTo = "http://purl.obolibrary.org/obo/"+prefixTo+"_";
 					}
 					else
 						break;
@@ -715,10 +721,11 @@ public class CommandRunner {
 				LOG.info("building entity2IRI map...: " + prefixFroms + " --> "+prefixTo);
 				OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
 
+				Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 				// we only map classes in the source ontology - however,
 				// we use equivalence axioms from the full complement of ontologies
 				// TODO - allow arbitrary entities
-				for (OWLEntity e : g.getSourceOntology().getClassesInSignature()) {
+				for (OWLClass e : g.getSourceOntology().getClassesInSignature()) {
 					//LOG.info("  testing "+c+" ECAs: "+g.getSourceOntology().getEquivalentClassesAxioms(c));
 					// TODO - may be more efficient to invert order of testing
 					String iriStr = e.getIRI().toString();
@@ -732,19 +739,48 @@ public class CommandRunner {
 					if (prefixFroms.size()==0)
 						isMatch = true;
 					if (isMatch) {
-						// we also scan support ontologies for equivalencies
-						for (OWLOntology ont : g.getAllOntologies()) {
-							OWLClass c = ont.getOWLOntologyManager().getOWLDataFactory().getOWLClass(e.getIRI());
-							for (OWLEquivalentClassesAxiom eca : ont.getEquivalentClassesAxioms(c)) {
-								for (OWLClass d : eca.getClassesInSignature()) {
-									if (prefixTo == null || d.getIRI().toString().startsWith(prefixTo)) {
-										e2iri.put(c, d.getIRI()); // TODO one-to-many
+						Set<OWLClass> ecs = new HashSet<OWLClass>();
+						if (reasoner != null) {
+							ecs = reasoner.getEquivalentClasses(e).getEntities();
+						}
+						else {
+							// we also scan support ontologies for equivalencies
+							for (OWLOntology ont : g.getAllOntologies()) {
+								OWLClass c = ont.getOWLOntologyManager().getOWLDataFactory().getOWLClass(e.getIRI());
+
+								for (OWLEquivalentClassesAxiom eca : ont.getEquivalentClassesAxioms(c)) {
+									ecs.addAll(eca.getClassesInSignature());
+								}
+							}
+						}
+						for (OWLClass d : ecs) {
+							if (prefixTo == null || d.getIRI().toString().startsWith(prefixTo)) {
+								e2iri.put(e, d.getIRI()); // TODO one-to-many
+
+								// ensure OBO cardinality of properties is preserved
+								for (OWLAnnotationAssertionAxiom aaa :
+									g.getSourceOntology().getAnnotationAssertionAxioms(e.getIRI())) {
+									if (aaa.getProperty().isLabel()) {
+										if (g.getLabel(d) != null) {
+											rmAxioms.add(aaa);
+										}
+									}
+									if (aaa.getProperty().getIRI().equals(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI())) {
+										if (g.getDef(d) != null) {
+											rmAxioms.add(aaa);
+										}
+									}
+									if (aaa.getProperty().isComment()) {
+										if (g.getComment(d) != null) {
+											rmAxioms.add(aaa);
+										}
 									}
 								}
 							}
 						}
 					}
 				}
+				g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
 				LOG.info("Mapping "+e2iri.size()+" entities");
 				// TODO - this is slow
 				List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
