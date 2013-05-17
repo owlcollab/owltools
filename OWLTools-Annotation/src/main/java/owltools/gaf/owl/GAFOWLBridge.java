@@ -28,6 +28,7 @@ import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.owl.GAFOWLBridge.GAFDescription;
 import owltools.graph.OWLGraphWrapper;
 
 public class GAFOWLBridge {
@@ -44,6 +45,7 @@ public class GAFOWLBridge {
 	// config
 	private BioentityMapping bioentityMapping = BioentityMapping.CLASS_EXPRESSION;
 	private boolean isGenerateIndividuals = true;
+	private boolean isBasicAboxMapping = true;
 
 	public static IRI GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI = IRI.create("http://gaf/line_number");
 
@@ -126,6 +128,16 @@ public class GAFOWLBridge {
 	public void setGenerateIndividuals(boolean isGenerateIndividuals) {
 		this.isGenerateIndividuals = isGenerateIndividuals;
 	}
+	
+	
+
+	public boolean isBasicAboxMapping() {
+		return isBasicAboxMapping;
+	}
+
+	public void setBasicAboxMapping(boolean isBasicAboxMapping) {
+		this.isBasicAboxMapping = isBasicAboxMapping;
+	}
 
 	public OWLOntology getTargetOntology() {
 		return targetOntology;
@@ -173,11 +185,19 @@ public class GAFOWLBridge {
 		}
 		return "annotation of "+a.getBioentityObject().getSymbol() + " to " + clsDesc;
 	}
-
-	private void translateGeneAnnotation(GeneAnnotation a) {
-		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+	
+	public class GAFDescription {
+		public GAFDescription(OWLObjectSomeValuesFrom e, String s) {
+			classExpression = e;
+			label = s;
+		}
+		public OWLClassExpression classExpression;
+		String label;
+	}
+	
+	
+	protected GAFDescription getDescription(GeneAnnotation a) {
 		OWLDataFactory fac = graph.getDataFactory();
-		OWLClass e = getOWLClass(a.getBioentity());
 		OWLClassExpression annotatedToClass = getOWLClass(a.getCls());
 		// c16 - TODO - split '|'s into separate annotations
 		Collection<ExtensionExpression> exts = a.getExtensionExpressions();
@@ -206,10 +226,31 @@ public class GAFOWLBridge {
 			}
 			annotatedToClass = fac.getOWLObjectIntersectionOf(ops);
 		}
+		
+		StringBuilder labelBuilder = new StringBuilder();
+		String clsId = a.getCls();
+		appendCls(labelBuilder, graph.getOWLObjectByIdentifier(clsId), clsId);
+		if (c16Label != null) {
+			labelBuilder.append(c16Label);
+		}
+
 
 		OWLObjectProperty p = getGeneAnnotationRelation(a);
 		OWLObjectSomeValuesFrom r =
 			fac.getOWLObjectSomeValuesFrom(p, annotatedToClass);
+		return new GAFDescription(r, labelBuilder.toString());
+	}
+	
+
+
+	public void translateGeneAnnotation(GeneAnnotation a) {
+		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+		OWLDataFactory fac = graph.getDataFactory();
+		OWLClass e = getOWLClass(a.getBioentity());
+		
+		GAFDescription gdesc = getDescription(a);
+		OWLClassExpression r = gdesc.classExpression;
+				
 		// e.g. Shh and actively_participates_in some 'heart development'
 		// todo - product
 		OWLClassExpression x =
@@ -262,12 +303,8 @@ public class GAFOWLBridge {
 				labelBuilder.append("'");
 				appendBioEntity(labelBuilder, bioentity);
 				labelBuilder.append(" - ");
+				labelBuilder.append(gdesc.label);
 				
-				String clsId = a.getCls();
-				appendCls(labelBuilder, graph.getOWLObjectByIdentifier(clsId), clsId);
-				if (c16Label != null) {
-					labelBuilder.append(c16Label);
-				}
 				annotation = fac.getOWLAnnotation(fac.getRDFSLabel(), fac.getOWLLiteral(labelBuilder.toString()));
 				axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
 				
@@ -394,7 +431,7 @@ public class GAFOWLBridge {
 		return graph.getDataFactory().getOWLClass(iri);
 	}
 
-	private void translateBioentity(Bioentity e) {
+	protected void translateBioentity(Bioentity e) {
 		OWLDataFactory fac = graph.getDataFactory();
 		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 		OWLClass cls = getOWLClass(e.getId());
@@ -417,7 +454,7 @@ public class GAFOWLBridge {
 
 	}
 
-	private void addAxioms(Set<OWLAxiom> axioms) {
+	protected void addAxioms(Set<OWLAxiom> axioms) {
 		graph.getManager().addAxioms(targetOntology, axioms);
 	}
 
