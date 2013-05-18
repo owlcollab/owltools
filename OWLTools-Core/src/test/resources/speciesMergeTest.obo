@@ -1,0 +1,160 @@
+ontology: u
+
+[Term]
+id: T:1
+name: coelocanth
+
+[Term]
+id: T:2
+name: fly
+
+[Term]
+id: UBERON:0001062
+name: anatomical entity
+
+[Term]
+id: U:1
+is_a: UBERON:0001062
+name: anatomical structure
+
+[Term]
+id: U:2
+name: brain
+is_a: U:1
+
+[Term]
+id: U:3
+name: forebrain
+is_a: U:1
+relationship: part_of U:2 ! brain
+
+[Term]
+id: U:4
+name: forebrain astrocyte
+intersection_of: U:6
+intersection_of: part_of U:3
+
+[Term]
+id: U:22
+name: antenna
+is_a: U:1
+relationship: never_in_taxon T:1
+
+[Term]
+id: U:23
+name: left antenna
+is_a: U:22
+
+[Term]
+id: U:24
+name: left antenna segment
+relationship: part_of U:23
+
+[Term]
+id: U:5
+name: cell
+is_a: U:1
+
+[Term]
+id: U:6
+name: astrocyte
+is_a: U:5
+
+[Term]
+id: S:1
+name: anatomical_entity
+intersection_of: U:1
+intersection_of: part_of T:1
+
+[Term]
+id: S:2
+name: Brain
+intersection_of: U:2
+intersection_of: part_of T:1
+is_a: S:1
+
+[Term]
+id: S:3
+name: ForeBrain
+intersection_of: U:3
+intersection_of: part_of T:1
+relationship: part_of S:2
+relationship: expresses SG:1
+
+[Term]
+id: S:4
+name: Forebrain Astrocyte
+def: "The forebrain astrocyte of S expresses SG:2" []
+comment: experiment with declaring equiv
+intersection_of: S:6
+intersection_of: part_of S:3
+relationship: expresses SG:2
+
+[Term]
+id: S:12
+name: Cephalus Obscurus Astrocyte
+intersection_of: S:6
+intersection_of: part_of S:998
+
+[Term]
+id: S:5
+name: Cell
+is_a: S:1
+intersection_of: U:5
+intersection_of: part_of T:1
+
+[Term]
+id: S:6
+name: Astrocyte
+def: "The astrocyte of S is known for expressing SG:3" [FOO:1]
+is_a: S:5
+intersection_of: U:6
+intersection_of: part_of T:1
+relationship: expresses SG:3
+
+[Term]
+id: S:999
+name: Musculus Obscurus
+is_a: S:1
+
+[Term]
+id: S:1000
+name: Left Musculus Obscurus
+is_a: S:999
+
+[Term]
+id: S:998
+name: Cephalus Obscurus
+relationship: part_of S:3
+comment: A made up structure in the forebrain of species S
+
+[Term]
+id: S:9
+name: Cell of Cephalus Obscurus
+is_a: S:5
+relationship: part_of S:998
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+is_transitive: true
+
+[Typedef]
+id: expresses
+name: expresses
+
+[Typedef]
+id: never_in_taxon
+name: never_in_taxon
+def: "S never_in_taxon T iff: S SubClassOf in_taxon only not T" [PMID:20973947]
+is_class_level: true
+is_metadata_tag: true
+xref: RO:0002161
+expand_assertion_to: "Class: <http://www.w3.org/2002/07/owl#Nothing> EquivalentTo: ?X and (RO_0002162 some ?Y)" []
+
+[Typedef]
+id: in_taxon
+name: in taxon
+xref: RO:0002162
+holds_over_chain: part_of in_taxon
