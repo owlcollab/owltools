@@ -5,7 +5,7 @@ my %d = ();
 my %nsh = ();
 my %fmth = ();
 
-my $md_url = 'http://obo.cvs.sourceforge.net/viewvc/obo/obo/website/cgi-bin/ontologies.txt';
+my $md_url = 'http://obo-registry.googlecode.com/svn/trunk/metadata/ontologies.txt';
 
 my @mdfiles=();
 
@@ -17,7 +17,7 @@ while (@ARGV && $ARGV[0] =~ /^\-/) {
     my $opt = shift @ARGV;
     print STDERR "O: $opt\n";
     if ($opt eq '--fetch-metadata') {
-        cmd("wget -N $md_url -O ontologies.txt");
+        cmd("wget $md_url -O ontologies.txt");
         push(@mdfiles, 'ontologies.txt');
     }
     else {
@@ -48,6 +48,7 @@ foreach my $mdf (@mdfiles) {
             }
             elsif ($t eq 'source') {
                 if ($v && !$d{$ns}) {
+                    $v =~ s/.*\|//;
                     $d{$ns} = $v;
                 }
             }
@@ -60,7 +61,13 @@ foreach my $mdf (@mdfiles) {
                 print STDERR "NS: $ns FMT: $v\n";
             }
         }
+        elsif (/^\S+$/) {
+            print STDERR "TYPO: no tab in line: $_\n";
+        }
         else {
+            if ($ns && /\S/) {
+                print STDERR "Possible typo, no tab in line: $_\n";
+            }
             $ns = '';
         }
     }
@@ -93,7 +100,7 @@ foreach my $ns (keys %d)  {
     push(@rules, "$srcf: stamp\n\twget --no-check-certificate '$d{$ns}' -O \$@.tmp && ( cmp \$@.tmp \$@ && echo identical || cp \$@.tmp \$@)");
 
     # then build
-    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$< > \$@.fail 2>&1  && mv \$@.fail \$@.log");
+    push(@rules, "$ont/$ont.owl: $srcf\n\tontology-release-runner --skip-release-folder --no-subsets --skip-format owx --allow-overwrite --outdir $ont --no-reasoner --asserted --simple \$< > \$@.fail 2>&1  && mv \$@.fail \$@.log");
     push(@rules, "$ont/$ont.obo: $ont/$ont.owl");
     push(@rules, "$ont/$ont-obo-diff.html: $ont/$ont.obo\n".
         "\t(test -f \$<.LAST || cp \$< \$<.LAST ) ;compare-obo-files.pl -f1 \$<.LAST -f2 \$< -m html txt rss --rss-path . -o $ont/$ont-obo-diff --config html/ontology_name=$ont && cp \$<.LAST \$<");
@@ -102,7 +109,7 @@ foreach my $ns (keys %d)  {
     #push(@rules, "../$ont.%: $ont/$ont.%\n\tcp \$< \$@");
     push(@rules, "\$(TDIR)/$ont.obo: $ont/$ont.obo\n\tcp \$< \$@");
     push(@rules, "\$(TDIR)/$ont.owl: $ont/$ont.owl\n\tcp \$< \$@");
-    push(@rules, "release-$ont: \$(TDIR)/$ont.obo \$(TDIR)/$ont.owl\n\ttouch \$@");
+    push(@rules, "release-$ont: \$(TDIR)/$ont.obo \$(TDIR)/$ont.owl $ont/$ont-obo-diff.html\n\ttouch \$@");
     #push(@rules, "release-$ont: $ont/$ont.owl\n\tcp $ont/$ont.owl ..; cp $ont/$ont.obo ..");
 
     cmd("mkdir $ont");

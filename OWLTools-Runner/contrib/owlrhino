@@ -91,7 +91,7 @@ do
 		then
 			JAVAARGS="$JAVAARGS '${ARG:2}'"
 		else
-			CMDARGS="$CMDARGS '$ARG'"
+			CMDARGS="$CMDARGS -f '$ARG'"
 		fi
 	fi
 	shift;
@@ -143,6 +143,7 @@ fi
 
 [ "$1" = "-f" ] || { RLWRAP="/opt/local/bin/rlwrap -C js" ;}
 #sh -c "$JAVAPATH -Xmx1024m -classpath $CLASSPATH:$CLASSPATH_RHINO -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME $CMDARGS"
-CMD="$RLWRAP -C owlrhino $JAVAPATH -Xmx4G -classpath $CLASSPATH:$CLASSPATH_RHINO:~/bin -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME  -f $PATH_TO_ME/owlrunner.js $CMDARGS -f -"
+export OWLRUNNER_SOURCE=$PATH_TO_ME/owlrunner.js
+CMD="$RLWRAP -C owlrhino $JAVAPATH -Xmx4G -classpath $CLASSPATH:$CLASSPATH_RHINO:~/bin -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME -f $PATH_TO_ME/pachyowl.js -f $PATH_TO_ME/owlrunner.js $CMDARGS -f -"
 echo $CMD
 sh -c "$CMD"

@@ -15,9 +15,16 @@ var isElk = true;
 var objmap;
 var changes = [];
 
+function wg() {
+    return gen;
+}
+function maker() {
+    return gen.getMaker();
+}
+
 // initializes runner with new CommandRunner
 function init() {
-    runner = new SimCommandRunner();
+    runner = new Sim2CommandRunner();
     runner.exitOnException = false;
     runner.isDisposeReasonerOnExit = false;
 }
@@ -154,56 +161,29 @@ function df() {
 // CLASS EXPRESSIONS
 // note we assume object expressions for now - in future this should auto-detect
 
-someValuesFrom = function(p, filler) {
-    return df().getOWLObjectSomeValuesFrom(p, filler);
+
+someValuesFrom = function() {return maker().someValuesFrom.apply(maker(),arguments)};
+intersectionOf = function() {return maker().intersectionOf.apply(maker(),arguments)};
+subClassOf = function() {return maker().subClassOf.apply(maker(),arguments)};
+equivalentClasses = function() {return maker().equivalentClasses.apply(maker(),arguments)};
+disjointClasses = function() {return maker().disjointClasses.apply(maker(),arguments)};
+annotationAssertion = function() {return maker().annotationAssertion.apply(maker(),arguments)};
+labelAssertion = function() {return maker().labelAssertion.apply(maker(),arguments)};
+ann = function() {return maker().ann.apply(maker(),arguments)};
+literal = function() {return maker().literal.apply(maker(),arguments)};
+
+// util
+isDeprecated = function() {return wg().isDeprecated.apply(wg(),arguments)};
+
+function makeFrame(sm) {
+    return new bbop.owl.OWLFrame(wg(), sm);
 }
 
-intersectionOf = function() {
-    var set = new java.util.HashSet();
-    for (k in arguments) {
-        set.add(arguments[k]);
-    }
-    return get_data_factory().getOWLObjectIntersectionOf(set);
+function showFrame(sm) {
+    var f = new bbop.owl.OWLFrame(wg(), sm);
+    print(f.render());
+    return f;
 }
-
-
-// AXIOMS
-
-subClassOf = function (x,y) { return df().getOWLSubClassOfAxiom(x,y) }
-
-equivalentClasses = function() {
-    var set = new java.util.HashSet();
-    for (k in arguments) {
-        set.add(owl(arguments[k]));
-    }
-    return df().getOWLEquivalentClassesAxiom(set);
-}
-disjointClasses = function() {
-    var set = new java.util.HashSet();
-    for (k in arguments) {
-        set.add(arguments[k]);
-    }
-    return df().getOWLDisjointClassesAxiom(set);
-}
-
-annotationAssertion = function(p,s,v) {
-    if (typeof v == 'string') {
-        v = literal(v);
-    }
-    if (!(s instanceof IRI)) {
-        s = s.getIRI();
-    }
-    return df().getOWLAnnotationAssertionAxiom(p,s,v);
-}
-labelAssertion = function(s,v) {
-    return annotationAssertion(df().getOWLAnnotationProperty(org.semanticweb.owlapi.vocab.OWLRDFVocabulary.RDFS_LABEL.getIRI()),
-                               s,v);
-}
-
-function literal(v) {
-    return df().getOWLLiteral(v);
-}
-
 
 // ========================================
 // CH..CH..CHANGES
@@ -234,166 +214,20 @@ function removeAxioms(axs) {
     }
 }
 
-// ========================================
-// FRAMES
-// ========================================
-
-function smap(arr,f) {
-    if (arr.map == null) {
-        return f(arr);
+function saveAxioms(obj, file, owlFormat) {
+    var tmpOnt = gen.getManager().createOntology(IRI.create("http://x.org"));
+    var axioms = obj;
+    if (obj instanceof bbop.owl.OWLFrame) {
+        axioms = obj.toAxioms();
     }
-    return arr.map(f);
-}
-
-function frameToAxioms(f) {
-    var id = f.id;
-    var obj = id;
-    print(obj);
-    if (typeof id == 'string') {
-         obj = df().getOWLClass(id);
-    }
-    print("getting axioms");
-    var axioms = [];
-    for (k in f) {
-        var v = f[k];
-        var vs = v;
-        if (!(v instanceof Array)) {
-            vs = [v];
-        }
-        for (var i=0; i<vs.length; i++) {
-            var v = vs[i];
-            print(k+" = "+v + " // "+i+" of "+vs.length);
-            switch(k.toLowerCase()) 
-            {
-            case 'id' : 
-                break;
-            case 'subclassof' :
-                axioms.push(subClassOf(obj,owl(v)));
-                break;
-            case 'equivalentto' :
-                axioms.push(equivalentClasses(obj,owl(v)));
-                break;
-            case 'disjointwith' :
-                axioms.push(disjointClasses(obj,owl(v)));
-                break;
-            case 'label' :
-                axioms.push(labelAssertion(obj,literal(v)));
-                break;
-            case 'annotations' :
-                axioms.push(annotationAssertion(v.property, obj,literal(v.value)));
-                break;
-            default :
-                // todo - allow properties
-                var p = k;
-                if (typeof p == 'string') {
-                    p = lookup(k);
-                }
-                if (p instanceof OWLAnnotationProperty) {
-                axioms.push(annotationAssertion(p,obj,literal(v)));
-                }
-                else if (p instanceof OWLObjectProperty) {
-                    axioms.push(subClassOf(obj,someValuesFrom(p,owl(v))));
-                }
-                else {
-                    print("unknown: "+k);
-                }
-            }
-        }
-    }
-    print("axioms:"+axioms.length);
-
     for (k in axioms) {
-        var a = axioms[k];
-        //print(a);
+        gen.getManager().addAxiom(tmpOnt, axioms[k]);
     }
-    return axioms;
-}
-
-function addFrame(f) {
-    addAxioms(frameToAxioms);
-}
-
-function axiomsToFrames(axioms, renderer) {
-
-    // make this a function of pp?
-    var render = function(obj) {
-        if (renderer == null || renderer == 'js') {
-            if (obj instanceof OWLObject) {
-                var label = getLabel(obj);
-                if (label != null) {
-                    // todo
-                    return safeify(label);
-                }
-                else {
-                    return obj;
-                }
-            }
-        }
-        else {
-            return obj;
-        }
+    var pw = new ParserWrapper();
+    if (owlFormat == null) {
+        owlFormat = new org.coode.owlapi.obo.parser.OBOOntologyFormat();
     }
-
-    var fmap = {};
-    for (var k in axioms) {
-        var ax = axioms[k];
-        if (ax instanceof OWLSubClassOfAxiom) {
-            var x = ax.getSubClass();
-            if (fmap[x] == null) {
-                fmap[x] = { id:x };
-            }
-            if (fmap[x].subClassOf == null) {
-                fmap[x].subClassOf = [];
-            }
-            fmap[x].subClassOf.push(render(ax.getSuperClass()));
-        }
-        else if (ax instanceof OWLEquivalentClassesAxiom) {
-            var xs = ax.getNamedClasses().toArray();
-            for (k in xs) {
-                var x = xs[k];
-                if (fmap[x] == null) {
-                    fmap[x] = { id:x };
-                }
-                if (fmap[x].equivalentTo == null) {
-                    fmap[x].equivalentTo = [];
-                }
-                fmap[x].equivalentTo.push(ax.getClassExpressionsMinus(x).toArray());
-            }
-        }
-        else if (ax instanceof OWLAnnotationAssertionAxiom) {
-            var x = ax.getSubject();
-            if (fmap[x] == null) {
-                fmap[x] = { id:x };
-            }
-            if (fmap[x].annotations == null) {
-                fmap[x].annotations = [];
-            }
-            fmap[x].annotations.push({property: ax.getProperty(), value: ax.getValue()});
-        }
-        else {
-            print("Cannot process: "+ax);
-        }
-    }
-    return fmap;
-}
-
-function axiomsToFrame(axioms, id) {
-    var fmap = axiomsToFrames(axioms);
-    return fmap[id];
-}
-
-function getFrame(obj) {
-    var axioms = ont().getAxioms(obj).toArray();
-    return axiomsToFrame(axioms, obj);
-}
-
-function owl(obj) {
-    // in future this may perform translation of json objects to OWL
-    if (typeof obj == 'string') {
-        // todo - other types
-        obj = df().getOWLClass(IRI.create(obj));
-    }
-    return obj;
+    pw.saveOWL(tmpOnt, owlFormat, file, g());
 }
 
 // ========================================
@@ -417,13 +251,23 @@ function safeify(label) {
     return label;
 }
 
+function getAllOWLObjects() {
+    var objs = g().getAllOWLObjects();
+    objs.addAll(ont().getAnnotationPropertiesInSignature());
+    return objs.toArray();
+}
+
 // experimental and DANGEROUS
 //  sets a variable for every owl object.
 //   e.g. organ = <http://...>
+// TODO - warn if dupe label
 function setClassVars() {
-    var objs = g().getAllOWLObjects().toArray();;
+    var objs = getAllOWLObjects();
     for (k in objs) {
         var obj = objs[k];
+        if (isDeprecated(obj)) {
+            continue;
+        }
         var label = getClassVariableName(obj);
         if (label != null) {
             eval(label+" = obj");
@@ -435,7 +279,8 @@ function setClassVars() {
 // e.g. objmap.organ
 function indexOnt() {
     objmap = {};
-    var objs = g().getAllOWLObjects().toArray();;
+    var objs = getAllOWLObjects();
+    //var objs = g().getAllOWLObjects().toArray();;
     for (k in objs) {
         var obj = objs[k];
         var label = getClassVariableName(obj);
@@ -444,6 +289,7 @@ function indexOnt() {
         }
     }
 }
+
 
 
 
@@ -551,7 +397,26 @@ function jsRenderOWL(object, depth, embedded) {
     else if (object instanceof OWLObjectSomeValuesFrom) {
         return "someValuesFrom(" + jsRenderOWL(object.getProperty()) +" , " + jsRenderOWL(object.getFiller())+") ";
     }
+    else if (object instanceof OWLAnnotation) {
+        return "ann(" + jsRenderOWL(object.getProperty()) +" , " + jsRenderOWL(object.getValue())+") ";
+    }
+    else if (object instanceof OWLObjectIntersectionOf) {
+        var args = object.getOperandsAsList().toArray();
+        var args2 = args.map(function(x){ return jsRenderOWL(x, depth, embedded)})
+        return "intersectionOf(" + args2.join(", ") + ")";
+    }
     return object;
 }
 
+// TODO - OO
+function owl(obj) {
+    // in future this may perform translation of json objects to OWL
+    if (typeof obj == 'string') {
+        // todo - other types
+        obj = this.df().getOWLClass(IRI.create(obj));
+    }
+    return obj;
+}
+
 print(">>>> Welcome to the OWLTools Rhino Shell!");
+
