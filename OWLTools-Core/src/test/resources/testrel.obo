@@ -1,5 +1,0 @@
-ontology: testrelation
-
-[Typedef]
-id: TEST:0000001
-name: test_relation
