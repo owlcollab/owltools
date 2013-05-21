@@ -44,8 +44,6 @@
 						<exclude>owltools/mooncat/PropertyViewTest.java</exclude>
 						<exclude>owltools/graph/OWLGraphWrapperEdgeTest</exclude>
 						<exclude>owltools/gfx/LegoVizTest.java</exclude>
-						<exclude>owltools/sim/PhenologSimTest.java</exclude>
-						<exclude>owltools/sim/PhenoSimTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
