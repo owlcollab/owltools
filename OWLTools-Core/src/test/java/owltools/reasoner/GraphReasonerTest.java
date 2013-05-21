@@ -5,7 +5,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
-import owltools.sim.SimEngine;
 
 /**
  * tests getLeastCommonSubsumerSimpleClassExpression
@@ -16,7 +15,6 @@ import owltools.sim.SimEngine;
 public class GraphReasonerTest extends AbstractReasonerTest {
 
 	OWLGraphWrapper g;
-	SimEngine se;
 	OWLPrettyPrinter pp;
 
 	@Test

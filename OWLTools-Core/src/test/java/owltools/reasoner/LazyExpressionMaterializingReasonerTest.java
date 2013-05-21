@@ -4,13 +4,10 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.obolibrary.macro.ManchesterSyntaxTool;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
-import owltools.sim.SimEngine;
 
 /**
  * tests getLeastCommonSubsumerSimpleClassExpression
@@ -21,7 +18,6 @@ import owltools.sim.SimEngine;
 public class LazyExpressionMaterializingReasonerTest extends AbstractReasonerTest {
 
 	OWLGraphWrapper g;
-	SimEngine se;
 	OWLPrettyPrinter pp;
 
 	@Test
