@@ -63,6 +63,12 @@
 		    <groupId>org.forester</groupId>
   			<artifactId>Forester</artifactId>
   			<version>1.005</version>
+  			<exclusions>
+  				<exclusion>
+					<groupId>com.itextpdf</groupId>
+					<artifactId>itextpdf</artifactId>
+				</exclusion>
+  			</exclusions>
   		</dependency>	
 	</dependencies>
 </project>
