@@ -535,13 +535,16 @@ public class SimpleOwlSim {
 	}
 
 	/**
+	 * Find the inferred attribute shared by both i and j that has highest IC.
+	 * If there is a tie then the resulting structure will have multiple classes
+	 * 
 	 * @param i
 	 * @param j
-	 * @return MaxIC
+	 * @return ScoreAttributesPair
 	 */
 	public ScoreAttributesPair getSimilarityMaxIC(OWLNamedIndividual i, OWLNamedIndividual j) {
 		Set<Node<OWLClass>> atts = getInferredAttributes(i);
-		atts.retainAll(getInferredAttributes(j));
+		atts.retainAll(getInferredAttributes(j)); // intersection
 
 		ScoreAttributesPair best = new ScoreAttributesPair(0.0);
 		for (Node<OWLClass> n : atts) {
@@ -554,14 +557,7 @@ public class SimpleOwlSim {
 			if (ic > best.score) {
 				best = new ScoreAttributesPair(ic, c);
 			}
-			
 		}
-		/*
-		if (resultsOntology != null) {
-			//OWLNamedIndividual pair = generateSimPair(i, j, "MaxIC");
-
-		}
-		*/
 		return best;
 	}
 
@@ -965,8 +961,6 @@ public class SimpleOwlSim {
 		icCache.put(c, ic);
 		return ic;
 	}
-
-
 
 }
 
