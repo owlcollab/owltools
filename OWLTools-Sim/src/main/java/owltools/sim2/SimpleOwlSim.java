@@ -36,7 +36,66 @@ import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
  * 
- * <h3>Semantic Similarity</h3>
+ * <h2>Semantic Similarity</h2>
+ * 
+ * <h3>Basic Concepts</h3>
+ * 
+ * This class allows the comparison of one or more entities (modeled as OWLIndividuals) to another set,
+ * based on the attributes they possess (modeled as OWLClasses).
+ * 
+ * <h3>Pre-processing</h3>
+ * 
+ * Each individual is assumed to be an instance of the class used in the comparison.
+ * This may not be the natural representation, so some pre-processing may be required.
+ * 
+ * For example, for representing the relationships between gene individuals and tissues, the
+ * natural representation may be
+ * 
+ * <pre>
+ * Individual: g1
+ *   Types: gene, expressed_in some hand
+ * Individual: g2
+ *   Types: gene, expressed_in some toe
+ * </pre>
+ * 
+ * Here the only *named* class commonly instantiated between g1 and g2 is 'gene'. OWLReasoners do not return anonymous
+ * class expressions.
+ * 
+ * The input ontology should be pre-processed to pre-generate named classes such as
+ * <pre>
+ * "X gene" EquivalentTo expressed_in some X
+ * </pre>
+ * 
+ * If we assume a property chain
+ * <pre>
+ * expressed_in o part_of -> expressed_in
+ * </pre>
+ * 
+ * And a typical partonomy
+ * 
+ * Then g1 and g2 will both instantiate "expressed_in some autopod"
+ * 
+ * See the "--mpi" command in OWLTools for building these views
+ * 
+ * Note that for some applications, it may be best to model entities such as genes and diseases as classes.
+ * However, to compare these effectively, the representation should be translated to individuals.
+ * 
+ * <h3>Reasoning</h3>
+ * 
+ * Any reasoner can be plugged in but for most datasets we use Elk 0.3, which can scale well
+ * 
+ * <h3>Similarity metrics</h3>
+ * 
+ * See individual methods for details. Generally there are two kinds of comparison
+ * 
+ * <ul>
+ *  <li>Between two individuals (e.g. between two genes, two organisms, or a disease vs genotype)
+ *  <li>Between two classes (which are used to describe individuals)
+ * </ul>
+ * 
+ * class-class comparisons are based on inferred common subsumers
+ * 
+ * individual-individual comparisons are based on classes instantiated by both
  * 
  * 
  * @author cjm
