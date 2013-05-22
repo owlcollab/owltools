@@ -8,6 +8,7 @@ owltools.gaf.eco
 owltools.gaf.inference
 owltools.gaf.io
 owltools.gaf.owl
+owltools.gaf.owl.mapping
 owltools.gaf.rules
 owltools.gaf.rules.go
 owltools.gfx
