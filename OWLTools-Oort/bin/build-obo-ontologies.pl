@@ -279,10 +279,14 @@ sub debug {
 #  - checkout : required for vcs method. The command to checkout from scratch the repo. Note this is suffixed with a loca dir name - do not add this to the cfg.
 #  - system : required for vcs method. Currently one of: git OR svn
 #  - path: required for archive, optional for vcs. This is the path in the archive that corresponds to the top level of the package. 
-#  - infallible : if a build of this ontology fails, the exit code of this script is an error (resulting in red ball if run in jenkins)
+#  - infallible : if a build of this ontology fails, the exit code of this script is an error (resulting in red ball if run in jenkins). This should only be set for ontologies with responsive maintainers.
 #
 # Notes:
 #  For VCS, the checkout command should be to what would correspond to the top level of the package.
+#  For all wget operations, --no-check-certificate is used
+#
+# Remember:
+#  - For googlecode, anon checkouts should use http, not https
 sub get_ont_info {
     return
         (
@@ -298,10 +302,16 @@ sub get_ont_info {
              system => 'git',
              checkout => 'git clone https://github.com/cmungall/uberon.git',
          },
+         cl => {
+             infallible => 1,
+             method => 'vcs',
+             system => 'svn',
+             checkout => 'svn co http://cell-ontology.googlecode.com/svn/trunk/src/ontology',
+         },
          fbbt => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy.obo',
+             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy_XP.obo',
          },
          fbcv => {
              infallible => 1,
@@ -385,6 +395,7 @@ sub get_ont_info {
          # GENERIC
 
          fma => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://obo.svn.sourceforge.net/viewvc/*checkout*/obo/fma-conversion/trunk/fma2_obo.obo',
          },
@@ -401,6 +412,7 @@ sub get_ont_info {
              source_url => 'http://bgee.unil.ch/download/homology_ontology.obo',
          },
          pr => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'ftp://ftp.pir.georgetown.edu/databases/ontology/pro_obo/pro.obo',
          },
@@ -409,6 +421,7 @@ sub get_ont_info {
              source_url => 'http://palea.cgrb.oregonstate.edu/viewsvn/Poc/trunk/ontology/OBO_format/po_anatomy.obo?view=co',
          },
          mp => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'ftp://ftp.informatics.jax.org/pub/reports/MPheno_OBO.ontology',
          },
@@ -433,6 +446,8 @@ sub get_ont_info {
              source_url => 'http://www.variationontology.org/download/VariO_0.979.obo',
          },
          eco => {
+             notes => 'switch to vcs',
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://evidenceontology.googlecode.com/svn/trunk/eco.obo',
          },
@@ -445,6 +460,7 @@ sub get_ont_info {
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/yeast_phenotype.obo',
          },
          doid => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://diseaseontology.svn.sourceforge.net/viewvc/*checkout*/diseaseontology/trunk/HumanDO.obo',
          },
@@ -461,6 +477,8 @@ sub get_ont_info {
              source_url => ' http://purl.obolibrary.org/obo/flu.owl',
          },
          to => {
+             comment => 'switch to jenkins/archive',
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://palea.cgrb.oregonstate.edu/viewsvn/Poc/trunk/ontology/collaborators_ontology/gramene/traits/trait.obo?view=co',
          },
@@ -485,6 +503,7 @@ sub get_ont_info {
              source_url => 'http://rnao.googlecode.com/svn/trunk/rnao.obo',
          },
          po => {
+             infallible => 1,
              notes => 'switch to vcs method',
              method => 'obo2owl',
              source_url => 'http://palea.cgrb.oregonstate.edu/viewsvn/Poc/tags/live/plant_ontology.obo?view=co',
@@ -524,6 +543,7 @@ sub get_ont_info {
              source_url => 'http://gelml.googlecode.com/svn/trunk/CV/sep.obo',
          },
          pato => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://pato.googlecode.com/svn/trunk/quality.obo',
          },
@@ -537,6 +557,7 @@ sub get_ont_info {
              source_url => 'http://gemina.cvs.sourceforge.net/*checkout*/gemina/Gemina/ontologies/transmission_process.obo',
          },
          xao => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://xenopus-anatomy-ontology.googlecode.com/svn/trunk/src/ontology/xenopus_anatomy_edit.obo',
          },
@@ -553,6 +574,7 @@ sub get_ont_info {
              source_url => 'http://bips.u-strasbg.fr/LBGI/MAO/mao.obo',
          },
          wbphenotype => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/worm_phenotype.obo',
          },
@@ -583,6 +605,7 @@ sub get_ont_info {
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/microbial_gross_anatomy/fungi/fungal_anatomy.obo',
          },
          wbbt => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://github.com/raymond91125/Wao/raw/master/WBbt.obo',
          },
@@ -640,12 +663,9 @@ sub get_ont_info {
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/human/human-dev-anat-abstract.obo',
          },
          fbdv => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/developmental/animal_development/fly/fly_development.obo',
-         },
-         cl => {
-             method => 'obo2owl',
-             source_url => 'http://purl.obolibrary.org/obo/cl.obo',
          },
          cvdo => {
              method => 'owl2obo',
