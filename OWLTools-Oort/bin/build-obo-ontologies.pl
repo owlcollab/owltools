@@ -289,6 +289,17 @@ sub get_ont_info {
              system => 'git',
              checkout => 'git clone https://github.com/cmungall/uberon.git',
          },
+         fbbt => {
+             infallible => 1,
+             method => 'obo2owl',
+             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy.obo',
+         },
+         fbcv => {
+             infallible => 1,
+             method => 'vcs',
+             system => 'svn',
+             checkout => 'svn checkout svn://svn.code.sf.net/p/fbcv/code-0/src/trunk/ontologies/',
+         },
          sibo => {
              method => 'vcs',
              system => 'git',
@@ -358,11 +369,6 @@ sub get_ont_info {
              source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/zfs/zfs.obo',
          },
 
-         fbbt => {
-             infallible => 1,
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy.obo',
-         },
 
 
 
@@ -714,10 +720,6 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'http://developmental-stage-ontologies.googlecode.com/svn/trunk/src/zfs/zfs.obo',
          },
-         fbcv => {
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/vocabularies/flybase_controlled_vocabulary.obo',
-         },
          idomal => {
              method => 'obo2owl',
              source_url => 'http://anobase.vectorbase.org/idomal/IDOMAL.obo',
@@ -772,6 +774,13 @@ sub usage() {
 
     <<EOM;
 build-obo-ontologies.pl [-d|--dry-run] [-s ONT]* [-t|--target-dir TARGET]
+
+DEPENDENCIES
+
+ * Oort (command line)
+ * svn client
+ * git client
+ * wget
 
 PURPOSE
 
