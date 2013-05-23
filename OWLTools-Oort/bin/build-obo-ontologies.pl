@@ -33,6 +33,9 @@ my %ont_info = get_ont_info();
 if (!(-d 'src')) {
     run("mkdir src");
 }
+if (!(-d 'failed-builds')) {
+    run("mkdir failed-builds");
+}
 if (!(-d $target_dir)) {
     run("mkdir $target_dir");
 }
@@ -88,6 +91,9 @@ foreach my $k (keys %ont_info) {
             # initial checkout
             my $cmd = $info->{checkout};
             if ($cmd) {
+                if ($cmd =~/svn.*https/) {
+                    debug("WARNING: svn URL includes https - possible config error?");
+                }
                 $success = run("$cmd $dir");
             }
             else {
@@ -194,6 +200,7 @@ foreach my $k (keys %ont_info) {
         push(@onts_to_deploy, $ont);
     }
     else {
+        run("rsync -avz $ont failed-builds && rm -rf $ont");
         push(@failed_onts, $ont);
         if ($info->{infallible}) {
             push(@failed_infallible_onts, $ont);
@@ -239,6 +246,13 @@ else {
 
 if ($n_errs > 0) {
     $errcode = 1;
+}
+
+if ($errcode) {
+    print "PROBLEMS WITH BUILD\n";
+}
+else {
+    print "COMPLETED SUCCESSFULLY!\n";
 }
 
 exit $errcode;
@@ -324,28 +338,34 @@ sub get_ont_info {
              system => 'git',
              checkout => 'git clone https://github.com/obophenotype/sibo.git',
          },
+         ceph => {
+             method => 'vcs',
+             system => 'git',
+             checkout => 'git clone https://github.com/obophenotype/cephalopod-ontology.git',
+             path => 'src/ontology',
+         },
          vt => {
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn co https://phenotype-ontologies.googlecode.com/svn/trunk/src/ontology/vt',
+             checkout => 'svn co http://phenotype-ontologies.googlecode.com/svn/trunk/src/ontology/vt',
          },
          poro => {
              infallible => 1,
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn co https://porifera-ontology.googlecode.com/svn/trunk/src/ontology',
+             checkout => 'svn co http://porifera-ontology.googlecode.com/svn/trunk/src/ontology',
          },
          ro => {
              infallible => 1,
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn co https://obo-relations.googlecode.com/svn/trunk/src/ontology',
+             checkout => 'svn co http://obo-relations.googlecode.com/svn/trunk/src/ontology',
          },
 
          hao => {
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn co https://obo.svn.sourceforge.net/svnroot/obo/ontologies/trunk/HAO',
+             checkout => 'svn co http://obo.svn.sourceforge.net/svnroot/obo/ontologies/trunk/HAO',
          },
 
          fypo => {
