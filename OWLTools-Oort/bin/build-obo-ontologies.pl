@@ -3,15 +3,20 @@ use strict;
 
 # For documentation, see usage() method, or run with "-h" option
 
-my %selection = ();
-my $dry_run = 0;
+my %selection = ();  # subset of ontologies to run on (defaults to all)
+my $dry_run = 0;     # do not deploy if dry run is set
+my $target_dir = './deployed-ontologies';  # in a production setting, this would be a path to web-visible area, e.g. berkeley CDN or NFS
+
 while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     my $opt = shift @ARGV;
     if ($opt eq '-h' || $opt eq '--help') {
-        print usage();
+        print &usage();
     }
     elsif ($opt eq '-s' || '--select') {
         $selection{shift @ARGV} = 1;
+    }
+    elsif ($opt eq '-t' || '--target-dir') {
+        $target_dir = shift @ARGV;
     }
     elsif ($opt eq '-d' || '--dry-run') {
         $dry_run = 1;
@@ -21,31 +26,49 @@ while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     }
 }
 
+# Build-in registry
 my %ont_info = get_ont_info();
 
+# set up dir structure if not present
 if (!(-d 'src')) {
     run("mkdir src");
 }
+if (!(-d $target_dir)) {
+    run("mkdir $target_dir");
+}
 
-my $ont;
-my $n_errs = 0;
-my @errs = ();
-my @onts_to_deploy = ();
+# --GLOBALS--
+my $ont;  # current ontology. Always an ontology ID such as 'go', cl', ...
+my $n_errs = 0;   # total errs found
+my @errs = ();    # err objects
+my @onts_to_deploy = ();   # ont IDs that were successful
+my @failed_onts = ();   # ont IDs that fail
+my @failed_infallible_onts = ();   # ont IDs that fail that cause an error
 
-foreach $ont (keys %ont_info) {
+# --MAIN--
+# Iterate over all ontologies attempting to build or mirror
+foreach my $k (keys %ont_info) {
+    $ont = $k;
+
     if (keys %selection) {
         next unless $selection{$ont};
     }
     debug("ONTOLOGY: $ont");
+
     my $info = $ont_info{$ont};
     my $method = lc($info->{method});
     my $source_url = $info->{source_url};
 
     my $success = 0;
+
+    # Method: vcs -- Version Control System - mirror package directly from svn/git checkout/update
     if ($method eq 'vcs') {
+
+        # we always checkout into a staging dir
         my $dir = "stage-$ont";
+
         if (-d $dir) {
-            # already checked out
+            # already checked out - issue update
             my $cmd = $info->{update};
             my $system = $info->{system};
             if (!$cmd) {
@@ -59,93 +82,170 @@ foreach $ont (keys %ont_info) {
                     die "$system not known";
                 }
             }
-            run("cd $dir && $cmd");
+            $success = run("cd $dir && $cmd");
         }
         else {
             # initial checkout
             my $cmd = $info->{checkout};
-            run("$cmd $dir");
+            if ($cmd) {
+                $success = run("$cmd $dir");
+            }
+            else {
+                $success = 0;
+                debug("Config error: checkout not set for $ont");
+            }
         }
+
+        # allow optional subdir. E.g. if we check out to project root, we may want to copy from src/ontology to target
         my $srcdir = $dir;
-        if ($info->{subdir}) {
-            $srcdir .= "/".$info->{subdir};
+        if ($info->{path}) {
+            $srcdir .= "/".$info->{path};
         }
         # TODO - custom post-commands
 
-        # copy from staging to target
-        $success = run("rsync -avz --delete $srcdir/* $ont/");
+        # copy from staging checkout area to target
+        if ($success) {
+            $success = run("rsync -avz --delete $srcdir/* $ont/");
+        }
+        else {
+            debug("will not rsync to target as previous steps were not successful");
+        }
     }
 
+    # Method: obo2owl -- Build entire package from single obo file using OORT
     if ($method eq 'obo2owl') {
         my $SRC = "src/$ont.obo";
         my @OORT_ARGS = "--reasoner elk";
         if ($info->{oort_args}) {
             @OORT_ARGS = $info->{oort_args};
         }
-        run("wget --no-check-certificate $source_url -O $SRC");
-        $success = run("ontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+        my $env = '';
+        if ($info->{oort_memory}) {
+            $env = "OORT_MEMORY=$info->{oort_memory} ";
+        }
+        $success = run("wget --no-check-certificate $source_url -O $SRC");
+        if ($success) {
+            # Oort places package files directly in target area, if successful
+            $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+        }
+        else {
+            debug("will not run Oort as wget was unsuccessful");
+        }
     }
 
+    # Method: owl2obo -- Build entire package from single obo file using OORT
     if ($method eq 'owl2obo') {
-        # TODO - reuse code with obo2owl
+
+        # TODO - reuse code with obo2owl. Keep separate for now, as owl2obo may require extra configuration
         my $SRC = "src/$ont.owl";
         my @OORT_ARGS = "--reasoner elk";
         if ($info->{oort_args}) {
             @OORT_ARGS = $info->{oort_args};
         }
-        run("wget --no-check-certificate $source_url -O $SRC");
-        # TODO - less strict mode for owl2obo
-        $success = run("ontology-release-runner --repair-cardinality --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+        $success = run("wget --no-check-certificate $source_url -O $SRC");
+        # TODO - less strict mode for owl2obo, many ontologies do not conform to obo constraints
+        # TODO - allow options including translation of annotation axioms, merging of import closure, etc
+        if ($success) {
+            # Oort places package files directly in target area, if successful
+            $success = run("ontology-release-runner --repair-cardinality --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+        }
+        else {
+            debug("will not run Oort as wget was unsuccessful");
+        }
     }
 
+    # Method: archive -- Mirror package from archive
     if ($method eq 'archive') {
         my $SRC = "src/$ont-archive.zip";
         my $path = $info->{path};
         if (!$path) {
             die "must set path for $ont";
         }
-        run("wget --no-check-certificate $source_url -O $SRC");
-        run("unzip -o $SRC");
-        run("rsync -avz --delete $path/* $ont/");
+        $success = run("wget --no-check-certificate $source_url -O $SRC");
+        if ($success) {
+            $success = run("unzip -o $SRC");
+            if ($success) {
+                $success = run("rsync -avz --delete $path/* $ont/");
+            }
+            else {
+                debug("unzip failed for $ont");
+            }
+        }
+        else {
+            debug("wget failed on $source_url - no further action taken on $ont");
+        }
     }
-
 
     if ($method eq 'custom') {
-        die;
+        die "not implemented";
     }
+
     if ($success) {
+        debug("Slated for deployment: $ont");
         push(@onts_to_deploy, $ont);
+    }
+    else {
+        push(@failed_onts, $ont);
+        if ($info->{infallible}) {
+            push(@failed_infallible_onts, $ont);
+        }
     }
 }
 
-# REPORT
+# --REPORTING--
 print "Build completed\n";
 print "N_Errors: $n_errs\n";
 foreach my $err (@errs) {
     print "ERROR: $err->{ont} $err->{cmd} $err->{err_text}\n";
 }
+printf "# Failed ontologies: %d\n", scalar(@failed_onts);
+foreach my $font (@failed_onts) {
+    print "FAIL: $font\n";
+}
+my $errcode = 0;
+if (@failed_infallible_onts) {
+    printf "# Failed ontologies: %d\n", scalar(@failed_onts);
+    foreach my $font (@failed_infallible_onts) {
+        print "FAIL: $font # THIS SHOULD NOT FAIL\n";
+        $errcode = 1;
+    }
+}
 
-# DEPLOY
+# --DEPLOYMENT--
+# each successful ontology is copied to deployment area
 
+$n_errs = 0; # reset
 if ($dry_run) {
     debug("dry-run -- no deploy");
 }
 else {
     foreach my $ont (@onts_to_deploy) {
         debug("deploying $ont");
-        #run("rsync $ont");
+        # TODO - copy main .obo and .owl to top level
+        run("rsync $ont $target_dir");
+        run("rsync $ont/$ont.obo $target_dir");
+        run("rsync $ont/$ont.owl $target_dir");
     }
 }
 
-exit 0;
+if ($n_errs > 0) {
+    $errcode = 1;
+}
 
+exit $errcode;
+
+# --SUBROUTINES--
+
+# Run command in the shell
+# globals affected: $n_errs, @errs
+# returns non-zero if success
 sub run {
     my $cmd = shift @_;
     debug("  RUNNING: $cmd");
     my $err = system("$cmd 2> ERR");
     if ($err) {
         my $err_text = `cat $err`;
-        print STDERR "ERROR RUNNING: $cmd [in $ont]\n";
+        print STDERR "ERROR RUNNING: $cmd [in $ont ]\n";
         print STDERR $err_text;
         push(@errs, { ont => $ont,
                       cmd => $cmd,
@@ -153,7 +253,7 @@ sub run {
                       err_text => $err_text });
         $n_errs ++;
     }    
-    return $err;
+    return !$err;
 }
 
 sub debug {
@@ -162,15 +262,29 @@ sub debug {
     print STDERR "$t :: @_\n";
 }
 
+# Each ontology has build metadata in a lookup table. See documentation at bottom of file for overview
+#
+# Keys:
+#  - method : see below. Currently: obo2owl, owl2obo, vcs or archive
+#  - source_url : required for obo2owl or owl2obo or archive methods. For obo<->owl the entire package is build from this one file. for archive, this is the location of the archive file.
+#  - checkout : required for vcs method. The command to checkout from scratch the repo. Note this is suffixed with a loca dir name - do not add this to the cfg.
+#  - system : required for vcs method. Currently one of: git OR svn
+#  - path: required for archive, optional for vcs. This is the path in the archive that corresponds to the top level of the package. 
+#  - infallible : if a build of this ontology fails, the exit code of this script is an error (resulting in red ball if run in jenkins)
+#
+# Notes:
+#  For VCS, the checkout command should be to what would correspond to the top level of the package.
 sub get_ont_info {
     return
         (
          go => {
+             infallible => 1,
              method => 'vcs',
              system => 'svn',
              checkout => 'svn --ignore-externals co svn://ext.geneontology.org/trunk/ontology',
          },
          uberon => {
+             infallible => 1,
              method => 'vcs',
              system => 'git',
              checkout => 'git clone https://github.com/cmungall/uberon.git',
@@ -186,27 +300,26 @@ sub get_ont_info {
              checkout => 'svn co https://phenotype-ontologies.googlecode.com/svn/trunk/src/ontology/vt',
          },
          poro => {
+             infallible => 1,
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn co https://poro.googlecode.com/svn/trunk/src/ontology',
+             checkout => 'svn co https://porifera-ontology.googlecode.com/svn/trunk/src/ontology',
          },
          ro => {
+             infallible => 1,
              method => 'vcs',
              system => 'svn',
              checkout => 'svn co https://obo-relations.googlecode.com/svn/trunk/src/ontology',
          },
+
          hao => {
              method => 'vcs',
              system => 'svn',
-             source_url => 'https://obo.svn.sourceforge.net/svnroot/obo/HAO/trunk',
+             checkout => 'svn co https://obo.svn.sourceforge.net/svnroot/obo/ontologies/trunk/HAO',
          },
-         #zfa => {
-         #    method => 'vcs',
-         #    system => 'svn',
-         #    checkout => 'svn co https://zebrafish-an.googlecode.com/svn/trunk/src/ontology/vt',
-         #},
 
          fypo => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'https://sourceforge.net/p/pombase/code/HEAD/tree/phenotype_ontology/releases/latest/fypo.obo?format=raw',
          },
@@ -216,27 +329,39 @@ sub get_ont_info {
          #    checkout => 'svn checkout svn://svn.code.sf.net/p/pombase/code/phenotype_ontology/releases/latest',
          #},
          chebi => {
+             infallible => 1,
              method => 'archive',
              path => 'archive/main',
              source_url => 'http://build.berkeleybop.org/job/build-chebi/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
          envo => {
+             infallible => 1,
              method => 'archive',
              path => 'archive',
              source_url => 'http://build.berkeleybop.org/job/build-envo/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
          ma => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'ftp://ftp.informatics.jax.org/pub/reports/adult_mouse_anatomy.obo',
          },
          zfa => {
+             infallible => 1,
+             notes => 'may be ready to switch to vcs soon',
              method => 'obo2owl',
              source_url => 'https://zebrafish-anatomical-ontology.googlecode.com/svn/trunk/src/zebrafish_anatomy.obo',
          },
 
          zfs => {
+             infallible => 1,
              method => 'obo2owl',
              source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/zfs/zfs.obo',
+         },
+
+         fbbt => {
+             infallible => 1,
+             method => 'obo2owl',
+             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy.obo',
          },
 
 
@@ -271,10 +396,6 @@ sub get_ont_info {
          mp => {
              method => 'obo2owl',
              source_url => 'ftp://ftp.informatics.jax.org/pub/reports/MPheno_OBO.ontology',
-         },
-         fbbt => {
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy.obo',
          },
          symp => {
              method => 'obo2owl',
@@ -393,6 +514,7 @@ sub get_ont_info {
          },
          pco => {
              method => 'owl2obo',
+             oort_args => '--no-subsets --reasoner hermit',
              source_url => 'http://purl.obolibrary.org/obo/pco.owl',
          },
          trans => {
@@ -425,7 +547,8 @@ sub get_ont_info {
          },
          gaz => {
              method => 'obo2owl',
-             oort_args => '', # TODO - jvm
+             oort_memory => '5G',
+             oort_args => '--no-reasoner', # TODO - jvm
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/environmental/gaz.obo',
          },
          tgma => {
@@ -539,7 +662,7 @@ sub get_ont_info {
          #},
          pgdso => {
              method => 'obo2owl',
-             source_url => 'po_temporal.obo|http://palea.cgrb.oregonstate.edu/viewsvn/Poc/trunk/ontology/OBO_format/po_temporal.obo?view=co',
+             source_url => 'http://palea.cgrb.oregonstate.edu/viewsvn/Poc/trunk/ontology/OBO_format/po_temporal.obo?view=co',
          },
          ehdaa2 => {
              notes => 'SWITCH',
@@ -648,7 +771,7 @@ sub get_ont_info {
 sub usage() {
 
     <<EOM;
-build-obo-ontologies.pl [-d|--dry-run] [-s ONT]*
+build-obo-ontologies.pl [-d|--dry-run] [-s ONT]* [-t|--target-dir TARGET]
 
 PURPOSE
 
@@ -659,6 +782,8 @@ such as:
   ma/
   fbbt/
   go/
+
+These will also be copied to TARGET
 
 Each of these should correspond to the structure of the corresponding obolibrary purl. For example,
 
@@ -730,7 +855,15 @@ methods for each ontology. Each ontology is free to either ignore this
 and redirect their purls as they please, or alternatively, point their
 purls at the central berkeley location.
 
+The decision to keep the registry as a hash embedded in this script
+allows for programmatic configurability, which is good for a lot of
+important ontologies that do not yet publish their entire package in a
+library-compliant way. In future this script should become less
+necessary.
+
 SEE ALSO
+
+This may be a better long term approach for publishing ontologies:
 
  * http://gitorious.org/ontology-maven-plugins/ninox-maven-plugin
 
