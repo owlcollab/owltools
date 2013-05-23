@@ -1,11 +1,13 @@
 #!/usr/bin/perl -w
 use strict;
 
+# For documentation, see usage() method, or run with "-h" option
+
 my %selection = ();
 my $dry_run = 0;
 while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     my $opt = shift @ARGV;
-    if ($opt eq '-h') {
+    if ($opt eq '-h' || $opt eq '--help') {
         print usage();
     }
     elsif ($opt eq '-s' || '--select') {
@@ -641,4 +643,96 @@ sub get_ont_info {
 
 
         );
+}
+
+sub usage() {
+
+    <<EOM;
+build-obo-ontologies.pl [-d|--dry-run] [-s ONT]*
+
+PURPOSE
+
+Builds or mirrors ontologies from the OBO library. After execution,
+the directory from which this program was run will contain directories
+such as:
+
+  ma/
+  fbbt/
+  go/
+
+Each of these should correspond to the structure of the corresponding obolibrary purl. For example,
+
+  go/
+    subsets/
+      goslim_plant.obo
+      ...
+
+This can be used to build local copies of ontologies to be used with
+an OWL catalog (TODO: document owltools directory mapper here).
+
+In the future it will also be used to replace the legacy Berkeley
+obo2owl pipeline, and will populate the directories under here:
+
+ http://berkeleybop.org/ontologies/
+
+Which is currently the default fallback for unregistered purls (and
+registered purls are welcome to redirect here).
+
+HOW IT WORKS
+
+The script uses an internal registry to determine how to build each
+ontology. There are currently 3 methods:
+
+  * obo2owl
+  * owl2obo
+  * archive
+  * vcs
+
+The "obo2owl" method is intended for ontologies that publish a single
+obo file, and do not take control of building owl or other derived
+files in a obolibrary compliant way. It runs Oort to produce a
+standard layout.
+
+The owl2obo method also runs oort.
+
+The vcs method is used when an ontology publishes release and derived
+files in a consistent directory structure. It simply checks out the
+project and rsyncs the specified subdirectory to the target. Currently
+this is git or svn only.
+
+The archive method is used when an ontology publishes the standard
+files in a standard structure as an archive file (currently zip only,
+but easily extended to tgz). This is currently used for ontologies
+that are built via Jenkins, as jenkins publishes targets in a zip
+archive.
+
+HISTORY AND COORDINATION WITH OBO-REGISTRY
+
+Historically, the Berkeley obo2owl pipeline consumed the
+ontologies.txt file and generated owl for all obo ontologies, using
+the "source" or "download" tag. This caused a number of problems - the
+same field was used by some legacy applications that could not consume
+more "advanced" obo meaning the build pipeline produced owl from
+"dumbed down" versions of ontologies.
+
+The ontologies.txt registry method is being overhauled, but there is
+still a need for a build pipeline that handles some of the
+peculiarities of each ontology. In the future every ontology should
+use oort or a similar tool to publish the full package, but an interim
+solution is required. Even then, some ontologies require a place to
+distribute their package (historically VCS has been used as the
+download mechanism but this can be slow, and it can be inefficient to
+manage multiple derived rdf/xml owl files in a VCS).
+
+Once this new script is in place, the contents of
+berkeleybop.org/ontologies/ will be populated using one of the above
+methods for each ontology. Each ontology is free to either ignore this
+and redirect their purls as they please, or alternatively, point their
+purls at the central berkeley location.
+
+SEE ALSO
+
+ * http://gitorious.org/ontology-maven-plugins/ninox-maven-plugin
+
+EOM
 }
