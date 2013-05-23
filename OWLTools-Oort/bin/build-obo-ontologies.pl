@@ -9,16 +9,19 @@ my $target_dir = './deployed-ontologies';  # in a production setting, this would
 
 while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     my $opt = shift @ARGV;
+    print STDERR "OPT: $opt\n";
+
     if ($opt eq '-h' || $opt eq '--help') {
         print &usage();
+        exit 0;
     }
-    elsif ($opt eq '-s' || '--select') {
+    elsif ($opt eq '-s' || $opt eq '--select') {
         $selection{shift @ARGV} = 1;
     }
-    elsif ($opt eq '-t' || '--target-dir') {
+    elsif ($opt eq '-t' || $opt eq '--target-dir') {
         $target_dir = shift @ARGV;
     }
-    elsif ($opt eq '-d' || '--dry-run') {
+    elsif ($opt eq '-d' || $opt eq '--dry-run') {
         $dry_run = 1;
     }
     else {
