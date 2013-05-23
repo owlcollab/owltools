@@ -115,7 +115,7 @@ foreach my $k (keys %ont_info) {
     # Method: obo2owl -- Build entire package from single obo file using OORT
     if ($method eq 'obo2owl') {
         my $SRC = "src/$ont.obo";
-        my @OORT_ARGS = "--reasoner elk";
+        my @OORT_ARGS = "--no-subsets --reasoner elk";
         if ($info->{oort_args}) {
             @OORT_ARGS = $info->{oort_args};
         }
@@ -126,7 +126,7 @@ foreach my $k (keys %ont_info) {
         $success = run("wget --no-check-certificate $source_url -O $SRC");
         if ($success) {
             # Oort places package files directly in target area, if successful
-            $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+            $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
         }
         else {
             debug("will not run Oort as wget was unsuccessful");
@@ -147,7 +147,7 @@ foreach my $k (keys %ont_info) {
         # TODO - allow options including translation of annotation axioms, merging of import closure, etc
         if ($success) {
             # Oort places package files directly in target area, if successful
-            $success = run("ontology-release-runner --repair-cardinality --skip-release-folder --skip-format owx --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+            $success = run("ontology-release-runner --repair-cardinality --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
         }
         else {
             debug("will not run Oort as wget was unsuccessful");
@@ -178,6 +178,15 @@ foreach my $k (keys %ont_info) {
 
     if ($method eq 'custom') {
         die "not implemented";
+    }
+
+    # TEST
+    if ((-f "$ont/$ont.obo") && (-f "$ont/$ont.owl")) {
+        # ok
+    }
+    else {
+        debug("Missing obo or owl files for $ont");
+        $success = 0;
     }
 
     if ($success) {
@@ -222,7 +231,7 @@ else {
     foreach my $ont (@onts_to_deploy) {
         debug("deploying $ont");
         # TODO - copy main .obo and .owl to top level
-        run("rsync $ont $target_dir");
+        run("rsync -avz $ont $target_dir");
         run("rsync $ont/$ont.obo $target_dir");
         run("rsync $ont/$ont.owl $target_dir");
     }
