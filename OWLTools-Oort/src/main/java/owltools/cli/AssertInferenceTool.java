@@ -30,6 +30,7 @@ import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -74,6 +75,8 @@ public class AssertInferenceTool {
 		boolean dryRun = false;
 		boolean useIsInferred = false;
 		boolean ignoreNonInferredForRemove = false;
+		boolean verifyExistingInferences = false;
+		boolean removeUnsupportedInferences = false;
 		List<String> inputs = new ArrayList<String>();
 		String outputFileName = null;
 		String outputFileFormat = null;
@@ -142,6 +145,12 @@ public class AssertInferenceTool {
 			else if (opts.nextEq("--ignorePotentialRedundant")) {
 				checkForPotentialRedundant = false;
 			}
+			else if (opts.nextEq("--verifyExistingInferences")) {
+				verifyExistingInferences = true;
+			}
+			else if (opts.nextEq("--removeUnsupportedInferences")) {
+				removeUnsupportedInferences = true;
+			}
 			else {
 				inputs.add(opts.nextOpt());
 			}
@@ -191,11 +200,23 @@ public class AssertInferenceTool {
 			reportWriter = new BufferedWriter(new FileWriter(reportFile));
 		}
 		try {
-			if (all == true) {
-				assertAllInferences(graph, idsInputFile);
-			}else {
-				// assert inferences
-				assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant, reportWriter);
+			// create ontology with imports and create set of changes to removed the additional imports
+			final List<OWLOntologyChange> removeImportChanges = handleSupportOntologies(graph);
+			try {
+				if (all == true) {
+					assertAllInferences(graph, idsInputFile);
+				}else {
+					// assert inferences
+					assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant, reportWriter);
+					
+					if (verifyExistingInferences) {
+						// check existing inference
+						verifyExistingInferences(graph, reportWriter, removeUnsupportedInferences);
+					}
+				}
+			}finally {
+				// remove additional import axioms
+				cleanupSupportOntologies(graph, removeImportChanges);
 			}
 		}
 		finally {
@@ -284,6 +305,103 @@ public class AssertInferenceTool {
 		}
 	}
 	
+	public static void verifyExistingInferences(OWLGraphWrapper graph, BufferedWriter reportWriter, boolean removeUnsupported) throws InconsistentOntologyException, IOException {
+		OWLOntology ontology = graph.getSourceOntology();
+		OWLOntologyManager manager = ontology.getOWLOntologyManager();
+		
+		logger.info("Start verification of existing inferences");
+		
+		Set<OWLSubClassOfAxiom> allSubClassAxioms = ontology.getAxioms(AxiomType.SUBCLASS_OF);
+		
+		Set<OWLSubClassOfAxiom> filteredAllSubClassAxioms = new HashSet<OWLSubClassOfAxiom>();
+		for (OWLSubClassOfAxiom owlSubClassOfAxiom : allSubClassAxioms) {
+			if (AxiomAnnotationTools.isMarkedAsInferredAxiom(owlSubClassOfAxiom)) {
+				OWLClassExpression superClassCE = owlSubClassOfAxiom.getSuperClass();
+				OWLClassExpression subClassCE = owlSubClassOfAxiom.getSubClass();
+				if (!superClassCE.isAnonymous() && !subClassCE.isAnonymous()) {
+					filteredAllSubClassAxioms.add(owlSubClassOfAxiom);
+				}
+			}
+		}
+		logger.info("Total SubClassOf axioms: "+allSubClassAxioms.size());
+		if (filteredAllSubClassAxioms.isEmpty()) {
+			logger.info("NO Inferred SubClassOf axioms. Verification Stopped.");
+			return;
+		}
+		logger.info("Inferred SubClassOf axioms: "+filteredAllSubClassAxioms.size());
+		final Set<OWLSubClassOfAxiom> existsNotEntailed = new HashSet<OWLSubClassOfAxiom>();
+		manager.removeAxioms(ontology, filteredAllSubClassAxioms);
+		try {
+			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+			OWLReasoner reasoner = null;
+			try {
+				reasoner = reasonerFactory.createReasoner(ontology);
+				
+				List<OWLSubClassOfAxiom> sortedAxioms = new ArrayList<OWLSubClassOfAxiom>(filteredAllSubClassAxioms);
+				Collections.sort(sortedAxioms);
+				
+				for (OWLSubClassOfAxiom owlSubClassOfAxiom : sortedAxioms) {
+					OWLClass subClass = owlSubClassOfAxiom.getSubClass().asOWLClass();
+					OWLClass orginalSuperClass = owlSubClassOfAxiom.getSuperClass().asOWLClass();
+					
+					Set<OWLClass> superClasses = reasoner.getSuperClasses(subClass, false).getFlattened();
+					if (superClasses.contains(orginalSuperClass) == false) {
+						existsNotEntailed.add(owlSubClassOfAxiom);
+						if (reportWriter != null) {
+							OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
+							StringBuilder sb = new StringBuilder("EXISTS, TAGGED-INFERRED, NOT-ENTAILED\t");
+							sb.append(owlpp.render(subClass));
+							sb.append(" ");
+							sb.append(owlpp.render(orginalSuperClass));
+							sb.append("\t ! Direct SuperClasses for ");
+							sb.append(graph.getIdentifier(subClass));
+							sb.append(":");
+							Set<OWLClass> directSuperClasses = reasoner.getSuperClasses(subClass, true).getFlattened();
+							for (OWLClass directSuperClass : directSuperClasses) {
+								sb.append(' ');
+								if (directSuperClass.isOWLThing()) {
+									if (directSuperClasses.size() == 1) {
+										// only print OWLThing, if it is the only super class
+										sb.append("owl:Thing");
+									}
+								}
+								else {
+									sb.append(owlpp.render(directSuperClass));
+								}
+							}
+
+							reportWriter.append(sb).append('\n');
+						}
+					}
+				}
+				if (!existsNotEntailed.isEmpty()) {
+					logger.info("Found "+existsNotEntailed.size()+" unsupported inferences");
+				}
+				else {
+					logger.info("NO unsupported inferences found.");
+				}
+			} finally {
+				if (reasoner != null) {
+					reasoner.dispose();
+				}
+				reasonerFactory = null;
+			}
+		}
+		finally {
+			if (removeUnsupported && !existsNotEntailed.isEmpty()) {
+				logger.info("Removing "+existsNotEntailed.size()+" unsupported inferences.");
+				// remove the unsupported axioms
+				filteredAllSubClassAxioms.removeAll(existsNotEntailed);
+				// add the supported axioms back into the ontology.
+				manager.addAxioms(ontology, filteredAllSubClassAxioms);
+			}
+			else {
+				// revert changes
+				manager.addAxioms(ontology, filteredAllSubClassAxioms);
+			}
+		}
+	}
+	
 	/**
 	 * Assert inferred super class relationships and (optional) remove redundant ones.
 	 * 
@@ -314,18 +432,6 @@ public class AssertInferenceTool {
 		OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		OWLDataFactory factory = manager.getOWLDataFactory();
 		
-		// create ontology with imports and create set of changes to removed the additional imports
-		List<OWLOntologyChange> removeImportChanges = new ArrayList<OWLOntologyChange>();
-		Set<OWLOntology> supportOntologySet = graph.getSupportOntologySet();
-		for (OWLOntology support : supportOntologySet) {
-			IRI ontologyIRI = support.getOntologyID().getOntologyIRI();
-			OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(ontologyIRI);
-			List<OWLOntologyChange> change = manager.applyChange(new AddImport(ontology, importDeclaration));
-			if (!change.isEmpty()) {
-				// the change was successful, create remove import for later
-				removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
-			}
-		}
 		DefaultAssertInferenceReport report = new DefaultAssertInferenceReport(graph);
 		
 		Set<OWLAxiom> newAxioms;
@@ -383,6 +489,22 @@ public class AssertInferenceTool {
 				}
 			}
 			
+			List<PotentialRedundant> potentialRedundants = null;
+			
+			if (checkForPotentialRedundant) {
+				logger.info("Running additional checks");
+				potentialRedundants = builder.checkPotentialRedundantSubClassAxioms(newAxioms);
+				if (potentialRedundants != null) {
+					// group by relationship and sort by class A
+					Collections.sort(potentialRedundants, PotentialRedundant.PRINT_COMPARATOR);
+					
+					if (reportWriter != null) {
+						report.setRedundants(potentialRedundants);
+					}
+				}
+				logger.info("Finished running additional checks");
+			}
+			
 			if (reportWriter != null) {
 				report.printReport(reportWriter);
 			}
@@ -414,34 +536,49 @@ public class AssertInferenceTool {
 				}
 				logger.info("Finished checking consistency");
 			}
-			if (checkForPotentialRedundant) {
-				logger.info("Running additional checks");
-				List<PotentialRedundant> potentialRedundants = builder.checkPotentialRedundantSubClassAxioms(newAxioms);
-				if (potentialRedundants != null) {
-					logger.error("Found potential problems");
-					
-					// before printing group by relationship and sort by class A
-					Collections.sort(potentialRedundants, PotentialRedundant.PRINT_COMPARATOR);
-					
-					for (PotentialRedundant redundant : potentialRedundants) {
-						StringBuilder sb = new StringBuilder("POTENTIAL REDUNDANT AXIOMS: ");
-						sb.append(owlpp.render(redundant.getClassA())).append(" ");
-						sb.append(owlpp.render(redundant.getProperty())).append(" ");
-						sb.append(owlpp.render(redundant.getClassB()));
-						sb.append(" is also a simple SubClassOf.");
-						logger.error(sb.toString());
-					}
-					throw new InconsistentOntologyException("Found potential redundant subClass axioms, count: " + potentialRedundants.size());
+			if (potentialRedundants != null) {
+				logger.error("Found potential problems");
+				for (PotentialRedundant redundant : potentialRedundants) {
+					StringBuilder sb = new StringBuilder("POTENTIAL REDUNDANT AXIOMS: ");
+					sb.append(owlpp.render(redundant.getClassA())).append(" ");
+					sb.append(owlpp.render(redundant.getProperty())).append(" ");
+					sb.append(owlpp.render(redundant.getClassB()));
+					sb.append(" is also a simple SubClassOf.");
+					logger.error(sb.toString());
 				}
-				logger.info("Finished running additional checks");
+				throw new InconsistentOntologyException("Found potential redundant subClass axioms, count: " + potentialRedundants.size());
 			}
 		}
 		finally {
 			builder.dispose();
 		}
+	}
+
+	private static List<OWLOntologyChange> handleSupportOntologies(OWLGraphWrapper graph)
+	{
+		OWLOntology ontology = graph.getSourceOntology();
+		OWLOntologyManager manager = ontology.getOWLOntologyManager();
+		OWLDataFactory factory = manager.getOWLDataFactory();
 		
-		// remove additional import axioms
-		manager.applyChanges(removeImportChanges);
+		List<OWLOntologyChange> removeImportChanges = new ArrayList<OWLOntologyChange>();
+		Set<OWLOntology> supportOntologySet = graph.getSupportOntologySet();
+		for (OWLOntology support : supportOntologySet) {
+			IRI ontologyIRI = support.getOntologyID().getOntologyIRI();
+			OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(ontologyIRI);
+			List<OWLOntologyChange> change = manager.applyChange(new AddImport(ontology, importDeclaration));
+			if (!change.isEmpty()) {
+				// the change was successful, create remove import for later
+				removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
+			}
+		}
+		return removeImportChanges;
+	}
+	
+	private static void  cleanupSupportOntologies(OWLGraphWrapper graph, List<OWLOntologyChange> remove)
+	{
+		OWLOntology ontology = graph.getSourceOntology();
+		OWLOntologyManager manager = ontology.getOWLOntologyManager();
+		manager.applyChanges(remove);
 	}
 	
 	static class DefaultAssertInferenceReport {
@@ -449,6 +586,7 @@ public class AssertInferenceTool {
 		private final OWLGraphWrapper graph;
 		OWLPrettyPrinter owlpp;
 		private Map<OWLClassExpression, List<Line>> lines = new HashMap<OWLClassExpression, List<Line>>();
+		Collection<PotentialRedundant> redundants = null;
 		private List<String> others = new ArrayList<String>();
 
 		DefaultAssertInferenceReport(OWLGraphWrapper graph) {
@@ -538,6 +676,10 @@ public class AssertInferenceTool {
 			});
 		}
 		
+		public void setRedundants(Collection<PotentialRedundant> redundants) {
+			this.redundants = redundants;
+		}
+		
 		public void putAxioms(Collection<OWLAxiom> axioms, String type) {
 			for (OWLAxiom owlAxiom : axioms) {
 				putAxiom(owlAxiom, type);
@@ -554,6 +696,15 @@ public class AssertInferenceTool {
 					writer.append('\t');
 					writer.append(line.msg);
 					writer.append('\n');
+				}
+			}
+			if (redundants != null) {
+				for (PotentialRedundant redundant : redundants) {
+					writer.append("POTENTIAL REDUNDANT AXIOMS\t");
+					writer.append(owlpp.render(redundant.getClassA())).append(" ");
+					writer.append(owlpp.render(redundant.getProperty())).append(" ");
+					writer.append(owlpp.render(redundant.getClassB()));
+					writer.append(" is also a simple SubClassOf.\n");
 				}
 			}
 		}
@@ -576,18 +727,6 @@ public class AssertInferenceTool {
 		
 		Set<String> ids = loadIdsInputFile(idsInputFile);
 		
-		// create ontology with imports and create set of changes to remove the additional imports
-		List<OWLOntologyChange> removeImportChanges = new ArrayList<OWLOntologyChange>();
-		Set<OWLOntology> supportOntologySet = graph.getSupportOntologySet();
-		for (OWLOntology support : supportOntologySet) {
-			IRI ontologyIRI = support.getOntologyID().getOntologyIRI();
-			OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(ontologyIRI);
-			List<OWLOntologyChange> change = manager.applyChange(new AddImport(ontology, importDeclaration));
-			if (!change.isEmpty()) {
-				// the change was successful, create remove import for later
-				removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
-			}
-		}
 		final OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
 		final OWLReasoner reasoner = reasonerFactory.createReasoner(ontology);
 		try {
@@ -622,8 +761,6 @@ public class AssertInferenceTool {
 		finally {
 			reasoner.dispose();
 		}
-		// remove additional import axioms
-		manager.applyChanges(removeImportChanges);
 	}
 	
 	private static Set<String> loadIdsInputFile(String input) {
