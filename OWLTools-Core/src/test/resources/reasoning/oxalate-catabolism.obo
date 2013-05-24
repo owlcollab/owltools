@@ -1,0 +1,115 @@
+format-version: 1.2
+ontology: go
+subsetdef: Cross_product_review "Involved_in"
+subsetdef: gocheck_do_not_annotate "Term not to be used for direct annotation"
+subsetdef: gocheck_do_not_manually_annotate "Term not to be used for direct manual annotation"
+subsetdef: goslim_aspergillus "Aspergillus GO slim"
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_metagenomics "Metagenomics GO slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+subsetdef: mf_needs_review "Catalytic activity terms in need of attention"
+subsetdef: termgenie_unvetted "Terms created by TermGenie that do not follow a template and require additional vetting by editors"
+subsetdef: virus_checked "Viral overhaul terms"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "biological process" EXACT []
+synonym: "biological process unknown" NARROW []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+
+[Term]
+id: GO:0008152
+name: metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways, including anabolism and catabolism, by which living organisms transform chemical substances. Metabolic processes typically transform small molecules, but also include macromolecular processes such as DNA repair and replication, and protein synthesis and degradation." [GOC:go_curators, ISBN:0198547684]
+comment: Note that metabolic processes do not include single functions or processes such as protein-protein interactions, protein-nucleic acids, nor receptor-ligand interactions.
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "metabolic process resulting in cell growth" NARROW []
+synonym: "metabolism" EXACT []
+synonym: "metabolism resulting in cell growth" NARROW []
+xref: Wikipedia:Metabolism
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0009056
+name: catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of substances, including the breakdown of carbon compounds with the liberation of energy for use by the cell or organism." [ISBN:0198547684]
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "breakdown" EXACT []
+synonym: "catabolism" EXACT []
+synonym: "degradation" EXACT []
+xref: Wikipedia:Catabolism
+is_a: GO:0008152  ! metabolic process
+
+[Term]
+id: GO:0033609
+name: oxalate metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving oxalate, the organic acid ethanedioate." [CHEBI:30623, GOC:mlg]
+synonym: "ethanedioate metabolic process" EXACT []
+synonym: "ethanedioic acid metabolic process" EXACT []
+synonym: "oxalate metabolism" EXACT []
+synonym: "oxalic acid metabolic process" EXACT []
+intersection_of: GO:0008152  ! metabolic process
+intersection_of: has_participant CHEBI:30623
+
+[Term]
+id: GO:0033611
+name: oxalate catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of oxalate, the organic acid ethanedioate." [CHEBI:30623, GOC:mlg]
+synonym: "ethanedioate catabolic process" EXACT []
+synonym: "ethanedioic acid catabolic process" EXACT []
+synonym: "oxalate breakdown" EXACT []
+synonym: "oxalate catabolism" EXACT []
+synonym: "oxalate degradation" EXACT []
+synonym: "oxalic acid catabolic process" EXACT []
+is_a: GO:0033609 {is_inferred="true"} ! oxalate metabolic process
+intersection_of: GO:0009056  ! catabolic process
+intersection_of: has_input CHEBI:30623
+
+[Term]
+id: CHEBI:30623
+name: oxalate
+
+[Typedef]
+id: has_input
+name: has input
+namespace: gene_ontology
+xref: RO:0002233
+is_a: has_participant  ! has participant
+
+[Typedef]
+id: has_participant
+name: has participant
+namespace: gene_ontology
+xref: RO:0000057
+
