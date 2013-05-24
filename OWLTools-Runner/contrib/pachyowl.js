@@ -57,6 +57,11 @@ bbop.owl.Pachy.prototype.df = function() {
 bbop.owl.Pachy.prototype.getManager = function() {
     return this.ontology.getOWLOntologyManager();
 }
+
+/* Function: getMaker
+ *
+ * Returns: <Maker>
+ */
 bbop.owl.Pachy.prototype.getMaker = function() {
     if (this.maker == null) {
         this.maker = new bbop.owl.Maker(this);
@@ -70,6 +75,82 @@ bbop.owl.Pachy.prototype.getMaker = function() {
 bbop.owl.Pachy.prototype.getReasoner = function() {
     return this.reasoner;
     //return getReasoner(); // TODO - replace with OO
+}
+
+
+/* Function: grepAxioms
+ *
+ * filters axioms in ontology using a grep function.
+ * The function takes on argument - the axiom - and returns
+ * true if the axiom is to be included
+ *
+ * Arguments:
+ *  grepFunc : function
+ *
+ * Returns: <OWLAxiom> []
+ */
+bbop.owl.Pachy.prototype.grepAxioms = function(grepFunc) {
+    var inAxioms = this.ontology.getAxioms().toArray();
+    var filteredAxioms = [];
+    for (k in inAxioms) {
+        var ax = inAxioms[k];
+        if (grepFunc.call(this, ax)) {
+            filteredAxioms.push(ax);
+        }
+    }
+    return filteredAxioms;
+}
+
+/* Function: saveAxioms
+ *
+ * Arguments:
+ *  axiom : <OWLAxiom> [] or OWLFrame
+ *  file : fileName
+ *  owlFormat : e.g. an instance of RDFXMLOntologyFormat
+ *
+ */
+bbop.owl.Pachy.prototype.saveAxioms = function(obj, file, owlFormat) {
+    var tempIRI = IRI.create("http://x.org#temp-"+java.util.UUID.randomUUID());
+
+    var tmpOnt = gen.getManager().createOntology(tempIRI); // TODO
+    var axioms = obj;
+    if (obj instanceof bbop.owl.OWLFrame) {
+        axioms = obj.toAxioms();
+    }
+    // add to temp ontology
+    for (k in axioms) {
+        gen.getManager().addAxiom(tmpOnt, axioms[k]);
+    }
+    this.saveOntology(tmpOnt, file, owlFormat);
+}
+
+/* Function: saveOntology
+ *
+ * Arguments:
+ *  ontology: <OWLOntology>
+ *  file : fileName
+ *  owlFormat : e.g. an instance of RDFXMLOntologyFormat
+ *
+ */
+bbop.owl.Pachy.prototype.saveOntology = function(ont, file, owlFormat) {
+
+    if (owlFormat == null) {
+        owlFormat = new RDFXMLOntologyFormat();
+    }
+    this.getManager().saveOntology(ont, owlFormat, IRI.create(new File(file)));
+}
+
+/* Function: save
+ *
+ * Purpose: saves current ontology
+ *
+ * Arguments:
+ *  file : fileName
+ *  owlFormat : e.g. an instance of RDFXMLOntologyFormat
+ *
+ */
+bbop.owl.Pachy.prototype.save = function(file, owlFormat) {
+    this.saveOntology(file, owlFormat);
 }
 
 // ----------------------------------------
@@ -211,7 +292,7 @@ bbop.owl.Pachy.prototype.isDeprecated = function(obj) {
  * Argument:
  *  obj: OWLObject
  *
- * returns: OWLFrame
+ * returns: <OWLFrame>
  */
 bbop.owl.Pachy.prototype.getFrame = function(obj) {
     var f = new bbop.owl.OWLFrame(this, obj);
@@ -892,5 +973,38 @@ bbop.owl.OWLFrame.prototype.axiomsToFrameMap = function(axioms, renderer) {
 bbop.owl.OWLFrame.prototype.axiomsToFrame = function(axioms, id) {
     var fmap = this.axiomsToFrameMap(axioms);
     return fmap[id];
+};
+
+/* Function: merge
+ *
+ * Purpose: merges an OWLFrame into this one
+ *
+ * Arguments:
+ *  f2 - <OWLFrame>
+ */
+bbop.owl.OWLFrame.prototype.merge = function(f2) {
+    for (k in f2.slotMap) {
+        if (this.slotMap[k] == null) {
+            this.slotMap[k] = f2.slotMap[k];
+        }
+        else if (this.slotMap[k] instanceof Array) {
+            if (f2.slotMap[k] instanceof Array) {
+                this.slotMap[k] = this.slotMap.concat(f2.slotMap[k]);
+            }
+            else {
+                this.slotMap[k].push(f2.slotMap[k]);
+            }
+        }
+        else {
+            // this.slotMap[k] is single valued
+            if (f2.slotMap[k] instanceof Array) {
+                var cur = this.slotMap[k];
+                this.slotMap[k] = f2.slotMap[k].concat(cur);
+            }
+            else {
+                this.slotMap[k] = [this.slotMap[k], f2.slotMap[k]];
+            }
+        }
+    }
 };
 

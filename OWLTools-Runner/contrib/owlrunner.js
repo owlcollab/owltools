@@ -215,7 +215,7 @@ function removeAxioms(axs) {
 }
 
 function saveAxioms(obj, file, owlFormat) {
-    var tmpOnt = gen.getManager().createOntology(IRI.create("http://x.org"));
+    var tmpOnt = gen.getManager().createOntology(IRI.create("http://x.org#")); // TODO
     var axioms = obj;
     if (obj instanceof bbop.owl.OWLFrame) {
         axioms = obj.toAxioms();
@@ -228,6 +228,7 @@ function saveAxioms(obj, file, owlFormat) {
         owlFormat = new org.coode.owlapi.obo.parser.OBOOntologyFormat();
     }
     pw.saveOWL(tmpOnt, owlFormat, file, g());
+    gen.getManager().removeOntology(tmpOnt);
 }
 
 // ========================================
