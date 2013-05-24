@@ -132,7 +132,8 @@ foreach my $k (keys %ont_info) {
         if ($info->{oort_memory}) {
             $env = "OORT_MEMORY=$info->{oort_memory} ";
         }
-        $success = run("wget --no-check-certificate $source_url -O $SRC");
+        $success = wget($source_url, $SRC);
+        #$success = run("wget --no-check-certificate $source_url -O $SRC");
         if ($success) {
             # Oort places package files directly in target area, if successful
             $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
@@ -151,7 +152,8 @@ foreach my $k (keys %ont_info) {
         if ($info->{oort_args}) {
             @OORT_ARGS = $info->{oort_args};
         }
-        $success = run("wget --no-check-certificate $source_url -O $SRC");
+        $success = wget($source_url, $SRC);
+        #$success = run("wget --no-check-certificate $source_url -O $SRC");
         # TODO - less strict mode for owl2obo, many ontologies do not conform to obo constraints
         # TODO - allow options including translation of annotation axioms, merging of import closure, etc
         if ($success) {
@@ -282,6 +284,11 @@ sub run {
     return !$err;
 }
 
+sub wget {
+    my ($url, $tgt) = @_;
+    return run("wget -T 300 --no-check-certificate $url -O $tgt");
+}
+
 sub debug {
     my $t = `date`;
     chomp $t;
@@ -334,7 +341,8 @@ sub get_ont_info {
              infallible => 1,
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn checkout svn://svn.code.sf.net/p/fbcv/code-0/src/trunk/ontologies/',
+             #checkout => 'svn checkout svn://svn.code.sf.net/p/fbcv/code-0/src/trunk/ontologies/',
+             checkout => 'svn checkout svn://svn.code.sf.net/p/fbcv/code-0/releases/latest/',
          },
          sibo => {
              method => 'vcs',
@@ -357,6 +365,17 @@ sub get_ont_info {
              method => 'vcs',
              system => 'svn',
              checkout => 'svn co http://porifera-ontology.googlecode.com/svn/trunk/src/ontology',
+         },
+         #nbo => {
+         #    notes => 'SWITCH',
+         #    method => 'owl2obo',
+         #    source_url => 'http://behavior-ontology.googlecode.com/svn/trunk/behavior.owl',
+         #},
+         nbo => {
+             method => 'vcs',
+             system => 'svn',
+             checkout => 'svn co http://behavior-ontology.googlecode.com/svn/trunk',
+             # TODO - rename
          },
          ro => {
              infallible => 1,
@@ -742,11 +761,6 @@ sub get_ont_info {
          oae => {
              method => 'owl2obo',
              source_url => 'http://svn.code.sf.net/p/oae/code/trunk/src/ontology/oae.owl',
-         },
-         nbo => {
-             notes => 'SWITCH',
-             method => 'owl2obo',
-             source_url => 'http://behavior-ontology.googlecode.com/svn/trunk/behavior.owl',
          },
          tto => {
              method => 'obo2owl',
