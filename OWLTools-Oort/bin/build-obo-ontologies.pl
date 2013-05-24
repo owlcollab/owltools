@@ -29,6 +29,10 @@ while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     }
 }
 
+if (@ARGV) {
+    die "unprocessed command line arguments: @ARGV";
+}
+
 # Build-in registry
 my %ont_info = get_ont_info();
 
@@ -110,7 +114,11 @@ foreach my $k (keys %ont_info) {
         if ($info->{path}) {
             $srcdir .= "/".$info->{path};
         }
-        # TODO - custom post-commands
+
+        # post-processing: TODO - add this for other commands
+        if ($success && $info->{post_processing_command}) {
+            $success = run("cd $srcdir && $info->{post_processing_command}");
+        }
 
         # copy from staging checkout area to target
         if ($success) {
@@ -190,6 +198,7 @@ foreach my $k (keys %ont_info) {
     if ($method eq 'custom') {
         die "not implemented";
     }
+
 
     # TEST
     if ((-f "$ont/$ont.obo") && (-f "$ont/$ont.owl")) {
@@ -332,6 +341,13 @@ sub get_ont_info {
              system => 'svn',
              checkout => 'svn co http://cell-ontology.googlecode.com/svn/trunk/src/ontology',
          },
+         clo => {
+             # TODO - additional owl2obo step
+             method => 'vcs',
+             system => 'svn',
+             checkout => 'svn co http://clo-ontology.googlecode.com/svn/trunk/src/ontology',
+             post_processing_command => 'owltools --use-catalog clo.owl --merge-imports-closure --ni -o -f obo --no-check clo.obo ',
+         },
          fbbt => {
              infallible => 1,
              method => 'obo2owl',
@@ -383,6 +399,12 @@ sub get_ont_info {
              system => 'svn',
              checkout => 'svn co http://obo-relations.googlecode.com/svn/trunk/src/ontology',
          },
+         bspo => {
+             infallible => 1,
+             method => 'vcs',
+             system => 'svn',
+             checkout => 'svn co http://biological-spatial-ontology.googlecode.com/svn/trunk/src/ontology',
+         },
 
          hao => {
              method => 'vcs',
@@ -430,8 +452,35 @@ sub get_ont_info {
              source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/zfs/zfs.obo',
          },
 
+         po => {
+             infallible => 1,
+             notes => 'switch to vcs method',
+             method => 'obo2owl',
+             source_url => 'http://palea.cgrb.oregonstate.edu/viewsvn/Poc/tags/live/plant_ontology.obo?view=co',
+         },
+         caro => {
+             notes => 'moving to owl soon',
+             method => 'obo2owl',
+             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/caro/caro.obo',
+         },
+         # OBSOLETE
+         #ehda => {
+         #    method => 'obo2owl',
+         #    source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/human/human-dev-anat-staged.obo',
+         #},
+         emap => {
+             notes => 'new url soon',
+             method => 'obo2owl',
+             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/mouse/EMAP.obo',
+         },
 
-
+         # we will use either an archive or vcs method for gaz rather than straining central pipeline
+         #gaz => {
+         #    method => 'obo2owl',
+         #    oort_memory => '5G',
+         #    oort_args => '--no-reasoner', # TODO - jvm
+         #    source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/environmental/gaz.obo',
+         #},
 
 
          # GENERIC
@@ -478,10 +527,6 @@ sub get_ont_info {
          vo => {
              method => 'obo2owl',
              source_url => 'http://www.violinet.org/vo',
-         },
-         bspo => {
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/caro/spatial.obo',
          },
          vario => {
              method => 'obo2owl',
@@ -544,26 +589,6 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'http://rnao.googlecode.com/svn/trunk/rnao.obo',
          },
-         po => {
-             infallible => 1,
-             notes => 'switch to vcs method',
-             method => 'obo2owl',
-             source_url => 'http://palea.cgrb.oregonstate.edu/viewsvn/Poc/tags/live/plant_ontology.obo?view=co',
-         },
-         caro => {
-             notes => 'moving to owl soon',
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/caro/caro.obo',
-         },
-         ehda => {
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/human/human-dev-anat-staged.obo',
-         },
-         emap => {
-             notes => 'new url soon',
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/mouse/EMAP.obo',
-         },
          mod => {
              method => 'obo2owl',
              source_url => 'http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/mod/data/PSI-MOD.obo',
@@ -623,12 +648,6 @@ sub get_ont_info {
          mf => {
              method => 'owl2obo',
              source_url => 'http://purl.obolibrary.org/obo/mf.owl',
-         },
-         gaz => {
-             method => 'obo2owl',
-             oort_memory => '5G',
-             oort_args => '--no-reasoner', # TODO - jvm
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/environmental/gaz.obo',
          },
          tgma => {
              method => 'obo2owl',
@@ -700,10 +719,10 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'http://ontology1.srv.mst.edu/sarah/amphibian_taxonomy.obo',
          },
-         ehdaa => {
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/human/human-dev-anat-abstract.obo',
-         },
+         #ehdaa => {
+         #    method => 'obo2owl',
+         #    source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/human/human-dev-anat-abstract.obo',
+         #},
          fbdv => {
              infallible => 1,
              method => 'obo2owl',
