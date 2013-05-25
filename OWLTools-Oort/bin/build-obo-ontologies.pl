@@ -452,6 +452,27 @@ sub get_ont_info {
              source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/zfs/zfs.obo',
          },
 
+         hsapdv => {
+             infallible => 1,
+             method => 'obo2owl',
+             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/hsapdv/hsapdv.obo',
+         },
+         mmusdv => {
+             infallible => 1,
+             method => 'obo2owl',
+             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/mmusdv/mmusdv.obo',
+         },
+         pdumdv => {
+             method => 'obo2owl',
+             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/pdumdv/pdumdv.obo',
+         },
+         olatdv => {
+             method => 'obo2owl',
+             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/olatdv/olatdv.obo',
+         },
+
+
+
          po => {
              infallible => 1,
              notes => 'switch to vcs method',
@@ -643,7 +664,7 @@ sub get_ont_info {
          wbphenotype => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/worm_phenotype.obo',
+             source_url => 'http://tazendra.caltech.edu/~azurebrd/cgi-bin/forms/phenotype_ontology_obo.cgi',
          },
          mf => {
              method => 'owl2obo',
