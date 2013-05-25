@@ -9,7 +9,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -22,8 +21,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.graph.OWLGraphWrapper;
@@ -36,7 +33,6 @@ import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
-import owltools.sim2.preprocessor.AbstractSimPreProcessor;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.PropertyViewSimPreProcessor;
@@ -164,12 +160,13 @@ public class Sim2CommandRunner extends SimCommandRunner {
       resultOutStream.println("# "+k+" = "+simProperties.getProperty(k.toString()));
       //TODO: output if the property is default
 		}
-
+    resultOutStream.flush();
 		for (OWLNamedIndividual i : insts) {
 			for (OWLNamedIndividual j : insts) {
 				// similarity is symmetrical
 				if (isComparable(i,j)) {
 					showSim(i,j, owlpp);
+			    resultOutStream.flush();
 				}
 				else {
 					LOG.info("skipping "+i+" + "+j);
@@ -266,43 +263,60 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
 
 		int ni = sos.getAttributesForElement(i).size();
-		int nj = sos.getAttributesForElement(j).size();
-
+		int nj = sos.getAttributesForElement(j).size();		
 		String[] metrics = getProperty(SimConfigurationProperty.scoringMetrics).split(",");
-		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
-		if ( maxic.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
-			numberOfPairsFiltered ++;
-			return;
-		}
-		float s = sos.getElementJaccardSimilarity(i, j);
-		if (s < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
-			numberOfPairsFiltered ++;
-			return;
-		}
+		
+    //only do this test if we end up using the IC measures
+    ScoreAttributesPair maxic = null;
 
+    for (String metric : metrics) {
+			if (sos.isICmetric(metric)) {				
+    		maxic = sos.getSimilarityMaxIC(i, j);
+		    if ( maxic.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
+			    numberOfPairsFiltered ++;
+			    return;
+		    }
+		    break;  //only need to test once.
+		  }
+		}
+		
+    //only do this test if we end up using the J measures
+		float s = 0;
+    for (String metric : metrics) {
+		  if (sos.isJmetric(metric)) {				
+    		s = sos.getElementJaccardSimilarity(i, j);
+		    if (s < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
+			    numberOfPairsFiltered ++;
+			    return;
+    		}
+		    break; //only need to test once.
+			}
+		}
+	
 		resultOutStream.println("NumAnnots\t"+renderPair(i,j, owlpp)+"\t"+ni+"\t"+nj+"\t"+(ni+nj)/2);
 
-		for (int m=0; m<metrics.length; m++) {
-			  if (metrics[m].equals(Metric.IC_MCS.toString())) {
+    for (String metric : metrics) {
+			  if (metric.equals(Metric.IC_MCS.toString())) {
 					ScoreAttributesPair bmaAsymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
 					resultOutStream.println("BMAasymIC\t"+renderPair(i,j, owlpp)+"\t"+bmaAsymIC.score+"\t"+show(bmaAsymIC.attributeClassSet, owlpp));	
           //TODO: do reciprocal BMA
 					ScoreAttributesPair bmaSymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.AVERAGE);		
 					resultOutStream.println("BMAsymIC\t"+renderPair(i,j, owlpp)+"\t"+bmaSymIC.score+"\t"+show(bmaSymIC.attributeClassSet, owlpp));	
-			  } else if (metrics[m].equals(Metric.JACCARD.toString())) {
+			  } else if (metric.equals(Metric.JACCARD.toString())) {
 					ScoreAttributesPair bmaAsymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.A_TO_B);
 					resultOutStream.println("BMAasymJ\t"+renderPair(i,j, owlpp)+"\t"+bmaAsymJ.score+"\t"+show(bmaAsymJ.attributeClassSet, owlpp));	
           //TODO: do reciprocal BMA
 					ScoreAttributesPair bmaSymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.AVERAGE);
 					resultOutStream.println("BMAsymJ\t"+renderPair(i,j, owlpp)+"\t"+bmaSymJ.score+"\t"+show(bmaSymJ.attributeClassSet, owlpp));	
-			  } else if (metrics[m].equals(Metric.GIC.toString())) {
+			  } else if (metric.equals(Metric.GIC.toString())) {
 					resultOutStream.println("SimGIC\t"+renderPair(i,j, owlpp)+"\t"+sos.getElementGraphInformationContentSimilarity(i,j));
-			  } else if (metrics[m].equals(Metric.MAXIC.toString())) {
+			  } else if (metric.equals(Metric.MAXIC.toString())) {
 					resultOutStream.println("MaxIC\t"+renderPair(i,j, owlpp)+"\t"+maxic.score+"\t"+show(maxic.attributeClassSet, owlpp));
-			  } else if (metrics[m].equals(Metric.SIMJ.toString())) {
+			  } else if (metric.equals(Metric.SIMJ.toString())) {
 					resultOutStream.println("SimJ\t"+renderPair(i,j, owlpp)+"\t"+s);
 	      }
 	  }
+		resultOutStream.flush();
 	}
 
 	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {

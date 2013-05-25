@@ -137,21 +137,28 @@ public class SimpleOwlSim {
 	 * or class level
 	 */
 	public enum Metric { 
-		JACCARD("Best Match Average using Jaccard scoring"), 
-		OVERLAP(""), 
-		NORMALIZED_OVERLAP(""), 
-		DICE(""),
-		IC_MCS("Best Match Average using Information Content"),
-		GIC("GraphInformationContent"),
-		MAXIC("Maximum Information Content"),
-		SIMJ("Similarity based on Jaccard score"),
-		LCSIC("Least Common Subsumer Information Content Score");
+		JACCARD("Best Match Average using Jaccard scoring",false,true), 
+		OVERLAP("",false,false), 
+		NORMALIZED_OVERLAP("",false,false), 
+		DICE("",true,false),
+		IC_MCS("Best Match Average using Information Content",true,false),
+		GIC("GraphInformationContent",true,false),
+		MAXIC("Maximum Information Content",true,false),
+		SIMJ("Similarity based on Jaccard score",false,true),
+		LCSIC("Least Common Subsumer Information Content Score",true,false);
 
  	  private final String description;
-    Metric(String description) {
+ 	  private final Boolean isICmetric;
+ 	  private final Boolean isJmetric;
+    Metric(String description, Boolean isICmetric, Boolean isJmetric) {
         this.description = description;
+        this.isICmetric = isICmetric;
+        this.isJmetric = isJmetric;
     }
     private String description() { return description; }
+
+    private Boolean isICmetric() { return isICmetric; }
+    private Boolean isJmetric() { return isJmetric; }
     
 	};
 		
@@ -1019,6 +1026,24 @@ public class SimpleOwlSim {
 		}
 		icCache.put(c, ic);
 		return ic;
+	}
+	
+	public Boolean isICmetric(String m) {
+    for (Metric metric : Metric.values()) {
+      if (m.equals(metric.toString())) {
+      	return metric.isICmetric();
+      }
+    }
+    return false;
+	}
+	
+	public Boolean isJmetric(String m) {
+    for (Metric metric : Metric.values()) {
+      if (m.equals(metric.toString())) {
+      	return metric.isJmetric();
+      }
+    }
+    return false;
 	}
 
 }
