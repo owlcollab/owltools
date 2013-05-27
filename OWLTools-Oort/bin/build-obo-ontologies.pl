@@ -122,7 +122,7 @@ foreach my $k (keys %ont_info) {
 
         # copy from staging checkout area to target
         if ($success) {
-            $success = run("rsync -avz --delete $srcdir/* $ont/");
+            $success = run("rsync --exclude=.svn -avz --delete $srcdir/ $ont");
         }
         else {
             debug("will not rsync to target as previous steps were not successful");
@@ -140,11 +140,12 @@ foreach my $k (keys %ont_info) {
         if ($info->{oort_memory}) {
             $env = "OORT_MEMORY=$info->{oort_memory} ";
         }
+        # TODO - no action if unchanged
         $success = wget($source_url, $SRC);
-        #$success = run("wget --no-check-certificate $source_url -O $SRC");
         if ($success) {
             # Oort places package files directly in target area, if successful
             $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+            # TODO - generate HTML diffs (optional)
         }
         else {
             debug("will not run Oort as wget was unsuccessful");
@@ -161,7 +162,6 @@ foreach my $k (keys %ont_info) {
             @OORT_ARGS = $info->{oort_args};
         }
         $success = wget($source_url, $SRC);
-        #$success = run("wget --no-check-certificate $source_url -O $SRC");
         # TODO - less strict mode for owl2obo, many ontologies do not conform to obo constraints
         # TODO - allow options including translation of annotation axioms, merging of import closure, etc
         if ($success) {
@@ -184,7 +184,7 @@ foreach my $k (keys %ont_info) {
         if ($success) {
             $success = run("unzip -o $SRC");
             if ($success) {
-                $success = run("rsync -avz --delete $path/* $ont/");
+                $success = run("rsync -avz --delete $path/ $ont");
             }
             else {
                 debug("unzip failed for $ont");
@@ -233,13 +233,6 @@ foreach my $font (@failed_onts) {
     print "FAIL: $font\n";
 }
 my $errcode = 0;
-if (@failed_infallible_onts) {
-    printf "# Failed ontologies: %d\n", scalar(@failed_onts);
-    foreach my $font (@failed_infallible_onts) {
-        print "FAIL: $font # THIS SHOULD NOT FAIL\n";
-        $errcode = 1;
-    }
-}
 
 # --DEPLOYMENT--
 # each successful ontology is copied to deployment area
@@ -252,7 +245,7 @@ else {
     foreach my $ont (@onts_to_deploy) {
         debug("deploying $ont");
         # TODO - copy main .obo and .owl to top level
-        run("rsync -avz $ont $target_dir");
+        run("rsync -avz --delete $ont/ $target_dir/$ont");
         run("rsync $ont/$ont.obo $target_dir");
         run("rsync $ont/$ont.owl $target_dir");
     }
@@ -260,6 +253,14 @@ else {
 
 if ($n_errs > 0) {
     $errcode = 1;
+}
+
+if (@failed_infallible_onts) {
+    printf "# Failed ontologies: %d\n", scalar(@failed_onts);
+    foreach my $font (@failed_infallible_onts) {
+        print "FAIL: $font # THIS SHOULD NOT FAIL\n";
+        $errcode = 1;
+    }
 }
 
 if ($errcode) {
