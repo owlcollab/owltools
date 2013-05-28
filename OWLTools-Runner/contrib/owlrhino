@@ -2,28 +2,12 @@
 # Set the classname of the Java class to execute
 CLASSNAME=org.mozilla.javascript.tools.shell.Main
 
-## Assumption: all classes including rhino are packed into
-## owltools-runner-all.jar
-## These will be resolved into absolute pathnames
-DEFAULT_OWLTOOLS_LOCATION=../bin/owltools-runner-all.jar
-ALTERNATIVE_OWLTOOLS_LOCATION=../owltools-runner-all.jar
-
-if [ -f $DEFAULT_OWLTOOLS_LOCATION ];
-then
-   CLASSPATH_RELATIVE=$DEFAULT_OWLTOOLS_LOCATION;
-else
-   if [ -f $ALTERNATIVE_OWLTOOLS_LOCATION ];
-   then
-      CLASSPATH_RELATIVE=$ALTERNATIVE_OWLTOOLS_LOCATION;
-   else
-      echo "Cannot find owltools-runner-all.jar in any of the expected locations";
-      exit 1
-   fi
-fi
-
 # If literal classpath values are needed, uncomment the line below
 # This can be useful if the classpath contains URLs
 # CLASSPATH_LITERAL=""
+# NOTE:: jline 0.9.93 works - jline 1.0 does NOT
+#CLASSPATH_LITERAL=$HOME/src/jline-0.9.93/jline-0.9.93.jar
+CLASSPATH_LITERAL=""
 
 # To set a specific default Java path, set the JAVAPATH variable below.
 # This value can be overridden with the -Jvm= option.
@@ -107,6 +91,25 @@ do
 	
 done
 
+## Assumption: all classes including rhino are packed into
+## owltools-runner-all.jar
+## These will be resolved into absolute pathnames
+DEFAULT_OWLTOOLS_LOCATION=../bin/owltools-runner-all.jar
+ALTERNATIVE_OWLTOOLS_LOCATION=../owltools-runner-all.jar
+
+if [ -f  $PATH_TO_ME/$DEFAULT_OWLTOOLS_LOCATION ];
+then
+   CLASSPATH_RELATIVE=$DEFAULT_OWLTOOLS_LOCATION;
+else
+   if [ -f  $PATH_TO_ME/$ALTERNATIVE_OWLTOOLS_LOCATION ];
+   then
+      CLASSPATH_RELATIVE=$ALTERNATIVE_OWLTOOLS_LOCATION;
+   else
+      echo "Cannot find owltools-runner-all.jar in any of the expected locations";
+      exit 1
+   fi
+fi
+
 for ARG in "$CLASSPATH_RELATIVE"
 do
 	DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$ARG | grep -v ontologyrelease`
@@ -150,13 +153,14 @@ fi
 
 export OWLRUNNER_SOURCE=$PATH_TO_ME/owlrunner.js
 ## Construct the Java call
-CMD="$JAVAPATH -Xmx4G -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS $CLASSNAME -f $PATH_TO_ME/pachyowl.js -f $PATH_TO_ME/owlrunner.js $CMDARGS -f -"
+CMD="$JAVAPATH -Xmx4G -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS jline.ConsoleRunner $CLASSNAME -f $PATH_TO_ME/pachyowl.js -f $PATH_TO_ME/owlrunner.js $CMDARGS -f -"
+echo $CMD
 
 ## Check for rlwrap, maintains a history and auto-completion for owlrhino
 ## Do not use which, it does not set proper exit codes for errors or non-existing application
-if command -v rlwrap >/dev/null 2>&1; then
-  CMD="rlwrap -C js -C owlrhino $CMD"
-fi
+#if command -v rlwrap >/dev/null 2>&1; then
+#  CMD="rlwrap -C jsxx -C owlrhino $CMD"
+#fi
 
 echo $CMD
 sh -c "$CMD"

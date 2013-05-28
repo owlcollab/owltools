@@ -150,7 +150,7 @@ bbop.owl.Pachy.prototype.saveOntology = function(ont, file, owlFormat) {
  *
  */
 bbop.owl.Pachy.prototype.save = function(file, owlFormat) {
-    this.saveOntology(file, owlFormat);
+    this.saveOntology(this.getOntology(), file, owlFormat);
 }
 
 // ----------------------------------------
@@ -160,6 +160,7 @@ bbop.owl.Pachy.prototype.save = function(file, owlFormat) {
 bbop.owl.Pachy.prototype.applyChange = function(change) {
     this.getManager().applyChange(change);
     this.changes.push(change);
+    return change;
 }
 
 /* Function: add
@@ -172,7 +173,7 @@ bbop.owl.Pachy.prototype.add = function(ax) {
         return this.addAxiom(ax);
     }
     else if (ax instanceof bbop.owl.OWLFrame) {
-        this.addAxioms(ax.toAxioms());
+        return this.addAxioms(ax.toAxioms());
     }
     else {
         print("FAIL: "+ax);
@@ -186,7 +187,7 @@ bbop.owl.Pachy.prototype.add = function(ax) {
  */
 bbop.owl.Pachy.prototype.addAxiom = function(ax) {
     var change = new AddAxiom(ont(), ax);
-    this.applyChange(change);
+    return this.applyChange(change);
 }
 
 /* Function: addAxioms
@@ -198,6 +199,7 @@ bbop.owl.Pachy.prototype.addAxioms = function(axs) {
     for (k in axs) {
         this.addAxiom(axs[k]);
     }
+    return axs;
 }
 
 /* Function: removeAxiom
@@ -280,7 +282,7 @@ bbop.owl.Pachy.prototype.getLabel = function(obj) {
 bbop.owl.Pachy.prototype.isDeprecated = function(obj) {
     var anns = this.getAnnotations(obj, this.df().getOWLAnnotationProperty(org.semanticweb.owlapi.vocab.OWLRDFVocabulary.OWL_DEPRECATED.getIRI()));
     for (k in anns) {
-        if (anns[k].getValue().getLiteral() == 'true') {
+        if (anns[k].getValue && anns[k].getValue().getLiteral() == 'true') {
             return true;
         }
     }
@@ -375,17 +377,17 @@ bbop.owl.Maker.prototype.someValuesFrom = function(p, filler) {
  * returns: OWLObjectIntersectionOf or OWLDataIntersectionOf
  */
 bbop.owl.Maker.prototype.intersectionOf = function() {
-    var set = new java.util.HashSet();
+    var xset = new java.util.HashSet();
     var isData = false;
-    for (k in arguments) {
+    for (k=0; k<arguments.length; k++) {
         // todo - detect isData
-        set.add(arguments[k]);
+        xset.add(arguments[k]);
     }
     if (isData) {
-        return get_data_factory().getOWLDataIntersectionOf(set);
+        return get_data_factory().getOWLDataIntersectionOf(xset);
     }
     else {
-        return get_data_factory().getOWLObjectIntersectionOf(set);
+        return get_data_factory().getOWLObjectIntersectionOf(xset);
     }
 }
 
@@ -426,6 +428,15 @@ bbop.owl.Maker.prototype.ann = function(p,v) {
  */
 bbop.owl.Maker.prototype.subClassOf = function (sub,sup) { return this.df().getOWLSubClassOfAxiom(sub,sup) }
 
+/* Function: classAssertion
+ * Arguments:
+ *  c : OWLClassExpression
+ *  i : OWLIndividual
+ *
+ * Returns: OWLAxiom
+ */
+bbop.owl.Maker.prototype.classAssertion = function (c,i) { return this.df().getOWLClassAssertionAxiom(c,i) }
+
 /* Function: equivalentClasses
  * Arguments:
  *  x1, x2, ... : OWLClassExpression
@@ -434,7 +445,7 @@ bbop.owl.Maker.prototype.subClassOf = function (sub,sup) { return this.df().getO
  */
 bbop.owl.Maker.prototype.equivalentClasses = function() {
     var set = new java.util.HashSet();
-    for (k in arguments) {
+    for (k=0; k<arguments.length; k++) {
         set.add(this.ensureClassExpression(arguments[k]));
     }
     return this.df().getOWLEquivalentClassesAxiom(set);
@@ -448,7 +459,7 @@ bbop.owl.Maker.prototype.equivalentClasses = function() {
  */
 bbop.owl.Maker.prototype.disjointClasses = function() {
     var set = new java.util.HashSet();
-    for (k in arguments) {
+    for (k=0; k<arguments.length; k++) {
         set.add(arguments[k]);
     }
     return this.df().getOWLDisjointClassesAxiom(set);
@@ -536,10 +547,6 @@ bbop.owl.Generator = function() {
 bbop.owl.Generator.prototype = new bbop.owl.Pachy();
 //bbop.owl.Generator.prototype.constructor = bbop.owl.Pachy;
 
-bbop.owl.Generator.prototype.getNextId = function() {
-    return this.lastId;
-}
-
 /* Function: GenIRI
  *
  * generators an available IRI within the default ID space
@@ -548,9 +555,11 @@ bbop.owl.Generator.prototype.getNextId = function() {
  */
 bbop.owl.Generator.prototype.genIRI = function() {
     this.lastId++;
-    var iriStr = "http://purl.obolibrary.org/obo/"+this.idspace+"_"+java.lang.String.format("%07d", new java.lang.Integer(this.lastId));
+    var localId = java.lang.String.format("%07d", new java.lang.Integer(this.lastId));
+    var iriStr = "http://purl.obolibrary.org/obo/"+this.idspace+"_"+localId;
     var iri = IRI.create(iriStr);
     var isUsed = false;
+    var id = this.idspace+":"+localId;
     
     if (this.getOntology().getAnnotationAssertionAxioms(iri).size() > 0) {
         isUsed = true;
@@ -561,6 +570,25 @@ bbop.owl.Generator.prototype.genIRI = function() {
             isUsed = true;
         }
     }
+    if (!isUsed) {
+        var aaas = this.getOntology().getAxioms(AxiomType.ANNOTATION_ASSERTION).toArray();
+        print("Checking AAAs "+aaas.length+" for "+id);
+        for (k in aaas) {
+            var ax = aaas[k];
+            v = ax.getValue();
+            if (v.getLiteral != null && v.getLiteral().toString() == iriStr) {
+                print("used in assertion: "+ax);
+                isUsed = true;
+                break;
+            }
+            if (v.getLiteral != null && v.getLiteral().toString() == id) {
+                print("used in assertion: "+ax);
+                isUsed = true;
+                break;
+            }
+        }
+    }
+
     if (isUsed) {
         print(" USED: "+iri);
         return this.genIRI();
@@ -569,6 +597,7 @@ bbop.owl.Generator.prototype.genIRI = function() {
         return iri;
     }
 }
+
 
 bbop.owl.Generator.prototype.concatLiteral = function() {
     var aa = Array.prototype.slice.call(arguments, 0);
@@ -579,7 +608,7 @@ bbop.owl.Generator.prototype.concatLiteral = function() {
                 return t;
             }
             else {
-                return getLabel(t); // TODO
+                return this.getLabel(t); 
             }
         }).join(" ");
     return toks;
@@ -603,15 +632,18 @@ bbop.owl.Generator.prototype.generateXP = function(genus, relation, diff) {
     var id = iri.toString();
     var label = this.concatLiteral(genus,'of',diff);
     var m = this.getMaker();
+    var ex = m.intersectionOf(genus, this.maker.someValuesFrom(relation,diff));
+    print("EX = "+ex);
     var slotMap = {
         id: id,
         label: label,
         //annotations: {property:has_related_synonym, value: this.concatLiteral(diff,genus)},
-        annotations: m.ann(has_related_synonym, this.concatLiteral(diff,genus)),
+        annotations: m.ann(has_exact_synonym, this.concatLiteral(diff,genus)),
         definition: this.concatLiteral('a',genus,'that is',relation,'a',diff),
-        equivalentTo: m.intersectionOf(genus, this.maker.someValuesFrom(relation,diff))
+        equivalentTo: ex
     };
     var f = new bbop.owl.OWLFrame(this, slotMap);
+    f.stamp();
     this.generatedFrames.push(f);
     return f;
 }
@@ -721,6 +753,32 @@ bbop.owl.OWLFrame.prototype.flatten = function() {
     
 }
 
+/* Function: stamp
+ *
+ * Adds default slot values to frame, including:
+ *  - dc:creator
+ *  - dc:date
+ *
+ * Returns: string
+ */
+bbop.owl.OWLFrame.prototype.stamp = function() {
+    //print("STAMPING...");
+    if (this.slotMap.id == null) {
+        this.slotMap.id = this.generator.genIRI().toString();
+    }
+    if (this.slotMap.date == null) {
+        //this.slotMap.date = '';
+    }
+    if (this.generator.defaultSlotMap != null) {
+        for (k in this.generator.defaultSlotMap) {
+            if (this.slotMap[k] == null) {
+                this.slotMap[k] = this.generator.defaultSlotMap[k];
+            }
+        }
+    }
+    return this;
+};
+
 
 /* Function: render
  *
@@ -786,7 +844,8 @@ bbop.owl.OWLFrame.prototype.pp = function(object, depth, embedded) {
         else if (object instanceof java.lang.Object) {
             pretty += object;
         }      
-        else if ( Object.keys(object).length > 0 ){
+        // TODO Object.keys() not in distributed rhino?
+        else if ( !(Object.keys) || Object.keys(object).length > 0 ){
             if (embedded) { newline = true }
             var content = ""
             for (var key in object) { 
@@ -812,7 +871,7 @@ bbop.owl.OWLFrame.prototype.pp = function(object, depth, embedded) {
 
 bbop.owl.OWLFrame.prototype.addFrame = function() {
     // TODO
-    addAxioms(this.toAxioms());
+    this.generator.addAxioms(this.toAxioms());
 };
 
 bbop.owl.OWLFrame.prototype.ensureHasId = function() {
@@ -846,6 +905,7 @@ bbop.owl.OWLFrame.prototype.toAxioms = function() {
         if (!(v instanceof Array)) {
             vs = [v];
         }
+        // TODO - split this to allow generation of individual axioms
         for (var i=0; i<vs.length; i++) {
             var v = vs[i];
             //print(k+" = "+v + " // "+i+" of "+vs.length);
@@ -875,7 +935,7 @@ bbop.owl.OWLFrame.prototype.toAxioms = function() {
                     p = lookup(k);
                 }
                 if (p instanceof OWLAnnotationProperty) {
-                axioms.push(maker.annotationAssertion(p, obj, maker.literal(v)));
+                    axioms.push(maker.annotationAssertion(p, obj, maker.literal(v)));
                 }
                 else if (p instanceof OWLObjectProperty) {
                     axioms.push(maker.subClassOf(obj, maker.someValuesFrom(p, maker.ensureClassExpression(v))));
@@ -961,7 +1021,19 @@ bbop.owl.OWLFrame.prototype.axiomsToFrameMap = function(axioms, renderer) {
             
         }
         else if (ax instanceof OWLDeclarationAxiom) {
-            // TODO
+            var t = ax.getEntity().getEntityType().getName();
+            if (fmap[x] == null) {
+                fmap[x] = { id:x };
+            }
+            if (fmap[x].declaration == null) {
+                fmap[x].declaration = t;
+            }
+            else if (fmap[x].declaration instanceof Array) {
+                fmap[x].declaration.push(t);
+            }
+            else {
+                fmap[x].declaration = [fmap[x].declaration, t];
+            }
         }
         else {
             print("Cannot process: "+ax);
@@ -1004,6 +1076,46 @@ bbop.owl.OWLFrame.prototype.merge = function(f2) {
             else {
                 this.slotMap[k] = [this.slotMap[k], f2.slotMap[k]];
             }
+        }
+    }
+};
+
+/* Function: set
+ *
+ * Purpose: sets slot values
+ *
+ * Arguments:
+ *  k : slot
+ *  v : value
+ */
+bbop.owl.OWLFrame.prototype.set = function(k,v) {
+    if (this.slotMap[k] == null) {
+        this.slotMap[k] = v;
+    }
+    else if (this.slotMap[k] instanceof Array) {
+        this.slotMap[k].push(v);
+    }
+    else {
+        // this.slotMap[k] is single valued
+        this.slotMap[k] = [this.slotMap[k], v];
+    }
+    return this;
+};
+
+// experimental
+bbop.owl.OWLFrame.prototype.sed = function(sedFunc) {
+    anns = this.slotMap.annotations;
+    var maker = this.generator.getMaker();
+    if (!(anns instanceof Array)) {
+        anns = [anns];
+    }
+    for (k in anns) {
+        var ann = anns[k];
+        var v = ann.getValue();
+        if (v.getLiteral != null) {
+            var vLit = vl.getLiteral().toString();
+            var vNew = sedFunc.call(this, vl);
+            anns[k] = maker.ann(ann.getProperty(), vNew);
         }
     }
 };

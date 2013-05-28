@@ -14,12 +14,20 @@ var mst;
 var isElk = true;
 var objmap;
 var changes = [];
+var currentFile;
+var currentFmt;
+var currentFrame;
+var labelToIRIMap = {};
 
 function wg() {
     return gen;
 }
 function maker() {
     return gen.getMaker();
+}
+
+function debug(x) {
+    print(x);
 }
 
 // initializes runner with new CommandRunner
@@ -29,10 +37,11 @@ function init() {
     runner.isDisposeReasonerOnExit = false;
 }
 
-function reload() {
+function reload_source() {
     var src = java.lang.System.getenv().get("OWLRUNNER_SOURCE");
     load(src);
 }
+
 
 // executes commands using owltools command line syntax.
 // E.g.
@@ -112,11 +121,11 @@ function dlq(expr) {
     return getSubClasses(x, true);
 }
 
-function getSubClasses(expr,isDirect) {
-    if (isDirect != null) {
+function getSubClasses(expr,isDirect,isReflexive) {
+    if (isDirect == null) {
         isDirect = true;
     }
-    if (expr.isAnonymous && isElk) {
+    if (expr.isAnonymous() && isElk) {
         //print("Elk no like anon expressions!");
         var q = owl("http://x.org/query");
         print("Making query class: "+q);
@@ -125,7 +134,11 @@ function getSubClasses(expr,isDirect) {
         addAxiom(ax);
         expr = q;
     }
-    return getReasoner().getSubClasses( expr, true ).getFlattened().toArray();
+    var subcs = getReasoner().getSubClasses( expr, isDirect ).getFlattened();
+    if (isReflexive) {
+        subcs.addAll(getReasoner().getEquivalentClasses( expr ).getEntities());
+    }
+    return subcs.toArray();
 }
 
 function obo(id) {
@@ -139,11 +152,18 @@ function get(label) {
     return g().getOWLObjectByLabel(label);
 }
 function lookup(label) {
+    if (labelToIRIMap[label] != null) {
+        return labelToIRIMap[label];
+    }
     return g().getOWLObjectByLabel(label);
 }
 
 function getLabel(obj) {
     return g().getLabel(obj);
+}
+
+function getIdLabelPair(obj) {
+    return obj.toString()+" '"+g().getLabel(obj)+"'";
 }
 
 // ========================================
@@ -165,6 +185,7 @@ function df() {
 someValuesFrom = function() {return maker().someValuesFrom.apply(maker(),arguments)};
 intersectionOf = function() {return maker().intersectionOf.apply(maker(),arguments)};
 subClassOf = function() {return maker().subClassOf.apply(maker(),arguments)};
+classAssertion = function() {return maker().classAssertion.apply(maker(),arguments)};
 equivalentClasses = function() {return maker().equivalentClasses.apply(maker(),arguments)};
 disjointClasses = function() {return maker().disjointClasses.apply(maker(),arguments)};
 annotationAssertion = function() {return maker().annotationAssertion.apply(maker(),arguments)};
@@ -188,6 +209,10 @@ function showFrame(sm) {
 // ========================================
 // CH..CH..CHANGES
 // ========================================
+
+function add(obj) {
+    return gen.add(obj);
+}
 
 function applyChange(change) {
     g().getManager().applyChange(change);
@@ -214,6 +239,12 @@ function removeAxioms(axs) {
     }
 }
 
+function expandMacros() {
+    var mev = new MacroExpansionVisitor(gen.getOntology());
+    mev.expandAll();
+    mev.dispose();
+}
+
 function saveAxioms(obj, file, owlFormat) {
     var tmpOnt = gen.getManager().createOntology(IRI.create("http://x.org#")); // TODO
     var axioms = obj;
@@ -231,15 +262,190 @@ function saveAxioms(obj, file, owlFormat) {
     gen.getManager().removeOntology(tmpOnt);
 }
 
+function reload() {
+    loadont(currentFile);
+}
+
+function loadont(f, isUseCatalog) {
+    // todo - remember format
+
+    // use owltools cli for now...
+    if (isUseCatalog) {
+        x("--use-catalog "+f);
+    }
+    else {
+        x(f); 
+    }
+    currentFile = f;
+}
+
+function save(f, fmt) {
+    if (f == null) {
+        f = currentFile;
+    }
+    if (fmt == null) {
+        fmt = currentFmt;
+    }
+    gen.save(f, fmt);
+}
+
+function makeXP(genus, rel, dc) {
+
+    print("Making...");
+    var f = gen.generateXP(genus,rel,dc);
+    currentFrame = f;
+    print(f.render());
+    print(f.toAxioms());
+    print("Adding...");
+    add(f);
+    return f;
+}
+
+
+function makeClass() {
+    var label = arguments[0];
+    var sups = [];
+    for(var i = 1; i < arguments.length; i++) {
+        sups.push(arguments[i]);
+    }
+    var slotMap = {
+        id: gen.genIRI(),
+        label: label,
+        subClassOf: sups
+    };
+    var f = new bbop.owl.OWLFrame(gen, slotMap);
+    add(f);
+    currentFrame = f;
+    return f;
+}
+
+function makeFrame(slotMap) {
+    if (slotMap.id == null) {
+        slotMap.id = gen.genIRI();
+    }
+    var f = new bbop.owl.OWLFrame(gen, slotMap);
+    currentFrame = f;
+    return f;
+}
+
+function mireot(cls, ont) {
+    m = new Mooncat(g());
+    
+}
+
+// todo - axiom annotations
+function tag(obj, slot, val) {
+    var f = gen.getFrame(obj);
+    currentFrame = f;
+    if (f[slot] == null) {
+        f[slot] = val;
+    }
+    else if (f[slot] instanceof Array) {
+        f[slot].push(val);
+    }
+    else {
+        f[slot] = [f[slot], val];
+    }
+    add(f); // modifies ontology
+    return f;
+}
+
+function addImage(cls, img) {
+    if (!(img instanceof OWLIndividual)) {
+        if (!(img instanceof IRI)) {
+            img = IRI.create(img);
+        }
+        img = df().getOWLNamedIndividual(img);
+    }
+    add( classAssertion( someValuesFrom(depicts, cls), img) );
+}
+
+
+// ========================================
+// EVALUATION
+// ========================================
+
+//Array.prototype.diff = function(a) {
+//    return this.filter(function(i) {return (a.indexOf(i) < 0);});
+//};
+
+//function arrayNotContains(a,i) {return (a.indexOf(i) < 0) };
+
+function recapitulateAssertions(baseCls) {
+    var classes = getSubClasses(baseCls, false, true);
+    print("TESTING: "+classes.length);
+    var axioms = ont().getAxioms(AxiomType.SUBCLASS_OF).toArray();
+    print("CANDIDATE AXIOMS: "+axioms.length);
+
+    var n_new = 0;
+    for (k in classes) {
+        var c = classes[k];
+        var assertedSups = c.getSuperClasses(ont()).toArray();
+        var inferredSups = getReasoner().getSuperClasses(c, true).getFlattened().toArray();
+        for (j in inferredSups) {
+            var sup = inferredSups[j];
+            if (assertedSups.indexOf(sup) == -1) {
+                print("NEW: "+getIdLabelPair(c)+" SubClassOf "+getIdLabelPair(sup));
+                n_new ++;
+            }
+        }
+    }
+    print("#NEW = "+n_new);
+    print("Justifying. # axioms to check = "+axioms.length);
+
+    var rmAxioms = [];
+    for (k in axioms) {
+        var ax = axioms[k];
+        if (classes.indexOf(ax.getSuperClass()) > -1) {
+            print("RM: "+ax);
+            rmAxioms.push(ax);
+        }
+    }
+    print("REMOVING :"+rmAxioms.length);
+    removeAxioms(rmAxioms);
+
+    for (k in rmAxioms) {
+        var ax = rmAxioms[k];
+        var sub = ax.getSubClass();
+        var sup = ax.getSuperClass();
+        var result;
+        if (getReasoner().getSuperClasses(sub, true).contains(sup)) {
+            result = 'OK';
+        }
+        else if (getReasoner().getSuperClasses(sub, false).getFlattened().contains(sup)) {
+            //result = 'INDIRECT ## ' + getReasoner().getSuperClasses(sub, true).toArray().map(getLabel).join(" + ");
+            result = 'INDIRECT';
+        }
+        else {
+            result = 'FAIL';
+        }
+        print(result + " :: "+getIdLabelPair(sub)+" SubClassOf "+getIdLabelPair(sup));
+    }
+    print("DONE");
+}
+
 // ========================================
 // OWL MANIPULATION
 // ========================================
 
 function getClassVariableName(obj) {
     var label = getLabel(obj);
+    if (label == null && obj.getIRI != null) {
+        var iri = obj.getIRI();
+        if (iri != null) {
+            label = iri.toString();
+            if (label.contains("#")) {
+                label = label.replaceAll(".*#","");
+            }
+            else if (label.contains("/")) {
+                label = label.replaceAll(".*/","");
+            }
+        }
+    }
     if (label != null) {
         label = safeify(label);
     }
+    labelToIRIMap[label] = obj;
     return label;
 }
 
@@ -266,14 +472,31 @@ function setClassVars() {
     var objs = getAllOWLObjects();
     for (k in objs) {
         var obj = objs[k];
+        if (!(obj instanceof OWLObject)) {
+            continue;
+        }
+        //debug("making var for "+obj +" " + typeof obj);
         if (isDeprecated(obj)) {
             continue;
         }
         var label = getClassVariableName(obj);
+        // no clobber
+        while (this[label] != null || isReserved(label)) {
+            print("Remapping "+label +" --> _" + label+" ( current value = "+this[label]+" )");
+            label = '_'.label;
+        }
         if (label != null) {
+            //debug(" llabel="+label);
             eval(label+" = obj");
         }
     }
+}
+
+function isReserved(s) {
+    if (s == 'id') { return true };
+    if (s == 'SubClassOf') { return true };
+    if (s == 'EquivalentTo') { return true };
+    return false;
 }
 
 // creates lookup index
@@ -417,6 +640,14 @@ function owl(obj) {
         obj = this.df().getOWLClass(IRI.create(obj));
     }
     return obj;
+}
+
+function showAxioms() {
+    var owlpp = new OWLPrettyPrinter(g());  
+    var axioms = ont().getAxioms().toArray();
+    for (k in axioms) {
+        print(owlpp.render(axioms[k]));
+    }
 }
 
 print(">>>> Welcome to the OWLTools Rhino Shell!");
