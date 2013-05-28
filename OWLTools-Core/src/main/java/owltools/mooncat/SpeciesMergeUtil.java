@@ -137,6 +137,8 @@ public class SpeciesMergeUtil {
 
 	public void createMap() {
 
+		// create a root class for a species - e.g. "Drosophila part" -
+		// then make it equivalent to an expression like "part_of some Drosophila"
 		rootSpeciesSpecificClass = fac.getOWLClass(IRI.create(taxClass.getIRI()
 				.toString() + "-part"));
 		OWLClassExpression rx = fac.getOWLObjectSomeValuesFrom(viewProperty,
@@ -328,7 +330,7 @@ public class SpeciesMergeUtil {
 
 			for (OWLClass p : ancs) {
 				for (OWLSubClassOfAxiom sca : ont.getSubClassAxiomsForSubClass(p)) {
-					LOG.info("  CHECKING: "+sca.getSuperClass()+" == "+trSuper);
+					LOG.info("  CHECKING IF THE SAME: "+sca.getSuperClass()+" == "+trSuper);
 					if (sca.getSuperClass().equals(trSuper)) {
 						LOG.info("   **SAME**");
 						return null;

@@ -121,5 +121,9 @@
 			<groupId>rhino</groupId>
 			<artifactId>js</artifactId>
 		</dependency>
+                <dependency>
+                        <groupId>jline</groupId>
+                        <artifactId>jline</artifactId>
+                </dependency>
 	</dependencies>
 </project>
