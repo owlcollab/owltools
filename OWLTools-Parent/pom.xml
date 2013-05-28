@@ -248,6 +248,11 @@
 				<artifactId>js</artifactId>
 				<version>1.7R2</version>
 			</dependency>
+                        <dependency>
+                              <groupId>jline</groupId>
+                              <artifactId>jline</artifactId>
+                              <version>0.9.93</version>
+                        </dependency>
 		</dependencies>
 	</dependencyManagement>
 	<distributionManagement>
