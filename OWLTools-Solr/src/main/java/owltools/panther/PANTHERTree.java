@@ -177,9 +177,14 @@ public class PANTHERTree {
 
 	/**
 	 * Return the tree label.
+	 * The tree label has the ID appended to prevent conflation of upstream IDs.
 	 */
 	public String getTreeLabel(){
-		return treeLabel;
+		String new_lbl = treeID;
+		if( treeLabel != null ){
+			new_lbl = treeLabel + " " + treeID;
+		}
+		return new_lbl;
 	}
 
 //	/**
