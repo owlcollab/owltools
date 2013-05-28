@@ -1,0 +1,2 @@
+http://purl.obolibrary.org/obo/go/ imports/
+http://purl.obolibrary.org/obo/ ./
