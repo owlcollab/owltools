@@ -13,7 +13,9 @@ import java.util.Set;
 import org.junit.Test;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
+import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -64,6 +66,43 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 		assertEquals("EXACT", synonym2.getScope());
 		assertNull(synonym2.getCategory());
 		assertNull(synonym2.getXrefs());
+	}
+	
+	@Test
+	public void testGetOBOSynonymsCategory() throws Exception {
+		OWLGraphWrapper wrapper = getOBO2OWLOntologyWrapper("synonym_category_test.obo");
+		
+		OWLClass cls1 = wrapper.getOWLClassByIdentifier("TEST:0001");
+		List<ISynonym> synonyms1 = wrapper.getOBOSynonyms(cls1);
+		assertEquals(2, synonyms1.size());
+		
+		ISynonym syn11 = synonyms1.get(0);
+		assertEquals("Japanese Synonym", syn11.getLabel());
+		assertEquals("Japanese", syn11.getCategory());
+		assertEquals("FOO:bar", syn11.getXrefs().iterator().next());
+		assertEquals(OboFormatTag.TAG_EXACT.getTag(), syn11.getScope());
+		
+		ISynonym syn12 = synonyms1.get(1);
+		assertEquals("simple 1", syn12.getLabel());
+		assertNull(syn12.getCategory());
+		assertEquals("FOO:bar", syn12.getXrefs().iterator().next());
+		assertEquals(OboFormatTag.TAG_EXACT.getTag(), syn12.getScope());
+		
+		OWLClass cls2 = wrapper.getOWLClassByIdentifier("TEST:0002");
+		List<ISynonym> synonyms2 = wrapper.getOBOSynonyms(cls2);
+		assertEquals(2, synonyms2.size());
+		
+		ISynonym syn21 = synonyms2.get(0);
+		assertEquals("Spanish Synonym", syn21.getLabel());
+		assertEquals("Spanish", syn21.getCategory());
+		assertNull(syn21.getXrefs());
+		assertEquals(OboFormatTag.TAG_EXACT.getTag(), syn21.getScope());
+		
+		ISynonym syn22 = synonyms2.get(1);
+		assertEquals("simple 2", syn22.getLabel());
+		assertNull(syn22.getCategory());
+		assertNull(syn22.getXrefs());
+		assertEquals(OboFormatTag.TAG_EXACT.getTag(), syn22.getScope());
 	}
 	
 	@Test

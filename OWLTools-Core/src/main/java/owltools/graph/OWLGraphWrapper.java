@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -334,8 +335,8 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 	}
 
 	private Set<ISynonym> getOBOSynonyms(OWLEntity e, Obo2OWLVocabulary vocabulary, OWLOntology ont) {
-		OWLAnnotationProperty property = getDataFactory().getOWLAnnotationProperty(vocabulary.getIRI());
-		Set<OWLAnnotation> anns = e.getAnnotations(ont, property);
+		OWLAnnotationProperty synonymProperty = getDataFactory().getOWLAnnotationProperty(vocabulary.getIRI());
+		Set<OWLAnnotation> anns = e.getAnnotations(ont, synonymProperty);
 		Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms = e.getAnnotationAssertionAxioms(ont);
 		if (anns != null && !anns.isEmpty()) {
 			Set<ISynonym> set = new HashSet<ISynonym>();
@@ -344,8 +345,14 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 					OWLLiteral val = (OWLLiteral) a.getValue();
 					String label = val.getLiteral();
 					if (label != null && label.length() > 0) {
-						Set<String> xrefs = getOBOSynonymXrefs(annotationAssertionAxioms, val, property);
-						Synonym s = new Synonym(label, vocabulary.getMappedTag(), null, xrefs);
+						String category = null;
+						Set<String> xrefs = null;
+						SynonymDetails details = getOBOSynonymDetails(annotationAssertionAxioms, val, synonymProperty);
+						if (details != null) {
+							category = details.category;
+							xrefs = details.xrefs;
+						}
+						Synonym s = new Synonym(label, vocabulary.getMappedTag(), category, xrefs);
 						set.add(s);
 					}
 				}
@@ -356,34 +363,71 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 		}
 		return null;
 	}
-
-	private Set<String> getOBOSynonymXrefs(Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms, OWLLiteral val, OWLAnnotationProperty property) {
-
+	
+	private static class SynonymDetails {
+		Set<String> xrefs = null;
+		String category = null;
+	}
+	
+	/**
+	 * Check all {@link OWLAnnotationAssertionAxiom} to find the corresponding axiom for the given value ({@link OWLLiteral}).
+	 * 
+	 * @param annotationAssertionAxioms
+	 * @param val
+	 * @param synonymProperty
+	 * @return {@link SynonymDetails} or null
+	 */
+	private SynonymDetails getOBOSynonymDetails(Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms, OWLLiteral val, OWLAnnotationProperty synonymProperty) {
+		// quick extis, if there are no axioms
 		if (annotationAssertionAxioms == null || annotationAssertionAxioms.isEmpty()) {
 			return null;
 		}
 		Set<String> xrefs = new HashSet<String>();
+		String category = null;
+		
+		// iterate of all axioms
 		for (OWLAnnotationAssertionAxiom annotationAssertionAxiom : annotationAssertionAxioms) {
-			// check if it is the correct property
-			if (!property.equals(annotationAssertionAxiom.getProperty())) {
-				continue;
-			}
 
 			// check if its is the corresponding value
 			if (!val.equals(annotationAssertionAxiom.getValue())) {
 				continue;
 			}
-			Set<OWLAnnotation> annotations = annotationAssertionAxiom.getAnnotations();
-			for (OWLAnnotation owlAnnotation : annotations) {
-				if (owlAnnotation.getValue() instanceof OWLLiteral) {
-					OWLLiteral xrefLiteral = (OWLLiteral) owlAnnotation.getValue();
-					String xref = xrefLiteral.getLiteral();
-					xrefs.add(xref);
+			
+			// check if it is the correct property
+			if (synonymProperty.equals(annotationAssertionAxiom.getProperty())) {
+				// analyze the annotations from the axiom
+				Set<OWLAnnotation> annotations = annotationAssertionAxiom.getAnnotations();
+				
+				for (OWLAnnotation owlAnnotation : annotations) {
+					IRI annotationTypeIRI = owlAnnotation.getProperty().getIRI();
+					
+					// check db xrefs
+					if (Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI().equals(annotationTypeIRI)) {
+						OWLAnnotationValue owlAnnotationValue = owlAnnotation.getValue();
+						if (owlAnnotationValue instanceof OWLLiteral) {
+							String value = ((OWLLiteral) owlAnnotationValue).getLiteral();
+							xrefs.add(value);
+						}
+					}
+					// check synonym type
+					else if (Obo2OWLVocabulary.hasSynonymType.getIRI().equals(annotationTypeIRI)) {
+						OWLAnnotationValue owlAnnotationValue = owlAnnotation.getValue();
+						if (owlAnnotationValue instanceof IRI) {
+							category = ((IRI) owlAnnotationValue).getFragment();
+						}
+					}
 				}
 			}
 		}
-		if (!xrefs.isEmpty()) {
-			return xrefs;
+		// only return an object, if there are some value to report
+		if (!xrefs.isEmpty() || category != null) {
+			SynonymDetails details = new SynonymDetails();
+			if (!xrefs.isEmpty()) {
+				details.xrefs = xrefs;	
+			}
+			details.category = category;
+			
+			return details;
 		}
 		return null;
 	}
