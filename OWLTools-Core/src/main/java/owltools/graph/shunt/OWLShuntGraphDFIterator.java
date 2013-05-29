@@ -1,15 +1,11 @@
 package owltools.graph.shunt;
 
-import java.io.PushbackInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.google.gson.Gson;
 
 /**
  * Iterate over an OWLShuntGraph.
@@ -28,7 +24,6 @@ public class OWLShuntGraphDFIterator implements Iterator<String>{
 	 * Constructor.
 	 * 
 	 * @param g
-	 * @return this
 	 */
 	public OWLShuntGraphDFIterator(OWLShuntGraph g) {	
 		

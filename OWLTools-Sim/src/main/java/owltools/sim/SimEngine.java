@@ -305,7 +305,7 @@ public class SimEngine {
 	/**
 	 * as getFrequency(obj), treats objs as a conjunction
 	 * @param objs
-	 * @return
+	 * @return frequency
 	 */
 	public int getFrequency(Set<OWLObject> objs) {
 		Set<OWLObject> results = null;
@@ -332,7 +332,7 @@ public class SimEngine {
 	 * and the corpus size is the number of individuals in the graph
 	 * 
 	 * @param obj
-	 * @return
+	 * @return IC
 	 */
 	public Double getInformationContent(OWLObject obj) {
 		// caching is always on by default
@@ -402,10 +402,10 @@ public class SimEngine {
 	}
 
 	/**
-	 * @todo rename - actually gets common named ancestrs
+	 * @todo rename - actually gets common named ancestors
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return set of ancestors
 	 */
 	public Set<OWLObject> getCommonSubsumers(OWLObject a, OWLObject b) {
 		Set<OWLObject> s1 = getGraph().getAncestorsReflexive(a);
@@ -442,7 +442,7 @@ public class SimEngine {
 	 * y<x
 	 * 
 	 * @param objs
-	 * @return
+	 * @return non-redundant set of objects
 	 */
 	public Set<OWLObject> makeNonRedundant(Set<OWLObject> objs) {
 		return makeNonRedundant(objs, true);
@@ -551,7 +551,7 @@ public class SimEngine {
 	/**
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return LCS expression
 	 */
 	public OWLClassExpression getLeastCommonSubsumerSimpleClassExpression(OWLObject a, OWLObject b) {
 		return getLeastCommonSubsumerSimpleClassExpression(a,b,true);
@@ -561,9 +561,8 @@ public class SimEngine {
 	 * @param a
 	 * @param b
 	 * @param isIgnoreEdgeLabels
-	 * @return
+	 * @return expression
 	 */
-
 	public OWLClassExpression getLeastCommonSubsumerSimpleClassExpression(OWLObject a, OWLObject b, boolean isIgnoreEdgeLabels) {
 
 		if (a.equals(b)) {
@@ -924,7 +923,7 @@ public class SimEngine {
 	 * iterates through ALL similarity metrics and calculates
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return set of all similarities
 	 * @throws SimilarityAlgorithmException
 	 */
 	public Set<Similarity> calculateAllSimilarity(OWLObject a, OWLObject b) throws SimilarityAlgorithmException  {

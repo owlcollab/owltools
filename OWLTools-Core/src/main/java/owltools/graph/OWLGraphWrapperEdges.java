@@ -12,7 +12,6 @@ import java.util.Stack;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -213,11 +212,11 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	/**
 	 * retrieves direct edges from a source
 	 * to the direct **named** target
-	 * 
-	 * e.g. if (A SubClassOf B) then outgoing(A) = { <A,sub,B>}
-	 * e.g. if (A SubClassOf R some B) then outgoing(A) = { <A, R-some, B> }
-	 * e.g. if (A SubClassOf R some (R2 some B)) then outgoing(A) = { <A, [R-some,R2-same], B> }
-	 * 
+	 * <ul>
+	 * <li>e.g. if (A SubClassOf B) then outgoing(A) = { &lt;A,sub,B&gt;}</li>
+	 * <li>e.g. if (A SubClassOf R some B) then outgoing(A) = { &lt;A, R-some, B&gt; }</li>
+	 * <li>e.g. if (A SubClassOf R some (R2 some B)) then outgoing(A) = { &lt;A, [R-some,R2-same], B&gt; }</li>
+	 * </ul>
 	 * @param cls source
 	 * @return all edges that originate from source to nearest named object target
 	 */
@@ -283,8 +282,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * primitive edges connect any combination of named objects and expressions
-	 * 
-	 * e.g. (A SubClassOf R some B) => <A,sub,R-some-B>, <R-some-B,R-some,B>
+	 * <p>
+	 * e.g. (A SubClassOf R some B) =&gt; &lt;A,sub,R-some-B&gt;, &lt;R-some-B,R-some,B&gt;
 	 * @param s source
 	 * @return set of {@link OWLGraphEdge}
 	 */
@@ -503,7 +502,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		}
 		else {
 			// extend
-			OWLObject t = e.getTarget();
+//			OWLObject t = e.getTarget();
 			Set<OWLGraphEdge> nextEdges = getIncomingEdges(e.getSource());
 			for (OWLGraphEdge e2 : nextEdges) {
 				OWLGraphEdge nu = this.combineEdgePairDown(e, e2, 1);
@@ -517,7 +516,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * caches full outgoing and incoming edges
-	 * 
+	 * <p>
 	 * in general you should not need to call this directly;
 	 * used internally by this class.
 	 * 
@@ -620,12 +619,12 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * pack/translate an edge (either asserted or a graph closure edge) into
 	 * an OWL class expression according to the OWLGraph to OWLOntology
 	 * translation rules.
-	 * 
+	 * <p>
 	 * (this is the reverse translation of the one from an OWLOntology to an
 	 * OWLGraph)
-	 * 
+	 * <p>
 	 * e.g. after calling for the graph closure of an OWLClass a,
-	 * we may get back an edge <a [part_of-some, adjacent_to-some, has_part-some] b>.
+	 * we may get back an edge &lt;a [part_of-some, adjacent_to-some, has_part-some] b&gt;.
 	 * after feeding this edge into this method we obtain the expression
 	 *   part_of some (adjacent_to some (has_part some b))
 	 * 
@@ -703,12 +702,12 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * Retrieves the graph closure originating from source.
-	 * E.g. if A SubClassOf R some B & B SubClassOf S some C, then
-	 * closure(A) = { <A R-some B>, <A [R-some,S-some] C>.
-	 * 
+	 * E.g. if A SubClassOf R some B &amp; B SubClassOf S some C, then
+	 * closure(A) = { &lt;A R-some B&gt;, &lt;A [R-some,S-some] C&gt;}.
+	 * <p>
 	 * Composition rules are used to compact the list of connecting edge labels
 	 * (e.g. transitivity).
-	 * 
+	 * <p>
 	 * The resulting edges can be translated into class expressions using 
 	 * method edgeToTargetExpression(e). E.g. in the above the expression would be
 	 *   R some (S some C)
@@ -826,13 +825,13 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * find the set of classes or class expressions subsuming source, using the graph closure.
-	 * 
+	 * <p>
 	 * this is just the composition of getOutgoingEdgesClosure and edgeToTargetExpression -- the
 	 * latter method "packs" a chain of edges into a class expression
-	 * 
+	 * <p>
 	 * only "linear" expressions are found, corresponding to a path in the graph.
-	 * e.g. [sub,part_of-some,develops_from-some] ==> part_of some (develops_from some t)
-	 * 
+	 * e.g. [sub,part_of-some,develops_from-some] ==&gt; part_of some (develops_from some t)
+	 * <p>
 	 * if the edge consists entirely of subclass links, the the subsumers will be all
 	 * named classes.
 	 * 
@@ -887,8 +886,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * Treats an edge as a path and performs a query.
-	 * 
-	 * E.g <x [R SOME] [S SOME] y> will be treated as the class expression
+	 * <p>
+	 * E.g &lt;x [R SOME] [S SOME] y&gt; will be treated as the class expression
 	 *    R SOME (S SOME y)
 	 * @param e
 	 * @return set of {@link OWLObject}, never null
@@ -926,7 +925,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * Performs a closed-world query using a DL expression as a set of boolean database-style constraints.
-	 * 
+	 * <p>
 	 * No attempt is made to optimize the query. The engine is incomplete and currently ontology implements
 	 * queries for constructs that use AND, OR, SOME
 	 * 
@@ -1109,7 +1108,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * Gets all ancestors that are OWLNamedObjects
-	 * 
+	 * <p>
 	 * i.e. excludes anonymous class expressions
 	 * 
 	 * @param x
@@ -1204,11 +1203,11 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	/**
 	 * As {@link #getIncomingEdgesClosure(OWLObject t)}, but allows the option of including
 	 * 'complete' edge list. A complete edge list also includes redundant subsuming paths. E.g
-	 * 
-	 * if there is a path <x [R some] [S some] y>
+	 * <p>
+	 * if there is a path &lt;x [R some] [S some] y&gt;
 	 * and R' and S' are super-properties of R and S, then there will also be a path
-	 * <x [R' some] [S' some] y>
-	 * 
+	 * &lt;x [R' some] [S' some] y&gt;
+	 * <p>
 	 * The default is false, i.e. if the more specific path exists, only it will be returned
 	 * 
 	 * 
@@ -1231,7 +1230,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * gets all inferred edges coming in to the target edge
-	 * 
+	 * <p>
 	 * for every s, if t is reachable from s, then include the inferred edge between s and t.
 	 * 
 	 * @see #getOutgoingEdgesClosure
@@ -1335,9 +1334,9 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * Composes two graph edges into a new edge, using axioms in the ontology to determine the correct composition
-	 * 
+	 * <p>
 	 * For example,  Edge(x,SUBCLASS_OF,y) * Edge(y,SUBCLASS_OF,z) yields Edge(x,SUBCLASS_OF,z)
-	 * 
+	 * <p>
 	 * Note that property chains of length>2 are currently ignored
 	 * 
 	 * @param s - source node
@@ -1373,8 +1372,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 *  combine [srcEdge + tgtEdge]
-	 *  
-	 *  srcEdge o tgtEdge --> returned edge
+	 *  <p>
+	 *  srcEdge o tgtEdge --&gt; returned edge
 	 *  
 	 * @see #combineEdgePair(OWLObject s, OWLGraphEdge ne, OWLGraphEdge extEdge, int nextDist) 
 	 * @param tgtEdge
@@ -1391,7 +1390,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 		// put all but the final one in a new list
 		int n = 0;
-		int size = tgtEdge.getQuantifiedPropertyList().size();
+//		int size = tgtEdge.getQuantifiedPropertyList().size();
 		OWLQuantifiedProperty finalQP = null;
 		for (OWLQuantifiedProperty qp : tgtEdge.getQuantifiedPropertyList()) {
 			n++;
@@ -1535,8 +1534,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * Find all edges of the form [i INST c] in the graph closure.
 	 * (this includes both direct assertions, plus assertions to objects
 	 *  that link to c via a chain of SubClassOf assertions)
-	 *  
-	 *  the semantics are the same as inferred ClassAssertion axioms
+	 * <p> 
+	 * the semantics are the same as inferred ClassAssertion axioms
 	 * 
 	 * @param c owlClass
 	 * @return all individuals classified here via basic graph traversal
@@ -1563,9 +1562,9 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	/**
 	 * Finds all edges between an instance i and he given class c.
-	 * 
+	 * <p>
 	 * this includes inferred class assertions, as well as chains such as
-	 * 
+	 * <p>
 	 * i has_part j, j inst_of k, k part_of some c
 	 * 
 	 * @param c owlClass
@@ -1695,7 +1694,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	
 	/**
 	 * If available, return the elements of the equivalent property chain.
-	 * 
+	 * <p>
 	 * WARNING: If multiple chains exist, only the first one is returned.
 	 * This should not happen for any ontology converted from OBO to OWL,
 	 * as multiple equivalent_to chains are a violation of OBO specification.

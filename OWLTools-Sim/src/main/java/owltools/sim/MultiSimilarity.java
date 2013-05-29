@@ -1,7 +1,6 @@
 package owltools.sim;
 
 import java.io.PrintStream;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,43 +13,38 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLQuantifiedProperty;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
 
 /**
  * This is the standard method to use when comparing entities with multiple attributes.
- * 
+ * <p>
  * This method will calculate all x all feature attributes, and then generate an aggregate
  * score for the entity pair. This is done using a "sub-similarity" method.
- * 
+ * <p>
  * For all best-matching attributes (in both directions) an additional "deep similarity" check
  * is performed. Calculating this may be more computationally expensive than the method used to
  * do the all by all comparison.
- * 
+ * <p>
  * The final score is the average of all best-matching attributes by the sub-similarity method.
  * TODO: also provide average of all best-matching by deep-sim method
- * 
+ * <p>
  * This method is configurable.
- * 
+ * <p>
  * By default, AsymmetricJaccardSimilarity is used to calculate all x all attributes for the entity pair.
- * 
+ * <p>
  * ConjunctiveSetInformationContentRatioSimilarity is used for the "deep simularity" check - i.e. by default
  * all the best matching attributes scored by AsymmetricJaccardSimilarity will be compared by
  * ConjunctiveSetInformationContentRatioSimilarity.
- * 
+ * <p>
  * The average of all ConjunctiveSetInformationContentRatioSimilarity scores for all best matches is
  * similar to avgICCS in Washington et al. The difference is that ConjunctiveSetInformationContentRatioSimilarity
  * can include dynamic LCSs.
- * 
+ * <p>
  * This method can also be used to generate the maxIC - simply take the maximum of the IC of all 
  * reported ConjunctiveSetInformationContentRatioSimilarity values
  * 
@@ -251,7 +245,7 @@ public class MultiSimilarity extends Similarity {
 	 * @param deepSimMethod
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return similarity
 	 * @throws SimilarityAlgorithmException
 	 */
 	private Similarity getDeepSim(String deepSimMethod, OWLObject a, OWLObject b) throws SimilarityAlgorithmException {

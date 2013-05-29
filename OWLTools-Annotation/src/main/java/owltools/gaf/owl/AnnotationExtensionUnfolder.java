@@ -7,14 +7,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -73,7 +69,7 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 	 * 
 	 * @param gdoc
 	 * @param ann
-	 * @return
+	 * @return annotations
 	 * @throws MultipleUnfoldOptionsException 
 	 */
 	public Collection<GeneAnnotation> unfold(GafDocument gdoc, GeneAnnotation ann) throws MultipleUnfoldOptionsException {
@@ -154,6 +150,9 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 
 
 	class MultipleUnfoldOptionsException extends Exception {
+
+		// generated
+		private static final long serialVersionUID = 8783913851798710524L;
 
 		public MultipleUnfoldOptionsException(OWLClassExpression x, OWLClassExpression rx) {
 			super("multiple unfolds: "+x +" vs "+rx);

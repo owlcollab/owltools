@@ -3,22 +3,11 @@ package owltools.io;
 import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.HashSet;
-import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLProperty;
 
-import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLQuantifiedProperty;
 
 /**
  * Renders the graph closure - i.e. the inferred paths emanating from all named entities

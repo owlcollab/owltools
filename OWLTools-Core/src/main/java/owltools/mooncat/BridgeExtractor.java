@@ -22,9 +22,7 @@ import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -41,22 +39,20 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
  * Extracts bridge ontologies from an ontology. A bridge ontology consists solely of class axioms where
  * the signature of the axiom contains classes that belong to two or more distinct ontologies, together with
  * any necessary object property axioms
- * 
+ * <p>
  * Here the notion of belonging is determined by IRI - e.g. GO_nnnnn belongs to go.
- * 
+ * <p>
  * This procedure enforces a naming convention whereby the bridge ontology is called
- * 
- *   <srcOntId>-bridge-to-<xOnt>
- *   
- *  If an axiom bridges two or more ontologies, then specialized ontologies of the form
- *  
- *     <srcOntId>-bridge-to-<xOnt1>-and...-and-<xOntN>
- *     
- *  are created
- *  
- *  In addition, an importer ontology is created
- * 
- *
+ * <p>
+ *   &lt;srcOntId&gt;-bridge-to-&lt;xOnt&gt;
+ * <p>
+ * If an axiom bridges two or more ontologies, then specialized ontologies of the form
+ * <p> 
+ *     &lt;srcOntId&gt;-bridge-to-&lt;xOnt1&gt;-and...-and-&lt;xOntN&gt;
+ * <p>    
+ * are created
+ * <p>
+ * In addition, an importer ontology is created
  */
 public class BridgeExtractor {
 
@@ -73,16 +69,21 @@ public class BridgeExtractor {
 
 	/**
 	 * given a source ontology O:
-	 * 
+	 * <p>
 	 * For each axiom A in O :
-	 *  - get signature of A
-	 *  - for every object in signature, calculate the set of ontologies these objects belong to
-	 *  - if >1 ontologies, then add the axiom to a bridge ontology dedicated to this list of ontologies
-	 *    - add any required object properties
-	 *    - optionally remove the axiom from the source
+	 * <ul>
+	 *  <li>get signature of A</li>
+	 *  <li>for every object in signature, calculate the set of ontologies these objects belong to</li>
+	 *  <li>if >1 ontologies, then add the axiom to a bridge ontology dedicated to this list of ontologies
+	 *    <ul>
+	 *      <li>add any required object properties</li>
+	 *      <li>optionally remove the axiom from the source</li>
+	 *    </ul>
+	 *  </li>
+	 * </ul>
 	 * @param srcOntId
 	 * @param isRemoveBridgeAxiomsFromSource
-	 * @return
+	 * @return ontology
 	 * @throws OWLOntologyCreationException
 	 */
 	public OWLOntology extractBridgeOntologies(String srcOntId, boolean isRemoveBridgeAxiomsFromSource) throws OWLOntologyCreationException {

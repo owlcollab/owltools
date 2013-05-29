@@ -1,29 +1,19 @@
 package owltools.io;
 
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedObject;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLProperty;
 
 import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 
 /**
  * implements a graph closure writer suitable for imports into Chado; in particular:
- * 
- * (i) all identifiers are translated to OBO IDs
- * (ii) relationship chains of length > 1 are ignored
- * (iii) SUBCLASS is written as is_a, and only existential restrictions are emitted
- * 
+ * <ol>
+ * <li>all identifiers are translated to OBO IDs</li>
+ * <li>relationship chains of length > 1 are ignored</li>
+ * <li>SUBCLASS is written as is_a, and only existential restrictions are emitted</li>
+ * <ol>
  * @author cjm
  *
  */

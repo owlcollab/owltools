@@ -36,7 +36,7 @@ public interface SimPreProcessor {
 	 * This method returns all the view classes generated for any given input ontology class
 	 * 
 	 * @param c
-	 * @return
+	 * @return classes
 	 */
 	public Set<OWLClass> getViewClasses(OWLClass c);
 	

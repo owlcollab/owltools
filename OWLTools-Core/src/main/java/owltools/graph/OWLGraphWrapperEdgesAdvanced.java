@@ -63,8 +63,9 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	/**
 	 * Classify the an edge and target as a human readable string for further processing.
 	 * 
-	 * @param the edge under consideration
-	 * @param our properties set
+	 * @param owlGraphEdge edge under consideration
+	 * @param edgeDirector 
+	 * @param props properties set
 	 * @return null, "simplesubclass", "typesubclass", or "identity".
 	 * @see #getRelationClosureMap(OWLObject, ArrayList)
 	 * @see #addDirectDescendentsToShuntGraph(OWLObject, OWLShuntGraph)
@@ -100,7 +101,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	/**
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
-	 * 
+	 * <p>
 	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
 	 *
 	 * @param x
@@ -208,7 +209,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	/**
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
-	 * 
+	 * <p>
 	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
 	 *
 	 * @param x
@@ -311,9 +312,9 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	}
 
 	/**
-	 * Add a set of edges, as descendents to x in OWLShuntGraph g.
+	 * Add a set of edges, as descendants to x in OWLShuntGraph g.
 	 * This is reflexive.
-	 * 
+	 * <p>
 	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
 	 *
 	 * @param x
@@ -420,11 +421,12 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	}
 	
 	/**
-	 * Gets all ancestors and direct descendents (distance == 1) that are OWLNamedObjects.
+	 * Gets all ancestors and direct descendants (distance == 1) that are OWLNamedObjects.
 	 * i.e. excludes anonymous class expressions
-	 * 
+	 * <p>
 	 * TODO: we're current just doing distance == 1 up;
 	 *       we'll want to have a more full graph in the future
+	 * <p>
 	 * TODO: a work in progress
 	 * 
 	 * @param x
@@ -469,7 +471,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	/**
 	 * Gets all ancestors that are OWLNamedObjects.
 	 * i.e. excludes anonymous class expressions
-	 * 
+	 * <p>
 	 * This graph information is concerned almost exclusively with the arguments transitive relations with all of its ancestors.
 	 * 
 	 * @param x
@@ -509,7 +511,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a JSONized version of the output of getSegmentShuntGraph
-	 *
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getSegmentShuntGraphJSON(OWLObject)}.
 	 *
 	 * @param x
@@ -537,7 +539,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a JSONized version of the output of getLineageShuntGraph
-	 *
+	 *<p>
 	 * This is a curried FlexLoader s-expression version of {@link #getLineageShuntGraphJSON(OWLObject)}.
 	 *
 	 * @param x
@@ -554,7 +556,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a map of id to label for the closure of the ontology using the supplied relation id list and .isSubClassOf().
-	 * 
+	 * <p>
 	 * Intended for GOlr loading.
 	 * 
 	 * @param c
@@ -640,6 +642,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 	
 	/**
 	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
+	 * <p>
 	 * Intended for GOlr loading.
 	 * 
 	 * @param c
@@ -684,6 +687,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
+	 * <p>
 	 * Intended for GOlr loading.
 	 * 
 	 * @param c
@@ -698,8 +702,9 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
+	 * <p>
 	 * Intended for GOlr loading.
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getIsaPartofIDClosure(OWLObject)}.
 	 * 
 	 * @param c
@@ -714,7 +719,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a overlaps with getIsaPartofLabelClosure and stuff in GafSolrDocumentLoader.
-	 * 
+	 * <p>
 	 * Intended for GOlr loading.
 	 * 
 	 * @param c
@@ -729,6 +734,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a overlaps with getIsaPartofIDClosure and stuff in GafSolrDocumentLoader.
+	 * <p>
 	 * Intended for GOlr loading.
 	 * 
 	 * @param c
@@ -743,8 +749,9 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a overlaps with getIsaPartofIDClosure and stuff in GafSolrDocumentLoader.
+	 * <p>
 	 * Intended for GOlr loading.
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getIsaPartofLabelClosure(OWLObject)}.
 	 * 
 	 * @param c
@@ -759,6 +766,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
 
 	/**
 	 * Return a overlaps with getIsaPartofIDClosure and stuff in GafSolrDocumentLoader.
+	 * <p>
 	 * Intended for GOlr loading.
 	 * 
 	 * @param c

@@ -223,6 +223,9 @@ public class OWLHandler {
 	}
 
 	/**
+	 * @throws IOException 
+	 * @throws OWLOntologyCreationException 
+	 * @throws OWLOntologyStorageException 
 	 * @see owltools.sim.SimEngine
 	 */
 	public void lcsExpressionCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
@@ -245,6 +248,10 @@ public class OWLHandler {
 
 	/**
 	 * information about an ontology object (class, property, individual)
+	 * 
+	 * @throws OWLOntologyCreationException 
+	 * @throws OWLOntologyStorageException 
+	 * @throws IOException 
 	 */
 	public void aboutCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
 		if (isHelp()) {
@@ -264,6 +271,10 @@ public class OWLHandler {
 
 	/**
 	 * visualize using QuickGO graphdraw. 
+	 * 
+	 * @throws OWLOntologyCreationException 
+	 * @throws OWLOntologyStorageException 
+	 * @throws IOException 
 	 */
 	public void qvizCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
 		String fmt = "png";
@@ -281,6 +292,10 @@ public class OWLHandler {
 	 * generates a sub-ontology consisting only of classes specified using the id param.
 	 * If the include_ancestors param is true, then the transitive closure of the input classes is
 	 * included. otherwise, intermediate classes are excluded and paths are filled.
+	 * 
+	 * @throws OWLOntologyCreationException 
+	 * @throws OWLOntologyStorageException 
+	 * @throws IOException 
 	 * @see Mooncat#makeMinimalSubsetOntology(Set, IRI)
 	 */
 	public void makeSubsetOntologyCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
@@ -312,6 +327,10 @@ public class OWLHandler {
 	/**
 	 * tests which of a set of input classes (specified using id) is applicable for a set of taxa
 	 * (specified using taxid)
+	 * 
+	 * @throws OWLOntologyCreationException 
+	 * @throws OWLOntologyStorageException 
+	 * @throws IOException 
 	 */
 	public void isClassApplicableForTaxonCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
 		headerOWL();

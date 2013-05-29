@@ -60,7 +60,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * fetches the rdfs:label for an OWLObject
-	 * 
+	 * <p>
 	 * assumes zero or one rdfs:label
 	 * 
 	 * @param c
@@ -73,7 +73,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	
 	/**
 	 * fetches the rdfs:label for an OWLObject
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getLabel(OWLObject)}.
 	 * 
 	 * @param c
@@ -134,7 +134,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * gets the value of rdfs:comment for an OWLObject
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getComment(OWLObject)}.
 	 * 
 	 * @param c
@@ -151,7 +151,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * fetches the value of a single-valued annotation property for an OWLObject
-	 * 
+	 * <p>
 	 * TODO: provide a flag that determines behavior in the case of >1 value
 	 * 
 	 * @param c
@@ -215,10 +215,11 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Gets the textual definition of an OWLObject
-	 * 
+	 * <p>
 	 * assumes zero or one def
-	 * 
+	 * <p>
 	 * It returns the definition text (encoded as def in obo format and IAO_0000115 annotation property in OWL format) of a class
+	 * 
 	 * @param c
 	 * @return definition
 	 */
@@ -230,7 +231,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Gets the textual definition of an OWLObject
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getDef(OWLObject)}.
 	 * 
 	 * @param c
@@ -246,6 +247,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	
 	/**
 	 * It returns the value of the is_metadata_tag tag.
+	 * 
 	 * @param c could OWLClass or OWLObjectProperty
 	 * @return boolean
 	 */
@@ -259,6 +261,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the subset tag.
+	 * 
 	 * @param c could OWLClass or OWLObjectProperty
 	 * @return values
 	 */
@@ -271,10 +274,11 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the subset tag.
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getSubsets(OWLObject)}.
 	 * 
 	 * @param c could OWLClass or OWLObjectProperty
+	 * @param sargs
 	 * @return values
 	 * @see #getSubsets(OWLObject)
 	 */
@@ -312,6 +316,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * given a subset name, find all OWLClasses assigned to that subset
+	 * 
 	 * @param subset
 	 * @return set of {@link OWLClass}
 	 */
@@ -327,6 +332,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the domain tag
+	 * 
 	 * @param prop
 	 * @return domain string or null
 	 */
@@ -343,6 +349,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the range tag
+	 * 
 	 * @param prop
 	 * @return range or null
 	 */
@@ -359,6 +366,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the values of the replaced_by tag or IAO_0100001 annotation.
+	 * 
 	 * @param c could OWLClass or OWLObjectProperty
 	 * @return list of values
 	 */
@@ -383,6 +391,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the is-obsolete tag.
+	 * 
 	 * @param c could OWLClass or OWLObjectProperty
 	 * @return boolean
 	 */
@@ -396,7 +405,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the is-obsolete tag.
-	 * 
+	 * <p>
 	 * The odd signature is for use with FlexLoader.
 	 * 
 	 * @param c could OWLClass or OWLObjectProperty
@@ -427,9 +436,9 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	
 	/**
 	 * Get the annotation property value for a tag.
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getAnnotationPropertyValue(OWLObject, String)}.
-	 * 
+	 * <p>
 	 * Currently, this function will only accept an argument of length 1.
 	 * 
 	 * @param c
@@ -462,9 +471,9 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Get the annotation property values for a tag.
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getAnnotationPropertyValues(OWLObject, String)}.
-	 * 
+	 * <p>
 	 * Currently, this function will only accept an argument of length 1.
 	 * 
 	 * @see #getAnnotationPropertyValues(OWLObject c, String tag)
@@ -483,6 +492,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the values of the alt_id tag
+	 * 
 	 * @param c
 	 * @return list of identifiers
 	 */
@@ -493,6 +503,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the builtin tag
+	 * 
 	 * @param c
 	 * @return boolean
 	 */
@@ -507,6 +518,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the is_anonymous tag
+	 * 
 	 * @param c
 	 * @return boolean
 	 */
@@ -522,6 +534,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It translates a oboformat tag into an OWL annotation property
+	 * 
 	 * @param tag
 	 * @return {@link OWLAnnotationProperty}
 	 */
@@ -532,7 +545,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the OBO-namespace tag
-	 * 
+	 * <p>
 	 * Example: if the OWLObject is the GO class GO:0008150, this would return "biological_process"
 	 * 
 	 * @param c
@@ -547,7 +560,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	
 	/**
 	 * It returns the value of the OBO-namespace tag.
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getNamespace(OWLObject)}.
 	 * 
 	 * @param c
@@ -563,6 +576,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	
 	/**
 	 * It returns the value of the created_by tag
+	 * 
 	 * @param c
 	 * @return value or null
 	 */
@@ -575,6 +589,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * It returns the value of the is_anti_symmetric tag or IAO_0000427 annotation
+	 * 
 	 * @param c
 	 * @return boolean
 	 */
@@ -588,7 +603,8 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 
 	/**
-	 * It returns the value of the is_cyclic tag 
+	 * It returns the value of the is_cyclic tag
+	 * 
 	 * @param c
 	 * @return boolean
 	 */
@@ -617,6 +633,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	// TODO - fix for multiple ontologies
 	/**
 	 * true if c is functional in the source ontology
+	 * 
 	 * @param c
 	 * @return boolean
 	 */
@@ -679,7 +696,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * get the values of of the obo xref tag
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getXref(OWLObject)}.
 	 * 
 	 * @param c
@@ -724,7 +741,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	
 	/**
 	 * Get the definition xrefs (IAO_0000115)
-	 * 
+	 * <p>
 	 * This is a curried FlexLoader s-expression version of {@link #getDefXref(OWLObject)}.
 	 * 
 	 * @param c
@@ -749,7 +766,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Same as {@link #getIdentifier(OWLObject)} but a different profile to support the FlexLoader.
-	 * 
+	 * <p>
 	 * The s-expressions arguments go unused.
 	 * 
 	 * @param owlObject
@@ -859,7 +876,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * fetches an OWL Object by rdfs:label
-	 * 
+	 * <p>
 	 * if there is >1 match, return the first one encountered
 	 * 
 	 * @param label
@@ -891,7 +908,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * fetches an OWL IRI by rdfs:label, optionally testing for uniqueness
-	 *
+	 * <p>
 	 * TODO: index labels. This currently scans all labels in the ontology, which is expensive
 	 * 
 	 * @param label
@@ -932,10 +949,10 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Find the corresponding {@link OWLObject} for a given OBO-style alternate identifier.
-	 * 
+	 * <p>
 	 * WARNING: This methods scans all object annotations in all ontologies. 
 	 * This is an expensive method.
-	 * 
+	 * <p>
 	 * If there are multiple altIds use {@link #getOWLObjectsByAltId(Set)} for more efficient retrieval.
 	 * Also consider loading all altId-mappings using {@link #getAllOWLObjectsByAltId()}.
 	 * 
@@ -952,10 +969,10 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Find the corresponding {@link OWLObject}s for a given set of OBO-style alternate identifiers.
-	 * 
+	 * <p>
 	 * WARNING: This methods scans all object annotations in all ontologies. 
 	 * This is an expensive method.
-	 * 
+	 * <p>
 	 * Consider loading all altId-mappings using {@link #getAllOWLObjectsByAltId()}.
 	 * 
 	 * @param altIds
@@ -992,7 +1009,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Find all corresponding {@link OWLObject}s with an OBO-style alternate identifier.
-	 * 
+	 * <p>
 	 * WARNING: This methods scans all object annotations in all ontologies. 
 	 * This is an expensive method.
 	 * 
@@ -1026,7 +1043,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	
 	/**
 	 * Returns an OWLClass given an IRI string
-	 * 
+	 * <p>
 	 * the class must be declared in either the source ontology, or in a support ontology,
 	 * otherwise null is returned
 	 * 
@@ -1040,7 +1057,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Returns an OWLClass given an IRI
-	 * 
+	 * <p>
 	 * the class must be declared in either the source ontology, or in a support ontology,
 	 * otherwise null is returned
 	 *
@@ -1079,6 +1096,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	/**
 	 * Returns an OWLNamedIndividual with this IRI <b>if it has been declared</b>
 	 * in the source or support ontologies. Returns null otherwise.
+	 * 
 	 * @param iri
 	 * @return {@link OWLNamedIndividual}
 	 */
@@ -1106,7 +1124,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Returns the OWLObjectProperty with this IRI
-	 * 
+	 * <p>
 	 * Must have been declared in one of the ontologies
 	 * 
 	 * @param iri
@@ -1152,11 +1170,11 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	/**
 	 * Returns the OWLObject with this IRI
-	 * 
+	 * <p>
 	 * Must have been declared in one of the ontologies
-	 * 
+	 * <p>
 	 * Currently OWLObject must be one of OWLClass, OWLObjectProperty or OWLNamedIndividual
-	 * 
+	 * <p>
 	 * If the ontology employs punning and there different entities with the same IRI, then
 	 * the order of precedence is OWLClass then OWLObjectProperty then OWLNamedIndividual
 	 *

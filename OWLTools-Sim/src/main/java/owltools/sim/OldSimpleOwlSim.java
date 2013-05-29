@@ -53,12 +53,12 @@ import owltools.sim2.preprocessor.SimPreProcessor;
  * <h2>Inputs</h2>
  * 
  * The input is an ontology O, which contains:
- * 
+ * <p>
  * ABox: a collection of individuals to be compared, plus class assertions
  * TBox: actual ontology
- * 
+ * <p>
  * Optionally: a list of "SEP" properties, plus a list of classification properties.
- * 
+ * <p>
  * E.g.
  * 
  * Individual: organism1 Types: human, has_phenotype some HP_nnnnn
@@ -68,32 +68,32 @@ import owltools.sim2.preprocessor.SimPreProcessor;
  * 
  * First of all the ontology is processed, generating new grouping classes. This
  * is called the owlsim ontology.
- * 
+ * <p>
  * After this has completed, standard semantc similarity measures are applied. 
- *
+ * <p>
  * These steps can be decoupled.
  * 
  * <h2>Creating owlsim ontology</h2>
  * 
- * STEP 1: "SEP" creation (optional)
+ * <h2>STEP 1: "SEP" creation (optional)</h2>
  * 
  * A series of "SEP" properties are iterated through in order, for each class C in O,
  * a new class C' = P some C is added to O, provided this subsumes at least one other class in O.
  * Afterwards an axiom C SubClassOf P some C is added to O.
- * 
+ * <p>
  * For example, if P is part_of, and O contains an anatomy ontology, then the resulting hierarchy
  * will be a snomed-like: hepatocyte SubClassOf cell, liver part etc.
  * 
- * STEP 2: classification view properties
+ * <h2>STEP 2: classification view properties</h2>
  * 
  * A set of classification properties are iterated through. for each such property P
  * and each class C in O, a new class C' = P some C is added to O, provided it subsumes
  * at least one of the ABox individuals. 
- * 
+ * <p>
  * Thus if E = has_phenotype, and C = lung, if there are no elements that instantiate
  * has_phenotype some lung. this is rejected.
  * 
- * STEP 3: generation of new LCSs
+ * <h3>STEP 3: generation of new LCSs</h3>
  * 
  * the set of all type assertions from the ABox are collected. for each pair C,D in this set,
  * the set-intersection of all reflexive subsumers of C and D is obtained, and redundant nodes removed.
@@ -987,7 +987,7 @@ public class OldSimpleOwlSim {
 	 * @param populationClass
 	 * @param pc1 - sample set class
 	 * @param pc2 - enriched set class
-	 * @return
+	 * @return enrichment
 	 * @throws MathException
 	 */
 	public List<EnrichmentResult> calculateAllByAllEnrichment(OWLClass populationClass,
@@ -1040,7 +1040,7 @@ public class OldSimpleOwlSim {
 	 * @param populationClass
 	 * @param sampleSetClass
 	 * @param enrichedClass
-	 * @return
+	 * @return enrichment
 	 * @throws MathException
 	 */
 	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,

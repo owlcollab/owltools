@@ -2,7 +2,6 @@ package owltools.phenolog;
 
 
 import java.util.HashSet;
-import java.util.Set;
 
 //import org.semanticweb.owlapi.model.OWLObject;
 

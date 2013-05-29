@@ -70,7 +70,7 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 	 * 
 	 * @param gdoc
 	 * @param ann
-	 * @return
+	 * @return annotations
 	 */
 	public Collection<GeneAnnotation> fold(GafDocument gdoc, GeneAnnotation ann) {
 

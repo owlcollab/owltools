@@ -14,10 +14,8 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -35,7 +33,7 @@ import owltools.graph.OWLGraphWrapper;
  * species-specific ontology (e.g. ZFA) and a species-generic ontology (e.g.
  * Uberon or CL).
  * See: @{link http://purl.obolibrary.org/obo/uberon/references/reference_0000028} 
- *
+ * <p>
  * The goal is to avoid having a lattice of classes in the merged ontology -
  * e.g. zebrafish brain, mouse brain, fly brain, generic brain, ... -- at the
  * same time, as much of the species-specific logic should be retained, but in a
@@ -43,23 +41,23 @@ import owltools.graph.OWLGraphWrapper;
  * that all brains develop from a neural keel because the zebrafish brain does.
  * We do this by merging "duplicate" classes, but retaining species axioms as
  * "taxon GCIs".
- * 
+ * <p>
  * The procedure relies on "taxonomic equivalence axioms" of the form
  * 
  * <code>
  *   zfa:brain EquivalentTo ubr:brain and part_of some tax:7954
  * </code>
- * 
+ * <p>
  * These are available from URLs such as:
  * <code>
  *   http://purl.obolibrary.org/obo/uberon/bridge/uberon-bridge-to-zfa.owl
  * </code>
- * 
+ * <p>
  * It uses a technique called "unfolding", whereby named classes (e.g.
  * zfa:brain) can be replaced by an equivalent class expression (e.g. ubr:brain
  * and part_of some tax:7954) whilst retaining equivalent entailments in the
  * ontology.
- * 
+ * <p>
  * E.g <code>
  *  zfa:brain SubClassOf develops_from some zfa:neural keel
  *  ==>
@@ -67,31 +65,31 @@ import owltools.graph.OWLGraphWrapper;
  *  ==>
  *  (ubr:brain and part_of some tax:7954) SubClassOf develops_from some (ubr:neural keel and part_of some tax:7954)
  * </code>
- * 
+ * <p>
  * If there is no taxonomic equivalence axiom, the species class is retained.
- * 
+ * <p>
  * In itself, this is fairly trivial, but the resulting ontology is not
  * necessarily easier to work with. In particular, the unfolded axioms can't be
  * represented in .obo format.
- * 
+ * <p>
  * Additional procedures are performed - these maintain correctness, but may
  * lose some information - this is the tradeoff in a multi-species composite
  * ontology.
- * 
+ * <p>
  * The key lossy transformation is to replace (X and part_of some T) with (X) --
  * in cases where it is safe to do so. For now, the only place this is done is
  * where the expression appears on the RHS of a SubClassOf axiom, either as the
  * sole expression, or directly within a SomeValuesFrom expression.
- * 
+ * <p>
  * For example, we can replace
  * <code>
  *  (ubr:brain and part_of some tax:7954) SubClassOf develops_from some (ubr:neural keel and part_of some tax:7954)
  *  ==>
  *  (ubr:brain and part_of some tax:7954) SubClassOf develops_from some uber:neural keel
  * </code>
- * 
+ * <p>
  * In obo-format this is represented as:
- * 
+ * <p>
  * <code>
  * id: UBERON:nnn
  * name: brain
@@ -102,7 +100,7 @@ import owltools.graph.OWLGraphWrapper;
  * 
  * As an additional step, this tool will replace all remaining labels in classes that satisfy (part_of some TAXON) with
  * a user-configured suffixed label.
- * 
+ * <p>
  * For example, the class "somite 23" from EHDAA2 may have no taxonomic equivalence axiom (we don't group
  * most serially homologous structures based purely on position). It would therefore not be unfolded by the
  * above technique. The same for the ZFA class "somite 23". To avoid confusion, these are relabeled

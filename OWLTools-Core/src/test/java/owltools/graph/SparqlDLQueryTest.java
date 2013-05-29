@@ -31,9 +31,6 @@ import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 public class SparqlDLQueryTest {
 	private static QueryEngine engine;
 
-	/**
-	 * @param args
-	 */
 	@Test
 	public void testQuery() 
 	{

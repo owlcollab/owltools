@@ -139,7 +139,6 @@ public class OWLShuntGraph {
 	/**
 	 * Return the set of graph roots (no parents) as IDs.
 	 * 
-	 * @param nodeID
 	 * @return Set of strings
 	 */
 	public Set<String> getRoots(){
@@ -160,7 +159,6 @@ public class OWLShuntGraph {
 	/**
 	 * Return the set of graph leaves (no children) as IDs.
 	 * 
-	 * @param nodeID
 	 * @return Set of strings
 	 */
 	public Set<String> getLeaves(){

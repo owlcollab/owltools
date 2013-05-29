@@ -23,9 +23,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLPropertyRange;
 import org.semanticweb.owlapi.model.OWLQuantifiedRestriction;
 import org.semanticweb.owlapi.model.OWLQuantifiedObjectRestriction;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -39,7 +37,7 @@ import owltools.sim.SimEngine.SimilarityAlgorithmException;
 
 /**
  * A similarity between two entities constructed by threading two description trees together.
- * 
+ * <p>
  * ALGORITHM:
  * 
  * <pre>
@@ -124,6 +122,10 @@ public class DescriptionTreeSimilarity extends Similarity {
 	 * 
 	 * Algorithm: traverse description tree a, one edge at a time, finding the best subtree in b that
 	 * matches. if there are multiple paths from a leading to a LCS, create an intersection expression.
+	 * 
+	 * @param a 
+	 * @param b 
+	 * @return path 
 	 */
 	public ConvergentPath buildDescription(OWLObject a, OWLObject b) {
 		Set<OWLObject> fullLCSs = se.getLeastCommonSubsumers(a,b);
@@ -378,7 +380,7 @@ public class DescriptionTreeSimilarity extends Similarity {
 	 * @param x
 	 * @param ea
 	 * @param eb
-	 * @return
+	 * @return class expression
 	 */
 	private OWLClassExpression combinePathsToMakeExpression(OWLObject x, OWLGraphEdge ea, OWLGraphEdge eb) {
 		LOG.info("combining, tgt="+x+" EA="+ea+" EB="+eb);
@@ -448,7 +450,7 @@ public class DescriptionTreeSimilarity extends Similarity {
 	 * 
 	 * @param xa
 	 * @param xb
-	 * @return
+	 * @return class expression
 	 */
 	private OWLClassExpression makeUnionUsingReflexiveProperty(OWLClassExpression xa, OWLClassExpression xb) {
 		LOG.info("testing if there is a more compact union expression for "+xa+" ++ "+xb);
@@ -512,7 +514,7 @@ public class DescriptionTreeSimilarity extends Similarity {
 	 * 
 	 * @param xa
 	 * @param xb
-	 * @return
+	 * @return class expression
 	 */
 	private OWLClassExpression makeUnionBasic(OWLClassExpression xa, OWLClassExpression xb) {
 		if (xa.equals(xb)) {

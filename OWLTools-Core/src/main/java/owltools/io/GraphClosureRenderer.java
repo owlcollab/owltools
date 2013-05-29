@@ -1,20 +1,10 @@
 package owltools.io;
 
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedObject;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLProperty;
 
 import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 
 /**

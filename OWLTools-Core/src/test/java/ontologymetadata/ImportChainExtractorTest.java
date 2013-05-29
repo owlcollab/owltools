@@ -1,20 +1,10 @@
 package ontologymetadata;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-import org.semanticweb.HermiT.Reasoner.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;

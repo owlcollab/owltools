@@ -24,7 +24,7 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 	/**
 	 * Automatically add fields to the schema depending on qualities in the current GOlrField.
 	 * 
-	 * @param GOlrField
+	 * @param field GOlrField
 	 * @param xml
 	 * @throws XMLStreamException
 	 */
@@ -68,7 +68,7 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 	/**
 	 * Just dump out the fields of our various lists.
 	 * 
-	 * @param fieldList
+	 * @param config
 	 * @param xml
 	 * @throws XMLStreamException
 	 */
@@ -149,7 +149,10 @@ public class SolrSchemaXMLWriter extends AbstractXmlWriter {
 	}
 	
 	/**
-	 * Dump the necessary Solr schema blob to STDOUT.
+	 * Dump the necessary Solr schema as a String.
+	 * 
+	 * @return  schema
+	 * @throws XMLStreamException 
 	 */
 	public String schema() throws XMLStreamException{
 	

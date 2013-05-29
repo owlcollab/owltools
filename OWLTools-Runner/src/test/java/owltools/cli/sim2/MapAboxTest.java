@@ -1,15 +1,10 @@
 package owltools.cli.sim2;
 
-import static junit.framework.Assert.*;
-
-import java.io.File;
-
-import org.eclipse.jetty.util.log.Log;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import owltools.OWLToolsTestBasics;
 import owltools.cli.AbstractCommandRunnerTest;
+import owltools.cli.CommandRunner;
 import owltools.cli.Sim2CommandRunner;
 
 /**

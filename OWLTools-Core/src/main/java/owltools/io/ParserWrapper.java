@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
 
@@ -23,7 +22,6 @@ import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
-import org.obolibrary.oboformat.parser.OBOFormatConstants;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
@@ -293,7 +291,6 @@ public class ParserWrapper {
 			BufferedWriter bw = null;
 			try {
 				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
-				//OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream))));
 				OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(outputStream));
 				gr.render(ont);
 				gr.flush();

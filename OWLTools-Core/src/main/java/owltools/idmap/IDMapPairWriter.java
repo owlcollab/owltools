@@ -1,7 +1,5 @@
 package owltools.idmap;
 
-import java.util.Map;
-
 import owltools.idmap.IDMappingPIRParser.Types;
 
 public  class IDMapPairWriter extends IDMapHandler {

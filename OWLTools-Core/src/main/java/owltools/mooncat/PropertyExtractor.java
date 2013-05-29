@@ -53,16 +53,13 @@ public class PropertyExtractor {
 		this.propertyOntology = propertyOntology;
 		this.mainOntology = mainOntology;
 	}
-	/**
-	 */
+	
 	public OWLOntology extractPropertyOntology() throws OWLOntologyCreationException {
 		UUID uuid = UUID.randomUUID();
 		IRI iri = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
 		return extractPropertyOntology(iri);
 	}
 
-	/**
-	 */
 	public OWLOntology extractPropertyOntology(IRI newIRI) throws OWLOntologyCreationException {
 		Set<OWLProperty> props = new HashSet<OWLProperty>();
 		for (OWLObjectProperty p : mainOntology.getObjectPropertiesInSignature(true)) {
@@ -77,8 +74,6 @@ public class PropertyExtractor {
 		return extractPropertyOntology(newIRI);
 	}
 	
-	/**
-	 */
 	public OWLOntology extractPropertyOntology(IRI newIRI, Set<OWLProperty> props) throws OWLOntologyCreationException {
 
 		OWLGraphWrapper g = new OWLGraphWrapper(propertyOntology);

@@ -1,26 +1,16 @@
 package owltools.gfx;
 
-import javax.imageio.*;
-
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLNamedObject;
-import org.semanticweb.owlapi.model.OWLObject;
-
-import owltools.gfx.GraphStyle;
-import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLQuantifiedProperty;
-
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.image.*;
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Vector;
 
-import uk.ac.ebi.interpro.graphdraw.*;
+import org.semanticweb.owlapi.model.OWLObject;
+
+import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphWrapper;
 
 
 /**

@@ -14,7 +14,5 @@
  * 
  * This module is also incorporated into Oort
  * 
- * @see owltools.ontologyrelease
- * 
  * */
 package owltools.mooncat;

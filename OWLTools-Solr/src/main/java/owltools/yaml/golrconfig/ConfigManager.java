@@ -4,19 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 
 import org.apache.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
@@ -62,6 +51,7 @@ public class ConfigManager {
 	 * Work with a flexible document definition from a configuration file.
 	 *
  	 * @param location
+	 * @throws FileNotFoundException 
 	 */
 	public void add(String location) throws FileNotFoundException {
 
@@ -89,7 +79,7 @@ public class ConfigManager {
 	/**
 	 * Get all the fields.
 	 * 
-	 * @return
+	 * @return fields
 	 */
 	public ArrayList<GOlrField> getFields() {
 
@@ -106,7 +96,8 @@ public class ConfigManager {
 	/**
 	 * Return the comments associated with the GOlrCoreField id; empty list if there weren't any.
 	 * 
-	 * @return
+	 * @param id 
+	 * @return comments
 	 */
 	public ArrayList<String> getFieldComments(String id) {
 

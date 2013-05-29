@@ -59,7 +59,7 @@ public class PANTHERForest {
 	/**
 	 * Create an instance for the given privitve array of files.
 	 * 
-	 * @param pFilesCollection
+	 * @param pantherDir
 	 * @throws IOException 
 	 */
 	public PANTHERForest (File pantherDir) throws IOException {
@@ -134,6 +134,8 @@ public class PANTHERForest {
 	
 	/**
 	 * Return the number of files read into the set.
+	 * 
+	 * @return count
 	 */
 	public int getNumberOfFilesInSet(){
 		return fileCount;
@@ -141,6 +143,8 @@ public class PANTHERForest {
 
 	/**
 	 * Return the number of unique identifiers found in the set.
+	 * 
+	 * @return count 
 	 */
 	public int getNumberOfIdentifiersInSet(){
 		return bioentityIdentifierToTreeMap.size();
@@ -151,6 +155,7 @@ public class PANTHERForest {
 	 * If nothing was found, return null.
 	 * 
 	 * @param identifier
+	 * @return set of trees
 	 */
 	public Set<PANTHERTree> getAssociatedTrees(String identifier){
 		Set<PANTHERTree> retSet = null;
@@ -166,6 +171,8 @@ public class PANTHERForest {
 	/**
 	 * Return the unique tree identifiers found in the forest.
 	 * If nothing was found, return null.
+	 * 
+	 * @return set 
 	 */
 	public Set<String> getTreeIDSet(){
 		Set<String> pSet = treeIdentifierToTree.keySet();
@@ -176,7 +183,8 @@ public class PANTHERForest {
 	 * Return the tree for the tree unique identifier,
 	 * If nothing was found, return null.
 	 * 
-	 * @param the id of the tree we want
+	 * @param tree_id the id of the tree we want
+	 * @return tree
 	 */
 	public PANTHERTree getTreeByID(String tree_id){
 		return treeIdentifierToTree.get(tree_id);

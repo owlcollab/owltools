@@ -409,7 +409,7 @@ public class SimpleOwlSim {
 	 * </pre>
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return nodes
 	 */
 	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClassExpression a, OWLClassExpression b) {
 		ClassExpressionPair pair = new ClassExpressionPair(a,b); // TODO - optimize - assume named classes
@@ -436,7 +436,7 @@ public class SimpleOwlSim {
 	 *
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return nodes
 	 */
 	public Set<Node<OWLClass>> getNamedLowestCommonSubsumers(OWLClassExpression a, OWLClassExpression b) {
 		// currently no need to cache this, as only called from getLowestCommonSubsumerIC, which does its own caching
@@ -530,7 +530,7 @@ public class SimpleOwlSim {
 	 * 
 	 * @param i
 	 * @param j
-	 * @return 
+	 * @return  similarity
 	 */
 	public double getElementGraphInformationContentSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) {
 		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(i,j);
@@ -761,7 +761,7 @@ public class SimpleOwlSim {
 	 * @param populationClass
 	 * @param pc1 - sample set class
 	 * @param pc2 - enriched set class
-	 * @return
+	 * @return enrichment results
 	 * @throws MathException
 	 */
 	public List<EnrichmentResult> calculateAllByAllEnrichment(OWLClass populationClass,
@@ -814,7 +814,7 @@ public class SimpleOwlSim {
 	 * @param populationClass
 	 * @param sampleSetClass
 	 * @param enrichedClass
-	 * @return
+	 * @return enrichment result
 	 * @throws MathException
 	 */
 	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,

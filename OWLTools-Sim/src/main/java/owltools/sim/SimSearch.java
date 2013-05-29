@@ -1,11 +1,8 @@
 package owltools.sim;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -54,7 +51,7 @@ public class SimSearch {
 	 * on simple attribute overlap
 	 * 
 	 * @param queryObj
-	 * @return
+	 * @return list of objects
 	 */
 	public List<OWLObject> search(OWLObject queryObj) {
 		List<OWLObject> hits = new ArrayList<OWLObject>(maxHits);
@@ -124,10 +121,12 @@ public class SimSearch {
 
 	/**
 	 * Return the subset of attributes that are significant, where non-significant attributes are:
-	 * (1) those explicitly designated as such (see {@link SimEngine.isExcludedFromAnalysis})
-	 * (2) those with IC equal to or below minIC
+	 * <ul>
+	 * <li>those explicitly designated as such (see {@link SimEngine.isExcludedFromAnalysis})</li>
+	 * <li>those with IC equal to or below minIC</li>
+	 * </ul>
 	 * @param atts
-	 * @return
+	 * @return set of objects
 	 */
 	private Set<OWLObject> filterNonSignificantAttributes(Set<OWLObject> atts) {
 		Set<OWLObject> fAtts = new HashSet<OWLObject>();

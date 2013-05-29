@@ -507,7 +507,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	/**
 	 * Note: does not flush
 	 * @param ces
-	 * @return
+	 * @return classes
 	 */
 	public Set<OWLClass> materializeClassExpressions(Set<OWLClassExpression> ces) {
 		LOG.info("Materializing class expressions: "+ces.size());

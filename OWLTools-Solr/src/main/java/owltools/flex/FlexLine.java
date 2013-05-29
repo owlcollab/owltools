@@ -17,8 +17,8 @@ public class FlexLine implements Iterable<String> {
 	/**
 	 * Singleton init.
 	 * 
-	 * @param field
-	 * @param value
+	 * @param in_field
+	 * @param in_value
 	 */
 	public FlexLine(String in_field, String in_value) {
 
@@ -30,8 +30,8 @@ public class FlexLine implements Iterable<String> {
 	/**
 	 * List init.
 	 * 
-	 * @param field
-	 * @param value
+	 * @param in_field
+	 * @param in_values
 	 */	
 	public FlexLine(String in_field, ArrayList<String> in_values) {
 
@@ -45,7 +45,7 @@ public class FlexLine implements Iterable<String> {
 	/**
 	 * Return the field name.
 	 * 
-	 * @return
+	 * @return field name
 	 */
 	public String field (){
 		return field;
@@ -54,7 +54,7 @@ public class FlexLine implements Iterable<String> {
 	/**
 	 * Return all the values.
 	 * 
-	 * @return
+	 * @return values
 	 */
 	public ArrayList<String> values (){
 		return value;
@@ -63,7 +63,7 @@ public class FlexLine implements Iterable<String> {
 	/**
 	 * Return whether or not the line has a single value or multiple values.
 	 * 
-	 * @return
+	 * @return boolean
 	 */
 	public boolean isSingle (){
 		boolean retval = true;
@@ -76,7 +76,7 @@ public class FlexLine implements Iterable<String> {
 	/**
 	 * Return whether or not the line has a single value or multiple values.
 	 * 
-	 * @return
+	 * @return boolean
 	 */
 	public boolean isMulti (){
 		return ! isSingle();
@@ -85,7 +85,7 @@ public class FlexLine implements Iterable<String> {
 	/**
 	 * Return the first/only value.
 	 * 
-	 * @return
+	 * @return boolean
 	 */
 	public String value (){
 		return value.get(0);

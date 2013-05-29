@@ -3,14 +3,10 @@ package owltools.gaf.io;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -18,15 +14,11 @@ import javax.xml.stream.XMLStreamWriter;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLProperty;
 
-import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty;
 
 /**

@@ -1,7 +1,6 @@
 package owltools.flex;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -106,7 +105,7 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 * 
 	 * @see #getExtStringList
 	 * @param oobj
-	 * @param owlfunction "s-expression"
+	 * @param function_sexpr "s-expression"
 	 * @return a (possibly null) string return value
 	 */
 	//private String getExtString(OWLObject oobj, ArrayList <String> function_sexpr){
@@ -160,7 +159,7 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 * 
 	 * @see #getExtString
 	 * @param oobj
-	 * @param owlfunction "s-expression"
+	 * @param function_sexpr "s-expression"
 	 * @return a (possibly empty) string list of returned values
 	 */
 	@SuppressWarnings("unchecked")
@@ -226,7 +225,8 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 * The proper way would be to pair conf files and the file to be loaded, that is not happening
 	 * quite yet, so we punt on this bad thing.
 	 *
-	 * @param owlObject, graph, and a config.
+	 * @param obj owlObject
+	 * @param config
 	 * @return an input doc for add()
 	 */
 	public FlexDocument wring(OWLObject obj, ConfigManager config) {

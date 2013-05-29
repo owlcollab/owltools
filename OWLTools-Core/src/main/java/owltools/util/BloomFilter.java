@@ -23,7 +23,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 
 /**
@@ -40,7 +39,11 @@ import java.util.Set;
  * @author Magnus Skjegstad <magnus@skjegstad.com>
  */
 public class BloomFilter<E> implements Serializable {
-    private BitSet bitset;
+
+	// generated
+	private static final long serialVersionUID = 227290544971419817L;
+	
+	private BitSet bitset;
     private int bitSetSize;
     private double bitsPerElement;
     private int expectedNumberOfFilterElements; // expected (maximum) number of elements to be added
@@ -328,7 +331,7 @@ public class BloomFilter<E> implements Serializable {
     
     /**
 	 * @param c
-	 * @return
+	 * @return intersection
 	 * @author cjm
 	 */
 	public Collection<E> intersection(Collection<E> c) {

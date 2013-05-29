@@ -60,7 +60,6 @@ public class ImportChainDotWriter {
 	 * Create a new writer for the given ontology and reasoner.
 	 * 
 	 * @param graph
-	 * @param reasoner
 	 */
 	public ImportChainDotWriter(OWLGraphWrapper graph) {
 		super();
@@ -79,9 +78,12 @@ public class ImportChainDotWriter {
 	/**
 	 * Render a dot file for the given ontologies (aka set of annotations).
 	 * 
+	 * @param rootOnt 
 	 * @param onts
 	 * @param name name of the graph to be used in the dot file (optional)
+	 * @param fn 
 	 * @param renderKey
+	 * 
 	 * @throws IOException
 	 * @throws UnExpectedStructureException thrown, if there are unexpected axioms.
 	 */

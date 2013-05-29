@@ -1,12 +1,6 @@
 package owltools.cli;
 
-import static junit.framework.Assert.*;
-
-import java.io.File;
-
 import org.junit.Test;
-
-import owltools.OWLToolsTestBasics;
 
 /**
  * Tests for {@link CommandRunner}.

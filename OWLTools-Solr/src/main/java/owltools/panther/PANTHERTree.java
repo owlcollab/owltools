@@ -82,7 +82,7 @@ public class PANTHERTree {
 	/**
 	 * Create an instance for the given path
 	 * 
-	 * @param path
+	 * @param pFile path
 	 * @throws IOException 
 	 */
 	public PANTHERTree (File pFile) throws IOException {
@@ -127,8 +127,8 @@ public class PANTHERTree {
 	/**
 	 * Add an associated id/label for a term in this tree.
 	 * 
-	 * @param the id
-	 * @param the label
+	 * @param bid the id
+	 * @param blabel the label
 	 */
 	public void addAssociatedGeneProduct(String bid, String blabel){
 		associated_gps.put(bid, blabel);		
@@ -170,6 +170,8 @@ public class PANTHERTree {
 	
 	/**
 	 * Return the raw Newick-type input string.
+	 * 
+	 * @return string 
 	 */
 	public String getNHXString(){
 		return treeStr;
@@ -177,7 +179,9 @@ public class PANTHERTree {
 
 	/**
 	 * Return the tree label.
-	 * The tree label has the ID appended to prevent conflation of upstream IDs.
+	 * The tree label has the ID appended to prevent conflation of upstream IDs. 
+	 *
+	 * @return label 
 	 */
 	public String getTreeLabel(){
 		String new_lbl = treeID;
@@ -197,6 +201,8 @@ public class PANTHERTree {
 
 	/**
 	 * Return the tree internal identifier.
+	 * 
+	 * @return tree id 
 	 */
 	public String getTreeID(){
 		return treeID;
@@ -204,6 +210,8 @@ public class PANTHERTree {
 	
 	/**
 	 * Return the tree public (PANTHER) identifier.
+	 * 
+	 * @return panther id 
 	 */
 	public String getPANTHERID(){
 		return panther_prefix + treeID;
@@ -211,6 +219,8 @@ public class PANTHERTree {
 	
 	/**
 	 * Generate graph information for the tree as it currently stands.
+	 * 
+	 * @return graph 
 	 */
 	@SuppressWarnings("unchecked")
 	private OWLShuntGraph generateGraph(){
@@ -383,7 +393,9 @@ public class PANTHERTree {
 	}
 	
 	/**
-	 * Return the complete OWL shunt graph repesentation of the phylogenic tree.
+	 * Return the complete OWL shunt graph representation of the phylogenic tree.
+	 * 
+	 * @return graph
 	 */
 	public OWLShuntGraph getOWLShuntGraph(){		
 		return g;
@@ -394,7 +406,7 @@ public class PANTHERTree {
 	 * Includes this node.
 	 * null if nothing is in the graph.
 	 * 
-	 * @param node id
+	 * @param nodeID node id
 	 * @return all ancestors (inclusive)
 	 */
 	public Set<String> getAncestors(String nodeID){
@@ -409,7 +421,7 @@ public class PANTHERTree {
 	 * Includes this node.
 	 * null if nothing is in the graph.
 	 * 
-	 * @param node id
+	 * @param nodeID node id
 	 * @return all ancestors (inclusive)
 	 */
 	public Set<String> getDescendants(String nodeID){
@@ -422,7 +434,7 @@ public class PANTHERTree {
 	/**
 	 * Return all annotations to ancestor nodes.
 	 * 
-	 * @param gene product id
+	 * @param baseGpID gene product id
 	 * @return all ancestor annotations (inclusive)
 	 */
 	public Set<String> getAncestorAnnotations(String baseGpID){
@@ -452,7 +464,7 @@ public class PANTHERTree {
 	/**
 	 * Return all annotations to descendant nodes.
 	 * 
-	 * @param gene product id
+	 * @param baseGpID gene product id
 	 * @return all descendant annotations (inclusive)
 	 */
 	public Set<String> getDescendantAnnotations(String baseGpID){
@@ -482,8 +494,11 @@ public class PANTHERTree {
 
 	/**
 	 * Return a globally "unique" identifier for an internal ID. 
-	 * 
+	 * <p>
 	 * Technically, in our case, the labels should be unique if defined.
+	 * 
+	 * @param pNode 
+	 * @return id 
 	 */
 	private String uuidInternal(PhylogenyNode pNode){
 
@@ -502,8 +517,11 @@ public class PANTHERTree {
 	
 	/**
 	 * Return a globally "unique" identifier for an internal ID. 
-	 * 
+	 * <p>
 	 * Technically, in our case, the labels should be unique if defined.
+	 * 
+	 * @param nodeIdentifier 
+	 * @return id 
 	 */
 	private String uuidInternal(String nodeIdentifier){
 		return getTreeID() + ":" + nodeIdentifier;
@@ -576,6 +594,8 @@ public class PANTHERTree {
 
 	/**
 	 * Return a set of all identifiers associated with this family.
+	 * 
+	 * @return set of ids
 	 */
 	public Set<String> associatedIdentifierSet(){
 		return annotationSet;

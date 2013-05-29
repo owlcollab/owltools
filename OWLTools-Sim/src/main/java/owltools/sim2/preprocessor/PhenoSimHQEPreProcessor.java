@@ -311,7 +311,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 	 * 
 	 * @param inSet
 	 * @param p
-	 * @return
+	 * @return set of classes
 	 */
 	public Set<OWLClass> filterByDirectProperty(Set<OWLClass> inSet, OWLObjectProperty p) {
 		Set<OWLClass> outSet = new HashSet<OWLClass>();

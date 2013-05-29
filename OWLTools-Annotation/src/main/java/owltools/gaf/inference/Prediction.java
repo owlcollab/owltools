@@ -1,7 +1,5 @@
 package owltools.gaf.inference;
 
-import java.util.HashSet;
-import java.util.Set;
 import owltools.gaf.GeneAnnotation;
 import owltools.io.OWLPrettyPrinter;
 

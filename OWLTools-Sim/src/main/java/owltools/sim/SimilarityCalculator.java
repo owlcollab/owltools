@@ -18,7 +18,7 @@ public interface SimilarityCalculator {
 	 * 
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return similarity
 	 */
 	public Double calculateSimilarity(OWLObject a, OWLObject b);
 
