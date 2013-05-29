@@ -74,13 +74,14 @@ foreach my $k (keys %ont_info) {
     # Method: vcs -- Version Control System - mirror package directly from svn/git checkout/update
     if ($method eq 'vcs') {
 
+        my $system = $info->{system} || 'svn';
+
         # we always checkout into a staging dir
-        my $dir = "stage-$ont";
+        my $dir = "stage-$system-$ont";
 
         if (-d $dir) {
             # already checked out - issue update
             my $cmd = $info->{update};
-            my $system = $info->{system};
             if (!$cmd) {
                 if ($system eq 'svn') {
                     $cmd = 'svn --ignore-externals update';
@@ -330,23 +331,29 @@ sub get_ont_info {
              system => 'svn',
              checkout => 'svn --ignore-externals co svn://ext.geneontology.org/trunk/ontology',
          },
+         #uberon => {
+         #    infallible => 1,
+         #    method => 'vcs',
+         #    system => 'git',
+         #    checkout => 'git clone https://github.com/cmungall/uberon.git',
+         #},
          uberon => {
              infallible => 1,
              method => 'vcs',
-             system => 'git',
-             checkout => 'git clone https://github.com/cmungall/uberon.git',
+             system => 'svn',
+             checkout => 'svn  --ignore-externals co https://obo.svn.sourceforge.net/svnroot/obo/uberon/trunk',
          },
          cl => {
              infallible => 1,
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn co http://cell-ontology.googlecode.com/svn/trunk/src/ontology',
+             checkout => 'svn  --ignore-externals co http://cell-ontology.googlecode.com/svn/trunk/src/ontology',
          },
          clo => {
              # TODO - additional owl2obo step
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn co http://clo-ontology.googlecode.com/svn/trunk/src/ontology',
+             checkout => 'svn --ignore-externals co http://clo-ontology.googlecode.com/svn/trunk/src/ontology',
              post_processing_command => 'owltools --use-catalog clo.owl --merge-imports-closure --ni -o -f obo --no-check clo.obo ',
          },
          fbbt => {
@@ -354,12 +361,20 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy_XP.obo',
          },
+         #fbcv => {
+         #    infallible => 1,
+         #    method => 'vcs',
+         #    system => 'svn',
+         #    #checkout => 'svn checkout svn://svn.code.sf.net/p/fbcv/code-0/src/trunk/ontologies/',
+         #    checkout => 'svn checkout svn://svn.code.sf.net/p/fbcv/code-0/releases/latest/',
+         #},
          fbcv => {
-             infallible => 1,
-             method => 'vcs',
-             system => 'svn',
-             #checkout => 'svn checkout svn://svn.code.sf.net/p/fbcv/code-0/src/trunk/ontologies/',
-             checkout => 'svn checkout svn://svn.code.sf.net/p/fbcv/code-0/releases/latest/',
+             method => 'obo2owl',
+             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/vocabularies/flybase_controlled_vocabulary.obo',
+         },
+         fbphenotype => {
+             method => 'owl2obo',
+             source_url => 'https://sourceforge.net/p/fbcv/code-0/HEAD/tree/releases/latest/FB_phenotype-non-classified.owl?format=raw',
          },
          sibo => {
              method => 'vcs',
@@ -441,7 +456,7 @@ sub get_ont_info {
              source_url => 'ftp://ftp.informatics.jax.org/pub/reports/adult_mouse_anatomy.obo',
          },
          zfa => {
-             infallible => 1,
+             #infallible => 1,  # CURRENTLY BROKEN
              notes => 'may be ready to switch to vcs soon',
              method => 'obo2owl',
              source_url => 'https://zebrafish-anatomical-ontology.googlecode.com/svn/trunk/src/zebrafish_anatomy.obo',
