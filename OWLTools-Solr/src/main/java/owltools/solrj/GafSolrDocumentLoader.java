@@ -544,15 +544,15 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						String finalSpan = StringUtils.join(relChunk, ", ");
 					
 						// Assemble final JSON blob.
-						String aeJSON = "{\"handler\": \"amigo.handler.owl_class_expression\", \"relationship\": {\"relation\": [" + 
+						String aeJSON = "{\"relationship\": {\"relation\": [" + 
 								finalSpan +
 								"], \"id\": \"" + eeid + "\", \"label\": \"" + eLabel + "\"}}";
 					
-						annotation_doc.addField("annotation_extension_class_handler", aeJSON);
+						annotation_doc.addField("annotation_extension_json", aeJSON);
 						//LOG.info("added complicated c16: (" + eeid + ", " + eLabel + ") " + aeJSON);
 					}else{
 						// The c16r is unknown to the ontology--render it as just a normal label, without the link.
-						annotation_doc.addField("annotation_extension_class_handler", complicated_c16r);
+						annotation_doc.addField("annotation_extension_json", complicated_c16r);
 						LOG.info("added unknown c16: " + complicated_c16r);
 					}
 				}
