@@ -198,7 +198,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// family (eg something with fly in PTHR10919 PTHR10032), so we block it and just choose the first.
 			bioentity_doc.addField("panther_family", pantherFamilyIDs.get(0));
 			bioentity_doc.addField("panther_family_label", pantherFamilyLabels.get(0));
-			bioentity_doc.addField("phylo_graph", pantherTreeGraphs.get(0));
+			bioentity_doc.addField("phylo_graph_json", pantherTreeGraphs.get(0));
 			//if( ! pantherTreeAnnAncestors.isEmpty() ){
 			//	bioentity_doc.addField("phylo_ancestor_closure", pantherTreeAnnAncestors);
 			//}
