@@ -410,7 +410,7 @@ sub run_script {
 			## fx_str is composed of the sorted tag-value pairs
 			next if join("\0", @{$data->{f1_lines}{Term}{$t}}) eq join("\0", @{$data->{f2_lines}{Term}{$t}});
 
-			foreach my $f qw(f1 f2)
+			foreach my $f (qw(f1 f2))
 			{	if (! $data->{$f . "_hash"}{'Term'}{$t})
 				{	$data->{$f . "_hash"}{'Term'}{$t} = block_to_hash( join("\n", @{$data->{$f . "_lines"}{Term}{$t}} ) );
 				}
@@ -435,7 +435,7 @@ sub run_script {
 
 	$logger->info("Checked for new and lost terms");
 
-	foreach my $a qw(name namespace)
+	foreach my $a (qw(name namespace))
 	{	if ($data->{diffs}{Term}{all_tags_used}{$a})
 		{	map { $output->{$a . "_change" }{$_}++ } keys %{$data->{diffs}{Term}{all_tags_used}{$a}};
 		}
@@ -484,13 +484,23 @@ sub run_script {
 	if ($options->{mode}{email} || $options->{mode}{rss})
 	{
 		## make sure that we need to create the new files
-            ## Is this too conservative? --cjm
+                ## Is this too conservative? --cjm
+                print STDERR "Checking if items to report for RSS...\n";
 		if ($output->{f2_only} && scalar keys %{$output->{f2_only}} > 0)
 		{	$output->{report}{new}++;
 		}
+                else
+                {
+                    print STDERR "F2_only: $output->{f2_only}\n";
+                }
 		if ($output->{f2_obsoletes}  && scalar keys %{$output->{f2_obsoletes}} > 0)
 		{	$output->{report}{obs}++;
 		}
+                else
+                {
+                    print STDERR "F2_obsoletes: $output->{f2_obsoletes}\n";
+                }
+
 
 		if ($output->{report})
 		{	## generate the date
@@ -551,7 +561,7 @@ sub create_email {
 		obs => 'New ' . $defaults->{html}{ontology_name} . ' Obsoletes',
 	};
 
-	foreach my $x qw( obs new )
+	foreach my $x (qw( obs new ))
 	{	## check whether we need to produce the report
                 print STDERR "Checking: $x\n";
 		if (! $args{output}->{report} || ! $args{output}->{report}{$x})
@@ -610,13 +620,13 @@ sub create_rss {
         #print STDERR "FILES: $files->{new} $files->{obs}\n";
 
 	my $date = $args{output}->{date_object};
-	my $old = $date->clone->subtract( months => 1 );
+	my $old = $date->clone->subtract( months => 12 );
 
 	my $parser = DateTime::Format::Strptime->new(pattern => "%a, %d %b %Y %H:%M:%S %z");
 
 	## create the new term rss
 	## pull in the existing rss file
-	foreach my $x qw(new obs)
+	foreach my $x (qw(new obs))
 	{	my $old_data = GOBO::FileCompareExtras::trim_rss( file => $files->{$x}, date => $old );
 		## check whether we need to produce the report
 		if (! $args{output}->{report} || ! $args{output}->{report}{$x} )
@@ -668,7 +678,7 @@ sub compare_other_stanzas {
 				## fx_str is composed of the sorted tag-value pairs
 				next if join("\0", @{$d->{f1_lines}{$type}{$t}}) eq join("\0", @{$d->{f2_lines}{$type}{$t}});
 
-				foreach my $f qw(f1 f2)
+				foreach my $f (qw(f1 f2))
 				{	if (! $d->{$f . "_hash"}{$type}{$t})
 					{	$d->{$f . "_hash"}{$type}{$t} = block_to_hash( join("\n", @{$d->{$f . "_lines"}{$type}{$t}} ) );
 					}
@@ -706,7 +716,7 @@ sub generate_stats {
 	$vars->{f1_stats} = $d->{f1_stats};
 	map { $vars->{ontology_list}{$_}++ } (keys %{$vars->{f1_stats}{by_ns}}, keys %{$vars->{f2_stats}{by_ns}});
 
-	foreach my $f qw( f1 f2 )
+	foreach my $f (qw( f1 f2 ))
 	{	foreach my $o (keys %{$vars->{$f . "_stats"}{by_ns}})
 		{	## we have def => n terms defined
 			## total => total number of terms
@@ -718,7 +728,7 @@ sub generate_stats {
 			{	$vars->{$f . "_stats"}{by_ns}{$o}{def_percent} = sprintf("%.1f", $vars->{$f. "_stats"}{by_ns}{$o}{def} / $vars->{$f. "_stats"}{by_ns}{$o}{total} * 100);
 			}
 		}
-		foreach my $x qw(obs def_not_obs)
+		foreach my $x (qw(obs def_not_obs))
 		{	if (! $vars->{$f."_stats"}{$x})
 			{	$vars->{$f."_stats"}{$x} = 0;
 				$vars->{$f."_stats"}{$x . "_percent"} = 0;
@@ -729,12 +739,12 @@ sub generate_stats {
 		}
 	}
 
-	foreach my $x qw(obs def_not_obs total)
+	foreach my $x (qw(obs def_not_obs total))
 	{	$vars->{delta}{$x} = $vars->{f2_stats}{$x} - $vars->{f1_stats}{$x};
 		$vars->{delta}{$x . "_percent"} = sprintf("%.1f", $vars->{delta}{$x} / $vars->{f1_stats}{$x} * 100) if  $vars->{f1_stats}{$x};
 	}
 
-	foreach my $x qw( f1 f2 )
+	foreach my $x (qw( f1 f2 ))
 	{	$vars->{$x."_stats"}{extant} = $vars->{$x."_stats"}{total} - $vars->{$x."_stats"}{obs};
 		$vars->{$x."_stats"}{def_extant_percent} = sprintf("%.1f", $vars->{$x."_stats"}{def_not_obs} / $vars->{$x."_stats"}{extant} * 100) if $vars->{$x."_stats"}{extant};
 	}
@@ -745,7 +755,7 @@ sub generate_stats {
 		}
 	}
 
-#	foreach my $x qw(f1_stats f2_stats delta)
+#	foreach my $x (qw(f1_stats f2_stats delta))
 #	{	print STDERR "$x: " . Dumper( $vars->{$x} )."\n";
 #	}
 
@@ -1017,7 +1027,7 @@ sub parse_options {
 			while (@$args && $args->[0] !~ /^\-/)
 			{	my $m = shift @$args;
 				$m = lc($m);
-				if (grep { $m eq $_ } qw(txt text html rss email))
+				if (grep { $m eq $_ } (qw(txt text html rss email)))
 				{	$m = 'txt' if $m eq 'text';
 					$opt->{mode}{$m} = 1;
 				}
@@ -1091,7 +1101,7 @@ sub check_options {
 	{	$opt->{level} = 'm';
 	}
 	else
-	{	if (! grep { $_ eq $opt->{level} } qw(s m l short medium long) )
+	{	if (! grep { $_ eq $opt->{level} } (qw(s m l short medium long) ))
 		{	push @$errs, "the output level " . $opt->{level} . " is invalid. Valid options are 'short', 'medium' and 'long'";
 		}
 		## abbreviate the level designator
@@ -1109,7 +1119,7 @@ sub check_options {
 	else
 	{	if ($opt->{mode}{html} && $opt->{mode}{txt})
 		{	## use the file name from $opt->{output} plus suffix
-			foreach my $m qw( html txt )
+			foreach my $m (qw( html txt ))
 			{	$opt->{mode}{$m} = $opt->{output} . "." . $m;
 				## make sure that if the file exists, we can write to it
 				if (-e $opt->{output} && ! -w $opt->{output})
@@ -1118,7 +1128,7 @@ sub check_options {
 			}
 		}
 		elsif ($opt->{mode}{html} || $opt->{mode}{txt})
-		{	foreach my $m qw( html txt )
+		{	foreach my $m (qw( html txt ))
 			{	if ($opt->{mode}{$m})
 				{	## give the file the appropriate suffix if lacking
 					if ($opt->{output} !~ /\.$m$/ && ! $opt->{galaxy})
@@ -1143,7 +1153,7 @@ sub check_options {
 	## - specify f, r1/d1 and use most recent file as r2/d2
 
 	if ($opt->{f1} || $opt->{f2})
-	{	foreach my $f qw(f1 f2)
+	{	foreach my $f (qw(f1 f2))
 		{	if (!$opt->{$f})
 			{	push @$errs, "specify an input file using -$f /path/to/<file_name>";
 			}
@@ -1184,8 +1194,8 @@ sub check_options {
 				$opt->{f_moved} = $f_name . "-current";
 			}
 
-			foreach my $x qw( r d )
-			{	foreach my $n qw(1 2)
+			foreach my $x (qw( r d ))
+			{	foreach my $n (qw(1 2))
 				{	next unless $opt->{ $x . $n };
 					my $temp = File::Temp->new();
 					my $cmd = "perl " . $defaults->{dist_path} . "/bin/cvs-retriever.pl -v -" . $x . " " . $opt->{$x.$n}. " -o " . $temp->filename;

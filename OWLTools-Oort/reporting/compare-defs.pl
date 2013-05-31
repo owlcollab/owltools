@@ -431,7 +431,7 @@ sub create_rss {
 	my $def_file = $args{options}->{rss_path} . 'def_diffs.rss';
 
 	my $date = $args{output}->{date_object};
-	my $old = $date->clone->subtract( months => 1 );
+	my $old = $date->clone->subtract( months => 12 );
 
 	my $parser = DateTime::Format::Strptime->new(pattern => "%a, %d %b %Y %H:%M:%S %z");
 
@@ -532,7 +532,7 @@ sub parse_options {
 			while (@$args && $args->[0] !~ /^\-/)
 			{	my $m = shift @$args;
 				$m = lc($m);
-				if (grep { $m eq $_ } qw(txt text html rss email))
+				if (grep { $m eq $_ } (qw(txt text html rss email)))
 				{	$m = 'txt' if $m eq 'text';
 					$opt->{mode}{$m} = 1;
 				}
@@ -606,7 +606,7 @@ sub check_options {
 	else
 	{	if ($opt->{mode}{html} && $opt->{mode}{txt})
 		{	## use the file name from $opt->{output} plus suffix
-			foreach my $m qw( html txt )
+			foreach my $m (qw( html txt ))
 			{	$opt->{mode}{$m} = $opt->{output} . "." . $m;
 				## make sure that if the file exists, we can write to it
 				if (-e $opt->{output} && ! -w $opt->{output})
@@ -615,7 +615,7 @@ sub check_options {
 			}
 		}
 		elsif ($opt->{mode}{html} || $opt->{mode}{txt})
-		{	foreach my $m qw( html txt )
+		{	foreach my $m (qw( html txt ))
 			{	if ($opt->{mode}{$m})
 				{	## give the file the appropriate suffix if lacking
 					if ($opt->{output} !~ /\.$m$/ && ! $opt->{galaxy})
@@ -640,7 +640,7 @@ sub check_options {
 	## - specify f, r1/d1 and use most recent file as r2/d2
 
 	if ($opt->{f1} || $opt->{f2})
-	{	foreach my $f qw(f1 f2)
+	{	foreach my $f (qw(f1 f2))
 		{	if (!$opt->{$f})
 			{	push @$errs, "specify an input file using -$f /path/to/<file_name>";
 			}
@@ -681,8 +681,8 @@ sub check_options {
 				$opt->{f_moved} = $f_name . "-current";
 			}
 
-			foreach my $x qw( r d )
-			{	foreach my $n qw(1 2)
+			foreach my $x (qw( r d ))
+			{	foreach my $n (qw(1 2))
 				{	next unless $opt->{ $x . $n };
 					my $temp = File::Temp->new();
 					my $cmd = "perl " . $defaults->{dist_path} . "/bin/cvs-retriever.pl -v -" . $x . " " . $opt->{$x.$n}. " -o " . $temp->filename;
