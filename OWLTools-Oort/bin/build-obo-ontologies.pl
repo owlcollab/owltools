@@ -6,6 +6,7 @@ use strict;
 my %selection = ();  # subset of ontologies to run on (defaults to all)
 my $dry_run = 0;     # do not deploy if dry run is set
 my $target_dir = './deployed-ontologies';  # in a production setting, this would be a path to web-visible area, e.g. berkeley CDN or NFS
+my $is_compare_obo = 0;
 
 while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     my $opt = shift @ARGV;
@@ -23,6 +24,9 @@ while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     }
     elsif ($opt eq '-d' || $opt eq '--dry-run') {
         $dry_run = 1;
+    }
+    elsif ($opt eq '-c' || $opt eq '--compare-obo') {
+        $is_compare_obo = 1;
     }
     else {
         die "unknown option: $opt";
@@ -210,6 +214,26 @@ foreach my $k (keys %ont_info) {
         $success = 0;
     }
 
+    if ($is_compare_obo && $success) {
+        # TODO - use boubastis
+        my $this = "$ont/$ont.obo";
+        my $last = "$target_dir/$ont/$ont.obo";
+        if (system("cmd $this $last")) {
+            # central rss
+            if (!(-d 'rss')) {
+                run("mkdir rss");
+            }
+            # only compare if there are differences (i.e. cmp "fails")
+            my $dargs = "--config 'html/ontology_name=$ont' --rss-path rss -f1 $last -f2 $this -m html text rss";
+            run("compare-obo-files.pl $dargs -o $ont/central-obo-diff");
+            run("compare-defs.pl $dargs -o $ont/central-def-diff");
+            my $date = `date +%Y-%m-%d`;
+            chomp $date;
+            run("mkdir $ont/$date");
+            run("cp $ont/*-diff* $ont/$date");
+        }
+    }
+
     if ($success) {
         debug("Slated for deployment: $ont");
         push(@onts_to_deploy, $ont);
@@ -249,6 +273,9 @@ else {
         run("rsync -avz --delete $ont/ $target_dir/$ont");
         run("rsync $ont/$ont.obo $target_dir");
         run("rsync $ont/$ont.owl $target_dir");
+        if (-d 'rss') {
+            run("rsync rss/ $target_dir/rss");
+        }
     }
 }
 
@@ -461,6 +488,11 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'https://zebrafish-anatomical-ontology.googlecode.com/svn/trunk/src/zebrafish_anatomy.obo',
          },
+         #zfa_dev => {
+         #    
+         #    method => 'obo2owl',
+         #    source_url => 'https://zebrafish-anatomical-ontology.googlecode.com/svn/trunk/src/preversion.zfish.obo',
+         #},
 
          zfs => {
              infallible => 1,
