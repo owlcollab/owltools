@@ -241,9 +241,9 @@ public class SimpleOwlSim {
 	 *
 	 */
 	public class ScoreAttributePair {
-		public Double score;
+		public double score;
 		public OWLClassExpression attributeClass;
-		public ScoreAttributePair(Double score,
+		public ScoreAttributePair(double score,
 				OWLClassExpression attributeClass) {
 			super();
 			this.score = score;
@@ -257,17 +257,17 @@ public class SimpleOwlSim {
 	 *
 	 */
 	public class ScoreAttributesPair {
-		public Double score;
+		public double score;
 		public Set<OWLClassExpression> attributeClassSet = new HashSet<OWLClassExpression>(); // all attributes with this score
 
-		public ScoreAttributesPair(Double score,
+		public ScoreAttributesPair(double score,
 				OWLClassExpression ac) {
 			super();
 			this.score = score;
 			if (ac != null)
 				attributeClassSet.add(ac);
 		}
-		public ScoreAttributesPair(Double score,
+		public ScoreAttributesPair(double score,
 				Set<OWLClassExpression> acs) {
 			super();
 			this.score = score;

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -25,6 +26,9 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import owltools.cli.tools.CLIMethod;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
+import owltools.sim.io.DelimitedLineRenderer;
+import owltools.sim.io.DelimitedLineRenderer.SimScores;
+import owltools.sim.io.SimResultRenderer;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
@@ -120,22 +124,27 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	}
 
 	public void attributeAllByAll(Opts opts) {
-		sos.setSimProperties(simProperties);
-		Set<OWLClass> atts = sos.getAllAttributeClasses();
-		LOG.info("All by all for "+atts.size()+" classes");
-		//print a header in the file that details what was done
-		for (Object k : simProperties.keySet()){
-			resultOutStream.print("# "+k+" = "+simProperties.getProperty(k.toString()));
-		}
-		for (OWLClass i : atts) {
-			for (OWLClass j : atts) {
-				showSim(i,j);
+		try {
+			sos.setSimProperties(simProperties);
+			Set<OWLClass> atts = sos.getAllAttributeClasses();
+			LOG.info("All by all for "+atts.size()+" classes");
+			SimResultRenderer renderer = new DelimitedLineRenderer(resultOutStream);
+			//print a header in the file that details what was done
+			for (Object k : simProperties.keySet()){
+				renderer.printComment(k+" = "+simProperties.getProperty(k.toString()));
 			}
+
+			for (OWLClass i : atts) {
+				for (OWLClass j : atts) {
+					SimScores scores = computeSim(i,j);
+					renderSim(i, j, scores, renderer);
+				}
+			}
+			LOG.info("FINISHED All by all for "+atts.size()+" classes");
+			//LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
+		}finally {
+			IOUtils.closeQuietly(resultOutStream);
 		}
-		LOG.info("FINISHED All by all for "+atts.size()+" classes");
-		//LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
-		if (!resultOutStream.equals(System.out))
-			resultOutStream.close();
 	}
 
 
@@ -145,37 +154,41 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * @param opts 
 	 */
 	public void runOwlSim(Opts opts) {
-		sos.setSimProperties(simProperties);
-		OWLPrettyPrinter owlpp = getPrettyPrinter();
-		if (opts.nextEq("-q")) {
-			runOwlSimOnQuery(opts, opts.nextOpt());
-			return;
-		}
-		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
-		LOG.info("All by all for "+insts.size()+" individuals");
+		try {
+			sos.setSimProperties(simProperties);
+			OWLPrettyPrinter owlpp = getPrettyPrinter();
+			if (opts.nextEq("-q")) {
+				runOwlSimOnQuery(opts, opts.nextOpt());
+				return;
+			}
+			Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
+			LOG.info("All by all for "+insts.size()+" individuals");
 
-		//print a header in the file that details what was done
-    resultOutStream.println("# Properties for this run:");
-		for (Object k : simProperties.keySet()){
-      resultOutStream.println("# "+k+" = "+simProperties.getProperty(k.toString()));
-      //TODO: output if the property is default
-		}
-    resultOutStream.flush();
-		for (OWLNamedIndividual i : insts) {
-			for (OWLNamedIndividual j : insts) {
-				// similarity is symmetrical
-				if (isComparable(i,j)) {
-					showSim(i,j, owlpp);
-			    resultOutStream.flush();
-				}
-				else {
-					LOG.info("skipping "+i+" + "+j);
+			//print a header in the file that details what was done
+			resultOutStream.println("# Properties for this run:");
+			for (Object k : simProperties.keySet()){
+				resultOutStream.println("# "+k+" = "+simProperties.getProperty(k.toString()));
+				//TODO: output if the property is default
+			}
+			resultOutStream.flush();
+			for (OWLNamedIndividual i : insts) {
+				for (OWLNamedIndividual j : insts) {
+					// similarity is symmetrical
+					if (isComparable(i,j)) {
+						showSim(i,j, owlpp);
+						resultOutStream.flush();
+					}
+					else {
+						LOG.info("skipping "+i+" + "+j);
+					}
 				}
 			}
+			LOG.info("FINISHED All by all for "+insts.size()+" individuals");
+			LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
 		}
-		LOG.info("FINISHED All by all for "+insts.size()+" individuals");
-		LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
-		resultOutStream.close();
+		finally{
+			IOUtils.closeQuietly(resultOutStream);
+		}
 	}
 
 	private void runOwlSimOnQuery(Opts opts, String q) {
@@ -208,56 +221,41 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	}
 
 	boolean isHeaderLine = true;
+	
+	private void renderSim(OWLClass a, OWLClass b, SimScores simScores, SimResultRenderer renderer) {
+		simScores.simjScoreLabel = "SimJ_Score";
+		simScores.AsymSimJScoreLabel = "AsymSimJ_Score";
+		simScores.lcsScorePrefix = "LCS";
+		renderer.printAttributeSim(simScores, a, b, g);
+	}
+	
 	/**
-	 * Write out attribute x attribute (class x class) similarity
+	 * Compute the attribute x attribute (class x class) similarity
+	 * 
 	 * @param a
 	 * @param b
+	 * @return scores
 	 */
-	private void showSim(OWLClass a, OWLClass b) {
-		List<String> vals = new ArrayList<String>();
-		List<String> cols = new ArrayList<String>();
-		// elements
-		cols.add("A_ID");
-		vals.add(a.toString());
-		cols.add("A_Label");
-		vals.add(this.g.getLabel(a));
-		cols.add("B_ID");
-		vals.add(b.toString());
-		cols.add("B_Label");
-		vals.add(this.g.getLabel(b));
-
-		//scores
-		cols.add("SimJ_Score");
-		Double simj = sos.getAttributeJaccardSimilarity(a, b);
-		if ( simj < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
-			numberOfPairsFiltered ++;
-			return;
-		}
-
-		vals.add(simj.toString());
+	private SimScores computeSim(OWLClass a, OWLClass b) {
 		
-		cols.add("AsymSimJ_Score");
-		Double asimj = sos.getAsymmerticAttributeJaccardSimilarity(a, b);
-		vals.add(asimj.toString());
-		
-		cols.add("LCS_Score");
-		cols.add("LCS");
-		cols.add("LCS_Label");
-		ScoreAttributePair lcs = sos.getLowestCommonSubsumerIC(a, b);
-		if ( lcs.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
+		SimScores scores = new SimScores();
+		double simJScore = sos.getAttributeJaccardSimilarity(a, b);
+		if (simJScore < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
 			numberOfPairsFiltered ++;
-			return;
+			return scores;
 		}
-		vals.add(lcs.score.toString());
-		vals.add(lcs.attributeClass.toString());
-		vals.add(g.getLabel(lcs.attributeClass));
-
-		if (isHeaderLine) {
-			resultOutStream.println(StringUtils.join(cols, "\t"));
-			isHeaderLine = false;
+		scores.simJScore = simJScore;
+		
+		scores.AsymSimJScore = sos.getAsymmerticAttributeJaccardSimilarity(a, b);
+		
+		ScoreAttributePair lcsScore = sos.getLowestCommonSubsumerIC(a, b);
+		if ( lcsScore.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
+			numberOfPairsFiltered ++;
+			return scores;
 		}
-		resultOutStream.println(StringUtils.join(vals, "\t"));
-		//resultOutStream.println(a+"\t"+b+"\t"+simj+"\t"+lcs.score+"\t"+lcs.attributeClass);
+		scores.lcsScore = lcsScore;
+		
+		return scores;
 	}
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
