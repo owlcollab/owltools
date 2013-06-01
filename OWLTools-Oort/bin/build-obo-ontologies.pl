@@ -8,6 +8,7 @@ my $dry_run = 0;     # do not deploy if dry run is set
 my $target_dir = './deployed-ontologies';  # in a production setting, this would be a path to web-visible area, e.g. berkeley CDN or NFS
 my $is_compare_obo = 0;
 
+
 while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     my $opt = shift @ARGV;
     print STDERR "OPT: $opt\n";
@@ -218,7 +219,7 @@ foreach my $k (keys %ont_info) {
         # TODO - use boubastis
         my $this = "$ont/$ont.obo";
         my $last = "$target_dir/$ont/$ont.obo";
-        if (system("cmd $this $last")) {
+        if (system("cmp $this $last")) {
             # central rss
             if (!(-d 'rss')) {
                 run("mkdir rss");
@@ -229,8 +230,15 @@ foreach my $k (keys %ont_info) {
             run("compare-defs.pl $dargs -o $ont/central-def-diff");
             my $date = `date +%Y-%m-%d`;
             chomp $date;
-            run("mkdir $ont/$date");
-            run("cp $ont/*-diff* $ont/$date");
+            if (!(-d "$ont/releases")) {
+                run("mkdir $ont/releases");
+            }
+            # we don't create a full set of releases - only 
+            run("mkdir $ont/releases/$date");
+            run("cp $ont/*-diff* $ont/releases/$date");
+        }
+        else {
+            debug("no change in $ont - not creating a diff");
         }
     }
 
@@ -273,9 +281,9 @@ else {
         run("rsync -avz --delete $ont/ $target_dir/$ont");
         run("rsync $ont/$ont.obo $target_dir");
         run("rsync $ont/$ont.owl $target_dir");
-        if (-d 'rss') {
-            run("rsync rss/ $target_dir/rss");
-        }
+    }
+    if (-d 'rss') {
+        run("rsync rss/ $target_dir/rss");
     }
 }
 
