@@ -130,20 +130,57 @@ public class OWLQuantifiedProperty {
 		return quantifier != null && quantifier == Quantifier.VALUE;
 	}
 	
-	public boolean equals(Object e) {
-		// TODO overwrite hashcode method, otherwise behavior for hashing is not predictable
-		if(e == null || !(e instanceof OWLQuantifiedProperty))
-			return false;
-		
-		OWLQuantifiedProperty other = (OWLQuantifiedProperty) e;
-		
-		boolean qb = quantifier == other.getQuantifier();
-		
-		if(qb && getProperty() == other.getProperty()){
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+//		result = prime * result + (isInferred ? 1231 : 1237);
+//		result = prime * result + (isInverseOf ? 1231 : 1237);
+//		result = prime * result + (isNegated ? 1231 : 1237);
+		result = prime * result
+				+ ((maxCardinality == null) ? 0 : maxCardinality.hashCode());
+		result = prime * result
+				+ ((minCardinality == null) ? 0 : minCardinality.hashCode());
+		result = prime * result
+				+ ((property == null) ? 0 : property.hashCode());
+		result = prime * result
+				+ ((quantifier == null) ? 0 : quantifier.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
 			return true;
-		}
-		
-		return qb && (getProperty() != null && getProperty().equals(other.getProperty())) ;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		OWLQuantifiedProperty other = (OWLQuantifiedProperty) obj;
+//		if (isInferred != other.isInferred)
+//			return false;
+//		if (isInverseOf != other.isInverseOf)
+//			return false;
+//		if (isNegated != other.isNegated)
+//			return false;
+		if (maxCardinality == null) {
+			if (other.maxCardinality != null)
+				return false;
+		} else if (!maxCardinality.equals(other.maxCardinality))
+			return false;
+		if (minCardinality == null) {
+			if (other.minCardinality != null)
+				return false;
+		} else if (!minCardinality.equals(other.minCardinality))
+			return false;
+		if (property == null) {
+			if (other.property != null)
+				return false;
+		} else if (!property.equals(other.property))
+			return false;
+		if (quantifier != other.quantifier)
+			return false;
+		return true;
 	}
 
 	/**
