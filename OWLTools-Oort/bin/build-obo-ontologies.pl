@@ -7,7 +7,7 @@ my %selection = ();  # subset of ontologies to run on (defaults to all)
 my $dry_run = 0;     # do not deploy if dry run is set
 my $target_dir = './deployed-ontologies';  # in a production setting, this would be a path to web-visible area, e.g. berkeley CDN or NFS
 my $is_compare_obo = 0;
-
+my $email = '';
 
 while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     my $opt = shift @ARGV;
@@ -28,6 +28,9 @@ while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     }
     elsif ($opt eq '-c' || $opt eq '--compare-obo') {
         $is_compare_obo = 1;
+    }
+    elsif ($opt eq '-e' || $opt eq '--email') {
+        $email = shift @ARGV;
     }
     else {
         die "unknown option: $opt";
@@ -62,6 +65,9 @@ my @failed_infallible_onts = ();   # ont IDs that fail that cause an error
 
 # --MAIN--
 # Iterate over all ontologies attempting to build or mirror
+# - external data is first pulled into a staging area
+# - for methods that employ a conversion, a check is perfomed to see if the source has changed
+# - if successful, built ontologies are copied to deployment area at end of iteration
 foreach my $k (keys %ont_info) {
     $ont = $k;
 
@@ -149,9 +155,18 @@ foreach my $k (keys %ont_info) {
         # TODO - no action if unchanged
         $success = wget($source_url, $SRC);
         if ($success) {
-            # Oort places package files directly in target area, if successful
-            $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
-            # TODO - generate HTML diffs (optional)
+
+            if (is_different("$SRC.prev", $SRC) || !(-f "$ont/$ont.owl")) {
+                # Oort places package files directly in target area, if successful
+                $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+                if ($success) {
+                    run("mv $SRC $SRC.prev");
+                }
+            }
+            else {
+                debug("obo has not changed for $ont - will not rebuild");
+            }
+
         }
         else {
             debug("will not run Oort as wget was unsuccessful");
@@ -171,8 +186,17 @@ foreach my $k (keys %ont_info) {
         # TODO - less strict mode for owl2obo, many ontologies do not conform to obo constraints
         # TODO - allow options including translation of annotation axioms, merging of import closure, etc
         if ($success) {
-            # Oort places package files directly in target area, if successful
-            $success = run("ontology-release-runner --repair-cardinality --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+
+            if (is_different("$SRC.prev", $SRC) || !(-f "$ont/$ont.obo")) {
+                # Oort places package files directly in target area, if successful
+                $success = run("ontology-release-runner --repair-cardinality --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+                if ($success) {
+                    run("mv $SRC $SRC.prev");
+                }
+            }
+            else {
+                debug("owl has not changed for $ont - will not rebuild");
+            }
         }
         else {
             debug("will not run Oort as wget was unsuccessful");
@@ -219,13 +243,17 @@ foreach my $k (keys %ont_info) {
         # TODO - use boubastis
         my $this = "$ont/$ont.obo";
         my $last = "$target_dir/$ont/$ont.obo";
-        if (system("cmp $this $last")) {
+        if (is_different($this, $last,"$ont/central-obo-diff.txt")) {
+
             # central rss
             if (!(-d 'rss')) {
                 run("mkdir rss");
             }
             # only compare if there are differences (i.e. cmp "fails")
             my $dargs = "--config 'html/ontology_name=$ont' --rss-path rss -f1 $last -f2 $this -m html text rss";
+            if ($email) {
+                $dargs .= " email --config email_to=$email";
+            }
             run("compare-obo-files.pl $dargs -o $ont/central-obo-diff");
             run("compare-defs.pl $dargs -o $ont/central-def-diff");
             my $date = `date +%Y-%m-%d`;
@@ -234,7 +262,9 @@ foreach my $k (keys %ont_info) {
                 run("mkdir $ont/releases");
             }
             # we don't create a full set of releases - only 
-            run("mkdir $ont/releases/$date");
+            if (!(-d "$ont/releases/$date")) {
+                run("mkdir $ont/releases/$date");
+            }
             run("cp $ont/*-diff* $ont/releases/$date");
         }
         else {
@@ -328,6 +358,18 @@ sub run {
         $n_errs ++;
     }    
     return !$err;
+}
+
+sub is_different {
+    my $this = shift;
+    my $last = shift || 'obo';
+    my $out = shift || 'diff.tmp';
+
+    my $diffcmd = "diff -b $this $last > $out";
+    debug("CMD: $diffcmd");
+    my $is_different = system($diffcmd);
+    debug("cpmparing $this to $last == $is_different");
+    return $is_different;
 }
 
 sub wget {
