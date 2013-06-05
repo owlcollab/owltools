@@ -9,6 +9,7 @@
 !
 !This data is available as a web page at
 !http://www.geneontology.org/cgi-bin/xrefs.cgi
+!Map: database -> http://purl.org/dc/elements/1.1/description
 
 abbreviation: AgBase
 database: AgBase resource for functional analysis of agricultural plant and animal gene products
