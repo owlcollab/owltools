@@ -27,8 +27,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.io.FileUtils;
@@ -50,9 +48,9 @@ import org.coode.parsers.common.SystemErrorEcho;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.obolibrary.obo2owl.Owl2Obo;
-import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
@@ -115,10 +113,8 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
-import owltools.gaf.GeneAnnotation;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
@@ -142,6 +138,7 @@ import owltools.io.OWLJSONFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.ParserWrapper.OWLGraphWrapperNameProvider;
+import owltools.io.StanzaToOWLConverter;
 import owltools.io.TableRenderer;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.BridgeExtractor;
@@ -480,11 +477,29 @@ public class CommandRunner {
 				g.getManager().applyChange(addAnn);
 			}
 			else if (opts.nextEq("--create-ontology")) {
+				IRI v = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-v|--version-iri")) {
+						v = IRI.create(opts.nextOpt());
+					}
+					else {
+						break;
+					}
+				}
+
 				String iri = opts.nextOpt();
 				if (!iri.startsWith("http:")) {
 					iri = Obo2OWLConstants.DEFAULT_IRI_PREFIX+iri;
 				}
 				g = new OWLGraphWrapper(iri);
+				
+				if (v != null) {
+					OWLOntologyID oid = new OWLOntologyID(IRI.create(iri), v);
+					SetOntologyID soid;
+					soid = new SetOntologyID(g.getSourceOntology(), oid);
+					g.getManager().applyChange(soid);
+
+				}
 			}
 			else if (opts.nextEq("--merge-import-closure") || opts.nextEq("--merge-imports-closure")) {
 				opts.info("[--ni]", "All axioms from ontologies in import closure are copied into main ontology");
@@ -723,6 +738,7 @@ public class CommandRunner {
 					else
 						break;
 				}
+				
 				Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
 				LOG.info("building entity2IRI map...: " + prefixFroms + " --> "+prefixTo);
 				OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
@@ -1072,6 +1088,7 @@ public class CommandRunner {
 				if (script == null)
 					script = opts.nextOpt();
 				LOG.info("OPPL: "+script);
+				
 				ParserFactory parserFactory = new ParserFactory(g.getManager(), g.getSourceOntology(), 
 						reasoner);
 				AnnotationBasedSymbolTableFactory annotationBasedSymbolTableFactory = new AnnotationBasedSymbolTableFactory(
@@ -1258,7 +1275,7 @@ public class CommandRunner {
 				reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());			
 			}
 			else if (opts.nextEq("--reasoner-query")) {
-				opts.info("[-r reasonername] [-m] [-d] [-a] [-x] [-c IRI] (--stdin | CLASS-EXPRESSION)", 
+				opts.info("[-r reasonername] [-m] [-d] [-a] [-x] [-c IRI] (--stdin | CLASS-EXPRESSION | -l CLASS-LABEL)", 
 						"Queries current ontology for descendants, ancestors and equivalents of CE using reasoner.\n"+
 				"Enclose all labels in quotes (--stdin only). E.g. echo \"'part of' some 'tentacle'\" | owltools ceph.owl --reasoner-query --stdin");
 				boolean isManifest = false;
@@ -2196,8 +2213,7 @@ public class CommandRunner {
 							OWLClass c = g.getDataFactory().getOWLClass((IRI)sub);
 							OWLDeclarationAxiom ax = g.getDataFactory().getOWLDeclarationAxiom(c);
 							g.getManager().addAxiom(g.getSourceOntology(), ax);
-						}
-
+						}						
 					}
 				}
 			}
@@ -2395,6 +2411,31 @@ public class CommandRunner {
 				String f = opts.nextOpt();
 				System.out.println("tabfile: "+f);
 				ttac.parse(f);
+			}
+			else if (opts.nextEq("--parse-stanzas")) {
+				opts.info("[-m KEY PROPERTY]* [-s]  FILE", "parses a tabular file to OWL axioms");
+				StanzaToOWLConverter sc = new StanzaToOWLConverter(g);
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-m|--map")) {
+						String k = opts.nextOpt();
+						StanzaToOWLConverter.Mapping m = sc.new Mapping();
+						String p = opts.nextOpt();
+						m.property = this.resolveObjectProperty(p); // TODO - allow other types
+						sc.config.keyMap.put(k, m);
+					}
+					else if (opts.nextEq("-s|--strict")) {
+						sc.config.isStrict = true;
+					}				
+					else if (opts.nextEq("--prefix")) {
+						sc.config.defaultPrefix = opts.nextOpt();
+					}				
+					else {
+						continue;
+					}
+				}
+				String f = opts.nextOpt();
+				System.out.println("tabfile: "+f);
+				sc.parse(f);
 			}
 			else if (opts.nextEq("--idmap-extract-pairs")) {
 				opts.info("IDType1 IDType2 PIRMapFile", "extracts pairs from mapping file");
@@ -2646,7 +2687,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--materialize-property-inferences|--mpi")) {
-				opts.info("[-p PROPERTY]... [-m|--merge]", "reasoned property view. Alternative to --bpvo");
+				opts.info("[-p [-r] PROPERTY]... [-m|--merge]", "reasoned property view. Alternative to --bpvo");
 				// TODO - incorporate this into sparql query
 				Set<OWLObjectProperty> vps = new HashSet<OWLObjectProperty>();
 				Set<OWLObjectProperty> reflexiveVps = new HashSet<OWLObjectProperty>();
@@ -2892,7 +2933,7 @@ public class CommandRunner {
 		boolean useIsInferred = false;
 		boolean ignoreNonInferredForRemove = false;
 		boolean checkForNamedClassEquivalencies = true;
-		boolean checkForPotentialRedundant = true;
+		boolean checkForPotentialRedundant = false;
 		String reportFile = null;
 
 		while (opts.hasOpts()) {
