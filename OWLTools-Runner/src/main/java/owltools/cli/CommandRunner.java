@@ -2976,13 +2976,35 @@ public class CommandRunner {
 
 	@CLIMethod("--create-biochebi")
 	public void createBioChebi(Opts opts) throws Exception {
+		final String chebiPURL = "http://purl.obolibrary.org/obo/chebi.owl";
+		String chebiFile = null;
 		String output = null;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-o|--output")) {
 				output = opts.nextOpt();
 			}
+			else if (opts.nextEq("-c|--chebi-file")) {
+				chebiFile = opts.nextOpt();
+			}
 			else {
 				break;
+			}
+		}
+		if (chebiFile != null) {
+			File inputFile = new File(chebiFile);
+			OWLOntology chebiOWL = pw.parse(IRI.create(inputFile).toString());
+			// sanity check:
+			// check that the purl is the expected one
+			boolean hasOntologyId = false;
+			OWLOntologyID ontologyID = chebiOWL.getOntologyID();
+			if (ontologyID != null) {
+				IRI ontologyIRI = ontologyID.getOntologyIRI();
+				if (ontologyIRI != null) {
+					hasOntologyId = chebiPURL.equals(ontologyIRI.toString());
+				}
+			}
+			if (hasOntologyId == false) {
+				throw new RuntimeException("The loaded ontology file ("+chebiFile+") does not have the expected ChEBI purl: "+chebiPURL);
 			}
 		}
 		if (g == null) {
