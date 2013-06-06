@@ -521,6 +521,11 @@ sub get_ont_info {
              path => 'archive/main',
              source_url => 'http://build.berkeleybop.org/job/build-chebi/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
+         'bio-attributes' => {
+             method => 'archive',
+             path => 'archive/main',
+             source_url => 'http://build.berkeleybop.org/job/build-bio-attributes/lastSuccessfulBuild/artifact/*zip*/archive.zip',
+         },
          envo => {
              infallible => 1,
              method => 'archive',
