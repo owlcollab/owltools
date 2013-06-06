@@ -1,13 +1,18 @@
 package owltools.cli;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -18,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
@@ -86,6 +92,39 @@ public class BioChebiGenerator {
 				manager.addAxiom(ontology, eq);
 			}
 		}
+		
+		Set<OWLOntology> imports = ontology.getImports();
+		StringBuilder sb = new StringBuilder();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		sb.append("Generated on ").append(dateFormat.format(new Date())).append(" using the following import chain:");
+		for (OWLOntology owlOntology : imports) {
+			OWLOntologyID ontologyID = owlOntology.getOntologyID();
+			sb.append(" ");
+			appendOntologyId(ontologyID, sb);
+		}
+		addComment(sb.toString(), ontology);
+	}
+	
+	private void appendOntologyId(OWLOntologyID ontologyID, StringBuilder sb) {
+		if (ontologyID != null) {
+			sb.append("Ontology(id=").append(ontologyID.getOntologyIRI());
+			IRI versionIRI = ontologyID.getVersionIRI();
+			if (versionIRI != null) {
+				sb.append(", version=").append(versionIRI);
+			}
+			sb.append(")");
+			
+		}
+		else {
+			sb.append("Ontology with no ID");
+		}
+	}
+	
+	private void addComment(String comment, OWLOntology ontology) {
+		final OWLOntologyManager manager = ontology.getOWLOntologyManager();
+		final OWLDataFactory factory = manager.getOWLDataFactory();
+		OWLAnnotation ontAnn = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral(comment));
+		manager.applyChange(new AddOntologyAnnotation(ontology, ontAnn));
 	}
 
 	/**
