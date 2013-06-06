@@ -313,7 +313,7 @@ else {
         run("rsync $ont/$ont.owl $target_dir");
     }
     if (-d 'rss') {
-        run("rsync rss/ $target_dir/rss");
+        run("rsync -avz rss/ $target_dir/rss");
     }
 }
 
@@ -374,7 +374,7 @@ sub is_different {
 
 sub wget {
     my ($url, $tgt) = @_;
-    return run("wget -T 300 --no-check-certificate $url -O $tgt");
+    return run("wget -T 300 --no-check-certificate '$url' -O $tgt");
 }
 
 sub debug {
@@ -447,7 +447,7 @@ sub get_ont_info {
          #},
          fbcv => {
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/vocabularies/flybase_controlled_vocabulary.obo',
+             source_url => 'http://sourceforge.net/p/fbcv/code-0/HEAD/tree/src/trunk/ontologies/fbcv-edit.obo',
          },
          fbphenotype => {
              method => 'owl2obo',
@@ -668,7 +668,7 @@ sub get_ont_info {
          doid => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'http://diseaseontology.svn.sourceforge.net/viewvc/*checkout*/diseaseontology/trunk/HumanDO.obo',
+             source_url => 'http://sourceforge.net/p/diseaseontology/code/HEAD/tree/trunk/HumanDO.obo?format=raw',
          },
          exo => {
              method => 'obo2owl',
@@ -694,11 +694,11 @@ sub get_ont_info {
          },
          miro => {
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/mosquito_insecticide_resistance.obo',
+             source_url => 'http://anobase.vectorbase.org/miro/miro_release.obo',
          },
          tads => {
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/tick_anatomy.obo',
+             source_url => 'http://anobase.vectorbase.org/anatomy/tick_anatomy.obo',
          },
          swo => {
              method => 'owl2obo',
@@ -770,7 +770,7 @@ sub get_ont_info {
          },
          tgma => {
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/mosquito_anatomy.obo',
+             source_url => 'http://anobase.vectorbase.org/anatomy/mosquito_anatomy.obo',
          },
          bila => {
              method => 'obo2owl',
