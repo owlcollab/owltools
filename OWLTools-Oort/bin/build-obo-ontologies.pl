@@ -979,6 +979,16 @@ sub usage() {
     <<EOM;
 build-obo-ontologies.pl [-d|--dry-run] [-s ONT]* [-t|--target-dir TARGET]
 
+ABOUT
+
+This is the script that builds the contents of http://berkeleybop.org/ontologies/
+
+Each ontology is placed in the top level (e.g. ma.obo, ma.owl), and
+also in an ontology specific subdirectory (e.g. ma/ma.obo) along with
+other derived artefacts.
+
+The script can be executed locally.
+
 DEPENDENCIES
 
  * Oort (command line)
@@ -996,25 +1006,29 @@ such as:
   fbbt/
   go/
 
-These will also be copied to TARGET
+These will also be copied to TARGET (default: "./deployed-ontologies")
 
 Each of these should correspond to the structure of the corresponding obolibrary purl. For example,
 
   go/
+    go.obo
+    go.owl
+    go-simple.obo
     subsets/
       goslim_plant.obo
+      goslim_prok.obo
       ...
 
 This can be used to build local copies of ontologies to be used with
 an OWL catalog (TODO: document owltools directory mapper here).
 
-In the future it will also be used to replace the legacy Berkeley
-obo2owl pipeline, and will populate the directories under here:
+This script is the one used by Jenkins to make a daily build here:
 
  http://berkeleybop.org/ontologies/
 
 Which is currently the default fallback for unregistered purls (and
-registered purls are welcome to redirect here).
+registered purls are welcome to redirect here, or to register to their
+preferred hosting solution).
 
 HOW IT WORKS
 
@@ -1055,12 +1069,13 @@ more "advanced" obo meaning the build pipeline produced owl from
 
 The ontologies.txt registry method is being overhauled, but there is
 still a need for a build pipeline that handles some of the
-peculiarities of each ontology. In the future every ontology should
-use oort or a similar tool to publish the full package, but an interim
-solution is required. Even then, some ontologies require a place to
-distribute their package (historically VCS has been used as the
-download mechanism but this can be slow, and it can be inefficient to
-manage multiple derived rdf/xml owl files in a VCS).
+peculiarities of each ontology, and can handle the many legacy obo
+ontologies. In the future every ontology should use oort or a similar
+tool to publish the full package, but an interim solution is
+required. Even then, some ontologies require a place to distribute
+their package (historically VCS has been used as the download
+mechanism but this can be slow, and it can be inefficient to manage
+multiple derived rdf/xml owl files in a VCS).
 
 Once this new script is in place, the contents of
 berkeleybop.org/ontologies/ will be populated using one of the above
