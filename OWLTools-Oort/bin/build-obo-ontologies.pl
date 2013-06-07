@@ -573,8 +573,22 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/olatdv/olatdv.obo',
          },
-
-
+         rs => {
+             method => 'obo2owl',
+             source_url => 'ftp://rgd.mcw.edu/pub/ontology/rat_strain/rat_strain.obo',
+         },
+         cmo => {
+             method => 'obo2owl',
+             source_url => 'ftp://rgd.mcw.edu/pub/ontology/clinical_measurement/clinical_measurement.obo',
+         },
+         mmo => {
+             method => 'obo2owl',
+             source_url => 'ftp://rgd.mcw.edu/pub/ontology/measurement_method/measurement_method.obo',
+         },
+         xco => {
+             method => 'obo2owl',
+             source_url => 'ftp://rgd.mcw.edu/pub/ontology/experimental_condition/experimental_condition.obo',
+         },
 
          po => {
              infallible => 1,
@@ -654,7 +668,7 @@ sub get_ont_info {
          },
          vario => {
              method => 'obo2owl',
-             source_url => 'http://www.variationontology.org/download/VariO_0.979.obo',
+             source_url => 'http://variationontology.org/vario_download/vario.obo',
          },
          eco => {
              notes => 'switch to vcs',
