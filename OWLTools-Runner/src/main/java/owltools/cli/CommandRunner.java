@@ -2156,8 +2156,17 @@ public class CommandRunner {
 					}
 				}
 
-				pw.saveOWL(g.getSourceOntology(), ofmt, opts.nextOpt(), g);
-				//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
+				
+				if (opts.hasOpts()) {
+					String outputFile = opts.nextOpt();
+					pw.saveOWL(g.getSourceOntology(), ofmt, outputFile, g);
+					//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
+				}
+				else {
+					final String msg = "Missing output file for '-o' OR '--output' option. Output was not written to a file.";
+					throw new OptionException(msg);
+				}
+				
 			}
 			else if (opts.nextEq("--list-axioms")) {
 				for (OWLAxiom a : g.getSourceOntology().getAxioms()) {
