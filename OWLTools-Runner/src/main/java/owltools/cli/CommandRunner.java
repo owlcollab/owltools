@@ -2157,7 +2157,7 @@ public class CommandRunner {
 				}
 
 				
-				if (opts.hasOpts()) {
+				if (opts.hasArgs()) {
 					String outputFile = opts.nextOpt();
 					pw.saveOWL(g.getSourceOntology(), ofmt, outputFile, g);
 					//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
