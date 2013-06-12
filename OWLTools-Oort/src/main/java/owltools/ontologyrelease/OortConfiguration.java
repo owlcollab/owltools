@@ -114,6 +114,8 @@ public class OortConfiguration {
 	
 	private boolean versionReportFiles = false; 
 	
+	private boolean createErrorModules = true;
+	
 	private static List<OntologyCheck> getDefaultOntologyChecks() {
 		List<OntologyCheck> checks = new ArrayList<OntologyCheck>();
 		checks.add(new SelfReferenceInDefinition());
@@ -938,6 +940,20 @@ public class OortConfiguration {
 		this.versionReportFiles = versionReportFiles;
 	}
 
+	/**
+	 * @return the createErrorModules
+	 */
+	public boolean isCreateErrorModules() {
+		return createErrorModules;
+	}
+
+	/**
+	 * @param createErrorModules the createErrorModules to set
+	 */
+	public void setCreateErrorModules(boolean createErrorModules) {
+		this.createErrorModules = createErrorModules;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -1061,6 +1077,7 @@ public class OortConfiguration {
 		putValue(properties, "removeRedunantAxioms", config.removeRedunantAxioms);
 		putValue(properties, "checkPotentialRedundant", config.checkPotentialRedundant);
 		putValue(properties, "versionReportFiles", config.versionReportFiles);
+		putValue(properties, "createErrorModules", config.createErrorModules);
 		return properties;
 	}
 	
@@ -1180,6 +1197,7 @@ public class OortConfiguration {
 		config.removeRedunantAxioms = getValue(properties, "removeRedunantAxioms", config.removeRedunantAxioms);
 		config.checkPotentialRedundant = getValue(properties, "checkPotentialRedundant", config.checkPotentialRedundant);
 		config.versionReportFiles = getValue(properties, "versionReportFiles", config.versionReportFiles);
+		config.createErrorModules = getValue(properties, "createErrorModules", config.createErrorModules);
 	}
 	
 	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {

@@ -92,13 +92,25 @@ public abstract class ReleaseRunnerFileTools {
 		checkNew(new File(base, fileName));
 		// cleared: either overwrite is okay or is a new file 
 		// But keep working in the staging directory
-		File stagingFile = new File(staging, fileName);
+		File stagingFile = new File(staging, fileName).getCanonicalFile();
 		
 		// create sub folder
 		stagingFile.getParentFile().mkdirs();
 		
 		logInfo("saving to " + stagingFile.getAbsolutePath());
 		return new FileOutputStream(stagingFile);
+	}
+	
+	void cleanupFile(String fileName) throws IOException {
+		// try to delete the file, do nothing if the file does not exist
+		// fail if the file exists, but could not be deleted.
+		File stagingFile = new File(staging, fileName).getCanonicalFile();
+		if (stagingFile.exists()) {
+			boolean delete = stagingFile.delete();
+			if (delete == false) {
+				throw new IOException("Could not delete file: "+stagingFile.getAbsolutePath());
+			}
+		}
 	}
 	
 	protected void logInfo(String msg) {

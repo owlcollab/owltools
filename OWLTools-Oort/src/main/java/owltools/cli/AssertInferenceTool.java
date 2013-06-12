@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +27,7 @@ import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
@@ -37,12 +39,15 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.reasoner.NodeSet;
@@ -51,12 +56,15 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.InferenceBuilder;
+import owltools.InferenceBuilder.ConsistencyReport;
 import owltools.InferenceBuilder.PotentialRedundant;
 import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
+import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 /**
  * Simple command-line tool to assert inferences and (optional) remove redundant relations
@@ -413,11 +421,13 @@ public class AssertInferenceTool {
 	 * @param reportWriter (optional)
 	 * @throws InconsistentOntologyException 
 	 * @throws IOException 
+	 * @throws OWLOntologyStorageException 
+	 * @throws OWLOntologyCreationException 
 	 */
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
 			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove, 
 			BufferedWriter reportWriter) 
-			throws InconsistentOntologyException, IOException
+			throws InconsistentOntologyException, IOException, OWLOntologyCreationException, OWLOntologyStorageException
 	{
 		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true, true, reportWriter);
 	}
@@ -426,7 +436,7 @@ public class AssertInferenceTool {
 			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove,
 			boolean checkForNamedClassEquivalencies, boolean checkForPotentialRedundant,
 			BufferedWriter reportWriter) 
-			throws InconsistentOntologyException, IOException
+			throws InconsistentOntologyException, IOException, OWLOntologyCreationException, OWLOntologyStorageException
 	{
 		OWLOntology ontology = graph.getSourceOntology();
 		OWLOntologyManager manager = ontology.getOWLOntologyManager();
@@ -513,13 +523,19 @@ public class AssertInferenceTool {
 			if (checkConsistency) {
 				logger.info("Start checking consistency");
 				// logic checks
-				List<String> incs = builder.performConsistencyChecks();
-				final int incCount = incs.size();
+				ConsistencyReport consistencyReport = builder.performConsistencyChecks();
+				final int incCount = consistencyReport.errors.size();
 				if (incCount > 0) {
-					for (String inc  : incs) {
+					if (consistencyReport.unsatisfiable != null && !consistencyReport.unsatisfiable.isEmpty()) {
+						createUnsatisfiableModule(consistencyReport.unsatisfiable, ontology);
+					}
+					for (String inc  : consistencyReport.errors) {
 						logger.error("PROBLEM: " + inc);
 					}
 					throw new InconsistentOntologyException("Logic inconsistencies found, count: "+incCount);
+				}
+				else {
+					cleanupUnsatisfiableModule();
 				}
 
 				// equivalent named class pairs
@@ -527,6 +543,7 @@ public class AssertInferenceTool {
 				final int eqCount = equivalentNamedClassPairs.size();
 				if (eqCount > 0) {
 					logger.error("Found equivalencies between named classes");
+					createEquivModule(equivalentNamedClassPairs, ontology);
 					for (OWLEquivalentClassesAxiom eca : equivalentNamedClassPairs) {
 						logger.error("EQUIVALENT_CLASS_PAIR: "+owlpp.render(eca));
 					}
@@ -534,10 +551,14 @@ public class AssertInferenceTool {
 						throw new InconsistentOntologyException("Found equivalencies between named classes, count: " + eqCount);
 					}
 				}
+				else {
+					cleanupEquivModule();
+				}
 				logger.info("Finished checking consistency");
 			}
 			if (potentialRedundants != null) {
 				logger.error("Found potential problems");
+				createPotentialRedundantModule(potentialRedundants, ontology);
 				for (PotentialRedundant redundant : potentialRedundants) {
 					StringBuilder sb = new StringBuilder("POTENTIAL REDUNDANT AXIOMS: ");
 					sb.append(owlpp.render(redundant.getClassA())).append(" ");
@@ -548,12 +569,99 @@ public class AssertInferenceTool {
 				}
 				throw new InconsistentOntologyException("Found potential redundant subClass axioms, count: " + potentialRedundants.size());
 			}
+			else {
+				cleanupPotentialRedundantModule();
+			}
 		}
 		finally {
 			builder.dispose();
 		}
 	}
 
+	private static void createEquivModule(List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs, OWLOntology ont)
+			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException
+	{
+		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		for(OWLEquivalentClassesAxiom axiom : equivalentNamedClassPairs) {
+			signature.addAll(axiom.getSignature());
+		}
+		final String moduleName = "equivalent-classes";
+		createModule(moduleName, signature, ont);
+	}
+	
+	private static void createUnsatisfiableModule(Collection<OWLEntity> unsatisfiable, OWLOntology ont)
+			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException
+	{
+		Set<OWLEntity> signature = new HashSet<OWLEntity>(unsatisfiable);
+		final String moduleName = "unsatisfiable";
+		createModule(moduleName, signature, ont);
+	}
+	
+	private static void createPotentialRedundantModule(Collection<PotentialRedundant> redundants, OWLOntology ont)
+			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException
+	{
+		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		for (PotentialRedundant redundant : redundants) {
+			signature.addAll(redundant.getAxiomOne().getSignature());
+			signature.addAll(redundant.getAxiomTwo().getSignature());
+		}
+		
+		final String moduleName = "potential-redundant";
+		createModule(moduleName, signature, ont);
+	}
+
+	private static void createModule(String moduleName, Set<OWLEntity> signature, OWLOntology ont)
+			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException 
+	{
+		// create a new manager, re-use factory
+		// avoid unnecessary change events
+		final OWLOntologyManager m = OWLManager.createOWLOntologyManager(ont.getOWLOntologyManager().getOWLDataFactory());
+		
+		// extract module
+		SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, ont, ModuleType.BOT);
+		Set<OWLAxiom> moduleAxioms = sme.extract(signature);
+		
+		OWLOntology module = m.createOntology(IRI.generateDocumentIRI());
+		m.addAxioms(module, moduleAxioms);
+		
+		// save module
+		OutputStream moduleOutputStream = null;
+		try {
+			moduleOutputStream = new FileOutputStream(getModuleFile(moduleName));
+			m.saveOntology(module, moduleOutputStream);
+		}
+		finally {
+			IOUtils.closeQuietly(moduleOutputStream);
+		}
+	}
+
+	private static File getModuleFile(String moduleName) throws IOException {
+		return new File("assert-"+moduleName+"-module.owl").getCanonicalFile();
+	}
+	
+	private static void cleanupEquivModule() throws IOException {
+		cleanupFile(getModuleFile("equivalent-classes"));
+	}
+	
+	private static void cleanupUnsatisfiableModule() throws IOException {
+		cleanupFile(getModuleFile("unsatisfiable"));
+	}
+	
+	private static void cleanupPotentialRedundantModule() throws IOException {
+		cleanupFile(getModuleFile("potential-redundant"));
+	}
+	
+	static void cleanupFile(File file) throws IOException {
+		// try to delete the file, do nothing if the file does not exist
+		// fail if the file exists, but could not be deleted.
+		if (file.exists()) {
+			boolean delete = file.delete();
+			if (delete == false) {
+				throw new IOException("Could not delete file: "+file.getAbsolutePath());
+			}
+		}
+	}
+	
 	private static List<OWLOntologyChange> handleSupportOntologies(OWLGraphWrapper graph)
 	{
 		OWLOntology ontology = graph.getSourceOntology();

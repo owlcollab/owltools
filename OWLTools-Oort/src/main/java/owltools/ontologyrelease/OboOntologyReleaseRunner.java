@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
@@ -30,6 +32,7 @@ import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.owl.LabelFunctionalSyntaxOntologyStorer;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -38,6 +41,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -59,6 +63,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 import owltools.InferenceBuilder;
+import owltools.InferenceBuilder.ConsistencyReport;
 import owltools.InferenceBuilder.PotentialRedundant;
 import owltools.JustifyAssertionsTool;
 import owltools.JustifyAssertionsTool.JustifyResult;
@@ -84,6 +89,8 @@ import owltools.ontologyverification.OntologyCheck;
 import owltools.ontologyverification.OntologyCheckHandler;
 import owltools.ontologyverification.OntologyCheckHandler.CheckSummary;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
+import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
+import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 /**
  * This class is a command line utility which builds an ontology release. The
@@ -394,6 +401,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			}
 			else if (opts.nextEq("--version-report-files")) {
 				oortConfig.setVersionReportFiles(true);
+			}
+			else if (opts.nextEq("--skip-error-modules")) {
+				oortConfig.setCreateErrorModules(false);
 			}
 			else if (opts.nextEq("--error-report")) {
 				String errorReportFile = "error-report.txt";
@@ -878,14 +888,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 					// TEST FOR EQUIVALENT NAMED CLASS PAIRS
 					if (true) {
-						if (infBuilder.getEquivalentNamedClassPairs().size() > 0) {
+						final List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = infBuilder.getEquivalentNamedClassPairs();
+						if (equivalentNamedClassPairs.size() > 0) {
 							logWarn("Found equivalencies between named classes");
 							List<String> reasons = new ArrayList<String>();
-							for (OWLEquivalentClassesAxiom eca : infBuilder.getEquivalentNamedClassPairs()) {
+							for (OWLEquivalentClassesAxiom eca : equivalentNamedClassPairs) {
 								String axiomString = owlpp.render(eca);
 								reasons.add(axiomString);
 								String message = "EQUIVALENT_CLASS_PAIR\t"+axiomString;
 								reasonerReportLines.add(message);
+							}
+							if (oortConfig.isCreateErrorModules()) {
+								createEquivModule(ontologyId, equivalentNamedClassPairs);
+								
 							}
 							if (oortConfig.isAllowEquivalentNamedClassPairs() == false) {
 								// TODO: proper exception mechanism - delay until end?
@@ -895,6 +910,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 								}
 							}
 
+						}
+						else {
+							cleanupEquivModule(ontologyId);
 						}
 					}
 
@@ -927,6 +945,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 							logWarn("Found potential redundant subClass axioms");
 							List<String> reasons = new ArrayList<String>();
 							
+							if (oortConfig.isCreateErrorModules()) {
+								createPotentialRedundantModule(ontologyId, potentialRedundants);
+							}
 							// before printing group by relationship and sort by class A
 							Collections.sort(potentialRedundants, PotentialRedundant.PRINT_COMPARATOR);
 							
@@ -941,6 +962,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 								String message = "POTENTIAL_REDUNDANT\t"+reason;
 								reasonerReportLines.add(message);
 							}
+						}
+						else {
+							cleanupPotentialRedundantModule(ontologyId);
 						}
 					}
 					
@@ -1045,6 +1069,91 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return success;
 	}
 
+	// ----------------------------------------
+	// Methods for creating and deleting module files.
+	// The modules are only create, if the appropriate flag is set and one of the following conditions is meet:
+	// 1) Unsatisfiable class
+	// 2) Equivalences between names classes
+	// 3) potential redundant axioms
+	// 
+	// The modules are create using the OWL-API modularization strategy BottomUp (BOT).
+	// ----------------------------------------
+	
+	private void createEquivModule(String ontologyId, List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs)
+			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException
+	{
+		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		final String moduleName = "equivalent-classes";
+		createModule(ontologyId, moduleName, signature);
+	}
+	
+	private void createUnsatisfiableModule(String ontologyId, Collection<OWLEntity> unsatisfiable)
+			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException
+	{
+		Set<OWLEntity> signature = new HashSet<OWLEntity>(unsatisfiable);
+		
+		final String moduleName = "unsatisfiable";
+		createModule(ontologyId, moduleName, signature);
+	}
+	
+	private void createPotentialRedundantModule(String ontologyId, Collection<PotentialRedundant> redundants)
+			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException
+	{
+		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		for (PotentialRedundant redundant : redundants) {
+			signature.addAll(redundant.getAxiomOne().getSignature());
+			signature.addAll(redundant.getAxiomTwo().getSignature());
+		}
+		
+		final String moduleName = "potential-redundant";
+		createModule(ontologyId, moduleName, signature);
+	}
+
+	private void createModule(String ontologyId, String moduleName, Set<OWLEntity> signature)
+			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException 
+	{
+		// create a new manager, re-use factory
+		// avoid unnecessary change events
+		final OWLOntologyManager m = OWLManager.createOWLOntologyManager(mooncat.getManager().getOWLDataFactory());
+		
+		// extract module
+		SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, mooncat.getOntology(), ModuleType.BOT);
+		Set<OWLAxiom> moduleAxioms = sme.extract(signature);
+		
+		OWLOntology module = m.createOntology(IRI.generateDocumentIRI());
+		m.addAxioms(module, moduleAxioms);
+		
+		// save module
+		OutputStream moduleOutputStream = null;
+		try {
+			moduleOutputStream = getOutputSteam(getModuleFileName(ontologyId, moduleName));
+			m.saveOntology(module, moduleOutputStream);
+		}
+		finally {
+			IOUtils.closeQuietly(moduleOutputStream);
+		}
+	}
+
+	private String getModuleFileName(String ontologyId, String moduleName) {
+		return ontologyId+"-"+moduleName+"-module.owl";
+	}
+
+	private void cleanupEquivModule(String ontologyId) throws IOException {
+		cleanupFile(getModuleFileName(ontologyId, "equivalent-classes"));
+	}
+	
+	private void cleanupUnsatisfiableModule(String ontologyId) throws IOException {
+		cleanupFile(getModuleFileName(ontologyId, "unsatisfiable"));
+	}
+	
+	private void cleanupPotentialRedundantModule(String ontologyId) throws IOException {
+		cleanupFile(getModuleFileName(ontologyId, "potential-redundant"));
+	}
+
+	// ----------------------------------------
+	// Other Helper methods
+	// ----------------------------------------
+	
 	private void handleSimpleOntology(OWLGraphWrapper graph, String ontologyId, 
 			String version, OWLOntology gciOntology) throws OboOntologyReleaseRunnerCheckException,
 			OWLOntologyStorageException, IOException, OWLOntologyCreationException
@@ -1232,17 +1341,24 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		// A consistent ontology is a primary for sensible reasoning results. 
 		if (oortConfig.isCheckConsistency()) {
 			logInfo("Checking consistency");
-			List<String> incs = infBuilder.performConsistencyChecks();
-			if (incs.size() > 0) {
-				for (String inc  : incs) {
+			ConsistencyReport consistencyReport = infBuilder.performConsistencyChecks();
+			if (consistencyReport.errors.size() > 0) {
+				for (String inc : consistencyReport.errors) {
 					String message = "PROBLEM\t" + inc;
 					reasonerReportLines.add(message);
+				}
+				if (oortConfig.isCreateErrorModules() && consistencyReport.unsatisfiable != null && consistencyReport.unsatisfiable.isEmpty() == false) {
+					createUnsatisfiableModule(ontologyId, consistencyReport.unsatisfiable);
 				}
 				// TODO: proper exception mechanism - delay until end?
 				if (!oortConfig.isForceRelease()) {
 					saveReasonerReport(ontologyId, reasonerReportLines);
-					throw new OboOntologyReleaseRunnerCheckException("Found problems during intial checks.",incs, "Use ForceRelease option to ignore this warning.");
+					throw new OboOntologyReleaseRunnerCheckException("Found problems during intial checks.", 
+							consistencyReport.errors, "Use ForceRelease option to ignore this warning.");
 				}
+			}
+			else {
+				cleanupUnsatisfiableModule(ontologyId);
 			}
 			logInfo("Checking consistency completed");
 		}

@@ -2,6 +2,7 @@ package owltools;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -452,13 +454,27 @@ public class InferenceBuilder{
 	}
 
 
-	public List<String> performConsistencyChecks(){
+	public static class ConsistencyReport {
+		
+		public final List<String> errors;
+		public final Set<OWLEntity> unsatisfiable;
+		
+		ConsistencyReport(String error) {
+			this.errors = Collections.singletonList(error);
+			this.unsatisfiable = null;
+		}
 
-		List<String> errors = new ArrayList<String>();
+		ConsistencyReport(List<String> errors, Set<OWLEntity> unsatisfiable) {
+			this.errors = errors;
+			this.unsatisfiable = unsatisfiable;
+		}
+		
+	}
+	
+	public ConsistencyReport performConsistencyChecks(){
 
 		if(graph == null){
-			errors.add("The ontology is not set.");
-			return errors;
+			return new ConsistencyReport("The ontology is not set.");
 		}
 
 		OWLOntology ont = graph.getSourceOntology();
@@ -470,6 +486,8 @@ public class InferenceBuilder{
 
 		logInfo("Is the ontology consistent ....................." + consistent + ", " + (System.currentTimeMillis()-t1)/100);
 
+		List<String> errors = new ArrayList<String>();
+		Set<OWLEntity> unsatisfiable = new HashSet<OWLEntity>();
 		if(!consistent){
 			errors.add("The ontology '" + graph.getOntologyId() + " ' is not consistent");
 		}
@@ -488,11 +506,12 @@ public class InferenceBuilder{
 					continue;
 				}
 				errors.add ("unsatisfiable: " + graph.getIdentifier(cls) + " : " + graph.getLabel(cls));
+				unsatisfiable.add(cls);
 			}
 		}
 
 
-		return errors;
+		return new ConsistencyReport(errors, unsatisfiable);
 
 	}
 	
