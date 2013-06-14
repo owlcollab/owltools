@@ -43,6 +43,34 @@ import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
 import owltools.sim.SimEngine;
 
+/**
+ * See http://code.google.com/p/owltools/wiki/WebServices
+ * 
+ * <h2>Conventions</h2>
+ * 
+ * Any method whose method name ends in "Command" can be called as a web API call
+ * 
+ * For example, a call http://localhost:9031/getSubClasses?id=GO:0005634
+ * 
+ * runs {@link getSubClassesCommand()} 
+ * 
+ * Note the java method takes no arguments. For each web API call, a new OWLHandler object is created,
+ * with a new HttpServletRequest object, containing the http parameters of the web API call.
+ * 
+ * In this case the getSubClassesCommand() calls getParam("id") and uses the result to make the query 
+ * using the OWLAPI reasoner API.
+ * 
+ * The results of any of the API calls can be returned in a variety of formats including plaintext, json,
+ * or any OWL syntax. The implementing java method generally does not care about the format, it performs
+ * its task and calls the output(...) method on each result.
+ * 
+ * <h2>Future plans</h2>
+ *
+ * This API may be superseded by a Web API based on guice or similar framework
+ * 
+ * @author cjm
+ *
+ */
 public class OWLHandler {
 
 	private static Logger LOG = Logger.getLogger(OWLHandler.class);
@@ -112,30 +140,30 @@ public class OWLHandler {
 			return;
 		}
 		headerHTML();
-		println("<h1>OntologyID: "+this.getOWLOntology().getOntologyID()+"</h2>");
-		println("<ul>");
+		outputLine("<h1>OntologyID: "+this.getOWLOntology().getOntologyID()+"</h2>");
+		outputLine("<ul>");
 		for (OWLAnnotation ann : getOWLOntology().getAnnotations()) {
-			println("<li>");
-			print(ann.getProperty());
-			println("<b>"+ann.getValue().toString()+"</b>");
-			println("</li>");
+			outputLine("<li>");
+			output(ann.getProperty());
+			outputLine("<b>"+ann.getValue().toString()+"</b>");
+			outputLine("</li>");
 		}
-		println("</ul>");
+		outputLine("</ul>");
 	}
 
 	public void helpCommand() throws IOException {
 		headerHTML();
 		List<String> commands = new ArrayList<String>();
-		println("<ul>");
+		outputLine("<ul>");
 		for (Method m : this.getClass().getMethods()) {
 			String mn = m.getName();
 			if (mn.endsWith("Command")) {
 				String c = mn.replace("Command", "");
 				commands.add(c);
-				println("<li>"+c+"</li>");
+				outputLine("<li>"+c+"</li>");
 			}
 		}
-		println("</ul>");
+		outputLine("</ul>");
 	}
 
 	/**
@@ -153,12 +181,12 @@ public class OWLHandler {
 		LOG.info("finding subclasses of: "+cls+" using "+r);
 		int n = 0;
 		for (OWLClass sc : r.getSubClasses(cls, direct).getFlattened()) {
-			print(sc);
+			output(sc);
 			n++;
 		}
 		if (getParamAsBoolean(Param.reflexive, true)) {
 			for (OWLClass sc : r.getEquivalentClasses(cls)) {
-				print(sc);
+				output(sc);
 			}
 			n++;
 		}
@@ -180,11 +208,11 @@ public class OWLHandler {
 		LOG.info("finding superclasses of: "+cls);
 		LOG.info("R:"+r.getSuperClasses(cls, direct));
 		for (OWLClass sc : r.getSuperClasses(cls, direct).getFlattened()) {
-			print(sc);
+			output(sc);
 		}
 		if (getParamAsBoolean(Param.reflexive, true)) {
 			for (OWLClass sc : r.getEquivalentClasses(cls)) {
-				print(sc);
+				output(sc);
 			}	
 		}
 	}
@@ -202,7 +230,7 @@ public class OWLHandler {
 		OWLReasoner r = getReasoner();
 		for (OWLClass c : getOWLOntology().getClassesInSignature(true)) {
 			for (OWLClass sc : r.getSuperClasses(c, direct).getFlattened()) {
-				print(graph.getDataFactory().getOWLSubClassOfAxiom(c, sc));
+				output(graph.getDataFactory().getOWLSubClassOfAxiom(c, sc));
 			}
 		}
 	}
@@ -218,7 +246,7 @@ public class OWLHandler {
 		OWLObject obj = this.resolveEntity();
 		LOG.info("finding edges from: "+obj);
 		for (OWLGraphEdge e : graph.getOutgoingEdges(obj,isClosure,isReflexive)) {
-			print(e);
+			output(e);
 		}
 	}
 
@@ -262,10 +290,10 @@ public class OWLHandler {
 		String id = this.getParam(Param.id);
 		OWLClass cls = graph.getOWLClassByIdentifier(id);
 		for (OWLAxiom axiom : getOWLOntology().getAxioms(cls)) {
-			print(axiom);
+			output(axiom);
 		}
 		for (OWLAxiom axiom : getOWLOntology().getAnnotationAssertionAxioms(cls.getIRI())) {
-			print(axiom);
+			output(axiom);
 		}
 	}
 
@@ -319,7 +347,7 @@ public class OWLHandler {
 			mooncat.makeMinimalSubsetOntology(tObjs,
 					IRI.create("http://purl.obolibrary.org/obo/temporary"));
 		for (OWLAxiom axiom : subOnt.getAxioms()) {
-			print(axiom); // TODO
+			output(axiom); // TODO
 		}
 		graph.getManager().removeOntology(subOnt);
 	}
@@ -344,10 +372,10 @@ public class OWLHandler {
 				Set<OWLGraphEdge> edges = graph.getOutgoingEdgesClosure(testCls);
 				boolean isOk = tce.isClassApplicable(testCls, testTax, edges, taxAncs);
 				// TODO - other formats
-				print(testCls);
+				output(testCls);
 				print("\t");
-				print(testTax);
-				println("\t"+isOk);
+				output(testTax);
+				outputLine("\t"+isOk);
 			}
 		}
 	}
@@ -386,9 +414,6 @@ public class OWLHandler {
 		return parser.parseManchesterExpression(expr);
 	}
 
-
-
-
 	private Set<OWLObject> resolveEntityList() {
 		String[] ids = getParams(Param.id);
 		Set<OWLObject> objs = new HashSet<OWLObject>();
@@ -415,8 +440,8 @@ public class OWLHandler {
 
 	public void info(String msg) throws IOException {
 		headerHTML();
-		println("<h2>Command: "+this.getCommandName()+"</h2>");
-		println(msg);
+		outputLine("<h2>Command: "+this.getCommandName()+"</h2>");
+		outputLine(msg);
 	}
 
 	public void headerHTML() {
@@ -457,12 +482,12 @@ public class OWLHandler {
 
 
 
-	private void print(OWLAxiom axiom) throws IOException {
+	private void output(OWLAxiom axiom) throws IOException {
 		String fmt = getFormat();
 		if (fmt == null)
 			fmt = "";
 		if (fmt.equals("plain"))
-			println(axiom.toString());
+			outputLine(axiom.toString());
 		else if (isOWLOntologyFormat(fmt)) {
 			cache(axiom);
 		}
@@ -470,10 +495,10 @@ public class OWLHandler {
 			cache(axiom);
 		}
 		else
-			println(owlpp.render(axiom));
+			outputLine(owlpp.render(axiom));
 	}
 
-	private void println(String s) throws IOException {
+	private void outputLine(String s) throws IOException {
 		getWriter().println(s);
 	}
 	private void print(String s) throws IOException {
@@ -481,10 +506,10 @@ public class OWLHandler {
 	}
 
 
-	private void print(OWLObject obj) throws IOException {
+	private void output(OWLObject obj) throws IOException {
 		String fmt = getFormat();
 		if (fmt.equals("pretty"))
-			println(owlpp.render(obj));
+			outputLine(owlpp.render(obj));
 		else if (fmt.equals("json")) {
 			//JSONPrinter jsonp = new JSONPrinter(response.getWriter());
 			//jsonp.render(obj);
@@ -492,16 +517,16 @@ public class OWLHandler {
 		}
 		else if (isOWLOntologyFormat()) {
 			// TODO - place objects into ontology, eg as subclass of result
-			println(obj.toString());
+			outputLine(obj.toString());
 		}
 		else {
 			// TODO - do this more generically, e.g. within owlpp
 			if (getParam("idstyle") != null && obj instanceof OWLNamedObject) {
 				if (getParam("idstyle").toLowerCase().equals("obo")) {
-					println(graph.getIdentifier(obj));
+					outputLine(graph.getIdentifier(obj));
 				}
 				else {
-					println(obj.toString());
+					outputLine(obj.toString());
 				}
 			}
 			else 
@@ -509,15 +534,15 @@ public class OWLHandler {
 		}
 	}
 
-	private void print(OWLGraphEdge e) throws IOException {
+	private void output(OWLGraphEdge e) throws IOException {
 		if (isOWLOntologyFormat() || getFormat().equals("json")) {
 			// todo - json format for edge
 			OWLObject x = graph.edgeToTargetExpression(e);
 			LOG.info("EdgeToX:"+x);
-			print(x);
+			output(x);
 		}
 		else {
-			println(owlpp.render(e)); // todo - cache
+			outputLine(owlpp.render(e)); // todo - cache
 		}
 
 	}
@@ -617,6 +642,10 @@ public class OWLHandler {
 		return true;
 	}
 
+	/**
+	 * @param p
+	 * @return the value of http parameter with key p
+	 */
 	private String getParam(Param p) {
 		return request.getParameter(p.toString());
 	}

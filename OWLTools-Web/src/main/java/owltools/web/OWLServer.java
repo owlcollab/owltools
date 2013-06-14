@@ -30,6 +30,19 @@ import owltools.graph.OWLGraphWrapper;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
  
+/**
+ * 
+ * See http://code.google.com/p/owltools/wiki/WebServices
+ * 
+ * This is the core of the existing OWLTools services implementation
+ * 
+ * It takes web API calls, creates an OWLHandler object and calls the appropriate method
+ * 
+ * see OWLHandler for details
+ * 
+ * @author cjm
+ *
+ */
 public class OWLServer extends AbstractHandler
 {
  
