@@ -88,8 +88,15 @@ public class OntologyGeneralSolrDocumentLoader extends AbstractSolrLoader {
 		con_pps.add("consider");
 		String cons = StringUtils.join(graph.getAnnotationPropertyValues(c, con_pps), " ");
 
+		// Okay, pull out all of the variations on the ID for what people might expect in the ontology.
+		String gid = graph.getIdentifier(c);
+		String gid_no_namespace = StringUtils.substringAfter(gid, ":");
+		String gid_no_namespace_or_leading_zeros = StringUtils.stripStart(gid_no_namespace, "0");
+		
 		// All together now.
 		ArrayList<String> all = new ArrayList<String>();
+		all.add(gid_no_namespace);
+		all.add(gid_no_namespace_or_leading_zeros);
 		all.add(def);
 		all.add(com);
 		all.add(syns);
@@ -100,7 +107,7 @@ public class OntologyGeneralSolrDocumentLoader extends AbstractSolrLoader {
 
 		// Watch out for "id" collision!
 		SolrInputDocument general_doc = new SolrInputDocument();
-		general_doc.addField("id", "general_ontology_class_" + graph.getIdentifier(c));
+		general_doc.addField("id", "general_ontology_class_" + gid);
 		general_doc.addField("entity", graph.getIdentifier(c));
 		general_doc.addField("entity_label", graph.getLabel(c));
 		general_doc.addField("document_category", "general");
