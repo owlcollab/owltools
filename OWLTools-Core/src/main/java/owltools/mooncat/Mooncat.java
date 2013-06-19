@@ -1092,6 +1092,28 @@ public class Mooncat {
 		
 	}
 
+	public void extractModules() {
+		OWLOntology ont = graph.getSourceOntology();
+		extractModules(ont);
+	}
 
+
+
+	public void extractModules(OWLOntology ont) {
+		boolean isIncludeClosure = true;
+		Set<OWLOntology> ionts = ont.getImports();
+		Set<OWLClass> iclasses = new HashSet<OWLClass>();
+		for (OWLOntology iont : ionts) {
+			iclasses.addAll(iont.getClassesInSignature(isIncludeClosure));
+		}
+		extractModules(ont.getClassesInSignature(), iclasses);
+		
+	}
+
+	public void extractModules(Set<OWLClass> classesInSignature,
+			Set<OWLClass> iclasses) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
