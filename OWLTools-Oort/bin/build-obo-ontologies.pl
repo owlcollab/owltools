@@ -162,6 +162,9 @@ foreach my $k (keys %ont_info) {
                 if ($success) {
                     run("mv $SRC $SRC.prev");
                 }
+                else {
+                    debug("oort failed for: $SRC");
+                }
             }
             else {
                 debug("obo has not changed for $ont - will not rebuild");
@@ -447,7 +450,7 @@ sub get_ont_info {
          #},
          fbcv => {
              method => 'obo2owl',
-             source_url => 'http://sourceforge.net/p/fbcv/code-0/HEAD/tree/src/trunk/ontologies/fbcv-edit.obo',
+             source_url => 'http://sourceforge.net/p/fbcv/code-0/HEAD/tree/src/trunk/ontologies/fbcv-edit.obo?format=raw',
          },
          fbphenotype => {
              method => 'owl2obo',
