@@ -16,23 +16,23 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 
-public class DelimitedLineRenderer implements SimResultRenderer {
-	
+public class TabularRenderer implements SimResultRenderer {
+
 	private static NumberFormat doubleRenderer = new DecimalFormat("#.##########");
-	
+
 	boolean isHeaderLine = true;
-	
+
 	private final PrintStream resultOutStream;
 	private final String separator;
 	private final String commentPrefix;
-	
-	public DelimitedLineRenderer(PrintStream resultOutStream, String separator, String commentPrefix) {
+
+	public TabularRenderer(PrintStream resultOutStream, String separator, String commentPrefix) {
 		this.resultOutStream = resultOutStream;
 		this.separator = separator;
 		this.commentPrefix = commentPrefix;
 	}
-	
-	public DelimitedLineRenderer(PrintStream resultOutStream) {
+
+	public TabularRenderer(PrintStream resultOutStream) {
 		this(resultOutStream, "\t", "# ");
 	}
 
@@ -44,35 +44,65 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 		resultOutStream.print(commentPrefix);
 		resultOutStream.println(comment);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see owltools.sim.io.SimResultRenderer#printSim(owltools.sim.io.Foobar.SimScores, org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass, owltools.graph.OWLGraphWrapper)
 	 */
 	@Override
-	public void printAttributeSim(AttributesSimScores simScores, OWLGraphWrapper graph, OWLPrettyPrinter owlpp)
+	public void printAttributeSim(AttributesSimScores simScores, OWLGraphWrapper graph)
 	{
 		OWLClass a = simScores.a;
 		OWLClass b = simScores.b;
-		
-		//scores
-		renderAttScore(simScores.simjScoreLabel,simScores.simJScore,a,b,graph,owlpp);
-		renderAttScore(simScores.AsymSimJScoreLabel,simScores.AsymSimJScore,a,b,graph,owlpp);
-		
-		ScoreAttributePair lcs = simScores.lcsScore;
+		List<String> vals = new ArrayList<String>();
+		List<String> cols = new ArrayList<String>();
+		// elements
+		cols.add("A_ID");
+		vals.add(graph.getIdentifier(a));
+		cols.add("A_Label");
+		vals.add(graph.getLabel(a));
+		cols.add("B_ID");
+		vals.add(graph.getIdentifier(b));
+		cols.add("B_Label");
+		vals.add(graph.getLabel(b));
 
-		resultOutStream.print(simScores.lcsScorePrefix);
-		resultOutStream.print(separator);
-		resultOutStream.print(owlpp.render(a));
-		resultOutStream.print(separator);
-		resultOutStream.print(owlpp.render(b));
-		resultOutStream.print(separator);
-		resultOutStream.print(doubleRenderer.format(lcs.score));
-		resultOutStream.print(separator);
-		resultOutStream.print(graph.getIdentifier(lcs.attributeClass));
-		resultOutStream.print(separator);
-		resultOutStream.print(graph.getLabel(lcs.attributeClass));
-		resultOutStream.println();
-		
+		//scores
+		cols.add(simScores.simjScoreLabel);
+		if (simScores.simJScore != null) {
+			vals.add(doubleRenderer.format(simScores.simJScore));
+		}
+		else {
+			vals.add("");
+		}
+
+		cols.add(simScores.AsymSimJScoreLabel);
+		if (simScores.AsymSimJScore != null) {
+			vals.add(doubleRenderer.format(simScores.AsymSimJScore));
+		}
+		else {
+			vals.add("");
+		}
+
+		cols.add(simScores.lcsScorePrefix+"_Score");
+		cols.add(simScores.lcsScorePrefix);
+		cols.add(simScores.lcsScorePrefix+"_Label");
+
+		ScoreAttributePair lcs = simScores.lcsScore;
+		if (lcs != null) {
+			vals.add(doubleRenderer.format(lcs.score));
+			vals.add(graph.getIdentifier(lcs.attributeClass));
+			vals.add(graph.getLabel(lcs.attributeClass));
+		}
+		else {
+			vals.add("");
+			vals.add("");
+			vals.add("");
+		}
+
+		if (isHeaderLine) {
+			resultOutStream.println(StringUtils.join(cols, separator));
+			isHeaderLine = false;
+		}
+		resultOutStream.println(StringUtils.join(vals, separator));
 		resultOutStream.flush();
 	}
 
@@ -80,88 +110,103 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 	public void printIndividualPairSim(IndividualSimScores scores, OWLPrettyPrinter owlpp, OWLGraphWrapper graph) {
 		OWLNamedIndividual i = scores.i;
 		OWLNamedIndividual j = scores.j;
-		
-		resultOutStream.println("NumAnnots\t"+renderPair(i,j, owlpp)+"\t"+scores.numberOfElementsI+"\t"+scores.numberOfElementsJ);
+		Integer numannotsI = scores.numberOfElementsI;
+		Integer numannotsJ = scores.numberOfElementsJ;
 
-		if (scores.bmaAsymIC != null) {
-			renderIndividualScore(scores.bmaAsymICLabel, scores.bmaAsymIC.score, scores.bmaAsymIC.attributeClassSet, i, j, owlpp);
-		}
-		if (scores.bmaSymIC != null) {
-			renderIndividualScore(scores.bmaSymICLabel, scores.bmaSymIC.score, scores.bmaSymIC.attributeClassSet, i, j, owlpp);			
-		}
-		if (scores.bmaAsymJ != null) {
-			renderIndividualScore(scores.bmaAsymJLabel, scores.bmaAsymJ.score, scores.bmaAsymJ.attributeClassSet, i, j, owlpp);
-		}
-		if (scores.bmaSymJ != null) {
-			renderIndividualScore(scores.bmaSymJLabel, scores.bmaSymJ.score, scores.bmaSymJ.attributeClassSet, i, j, owlpp);
-		}
-		if (scores.simGIC != null) {
-			resultOutStream.print(scores.simGICLabel);
-			resultOutStream.print(separator);
-			resultOutStream.print(renderPair(i,j, owlpp));
-			resultOutStream.print(separator);
-			resultOutStream.print(doubleRenderer.format(scores.simGIC));
-			resultOutStream.println();
-		}
+
+		List<String> vals = new ArrayList<String>();
+		List<String> cols = new ArrayList<String>();
+
+		// elements
+		cols.add("A");
+		vals.add(graph.getIdentifier(i));
+		cols.add("A_Label");
+		vals.add(graph.getLabel(i));
+		cols.add("B_ID");
+		vals.add(graph.getIdentifier(j));
+		cols.add("B_Label");
+		vals.add(graph.getLabel(j));
+
+		cols.add("NumAnnots A");
+		vals.add(numannotsI.toString());
+
+		cols.add("NumAnnots B");
+		vals.add(numannotsJ.toString());
+
+		cols.add(scores.maxICLabel);
+		cols.add(scores.maxICLabel + " Term");
 		if (scores.maxIC != null) {
-			renderIndividualScore(scores.maxICLabel, scores.maxIC.score, scores.maxIC.attributeClassSet, i, j, owlpp);
+			vals.add(doubleRenderer.format(scores.maxIC.score));
+			//should just be a single term with the max(maxIC)
+			vals.add(show(scores.maxIC.attributeClassSet, owlpp).toString());
+		}	else {
+			vals.add("");
+			vals.add("");
 		}
+
+		cols.add(scores.bmaAsymICLabel);
+		cols.add(scores.bmaAsymICLabel + " Terms");
+		if (scores.bmaAsymIC != null) {			
+			vals.add(doubleRenderer.format(scores.bmaAsymIC.score));
+			//terms in common
+			vals.add(show(scores.bmaAsymIC.attributeClassSet, owlpp).toString());
+		} else {
+			vals.add("");
+			vals.add("");
+		}
+
+		if (scores.bmaSymIC != null) {
+			vals.add(doubleRenderer.format(scores.bmaSymIC.score));
+		} else {
+			vals.add("");
+		}
+
+		cols.add(scores.simjScoreLabel);
 		if (scores.simjScore != null) {
-			resultOutStream.print(scores.simjScoreLabel);
-			resultOutStream.print(separator);
-			resultOutStream.print(renderPair(i,j, owlpp));
-			resultOutStream.print(separator);
-			resultOutStream.print(doubleRenderer.format(scores.simjScore));
-			resultOutStream.println();
+			vals.add(doubleRenderer.format(scores.simjScore));
 		}
-		
+		else {
+			vals.add("");
+		}
+
+		cols.add(scores.bmaAsymJLabel);
+		if (scores.bmaAsymJ != null) {
+			vals.add(doubleRenderer.format(scores.bmaAsymJ.score));
+		}	else {
+			vals.add("");
+		}
+
+		cols.add(scores.bmaSymJLabel);
+		if (scores.bmaSymJ != null) {
+			vals.add(doubleRenderer.format(scores.bmaSymJ.score));
+		} else {
+			vals.add("");
+		}
+
+		cols.add(scores.simGICLabel);
+		if (scores.simGIC != null) {
+			vals.add(doubleRenderer.format(scores.simGIC));
+		} else {
+			vals.add("");
+		}		
+
+		if (isHeaderLine) {
+			resultOutStream.println(StringUtils.join(cols, separator));
+			isHeaderLine = false;
+		}
+
+		resultOutStream.println(StringUtils.join(vals, separator));
+
 		resultOutStream.flush();
 	}
 
-	protected void renderIndividualScore(String label, double score, Set<OWLClassExpression> attributeClassSet, OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
-		resultOutStream.print(label);
-		resultOutStream.print(separator);
-		resultOutStream.print(renderPair(i,j, owlpp));
-		resultOutStream.print(separator);
-		resultOutStream.print(score);
-		resultOutStream.print(separator);
-		resultOutStream.print(show(attributeClassSet, owlpp));
-		resultOutStream.println();
-	}
-	
-	protected void renderAttScore(String label, double score, OWLClass a, OWLClass b, OWLGraphWrapper g, OWLPrettyPrinter owlpp) {
-		resultOutStream.print(label);
-		resultOutStream.print(separator);
-		resultOutStream.print(owlpp.render(a));
-		resultOutStream.print(separator);
-		resultOutStream.print(owlpp.render(b));
-		resultOutStream.print(separator);
-		resultOutStream.print(doubleRenderer.format(score));
-		resultOutStream.print(separator);
-		resultOutStream.println();
-	}
-	
-	protected void renderAttScoreWithIndividuals(String label, double score, OWLClass a, OWLClass b, OWLNamedIndividual i, OWLNamedIndividual j, OWLGraphWrapper g, OWLPrettyPrinter owlpp) {
-		resultOutStream.print(label);
-		resultOutStream.print(separator);
-		resultOutStream.print(renderPair(i,j, owlpp));
-		resultOutStream.print(separator);
-		resultOutStream.print(owlpp.render(a));
-		resultOutStream.print(separator);
-		resultOutStream.print(owlpp.render(b));
-		resultOutStream.print(separator);
-		resultOutStream.print(doubleRenderer.format(score));
-		resultOutStream.print(separator);
-		resultOutStream.println();
-	}
 
-	
 	protected CharSequence renderPair(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(owlpp.render(i)).append(this.separator).append(owlpp.render(j));
 		return sb;
 	}
-	
+
 	protected CharSequence show(Set<OWLClassExpression> cset, OWLPrettyPrinter owlpp) {
 		StringBuffer sb = new StringBuffer();
 		for (OWLClassExpression c : cset) {
@@ -173,7 +218,7 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 	@Override
 	public void printAttributeSimWithIndividuals(AttributesSimScores simScores, OWLPrettyPrinter owlpp,
 			OWLGraphWrapper g, OWLNamedIndividual i, OWLNamedIndividual j) {
-		// TODO Auto-generated method stub
+
 		OWLClass a = simScores.a;
 		OWLClass b = simScores.b;
 		List<String> vals = new ArrayList<String>();
@@ -238,7 +283,7 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 
 	@Override
 	public void printAttributeSim(AttributesSimScores simScores,
-			OWLGraphWrapper graph) {
+			OWLGraphWrapper graph, OWLPrettyPrinter owlpp) {
 		// TODO Auto-generated method stub
 		
 	}

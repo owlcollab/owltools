@@ -1,17 +1,22 @@
 package owltools.cli;
 
 import java.io.BufferedOutputStream;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -20,6 +25,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.reasoner.Node;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.graph.OWLGraphWrapper;
@@ -28,11 +34,13 @@ import owltools.sim.io.DelimitedLineRenderer;
 import owltools.sim.io.SimResultRenderer;
 import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim.io.SimResultRenderer.IndividualSimScores;
+import owltools.sim.io.TabularRenderer;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
 import owltools.sim2.SimpleOwlSim.EnrichmentResult;
 import owltools.sim2.SimpleOwlSim.Metric;
+import owltools.sim2.SimpleOwlSim.OutputFormat;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
@@ -45,32 +53,45 @@ import owltools.sim2.preprocessor.SimPreProcessor;
  * Semantic similarity and information content.
  * 
  * @author cjm
- *
+ * 
  */
 public class Sim2CommandRunner extends SimCommandRunner {
 
 	private static final Logger LOG = Logger.getLogger(Sim2CommandRunner.class);
 
 	private OWLOntology simOnt = null;
+
 	private String defaultPropertiesFile = "default-sim.properties";
+
 	SimpleOwlSim sos;
+
 	SimPreProcessor pproc;
+
 	Properties simProperties = null;
+
 	int numberOfPairsFiltered = 0;
+
 	protected PrintStream resultOutStream = System.out;
 
 	private void initProperties() {
 		simProperties = new Properties();
-    //TODO: load a default properties file
-		simProperties.setProperty(SimConfigurationProperty.minimumMaxIC.toString(), SimConfigurationProperty.minimumMaxIC.defaultValue());
-		simProperties.setProperty(SimConfigurationProperty.minimumSimJ.toString(), SimConfigurationProperty.minimumSimJ.defaultValue());
+		// TODO: load a default properties file
+		simProperties.setProperty(SimConfigurationProperty.minimumMaxIC.toString(),
+				SimConfigurationProperty.minimumMaxIC.defaultValue());
+		simProperties.setProperty(SimConfigurationProperty.minimumSimJ.toString(),
+				SimConfigurationProperty.minimumSimJ.defaultValue());
+		simProperties.setProperty(SimConfigurationProperty.outputFormat.toString(),
+				SimConfigurationProperty.outputFormat.defaultValue());
 
-    /*by default, turn off metrics*/		
-//		String[] metrics = SimConfigurationProperty.scoringMetrics.toString().split(",");
-//		for (int i=0; i<Metric.values().length; i++) {
-//    	simProperties.setProperty(Metric.values()[i].toString(),"0");
-//    }    
-		simProperties.setProperty(SimConfigurationProperty.scoringMetrics.toString(),SimConfigurationProperty.scoringMetrics.defaultValue());    
+		/* by default, turn off metrics */
+		// String[] metrics =
+		// SimConfigurationProperty.scoringMetrics.toString().split(",");
+		// for (int i=0; i<Metric.values().length; i++) {
+		// simProperties.setProperty(Metric.values()[i].toString(),"0");
+		// }
+		simProperties.setProperty(
+				SimConfigurationProperty.scoringMetrics.toString(),
+				SimConfigurationProperty.scoringMetrics.defaultValue());
 	}
 
 	public String getProperty(SimConfigurationProperty p) {
@@ -85,12 +106,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		return Double.valueOf(v);
 	}
 
-
-
 	@CLIMethod("--save-sim")
 	public void saveSim(Opts opts) throws Exception {
-		opts.info("FILE", "saves similarity results as an OWL ontology. Use after --sim or --sim-all");
-		pw.saveOWL(simOnt, opts.nextOpt(),g);
+		opts.info("FILE",
+				"saves similarity results as an OWL ontology. Use after --sim or --sim-all");
+		pw.saveOWL(simOnt, opts.nextOpt(), g);
 	}
 
 	@CLIMethod("--merge-sim")
@@ -98,17 +118,16 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		g.mergeOntology(simOnt);
 	}
 
-
 	@CLIMethod("--remove-dangling-annotations")
 	public void removeDangningAnnotations(Opts opts) throws Exception {
 		OWLOntology ont = g.getSourceOntology();
-		int n=0;
+		int n = 0;
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
 			for (OWLClassAssertionAxiom ca : ont.getClassAssertionAxioms(i)) {
 				OWLClassExpression cx = ca.getClassExpression();
 				if (cx instanceof OWLClass) {
-					OWLClass c = (OWLClass)cx;
+					OWLClass c = (OWLClass) cx;
 					String label = g.getLabel(c);
 					if (label == null)
 						rmAxioms.add(ca);
@@ -117,32 +136,122 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				}
 			}
 		}
-		LOG.info("Removing "+rmAxioms.size()+" axioms");
+		LOG.info("Removing " + rmAxioms.size() + " axioms");
 		ont.getOWLOntologyManager().removeAxioms(ont, rmAxioms);
-		LOG.info("Remaining: "+n+" axioms");
+		LOG.info("Remaining: " + n + " axioms");
 	}
 
 	public void attributeAllByAll(Opts opts) {
 		try {
 			sos.setSimProperties(simProperties);
 			Set<OWLClass> atts = sos.getAllAttributeClasses();
-			LOG.info("All by all for "+atts.size()+" classes");
-			SimResultRenderer renderer = new DelimitedLineRenderer(resultOutStream);
-			//print a header in the file that details what was done
-			for (Object k : simProperties.keySet()){
-				renderer.printComment(k+" = "+simProperties.getProperty(k.toString()));
+			LOG.info("All by all for " + atts.size() + " classes");
+
+			//set the renderer
+			SimResultRenderer renderer = setRenderer();
+
+			// print a header in the file that details what was done
+			for (Object k : simProperties.keySet()) {
+				renderer.printComment(k + " = "
+						+ simProperties.getProperty(k.toString()));
 			}
 
 			for (OWLClass i : atts) {
 				for (OWLClass j : atts) {
-					AttributesSimScores scores = computeSim(i,j);
+					//TODO: isComparable?
+					AttributesSimScores scores = computeSim(i, j);
 					renderSim(scores, renderer);
 				}
 			}
-			LOG.info("FINISHED All by all for "+atts.size()+" classes");
-			//LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
-		}finally {
+			LOG.info("FINISHED All by all for " + atts.size() + " classes");
+			// LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
+		} finally {
 			IOUtils.closeQuietly(resultOutStream);
+		}
+	}
+
+	/**
+	 * Iterates through all individuals, generating similarity calculations for
+	 * each of its attributes (ontology classes). As opposed to
+	 * 
+	 * {@link attributeAllByAll }, which outputs the comparison of any two attributes only
+	 *                     ever once, this method will necessarily output the
+	 *                     pairwise-comparison repeatedly, if the same two
+	 *                     attributes belong to two different sets of individuals.
+	 * 
+	 * @param opts
+	 */
+	public void attributeSimilarityAllByAllPairwise(Opts opts) {
+		try {
+			sos.setSimProperties(simProperties);
+			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
+					.getIndividualsInSignature();
+
+			LOG.info("Pairwise attribute comparison for " + insts.size()
+					+ " individuals");
+			
+			//set the renderer
+			SimResultRenderer renderer = setRenderer();
+
+			renderer.printComment("All-by-all pairwise attribute similarity");
+
+			int attrCounter = 0;
+			int comparableCounter = 0;
+			for (OWLNamedIndividual i : insts) {
+				for (OWLNamedIndividual j : insts) {
+					if (isComparable(i, j)) {
+						comparableCounter += 1;
+						attributeSimilarityByPair(i, j);
+						attrCounter += (sos.getAttributesForElement(i).size() + sos
+								.getAttributesForElement(j).size());
+					} else {
+						LOG.info("skipping (not comparable): " + i + " + " + j);
+					}
+				}
+			}
+
+			LOG.info("FINISHED Pairwise All by all for " + comparableCounter
+					+ " comparable individuals containing " + attrCounter + " classes");
+			// LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
+		} finally {
+			IOUtils.closeQuietly(resultOutStream);
+		}
+	}
+
+	/**
+	 * Given two individuals, this fetches their respective attributes, computes
+	 * their similarity (LCS), and renders the scores for all attribute-pairs.
+	 * This assumes that i and j are comparable. This is not smart by any means,
+	 * and therefore it is possible that (a,b) and (b,a) comparisons may be 
+	 * included in the same output.
+	 * 
+	 * @param i
+	 * @param j
+	 */
+	public void attributeSimilarityByPair(OWLNamedIndividual i,
+			OWLNamedIndividual j) {
+		if (isComparable(i, j)) {
+			try {
+				sos.setSimProperties(simProperties);
+
+				//set the renderer
+				SimResultRenderer renderer = setRenderer();
+
+
+				Set<OWLClass> iatts = sos.getAttributesForElement(i);
+				Set<OWLClass> jatts = sos.getAttributesForElement(j);
+				for (OWLClass a : iatts) {
+					for (OWLClass b : jatts) {
+						AttributesSimScores scores = computeSim(a, b);
+//						renderSim(scores, renderer);
+						renderAttrSimWithIndividuals(i, j, renderer, scores);
+					}
+				}
+			} finally {
+				IOUtils.closeQuietly(resultOutStream);
+			}
+		} else {
+			LOG.info("skipping (not comparable): " + i + " + " + j);
 		}
 	}
 
@@ -150,7 +259,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	/**
 	 * performs all by all individual comparison
-	 * @param opts 
+	 * 
+	 * @param opts
 	 */
 	public void runOwlSim(Opts opts) {
 		try {
@@ -159,46 +269,53 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				runOwlSimOnQuery(opts, opts.nextOpt());
 				return;
 			}
-			Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
-			LOG.info("All by all for "+insts.size()+" individuals");
+			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
+					.getIndividualsInSignature();
+			LOG.info("All by all for " + insts.size() + " individuals");
 
-			SimResultRenderer renderer = new DelimitedLineRenderer(resultOutStream);
-			
-			//print a header in the file that details what was done
+			//set the renderer
+			SimResultRenderer renderer = setRenderer();
+
+			// print a header in the file that details what was done
 			renderer.printComment("Properties for this run:");
-			for (Object k : simProperties.keySet()){
-				renderer.printComment(k+" = "+simProperties.getProperty(k.toString()));
-				//TODO: output if the property is default
+			for (Object k : simProperties.keySet()) {
+				renderer.printComment(k + " = "
+						+ simProperties.getProperty(k.toString()));
+				// TODO: output if the property is default
 			}
 			resultOutStream.flush();
 			for (OWLNamedIndividual i : insts) {
 				for (OWLNamedIndividual j : insts) {
 					// similarity is symmetrical
-					if (isComparable(i,j)) {
-						IndividualSimScores scores = computeSim(i,j);
+					if (isComparable(i, j)) {
+						IndividualSimScores scores = computeSim(i, j);
+						sos.simStats.incrementIndividualPairCount();
+						sos.simStats.incrementClassPairCount(scores.numberOfElementsI * scores.numberOfElementsJ);
 						renderSim(scores, renderer);
-					}
-					else {
-						LOG.info("skipping "+i+" + "+j);
+					} else {
+						LOG.info("skipping " + i + " + " + j);
 					}
 				}
 			}
-			LOG.info("FINISHED All by all for "+insts.size()+" individuals");
-			LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
-		}
-		finally{
+			LOG.info("FINISHED All by all for " + insts.size() + " individuals");
+			LOG.info("Number of pairs filtered as they scored beneath threshold: "
+					+ this.numberOfPairsFiltered);
+		} finally {
 			IOUtils.closeQuietly(resultOutStream);
 		}
 	}
 
 	private void runOwlSimOnQuery(Opts opts, String q) {
-		System.out.println("Query: "+q);
+		System.out.println("Query: " + q);
 		OWLNamedIndividual qi = (OWLNamedIndividual) resolveEntity(q);
-		System.out.println("Query Individual: "+qi);
-		Set<OWLNamedIndividual> insts = pproc.getOutputOntology().getIndividualsInSignature();
-		SimResultRenderer renderer = new DelimitedLineRenderer(resultOutStream);
+		System.out.println("Query Individual: " + qi);
+		Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
+				.getIndividualsInSignature();
+
+		SimResultRenderer renderer = setRenderer();
+
 		for (OWLNamedIndividual j : insts) {
-			IndividualSimScores scores = computeSim(qi,j);
+			IndividualSimScores scores = computeSim(qi, j);
 			renderSim(scores, renderer);
 		}
 
@@ -208,29 +325,45 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		String cmp = getProperty(SimConfigurationProperty.compare);
 		if (cmp == null) {
 			return i.compareTo(j) > 0;
-		}
-		else {
+		} else {
 			String[] idspaces = cmp.split(",");
-			if (i.getIRI().toString().contains("/"+idspaces[0]+"_") &&
-					j.getIRI().toString().contains("/"+idspaces[1]+"_")) {
+			if (i.getIRI().toString().contains("/" + idspaces[0] + "_")
+					&& j.getIRI().toString().contains("/" + idspaces[1] + "_")) {
 				return true;
-			}
-			else {
+			} else {
 				return false;
 			}
 		}
 	}
 
 	boolean isHeaderLine = true;
-	
-	private void renderSim(AttributesSimScores simScores, SimResultRenderer renderer) {
+
+	private void renderSim(AttributesSimScores simScores,
+			SimResultRenderer renderer) {
 		simScores.simjScoreLabel = "SimJ_Score";
 		simScores.AsymSimJScoreLabel = "AsymSimJ_Score";
 		simScores.lcsScorePrefix = "LCS";
 		renderer.printAttributeSim(simScores, g);
 	}
 	
-	private void renderSim(IndividualSimScores simScores, SimResultRenderer renderer) {
+	/**
+	 * @param i
+	 * @param j
+	 * @param renderer
+	 * @param scores
+	 */
+	private void renderAttrSimWithIndividuals(OWLNamedIndividual i,
+			OWLNamedIndividual j, SimResultRenderer renderer,
+			AttributesSimScores simScores) {
+		simScores.simjScoreLabel = "SimJ_Score";
+		simScores.AsymSimJScoreLabel = "AsymSimJ_Score";
+		simScores.lcsScorePrefix = "LCS";
+		renderer.printAttributeSimWithIndividuals(simScores, getPrettyPrinter(), g, i, j);
+
+	}
+
+	private void renderSim(IndividualSimScores simScores,
+			SimResultRenderer renderer) {
 		simScores.simjScoreLabel = "SimJ_Score";
 		simScores.maxICLabel = Metric.MAXIC.toString();
 		simScores.simjScoreLabel = Metric.SIMJ.toString();
@@ -241,7 +374,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		simScores.simGICLabel = "SimGIC";
 		renderer.printIndividualPairSim(simScores, getPrettyPrinter(), g);
 	}
-	
+
 	/**
 	 * Compute the attribute x attribute (class x class) similarity
 	 * 
@@ -250,88 +383,113 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * @return scores
 	 */
 	private AttributesSimScores computeSim(OWLClass a, OWLClass b) {
-		
+
 		AttributesSimScores scores = new AttributesSimScores(a, b);
 		double simJScore = sos.getAttributeJaccardSimilarity(a, b);
 		if (simJScore < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
-			numberOfPairsFiltered ++;
+			numberOfPairsFiltered++;
 			return scores;
 		}
 		scores.simJScore = simJScore;
-		
+
 		scores.AsymSimJScore = sos.getAsymmerticAttributeJaccardSimilarity(a, b);
-		
+
 		ScoreAttributePair lcsScore = sos.getLowestCommonSubsumerIC(a, b);
-		if ( lcsScore.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
-			numberOfPairsFiltered ++;
+		if (lcsScore.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
+			numberOfPairsFiltered++;
 			return scores;
 		}
 		scores.lcsScore = lcsScore;
-		
+
 		return scores;
 	}
 
-	private IndividualSimScores computeSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+	private IndividualSimScores computeSim(OWLNamedIndividual i,
+			OWLNamedIndividual j) {
 
 		IndividualSimScores scores = new IndividualSimScores(i, j);
-		
+
 		scores.numberOfElementsI = sos.getAttributesForElement(i).size();
 		scores.numberOfElementsJ = sos.getAttributesForElement(j).size();
+				
+		String[] metrics = getProperty(SimConfigurationProperty.scoringMetrics)
+				.split(",");
 		
-		String[] metrics = getProperty(SimConfigurationProperty.scoringMetrics).split(",");
-
-		//only do this test if we end up using the IC measures
+		// only do this test if we end up using the IC measures
 		for (String metric : metrics) {
-			if (sos.isICmetric(metric)) {				
+			if (sos.isICmetric(metric)) {
 				ScoreAttributesPair maxIC = sos.getSimilarityMaxIC(i, j);
 				if (maxIC.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
-					numberOfPairsFiltered ++;
+					numberOfPairsFiltered++;
 					return scores;
 				}
 				scores.maxIC = maxIC;
-				break;  //only need to test once.
+				sos.simStats.setMax(Metric.MAXIC,scores.maxIC.score);
+				break; // only need to test once.
 			}
 		}
 
-		//only do this test if we end up using the J measures
+		// only do this test if we end up using the J measures
 		for (String metric : metrics) {
-			if (sos.isJmetric(metric)) {				
+			if (sos.isJmetric(metric)) {
 				double simJ = sos.getElementJaccardSimilarity(i, j);
 				if (simJ < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
-					numberOfPairsFiltered ++;
+					numberOfPairsFiltered++;
 					return scores;
 				}
 				scores.simjScore = simJ;
-				break; //only need to test once.
+				sos.simStats.setMax(Metric.SIMJ,scores.simjScore);
+				break; // only need to test once.
 			}
 		}
 
 		for (String metric : metrics) {
 			if (metric.equals(Metric.IC_MCS.toString())) {
-				scores.bmaAsymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
-				//TODO: do reciprocal BMA
-				scores.bmaSymIC = sos.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.AVERAGE);		
+				scores.bmaAsymIC = sos.getSimilarityBestMatchAverage(i, j,
+						Metric.IC_MCS, Direction.A_TO_B);
+				sos.simStats.setMax(Metric.IC_MCS,scores.bmaAsymIC.score);
+				// TODO: do reciprocal BMA
+				scores.bmaSymIC = sos.getSimilarityBestMatchAverage(i, j,
+						Metric.IC_MCS, Direction.AVERAGE);
 			} else if (metric.equals(Metric.JACCARD.toString())) {
-				scores.bmaAsymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.A_TO_B);
-				//TODO: do reciprocal BMA
-				scores.bmaSymJ = sos.getSimilarityBestMatchAverage(i, j, Metric.JACCARD, Direction.AVERAGE);
+				scores.bmaAsymJ = sos.getSimilarityBestMatchAverage(i, j,
+						Metric.JACCARD, Direction.A_TO_B);
+				// TODO: do reciprocal BMA
+				sos.simStats.setMax(Metric.JACCARD,scores.bmaAsymJ.score);
+				scores.bmaSymJ = sos.getSimilarityBestMatchAverage(i, j,
+						Metric.JACCARD, Direction.AVERAGE);
 			} else if (metric.equals(Metric.GIC.toString())) {
-				scores.simGIC = sos.getElementGraphInformationContentSimilarity(i,j);
+				scores.simGIC = sos.getElementGraphInformationContentSimilarity(i, j);
 			}
 		}
 		return scores;
+	}
+
+
+	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j,
+			OWLPrettyPrinter owlpp) {
+		// return i+"\t"+owlpp.render(i)+"\t"+j+"\t"+owlpp.render(j);
+		return owlpp.render(i) + "\t" + owlpp.render(j);
+	}
+
+	private String renderAttributes(Set<Node<OWLClass>> atts,
+			OWLPrettyPrinter owlpp) {
+		List<String> s = new ArrayList<String>();
+		for (Node<OWLClass> n : atts) {
+			OWLClass c = n.getRepresentativeElement();
+			s.add(owlpp.render(c));
+		}
+		return (StringUtils.join(s, " | "));
 	}
 
 	protected void loadProperties(Opts opts) throws IOException {
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-p|--properties")) {
 				loadProperties(opts.nextOpt());
-	      //need to check if metrics are valid          	        
-			}
-			else if (opts.nextEq("--set")) {
+				// need to check if metrics are valid
+			} else if (opts.nextEq("--set")) {
 				simProperties.setProperty(opts.nextOpt(), opts.nextOpt());
-			}
-			else if (opts.nextEq("-o")) {
+			} else if (opts.nextEq("-o")) {
 				String file = opts.nextOpt();
 				FileOutputStream fos;
 				try {
@@ -341,23 +499,20 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}
-			else {
+			} else {
 				break;
 			}
 		}
-		//TODO:perhaps there should be a default simProperties file?
+		// TODO:perhaps there should be a default simProperties file?
 		if (simProperties == null) {
 			initProperties();
 		}
 	}
 
-
 	private void loadProperties(String fn) throws IOException {
-		if (simProperties == null)
-			this.initProperties();
+		if (simProperties == null) this.initProperties();
 		FileInputStream myInputStream = new FileInputStream(fn);
-		simProperties.load(myInputStream);        
+		simProperties.load(myInputStream);
 
 		try {
 			showSimProperties(null);
@@ -372,10 +527,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	@CLIMethod("--show-sim-properties")
 	public void showSimProperties(Opts opts) throws Exception {
-		for (Object k : simProperties.keySet()){
-			System.out.println("# "+k+" = "+simProperties.getProperty(k.toString()));
+		for (Object k : simProperties.keySet()) {
+			System.out.println("# " + k + " = "
+					+ simProperties.getProperty(k.toString()));
 		}
 	}
+
 	@CLIMethod("--set-sim-property")
 	public void setSimProperty(Opts opts) throws Exception {
 		if (simProperties == null) {
@@ -400,11 +557,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			sos.createElementAttributeMapFromOntology();
 			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
 			runOwlSim(opts);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			LOG.info("clearing up...");
 			if (pproc != null) {
 				pproc.dispose();
@@ -429,11 +584,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			sos.createElementAttributeMapFromOntology();
 			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
 			attributeAllByAll(opts);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			LOG.info("clearing up...");
 			if (pproc != null) {
 				pproc.dispose();
@@ -442,16 +595,14 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	}
 
-
 	@CLIMethod("--sim-resume")
 	public void simResume(Opts opts) throws Exception {
 		loadProperties(opts);
 		OWLOntology ont = pw.parse("file:///tmp/phenosim-analysis-ontology.owl");
 		if (g == null) {
-			g =	new OWLGraphWrapper(ont);
-		}
-		else {
-			System.out.println("adding support ont "+ont);
+			g = new OWLGraphWrapper(ont);
+		} else {
+			System.out.println("adding support ont " + ont);
 			g.addSupportOntology(ont);
 		}
 		try {
@@ -463,17 +614,14 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			sos.setSimPreProcessor(pproc);
 			sos.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			if (pproc != null) {
 				pproc.dispose();
 			}
 		}
 	}
-
 
 	@CLIMethod("--sim-basic")
 	public void simBasic(Opts opts) throws Exception {
@@ -481,13 +629,15 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		loadProperties(opts);
 		try {
 			pproc = new NullSimPreProcessor();
-			if (simProperties.containsKey(SimConfigurationProperty.analysisRelation.toString())) {
+			if (simProperties.containsKey(SimConfigurationProperty.analysisRelation
+					.toString())) {
 				pproc = new PropertyViewSimPreProcessor();
-				String relId = (String) simProperties.get((SimConfigurationProperty.analysisRelation.toString()));
+				String relId = (String) simProperties
+						.get((SimConfigurationProperty.analysisRelation.toString()));
 				OWLObjectProperty rel = g.getOWLObjectPropertyByIdentifier(relId);
-				PropertyViewSimPreProcessor xpproc = ((PropertyViewSimPreProcessor)pproc);
-				
-				LOG.info("View relation = "+rel);
+				PropertyViewSimPreProcessor xpproc = ((PropertyViewSimPreProcessor) pproc);
+
+				LOG.info("View relation = " + rel);
 				xpproc.analysisRelation = rel;
 			}
 			pproc.setSimProperties(simProperties);
@@ -498,11 +648,25 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.preprocess();
 			sos.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
-		}
-		finally {
+		} finally {
 			pproc.dispose();
 		}
 	}
+	
+
+	/**
+	 * This method will report to the user some metadata about the previous similarity
+	 * run.  The similarity run will save some basic statistics into the 
+	 * properties, which are recalled here.  Included stats are: counts, min/max per metric,
+	 * and more TBD.
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--sim-basic-stats")
+	public void simBasicStats() throws Exception {
+		//TODO: iterate over all metrics, and print out results, perhaps put method into renderer
+		LOG.info(Metric.JACCARD.name() + " max: " + sos.simStats.getMax(Metric.JACCARD));		
+	}	
 
 	@CLIMethod("--sim-dl-query")
 	public void simDlQuery(Opts opts) throws Exception {
@@ -516,13 +680,10 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			sos.setSimPreProcessor(pproc);
 			sos.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
-		}
-		finally {
+		} finally {
 			pproc.dispose();
 		}
 	}
-
-
 
 	@CLIMethod("--sim-compare-atts")
 	public void simAttMatch(Opts opts) throws Exception {
@@ -536,8 +697,24 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			sos.setSimPreProcessor(pproc);
 			sos.createElementAttributeMapFromOntology();
 			this.attributeAllByAll(opts);
+		} finally {
+			pproc.dispose();
 		}
-		finally {
+	}
+
+	@CLIMethod("--sim-pair-compare-atts")
+	public void simPairwiseAttMatch(Opts opts) throws Exception {
+		// assumes that individuals in abox are of types named classes in tbox
+		loadProperties(opts);
+		try {
+			pproc = new NullSimPreProcessor();
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.setSimPreProcessor(pproc);
+			sos.createElementAttributeMapFromOntology();
+			this.attributeSimilarityAllByAllPairwise(opts);
+		} finally {
 			pproc.dispose();
 		}
 	}
@@ -554,25 +731,23 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		EnrichmentConfig ec = new EnrichmentConfig();
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-p")) {
-				ec.pValueCorrectedCutoff = Double.parseDouble(opts.nextOpt());				
-			}
-			else if (opts.nextEq("-i")) {
-				ec.attributeInformationContentCutoff = Double.parseDouble(opts.nextOpt());				
-			}
-			else 
+				ec.pValueCorrectedCutoff = Double.parseDouble(opts.nextOpt());
+			} else if (opts.nextEq("-i")) {
+				ec.attributeInformationContentCutoff = Double.parseDouble(opts
+						.nextOpt());
+			} else
 				break;
 		}
 		sos.setEnrichmentConfig(ec);
 		OWLClass rc1 = this.resolveClass(opts.nextOpt());
 		OWLClass rc2 = this.resolveClass(opts.nextOpt());
 		OWLClass pc = g.getDataFactory().getOWLThing();
-		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1, rc2);
+		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1,
+				rc2);
 		for (EnrichmentResult result : results) {
 			System.out.println(render(result, owlpp));
 		}
 	}
-
-
 
 	// NEW
 	@CLIMethod("--all-by-all-enrichment-analysis")
@@ -586,27 +761,51 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		EnrichmentConfig ec = new EnrichmentConfig();
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-p")) {
-				ec.pValueCorrectedCutoff = Double.parseDouble(opts.nextOpt());				
-			}
-			else if (opts.nextEq("-i")) {
-				ec.attributeInformationContentCutoff = Double.parseDouble(opts.nextOpt());				
-			}
-			else 
+				ec.pValueCorrectedCutoff = Double.parseDouble(opts.nextOpt());
+			} else if (opts.nextEq("-i")) {
+				ec.attributeInformationContentCutoff = Double.parseDouble(opts
+						.nextOpt());
+			} else
 				break;
 		}
 		sos.setEnrichmentConfig(ec);
 		OWLClass rc1 = this.resolveClass(opts.nextOpt());
 		OWLClass rc2 = this.resolveClass(opts.nextOpt());
 		OWLClass pc = g.getDataFactory().getOWLThing();
-		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1, rc2);
+		List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, rc1,
+				rc2);
 		for (EnrichmentResult result : results) {
 			System.out.println(render(result, owlpp));
 		}
 	}
 
 	private String render(EnrichmentResult r, OWLPrettyPrinter owlpp) {
-		return owlpp.render(r.sampleSetClass) +"\t"+ owlpp.render(r.enrichedClass)
-		+"\t"+ r.pValue +"\t"+ r.pValueCorrected;
+		return owlpp.render(r.sampleSetClass) + "\t"
+				+ owlpp.render(r.enrichedClass) + "\t" + r.pValue + "\t"
+				+ r.pValueCorrected;
+	}
+	
+	/**
+	 * Set the Renderer to use based on the configurable parameter: outputFormat
+	 * @return renderer
+	 */
+	private SimResultRenderer setRenderer() {
+		//set the renderer
+		SimResultRenderer renderer;
+		String f = sos.getSimProperties().getProperty(SimConfigurationProperty.outputFormat.toString());
+		if (f.equals(OutputFormat.TXT.name())) {
+			renderer = new TabularRenderer(resultOutStream);
+		} else if (f.equals(OutputFormat.CSV.name())) {
+			renderer = new TabularRenderer(resultOutStream, ",", "# ");				
+		} else if (f.equals(OutputFormat.ROW.name())) {
+			renderer = new DelimitedLineRenderer(resultOutStream);
+		} else if (f.equals(OutputFormat.JSON.name())) {
+			//TODO add JSON renderer call when completed
+			renderer = new TabularRenderer(resultOutStream);
+		} else {
+			renderer = new TabularRenderer(resultOutStream);				
+		}
+		return renderer;
 	}
 
 }

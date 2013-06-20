@@ -14,6 +14,13 @@ public interface SimResultRenderer {
 
 	public void printAttributeSim(AttributesSimScores simScores,
 			OWLGraphWrapper graph);
+	
+	public void printAttributeSim(AttributesSimScores simScores, OWLGraphWrapper graph,
+			OWLPrettyPrinter owlpp);
+	
+	public void printAttributeSimWithIndividuals(AttributesSimScores simScores,
+			OWLPrettyPrinter owlpp, OWLGraphWrapper g, OWLNamedIndividual i,
+			OWLNamedIndividual j);
 
 	public abstract void printIndividualPairSim(IndividualSimScores scores, OWLPrettyPrinter owlpp,
 			OWLGraphWrapper graph);
@@ -82,4 +89,5 @@ public interface SimResultRenderer {
 		public Double simGIC = null;
 		public String simGICLabel = null;
 	}
+
 }
