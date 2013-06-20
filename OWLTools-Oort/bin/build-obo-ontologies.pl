@@ -612,7 +612,12 @@ sub get_ont_info {
          emap => {
              notes => 'new url soon',
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/mouse/EMAP.obo',
+             source_url => 'ftp://ftp.hgu.mrc.ac.uk/pub/MouseAtlas/Anatomy/EMAP_combined.obo',
+         },
+         emapa => {
+             notes => 'new url soon',
+             method => 'obo2owl',
+             source_url => 'ftp://ftp.hgu.mrc.ac.uk/pub/MouseAtlas/Anatomy/EMAPA.obo',
          },
 
          # we will use either an archive or vcs method for gaz rather than straining central pipeline
