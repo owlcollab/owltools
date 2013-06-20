@@ -57,7 +57,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
  * Translates an OWL TBox into a "shadow" representation in the ABox.
  * 
  * Each class in O is a named individual in O' (the same IRI is used - if O and O' are used together
- * this introduced punning)
+ * this introduces punning)
  * 
  * A subset of class axioms in O are translated to ObjectPropertyAxioms in O'
  * 
@@ -73,7 +73,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
  * A subset of axioms for R are also shadowed:
  * 
  * Transitive(R) ==> Transitive(R')
- * R <- S o T ==> R'<- S' O T'
+ * R <- S o T ==> R'<- S' o T'
  * 
  * New axioms are introduced:
  * 
