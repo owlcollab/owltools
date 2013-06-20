@@ -1,0 +1,88 @@
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: : <http://x.org/>
+
+ObjectProperty: :homologousTo
+  Annotations:
+    rdfs:label "homologous to"
+  Characteristics: Transitive, Symmetric
+  SubPropertyChain: :transformationOf o :homologousTo
+  SubPropertyChain: :homologousTo o :transformationOf
+
+ObjectProperty: :homologousToTLR
+  Characteristics: Transitive, Symmetric
+
+
+ObjectProperty: :partOf
+  Annotations:
+    rdfs:label "part of"
+  Characteristics: Transitive
+
+ObjectProperty: :transformationOf
+  Characteristics: Transitive
+
+ObjectProperty: :transformationOfPartOf
+  Characteristics: Transitive
+  SubPropertyChain: :transformationOf o :partOf
+
+ObjectProperty: :homologousToPartOf
+  Characteristics: Transitive
+  SubPropertyChain: :homologousTo o :partOf
+
+Class: :finger
+  SubClassOf: :digit, :partOf some :hand
+  EquivalentTo: :digit and :partOf some :hand
+
+Class: :hand
+  SubClassOf: :autopod, :partOf some :forelimb
+  EquivalentTo: :autopod and :partOf some :forelimb
+
+Class: :forelimb
+  SubClassOf: :limb
+
+Class: :toe
+  SubClassOf: :digit, :partOf some :foot
+  EquivalentTo: :digit and :partOf some :foot
+
+Class: :foot
+  SubClassOf: :autopod, :partOf some :hindlimb
+  EquivalentTo: :autopod and :partOf some :hindlimb
+
+Class: :hindlimb
+  SubClassOf: :limb
+
+Class: :digit
+  SubClassOf: :partOf some :autopod
+
+Class: :autopod
+  SubClassOf: :partOf some :limb
+
+Class: :limb
+  SubClassOf: 
+   :transformationOf some
+    (:partOf some :LPM)
+
+Class: :LPM
+
+Class: :fin
+
+Class: :paired_fin
+  SubClassOf: :fin, :homologousTo some :limb
+
+Class: :pectoral_radial
+  SubClassOf: :radial, :homologousTo some :finger
+  EquivalentTo: :radial and :partOf some :pectoral_fin
+
+Class: :pectoral_fin
+  SubClassOf: :paired_fin, :homologousTo some :forelimb
+
+Class: :pelvic_radial
+  SubClassOf: :radial, :homologousTo some :toe
+  EquivalentTo: :radial and :partOf some :pelvic_fin
+
+Class: :pelvic_fin
+  SubClassOf: :paired_fin, :homologousTo some :hindlimb
+
+Class: :radial
+  SubClassOf: :partOf some :fin, :homologousTo some :digit
+  
+
