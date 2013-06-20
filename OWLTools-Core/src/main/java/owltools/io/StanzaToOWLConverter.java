@@ -30,7 +30,7 @@ import owltools.graph.OWLGraphWrapper;
  * the following structure:
  * 
  * (*) Lines beginning with "!"s are ignored (comments)
- * (*) Each stanza is separated by en empty line (in practice the separator line may contain whitespace)
+ * (*) Each stanza is separated by en empty line (in practice the separator line may contain whitespace, and there may be multiple empty lines separating stanzas)
  * (*) Each stanza represents a distinct entity
  * (*) Each stanza is a list of key-value pairs, separated by a ':', usually followed by a single whitespace
  * (*) The key has no whitespace, and generally consists only of alphanumeric characters plus underscore plus '-'
