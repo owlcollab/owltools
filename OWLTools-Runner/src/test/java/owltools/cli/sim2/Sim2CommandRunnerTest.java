@@ -26,16 +26,41 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		load("mp.obo");
 		run("--load-instances "+path("mgi-g2p-100.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
+		//run("--sim-compare-atts -p "+path("test-sim.properties"));
+		run("--sim-compare-atts");
+		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
+
+	}
+
+	@Test
+	public void testSimRunnerMouse100WithCache() throws Exception {
+		init();
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
 		//load("Mus_musculus-label.owl");
 		//load("Mus_musculus-label.obo");
 		run("--sim-compare-atts -p "+path("test-sim.properties"));
+		run("--sim-save-lcs-cache -m 2.0 target/lcs-cache");
+		run("--sim-save-ic-cache target/ic-cache.ttl");
 
 		//create a variety of sim property files and test here
     //this one tests that it runs with the default properties
 		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
 		//run("--sim-basic");
 		
-		//run("-o -f obo /tmp/foo.obo");		
+		init();
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
+		
+		//run("-o -f obo /tmp/foo.obo");	
+		run("--sim-load-lcs-cache target/lcs-cache");
+		run("--sim-load-ic-cache target/ic-cache.ttl");
+		//TODO
+		//run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100run2.out");
+
+
 	}
 	
 	@Test
@@ -59,6 +84,22 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--load-labels "+path("mgi-labels.txt"));
 		run("--sim-basic -o target/test100.default.out");		
 		run("--show-sim-properties");
+	}
+
+	@Test
+	public void testClassICPairs() throws Exception {
+		init();
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
+		run("--no-debug --class-IC-pairs");
+	}
+
+	@Test
+	public void testSimNamedLCS() throws Exception {
+		init();
+		load("mp.obo");
+		run("--sim-lcs MP:0005296 syndactyly");
 	}
 
 	
