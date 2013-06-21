@@ -1,0 +1,82 @@
+GO:0000003	reproduction
+GO:0000166	nucleotide binding
+GO:0003674	molecular_function
+GO:0003676	nucleic acid binding
+GO:0003677	DNA binding
+GO:0003682	chromatin binding
+GO:0003700	sequence-specific DNA binding transcription factor activity
+GO:0003723	RNA binding
+GO:0003824	catalytic activity
+GO:0004871	signal transducer activity
+GO:0004872	receptor activity
+GO:0005102	receptor binding
+GO:0005198	structural molecule activity
+GO:0005215	transporter activity
+GO:0005488	binding
+GO:0005515	protein binding
+GO:0005575	cellular_component
+GO:0005576	extracellular region
+GO:0005578	proteinaceous extracellular matrix
+GO:0005615	extracellular space
+GO:0005622	intracellular
+GO:0005623	cell
+GO:0005634	nucleus
+GO:0005635	nuclear envelope
+GO:0005654	nucleoplasm
+GO:0005730	nucleolus
+GO:0005737	cytoplasm
+GO:0005739	mitochondrion
+GO:0005764	lysosome
+GO:0005768	endosome
+GO:0005773	vacuole
+GO:0005777	peroxisome
+GO:0005783	endoplasmic reticulum
+GO:0005794	Golgi apparatus
+GO:0005829	cytosol
+GO:0005856	cytoskeleton
+GO:0005886	plasma membrane
+GO:0005975	carbohydrate metabolic process
+GO:0006091	generation of precursor metabolites and energy
+GO:0006139	nucleobase-containing compound metabolic process
+GO:0006259	DNA metabolic process
+GO:0006412	translation
+GO:0006464	cellular protein modification process
+GO:0006629	lipid metabolic process
+GO:0006810	transport
+GO:0006950	response to stress
+GO:0007049	cell cycle
+GO:0007154	cell communication
+GO:0007165	signal transduction
+GO:0007267	cell-cell signaling
+GO:0007275	multicellular organismal development
+GO:0007610	behavior
+GO:0008150	biological_process
+GO:0008152	metabolic process
+GO:0008219	cell death
+GO:0009056	catabolic process
+GO:0009058	biosynthetic process
+GO:0009605	response to external stimulus
+GO:0009607	response to biotic stimulus
+GO:0009628	response to abiotic stimulus
+GO:0009653	anatomical structure morphogenesis
+GO:0009719	response to endogenous stimulus
+GO:0009790	embryo development
+GO:0009791	post-embryonic development
+GO:0009987	cellular process
+GO:0009991	response to extracellular stimulus
+GO:0016020	membrane
+GO:0016043	cellular component organization
+GO:0016049	cell growth
+GO:0016265	death
+GO:0016301	kinase activity
+GO:0016740	transferase activity
+GO:0016787	hydrolase activity
+GO:0019538	protein metabolic process
+GO:0019725	cellular homeostasis
+GO:0019748	secondary metabolic process
+GO:0019825	oxygen binding
+GO:0030154	cell differentiation
+GO:0030234	enzyme regulator activity
+GO:0030312	external encapsulating structure
+GO:0040007	growth
+GO:0040029	regulation of gene expression, epigenetic
