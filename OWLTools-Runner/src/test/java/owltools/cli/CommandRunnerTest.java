@@ -17,6 +17,8 @@ public class CommandRunnerTest extends AbstractCommandRunnerTest {
 		init();
 		load("ceph.obo");
 		run("--export-table /tmp/z");
+		//run("--extract-axioms -t EquivalentClasses -o -f obo target/foo.obo");
+		run("--extract-mingraph --idspace CEPH -o -f obo target/foo.obo");
 				
 	}
 	

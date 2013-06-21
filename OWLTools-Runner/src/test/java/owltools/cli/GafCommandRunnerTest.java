@@ -44,6 +44,61 @@ public class GafCommandRunnerTest extends AbstractCommandRunnerTest {
 		//run("-o -f obo /tmp/foo.obo");
 		
 	}
+	
+	@Test
+	public void testQuery() throws Exception {
+		init();
+		load("gaf/mgi-exttest-go-subset.obo");
+		String gafpath = getResource("gaf/mgi-exttest.gaf").getAbsolutePath();
+		run("--gaf "+gafpath);
+		
+		run("--gaf-query GO:0008152");
+		String opath = "target/gafq-output.gaf";
+		run("--write-gaf "+opath);
+		
+		
+	}
+
+
+	@Test
+	public void testMap2Slim() throws Exception {
+		init();
+		load("gaf/mgi-exttest-go-subset.obo");
+		String gafpath = getResource("gaf/mgi-exttest.gaf").getAbsolutePath();
+		run("--gaf "+gafpath);
+		
+		run("--map2slim -s goslim_plant");
+		String opath = "target/map2slim-output.gaf";
+		run("--write-gaf "+opath);
+		
+		
+	}
+	
+	@Test
+	public void testMap2SlimIds() throws Exception {
+		init();
+		load("gaf/mgi-exttest-go-subset.obo");
+		String gafpath = getResource("gaf/mgi-exttest.gaf").getAbsolutePath();
+		run("--gaf "+gafpath);
+		
+		String slimpath = getResource("gaf/goslim_plant.terms").getAbsolutePath();
+		run("--map2slim --idfile "+slimpath);
+		String opath = "target/map2slim-output-ids.gaf";
+		run("--write-gaf "+opath);
+		
+		
+	}
+	
+	@Test
+	public void testAddLabels() throws Exception {
+		init();
+		load("gaf/mgi-exttest-go-subset.obo");
+		String gafpath = getResource("gaf/mgi-exttest.gaf").getAbsolutePath();
+		run("--add-labels -c 1,5 "+gafpath);
+
+		
+	}
+
 
 	
 	

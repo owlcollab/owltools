@@ -51,6 +51,13 @@ public class CommandRunnerMooncatTest extends AbstractCommandRunnerTest {
 		
 	}
 
-	
+	@Test
+	public void testExtractModule() throws Exception {
+		init();
+		load("ceph.obo");
+		run("--extract-module -n test tentacle");
+		run("-o -f obo target/tentacle.obo");
+		
+	}
 	
 }
