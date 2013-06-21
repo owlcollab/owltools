@@ -1,7 +1,7 @@
 package owltools.cli;
 
 import java.io.BufferedOutputStream;
-
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -18,6 +18,8 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.coode.owlapi.turtle.TurtleOntologyFormat;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
@@ -269,8 +271,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				runOwlSimOnQuery(opts, opts.nextOpt());
 				return;
 			}
-			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
-					.getIndividualsInSignature();
+			Set<OWLNamedIndividual> insts = sos.getSourceOntology().getIndividualsInSignature();
 			LOG.info("All by all for " + insts.size() + " individuals");
 
 			//set the renderer
@@ -429,7 +430,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			}
 		}
 
-		// only do this test if we end up using the J measures
+		//only do this test if we end up using the J measures
 		for (String metric : metrics) {
 			if (sos.isJmetric(metric)) {
 				double simJ = sos.getElementJaccardSimilarity(i, j);
@@ -595,6 +596,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	}
 
+
+
 	@CLIMethod("--sim-resume")
 	public void simResume(Opts opts) throws Exception {
 		loadProperties(opts);
@@ -628,28 +631,30 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		// assumes that individuals in abox are of types named classes in tbox
 		loadProperties(opts);
 		try {
-			pproc = new NullSimPreProcessor();
-			if (simProperties.containsKey(SimConfigurationProperty.analysisRelation
-					.toString())) {
-				pproc = new PropertyViewSimPreProcessor();
-				String relId = (String) simProperties
-						.get((SimConfigurationProperty.analysisRelation.toString()));
-				OWLObjectProperty rel = g.getOWLObjectPropertyByIdentifier(relId);
-				PropertyViewSimPreProcessor xpproc = ((PropertyViewSimPreProcessor) pproc);
+			if (sos == null) {
+				pproc = new NullSimPreProcessor();
+				if (simProperties.containsKey(SimConfigurationProperty.analysisRelation.toString())) {
+					pproc = new PropertyViewSimPreProcessor();
+					String relId = (String) simProperties.get((SimConfigurationProperty.analysisRelation.toString()));
+					OWLObjectProperty rel = g.getOWLObjectPropertyByIdentifier(relId);
+					PropertyViewSimPreProcessor xpproc = ((PropertyViewSimPreProcessor)pproc);
 
-				LOG.info("View relation = " + rel);
-				xpproc.analysisRelation = rel;
+					LOG.info("View relation = "+rel);
+					xpproc.analysisRelation = rel;
+				}
+				pproc.setSimProperties(simProperties);
+				pproc.setInputOntology(g.getSourceOntology());
+				pproc.setOutputOntology(g.getSourceOntology());
+				sos = new SimpleOwlSim(g.getSourceOntology());
+				sos.setSimPreProcessor(pproc);
+				pproc.preprocess();
+				
 			}
-			pproc.setSimProperties(simProperties);
-			pproc.setInputOntology(g.getSourceOntology());
-			pproc.setOutputOntology(g.getSourceOntology());
-			sos = new SimpleOwlSim(g.getSourceOntology());
-			sos.setSimPreProcessor(pproc);
-			pproc.preprocess();
 			sos.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
 		} finally {
-			pproc.dispose();
+			if (pproc != null)
+				pproc.dispose();
 		}
 	}
 	
@@ -687,6 +692,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	@CLIMethod("--sim-compare-atts")
 	public void simAttMatch(Opts opts) throws Exception {
+		opts.info("", "all by all comparison of classes (attributes)");
 		// assumes that individuals in abox are of types named classes in tbox
 		loadProperties(opts);
 		try {
@@ -718,6 +724,87 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.dispose();
 		}
 	}
+
+	@CLIMethod("--sim-save-lcs-cache")
+	public void simSaveLCSCache(Opts opts) throws Exception {
+		opts.info("OUTFILE", "saves a LCS cache to a file");
+		Double thresh = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-m|--min-ic")) {
+				thresh = Double.valueOf(opts.nextOpt());
+			}
+			else {
+				break;
+			}
+		}
+		sos.saveLCSCache(opts.nextOpt(), thresh);
+	}
+
+	@CLIMethod("--sim-load-lcs-cache")
+	public void simLoadLCSCache(Opts opts) throws Exception {
+		opts.info("INFILE", "loads a LCS cache from a file");
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+		}
+		sos.loadLCSCache(opts.nextOpt());
+	}
+
+	@CLIMethod("--sim-save-ic-cache")
+	public void simSaveICCache(Opts opts) throws Exception {
+		opts.info("OUTFILE", "saves ICs as RDF/turtle cache");
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+		}
+		OWLOntology o = sos.cacheInformationContentInOntology();
+		TurtleOntologyFormat fmt = new TurtleOntologyFormat();
+		fmt.setPrefix("obo", "http://purl.obolibrary.org/obo/");
+		fmt.setPrefix("sim", "http://owlsim.org/ontology/");
+		g.getManager().saveOntology(o, 
+				fmt,
+				IRI.create(opts.nextFile()));
+	}
+
+	@CLIMethod("--sim-load-ic-cache")
+	public void simLoadICCache(Opts opts) throws Exception {
+		opts.info("INFILE", "loads ICs from RDF/turtle cache");
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+		}
+		OWLOntology o = 
+			g.getManager().loadOntologyFromOntologyDocument(opts.nextFile());
+		sos.setInformationContentFromOntology(o);
+	}
+
+
+
+
+	@CLIMethod("--sim-lcs")
+	public void simLCS(Opts opts) throws Exception {
+		opts.info("", "find LCS of two classes");
+		loadProperties(opts);
+		OWLClass c1 = (OWLClass) this.resolveClass(opts.nextOpt());
+		OWLClass c2 = (OWLClass) this.resolveClass(opts.nextOpt());
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
+		try {
+			sos.createElementAttributeMapFromOntology();
+			Set<Node<OWLClass>> lcsSet = sos.getNamedLowestCommonSubsumers(c1, c2);
+
+			for (Node<OWLClass> lcsNode : lcsSet) {
+				System.out.println(owlpp.render(lcsNode.getRepresentativeElement()));
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			LOG.info("clearing up...");
+			if (pproc != null) {
+				pproc.dispose();
+			}
+		}
+
+	}
+
 
 	// TODO
 	@CLIMethod("--enrichment-analysis")
@@ -778,6 +865,23 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			System.out.println(render(result, owlpp));
 		}
 	}
+
+	@CLIMethod("--class-IC-pairs")
+	public void classICPairs(Opts opts) throws Exception {
+		opts.info("", "show all classes with their IC");
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.createElementAttributeMapFromOntology();
+		}
+		for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
+			Double ic = sos.getInformationContentForAttribute(c);
+			if (ic != null) {
+				System.out.println(owlpp.render(c)+"\t"+ic);
+			}
+		}
+	}
+
 
 	private String render(EnrichmentResult r, OWLPrettyPrinter owlpp) {
 		return owlpp.render(r.sampleSetClass) + "\t"
