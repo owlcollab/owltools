@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,12 +27,16 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.inference.TaxonConstraintsEngine;
@@ -41,7 +48,9 @@ import owltools.io.OWLGsonRenderer;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
-import owltools.sim.SimEngine;
+import owltools.sim2.SimpleOwlSim;
+import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 
 /**
  * See http://code.google.com/p/owltools/wiki/WebServices
@@ -216,6 +225,35 @@ public class OWLHandler {
 			}	
 		}
 	}
+	
+	/**
+	 * Params: id
+	 * @throws OWLOntologyCreationException
+	 * @throws OWLOntologyStorageException
+	 * @throws IOException
+	 * @throws ParserException
+	 */
+	public void getAxiomsCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, ParserException {
+		headerOWL();
+		boolean direct = getParamAsBoolean(Param.direct, false);
+		OWLObject obj = this.resolveEntity();
+		LOG.info("finding axioms about: "+obj);
+		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+		if (obj instanceof OWLClass) {
+			axioms.addAll(graph.getSourceOntology().getAxioms((OWLClass)obj));
+		}
+		if (obj instanceof OWLIndividual) {
+			axioms.addAll(graph.getSourceOntology().getAxioms((OWLIndividual)obj));
+		}
+		if (obj instanceof OWLObjectProperty) {
+			axioms.addAll(graph.getSourceOntology().getAxioms((OWLObjectProperty)obj));
+		}
+		
+		for (OWLAxiom ax : axioms) {
+			output(ax);
+		}
+	}
+
 
 
 	/**
@@ -256,22 +294,23 @@ public class OWLHandler {
 	 * @throws OWLOntologyStorageException 
 	 * @see owltools.sim.SimEngine
 	 */
-	public void lcsExpressionCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
-		if (isHelp()) {
-			info("Returns least common subsumer class expression using OWLSim");
-			return;
-		}
-		headerOWL();
-		Set<OWLObject> objs = this.resolveEntityList();
-		if (objs.size() == 2) {
-			SimEngine se = new SimEngine(graph);
-			OWLObject[] objsA = objs.toArray(new OWLObject[objs.size()]);
-			OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(objsA[0], objsA[1]);		
-		}
-		else {
-			// TODO - throw
-		}
-	}
+	@Deprecated
+//	public void lcsExpressionCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+//		if (isHelp()) {
+//			info("Returns least common subsumer class expression using OWLSim");
+//			return;
+//		}
+//		headerOWL();
+//		Set<OWLObject> objs = this.resolveEntityList();
+//		if (objs.size() == 2) {
+//			SimEngine se = new SimEngine(graph);
+//			OWLObject[] objsA = objs.toArray(new OWLObject[objs.size()]);
+//			OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(objsA[0], objsA[1]);		
+//		}
+//		else {
+//			// TODO - throw
+//		}
+//	}
 
 
 	/**
@@ -379,6 +418,103 @@ public class OWLHandler {
 			}
 		}
 	}
+
+	// sim2
+	
+	private SimpleOwlSim getOWLSim() {
+		if (owlserver.sos == null) {
+			owlserver.sos = new SimpleOwlSim(graph.getSourceOntology());
+			owlserver.sos.createElementAttributeMapFromOntology();
+		}
+		return owlserver.sos;
+	}
+	
+	public void getSimilarClassesCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+		if (isHelp()) {
+			info("Returns semantically similar classes using OWLSim2");
+			return;
+		}
+		headerOWL();
+		OWLClass a = this.resolveClass();
+		SimpleOwlSim sos = getOWLSim();
+		List<ScoreAttributePair> saps = new Vector<ScoreAttributePair>();
+		for (OWLClass b : this.getOWLOntology().getClassesInSignature()) {
+			double score = sos.getAttributeJaccardSimilarity(a, b);
+			saps.add(sos.new ScoreAttributePair(score, b) );
+		}
+		Collections.sort(saps);
+		int limit = 100;
+		
+		int n=0;
+		for (ScoreAttributePair sap : saps) {
+			output(sap.attributeClass);
+			this.outputLine("score="+sap.score); // todo - jsonify
+			n++;
+			if (n > limit) {
+				break;
+			}
+		}
+	}
+	
+	public void getSimilarIndividualsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+		if (isHelp()) {
+			info("Returns matching individuals using OWLSim2");
+			return;
+		}
+		headerOWL();
+		OWLNamedIndividual i = (OWLNamedIndividual) this.resolveEntity();
+		LOG.info("i="+i);
+		if (i == null) {
+			LOG.error("Could not resolve id");
+			// TODO - throw
+			return;
+		}
+		SimpleOwlSim sos = getOWLSim();
+		List<ScoreAttributesPair> saps = new Vector<ScoreAttributesPair>();
+		for (OWLNamedIndividual j : this.getOWLOntology().getIndividualsInSignature()) {
+			// TODO - make configurable
+			ScoreAttributesPair match = sos.getSimilarityMaxIC(i, j);
+			saps.add(match);
+		}
+		Collections.sort(saps);
+		int limit = 100; // todo - configurable
+		
+		int n=0;
+		for (ScoreAttributesPair sap : saps) {
+			//output(sap.attributeClass); TODO
+			this.outputLine("score="+sap.score); // todo - jsonify
+			n++;
+			if (n > limit) {
+				break;
+			}
+		}
+	}
+	
+	public void getLowestCommonSubsumersCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+		if (isHelp()) {
+			info("Returns LCSs using sim2");
+			return;
+		}
+		headerOWL();
+		SimpleOwlSim sos = getOWLSim();
+
+		Set<OWLObject> objs = this.resolveEntityList();
+		if (objs.size() == 2) {
+			Iterator<OWLObject> oit = objs.iterator();
+			OWLClass a = (OWLClass) oit.next();
+			OWLClass b = (OWLClass) oit.next();
+			Set<Node<OWLClass>> lcsNodes = sos.getNamedCommonSubsumers(a, b);
+			for (Node<OWLClass> n : lcsNodes) {
+				for (OWLClass c : n.getEntities()) {
+					output(c);
+				}
+			}
+		}
+		else {
+			// TODO - throw
+		}
+	}
+
 
 	// ----------------------------------------
 	// END OF COMMANDS

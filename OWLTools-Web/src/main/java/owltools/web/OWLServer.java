@@ -27,6 +27,7 @@ import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.sim2.SimpleOwlSim;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
  
@@ -50,6 +51,7 @@ public class OWLServer extends AbstractHandler
 
 	OWLGraphWrapper graph;
 	Map<String,OWLReasoner> reasonerMap = new HashMap<String,OWLReasoner>();
+	SimpleOwlSim sos = null;
 		
 	public OWLServer(OWLGraphWrapper g) {
 		super();
