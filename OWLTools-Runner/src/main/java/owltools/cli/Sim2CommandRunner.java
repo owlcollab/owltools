@@ -897,7 +897,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		//set the renderer
 		SimResultRenderer renderer;
 		String f = sos.getSimProperties().getProperty(SimConfigurationProperty.outputFormat.toString());
-		if (f.equals(OutputFormat.TXT.name())) {
+		if (f == null || f.equals(OutputFormat.TXT.name())) {
 			renderer = new TabularRenderer(resultOutStream);
 		} else if (f.equals(OutputFormat.CSV.name())) {
 			renderer = new TabularRenderer(resultOutStream, ",", "# ");				
