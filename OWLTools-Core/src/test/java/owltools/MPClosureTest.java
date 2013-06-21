@@ -16,7 +16,7 @@ public class MPClosureTest {
 	public void testConvertXPs() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g =
-			pw.parseToOWLGraph("http://purl.org/obo/obo/MP.obo");
+			pw.parseToOWLGraph("http://purl.obolibrary.org/obo/mp.owl");
 		//OWLOntology ont = g.getOntology();
 
 		OWLObject aer = g.getOWLObjectByIdentifier("MP:0001676"); // apical ectoderm ridge
