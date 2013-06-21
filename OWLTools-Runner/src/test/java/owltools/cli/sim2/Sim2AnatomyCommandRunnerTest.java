@@ -75,6 +75,7 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 	 * 
 	 * @throws Exception
 	 */
+	
 	@Test
 	public void testSimRunnerAnatWithView() throws Exception {
 		init();
@@ -90,6 +91,7 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 		//run("-o -f obo /tmp/foo.obo");
 		
 	}
+	
 
 	
 	public String path(String in) {
