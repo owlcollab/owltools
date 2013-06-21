@@ -1,5 +1,8 @@
 package owltools.sim2;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,22 +13,28 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.sim2.ClassExpressionPair;
 import owltools.sim2.SimStats;
+import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
@@ -139,7 +148,10 @@ public class SimpleOwlSim {
 	private Map<OWLClass, Set<OWLNamedIndividual>> attributeToElementsMap;
 
 	private Map<ClassExpressionPair, ScoreAttributePair> lcsICcache;
-
+	private boolean isLCSCacheFullyPopulated = false;
+	private boolean isICCacheFullyPopulated = false;
+	
+	// @Deprecated
 	private Map<ClassExpressionPair, Set<Node<OWLClass>>> csCache;
 
 	private Map<OWLClass, Double> icCache;
@@ -162,7 +174,6 @@ public class SimpleOwlSim {
 				"Least Common Subsumer Information Content Score", true, false);
 
 		private final String description;
-
 		private final Boolean isICmetric;
 
 		private final Boolean isJmetric;
@@ -290,9 +301,16 @@ public class SimpleOwlSim {
 	}
 
 	private void init() {
-		elementToAttributesMap = new HashMap<OWLNamedIndividual, Set<OWLClass>>();
-		elementToInferredAttributesMap = new HashMap<OWLNamedIndividual, Set<Node<OWLClass>>>();
-		attributeToElementsMap = new HashMap<OWLClass, Set<OWLNamedIndividual>>();
+		// default pre-processor
+		NullSimPreProcessor pproc = new NullSimPreProcessor();
+		pproc.setInputOntology(this.sourceOntology);
+		pproc.setOutputOntology(this.sourceOntology);
+		this.setSimPreProcessor(pproc);
+
+		elementToAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
+		elementToInferredAttributesMap = new HashMap<OWLNamedIndividual,Set<Node<OWLClass>>>();
+		attributeToElementsMap = new HashMap<OWLClass,Set<OWLNamedIndividual>>();
+
 		lcsICcache = new HashMap<ClassExpressionPair, ScoreAttributePair>();
 		icCache = new HashMap<OWLClass, Double>();
 		csCache = new HashMap<ClassExpressionPair, Set<Node<OWLClass>>>();
@@ -305,7 +323,7 @@ public class SimpleOwlSim {
 	 * @author cjm
 	 * 
 	 */
-	public class ScoreAttributePair {
+	public class ScoreAttributePair implements Comparable<ScoreAttributePair> {
 		public double score;
 
 		public OWLClassExpression attributeClass;
@@ -315,6 +333,12 @@ public class SimpleOwlSim {
 			this.score = score;
 			this.attributeClass = attributeClass;
 		}
+
+		@Override
+		public int compareTo(ScoreAttributePair p2) {
+			// TODO Auto-generated method stub
+			return 0 - Double.compare(score, p2.score);
+		}
 	}
 
 	/**
@@ -323,7 +347,7 @@ public class SimpleOwlSim {
 	 * @author cjm
 	 * 
 	 */
-	public class ScoreAttributesPair {
+	public class ScoreAttributesPair implements Comparable<ScoreAttributesPair> {
 		public double score;
 
 		public Set<OWLClassExpression> attributeClassSet = new HashSet<OWLClassExpression>(); // all
@@ -354,6 +378,27 @@ public class SimpleOwlSim {
 				attributeClassSet = new HashSet<OWLClassExpression>();
 			this.attributeClassSet.add(ac);
 		}
+		
+		public void setAttributeClassSet(Set<OWLClass> acs) {
+			attributeClassSet = new HashSet<OWLClassExpression>();
+			for (OWLClass ac : acs)
+				attributeClassSet.add(ac);
+		}
+
+		@Override
+		public int compareTo(ScoreAttributesPair p2) {
+			// TODO Auto-generated method stub
+			return 0 - Double.compare(score, p2.score);
+		}
+
+	}
+
+	public OWLOntology getSourceOntology() {
+		return sourceOntology;
+	}
+
+	public void setSourceOntology(OWLOntology sourceOntology) {
+		this.sourceOntology = sourceOntology;
 	}
 
 	public Properties getSimProperties() {
@@ -469,7 +514,7 @@ public class SimpleOwlSim {
 	}
 
 	/**
-	 * CACHED
+	 * NOT CACHED
 	 * 
 	 * <pre>
 	 *   CS(a,b) = { c : c &isin; anc(a), c &isin; anc(b) }
@@ -484,11 +529,11 @@ public class SimpleOwlSim {
 		ClassExpressionPair pair = new ClassExpressionPair(a, b); // TODO - optimize
 																															// - assume named
 																															// classes
-		if (csCache.containsKey(pair))
-			return new HashSet<Node<OWLClass>>(csCache.get(pair));
+		//if (csCache.containsKey(pair))
+		//	return new HashSet<Node<OWLClass>>(csCache.get(pair));
 		Set<Node<OWLClass>> nodes = getNamedReflexiveSubsumers(a);
 		nodes.retainAll(getNamedReflexiveSubsumers(b));
-		csCache.put(pair, nodes);
+		//csCache.put(pair, nodes);
 		return new HashSet<Node<OWLClass>>(nodes);
 	}
 
@@ -524,11 +569,16 @@ public class SimpleOwlSim {
 		return commonSubsumerNodes;
 	}
 
-	public double getAttributeSimilarity(OWLClassExpression a,
-			OWLClassExpression b, Metric metric) {
-		//intersection
-		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a, b);
-		//union
+	/**
+	 * Compares two classes (attributes) according to the specified metric
+	 * 
+	 * @param a
+	 * @param b
+	 * @param metric
+	 * @return
+	 */
+	public double getAttributeSimilarity(OWLClassExpression a, OWLClassExpression b, Metric metric) {
+		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b);
 		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a);
 		cu.addAll(getNamedReflexiveSubsumers(b));
 		// TODO - DRY
@@ -649,8 +699,12 @@ public class SimpleOwlSim {
 		if (lcsICcache.containsKey(pair)) {
 			return lcsICcache.get(pair); // don't make a copy, assume unmodified
 		}
-		// TODO: test whether it is more efficient to get redundant common subsumers
-		// too,
+		if (this.isLCSCacheFullyPopulated) {
+			// entry not found in cache and the cache is fully populated;
+			// this means that the IC was below threshold
+			return null;
+		}
+		// TODO: test whether it is more efficient to get redundant common subsumers too,
 		// then simply keep the ones with the highest.
 		// removing redundant may be better as those deeper in the hierarchy may
 		// have the same IC as a parent
@@ -725,13 +779,11 @@ public class SimpleOwlSim {
 		return getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
 	}
 
-	public ScoreAttributesPair getSimilarityBestMatchAverageAsym(
-			OWLNamedIndividual i, OWLNamedIndividual j, Metric metric) {
+	public ScoreAttributesPair getSimilarityBestMatchAverageAsym(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric) {
 		return getSimilarityBestMatchAverage(i, j, metric, Direction.A_TO_B);
 	}
 
-	public ScoreAttributesPair getSimilarityBestMatchAverage(
-			OWLNamedIndividual i, OWLNamedIndividual j, Metric metric, Direction dir) {
+	public ScoreAttributesPair getSimilarityBestMatchAverage(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric, Direction dir) {
 
 		if (dir.equals(Direction.B_TO_A)) {
 			return getSimilarityBestMatchAverage(j, i, metric, Direction.A_TO_B);
@@ -762,8 +814,13 @@ public class SimpleOwlSim {
 				ScoreAttributePair sap;
 				if (metric.equals(Metric.IC_MCS)) {
 					sap = getLowestCommonSubsumerIC(t1, t2);
-				} else if (metric.equals(Metric.JACCARD)) {
-					// todo
+					if (sap == null) {
+						sap = new ScoreAttributePair(0.0, this.owlDataFactory.getOWLThing());
+					}
+				}
+				else if (metric.equals(Metric.JACCARD)) {
+					// note this may be partly inefficient as the common sumers of t1 and t2
+					// may be re-calculated for the same values. Consider cacheing simj of AxA
 					sap = new ScoreAttributePair(getAttributeJaccardSimilarity(t1, t2),
 							null);
 				} else {
@@ -1010,10 +1067,8 @@ public class SimpleOwlSim {
 			// filtering, e.g. Type :human. This is a somewhat unsatisfactory way to
 			// do this;
 			// better to filter at the outset - TODO
-			if (attClass instanceof OWLClass && ignoreSubClassesOf != null
-					&& ignoreSubClassesOf.size() > 0) {
-				if (this.getReasoner().getSuperClasses(attClass, false).getFlattened()
-						.retainAll(ignoreSubClassesOf)) {
+			if (attClass instanceof OWLClass && ignoreSubClassesOf != null && ignoreSubClassesOf.size() > 0) {
+				if (getReasoner().getSuperClasses(attClass, false).getFlattened().retainAll(ignoreSubClassesOf)) {
 					continue;
 				}
 			}
@@ -1029,9 +1084,38 @@ public class SimpleOwlSim {
 		return attClasses;
 	}
 
+	/**
+	 * Gets all attribute classes used to describe individual element e.
+	 * 
+	 * Includes inferred classes
+	 * @param e
+	 * @return
+	 */
 	public Set<OWLClass> getAttributesForElement(OWLNamedIndividual e) {
 		return new HashSet<OWLClass>(elementToAttributesMap.get(e));
 	}
+	
+	/**
+	 * Given an individual element, return all direct attribute classes that the individual instantiates,
+	 * combined with IC.
+	 * 
+	 * Results are ordered with highest IC first
+	 * 
+	 * @param e
+	 * @return
+	 */
+	public List<ScoreAttributesPair> getScoredAttributesForElement(OWLNamedIndividual e) {
+		List<ScoreAttributesPair> saps = new ArrayList<ScoreAttributesPair>();
+		for (Node<OWLClass> n : getReasoner().getTypes(e, true)) {
+			double score = getInformationContentForAttribute(n.getRepresentativeElement());
+			ScoreAttributesPair sap = new ScoreAttributesPair(score);
+			sap.setAttributeClassSet(n.getEntities());
+			saps.add(sap);
+		}
+		Collections.sort(saps);
+		return saps;
+	}
+
 
 	/**
 	 * Mapping between an attribute (e.g. phenotype class) and the number of
@@ -1128,8 +1212,11 @@ public class SimpleOwlSim {
 	 * @param c
 	 * @return Information Content value for a given class
 	 */
-	public double getInformationContentForAttribute(OWLClass c) {
+	public Double getInformationContentForAttribute(OWLClass c) {
 		if (icCache.containsKey(c)) return icCache.get(c);
+		if (this.isICCacheFullyPopulated) {
+			return null;
+		}
 		int freq = getNumElementsForAttribute(c);
 		Double ic = null;
 		if (freq > 0) {
@@ -1164,5 +1251,90 @@ public class SimpleOwlSim {
 		}
 		return false;
 	}
+
+	// ---------------
+	// CACHE I/O
+	// ---------------
+
+	final String prefix = "http://purl.obolibrary.org/obo/";
+	private String getShortId(OWLClassExpression c) {
+		IRI x = ((OWLClass) c).getIRI();
+		return x.toString().replace(prefix, ""); // todo - do not hardcode
+	}
+	private OWLClass getOWLClassFromShortId(String id) {
+		return owlDataFactory.getOWLClass(IRI.create(prefix + id));
+	}
+
+	/**
+	 * Saves the contents of the LCS-IC cache
+	 * 
+	 * Assumes that this has already been filled by comparing all classes by all classes.
+	 * 
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public void saveLCSCache(String fileName) throws IOException {
+		saveLCSCache(fileName, null);
+	}
+	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException {
+		FileOutputStream fos = new FileOutputStream(fileName);
+		for (ClassExpressionPair p : lcsICcache.keySet()) {
+			ScoreAttributePair sap = lcsICcache.get(p);
+			if (thresholdIC != null && sap.score < thresholdIC) {
+				continue;
+			}
+			IOUtils.write(getShortId(p.c1) +"\t" + getShortId(p.c2) + "\t" + sap.score + "\t" + 
+					getShortId(sap.attributeClass) + "\n", fos);
+		}
+		fos.close();
+	}
+
+	/**
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public void loadLCSCache(String fileName) throws IOException {
+		lcsICcache = new HashMap<ClassExpressionPair, ScoreAttributePair>();
+		FileInputStream s = new FileInputStream(fileName);
+		List<String> lines = IOUtils.readLines(s);
+		for (String line : lines) {
+			String[] vals = line.split("\t");
+			OWLClass c1 = getOWLClassFromShortId(vals[0]);
+			OWLClass c2 = getOWLClassFromShortId(vals[1]);
+			OWLClass a = getOWLClassFromShortId(vals[3]);
+			lcsICcache.put(new ClassExpressionPair(c1,c2),
+					new ScoreAttributePair(Double.valueOf(vals[2]), a));
+		}
+	}
+
+	public final String icIRIString = "http://owlsim.org/ontology/ic"; // TODO
+
+	public OWLOntology cacheInformationContentInOntology() throws OWLOntologyCreationException {
+		OWLOntology o = this.owlOntologyManager.createOntology();
+		OWLAnnotationProperty p = owlDataFactory.getOWLAnnotationProperty(IRI.create(icIRIString));
+		for (OWLClass c : sourceOntology.getClassesInSignature()) {
+			Double ic = this.getInformationContentForAttribute(c);
+			if (ic != null) {
+				owlOntologyManager.addAxiom(o,
+						this.owlDataFactory.getOWLAnnotationAssertionAxiom(p, 
+								c.getIRI(), 
+								owlDataFactory.getOWLLiteral(ic)));
+			}
+
+		}
+		return o;
+	}
+
+	public void setInformationContentFromOntology(OWLOntology o) {
+		icCache = new HashMap<OWLClass, Double>();
+		for (OWLAnnotationAssertionAxiom ax : o.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
+			if (ax.getProperty().getIRI().toString().equals(icIRIString)) {
+				OWLLiteral lit = (OWLLiteral) ax.getValue();
+				icCache.put(owlDataFactory.getOWLClass((IRI) ax.getSubject()), 
+						lit.parseDouble());
+			}
+		}
+	}
+
 
 }
