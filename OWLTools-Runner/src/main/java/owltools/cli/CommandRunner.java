@@ -46,6 +46,7 @@ import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.coode.owlapi.turtle.TurtleOntologyFormat;
 import org.coode.parsers.common.SystemErrorEcho;
 import org.eclipse.jetty.server.Server;
+import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
@@ -143,6 +144,7 @@ import owltools.io.TableRenderer;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.BridgeExtractor;
 import owltools.mooncat.Mooncat;
+import owltools.mooncat.OWLInAboxTranslator;
 import owltools.mooncat.PropertyExtractor;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.QuerySubsetGenerator;
@@ -547,6 +549,12 @@ public class CommandRunner {
 				for (OWLClassAxiom ax : g.getSourceOntology().getAxioms(c)) {
 					//System.out.println(ax);
 					owlpp.print(ax);
+				}
+			}
+			else if (opts.nextEq("--list-all-axioms")) {
+				OWLPrettyPrinter owlpp = getPrettyPrinter();
+				for (OWLAxiom a : g.getSourceOntology().getAxioms()) {
+					owlpp.print(a);
 				}
 			}
 			else if (opts.nextEq("--make-species-subset")) {
@@ -1070,6 +1078,32 @@ public class CommandRunner {
 				be.saveBridgeOntologies(dir, fmt);
 
 			}
+			else if (opts.nextEq("--expand-expression")) {
+				opts.info("PROP EXPRESSION", "uses OBO Macros to expand expressions with PROP to the target expression using ?Y");
+				OWLObjectProperty p = resolveObjectProperty(opts.nextOpt());
+				String expr = opts.nextOpt();
+				OWLAnnotationAssertionAxiom aaa = g.getDataFactory().getOWLAnnotationAssertionAxiom(
+						g.getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000424.getIRI()),
+						p.getIRI(), 
+						g.getDataFactory().getOWLLiteral(expr));
+				g.getManager().addAxiom(g.getSourceOntology(), aaa);
+				MacroExpansionVisitor mev = 
+					new MacroExpansionVisitor(g.getSourceOntology());
+				mev.expandAll();
+			}
+			else if (opts.nextEq("--expand-assertion")) {
+				opts.info("PROP ASSERTION", "uses OBO Macros to expand expressions with PROP to the target expression using ?X and ?Y");
+				OWLNamedObject p = (OWLNamedObject) this.resolveEntity(opts.nextOpt());
+				String expr = opts.nextOpt();
+				OWLAnnotationAssertionAxiom aaa = g.getDataFactory().getOWLAnnotationAssertionAxiom(
+						g.getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000425.getIRI()),
+						p.getIRI(),
+						g.getDataFactory().getOWLLiteral(expr));
+				g.getManager().addAxiom(g.getSourceOntology(), aaa);
+				MacroExpansionVisitor mev = 
+					new MacroExpansionVisitor(g.getSourceOntology());
+				mev.expandAll();
+			}
 			else if (opts.nextEq("--oppl")) {
 				opts.info("[--dry-run] [[-i OPPL-SCRIPT-FILE] | OPPL-STRING]", "runs an oppl script");
 				boolean isDryRun = false;
@@ -1542,6 +1576,11 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--make-default-abox")) {
 				ABoxUtils.makeDefaultIndividuals(g.getSourceOntology());
+			}
+			else if (opts.nextEq("--tbox-to-abox")) {
+				OWLInAboxTranslator t = new OWLInAboxTranslator(g.getSourceOntology());
+				OWLOntology abox = t.translate();
+				g.setSourceOntology(abox);
 			}
 			else if (opts.nextEq("--map-abox-to-results")) {
 				Set<OWLClass> cs = new HashSet<OWLClass>();
@@ -2168,11 +2207,6 @@ public class CommandRunner {
 				}
 				
 			}
-			else if (opts.nextEq("--list-axioms")) {
-				for (OWLAxiom a : g.getSourceOntology().getAxioms()) {
-					System.out.println("AX:"+a);
-				}
-			}
 			else if (opts.nextEq("--remove-axioms")) {
 				AxiomType t = null;
 				while (opts.hasOpts()) {
@@ -2495,11 +2529,13 @@ public class CommandRunner {
 				LOG.info("Made subset ontology; # classes = "+cs.size());				
 			}
 			else if (opts.nextEq("--extract-module")) {
-				opts.info("[-n IRI] [-d] [-m MODULE-TYPE] SEED-OBJECTS", "Uses the OWLAPI module extractor");
+				opts.info("[-n IRI] [-d] [-s SOURCE-ONTOLOGY] [-c] [-m MODULE-TYPE] SEED-OBJECTS", "Uses the OWLAPI module extractor");
 				String modIRI = null;
-				ModuleType mtype = ModuleType.STAR;
+				ModuleType mtype = ModuleType.BOT;
 				boolean isTraverseDown = false;
 				boolean isMerge = false;
+				OWLOntology baseOnt = g.getSourceOntology();
+
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-n")) {
 						modIRI = opts.nextOpt();
@@ -2510,27 +2546,17 @@ public class CommandRunner {
 					else if (opts.nextEq("-c|--merge")) {
 						isMerge = true;
 					}
+					else if (opts.nextEq("-s|--source")) {
+						baseOnt = g.getManager().getOntology(IRI.create(opts.nextOpt()));
+					}
 					else if (opts.nextEq("-m") || opts.nextEq("--module-type")) {
-						opts.info("MODULE-TYPE", "One of: STAR (default), TOP, BOT, TOP_OF_BOT, BOT_OF_TOP");
+						opts.info("MODULE-TYPE", "One of: STAR (default), TOP, BOT");
 						mtype = ModuleType.valueOf(opts.nextOpt());
 					}
 					else {
 						break;
 					}
 				}
-
-				// module extraction not implemented for SAPs
-				// this code can be replaced when this is fixed:
-				// https://sourceforge.net/tracker/?func=detail&aid=3477470&group_id=90989&atid=595534
-				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-				for (OWLAxiom ax : g.getSourceOntology().getAxioms()) {
-					if (ax instanceof OWLSubAnnotationPropertyOfAxiom)
-						continue;
-					axioms.add(ax);
-				}
-
-				OWLOntology baseOnt = g.getManager().createOntology(axioms);
-
 				Set<OWLObject> objs = new HashSet<OWLObject>();
 				if (isMerge) {
 					objs.addAll( g.getSourceOntology().getObjectPropertiesInSignature() );
@@ -2542,7 +2568,7 @@ public class CommandRunner {
 				else {
 					objs = this.resolveEntityList(opts);
 				}
-				LOG.info("OBJS: "+objs);
+				LOG.info("OBJS: "+objs.size());
 
 				Set<OWLEntity> seedSig = new HashSet<OWLEntity>();
 				if (isTraverseDown) {
