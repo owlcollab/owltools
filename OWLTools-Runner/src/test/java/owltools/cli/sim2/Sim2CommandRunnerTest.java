@@ -58,7 +58,7 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--sim-load-lcs-cache target/lcs-cache");
 		run("--sim-load-ic-cache target/ic-cache.ttl");
 		//TODO
-		//run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100run2.out");
+		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100run2.out");
 
 
 	}
