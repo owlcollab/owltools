@@ -784,25 +784,17 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		loadProperties(opts);
 		OWLClass c1 = (OWLClass) this.resolveClass(opts.nextOpt());
 		OWLClass c2 = (OWLClass) this.resolveClass(opts.nextOpt());
-		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
-		try {
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.createElementAttributeMapFromOntology();
-			Set<Node<OWLClass>> lcsSet = sos.getNamedLowestCommonSubsumers(c1, c2);
+		}
+		sos.createElementAttributeMapFromOntology();
+		Set<Node<OWLClass>> lcsSet = sos.getNamedLowestCommonSubsumers(c1, c2);
 
-			for (Node<OWLClass> lcsNode : lcsSet) {
-				System.out.println(owlpp.render(lcsNode.getRepresentativeElement()));
-			}
+		for (Node<OWLClass> lcsNode : lcsSet) {
+			System.out.println(owlpp.render(lcsNode.getRepresentativeElement()));
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		finally {
-			LOG.info("clearing up...");
-			if (pproc != null) {
-				pproc.dispose();
-			}
-		}
-
 	}
 
 
