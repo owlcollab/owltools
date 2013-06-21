@@ -11,7 +11,6 @@ import org.junit.Test;
  */
 public class CommandRunnerMaterializePropertyReasoningTest extends AbstractCommandRunnerTest {
 	
-
 	@Test
 	public void testQueryCE() throws Exception {
 		init();
@@ -20,4 +19,5 @@ public class CommandRunnerMaterializePropertyReasoningTest extends AbstractComma
 		run("--materialize-property-inferences -p BFO_0000050");
 		run("-o -f turtle file:///tmp/z.ttl");
 	}
+	
 }
