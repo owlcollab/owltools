@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.InferenceBuilder;
 import owltools.ontologyverification.OntologyCheck;
+import owltools.ontologyverification.impl.AltIdInSignature;
 import owltools.ontologyverification.impl.CycleCheck;
 import owltools.ontologyverification.impl.DanglingReferenceCheck;
 import owltools.ontologyverification.impl.NameRedundancyCheck;
@@ -141,6 +142,9 @@ public class OortConfiguration {
 		else if (ObsoleteClassInSignature.SHORT_HAND.equals(shortName)) {
 			return new ObsoleteClassInSignature();
 		}
+		else if (AltIdInSignature.SHORT_HAND.equals(shortName)) {
+			return new AltIdInSignature();
+		}
 		return null;
 	}
 	
@@ -160,6 +164,9 @@ public class OortConfiguration {
 		else if (check instanceof ObsoleteClassInSignature) {
 			return ObsoleteClassInSignature.SHORT_HAND;
 		}
+		else if (check instanceof AltIdInSignature) {
+			return AltIdInSignature.SHORT_HAND;
+		}
 		return null;
 	}
 	
@@ -175,6 +182,7 @@ public class OortConfiguration {
 		checks.add(new DanglingReferenceCheck());
 		checks.add(new CycleCheck());
 		checks.add(new ObsoleteClassInSignature());
+		checks.add(new AltIdInSignature());
 		return checks;
 	}
 	
