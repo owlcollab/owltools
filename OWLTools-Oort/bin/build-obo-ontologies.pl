@@ -210,17 +210,28 @@ foreach my $k (keys %ont_info) {
     if ($method eq 'archive') {
         my $SRC = "src/$ont-archive.zip";
         my $path = $info->{path};
+        my $tmpdir = "tmp";
         if (!$path) {
             die "must set path for $ont";
         }
         $success = run("wget --no-check-certificate $source_url -O $SRC");
         if ($success) {
-            $success = run("unzip -o $SRC");
-            if ($success) {
-                $success = run("rsync -avz --delete $path/ $ont");
+            if (-d $tmpdir) {
+                $success = run("rm -rf $tmpdir");
+            }
+            $success = run("mkdir $tmpdir");
+            if (!$success) {
+                debug("Could not clear prepare archive dir: $tmpdir");
             }
             else {
-                debug("unzip failed for $ont");
+                # chmod is necessary because of a weird jenkins bug
+                $success = run("(cd $tmpdir && unzip -o ../$SRC && chmod -R 777 *)");
+                if ($success) {
+                    $success = run("rsync -avz --delete $tmpdir/$path/ $ont");
+                }
+                else {
+                    debug("unzip failed for $ont");
+                }
             }
         }
         else {
@@ -430,7 +441,6 @@ sub get_ont_info {
              checkout => 'svn  --ignore-externals co http://cell-ontology.googlecode.com/svn/trunk/src/ontology',
          },
          clo => {
-             # TODO - additional owl2obo step
              method => 'vcs',
              system => 'svn',
              checkout => 'svn --ignore-externals co http://clo-ontology.googlecode.com/svn/trunk/src/ontology',
@@ -526,14 +536,21 @@ sub get_ont_info {
          },
          'bio-attributes' => {
              method => 'archive',
-             path => 'archive/main',
+             path => 'archive/main/go/extensions',   # <-- this will be changed later
              source_url => 'http://build.berkeleybop.org/job/build-bio-attributes/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
+
          envo => {
              infallible => 1,
+             method => 'vcs',
+             system => 'svn',
+             checkout => 'svn co http://envo.googlecode.com/svn/trunk/src/envo',
+         },
+         gaz => {
              method => 'archive',
              path => 'archive',
-             source_url => 'http://build.berkeleybop.org/job/build-envo/lastSuccessfulBuild/artifact/*zip*/archive.zip',
+             source_url => 'http://build.berkeleybop.org/job/build-gaz/lastSuccessfulBuild/artifact/*zip*/archive.zip',
+#             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/environmental/gaz.obo',
          },
          ma => {
              infallible => 1,
@@ -620,13 +637,6 @@ sub get_ont_info {
              source_url => 'ftp://ftp.hgu.mrc.ac.uk/pub/MouseAtlas/Anatomy/EMAPA.obo',
          },
 
-         # we will use either an archive or vcs method for gaz rather than straining central pipeline
-         #gaz => {
-         #    method => 'obo2owl',
-         #    oort_memory => '5G',
-         #    oort_args => '--no-reasoner', # TODO - jvm
-         #    source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/environmental/gaz.obo',
-         #},
 
 
          # GENERIC
@@ -922,6 +932,10 @@ sub get_ont_info {
          obi => {
              method => 'owl2obo',
              source_url => 'http://purl.obofoundry.org/obo/obi.owl',
+         },
+         efo => {
+             method => 'owl2obo',
+             source_url => 'http://www.ebi.ac.uk/efo/efo.owl',
          },
          oae => {
              method => 'owl2obo',
