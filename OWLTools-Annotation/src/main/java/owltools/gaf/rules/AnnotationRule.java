@@ -46,7 +46,7 @@ public interface AnnotationRule {
 	 * @param graph
 	 * @return set of inferred annotation predictions
 	 */
-	public Set<Prediction> getInferredAnnotations(GafDocument gafDoc, OWLGraphWrapper graph);
+	public Set<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph);
 	
 	/**
 	 * Set the rule id
@@ -139,7 +139,7 @@ public interface AnnotationRule {
 	
 	/**
 	 * @return true, if the rule is also capable of inferring new annotations.
-	 * @see #getInferredAnnotations(GafDocument, OWLGraphWrapper)
+	 * @see #getPredictedAnnotations(GafDocument, OWLGraphWrapper)
 	 */
 	public boolean isInferringAnnotations();
 	

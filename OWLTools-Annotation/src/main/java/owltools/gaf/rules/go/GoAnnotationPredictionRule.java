@@ -41,7 +41,7 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 	}
 
 	@Override
-	public Set<Prediction> getInferredAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
+	public Set<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		
 		BasicAnnotationPropagator propagator = new BasicAnnotationPropagator(gafDoc, source);

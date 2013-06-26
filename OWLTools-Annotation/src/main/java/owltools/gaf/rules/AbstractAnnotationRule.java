@@ -33,7 +33,7 @@ public abstract class AbstractAnnotationRule implements AnnotationRule {
 	}
 
 	@Override
-	public Set<Prediction> getInferredAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
+	public Set<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		// per default, do nothing
 		return Collections.emptySet();
 	}

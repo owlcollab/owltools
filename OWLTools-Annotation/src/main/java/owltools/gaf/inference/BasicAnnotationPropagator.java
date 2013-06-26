@@ -280,7 +280,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 						// NEW INFERENCES
 						aClasses.add(c);
 						String aspect = aspectMap.get(ancSubOnt);
-						predictions.add(getPrediction(targetClass, aspect , ann));
+						predictions.add(getPrediction(targetClass, aspect, cid, ann));
 					}
 				}
 			}
@@ -296,7 +296,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		return getGoSubOntology(c, getGraph());
 	}
 
-	protected Prediction getPrediction(OWLClass c, String aspect, GeneAnnotation source) {
+	protected Prediction getPrediction(OWLClass c, String aspect, String with, GeneAnnotation source) {
 		
 		GeneAnnotation annP = new GeneAnnotation();
 		// c1-c3
@@ -316,7 +316,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		annP.setEvidenceCls("IC");
 		
 		// c8 with expression
-		annP.setWithExpression(source.getWithExpression());
+		annP.setWithExpression(with);
 		
 		// c9 aspect
 		annP.setAspect(aspect);

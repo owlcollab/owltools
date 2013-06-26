@@ -162,7 +162,7 @@ public class AnnotationRulesEngine {
 			if (hasInferenceRules && translatedGraph != null) {
 				LOG.info("Start inference of annotations with "+inferenceRules.size()+" rules.");
 				for(AnnotationRule rule : inferenceRules) {
-					result.addInferences(rule.getInferredAnnotations(doc, translatedGraph));
+					result.addInferences(rule.getPredictedAnnotations(doc, translatedGraph));
 				}
 				LOG.info("Finished inference of new annotations. Found: "+result.predictions.size());
 			}
@@ -511,19 +511,29 @@ public class AnnotationRulesEngine {
 					summaryWriter.println(", see prediction file for details.");
 				}
 				if (predictionWriter != null) {
+					
+					GafWriter.BufferedGafWriter bufferedGafWriter = new GafWriter.BufferedGafWriter();
+					// write predictions in GAF format
+					// write to buffer
+					for (Prediction prediction : result.predictions) {
+						if (prediction.isRedundantWithExistingAnnotations() == false && prediction.isRedundantWithOtherPredictions() == false) {
+							bufferedGafWriter.write(prediction.getGeneAnnotation());
+						}
+					}
+					// sort buffer
+					List<String> lines = bufferedGafWriter.getLines();
+					Collections.sort(lines);
+					
+					
+					// Append to writer
 					// GAF header
 					GafWriter gafWriter = new GafWriter();
 					gafWriter.setStream(predictionWriter);
 					List<String> comments = Arrays.asList(""," Generated predictions",""); 
 					gafWriter.writeHeader(comments);
-					
-					// TODO sort predictions?
-					
-					// write predictions in GAF format
-					for (Prediction prediction : result.predictions) {
-						if (prediction.isRedundantWithExistingAnnotations() == false && prediction.isRedundantWithOtherPredictions() == false) {
-							gafWriter.write(prediction.getGeneAnnotation());
-						}
+					// append sorted lines
+					for (String line : lines) {
+						predictionWriter.print(line);
 					}
 				}
 			}

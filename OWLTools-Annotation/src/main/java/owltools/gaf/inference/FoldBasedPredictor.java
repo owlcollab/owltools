@@ -49,7 +49,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	public Set<Prediction> predict(String bioentity) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		Set<GeneAnnotation> anns = getGafDocument().getGeneAnnotations(bioentity);
-		LOG.info("predicting for "+bioentity+" N="+anns.size());
+//		LOG.info("predicting for "+bioentity+" N="+anns.size());
 		for (GeneAnnotation ann : anns) {
 			//LOG.info(ann);
 			if (ann.getEvidenceCls().equals("ND")) {
@@ -108,7 +108,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		annP.setWithExpression(with);
 		// TODO - evidence
 		Prediction prediction = new Prediction(annP);
-		LOG.info("prediction="+prediction);
+//		LOG.info("prediction="+prediction);
 		return prediction;
 	}
 

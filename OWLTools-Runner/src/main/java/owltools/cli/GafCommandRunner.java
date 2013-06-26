@@ -711,8 +711,8 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	@CLIMethod("--gaf-inference-file")
-	public void setGAFInferenceFile(Opts opts) {
+	@CLIMethod("--gaf-prediction-file")
+	public void setGAFPredictionFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafPredictionFile = opts.nextOpt();
 		}
