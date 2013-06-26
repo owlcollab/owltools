@@ -2,6 +2,8 @@ package owltools.gaf.inference;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +15,8 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.GeneAnnotation;
+import owltools.gaf.io.GafWriter;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
@@ -62,6 +66,16 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 		
 		Set<Prediction> allPredictions = propagator.getAllPredictions();
 		assertEquals(1, allPredictions.size());
+		final GeneAnnotation geneAnnotation = allPredictions.iterator().next().getGeneAnnotation();
+		
+		GafWriter writer = new GafWriter();
+		ByteArrayOutputStream out  = new ByteArrayOutputStream();
+		writer.setStream(new PrintStream(out));
+		writer.write(geneAnnotation);
+		out.flush();
+		String writtenLine = out.toString().trim(); // trim to avoid hassle with tabs and new lines at the end
+		String expectedLine = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	IC		P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	20130626	GOC";
+		assertEquals(expectedLine, writtenLine);
 	}
 
 }
