@@ -838,7 +838,9 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 */
 	public OWLObject getOWLObjectByIdentifier(String id) {
 		IRI iri = getIRIByIdentifier(id);
-		return getOWLObject(iri);
+		if (iri != null)
+			return getOWLObject(iri);
+		return null;
 	}
 
 	/**
@@ -848,7 +850,10 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return OWLObjectProperty with id or null
 	 */
 	public OWLObjectProperty getOWLObjectPropertyByIdentifier(String id) {
-		return getOWLObjectProperty(getIRIByIdentifier(id));
+		IRI iri = getIRIByIdentifier(id);
+		if (iri != null) 
+			return getOWLObjectProperty(iri);
+		return null;
 	}
 
 	/**
@@ -858,7 +863,10 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return OWLNamedIndividual with id or null
 	 */
 	public OWLNamedIndividual getOWLIndividualByIdentifier(String id) {
-		return getOWLIndividual(getIRIByIdentifier(id));
+		IRI iri = getIRIByIdentifier(id);
+		if (iri != null) 
+			return getOWLIndividual(iri);
+		return null;
 	}
 
 	/**
