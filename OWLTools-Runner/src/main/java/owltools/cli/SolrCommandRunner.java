@@ -11,11 +11,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
@@ -247,7 +250,30 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					
 				//optionallyLogLoad("ontology", o.getOntologyID().toString());
 				// This is "correct", but I'm only getting one.
-				optionallyLogLoad("ontology", o.getOntologyID().getOntologyIRI().toURI().toString());
+				String ont_id = "unknown";
+				String ont_version = "unknown";
+				try {
+					ont_id = o.getOntologyID().getOntologyIRI().toURI().toString();
+				} catch (NullPointerException e) {
+					LOG.info("Failed to get ID of: " + o.toString() + "!");
+				}
+				try {
+					ont_version = o.getOntologyID().getVersionIRI().toString();
+					Pattern p = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
+					Matcher m = p.matcher(ont_version);
+					m.find();
+					ont_version = m.group(0);
+					//ont_version = StringUtils.substringBetween(ont_version, "releases/", "/");
+					if( ont_version == null || ont_version.equals("") ){
+						// Sane fallback.
+						LOG.info("Failed to extract version of: " + ont_id + "!");
+					}
+				} catch (NullPointerException e) {
+					LOG.info("Failed to get version of: " + ont_id + "!");
+				} catch (IllegalStateException e) {
+					LOG.info("Failed to get match for version of: " + ont_id + "!");
+				}
+				optionallyLogLoad("ontology", ont_id, ont_version);
 			}
 		} catch (SolrServerException e) {
 			LOG.info("Ontology load at: " + url + " failed!");
@@ -325,7 +351,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			loadGAFDoc(url, gafdoc, eco, taxo, pSet);
 			
 			// Load likely successful--log it.
-			optionallyLogLoad("gaf", file);
+			optionallyLogLoad("gaf", file, "n/a");
 		}
 		
 		eco.dispose();
@@ -578,22 +604,26 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		return url;
 	}
 
+	/*
+	 * Define the time right now.
+	 * DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+	 */
+	private String dateNow(){		
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		String now = df.format(new Date());
+		return now;
+	}
 	
 	/*
-	 * Log out the URL, type, and date.
+	 * Log out the URL, type, and date. 
 	 */
-	private void optionallyLogLoad(String type, String uri){
+	private void optionallyLogLoad(String type, String uri, String version){
 
 		// Naturally, if we haven't defined the file, skip the logging.
 		if( globalSolrLogFile != null ){
 
-			// Define the time right now.
-			//DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			String now = df.format(new Date());
-		
 			// Actually logging, don in an instant.
-			String ll = type + "\t" + now + "\t" + uri + "\n";
+			String ll = type + "\t" + version + "\t" + dateNow() + "\t" + uri + "\n";
 			try {
 				FileUtils.writeStringToFile(globalSolrLogFile, ll, true);
 				LOG.info("Should be logging GOlr load at: " + globalSolrLogFile.getAbsolutePath());
