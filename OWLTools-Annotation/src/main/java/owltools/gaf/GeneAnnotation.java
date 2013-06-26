@@ -28,30 +28,30 @@ public class GeneAnnotation {
 		
 	};
 	
-	protected String bioentity;
-	protected Bioentity bioentityObject; // should encompass columns 1-3, 10(?), 12, 13(?), 17(?)
+	protected String bioentity; // used for c1 and c2
+	protected Bioentity bioentityObject; // encompass columns 1-3, 10-12
 	protected boolean isContributesTo;
 	protected boolean isIntegralTo;
-	protected String compositeQualifier; // Col. 4(?)
-	protected String relation; // ???
+	protected String compositeQualifier; // Col. 4
+	protected String relation; // implicit relation
 	protected String cls; // Col. 5
 	protected String referenceId;	// Col. 6
 	protected String evidenceCls; // Col. 7
 	protected String withExpression; // Col. 8
 	protected String aspect; // Col. 9
-	protected String actsOnTaxonId; // ???
+	protected String actsOnTaxonId; // Col. 13
 	protected String lastUpdateDate; // Col. 14 //TODO: convert it to date
 	protected String assignedBy; // Col. 15
 	protected String extensionExpression; // Col. 16
 	protected String geneProductForm; // Col. 17
-	protected String gafDocument;
 	
-	protected Collection<WithInfo> withInfoList;
-	protected Collection<ExtensionExpression> extensionExpressionList;
-	protected Collection<CompositeQualifier> compositeQualifierList;
+	protected String gafDocument; // parent document id
+	
+	protected Collection<WithInfo> withInfoList; // derived from c8
+	protected Collection<ExtensionExpression> extensionExpressionList; // derived from c16
+	protected Collection<CompositeQualifier> compositeQualifierList; // derived from c4
 
-	
-	protected transient GafDocument gafDocumentObject;
+	protected transient GafDocument gafDocumentObject; // parent document
 	protected transient AnnotationSource annotationSource;
 	
 	/**
