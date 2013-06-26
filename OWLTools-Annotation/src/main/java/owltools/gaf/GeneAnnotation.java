@@ -1,6 +1,11 @@
 package owltools.gaf;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import java.util.Collections;
 
@@ -11,6 +16,18 @@ import java.util.Collections;
  */
 public class GeneAnnotation {
 
+	/**
+	 * Provide a thread-safe formatter for a GAF date.
+	 */
+	protected static final ThreadLocal<DateFormat> GAF_Date_Format = new ThreadLocal<DateFormat>() {
+
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("yyyyMMdd");
+		}
+		
+	};
+	
 	protected String bioentity;
 	protected Bioentity bioentityObject; // should encompass columns 1-3, 10(?), 12, 13(?), 17(?)
 	protected boolean isContributesTo;
@@ -54,7 +71,7 @@ public class GeneAnnotation {
 		StringBuilder s = new StringBuilder();
 
 		String taxon = "";
-		String dbObjectSynonym = "";
+		CharSequence dbObjectSynonym = "";
 		String dbObjectName = "";
 		String dbObjectType = "";
 		String symbol = "";
@@ -74,6 +91,18 @@ public class GeneAnnotation {
 
 			dbObjectName = this.bioentityObject.getFullName();
 			dbObjectType = this.bioentityObject.getTypeCls();
+			List<String> synonyms = this.bioentityObject.getSynonyms();
+			if (synonyms != null && !synonyms.isEmpty()) {
+				StringBuilder synonymBuilder = new StringBuilder();
+				for (int i = 0; i < synonyms.size(); i++) {
+					if (i > 0) {
+						synonymBuilder.append('|');
+					}
+					synonymBuilder.append(synonyms.get(i));
+				}
+				dbObjectSynonym = synonymBuilder;
+			}
+			
 			symbol = this.bioentityObject.getSymbol();
 		}
 		
@@ -101,7 +130,6 @@ public class GeneAnnotation {
 		
 		s.append(this.withExpression).append("\t");
 		
-		//s.append("\t"); // TODO/BUG: Without this, it is not a legal GAF?!
 		s.append(this.aspect).append("\t");
 		
 		s.append(dbObjectName).append("\t");
@@ -280,6 +308,16 @@ public class GeneAnnotation {
 		return lastUpdateDate;
 	}
 
+	public void setLastUpdateDate(Date date) {
+		if (date != null) {
+			String dateString = GAF_Date_Format.get().format(date);
+			setLastUpdateDate(dateString);
+		}
+		else {
+			setLastUpdateDate("");
+		}
+	}
+	
 	public void setLastUpdateDate(String lastUpdateDate) {
 		this.lastUpdateDate = lastUpdateDate;
 		this.isChanged = true;

@@ -73,39 +73,82 @@ public class GafWriter  {
 			return;
 		}
 		Bioentity e = ann.getBioentityObject();
+		// c1
 		print(e.getDb());
 		sep();
+		
+		// c2
 		print(e.getLocalId());
 		sep();
+		
+		// c3
 		print(e.getSymbol());
 		sep();
+		
+		// c4
 		print(ann.getCompositeQualifier());
 		sep();
+		
+		// c5
 		print(ann.getCls());
 		sep();
+		
+		// c6
 		print(ann.getReferenceId());
 		sep();
+		
+		// c7
+		print(ann.getEvidenceCls());
+		sep();
+		
+		// c8
 		print(ann.getWithExpression());
 		sep();
-		print(ann.getWithExpression());
+		
+		// c9
+		print(ann.getAspect());
 		sep();
-		print("P"); // todo
-		sep();
+		
+		// c10
 		print(e.getFullName());
 		sep();
-		print(""); // syns - todo
+		
+		// c11
+		StringBuilder synonymBuilder = new StringBuilder();
+		List<String> synonyms = e.getSynonyms();
+		if (synonyms != null && !synonyms.isEmpty()) {
+			for (int i = 0; i < synonyms.size(); i++) {
+				if (i > 0) {
+					synonymBuilder.append('|');
+				}
+				synonymBuilder.append(synonyms.get(i));
+			}
+		}
+		print(synonymBuilder.toString());
 		sep();
+		
+		// c12
 		print(e.getTypeCls());
 		sep();
+		
+		// c13
 		String taxon = e.getNcbiTaxonId().replaceAll("NCBITaxon", "taxon");
 		print(taxon);
 		sep();
+		
+		// c14
 		print(ann.getLastUpdateDate());
 		sep();
+		
+		// c15
 		print(ann.getAssignedBy());
 		sep();
+		
+		// c16
 		print(ann.getExtensionExpression());
 		sep();
+		
+		// c17
 		print(ann.getGeneProductForm());
 		nl();
 	}
