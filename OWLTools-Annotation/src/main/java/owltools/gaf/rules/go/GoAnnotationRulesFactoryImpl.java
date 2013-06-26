@@ -48,6 +48,13 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 				"http://www.geneontology.org/doc/GO.xrf_abbs", graph, eco);
 	}
 
+	@Override
+	protected void handleAdditionalRules(List<AnnotationRule> annotationRules, List<AnnotationRule> documentRules,
+			List<AnnotationRule> owlRules, List<AnnotationRule> inferenceRules) {
+		final AnnotationRule predictionRule = namedRules.get(GoAnnotationPredictionRule.PERMANENT_JAVA_ID);
+		inferenceRules.add(predictionRule);
+	}
+
 	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, TraversingEcoMapper eco) {
 		super(qcfile, graph);
 		logger.info("Start preparing ontology checks");
@@ -67,6 +74,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		namedRules.put(GOReciprocalAnnotationRule.PERMANENT_JAVA_ID, new GOReciprocalAnnotationRule(graph, eco));
 		namedRules.put(GoMultipleTaxonRule.PERMANENT_JAVA_ID, new GoMultipleTaxonRule(graph));
 		namedRules.put(GoNoHighLevelTermAnnotationRule.PERMANENT_JAVA_ID, new GoNoHighLevelTermAnnotationRule(graph, eco));
+		namedRules.put(GoAnnotationPredictionRule.PERMANENT_JAVA_ID, new GoAnnotationPredictionRule(graph));
 		logger.info("Finished preparing ontology checks");
 	}
 

@@ -5,8 +5,11 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
-import owltools.gaf.*;
+import owltools.gaf.Bioentity;
+import owltools.gaf.GafDocument;
+import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -45,13 +48,26 @@ public abstract class AbstractAnnotationPredictor implements AnnotationPredictor
 	}
 
 	/**
-	 * side-effects: removes redundant predictions
+	 * side-effects: removes redundant predictions over all relationships
 	 * 
 	 * @param predictions
 	 * @param aClasses
 	 */
 	protected void setAndFilterRedundantPredictions(Set<Prediction> predictions, Set<OWLClass> aClasses) {
-		Set<OWLClass> classes = new HashSet<OWLClass>();
+		setAndFilterRedundantPredictions(predictions, aClasses, null);
+
+	}
+	
+	/**
+	 * side-effects: removes redundant predictions over a set of relationships.
+	 * If overProps set is empty, only the subClassOf hierarchy is used, if it's
+	 * null all relationships are used.
+	 * 
+	 * @param predictions
+	 * @param aClasses
+	 * @param overProps
+	 */
+	protected void setAndFilterRedundantPredictions(Set<Prediction> predictions, Set<OWLClass> aClasses, Set<OWLPropertyExpression> overProps) {
 		Set<Prediction> newPredictions = new HashSet<Prediction>();
 
 		for (Prediction p : predictions) {
@@ -59,7 +75,7 @@ public abstract class AbstractAnnotationPredictor implements AnnotationPredictor
 			GeneAnnotation a = p.getGeneAnnotation();
 			OWLClass cls = (OWLClass) graph.getOWLObjectByIdentifier(a.getCls());
 			for (OWLClass aClass : aClasses) {
-				if (graph.getAncestorsReflexive(aClass).contains(cls)) {
+				if (graph.getAncestorsReflexive(aClass, overProps).contains(cls)) {
 					isRedundant = true;
 					break;
 				}

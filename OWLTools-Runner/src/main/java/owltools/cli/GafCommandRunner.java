@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,9 +22,7 @@ import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -68,6 +67,7 @@ public class GafCommandRunner extends CommandRunner {
 	
 	private String gafReportSummaryFile = null;
 	private String gafReportFile = null;
+	private String gafPredictionFile = null;
 	
 	public TraversingEcoMapper eco = null;
 	
@@ -474,6 +474,7 @@ public class GafCommandRunner extends CommandRunner {
 	
 	@CLIMethod("--gaf-run-checks")
 	public void runGAFChecks(Opts opts) throws Exception {
+		boolean predictAnnotations = gafPredictionFile != null;
 		if (g != null && gafdoc != null && gafReportFile != null) {
 			AnnotationRulesEngine ruleEngine = null;
 			AnnotationRulesEngineResult result;
@@ -490,14 +491,18 @@ public class GafCommandRunner extends CommandRunner {
 				LOG.info("Start validating GAF");
 			
 				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco);
-				ruleEngine = new AnnotationRulesEngine(rulesFactory);
+				ruleEngine = new AnnotationRulesEngine(rulesFactory, predictAnnotations);
 			
 				result = ruleEngine.validateAnnotations(gafdoc);
 				LOG.info("Finished validating GAF");
 				File reportFile = new File(gafReportFile);
 				File summaryFile = null;
+				File predictionFile = null;
 				if (gafReportSummaryFile != null) {
 					summaryFile = new File(gafReportSummaryFile);
+				}
+				if (gafPredictionFile != null) {
+					predictionFile = new File(gafPredictionFile);
 				}
 
 				// delete previous report files (if they exist)
@@ -507,7 +512,7 @@ public class GafCommandRunner extends CommandRunner {
 				}
 
 				// write parse errors and rule violations
-				createAllReportFiles(parserReport, result, ruleEngine, reportFile, summaryFile);
+				createAllReportFiles(parserReport, result, ruleEngine, reportFile, summaryFile, predictionFile);
 			
 			}
 			finally {
@@ -583,11 +588,12 @@ public class GafCommandRunner extends CommandRunner {
 	
 	private void createAllReportFiles(GafParserReport parserReport, 
 			AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
-			File reportFile, File summaryFile) throws IOException
+			File reportFile, File summaryFile, File predictionFile) throws IOException
 	{
 		LOG.info("Start writing reports to file: "+gafReportFile);
 		PrintWriter writer = null;
 		PrintWriter summaryWriter = null;
+		PrintStream predictionStream = null;
 		try {
 			if (summaryFile != null) {
 				summaryWriter = new PrintWriter(summaryFile);
@@ -606,6 +612,9 @@ public class GafCommandRunner extends CommandRunner {
 				summaryWriter.println();
 				
 			}
+			if (predictionFile != null) {
+				predictionStream = new PrintStream(new FileOutputStream(predictionFile));
+			}
 			writer = new PrintWriter(reportFile);
 			writer.println("#------------");
 			writer.print("# Validation for #");
@@ -621,9 +630,10 @@ public class GafCommandRunner extends CommandRunner {
 			if (parserReport != null && parserReport.hasWarningsOrErrors()) {
 				writeParseErrors(parserReport, writer, summaryWriter);
 			}
-			AnnotationRulesEngineResult.renderViolations(result, engine, writer, summaryWriter);
+			AnnotationRulesEngineResult.renderEngineResult(result, engine, writer, summaryWriter, predictionStream);
 		} finally {
 			IOUtils.closeQuietly(summaryWriter);
+			IOUtils.closeQuietly(predictionStream);
 			IOUtils.closeQuietly(writer);
 			LOG.info("Finished writing reports to file.");
 		}
@@ -698,6 +708,13 @@ public class GafCommandRunner extends CommandRunner {
 	public void setGAFReportSummaryFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafReportSummaryFile = opts.nextOpt();
+		}
+	}
+	
+	@CLIMethod("--gaf-inference-file")
+	public void setGAFInferenceFile(Opts opts) {
+		if (opts.hasArgs()) {
+			gafPredictionFile = opts.nextOpt();
 		}
 	}
 	

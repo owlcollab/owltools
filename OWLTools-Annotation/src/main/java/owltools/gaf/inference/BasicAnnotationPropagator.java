@@ -1,11 +1,15 @@
 package owltools.gaf.inference;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -13,8 +17,6 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 
 /**
- * TODO: this class has not yet been tested!
- * 
  * This performs basic annotation inferences involving propagation
  * between the 3 sub-ontologies in GO
  * 
@@ -49,45 +51,54 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 
 			String cid = ann.getCls();
-			OWLClass c = getGraph().getOWLClass(cid);
+			OWLClass c = getGraph().getOWLClassByIdentifier(cid);
 			String subOnt = getSubOntology(c);
 
-			for (OWLGraphEdge e : getGraph().getOutgoingEdgesClosure(c)) {
-				String ancSubOnt = getSubOntology((OWLClass)e.getTarget());
-				if (!subOnt.equals(ancSubOnt)) {
-					if (e.getQuantifiedPropertyList().size() == 1) {
-						OWLObjectProperty prop = e.getSingleQuantifiedProperty().getProperty();
-						String pl = getGraph().getLabel(prop);
-						if (pl.equals("part_of") || pl.equals("occurs_in")) {
-							// NEW INFERENCES
-							aClasses.add(c);
-							predictions.add(getPrediction(c, bioentity, ann.getWithExpression()));
+			final Set<OWLGraphEdge> outgoingEdgesClosure = getGraph().getOutgoingEdgesClosure(c);
+			for (OWLGraphEdge e : outgoingEdgesClosure) {
+				final OWLObject target = e.getTarget();
+				if (target instanceof OWLClass) {
+					final OWLClass targetClass = (OWLClass)target;
+					String ancSubOnt = getSubOntology(targetClass);
+					// TODO make allowed pairs configurable
+					boolean sameSubOntology = StringUtils.equals(subOnt, ancSubOnt);
+					if (sameSubOntology == false) {
+						if (e.getQuantifiedPropertyList().size() == 1) {
+							OWLObjectProperty prop = e.getSingleQuantifiedProperty().getProperty();
+							String pl = getGraph().getLabel(prop);
+							if (pl.equals("part_of") || pl.equals("occurs_in")) {
+								// NEW INFERENCES
+								aClasses.add(c);
+								predictions.add(getPrediction(targetClass, bioentity, ann.getWithExpression(), ann));
+							}
 						}
 					}
 				}
 			}
 		}
 
-		this.setAndFilterRedundantPredictions(predictions, aClasses);
+		// filter redundant annotations, use only the subClassOf hierarchy
+		Set<OWLPropertyExpression> set = Collections.emptySet(); // only subClassOf
+		setAndFilterRedundantPredictions(predictions, aClasses, set);
 		return predictions;
 	}
 
-	private String getSubOntology(OWLClass c) {
-		// TODO Auto-generated method stub
-		return null;
+	protected String getSubOntology(OWLClass c) {
+		final String namespace = getGraph().getNamespace(c);
+		return namespace;
 	}
 
 	// TODO - move up?
-	protected Prediction getPrediction(OWLClass c, String bioentity, String with) {
-		Prediction prediction = new Prediction();
+	protected Prediction getPrediction(OWLClass c, String bioentity, String with, GeneAnnotation source) {
+		
 		GeneAnnotation annP = new GeneAnnotation();
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidenceCls("IC");
 		annP.setWithExpression(with);
 		// TODO - evidence
-		prediction.setGeneAnnotation(annP);
-		LOG.info("prediction="+prediction);
+		
+		Prediction prediction = new Prediction(annP);
 		return prediction;
 	}
 

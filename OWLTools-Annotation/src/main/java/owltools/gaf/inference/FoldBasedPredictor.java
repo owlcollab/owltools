@@ -101,14 +101,13 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	}
 
 	protected Prediction getPrediction(GeneAnnotation ann, OWLClass c, String bioentity, String with) {
-		Prediction prediction = new Prediction();
 		GeneAnnotation annP = new GeneAnnotation(ann);
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidenceCls("IC");
 		annP.setWithExpression(with);
 		// TODO - evidence
-		prediction.setGeneAnnotation(annP);
+		Prediction prediction = new Prediction(annP);
 		LOG.info("prediction="+prediction);
 		return prediction;
 	}

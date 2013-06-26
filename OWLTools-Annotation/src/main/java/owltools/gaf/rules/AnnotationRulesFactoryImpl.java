@@ -41,6 +41,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	private final List<AnnotationRule> annotationRules;
 	private final List<AnnotationRule> documentRules;
 	private final List<AnnotationRule> owlRules;
+	private final List<AnnotationRule> inferenceRules;
 	private final String path;
 	private final OWLGraphWrapper graph;
 	
@@ -56,6 +57,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 		annotationRules = new ArrayList<AnnotationRule>();
 		documentRules = new ArrayList<AnnotationRule>();
 		owlRules = new ArrayList<AnnotationRule>();
+		inferenceRules = new ArrayList<AnnotationRule>();
 	}
 	
 	@Override
@@ -83,10 +85,17 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 		if(doc != null) {
 			loadRegex(doc);
 			loadJava(doc);
+			
+			handleAdditionalRules(annotationRules, documentRules, owlRules, inferenceRules);
+			
 			isInitalized = true;
 			
 			LOG.info("Finished loading GAF validation checks");
 		}
+	}
+	
+	protected void handleAdditionalRules(List<AnnotationRule> annotationRules, List<AnnotationRule> documentRules, List<AnnotationRule> owlRules, List<AnnotationRule> inferenceRules) {
+		// do nothing
 	}
 
 	private void loadJava(Document doc) {
@@ -141,6 +150,9 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 							}
 							if(rule.isOwlDocumentLevel()) {
 								owlRules.add(rule);
+							}
+							if (rule.isInferringAnnotations()) {
+								inferenceRules.add(rule);
 							}
 						}
 					}catch(Exception ex){
@@ -259,6 +271,14 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
 		}
 		return owlRules;
+	}
+
+	@Override
+	public List<AnnotationRule> getInferenceRules() {
+		if (!isInitalized) {
+			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
+		}
+		return inferenceRules;
 	}
 
 	@Override

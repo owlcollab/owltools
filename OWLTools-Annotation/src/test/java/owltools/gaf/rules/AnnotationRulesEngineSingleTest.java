@@ -63,7 +63,7 @@ public class AnnotationRulesEngineSingleTest extends OWLToolsTestBasics {
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
 				qcfile, xrfabbslocation, graph, eco);
-		engine = new AnnotationRulesEngine(rulesFactory);
+		engine = new AnnotationRulesEngine(rulesFactory, true);
 	}
 
 	@Test

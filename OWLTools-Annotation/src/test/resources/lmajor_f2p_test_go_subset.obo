@@ -34,7 +34,6 @@ subset: goslim_yeast  ! Yeast GO slim
 subset: gosubset_prok  ! Prokaryotic GO subset
 synonym: "molecular function" EXACT []
 synonym: "molecular function unknown" NARROW []
-disjoint_from: GO:0005575  ! cellular_component
 disjoint_from: GO:0008150  ! biological_process
 
 [Term]

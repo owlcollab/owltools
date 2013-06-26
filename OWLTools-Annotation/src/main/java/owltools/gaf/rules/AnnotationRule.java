@@ -5,6 +5,7 @@ import java.util.Set;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.inference.Prediction;
 import owltools.graph.OWLGraphWrapper;
 
 public interface AnnotationRule {
@@ -35,6 +36,17 @@ public interface AnnotationRule {
 	 * @see #isOwlDocumentLevel()
 	 */
 	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph);
+	
+	
+	/**
+	 * Given a whole {@link GafDocument} in plan and OWL format, check for
+	 * possible new inferred annotations ({@link Prediction}).
+	 * 
+	 * @param gafDoc
+	 * @param graph
+	 * @return set of inferred annotation predictions
+	 */
+	public Set<Prediction> getInferredAnnotations(GafDocument gafDoc, OWLGraphWrapper graph);
 	
 	/**
 	 * Set the rule id
@@ -124,6 +136,12 @@ public interface AnnotationRule {
 	 * @see #getRuleViolations(OWLGraphWrapper)
 	 */
 	public boolean isOwlDocumentLevel();
+	
+	/**
+	 * @return true, if the rule is also capable of inferring new annotations.
+	 * @see #getInferredAnnotations(GafDocument, OWLGraphWrapper)
+	 */
+	public boolean isInferringAnnotations();
 	
 	/**
 	 * Indicate the use of grand fathering, meaning do not report violations for

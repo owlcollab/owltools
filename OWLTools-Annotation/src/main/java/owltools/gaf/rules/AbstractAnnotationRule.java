@@ -6,6 +6,7 @@ import java.util.Set;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.inference.Prediction;
 import owltools.graph.OWLGraphWrapper;
 
 public abstract class AbstractAnnotationRule implements AnnotationRule {
@@ -27,6 +28,12 @@ public abstract class AbstractAnnotationRule implements AnnotationRule {
 
 	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph) {
+		// per default, do nothing
+		return Collections.emptySet();
+	}
+
+	@Override
+	public Set<Prediction> getInferredAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		// per default, do nothing
 		return Collections.emptySet();
 	}
@@ -93,6 +100,11 @@ public abstract class AbstractAnnotationRule implements AnnotationRule {
 	
 	@Override
 	public boolean isOwlDocumentLevel() {
+		return false;
+	}
+
+	@Override
+	public boolean isInferringAnnotations() {
 		return false;
 	}
 
