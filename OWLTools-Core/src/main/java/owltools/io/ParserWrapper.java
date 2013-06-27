@@ -250,7 +250,14 @@ public class ParserWrapper {
 			}
 		}
 		else {
-			manager.saveOntology(ont, owlFormat, IRI.create(file));
+			IRI iri;
+			if (file.startsWith("file://")) {
+				iri = IRI.create(file);
+			}
+			else {
+				iri = IRI.create(new File(file));
+			}
+			manager.saveOntology(ont, owlFormat, iri);
 		}
 	}
 	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat,
