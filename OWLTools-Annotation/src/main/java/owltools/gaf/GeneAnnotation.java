@@ -19,7 +19,7 @@ public class GeneAnnotation {
 	/**
 	 * Provide a thread-safe formatter for a GAF date.
 	 */
-	protected static final ThreadLocal<DateFormat> GAF_Date_Format = new ThreadLocal<DateFormat>() {
+	public static final ThreadLocal<DateFormat> GAF_Date_Format = new ThreadLocal<DateFormat>() {
 
 		@Override
 		protected DateFormat initialValue() {

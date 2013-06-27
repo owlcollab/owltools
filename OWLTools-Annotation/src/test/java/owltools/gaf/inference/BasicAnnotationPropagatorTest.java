@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -74,8 +75,9 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 		writer.write(geneAnnotation);
 		out.flush();
 		String writtenLine = out.toString().trim(); // trim to avoid hassle with tabs and new lines at the end
-		String expectedLine1 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	IC	GO:0004004	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	20130626	GOC";
-		String expectedLine2 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	IC	GO:0008186	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	20130626	GOC";
+		String dateString = GeneAnnotation.GAF_Date_Format.get().format(new Date());
+		String expectedLine1 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	IC	GO:0004004	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	"+dateString+"	GOC";
+		String expectedLine2 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	IC	GO:0008186	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	"+dateString+"	GOC";
 		assertTrue(expectedLine1.equals(writtenLine) || expectedLine2.equals(writtenLine));
 	}
 
