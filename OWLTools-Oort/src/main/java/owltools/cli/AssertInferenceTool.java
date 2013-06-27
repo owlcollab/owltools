@@ -84,6 +84,7 @@ public class AssertInferenceTool {
 		boolean useIsInferred = false;
 		boolean ignoreNonInferredForRemove = false;
 		boolean verifyExistingInferences = false;
+		boolean runInferences = true;
 		boolean removeUnsupportedInferences = false;
 		List<String> inputs = new ArrayList<String>();
 		String outputFileName = null;
@@ -156,6 +157,10 @@ public class AssertInferenceTool {
 			else if (opts.nextEq("--verifyExistingInferences")) {
 				verifyExistingInferences = true;
 			}
+			else if (opts.nextEq("--verifyExistingInferencesOnly")) {
+				verifyExistingInferences = true;
+				runInferences = false;
+			}
 			else if (opts.nextEq("--removeUnsupportedInferences")) {
 				removeUnsupportedInferences = true;
 			}
@@ -214,8 +219,10 @@ public class AssertInferenceTool {
 				if (all == true) {
 					assertAllInferences(graph, idsInputFile);
 				}else {
-					// assert inferences
-					assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant, reportWriter);
+					if (runInferences) {
+						// assert inferences
+						assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant, reportWriter);
+					}
 					
 					if (verifyExistingInferences) {
 						// check existing inference
