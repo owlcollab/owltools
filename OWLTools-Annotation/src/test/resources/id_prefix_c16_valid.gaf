@@ -1,0 +1,2 @@
+!gaf-version: 2.0
+PomBase	SPAC1B2.05	mcm5		GO:0051097	PMID:10770926	IDA		P	MCM complex subunit Mcm5	nda4|SPAC3F10.01	protein	taxon:4896	20120919	PomBase	has_regulation_target(GO:0097373),in_presence_of(PomBase:SPCC1682.02c)	
