@@ -313,7 +313,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		annP.setReferenceId(source.getReferenceId());
 		
 		// c7 evidence
-		annP.setEvidenceCls("IC");
+		annP.setEvidenceCls(source.getEvidenceCls());
 		
 		// c8 with expression
 		annP.setWithExpression(with);
