@@ -74,8 +74,9 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 		writer.write(geneAnnotation);
 		out.flush();
 		String writtenLine = out.toString().trim(); // trim to avoid hassle with tabs and new lines at the end
-		String expectedLine = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	IC	GO:0004004	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	20130626	GOC";
-		assertEquals(expectedLine, writtenLine);
+		String expectedLine1 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	IC	GO:0004004	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	20130626	GOC";
+		String expectedLine2 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	IC	GO:0008186	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	20130626	GOC";
+		assertTrue(expectedLine1.equals(writtenLine) || expectedLine2.equals(writtenLine));
 	}
 
 }
