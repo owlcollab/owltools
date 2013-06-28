@@ -1,11 +1,18 @@
 package owltools.gaf.rules.go;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
+import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.BasicAnnotationPropagator;
 import owltools.gaf.inference.FoldBasedPredictor;
 import owltools.gaf.inference.Prediction;
@@ -14,6 +21,8 @@ import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.graph.OWLGraphWrapper;
 
 public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
+	
+	private static final Logger LOG = Logger.getLogger(GoAnnotationPredictionRule.class);
 
 	/**
 	 * The string to identify this class in the annotation_qc.xml and related factories.
@@ -44,15 +53,56 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 	public Set<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		
-		BasicAnnotationPropagator propagator = new BasicAnnotationPropagator(gafDoc, source);
-		Set<Prediction> basicPredictions = propagator.getAllPredictions();
-		if (basicPredictions != null) {
-			predictions.addAll(basicPredictions);
+		Map<Bioentity, Set<GeneAnnotation>> allAnnotations = new HashMap<Bioentity, Set<GeneAnnotation>>();
+		
+		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
+			Bioentity e = annotation.getBioentityObject();
+			Set<GeneAnnotation> anns = allAnnotations.get(e);
+			if (anns == null) {
+				anns = new HashSet<GeneAnnotation>();
+				allAnnotations.put(e, anns);
+			}
+			anns.add(annotation);
 		}
-		FoldBasedPredictor foldBasedPredictor = new FoldBasedPredictor(gafDoc, source);
-		Set<Prediction> foldBasedPredictions = foldBasedPredictor.getAllPredictions();
-		if (foldBasedPredictions != null) {
-			predictions.addAll(foldBasedPredictions);
+		
+		AnnotationPredictor predictor = null;
+		LOG.info("Start creating predictions using basic propagation");
+		try {
+			predictor = new BasicAnnotationPropagator(gafDoc, source);
+			Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, predictor);
+			if (basicPredictions != null) {
+				predictions.addAll(basicPredictions);
+			}
+		} finally {
+			if (predictor != null) {
+				predictor.dispose();
+			}
+			predictor = null;
+		}
+		LOG.info("Use c16 extension for fold based prediction");
+		try {
+			predictor = new FoldBasedPredictor(gafDoc, source);
+			Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, predictor);
+			if (foldBasedPredictions != null) {
+				predictions.addAll(foldBasedPredictions);
+			}
+		}
+		finally {
+			if (predictor != null) {
+				predictor.dispose();
+			}
+			predictor = null;
+		}
+		LOG.info("Done creating predictions");
+		return predictions;
+	}
+	
+	private Set<Prediction> getPredictedAnnotations(Map<Bioentity, Set<GeneAnnotation>> allAnnotations, AnnotationPredictor predictor) {
+		Set<Prediction> predictions = new HashSet<Prediction>();
+		
+		for (Bioentity e : allAnnotations.keySet()) {
+			Collection<GeneAnnotation> anns = allAnnotations.get(e);
+			predictions.addAll(predictor.predictForBioEntity(e, anns));
 		}
 		return predictions;
 	}

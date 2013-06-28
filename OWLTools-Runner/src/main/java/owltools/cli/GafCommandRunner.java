@@ -168,7 +168,7 @@ public class GafCommandRunner extends CommandRunner {
 		for (Prediction pred : fbp.getAllPredictions()) {
 			System.out.println(pred.render(owlpp));
 		}
-		fbp.reasoner.dispose();
+		fbp.dispose();
 	}
 
 	

@@ -63,9 +63,7 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 		GafObjectsBuilder b = new GafObjectsBuilder();
 		GafDocument gafDocument = b.buildDocument(getResource("lmajor_f2p_test.gaf"));
 		
-		BasicAnnotationPropagator propagator = new BasicAnnotationPropagator(gafDocument, g);
-		
-		Set<Prediction> allPredictions = propagator.getAllPredictions();
+		Set<Prediction> allPredictions = predictAnnotations(g, gafDocument);
 		assertEquals(1, allPredictions.size());
 		final GeneAnnotation geneAnnotation = allPredictions.iterator().next().getGeneAnnotation();
 		
@@ -79,6 +77,25 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 		String expectedLine1 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	EXP	GO:0004004	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	"+dateString+"	GOC";
 		String expectedLine2 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	EXP	GO:0008186	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	"+dateString+"	GOC";
 		assertTrue(expectedLine1.equals(writtenLine) || expectedLine2.equals(writtenLine));
+	}
+
+	/**
+	 * @param g
+	 * @param gafDocument
+	 * @return predictions
+	 */
+	private Set<Prediction> predictAnnotations(OWLGraphWrapper g, GafDocument gafDocument) {
+		AnnotationPredictor propagator = null;
+		try {
+			propagator = new BasicAnnotationPropagator(gafDocument, g);
+			Set<Prediction> allPredictions = propagator.getAllPredictions();
+			return allPredictions;
+		}
+		finally {
+			if(propagator != null) {
+				propagator.dispose();
+			}
+		}
 	}
 
 }

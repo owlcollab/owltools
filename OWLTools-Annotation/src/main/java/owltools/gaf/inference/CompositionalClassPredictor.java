@@ -1,5 +1,6 @@
 package owltools.gaf.inference;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -55,9 +56,9 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		return getGraph().getOWLClassByIdentifier(id);
 	}
 
-	public Set<Prediction> predict(String bioentity) {
+	@Override
+	public Set<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
-		Set<GeneAnnotation> anns = getGafDocument().getGeneAnnotations(bioentity);
 		Set<OWLClass> aClasses = new HashSet<OWLClass>();
 		//LOG.info("collecting from:"+bioentity);
 		for (GeneAnnotation ann : anns) {
@@ -119,7 +120,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 					}
 
 				}
-				predictions.add(getPrediction(c, bioentity, with.toString()));
+				predictions.add(getPrediction(c, e.getId(), with.toString()));
 			}
 		}
 		this.setAndFilterRedundantPredictions(predictions, aClasses);

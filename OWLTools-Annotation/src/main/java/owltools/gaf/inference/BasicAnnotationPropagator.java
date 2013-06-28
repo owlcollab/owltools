@@ -1,26 +1,32 @@
 package owltools.gaf.inference;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
-import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLQuantifiedProperty;
-import owltools.graph.OWLQuantifiedProperty.Quantifier;
 
 /**
  * This performs basic annotation inferences involving propagation
@@ -31,52 +37,47 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
  *  <li> BP -> CC over occurs_in
  * </ul>
  * 
- * TODO: reimplement using OWL semantics and reasoning
- * 
- * @author cjm
- *
  */
 public class BasicAnnotationPropagator extends AbstractAnnotationPredictor implements AnnotationPredictor {
 
 	protected static Logger LOG = Logger.getLogger(BasicAnnotationPropagator.class);
 	
 	private static final String ASSIGNED_BY_CONSTANT = "GOC";
+	private static final String gocheck_do_not_annotate = "gocheck_do_not_annotate";
 	
-	private final Set<PropagationRule> propagationRules;
-	private final Map<String, String> aspectMap;
+	private OWLReasoner reasoner = null;
+	private Map<String, Set<OWLClass>> propagationRules = null;
+	private Map<String, String> aspectMap = null;
 
 	/**
-	 * Create instance with default propagation rules.
+	 * Create instance.
 	 * 
 	 * @param gafDocument
 	 * @param graph
 	 */
 	public BasicAnnotationPropagator(GafDocument gafDocument, OWLGraphWrapper graph) {
-		this(gafDocument, graph, getDefaultGoPropagationRules(graph), createDefaultAspectMap(graph));
-	}
-	
-	/**
-	 * Create instance with specified propagation rules and aspect mapping for sub ontologies
-	 * 
-	 * @param gafDocument
-	 * @param graph
-	 * @param propagationRules
-	 * @param aspectMap 
-	 */
-	protected BasicAnnotationPropagator(GafDocument gafDocument, OWLGraphWrapper graph, Set<PropagationRule> propagationRules, Map<String, String> aspectMap) {
 		super(gafDocument, graph);
-		this.propagationRules = propagationRules;
-		this.aspectMap = aspectMap;
+		init();
+	}
+	
+	private void init() {
+		OWLGraphWrapper graph = getGraph();
+		ElkReasonerFactory factory = new ElkReasonerFactory();
+		// assumes that all support ontologies have either been merged into or added as import
+		reasoner = factory.createReasoner(graph.getSourceOntology());
+		propagationRules = createPropagationRules(graph, reasoner);
+		aspectMap = createDefaultAspectMap(graph);
 	}
 	
 	/**
-	 * Create the default propagation rule set for the GeneOntology.
+	 * Create the default propagation rule set tailored for the GeneOntology.
 	 * 
 	 * @param graph
+	 * @param reasoner
 	 * @return set of valid propagation rules
 	 */
-	private static Set<PropagationRule> getDefaultGoPropagationRules(OWLGraphWrapper graph) {
-		Set<PropagationRule> set = new HashSet<PropagationRule>();
+	protected Map<String, Set<OWLClass>> createPropagationRules(OWLGraphWrapper graph, OWLReasoner reasoner) {
+		Map<String, Set<OWLClass>> map = new HashMap<String, Set<OWLClass>>();
 		
 		OWLClass mf = graph.getOWLClassByIdentifier("GO:0003674"); // molecular_function
 		OWLClass bp = graph.getOWLClassByIdentifier("GO:0008150"); // biological_process
@@ -88,9 +89,42 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			LOG.warn("Could not find relation 'occurs_in'.");
 		}
 		
+		
 		// MF -> BP over part_of
 		if (part_of != null && mf != null && bp != null) {
-			set.add(new PropagationRule(getGoSubOntology(mf, graph), getGoSubOntology(bp, graph), part_of));
+			// get all classes in the mf and bp branch
+			Set<OWLClass> mfClasses = reasoner.getSubClasses(mf, false).getFlattened();
+			Set<OWLClass> bpClasses = reasoner.getSubClasses(bp, false).getFlattened();
+			
+			OWLClass metabolicProcess = graph.getOWLClassByIdentifier("GO:0008152"); //  metabolic process
+			for (OWLClass mfClass : mfClasses) {
+				List<String> mfClassSubsets = graph.getSubsets(mfClass);
+				if (mfClassSubsets.contains(gocheck_do_not_annotate)) {
+					// do not propagate from do not annotate terms
+					continue;
+				}
+				// exclude metabolic process ! GO:0008152
+				if (mfClass.equals(metabolicProcess)) {
+					continue;
+				}
+				
+				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(mfClass, part_of, graph, reasoner, bpClasses);
+				
+				if (!nonRedundantLinks.isEmpty()) {
+					// remove too high level targets and metabolic process
+					if (metabolicProcess != null) {
+						nonRedundantLinks.remove(metabolicProcess);
+					}
+					
+					// iterate and delete unwanted
+					removeUninformative(graph, nonRedundantLinks);
+					
+					// add to map
+					if (!nonRedundantLinks.isEmpty()) {
+						map.put(graph.getIdentifier(mfClass), nonRedundantLinks);
+					}
+				}
+			}
 		}
 		else {
 			LOG.warn("Skipping MF -> BP over 'part_of'.");
@@ -99,21 +133,176 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		
 		// BP -> CC over occurs_in
 		if (occurs_in != null && bp != null && cc != null) {
-			set.add(new PropagationRule(getGoSubOntology(bp, graph), getGoSubOntology(cc, graph), occurs_in));
+			// get all classes in the bp and cc branch
+			Set<OWLClass> bpClasses = reasoner.getSubClasses(bp, false).getFlattened();
+			Set<OWLClass> ccClasses = reasoner.getSubClasses(cc, false).getFlattened();
+			for(OWLClass bpClass : bpClasses) {
+				List<String> bpClassSubsets = graph.getSubsets(bpClass);
+				if (bpClassSubsets.contains(gocheck_do_not_annotate)) {
+					// do not propagate from do not annotate terms
+					continue;
+				}
+				
+				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(bpClass, occurs_in, graph, reasoner, ccClasses);
+				
+				if (!nonRedundantLinks.isEmpty()) {
+					removeUninformative(graph, nonRedundantLinks);
+					
+					// add to map
+					if (!nonRedundantLinks.isEmpty()) {
+						map.put(graph.getIdentifier(bpClass), nonRedundantLinks);
+					}
+				}
+			}
 		}
 		else {
-			LOG.warn("Skipping BP -> MF over 'occurs_in'.");
+			LOG.warn("Skipping BP -> CC over 'occurs_in'.");
 		}
 		
-		if (set.isEmpty()) {
+		if (map.isEmpty()) {
 			// only fail if there are no propagation rules
 			// the test case uses a custom ontology, which has no cc or 'occurs_in' relation
 			throw new RuntimeException("Could not create any valid propgation rules. Is the correct ontology (GO) loaded?");
 		}
-		return Collections.unmodifiableSet(set);
+		return Collections.unmodifiableMap(map);
+	}
+
+	/**
+	 * Modify the given set and remove uninformative classes.
+	 * 
+	 * @param graph
+	 * @param nonRedundantLinks
+	 */
+	private void removeUninformative(OWLGraphWrapper graph, Set<OWLClass> nonRedundantLinks) {
+		Iterator<OWLClass> linkIt = nonRedundantLinks.iterator();
+		while (linkIt.hasNext()) {
+			OWLClass link = linkIt.next();
+			List<String> subsets = graph.getSubsets(link);
+			if (subsets != null) {
+				if (subsets.contains(gocheck_do_not_annotate)) {
+					linkIt.remove();
+				}
+			}
+		}
 	}
 	
-	private static Map<String, String> createDefaultAspectMap(OWLGraphWrapper graph) {
+	/**
+	 * Retrieve the non redundant set of linked classes using the given relation.
+	 * The reasoner is used to infer the super and subsets for the subClass hierarchy.
+	 * Only return classes, which are in the given super set (a.k.a. ontology branch).
+	 * 
+	 * @param c
+	 * @param property
+	 * @param g
+	 * @param reasoner
+	 * @param superSet
+	 * @return set of linked classes, never null 
+	 */
+	protected static Set<OWLClass> getNonRedundantLinkedClasses(OWLClass c, OWLObjectProperty property, OWLGraphWrapper g, OWLReasoner reasoner, Set<OWLClass> superSet) {
+		// get all superClasses for the current class
+		Set<OWLClass> currentSuperClasses = reasoner.getSuperClasses(c, false).getFlattened();
+		currentSuperClasses.add(c);
+		Set<OWLClass> linkedClasses = new HashSet<OWLClass>();
+		for (OWLClass currentSuperClass : currentSuperClasses) {
+			if (currentSuperClass.isBuiltIn()) {
+				continue;
+			}
+			// find all direct links via the property to the selected super set
+			linkedClasses.addAll(getDirectLinkedClasses(currentSuperClass, property, g, superSet));
+		}
+		// create remove redundant super classes from link set
+		Set<OWLClass> nonRedundantLinks = reduceToNonRedundant(linkedClasses, reasoner);
+		
+		return nonRedundantLinks;
+	}
+	
+	/**
+	 * Lookup relation super classes in graph g for a given sub class c and property p.
+	 * Only retain super classes which are in the given super set.
+	 * 
+	 * @param c
+	 * @param property
+	 * @param g
+	 * @param superSet
+	 * @return set of super classes, never null
+	 */
+	protected static Set<OWLClass> getDirectLinkedClasses(OWLClass c, OWLObjectProperty property, OWLGraphWrapper g, Set<OWLClass> superSet) {
+		Set<OWLClass> links = new HashSet<OWLClass>();
+		
+		for(OWLOntology o : g.getAllOntologies()) {
+			// check subClass axioms
+			for (OWLSubClassOfAxiom sca : o.getSubClassAxiomsForSubClass(c)) {
+				OWLClassExpression ce = sca.getSuperClass();
+				if (ce instanceof OWLObjectSomeValuesFrom) {
+					OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) ce;
+					OWLObjectPropertyExpression currentProperty = someValuesFrom.getProperty();
+					if (property.equals(currentProperty)) {
+						OWLClassExpression filler = someValuesFrom.getFiller();
+						if (filler.isAnonymous() == false) {
+							OWLClass fillerCls = filler.asOWLClass();
+							if (superSet.contains(fillerCls)) {
+								links.add(fillerCls);
+							}
+						}
+					}
+				}
+			}
+			// check equivalent classes axioms
+			for (OWLEquivalentClassesAxiom eqa : o.getEquivalentClassesAxioms(c)) {
+				for (OWLClassExpression ce : eqa.getClassExpressions()) {
+					if (ce instanceof OWLObjectSomeValuesFrom) {
+						OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) ce;
+						OWLObjectPropertyExpression currentProperty = someValuesFrom.getProperty();
+						if (property.equals(currentProperty)) {
+							OWLClassExpression filler = someValuesFrom.getFiller();
+							if (filler.isAnonymous() == false) {
+								OWLClass fillerCls = filler.asOWLClass();
+								if (superSet.contains(fillerCls)) {
+									links.add(fillerCls);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return links;
+	}
+	
+	/**
+	 * Given a set of classes, create a new non-redundant set with respect to
+	 * the inferred super class hierarchy. Remove all classes which are
+	 * (inferred) super classes of another class in the given set.
+	 * 
+	 * @param linkedClasses
+	 * @param reasoner
+	 * @return non redundant set, never null
+	 */
+	protected static Set<OWLClass> reduceToNonRedundant(Set<OWLClass> linkedClasses, OWLReasoner reasoner) {
+		Set<OWLClass> nonRedundant = new HashSet<OWLClass>();
+		for (OWLClass linked : linkedClasses) {
+			Set<OWLClass> subClasses = reasoner.getSubClasses(linked, false).getFlattened();
+			boolean noChildrenInLinks = true;
+			for (OWLClass subClass : subClasses) {
+				if (linkedClasses.contains(subClass)) {
+					noChildrenInLinks = false;
+					break;
+				}
+			}
+			if (noChildrenInLinks) {
+				nonRedundant.add(linked);
+			}
+		}
+		return nonRedundant;
+	}
+
+	/**
+	 * Create the mapping from the sub ontology to the aspect in the GAF.
+	 * 
+	 * @param graph
+	 * @return aspect mapping
+	 */
+	protected Map<String, String> createDefaultAspectMap(OWLGraphWrapper graph) {
 		Map<String, String> map = new HashMap<String, String>();
 		
 		OWLClass mf = graph.getOWLClassByIdentifier("GO:0003674"); // molecular_function
@@ -141,91 +330,24 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	}
 	
 	/**
-	 * Get the GO specific sub ontology.
+	 * Get the specific sub ontology.
 	 * 
 	 * @param c
 	 * @param g
 	 * @return sub ontology or null
 	 */
-	private static String getGoSubOntology(OWLClass c, OWLGraphWrapper g) {
+	protected String getGoSubOntology(OWLClass c, OWLGraphWrapper g) {
 		return g.getNamespace(c);
 	}
 	
-	/**
-	 * Triple representing a valid path for the propagation of a gene annotation.
-	 * <br>
-	 * Provides hashcode and equals methods, to allow use in sets or maps.
-	 */
-	protected static class PropagationRule {
-		
-		public final String sourceSubOntology;
-		public final String targetSubOntology;
-		public final OWLObjectProperty relationship;
-		
-		
-		/**
-		 * @param sourceSubOntology
-		 * @param targetSubOntology
-		 * @param relationship
-		 */
-		protected PropagationRule(String sourceSubOntology, String targetSubOntology, OWLObjectProperty relationship) {
-			this.sourceSubOntology = sourceSubOntology;
-			this.targetSubOntology = targetSubOntology;
-			this.relationship = relationship;
-		}
 
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result
-					+ ((relationship == null) ? 0 : relationship.hashCode());
-			result = prime * result
-					+ ((sourceSubOntology == null) ? 0 : sourceSubOntology.hashCode());
-			result = prime * result
-					+ ((targetSubOntology == null) ? 0 : targetSubOntology.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			PropagationRule other = (PropagationRule) obj;
-			if (relationship == null) {
-				if (other.relationship != null)
-					return false;
-			} else if (!relationship.equals(other.relationship))
-				return false;
-			if (sourceSubOntology == null) {
-				if (other.sourceSubOntology != null)
-					return false;
-			} else if (!sourceSubOntology.equals(other.sourceSubOntology))
-				return false;
-			if (targetSubOntology == null) {
-				if (other.targetSubOntology != null)
-					return false;
-			} else if (!targetSubOntology.equals(other.targetSubOntology))
-				return false;
-			return true;
-		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	public Set<Prediction> predict(String bioentity) {
-		
-		Set<Prediction> predictions = new HashSet<Prediction>();
-		Set<GeneAnnotation> anns = getGafDocument().getGeneAnnotations(bioentity);
-		Set<OWLClass> aClasses = new HashSet<OWLClass>();
-		
-		for (GeneAnnotation ann : anns) {
+	public Set<Prediction> predictForBioEntity(Bioentity entity, Collection<GeneAnnotation> annotations) {
+		Map<OWLClass, Prediction> allPredictions = new HashMap<OWLClass, Prediction>();
+		for (GeneAnnotation ann : annotations) {
 			// TODO move the exclusion list to it's own function for better customization
 			if (ann.getEvidenceCls().equals("ND")) {
 				// ignore top level annotations
+				// Do *not* propagate
 				continue;
 			}
 			String compositeQualifier = StringUtils.trimToEmpty(ann.getCompositeQualifier());
@@ -236,67 +358,37 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 
 			String cid = ann.getCls();
-			OWLClass c = getGraph().getOWLClassByIdentifier(cid);
-			String subOnt = getSubOntology(c);
-			if (subOnt == null) {
-				// quick check: ignore null sub branches
+			Set<OWLClass> linkedClasses = propagationRules.get(cid);
+			if (linkedClasses == null || linkedClasses.isEmpty()) {
+				// no nodes to propagate to
 				continue;
 			}
-
-			// TODO at some point this should be done with a reasoner, who also return anonymous class expressions, such as 'part_of some OWLClass'
-			final Set<OWLGraphEdge> outgoingEdgesClosure = getGraph().getOutgoingEdgesClosure(c);
-			for (OWLGraphEdge e : outgoingEdgesClosure) {
-				final OWLObject target = e.getTarget();
-				if (target instanceof OWLClass) {
-					final OWLClass targetClass = (OWLClass)target;
-					
-					String ancSubOnt = getSubOntology(targetClass);
-					if (ancSubOnt == null) {
-						// quick check: ignore null sub branches 
-						continue;
-					}
-					boolean sameSubOntology = StringUtils.equals(subOnt, ancSubOnt);
-					if (sameSubOntology) {
-						// quick check: ignore pairs with the same sub ontology branch
-						continue;
-					}
-					final List<OWLQuantifiedProperty> propertyList = e.getQuantifiedPropertyList();
-					if (propertyList.size() != 1) {
-						// quick check: ignore chains
-						continue;
-					}
-					final OWLQuantifiedProperty owlQuantifiedProperty = propertyList.get(0);
-					if (owlQuantifiedProperty.getQuantifier() != Quantifier.SOME) {
-						// quick check: require some
-						continue;
-					}
-					OWLObjectProperty prop = owlQuantifiedProperty.getProperty();
-					if (prop == null) {
-						// quick check: ignore null properties
-						continue;
-					}
-					// check that this triple matches a valid rule
-					if (propagationRules.contains(new PropagationRule(subOnt, ancSubOnt, prop))) {
-						// NEW INFERENCES
-						aClasses.add(c);
-						String aspect = aspectMap.get(ancSubOnt);
-						predictions.add(getPrediction(targetClass, aspect, cid, ann));
-					}
+			
+			for (OWLClass linkedClass : linkedClasses) {
+				if (allPredictions.containsKey(linkedClass)) {
+					continue;
 				}
+				String aspect = aspectMap.get(getSubOntology(linkedClass));
+				Prediction p = createPrediction(linkedClass, aspect, cid, ann);
+				allPredictions.put(linkedClass, p);
 			}
 		}
-
-		// filter redundant annotations, use only the subClassOf hierarchy
-		Set<OWLPropertyExpression> set = Collections.emptySet(); // only subClassOf
-		setAndFilterRedundantPredictions(predictions, aClasses, set);
+		
+		Set<Prediction> predictions = new HashSet<Prediction>();
+		
+		Set<OWLClass> nonRedundantClasses = reduceToNonRedundant(allPredictions.keySet(), reasoner);
+		for (OWLClass nonRedundantClass : nonRedundantClasses) {
+			predictions.add(allPredictions.get(nonRedundantClass));
+		}
+		
 		return predictions;
 	}
-
+	
 	protected String getSubOntology(OWLClass c) {
 		return getGoSubOntology(c, getGraph());
 	}
 
-	protected Prediction getPrediction(OWLClass c, String aspect, String with, GeneAnnotation source) {
+	protected Prediction createPrediction(OWLClass c, String aspect, String with, GeneAnnotation source) {
 		
 		GeneAnnotation annP = new GeneAnnotation();
 		// c1-c3
@@ -343,6 +435,11 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		return prediction;
 	}
 
-
+	@Override
+	public void dispose() {
+		if (reasoner != null) {
+			reasoner.dispose();
+		}
+	}
 
 }

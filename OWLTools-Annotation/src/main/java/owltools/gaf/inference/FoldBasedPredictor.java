@@ -13,6 +13,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -30,28 +31,25 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	protected static Logger LOG = Logger.getLogger(FoldBasedPredictor.class);
 	Map<OWLClass,Set<OWLClassExpression>> simpleDefMap = new HashMap<OWLClass,Set<OWLClassExpression>>();
 	AnnotationExtensionFolder folder = null;
-	final OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
-	public OWLReasoner reasoner;
+	private OWLReasoner reasoner = null;
 
-	public FoldBasedPredictor(GafDocument gafDocument,
-			OWLGraphWrapper graph) {
+	public FoldBasedPredictor(GafDocument gafDocument, OWLGraphWrapper graph) {
 		super(gafDocument, graph);
-		fold();
+		init();
 	}
 
-	public void fold() {
+	public void init() {
 		folder = new AnnotationExtensionFolder(this.getGraph());
 		folder.fold(getGafDocument(), false); // do not replace
 		//LOG.info("Candidate classes to deepen: "+folder.rewriteMap.size());
+		OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
 		reasoner = reasonerFactory.createReasoner(getGraph().getSourceOntology());
 	}
 
-	public Set<Prediction> predict(String bioentity) {
+	@Override
+	public Set<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
-		Set<GeneAnnotation> anns = getGafDocument().getGeneAnnotations(bioentity);
-//		LOG.info("predicting for "+bioentity+" N="+anns.size());
 		for (GeneAnnotation ann : anns) {
-			//LOG.info(ann);
 			if (ann.getEvidenceCls().equals("ND")) {
 				continue;
 			}
@@ -60,18 +58,14 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			if (exts != null && exts.size() > 0) {
 				for (ExtensionExpression ext : exts) {
 					OWLClass rwCls = folder.mapExt(annotatedToClass, ext);
-					//LOG.info("?:"+annotatedToClass+" "+ann.getCls());
 					if (rwCls != null) {
-						//LOG.info(" rw To "+rwCls+ " "+getGraph().getLabel(rwCls));
 						Set<OWLClass> newClasses = getMSCs(annotatedToClass, rwCls);
 						for (OWLClass c : newClasses) {
-							//LOG.info("MSC:"+c);
-							predictions.add(getPrediction(ann, c, bioentity, ann.getCls()));
+							predictions.add(getPrediction(ann, c, e.getId(), ann.getCls()));
 						}
 					}
 				}
 			}
-			//Collection<GeneAnnotation> newAnns = folder.fold(getGafDocument(), ann);
 		}
 
 
@@ -110,6 +104,13 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		Prediction prediction = new Prediction(annP);
 //		LOG.info("prediction="+prediction);
 		return prediction;
+	}
+
+	@Override
+	public void dispose() {
+		if (reasoner != null) {
+			reasoner.dispose();
+		}
 	}
 
 }
