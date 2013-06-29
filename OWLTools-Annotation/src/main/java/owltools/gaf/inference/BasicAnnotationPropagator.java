@@ -16,6 +16,7 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
@@ -107,8 +108,8 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				if (mfClass.equals(metabolicProcess)) {
 					continue;
 				}
-				
-				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(mfClass, part_of, graph, reasoner, bpClasses);
+				Set<OWLObjectProperty> relations = Collections.singleton(part_of);
+				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(mfClass, relations, graph, reasoner, bpClasses);
 				
 				if (!nonRedundantLinks.isEmpty()) {
 					// remove too high level targets and metabolic process
@@ -142,8 +143,8 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 					// do not propagate from do not annotate terms
 					continue;
 				}
-				
-				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(bpClass, occurs_in, graph, reasoner, ccClasses);
+				Set<OWLObjectProperty> relations = Collections.singleton(occurs_in);
+				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(bpClass, relations, graph, reasoner, ccClasses);
 				
 				if (!nonRedundantLinks.isEmpty()) {
 					removeUninformative(graph, nonRedundantLinks);
@@ -192,13 +193,13 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	 * Only return classes, which are in the given super set (a.k.a. ontology branch).
 	 * 
 	 * @param c
-	 * @param property
+	 * @param properties
 	 * @param g
 	 * @param reasoner
 	 * @param superSet
 	 * @return set of linked classes, never null 
 	 */
-	protected static Set<OWLClass> getNonRedundantLinkedClasses(OWLClass c, OWLObjectProperty property, OWLGraphWrapper g, OWLReasoner reasoner, Set<OWLClass> superSet) {
+	protected static Set<OWLClass> getNonRedundantLinkedClasses(OWLClass c, Set<OWLObjectProperty> properties, OWLGraphWrapper g, OWLReasoner reasoner, Set<OWLClass> superSet) {
 		// get all superClasses for the current class
 		Set<OWLClass> currentSuperClasses = reasoner.getSuperClasses(c, false).getFlattened();
 		currentSuperClasses.add(c);
@@ -208,7 +209,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				continue;
 			}
 			// find all direct links via the property to the selected super set
-			linkedClasses.addAll(getDirectLinkedClasses(currentSuperClass, property, g, superSet));
+			linkedClasses.addAll(getDirectLinkedClasses(currentSuperClass, properties, g, superSet));
 		}
 		// create remove redundant super classes from link set
 		Set<OWLClass> nonRedundantLinks = reduceToNonRedundant(linkedClasses, reasoner);
@@ -221,12 +222,12 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	 * Only retain super classes which are in the given super set.
 	 * 
 	 * @param c
-	 * @param property
+	 * @param properties
 	 * @param g
 	 * @param superSet
 	 * @return set of super classes, never null
 	 */
-	protected static Set<OWLClass> getDirectLinkedClasses(OWLClass c, OWLObjectProperty property, OWLGraphWrapper g, Set<OWLClass> superSet) {
+	protected static Set<OWLClass> getDirectLinkedClasses(OWLClass c, Set<OWLObjectProperty> properties, OWLGraphWrapper g, Set<OWLClass> superSet) {
 		Set<OWLClass> links = new HashSet<OWLClass>();
 		
 		for(OWLOntology o : g.getAllOntologies()) {
@@ -236,7 +237,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				if (ce instanceof OWLObjectSomeValuesFrom) {
 					OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) ce;
 					OWLObjectPropertyExpression currentProperty = someValuesFrom.getProperty();
-					if (property.equals(currentProperty)) {
+					if (properties.contains(currentProperty)) {
 						OWLClassExpression filler = someValuesFrom.getFiller();
 						if (filler.isAnonymous() == false) {
 							OWLClass fillerCls = filler.asOWLClass();
@@ -250,15 +251,20 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			// check equivalent classes axioms
 			for (OWLEquivalentClassesAxiom eqa : o.getEquivalentClassesAxioms(c)) {
 				for (OWLClassExpression ce : eqa.getClassExpressions()) {
-					if (ce instanceof OWLObjectSomeValuesFrom) {
-						OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) ce;
-						OWLObjectPropertyExpression currentProperty = someValuesFrom.getProperty();
-						if (property.equals(currentProperty)) {
-							OWLClassExpression filler = someValuesFrom.getFiller();
-							if (filler.isAnonymous() == false) {
-								OWLClass fillerCls = filler.asOWLClass();
-								if (superSet.contains(fillerCls)) {
-									links.add(fillerCls);
+					if (ce instanceof OWLObjectIntersectionOf) {
+						OWLObjectIntersectionOf intersectionOf = (OWLObjectIntersectionOf) ce;
+						for(OWLClassExpression operand : intersectionOf.getOperands()) {
+							if (operand instanceof OWLObjectSomeValuesFrom) {
+								OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) operand;
+								OWLObjectPropertyExpression currentProperty = someValuesFrom.getProperty();
+								if (properties.contains(currentProperty)) {
+									OWLClassExpression filler = someValuesFrom.getFiller();
+									if (filler.isAnonymous() == false) {
+										OWLClass fillerCls = filler.asOWLClass();
+										if (superSet.contains(fillerCls)) {
+											links.add(fillerCls);
+										}
+									}
 								}
 							}
 						}
@@ -408,7 +414,8 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		annP.setEvidenceCls(source.getEvidenceCls());
 		
 		// c8 with expression
-		annP.setWithExpression(with);
+		// because we propage the evidence code, we also have to proagate the with column
+		annP.setWithExpression(source.getWithExpression());
 		
 		// c9 aspect
 		annP.setAspect(aspect);
