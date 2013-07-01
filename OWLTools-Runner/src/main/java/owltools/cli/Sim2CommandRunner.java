@@ -8,18 +8,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
 import org.apache.log4j.Logger;
-import org.coode.owlapi.turtle.TurtleOntologyFormat;
-import org.semanticweb.owlapi.model.IRI;
+
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
@@ -37,6 +42,7 @@ import owltools.sim.io.SimResultRenderer;
 import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim.io.SimResultRenderer.IndividualSimScores;
 import owltools.sim.io.TabularRenderer;
+import owltools.sim2.SimStats;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
@@ -50,6 +56,8 @@ import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.PropertyViewSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
+
+
 
 /**
  * Semantic similarity and information content.
@@ -271,7 +279,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				runOwlSimOnQuery(opts, opts.nextOpt());
 				return;
 			}
-			Set<OWLNamedIndividual> insts = sos.getSourceOntology().getIndividualsInSignature();
+			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
+					.getIndividualsInSignature();
 			LOG.info("All by all for " + insts.size() + " individuals");
 
 			//set the renderer
@@ -330,6 +339,27 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			String[] idspaces = cmp.split(",");
 			if (i.getIRI().toString().contains("/" + idspaces[0] + "_")
 					&& j.getIRI().toString().contains("/" + idspaces[1] + "_")) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	
+	/**
+	 * Determines if the named individual belongs to the given idSpace
+	 * This assumes the pattern in the IRI for the individual is like:
+	 * .../IDSPACE_<identifier>
+	 * @param i
+	 * @param idSpace
+	 * @return
+	 */
+	private boolean isOfIDSpace(OWLNamedIndividual i, String idSpace) {
+		//TODO: this should be more robust - should probably be regex with $ included
+		if (idSpace == null) {
+			return false;
+		} else {
+			if (i.getIRI().toString().contains("/" + idSpace + "_")) {				
 				return true;
 			} else {
 				return false;
@@ -425,12 +455,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					return scores;
 				}
 				scores.maxIC = maxIC;
-				sos.simStats.setMax(Metric.MAXIC,scores.maxIC.score);
+				sos.simStats.setValue(Metric.MAXIC,scores.maxIC.score);
 				break; // only need to test once.
 			}
 		}
 
-		//only do this test if we end up using the J measures
+		// only do this test if we end up using the J measures
 		for (String metric : metrics) {
 			if (sos.isJmetric(metric)) {
 				double simJ = sos.getElementJaccardSimilarity(i, j);
@@ -439,7 +469,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					return scores;
 				}
 				scores.simjScore = simJ;
-				sos.simStats.setMax(Metric.SIMJ,scores.simjScore);
+				sos.simStats.setValue(Metric.SIMJ,scores.simjScore);
 				break; // only need to test once.
 			}
 		}
@@ -448,7 +478,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			if (metric.equals(Metric.IC_MCS.toString())) {
 				scores.bmaAsymIC = sos.getSimilarityBestMatchAverage(i, j,
 						Metric.IC_MCS, Direction.A_TO_B);
-				sos.simStats.setMax(Metric.IC_MCS,scores.bmaAsymIC.score);
+				sos.simStats.setValue(Metric.IC_MCS,scores.bmaAsymIC.score);
 				// TODO: do reciprocal BMA
 				scores.bmaSymIC = sos.getSimilarityBestMatchAverage(i, j,
 						Metric.IC_MCS, Direction.AVERAGE);
@@ -456,7 +486,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				scores.bmaAsymJ = sos.getSimilarityBestMatchAverage(i, j,
 						Metric.JACCARD, Direction.A_TO_B);
 				// TODO: do reciprocal BMA
-				sos.simStats.setMax(Metric.JACCARD,scores.bmaAsymJ.score);
+				sos.simStats.setValue(Metric.JACCARD,scores.bmaAsymJ.score);
 				scores.bmaSymJ = sos.getSimilarityBestMatchAverage(i, j,
 						Metric.JACCARD, Direction.AVERAGE);
 			} else if (metric.equals(Metric.GIC.toString())) {
@@ -596,8 +626,6 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	}
 
-
-
 	@CLIMethod("--sim-resume")
 	public void simResume(Opts opts) throws Exception {
 		loadProperties(opts);
@@ -631,30 +659,28 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		// assumes that individuals in abox are of types named classes in tbox
 		loadProperties(opts);
 		try {
-			if (sos == null) {
-				pproc = new NullSimPreProcessor();
-				if (simProperties.containsKey(SimConfigurationProperty.analysisRelation.toString())) {
-					pproc = new PropertyViewSimPreProcessor();
-					String relId = (String) simProperties.get((SimConfigurationProperty.analysisRelation.toString()));
-					OWLObjectProperty rel = g.getOWLObjectPropertyByIdentifier(relId);
-					PropertyViewSimPreProcessor xpproc = ((PropertyViewSimPreProcessor)pproc);
+			pproc = new NullSimPreProcessor();
+			if (simProperties.containsKey(SimConfigurationProperty.analysisRelation
+					.toString())) {
+				pproc = new PropertyViewSimPreProcessor();
+				String relId = (String) simProperties
+						.get((SimConfigurationProperty.analysisRelation.toString()));
+				OWLObjectProperty rel = g.getOWLObjectPropertyByIdentifier(relId);
+				PropertyViewSimPreProcessor xpproc = ((PropertyViewSimPreProcessor) pproc);
 
-					LOG.info("View relation = "+rel);
-					xpproc.analysisRelation = rel;
-				}
-				pproc.setSimProperties(simProperties);
-				pproc.setInputOntology(g.getSourceOntology());
-				pproc.setOutputOntology(g.getSourceOntology());
-				sos = new SimpleOwlSim(g.getSourceOntology());
-				sos.setSimPreProcessor(pproc);
-				pproc.preprocess();
-				
+				LOG.info("View relation = " + rel);
+				xpproc.analysisRelation = rel;
 			}
+			pproc.setSimProperties(simProperties);
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.setSimPreProcessor(pproc);
+			pproc.preprocess();
 			sos.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
 		} finally {
-			if (pproc != null)
-				pproc.dispose();
+			pproc.dispose();
 		}
 	}
 	
@@ -692,7 +718,6 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	@CLIMethod("--sim-compare-atts")
 	public void simAttMatch(Opts opts) throws Exception {
-		opts.info("", "all by all comparison of classes (attributes)");
 		// assumes that individuals in abox are of types named classes in tbox
 		loadProperties(opts);
 		try {
@@ -724,79 +749,6 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.dispose();
 		}
 	}
-
-	@CLIMethod("--sim-save-lcs-cache")
-	public void simSaveLCSCache(Opts opts) throws Exception {
-		opts.info("OUTFILE", "saves a LCS cache to a file");
-		Double thresh = null;
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-m|--min-ic")) {
-				thresh = Double.valueOf(opts.nextOpt());
-			}
-			else {
-				break;
-			}
-		}
-		sos.saveLCSCache(opts.nextOpt(), thresh);
-	}
-
-	@CLIMethod("--sim-load-lcs-cache")
-	public void simLoadLCSCache(Opts opts) throws Exception {
-		opts.info("INFILE", "loads a LCS cache from a file");
-		if (sos == null) {
-			sos = new SimpleOwlSim(g.getSourceOntology());
-		}
-		sos.loadLCSCache(opts.nextOpt());
-	}
-
-	@CLIMethod("--sim-save-ic-cache")
-	public void simSaveICCache(Opts opts) throws Exception {
-		opts.info("OUTFILE", "saves ICs as RDF/turtle cache");
-		if (sos == null) {
-			sos = new SimpleOwlSim(g.getSourceOntology());
-		}
-		OWLOntology o = sos.cacheInformationContentInOntology();
-		TurtleOntologyFormat fmt = new TurtleOntologyFormat();
-		fmt.setPrefix("obo", "http://purl.obolibrary.org/obo/");
-		fmt.setPrefix("sim", "http://owlsim.org/ontology/");
-		g.getManager().saveOntology(o, 
-				fmt,
-				IRI.create(opts.nextFile()));
-	}
-
-	@CLIMethod("--sim-load-ic-cache")
-	public void simLoadICCache(Opts opts) throws Exception {
-		opts.info("INFILE", "loads ICs from RDF/turtle cache");
-		if (sos == null) {
-			sos = new SimpleOwlSim(g.getSourceOntology());
-		}
-		OWLOntology o = 
-			g.getManager().loadOntologyFromOntologyDocument(opts.nextFile());
-		sos.setInformationContentFromOntology(o);
-	}
-
-
-
-
-	@CLIMethod("--sim-lcs")
-	public void simLCS(Opts opts) throws Exception {
-		opts.info("", "find LCS of two classes");
-		loadProperties(opts);
-		OWLClass c1 = (OWLClass) this.resolveClass(opts.nextOpt());
-		OWLClass c2 = (OWLClass) this.resolveClass(opts.nextOpt());
-		OWLPrettyPrinter owlpp = getPrettyPrinter();
-		if (sos == null) {
-			sos = new SimpleOwlSim(g.getSourceOntology());
-			sos.createElementAttributeMapFromOntology();
-		}
-		sos.createElementAttributeMapFromOntology();
-		Set<Node<OWLClass>> lcsSet = sos.getNamedLowestCommonSubsumers(c1, c2);
-
-		for (Node<OWLClass> lcsNode : lcsSet) {
-			System.out.println(owlpp.render(lcsNode.getRepresentativeElement()));
-		}
-	}
-
 
 	// TODO
 	@CLIMethod("--enrichment-analysis")
@@ -858,23 +810,6 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 	}
 
-	@CLIMethod("--class-IC-pairs")
-	public void classICPairs(Opts opts) throws Exception {
-		opts.info("", "show all classes with their IC");
-		OWLPrettyPrinter owlpp = getPrettyPrinter();
-		if (sos == null) {
-			sos = new SimpleOwlSim(g.getSourceOntology());
-			sos.createElementAttributeMapFromOntology();
-		}
-		for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
-			Double ic = sos.getInformationContentForAttribute(c);
-			if (ic != null) {
-				System.out.println(owlpp.render(c)+"\t"+ic);
-			}
-		}
-	}
-
-
 	private String render(EnrichmentResult r, OWLPrettyPrinter owlpp) {
 		return owlpp.render(r.sampleSetClass) + "\t"
 				+ owlpp.render(r.enrichedClass) + "\t" + r.pValue + "\t"
@@ -889,7 +824,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		//set the renderer
 		SimResultRenderer renderer;
 		String f = sos.getSimProperties().getProperty(SimConfigurationProperty.outputFormat.toString());
-		if (f == null || f.equals(OutputFormat.TXT.name())) {
+		if (f.equals(OutputFormat.TXT.name())) {
 			renderer = new TabularRenderer(resultOutStream);
 		} else if (f.equals(OutputFormat.CSV.name())) {
 			renderer = new TabularRenderer(resultOutStream, ",", "# ");				
@@ -903,5 +838,383 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		return renderer;
 	}
+	
+	/**
+	 * Computes & reports on some summary statistics on the loaded data set.
+	 * Will iterate through all individuals, and generate summary
+	 * statistics for each, reporting on them at the individual level,
+	 * summarizing at the IDspace level, and computing an overall summary of
+	 * all loaded instances.
+	 * Tab-delimited output format: 
+	 * idSpace | individual | n | min | max | mean | stdev
+   * 
+	 * @throws Exception
+	 */
+	@CLIMethod("--show-instance-stats")
+	public void instanceStats(Opts opts) throws Exception {
+		try {
+			loadProperties(opts);
 
+			pproc = new NullSimPreProcessor();
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
+			if (sos == null) {
+  			sos = new SimpleOwlSim(g.getSourceOntology());
+	  		sos.setSimPreProcessor(pproc);
+		  	sos.createElementAttributeMapFromOntology();
+			}
+			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
+					.getIndividualsInSignature();
+			LOG.info("Computing summary stats " + insts.size() + " individuals");
+
+//			SummaryStatistics meanOfIndividualSums = new SummaryStatistics();
+			
+			HashMap<String, ArrayList<SimStats>> statsPerIndividualPerIDSpace = new HashMap<String, ArrayList<SimStats>>();
+			HashMap<String, SummaryStatistics> meanOfIndividualSumsPerIDSpace = new HashMap<String, SummaryStatistics>();
+
+			//for each of the idspaces, calculate the basic stats of the 
+			//loaded individuals
+			// idSpace | individual | n | min | max | mean | stdev | sum
+			StringBuffer header = new StringBuffer();
+			header.append("ID Space").append("\t");
+			header.append("Instance").append("\t");
+			header.append("N").append("\t");
+			header.append("Min IC").append("\t");
+			header.append("Max IC").append("\t");
+			header.append("Mean IC").append("\t");
+			header.append("Stdev IC").append("\t");
+			header.append("Sum IC");
+			resultOutStream.println(header);
+			
+    	for (OWLNamedIndividual i : insts) {
+
+    		SimStats statsPerIndividual = new SimStats();
+  			String idSpace = getIDSpace(i);
+
+  			ArrayList<SimStats> statsPerIDSpace;
+  			SummaryStatistics sumsPerIDSpace;
+
+  			if (!statsPerIndividualPerIDSpace.containsKey(idSpace)) {
+  				LOG.info("New IDspace found:" + idSpace);
+  				statsPerIDSpace = new ArrayList<SimStats>();
+  				sumsPerIDSpace = new SummaryStatistics();
+  			} else {
+  				statsPerIDSpace = statsPerIndividualPerIDSpace.get(idSpace);
+  				sumsPerIDSpace = meanOfIndividualSumsPerIDSpace.get(idSpace);
+  			}
+  			for (OWLClass c : sos.getAttributesForElement(i)) {
+  				statsPerIndividual.addIndividualIC(sos.getInformationContentForAttribute(c));  		
+				}
+  			statsPerIDSpace.add(statsPerIndividual);
+  			statsPerIndividualPerIDSpace.put(idSpace, statsPerIDSpace);
+  			sumsPerIDSpace.addValue(statsPerIndividual.individualsIC.getSum());
+  			meanOfIndividualSumsPerIDSpace.put(idSpace,  sumsPerIDSpace);
+  			
+  			// idSpace | individual | n | min | max | mean | stdev | sum
+  			resultOutStream.print(idSpace);
+  			resultOutStream.print("\t");
+  			resultOutStream.print(g.getIdentifier(i));
+  			resultOutStream.print("\t");
+  			resultOutStream.print(statsPerIndividual.individualsIC.getN());
+  			resultOutStream.print("\t");
+  			resultOutStream.print(statsPerIndividual.individualsIC.getMin());
+  			resultOutStream.print("\t");
+  			resultOutStream.print(statsPerIndividual.individualsIC.getMax());
+  			resultOutStream.print("\t");
+  			resultOutStream.print(statsPerIndividual.individualsIC.getMean());
+  			resultOutStream.print("\t");
+  			resultOutStream.print(statsPerIndividual.individualsIC.getStandardDeviation());
+  			resultOutStream.print("\t");
+  			resultOutStream.print(statsPerIndividual.individualsIC.getSum());
+  			resultOutStream.println();
+  			resultOutStream.flush();
+    	}
+			LOG.info("FINISHED computing summary stats for " + insts.size() + " individuals for the following IDspaces: " + statsPerIndividualPerIDSpace.keySet().toString());
+			
+			resultOutStream.println("Summary per IDspace:");
+			header = new StringBuffer();
+			header.append("ID Space").append("\t");
+			header.append("\t");
+			header.append("N").append("\t");
+			header.append("Min IC").append("\t");
+			header.append("Max IC").append("\t");
+			header.append("Mean IC").append("\t");
+			header.append("Stdev IC").append("\t");
+			header.append("Sum IC").append("\t");
+			header.append("Mean of Invidivual Sums IC");
+ 			resultOutStream.println(header);
+			
+			Collection<SummaryStatistics> overallaggregate = new ArrayList<SummaryStatistics>();
+			
+			for (String idSpace : statsPerIndividualPerIDSpace.keySet()) {
+
+  			Collection<SummaryStatistics> aggregate = new ArrayList<SummaryStatistics>();
+
+  			for (SimStats statsPerIndividual : statsPerIndividualPerIDSpace.get(idSpace)) {
+    			aggregate.add(statsPerIndividual.individualsIC);
+    			overallaggregate.add(statsPerIndividual.individualsIC);
+
+  			}
+  			StatisticalSummary aggregatedStats = AggregateSummaryStatistics.aggregate(aggregate);
+
+  			resultOutStream.print(idSpace + "-overall");
+				resultOutStream.print("\t");
+				resultOutStream.print("\t");
+				resultOutStream.print(aggregatedStats.getN());
+				resultOutStream.print("\t");
+				resultOutStream.print(aggregatedStats.getMin());
+				resultOutStream.print("\t");
+				resultOutStream.print(aggregatedStats.getMax());
+				resultOutStream.print("\t");
+				resultOutStream.print(aggregatedStats.getMean());
+				resultOutStream.print("\t");
+				resultOutStream.print(aggregatedStats.getStandardDeviation());				
+				resultOutStream.print("\t");
+				resultOutStream.print(aggregatedStats.getSum());		
+				resultOutStream.print("\t");
+				resultOutStream.println(meanOfIndividualSumsPerIDSpace.get(idSpace).getMean());
+				resultOutStream.flush();
+				
+			}
+			
+			StatisticalSummary overallaggregatedStats = AggregateSummaryStatistics.aggregate(overallaggregate);
+			resultOutStream.print("All");
+			resultOutStream.print("\t");
+			resultOutStream.print("\t");
+			resultOutStream.print(overallaggregatedStats.getN());
+			resultOutStream.print("\t");
+			resultOutStream.print(overallaggregatedStats.getMin());
+			resultOutStream.print("\t");
+			resultOutStream.print(overallaggregatedStats.getMax());
+			resultOutStream.print("\t");
+			resultOutStream.print(overallaggregatedStats.getMean());
+			resultOutStream.print("\t");
+			resultOutStream.print(overallaggregatedStats.getStandardDeviation());				
+			resultOutStream.print("\t");
+			resultOutStream.println(overallaggregatedStats.getSum());				
+			resultOutStream.flush();
+			
+		} finally {
+			IOUtils.closeQuietly(resultOutStream);
+		}
+
+	}	
+	
+	/**
+	 * Helper function to parse out the OBO-style "idspace" from any individual
+	 * It splits on the underscore in the last element if an individual's IRI, like:
+	 * http://purl.obolibrary.org/obo/HP_0002715
+	 * will give you "HP"
+	 * This assumes that IDspaces can consist only of letters, and the id
+	 * itself is consists only of numbers or letters.
+	 * @param i
+	 * @return idSpace string, or empty string if no match is found
+	 */
+	private String getIDSpace(OWLNamedIndividual i) {
+		Pattern idPattern = Pattern.compile("/[a-zA-Z]+_[a-zA-Z0-9]+$");
+		Matcher m = idPattern.matcher(i.getIRI().toString());
+		String id = "";
+		String idSpace  = "";
+		if (m.find()) {
+		  id = m.group();
+		  id = id.replaceFirst("/", "");
+      idSpace = id.split("_")[0];
+		}
+		return idSpace;
+	}
+
+	/**
+	 * Prints a tab-delimited report of the IC measures for each annotation (class)
+	 * made to each instance.  Report could be used for external statistical
+	 * analysis.
+	 * instance ID | class ID | IC
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--show-instance-IC-values")
+	public void instanceICValues(Opts opts) throws Exception {
+		try {
+			loadProperties(opts);
+			pproc = new NullSimPreProcessor();
+			pproc.setInputOntology(g.getSourceOntology());
+			pproc.setOutputOntology(g.getSourceOntology());
+			if (sos == null) {
+  			sos = new SimpleOwlSim(g.getSourceOntology());
+	  		sos.setSimPreProcessor(pproc);
+		  	sos.createElementAttributeMapFromOntology();
+			}
+			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
+					.getIndividualsInSignature();
+			LOG.info("Writing IC values for all " + insts.size() + " annotations.");
+
+    	for (OWLNamedIndividual i : insts) {
+  			for (OWLClass c : sos.getAttributesForElement(i)) {
+    			resultOutStream.print(g.getIdentifier(i));
+    			resultOutStream.print("\t");
+    			resultOutStream.print(g.getIdentifier(c));
+    			resultOutStream.print("\t");
+    			resultOutStream.print(sos.getInformationContentForAttribute(c));
+    			resultOutStream.println();
+    			resultOutStream.flush();
+  			}
+    	}
+		
+		} finally {
+			IOUtils.closeQuietly(resultOutStream);
+		}
+
+	}	
+	
+	/**
+	 * Given a set of classes, will print a table of grouping class(es) for each
+	 * annotation, and show a binary flag if the given annotation belongs to 
+	 * that class. For example, if a gene is annotated to a given HPO class, and
+	 * the user supplies a set of terms to group the phenotypes (abnormality of
+	 * the eye, abnormality of the ear, etc), this will indicate, based on the
+	 * reasoned subsumption hierarchy, which of the grouping classes the
+	 * annotation belongs.   Similar to {@link showAttributeGroupingsAsList}.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--annotate-attr-groupings-as-table")
+	public void showAttributeGroupingsInTable(Opts opts) throws Exception {
+  	//for testing: phenotype, inheritance, onset
+		//TODO: load as file?
+		//TODO:do we want a default?
+		//the ids in the following list must have the id form idspace:number
+//    String myGroupingClasses = "HP:0000118,HP:0000005,HP:0000004";  
+		opts.info("-gc CLASSLIST","List of ontology classes for grouping attributes, comma-separated");
+		String myGroupingClasses = "";
+		if (opts.nextEq("-gc")) {			
+			myGroupingClasses = opts.nextOpt();
+		} else {
+			LOG.error("No grouping classes specified");
+			return;
+		}
+
+    Set<OWLClass> groupingClasses =  new HashSet<OWLClass>();
+    for (String id : myGroupingClasses.split(",")) {
+    	OWLClass c = g.getOWLClassByIdentifier(id);
+    	groupingClasses.add(c);
+    }
+		loadProperties(opts);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
+		pproc = new NullSimPreProcessor();
+		pproc.setInputOntology(g.getSourceOntology());
+		pproc.setOutputOntology(g.getSourceOntology());
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+  		sos.setSimPreProcessor(pproc);
+	  	sos.createElementAttributeMapFromOntology();
+		}
+		Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
+				.getIndividualsInSignature();
+		LOG.info("Identifying groupings via subsumption for all " + insts.size() + " annotations.");
+
+		StringBuffer header = new StringBuffer();
+		header.append("Individual ID").append("\t");
+		header.append("Class ID").append("\t");
+		header.append("IC");
+		for (OWLClass gc : groupingClasses) {
+			header.append("\t");
+			header.append(owlpp.render(gc));
+		}
+		resultOutStream.println(header);
+		resultOutStream.flush();
+		
+  	for (OWLNamedIndividual i : insts) {
+			for (OWLClass c : sos.getAttributesForElement(i)) {
+				resultOutStream.print(g.getIdentifier(i));
+ 				resultOutStream.print("\t");
+ 				resultOutStream.print(owlpp.render(c));
+  			resultOutStream.print("\t");
+  			resultOutStream.print(sos.getInformationContentForAttribute(c));
+  			for (OWLClass gc : groupingClasses) {
+    			resultOutStream.print("\t");
+    			if (g.getAncestors(c).contains(gc)) {
+    			  resultOutStream.print("1");
+    			} else {
+    				resultOutStream.print("0");
+    			} 				
+  			}
+  			resultOutStream.println();
+  			resultOutStream.flush();
+			}
+  	}
+
+    
+	}
+
+	/**
+	 * Given a set of classes, will print the grouping class(es) for each
+	 * annotation in a comma-separated list. For example, if a gene is annotated 
+	 * to a given HPO class, and
+	 * the user supplies a set of term ids to group the phenotypes (abnormality of
+	 * the eye, abnormality of the ear, etc), this will indicate, based on the
+	 * reasoned subsumption hierarchy, which of the grouping classes the
+	 * annotation belongs.  If an annotation does not belong to any of the
+	 * grouping classes, the column will be empty.  Similar to {@link showAttributeGroupingsInTable}
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--annotate-attr-groupings-as-list")
+	public void showAttributeGroupingsAsList(Opts opts) throws Exception {
+		opts.info("-gc CLASSLIST","List of ontology classes for grouping attributes");
+		String myGroupingClasses = "";
+		if (opts.nextEq("-gc")) {			
+			myGroupingClasses = opts.nextOpt();
+		} else {
+			LOG.error("No grouping classes specified");
+			return;
+		}
+
+		Set<OWLClass> groupingClasses =  new HashSet<OWLClass>();
+    for (String id : myGroupingClasses.split(",")) {
+    	OWLClass c = g.getOWLClassByIdentifier(id);
+    	groupingClasses.add(c);
+    }
+		loadProperties(opts);
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
+		pproc = new NullSimPreProcessor();
+		pproc.setInputOntology(g.getSourceOntology());
+		pproc.setOutputOntology(g.getSourceOntology());
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+  		sos.setSimPreProcessor(pproc);
+	  	sos.createElementAttributeMapFromOntology();
+		}
+		Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
+				.getIndividualsInSignature();
+		LOG.info("Identifying groupings via subsumption for all " + insts.size() + " annotations.");
+
+		StringBuffer header = new StringBuffer();
+		header.append("Individual ID").append("\t");
+		header.append("Class ID").append("\t");
+		header.append("IC").append("\t");
+		header.append("Grouping Classes");
+		resultOutStream.println(header);
+		resultOutStream.flush();
+		
+  	for (OWLNamedIndividual i : insts) {
+			for (OWLClass c : sos.getAttributesForElement(i)) {
+				resultOutStream.print(g.getIdentifier(i));
+ 				resultOutStream.print("\t");
+ 				resultOutStream.print(owlpp.render(c));
+  			resultOutStream.print("\t");
+  			resultOutStream.print(sos.getInformationContentForAttribute(c));
+  			resultOutStream.print("\t");
+  			List<String> l = new ArrayList<String>();
+  			for (OWLClass gc : groupingClasses) {
+    			if (g.getAncestors(c).contains(gc)) {
+    				l.add(owlpp.render(gc));
+    			} 				
+  			}
+  			resultOutStream.print(StringUtils.join(l," | "));
+  			resultOutStream.println();
+  			resultOutStream.flush();
+			}
+  	}
+	}	
 }

@@ -1,6 +1,7 @@
 package owltools.sim2;
 
 import owltools.sim2.SimpleOwlSim.Metric;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 /**
  * Will keep track of the overall stats of analysis in data sets. This can be
@@ -10,29 +11,34 @@ import owltools.sim2.SimpleOwlSim.Metric;
  * Note that mins are included here, but aren't really used yet... we can 
  * probably assume that the minimum is zero for most cases.
  * 
- * @author Nicole
+ * For now I'm going to overload this class with stats for all owlsim methods, 
+ * but those related to attributes should be refactored in the future.
+ * 
+ * @author nlw
  * 
  */
 public class SimStats {
-	public double minAnalysisBMAJ;
+	
+	public SummaryStatistics analysisBMAJ;
+	public SummaryStatistics analysisLCSIC;
+	public SummaryStatistics analysisMaxIC;
+	public SummaryStatistics analysisBMAIC;
+  public SummaryStatistics analysisSimJ;
+    
+  public SummaryStatistics individualsIC;
 
+  public SummaryStatistics attributesIC;
+  
+/*	public double minAnalysisBMAJ;
 	public double maxAnalysisBMAJ;
-
 	public double minAnalysisBMAIC;
-
 	public double maxAnalysisBMAIC;
-
 	public double minAnalysisMaxIC;
-
 	public double maxAnalysisMaxIC;
-
 	public double minAnalysisSimJ;
-
 	public double maxAnalysisSimJ;
-
 	public double minAnalysisLCSIC;
-
-	public double maxAnalysisLCSIC;
+	public double maxAnalysisLCSIC; */
 
 	public int classPairCount;
 
@@ -47,7 +53,7 @@ public class SimStats {
 	}
 
 	public void init() {
-		this.minAnalysisBMAJ = 0.0;
+/*		this.minAnalysisBMAJ = 0.0;
 		this.maxAnalysisBMAJ = 0.0;
 		this.minAnalysisBMAIC = 0.0;
 		this.maxAnalysisBMAIC = 0.0;
@@ -56,13 +62,31 @@ public class SimStats {
 		this.minAnalysisSimJ = 0.0;
 		this.maxAnalysisSimJ = 0.0;
 		this.minAnalysisLCSIC = 0.0;
-		this.maxAnalysisLCSIC = 0.0;
+		this.maxAnalysisLCSIC = 0.0; */
 		this.classPairCount = 0;
 		this.uniqueClassPairCount = 0;
 		this.individualPairCount = 0;
 		this.uniqueClassCount = 0;
+		
+		analysisBMAJ = new SummaryStatistics();
+		analysisLCSIC = new SummaryStatistics();
+		analysisMaxIC = new SummaryStatistics();
+		analysisBMAIC = new SummaryStatistics();
+		analysisSimJ = new SummaryStatistics();				
+  
+		individualsIC = new SummaryStatistics();
+		attributesIC = new SummaryStatistics();
+	  	
+	}
+	
+	public void addIndividualIC(double s) {
+		individualsIC.addValue(s);
 	}
 
+	public void addAttributeIC(double s) {
+		attributesIC.addValue(s);
+	}
+	
 	public void incrementClassPairCount(int n) {
 		this.classPairCount += n;
 	}
@@ -74,6 +98,40 @@ public class SimStats {
 	public void incrementIndividualPairCount() {
 		this.individualPairCount += 1;
 	}
+
+	public void setValue(Metric m, double s) {
+		switch (m) {
+		case IC_MCS:
+				this.analysisBMAIC.addValue(s);
+		case JACCARD:
+				this.analysisBMAJ.addValue(s);
+		case MAXIC:
+				this.analysisMaxIC.addValue(s);
+		case SIMJ:
+				this.analysisSimJ.addValue(s);
+		case LCSIC:
+				this.analysisLCSIC.addValue(s);
+		}		
+	}
+
+	public double getMax(Metric m) {
+		double s = 0.0;
+		switch (m) {
+		case IC_MCS:
+			s = this.analysisBMAIC.getMax();
+		case JACCARD:
+			s = this.analysisBMAJ.getMax();
+		case MAXIC:
+			s = this.analysisMaxIC.getMax();
+		case SIMJ:
+			s = this.analysisSimJ.getMax();
+		case LCSIC:
+			s = this.analysisLCSIC.getMax();
+		}
+		return s;
+	}
+
+/*	
 
 	public void setMin(Metric m, double s) {
 		switch (m) {
@@ -136,4 +194,5 @@ public class SimStats {
 		}
 		return s;
 	}
+	*/
 }

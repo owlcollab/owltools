@@ -84,7 +84,20 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--load-labels "+path("mgi-labels.txt"));
 		run("--sim-basic -o target/test100.default.out");		
 		run("--show-sim-properties");
-	}
+	}	
+	
+	@Test
+	public void testPrintReportsForAnnotations() throws Exception {
+		init();
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
+		run("--show-instance-IC-values -o target/testICVals.out");
+		run("--show-instance-stats -o target/testStats.out");
+		run("--annotate-attr-groupings-as-table -gc MP:0010769,MP:0001919,MP:0002177,MP:0000003 -o target/groupingClassesTable.out");
+		run("--annotate-attr-groupings-as-list -gc MP:0010769,MP:0001919,MP:0002177,MP:0000003 -o target/groupingClassesList.out");
+		}
+
 
 	@Test
 	public void testClassICPairs() throws Exception {

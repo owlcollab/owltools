@@ -33,7 +33,6 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.sim2.SimStats;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 
