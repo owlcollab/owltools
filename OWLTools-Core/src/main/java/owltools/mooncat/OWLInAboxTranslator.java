@@ -1,11 +1,6 @@
 package owltools.mooncat;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,12 +9,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
-import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
-import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
-import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -31,9 +20,7 @@ import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -43,9 +30,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
@@ -158,7 +142,9 @@ public class OWLInAboxTranslator {
 	private Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
 	private Set<OWLObjectProperty> instanceLevelRelations = new HashSet<OWLObjectProperty>();
 	private Set<OWLNamedIndividual> instances = new HashSet<OWLNamedIndividual>();
-
+	private Map<IRI,IRI> propertyMap = new HashMap<IRI,IRI>();
+	private boolean isTranslateObjectProperty = true;
+	private boolean isTranslateSubClassToClassAssertion = true;
 
 	public OWLInAboxTranslator(OWLOntology ontology) {
 		super();
@@ -206,36 +192,39 @@ public class OWLInAboxTranslator {
 
 		// for each relation R used in instance-level context between two classes,
 		// ensure that R' has a label "R (type level)"
-		for (OWLObjectProperty p : this.instanceLevelRelations) {
-			OWLObjectProperty pt = (OWLObjectProperty)trTypeLevel(p);
+		if (this.isTranslateObjectProperty) {
+			for (OWLObjectProperty p : this.instanceLevelRelations) {
+				OWLObjectProperty pt = (OWLObjectProperty)trTypeLevel(p);
 
-			// label - append 'type level'
-			for (OWLAnnotationAssertionAxiom ax : ontology.getAnnotationAssertionAxioms(p.getIRI())) {
-				if (ax.getProperty().isLabel()) {
-					OWLLiteral lit = (OWLLiteral) ax.getValue();
-					String label = lit.getLiteral() + " (type level)";
-					add(getOWLDataFactory().getOWLAnnotationAssertionAxiom(ax.getProperty(), pt.getIRI(), 
-							getOWLDataFactory().getOWLLiteral(label)));
+				// label - append 'type level'
+				for (OWLAnnotationAssertionAxiom ax : ontology.getAnnotationAssertionAxioms(p.getIRI())) {
+					if (ax.getProperty().isLabel()) {
+						OWLLiteral lit = (OWLLiteral) ax.getValue();
+						String label = lit.getLiteral() + " (type level)";
+						add(getOWLDataFactory().getOWLAnnotationAssertionAxiom(ax.getProperty(), pt.getIRI(), 
+								getOWLDataFactory().getOWLLiteral(label)));
+					}
 				}
+
+				// property chains over 'isA'
+				List<OWLObjectPropertyExpression> chain1 = new ArrayList<OWLObjectPropertyExpression>(2);
+				chain1.add(pt);
+				chain1.add(getSubClassOfAsTLR());
+				add(getOWLDataFactory().getOWLSubPropertyChainOfAxiom(chain1, pt));
+
+				List<OWLObjectPropertyExpression> chain2 = new ArrayList<OWLObjectPropertyExpression>(2);
+				chain2.add(getSubClassOfAsTLR());
+				chain2.add(pt);
+				add(getOWLDataFactory().getOWLSubPropertyChainOfAxiom(chain2, pt));
+
+				// decl
+				add(getOWLDataFactory().getOWLDeclarationAxiom(pt));
 			}
 
-			// property chains over 'isA'
-			List<OWLObjectPropertyExpression> chain1 = new ArrayList<OWLObjectPropertyExpression>(2);
-			chain1.add(pt);
-			chain1.add(getSubClassOfAsTLR());
-			add(getOWLDataFactory().getOWLSubPropertyChainOfAxiom(chain1, pt));
-
-			List<OWLObjectPropertyExpression> chain2 = new ArrayList<OWLObjectPropertyExpression>(2);
-			chain2.add(getSubClassOfAsTLR());
-			chain2.add(pt);
-			add(getOWLDataFactory().getOWLSubPropertyChainOfAxiom(chain2, pt));
-
-			// decl
-			add(getOWLDataFactory().getOWLDeclarationAxiom(pt));
+			// ensure "is_a" is declared transitive
+			add(getOWLDataFactory().getOWLTransitiveObjectPropertyAxiom(getSubClassOfAsTLR()));
 		}
-		// ensure "is_a" is declared transitive
-		add(getOWLDataFactory().getOWLTransitiveObjectPropertyAxiom(getSubClassOfAsTLR()));
-
+		
 		for (OWLNamedIndividual i : instances) {
 			add(getOWLDataFactory().getOWLDeclarationAxiom(i));
 		}
@@ -327,6 +316,12 @@ public class OWLInAboxTranslator {
 			return;
 
 		OWLNamedIndividual i = classToIndividual((OWLClass)subc);
+		
+		// TODO - allow flexibility; partition set into C and I first
+		if (this.isTranslateSubClassToClassAssertion) {
+			add(getOWLDataFactory().getOWLClassAssertionAxiom(supc, i));
+			return;
+		}
 
 		if (supc.isAnonymous()) {
 			// A SubClassOf R some B ==> A R' B
@@ -374,6 +369,9 @@ public class OWLInAboxTranslator {
 	 */
 	private OWLObjectPropertyExpression trTypeLevel(
 			OWLObjectPropertyExpression p) {
+		if (!this.isTranslateObjectProperty) {
+			return p;
+		}
 		if (p instanceof OWLObjectInverseOf) {
 			OWLObjectPropertyExpression p2 = trTypeLevel(((OWLObjectInverseOf)p).getInverse());
 			return getOWLDataFactory().getOWLObjectInverseOf(p2);

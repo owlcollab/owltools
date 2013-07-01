@@ -260,10 +260,10 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	}
 
 	/**
-	 * It returns the value of the subset tag.
+	 * Returns the values of the subset tag for a given OWLObject
 	 * 
 	 * @param c could OWLClass or OWLObjectProperty
-	 * @return values
+	 * @return subsets to which the OWLObject belongs
 	 */
 	// TODO - return set
 	public List<String> getSubsets(OWLObject c) {
