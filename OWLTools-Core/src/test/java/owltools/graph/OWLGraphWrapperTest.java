@@ -126,6 +126,33 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 		assertEquals(4, all.size());
 	}
 	
+	@Test
+	public void testSubset() throws Exception {
+		OWLGraphWrapper graph = getOBO2OWLOntologyWrapper("omma.obo");
+		Set<String> subsets = graph.getAllUsedSubsets();
+		assertEquals(5, subsets.size());
+		boolean ok = true;
+		boolean isFound = false;
+		for (String s : subsets) {
+			Set<OWLObject> objs = graph.getOWLObjectsInSubset(s);
+			System.out.println("# "+s+" = "+objs.size());
+			if (s.equals("cur")) {
+				isFound = true;
+				assertEquals(90, objs.size());
+			}
+			for (OWLObject obj : objs) {
+				List<String> subsetsToCheck = graph.getSubsets(obj);
+				if (!subsetsToCheck.contains(s)) {
+					ok = false;
+				}
+			}
+		}
+		
+		assertTrue(isFound);
+		assertTrue(ok);
+	}
+
+	
 	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws Exception{
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(new BufferedReader(new FileReader(getResource(file))));
