@@ -24,6 +24,7 @@ synonym: "ma1 syn2" EXACT []
 [Term]
 id: FMA:1
 name: fma1
+comment: fma1 comment
 def: "fma1 def" [FMA:FMA]
 synonym: "fma1 syn1" EXACT []
 synonym: "fma1 syn2" EXACT []
