@@ -150,7 +150,7 @@ public class SimpleOwlSim {
 	private Map<ClassExpressionPair, ScoreAttributePair> lcsICcache;
 	private boolean isLCSCacheFullyPopulated = false;
 	private boolean isICCacheFullyPopulated = false;
-	
+
 	// @Deprecated
 	private Map<ClassExpressionPair, Set<Node<OWLClass>>> csCache;
 
@@ -167,11 +167,11 @@ public class SimpleOwlSim {
 	public enum Metric {
 		JACCARD("Best Match Average using Jaccard scoring", false, true), OVERLAP(
 				"", false, false), NORMALIZED_OVERLAP("", false, false), DICE("", true,
-				false), IC_MCS("Best Match Average using Information Content", true,
-				false), GIC("GraphInformationContent", true, false), MAXIC(
-				"Maximum Information Content", true, false), SIMJ(
-				"Similarity based on Jaccard score", false, true), LCSIC(
-				"Least Common Subsumer Information Content Score", true, false);
+						false), IC_MCS("Best Match Average using Information Content", true,
+								false), GIC("GraphInformationContent", true, false), MAXIC(
+										"Maximum Information Content", true, false), SIMJ(
+												"Similarity based on Jaccard score", false, true), LCSIC(
+														"Least Common Subsumer Information Content Score", true, false);
 
 		private final String description;
 		private final Boolean isICmetric;
@@ -204,8 +204,8 @@ public class SimpleOwlSim {
 	 */
 	public enum Direction {
 		A_TO_B("Asymmetric, matching all annotations on first element"), B_TO_A(
-				"Asymmetric, matching all annotations on second element"), AVERAGE(
-				"Symmetric - taking average of both directions");
+		"Asymmetric, matching all annotations on second element"), AVERAGE(
+		"Symmetric - taking average of both directions");
 
 		private final String description;
 
@@ -307,7 +307,7 @@ public class SimpleOwlSim {
 		pproc.setOutputOntology(this.sourceOntology);
 		this.setSimPreProcessor(pproc);
 
-		elementToAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
+		elementToAttributesMap = null;
 		elementToInferredAttributesMap = new HashMap<OWLNamedIndividual,Set<Node<OWLClass>>>();
 		attributeToElementsMap = new HashMap<OWLClass,Set<OWLNamedIndividual>>();
 
@@ -351,10 +351,10 @@ public class SimpleOwlSim {
 		public double score;
 
 		public Set<OWLClassExpression> attributeClassSet = new HashSet<OWLClassExpression>(); // all
-																																													// attributes
-																																													// with
-																																													// this
-																																													// score
+		// attributes
+		// with
+		// this
+		// score
 
 		public ScoreAttributesPair(double score, OWLClassExpression ac) {
 			super();
@@ -378,7 +378,7 @@ public class SimpleOwlSim {
 				attributeClassSet = new HashSet<OWLClassExpression>();
 			this.attributeClassSet.add(ac);
 		}
-		
+
 		public void setAttributeClassSet(Set<OWLClass> acs) {
 			attributeClassSet = new HashSet<OWLClassExpression>();
 			for (OWLClass ac : acs)
@@ -446,6 +446,9 @@ public class SimpleOwlSim {
 
 	public OWLReasoner getReasoner() {
 		return simPreProcessor.getReasoner();
+	}
+	public void setReasoner(OWLReasoner r) {
+		simPreProcessor.setReasoner(r);
 	}
 
 	private Set<OWLClass> getParents(OWLClass c) {
@@ -527,8 +530,8 @@ public class SimpleOwlSim {
 	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClassExpression a,
 			OWLClassExpression b) {
 		ClassExpressionPair pair = new ClassExpressionPair(a, b); // TODO - optimize
-																															// - assume named
-																															// classes
+		// - assume named
+		// classes
 		//if (csCache.containsKey(pair))
 		//	return new HashSet<Node<OWLClass>>(csCache.get(pair));
 		Set<Node<OWLClass>> nodes = getNamedReflexiveSubsumers(a);
@@ -588,13 +591,13 @@ public class SimpleOwlSim {
 			return ci.size();
 		} else if (metric.equals(Metric.NORMALIZED_OVERLAP)) {
 			return ci.size()
-					/ Math.min(getNamedReflexiveSubsumers(a).size(),
-							getNamedReflexiveSubsumers(b).size());
+			/ Math.min(getNamedReflexiveSubsumers(a).size(),
+					getNamedReflexiveSubsumers(b).size());
 		} else if (metric.equals(Metric.DICE)) {
 			return 2
-					* ci.size()
-					/ ((getNamedReflexiveSubsumers(a).size() + getNamedReflexiveSubsumers(
-							b).size()));
+			* ci.size()
+			/ ((getNamedReflexiveSubsumers(a).size() + getNamedReflexiveSubsumers(
+					b).size()));
 		} else if (metric.equals(Metric.JACCARD)) {
 			return ci.size() / (float) cu.size();
 		} else {
@@ -889,7 +892,7 @@ public class SimpleOwlSim {
 
 		public String toString() {
 			return sampleSetClass + " " + enrichedClass + " " + pValue + " "
-					+ pValueCorrected;
+			+ pValueCorrected;
 		}
 
 	}
@@ -1039,6 +1042,7 @@ public class SimpleOwlSim {
 	 */
 	// TODO - make this private & call automatically
 	public void createElementAttributeMapFromOntology() {
+		elementToAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
 		Set<OWLClass> allTypes = new HashSet<OWLClass>();
 		for (OWLNamedIndividual e : sourceOntology.getIndividualsInSignature(true)) {
 
@@ -1092,9 +1096,11 @@ public class SimpleOwlSim {
 	 * @return
 	 */
 	public Set<OWLClass> getAttributesForElement(OWLNamedIndividual e) {
+		if (elementToAttributesMap == null)
+			createElementAttributeMapFromOntology();
 		return new HashSet<OWLClass>(elementToAttributesMap.get(e));
 	}
-	
+
 	/**
 	 * Given an individual element, return all direct attribute classes that the individual instantiates,
 	 * combined with IC.
@@ -1149,7 +1155,7 @@ public class SimpleOwlSim {
 	 */
 	public Set<OWLNamedIndividual> getElementsForAttribute(OWLClass c) {
 		Set<OWLClass> subclasses = getReasoner().getSubClasses(c, false)
-				.getFlattened();
+		.getFlattened();
 		subclasses.add(c);
 		Set<OWLNamedIndividual> elts = new HashSet<OWLNamedIndividual>();
 		for (OWLClass sc : subclasses) {
@@ -1185,6 +1191,8 @@ public class SimpleOwlSim {
 	}
 
 	public Set<OWLNamedIndividual> getAllElements() {
+		if (elementToAttributesMap == null)
+			createElementAttributeMapFromOntology();
 		return elementToAttributesMap.keySet();
 	}
 
@@ -1334,6 +1342,22 @@ public class SimpleOwlSim {
 						lit.parseDouble());
 			}
 		}
+	}
+
+	public Double getEntropy() {
+		return getEntropy(getAllAttributeClasses());
+	}
+	
+	public Double getEntropy(Set<OWLClass> cset) {
+		double e = 0.0;
+		for (OWLClass c : cset) {
+			int freq = getNumElementsForAttribute(c);
+			if (freq == 0)
+				continue;
+			double p = ((double) freq) / getCorpusSize();
+			e += p * Math.log(p) ;
+		}
+		return -e / Math.log(2);
 	}
 
 

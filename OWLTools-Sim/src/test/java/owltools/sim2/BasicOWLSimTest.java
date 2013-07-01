@@ -1,14 +1,14 @@
 package owltools.sim2;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -28,10 +28,8 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
-import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
-import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
@@ -52,7 +50,7 @@ public class BasicOWLSimTest extends OWLToolsTestBasics {
 	SimpleOwlSim sos;
 
 	@Test
-	public void testPhenoSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
+	public void testBasicSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
 		g =  new OWLGraphWrapper(sourceOntol);
@@ -63,16 +61,10 @@ public class BasicOWLSimTest extends OWLToolsTestBasics {
 		// assume buffering
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
 		try {
-			pproc = new NullSimPreProcessor();
-			pproc.setInputOntology(sourceOntol);
-			pproc.setOutputOntology(sourceOntol);
-			pproc.setReasoner(reasoner);
-			pproc.setOWLPrettyPrinter(owlpp);
-
 
 			sos = new SimpleOwlSim(sourceOntol);
-			sos.setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+			sos.setReasoner(reasoner);
+			LOG.info("Reasoner="+sos.getReasoner());
 
 			//sos.saveOntology("/tmp/z.owl");
 
@@ -89,6 +81,37 @@ public class BasicOWLSimTest extends OWLToolsTestBasics {
 		}
 	}
 
+	@Test 
+	public void testGetEntropy() throws OWLOntologyCreationException, IOException, OBOFormatParserException {
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOBO(getResourceIRIString("sim/mp-subset-1.obo"));
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
+
+		owlpp = new OWLPrettyPrinter(g);
+
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+
+			sos = new SimpleOwlSim(sourceOntol);
+			sos.setReasoner(reasoner);
+
+			reasoner.flush();
+			Double e = sos.getEntropy();
+			LOG.info("ENTROPY OF ONTOLOGY = "+e);
+
+			for (String subset : g.getAllUsedSubsets()) {
+				LOG.info("SUBSET:"+subset);
+				e = sos.getEntropy(g.getOWLClassesInSubset(subset));
+				LOG.info(" ENTROPY OF "+subset+" = "+e);
+			}
+		}
+		finally {
+			reasoner.dispose();
+		}		
+	}
+
 	protected void parseAssociations(File file, OWLGraphWrapper g) throws IOException {
 		TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 		ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
@@ -99,7 +122,7 @@ public class BasicOWLSimTest extends OWLToolsTestBasics {
 
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
-		
+
 		if (i==j) return;
 		float s = sos.getElementJaccardSimilarity(i, j);
 		if (s > 0.1) {

@@ -2,6 +2,9 @@ format-version: 1.2
 subsetdef: CvDC_Terms "NHLBI Cardiovascular Development Consortium (CvDC) Terms"
 subsetdef: Europhenome_Terms "Terms in use by Europhenome"
 subsetdef: Sanger_Terms "Terms in use by Mouse Genetics Project, Sanger Institute, Wellcome Trust Genome Campus"
+subsetdef: entropy_test "Ancestors of abnormal cerebral cortex morphology. For testing."
+subsetdef: entropy_test2 "Singleton abnormal cerebral cortex morphology. For testing."
+subsetdef: entropy_test3 "Singleton high level term. For testing."
 ontology: mp-gaf-subset
 
 [Term]
@@ -198,6 +201,7 @@ id: MP:0000783
 name: abnormal forebrain morphology
 namespace: MPheno.ontology
 def: "any structural anomaly of the part of the brain developed from the most rostral of the three primary vesicles of the embryonic neural tube from which the diencephalon and telencephalon are derived" [NLX:birnlex_1509, PMID:9010203]
+subset: entropy_test
 synonym: "forebrain dysplasia" EXACT []
 is_a: MP:0002152 ! abnormal brain morphology
 
@@ -205,6 +209,7 @@ is_a: MP:0002152 ! abnormal brain morphology
 id: MP:0000787
 name: abnormal telencephalon morphology
 namespace: MPheno.ontology
+subset: entropy_test
 alt_id: MP:0000782
 def: "any structural anomaly of the paired anteriolateral division of the embryonic prosencephalon plus the lamina terminalis from which the olfactory lobes, cerebral cortex, and subcortical nuclei are derived" [ISBN:0-683-40008-8, MESH:A08.186.211.730.885]
 synonym: "telencephalon dysplasia" EXACT []
@@ -224,6 +229,8 @@ is_a: MP:0008540 ! abnormal cerebrum morphology
 id: MP:0000790
 name: abnormal stratification in cerebral cortex
 namespace: MPheno.ontology
+subset: entropy_test
+subset: entropy_test2
 def: "abnormal formation or pattern of the layers of the cerebral cortex" [J:64289, MGI:csmith]
 synonym: "abnormal cerebral cortex stratification" EXACT []
 synonym: "abnormal stratification in neocortex" EXACT []
@@ -1344,6 +1351,8 @@ is_a: MP:0003861 ! abnormal nervous system development
 id: MP:0002152
 name: abnormal brain morphology
 namespace: MPheno.ontology
+subset: entropy_test
+subset: entropy_test3
 alt_id: MP:0000770
 alt_id: MP:0000775
 def: "any structural anomaly of the brain, one of the two components of the central nervous system and the center of thought and emotion; controls coordination, bodily activities and the interpretation of information from the senses (sight, hearing, smell, etc.)" [http://cancerweb.ncl.ac.uk, MGI:csmith]
@@ -2273,6 +2282,7 @@ id: MP:0008540
 name: abnormal cerebrum morphology
 namespace: MPheno.ontology
 def: "any structural anomaly of the largest part of the brain, derived from the telencephalon, and is composed of a right and a left hemisphere each which contains an outer cerebral cortex and a subcortical basal ganglia; cerebral functions include sensorimotor, emotional, and intellectual activities" [MESH:A08.186.211.730.885.287]
+subset: entropy_test
 synonym: "abnormal cerebral hemispheres" EXACT []
 synonym: "cerebrum dysplasia" RELATED []
 is_a: MP:0000787 ! abnormal telencephalon morphology
