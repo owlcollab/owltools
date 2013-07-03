@@ -717,14 +717,6 @@ public class Mooncat {
 	}
 
 	/**
-	 * Given a set of classes (e.g. those corresponding to an obo-subset or go-slim), and an ontology
-	 * in which these are declared, generate a sub-ontology.
-	 * The sub-ontology will ONLY include classes in the subset. It will remove any axioms that refer
-	 * to classes not in the subset. Inference is used to ensure that as many entailments as possible
-	 * are preserved.
-	 * 
-	 *  
-	 * note: this does the same as the perl script go-slimdown, used by the GO Consortium
 	 * 
 	 * @param subset
 	 * @param subOntIRI
@@ -737,6 +729,22 @@ public class Mooncat {
 	public OWLOntology makeMinimalSubsetOntology(Set<OWLClass> subset, IRI subOntIRI, boolean isFillGaps) throws OWLOntologyCreationException {
 		return makeMinimalSubsetOntology(subset, subOntIRI, isFillGaps, true);
 	}
+	
+	/**
+	 * Given a set of classes (e.g. those corresponding to an obo-subset or go-slim), and an ontology
+	 * in which these are declared, generate a sub-ontology.
+	 * The sub-ontology will ONLY include classes in the subset. It will remove any axioms that refer
+	 * to classes not in the subset. Inference is used to ensure that as many entailments as possible
+	 * are preserved.
+	 *  
+	 * note: this does the same as the perl script go-slimdown, used by the GO Consortium
+	 * @param subset
+	 * @param subOntIRI
+	 * @param isFillGaps - if true, subset will be extended to include intermediates terms
+	 * @param isSpanGaps - if true, subset classes will be unaltered, but inferred relationships will span gaps
+	 * @return subOntology
+	 * @throws OWLOntologyCreationException
+	 */
 	public OWLOntology makeMinimalSubsetOntology(Set<OWLClass> subset, IRI subOntIRI, boolean isFillGaps, Boolean isSpanGaps) throws OWLOntologyCreationException {
 		OWLOntology o = getOntology();
 
@@ -1114,6 +1122,30 @@ public class Mooncat {
 			Set<OWLClass> iclasses) {
 		// TODO Auto-generated method stub
 		
+	}
+
+
+
+	/**
+	 * Assumes OBO-style IDspaces; specifically URI contains "..../IDSPACE_..." 
+	 * @param idspace
+	 * @param subOnt
+	 */
+	public void transferAxiomsUsingIdSpace(String idspace, OWLOntology subOnt) {
+		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+		LOG.info("ID Space: "+idspace);
+		for (OWLClass c : getOntology().getClassesInSignature()) {
+			String iriStr = c.getIRI().toString().toLowerCase();
+			if (iriStr.contains("/"+idspace.toLowerCase()+"_")) {
+				LOG.info("MATCH: "+c);
+				axioms.addAll(getOntology().getDeclarationAxioms(c));
+				axioms.addAll(getOntology().getAxioms(c));
+				axioms.addAll(c.getAnnotationAssertionAxioms(getOntology()));
+			}
+		}
+		LOG.info("Transferring "+axioms.size()+" axioms from "+getOntology()+" to "+subOnt);
+		this.getManager().removeAxioms(getOntology(), axioms);
+		this.getManager().addAxioms(subOnt, axioms);
 	}
 
 }

@@ -2254,6 +2254,43 @@ public class CommandRunner {
 				LOG.info("Removing axioms: "+axioms.size());
 				g.getManager().removeAxioms(g.getSourceOntology(), axioms);
 			}
+			else if (opts.nextEq("--split-ontology")) {
+				opts.info("[-p IRI-PREFIX] [-s IRI-SUFFIX] [-d OUTDIR] [-l IDSPACE1 ... IDPSPACEn]", 
+						"Takes current only extracts all axioms in ID spaces and writes to separate ontology PRE+lc(IDSPACE)+SUFFIX saving to outdir. Also adds imports");
+				String prefix = g.getSourceOntology().getOntologyID().getOntologyIRI().toString().replace(".owl", "/");
+				String suffix = "_import.owl";
+				String outdir = ".";
+				Set<String> idspaces = new HashSet<String>();
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p|--prefix"))
+						prefix = opts.nextOpt();
+					else if (opts.nextEq("-s|--suffix"))
+						suffix = opts.nextOpt();
+					else if (opts.nextEq("-d|--dir"))
+						outdir = opts.nextOpt();
+					else if (opts.nextEq("-l|--idspaces")) {
+						idspaces.addAll(opts.nextList());
+					}
+					else
+						break;
+				}
+				Mooncat m = new Mooncat(g);
+				for (String idspace : idspaces) {
+					LOG.info("Removing "+idspace);
+					String name = prefix + idspace + suffix;
+					IRI iri = IRI.create(name);
+					OWLOntology subOnt = 
+						g.getManager().createOntology(iri);
+					m.transferAxiomsUsingIdSpace(idspace, subOnt);
+					AddImport ai = 
+						new AddImport(g.getSourceOntology(),
+								g.getDataFactory().getOWLImportsDeclaration(iri));
+					g.getManager().applyChange(ai);
+					String path = outdir + "/" + name.replaceAll(".*/", "");
+					FileOutputStream stream = new FileOutputStream(new File(path));
+					g.getManager().saveOntology(subOnt, stream);
+				}
+			}
 			else if (opts.nextEq("--remove-subset")) {
 				opts.info("SUBSET", "Removes a subset (aka slim) from an ontology");
 				String subset = opts.nextOpt();
@@ -2566,7 +2603,7 @@ public class CommandRunner {
 				}
 				// todo
 				LOG.info("Making subset ontology seeded from "+cs.size()+" classes");
-				g.setSourceOntology(m.makeMinimalSubsetOntology(cs, subOntIRI, true));
+				g.setSourceOntology(m.makeMinimalSubsetOntology(cs, subOntIRI, false, true));
 				LOG.info("Made subset ontology; # classes = "+cs.size());				
 			}
 			else if (opts.nextEq("--extract-module")) {
