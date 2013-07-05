@@ -267,9 +267,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				annotation_doc.addField("panther_family_label", pantherFamilyLabels.get(0));
 			}
 
-			// BUG/TODO: Make the ID /really/ unique - ask Chris
-			annotation_doc.addField("id", eid + "_:_" + clsId + "_:_" + a_ev_type + "_:_" + assgnb + "_:_" + etaxid + "_:_" + adate);
-
 			// Evidence type closure.
 			Set<OWLClass> ecoClasses = eco.getClassesForGoCode(a_ev_type);
 			Set<OWLClass> ecoSuper = eco.getAncestors(ecoClasses, true);
@@ -283,15 +280,23 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// Drag in the reference (col 6). It unfortunately might be multi-valued with a pipe separation.
 			String refIdStr = a.getReferenceId();
 			String[] refIds = StringUtils.split(refIdStr, "|");
+			String refIdList = ""; // used to help make unique ID.
 			for( String refId : refIds ){
 				annotation_doc.addField("reference", refId);
+				refIdList = refIdList + "_" + refId;
 			}
 
 			// Drag in "with" (col 8).
 			//annotation_doc.addField("evidence_with", a.getWithExpression());
+			String withList = ""; // used to help make unique ID.
 			for (WithInfo wi : a.getWithInfos()) {
-				annotation_doc.addField("evidence_with", wi.getWithXref());
+				String wStr = wi.getWithXref();
+				annotation_doc.addField("evidence_with", wStr);
+				withList = withList + "_" + wStr;
 			}
+
+			// BUG/TODO: Make the ID /really/ unique - ask Chris
+			annotation_doc.addField("id", eid +"_:_"+ aqual +"_:_"+ clsId +"_:_"+ a_ev_type +"_:_"+ assgnb +"_:_"+ etaxid +"_:_"+ adate +"_:_"+ refIdList +"_:_"+ withList);
 
 			///
 			/// isa_partof_closure
