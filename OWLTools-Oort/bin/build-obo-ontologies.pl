@@ -362,8 +362,8 @@ sub run {
     debug("  RUNNING: $cmd");
     my $err = system("$cmd 2> ERR");
     if ($err) {
-        my $err_text = `cat $err`;
-        print STDERR "ERROR RUNNING: $cmd [in $ont ]\n";
+        my $err_text = `cat ERR`;
+        print STDERR "ERROR RUNNING: $cmd [in $ont ] code: $err\n";
         print STDERR $err_text;
         push(@errs, { ont => $ont,
                       cmd => $cmd,
@@ -382,7 +382,7 @@ sub is_different {
     my $diffcmd = "diff -b $this $last > $out";
     debug("CMD: $diffcmd");
     my $is_different = system($diffcmd);
-    debug("cpmparing $this to $last == $is_different");
+    debug("comparing $this to $last == $is_different");
     return $is_different;
 }
 
