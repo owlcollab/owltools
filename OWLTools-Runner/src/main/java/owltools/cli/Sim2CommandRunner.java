@@ -1,7 +1,6 @@
 package owltools.cli;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -12,7 +11,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -184,7 +182,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * Iterates through all individuals, generating similarity calculations for
 	 * each of its attributes (ontology classes). As opposed to
 	 * 
-	 * {@link attributeAllByAll }, which outputs the comparison of any two attributes only
+	 * {@link #attributeAllByAll }, which outputs the comparison of any two attributes only
 	 *                     ever once, this method will necessarily output the
 	 *                     pairwise-comparison repeatedly, if the same two
 	 *                     attributes belong to two different sets of individuals.
@@ -352,7 +350,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * .../IDSPACE_<identifier>
 	 * @param i
 	 * @param idSpace
-	 * @return
+	 * @return boolean
 	 */
 	private boolean isOfIDSpace(OWLNamedIndividual i, String idSpace) {
 		//TODO: this should be more robust - should probably be regex with $ included
@@ -381,7 +379,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * @param i
 	 * @param j
 	 * @param renderer
-	 * @param scores
+	 * @param simScores 
 	 */
 	private void renderAttrSimWithIndividuals(OWLNamedIndividual i,
 			OWLNamedIndividual j, SimResultRenderer renderer,
@@ -694,7 +692,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * @throws Exception
 	 */
 	@CLIMethod("--sim-basic-stats")
-	public void simBasicStats() throws Exception {
+	public void simBasicStats(Opts opts) throws Exception {
 		//TODO: iterate over all metrics, and print out results, perhaps put method into renderer
 		LOG.info(Metric.JACCARD.name() + " max: " + sos.simStats.getMax(Metric.JACCARD));		
 	}	
@@ -822,18 +820,22 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 */
 	private SimResultRenderer setRenderer() {
 		//set the renderer
-		SimResultRenderer renderer;
+		SimResultRenderer renderer = null;
 		String f = sos.getSimProperties().getProperty(SimConfigurationProperty.outputFormat.toString());
-		if (f.equals(OutputFormat.TXT.name())) {
-			renderer = new TabularRenderer(resultOutStream);
-		} else if (f.equals(OutputFormat.CSV.name())) {
-			renderer = new TabularRenderer(resultOutStream, ",", "# ");				
-		} else if (f.equals(OutputFormat.ROW.name())) {
-			renderer = new DelimitedLineRenderer(resultOutStream);
-		} else if (f.equals(OutputFormat.JSON.name())) {
-			//TODO add JSON renderer call when completed
-			renderer = new TabularRenderer(resultOutStream);
-		} else {
+		if (f != null) {
+			if (f.equals(OutputFormat.TXT.name())) {
+				renderer = new TabularRenderer(resultOutStream);
+			} else if (f.equals(OutputFormat.CSV.name())) {
+				renderer = new TabularRenderer(resultOutStream, ",", "# ");				
+			} else if (f.equals(OutputFormat.ROW.name())) {
+				renderer = new DelimitedLineRenderer(resultOutStream);
+			} else if (f.equals(OutputFormat.JSON.name())) {
+				//TODO add JSON renderer call when completed
+				renderer = new TabularRenderer(resultOutStream);
+			}
+		}
+		if (renderer == null) {
+			// default
 			renderer = new TabularRenderer(resultOutStream);				
 		}
 		return renderer;
@@ -847,7 +849,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * all loaded instances.
 	 * Tab-delimited output format: 
 	 * idSpace | individual | n | min | max | mean | stdev
-   * 
+	 * 
+	 * @param opts 
+	 * 
 	 * @throws Exception
 	 */
 	@CLIMethod("--show-instance-stats")
@@ -1072,7 +1076,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * the user supplies a set of terms to group the phenotypes (abnormality of
 	 * the eye, abnormality of the ear, etc), this will indicate, based on the
 	 * reasoned subsumption hierarchy, which of the grouping classes the
-	 * annotation belongs.   Similar to {@link showAttributeGroupingsAsList}.
+	 * annotation belongs.   Similar to {@link #showAttributeGroupingsAsList}.
 	 * 
 	 * @param opts
 	 * @throws Exception
@@ -1154,7 +1158,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * the eye, abnormality of the ear, etc), this will indicate, based on the
 	 * reasoned subsumption hierarchy, which of the grouping classes the
 	 * annotation belongs.  If an annotation does not belong to any of the
-	 * grouping classes, the column will be empty.  Similar to {@link showAttributeGroupingsInTable}
+	 * grouping classes, the column will be empty.  Similar to {@link #showAttributeGroupingsInTable}
 	 * 
 	 * @param opts
 	 * @throws Exception
