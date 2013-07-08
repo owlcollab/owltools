@@ -280,23 +280,23 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	 * the inferred super class hierarchy. Remove all classes which are
 	 * (inferred) super classes of another class in the given set.
 	 * 
-	 * @param linkedClasses
+	 * @param classes
 	 * @param reasoner
 	 * @return non redundant set, never null
 	 */
-	protected static Set<OWLClass> reduceToNonRedundant(Set<OWLClass> linkedClasses, OWLReasoner reasoner) {
+	protected static Set<OWLClass> reduceToNonRedundant(Set<OWLClass> classes, OWLReasoner reasoner) {
 		Set<OWLClass> nonRedundant = new HashSet<OWLClass>();
-		for (OWLClass linked : linkedClasses) {
-			Set<OWLClass> subClasses = reasoner.getSubClasses(linked, false).getFlattened();
+		for (OWLClass currentCls : classes) {
+			Set<OWLClass> subClasses = reasoner.getSubClasses(currentCls, false).getFlattened();
 			boolean noChildrenInLinks = true;
 			for (OWLClass subClass : subClasses) {
-				if (linkedClasses.contains(subClass)) {
+				if (classes.contains(subClass)) {
 					noChildrenInLinks = false;
 					break;
 				}
 			}
 			if (noChildrenInLinks) {
-				nonRedundant.add(linked);
+				nonRedundant.add(currentCls);
 			}
 		}
 		return nonRedundant;
@@ -350,6 +350,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	public Set<Prediction> predictForBioEntity(Bioentity entity, Collection<GeneAnnotation> annotations) {
 		Map<OWLClass, Prediction> allPredictions = new HashMap<OWLClass, Prediction>();
 		for (GeneAnnotation ann : annotations) {
+			
 			// TODO move the exclusion list to it's own function for better customization
 			if (ann.getEvidenceCls().equals("ND")) {
 				// ignore top level annotations
@@ -380,14 +381,34 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 		}
 		
+		Set<OWLClass> nonRedundantClasses = reduceToNonRedundant(allPredictions.keySet(), reasoner);
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		
-		Set<OWLClass> nonRedundantClasses = reduceToNonRedundant(allPredictions.keySet(), reasoner);
-		for (OWLClass nonRedundantClass : nonRedundantClasses) {
-			predictions.add(allPredictions.get(nonRedundantClass));
-		}
+		// TODO compare with the existing gene annotations
+		// only add the predictions, if they are more specialized
 		
+		if (!nonRedundantClasses.isEmpty()) {
+			Set<OWLClass> existing = getSuperClassClosure(annotations);
+			for(OWLClass cls : nonRedundantClasses) {
+				if (existing.contains(cls) == false) {
+					// the cls is more specific than any existing annotation
+					// add to the predictions
+					predictions.add(allPredictions.get(cls));
+				}
+			}
+		}
 		return predictions;
+	}
+	
+	private Set<OWLClass> getSuperClassClosure(Collection<GeneAnnotation> annotations) {
+		Set<OWLClass> classes = new HashSet<OWLClass>();
+		for (GeneAnnotation ann : annotations) {
+			String clsId = ann.getCls();
+			OWLClass owlClass = getGraph().getOWLClassByIdentifier(clsId);
+			classes.add(owlClass);
+			classes.addAll(reasoner.getSuperClasses(owlClass, false).getFlattened());
+		}
+		return classes;
 	}
 	
 	protected String getSubOntology(OWLClass c) {

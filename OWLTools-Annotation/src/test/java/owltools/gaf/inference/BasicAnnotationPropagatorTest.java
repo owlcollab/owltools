@@ -4,14 +4,17 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
@@ -25,6 +28,21 @@ import owltools.io.ParserWrapper;
 
 public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 
+	@Test
+	public void test1() throws Exception {
+		ParserWrapper pw = new ParserWrapper();
+		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("rules/ontology/go.owl"));
+		ElkReasonerFactory f = new ElkReasonerFactory();
+		OWLReasoner reasoner = f.createReasoner(g.getSourceOntology());
+		
+		OWLClass c = g.getOWLClassByIdentifier("GO:0035556");
+		Set<OWLObjectProperty> properties = Collections.singleton(g.getOWLObjectPropertyByIdentifier("occurs_in"));
+		Set<OWLClass> superSet = reasoner.getSubClasses(g.getOWLClassByIdentifier("GO:0005575"), false).getFlattened();
+		Set<OWLClass> linkedClasses = BasicAnnotationPropagator.getNonRedundantLinkedClasses(c, properties , g, reasoner, superSet);
+		assertEquals(1, linkedClasses.size());
+		assertTrue(linkedClasses.contains(g.getOWLClassByIdentifier("GO:0005622")));
+	}
+	
 	@Test
 	public void testClosure() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
@@ -74,9 +92,8 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 		out.flush();
 		String writtenLine = out.toString().trim(); // trim to avoid hassle with tabs and new lines at the end
 		String dateString = GeneAnnotation.GAF_Date_Format.get().format(new Date());
-		String expectedLine1 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	EXP	GO:0004004	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	"+dateString+"	GOC";
-		String expectedLine2 = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	EXP	GO:0008186	P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	"+dateString+"	GOC";
-		assertTrue(expectedLine1.equals(writtenLine) || expectedLine2.equals(writtenLine));
+		String expectedLine = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	EXP		P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	"+dateString+"	GOC";
+		assertEquals(expectedLine, writtenLine);
 	}
 
 	/**

@@ -53,14 +53,15 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 	public Set<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		
-		Map<Bioentity, Set<GeneAnnotation>> allAnnotations = new HashMap<Bioentity, Set<GeneAnnotation>>();
+		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
 		
 		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
 			Bioentity e = annotation.getBioentityObject();
-			Set<GeneAnnotation> anns = allAnnotations.get(e);
+			String id = e.getId();
+			Set<GeneAnnotation> anns = allAnnotations.get(id);
 			if (anns == null) {
 				anns = new HashSet<GeneAnnotation>();
-				allAnnotations.put(e, anns);
+				allAnnotations.put(id, anns);
 			}
 			anns.add(annotation);
 		}
@@ -69,7 +70,7 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		LOG.info("Start creating predictions using basic propagation");
 		try {
 			predictor = new BasicAnnotationPropagator(gafDoc, source);
-			Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, predictor);
+			Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
 			if (basicPredictions != null) {
 				predictions.addAll(basicPredictions);
 			}
@@ -82,7 +83,7 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		LOG.info("Use c16 extension for fold based prediction");
 		try {
 			predictor = new FoldBasedPredictor(gafDoc, source);
-			Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, predictor);
+			Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
 			if (foldBasedPredictions != null) {
 				predictions.addAll(foldBasedPredictions);
 			}
@@ -97,11 +98,12 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		return predictions;
 	}
 	
-	private Set<Prediction> getPredictedAnnotations(Map<Bioentity, Set<GeneAnnotation>> allAnnotations, AnnotationPredictor predictor) {
+	private Set<Prediction> getPredictedAnnotations(Map<String, Set<GeneAnnotation>> allAnnotations, GafDocument gafDoc, AnnotationPredictor predictor) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		
-		for (Bioentity e : allAnnotations.keySet()) {
-			Collection<GeneAnnotation> anns = allAnnotations.get(e);
+		for (String id : allAnnotations.keySet()) {
+			Collection<GeneAnnotation> anns = allAnnotations.get(id);
+			Bioentity e = gafDoc.getBioentity(id);
 			predictions.addAll(predictor.predictForBioEntity(e, anns));
 		}
 		return predictions;

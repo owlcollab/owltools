@@ -117,21 +117,23 @@ public abstract class AbstractAnnotationPredictor implements AnnotationPredictor
 
 	@Override
 	public Set<Prediction> getAllPredictions() {
-		Map<Bioentity, Set<GeneAnnotation>> allAnnotations = new HashMap<Bioentity, Set<GeneAnnotation>>();
+		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
 		
 		for(GeneAnnotation annotation : getGafDocument().getGeneAnnotations()) {
 			Bioentity e = annotation.getBioentityObject();
-			Set<GeneAnnotation> anns = allAnnotations.get(e);
+			String id = e.getId();
+			Set<GeneAnnotation> anns = allAnnotations.get(id);
 			if (anns == null) {
 				anns = new HashSet<GeneAnnotation>();
-				allAnnotations.put(e, anns);
+				allAnnotations.put(id, anns);
 			}
 			anns.add(annotation);
 		}
 		
 		Set<Prediction> pset = new HashSet<Prediction>();
-		for (Bioentity e : allAnnotations.keySet()) {
-			Collection<GeneAnnotation> anns = allAnnotations.get(e);
+		for (String id : allAnnotations.keySet()) {
+			Bioentity e = gafDocument.getBioentity(id);
+			Collection<GeneAnnotation> anns = allAnnotations.get(id);
 			pset.addAll(predictForBioEntity(e, anns));
 		}
 		return pset;
