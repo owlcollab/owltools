@@ -13,7 +13,6 @@ public class AssertNonRedundantRunnerTest extends AbstractCommandRunnerTest {
 	
 	@Test
 	public void testRunner() throws Exception {
-		init();
 		load("assert-inferences-test.owl");
 		run("--reasoner-ask-all -r elk -a --remove-indirect INDIVIDUALS");
 	}

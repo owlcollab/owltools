@@ -121,6 +121,7 @@ public class GafCommandRunner extends CommandRunner {
 		if (gafdoc == null) {
 			LOG.error("The GAF parsing finished with an empty result.");
 			exit(-1);
+			return;
 		}
 		else {
 			LOG.info("Finished loading GAF.");
@@ -246,6 +247,7 @@ public class GafCommandRunner extends CommandRunner {
 		if (gafdoc == null) {
 			System.err.println("No gaf document (use '--gaf GAF-FILE') ");
 			exit(1);
+			return;
 		}
 		AnnotationPredictor ap = new CompositionalClassPredictor(gafdoc, g);
 		Set<Prediction> predictions = ap.getAllPredictions();
@@ -583,6 +585,7 @@ public class GafCommandRunner extends CommandRunner {
 				System.err.println("No report file available for gaf-run-check.");
 			}
 			exit(-1);
+			return;
 		}
 	}
 	

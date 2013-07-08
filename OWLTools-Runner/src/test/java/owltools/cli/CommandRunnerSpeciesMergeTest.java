@@ -1,12 +1,6 @@
 package owltools.cli;
 
-import static junit.framework.Assert.*;
-
-import java.io.File;
-
 import org.junit.Test;
-
-import owltools.OWLToolsTestBasics;
 
 /**
  * Tests for {@link CommandRunner}.
@@ -19,7 +13,6 @@ public class CommandRunnerSpeciesMergeTest extends AbstractCommandRunnerTest {
 	
 	@Test
 	public void testMMergeSpecies() throws Exception {
-		init();
 		//String obo = "http://purl.obolibrary.org/obo";
 		load("forebrain.obo");
 		//run("--list-class-axioms NCBITaxon:7954");
@@ -31,9 +24,5 @@ public class CommandRunnerSpeciesMergeTest extends AbstractCommandRunnerTest {
 		run("--descendants telencephalon");
 		
 	}
-	
-
-
-	
 	
 }

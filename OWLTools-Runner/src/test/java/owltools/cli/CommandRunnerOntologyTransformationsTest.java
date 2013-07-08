@@ -11,10 +11,8 @@ import org.junit.Test;
  */
 public class CommandRunnerOntologyTransformationsTest extends AbstractCommandRunnerTest {
 	
-
 	@Test
 	public void testExpand() throws Exception {
-		init();
 		load("ceph.obo");
 		String[] args = {
 			"--expand-expression",

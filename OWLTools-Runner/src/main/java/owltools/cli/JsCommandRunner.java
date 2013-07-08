@@ -65,6 +65,7 @@ public class JsCommandRunner extends Sim2CommandRunner {
 		if (scriptFiles.isEmpty() && inlineScript == null) {
 			LOG.error("No script files found and no inline script was specified.");
 			exit(-1);
+			return;
 		}
 		
 		String script = loadScripts(inlineScript, scriptFiles);
@@ -109,6 +110,7 @@ public class JsCommandRunner extends Sim2CommandRunner {
 			} catch (IOException e) {
 				LOG.error("Could not load script from file: "+scriptFile, e);
 				exit(-1);
+				return null;
 			}
 		}
 		return sb.toString();

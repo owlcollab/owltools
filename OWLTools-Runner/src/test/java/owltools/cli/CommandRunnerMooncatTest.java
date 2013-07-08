@@ -13,7 +13,6 @@ public class CommandRunnerMooncatTest extends AbstractCommandRunnerTest {
 	
 	@Test
 	public void testMakePropSubset() throws Exception {
-		init();
 		load("ceph.obo");
 		run("-a tentacle");
 		
@@ -25,7 +24,6 @@ public class CommandRunnerMooncatTest extends AbstractCommandRunnerTest {
 	
 	@Test
 	public void testMakeSubOnt() throws Exception {
-		init();
 		load("ceph.obo");
 		String[] qargs = {"--reasoner-query", "BFO_0000050 some CEPH_0000256"};
 		run("--make-subset-by-properties part_of");
@@ -39,7 +37,6 @@ public class CommandRunnerMooncatTest extends AbstractCommandRunnerTest {
 
 	@Test
 	public void testMakeSubOnt2() throws Exception {
-		init();
 		load("ceph.obo");
 		String[] qargs = {"--reasoner-query", "BFO_0000050 some CEPH_0000256"};
 		run("--make-subset-by-properties part_of");
@@ -53,7 +50,6 @@ public class CommandRunnerMooncatTest extends AbstractCommandRunnerTest {
 
 	@Test
 	public void testExtractModule() throws Exception {
-		init();
 		load("ceph.obo");
 		run("--extract-module -n test tentacle");
 		run("-o -f obo target/tentacle.obo");

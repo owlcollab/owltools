@@ -299,6 +299,7 @@ public class CommandRunner {
 			if (opts.nextEq("--pellet")) {
 				System.err.println("The Pellet reasoner is no longer supported, use Hermit '--hermit', JFACT '--jfact', or ELK '--elk' instead");
 				exit(-1);
+				return;
 			}
 			else if (opts.nextEq("--hermit")) {
 				reasonerName = "hermit";
@@ -2975,8 +2976,14 @@ public class CommandRunner {
 
 					}
 					catch (Exception e) {
-						System.err.println("could not parse:"+f+" Exception:"+e);
-						exit(1);
+						LOG.error("could not parse:"+f, e);
+						if (exitOnException) {
+							exit(1);	
+						}
+						else {
+							throw e;
+						}
+						
 					}
 				}
 				else {

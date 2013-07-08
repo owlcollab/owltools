@@ -11,10 +11,8 @@ import org.junit.Test;
  */
 public class CommandRunnerReasonerQueryTest extends AbstractCommandRunnerTest {
 	
-
 	@Test
 	public void testQueryCE() throws Exception {
-		init();
 		load("ceph.obo");
 		String[] qargs = {"--reasoner-query", "BFO_0000050 some CEPH_0000256"};
 		run(qargs);
@@ -24,7 +22,6 @@ public class CommandRunnerReasonerQueryTest extends AbstractCommandRunnerTest {
 	
 	@Test
 	public void testQueryCE2() throws Exception {
-		init();
 		load("ceph.obo");
 		String[] qargs = {"--reasoner-query", "UBERON_0000062 and BFO_0000050 some UBERON_0001032"};
 		run(qargs);
@@ -34,7 +31,6 @@ public class CommandRunnerReasonerQueryTest extends AbstractCommandRunnerTest {
 
 	@Test
 	public void testQueryNC() throws Exception {
-		init();
 		load("ceph.obo");
 		String[] qargs = {"--reasoner-query", "CEPH_0000256"};
 		run(qargs);

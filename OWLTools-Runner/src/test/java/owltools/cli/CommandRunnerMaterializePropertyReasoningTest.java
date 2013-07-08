@@ -13,7 +13,6 @@ public class CommandRunnerMaterializePropertyReasoningTest extends AbstractComma
 	
 	@Test
 	public void testQueryCE() throws Exception {
-		init();
 		load("ceph.obo");
 		run("--reasoner elk");
 		run("--materialize-property-inferences -p BFO_0000050");

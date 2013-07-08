@@ -405,6 +405,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		if( pSet == null ){
 			System.err.println("No PANTHER documents defined (maybe use '--read-panther <panther directory>') ");
 			exit(1);
+			return;
 		}
 
 		// Check to see if the global url has been set.
@@ -432,6 +433,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		if( pSet == null ){
 			System.err.println("No PANTHER documents defined (maybe use '--read-panther <panther directory>') ");
 			exit(1);
+			return;
 		}
 
 		// Check to see if the global url has been set.
