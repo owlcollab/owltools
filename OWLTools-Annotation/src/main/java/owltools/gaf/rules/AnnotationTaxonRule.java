@@ -108,10 +108,12 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 				final OWLAnnotationProperty lineProperty = fact.getOWLAnnotationProperty(GAFOWLBridge.GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI);
 				OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
 				Set<OWLClass> entities = unsatisfiableClasses.getEntities();
+				Set<OWLClass> unsatisfiable = new HashSet<OWLClass>();
 				for (OWLClass c : entities) {
 					if (c.isBottomEntity() || c.isTopEntity()) {
 						continue;
 					}
+					unsatisfiable.add(c);
 					Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(c.getIRI());
 					Set<Integer> lineNumbers = new HashSet<Integer>();
 					for (OWLAnnotationAssertionAxiom axiom : axioms) {
@@ -139,6 +141,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 					}
 					
 				}
+				handleUnsatisfiable(unsatisfiable, ontology);
 				return result;
 			}
 			return Collections.emptySet();
@@ -147,6 +150,10 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 			reasoner.dispose();
 		}
 		
+	}
+	
+	protected void handleUnsatisfiable(Set<OWLClass> unsatisfiable, OWLOntology ontology) {
+		// do nothing
 	}
 
 	private OWLReasoner createElk(OWLOntology ontology) {

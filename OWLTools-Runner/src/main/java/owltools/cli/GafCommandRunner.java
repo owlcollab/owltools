@@ -492,7 +492,7 @@ public class GafCommandRunner extends CommandRunner {
 				}
 				LOG.info("Start validating GAF");
 			
-				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco);
+				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco, true);
 				ruleEngine = new AnnotationRulesEngine(rulesFactory, predictAnnotations);
 			
 				result = ruleEngine.validateAnnotations(gafdoc);

@@ -61,7 +61,7 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		eco = EcoMapperFactory.createTraversingEcoMapper(p, getResourceIRIString("eco.obo")).getMapper();
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
-				qcfile, xrfabbslocation, graph, eco);
+				qcfile, xrfabbslocation, graph, eco, false);
 		engine = new AnnotationRulesEngine(rulesFactory, true);
 	}
 
