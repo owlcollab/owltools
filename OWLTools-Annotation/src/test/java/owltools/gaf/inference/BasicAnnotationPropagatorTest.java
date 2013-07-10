@@ -5,7 +5,9 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
@@ -57,8 +59,8 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 			superSet = r.getSubClasses(g.getOWLClassByIdentifier("GO:0005575"), false).getFlattened();
 		}
 		
-		
-		Set<OWLClass> linkedClasses = BasicAnnotationPropagator.getNonRedundantLinkedClasses(c, properties , g, r, superSet);
+		Map<Set<OWLClass>, Set<OWLClass>> cache = new HashMap<Set<OWLClass>, Set<OWLClass>>();
+		Set<OWLClass> linkedClasses = BasicAnnotationPropagator.getNonRedundantLinkedClasses(c, properties , g, r, superSet, cache);
 		assertEquals(mappings.length, linkedClasses.size());
 		for (String expected : mappings) {
 			assertTrue(linkedClasses.contains(g.getOWLClassByIdentifier(expected)));

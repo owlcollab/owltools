@@ -101,6 +101,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			// get all classes in the mf and bp branch
 			Set<OWLClass> mfClasses = reasoner.getSubClasses(mf, false).getFlattened();
 			Set<OWLClass> bpClasses = reasoner.getSubClasses(bp, false).getFlattened();
+			Map<Set<OWLClass>, Set<OWLClass>> cache = new HashMap<Set<OWLClass>, Set<OWLClass>>();
 			
 			OWLClass metabolicProcess = graph.getOWLClassByIdentifier("GO:0008152"); //  metabolic process
 			for (OWLClass mfClass : mfClasses) {
@@ -114,7 +115,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 					continue;
 				}
 				Set<OWLObjectProperty> relations = Collections.singleton(part_of);
-				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(mfClass, relations, graph, reasoner, bpClasses);
+				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(mfClass, relations, graph, reasoner, bpClasses, cache);
 				
 				if (!nonRedundantLinks.isEmpty()) {
 					// remove too high level targets and metabolic process
@@ -142,6 +143,8 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			// get all classes in the bp and cc branch
 			Set<OWLClass> bpClasses = reasoner.getSubClasses(bp, false).getFlattened();
 			Set<OWLClass> ccClasses = reasoner.getSubClasses(cc, false).getFlattened();
+			Map<Set<OWLClass>, Set<OWLClass>> cache = new HashMap<Set<OWLClass>, Set<OWLClass>>();
+			
 			for(OWLClass bpClass : bpClasses) {
 				List<String> bpClassSubsets = graph.getSubsets(bpClass);
 				if (bpClassSubsets.contains(gocheck_do_not_annotate)) {
@@ -149,7 +152,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 					continue;
 				}
 				Set<OWLObjectProperty> relations = Collections.singleton(occurs_in);
-				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(bpClass, relations, graph, reasoner, ccClasses);
+				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(bpClass, relations, graph, reasoner, ccClasses, cache);
 				
 				if (!nonRedundantLinks.isEmpty()) {
 					removeUninformative(graph, nonRedundantLinks);
@@ -193,18 +196,26 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	}
 	
 	/**
-	 * Retrieve the non redundant set of linked classes using the given relation.
-	 * The reasoner is used to infer the super and subsets for the subClass hierarchy.
-	 * Only return classes, which are in the given super set (a.k.a. ontology branch).
+	 * Retrieve the non redundant set of linked classes using the given
+	 * relation. The reasoner is used to infer the super and subsets for the
+	 * subClass hierarchy. Only return classes, which are in the given super set
+	 * (a.k.a. ontology branch).<br>
+	 * <br>
+	 * This can be an expensive operation, especially the
+	 * {@link #reduceToNonRedundant(Set, OWLReasoner)}. Therefore the results of
+	 * that method are cached in a map.<br>
+	 * For example, using the cache for GO, there was a reduction of the startup
+	 * time from 95 seconds to 10 seconds.
 	 * 
 	 * @param c
 	 * @param properties
 	 * @param g
 	 * @param reasoner
 	 * @param superSet
-	 * @return set of linked classes, never null 
+	 * @param cache
+	 * @return set of linked classes, never null
 	 */
-	protected static Set<OWLClass> getNonRedundantLinkedClasses(OWLClass c, Set<OWLObjectProperty> properties, OWLGraphWrapper g, OWLReasoner reasoner, Set<OWLClass> superSet) {
+	protected static Set<OWLClass> getNonRedundantLinkedClasses(OWLClass c, Set<OWLObjectProperty> properties, OWLGraphWrapper g, OWLReasoner reasoner, Set<OWLClass> superSet, Map<Set<OWLClass>, Set<OWLClass>> cache) {
 		// get all superClasses for the current class
 		Set<OWLClass> currentSuperClasses = reasoner.getSuperClasses(c, false).getFlattened();
 		currentSuperClasses.add(c);
@@ -217,7 +228,11 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			linkedClasses.addAll(getDirectLinkedClasses(currentSuperClass, properties, g, superSet));
 		}
 		// create remove redundant super classes from link set
-		Set<OWLClass> nonRedundantLinks = reduceToNonRedundant(linkedClasses, reasoner);
+		Set<OWLClass> nonRedundantLinks = cache.get(linkedClasses);
+		if (nonRedundantLinks == null) {
+			nonRedundantLinks = reduceToNonRedundant(linkedClasses, reasoner);
+			cache.put(linkedClasses, nonRedundantLinks);
+		}
 		
 		return nonRedundantLinks;
 	}
@@ -296,13 +311,16 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	/**
 	 * Given a set of classes, create a new non-redundant set with respect to
 	 * the inferred super class hierarchy. Remove all classes which are
-	 * (inferred) super classes of another class in the given set.
+	 * (inferred) super classes of another class in the given set.<br>
+	 * <br>
+	 * WARNING: This can be an expensive operation.
 	 * 
 	 * @param classes
 	 * @param reasoner
 	 * @return non redundant set, never null
 	 */
 	protected static Set<OWLClass> reduceToNonRedundant(Set<OWLClass> classes, OWLReasoner reasoner) {
+		long start = System.currentTimeMillis();
 		Set<OWLClass> nonRedundant = new HashSet<OWLClass>();
 		for (OWLClass currentCls : classes) {
 			Set<OWLClass> subClasses = reasoner.getSubClasses(currentCls, false).getFlattened();
