@@ -32,7 +32,6 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 
 	}
 
-	@Ignore("There is no implementation for option ' --sim-save-lcs-cache', renamed, missing commit?")
 	@Test
 	public void testSimRunnerMouse100WithCache() throws Exception {
 		load("mp.obo");
@@ -45,10 +44,12 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--sim-save-ic-cache target/ic-cache.ttl");
 
 		//create a variety of sim property files and test here
-    //this one tests that it runs with the default properties
+		//this one tests that it runs with the default properties
 		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
-		//run("--sim-basic");
-		
+
+		// test with a fresh instance
+		runner = createCommandRunner();
+		runner.exitOnException = false;
 		load("mp.obo");
 		run("--load-instances "+path("mgi-g2p-100.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
