@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -35,12 +34,35 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 		ElkReasonerFactory f = new ElkReasonerFactory();
 		OWLReasoner reasoner = f.createReasoner(g.getSourceOntology());
 		
-		OWLClass c = g.getOWLClassByIdentifier("GO:0035556");
-		Set<OWLObjectProperty> properties = Collections.singleton(g.getOWLObjectPropertyByIdentifier("occurs_in"));
-		Set<OWLClass> superSet = reasoner.getSubClasses(g.getOWLClassByIdentifier("GO:0005575"), false).getFlattened();
-		Set<OWLClass> linkedClasses = BasicAnnotationPropagator.getNonRedundantLinkedClasses(c, properties , g, reasoner, superSet);
-		assertEquals(1, linkedClasses.size());
-		assertTrue(linkedClasses.contains(g.getOWLClassByIdentifier("GO:0005622")));
+		assertMapping("GO:0035556", "occurs_in", g, reasoner, 'F', "GO:0005622");
+		assertMapping("GO:0009881", "part_of", g, reasoner, 'P', "GO:0007165");
+		
+		
+		Set<OWLClass> closure = BasicAnnotationPropagator.getIsaPartofSuperClassClosure(Collections.singleton(g.getOWLClassByIdentifier("GO:0006415")), g, reasoner);
+		assertTrue(closure.contains(g.getOWLClassByIdentifier("GO:0006412")));
+	}
+	
+	
+	private void assertMapping(String source, String prop, OWLGraphWrapper g, OWLReasoner r, char aspect, String...mappings) {
+		OWLClass c = g.getOWLClassByIdentifier(source);
+		assertNotNull(c);
+		OWLObjectProperty p = g.getOWLObjectPropertyByIdentifier(prop);
+		assertNotNull(p);
+		Set<OWLObjectProperty> properties = Collections.singleton(p);
+		Set<OWLClass> superSet = null;
+		if (aspect == 'P') {
+			 superSet = r.getSubClasses(g.getOWLClassByIdentifier("GO:0008150"), false).getFlattened();
+		}
+		else if (aspect == 'F') {
+			superSet = r.getSubClasses(g.getOWLClassByIdentifier("GO:0005575"), false).getFlattened();
+		}
+		
+		
+		Set<OWLClass> linkedClasses = BasicAnnotationPropagator.getNonRedundantLinkedClasses(c, properties , g, r, superSet);
+		assertEquals(mappings.length, linkedClasses.size());
+		for (String expected : mappings) {
+			assertTrue(linkedClasses.contains(g.getOWLClassByIdentifier(expected)));
+		}
 	}
 	
 	@Test
@@ -81,18 +103,17 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 		GafObjectsBuilder b = new GafObjectsBuilder();
 		GafDocument gafDocument = b.buildDocument(getResource("lmajor_f2p_test.gaf"));
 		
-		Set<Prediction> allPredictions = predictAnnotations(g, gafDocument);
+		List<Prediction> allPredictions = predictAnnotations(g, gafDocument);
 		assertEquals(1, allPredictions.size());
-		final GeneAnnotation geneAnnotation = allPredictions.iterator().next().getGeneAnnotation();
+		final GeneAnnotation geneAnnotation1 = allPredictions.get(0).getGeneAnnotation();
 		
 		GafWriter writer = new GafWriter();
 		ByteArrayOutputStream out  = new ByteArrayOutputStream();
 		writer.setStream(new PrintStream(out));
-		writer.write(geneAnnotation);
+		writer.write(geneAnnotation1);
 		out.flush();
 		String writtenLine = out.toString().trim(); // trim to avoid hassle with tabs and new lines at the end
-		String dateString = GeneAnnotation.GAF_Date_Format.get().format(new Date());
-		String expectedLine = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	EXP		P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	"+dateString+"	GOC";
+		String expectedLine = "GeneDB_Lmajor	LmjF.01.0770	LmjF.01.0770		GO:0006200	PMID:17087726	EXP		P	eukaryotic initiation factor 4a, putative	LmjF01.0770	gene	taxon:347515	20090402	GOC";
 		assertEquals(expectedLine, writtenLine);
 	}
 
@@ -101,11 +122,11 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 	 * @param gafDocument
 	 * @return predictions
 	 */
-	private Set<Prediction> predictAnnotations(OWLGraphWrapper g, GafDocument gafDocument) {
+	private List<Prediction> predictAnnotations(OWLGraphWrapper g, GafDocument gafDocument) {
 		AnnotationPredictor propagator = null;
 		try {
 			propagator = new BasicAnnotationPropagator(gafDocument, g);
-			Set<Prediction> allPredictions = propagator.getAllPredictions();
+			List<Prediction> allPredictions = propagator.getAllPredictions();
 			return allPredictions;
 		}
 		finally {

@@ -1,8 +1,10 @@
 package owltools.gaf.inference;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,8 +49,8 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	}
 
 	@Override
-	public Set<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
-		Set<Prediction> predictions = new HashSet<Prediction>();
+	public List<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
+		List<Prediction> predictions = new ArrayList<Prediction>();
 		for (GeneAnnotation ann : anns) {
 			if (ann.getEvidenceCls().equals("ND")) {
 				continue;

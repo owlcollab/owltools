@@ -1,8 +1,10 @@
 package owltools.gaf.inference;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,7 +18,10 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 
-import owltools.gaf.*;
+import owltools.gaf.Bioentity;
+import owltools.gaf.ExtensionExpression;
+import owltools.gaf.GafDocument;
+import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -57,7 +62,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 	}
 
 	@Override
-	public Set<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
+	public List<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		Set<OWLClass> aClasses = new HashSet<OWLClass>();
 		//LOG.info("collecting from:"+bioentity);
@@ -124,7 +129,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 			}
 		}
 		this.setAndFilterRedundantPredictions(predictions, aClasses);
-		return predictions;
+		return new ArrayList<Prediction>(predictions);
 	}
 
 	protected Prediction getPrediction(OWLClass c, String bioentity, String with) {

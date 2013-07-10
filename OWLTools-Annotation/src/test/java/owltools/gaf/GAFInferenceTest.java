@@ -2,7 +2,7 @@ package owltools.gaf;
 
 import static junit.framework.Assert.*;
 
-import java.util.Set;
+import java.util.List;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -28,7 +28,7 @@ public class GAFInferenceTest extends OWLToolsTestBasics{
 
 		AnnotationPredictor ap = new CompositionalClassPredictor(gafdoc, g);
 
-		Set<Prediction> predictions = ap.getAllPredictions();
+		List<Prediction> predictions = ap.getAllPredictions();
 		boolean ok1 = false;
 		boolean ok2 = false;
 		for (Prediction p : predictions) {

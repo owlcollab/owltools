@@ -2,12 +2,10 @@ package owltools.gaf.owl;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
-import java.util.Set;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -48,7 +46,7 @@ public class FoldBasedPredictorTest extends OWLToolsTestBasics{
 			LOG.info("ECA="+ex);
 			// expect:  ObjectIntersectionOf(<http://purl.obolibrary.org/obo/GO_0008283> ObjectSomeValuesFrom(<http://purl.obolibrary.org/obo/TEST_1234567> <http://purl.obolibrary.org/obo/CL_0000066>))
 		}
-		Set<Prediction> preds = fbp.predict("MGI:TESTME");
+		List<Prediction> preds = fbp.predict("MGI:TESTME");
 		//Set<Prediction> preds = fbp.getAllPredictions();
 		for (Prediction pred : preds) {
 			LOG.info(pred);

@@ -250,7 +250,7 @@ public class GafCommandRunner extends CommandRunner {
 			return;
 		}
 		AnnotationPredictor ap = new CompositionalClassPredictor(gafdoc, g);
-		Set<Prediction> predictions = ap.getAllPredictions();
+		List<Prediction> predictions = ap.getAllPredictions();
 		System.out.println("Predictions:"+predictions.size());
 		for (Prediction p : predictions) {
 			System.out.println(p.render(owlpp));

@@ -1,8 +1,10 @@
 package owltools.gaf.inference;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -109,14 +111,14 @@ public abstract class AbstractAnnotationPredictor implements AnnotationPredictor
 	}
 
 	@Override
-	public Set<Prediction> predict(String bioentity) {
+	public List<Prediction> predict(String bioentity) {
 		Set<GeneAnnotation> anns = gafDocument.getGeneAnnotations(bioentity);
 		Bioentity e = gafDocument.getBioentity(bioentity);
 		return predictForBioEntity(e, anns);
 	}
 
 	@Override
-	public Set<Prediction> getAllPredictions() {
+	public List<Prediction> getAllPredictions() {
 		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
 		
 		for(GeneAnnotation annotation : getGafDocument().getGeneAnnotations()) {
@@ -130,7 +132,7 @@ public abstract class AbstractAnnotationPredictor implements AnnotationPredictor
 			anns.add(annotation);
 		}
 		
-		Set<Prediction> pset = new HashSet<Prediction>();
+		List<Prediction> pset = new ArrayList<Prediction>();
 		for (String id : allAnnotations.keySet()) {
 			Bioentity e = gafDocument.getBioentity(id);
 			Collection<GeneAnnotation> anns = allAnnotations.get(id);

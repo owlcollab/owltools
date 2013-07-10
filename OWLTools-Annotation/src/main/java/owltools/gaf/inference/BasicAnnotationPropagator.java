@@ -1,11 +1,12 @@
 package owltools.gaf.inference;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +44,8 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 
 	protected static Logger LOG = Logger.getLogger(BasicAnnotationPropagator.class);
 	
+	protected static boolean SKIP_IEA = false; 
+	
 	private static final String ASSIGNED_BY_CONSTANT = "GOC";
 	private static final String gocheck_do_not_annotate = "gocheck_do_not_annotate";
 	
@@ -62,12 +65,14 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	}
 	
 	private void init() {
+		LOG.info("Start preparing propagation rules");
 		OWLGraphWrapper graph = getGraph();
 		ElkReasonerFactory factory = new ElkReasonerFactory();
 		// assumes that all support ontologies have either been merged into or added as import
 		reasoner = factory.createReasoner(graph.getSourceOntology());
 		propagationRules = createPropagationRules(graph, reasoner);
 		aspectMap = createDefaultAspectMap(graph);
+		LOG.info("Finished preparing propagation rules");
 	}
 	
 	/**
@@ -219,13 +224,26 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	
 	/**
 	 * Lookup relation super classes in graph g for a given sub class c and property p.
-	 * Only retain super classes which are in the given super set.
+	 * 
+	 * @param c
+	 * @param property
+	 * @param g
+	 * @return set of super classes or null
+	 */
+	protected static Set<OWLClass> getDirectLinkedClasses(OWLClass c, String property, OWLGraphWrapper g) {
+		Set<OWLObjectProperty> properties = Collections.singleton(g.getOWLObjectPropertyByIdentifier(property));
+		return getDirectLinkedClasses(c, properties, g, null);
+	}
+	
+	/**
+	 * Lookup relation super classes in graph g for a given sub class c and property p.
+	 * If superSet not null, only retain super classes which are in the given super set.
 	 * 
 	 * @param c
 	 * @param properties
 	 * @param g
 	 * @param superSet
-	 * @return set of super classes, never null
+	 * @return set of super classes or null
 	 */
 	protected static Set<OWLClass> getDirectLinkedClasses(OWLClass c, Set<OWLObjectProperty> properties, OWLGraphWrapper g, Set<OWLClass> superSet) {
 		Set<OWLClass> links = new HashSet<OWLClass>();
@@ -241,7 +259,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 						OWLClassExpression filler = someValuesFrom.getFiller();
 						if (filler.isAnonymous() == false) {
 							OWLClass fillerCls = filler.asOWLClass();
-							if (superSet.contains(fillerCls)) {
+							if (superSet == null || superSet.contains(fillerCls)) {
 								links.add(fillerCls);
 							}
 						}
@@ -261,7 +279,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 									OWLClassExpression filler = someValuesFrom.getFiller();
 									if (filler.isAnonymous() == false) {
 										OWLClass fillerCls = filler.asOWLClass();
-										if (superSet.contains(fillerCls)) {
+										if (superSet == null || superSet.contains(fillerCls)) {
 											links.add(fillerCls);
 										}
 									}
@@ -346,17 +364,150 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		return g.getNamespace(c);
 	}
 	
+	/**
+	 * Handle the predictions. Keeps track of predictions by evidence type and
+	 * predicted class.<br>
+	 * It also keeps track of redundant predictions. Predictions are considered
+	 * redundant but not the same, if they predict the same class and evidence
+	 * code, but with different ref or other constraints.<br>
+	 * Assumes that all prediction are made for the same bioentity.
+	 */
+	private static class AllPreditions {
+		private final Map<String, Map<OWLClass, List<Prediction>>> allPredictions = new HashMap<String, Map<OWLClass, List<Prediction>>>();
+		
+		/**
+		 * Add a prediction.
+		 * 
+		 * @param linked
+		 * @param prediction
+		 */
+		void add(OWLClass linked, Prediction prediction) {
+			
+			GeneAnnotation annotation = prediction.getGeneAnnotation();
+			String evidenceCls = annotation.getEvidenceCls();
+			Map<OWLClass, List<Prediction>> evidenceGroup = allPredictions.get(evidenceCls);
+			if (evidenceGroup == null) {
+				evidenceGroup = new HashMap<OWLClass, List<Prediction>>();
+				allPredictions.put(evidenceCls, evidenceGroup);
+			}
+			List<Prediction> predictions = evidenceGroup.get(linked);
+			if (predictions == null) {
+				predictions = new ArrayList<Prediction>();
+				evidenceGroup.put(linked, predictions);
+			}
+			if (predictions.isEmpty() == false) {
+				// check that it is not fully redundant with the existing annotations
+				boolean add = false;
+				for(Prediction existing : predictions) {
+					// assumptions: bioentity, cls, evidence code, assigned-by and aspect are the same
+					GeneAnnotation a1 = existing.getGeneAnnotation();
+					GeneAnnotation a2 = prediction.getGeneAnnotation();
+					if (!StringUtils.equals(a1.getReferenceId(), a2.getReferenceId())) {
+						add = true;
+						break;
+					}
+					if (!StringUtils.equals(a1.getRelation(), a2.getRelation())) {
+						add = true;
+						break;
+					}
+					if (!StringUtils.equals(a1.getActsOnTaxonId(), a2.getActsOnTaxonId())) {
+						add = true;
+						break;
+					}
+					if (!StringUtils.equals(a1.getLastUpdateDate(), a2.getLastUpdateDate())) {
+						add = true;
+						break;
+					}
+					if (!StringUtils.equals(a1.getExtensionExpression(), a2.getExtensionExpression())) {
+						add = true;
+						break;
+					}
+					if (!StringUtils.equals(a1.getGeneProductForm(), a2.getGeneProductForm())) {
+						add = true;
+						break;
+					}
+				}
+				if (add) {
+					predictions.add(prediction);
+				}
+				
+			}
+			else {
+				// do not run any checks for the first prediction
+				predictions.add(prediction);
+			}
+			
+		}
+		
+		/**
+		 * Retrieve all evidence codes, which have predictions.
+		 * 
+		 * @return collection, never null
+		 */
+		Collection<String> getEvidences() {
+			return Collections.unmodifiableCollection(allPredictions.keySet());
+		}
+		
+		/**
+		 * Retrieve all classes, for which there are predictions, given an evidence code.
+		 * 
+		 * @param evidence
+		 * @return classes, never null
+		 */
+		Set<OWLClass> getClasses(String evidence) {
+			Map<OWLClass, List<Prediction>> classes = allPredictions.get(evidence);
+			if (classes == null) {
+				return Collections.emptySet();
+			}
+			return Collections.unmodifiableSet(classes.keySet());
+		}
+		
+		/**
+		 * Retrieve predictions for a given evidence code and prediction class.
+		 * 
+		 * @param evidence
+		 * @param cls
+		 * @return predictions, never null
+		 */
+		List<Prediction> getPredictions(String evidence, OWLClass cls) {
+			Map<OWLClass, List<Prediction>> classes = allPredictions.get(evidence);
+			if (classes == null) {
+				return Collections.emptyList();
+			}
+			List<Prediction> predictions = classes.get(cls);
+			if (predictions == null) {
+				predictions = Collections.emptyList();
+			}
+			return predictions;
+		}
+	}
+	
 
-	public Set<Prediction> predictForBioEntity(Bioentity entity, Collection<GeneAnnotation> annotations) {
-		Map<OWLClass, Prediction> allPredictions = new HashMap<OWLClass, Prediction>();
+	public List<Prediction> predictForBioEntity(Bioentity entity, Collection<GeneAnnotation> annotations) {
+		AllPreditions allPredictions = new AllPreditions();
+		Map<String, List<GeneAnnotation>> annotationsByEvidence = new HashMap<String, List<GeneAnnotation>>();
 		for (GeneAnnotation ann : annotations) {
 			
 			// TODO move the exclusion list to it's own function for better customization
-			if (ann.getEvidenceCls().equals("ND")) {
+			final String evidenceCls = ann.getEvidenceCls();
+			if (evidenceCls.equals("ND")) {
 				// ignore top level annotations
 				// Do *not* propagate
 				continue;
 			}
+			if (SKIP_IEA && "IEA".equals(evidenceCls)) {
+				// Do *not* propagate from IEA
+				continue;
+			}
+			
+			// add to group
+			List<GeneAnnotation> group = annotationsByEvidence.get(evidenceCls);
+			if (group == null) {
+				group = new ArrayList<GeneAnnotation>();
+				annotationsByEvidence.put(evidenceCls, group);
+			}
+			group.add(ann);
+			
 			String compositeQualifier = StringUtils.trimToEmpty(ann.getCompositeQualifier());
 			if (compositeQualifier.isEmpty() == false) {
 				// ignore annotations with a qualifier.
@@ -372,44 +523,92 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 			
 			for (OWLClass linkedClass : linkedClasses) {
-				if (allPredictions.containsKey(linkedClass)) {
-					continue;
-				}
 				String aspect = aspectMap.get(getSubOntology(linkedClass));
 				Prediction p = createPrediction(linkedClass, aspect, cid, ann);
-				allPredictions.put(linkedClass, p);
+				allPredictions.add(linkedClass, p);
 			}
 		}
 		
-		Set<OWLClass> nonRedundantClasses = reduceToNonRedundant(allPredictions.keySet(), reasoner);
-		Set<Prediction> predictions = new HashSet<Prediction>();
+		List<Prediction> predictions = new ArrayList<Prediction>();
 		
-		// TODO compare with the existing gene annotations
-		// only add the predictions, if they are more specialized
+		for(String evidence : allPredictions.getEvidences()) {
+			Set<OWLClass> nonRedundantClasses = reduceToNonRedundant(allPredictions.getClasses(evidence), reasoner);
 		
-		if (!nonRedundantClasses.isEmpty()) {
-			Set<OWLClass> existing = getSuperClassClosure(annotations);
-			for(OWLClass cls : nonRedundantClasses) {
-				if (existing.contains(cls) == false) {
-					// the cls is more specific than any existing annotation
-					// add to the predictions
-					predictions.add(allPredictions.get(cls));
+			// only add the predictions, if they are more specialized
+			if (!nonRedundantClasses.isEmpty()) {
+				List<GeneAnnotation> annotationGroup = annotationsByEvidence.get(evidence);
+				if (annotationGroup != null && !annotationGroup.isEmpty()) {
+					for(OWLClass cls : nonRedundantClasses) {
+						List<Prediction> currentPredictions = allPredictions.getPredictions(evidence, cls);
+						if (currentPredictions.isEmpty() == false) {
+							String aspect = currentPredictions.get(0).getGeneAnnotation().getAspect();
+							Set<OWLClass> existing = getIsaPartofSuperClassClosureAndAspect(annotationGroup, aspect);
+							
+							if (existing.contains(cls) == false) {
+								// the cls is more specific than any existing annotation
+								// add to the predictions
+								predictions.addAll(currentPredictions);
+							}
+						}
+					}
+				}
+				else {
+					for(OWLClass cls : nonRedundantClasses) {
+						List<Prediction> currentPredictions = allPredictions.getPredictions(evidence, cls);
+						if (predictions.isEmpty() == false) {
+							predictions.addAll(currentPredictions);
+						}
+					}
 				}
 			}
 		}
 		return predictions;
 	}
 	
-	private Set<OWLClass> getSuperClassClosure(Collection<GeneAnnotation> annotations) {
+	private Set<OWLClass> getIsaPartofSuperClassClosureAndAspect(Collection<GeneAnnotation> annotations, String aspect) {
+		OWLGraphWrapper g = getGraph();
 		Set<OWLClass> classes = new HashSet<OWLClass>();
 		for (GeneAnnotation ann : annotations) {
-			String clsId = ann.getCls();
-			OWLClass owlClass = getGraph().getOWLClassByIdentifier(clsId);
+			if(aspect.equals(ann.getAspect())) {
+				OWLClass cls = g.getOWLClassByIdentifier(ann.getCls());
+				classes.add(cls);
+			}
+		}
+		if (classes.isEmpty()) {
+			return Collections.emptySet();
+		}
+		return getIsaPartofSuperClassClosure(classes, g, reasoner);
+	}
+	
+	protected static Set<OWLClass> getIsaPartofSuperClassClosure(Collection<OWLClass> annotations, OWLGraphWrapper graph, OWLReasoner r) {
+		Set<OWLClass> classes = new HashSet<OWLClass>();
+		for (OWLClass owlClass : annotations) {
 			classes.add(owlClass);
-			classes.addAll(reasoner.getSuperClasses(owlClass, false).getFlattened());
+			classes.addAll(r.getSuperClasses(owlClass, false).getFlattened());
+		}
+		
+		LinkedList<OWLClass> queue = new LinkedList<OWLClass>(classes);
+		while (queue.isEmpty() == false) {
+			OWLClass cls = queue.removeFirst();
+			Set<OWLClass> partOfLinks = getDirectLinkedClasses(cls, "part_of", graph);
+			if (!partOfLinks.isEmpty()) {
+				for (OWLClass partOfLink : partOfLinks) {
+					boolean added = classes.add(partOfLink);
+					if(added) {
+						// only look for more superClasses
+						Set<OWLClass> flattened = r.getSuperClasses(partOfLink, false).getFlattened();
+						for (OWLClass newClass : flattened) {
+							if (classes.add(newClass)) {
+								queue.add(newClass);
+							}
+						}
+					}
+				}
+			}
 		}
 		return classes;
 	}
+	
 	
 	protected String getSubOntology(OWLClass c) {
 		return getGoSubOntology(c, getGraph());
@@ -435,7 +634,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		annP.setEvidenceCls(source.getEvidenceCls());
 		
 		// c8 with expression
-		// because we propage the evidence code, we also have to proagate the with column
+		// because we propagate the evidence code, we also have to propagate the with column
 		annP.setWithExpression(source.getWithExpression());
 		
 		// c9 aspect
@@ -447,8 +646,9 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		// c13 taxon
 		annP.setActsOnTaxonId(source.getActsOnTaxonId());
 		
-		// c14 last update - day, when the inference was made
-		annP.setLastUpdateDate(new Date());
+		// c14 last update
+		// because we propagate the evidence code, we also have to propagate the date
+		annP.setLastUpdateDate(source.getLastUpdateDate());
 		
 		// c15 assigned by GOC
 		annP.setAssignedBy(ASSIGNED_BY_CONSTANT);
