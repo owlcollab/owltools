@@ -148,7 +148,7 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 
 			//IRI ncIRI = IRI.create(annotatedToClass.getIRI().toString()+"-"+idExt);
 			lastId++;
-			 ncIRI = IRI.create("http://purl.obolibrary.org/obo/GOTEMP_"+lastId);
+			ncIRI = IRI.create("http://purl.obolibrary.org/obo/GOTEMP_"+lastId);
 			nc = fac.getOWLClass(ncIRI);
 			OWLEquivalentClassesAxiom eca = fac.getOWLEquivalentClassesAxiom(nc, cx);
 			graph.getManager().addAxiom(graph.getSourceOntology(), eca);
