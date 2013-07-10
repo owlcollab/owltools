@@ -47,6 +47,7 @@ import owltools.graph.OWLGraphWrapper;
  * @author cjm
  *
  */
+@Deprecated
 public class CompositionalClassPredictor extends AbstractAnnotationPredictor implements AnnotationPredictor {
 
 	protected static Logger LOG = Logger.getLogger(CompositionalClassPredictor.class);
