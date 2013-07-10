@@ -22,7 +22,9 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
 import org.apache.log4j.Logger;
+import org.coode.owlapi.turtle.TurtleOntologyFormat;
 
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
@@ -748,6 +750,79 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 	}
 
+	@CLIMethod("--sim-save-lcs-cache")
+	public void simSaveLCSCache(Opts opts) throws Exception {
+		opts.info("OUTFILE", "saves a LCS cache to a file");
+		Double thresh = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-m|--min-ic")) {
+				thresh = Double.valueOf(opts.nextOpt());
+			}
+			else {
+				break;
+			}
+		}
+		sos.saveLCSCache(opts.nextOpt(), thresh);
+	}
+
+	@CLIMethod("--sim-load-lcs-cache")
+	public void simLoadLCSCache(Opts opts) throws Exception {
+		opts.info("INFILE", "loads a LCS cache from a file");
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+		}
+		sos.loadLCSCache(opts.nextOpt());
+	}
+
+	@CLIMethod("--sim-save-ic-cache")
+	public void simSaveICCache(Opts opts) throws Exception {
+		opts.info("OUTFILE", "saves ICs as RDF/turtle cache");
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+		}
+		OWLOntology o = sos.cacheInformationContentInOntology();
+		TurtleOntologyFormat fmt = new TurtleOntologyFormat();
+		fmt.setPrefix("obo", "http://purl.obolibrary.org/obo/");
+		fmt.setPrefix("sim", "http://owlsim.org/ontology/");
+		g.getManager().saveOntology(o, 
+				fmt,
+				IRI.create(opts.nextFile()));
+	}
+
+	@CLIMethod("--sim-load-ic-cache")
+	public void simLoadICCache(Opts opts) throws Exception {
+		opts.info("INFILE", "loads ICs from RDF/turtle cache");
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+		}
+		OWLOntology o = 
+			g.getManager().loadOntologyFromOntologyDocument(opts.nextFile());
+		sos.setInformationContentFromOntology(o);
+	}
+
+
+
+
+	@CLIMethod("--sim-lcs")
+	public void simLCS(Opts opts) throws Exception {
+		opts.info("", "find LCS of two classes");
+		loadProperties(opts);
+		OWLClass c1 = (OWLClass) this.resolveClass(opts.nextOpt());
+		OWLClass c2 = (OWLClass) this.resolveClass(opts.nextOpt());
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.createElementAttributeMapFromOntology();
+		}
+		sos.createElementAttributeMapFromOntology();
+		Set<Node<OWLClass>> lcsSet = sos.getNamedLowestCommonSubsumers(c1, c2);
+
+		for (Node<OWLClass> lcsNode : lcsSet) {
+			System.out.println(owlpp.render(lcsNode.getRepresentativeElement()));
+		}
+	}
+
+
 	// TODO
 	@CLIMethod("--enrichment-analysis")
 	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
@@ -807,6 +882,23 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			System.out.println(render(result, owlpp));
 		}
 	}
+
+	@CLIMethod("--class-IC-pairs")
+	public void classICPairs(Opts opts) throws Exception {
+		opts.info("", "show all classes with their IC");
+		OWLPrettyPrinter owlpp = getPrettyPrinter();
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.createElementAttributeMapFromOntology();
+		}
+		for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
+			Double ic = sos.getInformationContentForAttribute(c);
+			if (ic != null) {
+				System.out.println(owlpp.render(c)+"\t"+ic);
+			}
+		}
+	}
+
 
 	private String render(EnrichmentResult r, OWLPrettyPrinter owlpp) {
 		return owlpp.render(r.sampleSetClass) + "\t"

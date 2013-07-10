@@ -78,6 +78,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
@@ -86,9 +87,11 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyCharacteristicAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -114,6 +117,7 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.semanticweb.owlapi.vocab.PrefixOWLOntologyFormat;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gfx.GraphicsConfig;
@@ -730,7 +734,7 @@ public class CommandRunner {
 				g.getManager().applyChanges(changes);
 			}
 			else if (opts.nextEq("--merge-equivalent-classes")) {
-				opts.info("[-f FROM-URI-PREFIX]* [-t TO-URI-PREFIX] [-a]", "merges equivalent classes, from source(s) to target ontology");
+				opts.info("[-f FROM-URI-PREFIX]* [-t TO-URI-PREFIX] [-a] [-sa]", "merges equivalent classes, from source(s) to target ontology");
 				List<String> prefixFroms = new Vector<String>();
 				String prefixTo = null;
 				boolean isKeepAllAnnotations = false;
@@ -819,7 +823,7 @@ public class CommandRunner {
 										g.getSourceOntology().getAnnotationAssertionAxioms(secondaryObj.getIRI())) {
 										if (aaa.getProperty().isLabel()) {
 											if (g.getLabel(mainObj) != null) {
-												rmAxioms.add(aaa);
+                                                                                            rmAxioms.add(aaa); // todo - option to translate to synonym
 											}
 										}
 										if (aaa.getProperty().getIRI().equals(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI())) {
@@ -2204,28 +2208,36 @@ public class CommandRunner {
 					String ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
 					System.out.println("saving:"+ontURIStr);
 				}
-				if (opts.nextEq("-f")) {
-					String ofmtname = opts.nextOpt();
-					if (ofmtname.equals("manchester") || ofmtname.equals("omn")) {
-						ofmt = new ManchesterOWLSyntaxOntologyFormat();
-					}
-					else if (ofmtname.equals("functional") || ofmtname.equals("ofn")) {
-						ofmt = new OWLFunctionalSyntaxOntologyFormat();
-					}
-					else if (ofmtname.equals("turtle") || ofmtname.equals("ttl")) {
-						ofmt = new TurtleOntologyFormat();
-					}
-					else if (ofmtname.equals("xml") || ofmtname.equals("owx")) {
-						ofmt = new OWLXMLOntologyFormat();
-					}
-					else if (ofmtname.equals("ojs")) {
-						ofmt = new OWLJSONFormat();
-					}
-					else if (ofmtname.equals("obo")) {
-						if (opts.nextEq("-n|--no-check")) {
-							pw.setCheckOboDoc(false);
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-f")) {
+						String ofmtname = opts.nextOpt();
+						if (ofmtname.equals("manchester") || ofmtname.equals("omn")) {
+							ofmt = new ManchesterOWLSyntaxOntologyFormat();
 						}
-						ofmt = new OBOOntologyFormat();
+						else if (ofmtname.equals("functional") || ofmtname.equals("ofn")) {
+							ofmt = new OWLFunctionalSyntaxOntologyFormat();
+						}
+						else if (ofmtname.equals("turtle") || ofmtname.equals("ttl")) {
+							ofmt = new TurtleOntologyFormat();
+						}
+						else if (ofmtname.equals("xml") || ofmtname.equals("owx")) {
+							ofmt = new OWLXMLOntologyFormat();
+						}
+						else if (ofmtname.equals("ojs")) {
+							ofmt = new OWLJSONFormat();
+						}
+						else if (ofmtname.equals("obo")) {
+							if (opts.nextEq("-n|--no-check")) {
+								pw.setCheckOboDoc(false);
+							}
+							ofmt = new OBOOntologyFormat();
+						}
+					}
+					else if (opts.nextEq("--prefix")) {
+						ofmt.asPrefixOWLOntologyFormat().setPrefix(opts.nextOpt(), opts.nextOpt());
+					}
+					else {
+						break;
 					}
 				}
 
@@ -2257,7 +2269,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--split-ontology")) {
 				opts.info("[-p IRI-PREFIX] [-s IRI-SUFFIX] [-d OUTDIR] [-l IDSPACE1 ... IDPSPACEn]", 
-						"Takes current only extracts all axioms in ID spaces and writes to separate ontology PRE+lc(IDSPACE)+SUFFIX saving to outdir. Also adds imports");
+				"Takes current only extracts all axioms in ID spaces and writes to separate ontology PRE+lc(IDSPACE)+SUFFIX saving to outdir. Also adds imports");
 				String prefix = g.getSourceOntology().getOntologyID().getOntologyIRI().toString().replace(".owl", "/");
 				String suffix = "_import.owl";
 				String outdir = ".";
@@ -2713,7 +2725,6 @@ public class CommandRunner {
 				String suffix = null;
 				String prefix = null;
 				boolean isFilterUnused = false;
-				boolean isABoxToTBox = false;
 				boolean isReplace = false;
 				boolean noReasoner = false;
 				String avFile =  null;
@@ -2763,10 +2774,6 @@ public class CommandRunner {
 					"")) {
 						annotOntol = g.getSourceOntology();
 					}
-					else if (opts.nextEq("--i2c")) {
-						opts.info("", "if set, translate individuals to classes (e.g. for reasoning with Elk). NO LONGER REQUIRED");
-						isABoxToTBox = true;
-					}
 					else
 						break;
 				}
@@ -2774,10 +2781,6 @@ public class CommandRunner {
 					new PropertyViewOntologyBuilder(sourceOntol,
 							annotOntol,
 							viewProperty);
-				if (isABoxToTBox) {
-					LOG.info("translation abox to tbox...");
-					pvob.translateABoxToTBox();
-				}
 				pvob.setViewLabelPrefix(prefix);
 				pvob.setViewLabelSuffix(suffix);
 				pvob.buildViewOntology(IRI.create("http://x.org/assertedViewOntology"), IRI.create(viewIRI));
@@ -2812,7 +2815,7 @@ public class CommandRunner {
 				boolean isPrereason = true;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-p")) {
-						opts.info("PROPERTY-ID-OR-LABEL", "The ObjectProperty P that is used to build the view");
+						opts.info("[-r] PROPERTY-ID-OR-LABEL", "The ObjectProperty P that is used to build the view. If -r is specified the view is reflexive");
 						boolean isReflexive = false;
 						if (opts.nextEq("-r|--reflexive"))
 							isReflexive = true;
@@ -2840,11 +2843,17 @@ public class CommandRunner {
 				if (!isPrereason && !isMerge) {
 					LOG.warn("ontology will be empty!");
 				}
+				OWLOntology baseOntology = g.getSourceOntology();
 				OWLOntology vOnt = g.getManager().createOntology();
+				if (!isMerge) {
+					// make the source ontology the new view
+					g.setSourceOntology(vOnt);
+				}
+
 				Set<OWLClass> allvcs = new HashSet<OWLClass>();
 				for (OWLObjectProperty vp : vps) {
 					PropertyViewOntologyBuilder pvob = 
-						new PropertyViewOntologyBuilder(g.getSourceOntology(), vp);
+						new PropertyViewOntologyBuilder(baseOntology, vp);
 					if (reflexiveVps.contains(vp))
 						pvob.setCreateReflexiveClasses(true);
 					pvob.buildViewOntology();
@@ -2884,6 +2893,9 @@ public class CommandRunner {
 						}
 					}
 				}
+				else {
+
+				}
 				// TODO - turn allvcs into bnodes
 				if (isMerge) {
 					g.mergeOntology(vOnt);
@@ -2891,6 +2903,67 @@ public class CommandRunner {
 				else {
 					g.setSourceOntology(vOnt);
 				}
+			}
+			else if (opts.nextEq("--materialize-existentials")) {
+				Set<OWLObjectSomeValuesFrom> svfs = new HashSet<OWLObjectSomeValuesFrom>();
+				Set<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p")) {
+						props.add(this.resolveObjectProperty(opts.nextOpt()));
+					}
+					else if (opts.nextEq("-l|--list")) {
+						props.addAll(this.resolveObjectPropertyList(opts));
+					}
+					else {
+						break;
+					}
+				}
+				LOG.info("Materializing: "+props);
+				OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
+				for (OWLOntology ont : g.getAllOntologies()) {
+					for (OWLAxiom ax : ont.getAxioms()) {
+						if (ax instanceof OWLSubClassOfAxiom) {
+							OWLClassExpression supc = ((OWLSubClassOfAxiom)ax).getSuperClass();
+							if (supc instanceof OWLObjectSomeValuesFrom) {
+								svfs.add((OWLObjectSomeValuesFrom) supc);
+							}
+						}
+						else if (ax instanceof OWLEquivalentClassesAxiom) {
+							for (OWLClassExpression x : ((OWLEquivalentClassesAxiom)ax).getClassExpressions()) {
+								if (x instanceof OWLObjectIntersectionOf) {
+									for (OWLClassExpression y : ((OWLObjectIntersectionOf)x).getOperands()) {
+										if (y instanceof OWLObjectSomeValuesFrom) {
+											svfs.add((OWLObjectSomeValuesFrom) y);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
+				OWLDataFactory df = g.getDataFactory();
+				for (OWLObjectSomeValuesFrom svf : svfs) {
+					if (svf.getFiller().isAnonymous())
+						continue;
+					if (svf.getProperty().isAnonymous())
+						continue;
+
+					OWLObjectProperty p = (OWLObjectProperty) svf.getProperty();
+					if (!props.contains(p))
+						continue;
+					OWLClass c = (OWLClass) svf.getFiller();
+
+					PropertyViewOntologyBuilder pvob = new PropertyViewOntologyBuilder(g.getSourceOntology(), p);
+					IRI xIRI = pvob.makeViewClassIRI(c.getIRI(), p.getIRI(), "-");
+					String label = "Reflexive "+ g.getLabel(p) + " " + g.getLabel(c);
+					OWLClass xc = df.getOWLClass(xIRI);
+					newAxioms.add(df.getOWLEquivalentClassesAxiom(xc, svf));
+					newAxioms.add(df.getOWLSubClassOfAxiom(c, xc));
+					newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getRDFSLabel(), xIRI, df.getOWLLiteral(label)));
+				}
+				LOG.info("Adding "+newAxioms.size()+ " axioms");
+				g.getManager().addAxioms(g.getSourceOntology(), newAxioms);
 			}
 			else if (opts.nextEq("--report-profile")) {
 				g.getProfiler().report();

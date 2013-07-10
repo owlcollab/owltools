@@ -12,7 +12,7 @@ import org.junit.Test;
 public class CommandRunnerSpeciesMergeTest extends AbstractCommandRunnerTest {
 	
 	@Test
-	public void testMMergeSpecies() throws Exception {
+	public void testMergeSpecies() throws Exception {
 		//String obo = "http://purl.obolibrary.org/obo";
 		load("forebrain.obo");
 		//run("--list-class-axioms NCBITaxon:7954");
@@ -25,4 +25,5 @@ public class CommandRunnerSpeciesMergeTest extends AbstractCommandRunnerTest {
 		
 	}
 	
+
 }
