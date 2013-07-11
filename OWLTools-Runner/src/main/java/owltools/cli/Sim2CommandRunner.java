@@ -784,6 +784,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		
 		sos.saveLCSCache(opts.nextOpt(), thresh);
+		LOG.info("Saved cache");
 	}
 
 	@CLIMethod("--sim-load-lcs-cache")
