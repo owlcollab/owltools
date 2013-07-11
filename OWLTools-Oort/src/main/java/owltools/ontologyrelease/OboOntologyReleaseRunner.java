@@ -1202,12 +1202,19 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logInfo("");
 		}
 
-		logInfo("Guessing core ontology (in future this can be overridden)");
-
 		Set<OWLClass> coreSubset = new HashSet<OWLClass>();
+		Set<String> sourcePrefixes = oortConfig.getSourceOntologyPrefixes();
+		if (sourcePrefixes == null || sourcePrefixes.isEmpty()) {
+			logInfo("Guessing core ontology idspace from ontology id: "+ontologyId.toLowerCase());
+			sourcePrefixes = Collections.singleton(ontologyId.toLowerCase());
+		}
+		else {
+			logInfo("Setting core ontology idspace: "+sourcePrefixes);
+		}
+		
 		for (OWLClass c : mooncat.getOntology().getClassesInSignature()) {
 			String idSpace = owl2obo.getIdentifier(c).replaceAll(":.*", "").toLowerCase();
-			if (idSpace.equals(ontologyId.toLowerCase())) {
+			if (sourcePrefixes.contains(idSpace)) {
 				coreSubset.add(c);
 			}
 		}
