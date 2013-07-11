@@ -769,12 +769,15 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		if (sos == null) {
 			sos = new SimpleOwlSim(g.getSourceOntology());
 			sos.createElementAttributeMapFromOntology();
+			sos.isNoLookupForLCSCache = true;
 			Set<OWLClass> atts = sos.getAllAttributeClasses();
-
+			LOG.info("Number of attribute classes: "+atts.size());
 			for (OWLClass i : atts) {
 				LOG.info("Comparing "+i+" to all attributes");
 				for (OWLClass j : atts) {
-					sos.getLowestCommonSubsumerIC(i, j);					
+					if (i.compareTo(j) < 0)
+						continue;
+					sos.getLowestCommonSubsumerIC(i, j, thresh);					
 				}
 			}
 	
