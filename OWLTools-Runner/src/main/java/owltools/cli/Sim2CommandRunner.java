@@ -752,16 +752,34 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	@CLIMethod("--sim-save-lcs-cache")
 	public void simSaveLCSCache(Opts opts) throws Exception {
-		opts.info("OUTFILE", "saves a LCS cache to a file");
+		opts.info("[-m ICTHRESHOLD] OUTFILE", "saves a LCS cache to a file. This should be called AFTER --sim-compare-atts");
 		Double thresh = null;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-m|--min-ic")) {
+				opts.info("ICTHRESHOLD", "If the IC of the LCS is less than this value, an entry is not written.\n" +
+						"After subsequent loading of the cache, pairs with no entry are equivalent to pairs with a LCS with IC=0");
 				thresh = Double.valueOf(opts.nextOpt());
 			}
 			else {
 				break;
 			}
 		}
+		
+		// No SOS object, so all by all has not yet been calculated
+		if (sos == null) {
+			sos = new SimpleOwlSim(g.getSourceOntology());
+			sos.createElementAttributeMapFromOntology();
+			Set<OWLClass> atts = sos.getAllAttributeClasses();
+
+			for (OWLClass i : atts) {
+				LOG.info("Comparing "+i+" to all attributes");
+				for (OWLClass j : atts) {
+					sos.getLowestCommonSubsumerIC(i, j);					
+				}
+			}
+	
+		}
+		
 		sos.saveLCSCache(opts.nextOpt(), thresh);
 	}
 
