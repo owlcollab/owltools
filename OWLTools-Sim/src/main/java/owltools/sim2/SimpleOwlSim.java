@@ -701,6 +701,11 @@ public class SimpleOwlSim {
 		if (lcsICcache.containsKey(pair)) {
 			return lcsICcache.get(pair); // don't make a copy, assume unmodified
 		}
+		ClassExpressionPair pairRev = new ClassExpressionPair(b, a);
+		if (lcsICcache.containsKey(pairRev)) {
+			return lcsICcache.get(pairRev); // don't make a copy, assume unmodified
+		}
+		
 		if (this.isLCSCacheFullyPopulated) {
 			// entry not found in cache and the cache is fully populated;
 			// this means that the IC was below threshold
