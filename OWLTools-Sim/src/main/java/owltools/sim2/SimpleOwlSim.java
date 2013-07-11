@@ -149,6 +149,7 @@ public class SimpleOwlSim {
 	private Map<ClassExpressionPair, ScoreAttributePair> lcsICcache;
 	private boolean isLCSCacheFullyPopulated = false;
 	private boolean isICCacheFullyPopulated = false;
+	public boolean isNoLookupForLCSCache = false;
 
 	// @Deprecated
 	private Map<ClassExpressionPair, Set<Node<OWLClass>>> csCache;
@@ -250,6 +251,11 @@ public class SimpleOwlSim {
 		 * 4.0.
 		 */
 		minimumMaxIC("4.0"),
+		/**
+		 * The miminum IC threshold for a LCS to count. Default is 2.0
+		 * 4.0.
+		 */
+		minimumLCSIC("2.0"),
 		/**
 		 * The miminum simJ threshold for filtering similarity results. Default is
 		 * 0.25.
@@ -697,19 +703,28 @@ public class SimpleOwlSim {
 	 */
 	public ScoreAttributePair getLowestCommonSubsumerIC(OWLClassExpression a,
 			OWLClassExpression b) {
+		return getLowestCommonSubsumerIC(a, b, null);
+	}
+	public ScoreAttributePair getLowestCommonSubsumerIC(OWLClassExpression a,
+			OWLClassExpression b, Double minimumIC) {
+
 		ClassExpressionPair pair = new ClassExpressionPair(a, b);
-		if (lcsICcache.containsKey(pair)) {
-			return lcsICcache.get(pair); // don't make a copy, assume unmodified
-		}
-		ClassExpressionPair pairRev = new ClassExpressionPair(b, a);
-		if (lcsICcache.containsKey(pairRev)) {
-			return lcsICcache.get(pairRev); // don't make a copy, assume unmodified
-		}
 		
-		if (this.isLCSCacheFullyPopulated) {
-			// entry not found in cache and the cache is fully populated;
-			// this means that the IC was below threshold
-			return null;
+		// lookup cache to see if this has been calculated already
+		if (!isNoLookupForLCSCache) {
+			if (lcsICcache.containsKey(pair)) {
+				return lcsICcache.get(pair); // don't make a copy, assume unmodified
+			}
+			ClassExpressionPair pairRev = new ClassExpressionPair(b, a);
+			if (lcsICcache.containsKey(pairRev)) {
+				return lcsICcache.get(pairRev); // don't make a copy, assume unmodified
+			}
+
+			if (this.isLCSCacheFullyPopulated) {
+				// entry not found in cache and the cache is fully populated;
+				// this means that the IC was below threshold
+				return null;
+			}
 		}
 		// TODO: test whether it is more efficient to get redundant common subsumers too,
 		// then simply keep the ones with the highest.
@@ -742,7 +757,12 @@ public class SimpleOwlSim {
 		}
 		LOG.debug("LCS_IC\t" + a + "\t" + b + "\t" + sap.attributeClass + "\t"
 				+ sap.score);
-		lcsICcache.put(pair, sap);
+		if (minimumIC != null  && sap.score < minimumIC) {
+			// do not cache
+		}
+		else {
+			lcsICcache.put(pair, sap);
+		}
 		return sap;
 	}
 
@@ -1351,7 +1371,7 @@ public class SimpleOwlSim {
 	public Double getEntropy() {
 		return getEntropy(getAllAttributeClasses());
 	}
-	
+
 	public Double getEntropy(Set<OWLClass> cset) {
 		double e = 0.0;
 		for (OWLClass c : cset) {
