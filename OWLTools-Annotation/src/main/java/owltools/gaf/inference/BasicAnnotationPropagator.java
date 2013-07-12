@@ -44,7 +44,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 
 	protected static Logger LOG = Logger.getLogger(BasicAnnotationPropagator.class);
 	
-	protected static boolean SKIP_IEA = false; 
+	protected static boolean SKIP_IEA = true; 
 	
 	private static final String ASSIGNED_BY_CONSTANT = "GOC";
 	private static final String gocheck_do_not_annotate = "gocheck_do_not_annotate";

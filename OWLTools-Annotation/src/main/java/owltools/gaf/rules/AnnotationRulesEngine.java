@@ -2,9 +2,11 @@ package owltools.gaf.rules;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -140,6 +142,9 @@ public class AnnotationRulesEngine {
 			final boolean hasOwlRules = owlRules != null && !owlRules.isEmpty();
 			final boolean hasInferenceRules = createInferences && inferenceRules != null && !inferenceRules.isEmpty();
 			boolean buildTranslatedGraph = graph != null && (hasOwlRules || hasInferenceRules);
+			if (graph != null) {
+				result.setOntologyVersions(graph.getVersions());
+			}
 			
 			OWLGraphWrapper translatedGraph = null;
 			if (buildTranslatedGraph) {
@@ -204,6 +209,8 @@ public class AnnotationRulesEngine {
 		
 		private final List<Prediction> predictions;
 		
+		private Map<String, String> ontologyVersions = null;
+		
 		AnnotationRulesEngineResult() {
 			super();
 			typedViolations = new HashMap<ViolationType, Map<String,List<AnnotationRuleViolation>>>();
@@ -235,6 +242,10 @@ public class AnnotationRulesEngine {
 					list.add(violation);
 				}
 			}
+		}
+		
+		void setOntologyVersions(Map<String, String> ontologyVersions) {
+			this.ontologyVersions = ontologyVersions;
 		}
 		
 		/**
@@ -382,6 +393,29 @@ public class AnnotationRulesEngine {
 			this.annotationCount = annotationCount;
 		}
 
+		private static void printOntologySummary(AnnotationRulesEngineResult result, PrintWriter writer) {
+			if (result.ontologyVersions != null && !result.ontologyVersions.isEmpty()) {
+				writer.println();
+				writer.println("*Used Ontology Summary*");
+				writer.println();
+				List<String> sortedIds = new ArrayList<String>(result.ontologyVersions.keySet());
+				Collections.sort(sortedIds);
+				for (String oid : sortedIds) {
+					writer.print('\t');
+					writer.print(oid);
+					String version = result.ontologyVersions.get(oid);
+					if (version != null) {
+						writer.print('\t');
+						writer.println(version);
+					}
+					else {
+						writer.println();
+					}
+				}
+				writer.println();
+			}
+		}
+		
 		/**
 		 * A simple tab delimited print-out of the result and a simple summary.
 		 * 
@@ -402,6 +436,7 @@ public class AnnotationRulesEngine {
 					summaryWriter.println();
 					summaryWriter.println("No errors, warnings, recommendations, inferences, or predictions to report.");
 					summaryWriter.println();
+					printOntologySummary(result, summaryWriter);
 				}
 				return;
 			}
@@ -411,6 +446,7 @@ public class AnnotationRulesEngine {
 					summaryWriter.println();
 					summaryWriter.println("No errors, warnings, or recommendations to report.");
 					summaryWriter.println();
+					printOntologySummary(result, summaryWriter);
 				}
 			}
 			else {
@@ -529,13 +565,37 @@ public class AnnotationRulesEngine {
 					// GAF header
 					GafWriter gafWriter = new GafWriter();
 					gafWriter.setStream(predictionWriter);
-					List<String> comments = Arrays.asList(""," Generated predictions",""); 
+					List<String> comments = new ArrayList<String>();
+					comments.add("");
+					DateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+					comments.add("Date: "+format.format(new Date()));
+					if (result.ontologyVersions != null && !result.ontologyVersions.isEmpty()) {
+						List<String> sortedIds = new ArrayList<String>(result.ontologyVersions.keySet());
+						Collections.sort(sortedIds);
+						comments.add("");
+						comments.add(" Used ontologies and versions (optional)");
+						for (String oid : sortedIds) {
+							String version = result.ontologyVersions.get(oid);
+							if (version != null) {
+								comments.add("\t"+oid+"\t"+version);
+							}
+							else {
+								comments.add("\t"+oid);
+							}
+						}
+						comments.add("");
+					}
+					comments.add(" Generated predictions");
+					comments.add("");
 					gafWriter.writeHeader(comments);
 					// append sorted lines
 					for (String line : lines) {
 						predictionWriter.print(line);
 					}
 				}
+			}
+			if (summaryWriter != null) {
+				printOntologySummary(result, summaryWriter);
 			}
 		}
 	}
