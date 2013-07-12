@@ -1213,5 +1213,62 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return Owl2Obo.getOntologyId(this.getSourceOntology());
 	}
 
+	/**
+	 * Retrieve the version information of all ontologies. The value is null, if
+	 * not available.<br>
+	 * First, checks the version IRI, than the ontology annotations for the date
+	 * and data version.
+	 * 
+	 * @return map of ontology identifiers and versions
+	 */
+	public Map<String, String> getVersions() {
+		Map<String, String> versions = new HashMap<String, String>();
+		for (OWLOntology o : getAllOntologies()) {
+			String oid = Owl2Obo.getOntologyId(o);
+			if (oid != null) {
+				String dataVersion = Owl2Obo.getDataVersion(o);
+				if (dataVersion != null) {
+					versions.put(oid, dataVersion);
+				}
+				else {
+					// check ontology annotations as fallback
+					String dateValue = getOntologyAnnotationValue(o, OboFormatTag.TAG_DATE);
+					if (dateValue != null) {
+						versions.put(oid, dateValue);
+					}
+					else {
+						String dataVersionValue = getOntologyAnnotationValue(o, OboFormatTag.TAG_DATA_VERSION);
+						if (dataVersionValue != null) {
+							versions.put(oid, dataVersionValue);
+						}
+						else {
+							versions.put(oid, null); // use null value to denote ontologies without a version
+						}
+					}
+				}
+			}
+		}
+		return versions;
+	}
+	
+	private String getOntologyAnnotationValue(OWLOntology o, OboFormatTag tag) {
+		IRI dateTagIRI = Obo2Owl.trTagToIRI(tag.getTag());
+		Set<OWLAnnotation> annotations = o.getAnnotations();
+		for (OWLAnnotation annotation : annotations) {
+			OWLAnnotationProperty property = annotation.getProperty();
+			if(dateTagIRI.equals(property.getIRI())) {
+				OWLAnnotationValue value = annotation.getValue();
+				if (value != null) {
+					if (value instanceof IRI) {
+						return ((IRI) value).toString();
+					}
+					else if (value instanceof OWLLiteral) {
+						return ((OWLLiteral) value).getLiteral();
+					}
+				}
+			}
+		}
+		return null;
+	}
 }
 
