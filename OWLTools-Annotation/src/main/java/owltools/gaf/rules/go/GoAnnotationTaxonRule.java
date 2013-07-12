@@ -55,6 +55,10 @@ public class GoAnnotationTaxonRule extends AnnotationTaxonRule {
 			// do nothing
 			return;
 		}
+		if (unsatisfiable == null || unsatisfiable.isEmpty()) {
+			// do nothing
+			return;
+		}
 		{
 			LOG.info("Creating module for unsatisfiable classes in taxon rule.");
 			// create a new manager, re-use factory
