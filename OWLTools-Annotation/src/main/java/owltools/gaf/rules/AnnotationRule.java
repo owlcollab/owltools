@@ -1,6 +1,7 @@
 package owltools.gaf.rules;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import owltools.gaf.GafDocument;
@@ -46,7 +47,7 @@ public interface AnnotationRule {
 	 * @param graph
 	 * @return set of inferred annotation predictions
 	 */
-	public Set<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph);
+	public List<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph);
 	
 	/**
 	 * Set the rule id

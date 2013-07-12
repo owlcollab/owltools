@@ -2,6 +2,7 @@ package owltools.gaf.rules;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import owltools.gaf.GafDocument;
@@ -33,9 +34,9 @@ public abstract class AbstractAnnotationRule implements AnnotationRule {
 	}
 
 	@Override
-	public Set<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
+	public List<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		// per default, do nothing
-		return Collections.emptySet();
+		return Collections.emptyList();
 	}
 
 	@Override

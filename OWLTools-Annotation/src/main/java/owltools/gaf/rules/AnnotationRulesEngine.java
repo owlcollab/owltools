@@ -160,11 +160,11 @@ public class AnnotationRulesEngine {
 			}
 			
 			if (hasInferenceRules && translatedGraph != null) {
-				LOG.info("Start inference of annotations with "+inferenceRules.size()+" rules.");
+				LOG.info("Start prediction/inference of annotations.");
 				for(AnnotationRule rule : inferenceRules) {
 					result.addInferences(rule.getPredictedAnnotations(doc, translatedGraph));
 				}
-				LOG.info("Finished inference of new annotations. Found: "+result.predictions.size());
+				LOG.info("Finished prediction/inference of new annotations. Found: "+result.predictions.size());
 			}
 			
 		}catch(Exception ex){
@@ -202,15 +202,15 @@ public class AnnotationRulesEngine {
 		
 		private final Map<ViolationType, Map<String, List<AnnotationRuleViolation>>> typedViolations;
 		
-		private final Set<Prediction> predictions;
+		private final List<Prediction> predictions;
 		
 		AnnotationRulesEngineResult() {
 			super();
 			typedViolations = new HashMap<ViolationType, Map<String,List<AnnotationRuleViolation>>>();
-			predictions = new HashSet<Prediction>();
+			predictions = new ArrayList<Prediction>();
 		}
 		
-		void addInferences(Set<Prediction> predictions) {
+		void addInferences(List<Prediction> predictions) {
 			if (predictions != null) {
 				this.predictions.addAll(predictions);
 			}

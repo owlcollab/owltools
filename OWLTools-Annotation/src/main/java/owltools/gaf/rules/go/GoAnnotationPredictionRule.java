@@ -1,9 +1,11 @@
 package owltools.gaf.rules.go;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +32,9 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 	 */
 	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.GoAnnotationPredictionRule";
 	
+	private static boolean USE_BASIC_PROPAGATION_RULE = true;
+	private static boolean USE_FOLD_BASED_PREDICTOR = false;
+	
 	private final OWLGraphWrapper source;
 
 	public GoAnnotationPredictionRule(OWLGraphWrapper source) {
@@ -50,8 +55,8 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 	}
 
 	@Override
-	public Set<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
-		Set<Prediction> predictions = new HashSet<Prediction>();
+	public List<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
+		List<Prediction> predictions = new ArrayList<Prediction>();
 		
 		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
 		
@@ -67,32 +72,36 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		}
 		
 		AnnotationPredictor predictor = null;
-		LOG.info("Start creating predictions using basic propagation");
-		try {
-			predictor = new BasicAnnotationPropagator(gafDoc, source);
-			Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
-			if (basicPredictions != null) {
-				predictions.addAll(basicPredictions);
+		if (USE_BASIC_PROPAGATION_RULE) {
+			LOG.info("Start creating predictions using basic propagation");
+			try {
+				predictor = new BasicAnnotationPropagator(gafDoc, source);
+				Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
+				if (basicPredictions != null) {
+					predictions.addAll(basicPredictions);
+				}
+			} finally {
+				if (predictor != null) {
+					predictor.dispose();
+				}
+				predictor = null;
 			}
-		} finally {
-			if (predictor != null) {
-				predictor.dispose();
-			}
-			predictor = null;
 		}
+		if (USE_FOLD_BASED_PREDICTOR) {
 		LOG.info("Use c16 extension for fold based prediction");
-		try {
-			predictor = new FoldBasedPredictor(gafDoc, source);
-			Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
-			if (foldBasedPredictions != null) {
-				predictions.addAll(foldBasedPredictions);
+			try {
+				predictor = new FoldBasedPredictor(gafDoc, source);
+				Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
+				if (foldBasedPredictions != null) {
+					predictions.addAll(foldBasedPredictions);
+				}
 			}
-		}
-		finally {
-			if (predictor != null) {
-				predictor.dispose();
+			finally {
+				if (predictor != null) {
+					predictor.dispose();
+				}
+				predictor = null;
 			}
-			predictor = null;
 		}
 		LOG.info("Done creating predictions");
 		return predictions;
