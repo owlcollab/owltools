@@ -162,6 +162,7 @@ import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.GraphReasonerFactory;
 import owltools.reasoner.LazyExpressionMaterializingReasonerFactory;
 import owltools.reasoner.OWLExtendedReasoner;
+import owltools.reasoner.PrecomputingMoreReasonerFactory;
 import owltools.sim2.preprocessor.ABoxUtils;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
@@ -313,6 +314,9 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--jfact")) {
 				reasonerName = "jfact";
+			}
+			else if (opts.nextEq("--more")) {
+				reasonerName = "more";
 			}
 			else if (opts.nextEq("--use-reasoner|--set-reasoner-name")) {
 				reasonerName =  opts.nextOpt();
@@ -3581,6 +3585,12 @@ public class CommandRunner {
 			reasoner = new JcelReasoner(ont);
 			reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 			return reasoner;
+		}
+		else if (reasonerName.equals("more") || reasonerName.equals("more-hermit")) {
+			reasonerFactory = PrecomputingMoreReasonerFactory.getMoreHermitFactory();
+		}
+		else if (reasonerName.equals("more-jfact")) {
+			reasonerFactory = PrecomputingMoreReasonerFactory.getMoreJFactFactory();
 		}
 		else
 			System.out.println("no such reasoner: "+reasonerName);

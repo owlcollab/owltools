@@ -167,6 +167,9 @@ public class OortGuiMainFrame extends JFrame {
 		else if (advancedPanel.elkRadioButton.isSelected()) {
 			parameters.setReasonerName(InferenceBuilder.REASONER_ELK);
 		}
+		else if (advancedPanel.moreRadioButton.isSelected()) {
+			parameters.setReasonerName(InferenceBuilder.REASONER_MORE);
+		}
 		
 		// write formats
 		parameters.getSkipFormatSet().clear();

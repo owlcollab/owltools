@@ -73,6 +73,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 	final JRadioButton factppRadioButton;
 	final JRadioButton jcelRadioButton;
 	final JRadioButton elkRadioButton;
+	final JRadioButton moreRadioButton;
 	
 	final Map<OntologyCheck, JCheckBox> ontologyCheckBoxes;
 
@@ -123,6 +124,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		factppRadioButton = new JRadioButton();
 		jcelRadioButton = new JRadioButton();
 		elkRadioButton = new JRadioButton();
+		moreRadioButton = new JRadioButton();
 		
 		// ontolgy checks
 		ontologyCheckBoxes = new HashMap<OntologyCheck, JCheckBox>();
@@ -338,18 +340,22 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		reasonerGroup.add(factppRadioButton);
 		reasonerGroup.add(jcelRadioButton);
 		reasonerGroup.add(elkRadioButton);
+		reasonerGroup.add(moreRadioButton);
 		
 		JPanel panel = new JPanel(new GridLayout(3, 2, 20, 2));
 		panel.add(hermitRadioButton);
 		panel.add(jcelRadioButton);
 		panel.add(elkRadioButton);
+		panel.add(moreRadioButton);
 		panel.add(factppRadioButton);
+		
 		
 		this.panel.add(panel, pos.nextRow().nextCol().width(2));
 		
 		hermitRadioButton.setText("HermiT");
 		jcelRadioButton.setText("JCEL");
 		elkRadioButton.setText("ELK");
+		moreRadioButton.setText("MORe");
 		factppRadioButton.setText("Fact++");
 		
 		addRowGap(this.panel, pos.nextRow(), 10);
@@ -395,6 +401,9 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		}
 		else if (InferenceBuilder.REASONER_ELK.equals(reasoner)) {
 			elkRadioButton.setSelected(true);
+		}
+		else if (InferenceBuilder.REASONER_MORE.equals(reasoner)) {
+			moreRadioButton.setSelected(true);
 		}
 		else {
 			hermitRadioButton.setSelected(true);

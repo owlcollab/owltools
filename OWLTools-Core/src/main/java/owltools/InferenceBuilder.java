@@ -39,6 +39,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.reasoner.PlaceholderJcelFactory;
+import owltools.reasoner.PrecomputingMoreReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
 
 /**
@@ -54,6 +55,9 @@ public class InferenceBuilder{
 	public static final String REASONER_JCEL = "jcel";
 	public static final String REASONER_ELK = "elk";
 	public static final String REASONER_JFACT = "jfact";
+	public static final String REASONER_MORE = "more";
+	public static final String REASONER_MORE_HERMIT = "more-hermit";
+	public static final String REASONER_MORE_JFACT = "more-jfact";
 
 	private final OWLReasonerFactory reasonerFactory;
 	private volatile OWLReasoner reasoner = null;
@@ -93,6 +97,12 @@ public class InferenceBuilder{
 		}
 		else if (REASONER_JFACT.equals(reasonerName)) {
 			return new JFactFactory();
+		}
+		else if (REASONER_MORE.equals(reasonerName) || REASONER_MORE_HERMIT.equals(reasonerName)) {
+			return PrecomputingMoreReasonerFactory.getMoreHermitFactory();
+		}
+		else if (REASONER_MORE_JFACT.equals(reasonerName)) {
+			return PrecomputingMoreReasonerFactory.getMoreJFactFactory();
 		}
 		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
 	}
