@@ -477,6 +477,18 @@ sub get_ont_info {
              checkout => 'git clone https://github.com/obophenotype/cephalopod-ontology.git',
              path => 'src/ontology',
          },
+         ehdaa2 => {
+             method => 'vcs',
+             system => 'git',
+             checkout => 'git clone https://github.com/obophenotype/human-developmental-anatomy-ontology.git',
+             path => 'src/ontology',
+         },
+         aeo => {
+             method => 'vcs',
+             system => 'git',
+             checkout => 'git clone https://github.com/obophenotype/human-developmental-anatomy-ontology.git',
+             path => 'src/ontology',
+         },
          vt => {
              method => 'vcs',
              system => 'svn',
@@ -916,11 +928,6 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'http://palea.cgrb.oregonstate.edu/viewsvn/Poc/trunk/ontology/OBO_format/po_temporal.obo?view=co',
          },
-         ehdaa2 => {
-             notes => 'SWITCH',
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/human/human-dev-anat-abstract2.obo',
-         },
          cheminf => {
              method => 'owl2obo',
              source_url => 'http://semanticchemistry.googlecode.com/svn/trunk/ontology/cheminf.owl',
@@ -971,11 +978,7 @@ sub get_ont_info {
          },
          taxrank => {
              method => 'obo2owl',
-             source_url => 'https://phenoscape.svn.sourceforge.net/svnroot/phenoscape/trunk/vocab/taxonomic_rank.obo',
-         },
-         aeo => {
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/caro/aeo.obo',
+             source_url => 'https://raw.github.com/obophenotype/taxonomic-rank-ontology/master/src/ontology/taxrank.obo',
          },
          ido => {
              method => 'owl2obo',
