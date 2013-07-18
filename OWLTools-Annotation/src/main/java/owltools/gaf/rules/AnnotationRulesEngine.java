@@ -506,7 +506,9 @@ public class AnnotationRulesEngine {
 							writer.print('\t');
 							String annotationRow = violation.getAnnotationRow();
 							if (annotationRow != null) {
-								printEscaped(annotationRow, writer, true);
+								// do not escape the annotation row
+								// try to preserve the tab format to allow import into excel or similar
+								writer.print(annotationRow);
 							}
 							writer.println();
 						}
