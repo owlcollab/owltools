@@ -2,6 +2,7 @@ package owltools.gaf;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -354,6 +355,15 @@ public class GeneAnnotation {
 
 	}
 
+	public List<String> getQualifiers() {
+		if (compositeQualifier != null) {
+			String[] split = StringUtils.split(compositeQualifier, '|');
+			if (split.length > 1) {
+				return Arrays.asList(split);
+			}
+		}
+		return Collections.singletonList(compositeQualifier);
+	}
 
 	public String getCompositeQualifier() {
 		return compositeQualifier;
