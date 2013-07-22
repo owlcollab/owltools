@@ -181,7 +181,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		SolrServer server = new CommonsHttpSolrServer(url);
 		try {
 			server.deleteByQuery("*:*");
-			
+			server.commit();
+		
 			// Probably worked, so let's destroy the log if there is one.
 			if( globalSolrLogFile != null && globalSolrLogFile.exists() ){
 				boolean yes_p = globalSolrLogFile.delete();
