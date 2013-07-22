@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -139,13 +140,33 @@ public class GafToLegoTranslator {
 	private OWLClass mf;
 	private OWLObjectProperty enabledBy;
 
+	private Map<String, OWLObject> allOWLObjectsByAltId;
+
 	public GafToLegoTranslator(OWLGraphWrapper graph, Map<String,String> gp2protein) {
 		this.graph = graph;
+		allOWLObjectsByAltId = graph.getAllOWLObjectsByAltId();
 		this.gp2protein = gp2protein;
 		partOf = graph.getOWLObjectPropertyByIdentifier("part_of");
+		if (partOf == null) {
+			throw new RuntimeException("Could not find part_of relation.");
+		}
 		occursIn = graph.getOWLObjectPropertyByIdentifier("occurs_in");
+		if (occursIn == null) {
+			throw new RuntimeException("Could not find occurs_in relation.");
+		}
 		mf = graph.getOWLClassByIdentifier("GO:0003674"); // molecular_function
-		enabledBy = graph.getOWLObjectPropertyByIdentifier("enabled_by");
+		if (mf == null) {
+			throw new RuntimeException("Could not find molecular_function class.");
+		}
+		// the graph wrapper has a problem retrieving the property.
+//		enabledBy = graph.getOWLObjectPropertyByIdentifier("enabled_by");
+		
+		// do it via the IRI instead!
+		IRI enabledByIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"enabled_by");
+		enabledBy = graph.getOWLObjectProperty(enabledByIRI);
+		if (enabledBy == null) {
+			throw new RuntimeException("Could not find enabled_by relation.");
+		}
 	}
 	
 	protected void reportError(String error, GeneAnnotation annotation) {
@@ -174,7 +195,7 @@ public class GafToLegoTranslator {
 	 */
 	public OWLOntology translate(Collection<GeneAnnotation> annotations) {
 		final OWLDataFactory f = graph.getDataFactory();
-		final OWLOntologyManager m = OWLManager.createOWLOntologyManager(f);
+		final OWLOntologyManager m = graph.getManager();
 		try {
 			OWLOntology lego = m.createOntology(IRI.generateDocumentIRI());
 			// add all ontologies from the graph wrapper as import to the new ontology
@@ -196,7 +217,7 @@ public class GafToLegoTranslator {
 				* )
 				*/
 				final String annotationClsString = annotation.getCls();
-				final OWLClass c = graph.getOWLClassByIdentifier(annotationClsString);
+				final OWLClass c = getOwlClass(annotationClsString);
 				if (c == null) {
 					reportError("Could not find a class for the given identifier: "+annotationClsString, annotation);
 					continue;
@@ -215,7 +236,11 @@ public class GafToLegoTranslator {
 					for(ExtensionExpression extension : extensionExpressions) {
 						final String extensionClsString = extension.getCls();
 						final String extensionRelationString = extension.getRelation();
-						final OWLClass extensionCls = graph.getOWLClassByIdentifier(extensionClsString);
+						OWLClass extensionCls = getOwlClass(extensionClsString);
+						if (extensionCls == null && extensionClsString.startsWith("UniProtKB:")) {
+							IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"pr/"+extensionClsString.substring(10));
+							extensionCls = f.getOWLClass(iri);
+						}
 						if (extensionCls == null) {
 							reportError("Could not find a class for the given extension cls identifier: "+extensionClsString, annotation);
 							continue;
@@ -227,10 +252,10 @@ public class GafToLegoTranslator {
 						}
 						operands.add(f.getOWLObjectSomeValuesFrom(extensionRelation, extensionCls));
 					}
-					if (operands.size() != extensionExpressions.size()) {
-						reportError("Problems during the translation of the annotation extensions.", annotation);
-						continue;
-					}
+//					if (operands.size() != extensionExpressions.size()) {
+//						reportError("Problems during the translation of the annotation extensions.", annotation);
+//						continue;
+//					}
 					operands.add(c);
 					ce = f.getOWLObjectIntersectionOf(operands);
 				}
@@ -353,7 +378,7 @@ public class GafToLegoTranslator {
 					reportError("Error, unknown aspect: "+aspect, annotation);
 					continue;
 				}
-
+				m.addAxioms(lego, axioms);
 			}
 			
 			return lego;
@@ -361,6 +386,22 @@ public class GafToLegoTranslator {
 		catch (OWLException e) {
 			throw new RuntimeException("Could not create lego model.", e);
 		}
+	}
+
+	/**
+	 * @param id
+	 * @return cls or null
+	 */
+	private OWLClass getOwlClass(String id) {
+		OWLClass cls = graph.getOWLClassByIdentifier(id);
+		if (cls == null) {
+			// check alt ids
+			OWLObject owlObject = allOWLObjectsByAltId.get(id);
+			if (owlObject != null && owlObject instanceof OWLClass) {
+				cls = (OWLClass) owlObject;
+			}
+		}
+		return cls;
 	}
 	
 	private void addBioEntity(OWLClass pr, OWLOntology lego, Bioentity bioentity) {
@@ -370,7 +411,7 @@ public class GafToLegoTranslator {
 			OWLOntologyManager m = lego.getOWLOntologyManager();
 			OWLDataFactory f = m.getOWLDataFactory();
 			
-			String label = null;
+			String label = bioentity.getSymbol()+" "+bioentity.getFullName();
 			OWLAnnotation annotation = f.getOWLAnnotation(f.getRDFSLabel(), f.getOWLLiteral(label));
 			
 			m.addAxiom(lego, f.getOWLDeclarationAxiom(pr, Collections.singleton(annotation)));
@@ -402,7 +443,7 @@ public class GafToLegoTranslator {
 	 */
 	public OWLOntology minimizedTranslate(GafDocument gaf) {
 		OWLOntology all = translate(gaf);
-		final OWLOntologyManager m = OWLManager.createOWLOntologyManager(all.getOWLOntologyManager().getOWLDataFactory());
+		final OWLOntologyManager m = all.getOWLOntologyManager();
 		
 		SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, all, ModuleType.BOT);
 		Set<OWLEntity> sig = new HashSet<OWLEntity>(all.getIndividualsInSignature());

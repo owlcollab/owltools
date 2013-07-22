@@ -19,12 +19,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
+import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyFormat;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.GafDocument;
@@ -40,6 +44,7 @@ import owltools.gaf.inference.Prediction;
 import owltools.gaf.io.GafWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.XgmmlWriter;
+import owltools.gaf.lego.GafToLegoTranslator;
 import owltools.gaf.owl.AnnotationExtensionFolder;
 import owltools.gaf.owl.AnnotationExtensionUnfolder;
 import owltools.gaf.owl.GAFOWLBridge;
@@ -766,5 +771,55 @@ public class GafCommandRunner extends CommandRunner {
 		stream.close();
 	}
 
+	@CLIMethod("--gaf2lego")
+	public void gaf2Lego(Opts opts) throws Exception {
+		String output = null;
+		boolean minimize = false;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-m|--minimize")) {
+				minimize = true;
+			}
+			else if (opts.nextEq("-o|--output")) {
+				output = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		if (g != null && gafdoc != null && output != null) {
+			GafToLegoTranslator translator = new GafToLegoTranslator(g, null);
+			OWLOntology lego;
+			if (minimize) {
+				lego = translator.minimizedTranslate(gafdoc);
+			}
+			else {
+				lego = translator.translate(gafdoc);
+			}
+			
+			OWLOntologyManager manager = lego.getOWLOntologyManager();
+			OutputStream outputStream = null;
+			try {
+				outputStream = new FileOutputStream(output);
+				OWLOntologyFormat format = new RDFXMLOntologyFormat();
+				manager.saveOntology(lego, format, outputStream);
+			}
+			finally {
+				IOUtils.closeQuietly(outputStream);
+			}
+		}
+		else {
+			if (output == null) {
+				System.err.println("No output file was specified.");
+			}
+			if (g == null) {
+				System.err.println("No graph available for gaf-run-check.");
+			}
+			if (gafdoc == null) {
+				System.err.println("No loaded gaf available for gaf-run-check.");
+			}
+			exit(-1);
+			return;
+		}
+	}
 
 }
