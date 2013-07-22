@@ -29,7 +29,7 @@ public class ExampleWriter {
 		final OWLOntology ontology = p.parseOWL(iri);
 		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
 
-		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature();
+		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
 
 		OWLReasonerFactory factory = new ElkReasonerFactory();
 		

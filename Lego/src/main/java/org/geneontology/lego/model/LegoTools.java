@@ -114,14 +114,14 @@ public class LegoTools {
 
 	public Collection<LegoNode> createLegoNodes(Collection<OWLNamedIndividual> individuals) throws UnExpectedStructureException {
 		List<LegoNode> nodes = new ArrayList<LegoNode>(individuals.size());
-		final OWLOntology ontology = graph.getSourceOntology();
+		Set<OWLOntology> ontologies = new HashSet<OWLOntology>(graph.getAllOntologies());
 		for (OWLNamedIndividual individual : individuals) {
-			Set<OWLClassAssertionAxiom> axioms = ontology.getClassAssertionAxioms(individual);
-			final LegoNode node = createNode(individual, axioms);
+			Set<OWLClassAssertionAxiom> axioms = getClassAxioms(individual, ontologies);
+			final LegoNode node = createNode(individual, axioms, ontologies);
 			
 			// links
 			List<LegoLink> links = new ArrayList<LegoLink>();
-			Set<OWLObjectPropertyAssertionAxiom> propertyAxioms = ontology.getObjectPropertyAssertionAxioms(individual);
+			Set<OWLObjectPropertyAssertionAxiom> propertyAxioms = getPropertyAxioms(individual, ontologies);
 			for (OWLObjectPropertyAssertionAxiom propertyAxiom : propertyAxioms) {
 				OWLIndividual object = propertyAxiom.getObject();
 				if (object instanceof OWLNamedIndividual == false) {
@@ -141,7 +141,23 @@ public class LegoTools {
 		return nodes;
 	}
 	
-	private LegoNode createNode(OWLNamedIndividual individual, Set<OWLClassAssertionAxiom> axioms)
+	private Set<OWLClassAssertionAxiom> getClassAxioms(OWLNamedIndividual individual, Set<OWLOntology> ontologies) {
+		Set<OWLClassAssertionAxiom> allAxioms = new HashSet<OWLClassAssertionAxiom>();
+		for(OWLOntology o : ontologies) {
+			allAxioms.addAll(o.getClassAssertionAxioms(individual));
+		}
+		return allAxioms;
+	}
+	
+	private Set<OWLObjectPropertyAssertionAxiom> getPropertyAxioms(OWLNamedIndividual individual, Set<OWLOntology> ontologies) {
+		Set<OWLObjectPropertyAssertionAxiom> propertyAxioms = new HashSet<OWLObjectPropertyAssertionAxiom>();
+		for(OWLOntology o : ontologies) {
+			propertyAxioms.addAll(o.getObjectPropertyAssertionAxioms(individual));
+		}
+		return propertyAxioms;
+	}
+	
+	private LegoNode createNode(OWLNamedIndividual individual, Set<OWLClassAssertionAxiom> axioms, Set<OWLOntology> ontologies)
 			throws UnExpectedStructureException
 	{
 		final OWLClassExpression type = getType(individual);
@@ -162,7 +178,7 @@ public class LegoTools {
 			 * CMF === MF and has_part some MF
 			 */
 			Set<OWLIndividual> parts = new HashSet<OWLIndividual>();
-			Set<OWLObjectPropertyAssertionAxiom> assertions = graph.getSourceOntology().getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
+			Set<OWLObjectPropertyAssertionAxiom> assertions = getAllPropertyAssertionAxioms(ontologies);
 			for (OWLObjectPropertyAssertionAxiom assertion : assertions) {
 				final OWLIndividual object = assertion.getObject();
 				final OWLObjectPropertyExpression property = assertion.getProperty();
@@ -225,6 +241,14 @@ public class LegoTools {
 		node.setUnknowns(unknowns);
 		
 		return node;
+	}
+
+	private Set<OWLObjectPropertyAssertionAxiom> getAllPropertyAssertionAxioms(Set<OWLOntology> ontologies) {
+		Set<OWLObjectPropertyAssertionAxiom> axioms = new HashSet<OWLObjectPropertyAssertionAxiom>();
+		for(OWLOntology o : ontologies) {
+			axioms.addAll(o.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION));
+		}
+		return axioms;
 	}
 	
 	private String renderIndividualName(OWLNamedIndividual individual) {
