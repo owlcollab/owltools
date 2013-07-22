@@ -232,8 +232,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("bioentity", eid); // n/a, should be c1+c2.
 			annotation_doc.addField("bioentity_internal_id", edbid); // Col. 2 (from bioentity above)
 			annotation_doc.addField("bioentity_label", esym); // Col. 3 (from bioentity above)
-			String aqual = a.getCompositeQualifier();
-			annotation_doc.addField("qualifier", aqual);  // Col. 4
+			// NOTE: Col. 4 generation is below...
 			annotation_doc.addField("annotation_class", clsId); // Col. 5
 			addLabelField(annotation_doc, "annotation_class_label", clsId); // n/a
 			// NOTE: Col. 6 generation is below...
@@ -277,6 +276,19 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 			addLabelFields(annotation_doc, "evidence_type_closure", ecoIDClosure);
 
+			// Col4/qualifier generation.
+			List<String> aquals = a.getQualifiers();
+			String comb_aqual = "";
+			if( aquals != null ){
+				for( String aqual : aquals ){
+					if( aqual != null ){
+						aqual = StringUtils.lowerCase(aqual);
+						annotation_doc.addField("qualifier", aqual);
+						comb_aqual = comb_aqual + aqual;
+					}
+				}
+			}
+			
 			// Drag in the reference (col 6). It unfortunately might be multi-valued with a pipe separation.
 			String refIdStr = a.getReferenceId();
 			String[] refIds = StringUtils.split(refIdStr, "|");
@@ -296,7 +308,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 
 			// BUG/TODO: Make the ID /really/ unique - ask Chris
-			annotation_doc.addField("id", eid +"_:_"+ aqual +"_:_"+ clsId +"_:_"+ a_ev_type +"_:_"+ assgnb +"_:_"+ etaxid +"_:_"+ adate +"_:_"+ refIdList +"_:_"+ withList);
+			annotation_doc.addField("id", eid +"_:_"+ comb_aqual +"_:_"+ clsId +"_:_"+ a_ev_type +"_:_"+ assgnb +"_:_"+ etaxid +"_:_"+ adate +"_:_"+ refIdList +"_:_"+ withList);
 
 			///
 			/// isa_partof_closure
