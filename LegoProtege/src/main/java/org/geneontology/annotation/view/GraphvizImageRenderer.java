@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -14,6 +15,7 @@ import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
@@ -101,7 +103,10 @@ public class GraphvizImageRenderer {
 				}
 				
 			};
-			Set<OWLNamedIndividual> individuals = graph.getSourceOntology().getIndividualsInSignature();
+			Set<OWLNamedIndividual> individuals = new HashSet<OWLNamedIndividual>();
+			for(OWLOntology ont : graph.getAllOntologies()) {
+				individuals.addAll(ont.getIndividualsInSignature());
+			}
 			dotWriter.render(individuals, null, true);
 			
 			// Step 2: render png file using graphiz (i.e. dot)
