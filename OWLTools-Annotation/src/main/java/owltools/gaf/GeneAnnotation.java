@@ -355,14 +355,21 @@ public class GeneAnnotation {
 
 	}
 
+	/**
+	 * Retrieve the list of qualifiers. Split the composite string, if
+	 * necessary.
+	 * 
+	 * @return list, never null
+	 */
 	public List<String> getQualifiers() {
-		if (compositeQualifier != null) {
+		if (compositeQualifier != null && compositeQualifier.isEmpty() == false) {
 			String[] split = StringUtils.split(compositeQualifier, '|');
 			if (split.length > 1) {
 				return Arrays.asList(split);
 			}
+			return Collections.singletonList(compositeQualifier);
 		}
-		return Collections.singletonList(compositeQualifier);
+		return Collections.emptyList();
 	}
 
 	public String getCompositeQualifier() {
