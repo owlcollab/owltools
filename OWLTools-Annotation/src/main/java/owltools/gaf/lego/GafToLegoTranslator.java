@@ -1,7 +1,6 @@
 package owltools.gaf.lego;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -9,11 +8,8 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.obo2owl.Obo2Owl;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -26,7 +22,6 @@ import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
@@ -411,10 +406,14 @@ public class GafToLegoTranslator {
 			OWLOntologyManager m = lego.getOWLOntologyManager();
 			OWLDataFactory f = m.getOWLDataFactory();
 			
-			String label = bioentity.getSymbol()+" "+bioentity.getFullName();
-			OWLAnnotation annotation = f.getOWLAnnotation(f.getRDFSLabel(), f.getOWLLiteral(label));
+			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+			axioms.add(f.getOWLDeclarationAxiom(pr));
 			
-			m.addAxiom(lego, f.getOWLDeclarationAxiom(pr, Collections.singleton(annotation)));
+			String label = bioentity.getSymbol()+" - "+bioentity.getFullName();
+			
+			axioms.add(f.getOWLAnnotationAssertionAxiom(f.getRDFSLabel(), pr.getIRI(), f.getOWLLiteral(label)));
+			
+			m.addAxioms(lego, axioms);
 		}
 	}
 
