@@ -9,6 +9,7 @@
 	<inceptionYear>2012</inceptionYear>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<owlapi.version>3.4.3</owlapi.version>
 	</properties>
 
 	<build>
@@ -102,6 +103,41 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+				<groupId>net.sourceforge.owlapi</groupId>
+				<artifactId>owlapi-apibinding</artifactId>
+				<version>${owlapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sourceforge.owlapi</groupId>
+				<artifactId>owlapi-api</artifactId>
+				<version>${owlapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sourceforge.owlapi</groupId>
+				<artifactId>owlapi-contract</artifactId>
+				<version>${owlapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sourceforge.owlapi</groupId>
+				<artifactId>owlapi-distribution</artifactId>
+				<version>${owlapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sourceforge.owlapi</groupId>
+				<artifactId>owlapi-impl</artifactId>
+				<version>${owlapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sourceforge.owlapi</groupId>
+				<artifactId>owlapi-parsers</artifactId>
+				<version>${owlapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sourceforge.owlapi</groupId>
+				<artifactId>owlapi-tools</artifactId>
+				<version>${owlapi.version}</version>
+			</dependency>
+		<dependency>
 			<groupId>org.bbop</groupId>
 			<artifactId>OWLTools-Annotation</artifactId>
 			<version>0.2.1-SNAPSHOT</version>
@@ -109,6 +145,18 @@
 				<exclusion>
 					<groupId>org.coode</groupId>
 					<artifactId>oppl2</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jline</groupId>
+					<artifactId>jline</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>de.derivo</groupId>
+					<artifactId>sparqldl-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.ant</groupId>
+					<artifactId>ant</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
