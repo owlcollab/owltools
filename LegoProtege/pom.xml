@@ -102,6 +102,30 @@
 					<artifactId>owlapi-apibinding</artifactId>
 				</exclusion>
 				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-contract</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-distribution</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-impl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-parsers</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>owlapi-tools</artifactId>
+				</exclusion>
+				<exclusion>
 					<artifactId>factplusplus</artifactId>
 					<groupId>uk.ac.manchester.cs</groupId>
 				</exclusion>
@@ -132,6 +156,14 @@
 				<exclusion>
 					<artifactId>gson</artifactId>
 					<groupId>com.google.code.gson</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.semanticweb.more</groupId>
+					<artifactId>more-reasoner</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.sourceforge.owlapi</groupId>
+					<artifactId>jfact</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
