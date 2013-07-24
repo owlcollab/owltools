@@ -18,6 +18,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
@@ -775,12 +776,19 @@ public class GafCommandRunner extends CommandRunner {
 	public void gaf2Lego(Opts opts) throws Exception {
 		String output = null;
 		boolean minimize = false;
+		OWLOntologyFormat format = new RDFXMLOntologyFormat();
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-m|--minimize")) {
 				minimize = true;
 			}
 			else if (opts.nextEq("-o|--output")) {
 				output = opts.nextOpt();
+			}
+			else if (opts.nextEq("--format")) {
+				String formatString = opts.nextOpt();
+				if ("manchester".equalsIgnoreCase(formatString)) {
+					format = new ManchesterOWLSyntaxOntologyFormat();
+				}
 			}
 			else {
 				break;
@@ -800,7 +808,6 @@ public class GafCommandRunner extends CommandRunner {
 			OutputStream outputStream = null;
 			try {
 				outputStream = new FileOutputStream(output);
-				OWLOntologyFormat format = new RDFXMLOntologyFormat();
 				manager.saveOntology(lego, format, outputStream);
 			}
 			finally {
