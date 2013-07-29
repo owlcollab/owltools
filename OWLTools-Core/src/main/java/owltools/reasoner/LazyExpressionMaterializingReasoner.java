@@ -4,6 +4,7 @@ package owltools.reasoner;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -112,7 +113,8 @@ public class LazyExpressionMaterializingReasoner extends OWLReasonerBase impleme
 	}
 	
 	private OWLClass materializeExpression(OWLClassExpression ce) {
-		OWLClass qc = dataFactory.getOWLClass(IRI.create("http://owltools.org/Q"));
+		UUID uuid = UUID.randomUUID();
+		OWLClass qc = dataFactory.getOWLClass(IRI.create("http://owltools.org/Q/"+uuid.toString()));
 		manager.removeAxioms(ontology, 		ontology.getAxioms(qc));
 		OWLEquivalentClassesAxiom ax = dataFactory.getOWLEquivalentClassesAxiom(ce, qc);
 		manager.addAxiom(ontology, ax);
