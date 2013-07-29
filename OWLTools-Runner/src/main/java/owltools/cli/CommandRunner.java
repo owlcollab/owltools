@@ -157,6 +157,7 @@ import owltools.mooncat.SpeciesSubsetterUtil;
 import owltools.mooncat.ontologymetadata.ImportChainDotWriter;
 import owltools.mooncat.ontologymetadata.ImportChainExtractor;
 import owltools.mooncat.ontologymetadata.OntologyMetadataMarkdownWriter;
+import owltools.ontologyrelease.OboBasicDagCheck;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.GraphReasonerFactory;
@@ -3223,6 +3224,25 @@ public class CommandRunner {
 		}
 	}
 
+	@CLIMethod("--run-obo-basic-dag-check")
+	public void runDAGCheck(Opts opts) throws Exception {
+		if (g != null) {
+			List<List<OWLObject>> cycles = OboBasicDagCheck.findCycles(g);
+			if (cycles != null && !cycles.isEmpty()) {
+				OWLPrettyPrinter pp = getPrettyPrinter();
+				System.err.println("Found cycles in the graph");
+				for (List<OWLObject> cycle : cycles) {
+					StringBuilder sb = new StringBuilder("Cycle:");
+					for (OWLObject owlObject : cycle) {
+						sb.append(" ");
+						sb.append(pp.render(owlObject));
+					}
+					System.err.println(sb);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Retain only subclass of axioms and intersection of axioms if they contain
 	 * a class in it's signature of a given set of parent terms.
