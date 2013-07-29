@@ -41,11 +41,22 @@ public class LegoTools {
 	private final OWLClass mf;
 	private final OWLClass bp;
 	
+	private final boolean ignoreUnknownTypes;
+	
 	/**
 	 * @param graph
 	 * @param reasoner
 	 */
 	public LegoTools(OWLGraphWrapper graph, OWLReasoner reasoner) {
+		this(graph, reasoner, false);
+	}
+	
+	/**
+	 * @param graph
+	 * @param reasoner
+	 * @param ignoreUnknownTypes 
+	 */
+	public LegoTools(OWLGraphWrapper graph, OWLReasoner reasoner, boolean ignoreUnknownTypes) {
 		this(graph, reasoner,
 			findProperties(graph, "http://purl.obolibrary.org/obo/enabled_by"), // enabled_by
 			findProperties(graph, 
@@ -55,7 +66,8 @@ public class LegoTools {
 					"http://purl.obolibrary.org/obo/BFO_0000050", // part_of
 					"http://purl.obolibrary.org/obo/part_of"),
 			graph.getOWLClassByIdentifier("GO:0003674"), // molecular function 
-			graph.getOWLClassByIdentifier("GO:0008150")); // biological process 
+			graph.getOWLClassByIdentifier("GO:0008150"), // biological process
+			ignoreUnknownTypes);
 	}
 
 	/**
@@ -66,12 +78,14 @@ public class LegoTools {
 	 * @param part_of
 	 * @param mf
 	 * @param bp 
+	 * @param ignoreUnknownTypes
 	 */
 	protected LegoTools(OWLGraphWrapper graph, OWLReasoner reasoner,
 			Set<OWLObjectProperty> enabled_by, Set<OWLObjectProperty> occurs_in,
 			Set<OWLObjectProperty> part_of,
 			OWLClass mf,
-			OWLClass bp)
+			OWLClass bp,
+			boolean ignoreUnknownTypes)
 	{
 		this.graph = graph;
 		this.reasoner = reasoner;
@@ -80,6 +94,7 @@ public class LegoTools {
 		this.part_of = part_of;
 		this.mf = mf;
 		this.bp = bp;
+		this.ignoreUnknownTypes = ignoreUnknownTypes;
 	}
 	
 	private static Set<OWLObjectProperty> findProperties(OWLGraphWrapper graph, String...iris) {
@@ -118,24 +133,25 @@ public class LegoTools {
 		for (OWLNamedIndividual individual : individuals) {
 			Set<OWLClassAssertionAxiom> axioms = getClassAxioms(individual, ontologies);
 			final LegoNode node = createNode(individual, axioms, ontologies);
-			
-			// links
-			List<LegoLink> links = new ArrayList<LegoLink>();
-			Set<OWLObjectPropertyAssertionAxiom> propertyAxioms = getPropertyAxioms(individual, ontologies);
-			for (OWLObjectPropertyAssertionAxiom propertyAxiom : propertyAxioms) {
-				OWLIndividual object = propertyAxiom.getObject();
-				if (object instanceof OWLNamedIndividual == false) {
-					throw new UnExpectedStructureException("Expected a named individual for a link: "+propertyAxiom);
+			if (node != null) {
+				// links
+				List<LegoLink> links = new ArrayList<LegoLink>();
+				Set<OWLObjectPropertyAssertionAxiom> propertyAxioms = getPropertyAxioms(individual, ontologies);
+				for (OWLObjectPropertyAssertionAxiom propertyAxiom : propertyAxioms) {
+					OWLIndividual object = propertyAxiom.getObject();
+					if (object instanceof OWLNamedIndividual == false) {
+						throw new UnExpectedStructureException("Expected a named individual for a link: "+propertyAxiom);
+					}
+					OWLNamedIndividual namedTarget = (OWLNamedIndividual) object;
+					OWLObjectPropertyExpression property = propertyAxiom.getProperty();
+					links.add(new LegoLink(namedTarget, property));
 				}
-				OWLNamedIndividual namedTarget = (OWLNamedIndividual) object;
-				OWLObjectPropertyExpression property = propertyAxiom.getProperty();
-				links.add(new LegoLink(namedTarget, property));
+				if (!links.isEmpty()) {
+					node.setLinks(links);
+				}
+				
+				nodes.add(node);
 			}
-			if (!links.isEmpty()) {
-				node.setLinks(links);
-			}
-			
-			nodes.add(node);
 		}
 		
 		return nodes;
@@ -198,7 +214,9 @@ public class LegoTools {
 			node.setBp(true);
 		}
 		else {
-			throw new UnExpectedStructureException("The individual: "+renderIndividualName(individual)+" is neither molecular_function or biological_process as a parent.");
+			if (ignoreUnknownTypes == false) {
+				throw new UnExpectedStructureException("The individual: "+renderIndividualName(individual)+" is neither molecular_function or biological_process as a parent.");
+			}
 		}
 		
 		List<OWLClassExpression> cellularLocations = new ArrayList<OWLClassExpression>();
