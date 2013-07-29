@@ -160,7 +160,11 @@ public class LegoTools {
 	private LegoNode createNode(OWLNamedIndividual individual, Set<OWLClassAssertionAxiom> axioms, Set<OWLOntology> ontologies)
 			throws UnExpectedStructureException
 	{
-		final OWLClassExpression type = getType(individual);
+		OWLClassExpression type = getType(individual);
+		if (type == null) {
+			// assume MF if no type can be inferred
+			type = mf;
+		}
 		LegoNode node = new LegoNode(individual, type);
 		final NodeSet<OWLClass> superClasses = reasoner.getSuperClasses(type, false);
 		if (superClasses.containsEntity(mf) || mf.equals(type)) {
