@@ -1,3 +1,4 @@
+
 importPackage(java.io);
 importPackage(Packages.org.semanticweb.owlapi.model);
 importPackage(Packages.org.semanticweb.owlapi.io);
@@ -18,9 +19,14 @@ var currentFile;
 var currentFmt;
 var currentFrame;
 var labelToIRIMap = {};
+var gen;
+var o = {}; // ontology class lookup
 
 function wg() {
     return gen;
+}
+function setGen(newg) {
+    gen = newg;
 }
 function maker() {
     return gen.getMaker();
@@ -141,6 +147,21 @@ function getSubClasses(expr,isDirect,isReflexive) {
     return subcs.toArray();
 }
 
+function getRoots() {
+    var classes = ont().getClassesInSignature().toArray();
+    var roots = [];
+    for (var k in classes) {
+        var c = classes[k];
+        if (isDeprecated(c)) {
+            continue;
+        }
+        if (c.getSuperClasses(ont()).size() == 0) {
+            roots.push(c);
+        }
+    }
+    return roots;
+}
+
 function obo(id) {
     return "http://purl.obolibrary.org/obo/"+id;
 }
@@ -158,6 +179,7 @@ function lookup(label) {
     return g().getOWLObjectByLabel(label);
 }
 
+// NOTE: in ringojs, returns a string; in rhino a java.lang.String
 function getLabel(obj) {
     return g().getLabel(obj);
 }
@@ -182,19 +204,19 @@ function df() {
 // note we assume object expressions for now - in future this should auto-detect
 
 
-someValuesFrom = function() {return maker().someValuesFrom.apply(maker(),arguments)};
-intersectionOf = function() {return maker().intersectionOf.apply(maker(),arguments)};
-subClassOf = function() {return maker().subClassOf.apply(maker(),arguments)};
-classAssertion = function() {return maker().classAssertion.apply(maker(),arguments)};
-equivalentClasses = function() {return maker().equivalentClasses.apply(maker(),arguments)};
-disjointClasses = function() {return maker().disjointClasses.apply(maker(),arguments)};
-annotationAssertion = function() {return maker().annotationAssertion.apply(maker(),arguments)};
-labelAssertion = function() {return maker().labelAssertion.apply(maker(),arguments)};
-ann = function() {return maker().ann.apply(maker(),arguments)};
-literal = function() {return maker().literal.apply(maker(),arguments)};
+var someValuesFrom = function() {return maker().someValuesFrom.apply(maker(),arguments)};
+var intersectionOf = function() {return maker().intersectionOf.apply(maker(),arguments)};
+var subClassOf = function() {return maker().subClassOf.apply(maker(),arguments)};
+var classAssertion = function() {return maker().classAssertion.apply(maker(),arguments)};
+var equivalentClasses = function() {return maker().equivalentClasses.apply(maker(),arguments)};
+var disjointClasses = function() {return maker().disjointClasses.apply(maker(),arguments)};
+var annotationAssertion = function() {return maker().annotationAssertion.apply(maker(),arguments)};
+var labelAssertion = function() {return maker().labelAssertion.apply(maker(),arguments)};
+var ann = function() {return maker().ann.apply(maker(),arguments)};
+var literal = function() {return maker().literal.apply(maker(),arguments)};
 
 // util
-isDeprecated = function() {return wg().isDeprecated.apply(wg(),arguments)};
+var isDeprecated = function() {return wg().isDeprecated.apply(wg(),arguments)};
 
 function makeFrame(sm) {
     return new bbop.owl.OWLFrame(wg(), sm);
@@ -224,7 +246,7 @@ function addAxiom(ax) {
     applyChange(change);
 }
 function addAxioms(axs) {
-    for (k in axs) {
+    for (var k in axs) {
         addAxiom(axs[k]);
     }
 }
@@ -234,7 +256,7 @@ function removeAxiom(ax) {
     //g().getManager().removeAxiom(ont(),ax);    
 }
 function removeAxioms(axs) {
-    for (k in axs) {
+    for (var k in axs) {
         removeAxiom(axs[k]);
     }
 }
@@ -251,7 +273,7 @@ function saveAxioms(obj, file, owlFormat) {
     if (obj instanceof bbop.owl.OWLFrame) {
         axioms = obj.toAxioms();
     }
-    for (k in axioms) {
+    for (var k in axioms) {
         gen.getManager().addAxiom(tmpOnt, axioms[k]);
     }
     var pw = new ParserWrapper();
@@ -378,7 +400,7 @@ function recapitulateAssertions(baseCls) {
     print("CANDIDATE AXIOMS: "+axioms.length);
 
     var n_new = 0;
-    for (k in classes) {
+    for (var k in classes) {
         var c = classes[k];
         var assertedSups = c.getSuperClasses(ont()).toArray();
         var inferredSups = getReasoner().getSuperClasses(c, true).getFlattened().toArray();
@@ -394,7 +416,7 @@ function recapitulateAssertions(baseCls) {
     print("Justifying. # axioms to check = "+axioms.length);
 
     var rmAxioms = [];
-    for (k in axioms) {
+    for (var k in axioms) {
         var ax = axioms[k];
         if (classes.indexOf(ax.getSuperClass()) > -1) {
             print("RM: "+ax);
@@ -404,7 +426,7 @@ function recapitulateAssertions(baseCls) {
     print("REMOVING :"+rmAxioms.length);
     removeAxioms(rmAxioms);
 
-    for (k in rmAxioms) {
+    for (var k in rmAxioms) {
         var ax = rmAxioms[k];
         var sub = ax.getSubClass();
         var sup = ax.getSuperClass();
@@ -424,16 +446,29 @@ function recapitulateAssertions(baseCls) {
     print("DONE");
 }
 
+// this is temporary until we resolve ringo vs rhino differences
+function javaString(s) {
+    if (s == null) {
+        return null;
+    }
+    if (s.replaceAll != null) {
+        return s;
+    }
+    return new java.lang.String(s);
+}
+
 // ========================================
 // OWL MANIPULATION
 // ========================================
 
 function getClassVariableName(obj) {
     var label = getLabel(obj);
+    label = javaString(label); // TODO
     if (label == null && obj.getIRI != null) {
         var iri = obj.getIRI();
         if (iri != null) {
             label = iri.toString();
+            label = javaString(label); // TODO
             if (label.contains("#")) {
                 label = label.replaceAll(".*#","");
             }
@@ -450,6 +485,7 @@ function getClassVariableName(obj) {
 }
 
 function safeify(label) {
+    label = javaString(label);
     label = label.replaceAll("\\W", "_");
     var c1 = label.substr(0,1);
     if (c1 >= '0' && c1 <= '9') {
@@ -470,7 +506,7 @@ function getAllOWLObjects() {
 // TODO - warn if dupe label
 function setClassVars() {
     var objs = getAllOWLObjects();
-    for (k in objs) {
+    for (var k in objs) {
         var obj = objs[k];
         if (!(obj instanceof OWLObject)) {
             continue;
@@ -487,7 +523,7 @@ function setClassVars() {
         }
         if (label != null) {
             //debug(" llabel="+label);
-            eval(label+" = obj");
+            eval("o."+label+" = obj");
         }
     }
 }
@@ -505,7 +541,7 @@ function indexOnt() {
     objmap = {};
     var objs = getAllOWLObjects();
     //var objs = g().getAllOWLObjects().toArray();;
-    for (k in objs) {
+    for (var k in objs) {
         var obj = objs[k];
         var label = getClassVariableName(obj);
         if (label != null) {
@@ -645,7 +681,7 @@ function owl(obj) {
 function showAxioms() {
     var owlpp = new OWLPrettyPrinter(g());  
     var axioms = ont().getAxioms().toArray();
-    for (k in axioms) {
+    for (var k in axioms) {
         print(owlpp.render(axioms[k]));
     }
 }

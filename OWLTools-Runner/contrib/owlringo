@@ -1,0 +1,85 @@
+#!/bin/sh
+
+CLASSPATH_LITERAL=""
+
+PATH_SEP=":"
+
+JAVAARGS=" "
+CMDARGS=" "
+
+PATH_TO_ME=`which $0`;
+
+#Now see if the path is actually a symbolic link. If it is, set TEMP
+#to true
+TEMP=`ls -l $PATH_TO_ME | sed -e "s/.* -> \(.*\)/true/g"`
+if [ -z "$TEMP" ]
+then
+   TEMP='false';
+fi
+
+#While we keep finding symbolic links...
+while [ "$TEMP" = "true" ]
+do
+   #Parse the ls output and set PATH_TO_ME to the actual location of the
+   #symbolic link
+   PATH_TO_ME=`ls -l $PATH_TO_ME | sed -e "s/.* -> \(.*\)/\1/g"`
+
+   TEMP=`ls -l $PATH_TO_ME | sed -e "s/.* -> \(.*\)/true/g"`
+   if [ -z "$TEMP" ]
+   then
+      TEMP='false'
+   fi
+done
+
+#If PATH_TO_ME is a relative link, set TEMP to true, otherwise set
+#TEMP to false
+TEMP=`echo $PATH_TO_ME | sed -e "s/^\/.*/true/g"`
+if [ -z "$TEMP" ]
+then
+   TEMP='false'
+fi
+
+#If PATH_TO_ME was a relative link, change it to an absolute reference
+if [ $TEMP != 'true' ]
+then
+   PATH_TO_ME="$PWD/$PATH_TO_ME"
+fi
+
+SCRIPTNAME=`echo $PATH_TO_ME | sed -e "s/.*\/\(.*\)/\1/g"`
+
+#Remove the name of this script from the end of the path
+PATH_TO_ME=`echo $PATH_TO_ME | sed -e "s/\(.*\)\/.*/\1/g"`
+
+
+
+## Assumption: all classes including rhino are packed into
+## owltools-runner-all.jar
+## These will be resolved into absolute pathnames
+DEFAULT_OWLTOOLS_LOCATION=../bin/owltools-runner-all.jar
+ALTERNATIVE_OWLTOOLS_LOCATION=../owltools-runner-all.jar
+
+if [ -f  $PATH_TO_ME/$DEFAULT_OWLTOOLS_LOCATION ];
+then
+   CLASSPATH_RELATIVE=$DEFAULT_OWLTOOLS_LOCATION;
+else
+   if [ -f  $PATH_TO_ME/$ALTERNATIVE_OWLTOOLS_LOCATION ];
+   then
+      CLASSPATH_RELATIVE=$ALTERNATIVE_OWLTOOLS_LOCATION;
+   else
+      echo "Cannot find owltools-runner-all.jar in any of the expected locations";
+      exit 1
+   fi
+fi
+
+DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$CLASSPATH_RELATIVE | grep -v ontologyrelease`
+
+
+
+export OWLTOOLS_JAR_PATH=$DEREFERENCED_CLASSPATH
+export OWLRUNNER_SOURCE=$PATH_TO_ME/owlrunner.js
+
+#BOOT="-b $PATH_TO_ME/pachyowl.js -b $PATH_TO_ME/owlrunner.js"
+BOOT="-b $PATH_TO_ME/owlringo.js -b $PATH_TO_ME/pachyowl.js -b $PATH_TO_ME/owlrunner.js"
+ringo $BOOT "$@"
+#ringo $BOOT -e "addToClasspath('$DEREFERENCED_CLASSPATH')" "$@"
+

@@ -1056,12 +1056,15 @@ bbop.owl.OWLFrame.prototype.axiomsToFrame = function(axioms, id) {
  */
 bbop.owl.OWLFrame.prototype.merge = function(f2) {
     for (k in f2.slotMap) {
+        if (k == 'id') {
+            continue;
+        }
         if (this.slotMap[k] == null) {
             this.slotMap[k] = f2.slotMap[k];
         }
         else if (this.slotMap[k] instanceof Array) {
             if (f2.slotMap[k] instanceof Array) {
-                this.slotMap[k] = this.slotMap.concat(f2.slotMap[k]);
+                this.slotMap[k] = this.slotMap[k].concat(f2.slotMap[k]);
             }
             else {
                 this.slotMap[k].push(f2.slotMap[k]);
@@ -1074,10 +1077,16 @@ bbop.owl.OWLFrame.prototype.merge = function(f2) {
                 this.slotMap[k] = f2.slotMap[k].concat(cur);
             }
             else {
-                this.slotMap[k] = [this.slotMap[k], f2.slotMap[k]];
+                if (this.slotMap[k] == f2.slotMap[k]) {
+                    // identical - no op
+                }
+                else {
+                    this.slotMap[k] = [this.slotMap[k], f2.slotMap[k]];
+                }
             }
         }
     }
+    return this;
 };
 
 /* Function: set
