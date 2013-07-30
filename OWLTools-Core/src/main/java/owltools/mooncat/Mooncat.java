@@ -598,6 +598,7 @@ public class Mooncat {
 	 * @return boolean
 	 */
 	public boolean isDangling(OWLOntology ont, OWLEntity obj) {
+		// TODO - import closure
 		if (obj.getAnnotationAssertionAxioms(ont).size()  == 0 ) {
 			// in future also consider logical axioms;
 			/// problematic - e.g. for symmetric axioms like disjointWith
@@ -654,6 +655,11 @@ public class Mooncat {
 	public Set<OWLAxiom> getDanglingAxioms(OWLOntology ont) {
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLClass obj : ont.getClassesInSignature()) {
+			if (isDangling(ont, obj)) {
+				rmAxioms.addAll(ont.getReferencingAxioms(obj));
+			}
+		}
+		for (OWLNamedIndividual obj : ont.getIndividualsInSignature()) {
 			if (isDangling(ont, obj)) {
 				rmAxioms.addAll(ont.getReferencingAxioms(obj));
 			}
