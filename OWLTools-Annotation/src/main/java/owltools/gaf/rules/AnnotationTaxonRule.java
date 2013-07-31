@@ -27,6 +27,7 @@ import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
+import owltools.reasoner.PrecomputingMoreReasonerFactory;
 
 /**
  * Checks if an annotation is valid according to taxon constraints.
@@ -94,6 +95,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		final OWLOntology ontology = graph.getSourceOntology();
 		
 //		OWLReasoner reasoner = createHermit(ontology);
+//		OWLReasoner reasoner = createMore(ontology);
 		OWLReasoner reasoner = createElk(ontology);
 		try {
 			boolean consistent = reasoner.isConsistent();
@@ -158,6 +160,11 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 
 	private OWLReasoner createElk(OWLOntology ontology) {
 		ElkReasonerFactory factory = new ElkReasonerFactory();
+		return factory.createReasoner(ontology);
+	}
+	
+	private OWLReasoner createMore(OWLOntology ontology) {
+		PrecomputingMoreReasonerFactory factory = PrecomputingMoreReasonerFactory.getMoreHermitFactory();
 		return factory.createReasoner(ontology);
 	}
 	
