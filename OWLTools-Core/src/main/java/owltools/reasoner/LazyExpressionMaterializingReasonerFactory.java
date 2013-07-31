@@ -8,6 +8,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerConfiguration;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 
+@Deprecated
 public class LazyExpressionMaterializingReasonerFactory implements OWLReasonerFactory {
 
     public String getReasonerName() {

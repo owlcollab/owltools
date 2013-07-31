@@ -51,8 +51,9 @@ import org.semanticweb.owlapi.util.Version;
  * Primarily for use with Elk (0.3)
  * 
  * @author cjm
- *
+ * @deprecated This is no longer necessary as ELK 0.4 supports queries using class expressions.
  */
+@Deprecated
 public class LazyExpressionMaterializingReasoner extends OWLReasonerBase implements OWLReasoner {
 
 	private static Logger LOG = Logger.getLogger(LazyExpressionMaterializingReasoner.class);

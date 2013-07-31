@@ -67,7 +67,7 @@ public abstract class AbstractReasonerTest extends OWLToolsTestBasics {
 			System.out.println("  D:"+c);
 		}
 		if (numExpected != null) {
-			assertTrue(numExpected == clzs.size());
+			assertEquals(numExpected.intValue(), clzs.size());
 		}
 		return clzs;
 	}
@@ -79,7 +79,7 @@ public abstract class AbstractReasonerTest extends OWLToolsTestBasics {
 			System.out.println("  I:"+i);
 		}
 		if (numExpected != null) {
-			assertTrue(numExpected == inds.size());
+			assertEquals(numExpected.intValue(), inds.size());
 		}
 		return inds;
 	}

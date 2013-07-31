@@ -161,7 +161,6 @@ import owltools.ontologyrelease.OboBasicDagCheck;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.GraphReasonerFactory;
-import owltools.reasoner.LazyExpressionMaterializingReasonerFactory;
 import owltools.reasoner.OWLExtendedReasoner;
 import owltools.reasoner.PrecomputingMoreReasonerFactory;
 import owltools.sim2.preprocessor.ABoxUtils;
@@ -3582,7 +3581,8 @@ public class CommandRunner {
 			reasonerFactory = new ElkReasonerFactory();	
 		}
 		else if (reasonerName.equals("welk")) {
-			reasonerFactory = new LazyExpressionMaterializingReasonerFactory();	
+			System.out.println("The wrapping elk reasoner is deprecated, using normal elk instead");
+			reasonerFactory = new ElkReasonerFactory();	
 		}
 		else if (reasonerName.equals("cb")) {
 			Class<?> rfc;
