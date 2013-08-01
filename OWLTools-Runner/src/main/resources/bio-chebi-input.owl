@@ -8,6 +8,7 @@
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <owl:Ontology rdf:about="http://purl.obolibrary.org/obo/go/extensions/bio-chebi.owl">
         <owl:imports rdf:resource="http://purl.obolibrary.org/obo/chebi.owl"/>
+        <owl:imports rdf:resource="http://purl.obolibrary.org/obo/go/extensions/substance_by_role.owl"/>
     </owl:Ontology>    
 
     <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0000057"/>
