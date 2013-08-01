@@ -21,15 +21,40 @@ var count = resultObj.count;
 //console.log(count);
 var tickets = resultObj.tickets;
 
-print(oname+" new tickets for "+range);
-print("\n");
-var body = "";
-for (var k=0; k<tickets.length; k++) {
-    var ticket = tickets[k];
+print("<h2>Summary of new tickets from "+yesterday.toISOString()+" to "+today.toISOString()+"</h2>");
+if (tickets !== undefined && tickets.length > 0) {
 
-    // Example: http://sourceforge.net/p/geneontology/ontology-requests/10193/ cilium/flagellum 
-    body += ' * <a href="http://sourceforge.net/p/'+oname+'/ontology-requests/'+ticket.ticket_num+'/">' + ticket.ticket_num + '</a>';
-    body += "\t" + ticket.summary + "\n";
+	if (tickets.length === 1) {
+		print("There is one new ticket.");
+	}
+	else {
+		print("There are "+tickets.length+" new tickets.");
+	}
+	
+	var body = "<ul>\n";
+	for (var k=0; k<tickets.length; k++) {
+	    var ticket = tickets[k];
+	
+	    // Example: http://sourceforge.net/p/geneontology/ontology-requests/10193/ cilium/flagellum 
+	    body += '<li>';
+	    body += '<a href="http://sourceforge.net/p/'+oname+'/ontology-requests/'+ticket.ticket_num+'/">' + ticket.ticket_num + '</a>';
+	    body += " ";
+	    body += makeHtmlSave(ticket.summary);
+	    body += '</li>\n';
+	}
+	body += "</ul>"
+	print(body);
 }
-print(body);
+else {
+	print("<p>There have been no new tickets.</p>");
+}
 
+function makeHtmlSave(s) {
+	// rempve all non-ascii symbols with a '?'
+	s = s.replace(/[^A-Za-z 0-9 \.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g, '') ;
+	// escape html specific characters 
+	return s.replace(/&/g, '&amp;')
+    	.replace(/"/g, '&quot;')
+    	.replace(/>/g, '&gt;')
+    	.replace(/</g, '&lt;');
+}
