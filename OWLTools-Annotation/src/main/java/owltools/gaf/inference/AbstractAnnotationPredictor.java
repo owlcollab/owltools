@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
@@ -25,15 +24,12 @@ import owltools.graph.OWLGraphWrapper;
  */
 public abstract class AbstractAnnotationPredictor implements AnnotationPredictor {
 
-	protected static Logger LOG = Logger.getLogger(CompositionalClassPredictor.class);
-
 	private GafDocument gafDocument;
 	private OWLGraphWrapper graph;
 	private boolean removeAllRedundant = true;
 
 
-	public AbstractAnnotationPredictor(GafDocument gafDocument,
-			OWLGraphWrapper graph) {
+	public AbstractAnnotationPredictor(GafDocument gafDocument, OWLGraphWrapper graph) {
 		super();
 		this.gafDocument = gafDocument;
 		this.graph = graph;
