@@ -40,8 +40,6 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	private OWLReasoner reasoner = null;
 	private Set<OWLClass> relevantClasses;
 	private Map<OWLClassExpression, Set<OWLClass>> reasonerCache = new HashMap<OWLClassExpression, Set<OWLClass>>();
-	private int hitCounter = 0;
-	private int missCounter = 0;
 
 	public FoldBasedPredictor(GafDocument gafDocument, OWLGraphWrapper graph) {
 		super(gafDocument, graph);
@@ -124,10 +122,6 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 							directSuperClasses = Collections.emptySet();
 						}
 						reasonerCache.put(intersectionOf, directSuperClasses);
-						missCounter += 1;
-					}
-					else {
-						hitCounter += 1;
 					}
 					for (OWLClass directSuperClass : directSuperClasses) {
 						if (directSuperClass.isBuiltIn()) {
@@ -168,10 +162,8 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			reasoner.dispose();
 		}
 		if (reasonerCache != null) {
-			System.err.println("Disposing cache, total hit count: "+hitCounter+" total miss count: "+missCounter);
 			reasonerCache.clear();
 			reasonerCache = null;
-			
 		}
 		
 	}
