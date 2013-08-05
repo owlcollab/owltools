@@ -37,53 +37,55 @@ function main(args) {
 	var range = yesterday.toISOString()+"+TO+"+today.toISOString();
 	//console.log(range);
 	
-	//EXAMPLE = "http://sourceforge.net/rest/p/geneontology/ontology-requests/search?q=created_date_dt:[2013-07-30T00:00:00Z%20TO%202013-07-30T23:59:59Z]";
-	var url = 'http://sourceforge.net/rest/p/'+oname+'/'+trackername+'/search?q=created_date_dt:['+range+']';
-	//console.log(url);
-	var exchange = httpclient.get(url);
-	var payload = exchange.content;
-	if (exchange.status === 200) {
-		//console.log(payload);
-		var resultObj = JSON.parse(payload);
-		var count = resultObj.count;
-		//console.log(count);
-		var tickets = resultObj.tickets;
+	var newTickets = getNewTickets(oname, trackername, range);
+	var modTickets = getUpdatedTickets(oname, trackername, range);
+	
+	print("<h2>Summary for tickets from "+yesterday.toISOString()+" to "+today.toISOString()+"</h2>");
+	printNewTickets(newTickets, oname);
+	printUpdatedTickets(modTickets, oname);
+	
+}
+
+function printNewTickets(tickets, oname) {
+	printTickets(tickets, oname, 'new', 'New');
+}
+
+function printUpdatedTickets(tickets, oname) {
+	printTickets(tickets, oname, 'updated', 'Updated');
+}
+
+function printTickets(tickets, oname, type, typeUpperCase) {
+	print("<h3>"+typeUpperCase+" Tickets</h3>");
+	if (tickets !== undefined && tickets.length > 0) {
 		
-		print("<h2>Summary of new tickets from "+yesterday.toISOString()+" to "+today.toISOString()+"</h2>");
-		if (tickets !== undefined && tickets.length > 0) {
-		
-			if (tickets.length === 1) {
-				print("There is one new ticket.");
-			}
-			else {
-				print("There are "+tickets.length+" new tickets.");
-			}
-			
-			var body = "<ul>\n";
-			for (var k=0; k<tickets.length; k++) {
-			    var ticket = tickets[k];
-			
-			    // Example: http://sourceforge.net/p/geneontology/ontology-requests/10193/ cilium/flagellum 
-			    body += '<li>';
-			    body += '<a href="http://sourceforge.net/p/'+oname+'/ontology-requests/'+ticket.ticket_num+'/">' + ticket.ticket_num + '</a>';
-			    body += " ";
-			    body += makeHtmlSave(ticket.summary);
-			    body += '</li>\n';
-			}
-			body += "</ul>"
-			print(body);
+		if (tickets.length === 1) {
+			print("There is one "+type+" ticket.");
 		}
 		else {
-			print("<p>There have been no new tickets.</p>");
+			print("There are "+tickets.length+" "+type+" tickets.");
 		}
-	}
-	else {
-		//console.log(payload)
-		print('Http error status code: '+exchange.status+' for request url: '+url);
-		system.exit('-1');
+		var body = "<ul>\n";
+		for (var k=0; k<tickets.length; k++) {
+		    var ticket = tickets[k];
+		
+		    // Example: http://sourceforge.net/p/geneontology/ontology-requests/10193/ cilium/flagellum 
+		    body += '<li>';
+		    body += '<a href="http://sourceforge.net/p/'+oname+'/ontology-requests/'+ticket.ticket_num+'/">' + ticket.ticket_num + '</a>';
+		    body += " ";
+		    body += makeHtmlSave(ticket.summary);
+		    body += '</li>\n';
+		}
+		body += "</ul>"
+		print(body);
+	}else {
+		print("<p>There have been no "+type+" tickets.</p>");
 	}
 }
 
+/**
+ * Save guard against problematic text.<br>
+ * Escape HTML reserved characters and remove non-ASCII symbols.
+ */
 function makeHtmlSave(s) {
 	// rempve all non-ascii symbols with a '?'
 	s = s.replace(/[^A-Za-z 0-9 \.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g, '') ;
@@ -94,6 +96,39 @@ function makeHtmlSave(s) {
     	.replace(/</g, '&lt;');
 }
 
+function getNewTickets(oname, trackername, range) {
+	//EXAMPLE = "http://sourceforge.net/rest/p/geneontology/ontology-requests/search?q=created_date_dt:[2013-07-30T00:00:00Z%20TO%202013-07-30T23:59:59Z]";
+	return getTickets(oname, trackername, range, 'created_date_dt');
+}
+
+function getUpdatedTickets(oname, trackername, range) {
+	//EXAMPLE = "http://sourceforge.net/rest/p/geneontology/ontology-requests/search?q=mod_date_dt:[2013-07-30T00:00:00Z%20TO%202013-07-30T23:59:59Z]";
+	return getTickets(oname, trackername, range, 'mod_date_dt');
+}
+
+/**
+ * Get the tickets. Warning: This method uses system.exit(-1) to exit the
+ * program in case of an error.
+ * 
+ * TODO: handle pagination, maybe add a retry count
+ */
+function getTickets(oname, trackername, range, type) {
+	var url = 'http://sourceforge.net/rest/p/'+oname+'/'+trackername+'/search?q='+type+':['+range+']';
+	//console.log(url);
+	var exchange = httpclient.get(url);
+	var payload = exchange.content;
+	if (exchange.status === 200) {
+		//console.log(payload);
+		var resultObj = JSON.parse(payload);
+		return resultObj.tickets;
+	}
+	else {
+		print('Http error status code: '+exchange.status+' for request url: '+url);
+		system.exit('-1');
+	}
+}
+
+// call the main method; ringo specific
 if (require.main == module.id) {
 	main(system.args);
 }
