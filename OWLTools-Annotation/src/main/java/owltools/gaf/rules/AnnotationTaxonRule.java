@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
 
+import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
@@ -91,7 +92,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 	}
 
 	@Override
-	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph) {
+	public Set<AnnotationRuleViolation> getRuleViolations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		final OWLOntology ontology = graph.getSourceOntology();
 		
 //		OWLReasoner reasoner = createHermit(ontology);
@@ -135,8 +136,10 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 					}
 					if (lineNumbers.isEmpty() == false) {
 						for (Integer lineNumber : lineNumbers) {
-							AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "unsatisfiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Error);
-							violation.setLineNumber(lineNumber.intValue());
+							int line = lineNumber.intValue();
+							GeneAnnotation annotation = gafDoc.getGeneAnnotationByLineNumber(line);
+							AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "unsatisfiable class: "+pp.render(c), annotation, ViolationType.Error);
+							violation.setLineNumber(line);
 							result.add(violation);
 						}
 						

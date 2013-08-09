@@ -320,7 +320,6 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	 * @return non redundant set, never null
 	 */
 	protected static Set<OWLClass> reduceToNonRedundant(Set<OWLClass> classes, OWLReasoner reasoner) {
-		long start = System.currentTimeMillis();
 		Set<OWLClass> nonRedundant = new HashSet<OWLClass>();
 		for (OWLClass currentCls : classes) {
 			Set<OWLClass> subClasses = reasoner.getSubClasses(currentCls, false).getFlattened();
@@ -502,6 +501,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	
 
 	public List<Prediction> predictForBioEntity(Bioentity entity, Collection<GeneAnnotation> annotations) {
+		OWLGraphWrapper g = getGraph();
 		AllPreditions allPredictions = new AllPreditions();
 		Map<String, List<GeneAnnotation>> annotationsByEvidence = new HashMap<String, List<GeneAnnotation>>();
 		for (GeneAnnotation ann : annotations) {
@@ -543,6 +543,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			for (OWLClass linkedClass : linkedClasses) {
 				String aspect = aspectMap.get(getSubOntology(linkedClass));
 				Prediction p = createPrediction(linkedClass, aspect, cid, ann);
+				p.setReason(createReason(linkedClass, aspect, cid, evidenceCls, g));
 				allPredictions.add(linkedClass, p);
 			}
 		}
@@ -581,6 +582,33 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 		}
 		return predictions;
+	}
+	
+	private String createReason(OWLClass predicted, String type, String source, String evidence, OWLGraphWrapper g) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(g.getIdentifier(predicted));
+		sb.append('\t');
+		String predictedLabel = g.getLabel(predicted);
+		if (predictedLabel != null) {
+			sb.append(predictedLabel);
+		}
+		sb.append('\t');
+		sb.append("AnnotationPropagation");
+		sb.append('\t');
+		sb.append(type);
+		sb.append('\t');
+		sb.append(source);
+		sb.append('\t');
+		OWLClass sourceCls = g.getOWLClassByIdentifier(source);
+		if(sourceCls != null) {
+			String sourceLabel = g.getLabel(sourceCls);
+			if (sourceLabel != null) {
+				sb.append(sourceLabel);
+			}
+		}
+		sb.append('\t');
+		sb.append(evidence);
+		return sb.toString();
 	}
 	
 	private Set<OWLClass> getIsaPartofSuperClassClosureAndAspect(Collection<GeneAnnotation> annotations, String aspect) {

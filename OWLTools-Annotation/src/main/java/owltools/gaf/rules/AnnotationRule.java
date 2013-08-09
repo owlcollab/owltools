@@ -32,11 +32,12 @@ public interface AnnotationRule {
 	/**
 	 * Given a whole {@link GafDocument} in OWL, find the set of violations using the rule
 	 * 
+	 * @param gafDoc 
 	 * @param graph
 	 * @return set of violations
 	 * @see #isOwlDocumentLevel()
 	 */
-	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph);
+	public Set<AnnotationRuleViolation> getRuleViolations(GafDocument gafDoc, OWLGraphWrapper graph);
 	
 	
 	/**
@@ -134,7 +135,7 @@ public interface AnnotationRule {
 	
 	/**
 	 * @return true if the rule has to be applied to the whole OWL document.
-	 * @see #getRuleViolations(OWLGraphWrapper)
+	 * @see #getRuleViolations(GafDocument, OWLGraphWrapper)
 	 */
 	public boolean isOwlDocumentLevel();
 	

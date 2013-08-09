@@ -85,7 +85,8 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		final OWLDataFactory f = g.getDataFactory();
 		
 		for (GeneAnnotation ann : anns) {
-			if (ann.getEvidenceCls().equals("ND")) {
+			String evidenceString = ann.getEvidenceCls();
+			if ("ND".equals(evidenceString)) {
 				continue;
 			}
 			String annotatedToClassString = ann.getCls();
@@ -94,6 +95,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 				LOG.warn("Skipping annotation for prediction. Could not find cls for id: "+annotatedToClassString);
 				continue;
 			}
+			Set<OWLClass> annotatedToSuperClasses = reasoner.getSuperClasses(annotatedToClass, false).getFlattened();
 			Collection<ExtensionExpression> exts = ann.getExtensionExpressions();
 			if (exts != null && !exts.isEmpty()) {
 				Set<OWLClass> used = new HashSet<OWLClass>();
@@ -110,42 +112,90 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 						continue;
 					}
 					
-					OWLObjectSomeValuesFrom someValuesFrom = f.getOWLObjectSomeValuesFrom(extRel, extCls);
-					OWLObjectIntersectionOf intersectionOf = f.getOWLObjectIntersectionOf(annotatedToClass, someValuesFrom);
-					
-					Set<OWLClass> directSuperClasses = reasonerCache.get(intersectionOf);
-					if (directSuperClasses == null) {
-						if (reasoner.isSatisfiable(intersectionOf)) {
-							directSuperClasses = reasoner.getSuperClasses(intersectionOf, true).getFlattened();
-						}
-						else {
-							directSuperClasses = Collections.emptySet();
-						}
-						reasonerCache.put(intersectionOf, directSuperClasses);
-					}
-					for (OWLClass directSuperClass : directSuperClasses) {
-						if (directSuperClass.isBuiltIn()) {
+					Set<OWLClass> cached = handleInferences(annotatedToClass, extRel, extCls, f);
+					for (OWLClass c : cached) {
+						if (c.isBuiltIn()) {
 							continue;
 						}
-						if (relevantClasses.contains(directSuperClass) == false) {
+						if (relevantClasses.contains(c) == false) {
 							continue;
 						}
-						if (directSuperClass.equals(annotatedToClass)) {
+						if (c.equals(annotatedToClass) || annotatedToSuperClasses.contains(c)) {
 							continue;
 						}
-						boolean added = used.add(directSuperClass);
+						boolean added = used.add(c);
 						if (added) {
-							predictions.add(getPrediction(ann, directSuperClass, e.getId(), ann.getCls()));
+							Prediction prediction = getPrediction(ann, c, e.getId(), ann.getCls());
+							prediction.setReason(generateReason(c, annotatedToClass, extRelString, extCls, evidenceString, g));
+							predictions.add(prediction);
 						}
 					}
 				}
 			}
 		}
-
-
 		return predictions;
 	}
 
+	private String generateReason(OWLClass foldedClass, OWLClass annotatedToClass, String extRelString, OWLClass extCls, String evidence, OWLGraphWrapper g) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(g.getIdentifier(foldedClass));
+		sb.append('\t');
+		String foldedClassLabel = g.getLabel(foldedClass);
+		if (foldedClassLabel != null) {
+			sb.append(foldedClassLabel);
+		}
+		sb.append('\t');
+		sb.append(FoldBasedPredictor.class.getSimpleName());
+		sb.append('\t');
+		sb.append(g.getIdentifier(annotatedToClass));
+		sb.append('\t');
+		String annotatedToClassLabel = g.getLabel(annotatedToClass);
+		if (annotatedToClassLabel != null) {
+			sb.append(annotatedToClassLabel);
+		}
+		sb.append('\t');
+		sb.append(extRelString);
+		sb.append('\t');
+		sb.append(g.getIdentifier(extCls));
+		sb.append('\t');
+		String extClsLabel = g.getLabel(extCls);
+		if (extClsLabel != null) {
+			sb.append(extClsLabel);
+		}
+		sb.append('\t');
+		sb.append(evidence);
+		return sb.toString();
+	}
+	
+	private Set<OWLClass> handleInferences(OWLClass annotatedToClass, OWLObjectProperty extRel, OWLClass extCls, OWLDataFactory f) {
+		final OWLObjectSomeValuesFrom someValuesFrom = f.getOWLObjectSomeValuesFrom(extRel, extCls);
+		final OWLObjectIntersectionOf intersectionOf = f.getOWLObjectIntersectionOf(annotatedToClass, someValuesFrom);
+		
+		Set<OWLClass> cached = reasonerCache.get(intersectionOf);
+		if (cached == null) {
+			// first check that the ce is satisfiable,
+			if (reasoner.isSatisfiable(intersectionOf)) {
+				// work round for elk bug, make a call to the reasoner to flush the stale ce info
+				reasoner.getSuperClasses(annotatedToClass, true);
+				
+				// check for equivalent named classes
+				cached = reasoner.getEquivalentClasses(intersectionOf).getEntitiesMinusBottom();
+				if(cached.isEmpty()) {
+					// work round for elk bug, make a call to the reasoner to flush the stale ce info
+					reasoner.getSuperClasses(extCls, true);
+					
+					// if no equivalent named classes exist check for super classes
+					cached = reasoner.getSuperClasses(intersectionOf, true).getFlattened();
+				}
+			}
+			else {
+				cached = Collections.emptySet();
+			}
+			reasonerCache.put(intersectionOf, cached);
+		}
+		return cached;
+	}
+	
 	protected Prediction getPrediction(GeneAnnotation ann, OWLClass c, String bioentity, String with) {
 		GeneAnnotation annP = new GeneAnnotation(ann);
 		annP.setBioentity(bioentity);

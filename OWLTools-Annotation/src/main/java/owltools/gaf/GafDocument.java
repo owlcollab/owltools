@@ -112,6 +112,25 @@ public class GafDocument{
 		return result;
 	}
 	
+	/**
+	 * Retrieve the (first) annotation for the given line number or null.
+	 * 
+	 * @param lineNumber
+	 * @return annotation or null
+	 */
+	public GeneAnnotation getGeneAnnotationByLineNumber(int lineNumber) {
+		for (GeneAnnotation annotation : annotations) {
+			AnnotationSource source = annotation.getSource();
+			if (source != null) {
+				int current = source.getLineNumber();
+				if (lineNumber == current) {
+					return annotation;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public void addBioentity(Bioentity bioentity){
 		bioentity.setGafDocument(this.getId());
 		bioentities.put(bioentity.getId(), bioentity);

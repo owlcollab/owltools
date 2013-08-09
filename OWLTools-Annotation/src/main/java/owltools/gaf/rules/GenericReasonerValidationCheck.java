@@ -12,6 +12,7 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.graph.OWLGraphWrapper;
@@ -51,7 +52,7 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 	}
 
 	@Override
-	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph) {
+	public Set<AnnotationRuleViolation> getRuleViolations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		logger.info("Check generic logic violations for gaf");
 		
 		if (logger.isDebugEnabled()) {

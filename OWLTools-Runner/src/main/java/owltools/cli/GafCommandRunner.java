@@ -20,7 +20,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -74,6 +73,7 @@ public class GafCommandRunner extends CommandRunner {
 	private String gafReportSummaryFile = null;
 	private String gafReportFile = null;
 	private String gafPredictionFile = null;
+	private String gafPredictionReportFile = null;
 	
 	public TraversingEcoMapper eco = null;
 	
@@ -506,11 +506,15 @@ public class GafCommandRunner extends CommandRunner {
 				File reportFile = new File(gafReportFile);
 				File summaryFile = null;
 				File predictionFile = null;
+				File predictionReportFile = null; 
 				if (gafReportSummaryFile != null) {
 					summaryFile = new File(gafReportSummaryFile);
 				}
 				if (gafPredictionFile != null) {
 					predictionFile = new File(gafPredictionFile);
+				}
+				if (gafPredictionReportFile != null) {
+					predictionReportFile = new File(gafPredictionReportFile);
 				}
 
 				// delete previous report files (if they exist)
@@ -518,9 +522,15 @@ public class GafCommandRunner extends CommandRunner {
 				if (summaryFile != null) {
 					FileUtils.deleteQuietly(summaryFile);
 				}
+				if (predictionFile != null) {
+					FileUtils.deleteQuietly(predictionFile);
+				}
+				if (predictionReportFile != null) {
+					FileUtils.deleteQuietly(predictionReportFile);
+				}
 
 				// write parse errors and rule violations
-				createAllReportFiles(parserReport, result, ruleEngine, reportFile, summaryFile, predictionFile);
+				createAllReportFiles(parserReport, result, ruleEngine, reportFile, summaryFile, predictionFile, predictionReportFile);
 			
 			}
 			finally {
@@ -597,12 +607,13 @@ public class GafCommandRunner extends CommandRunner {
 	
 	private void createAllReportFiles(GafParserReport parserReport, 
 			AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
-			File reportFile, File summaryFile, File predictionFile) throws IOException
+			File reportFile, File summaryFile, File predictionFile, File predictionReportFile) throws IOException
 	{
 		LOG.info("Start writing reports to file: "+gafReportFile);
 		PrintWriter writer = null;
 		PrintWriter summaryWriter = null;
 		PrintStream predictionStream = null;
+		PrintWriter predictionReportWriter = null;
 		try {
 			if (summaryFile != null) {
 				summaryWriter = new PrintWriter(summaryFile);
@@ -639,10 +650,14 @@ public class GafCommandRunner extends CommandRunner {
 			if (parserReport != null && parserReport.hasWarningsOrErrors()) {
 				writeParseErrors(parserReport, writer, summaryWriter);
 			}
-			AnnotationRulesEngineResult.renderEngineResult(result, engine, writer, summaryWriter, predictionStream);
+			if (predictionReportFile != null) {
+				predictionReportWriter = new PrintWriter(predictionReportFile);
+			}
+			AnnotationRulesEngineResult.renderEngineResult(result, engine, writer, summaryWriter, predictionStream, predictionReportWriter);
 		} finally {
 			IOUtils.closeQuietly(summaryWriter);
 			IOUtils.closeQuietly(predictionStream);
+			IOUtils.closeQuietly(predictionReportWriter);
 			IOUtils.closeQuietly(writer);
 			LOG.info("Finished writing reports to file.");
 		}
@@ -724,6 +739,13 @@ public class GafCommandRunner extends CommandRunner {
 	public void setGAFPredictionFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafPredictionFile = opts.nextOpt();
+		}
+	}
+	
+	@CLIMethod("--gaf-prediction-report-file")
+	public void setGAFPredictionReportFile(Opts opts) {
+		if (opts.hasArgs()) {
+			gafPredictionReportFile = opts.nextOpt();
 		}
 	}
 	

@@ -5,6 +5,7 @@ import owltools.io.OWLPrettyPrinter;
 
 public class Prediction {
 	private final GeneAnnotation geneAnnotation;
+	private String reason = null;
 	private boolean isRedundantWithExistingAnnotations;
 	private boolean isRedundantWithOtherPredictions;
 	
@@ -41,6 +42,20 @@ public class Prediction {
 	
 	public String render(OWLPrettyPrinter pp) {
 		return "Prediction="+pp.renderId(geneAnnotation.getCls())+" // "+geneAnnotation.toString();
+	}
+
+	/**
+	 * @return the reason
+	 */
+	public String getReason() {
+		return reason;
+	}
+
+	/**
+	 * @param reason the reason to set
+	 */
+	public void setReason(String reason) {
+		this.reason = reason;
 	}
 
 	@Override

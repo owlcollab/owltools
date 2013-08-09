@@ -28,7 +28,7 @@ public abstract class AbstractAnnotationRule implements AnnotationRule {
 	}
 
 	@Override
-	public Set<AnnotationRuleViolation> getRuleViolations(OWLGraphWrapper graph) {
+	public Set<AnnotationRuleViolation> getRuleViolations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		// per default, do nothing
 		return Collections.emptySet();
 	}

@@ -159,7 +159,7 @@ public class AnnotationRulesEngine {
 			if (hasOwlRules && translatedGraph != null) {
 				LOG.info("Start validation using OWL representation with "+owlRules.size()+" rules.");
 				for(AnnotationRule rule : owlRules) {
-					result.addViolations(rule.getRuleViolations(translatedGraph));
+					result.addViolations(rule.getRuleViolations(doc, translatedGraph));
 				}
 				LOG.info("Finished validation in OWL.");
 			}
@@ -376,7 +376,7 @@ public class AnnotationRulesEngine {
 		 * @param writer
 		 */
 		public static void renderViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, PrintWriter writer) {
-			renderEngineResult(result, engine, writer, null, null);
+			renderEngineResult(result, engine, writer, null, null, null);
 		}
 		
 		/**
@@ -424,8 +424,10 @@ public class AnnotationRulesEngine {
 		 * @param writer
 		 * @param summaryWriter
 		 * @param predictionWriter
+		 * @param predictionReportWriter
 		 */
-		public static void renderEngineResult(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, PrintWriter writer, PrintWriter summaryWriter, PrintStream predictionWriter) {
+		public static void renderEngineResult(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
+				PrintWriter writer, PrintWriter summaryWriter, PrintStream predictionWriter, PrintWriter predictionReportWriter) {
 			if (summaryWriter != null) {
 				summaryWriter.println("*GAF Validation Summary*");
 			}
@@ -547,6 +549,14 @@ public class AnnotationRulesEngine {
 						summaryWriter.print(" predictions");
 					}
 					summaryWriter.println(", see prediction file for details.");
+				}
+				if (predictionReportWriter != null) {
+					for (Prediction prediction : result.predictions) {
+						String reason = prediction.getReason();
+						if (reason != null) {
+							predictionReportWriter.println(reason);
+						}
+					}
 				}
 				if (predictionWriter != null) {
 					
