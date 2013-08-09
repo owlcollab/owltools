@@ -59,8 +59,13 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		List<Prediction> predictions = new ArrayList<Prediction>();
 		
 		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
+		boolean hasC16Annotations = false;
 		
 		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
+			String c16String = annotation.getExtensionExpression();
+			if (c16String != null && c16String.isEmpty() == false) {
+				hasC16Annotations = true;
+			}
 			Bioentity e = annotation.getBioentityObject();
 			String id = e.getId();
 			Set<GeneAnnotation> anns = allAnnotations.get(id);
@@ -87,7 +92,7 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 				predictor = null;
 			}
 		}
-		if (USE_FOLD_BASED_PREDICTOR) {
+		if (USE_FOLD_BASED_PREDICTOR && hasC16Annotations) {
 		LOG.info("Use c16 extension for fold based prediction");
 			try {
 				predictor = new FoldBasedPredictor(gafDoc, source);
