@@ -82,5 +82,10 @@
 			<artifactId>OWLTools-Sim</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+   	    <dependency>
+           <groupId>com.github.jsonld-java</groupId>
+           <artifactId>jsonld-java-jena</artifactId>
+           <version>0.2</version>
+        </dependency>
 	</dependencies>
 </project>
