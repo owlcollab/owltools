@@ -2,6 +2,8 @@
 id: MP:1
 name: mp1
 def: "test mp1" []
+synonym: "mp syn1" EXACT []
+synonym: "mp syn2" EXACT [MP:MP]
 comment: comment mp1
 intersection_of: PATO:1
 intersection_of: r MA:1
@@ -10,6 +12,7 @@ intersection_of: r MA:1
 id: HP:1
 name: hp1
 def: "test hp1" []
+synonym: "hp syn2" EXACT [HP:HP]
 comment: comment hp1
 intersection_of: PATO:1
 intersection_of: r FMA:1
