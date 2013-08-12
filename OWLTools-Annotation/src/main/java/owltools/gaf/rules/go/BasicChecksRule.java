@@ -7,9 +7,9 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
@@ -169,18 +169,21 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		}
 		
 		// check that in c16 all IDs are prefixed.
-		Collection<ExtensionExpression> expressions = a.getExtensionExpressions();
-		if (expressions != null && !expressions.isEmpty()) {
-			for (ExtensionExpression extensionExpression : expressions) {
-				String cls = extensionExpression.getCls();
-				int dbSepPos = cls.indexOf(':');
-				if (dbSepPos <= 0) {
-					AnnotationRuleViolation v= new AnnotationRuleViolation(getRuleId(), "All identifiers in column 16 need a prefix. The id '" + cls + "' has no prefix. " , a);
-					set.add(v);
+		List<List<ExtensionExpression>> groupedExpressions = a.getExtensionExpressions();
+		if (groupedExpressions != null && !groupedExpressions.isEmpty()) {
+			for (List<ExtensionExpression> expressions : groupedExpressions) {
+				if (expressions != null && !expressions.isEmpty()) {
+					for (ExtensionExpression extensionExpression : expressions) {
+						String cls = extensionExpression.getCls();
+						int dbSepPos = cls.indexOf(':');
+						if (dbSepPos <= 0) {
+							AnnotationRuleViolation v= new AnnotationRuleViolation(getRuleId(), "All identifiers in column 16 need a prefix. The id '" + cls + "' has no prefix. " , a);
+							set.add(v);
+						}
+					}
 				}
 			}
 		}
-		
 		return set;
 	}
 

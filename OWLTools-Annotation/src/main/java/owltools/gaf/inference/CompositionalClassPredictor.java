@@ -73,8 +73,10 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 			}
 			aClasses.add(getOWLClass(ann.getCls()));
 			// we also include col16, ignoring relationship type
-			for (ExtensionExpression ee : ann.getExtensionExpressions()) {
-				aClasses.add(getOWLClass(ee.getCls()));
+			for (List<ExtensionExpression> groups : ann.getExtensionExpressions()) {
+				for (ExtensionExpression ee : groups) {
+					aClasses.add(getOWLClass(ee.getCls()));
+				}
 			}
 		}
 		//LOG.info("  aClasses: "+aClasses);

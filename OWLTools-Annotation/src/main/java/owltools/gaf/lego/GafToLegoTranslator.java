@@ -1,7 +1,9 @@
 package owltools.gaf.lego;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -224,38 +226,41 @@ public class GafToLegoTranslator {
 				// THEN let <CE> = IntersectionOf(<C> <EXT>)
 				// ELSE let <CE> = <C>
 
-				final OWLClassExpression ce;
-				Collection<ExtensionExpression> extensionExpressions = annotation.getExtensionExpressions();
-				if (extensionExpressions != null && !extensionExpressions.isEmpty()) {
-					Set<OWLClassExpression> operands = new HashSet<OWLClassExpression>();
-					for(ExtensionExpression extension : extensionExpressions) {
-						final String extensionClsString = extension.getCls();
-						final String extensionRelationString = extension.getRelation();
-						OWLClass extensionCls = getOwlClass(extensionClsString);
-						if (extensionCls == null && extensionClsString.startsWith("UniProtKB:")) {
-							IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"pr/"+extensionClsString.substring(10));
-							extensionCls = f.getOWLClass(iri);
+				final Set<OWLClassExpression> ceSet;
+				List<List<ExtensionExpression>> extensionExpressionGroups = annotation.getExtensionExpressions();
+				if (extensionExpressionGroups != null && !extensionExpressionGroups.isEmpty()) {
+					ceSet = new HashSet<OWLClassExpression>();
+					for(List<ExtensionExpression> group : extensionExpressionGroups) {
+						Set<OWLClassExpression> operands = new HashSet<OWLClassExpression>();
+						for(ExtensionExpression extension : group) {
+							final String extensionClsString = extension.getCls();
+							final String extensionRelationString = extension.getRelation();
+							OWLClass extensionCls = getOwlClass(extensionClsString);
+							if (extensionCls == null && extensionClsString.startsWith("UniProtKB:")) {
+								IRI iri = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"pr/"+extensionClsString.substring(10));
+								extensionCls = f.getOWLClass(iri);
+							}
+							if (extensionCls == null) {
+								reportError("Could not find a class for the given extension cls identifier: "+extensionClsString, annotation);
+								continue;
+							}
+							final OWLObjectProperty extensionRelation = graph.getOWLObjectPropertyByIdentifier(extensionRelationString);
+							if (extensionRelation == null) {
+								reportError("Could not find a class for the given extension relation identifier: "+extensionRelationString, annotation);
+								continue;
+							}
+							operands.add(f.getOWLObjectSomeValuesFrom(extensionRelation, extensionCls));
 						}
-						if (extensionCls == null) {
-							reportError("Could not find a class for the given extension cls identifier: "+extensionClsString, annotation);
-							continue;
-						}
-						final OWLObjectProperty extensionRelation = graph.getOWLObjectPropertyByIdentifier(extensionRelationString);
-						if (extensionRelation == null) {
-							reportError("Could not find a class for the given extension relation identifier: "+extensionRelationString, annotation);
-							continue;
-						}
-						operands.add(f.getOWLObjectSomeValuesFrom(extensionRelation, extensionCls));
+	//					if (operands.size() != extensionExpressions.size()) {
+	//						reportError("Problems during the translation of the annotation extensions.", annotation);
+	//						continue;
+	//					}
+						operands.add(c);
+						ceSet.add(f.getOWLObjectIntersectionOf(operands));
 					}
-//					if (operands.size() != extensionExpressions.size()) {
-//						reportError("Problems during the translation of the annotation extensions.", annotation);
-//						continue;
-//					}
-					operands.add(c);
-					ce = f.getOWLObjectIntersectionOf(operands);
 				}
 				else {
-					ce = c;
+					ceSet = Collections.<OWLClassExpression>singleton(c);
 				}
 				
 				// # STEP 2 - map to protein ID
@@ -296,17 +301,19 @@ public class GafToLegoTranslator {
 					//	   Facts:
 					//	     source <Ref>
 					
-					// create individual
-					OWLNamedIndividual individual = f.getOWLNamedIndividual(generateNewIRI(lego, "mf"));
-					axioms.add(f.getOWLDeclarationAxiom(individual));
-					
-					// facts
-					OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
-					axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
-					
-					// types
-					axioms.add(f.getOWLClassAssertionAxiom(ce, individual));
-					axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
+					for(OWLClassExpression ce : ceSet) {
+						// create individual
+						OWLNamedIndividual individual = f.getOWLNamedIndividual(generateNewIRI(lego, "mf"));
+						axioms.add(f.getOWLDeclarationAxiom(individual));
+						
+						// facts
+						OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
+						axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						
+						// types
+						axioms.add(f.getOWLClassAssertionAxiom(ce, individual));
+						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
+					}
 				}				
 				// ELSE IF <C> SubClassOf CC THEN:
 				else if ("C".equals(aspect)) {
@@ -316,58 +323,61 @@ public class GafToLegoTranslator {
 					//     enabled_by SOME <Pr>
 					//   Facts:
 					//     source <Ref>
-					OWLNamedIndividual individual = f.getOWLNamedIndividual(generateNewIRI(lego, "cc"));
-					axioms.add(f.getOWLDeclarationAxiom(individual));
 					
-					// facts
-					OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
-					axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
-					
-					// types
-					axioms.add(f.getOWLClassAssertionAxiom(mf, individual));
-					axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(occursIn, ce), individual));
-					axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
-					
+					for(OWLClassExpression ce : ceSet) {
+						OWLNamedIndividual individual = f.getOWLNamedIndividual(generateNewIRI(lego, "cc"));
+						axioms.add(f.getOWLDeclarationAxiom(individual));
+						
+						// facts
+						OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
+						axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						
+						// types
+						axioms.add(f.getOWLClassAssertionAxiom(mf, individual));
+						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(occursIn, ce), individual));
+						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
+					}
 				}
 				//ELSE IF <C> SubClassOf BP THEN:
 				else if ("P".equals(aspect)) {
 					//  # note we create two individuals here
 	
-					// NamedIndividual( <generateId-X>
-					//   Types: 
-					//     <CE>
-					//   Facts:
-					//     source <Ref>
-					// create individual
-					OWLNamedIndividual individualX = f.getOWLNamedIndividual(generateNewIRI(lego, "bp"));
-					axioms.add(f.getOWLDeclarationAxiom(individualX));
-					
-					// facts
-					OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
-					axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individualX.getIRI(), f.getOWLLiteral(source)));
-					
-					// types
-					axioms.add(f.getOWLClassAssertionAxiom(ce, individualX));
-					
-	
-					// NamedIndividual( <generateId>
-					//   Types: 
-					//     'molecular_function'
-					//     enabled_by SOME <Pr>
-					//  Facts:
-					//    part_of <generatedId-X>,
-					//    source <ref>
-					OWLNamedIndividual individual = f.getOWLNamedIndividual(generateNewIRI(lego, "bp"));
-					axioms.add(f.getOWLDeclarationAxiom(individual));
-					
-					// facts
-					axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
-					axioms.add(f.getOWLObjectPropertyAssertionAxiom(partOf, individual, individualX));
-					
-					// types
-					axioms.add(f.getOWLClassAssertionAxiom(mf, individual));
-					axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
-					
+					for(OWLClassExpression ce : ceSet) {
+						// NamedIndividual( <generateId-X>
+						//   Types: 
+						//     <CE>
+						//   Facts:
+						//     source <Ref>
+						// create individual
+						OWLNamedIndividual individualX = f.getOWLNamedIndividual(generateNewIRI(lego, "bp"));
+						axioms.add(f.getOWLDeclarationAxiom(individualX));
+						
+						// facts
+						OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
+						axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individualX.getIRI(), f.getOWLLiteral(source)));
+						
+						// types
+						axioms.add(f.getOWLClassAssertionAxiom(ce, individualX));
+						
+		
+						// NamedIndividual( <generateId>
+						//   Types: 
+						//     'molecular_function'
+						//     enabled_by SOME <Pr>
+						//  Facts:
+						//    part_of <generatedId-X>,
+						//    source <ref>
+						OWLNamedIndividual individual = f.getOWLNamedIndividual(generateNewIRI(lego, "bp"));
+						axioms.add(f.getOWLDeclarationAxiom(individual));
+						
+						// facts
+						axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						axioms.add(f.getOWLObjectPropertyAssertionAxiom(partOf, individual, individualX));
+						
+						// types
+						axioms.add(f.getOWLClassAssertionAxiom(mf, individual));
+						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
+					}
 				}
 				else {
 					reportError("Error, unknown aspect: "+aspect, annotation);

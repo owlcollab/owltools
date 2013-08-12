@@ -88,38 +88,71 @@ public class GoClassReferenceAnnotationRule extends AbstractAnnotationRule {
 		}
 		
 		// check c16
-		Collection<ExtensionExpression> expressions = a.getExtensionExpressions();
-		if (expressions != null && !expressions.isEmpty()) {
-			for (ExtensionExpression expression : expressions) {
-				// check c16 cls noly if it is in the whitelist
-				String exId = expression.getCls();
-				boolean doCheck = false;
-				for(String idPrefix : c16PrefixWhiteList) {
-					if (exId.startsWith(idPrefix)) {
-						doCheck = true;
-						break;
+		List<List<ExtensionExpression>> groupedExpressions = a.getExtensionExpressions();
+		if (groupedExpressions != null && !groupedExpressions.isEmpty()) {
+			for (List<ExtensionExpression> expressions : groupedExpressions) {
+				for (ExtensionExpression expression : expressions) {
+					// check c16 cls only if it is in the whitelist
+					String exId = expression.getCls();
+					boolean doCheck = false;
+					for(String idPrefix : c16PrefixWhiteList) {
+						if (exId.startsWith(idPrefix)) {
+							doCheck = true;
+							break;
+						}
 					}
-				}
-				if (doCheck) {
-					OWLClass exCls = graph.getOWLClassByIdentifier(exId);
-					if (exCls == null) {
-						OWLObject owlObject = owlObjectsByAltId.get(exId);
-						if (owlObject == null) {
-							set.add(new AnnotationRuleViolation(getRuleId(),
-								"The id '"+exId+"' in the c16 annotation extension is a dangling reference", a));
+					if (doCheck) {
+						OWLClass exCls = graph.getOWLClassByIdentifier(exId);
+						if (exCls == null) {
+							OWLObject owlObject = owlObjectsByAltId.get(exId);
+							if (owlObject == null) {
+								set.add(new AnnotationRuleViolation(getRuleId(),
+										"The id '"+exId+"' in the c16 annotation extension is a dangling reference", a));
+							}
+							else {
+								String mainId = graph.getIdentifier(owlObject);
+								set.add(new AnnotationRuleViolation(getRuleId(), 
+										"The id '"+exId+"' in the c16 annotation extension is an alternate id for: "+mainId, a, ViolationType.Warning));
+							}
 						}
 						else {
-							String mainId = graph.getIdentifier(owlObject);
+							boolean isObsolete = graph.isObsolete(exCls);
+							if (isObsolete) {
+								StringBuilder msg = new StringBuilder();
+								msg.append("The id '").append(exId).append("' in the c16 annotation extension is an obsolete class");
+								List<String> replacedBy = graph.getReplacedBy(exCls);
+								if (replacedBy != null && !replacedBy.isEmpty()) {
+									msg.append(", suggested replacements:");
+									for (String replace : replacedBy) {
+										msg.append(' ').append(replace);
+									}
+								}
+								set.add(new AnnotationRuleViolation(getRuleId(), msg.toString(), a));
+							}
+						}
+					}
+
+					// check c16 relation
+					String exRel = expression.getRelation();
+					OWLObjectProperty rel = graph.getOWLObjectPropertyByIdentifier(exRel);
+					if (rel == null) {
+						rel = relByAltId.get(rel);
+						if (rel == null) {
+							set.add(new AnnotationRuleViolation(getRuleId(),
+									"The relation '"+exRel+"' in the c16 annotation extension is a dangling reference", a));
+						}
+						else {
+							String mainId = graph.getIdentifier(rel);
 							set.add(new AnnotationRuleViolation(getRuleId(), 
-								"The id '"+exId+"' in the c16 annotation extension is an alternate id for: "+mainId, a, ViolationType.Warning));
+									"The relation '"+exRel+"' in the c16 annotation extension is an alternate id for: "+mainId, a, ViolationType.Warning));
 						}
 					}
 					else {
-						boolean isObsolete = graph.isObsolete(exCls);
+						boolean isObsolete = graph.isObsolete(rel);
 						if (isObsolete) {
 							StringBuilder msg = new StringBuilder();
-							msg.append("The id '").append(exId).append("' in the c16 annotation extension is an obsolete class");
-							List<String> replacedBy = graph.getReplacedBy(exCls);
+							msg.append("The relation '").append(exRel).append("' in the c16 annotation extension is an obsolete relation");
+							List<String> replacedBy = graph.getReplacedBy(rel);
 							if (replacedBy != null && !replacedBy.isEmpty()) {
 								msg.append(", suggested replacements:");
 								for (String replace : replacedBy) {
@@ -128,37 +161,6 @@ public class GoClassReferenceAnnotationRule extends AbstractAnnotationRule {
 							}
 							set.add(new AnnotationRuleViolation(getRuleId(), msg.toString(), a));
 						}
-					}
-				}
-		
-				// check c16 relation
-				String exRel = expression.getRelation();
-				OWLObjectProperty rel = graph.getOWLObjectPropertyByIdentifier(exRel);
-				if (rel == null) {
-					rel = relByAltId.get(rel);
-					if (rel == null) {
-						set.add(new AnnotationRuleViolation(getRuleId(),
-							"The relation '"+exRel+"' in the c16 annotation extension is a dangling reference", a));
-					}
-					else {
-						String mainId = graph.getIdentifier(rel);
-						set.add(new AnnotationRuleViolation(getRuleId(), 
-							"The relation '"+exRel+"' in the c16 annotation extension is an alternate id for: "+mainId, a, ViolationType.Warning));
-					}
-				}
-				else {
-					boolean isObsolete = graph.isObsolete(rel);
-					if (isObsolete) {
-						StringBuilder msg = new StringBuilder();
-						msg.append("The relation '").append(exRel).append("' in the c16 annotation extension is an obsolete relation");
-						List<String> replacedBy = graph.getReplacedBy(rel);
-						if (replacedBy != null && !replacedBy.isEmpty()) {
-							msg.append(", suggested replacements:");
-							for (String replace : replacedBy) {
-								msg.append(' ').append(replace);
-							}
-						}
-						set.add(new AnnotationRuleViolation(getRuleId(), msg.toString(), a));
 					}
 				}
 			}

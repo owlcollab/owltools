@@ -496,34 +496,36 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			aecc_rels.add("BFO:0000050");
 			// And capture the label and ID mappings for when we're done the loop.
 			Map<String,String> ann_ext_map = new HashMap<String,String>(); // capture labels/ids			
-			for (ExtensionExpression ee : a.getExtensionExpressions()) {
-				String eeid = ee.getCls();
-				OWLObject eObj = graph.getOWLObjectByIdentifier(eeid);
-				annotation_doc.addField("annotation_extension_class", eeid);	
-				String eLabel = addLabelField(annotation_doc, "annotation_extension_class_label", eeid);
-				if( eLabel == null ) eLabel = eeid; // ensure the label
-				
-				///////////////
-				// New
-				///////////////
-				
-				// Get the closure maps.
-				if (eObj != null) {
-					Map<String, String> aecc_cmap = graph.getRelationClosureMap(eObj, aecc_rels);
-					if( ! aecc_cmap.isEmpty() ){
-						for( String aecc_id : aecc_cmap.keySet() ){
-							String aecc_lbl = aecc_cmap.get(aecc_id);
-						
-							// Add all items to the document.
-							annotation_doc.addField("annotation_extension_class_closure", aecc_id);
-							annotation_doc.addField("annotation_extension_class_closure_label", aecc_lbl);
-
-							// And make sure that both id and label are in the per-term map.
-							ann_ext_map.put(aecc_lbl, aecc_id);
-							ann_ext_map.put(aecc_id, aecc_lbl);
+			for (List<ExtensionExpression> groups : a.getExtensionExpressions()) {
+				// TODO handle extension expression groups
+				for (ExtensionExpression ee : groups) {
+					String eeid = ee.getCls();
+					OWLObject eObj = graph.getOWLObjectByIdentifier(eeid);
+					annotation_doc.addField("annotation_extension_class", eeid);	
+					String eLabel = addLabelField(annotation_doc, "annotation_extension_class_label", eeid);
+					if( eLabel == null ) eLabel = eeid; // ensure the label
+					
+					///////////////
+					// New
+					///////////////
+					
+					// Get the closure maps.
+					if (eObj != null) {
+						Map<String, String> aecc_cmap = graph.getRelationClosureMap(eObj, aecc_rels);
+						if( ! aecc_cmap.isEmpty() ){
+							for( String aecc_id : aecc_cmap.keySet() ){
+								String aecc_lbl = aecc_cmap.get(aecc_id);
+							
+								// Add all items to the document.
+								annotation_doc.addField("annotation_extension_class_closure", aecc_id);
+								annotation_doc.addField("annotation_extension_class_closure_label", aecc_lbl);
+	
+								// And make sure that both id and label are in the per-term map.
+								ann_ext_map.put(aecc_lbl, aecc_id);
+								ann_ext_map.put(aecc_id, aecc_lbl);
+							}
 						}
 					}
-				}
 
 //				///////////////
 //				// Old
@@ -543,34 +545,35 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 //					}
 //				}
 
-				// Ugly. Hand roll out the data for the c16 special handler. Have mercy on me--I'm going
-				// to just do this by hand since it's a limited case and I don't want to mess with Gson right now.
-				String complicated_c16r = ee.getRelation();
-				if( complicated_c16r != null ){
-					List<OWLObjectProperty> relations = graph.getRelationOrChain(complicated_c16r);
-					if( relations != null ){
-
-						ArrayList<String> relChunk = new ArrayList<String>();
-						for( OWLObjectProperty rel : relations ){
-							// Use the IRI to get the BFO:0000050 as ID for the part_of OWLObjectProperty
-							String rID = graph.getIdentifier(rel.getIRI());
-							String rLabel = graph.getLabel(rel);
-							if( rLabel == null ) rLabel = rID; // ensure the label
-							relChunk.add("{\"id\": \"" + rID + "\", \"label\": \"" + rLabel + "\"}");
+					// Ugly. Hand roll out the data for the c16 special handler. Have mercy on me--I'm going
+					// to just do this by hand since it's a limited case and I don't want to mess with Gson right now.
+					String complicated_c16r = ee.getRelation();
+					if( complicated_c16r != null ){
+						List<OWLObjectProperty> relations = graph.getRelationOrChain(complicated_c16r);
+						if( relations != null ){
+	
+							ArrayList<String> relChunk = new ArrayList<String>();
+							for( OWLObjectProperty rel : relations ){
+								// Use the IRI to get the BFO:0000050 as ID for the part_of OWLObjectProperty
+								String rID = graph.getIdentifier(rel.getIRI());
+								String rLabel = graph.getLabel(rel);
+								if( rLabel == null ) rLabel = rID; // ensure the label
+								relChunk.add("{\"id\": \"" + rID + "\", \"label\": \"" + rLabel + "\"}");
+							}
+							String finalSpan = StringUtils.join(relChunk, ", ");
+						
+							// Assemble final JSON blob.
+							String aeJSON = "{\"relationship\": {\"relation\": [" + 
+									finalSpan +
+									"], \"id\": \"" + eeid + "\", \"label\": \"" + eLabel + "\"}}";
+						
+							annotation_doc.addField("annotation_extension_json", aeJSON);
+							//LOG.info("added complicated c16: (" + eeid + ", " + eLabel + ") " + aeJSON);
+						}else{
+							// The c16r is unknown to the ontology--render it as just a normal label, without the link.
+							annotation_doc.addField("annotation_extension_json", complicated_c16r);
+							LOG.info("added unknown c16: " + complicated_c16r);
 						}
-						String finalSpan = StringUtils.join(relChunk, ", ");
-					
-						// Assemble final JSON blob.
-						String aeJSON = "{\"relationship\": {\"relation\": [" + 
-								finalSpan +
-								"], \"id\": \"" + eeid + "\", \"label\": \"" + eLabel + "\"}}";
-					
-						annotation_doc.addField("annotation_extension_json", aeJSON);
-						//LOG.info("added complicated c16: (" + eeid + ", " + eLabel + ") " + aeJSON);
-					}else{
-						// The c16r is unknown to the ontology--render it as just a normal label, without the link.
-						annotation_doc.addField("annotation_extension_json", complicated_c16r);
-						LOG.info("added unknown c16: " + complicated_c16r);
 					}
 				}
 			}

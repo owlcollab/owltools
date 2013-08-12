@@ -15,9 +15,7 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
@@ -96,23 +94,32 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 				continue;
 			}
 			Set<OWLClass> annotatedToSuperClasses = reasoner.getSuperClasses(annotatedToClass, false).getFlattened();
-			Collection<ExtensionExpression> exts = ann.getExtensionExpressions();
-			if (exts != null && !exts.isEmpty()) {
+			List<List<ExtensionExpression>> extensionExpressionGroups = ann.getExtensionExpressions();
+			if (extensionExpressionGroups != null && !extensionExpressionGroups.isEmpty()) {
 				Set<OWLClass> used = new HashSet<OWLClass>();
-				for (ExtensionExpression ext : exts) {
-					String extClsString = ext.getCls();
-					String extRelString = ext.getRelation();
-					
-					OWLClass extCls = g.getOWLClassByIdentifier(extClsString);
-					if (extCls == null) {
+				for (List<ExtensionExpression> group : extensionExpressionGroups) {
+					Set<OWLClassExpression> units = new HashSet<OWLClassExpression>();
+					for (ExtensionExpression ext : group) {
+						String extClsString = ext.getCls();
+						String extRelString = ext.getRelation();
+						
+						OWLClass extCls = g.getOWLClassByIdentifier(extClsString);
+						if (extCls == null) {
+							continue;
+						}
+						OWLObjectProperty extRel = g.getOWLObjectPropertyByIdentifier(extRelString);
+						if (extRel == null) {
+							continue;
+						}
+						units.add(f.getOWLObjectSomeValuesFrom(extRel, extCls));
+					}
+					if (units.isEmpty()) {
 						continue;
 					}
-					OWLObjectProperty extRel = g.getOWLObjectPropertyByIdentifier(extRelString);
-					if (extRel == null) {
-						continue;
-					}
+					units.add(annotatedToClass);
+					final OWLClassExpression groupExpression = f.getOWLObjectIntersectionOf(units);
 					
-					Set<OWLClass> cached = handleInferences(annotatedToClass, extRel, extCls, f);
+					Set<OWLClass> cached = handleInferences(annotatedToClass, groupExpression);
 					for (OWLClass c : cached) {
 						if (c.isBuiltIn()) {
 							continue;
@@ -126,7 +133,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 						boolean added = used.add(c);
 						if (added) {
 							Prediction prediction = getPrediction(ann, c, e.getId(), ann.getCls());
-							prediction.setReason(generateReason(c, annotatedToClass, extRelString, extCls, evidenceString, g));
+							prediction.setReason(generateReason(c, annotatedToClass, groupExpression, group, evidenceString, g));
 							predictions.add(prediction);
 						}
 					}
@@ -136,7 +143,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		return predictions;
 	}
 
-	private String generateReason(OWLClass foldedClass, OWLClass annotatedToClass, String extRelString, OWLClass extCls, String evidence, OWLGraphWrapper g) {
+	private String generateReason(OWLClass foldedClass, OWLClass annotatedToClass, OWLClassExpression groupExpression, List<ExtensionExpression> expressions, String evidence, OWLGraphWrapper g) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(g.getIdentifier(foldedClass));
 		sb.append('\t');
@@ -153,45 +160,47 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		if (annotatedToClassLabel != null) {
 			sb.append(annotatedToClassLabel);
 		}
-		sb.append('\t');
-		sb.append(extRelString);
-		sb.append('\t');
-		sb.append(g.getIdentifier(extCls));
-		sb.append('\t');
-		String extClsLabel = g.getLabel(extCls);
-		if (extClsLabel != null) {
-			sb.append(extClsLabel);
+		for(ExtensionExpression ext : expressions) {
+			sb.append('\t');
+			sb.append(ext.getRelation());
+			sb.append('\t');
+			sb.append(ext.getCls());
+			sb.append('\t');
+			OWLClass extCls = g.getOWLClassByIdentifier(ext.getCls());
+			if (extCls != null) {
+				String extClsLabel = g.getLabel(extCls);
+				if (extClsLabel != null) {
+					sb.append(extClsLabel);
+				}
+			}
 		}
 		sb.append('\t');
 		sb.append(evidence);
 		return sb.toString();
 	}
 	
-	private Set<OWLClass> handleInferences(OWLClass annotatedToClass, OWLObjectProperty extRel, OWLClass extCls, OWLDataFactory f) {
-		final OWLObjectSomeValuesFrom someValuesFrom = f.getOWLObjectSomeValuesFrom(extRel, extCls);
-		final OWLObjectIntersectionOf intersectionOf = f.getOWLObjectIntersectionOf(annotatedToClass, someValuesFrom);
-		
-		Set<OWLClass> cached = reasonerCache.get(intersectionOf);
+	private Set<OWLClass> handleInferences(OWLClass annotatedToClass, OWLClassExpression groupExpression) {
+		Set<OWLClass> cached = reasonerCache.get(groupExpression);
 		if (cached == null) {
 			// first check that the ce is satisfiable,
-			if (reasoner.isSatisfiable(intersectionOf)) {
+			if (reasoner.isSatisfiable(groupExpression)) {
 				// work round for elk bug, make a call to the reasoner to flush the stale ce info
 				reasoner.getSuperClasses(annotatedToClass, true);
 				
 				// check for equivalent named classes
-				cached = reasoner.getEquivalentClasses(intersectionOf).getEntitiesMinusBottom();
+				cached = reasoner.getEquivalentClasses(groupExpression).getEntitiesMinusBottom();
 				if(cached.isEmpty()) {
 					// work round for elk bug, make a call to the reasoner to flush the stale ce info
-					reasoner.getSuperClasses(extCls, true);
+					reasoner.getSuperClasses(annotatedToClass, true);
 					
 					// if no equivalent named classes exist check for super classes
-					cached = reasoner.getSuperClasses(intersectionOf, true).getFlattened();
+					cached = reasoner.getSuperClasses(groupExpression, true).getFlattened();
 				}
 			}
 			else {
 				cached = Collections.emptySet();
 			}
-			reasonerCache.put(intersectionOf, cached);
+			reasonerCache.put(groupExpression, cached);
 		}
 		return cached;
 	}

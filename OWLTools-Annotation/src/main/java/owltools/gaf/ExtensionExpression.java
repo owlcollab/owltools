@@ -10,7 +10,6 @@ package owltools.gaf;
  */
 public class ExtensionExpression{
 
-	protected String id;
 	protected String relation;
 	protected String cls;
 	
@@ -19,17 +18,10 @@ public class ExtensionExpression{
 	}
 	
 	
-	public ExtensionExpression(String id, String relation, String cls) {
+	public ExtensionExpression(String relation, String cls) {
 		this();
-		this.id = id;
 		this.relation = relation;
 		this.cls = cls;
-	}
-	public String getId() {
-		return id;
-	}
-	public void setId(String id) {
-		this.id = id;
 	}
 	public String getRelation() {
 		return relation;
@@ -49,7 +41,6 @@ public class ExtensionExpression{
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((cls == null) ? 0 : cls.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result
 				+ ((relation == null) ? 0 : relation.hashCode());
 		return result;
@@ -69,11 +60,6 @@ public class ExtensionExpression{
 				return false;
 		} else if (!cls.equals(other.cls))
 			return false;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
 		if (relation == null) {
 			if (other.relation != null)
 				return false;
@@ -83,7 +69,7 @@ public class ExtensionExpression{
 	}
 	
 	public String toString() {
-		return id;
+		return relation+" "+cls;
 	}
 	
 	

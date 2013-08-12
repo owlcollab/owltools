@@ -20,7 +20,6 @@ public class GafDocument{
 
 	protected transient Map<String, Bioentity> bioentities;
 	protected transient Map<String, Set<WithInfo>> withInfos;
-	protected transient Map<String, Set<ExtensionExpression>> extensionExpressions;
 	protected transient Map<String, Set<CompositeQualifier>> compositeQualifiers; 
 	protected transient List<GeneAnnotation> annotations;
 	protected transient List<String> comments = new ArrayList<String>();
@@ -29,11 +28,8 @@ public class GafDocument{
 
 
 	public GafDocument(){
-
-
 		bioentities = new Hashtable<String, Bioentity>();
 		withInfos = new HashMap<String, Set<WithInfo>>();
-		extensionExpressions = new HashMap<String, Set<ExtensionExpression>>();
 		compositeQualifiers = new HashMap<String, Set<CompositeQualifier>>();
 		annotations = new ArrayList<GeneAnnotation>();
 	}
@@ -173,24 +169,6 @@ public class GafDocument{
 		return set;
 	}
 
-	public Collection<ExtensionExpression> getExpressions(String id){
-		Set<ExtensionExpression> set = extensionExpressions.get(id);
-		return set;
-	}
-
-	public Set<String> getExtensionExpressionIds(){
-		return extensionExpressions.keySet();
-	}
-
-	public void addExtensionExpression(ExtensionExpression extensionExpression){
-		Set<ExtensionExpression> set = extensionExpressions.get(extensionExpression.getId());
-		if(set == null){
-			set = new HashSet<ExtensionExpression>();
-			extensionExpressions.put(extensionExpression.getId(), set);
-		}
-		set.add(extensionExpression);
-	}
-
 	public void addGeneAnnotation(GeneAnnotation ga){
 		ga.setGafDocumetObject(this);
 		ga.setGafDocument(this.getId());
@@ -199,7 +177,6 @@ public class GafDocument{
 
 	public void setGeneAnnotations(List<GeneAnnotation> newAnns) {
 		annotations = newAnns;
-		
 	}
 
 	public List<String> getComments() {
@@ -214,7 +191,5 @@ public class GafDocument{
 		this.comments.add(c);
 		
 	}
-	
-	
 
 }

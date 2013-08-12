@@ -2,6 +2,7 @@ package owltools.gaf.owl.mapping;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,14 +38,16 @@ public class BasicABox extends GAFOWLBridge {
 		OWLDataFactory fac = graph.getDataFactory();
 		String e = a.getBioentity();
 
-		GAFDescription gdesc = getDescription(a);
-		OWLClassExpression svf = gdesc.classExpression;
+		List<GAFDescription> descriptions = getDescription(a);
+		for (GAFDescription gdesc : descriptions) {
+			OWLClassExpression svf = gdesc.classExpression;
 
-		//OWLNamedIndividual i = getBioentityIndividual(e);
-		OWLNamedIndividual i = null;
-		i = emap.get(e);
+			//OWLNamedIndividual i = getBioentityIndividual(e);
+			OWLNamedIndividual i = null;
+			i = emap.get(e);
 
-		axioms.add(fac.getOWLClassAssertionAxiom(svf, i));
+			axioms.add(fac.getOWLClassAssertionAxiom(svf, i));
+		}
 		addAxioms(axioms);
 	}
 

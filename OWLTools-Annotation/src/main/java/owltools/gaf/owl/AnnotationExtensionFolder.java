@@ -2,6 +2,7 @@ package owltools.gaf.owl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -80,24 +81,20 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 		}
 
 		List<GeneAnnotation> newAnns = new ArrayList<GeneAnnotation>();
-		OWLDataFactory fac = graph.getDataFactory();
 		OWLClass annotatedToClass = getOWLClass(ann.getCls());
 		// c16
-		Collection<ExtensionExpression> exts = ann.getExtensionExpressions();
-		if (annotatedToClass != null && exts != null && !exts.isEmpty()) {
-
-			// TODO - fix model so that disjunctions and conjunctions are supported.
-			//  treat all as disjunction for now
-			for (ExtensionExpression ext : exts) {
-				OWLClass nc = mapExt(annotatedToClass, ext);
+		List<List<ExtensionExpression>> extsGroups = ann.getExtensionExpressions();
+		if (annotatedToClass != null && extsGroups != null && !extsGroups.isEmpty()) {
+			for(List<ExtensionExpression> group : extsGroups) {
+				OWLClass nc = mapExt(annotatedToClass, group);
 				if (nc == null) {
 					continue;
 				}
 				GeneAnnotation newAnn = new GeneAnnotation(ann);
-				newAnn.setExtensionExpression("");
+				newAnn.setExtensionExpressions(Collections.<List<ExtensionExpression>>emptyList());
 				newAnn.setCls(graph.getIdentifier(nc));
 				newAnns.add(newAnn);
-				
+
 				LOG.debug("NEW: "+newAnn);
 			}
 		}
@@ -105,21 +102,22 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 
 	}
 
-	public OWLClass mapExt(OWLClass annotatedToClass, ExtensionExpression ext) {
+	public OWLClass mapExt(OWLClass annotatedToClass, List<ExtensionExpression> exts) {
 		HashSet<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
 		ops.add(annotatedToClass);
 		OWLDataFactory fac = graph.getDataFactory();
 
-		OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
-		if (p == null) {
-			return null;
+		for (ExtensionExpression ext : exts) {
+			OWLObjectProperty p = getObjectPropertyByShorthand(ext.getRelation());
+			if (p == null) {
+				return null;
+			}
+			OWLClass filler = getOWLClass(ext.getCls());
+			if (filler == null) {
+				return null;
+			}
+			ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
 		}
-		OWLClass filler = getOWLClass(ext.getCls());
-		if (filler == null) {
-			return null;
-		}
-		//LOG.info(" EXT:"+p+" "+filler);
-		ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
 
 		OWLClassExpression cx = fac.getOWLObjectIntersectionOf(ops);
 
@@ -131,35 +129,32 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 		}
 		else {
 
-			String idExt = ext.getRelation()+"-"+ext.getCls();
-			idExt = idExt.replaceAll(":", "_");
-
-			String nameExt;
-			OWLClass xc = graph.getOWLClassByIdentifier(ext.getCls());
-			if (xc != null) {
-				String extFillerLabel = graph.getLabelOrDisplayId(xc);
-				nameExt = ext.getRelation()+" some "+extFillerLabel;
+			StringBuilder labelBuilder = new StringBuilder();
+			labelBuilder.append(graph.getLabelOrDisplayId(annotatedToClass));
+			labelBuilder.append(" ");
+			for(ExtensionExpression ext : exts) {
+				labelBuilder.append(" and ");
+				labelBuilder.append(ext.getRelation());
+				labelBuilder.append(" some ");
+				OWLClass xc = graph.getOWLClassByIdentifier(ext.getCls());
+				if (xc != null) {
+					labelBuilder.append(graph.getLabelOrDisplayId(xc));
+				}
+				else {
+					labelBuilder.append(ext.getCls());
+				}
 			}
-			else {
-				nameExt = ext.getRelation()+" some "+ext.getCls();
-			}
-			
-			
 
-			//IRI ncIRI = IRI.create(annotatedToClass.getIRI().toString()+"-"+idExt);
 			lastId++;
 			ncIRI = IRI.create("http://purl.obolibrary.org/obo/GOTEMP_"+lastId);
 			nc = fac.getOWLClass(ncIRI);
 			OWLEquivalentClassesAxiom eca = fac.getOWLEquivalentClassesAxiom(nc, cx);
 			graph.getManager().addAxiom(graph.getSourceOntology(), eca);
-			String annLabel = graph.getLabel(annotatedToClass);
-			if (annLabel == null) {
-				annLabel = graph.getIdentifier(annotatedToClass);
-			}
+			
 			OWLAnnotationAssertionAxiom aaa = fac.getOWLAnnotationAssertionAxiom(
 					fac.getRDFSLabel(),
 					ncIRI,
-					fac.getOWLLiteral(annLabel + " " + nameExt));
+					fac.getOWLLiteral(labelBuilder.toString()));
 			graph.getManager().addAxiom(graph.getSourceOntology(), aaa);
 			graph.getManager().addAxiom(graph.getSourceOntology(), fac.getOWLDeclarationAxiom(nc));
 			revFoldedClassMap.put(cx, nc);

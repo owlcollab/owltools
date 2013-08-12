@@ -49,7 +49,7 @@ public class GeneAnnotation {
 	protected String gafDocument; // parent document id
 	
 	protected Collection<WithInfo> withInfoList; // derived from c8
-	protected Collection<ExtensionExpression> extensionExpressionList; // derived from c16
+	protected List<List<ExtensionExpression>> extensionExpressionList; // derived from c16
 	protected Collection<CompositeQualifier> compositeQualifierList; // derived from c4
 
 	protected transient GafDocument gafDocumentObject; // parent document
@@ -173,7 +173,7 @@ public class GeneAnnotation {
 	
 	
 	public GeneAnnotation(){
-		this("", false, false, "", "", "", "", "", "", "", "", "", "", "", "");
+		this("", false, false, "", "", "", "", "", "", "", "", "", "", null, "", "");
 	}
 	
 	void setGafDocumetObject(GafDocument gafDocumentObject){
@@ -184,8 +184,8 @@ public class GeneAnnotation {
 			boolean isIntegralTo, String compositeQualifier, String cls,
 			String referenceId, String evidenceCls, String withExpression,
 			String aspect, String actsOnTaxonId, String lastUpdateDate, String assignedBy,
-			String extensionExpression, String geneProductForm,
-			String gafDocument) {
+			String extensionExpression, List<List<ExtensionExpression>> extensionExpressionList,
+			String geneProductForm,	String gafDocument) {
 
 		this.bioentity = bioentity;
 		this.isContributesTo = isContributesTo;
@@ -200,6 +200,7 @@ public class GeneAnnotation {
 		this.lastUpdateDate = lastUpdateDate;
 		this.assignedBy = assignedBy;
 		this.extensionExpression = extensionExpression;
+		this.extensionExpressionList = extensionExpressionList;
 		this.geneProductForm = geneProductForm;
 		this.gafDocument = gafDocument;
 		this.isChanged = true;
@@ -339,10 +340,14 @@ public class GeneAnnotation {
 		return extensionExpression;
 	}
 
-	public void setExtensionExpression(String extensionExpression) {
-		this.extensionExpression = extensionExpression;
+	public List<List<ExtensionExpression>> getExtensionExpressions(){
+		return extensionExpressionList;
+	}
+	
+	public void setExtensionExpressions(List<List<ExtensionExpression>> expressions) {
+		this.extensionExpressionList = expressions;
+		this.extensionExpression = GafObjectsBuilder.buildExtensionExpression(expressions);
 		this.isChanged = true;
-
 	}
 
 	public String getGeneProductForm() {
@@ -416,25 +421,6 @@ public class GeneAnnotation {
 
 	public void setIsIntegralTo(boolean isIntegralTo) {
 		this.isIntegralTo = isIntegralTo;
-	}
-	
-	public void setExtensionExpressionList(Collection<ExtensionExpression> xs) {
-		extensionExpressionList = xs;
-		this.setExtensionExpression(StringUtils.join(xs, ","));
-	}
-
-	public Collection<ExtensionExpression> getExtensionExpressions(){
-		if(extensionExpressionList == null){
-			
-			if(gafDocumentObject != null){
-				extensionExpressionList = gafDocumentObject.getExpressions(getExtensionExpression());
-				
-				if(extensionExpressionList == null)
-					extensionExpressionList = Collections.emptyList();
-			}
-		}
-		
-		return extensionExpressionList;
 	}
 	
 	public Collection<WithInfo> getWithInfos(){

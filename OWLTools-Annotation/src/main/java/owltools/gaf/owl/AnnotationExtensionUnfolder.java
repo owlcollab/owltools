@@ -2,14 +2,12 @@ package owltools.gaf.owl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -74,15 +72,14 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 	 */
 	public Collection<GeneAnnotation> unfold(GafDocument gdoc, GeneAnnotation ann) throws MultipleUnfoldOptionsException {
 		List<GeneAnnotation> newAnns = new ArrayList<GeneAnnotation>();
-		OWLDataFactory fac = graph.getDataFactory();
 		OWLOntology ont = graph.getSourceOntology();
 		OWLClass annotatedToClass = getOWLClass(ann.getCls());
 		// c16
-		Collection<ExtensionExpression> preExistingExtExprs = ann.getExtensionExpressions();
+		List<List<ExtensionExpression>> preExistingExtExprs = ann.getExtensionExpressions();
 
 		OWLClassExpression x = unfold(ont, annotatedToClass);
 
-		Set<ExtensionExpression> exts = new HashSet<ExtensionExpression>();
+		List<ExtensionExpression> unfolded = new ArrayList<ExtensionExpression>();
 		OWLClass genus = null;
 		if (x != null) {
 			if (x instanceof OWLObjectIntersectionOf) {
@@ -103,8 +100,7 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 						else
 							p = p.replaceAll(" ","_");
 						String y = graph.getIdentifier(c);
-						String id = p + "(" + y + ")";
-						exts.add(new ExtensionExpression(id, p, y));
+						unfolded.add(new ExtensionExpression(p, y));
 					}
 					else {
 						return null;
@@ -112,14 +108,27 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 				}
 			}
 		}
-		if (exts.size() > 0) {
+		if (unfolded.size() > 0) {
 
-			LOG.info("UNFOLD: "+ann.getCls()+" -> " +
-					genus+" exts: "+exts);
-
+			LOG.info("UNFOLD: "+ann.getCls()+" -> " + genus+" exts: "+unfolded);
 
 			GeneAnnotation newAnn = new GeneAnnotation(ann);
-			newAnn.setExtensionExpressionList(exts);
+			if (preExistingExtExprs == null || preExistingExtExprs.isEmpty()) {
+				newAnn.setExtensionExpressions(Collections.singletonList(unfolded));
+			}
+			else {
+				// add the unfolded intersections to the pre-existing c16 data
+				List<List<ExtensionExpression>> combined = new ArrayList<List<ExtensionExpression>>(preExistingExtExprs.size());
+				for(List<ExtensionExpression> preExistingGroup : preExistingExtExprs) {
+					List<ExtensionExpression> combinedGroup = new ArrayList<ExtensionExpression>(preExistingGroup.size()+unfolded.size());
+					combinedGroup.addAll(unfolded);
+					combinedGroup.addAll(preExistingGroup);
+					combined.add(combinedGroup);
+				}
+				newAnn.setExtensionExpressions(combined);
+			}
+			
+			
 			if (isReplaceGenus && genus != null) {
 				newAnn.setCls(graph.getIdentifier(genus));
 			}

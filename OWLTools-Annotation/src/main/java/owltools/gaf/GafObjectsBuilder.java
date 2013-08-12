@@ -5,7 +5,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 
@@ -140,7 +144,6 @@ public class GafObjectsBuilder {
 			addGeneAnnotation(parser, entity);
 			addWithInfo(parser);
 			addCompositeQualifier(parser);
-			addExtensionExpression(parser);
 		}
 		
 		
@@ -221,28 +224,58 @@ public class GafObjectsBuilder {
 		}
 	}
 
-	private void addExtensionExpression(GAFParser parser){
-		if(parser.getAnnotationExtension() != null){
-			if(parser.getAnnotationExtension().length()>0){
-				String tokens[] = parser.getAnnotationExtension().split("[\\||,]");
-				for(String token: tokens){
-					
+	static List<List<ExtensionExpression>> parseExtensionExpression(String extensionExpressionString){
+		List<List<ExtensionExpression>> groupedExpressions = Collections.emptyList();
+		if(extensionExpressionString != null && extensionExpressionString.length() > 0){
+			// first split by '|' to get groups
+			String[] groups = StringUtils.split(extensionExpressionString, '|');
+			groupedExpressions = new ArrayList<List<ExtensionExpression>>(groups.length);
+			for (int i = 0; i < groups.length; i++) {
+				// split by ',' to get individual entries
+				String[] expressionStrings = StringUtils.split(groups[i], ',');
+				List<ExtensionExpression> expressions = new ArrayList<ExtensionExpression>(expressionStrings.length);
+				for (int j = 0; j < expressionStrings.length; j++) {
+					String token = expressionStrings[j];
 					int index = token.indexOf("(");
-					
-					if(index>0){
+					if(index > 0){
 						String relation = token.substring(0, index);
 						String cls = token.substring(index+1, token.length()-1);
-						gafDocument.addExtensionExpression(new ExtensionExpression(parser.getAnnotationExtension(), relation, cls));
+						expressions.add(new ExtensionExpression(relation, cls));
 					}
-					
+				}
+				if (expressions.isEmpty() == false) {
+					groupedExpressions.add(expressions);
 				}
 			}
-			
+			if (groupedExpressions.isEmpty()) {
+				groupedExpressions = Collections.emptyList();
+			}
 		}
+		return groupedExpressions;
+	}
+	
+	static String buildExtensionExpression(List<List<ExtensionExpression>> groupedExpressions) {
+		StringBuilder sb = new StringBuilder();
+		if (groupedExpressions != null && !groupedExpressions.isEmpty()) {
+			for (List<ExtensionExpression> group : groupedExpressions) {
+				if (sb.length() > 0) {
+					sb.append('|');
+				}
+				for (int i = 0; i < group.size(); i++) {
+					ExtensionExpression expression = group.get(i);
+					if (i > 0) {
+						sb.append(',');
+					}
+					sb.append(expression.relation).append('(').append(expression.cls).append(')');
+				}
+			}
+		}
+		return sb.toString();
 	}
 	
 	/**
 	 * Build GeneAnnotation object from current position/row of the GafParser.
+	 * 
 	 * @param parser
 	 * @param entity
 	 */
@@ -291,16 +324,17 @@ public class GafObjectsBuilder {
 		String extensionExpression = parser.getAnnotationExtension();
 		String geneProductForm = parser.getGeneProjectFormId();
 
+		List<List<ExtensionExpression>> extensionExpressionList = parseExtensionExpression(extensionExpression);
+		extensionExpression = buildExtensionExpression(extensionExpressionList);
 		
 		GeneAnnotation ga = new GeneAnnotation(entity.getId(),
 				isContributesTo, isIntegeralTo, compositeQualifier, clsId, referenceId, evidenceCls, 
-				withExpression, aspect, actsOnTaxonId, lastUpdateDate, assignedBy,extensionExpression, geneProductForm, gafDocument.getId());
+				withExpression, aspect, actsOnTaxonId, lastUpdateDate, assignedBy,extensionExpression, extensionExpressionList, geneProductForm, gafDocument.getId());
 		ga.setBioentityObject(entity);
 		ga.setRelation(relation);
 		AnnotationSource source = new AnnotationSource(parser.getCurrentRow(), parser.getLineNumber(), gafDocument.getId());
 		ga.setSource(source);
 		gafDocument.addGeneAnnotation(ga);
-		
 	}
 	
 	
