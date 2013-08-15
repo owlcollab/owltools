@@ -42,6 +42,7 @@ import owltools.sim.io.SimResultRenderer;
 import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim.io.SimResultRenderer.IndividualSimScores;
 import owltools.sim.io.TabularRenderer;
+import owltools.sim.io.JSONRenderer;
 import owltools.sim2.SimStats;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Direction;
@@ -933,7 +934,6 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * @return renderer
 	 */
 	private SimResultRenderer setRenderer() {
-		//set the renderer
 		SimResultRenderer renderer = null;
 		String f = sos.getSimProperties().getProperty(SimConfigurationProperty.outputFormat.toString());
 		if (f != null) {
@@ -944,8 +944,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			} else if (f.equals(OutputFormat.ROW.name())) {
 				renderer = new DelimitedLineRenderer(resultOutStream);
 			} else if (f.equals(OutputFormat.JSON.name())) {
-				//TODO add JSON renderer call when completed
-				renderer = new TabularRenderer(resultOutStream);
+				renderer = new JSONRenderer(resultOutStream);
 			}
 		}
 		if (renderer == null) {
