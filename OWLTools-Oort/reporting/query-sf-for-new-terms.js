@@ -41,20 +41,20 @@ function main(args) {
 	var modTickets = getUpdatedTickets(oname, trackername, range);
 	
 	print("<h2>Summary for tickets from "+yesterday.toISOString()+" to "+today.toISOString()+"</h2>");
-	printNewTickets(newTickets, oname);
-	printUpdatedTickets(modTickets, oname);
+	printNewTickets(newTickets, oname, trackername);
+	printUpdatedTickets(modTickets, oname, trackername);
 	
 }
 
-function printNewTickets(tickets, oname) {
-	printTickets(tickets, oname, 'new', 'New');
+function printNewTickets(tickets, oname, trackername) {
+	printTickets(tickets, oname, 'new', 'New', trackername);
 }
 
-function printUpdatedTickets(tickets, oname) {
-	printTickets(tickets, oname, 'updated', 'Updated');
+function printUpdatedTickets(tickets, oname, trackername) {
+	printTickets(tickets, oname, 'updated', 'Updated', trackername);
 }
 
-function printTickets(tickets, oname, type, typeUpperCase) {
+function printTickets(tickets, oname, type, typeUpperCase, trackername) {
 	print("<h3>"+typeUpperCase+" Tickets</h3>");
 	if (tickets !== undefined && tickets.length > 0) {
 		
@@ -70,7 +70,7 @@ function printTickets(tickets, oname, type, typeUpperCase) {
 		
 		    // Example: http://sourceforge.net/p/geneontology/ontology-requests/10193/ cilium/flagellum 
 		    body += '<li>';
-		    body += '<a href="http://sourceforge.net/p/'+oname+'/ontology-requests/'+ticket.ticket_num+'/">' + ticket.ticket_num + '</a>';
+		    body += '<a href="http://sourceforge.net/p/'+oname+'/'+trackername+'/'+ticket.ticket_num+'/">' + ticket.ticket_num + '</a>';
 		    body += " ";
 		    body += makeHtmlSave(ticket.summary);
 		    body += '</li>\n';
