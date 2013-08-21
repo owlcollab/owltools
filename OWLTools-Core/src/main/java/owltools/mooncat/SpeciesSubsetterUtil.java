@@ -103,6 +103,8 @@ public class SpeciesSubsetterUtil {
 		mgr.addAxiom(ont, qax);
 		LOG.info("Constraint: "+qax);
 		
+		// flush reasoner, otherwise changes made to the ontology are not used for reasoning
+		reasoner.flush();
 		Set<OWLClass> ucs = reasoner.getEquivalentClasses(fac.getOWLNothing()).getEntities();
 		LOG.info("UCS: "+ucs.size());
 		for (OWLClass uc : ucs) {
