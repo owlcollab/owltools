@@ -269,9 +269,8 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 	}
 	
 	private void writeRelation(XMLStreamWriter writer, String rel, String targetId) throws XMLStreamException {
-		writer.writeStartElement(GO_NAMESPACE_URI, rel);
+		writer.writeEmptyElement(GO_NAMESPACE_URI, rel);
 		writer.writeAttribute(RDF_NAMESPACE_URI, "resource", "http://www.geneontology.org/go#" + targetId);
-		writer.writeEndElement();
 	}
 
 	private void writeDbXref(XMLStreamWriter writer, String xref) throws XMLStreamException {

@@ -87,5 +87,9 @@
            <artifactId>jsonld-java-jena</artifactId>
            <version>0.2</version>
         </dependency>
+        <dependency>
+			<groupId>rhino</groupId>
+			<artifactId>js</artifactId>
+		</dependency>
 	</dependencies>
 </project>

@@ -184,15 +184,9 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		if (cached == null) {
 			// first check that the ce is satisfiable,
 			if (reasoner.isSatisfiable(groupExpression)) {
-				// work round for elk bug, make a call to the reasoner to flush the stale ce info
-				reasoner.getSuperClasses(annotatedToClass, true);
-				
 				// check for equivalent named classes
 				cached = reasoner.getEquivalentClasses(groupExpression).getEntitiesMinusBottom();
 				if(cached.isEmpty()) {
-					// work round for elk bug, make a call to the reasoner to flush the stale ce info
-					reasoner.getSuperClasses(annotatedToClass, true);
-					
 					// if no equivalent named classes exist check for super classes
 					cached = reasoner.getSuperClasses(groupExpression, true).getFlattened();
 				}

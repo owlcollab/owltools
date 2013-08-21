@@ -191,13 +191,29 @@
 				<version>1.5.2</version>
 			</dependency>
 			<dependency>
-				<groupId>org.semanticweb</groupId>
-				<artifactId>HermiT</artifactId>
-				<version>1.3.6-BBOP</version>
+				<groupId>com.hermit-reasoner</groupId>
+				<artifactId>org.semanticweb.hermit</artifactId>
+				<version>1.3.8.1</version>
 				<exclusions>
 					<exclusion>
-						<artifactId>owlapi</artifactId>
-						<groupId>owlapi</groupId>
+						<groupId>org.apache.geronimo.specs</groupId>
+						<artifactId>geronimo-activation_1.1_spec</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.apache.geronimo.specs</groupId>
+						<artifactId>geronimo-javamail_1.4_spec</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.apache.geronimo.specs</groupId>
+						<artifactId>geronimo-stax-api_1.0_spec</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.apache.james</groupId>
+						<artifactId>apache-mime4j-core</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.codehaus.woodstox</groupId>
+						<artifactId>woodstox-core-asl</artifactId>
 					</exclusion>
 				</exclusions>
 			</dependency>
@@ -251,7 +267,7 @@
 			<dependency>
 				<groupId>org.semanticweb.elk</groupId>
 				<artifactId>elk-owlapi</artifactId>
-				<version>0.4.0</version>
+				<version>0.4.1</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.code.gson</groupId>
@@ -293,7 +309,12 @@
 			<dependency>
 				<groupId>org.semanticweb.more</groupId>
 				<artifactId>more-reasoner</artifactId>
-				<version>0.1.5-BBOP</version>
+				<version>0.1.5-BBOP-1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.geronimo.specs</groupId>
+				<artifactId>geronimo-javamail_1.4_spec</artifactId>
+				<version>1.6</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

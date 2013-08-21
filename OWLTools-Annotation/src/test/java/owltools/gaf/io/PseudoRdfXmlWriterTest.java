@@ -59,11 +59,11 @@ public class PseudoRdfXmlWriterTest extends OWLToolsTestBasics {
 		
 		writer.close();
 		assertEquals("\n<test>\n" +
-				DEFAULT_INDENT+"<go:is_a rdf:resource=\"http://www.geneontology.org/go#GO:0010608\" />\n" +
-				DEFAULT_INDENT+"<go:is_a rdf:resource=\"http://www.geneontology.org/go#GO:0032268\" />\n" +
-				DEFAULT_INDENT+"<go:is_a rdf:resource=\"http://www.geneontology.org/go#GO:0065007\" />\n" +
-				DEFAULT_INDENT+"<go:is_a rdf:resource=\"http://www.geneontology.org/go#GO:2000112\" />\n" +
-				DEFAULT_INDENT+"<go:regulates rdf:resource=\"http://www.geneontology.org/go#GO:0006412\" />\n" +
+				DEFAULT_INDENT+"<go:is_a rdf:resource=\"http://www.geneontology.org/go#GO:0010608\"/>\n" +
+				DEFAULT_INDENT+"<go:is_a rdf:resource=\"http://www.geneontology.org/go#GO:0032268\"/>\n" +
+				DEFAULT_INDENT+"<go:is_a rdf:resource=\"http://www.geneontology.org/go#GO:0065007\"/>\n" +
+				DEFAULT_INDENT+"<go:is_a rdf:resource=\"http://www.geneontology.org/go#GO:2000112\"/>\n" +
+				DEFAULT_INDENT+"<go:regulates rdf:resource=\"http://www.geneontology.org/go#GO:0006412\"/>\n" +
 				"</test>",
 				outputStream.toString());
 	}
