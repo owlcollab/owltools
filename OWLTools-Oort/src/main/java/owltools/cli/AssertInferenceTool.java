@@ -86,6 +86,7 @@ public class AssertInferenceTool {
 		boolean verifyExistingInferences = false;
 		boolean runInferences = true;
 		boolean removeUnsupportedInferences = false;
+		boolean removeUnsupportedRegulationInferences = false; 
 		List<String> inputs = new ArrayList<String>();
 		String outputFileName = null;
 		String outputFileFormat = null;
@@ -164,6 +165,9 @@ public class AssertInferenceTool {
 			else if (opts.nextEq("--removeUnsupportedInferences")) {
 				removeUnsupportedInferences = true;
 			}
+			else if (opts.nextEq("--removeUnsupportedRegulationInferences")) {
+				removeUnsupportedRegulationInferences = true;
+			}
 			else {
 				inputs.add(opts.nextOpt());
 			}
@@ -226,7 +230,7 @@ public class AssertInferenceTool {
 					
 					if (verifyExistingInferences) {
 						// check existing inference
-						verifyExistingInferences(graph, reportWriter, removeUnsupportedInferences);
+						verifyExistingInferences(graph, reportWriter, removeUnsupportedInferences, removeUnsupportedRegulationInferences);
 					}
 				}
 			}finally {
@@ -320,7 +324,15 @@ public class AssertInferenceTool {
 		}
 	}
 	
-	public static void verifyExistingInferences(OWLGraphWrapper graph, BufferedWriter reportWriter, boolean removeUnsupported) throws InconsistentOntologyException, IOException {
+	private static boolean isRegulation(OWLClass cls, OWLGraphWrapper g) {
+		String label = g.getLabel(cls);
+		if (label != null) {
+			return label.contains("regulation");
+		}
+		return false;
+	}
+	
+	public static void verifyExistingInferences(OWLGraphWrapper graph, BufferedWriter reportWriter, boolean removeUnsupported, boolean removeRegulation) throws InconsistentOntologyException, IOException {
 		OWLOntology ontology = graph.getSourceOntology();
 		OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		
@@ -329,12 +341,19 @@ public class AssertInferenceTool {
 		Set<OWLSubClassOfAxiom> allSubClassAxioms = ontology.getAxioms(AxiomType.SUBCLASS_OF);
 		
 		Set<OWLSubClassOfAxiom> filteredAllSubClassAxioms = new HashSet<OWLSubClassOfAxiom>();
+		Set<OWLSubClassOfAxiom> allRegulationSubClassAxioms = new HashSet<OWLSubClassOfAxiom>();
 		for (OWLSubClassOfAxiom owlSubClassOfAxiom : allSubClassAxioms) {
 			if (AxiomAnnotationTools.isMarkedAsInferredAxiom(owlSubClassOfAxiom)) {
 				OWLClassExpression superClassCE = owlSubClassOfAxiom.getSuperClass();
 				OWLClassExpression subClassCE = owlSubClassOfAxiom.getSubClass();
 				if (!superClassCE.isAnonymous() && !subClassCE.isAnonymous()) {
 					filteredAllSubClassAxioms.add(owlSubClassOfAxiom);
+					if (removeRegulation) {
+						if (isRegulation(subClassCE.asOWLClass(), graph) 
+							&& isRegulation(superClassCE.asOWLClass(), graph)) {
+							allRegulationSubClassAxioms.add(owlSubClassOfAxiom);
+						}
+					}
 				}
 			}
 		}
@@ -345,6 +364,7 @@ public class AssertInferenceTool {
 		}
 		logger.info("Inferred SubClassOf axioms: "+filteredAllSubClassAxioms.size());
 		final Set<OWLSubClassOfAxiom> existsNotEntailed = new HashSet<OWLSubClassOfAxiom>();
+		final Set<OWLSubClassOfAxiom> regulationExistsNotEntailed = new HashSet<OWLSubClassOfAxiom>();
 		manager.removeAxioms(ontology, filteredAllSubClassAxioms);
 		try {
 			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
@@ -362,9 +382,18 @@ public class AssertInferenceTool {
 					Set<OWLClass> superClasses = reasoner.getSuperClasses(subClass, false).getFlattened();
 					if (superClasses.contains(orginalSuperClass) == false) {
 						existsNotEntailed.add(owlSubClassOfAxiom);
+						boolean isRemoveRegulation = false;
+						if (removeRegulation && allRegulationSubClassAxioms.contains(owlSubClassOfAxiom)) {
+							isRemoveRegulation = true;
+							regulationExistsNotEntailed.add(owlSubClassOfAxiom);
+						}
 						if (reportWriter != null) {
 							OWLPrettyPrinter owlpp = new OWLPrettyPrinter(graph);
-							StringBuilder sb = new StringBuilder("EXISTS, TAGGED-INFERRED, NOT-ENTAILED\t");
+							StringBuilder sb = new StringBuilder();
+							if (removeUnsupported || isRemoveRegulation) {
+								sb.append("REMOVED ");
+							}
+							sb.append("EXISTS, TAGGED-INFERRED, NOT-ENTAILED\t");
 							sb.append(owlpp.render(subClass));
 							sb.append(" ");
 							sb.append(owlpp.render(orginalSuperClass));
@@ -389,6 +418,9 @@ public class AssertInferenceTool {
 						}
 					}
 				}
+				if (removeRegulation && !regulationExistsNotEntailed.isEmpty()) {
+					logger.info("Found "+regulationExistsNotEntailed.size()+" unsupported regulation inferences");
+				}
 				if (!existsNotEntailed.isEmpty()) {
 					logger.info("Found "+existsNotEntailed.size()+" unsupported inferences");
 				}
@@ -403,7 +435,14 @@ public class AssertInferenceTool {
 			}
 		}
 		finally {
-			if (removeUnsupported && !existsNotEntailed.isEmpty()) {
+			if (removeRegulation) {
+				logger.info("Removing "+regulationExistsNotEntailed.size()+" unsupported regulation inferences.");
+				// remove the unsupported axioms
+				filteredAllSubClassAxioms.removeAll(regulationExistsNotEntailed);
+				// add the supported axioms back into the ontology.
+				manager.addAxioms(ontology, filteredAllSubClassAxioms);
+			}
+			else if (removeUnsupported && !existsNotEntailed.isEmpty()) {
 				logger.info("Removing "+existsNotEntailed.size()+" unsupported inferences.");
 				// remove the unsupported axioms
 				filteredAllSubClassAxioms.removeAll(existsNotEntailed);
