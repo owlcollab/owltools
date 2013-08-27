@@ -656,7 +656,7 @@ sub get_ont_info {
          fma => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'http://obo.svn.sourceforge.net/viewvc/*checkout*/obo/fma-conversion/trunk/fma2_obo.obo',
+             source_url => 'http://svn.code.sf.net/p/obo/svn/fma-conversion/trunk/fma2_obo.obo',
          },
          imr => {
              method => 'obo2owl',
