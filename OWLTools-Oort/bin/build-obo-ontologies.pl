@@ -432,7 +432,7 @@ sub get_ont_info {
              infallible => 1,
              method => 'vcs',
              system => 'svn',
-             checkout => 'svn  --ignore-externals co https://obo.svn.sourceforge.net/svnroot/obo/uberon/trunk',
+             checkout => 'svn --ignore-externals co http://svn.code.sf.net/p/obo/svn/uberon/trunk',
          },
          cl => {
              infallible => 1,
