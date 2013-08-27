@@ -1,7 +1,5 @@
 package owltools.phenolog;
 
-import javax.mail.*;
-import javax.mail.internet.*;
 import java.io.*;
 import java.util.*;
 import org.apache.commons.math.distribution.*;
@@ -950,7 +948,7 @@ public class Main {
         printresults(out_path.concat("/bootstrap_sp2.xls"), overall_list2, avgcutoff2, 1);
         printresults(out_path.concat("/reciprocal_pairs.xls"), reciprocal_list, avgcutoff1, 0);
 
-
+        /*
         try {
             String host = "smtp.gmail.com";
             String from = "phenolog.dispatch@gmail.com";
@@ -1007,5 +1005,6 @@ public class Main {
 
         } catch (Exception e) {
         }
+        */
     } // end of main method
 } // end of main class

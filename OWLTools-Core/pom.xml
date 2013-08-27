@@ -125,11 +125,5 @@
 			<groupId>org.semanticweb.more</groupId>
 			<artifactId>more-reasoner</artifactId>
 		</dependency>
-		<!-- Used to send some mail in a main method -->
-		<!-- TODO remove that in owltools.phenolog.Main -->
-		<dependency>
-			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-javamail_1.4_spec</artifactId>
-		</dependency>
 	</dependencies>
 </project>
