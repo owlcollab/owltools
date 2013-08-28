@@ -276,7 +276,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 			addLabelFields(annotation_doc, "evidence_type_closure", ecoIDClosure);
 
-			// Col4/qualifier generation.
+			// Col 4: qualifier generation.
 			List<String> aquals = a.getQualifiers();
 			String comb_aqual = "";
 			if( aquals != null ){
@@ -306,10 +306,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				annotation_doc.addField("evidence_with", wStr);
 				withList = withList + "_" + wStr;
 			}
-
-			// BUG/TODO: Make the ID /really/ unique - ask Chris
-			annotation_doc.addField("id", eid +"_:_"+ comb_aqual +"_:_"+ clsId +"_:_"+ a_ev_type +"_:_"+ assgnb +"_:_"+ etaxid +"_:_"+ adate +"_:_"+ refIdList +"_:_"+ withList);
-
+			
 			///
 			/// isa_partof_closure
 			///
@@ -583,6 +580,22 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				String jsonized_ann_ext_map = gson.toJson(ann_ext_map);
 				annotation_doc.addField("annotation_extension_class_closure_map", jsonized_ann_ext_map);
 			}
+
+			// Final doc assembly; make the ID /really/ unique.
+			//annotation_doc.addField("id", eid +"_:_"+ comb_aqual +"_:_"+ clsId +"_:_"+ a_ev_type +"_:_"+ assgnb +"_:_"+ etaxid +"_:_"+ adate +"_:_"+ refIdList +"_:_"+ withList);
+			ArrayList<String> id_items = new ArrayList<String>();
+			id_items.add(eid); // 1, 2
+			id_items.add(comb_aqual); // 4
+			id_items.add(clsId); // 5
+			id_items.add(refIdList); // 6
+			id_items.add(a_ev_type); // 7
+			id_items.add(withList); // 8
+			id_items.add(etaxid); // 13 (technically dupe info)
+			id_items.add(adate); // 14
+			id_items.add(assgnb); // 15
+			id_items.add(a.getExtensionExpression()); // 16
+			String unique_ann_id = StringUtils.join(id_items, "_:_");
+			annotation_doc.addField("id", unique_ann_id);
 			
 			// Finally add doc.
 			add(annotation_doc);
