@@ -8,11 +8,13 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -43,6 +45,7 @@ import owltools.gaf.inference.FoldBasedPredictor;
 import owltools.gaf.inference.Prediction;
 import owltools.gaf.io.GafWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
+import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.lego.GafToLegoTranslator;
 import owltools.gaf.owl.AnnotationExtensionFolder;
@@ -750,28 +753,112 @@ public class GafCommandRunner extends CommandRunner {
 	}
 	
 	@CLIMethod("--pseudo-rdf-xml")
-	public void createRdfXml(Opts opts) throws IOException {
-		opts.info("OUTPUTFILE", "create an RDF XML file in legacy format.");
+	public void createRdfXml(Opts opts) throws Exception {
+		opts.info("-o OUTPUTFILE", "create an RDF XML file in legacy format.");
+		String outputFileName = null;
+		List<String> gafSources = null;
+		boolean printMemory = false;
+		boolean gzipped = false;
+		while (opts.hasArgs()) {
+			if (opts.nextEq("-o")) {
+				outputFileName = opts.nextOpt();
+			}
+			else if (opts.nextEq("-m|--print-memory")) {
+				printMemory = true;
+			}
+			else if (opts.nextEq("-z|--gz")) {
+				gzipped = true;
+			}
+			else {
+				gafSources = opts.nextList();
+				break;
+			}
+		}
 		if (g == null) {
 			System.err.println("ERROR: No ontology available.");
 			exit(-1);
 			return;
 		}
-		if(gafdoc == null) {
-			System.err.println("ERROR: No GAF available.");
+		if(gafdoc == null && (gafSources == null || gafSources.isEmpty())) {
+			System.err.println("ERROR: No GAF(s) available.");
 			exit(-1);
 			return;
 		}
-		if (!opts.hasArgs()) {
+		if (outputFileName == null) {
 			System.err.println("ERROR: No output file available.");
 			exit(-1);
 			return;
 		}
-		String outputFileName = opts.nextOpt();
-		PseudoRdfXmlWriter w = new PseudoRdfXmlWriter();
-		OutputStream stream = new FileOutputStream(new File(outputFileName));
-		w.write(stream, g, Arrays.asList(gafdoc));
-		stream.close();
+		
+		List<GafDocument> gafDocs;
+		if (gafSources == null || gafSources.isEmpty()) {
+			gafDocs = Collections.singletonList(gafdoc);
+		}
+		else {
+			gafDocs = new ArrayList<GafDocument>();
+			if (gafdoc != null) {
+				gafDocs.add(gafdoc);
+				if (printMemory) {
+					printMemory();
+				}
+			}
+			LOG.info("Preparing to load "+gafSources.size()+" GAF documents");
+			GafObjectsBuilder builder = new GafObjectsBuilder();
+			for(String gafSource : gafSources) {
+				LOG.info("Start loading GAF from: "+gafSource);
+				GafDocument gafDoc = builder.buildDocument(gafSource);
+				gafDocs.add(gafDoc);
+				LOG.info("Finished loading GAF from: "+gafSource);
+				printMemory();
+			}
+		}
+		
+		OutputStream stream = null;
+		try {
+			LOG.info("Start writing Pseudo RDF XML to file: "+outputFileName);
+			LOG.info("Using "+gafDocs.size()+" GAF documents.");
+			PseudoRdfXmlWriter w = new PseudoRdfXmlWriter();
+			final long startTime = System.currentTimeMillis();
+			w.setProgressReporter(new ProgressReporter() {
+				
+				@Override
+				public void report(int count, int total) {
+					if (count == total) {
+						LOG.info("Done writing terms.");
+					}
+					else if (count % 100 == 0) {
+						final long currentTime = System.currentTimeMillis();
+						final long elapsed = currentTime - startTime;
+						int remainingCount = total - count;
+						double perTerm = ((double) elapsed) /  ((double) count);
+						long remainingTime = Math.round(remainingCount * perTerm);
+						long remainingMinutes = remainingTime / (1000 * 60);
+						LOG.info("Written "+count+" of "+total+" terms, remaining: "+remainingMinutes+" minutes");
+					}
+				}
+			});
+			stream = new FileOutputStream(new File(outputFileName));
+			if (gzipped) {
+				stream = new GZIPOutputStream(stream);
+			}
+			w.write(stream, g, gafDocs);
+			LOG.info("Finished writing Pseudo RDF XML");
+		}
+		catch (Exception e) {
+			LOG.error("Error during the creation of the Pseudo RDF XML.", e);
+			throw e;
+		}
+		finally {
+			IOUtils.closeQuietly(stream);
+		}
+	}
+	
+	private void printMemory() {
+		// run a gc to get a proper memory consumption profile
+		System.gc();
+		Runtime runtime = Runtime.getRuntime();
+	    long allocatedMemory = runtime.totalMemory();
+	    LOG.info("Memory allocated "+(allocatedMemory / (1024*1024))+"MB");
 	}
 	
 	@CLIMethod("--write-xgmml")

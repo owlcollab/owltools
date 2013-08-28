@@ -42,10 +42,21 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 	static final String GO_NAMESPACE_URI = GO_RDF_XML_DTD+"#";
 	static final String DEFAULT_INDENT = "    "; // 4 space chars as indent
 	
+	private ProgressReporter progressReporter;
+	
 	public PseudoRdfXmlWriter() {
 		super(DEFAULT_INDENT);
 	}
 
+	public void setProgressReporter(ProgressReporter reporter) {
+		this.progressReporter = reporter;
+	}
+	
+	public static interface ProgressReporter {
+		
+		public void report(int count, int total);
+	}
+	
 	/**
 	 * Write a pseudo RDF XML for the given ontology and gene annotations.
 	 * 
@@ -99,8 +110,14 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 		});
 		
 		// write each term and corresponding gene annotations
+		int total = allClasses.size();
+		int count = 0;
 		for (OWLClass owlClass : allClasses) {
 			writeTerm(writer, owlClass, graph, gafs);
+			if (progressReporter != null) {
+				count += 1;
+				progressReporter.report(count, total);
+			}
 		}
 	}
 	
