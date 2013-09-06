@@ -126,20 +126,8 @@
 					<artifactId>owlapi-tools</artifactId>
 				</exclusion>
 				<exclusion>
-					<artifactId>factplusplus</artifactId>
-					<groupId>uk.ac.manchester.cs</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>HermiT</artifactId>
-					<groupId>org.semanticweb</groupId>
-				</exclusion>
-				<exclusion>
 					<artifactId>elk-owlapi</artifactId>
 					<groupId>org.semanticweb.elk</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jcel.owlapi</artifactId>
-					<groupId>jcel</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>sparqldl-api</artifactId>
@@ -156,14 +144,6 @@
 				<exclusion>
 					<artifactId>gson</artifactId>
 					<groupId>com.google.code.gson</groupId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.semanticweb.more</groupId>
-					<artifactId>more-reasoner</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>net.sourceforge.owlapi</groupId>
-					<artifactId>jfact</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>

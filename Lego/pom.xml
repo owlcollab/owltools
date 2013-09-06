@@ -158,6 +158,34 @@
 					<groupId>org.apache.ant</groupId>
 					<artifactId>ant</artifactId>
 				</exclusion>
+				<exclusion>
+					<artifactId>more-reasoner</artifactId>
+					<groupId>org.semanticweb.more</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.hermit-reasoner</groupId>
+					<artifactId>org.semanticweb.hermit</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>geronimo-javamail_1.4_spec</artifactId>
+					<groupId>org.apache.geronimo.specs</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>factplusplus</artifactId>
+					<groupId>uk.ac.manchester.cs</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jcel.owlapi</artifactId>
+					<groupId>jcel</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>js</artifactId>
+					<groupId>rhino</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jfact</artifactId>
+					<groupId>net.sourceforge.owlapi</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 	</dependencies>
