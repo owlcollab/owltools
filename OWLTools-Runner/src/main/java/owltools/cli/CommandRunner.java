@@ -705,7 +705,10 @@ public class CommandRunner {
 					}
 					g.getManager().removeAxioms(o, aas);
 
+					// TODO - remove axiom annotations
+					
 				}
+				
 			}
 			else if (opts.nextEq("--apply-patch")) {
 				opts.info("minusAxiomsOntology plusAxiomsOntology", "applies 'patch' to current ontology");
@@ -2386,6 +2389,14 @@ public class CommandRunner {
 				LOG.info("Removing axioms: "+axioms.size());
 				g.getManager().removeAxioms(g.getSourceOntology(), axioms);
 			}
+			else if (opts.nextEq("--remove-axiom-annotations")) {
+				for (OWLAxiom a : g.getSourceOntology().getAxioms()) {
+					Set<OWLAnnotation> anns = a.getAnnotations();
+					if (anns.size() > 0) {
+						AxiomAnnotationTools.changeAxiomAnnotations(a, new HashSet<OWLAnnotation>(), g.getSourceOntology());						
+					}
+				}
+			}
 			else if (opts.nextEq("--split-ontology")) {
 				opts.info("[-p IRI-PREFIX] [-s IRI-SUFFIX] [-d OUTDIR] [-l IDSPACE1 ... IDPSPACEn]", 
 				"Takes current only extracts all axioms in ID spaces and writes to separate ontology PRE+lc(IDSPACE)+SUFFIX saving to outdir. Also adds imports");
@@ -2752,9 +2763,11 @@ public class CommandRunner {
 						modIRI = opts.nextOpt();
 					}
 					else if (opts.nextEq("-d")) {
+						opts.info("", "Is set, will traverse down class hierarchy to form seed set");
 						isTraverseDown = true;
 					}
 					else if (opts.nextEq("-c|--merge")) {
+						opts.info("", "Is set, do not use a command-line specified seed object list - use the source ontology as list of seeds");
 						isMerge = true;
 					}
 					else if (opts.nextEq("-s|--source")) {
