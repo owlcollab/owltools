@@ -419,6 +419,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				}
 				oortConfig.setTraceReportFile(traceReportFile);
 			}
+			else if (opts.nextEq("--ignore-selected-equivalent-pairs")) {
+				Set<String> ignoreSelectedEquivalentPairSet = new HashSet<String>(opts.nextList());
+				oortConfig.setIgnoreSelectedEquivalentPairSet(ignoreSelectedEquivalentPairSet);
+			}
 			else if (opts.nextEq("--ontology-checks")) {
 				Set<String> addFlags = new HashSet<String>(); 
 				Set<String> removeFlags = new HashSet<String>();
@@ -890,24 +894,34 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					if (true) {
 						final List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = infBuilder.getEquivalentNamedClassPairs();
 						if (equivalentNamedClassPairs.size() > 0) {
-							logWarn("Found equivalencies between named classes");
-							List<String> reasons = new ArrayList<String>();
-							for (OWLEquivalentClassesAxiom eca : equivalentNamedClassPairs) {
-								String axiomString = owlpp.render(eca);
-								reasons.add(axiomString);
-								String message = "EQUIVALENT_CLASS_PAIR\t"+axiomString;
-								reasonerReportLines.add(message);
+							List<OWLEquivalentClassesAxiom> filteredAxioms = equivalentNamedClassPairs;
+							Set<String> ignoreSelectedEquivalentPairSet = oortConfig.getIgnoreSelectedEquivalentPairSet();
+							if (ignoreSelectedEquivalentPairSet != null && !ignoreSelectedEquivalentPairSet.isEmpty()) {
+								filteredAxioms = filterEquivalentNamedClassPairs(equivalentNamedClassPairs, ignoreSelectedEquivalentPairSet, graph);
 							}
-							if (oortConfig.isCreateErrorModules()) {
-								createEquivModule(ontologyId, equivalentNamedClassPairs);
-								
-							}
-							if (oortConfig.isAllowEquivalentNamedClassPairs() == false) {
-								// TODO: proper exception mechanism - delay until end?
-								if (!oortConfig.isForceRelease()) {
-									saveReasonerReport(ontologyId, reasonerReportLines);
-									throw new OboOntologyReleaseRunnerCheckException("Found equivalencies between named classes.", reasons, "Use ForceRelease option to ignore this warning.");
+							if (filteredAxioms.size() > 0) {
+								logWarn("Found equivalencies between named classes");
+								List<String> reasons = new ArrayList<String>();
+								for (OWLEquivalentClassesAxiom eca : filteredAxioms) {
+									String axiomString = owlpp.render(eca);
+									reasons.add(axiomString);
+									String message = "EQUIVALENT_CLASS_PAIR\t"+axiomString;
+									reasonerReportLines.add(message);
 								}
+								if (oortConfig.isCreateErrorModules()) {
+									createEquivModule(ontologyId, filteredAxioms);
+									
+								}
+								if (oortConfig.isAllowEquivalentNamedClassPairs() == false) {
+									// TODO: proper exception mechanism - delay until end?
+									if (!oortConfig.isForceRelease()) {
+										saveReasonerReport(ontologyId, reasonerReportLines);
+										throw new OboOntologyReleaseRunnerCheckException("Found equivalencies between named classes.", reasons, "Use ForceRelease option to ignore this warning.");
+									}
+								}
+							}
+							else {
+								cleanupEquivModule(ontologyId);
 							}
 
 						}
@@ -1153,6 +1167,37 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	// ----------------------------------------
 	// Other Helper methods
 	// ----------------------------------------
+	
+	/**
+	 * Given a list of equivalent classes axiom, remove all axioms which use a
+	 * class from the ignore set. Maps the class to it's identifier via the
+	 * given graph.
+	 * 
+	 * @param all
+	 * @param ignores
+	 * @param graph
+	 * @return filtered list
+	 */
+	private List<OWLEquivalentClassesAxiom> filterEquivalentNamedClassPairs(
+			List<OWLEquivalentClassesAxiom> all, Set<String> ignores, OWLGraphWrapper graph)
+	{
+		List<OWLEquivalentClassesAxiom> filtered = new ArrayList<OWLEquivalentClassesAxiom>(all.size());
+		for (OWLEquivalentClassesAxiom axiom : all) {
+			Set<OWLClass> namedClasses = axiom.getNamedClasses();
+			boolean add = true;
+			for (OWLClass owlClass : namedClasses) {
+				String id = graph.getIdentifier(owlClass);
+				if (ignores.contains(id)) {
+					add = false;
+					break;
+				}
+			}
+			if (add) {
+				filtered.add(axiom);
+			}
+		}
+		return filtered;
+	}
 	
 	private void handleSimpleOntology(OWLGraphWrapper graph, String ontologyId, 
 			String version, OWLOntology gciOntology) throws OboOntologyReleaseRunnerCheckException,

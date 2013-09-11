@@ -117,6 +117,8 @@ public class OortConfiguration {
 	
 	private boolean createErrorModules = true;
 	
+	private Set<String> ignoreSelectedEquivalentPairSet = null;
+	
 	private static List<OntologyCheck> getDefaultOntologyChecks() {
 		List<OntologyCheck> checks = new ArrayList<OntologyCheck>();
 		checks.add(new SelfReferenceInDefinition());
@@ -962,6 +964,21 @@ public class OortConfiguration {
 		this.createErrorModules = createErrorModules;
 	}
 
+	/**
+	 * @return the ignoreSelectedEquivalentPairSet
+	 */
+	public Set<String> getIgnoreSelectedEquivalentPairSet() {
+		return ignoreSelectedEquivalentPairSet;
+	}
+
+	/**
+	 * @param ignoreSelectedEquivalentPairSet the ignoreSelectedEquivalentPairSet to set
+	 */
+	public void setIgnoreSelectedEquivalentPairSet(
+			Set<String> ignoreSelectedEquivalentPairSet) {
+		this.ignoreSelectedEquivalentPairSet = ignoreSelectedEquivalentPairSet;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -1086,6 +1103,7 @@ public class OortConfiguration {
 		putValue(properties, "checkPotentialRedundant", config.checkPotentialRedundant);
 		putValue(properties, "versionReportFiles", config.versionReportFiles);
 		putValue(properties, "createErrorModules", config.createErrorModules);
+		putValue(properties, "ignoreSelectedEquivalentPairs", config.ignoreSelectedEquivalentPairSet);
 		return properties;
 	}
 	
@@ -1206,6 +1224,7 @@ public class OortConfiguration {
 		config.checkPotentialRedundant = getValue(properties, "checkPotentialRedundant", config.checkPotentialRedundant);
 		config.versionReportFiles = getValue(properties, "versionReportFiles", config.versionReportFiles);
 		config.createErrorModules = getValue(properties, "createErrorModules", config.createErrorModules);
+		config.ignoreSelectedEquivalentPairSet = getValue(properties, "ignoreSelectedEquivalentPairs", config.ignoreSelectedEquivalentPairSet);
 	}
 	
 	private static List<OntologyCheck> getClassValues(Properties properties, String key, List<OntologyCheck> defaultOntologyChecks) {
