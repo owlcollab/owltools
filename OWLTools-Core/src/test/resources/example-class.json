@@ -1,0 +1,77 @@
+{
+    "@" : {
+        "GOC": "http://geneontology.org/curators#",
+        "GO" : "http://purl.obolibrary.org/obo/GO_"
+    },
+
+    // id: GO:0042102
+    id: "GO:nnnn",     //  obo-style ID
+
+    // name: positive regulation of T cell proliferation
+    label: "positive regulation of T cell proliferation",      // rdfs:label
+
+    // namespace: biological_process
+    obo_namespace: "biological_process",
+
+    // synonym: "activation of T cell proliferation" NARROW MADE-UP [GOC:ai]
+    synonym: [
+        {
+            value: "activation of T cell proliferation",
+            lang: "en",   //// currently this field is not used in go.owl, but it may in future
+            scope: "narrow",
+            type : "made-up",  // synonym type in obo
+            
+            // in obof, source is the part in the brackets [...]
+            // in obo2owl, this is hadDbXref, and the value is typically a string.
+            // in future we would like this to be an object rather than a string, and we foreshadow this here
+            source: [
+                {
+                    id : "GOC:ai"     // 
+                    label : "GOC:ai",   // in future this may be a label
+                },
+                //  ...
+            ]
+        }
+    ],
+
+    subClassOf: [
+        // is_a: GO:0042129 {is_inferred="true"} ! regulation of T cell proliferation
+        {
+            
+        },
+        // ...
+    ]
+        
+    // maps to owl EquivalentClasses.
+    //
+    // this could be displayed in a similar fashion to protege.
+    // this may be in an "advanced" section - some of the information is replicated in
+    // a weaker form as subClassOf axioms
+    equivalentTo: [
+        {
+            source: [],       // we may have this in future
+            intersectionOf: [
+                    
+                // by convenion, GO logical defs are genus-differentia, but this should not be assumed
+                "GO:0065007",    // 'genus'
+                {
+                    type: "owl:Restriction",
+                    onProperty : {
+                        id: "RO:nnnnn",
+                        label: "positiively_regulates"
+                    },
+                    someValuesFrom : {
+                        id: "GO:0042098"
+                        label: "T cell proliferation"
+                    }
+                }
+            ]
+        }
+    ]
+}
+    
+
+
+
+ 
+ 
