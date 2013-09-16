@@ -51,9 +51,16 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 
 	@Override
 	protected void handleAdditionalRules(List<AnnotationRule> annotationRules, List<AnnotationRule> documentRules,
-			List<AnnotationRule> owlRules, List<AnnotationRule> inferenceRules) {
+			List<AnnotationRule> owlRules, List<AnnotationRule> inferenceRules, List<AnnotationRule> experimentalInferenceRules) {
 		final AnnotationRule predictionRule = namedRules.get(GoAnnotationPredictionRule.PERMANENT_JAVA_ID);
-		inferenceRules.add(predictionRule);
+		if (predictionRule != null) {
+			inferenceRules.add(predictionRule);
+		}
+		final AnnotationRule experimentalRule = namedRules.get(GoAnnotationExperimentalPredictionRule.PERMANENT_JAVA_ID);
+		if (experimentalRule != null) {
+			experimentalInferenceRules.add(experimentalRule);
+		}
+		
 	}
 
 	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, TraversingEcoMapper eco, boolean createOntologyModules) {
@@ -80,6 +87,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		namedRules.put(GoMultipleTaxonRule.PERMANENT_JAVA_ID, new GoMultipleTaxonRule(graph));
 		namedRules.put(GoNoHighLevelTermAnnotationRule.PERMANENT_JAVA_ID, new GoNoHighLevelTermAnnotationRule(graph, eco));
 		namedRules.put(GoAnnotationPredictionRule.PERMANENT_JAVA_ID, new GoAnnotationPredictionRule(graph));
+		namedRules.put(GoAnnotationExperimentalPredictionRule.PERMANENT_JAVA_ID, new GoAnnotationExperimentalPredictionRule(graph));
 		logger.info("Finished preparing ontology checks");
 	}
 

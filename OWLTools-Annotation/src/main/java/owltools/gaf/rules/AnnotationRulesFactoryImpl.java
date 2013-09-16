@@ -42,6 +42,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 	private final List<AnnotationRule> documentRules;
 	private final List<AnnotationRule> owlRules;
 	private final List<AnnotationRule> inferenceRules;
+	private final List<AnnotationRule> experimentalInferenceRules;
 	private final String path;
 	private final OWLGraphWrapper graph;
 	
@@ -58,6 +59,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 		documentRules = new ArrayList<AnnotationRule>();
 		owlRules = new ArrayList<AnnotationRule>();
 		inferenceRules = new ArrayList<AnnotationRule>();
+		experimentalInferenceRules = new ArrayList<AnnotationRule>();
 	}
 	
 	@Override
@@ -86,7 +88,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 			loadRegex(doc);
 			loadJava(doc);
 			
-			handleAdditionalRules(annotationRules, documentRules, owlRules, inferenceRules);
+			handleAdditionalRules(annotationRules, documentRules, owlRules, inferenceRules, experimentalInferenceRules);
 			
 			isInitalized = true;
 			
@@ -94,7 +96,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 		}
 	}
 	
-	protected void handleAdditionalRules(List<AnnotationRule> annotationRules, List<AnnotationRule> documentRules, List<AnnotationRule> owlRules, List<AnnotationRule> inferenceRules) {
+	protected void handleAdditionalRules(List<AnnotationRule> annotationRules, List<AnnotationRule> documentRules, List<AnnotationRule> owlRules, List<AnnotationRule> inferenceRules, List<AnnotationRule> experimentalInferenceRules) {
 		// do nothing
 	}
 
@@ -279,6 +281,14 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
 		}
 		return inferenceRules;
+	}
+
+	@Override
+	public List<AnnotationRule> getExperimentalInferenceRules() {
+		if (!isInitalized) {
+			throw new IllegalStateException("This factory needs to be initialzed before use. Call init()");
+		}
+		return experimentalInferenceRules;
 	}
 
 	@Override

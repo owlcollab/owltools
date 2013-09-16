@@ -62,7 +62,7 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 		
 		AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(
 				qcfile, xrfabbslocation, graph, eco, false);
-		engine = new AnnotationRulesEngine(rulesFactory, true);
+		engine = new AnnotationRulesEngine(rulesFactory, true, false);
 	}
 
 	@Test
@@ -99,9 +99,7 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 	}
 
 	private static void renderViolations(AnnotationRulesEngineResult result) {
-		final PrintWriter writer = new PrintWriter(System.out);
-		AnnotationRulesEngineResult.renderViolations(result, engine, writer);
-		writer.close();
+		AnnotationRulesReportWriter.renderViolations(result, engine, new PrintWriter(System.out));
 	}
 	
 	@AfterClass

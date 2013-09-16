@@ -45,6 +45,14 @@ public interface AnnotationRulesFactory {
 	public List<AnnotationRule> getInferenceRules();
 	
 	/**
+	 * Get the list of rules, which check for inferred annotations. These also
+	 * need the global view of the GAF ({@link GafDocument}) and the OWL.
+	 * 
+	 * @return rules
+	 */
+	public List<AnnotationRule> getExperimentalInferenceRules();
+	
+	/**
 	 * Get the underlying ontology graph for this rule factory.
 	 * 
 	 * @return graph or null

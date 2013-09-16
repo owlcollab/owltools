@@ -1,14 +1,9 @@
 package owltools.gaf.rules;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -25,7 +20,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.Prediction;
-import owltools.gaf.io.GafWriter;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
@@ -38,10 +32,12 @@ public class AnnotationRulesEngine {
 	
 	private final AnnotationRulesFactory rulesFactory;
 	private final boolean createInferences;
+	private final boolean useExperimentalInferences;
 	
-	public AnnotationRulesEngine(AnnotationRulesFactory rulesFactory, boolean createInferences){
+	public AnnotationRulesEngine(AnnotationRulesFactory rulesFactory, boolean createInferences, boolean useExperimental){
 		this.rulesFactory = rulesFactory;
 		this.createInferences = createInferences;
+		this.useExperimentalInferences = useExperimental;
 		rulesFactory.init();
 	}
 	
@@ -88,6 +84,14 @@ public class AnnotationRulesEngine {
 				}
 			}
 		}
+		List<AnnotationRule> experimentalInferenceRules = rulesFactory.getExperimentalInferenceRules();
+		if (inferenceRules != null) {
+			for (AnnotationRule annotationRule : experimentalInferenceRules) {
+				if (id.equals(annotationRule.getRuleId())) {
+					return annotationRule;
+				}
+			}
+		}
 		return null;
 	}
 	
@@ -103,7 +107,14 @@ public class AnnotationRulesEngine {
 		List<AnnotationRule> annotationRules = rulesFactory.getGeneAnnotationRules();
 		List<AnnotationRule> documentRules = rulesFactory.getGafDocumentRules();
 		List<AnnotationRule> owlRules = rulesFactory.getOwlRules();
-		List<AnnotationRule> inferenceRules = rulesFactory.getInferenceRules();
+		List<AnnotationRule> inferenceRules = null;
+		if (createInferences) {
+			inferenceRules = rulesFactory.getInferenceRules();
+		}
+		List<AnnotationRule> experimentalInferenceRules = null;
+		if (useExperimentalInferences) {
+			experimentalInferenceRules = rulesFactory.getExperimentalInferenceRules();
+		}
 		if(annotationRules == null || annotationRules.isEmpty()){
  			throw new AnnotationRuleCheckException("Rules are not initialized. Please check the annotation_qc.xml file for errors");
  		}
@@ -141,6 +152,7 @@ public class AnnotationRulesEngine {
 			OWLGraphWrapper graph = rulesFactory.getGraph();
 			final boolean hasOwlRules = owlRules != null && !owlRules.isEmpty();
 			final boolean hasInferenceRules = createInferences && inferenceRules != null && !inferenceRules.isEmpty();
+			final boolean hasExperimentalInferenceRules = useExperimentalInferences && experimentalInferenceRules != null && !experimentalInferenceRules.isEmpty();
 			boolean buildTranslatedGraph = graph != null && (hasOwlRules || hasInferenceRules);
 			if (graph != null) {
 				result.setOntologyVersions(graph.getVersions());
@@ -170,6 +182,14 @@ public class AnnotationRulesEngine {
 					result.addInferences(rule.getPredictedAnnotations(doc, translatedGraph));
 				}
 				LOG.info("Finished prediction/inference of new annotations. Found: "+result.predictions.size());
+			}
+			
+			if (hasExperimentalInferenceRules && translatedGraph != null) {
+				LOG.info("Start experimental prediction/inference of annotations.");
+				for(AnnotationRule rule : experimentalInferenceRules) {
+					result.addExperimentalInferences(rule.getPredictedAnnotations(doc, translatedGraph));
+				}
+				LOG.info("Finished experimental prediction/inference of new annotations. Found: "+result.experimentalPredictions.size());
 			}
 			
 		}catch(Exception ex){
@@ -207,19 +227,28 @@ public class AnnotationRulesEngine {
 		
 		private final Map<ViolationType, Map<String, List<AnnotationRuleViolation>>> typedViolations;
 		
-		private final List<Prediction> predictions;
+		final List<Prediction> predictions;
 		
-		private Map<String, String> ontologyVersions = null;
+		final List<Prediction> experimentalPredictions;
+		
+		Map<String, String> ontologyVersions = null;
 		
 		AnnotationRulesEngineResult() {
 			super();
 			typedViolations = new HashMap<ViolationType, Map<String,List<AnnotationRuleViolation>>>();
 			predictions = new ArrayList<Prediction>();
+			experimentalPredictions = new ArrayList<Prediction>();
 		}
 		
 		void addInferences(List<Prediction> predictions) {
 			if (predictions != null) {
 				this.predictions.addAll(predictions);
+			}
+		}
+		
+		void addExperimentalInferences(List<Prediction> predictions) {
+			if (predictions != null) {
+				this.experimentalPredictions.addAll(predictions);
 			}
 		}
 		
@@ -369,17 +398,6 @@ public class AnnotationRulesEngine {
 		
 		
 		/**
-		 * A simple tab delimited print-out of the result.
-		 * 
-		 * @param result
-		 * @param engine
-		 * @param writer
-		 */
-		public static void renderViolations(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, PrintWriter writer) {
-			renderEngineResult(result, engine, writer, null, null, null);
-		}
-		
-		/**
 		 * @return the annotationCount
 		 */
 		public int getAnnotationCount() {
@@ -391,254 +409,6 @@ public class AnnotationRulesEngine {
 		 */
 		public void setAnnotationCount(int annotationCount) {
 			this.annotationCount = annotationCount;
-		}
-
-		private static void printOntologySummary(AnnotationRulesEngineResult result, PrintWriter writer) {
-			if (result.ontologyVersions != null && !result.ontologyVersions.isEmpty()) {
-				writer.println();
-				writer.println("*Used Ontology Summary*");
-				writer.println();
-				List<String> sortedIds = new ArrayList<String>(result.ontologyVersions.keySet());
-				Collections.sort(sortedIds);
-				for (String oid : sortedIds) {
-					writer.print('\t');
-					writer.print(oid);
-					String version = result.ontologyVersions.get(oid);
-					if (version != null) {
-						writer.print('\t');
-						writer.println(version);
-					}
-					else {
-						writer.println();
-					}
-				}
-				writer.println();
-			}
-		}
-		
-		/**
-		 * A simple tab delimited print-out of the result and a simple summary.
-		 * 
-		 * @param result
-		 * @param engine
-		 * @param writer
-		 * @param summaryWriter
-		 * @param predictionWriter
-		 * @param predictionReportWriter
-		 */
-		public static void renderEngineResult(AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
-				PrintWriter writer, PrintWriter summaryWriter, PrintStream predictionWriter, PrintWriter predictionReportWriter) {
-			if (summaryWriter != null) {
-				summaryWriter.println("*GAF Validation Summary*");
-			}
-			List<ViolationType> types = result.getTypes();
-			if (types.isEmpty() && result.predictions.isEmpty()) {
-				writer.print("# No errors, warnings, or recommendations to report.");
-				if (summaryWriter != null) {
-					summaryWriter.println();
-					summaryWriter.println("No errors, warnings, recommendations, inferences, or predictions to report.");
-					summaryWriter.println();
-					printOntologySummary(result, summaryWriter);
-				}
-				return;
-			}
-			if (types.isEmpty()) {
-				writer.print("# No errors, warnings, or recommendations to report.");
-				if (summaryWriter != null) {
-					summaryWriter.println();
-					summaryWriter.println("No errors, warnings, or recommendations to report.");
-					summaryWriter.println();
-					printOntologySummary(result, summaryWriter);
-				}
-			}
-			else {
-				writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
-				writer.println("#------------");
-				if (summaryWriter != null) {
-					summaryWriter.println("Errors are reported first.");
-					summaryWriter.println();
-				}
-				for(ViolationType type : types) {
-					Map<String, List<AnnotationRuleViolation>> violations = result.getViolations(type);
-					List<String> ruleIds = new ArrayList<String>(violations.keySet());
-					Collections.sort(ruleIds);
-					for (String ruleId : ruleIds) {
-						AnnotationRule rule = engine.getRule(ruleId);
-						List<AnnotationRuleViolation> violationList = violations.get(ruleId);
-						writer.print("# ");
-						writer.print(ruleId);
-						writer.print('\t');
-						printEscaped(rule.getName(), writer, true);
-						writer.print('\t');
-						writer.print(type.name());
-						writer.print("\tcount:\t");
-						writer.print(violationList.size());
-						writer.println();
-
-						if (summaryWriter != null) {
-							summaryWriter.print("For rule ");
-							summaryWriter.print(ruleId);
-							summaryWriter.print(" (http://www.geneontology.org/GO.annotation_qc.shtml#");
-							summaryWriter.print(ruleId);
-							summaryWriter.print(")\n ");
-							summaryWriter.print(rule.getName());
-							summaryWriter.print(", ");
-							if (violationList.size() == 1) {
-								summaryWriter.print("there is one violation with type ");
-							}
-							else {
-								summaryWriter.print("there are ");
-								summaryWriter.print(violationList.size());
-								summaryWriter.print(" violations with type ");
-							}
-							summaryWriter.print(type.name());
-							summaryWriter.print('.');
-							summaryWriter.println();
-							summaryWriter.println();
-						}
-						for (AnnotationRuleViolation violation : violationList) {
-							writer.print(violation.getLineNumber());
-							writer.print('\t');
-							writer.print(ruleId);
-							writer.print('\t');
-							writer.print(type.name());
-							writer.print('\t');
-							final String message = violation.getMessage();
-							printEscaped(message, writer, false);
-							writer.print('\t');
-							String annotationRow = violation.getAnnotationRow();
-							if (annotationRow != null) {
-								// do not escape the annotation row
-								// try to preserve the tab format to allow import into excel or similar
-								writer.print(annotationRow);
-							}
-							writer.println();
-						}
-						writer.println("#------------");
-					}
-				}
-			}
-			if (result.predictions.isEmpty()) {
-				if (summaryWriter != null) {
-					// no inferences
-					summaryWriter.println();
-					summaryWriter.println("*GAF Prediction Summary*");
-					summaryWriter.println();
-					summaryWriter.println("No inferences or predictions to report.");
-				}
-				if (predictionWriter != null) {
-					// write empty file with GAF header
-					GafWriter gafWriter = new GafWriter();
-					gafWriter.setStream(predictionWriter);
-					List<String> comments = Arrays.asList(""," Generated predictions",""); 
-					gafWriter.writeHeader(comments);
-				}
-			}
-			else {
-				if (summaryWriter != null) {
-					// append prediction count
-					summaryWriter.println();
-					summaryWriter.println("*GAF Prediction Summary*");
-					summaryWriter.println();
-					summaryWriter.print("Found ");
-					if (result.predictions.size() == 1) {
-						summaryWriter.print("one prediction");
-					}
-					else {
-						summaryWriter.print(result.predictions.size());
-						summaryWriter.print(" predictions");
-					}
-					summaryWriter.println(", see prediction file for details.");
-				}
-				if (predictionReportWriter != null) {
-					for (Prediction prediction : result.predictions) {
-						String reason = prediction.getReason();
-						if (reason != null) {
-							predictionReportWriter.println(reason);
-						}
-					}
-				}
-				if (predictionWriter != null) {
-					
-					GafWriter.BufferedGafWriter bufferedGafWriter = new GafWriter.BufferedGafWriter();
-					// write predictions in GAF format
-					// write to buffer
-					for (Prediction prediction : result.predictions) {
-						if (prediction.isRedundantWithExistingAnnotations() == false && prediction.isRedundantWithOtherPredictions() == false) {
-							bufferedGafWriter.write(prediction.getGeneAnnotation());
-						}
-					}
-					// sort buffer
-					List<String> lines = bufferedGafWriter.getLines();
-					Collections.sort(lines);
-					
-					
-					// Append to writer
-					// GAF header
-					GafWriter gafWriter = new GafWriter();
-					gafWriter.setStream(predictionWriter);
-					List<String> comments = new ArrayList<String>();
-					comments.add("");
-					DateFormat format = new SimpleDateFormat("yyyy/MM/dd");
-					comments.add("Date: "+format.format(new Date()));
-					if (result.ontologyVersions != null && !result.ontologyVersions.isEmpty()) {
-						List<String> sortedIds = new ArrayList<String>(result.ontologyVersions.keySet());
-						Collections.sort(sortedIds);
-						comments.add("");
-						comments.add(" Used ontologies and versions (optional)");
-						for (String oid : sortedIds) {
-							String version = result.ontologyVersions.get(oid);
-							if (version != null) {
-								comments.add("\t"+oid+"\t"+version);
-							}
-							else {
-								comments.add("\t"+oid);
-							}
-						}
-						comments.add("");
-					}
-					comments.add(" Generated predictions");
-					comments.add("");
-					gafWriter.writeHeader(comments);
-					// append sorted lines
-					for (String line : lines) {
-						predictionWriter.print(line);
-					}
-				}
-			}
-			if (summaryWriter != null) {
-				printOntologySummary(result, summaryWriter);
-			}
-		}
-	}
-	
-	private static void printEscaped(String s, PrintWriter writer, boolean useWhitespaces) {
-		final int length = s.length();
-		for (int i = 0; i < length; i++) {
-			char c = s.charAt(i);
-			if (c == '\t') {
-				if (useWhitespaces) {
-					writer.print(' '); // replace tab with whitespace
-				}
-				else {
-					writer.print("\\t"); // escape tabs
-				}
-			}
-			if (c == '\n') {
-				if (useWhitespaces) {
-					writer.print(' '); // replace new line with whitespace
-				}
-				else {
-					writer.print("\\n"); // escape new lines
-				}
-			}
-			else if (Character.isWhitespace(c)) {
-				// normalize other white spaces
-				writer.print(' ');
-			}
-			else {
-				writer.print(c);
-			}
 		}
 	}
 	

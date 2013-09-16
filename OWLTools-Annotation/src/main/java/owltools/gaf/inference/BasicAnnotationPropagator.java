@@ -617,7 +617,10 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		for (GeneAnnotation ann : annotations) {
 			if(aspect.equals(ann.getAspect())) {
 				OWLClass cls = g.getOWLClassByIdentifier(ann.getCls());
-				classes.add(cls);
+				if (cls != null) {
+					// may not find a class, if an alt_id is used
+					classes.add(cls);	
+				}
 			}
 		}
 		if (classes.isEmpty()) {

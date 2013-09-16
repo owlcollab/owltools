@@ -15,27 +15,25 @@ import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
-import owltools.gaf.inference.BasicAnnotationPropagator;
+import owltools.gaf.inference.FoldBasedPredictor;
 import owltools.gaf.inference.Prediction;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.graph.OWLGraphWrapper;
 
-public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
+public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRule {
 	
-	private static final Logger LOG = Logger.getLogger(GoAnnotationPredictionRule.class);
+	private static final Logger LOG = Logger.getLogger(GoAnnotationExperimentalPredictionRule.class);
 
 	/**
 	 * The string to identify this class in the annotation_qc.xml and related factories.
 	 * This is not supposed to be changed. 
 	 */
-	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.GoAnnotationPredictionRule";
-	
-	private static boolean USE_BASIC_PROPAGATION_RULE = true;
+	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.GoAnnotationExperimentalPredictionRule";
 	
 	private final OWLGraphWrapper source;
 
-	public GoAnnotationPredictionRule(OWLGraphWrapper source) {
+	public GoAnnotationExperimentalPredictionRule(OWLGraphWrapper source) {
 		super();
 		this.source = source;
 	}
@@ -57,8 +55,13 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		List<Prediction> predictions = new ArrayList<Prediction>();
 		
 		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
+		boolean hasC16Annotations = false;
 		
 		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
+			String c16String = annotation.getExtensionExpression();
+			if (c16String != null && c16String.isEmpty() == false) {
+				hasC16Annotations = true;
+			}
 			Bioentity e = annotation.getBioentityObject();
 			String id = e.getId();
 			Set<GeneAnnotation> anns = allAnnotations.get(id);
@@ -70,22 +73,23 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		}
 		
 		AnnotationPredictor predictor = null;
-		if (USE_BASIC_PROPAGATION_RULE) {
-			LOG.info("Start creating predictions using basic propagation");
+		if (hasC16Annotations) {
+		LOG.info("Use c16 extension for fold based prediction");
 			try {
-				predictor = new BasicAnnotationPropagator(gafDoc, source);
-				Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
-				if (basicPredictions != null) {
-					predictions.addAll(basicPredictions);
+				predictor = new FoldBasedPredictor(gafDoc, source);
+				Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
+				if (foldBasedPredictions != null) {
+					predictions.addAll(foldBasedPredictions);
 				}
-			} finally {
+			}
+			finally {
 				if (predictor != null) {
 					predictor.dispose();
 				}
 				predictor = null;
 			}
 		}
-		LOG.info("Done creating predictions");
+		LOG.info("Done creating experimental predictions");
 		return predictions;
 	}
 	

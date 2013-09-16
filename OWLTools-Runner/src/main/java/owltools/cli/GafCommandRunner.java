@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +56,7 @@ import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.AnnotationRulesFactory;
+import owltools.gaf.rules.AnnotationRulesReportWriter;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.Mooncat;
@@ -77,6 +77,8 @@ public class GafCommandRunner extends CommandRunner {
 	private String gafReportFile = null;
 	private String gafPredictionFile = null;
 	private String gafPredictionReportFile = null;
+	private String experimentalGafPredictionFile = null;
+	private String experimentalGafPredictionReportFile = null;
 	
 	public TraversingEcoMapper eco = null;
 	
@@ -486,9 +488,11 @@ public class GafCommandRunner extends CommandRunner {
 	@CLIMethod("--gaf-run-checks")
 	public void runGAFChecks(Opts opts) throws Exception {
 		boolean predictAnnotations = gafPredictionFile != null;
+		boolean experimentalPredictAnnotations = experimentalGafPredictionFile != null;
 		if (g != null && gafdoc != null && gafReportFile != null) {
 			AnnotationRulesEngine ruleEngine = null;
 			AnnotationRulesEngineResult result;
+			ExtendAnnotationRulesReportWriter reportWriter = null;
 			Level elkLogLevel = null;
 			Logger elkLogger = null;
 			try {
@@ -502,45 +506,20 @@ public class GafCommandRunner extends CommandRunner {
 				LOG.info("Start validating GAF");
 			
 				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco, true);
-				ruleEngine = new AnnotationRulesEngine(rulesFactory, predictAnnotations);
+				ruleEngine = new AnnotationRulesEngine(rulesFactory, predictAnnotations, experimentalPredictAnnotations);
 			
 				result = ruleEngine.validateAnnotations(gafdoc);
 				LOG.info("Finished validating GAF");
-				File reportFile = new File(gafReportFile);
-				File summaryFile = null;
-				File predictionFile = null;
-				File predictionReportFile = null; 
-				if (gafReportSummaryFile != null) {
-					summaryFile = new File(gafReportSummaryFile);
-				}
-				if (gafPredictionFile != null) {
-					predictionFile = new File(gafPredictionFile);
-				}
-				if (gafPredictionReportFile != null) {
-					predictionReportFile = new File(gafPredictionReportFile);
-				}
-
-				// delete previous report files (if they exist)
-				FileUtils.deleteQuietly(reportFile);
-				if (summaryFile != null) {
-					FileUtils.deleteQuietly(summaryFile);
-				}
-				if (predictionFile != null) {
-					FileUtils.deleteQuietly(predictionFile);
-				}
-				if (predictionReportFile != null) {
-					FileUtils.deleteQuietly(predictionReportFile);
-				}
-
-				// write parse errors and rule violations
-				createAllReportFiles(parserReport, result, ruleEngine, reportFile, summaryFile, predictionFile, predictionReportFile);
-			
+				
+				reportWriter = createReportWriter();
+				reportWriter.renderEngineResult(parserReport, result, ruleEngine);
 			}
 			finally {
 				if (eco != null) {
 					eco.dispose();
 					eco = null;
 				}
+				IOUtils.closeQuietly(reportWriter);
 				if (ruleEngine != null) {
 					ruleEngine = null;
 				}
@@ -608,18 +587,51 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	private void createAllReportFiles(GafParserReport parserReport, 
-			AnnotationRulesEngineResult result, AnnotationRulesEngine engine, 
-			File reportFile, File summaryFile, File predictionFile, File predictionReportFile) throws IOException
-	{
-		LOG.info("Start writing reports to file: "+gafReportFile);
-		PrintWriter writer = null;
-		PrintWriter summaryWriter = null;
-		PrintStream predictionStream = null;
-		PrintWriter predictionReportWriter = null;
-		try {
-			if (summaryFile != null) {
-				summaryWriter = new PrintWriter(summaryFile);
+	private ExtendAnnotationRulesReportWriter createReportWriter() throws IOException {
+		return new ExtendAnnotationRulesReportWriter(gafReportFile, gafReportSummaryFile, gafPredictionFile, gafPredictionReportFile, experimentalGafPredictionFile, experimentalGafPredictionReportFile);
+	}
+	
+	private static class ExtendAnnotationRulesReportWriter extends AnnotationRulesReportWriter {
+		
+		/**
+		 * @param reportFile
+		 * @param summaryFile
+		 * @param predictionFile
+		 * @param predictionReportFile
+		 * @param experimentalPredictionFile
+		 * @param experimentalPredictionReportFile
+		 * @throws IOException
+		 */
+		ExtendAnnotationRulesReportWriter(String reportFile,
+				String summaryFile, String predictionFile,
+				String predictionReportFile, String experimentalPredictionFile,
+				String experimentalPredictionReportFile) throws IOException
+		{
+			super(reportFile, summaryFile, predictionFile, predictionReportFile,
+					experimentalPredictionFile, experimentalPredictionReportFile);
+		}
+
+		public void renderEngineResult(GafParserReport parserReport, AnnotationRulesEngineResult result, AnnotationRulesEngine engine) {
+			if (writer != null) {
+				// write header
+				writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
+				writer.println("#------------");
+			}
+			writeParseErrorsOrWarnings(parserReport, writer, summaryWriter);
+			if (writer != null) {
+				writer.println("#------------");
+				writer.print("# Validation for #");
+				writer.print(result.getAnnotationCount());
+				writer.print(" annotations");
+				if (parserReport != null) {
+					writer.print(" in ");
+					writer.print(parserReport.lineCount);
+					writer.print(" lines");
+				}
+				writer.println();
+				writer.println("#------------");
+			}
+			if (summaryWriter != null) {
 				// Print GAF statistics
 				summaryWriter.println("*GAF summary*");
 				summaryWriter.println();
@@ -633,95 +645,70 @@ public class GafCommandRunner extends CommandRunner {
 				}
 				summaryWriter.println(".");
 				summaryWriter.println();
-				
 			}
-			if (predictionFile != null) {
-				predictionStream = new PrintStream(new FileOutputStream(predictionFile));
-			}
-			writer = new PrintWriter(reportFile);
-			writer.println("#------------");
-			writer.print("# Validation for #");
-			writer.print(result.getAnnotationCount());
-			writer.print(" annotations");
-			if (parserReport != null) {
-				writer.print(" in ");
-				writer.print(parserReport.lineCount);
-				writer.print(" lines");
-			}
-			writer.println();
-			writer.println("#------------");
-			if (parserReport != null && parserReport.hasWarningsOrErrors()) {
-				writeParseErrors(parserReport, writer, summaryWriter);
-			}
-			if (predictionReportFile != null) {
-				predictionReportWriter = new PrintWriter(predictionReportFile);
-			}
-			AnnotationRulesEngineResult.renderEngineResult(result, engine, writer, summaryWriter, predictionStream, predictionReportWriter);
-		} finally {
-			IOUtils.closeQuietly(summaryWriter);
-			IOUtils.closeQuietly(predictionStream);
-			IOUtils.closeQuietly(predictionReportWriter);
-			IOUtils.closeQuietly(writer);
-			LOG.info("Finished writing reports to file.");
-		}
-	}
-	
-	private void writeParseErrors(GafParserReport report, PrintWriter writer, PrintWriter summaryWriter) throws IOException {
-		if (summaryWriter != null) {
-			summaryWriter.println("*GAF Parser Summary*");
-			summaryWriter.println();
-			if (report.hasErrors()) {
-				summaryWriter.println("There are "+report.errors.size()+" GAF parser errors.");
-				summaryWriter.println();
-			}
-			if (report.hasWarnings()) {
-				summaryWriter.println("There are "+report.warnings.size()+" GAF parser warnings.");
-				summaryWriter.println();
-			}
-		}
-		writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
-		writer.println("#------------");
-		writer.print("# ");
-		writer.print('\t');
-		writer.print("GAF Parser");
-		writer.print('\t');
-		writer.print("ERROR");
-		writer.print("\tcount:\t");
-		writer.print(report.errors.size());
-		writer.println();
-		for (GafParserMessages gafParserError : report.errors) {
-			writer.print(gafParserError.lineNumber);
-			writer.print('\t');
-			writer.print('\t');
-			writer.print("PARSER ERROR");
-			writer.print('\t');
-			writer.print(gafParserError.errorMessage);
-			writer.print('\t');
-			writer.print(gafParserError.line);
-			writer.println();
+			renderEngineResult(result, engine);
 		}
 		
-		writer.println("#------------");
-		writer.print("# ");
-		writer.print('\t');
-		writer.print("GAF Parser");
-		writer.print('\t');
-		writer.print("WARNING");
-		writer.print("\tcount:\t");
-		writer.print(report.warnings.size());
-		writer.println();
-		for (GafParserMessages gafParserError : report.warnings) {
-			writer.print(gafParserError.lineNumber);
-			writer.print('\t');
-			writer.print('\t');
-			writer.print("WARNING");
-			writer.print('\t');
-			writer.print(gafParserError.errorMessage);
-			writer.print('\t');
-			writer.print(gafParserError.line);
-			writer.println();
+		private void writeParseErrorsOrWarnings(GafParserReport report, PrintWriter writer, PrintWriter summaryWriter) {
+			if (report == null || report.hasWarningsOrErrors() == false) {
+				return;
+			}
+			if (summaryWriter != null) {
+				summaryWriter.println("*GAF Parser Summary*");
+				summaryWriter.println();
+				if (report.hasErrors()) {
+					summaryWriter.println("There are "+report.errors.size()+" GAF parser errors.");
+					summaryWriter.println();
+				}
+				if (report.hasWarnings()) {
+					summaryWriter.println("There are "+report.warnings.size()+" GAF parser warnings.");
+					summaryWriter.println();
+				}
+			}
+			if (writer != null) {
+				writer.print("# ");
+				writer.print('\t');
+				writer.print("GAF Parser");
+				writer.print('\t');
+				writer.print("ERROR");
+				writer.print("\tcount:\t");
+				writer.print(report.errors.size());
+				writer.println();
+				for (GafParserMessages gafParserError : report.errors) {
+					writer.print(gafParserError.lineNumber);
+					writer.print('\t');
+					writer.print('\t');
+					writer.print("PARSER ERROR");
+					writer.print('\t');
+					writer.print(gafParserError.errorMessage);
+					writer.print('\t');
+					writer.print(gafParserError.line);
+					writer.println();
+				}
+				
+				writer.println("#------------");
+				writer.print("# ");
+				writer.print('\t');
+				writer.print("GAF Parser");
+				writer.print('\t');
+				writer.print("WARNING");
+				writer.print("\tcount:\t");
+				writer.print(report.warnings.size());
+				writer.println();
+				for (GafParserMessages gafParserError : report.warnings) {
+					writer.print(gafParserError.lineNumber);
+					writer.print('\t');
+					writer.print('\t');
+					writer.print("WARNING");
+					writer.print('\t');
+					writer.print(gafParserError.errorMessage);
+					writer.print('\t');
+					writer.print(gafParserError.line);
+					writer.println();
+				}
+				writer.println("#------------");
+			}
 		}
-		writer.println("#------------");
 	}
 	
 	@CLIMethod("--gaf-report-file")
@@ -749,6 +736,20 @@ public class GafCommandRunner extends CommandRunner {
 	public void setGAFPredictionReportFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafPredictionReportFile = opts.nextOpt();
+		}
+	}
+	
+	@CLIMethod("--experimental-gaf-prediction-file")
+	public void setExperimentalGAFPredictionFile(Opts opts) {
+		if (opts.hasArgs()) {
+			experimentalGafPredictionFile = opts.nextOpt();
+		}
+	}
+	
+	@CLIMethod("--experimental-gaf-prediction-report-file")
+	public void setExperimentalGAFPredictionReportFile(Opts opts) {
+		if (opts.hasArgs()) {
+			experimentalGafPredictionReportFile = opts.nextOpt();
 		}
 	}
 	
@@ -857,8 +858,8 @@ public class GafCommandRunner extends CommandRunner {
 		// run a gc to get a proper memory consumption profile
 		System.gc();
 		Runtime runtime = Runtime.getRuntime();
-	    long allocatedMemory = runtime.totalMemory();
-	    LOG.info("Memory allocated "+(allocatedMemory / (1024*1024))+"MB");
+	    long used = runtime.totalMemory() - runtime.freeMemory();
+	    LOG.info("Memory "+(used / (1024*1024))+"MB");
 	}
 	
 	@CLIMethod("--write-xgmml")
