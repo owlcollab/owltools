@@ -154,17 +154,17 @@ public class GAFParser {
 				}
 				if (currentCols.length != expectedNumCols) {
 
-					String error = "Got invalid number of columns for row (expected "
+					String error = "Got invalid number of columns for row '"+lineNumber+"' (expected "
 						+ expectedNumCols
 						+ ", got "
 						+ currentCols.length
-						+ "). The '"+lineNumber+"' row is ignored.";
+						+ ")";
 	
 					if(currentCols.length<expectedNumCols){
 						String v =error;
 						voilations.add(v);
 						fireParsingError(error);
-						LOG.error(error + " : " + this.currentRow);
+						LOG.error(error + "  The row is ignored: " + this.currentRow);
 						return ReadState.next;
 					}else{
 						fireParsingWarning(error);
