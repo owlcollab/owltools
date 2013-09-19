@@ -9,11 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
-
 public class GafDocument{
-
-	private static Logger LOG = Logger.getLogger(GafDocument.class);
 
 	protected String id;
 	protected String documentPath;
@@ -42,10 +38,6 @@ public class GafDocument{
 				annotationMap.put(eid, new HashSet<GeneAnnotation>());
 			annotationMap.get(eid).add(a);
 		}
-	}
-
-
-	void setHibernateLoad(){
 	}
 
 	public GafDocument(String id, String documentPath) {

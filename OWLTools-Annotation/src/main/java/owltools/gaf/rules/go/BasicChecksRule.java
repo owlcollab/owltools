@@ -207,7 +207,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		}
 		
 		if(max==1 && value.contains("|")){
-			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), columnName +" cardinality is found greate than 1 in the row: " ,a);
+			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), columnName +" cardinality is found greater than 1 in the row: " ,a);
 			voilations.add(v);
 		}
 		
@@ -216,7 +216,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 			String tokens[] = value.split("\\|");
 			
 			if(max==2 && tokens.length>2){
-				AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), columnName +" cardinality is found greate than 2 in the row: " ,a);
+				AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), columnName +" cardinality is found greater than 2 in the row: " ,a);
 				voilations.add(v);
 			}
 			

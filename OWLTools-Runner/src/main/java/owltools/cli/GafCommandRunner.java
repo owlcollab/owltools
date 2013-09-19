@@ -17,6 +17,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
@@ -32,7 +33,9 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.cli.tools.CLIMethod;
+import owltools.gaf.GAFParser;
 import owltools.gaf.GafDocument;
+import owltools.gaf.GafLineFilter;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.GafParserListener;
 import owltools.gaf.GeneAnnotation;
@@ -90,9 +93,20 @@ public class GafCommandRunner extends CommandRunner {
 	 */
 	@CLIMethod("--gaf")
 	public void gaf(Opts opts) throws Exception {
-		opts.info("GAF-FILE [--createReport]", "parses GAF and makes this the current GAF document");
+		opts.info("GAF-FILE [--createReport] [--no-iea]", "parses GAF and makes this the current GAF document");
 		final String input = opts.nextOpt();
 		boolean createReport = false;
+		boolean noIEA = false;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--createReport"))
+				createReport = true;
+			else if (opts.nextEq("--no-iea")) {
+				noIEA = true;
+			}
+			else
+				break;
+
+		}
 		if (opts.hasOpts() && opts.nextEq("--createReport")) {
 			createReport = true;
 		}
@@ -122,7 +136,21 @@ public class GafCommandRunner extends CommandRunner {
 					parserReport.errors.add(new GafParserMessages(errorMessage, line, lineNumber));
 				}
 			});
-			
+		}
+		if (noIEA) {
+			LOG.info("Using no-IEA filter on GAF.");
+			builder.addFilter(new GafLineFilter() {
+				
+				@Override
+				public boolean accept(String line, int pos, GAFParser parser) {
+					String evidence = parser.getEvidence();
+					evidence = StringUtils.trimToEmpty(evidence);
+					if ("IEA".equals(evidence)) {
+						return false;
+					}
+					return true;
+				}
+			});
 		}
 		LOG.info("Start loading GAF from: "+input);
 		gafdoc = builder.buildDocument(input);

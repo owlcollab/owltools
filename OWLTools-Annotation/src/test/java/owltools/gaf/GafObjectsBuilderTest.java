@@ -62,4 +62,29 @@ public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 		assertTrue(withInfos.size() > 1);
 	}
 	
+	@Test
+	public void testGafLineFilters() throws Exception {
+		GafObjectsBuilder builder = new GafObjectsBuilder();
+		builder.addFilter(new GafLineFilter() {
+			
+			@Override
+			public boolean accept(String line, int pos, GAFParser parser) {
+				String evidence = parser.getEvidence();
+				if ("IEA".equals(evidence)) {
+					return false;
+				}
+				return true;
+			}
+		});
+		
+		GafDocument doc = builder.buildDocument(getResource("test_gene_association_mgi.gaf"));
+		assertNotNull(doc);
+		List<GeneAnnotation> annotations = doc.getGeneAnnotations();
+		assertEquals(818, annotations.size());
+		for (GeneAnnotation geneAnnotation : annotations) {
+			String cls = geneAnnotation.getEvidenceCls().trim();
+			assertNotSame("IEA", cls);
+		}
+	}
+	
 }

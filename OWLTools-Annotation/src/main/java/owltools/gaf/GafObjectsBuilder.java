@@ -46,6 +46,9 @@ public class GafObjectsBuilder {
 	
 	private String documentPath;
 
+	// list of filters
+	private List<GafLineFilter> filters = null;
+	
 	//this variable is used when a document is splitted
 	private int counter;
 	
@@ -83,6 +86,20 @@ public class GafObjectsBuilder {
 */
 	public GAFParser getParser(){
 		return parser;
+	}
+	
+	/**
+	 * Add a filter to object builder. Multiple filters are executed in the
+	 * order of insertion. Any rejection preempts the execution of the remaining
+	 * filters.
+	 * 
+	 * @param filter
+	 */
+	public void addFilter(GafLineFilter filter) {
+		if (filters == null) {
+			filters = new ArrayList<GafLineFilter>();
+		}
+		filters.add(filter);
 	}
 	
 	public GafDocument buildDocument(Reader reader, String docId, String path) throws IOException{
@@ -140,14 +157,25 @@ public class GafObjectsBuilder {
 				
 				counter++;
 			}
-			Bioentity entity= addBioEntity(parser);
-			addGeneAnnotation(parser, entity);
-			addWithInfo(parser);
-			addCompositeQualifier(parser);
+			// by default load everything
+			boolean load = true;
+			if (filters != null) {
+				// check each filter
+				for (GafLineFilter filter : filters) {
+					boolean accept = filter.accept(parser.getCurrentRow(), parser.getLineNumber(), parser);
+					if (accept == false) {
+						load = false;
+						break;
+					}
+				}
+			}
+			if (load) {
+				Bioentity entity= addBioEntity(parser);
+				addGeneAnnotation(parser, entity);
+				addWithInfo(parser);
+				addCompositeQualifier(parser);
+			}
 		}
-		
-		
-		
 		return gafDocument;
 
 	}
