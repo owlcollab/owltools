@@ -8,9 +8,21 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.gaf.ExtensionExpression;
@@ -44,7 +56,7 @@ import owltools.graph.OWLGraphWrapper;
  *  
  *  <ul>
  *  <li> {@link #seedGraph} - seed initial A
- *  <li> {@link #addHasParts} - create partonomy P
+ *  <li> {@link #createPartonomy} - create partonomy P
  *  <li> {@link #connectGraph} - created activity network E
  *  </ul>
  *  
@@ -77,7 +89,10 @@ public class NetworkInferenceEngine {
 	 */
 	Partonomy partonomy;
 	OWLGraphWrapper ogw;
+	OWLOntology exportOntology; // destination for OWL/lego. may be refactored into separate class
+	OWLOntologyManager owlOntologyManager;
 
+	String contextId = ""; // TODO
 
 	/**
 	 * A &sube; G x T<sup>A</sup>
@@ -153,6 +168,9 @@ public class NetworkInferenceEngine {
 		}
 	}
 	
+	/**
+	 * M : Merelogy (partonomy), from activity instances to process instances, and between process instances.  ie M &sube; A &cup; P x P
+	 */
 	public class Partonomy {
 		Set<Edge<String, String>> edgeSet = new HashSet<Edge<String, String>>();
 		public void addEdge(String s, String o) {
@@ -162,17 +180,23 @@ public class NetworkInferenceEngine {
 	}
 	
 	/**
+	 * Performs all steps to build activation network
+	 * 
 	 * @param processCls
 	 * @param seedGenes
 	 */
 	public void buildNetwork(String processCls, Set<String> seedGenes) {
 		seedGraph(processCls, seedGenes);
+		createPartonomy(processCls);
 		connectGraph();
 	}
 
 
 	/**
-	 * Create basic activity set, one activity per gene is seed gene list
+	 * Create initial activation node set A for a process P and a set of seed genes
+	 * 
+	 * for all g &in; G<sup>seed</sup>, add a = <g,t> to A where f = argmax(p) { t :  t &in; T<sup>A</sup>, p=Prob( t | g) } 
+	 * 
 	 * @param processCls
 	 * @param seedGenes
 	 */
@@ -184,7 +208,28 @@ public class NetworkInferenceEngine {
 		}
 	}
 	
-	public void addHasParts(String processCls) {
+	/**
+	 * @see seedGraph(String p, Set seed)
+	 * @param processCls
+	 */
+	public void seedGraph(String processCls) {
+		seedGraph(processCls, getGenes(processCls));
+	}
+	
+	/**
+	 * Generate M = N x N where N &in; P or N &in; A
+	 * 
+	 * Basic idea: we want to create a partonomy that breaks down a large process into smaller chunks and ultimately partonomic leaves - activities.
+	 * This partonomy may not be identical to the GO partonomy - each node is an instance in the context of the larger process.
+	 * 
+	 * As a starting point we have a set of leaves - candidate activations we suspect to be involved somehow in the larger process.
+	 * We also have knowledge in the ontology - both top-down (e.g. W has_part some P) and bottom-up (e.g. P part_of some W). We want to
+	 * connect the leaves to the roots through intermediates. 
+	 * 
+	 * 
+	 * @param processCls
+	 */
+	public void createPartonomy(String processCls) {
 		partonomy = new Partonomy();
 		OWLObject c = ogw.getOWLObjectByIdentifier(processCls);
 		OWLPropertyExpression HP = ogw.getOWLObjectPropertyByIdentifier("BFO:0000051");
@@ -202,14 +247,19 @@ public class NetworkInferenceEngine {
 				continue;
 			String pid = ogw.getIdentifier(part);
 
+			// The part is either an Activity (i.e. partonomy leaf node) or a Process instance
+			
 			if (this.activityClassSet.contains(pid)) {
+				// the part is an MF class - make a new Activity
+				// TODO - check - reuse existing if present?
 				LOG.info("NULL ACTIVITY="+processCls + " h-p "+pid);
 				Activity a = new Activity(pid, null);
 				activityNetwork.add(a);
 			}
 			else if (this.processClassSet.contains(pid)) {
 				boolean isIntermediate = false;
-				// for now, only add "intermediates" - revise later?
+				// for now, only add "intermediates" - revise later? post-prune?
+				// todo - intermediates within process part of partonomy
 				for (Activity a : activityNetwork.activitySet) {
 					if (a.activityClass == null)
 						continue;
@@ -226,10 +276,17 @@ public class NetworkInferenceEngine {
 			}
 		}
 		
+		// TODO - for now we leave it as implicit that every member a of A is in P = a x p<sup>seed</sup>
+		
 	}
 
 	/**
 	 * Add default edges based on PPI network
+	 *  
+	 * add ( a<sub>1</sub> , a<sub>2</sub> ) to E
+	 * where ( g<sub>1</sub> , g<sub>2</sub> ) is in PPI, and
+	 * a = (g, _) is in A
+	 * 
 	 */
 	public void connectGraph() {
 		for (String p1 : proteinInteractionMap.keySet()) {
@@ -290,10 +347,11 @@ public class NetworkInferenceEngine {
 	}
 
 
-	public void calculateHasPartProbailityTable() {
-
-	}
-
+	/**
+	 * Get all activity types a gene enables (i.e. direct MF annotations)
+	 * @param g
+	 * @return { t : t &in; T<sup>A</sup>, g x t &in; Enables }
+	 */
 	public Set<String> getActivityTypes(String g) {
 		HashSet<String> cset = new HashSet<String>(clsByGeneMap.get(g));
 		cset.retainAll(activityClassSet);
@@ -301,6 +359,10 @@ public class NetworkInferenceEngine {
 	}
 
 
+	/**
+	 * @param g
+	 * @return { t : t &in; getActivityTypes(g), &not; &Exists; t' : t' &in; getActivityTypes(g), t' ProperInferredßSubClassOf t }
+	 */
 	public Set<String>  getMostSpecificActivityTypes(String g) {
 		Set<String> cset = getActivityTypes(g);
 		removeRedundant(cset);
@@ -318,6 +380,11 @@ public class NetworkInferenceEngine {
 		cset.removeAll(allAncs);
 	}
 
+	/**
+	 * Gets all genes that enable a given activity type (i.e. inverred annotations to MF term)
+	 * @param t
+	 * @return { g : g x t &in; InferredInvolvedIn }
+	 */
 	public Set<String> getGenes(String cls) {
 		if (!geneByInferredClsMap.containsKey(cls)) {
 			LOG.info("Nothing known about "+cls);
@@ -326,6 +393,9 @@ public class NetworkInferenceEngine {
 		return new HashSet<String>(geneByInferredClsMap.get(cls));
 	}
 
+	/**
+	 * @return |G|
+	 */
 	public int getNumberOfGenes() {
 		return populationGeneSet.size();
 	}
@@ -380,17 +450,27 @@ public class NetworkInferenceEngine {
 		processClassSet = new HashSet<String>();
 		for (OWLClass cls : g.getAllOWLClasses()) {
 			String c = g.getIdentifier(cls);
-			if (g.getNamespace(cls).equals("molecular_function")) {
+			String ns = g.getNamespace(cls);
+			if (ns == null) ns = "";
+			if (ns.equals("molecular_function")) {
 				activityClassSet.add(c);
 			}
-			if (g.getNamespace(cls).equals("biological_process")) {
+			else if (ns.equals("biological_process")) {
 				processClassSet.add(c);
 			}
-			labelMap.put(c, g.getLabel(cls));
+			else if (!ns.equals("cellular_component")) {
+				LOG.info("Adding "+c+" to process subset - I assume anything not a CC or MF is a process");
+				// todo - make configurable. The default assumption is that phenotypes etc are treated as pathological process
+				processClassSet.add(c);
+			}
+			String label = g.getLabel(cls);
+			if (label != "" && label != null)
+				labelMap.put(c, label);
 		}
 
 	}
 
+	// adds an (external) protein-protein interaction
 	private void addPPI(String a, String b) {
 		if (!proteinInteractionMap.containsKey(a))
 			proteinInteractionMap.put(a, new HashSet<String>());
@@ -398,9 +478,127 @@ public class NetworkInferenceEngine {
 
 	}
 
+	/**
+	 * @param id
+	 * @return label for any class or entity in the graph
+	 */
 	public String getLabel(String id) {
 		if (labelMap.containsKey(id))
 			return this.labelMap.get(id);
 		return id;
 	}
+	
+	/**
+	 * Translates ontological activation network into OWL (aka lego model)
+	 * <ul>
+	 *  <li> a = g x t &in; A &rarr; a &in; OWLNamedIndividual, a.iri = genIRI(g, t), a rdf:type t, a rdf:type (enabled_by some g)
+	 *  <li> g &in; G &rarr; g &in; OWLClass, g SubClassOf Protein
+	 *  <li> t &in; T &rarr; t &in; OWLClass 
+	 *  <li> e = a1 x a2 x t &in; E &rarr; e &in; OWLObjectPropertyAssertion, e.subject = a1, e.object = a2, e.property = t
+	 *  <li> p &in; P &rarr; p &in; OWLNamedIndividual
+	 *  <li> m = p1 x p2 & &in; M &rarr; m &in; OWLObjectPropertyAssertion, m.subject = p1, m.object = p2, m.property = part_of
+	 * <li>
+	 * </ul>
+	 * Notes: we treat all members of G as proteins, but these may be other kinds of gene product. Note also the source ID may be a gene ID.
+	 * In this case we can substitute "enabled_by some g" with "enabled_by some (product_of some g)"
+	 * 
+	 * In some cases the edge type is not known - here we can use a generic owlTopProperty - or we can assume an activates relation, and leave the user to prune/modify
+	 * 
+	 * Warning: may possibly be refactored into a separate writer class.
+	 * 
+	 * @return
+	 * @throws OWLOntologyCreationException 
+	 */
+	public OWLOntology translateNetworkToOWL() throws OWLOntologyCreationException {
+		if (exportOntology == null) {
+			IRI ontIRI = this.getIRI("TEMP:"+contextId);
+			exportOntology = getOWLOntologyManager().createOntology(ontIRI);
+		}
+		// a = g x t &in; A &rarr; a &in; OWLNamedIndividual, a.iri = genIRI(g, t), a rdf:type t, a rdf:type (enabled_by some g)
+		Map<Activity,String> activityToIdMap = new HashMap<Activity,String>();
+		for (Activity a : activityNetwork.activitySet) {
+			String id = null; // TODO - skolemize?
+			String activityClass = a.activityClass;
+			String gene = a.gene;
+			if (activityClass == null)
+				activityClass = "GO:0003674";
+			if (gene == null)
+				gene = "PR:00000001";
+			id = "TEMP:" + contextId + gene + activityClass;
+			activityToIdMap.put(a, id);
+			addOwlInstanceRelationType(id, "enabled_by", gene);
+			addOwlInstanceType(id, activityClass);
+		}
+		for (Edge<String, String> e : partonomy.edgeSet) {
+			addOwlFact(e.subject, e.type, e.object);
+		}
+		for (Edge<Activity, Activity> e : activityNetwork.activityEdgeSet) {
+			String type = e.type;
+			if (type == null)
+				type = "activates";
+			addOwlFact(activityToIdMap.get(e.subject),
+					type,
+					activityToIdMap.get(e.object)
+					);
+		}
+		
+		 return exportOntology;
+	}
+	
+	private OWLOntologyManager getOWLOntologyManager() {
+		if (owlOntologyManager == null)
+			owlOntologyManager = OWLManager.createOWLOntologyManager();
+		return owlOntologyManager;
+	}
+
+
+	private OWLDataFactory getOWLDataFactory() {
+		return exportOntology.getOWLOntologyManager().getOWLDataFactory();
+	}
+	
+	private void addAxiom(OWLAxiom ax) {
+		exportOntology.getOWLOntologyManager().addAxiom(exportOntology, ax);
+	}
+	
+	private IRI getIRI(String id) {
+		return ogw.getIRIByIdentifier(id);
+	}
+	
+	private OWLNamedIndividual getIndividual(String id) {
+		return getOWLDataFactory().getOWLNamedIndividual(getIRI(id));
+	}
+	private OWLClass getOWLClass(String id) {
+		return getOWLDataFactory().getOWLClass(getIRI(id));
+	}
+
+	private OWLObjectPropertyExpression getObjectProperty(String rel) {
+		return getOWLDataFactory().getOWLObjectProperty(getIRI(rel));
+	}
+
+	private void addOwlFact(String subj, String rel, String obj) {
+		LOG.info("Adding " + subj + "   "+rel + " "+obj);
+		addAxiom(getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(
+				getObjectProperty(rel),
+				getIndividual(subj), 
+				getIndividual(obj)));
+	}
+
+	private void addOwlInstanceType(String i, String t) {
+		LOG.info("Adding " + i + " instance of  "+t);
+		addAxiom(getOWLDataFactory().getOWLClassAssertionAxiom(
+				getOWLClass(t),
+				getIndividual(i)));
+	}
+
+	
+	private void addOwlInstanceRelationType(String i, String r, String t) {
+		LOG.info("Adding " + i + " instance of "+r+" some "+t);
+		OWLClassExpression x = getOWLDataFactory().getOWLObjectSomeValuesFrom(
+				getObjectProperty(r),
+				getOWLClass(t));
+		addAxiom(getOWLDataFactory().getOWLClassAssertionAxiom(
+				x,
+				getIndividual(i)));
+	}
+
 }
