@@ -4,12 +4,17 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.apache.solr.common.SolrInputDocument;
+import org.semanticweb.owlapi.model.OWLObject;
+
+import com.google.gson.Gson;
 
 import owltools.graph.OWLGraphWrapper;
 
@@ -30,6 +35,10 @@ public abstract class AbstractSolrLoader {
 
 	protected OWLGraphWrapper graph;
 
+	// We'll need this for serializing in various places.
+	protected Gson gson = new Gson();
+
+	
 	public OWLGraphWrapper getGraph() {
 		return graph;
 	}
@@ -48,6 +57,76 @@ public abstract class AbstractSolrLoader {
 		LOG.info("Server at: " + url);
 		this.server = new CommonsHttpSolrServer(url);
 	}
+
+	/**
+	 * 
+	 * 
+	 * @param d
+	 * @param field
+	 * @param val
+	 * @return
+	 */
+	public Boolean addFieldUnique(SolrInputDocument d, String field, String val) {
+		if (val == null)
+			return false;
+		Collection<Object> vals = d.getFieldValues(field);
+		if (vals != null && vals.contains(val))
+			return false;
+		d.addField(field, val);
+		return true;
+	}
+
+	/**
+	 * Resolve the list of id to a label and add it to the doc.
+	 * 
+	 * @param d
+	 * @param field
+	 * @param id
+	 * @return
+	 */
+	public String addLabelField(SolrInputDocument d, String field, String id) {
+		String retstr = null;
+		
+		OWLObject obj = graph.getOWLObjectByIdentifier(id);
+		if (obj == null)
+			return retstr;
+
+		String label = graph.getLabel(obj);
+		if (label != null)
+			d.addField(field, label);
+		
+		return label;
+	}
+	
+	/**
+	 * Resolve the list of ids to labels and add them to the doc.
+	 * 
+	 * @param d
+	 * @param field
+	 * @param ids
+	 * @return
+	 */
+	public List<String> addLabelFields(SolrInputDocument d, String field, List<String> ids) {
+
+		List<String> labelAccumu = new ArrayList<String>();
+		
+		for( String id : ids ){
+			OWLObject obj = graph.getOWLObjectByIdentifier(id);
+			if (obj != null){
+				String label = graph.getLabel(obj);
+				if (label != null){
+					labelAccumu.add(label);
+				}
+			}
+		}
+		
+		if( ! labelAccumu.isEmpty() ){
+			d.addField(field, labelAccumu);
+		}
+		
+		return labelAccumu;
+	}
+
 
 	public abstract void load() throws SolrServerException, IOException;
 	

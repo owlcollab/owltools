@@ -45,6 +45,7 @@ import owltools.graph.shunt.OWLShuntGraph;
 import owltools.graph.shunt.OWLShuntNode;
 import owltools.panther.PANTHERForest;
 import owltools.panther.PANTHERTree;
+import owltools.solrj.ComplexAnnotationSolrDocumentLoader;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologyGeneralSolrDocumentLoader;
@@ -222,7 +223,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 //	}
 	
 	/**
-	 * Experimental Flexible loader for ontologies.
+	 * Flexible loader for ontologies--uses the YAML config to find loading functions.
 	 * 
 	 * @param opts
 	 * @throws Exception
@@ -307,6 +308,29 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		}
 	}
 	
+	/**
+	 * Experimental method for trying out the loading of complex_annotation doc type
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-load-complex-annotations")
+	public void experimentalLoadComplexAnnotationSolr(Opts opts) throws Exception {
+
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);				
+
+		// Actual ontology class loading.
+		try {
+			ComplexAnnotationSolrDocumentLoader loader = new ComplexAnnotationSolrDocumentLoader(url, g);
+			LOG.info("Trying complex annotation load.");
+			loader.load();
+		} catch (SolrServerException e) {
+			LOG.info("Complex annotation load at: " + url + " failed!");
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Dump experimental flexible loader output to JSON(?) blob.
 	 * 

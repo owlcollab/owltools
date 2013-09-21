@@ -112,8 +112,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		String edbid = e.getDBID();
 		//LOG.info("Adding: " + eid + " " + esym);
 		
-		// We'll need this for serializing later.
-		Gson gson = new Gson();
+//		// We'll need this for serializing later.
+//		Gson gson = new Gson();
 		
 		SolrInputDocument bioentity_doc = new SolrInputDocument();
 		
@@ -321,7 +321,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				ArrayList<String> isap = new ArrayList<String>();
 				isap.add("BFO:0000050");
 				Map<String, String> curr_isap_map = addClosureToAnnAndBio(isap, "isa_partof_closure", "isa_partof_closure_label", "isa_partof_closure_map",
-									                                      cls, graph, annotation_doc, bioentity_doc, gson);
+									                                      cls, graph, annotation_doc, bioentity_doc);
 				isap_map.putAll(curr_isap_map); // add to aggregate map
 				
 //				// Add to annotation and bioentity isa_partof closures; label and id.
@@ -350,7 +350,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				reg.add("RO:0002212");
 				reg.add("RO:0002213");
 				Map<String, String> curr_reg_map = addClosureToAnnAndBio(reg, "regulates_closure", "regulates_closure_label", "regulates_closure_map",
-						  			               cls, graph, annotation_doc, bioentity_doc, gson);
+						  			               cls, graph, annotation_doc, bioentity_doc);
 				reg_map.putAll(curr_reg_map); // add to aggregate map
 				
 				///
@@ -645,48 +645,48 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		add(general_doc);
 	}
 	
-	private void addFieldUnique(SolrInputDocument d, String field, String val) {
-		if (val == null)
-			return;
-		Collection<Object> vals = d.getFieldValues(field);
-		if (vals != null && vals.contains(val))
-			return;
-		d.addField(field, val);
-	}
-
-
-	private String addLabelField(SolrInputDocument d, String field, String id) {
-		String retstr = null;
-		
-		OWLObject obj = graph.getOWLObjectByIdentifier(id);
-		if (obj == null)
-			return retstr;
-
-		String label = graph.getLabel(obj);
-		if (label != null)
-			d.addField(field, label);
-		
-		return label;
-	}
-	
-	private void addLabelFields(SolrInputDocument d, String field, List<String> ids) {
-
-		List<String> labelAccumu = new ArrayList<String>();
-		
-		for( String id : ids ){
-			OWLObject obj = graph.getOWLObjectByIdentifier(id);
-			if (obj != null){
-				String label = graph.getLabel(obj);
-				if (label != null){
-					labelAccumu.add(label);
-				}
-			}
-		}
-		
-		if( ! labelAccumu.isEmpty() ){
-			d.addField(field, labelAccumu);
-		}
-	}
+//	private void addFieldUnique(SolrInputDocument d, String field, String val) {
+//		if (val == null)
+//			return;
+//		Collection<Object> vals = d.getFieldValues(field);
+//		if (vals != null && vals.contains(val))
+//			return;
+//		d.addField(field, val);
+//	}
+//
+//
+//	private String addLabelField(SolrInputDocument d, String field, String id) {
+//		String retstr = null;
+//		
+//		OWLObject obj = graph.getOWLObjectByIdentifier(id);
+//		if (obj == null)
+//			return retstr;
+//
+//		String label = graph.getLabel(obj);
+//		if (label != null)
+//			d.addField(field, label);
+//		
+//		return label;
+//	}
+//	
+//	private void addLabelFields(SolrInputDocument d, String field, List<String> ids) {
+//
+//		List<String> labelAccumu = new ArrayList<String>();
+//		
+//		for( String id : ids ){
+//			OWLObject obj = graph.getOWLObjectByIdentifier(id);
+//			if (obj != null){
+//				String label = graph.getLabel(obj);
+//				if (label != null){
+//					labelAccumu.add(label);
+//				}
+//			}
+//		}
+//		
+//		if( ! labelAccumu.isEmpty() ){
+//			d.addField(field, labelAccumu);
+//		}
+//	}
 
 //	private Set<String> edgeToField(OWLGraphEdge edge) {
 //		List<OWLQuantifiedProperty> qpl = edge.getQuantifiedPropertyList();
@@ -717,7 +717,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	 * Not the map for bio.
 	 */
 	private Map<String, String> addClosureToAnnAndBio(ArrayList<String> relations, String closureName, String closureNameLabel, String closureMap,
-			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc, Gson gson){
+			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc){
 		
 		// Add closures to doc; label and id.
 		List<String> idClosure = graph.getRelationIDClosure(cls, relations);
