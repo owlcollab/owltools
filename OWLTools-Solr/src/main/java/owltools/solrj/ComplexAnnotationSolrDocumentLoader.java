@@ -70,9 +70,13 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 			Set<OWLNamedIndividual> individuals = graph.getSourceOntology().getIndividualsInSignature();
 			try {
 
+				// // TODO: Collect the high-level group information.
+				// lg.
+
+				// Iterate over the participant nodes and collect the unit information.
 				for( LegoNode ln : lg.createLegoNodes(individuals) ){
 
-					SolrInputDocument doc = collect(ln);
+					SolrInputDocument doc = collect_unit_info(ln);
 
 					if( doc != null ){
 						add(doc);
@@ -104,10 +108,11 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 	 * Take args and add it index (no commits)
 	 * Main wrapping for adding complex annotation documents to GOlr.
 	 * @param ln 
+	 * @param ca_doc 
 	 *
 	 * @return an input doc for add()
 	 */
-	public SolrInputDocument collect(LegoNode ln) {
+	public SolrInputDocument collect_unit_info(LegoNode ln) {
 
 		SolrInputDocument ca_doc = new SolrInputDocument();
 
@@ -123,8 +128,8 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 
 		// annotation_unit
 		// annotation_unit_label
-		ln.getIndividual().getIRI().toString();
-		ln.getIndividual().getIRI().toString(); // hold until somethin happens here
+		ca_doc.addField("annotation_unit", ln.getIndividual().getIRI().toString());
+		ca_doc.addField("annotation_unit_label", ln.getIndividual().getIRI().toString()); // hold until somethin happens here
 		
 		// TODO: annotation_group(_label)
 		// Will need higher-order information.
@@ -137,26 +142,26 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		ca_doc.addField("bioentity", oc_id);
 		ca_doc.addField("bioentity_label", oc_lbl);
 
-		// (do usual)
-		
 		// TODO: enabled_by(_label)
 		// Squeeze label from expression collection.
 		Collection<OWLClassExpression> unknowns = ln.getUnknowns();
 		
-		// TODO: function_class|process_class(_label)
+		// function_class|process_class(_label)
 		// function_class_closure|process_class_closure(_label)
 		// function_class_closure_map|process_class_closure_map
 		OWLClassExpression oce = ln.getType();
 		if( oce.isAnonymous() == false ){
 			
-			// TODO: ID and label.
-			
 			// Get ready for the isa-part_of closure assembly.
 			OWLClass ln_oc = oce.asOWLClass();
 			// Either switch f/p--not both.
 			if( ln.isBp() ){
+				ca_doc.addField("process_class", graph.getIdentifier(ln_oc));
+				ca_doc.addField("process_class_label", graph.getLabel(ln_oc));
 				addClosureToDoc(isap, "process_class_closure", "process_class_closure_label", "process_class_closure_map", ln_oc, ca_doc);
 			}else{
+				ca_doc.addField("function_class", graph.getIdentifier(ln_oc));
+				ca_doc.addField("function_class_label", graph.getLabel(ln_oc));
 				addClosureToDoc(isap, "function_class_closure", "function_class_closure_label", "function_class_closure_map", ln_oc, ca_doc);				
 			}
 			
@@ -170,10 +175,10 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		}
 		// (do usual -- take hints from json thingy pretty print)
 
-		// TODO: location_list(_label)
-		// TODO: location_list_map
-		// TODO: location_list_closure(_label)
-		// TODO: location_list_closure_map
+		// location_list(_label)
+		// location_list_map
+		// location_list_closure(_label)
+		// location_list_closure_map
 
 		// Caches for location_list.
 		Set<String> locIDSet = new HashSet<String>();
