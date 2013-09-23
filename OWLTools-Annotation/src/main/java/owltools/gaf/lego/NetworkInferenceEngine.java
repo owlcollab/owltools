@@ -10,11 +10,13 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -24,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
@@ -83,14 +86,15 @@ public class NetworkInferenceEngine {
 	Map<String,Set<String>> geneByInferredClsMap;
 	HashMap<String, Set<String>> clsByGeneMap;
 	Set<String> activityClassSet;
-	Set<String> processClassSet;
+	public Set<String> processClassSet;
 	/**
 	 * M &sube; N x N, N = A &cup; P
 	 */
-	Partonomy partonomy;
+	public Partonomy partonomy;
+	Set<String> processSet; // P : process *instances*
 	OWLGraphWrapper ogw;
 	OWLOntology exportOntology; // destination for OWL/lego. may be refactored into separate class
-	OWLOntologyManager owlOntologyManager;
+	public OWLOntologyManager owlOntologyManager;
 
 	String contextId = ""; // TODO
 
@@ -104,9 +108,9 @@ public class NetworkInferenceEngine {
 			activityClass = a;
 			gene = g;
 		}
-		String activityClass;
-		String gene;
-		Double strength;
+		public String activityClass;
+		public String gene;
+		public Double strength;
 	}
 	
 	/**
@@ -118,9 +122,9 @@ public class NetworkInferenceEngine {
 	 *
 	 */
 	public class Edge<T,U> {
-		T subject;
-		U object;
-		String type;
+		public T subject;
+		public U object;
+		public String type;
 		/**
 		 * @param subject
 		 * @param object
@@ -147,8 +151,8 @@ public class NetworkInferenceEngine {
 	 * A network/graph of activity nodes
 	 */
 	public class ActivityNetwork {
-		Set<Activity> activitySet = new HashSet<Activity>();
-		Set<Edge<Activity,Activity>> activityEdgeSet = new HashSet<Edge<Activity,Activity>>();
+		public Set<Activity> activitySet = new HashSet<Activity>();
+		public Set<Edge<Activity,Activity>> activityEdgeSet = new HashSet<Edge<Activity,Activity>>();
 		public void add(Activity a) {
 			activitySet.add(a);
 		}
@@ -166,13 +170,24 @@ public class NetworkInferenceEngine {
 			}
 			return activitySubset;
 		}
+		public Set<Activity> lookupByActivityType(String t) {
+			Set<Activity> activitySubset = new HashSet<Activity>();
+			for (Activity a : activitySet) {
+				if (a.activityClass == null)
+					continue;
+				if (a.activityClass.equals(t)) {
+					activitySubset.add(a);
+				}
+			}
+			return activitySubset;
+		}
 	}
 	
 	/**
 	 * M : Merelogy (partonomy), from activity instances to process instances, and between process instances.  ie M &sube; A &cup; P x P
 	 */
 	public class Partonomy {
-		Set<Edge<String, String>> edgeSet = new HashSet<Edge<String, String>>();
+		public Set<Edge<String, String>> edgeSet = new HashSet<Edge<String, String>>();
 		public void addEdge(String s, String o) {
 			edgeSet.add(new Edge<String,String>(s, o, "part_of"));
 		}
@@ -201,6 +216,7 @@ public class NetworkInferenceEngine {
 	 * @param seedGenes
 	 */
 	public void seedGraph(String processCls, Set<String> seedGenes) {
+		contextId = processCls; // TODO
 		activityNetwork = new ActivityNetwork();
 		for (String g : seedGenes) {
 			Activity a = getMostLikelyActivityForGene(g, processCls);
@@ -230,12 +246,14 @@ public class NetworkInferenceEngine {
 	 * @param processCls
 	 */
 	public void createPartonomy(String processCls) {
+		processSet = new HashSet<String>();
 		partonomy = new Partonomy();
 		OWLObject c = ogw.getOWLObjectByIdentifier(processCls);
 		OWLPropertyExpression HP = ogw.getOWLObjectPropertyByIdentifier("BFO:0000051");
 		//ps = new HashSet<OWLPropertyExpression>();
 		Set<OWLObject> parts = ogw.getAncestors(c, Collections.singleton(HP));
 		Set<OWLObject> partsRedundant = new HashSet<OWLObject>();
+		Set<Activity> activitiesWithoutParents = new HashSet<Activity>(activityNetwork.activitySet);
 		for (OWLObject part : parts) {
 			// loose redundancy - superclasses only
 			partsRedundant.addAll(ogw.getAncestors(part, new HashSet<OWLPropertyExpression>()));
@@ -267,6 +285,8 @@ public class NetworkInferenceEngine {
 					if (ogw.getAncestors(ac).contains(part)) {
 						isIntermediate = true;
 						partonomy.addEdge( a.activityClass, pid);
+						activitiesWithoutParents.remove(a);
+						processSet.add(pid);
 					}
 				}
 				if (isIntermediate) {
@@ -277,6 +297,10 @@ public class NetworkInferenceEngine {
 		}
 		
 		// TODO - for now we leave it as implicit that every member a of A is in P = a x p<sup>seed</sup>
+		for (Activity a : activitiesWithoutParents) {
+			if (a.activityClass != null)
+				partonomy.addEdge(a.activityClass, processCls);
+		}
 		
 	}
 
@@ -488,6 +512,14 @@ public class NetworkInferenceEngine {
 		return id;
 	}
 	
+	public Map<String,Object> getGraphStatistics() {
+		Map<String,Object> sm = new HashMap<String,Object>();
+		sm.put("activity_node_count", activityNetwork.activitySet.size());
+		sm.put("activity_edge_count", activityNetwork.activityEdgeSet.size());
+		sm.put("process_count", processSet.size());
+		return sm;
+	}
+	
 	/**
 	 * Translates ontological activation network into OWL (aka lego model)
 	 * <ul>
@@ -510,10 +542,11 @@ public class NetworkInferenceEngine {
 	 * @throws OWLOntologyCreationException 
 	 */
 	public OWLOntology translateNetworkToOWL() throws OWLOntologyCreationException {
-		if (exportOntology == null) {
-			IRI ontIRI = this.getIRI("TEMP:"+contextId);
+		//if (exportOntology == null) {
+			IRI ontIRI = this.getIRI("TEMP:" + contextId);
+			LOG.info("ONT IRI = "+ontIRI);
 			exportOntology = getOWLOntologyManager().createOntology(ontIRI);
-		}
+		//}
 		// a = g x t &in; A &rarr; a &in; OWLNamedIndividual, a.iri = genIRI(g, t), a rdf:type t, a rdf:type (enabled_by some g)
 		Map<Activity,String> activityToIdMap = new HashMap<Activity,String>();
 		for (Activity a : activityNetwork.activitySet) {
@@ -528,14 +561,28 @@ public class NetworkInferenceEngine {
 			activityToIdMap.put(a, id);
 			addOwlInstanceRelationType(id, "enabled_by", gene);
 			addOwlInstanceType(id, activityClass);
+			String label = getLabel(activityClass) + " enabled by "+getLabel(gene);
+			addOwlLabel(id, label);
 		}
 		for (Edge<String, String> e : partonomy.edgeSet) {
-			addOwlFact(e.subject, e.type, e.object);
+			LOG.info("PTNMY="+e.subject + " --> "+e.object);
+			// TODO - this is really contorted, all because we are overloading String in the partonomy
+			Set<Activity> aset = activityNetwork.lookupByActivityType(e.subject);
+			if (aset.size() > 0) {
+				Activity a = aset.iterator().next();
+				addOwlFact(activityToIdMap.get(a), e.type, e.object);
+			}	
+			else {
+				addOwlFact(e.subject, e.type, e.object);
+			}
+			//addOwlLabel(e.subject, getLabel(e.subject));
+			addOwlLabel(e.object, getLabel(e.object));
+			this.addOwlInstanceType(e.object, e.object); // PUNNING!!!
 		}
 		for (Edge<Activity, Activity> e : activityNetwork.activityEdgeSet) {
 			String type = e.type;
 			if (type == null)
-				type = "activates";
+				type = "directly_activates";
 			addOwlFact(activityToIdMap.get(e.subject),
 					type,
 					activityToIdMap.get(e.object)
@@ -544,6 +591,12 @@ public class NetworkInferenceEngine {
 		
 		 return exportOntology;
 	}
+	
+	public OWLOntology translateNetworkToOWL(OWLOntology ont) throws OWLOntologyCreationException {
+		exportOntology = ont;
+		return translateNetworkToOWL();
+	}
+
 	
 	private OWLOntologyManager getOWLOntologyManager() {
 		if (owlOntologyManager == null)
@@ -572,27 +625,51 @@ public class NetworkInferenceEngine {
 	}
 
 	private OWLObjectPropertyExpression getObjectProperty(String rel) {
-		return getOWLDataFactory().getOWLObjectProperty(getIRI(rel));
+		IRI iri;
+		if (rel.equals("part_of"))
+			rel = "BFO:0000050";
+		if (rel.contains(":")) {
+			iri = getIRI(rel);
+		}
+		else {
+			iri = getIRI("http://purl.obolibrary.org/obo/"+rel); // TODO
+		}
+		return getOWLDataFactory().getOWLObjectProperty(iri);
 	}
 
 	private void addOwlFact(String subj, String rel, String obj) {
-		LOG.info("Adding " + subj + "   "+rel + " "+obj);
+		//LOG.info("Adding " + subj + "   "+rel + " "+obj);
 		addAxiom(getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(
 				getObjectProperty(rel),
 				getIndividual(subj), 
 				getIndividual(obj)));
 	}
+	
+	private void addOwlData(String subj, OWLAnnotationProperty p, String val) {
+		OWLLiteral lit = getOWLDataFactory().getOWLLiteral(val);
+		addAxiom(getOWLDataFactory().getOWLAnnotationAssertionAxiom(
+				p,
+				getIndividual(subj).getIRI(), 
+				lit));
+	}
+	
+	private void addOwlLabel(String subj, String val) {
+		addOwlData(subj, 
+				getOWLDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
+				val);
+	}
+
+
 
 	private void addOwlInstanceType(String i, String t) {
-		LOG.info("Adding " + i + " instance of  "+t);
+		//LOG.info("Adding " + i + " instance of  "+t);
 		addAxiom(getOWLDataFactory().getOWLClassAssertionAxiom(
 				getOWLClass(t),
 				getIndividual(i)));
 	}
 
-	
 	private void addOwlInstanceRelationType(String i, String r, String t) {
-		LOG.info("Adding " + i + " instance of "+r+" some "+t);
+		//LOG.info("Adding " + i + " instance of "+r+" some "+t);
 		OWLClassExpression x = getOWLDataFactory().getOWLObjectSomeValuesFrom(
 				getObjectProperty(r),
 				getOWLClass(t));
@@ -600,5 +677,7 @@ public class NetworkInferenceEngine {
 				x,
 				getIndividual(i)));
 	}
+	
+
 
 }
