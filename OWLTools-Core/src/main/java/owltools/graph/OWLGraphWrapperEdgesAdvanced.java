@@ -26,7 +26,7 @@ import owltools.graph.shunt.OWLShuntNode;
  * @see OWLGraphWrapper
  * @see OWLGraphWrapperEdges
  */
-public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdges {
+public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 
 	private static Logger LOG = Logger.getLogger(OWLGraphWrapper.class);
 

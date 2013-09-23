@@ -353,7 +353,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	}
 
 	// TODO - DRY
-	private boolean isExcluded(OWLQuantifiedProperty qp) {
+	protected boolean isExcluded(OWLQuantifiedProperty qp) {
 		if (config.graphEdgeIncludeSet != null) {
 			LOG.debug("includes:"+config.graphEdgeIncludeSet);
 			if (qp.getProperty() == null)
@@ -1423,7 +1423,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @param y 
 	 * @return property or null
 	 */
-	private OWLQuantifiedProperty combinedQuantifiedPropertyPair(OWLQuantifiedProperty x, OWLQuantifiedProperty y) {
+	protected OWLQuantifiedProperty combinedQuantifiedPropertyPair(OWLQuantifiedProperty x, OWLQuantifiedProperty y) {
 
 		if (x.isSubClassOf() && y.isSubClassOf()) { // TRANSITIVITY OF SUBCLASS
 			return new OWLQuantifiedProperty(Quantifier.SUBCLASS_OF);
