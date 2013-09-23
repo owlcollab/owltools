@@ -3273,6 +3273,9 @@ public class CommandRunner {
 			else if (opts.nextEq("--go-external-default")) {
 				externalDbNames = Arrays.asList("EC","MetaCyc","Reactome","RESID","UM-BBD_enzymeID","UM-BBD_pathwayID","Wikipedia");
 			}
+			else if(opts.nextEq("--externals")) {
+				externalDbNames = opts.nextList();
+			}
 			else if (opts.nextEq("--load-headers-from")) {
 				headerFilesFolder = opts.nextFile().getCanonicalFile();
 			}
