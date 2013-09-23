@@ -36,6 +36,7 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 	
 	int lastId = 0;
 	public boolean isReplaceGenus = false;
+	public boolean isThrowOnMultipleExpressions = true;
 
 	public AnnotationExtensionUnfolder(OWLGraphWrapper g) {
 		super(g);
@@ -141,13 +142,15 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 
 	private OWLClassExpression unfold(OWLOntology ont, OWLClass cls) throws MultipleUnfoldOptionsException {
 		OWLClassExpression rx = null;
-		for (OWLClassExpression x : cls.getEquivalentClasses(ont)) {
+		for (OWLClassExpression x : cls.getEquivalentClasses(ont.getImportsClosure())) {
 			if (x instanceof OWLClass) {
 				continue;
 			}
 			else {
 				if (rx != null) {
-					throw new MultipleUnfoldOptionsException(x, rx);
+					if (isThrowOnMultipleExpressions) {
+						throw new MultipleUnfoldOptionsException(x, rx);
+					}
 				}	
 				rx = x;
 			}
