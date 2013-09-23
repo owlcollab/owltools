@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,19 +15,22 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
@@ -47,7 +49,6 @@ import org.coode.oppl.ParserFactory;
 import org.coode.oppl.exceptions.RuntimeExceptionHandler;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
-import org.coode.owlapi.obo.parser.OBOVocabulary;
 import org.coode.owlapi.turtle.TurtleOntologyFormat;
 import org.coode.parsers.common.SystemErrorEcho;
 import org.eclipse.jetty.server.Server;
@@ -76,7 +77,6 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -107,7 +107,6 @@ import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLProperty;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
-import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
@@ -124,16 +123,6 @@ import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-import org.semanticweb.owlapi.vocab.PrefixOWLOntologyFormat;
-
-import com.github.jsonldjava.core.JSONLD;
-import com.github.jsonldjava.core.JSONLDTripleCallback;
-import com.github.jsonldjava.core.Options;
-import com.github.jsonldjava.impl.JenaRDFParser;
-import com.github.jsonldjava.impl.JenaTripleCallback;
-import com.github.jsonldjava.utils.JSONUtils;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gfx.GraphicsConfig;
@@ -186,6 +175,16 @@ import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
+
+import com.github.jsonldjava.core.JSONLD;
+import com.github.jsonldjava.core.JSONLDTripleCallback;
+import com.github.jsonldjava.core.Options;
+import com.github.jsonldjava.impl.JenaRDFParser;
+import com.github.jsonldjava.impl.JenaTripleCallback;
+import com.github.jsonldjava.utils.JSONUtils;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+
 import de.derivo.sparqldlapi.Query;
 import de.derivo.sparqldlapi.QueryArgument;
 import de.derivo.sparqldlapi.QueryBinding;
@@ -3252,6 +3251,147 @@ public class CommandRunner {
 			}
 		}
 		axioms.removeAll(rmAxioms);
+	}
+	
+	@CLIMethod("--external-mappings-files")
+	public void createExternalMappings(Opts opts) throws Exception {
+		if (g == null) {
+			System.err.println("No graph available for gaf-run-check.");
+			exit(-1);
+			return;
+		}
+		
+		File headerFilesFolder = null;
+		String headerFileSuffix = ".header"; 
+		List<String> externalDbNames = null;
+		File outputFolder = new File(".").getCanonicalFile();
+		String commentPrefix = "!";
+		
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o|--output|--output-folder"))
+				outputFolder = opts.nextFile().getCanonicalFile();
+			else if (opts.nextEq("--go-external-default")) {
+				externalDbNames = Arrays.asList("EC","MetaCyc","Reactome","RESID","UM-BBD_enzymeID","UM-BBD_pathwayID","Wikipedia");
+			}
+			else if (opts.nextEq("--load-headers-from")) {
+				headerFilesFolder = opts.nextFile().getCanonicalFile();
+			}
+			else if (opts.nextEq("--load-headers")) {
+				headerFilesFolder = new File(".").getCanonicalFile();
+			}
+			else if (opts.nextEq("--set-header-file-suffix")) {
+				headerFileSuffix = opts.nextOpt();
+			}
+			else if (opts.nextEq("--comment-prefix")) {
+				commentPrefix = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		if (externalDbNames == null || externalDbNames.isEmpty()) {
+			System.err.println("No external db for extraction defined.");
+			exit(-1);
+			return;
+		}
+		
+		// setup date string and ontology version strings
+		StringBuilder header = new StringBuilder();
+		OWLOntology ont = g.getSourceOntology();
+		String ontologyId = Owl2Obo.getOntologyId(ont);
+		String dataVersion = Owl2Obo.getDataVersion(ont);
+		header.append(commentPrefix);
+		header.append(" Generated on ");
+		TimeZone tz = TimeZone.getTimeZone("UTC");
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+		df.setTimeZone(tz);
+		header.append(df.format(new Date()));
+		if (ontologyId != null) {
+			header.append(" from the ontology '");
+			header.append(ontologyId);
+			header.append('\'');
+			if (dataVersion != null) {
+				header.append(" with data version: '");
+				header.append(dataVersion);
+				header.append('\'');
+			}
+		}
+		header.append('\n');
+		header.append(commentPrefix).append('\n');
+		
+		
+		// load external mappings per db type
+		for(String db : externalDbNames) {
+			String prefix = db+":";
+			Map<String, Set<OWLClass>> externalMappings = new HashMap<String, Set<OWLClass>>();
+			Set<OWLClass> allOWLClasses = g.getAllOWLClasses();
+			for (OWLClass owlClass : allOWLClasses) {
+				List<String> xrefs = g.getXref(owlClass);
+				if (xrefs != null && !xrefs.isEmpty()) {
+					for (String xref : xrefs) {
+						if (xref.startsWith(prefix)) {
+							String x = xref;
+							int whitespacePos = xref.indexOf(' ');
+							if (whitespacePos > 0) {
+								x = xref.substring(0, whitespacePos);
+							}
+							Set<OWLClass> classSet = externalMappings.get(x);
+							if (classSet == null) {
+								classSet = new HashSet<OWLClass>();
+								externalMappings.put(x, classSet);
+							}
+							classSet.add(owlClass);
+						}
+					}
+				}
+			}
+			// sort
+			List<String> xrefList = new ArrayList<String>(externalMappings.keySet());
+			Collections.sort(xrefList);
+			
+			// open writer
+			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outputFolder, db.toLowerCase()+"2go")));
+			
+			// check for pre-defined headers
+			if (headerFilesFolder != null) {
+				File headerFile = new File(headerFilesFolder, db.toLowerCase()+headerFileSuffix);
+				if (headerFile.isFile() && headerFile.canRead()) {
+					LineIterator lineIterator = FileUtils.lineIterator(headerFile);
+					while (lineIterator.hasNext()) {
+						String line = lineIterator.next();
+						// minor trickery
+						// if the header lines do not have the comment prefix, add it
+						if (line.startsWith(commentPrefix) == false) {
+							writer.append(commentPrefix);
+							writer.append(' ');
+						}
+						writer.append(line);
+						writer.append('\n');
+					}
+				}
+			}
+			
+			// add generated header
+			writer.append(header);
+			
+			// append sorted xrefs
+			for (String xref : xrefList) {
+				Set<OWLClass> classes = externalMappings.get(xref);
+				List<OWLClass> classesList = new ArrayList<OWLClass>(classes);
+				Collections.sort(classesList);
+				for (OWLClass cls : classesList) {
+					String id = g.getIdentifier(cls);
+					String lbl = g.getLabel(cls);
+					writer.append(xref);
+					writer.append(" > ");
+					writer.append(lbl);
+					writer.append(" ; ");
+					writer.append(id);
+					writer.append('\n');
+				}
+			}
+			IOUtils.closeQuietly(writer);
+		}
 	}
 
 	@CLIMethod("--assert-abox-inferences")
