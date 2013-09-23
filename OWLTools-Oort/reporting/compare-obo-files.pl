@@ -589,6 +589,10 @@ sub create_email {
 			Type     => 'text/html',
 		);
 
+                if ($args{options}->{email_cc}) {
+                    $mail->attach(Cc => $args{options}->{email_cc});
+                }
+
 		# This is added to prevent post-send attachments (e.g. as part
 		# of an email list) messing up the html segment. Comment out
 		# if this is unnecessary.
