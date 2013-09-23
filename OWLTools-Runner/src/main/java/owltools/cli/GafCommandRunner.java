@@ -187,9 +187,13 @@ public class GafCommandRunner extends CommandRunner {
 	public void unfoldGafExtensions(Opts opts) throws Exception {
 		opts.info("", "takes a set of pre-loaded annotations and transforms this set adding info to c16 extensions. See http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
 		boolean isReplaceGenus = true;
+		boolean isThrowOnMultipleExpressions = true;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-n|--no-replace")) {
 				isReplaceGenus = false;
+			}
+			else if (opts.nextEq("-a|--allow-multiple-expressions")) {
+				isThrowOnMultipleExpressions = false;
 			}
 			else {
 				break;
@@ -197,6 +201,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		AnnotationExtensionUnfolder aef = new AnnotationExtensionUnfolder(g);
 		aef.isReplaceGenus = isReplaceGenus;
+		aef.isThrowOnMultipleExpressions = isThrowOnMultipleExpressions;
 		aef.unfold(gafdoc);
 	}
 	
@@ -209,6 +214,39 @@ public class GafCommandRunner extends CommandRunner {
 			System.out.println(pred.render(owlpp));
 		}
 		fbp.dispose();
+	}
+	
+	@CLIMethod("--gaf-remove-redundant")
+	public void gafRemoveRedundant(Opts opts) throws Exception {
+		opts.info("", "Removes any annotation (G,T) if exists (G,T') and T' descendant-of T. ");
+		// TODO
+		Map<String,Set<String>> rmap = new HashMap<String,Set<String>>();
+		List<GeneAnnotation> anns = gafdoc.getGeneAnnotations();
+		for (GeneAnnotation ann : anns) {
+			String eid = ann.getBioentity();
+			String cls = ann.getCls();
+			Set<OWLObject> cs = g.getAncestors(g.getOWLObjectByIdentifier(cls));
+			if (!rmap.containsKey(eid))
+				rmap.put(eid, new HashSet<String>());
+			Set<String> ids = new HashSet<String>();
+			for (OWLObject c : cs) {
+				ids.add(g.getIdentifier(c));
+			}
+			rmap.get(eid).addAll(ids);
+		}
+		List<GeneAnnotation> filteredAnns = new ArrayList<GeneAnnotation>();
+		for (GeneAnnotation ann : anns) {
+			String eid = ann.getBioentity();
+			String cls = ann.getCls();
+			if (rmap.get(eid).contains(cls)) {
+				LOG.info("SKIPPING_REDUNDANT: "+eid+" --> "+cls);
+			}
+			else {
+				filteredAnns.add(ann);
+			}
+		}
+		gafdoc.setGeneAnnotations(filteredAnns);
+	
 	}
 
 	
@@ -400,7 +438,7 @@ public class GafCommandRunner extends CommandRunner {
 
 	@CLIMethod("--map2slim")
 	public void mapToSlim(Opts opts) throws OWLOntologyCreationException, IOException {
-		opts.info("[-s SUBSET-NAME] [-w GAF-OUTPUT]", "Maps annotations in a GAF to an ontology subset, e.g. goslim_pombe");
+		opts.info("[-s SUBSET-NAME] [--idfile FILE] [-w GAF-OUTPUT]", "Maps annotations in a GAF to an ontology subset, e.g. goslim_pombe");
 		String subsetId = null;
 		String ofn = null;
 		Set<OWLObject> subsetObjs = new HashSet<OWLObject>();
@@ -423,6 +461,11 @@ public class GafCommandRunner extends CommandRunner {
 					else {
 						subsetObjs.add(obj);
 					}
+				}
+			}
+			else if (opts.nextEq("--use-support-ontology")) {
+				for (OWLClass c : g.getSupportOntologySet().iterator().next().getClassesInSignature(true)) {
+					subsetObjs.add(c);
 				}
 			}
 			else if (opts.nextEq("-w|--write-gaf")) {
