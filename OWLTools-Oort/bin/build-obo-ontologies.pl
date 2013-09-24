@@ -267,6 +267,9 @@ foreach my $k (keys %ont_info) {
             my $dargs = "--config 'html/ontology_name=$ont' --rss-path rss -f1 $last -f2 $this -m html text rss";
             if ($email) {
                 $dargs .= " email --config email_to=$email";
+                if ($info->{email_cc}) {
+                    $dargs .= " --config email_cc=$info->{email_cc}";
+                }
             }
             run("compare-obo-files.pl $dargs -o $ont/central-obo-diff");
             run("compare-defs.pl $dargs -o $ont/central-def-diff");
@@ -433,12 +436,14 @@ sub get_ont_info {
              method => 'vcs',
              system => 'svn',
              checkout => 'svn --ignore-externals co http://svn.code.sf.net/p/obo/svn/uberon/trunk',
+             email_cc => 'cjmungall@lbl.gov',
          },
          cl => {
              infallible => 1,
              method => 'vcs',
              system => 'svn',
              checkout => 'svn  --ignore-externals co http://cell-ontology.googlecode.com/svn/trunk/src/ontology',
+             email_cc => 'cl_edit@googlegroups.com',
          },
          clo => {
              method => 'vcs',
@@ -451,6 +456,11 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy_XP.obo',
          },
+         dpo => {
+             infallible => 1,
+             method => 'owl2obo',
+             source_url => 'http://purl.obolibrary.org/obo/fbcv/dpo.owl',
+         },
          #fbcv => {
          #    infallible => 1,
          #    method => 'vcs',
@@ -462,10 +472,10 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'http://sourceforge.net/p/fbcv/code-0/HEAD/tree/src/trunk/ontologies/fbcv-edit.obo?format=raw',
          },
-         fbphenotype => {
-             method => 'owl2obo',
-             source_url => 'https://sourceforge.net/p/fbcv/code-0/HEAD/tree/releases/latest/FB_phenotype-non-classified.owl?format=raw',
-         },
+         #fbphenotype => {
+         #    method => 'owl2obo',
+         #    source_url => 'https://sourceforge.net/p/fbcv/code-0/HEAD/tree/releases/latest/FB_phenotype-non-classified.owl?format=raw',
+         #},
          sibo => {
              method => 'vcs',
              system => 'git',
@@ -557,6 +567,7 @@ sub get_ont_info {
              method => 'vcs',
              system => 'svn',
              checkout => 'svn co http://envo.googlecode.com/svn/trunk/src/envo',
+             email_cc => 'cjmungall@lbl.gov',
          },
          gaz => {
              method => 'archive',
