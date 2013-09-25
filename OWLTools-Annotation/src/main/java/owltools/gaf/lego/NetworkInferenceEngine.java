@@ -111,6 +111,7 @@ public class NetworkInferenceEngine {
 		public String activityClass;
 		public String gene;
 		public Double strength;
+		public OWLIndividual owlObject;
 	}
 	
 	/**
@@ -125,6 +126,8 @@ public class NetworkInferenceEngine {
 		public T subject;
 		public U object;
 		public String type;
+		public OWLObjectPropertyAssertionAxiom owlObject;
+
 		/**
 		 * @param subject
 		 * @param object
@@ -313,6 +316,8 @@ public class NetworkInferenceEngine {
 	 * 
 	 */
 	public void connectGraph() {
+		
+		// PPI Method
 		for (String p1 : proteinInteractionMap.keySet()) {
 			Set<Activity> aset = activityNetwork.lookupByGene(p1);
 			if (aset.size() == 0)
@@ -327,6 +332,13 @@ public class NetworkInferenceEngine {
 			}
 		}
 		
+		// Using ontology knowledge (e.g. connected_to relationships; has_input = has_output)
+		
+		for (Activity a : activityNetwork.activitySet) {
+			//
+		}
+		
+		// Annotation extension method
 		// TODO: e.g. PomBase SPCC645.07      rgf1            GO:0032319-regulation of Rho GTPase activity    PMID:16324155   IGI     PomBase:SPAC1F7.04      P       RhoGEF for Rho1, Rgf1           protein taxon:4896      20100429  PomBase 
 		// in: =GO:0051666 ! actin cortical patch localization
 	}
