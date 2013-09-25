@@ -33,15 +33,15 @@ import owltools.graph.OWLGraphWrapper;
  */
 public class LegoTools {
 	
-	private final OWLGraphWrapper graph;
-	private final OWLReasoner reasoner;
-	private final Set<OWLObjectProperty> enabled_by;
-	private final Set<OWLObjectProperty> occurs_in;
-	private final Set<OWLObjectProperty> part_of;
-	private final OWLClass mf;
-	private final OWLClass bp;
+	protected final OWLGraphWrapper graph;
+	protected final OWLReasoner reasoner;
+	protected final Set<OWLObjectProperty> enabled_by;
+	protected final Set<OWLObjectProperty> occurs_in;
+	protected final Set<OWLObjectProperty> part_of;
+	protected final OWLClass mf;
+	protected final OWLClass bp;
 	
-	private final boolean ignoreUnknownTypes;
+	protected final boolean ignoreUnknownTypes;
 	
 	/**
 	 * @param graph
@@ -127,7 +127,7 @@ public class LegoTools {
 		
 	}
 
-	public Collection<LegoNode> createLegoNodes(Collection<OWLNamedIndividual> individuals) throws UnExpectedStructureException {
+	public List<LegoNode> createLegoNodes(Collection<OWLNamedIndividual> individuals) throws UnExpectedStructureException {
 		List<LegoNode> nodes = new ArrayList<LegoNode>(individuals.size());
 		Set<OWLOntology> ontologies = new HashSet<OWLOntology>(graph.getAllOntologies());
 		for (OWLNamedIndividual individual : individuals) {
@@ -144,7 +144,7 @@ public class LegoTools {
 					}
 					OWLNamedIndividual namedTarget = (OWLNamedIndividual) object;
 					OWLObjectPropertyExpression property = propertyAxiom.getProperty();
-					links.add(new LegoLink(namedTarget, property));
+					links.add(new LegoLink(individual, namedTarget, property));
 				}
 				if (!links.isEmpty()) {
 					node.setLinks(links);
