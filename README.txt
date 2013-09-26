@@ -45,7 +45,7 @@ release for this branch.
  
  * OWLTools Command-Line Tools:
    The executables and the generated jar are both located in:
-   OWLTools-Parent/bin
+   OWLTools-Runner/bin
 
  * OORT: 
    The executables and the generated jar are both located in:
