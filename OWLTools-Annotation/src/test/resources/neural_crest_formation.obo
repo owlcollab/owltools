@@ -1,0 +1,853 @@
+format-version: 1.2
+ontology: owltools/test/disease
+subsetdef: Cross_product_review "Involved_in"
+subsetdef: gocheck_do_not_annotate "Term not to be used for direct annotation"
+subsetdef: gocheck_do_not_manually_annotate "Term not to be used for direct manual annotation"
+subsetdef: goslim_aspergillus "Aspergillus GO slim"
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_metagenomics "Metagenomics GO slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+subsetdef: mf_needs_review "Catalytic activity terms in need of attention"
+subsetdef: termgenie_unvetted "Terms created by TermGenie that do not follow a template and require additional vetting by editors"
+subsetdef: virus_checked "Viral overhaul terms"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+
+[Term]
+id: GO:0000902
+name: cell morphogenesis
+namespace: biological_process
+alt_id: GO:0007148
+alt_id: GO:0045790
+alt_id: GO:0045791
+def: "The developmental process in which the size or shape of a cell is generated and organized." [GOC:clt, GOC:dph, GOC:go_curators, GOC:tb]
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular morphogenesis" EXACT []
+is_a: GO:0032989  ! cellular component morphogenesis
+
+[Term]
+id: GO:0000904
+name: cell morphogenesis involved in differentiation
+namespace: biological_process
+def: "The change in form (cell shape and size) that occurs when relatively unspecialized cells, e.g. embryonic or regenerative cells, acquire specialized structural and/or functional features that characterize the cells, tissues, or organs of the mature organism or some other relatively stable phase of the organism's life history." [GOC:go_curators]
+is_a: GO:0000902  ! cell morphogenesis
+relationship: part_of GO:0048468 ! cell development
+intersection_of: GO:0000902  ! cell morphogenesis
+intersection_of: part_of GO:0048468 ! cell development
+
+[Term]
+id: GO:0001667
+name: ameboidal cell migration
+namespace: biological_process
+def: "Cell migration that is accomplished by extension and retraction of a pseudopodium." [GOC:dph]
+synonym: "ameboid cell migration" EXACT []
+synonym: "amoeboid cell migration" EXACT []
+synonym: "amoeboidal cell migration" EXACT []
+is_a: GO:0016477  ! cell migration
+
+[Term]
+id: GO:0001736
+name: establishment of planar polarity
+namespace: biological_process
+def: "Coordinated organization of groups of cells in the plane of an epithelium, such that they all orient to similar coordinates." [GOC:dph]
+synonym: "establishment of planar cell polarity" NARROW []
+is_a: GO:0007164  ! establishment of tissue polarity
+relationship: part_of GO:0001738 ! morphogenesis of a polarized epithelium
+
+[Term]
+id: GO:0001738
+name: morphogenesis of a polarized epithelium
+namespace: biological_process
+def: "The morphogenetic process in which the anatomical structures of a polarized epithelium are generated and organized. A polarized epithelium is an epithelium where the epithelial sheet is oriented with respect to the planar axis." [GOC:dph]
+synonym: "epithelial polarization" EXACT [GOC:dph]
+is_a: GO:0002009  ! morphogenesis of an epithelium
+
+[Term]
+id: GO:0001755
+name: neural crest cell migration
+namespace: biological_process
+def: "The characteristic movement of cells from the dorsal ridge of the neural tube to a variety of locations in a vertebrate embryo." [GOC:ascb_2009, GOC:dph, GOC:tb, ISBN:0878932437]
+is_a: GO:0001667  ! ameboidal cell migration
+relationship: has_part GO:0060071 ! Wnt receptor signaling pathway, planar cell polarity pathway
+relationship: part_of GO:0014032 ! neural crest cell development
+
+[Term]
+id: GO:0001837
+name: epithelial to mesenchymal transition
+namespace: biological_process
+def: "A transition where an epithelial cell loses apical/basolateral polarity, severs intercellular adhesive junctions, degrades basement membrane components and becomes a migratory mesenchymal cell." [GOC:dph, PMID:14701881]
+synonym: "EMT" EXACT []
+synonym: "epithelial-mesenchymal transition" EXACT []
+is_a: GO:0000904  ! cell morphogenesis involved in differentiation
+relationship: part_of GO:0014031 ! mesenchymal cell development
+
+[Term]
+id: GO:0002009
+name: morphogenesis of an epithelium
+namespace: biological_process
+def: "The process in which the anatomical structures of epithelia are generated and organized. An epithelium consists of closely packed cells arranged in one or more layers, that covers the outer surfaces of the body or lines any internal cavity or tube." [GOC:dph, GOC:jl, GOC:tb, ISBN:0198506732]
+is_a: GO:0048729  ! tissue morphogenesis
+relationship: part_of GO:0060429 ! epithelium development
+
+[Term]
+id: GO:0006928
+name: cellular component movement
+namespace: biological_process
+def: "The directed, self-propelled movement of a cellular component without the involvement of an external agent such as a transporter or a pore." [GOC:dgh, GOC:dph, GOC:jl, GOC:mlg]
+comment: Note that in GO cellular components include whole cells (cell is_a cellular component).
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell movement" RELATED []
+synonym: "cellular component motion" EXACT [GOC:dph, GOC:jl]
+is_a: GO:0044763  ! single-organism cellular process
+
+[Term]
+id: GO:0007154
+name: cell communication
+namespace: biological_process
+def: "Any process that mediates interactions between a cell and its surroundings. Encompasses interactions such as signaling or attachment between one cell and another cell, between a cell and an extracellular matrix, or between a cell and any other aspect of its environment." [GOC:mah]
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+xref: Wikipedia:Cell_signaling
+is_a: GO:0044763  ! single-organism cellular process
+
+[Term]
+id: GO:0007164
+name: establishment of tissue polarity
+namespace: biological_process
+def: "Coordinated organization of groups of cells in a tissue, such that they all orient to similar coordinates." [GOC:jid]
+is_a: GO:0009653  ! anatomical structure morphogenesis
+is_a: GO:0044767  ! single-organism developmental process
+
+[Term]
+id: GO:0007165
+name: signal transduction
+namespace: biological_process
+alt_id: GO:0023033
+def: "The cellular process in which a signal is conveyed to trigger a change in the activity or state of a cell. Signal transduction begins with reception of a signal (e.g. a ligand binding to a receptor or receptor activation by a stimulus such as light), or for signal transduction in the absence of ligand, signal-withdrawal or the activity of a constitutively active receptor. Signal transduction ends with regulation of a downstream cellular process, e.g. regulation of transcription or regulation of a metabolic process. Signal transduction covers signaling from receptors located on the surface of the cell and signaling via molecules located within the cell. For signaling between cells, signal transduction is restricted to events at and within the receiving cell." [GOC:go_curators, GOC:mtg_signaling_feb11]
+comment: Note that signal transduction is defined broadly to include a ligand interacting with a receptor, downstream signaling steps and a response being triggered. A change in form of the signal in every step is not necessary. Note that in many cases the end of this process is regulation of the initiation of transcription. Note that specific transcription factors may be annotated to this term, but core/general transcription machinery such as RNA polymerase should not.
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "signaling cascade" NARROW []
+synonym: "signaling pathway" RELATED []
+synonym: "signalling cascade" NARROW []
+synonym: "signalling pathway" RELATED [GOC:mah]
+xref: Reactome:REACT_100624
+xref: Reactome:REACT_102354
+xref: Reactome:REACT_112130
+xref: Reactome:REACT_112549
+xref: Reactome:REACT_113151
+xref: Reactome:REACT_113601
+xref: Reactome:REACT_113964
+xref: Reactome:REACT_114657
+xref: Reactome:REACT_114690
+xref: Reactome:REACT_114820
+xref: Reactome:REACT_114910
+xref: Reactome:REACT_115037
+xref: Reactome:REACT_115147
+xref: Reactome:REACT_12478
+xref: Reactome:REACT_31232
+xref: Reactome:REACT_78535
+xref: Reactome:REACT_89740
+xref: Reactome:REACT_93680
+xref: Reactome:REACT_98872
+xref: Wikipedia:Signal_transduction
+is_a: GO:0050794  ! regulation of cellular process
+is_a: GO:0051716  ! cellular response to stimulus
+relationship: part_of GO:0007154 ! cell communication
+relationship: part_of GO:0044700 ! single organism signaling
+
+[Term]
+id: GO:0007166
+name: cell surface receptor signaling pathway
+namespace: biological_process
+def: "A series of molecular signals initiated by activation of a receptor on the surface of a cell. The pathway begins with binding of an extracellular ligand to a cell surface receptor, or for receptors that signal in the absence of a ligand, by ligand-withdrawal or the activity of a constitutively active receptor. The pathway ends with regulation of a downstream cellular process, e.g. transcription." [GOC:bf, GOC:mah, GOC:pr, GOC:signaling]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell surface receptor linked signal transduction" EXACT []
+synonym: "cell surface receptor linked signaling pathway" EXACT [GOC:bf]
+synonym: "cell surface receptor linked signalling pathway" EXACT [GOC:mah]
+xref: Reactome:REACT_6290
+is_a: GO:0007165  ! signal transduction
+
+[Term]
+id: GO:0007275
+name: multicellular organismal development
+namespace: biological_process
+def: "The biological process whose specific outcome is the progression of a multicellular organism over time from an initial condition (e.g. a zygote or a young adult) to a later condition (e.g. a multicellular animal or an aged adult)." [GOC:dph, GOC:ems, GOC:isa_complete, GOC:tb]
+comment: Note that this term was 'developmental process'.
+subset: goslim_plant  ! Plant GO slim
+is_a: GO:0032502  ! developmental process
+is_a: GO:0044707  ! single-multicellular organism process
+
+[Term]
+id: GO:0007399
+name: nervous system development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of nervous tissue over time, from its formation to its mature state." [GOC:dgh]
+synonym: "pan-neural process" RELATED []
+is_a: GO:0048731  ! system development
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "biological process" EXACT []
+synonym: "biological process unknown" NARROW []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+
+[Term]
+id: GO:0009653
+name: anatomical structure morphogenesis
+namespace: biological_process
+def: "The process in which anatomical structures are generated and organized. Morphogenesis pertains to the creation of form." [GOC:go_curators, ISBN:0521436125]
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "anatomical structure organization" EXACT []
+synonym: "embryogenesis and morphogenesis" BROAD []
+synonym: "morphogenesis" EXACT []
+xref: Wikipedia:Morphogenesis
+is_a: GO:0032502  ! developmental process
+relationship: part_of GO:0048856 ! anatomical structure development
+
+[Term]
+id: GO:0009790
+name: embryo development
+namespace: biological_process
+alt_id: GO:0009795
+def: "The process whose specific outcome is the progression of an embryo from its formation until the end of its embryonic life stage. The end of the embryonic stage is organism-specific. For example, for mammals, the process would begin with zygote formation and end with birth. For insects, the process would begin at zygote formation and end with larval hatching. For plant zygotic embryos, this would be from zygote formation to the end of seed dormancy. For plant vegetative embryos, this would be from the initial determination of the cell or group of cells to form an embryo until the point when the embryo becomes independent of the parent plant." [GOC:go_curators, GOC:isa_complete, GOC:mtg_sensu]
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_plant  ! Plant GO slim
+synonym: "embryogenesis" EXACT []
+synonym: "embryogenesis and morphogenesis" BROAD []
+synonym: "embryonal development" EXACT []
+xref: Wikipedia:Embryogenesis
+is_a: GO:0044767  ! single-organism developmental process
+is_a: GO:0048856  ! anatomical structure development
+relationship: part_of GO:0007275 ! multicellular organismal development
+
+[Term]
+id: GO:0009792
+name: embryo development ending in birth or egg hatching
+namespace: biological_process
+def: "The process whose specific outcome is the progression of an embryo over time, from zygote formation until the end of the embryonic life stage. The end of the embryonic life stage is organism-specific and may be somewhat arbitrary; for mammals it is usually considered to be birth, for insects the hatching of the first instar larva from the eggshell." [GOC:go_curators, GOC:isa_complete, GOC:mtg_sensu]
+synonym: "embryogenesis" BROAD []
+is_a: GO:0009790  ! embryo development
+
+[Term]
+id: GO:0009887
+name: organ morphogenesis
+namespace: biological_process
+def: "Morphogenesis of an organ. An organ is defined as a tissue or set of tissues that work together to perform a specific function or functions. Morphogenesis is the process in which anatomical structures are generated and organized. Organs are commonly observed as visibly distinct structures, but may also exist as loosely associated clusters of cells that work together to perform a specific function or functions." [GOC:dgh, GOC:go_curators, ISBN:0471245208, ISBN:0721662544]
+synonym: "histogenesis and organogenesis" BROAD []
+is_a: GO:0009653  ! anatomical structure morphogenesis
+is_a: GO:0044767  ! single-organism developmental process
+relationship: part_of GO:0048513 ! organ development
+
+[Term]
+id: GO:0009888
+name: tissue development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of a tissue over time, from its formation to the mature structure." [ISBN:0471245208]
+synonym: "histogenesis" EXACT []
+synonym: "histogenesis and organogenesis" BROAD []
+xref: Wikipedia:Histogenesis
+is_a: GO:0048856  ! anatomical structure development
+
+[Term]
+id: GO:0009987
+name: cellular process
+namespace: biological_process
+alt_id: GO:0008151
+alt_id: GO:0050875
+def: "Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators, GOC:isa_complete]
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell growth and/or maintenance" NARROW []
+synonym: "cell physiology" EXACT []
+synonym: "cellular physiological process" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0014029
+name: neural crest formation
+namespace: biological_process
+def: "The formation of the specialized region of ectoderm between the neural ectoderm (neural plate) and non-neural ectoderm. The neural crest gives rise to the neural crest cells that migrate away from this region as neural tube formation procedes." [GOC:dh, GOC:ef]
+is_a: GO:0001837  ! epithelial to mesenchymal transition
+relationship: has_part GO:0014034 ! neural crest cell fate commitment
+relationship: has_part GO:0016055 ! Wnt receptor signaling pathway
+relationship: part_of GO:0043009 ! chordate embryonic development
+
+[Term]
+id: GO:0014031
+name: mesenchymal cell development
+namespace: biological_process
+def: "The process aimed at the progression of a mesenchymal cell over time, from initial commitment of the cell to its specific fate, to the fully functional differentiated cell." [GOC:dh, GOC:ef]
+is_a: GO:0048864  ! stem cell development
+relationship: part_of GO:0048762 ! mesenchymal cell differentiation
+
+[Term]
+id: GO:0014032
+name: neural crest cell development
+namespace: biological_process
+def: "The process aimed at the progression of a neural crest cell over time, from initial commitment of the cell to its specific fate, to the fully functional differentiated cell." [GOC:dh, GOC:ef]
+is_a: GO:0014031  ! mesenchymal cell development
+relationship: part_of GO:0014033 ! neural crest cell differentiation
+
+[Term]
+id: GO:0014033
+name: neural crest cell differentiation
+namespace: biological_process
+def: "The process in which a relatively unspecialized cell acquires specialized features of a neural crest cell." [GOC:dh, GOC:ef]
+is_a: GO:0048762  ! mesenchymal cell differentiation
+
+[Term]
+id: GO:0014034
+name: neural crest cell fate commitment
+namespace: biological_process
+def: "The process in which a cell becomes committed to become a neural crest cell." [GOC:dh, GOC:ef]
+is_a: GO:0044767  ! single-organism developmental process
+is_a: GO:0045165  ! cell fate commitment
+relationship: part_of GO:0014029 ! neural crest formation
+relationship: part_of GO:0014033 ! neural crest cell differentiation
+
+[Term]
+id: GO:0016043
+name: cellular component organization
+namespace: biological_process
+alt_id: GO:0044235
+alt_id: GO:0071842
+def: "A process that results in the assembly, arrangement of constituent parts, or disassembly of a cellular component." [GOC:ai, GOC:jl, GOC:mah]
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell organisation" EXACT []
+synonym: "cell organization and biogenesis" RELATED [GOC:mah]
+synonym: "cellular component organisation at cellular level" EXACT [GOC:mah]
+synonym: "cellular component organisation in other organism" EXACT [GOC:mah]
+synonym: "cellular component organization at cellular level" EXACT []
+synonym: "cellular component organization in other organism" EXACT []
+is_a: GO:0071840  ! cellular component organization or biogenesis
+
+[Term]
+id: GO:0016055
+name: Wnt receptor signaling pathway
+namespace: biological_process
+alt_id: GO:0007222
+def: "The series of molecular signals initiated by binding of a Wnt protein to a frizzled family receptor on the surface of the target cell and ending with a change in cell state." [GOC:dph, GOC:go_curators, PMID:11532397]
+synonym: "Wg signaling pathway" EXACT [GOC:sart, PMID:8080429]
+synonym: "Wg signalling pathway" EXACT [GOC:sart, PMID:8080429]
+synonym: "Wingless signaling pathway" EXACT [GOC:sart, PMID:8080429]
+synonym: "Wingless signalling pathway" EXACT [GOC:sart, PMID:8080429]
+synonym: "Wnt receptor signalling pathway" EXACT []
+synonym: "frizzled signaling pathway" EXACT []
+synonym: "frizzled signalling pathway" EXACT []
+is_a: GO:0007166  ! cell surface receptor signaling pathway
+
+[Term]
+id: GO:0016477
+name: cell migration
+namespace: biological_process
+def: "The orderly movement of a cell from one site to another, often during the development of a multicellular organism or multicellular structure." [GOC:ems, GOC:pf]
+xref: Wikipedia:Cell_migration
+is_a: GO:0048870  ! cell motility
+
+[Term]
+id: GO:0022603
+name: regulation of anatomical structure morphogenesis
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of anatomical structure morphogenesis." [GOC:mah]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation of morphogenesis" EXACT []
+is_a: GO:0050793  ! regulation of developmental process
+relationship: regulates GO:0009653 ! anatomical structure morphogenesis
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0009653 ! anatomical structure morphogenesis
+
+[Term]
+id: GO:0023052
+name: signaling
+namespace: biological_process
+alt_id: GO:0023046
+def: "The entirety of a process in which information is transmitted within a biological system. This process begins with an active signal and ends when a cellular response has been triggered." [GOC:mtg_signal, GOC:mtg_signaling_feb11, GOC:signaling]
+comment: Note that a signal is any variable property or parameter that serves to convey information, and may be a physical entity such as a gene product or small molecule, a photon, or a change in state such as movement or voltage change.
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: goslim_yeast  ! Yeast GO slim
+synonym: "biological signaling" EXACT []
+synonym: "signaling process" EXACT []
+synonym: "signalling" EXACT []
+synonym: "signalling process" RELATED [GOC:mah]
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0030154
+name: cell differentiation
+namespace: biological_process
+def: "The process in which relatively unspecialized cells, e.g. embryonic or regenerative cells, acquire specialized structural and/or functional features that characterize the cells, tissues, or organs of the mature organism or some other relatively stable phase of the organism's life history. Differentiation includes the processes involved in commitment of a cell to a specific fate and its subsequent development to the mature state." [ISBN:0198506732]
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+xref: Wikipedia:Cellular_differentiation
+is_a: GO:0048869  ! cellular developmental process
+
+[Term]
+id: GO:0032501
+name: multicellular organismal process
+namespace: biological_process
+alt_id: GO:0050874
+def: "Any biological process, occurring at the level of a multicellular organism, pertinent to its function." [GOC:curators, GOC:dph, GOC:isa_complete, GOC:tb]
+subset: goslim_pir  ! PIR GO slim
+synonym: "organismal physiological process" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0032502
+name: developmental process
+namespace: biological_process
+def: "A biological process whose specific outcome is the progression of an integrated living unit: an anatomical structure (which may be a subcellular structure, cell, tissue, or organ), or organism over time from an initial condition to a later condition." [GOC:isa_complete]
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "development" NARROW []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0032989
+name: cellular component morphogenesis
+namespace: biological_process
+def: "The process in which cellular structures, including whole cells or cell parts, are generated and organized." [GOC:dph, GOC:mah, GOC:tb]
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular structure morphogenesis" EXACT [GOC:dph, GOC:tb]
+is_a: GO:0009653  ! anatomical structure morphogenesis
+is_a: GO:0016043  ! cellular component organization
+is_a: GO:0044767  ! single-organism developmental process
+is_a: GO:0048869  ! cellular developmental process
+
+[Term]
+id: GO:0035567
+name: non-canonical Wnt receptor signaling pathway
+namespace: biological_process
+def: "The series of molecular signals initiated by binding of a Wnt protein to a frizzled family receptor on the surface of the target cell, followed by propagation of the signal via effectors other than beta-catenin." [GOC:signaling]
+comment: This term should only be used when Wnt receptor signaling occurs via a beta-catenin-independent route but the downstream effectors are unknown. If the downstream effectors are known, consider instead annotating to one of the children, or requesting a new term.
+synonym: "beta-catenin-independent Wnt receptor signaling pathway" EXACT [GOC:signaling]
+synonym: "non-canonical Wnt receptor signalling pathway" EXACT [GOC:mah]
+is_a: GO:0016055  ! Wnt receptor signaling pathway
+
+[Term]
+id: GO:0040011
+name: locomotion
+namespace: biological_process
+def: "Self-propelled movement of a cell or organism from one location to another." [GOC:dgh]
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0043009
+name: chordate embryonic development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of the embryo over time, from zygote formation through a stage including a notochord and neural tube until birth or egg hatching." [GOC:mtg_sensu]
+is_a: GO:0009792  ! embryo development ending in birth or egg hatching
+
+[Term]
+id: GO:0044699
+name: single-organism process
+namespace: biological_process
+def: "A biological process that involves only one organism." [GOC:jl]
+synonym: "single organism process" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0044700
+name: single organism signaling
+namespace: biological_process
+def: "A signaling process occurring within a single organism." [GOC:jl]
+is_a: GO:0023052  ! signaling
+is_a: GO:0044699  ! single-organism process
+
+[Term]
+id: GO:0044707
+name: single-multicellular organism process
+namespace: biological_process
+def: "A biological process occurring within a single, multicellular organism." [GOC:jl]
+is_a: GO:0032501  ! multicellular organismal process
+is_a: GO:0044699  ! single-organism process
+
+[Term]
+id: GO:0044763
+name: single-organism cellular process
+namespace: biological_process
+def: "Any process that is carried out at the cellular level, occurring within a single organism." [GOC:jl]
+is_a: GO:0009987  ! cellular process
+is_a: GO:0044699  ! single-organism process
+
+[Term]
+id: GO:0044767
+name: single-organism developmental process
+namespace: biological_process
+def: "A biological process whose specific outcome is the progression of an integrated living unit: an anatomical structure (which may be a subcellular structure, cell, tissue, or organ), or organism over time from an initial condition to a later condition, involving only one organism." [GOC:jl]
+is_a: GO:0032502  ! developmental process
+is_a: GO:0044699  ! single-organism process
+
+[Term]
+id: GO:0045165
+name: cell fate commitment
+namespace: biological_process
+def: "The commitment of cells to specific cell fates and their capacity to differentiate into particular kinds of cells. Positional information is established through protein signals that emanate from a localized source within a cell (the initial one-cell zygote) or within a developmental field." [ISBN:0716731185]
+comment: Note that this term was 'cell fate determination' but the term name was changed to better match its existing definition and the child term 'cell fate determination; GO:0001709' was also created.
+is_a: GO:0048869  ! cellular developmental process
+relationship: part_of GO:0030154 ! cell differentiation
+
+[Term]
+id: GO:0048468
+name: cell development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of the cell over time, from its formation to the mature structure. Cell development does not include the steps involved in committing a cell to a specific fate." [GOC:go_curators]
+subset: goslim_candida  ! Candida GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "terminal differentiation" RELATED [GOC:dph, GOC:tb]
+is_a: GO:0044767  ! single-organism developmental process
+is_a: GO:0048856  ! anatomical structure development
+is_a: GO:0048869  ! cellular developmental process
+relationship: part_of GO:0030154 ! cell differentiation
+
+[Term]
+id: GO:0048483
+name: autonomic nervous system development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of the autonomic nervous system over time, from its formation to the mature structure. The autonomic nervous system is composed of neurons that are not under conscious control, and is comprised of two antagonistic components, the sympathetic and parasympathetic nervous systems. The autonomic nervous system regulates key functions including the activity of the cardiac (heart) muscle, smooth muscles (e.g. of the gut), and glands." [FMA:9905, GOC:jid, GOC:sr]
+is_a: GO:0048731  ! system development
+relationship: part_of GO:0007399 ! nervous system development
+
+[Term]
+id: GO:0048513
+name: organ development
+namespace: biological_process
+def: "Development of a tissue or tissues that work together to perform a specific function or functions. Development pertains to the process whose specific outcome is the progression of a structure over time, from its formation to the mature structure. Organs are commonly observed as visibly distinct structures, but may also exist as loosely associated clusters of cells that work together to perform a specific function or functions." [GOC:dph, GOC:jid]
+synonym: "development of an organ" EXACT []
+synonym: "organogenesis" EXACT []
+xref: Wikipedia:Organogenesis
+is_a: GO:0048856  ! anatomical structure development
+relationship: part_of GO:0048731 ! system development
+
+[Term]
+id: GO:0048729
+name: tissue morphogenesis
+namespace: biological_process
+def: "The process in which the anatomical structures of a tissue are generated and organized." [GOC:dph, GOC:jid]
+is_a: GO:0009653  ! anatomical structure morphogenesis
+is_a: GO:0044767  ! single-organism developmental process
+relationship: part_of GO:0009888 ! tissue development
+
+[Term]
+id: GO:0048731
+name: system development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of an organismal system over time, from its formation to the mature structure. A system is a regularly interacting or interdependent group of organs or tissues that work together to carry out a given biological process." [GOC:dph, GOC:jid]
+is_a: GO:0048856  ! anatomical structure development
+relationship: part_of GO:0007275 ! multicellular organismal development
+
+[Term]
+id: GO:0048762
+name: mesenchymal cell differentiation
+namespace: biological_process
+def: "The process in which a relatively unspecialized cell acquires specialized features of a mesenchymal cell. A mesenchymal cell is a loosely associated cell that is part of the connective tissue in an organism. Mesenchymal cells give rise to more mature connective tissue cell types." [GOC:dph, GOC:jid]
+is_a: GO:0048863  ! stem cell differentiation
+relationship: part_of GO:0060485 ! mesenchyme development
+
+[Term]
+id: GO:0048856
+name: anatomical structure development
+namespace: biological_process
+def: "The biological process whose specific outcome is the progression of an anatomical structure from an initial condition to its mature state. This process begins with the formation of the structure and ends with the mature structure, whatever form that may be including its natural destruction. An anatomical structure is any biological entity that occupies space and is distinguished from its surroundings. Anatomical structures can be macroscopic such as a carpel, or microscopic such as an acrosome." [GOC:mtg_15jun06, GO_REF:0000021]
+comment: This term was added by GO_REF:0000021.
+subset: goslim_generic  ! Generic GO slim
+synonym: "development of an anatomical structure" EXACT []
+is_a: GO:0032502  ! developmental process
+
+[Term]
+id: GO:0048863
+name: stem cell differentiation
+namespace: biological_process
+def: "The process in which a relatively unspecialized cell acquires specialized features of a stem cell. A stem cell is a cell that retains the ability to divide and proliferate throughout life to provide progenitor cells that can differentiate into specialized cells." [CL:0000034, GOC:isa_complete]
+xref: Wikipedia:Stem_cell_differentiation
+is_a: GO:0030154  ! cell differentiation
+
+[Term]
+id: GO:0048864
+name: stem cell development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of the stem cell over time, from its formation to the mature structure. Cell development does not include the steps involved in committing a cell to its specific fate." [CL:0000034, GOC:isa_complete]
+is_a: GO:0048468  ! cell development
+relationship: part_of GO:0048863 ! stem cell differentiation
+
+[Term]
+id: GO:0048869
+name: cellular developmental process
+namespace: biological_process
+def: "A biological process whose specific outcome is the progression of a cell over time from an initial condition to a later condition." [GOC:isa_complete]
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0032502  ! developmental process
+is_a: GO:0044763  ! single-organism cellular process
+
+[Term]
+id: GO:0048870
+name: cell motility
+namespace: biological_process
+def: "Any process involved in the controlled self-propelled movement of a cell that results in translocation of the cell from one place to another." [GOC:dgh, GOC:dph, GOC:isa_complete, GOC:mlg]
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell locomotion" EXACT []
+synonym: "cell movement" RELATED []
+synonym: "movement of a cell" EXACT []
+is_a: GO:0006928  ! cellular component movement
+is_a: GO:0040011  ! locomotion
+relationship: part_of GO:0051674 ! localization of cell
+
+[Term]
+id: GO:0050789
+name: regulation of biological process
+namespace: biological_process
+alt_id: GO:0050791
+def: "Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule." [GOC:ai, GOC:go_curators]
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation of physiological process" EXACT []
+is_a: GO:0065007  ! biological regulation
+relationship: regulates GO:0008150 ! biological_process
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0050793
+name: regulation of developmental process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of development, the biological process whose specific outcome is the progression of a multicellular organism over time from an initial condition (e.g. a zygote, or a young adult) to a later condition (e.g. a multicellular animal or an aged adult)." [GOC:go_curators]
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0050789  ! regulation of biological process
+relationship: regulates GO:0032502 ! developmental process
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0032502 ! developmental process
+
+[Term]
+id: GO:0050794
+name: regulation of cellular process
+namespace: biological_process
+alt_id: GO:0051244
+def: "Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation of cellular physiological process" EXACT []
+is_a: GO:0050789  ! regulation of biological process
+relationship: regulates GO:0009987 ! cellular process
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0050896
+name: response to stimulus
+namespace: biological_process
+alt_id: GO:0051869
+def: "Any process that results in a change in state or activity of a cell or an organism (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus and ends with a change in state or activity or the cell or organism." [GOC:ai, GOC:bf]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate  ! Term not to be used for direct manual annotation
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "physiological response to stimulus" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0051179
+name: localization
+namespace: biological_process
+def: "Any process in which a cell, a substance, or a cellular entity, such as a protein complex or organelle, is transported to, and/or maintained in a specific location." [GOC:ai]
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "establishment and maintenance of cellular component location" NARROW []
+synonym: "establishment and maintenance of localization" EXACT []
+synonym: "establishment and maintenance of position" EXACT []
+synonym: "establishment and maintenance of substance location" NARROW []
+synonym: "establishment and maintenance of substrate location" NARROW []
+synonym: "localisation" EXACT [GOC:mah]
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0051239
+name: regulation of multicellular organismal process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of a multicellular organismal process, the processes pertinent to the function of a multicellular organism above the cellular level; includes the integrated processes of tissues and organs." [GOC:ai, GOC:dph, GOC:tb]
+is_a: GO:0050789  ! regulation of biological process
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0032501 ! multicellular organismal process
+
+[Term]
+id: GO:0051674
+name: localization of cell
+namespace: biological_process
+def: "Any process in which a cell is transported to, and/or maintained in, a specific location." [GOC:ai]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell localization" EXACT []
+synonym: "establishment and maintenance of cell localization" EXACT []
+synonym: "establishment and maintenance of localization of cell" EXACT []
+synonym: "localisation of cell" EXACT [GOC:mah]
+is_a: GO:0051179  ! localization
+
+[Term]
+id: GO:0051716
+name: cellular response to stimulus
+namespace: biological_process
+def: "Any process that results in a change in state or activity of a cell (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus by a cell and ends with a change in state or activity or the cell." [GOC:bf, GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate  ! Term not to be used for direct manual annotation
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0044763  ! single-organism cellular process
+is_a: GO:0050896  ! response to stimulus
+
+[Term]
+id: GO:0060071
+name: Wnt receptor signaling pathway, planar cell polarity pathway
+namespace: biological_process
+def: "The series of molecular signals initiated by binding of a Wnt protein to a receptor on the surface of the target cell where activated receptors signal via downstream effectors including C-Jun N-terminal kinase (JNK) to modulate cytoskeletal elements and control cell polarity." [GOC:bf, GOC:dph, PMID:11532397]
+synonym: "PCP pathway" EXACT [GOC:ascb_2009, GOC:dph, GOC:tb]
+synonym: "Wnt receptor signalling pathway, planar cell polarity pathway" EXACT []
+synonym: "Wnt-JNK signaling pathway" RELATED [GOC:bf]
+synonym: "Wnt-PCP signaling pathway" RELATED [GOC:rph]
+synonym: "non-canonical Wnt signaling pathway" RELATED [GOC:bf]
+is_a: GO:0035567  ! non-canonical Wnt receptor signaling pathway
+is_a: GO:0090175  ! regulation of establishment of planar polarity
+
+[Term]
+id: GO:0060429
+name: epithelium development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of an epithelium over time, from its formation to the mature structure. An epithelium is a tissue that covers the internal or external surfaces of an anatomical structure." [GOC:dph, GOC:mtg_lung]
+is_a: GO:0009888  ! tissue development
+
+[Term]
+id: GO:0060485
+name: mesenchyme development
+namespace: biological_process
+def: "The process whose specific outcome is the progression of a mesenchymal tissue over time, from its formation to the mature structure. A mesenchymal tissue is made up of loosely packed stellate cells." [GOC:dph]
+synonym: "mesenchymal development" EXACT [GOC:dph]
+is_a: GO:0009888  ! tissue development
+relationship: part_of GO:0048513 ! organ development
+
+[Term]
+id: GO:0065007
+name: biological regulation
+namespace: biological_process
+def: "Any process that modulates a measurable attribute of any biological process, quality or function." [GOC:dph, GOC:isa_complete, GOC:mah, GOC:pr, GOC:vw]
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation" BROAD []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0071840
+name: cellular component organization or biogenesis
+namespace: biological_process
+alt_id: GO:0071841
+def: "A process that results in the biosynthesis of constituent macromolecules, assembly, arrangement of constituent parts, or disassembly of a cellular component." [GOC:mah]
+synonym: "cellular component organisation or biogenesis" EXACT [GOC:mah]
+synonym: "cellular component organisation or biogenesis at cellular level" EXACT [GOC:mah]
+synonym: "cellular component organization or biogenesis at cellular level" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0090175
+name: regulation of establishment of planar polarity
+namespace: biological_process
+def: "Any process that modulates the rate, frequency or extent of the establishment of planar polarity, the coordinated organization of groups of cells in a tissue, such that they all orient to similar coordinates." [GOC:ascb_2009, GOC:dph, GOC:tb]
+is_a: GO:2000027  ! regulation of organ morphogenesis
+relationship: regulates GO:0001736 ! establishment of planar polarity
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0001736 ! establishment of planar polarity
+
+[Term]
+id: GO:1901166
+name: neural crest cell migration involved in autonomic nervous system development
+namespace: biological_process
+def: "Any neural crest cell migration that is involved in autonomic nervous system development." [GOC:BHF, GOC:TermGenie]
+is_a: GO:0001755  ! neural crest cell migration
+relationship: part_of GO:0048483 ! autonomic nervous system development
+intersection_of: GO:0001755  ! neural crest cell migration
+intersection_of: part_of GO:0048483 ! autonomic nervous system development
+
+[Term]
+id: GO:2000026
+name: regulation of multicellular organismal development
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of multicellular organismal development." [GOC:obol]
+is_a: GO:0050793  ! regulation of developmental process
+is_a: GO:0051239  ! regulation of multicellular organismal process
+relationship: regulates GO:0007275 ! multicellular organismal development
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0007275 ! multicellular organismal development
+
+[Term]
+id: GO:2000027
+name: regulation of organ morphogenesis
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of organ morphogenesis." [GOC:obol]
+synonym: "regulation of histogenesis and organogenesis" RELATED [GOC:obol]
+is_a: GO:0022603  ! regulation of anatomical structure morphogenesis
+is_a: GO:2000026  ! regulation of multicellular organismal development
+relationship: regulates GO:0009887 ! organ morphogenesis
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0009887 ! organ morphogenesis
+
+[Typedef]
+id: has_part
+name: has_part
+namespace: gene_ontology
+is_transitive: true
+xref: BFO:0000051
+xref: OBO_REL:has_part
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: gene_ontology
+is_transitive: true
+xref: BFO:0000050
+xref: OBO_REL:part_of
+
+[Typedef]
+id: regulates
+name: regulates
+namespace: gene_ontology
+xref: RO:0002211
+transitive_over: part_of  ! part_of
+holds_over_chain: results_in regulates  ! regulates
+
