@@ -124,7 +124,7 @@ public abstract class LegoDotWriter implements LegoRenderer {
 		// render links
 		Collection<LegoLink> links = node.getLinks();
 		if (links != null) {
-			final CharSequence source = nodeId(node.getIndividual());
+			final CharSequence source = nodeId(node.getId());
 			for (LegoLink link : links) {
 				CharSequence target = nodeId(link.getNamedTarget());
 				String linkLabel = graph.getLabelOrDisplayId(link.getProperty());
@@ -172,7 +172,7 @@ public abstract class LegoDotWriter implements LegoRenderer {
 			label = getLabel(node.getType(), owlpp);
 		}
 		
-		StringBuilder line = new StringBuilder(nodeId(node.getIndividual()));
+		StringBuilder line = new StringBuilder(nodeId(node.getId()));
 		line.append(" [shape=plaintext,label=");
 		line.append('<'); // start HTML markup
 		

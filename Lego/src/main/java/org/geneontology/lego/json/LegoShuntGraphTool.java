@@ -6,9 +6,10 @@ import java.util.Map;
 
 import org.geneontology.lego.model.LegoLink;
 import org.geneontology.lego.model.LegoNode;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
@@ -50,7 +51,7 @@ public class LegoShuntGraphTool {
 			// render links
 			Collection<LegoLink> links = node.getLinks();
 			if (links != null) {
-				final String source = nodeId(node.getIndividual());
+				final String source = nodeId(node.getId());
 				for (LegoLink link : links) {
 					String target = nodeId(link.getNamedTarget());
 					String linkLabel = graph.getLabelOrDisplayId(link.getProperty());
@@ -64,7 +65,7 @@ public class LegoShuntGraphTool {
 	
 	private void renderLegoNode(LegoNode node, OWLPrettyPrinter owlpp, OWLGraphWrapper graph, OWLShuntGraph shuntGraph) {
 		
-		OWLShuntNode shuntNode = new OWLShuntNode(nodeId(node.getIndividual()));
+		OWLShuntNode shuntNode = new OWLShuntNode(nodeId(node.getId()));
 		String label;
 		// render node
 		if (node.getType() == null) {
@@ -214,8 +215,13 @@ public class LegoShuntGraphTool {
 		return graph.getLabelOrDisplayId(expression);
 	}
 	
-	private String nodeId(OWLNamedIndividual individual) {
-		return individual.getIRI().toString();
+	
+	private String nodeId(OWLNamedObject obj) {
+		return obj.getIRI().toString();
+	}
+	
+	private String nodeId(IRI iri) {
+		return iri.toString();
 	}
 	
 }
