@@ -457,7 +457,7 @@ sub get_ont_info {
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy_XP.obo',
          },
          dpo => {
-             infallible => 1,
+             infallible => 0,
              method => 'owl2obo',
              source_url => 'http://purl.obolibrary.org/obo/fbcv/dpo.owl',
          },
