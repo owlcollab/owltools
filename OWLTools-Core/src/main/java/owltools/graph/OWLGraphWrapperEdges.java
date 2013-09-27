@@ -285,9 +285,13 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * <p>
 	 * e.g. (A SubClassOf R some B) =&gt; &lt;A,sub,R-some-B&gt;, &lt;R-some-B,R-some,B&gt;
 	 * @param s source
+	 * @param overProperties 
 	 * @return set of {@link OWLGraphEdge}
 	 */
 	public Set<OWLGraphEdge> getPrimitiveOutgoingEdges(OWLObject s) {
+		return getPrimitiveOutgoingEdges(s, null);
+	}
+	public Set<OWLGraphEdge> getPrimitiveOutgoingEdges(OWLObject s, Set<OWLPropertyExpression> overProperties) {
 		profiler.startTaskNotify("getPrimitiveOutgoingEdges");
 		Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
 		for (OWLOntology o : getAllOntologies()) {
@@ -346,7 +350,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 			}
 		}
 
-		filterEdges(edges);
+		filterEdges(edges, overProperties);
 		profiler.endTaskNotify("getPrimitiveOutgoingEdges");
 
 		return edges;
@@ -390,10 +394,27 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * be useful; e.g. to configure a generic includeSet
 	 * 
 	 * @param edges
+	 * @param overProperties 
 	 */
 	private void filterEdges(Set<OWLGraphEdge> edges) {
+		 filterEdges(edges, null);
+		
+	}
+	private void filterEdges(Set<OWLGraphEdge> edges, Set<OWLPropertyExpression> overProperties) {
 		Set<OWLGraphEdge> rmEdges = new HashSet<OWLGraphEdge>();
 		for (OWLGraphEdge e : edges) {
+			if (overProperties != null) {
+				if (e.getQuantifiedPropertyList().size() > 1) {
+					// if a filter set is provided, do not yield any chains
+					rmEdges.add(e);
+					continue;					
+				}
+				OWLQuantifiedProperty qp = e.getSingleQuantifiedProperty();
+				if (qp.isSomeValuesFrom() && !overProperties.contains(qp.getProperty())) {
+					rmEdges.add(e);
+					continue;
+				}
+			}
 			if (isExcludeEdge(e)) {
 				rmEdges.add(e);
 			}
@@ -716,8 +737,26 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @return closure of edges originating from source
 	 */
 	public Set<OWLGraphEdge> getOutgoingEdgesClosure(OWLObject s) {
+		return getOutgoingEdgesClosure(s, null);
+	}
+	
+	/**
+	 * As {@link getOutgoingEdgesClosure(OWLObject s)}, but only consider the specified
+	 * set of properties when walking the graph.
+	 * 
+	 * Advanced usage notice: note that if the desired set of properties is {P},
+	 * and there exists a property chain Q o R --> P, then be sure to include Q and R in
+	 * the specified set
+	 * 
+	 * @param s
+	 * @param overProperties
+	 * @return
+	 */
+	public Set<OWLGraphEdge> getOutgoingEdgesClosure(OWLObject s, Set<OWLPropertyExpression> overProperties) {
 		synchronized (edgeCacheMutex) {
-			if (config.isCacheClosure) {
+			// never use cache if a property list is specified (in future we may have one
+			// cache per property set)
+			if (config.isCacheClosure && overProperties == null) {
 				if (inferredEdgeBySource == null)
 					inferredEdgeBySource = new HashMap<OWLObject,Set<OWLGraphEdge>>();
 				if (inferredEdgeBySource.containsKey(s)) {
@@ -738,13 +777,13 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 			//edgeStack.add(new OWLGraphEdge(s,s,null,Quantifier.IDENTITY,ontology));
 	
 			// seed stack
-			edgeStack.addAll(getPrimitiveOutgoingEdges(s));
+			edgeStack.addAll(getPrimitiveOutgoingEdges(s, overProperties));
 			closureSet.addAll(edgeStack);
 			while (!edgeStack.isEmpty()) {
 				OWLGraphEdge ne = edgeStack.pop();
 				//System.out.println("NEXT: "+ne+" //stack: "+edgeStack);
 				int nextDist = ne.getDistance() + 1;
-				Set<OWLGraphEdge> extSet = getPrimitiveOutgoingEdges(ne.getTarget());
+				Set<OWLGraphEdge> extSet = getPrimitiveOutgoingEdges(ne.getTarget(), overProperties);
 				for (OWLGraphEdge extEdge : extSet) {
 					//System.out.println("   EXT:"+extEdge);
 					OWLGraphEdge nu = combineEdgePair(s, ne, extEdge, nextDist);
@@ -765,18 +804,12 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 					boolean isEdgeVisited = false;
 					if (visitedObjs.contains(nuTarget)) {
 						// we have potentially visited this edge before
-	
-	
-						// TODO - this is temporary. need to check edge not node
-						//isEdgeVisited = true;
-						/*
-						 */
 						//System.out.println("checking to see if  visisted "+nu);
 						//System.out.println(nu.getFinalQuantifiedProperty());
 						for (OWLGraphEdge ve : visitedMap.get(nuTarget)) {
 							//System.out.println(" ve:"+ve.getFinalQuantifiedProperty());
 							if (ve.getFinalQuantifiedProperty().equals(nu.getFinalQuantifiedProperty())) {
-								//System.out.println("already visited: "+nu);
+								//System.out.println("already visited: "+nu+" via: "+ve);
 								isEdgeVisited = true;
 							}
 						}
@@ -1062,21 +1095,39 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @return set of ancestors
 	 */
 	public Set<OWLObject> getAncestors(OWLObject x, Set<OWLPropertyExpression> overProps) {
+		return getAncestors(x, overProps, false);
+	}
+	
+	/**
+	 * As {@link getAncestors(OWLObject s, Set<OWLProperty) overProps}, 
+	 * but if isStrict is true, then only consider paths that include at least one edge
+	 * with a property in the specified set. i.e. exclude subclass-only paths. 
+	 * 
+	 * @param s
+	 * @param overProperties
+	 * @return
+	 */
+
+	public Set<OWLObject> getAncestors(OWLObject x, Set<OWLPropertyExpression> overProps, boolean isStrict) {
 		Set<OWLObject> ancs = new HashSet<OWLObject>();
-		for (OWLGraphEdge e : getOutgoingEdgesClosure(x)) {
+		for (OWLGraphEdge e : getOutgoingEdgesClosure(x, overProps)) {
 			boolean isAddMe = false;
 			if (overProps != null) {
 				List<OWLQuantifiedProperty> qps = e.getQuantifiedPropertyList();
 				if (qps.size() == 0) {
-					isAddMe = true;
+					// identity
+					if (!isStrict)
+						isAddMe = true;
 				}
 				else if (qps.size() == 1) {
 					OWLQuantifiedProperty qp = qps.get(0);
 					if (qp.isIdentity()) {
-						isAddMe = true;
+						if (!isStrict)
+							isAddMe = true;
 					}
 					else if (qp.isSubClassOf()) {
-						isAddMe = true;
+						if (!isStrict)
+							isAddMe = true;
 					}
 					else if (qp.isSomeValuesFrom() && overProps.contains(qp.getProperty())) {
 						isAddMe = true;
