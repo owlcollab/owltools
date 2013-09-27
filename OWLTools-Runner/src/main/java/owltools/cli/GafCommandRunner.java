@@ -1,7 +1,9 @@
 package owltools.cli;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -21,16 +23,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
+import org.geneontology.lego.dot.LegoDotWriter;
+import org.geneontology.lego.dot.LegoRenderer;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.GAFParser;
@@ -50,6 +58,9 @@ import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.lego.GafToLegoTranslator;
+import owltools.gaf.lego.NetworkInferenceEngine;
+import owltools.gaf.lego.NetworkInferenceEngine.Activity;
+import owltools.gaf.lego.NetworkInferenceEngine.Edge;
 import owltools.gaf.owl.AnnotationExtensionFolder;
 import owltools.gaf.owl.AnnotationExtensionUnfolder;
 import owltools.gaf.owl.GAFOWLBridge;
@@ -61,6 +72,7 @@ import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.AnnotationRulesFactory;
 import owltools.gaf.rules.AnnotationRulesReportWriter;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
+import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.Mooncat;
 
@@ -1009,5 +1021,111 @@ public class GafCommandRunner extends CommandRunner {
 			return;
 		}
 	}
+	
+	@CLIMethod("--build-activity-network")
+	public void buildActivityNetwork(Opts opts) throws Exception {
+		opts.info("[--dot FILE] [--owl FILE] PROCESS", "Generates an activity network (aka lego) from existing GAF and ontology");
+		OWLClass processCls = null;
+		File owlOutputFile = null;
+		String dotOutputFile = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-p")) {
+				processCls = this.resolveClass(opts.nextOpt());
+			}
+			else if (opts.nextEq("-o|--dot")) {
+				dotOutputFile = opts.nextOpt();
+			}
+			else if (opts.nextEq("--owl")) {
+				owlOutputFile = opts.nextFile();
+			}
+			else {
+				break;
+			}
+		}
+		NetworkInferenceEngine ni = new NetworkInferenceEngine();
+		
+		ni.initialize(gafdoc, g);
+		
+		String p = g.getIdentifier(processCls);
+		Set<String> seedGenes = ni.getGenes(processCls);
+		ni.buildNetwork(p, seedGenes);
+
+		OWLOntology ont = ni.translateNetworkToOWL();
+		if (owlOutputFile != null) {
+			FileOutputStream os = new FileOutputStream(owlOutputFile);
+			ni.owlOntologyManager.saveOntology(ont, os);
+		}
+		if (dotOutputFile != null) {
+			writeLego(ont, dotOutputFile, p);
+		}
+	}
+	
+	@CLIMethod("--visualize-lego")
+	public void visualizeLego(Opts opts) throws Exception {
+		opts.info("[--owl OWLFILE] [-o OUTFOTFILE]", "");
+		// TODO
+		OWLOntology ont = null;
+		String dotOutputFile = null;
+		String name = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o|--dot")) {
+				dotOutputFile = opts.nextOpt();
+			}
+			else if (opts.nextEq("--owl")) {
+				ont = pw.parseOWL(opts.nextOpt());
+			}
+			else if (opts.nextEq("-n|--name")) {
+				name = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		if (ont == null)
+			ont = g.getSourceOntology();
+
+		if (name == null)
+			name = ont.getOntologyID().toString();
+		if (dotOutputFile != null) {
+			writeLego(ont, dotOutputFile, name);
+		}
+	}
+	
+	public void writeLego(OWLOntology ontology, final String output, String name) throws Exception {
+		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
+
+		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
+
+		OWLReasonerFactory factory = new ElkReasonerFactory();
+		
+		final OWLReasoner reasoner = factory.createReasoner(ontology);
+		try {
+			LegoRenderer renderer = new LegoDotWriter(g, reasoner) {
+	
+				BufferedWriter fileWriter = null;
+				
+				@Override
+				protected void open() throws IOException {
+					fileWriter = new BufferedWriter(new FileWriter(new File(output)));
+				}
+	
+				@Override
+				protected void close() {
+					IOUtils.closeQuietly(fileWriter);
+				}
+	
+				@Override
+				protected void appendLine(CharSequence line) throws IOException {
+					//System.out.println(line);
+					fileWriter.append(line).append('\n');
+				}
+			};
+			renderer.render(individuals, name, true);
+		}
+		finally {
+			reasoner.dispose();
+		}
+	}
+
 
 }
