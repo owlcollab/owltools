@@ -2,6 +2,7 @@ package org.geneontology.lego.model;
 
 import java.util.Collection;
 
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -30,6 +31,10 @@ public class LegoNode {
 		this.type = type;
 	}
 
+	public IRI getId() {
+		return individual.getIRI();
+	}
+	
 	/**
 	 * @return the individual
 	 */
