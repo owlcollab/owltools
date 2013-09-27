@@ -144,7 +144,7 @@ public class OWLInAboxTranslator {
 	private Set<OWLNamedIndividual> instances = new HashSet<OWLNamedIndividual>();
 	private Map<IRI,IRI> propertyMap = new HashMap<IRI,IRI>();
 	private boolean isTranslateObjectProperty = true;
-	private boolean isTranslateSubClassToClassAssertion = true;
+	private boolean isTranslateSubClassToClassAssertion = false;
 
 	public OWLInAboxTranslator(OWLOntology ontology) {
 		super();
