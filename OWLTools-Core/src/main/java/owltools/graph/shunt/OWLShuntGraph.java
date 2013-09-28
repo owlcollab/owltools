@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * A simple (and easily serializable through GSON) graph model to move data from the
@@ -192,6 +193,18 @@ public class OWLShuntGraph {
 	public String toJSON(){
 		
 		Gson gson = new Gson();
+		return gson.toJson(this);
+	}
+	
+	/**
+	 * 
+	 * @return JSON form of the shunt graph structure
+	 */
+	public String unsafeToJSON(){
+		
+		//Gson gson = new Gson();
+		//Gson gson = new GsonBuilder().serializeNulls().create();
+		Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 		return gson.toJson(this);
 	}
 }
