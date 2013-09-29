@@ -265,6 +265,20 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 	}
 	
 	/**
+	 * Convert a (probably url) string into something not terrible to use in real life.
+	 * 
+	 * @param id
+	 * @return
+	 */
+	private String lessTerribleID(String id){
+		String newID = new String(id);
+		newID = StringUtils.replace(newID, ":", "_");
+		newID = StringUtils.replace(newID, "/", "_");
+		newID = StringUtils.replace(newID, "#", "_");
+		return newID;
+	}
+	
+	/**
 	 * Take args and add it index (no commits)
 	 * Main wrapping for adding complex annotation documents to GOlr.
 	 * @param ln 
@@ -289,8 +303,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		// annotation_unit_label
 		// TODO: This next bit is all temporary until we get real IDs and labels in somehow.
 		String unitID = u.getId().toString();
-		unitID = StringUtils.replace(unitID, ":", "_");
-		unitID = StringUtils.replace(unitID, "/", "_");
+		unitID = lessTerribleID(unitID);
 		ca_doc.addField("annotation_unit", unitID);
 		String unitLabel = u.toString(); // TODO: ???
 		//ca_doc.addField("annotation_unit_label", unitLabel);

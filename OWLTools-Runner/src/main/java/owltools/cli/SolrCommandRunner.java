@@ -386,8 +386,9 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				OWLOntology ontology = null;
 
 				// TODO: Temp cover for missing group labels and IDs.
-				String agID = legoFile.getCanonicalPath();
+				//String agID = legoFile.getCanonicalPath();
 				String agLabel = StringUtils.removeEnd(fname, ".owl");
+				String agID = new String(agLabel);
 
 				try {
 					ontology = pw.parseOWL(IRI.create(legoFile));
