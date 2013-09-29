@@ -29,6 +29,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.EcoTools;
@@ -54,12 +55,21 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 	private static Logger LOG = Logger.getLogger(ComplexAnnotationSolrDocumentLoader.class);
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
 	int current_doc_number;
+	private OWLGraphWrapper currentGraph = null;
+	private OWLReasoner currentReasoner = null;
+	private String currentGroupID = null;
+	private String currentGroupLabel = null;
+	private Set<OWLNamedIndividual> legoIndividuals = null;
 	
-	
-	public ComplexAnnotationSolrDocumentLoader(String url, OWLGraphWrapper g) throws MalformedURLException {
+	public ComplexAnnotationSolrDocumentLoader(String url, OWLGraphWrapper g, OWLReasoner r, Set<OWLNamedIndividual> individuals, String agID, String agLabel) throws MalformedURLException {
 		super(url);
-		setGraph(g);
+		//setGraph(g);
 		current_doc_number = 0;
+		currentGraph = g;
+		currentReasoner  = r;
+		legoIndividuals = individuals;
+		currentGroupID = agID;
+		currentGroupLabel = agLabel;
 	}
 	
 	@Override
@@ -67,16 +77,17 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		
 		LOG.info("Loading complex annotation documents...");
 		
-		if( graph == null ){
-			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
+		if( currentGraph == null ){
+			LOG.info("ERROR? current OWLGraphWrapper graph from Lego is not apparently defined...");
 		}else{
 
-			LegoUnitTools lTools = new LegoUnitTools(graph, graph.getReasoner());
-			Set<OWLNamedIndividual> individuals = graph.getSourceOntology().getIndividualsInSignature();
+			LegoUnitTools lTools = new LegoUnitTools(currentGraph, currentReasoner);
+			//Set<OWLNamedIndividual> individuals = legoGraph.getSourceOntology().getIndividualsInSignature();
 
 				LegoGraph lUnitTools = null;
 				try {
-					lUnitTools = lTools.createLegoGraph(individuals);
+					//lUnitTools = lTools.createLegoGraph(individuals);
+					lUnitTools = lTools.createLegoGraph(legoIndividuals);
 				} catch (UnExpectedStructureException e) {
 					LOG.error("LegoUnitTools did not initialize.");
 					return;
@@ -94,8 +105,17 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 					// Resolve node ID and label.
 					if( n != null ){
 
-						String nid = n.getType().asOWLClass().getIRI().toString();
-						String nlbl = bestLabel(n.getType());
+						OWLClassExpression ntype = n.getType();
+						String nid = null;
+						String nlbl = null;
+						if( ! ntype.isAnonymous() ){
+							nid = n.getType().asOWLClass().getIRI().toString();
+							nlbl = bestLabel(n.getType());
+						}else{
+							// TODO: What case is this.
+							nid = ntype.toString();
+							nlbl = ntype.toString();
+						}
 						LOG.info("\nnode (id): " + nid);
 						LOG.info("node (lbl): " + nlbl);
 						nodeInfo.put(nid, n);
@@ -103,7 +123,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 						OWLClass e = n.getActiveEntity();
 						if( e != null ){
 							String aid = n.getActiveEntity().getIRI().toString();
-							String albl = graph.getLabelOrDisplayId(n.getActiveEntity());
+							String albl = currentGraph.getLabelOrDisplayId(n.getActiveEntity());
 							LOG.info("node-a (id): " + aid);
 							LOG.info("node-a (lbl): " + albl);
 						}
@@ -116,7 +136,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 						Collection<OWLClassExpression> cell_loc = n.getCellularLocation();
 						for( OWLClassExpression cell_loc_cls : cell_loc ){	
 							// First, the trivial transfer to the final set.
-							String loc_id = graph.getIdentifier(cell_loc_cls);
+							String loc_id = currentGraph.getIdentifier(cell_loc_cls);
 							String loc_lbl = bestLabel(cell_loc_cls);
 							LOG.info("node location: " + loc_lbl + " (" + loc_id + ")");
 						
@@ -149,7 +169,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 
 					OWLClass oc = u.getEnabledBy();
 					if( oc != null ){
-						//String iid = graph.getIdentifier(oc);
+						//String iid = currentGraph.getIdentifier(oc);
 						String iid = oc.getIRI().toString();
 						String ilbl = bestLabel(oc);
 						metadata.put("enabled_by", ilbl);
@@ -160,7 +180,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 					OWLClassExpression process_ce = u.getProcess();
 					if( process_ce != null ){
 						OWLClass ln_oc = process_ce.asOWLClass();
-						//String iid = graph.getIdentifier(ln_oc);
+						//String iid = currentGraph.getIdentifier(ln_oc);
 						String iid = ln_oc.getIRI().toString();
 						String ilbl = bestLabel(ln_oc);
 						metadata.put("process", ilbl);
@@ -171,7 +191,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 					OWLClassExpression activity_ce = u.getActivity();
 					if( activity_ce != null ){
 						OWLClass ln_oc = activity_ce.asOWLClass();
-						//String iid = graph.getIdentifier(ln_oc);
+						//String iid = currentGraph.getIdentifier(ln_oc);
 						String iid = ln_oc.getIRI().toString();
 						String ilbl = bestLabel(ln_oc);
 						metadata.put("activity", ilbl);
@@ -203,8 +223,8 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 				//LegoShuntGraphTool shuntTool = new LegoShuntGraphTool();
 				//OWLShuntGraph shuntGraph = shuntTool.renderLego(lNodes, graph);
 				// TODO: This next bit is all temporary until we get real labels in somehow.
-				String groupID = "unknown group";
-				String groupLabel = "unknown group label";
+				String groupID = currentGroupID;
+				String groupLabel = currentGroupLabel;
 				
 				// Iterate over the participant nodes and collect the unit information.
 				for( LegoUnit u : units ){
@@ -235,9 +255,9 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		String label = "???";
 
 		if( oc != null ){
-			label = graph.getLabel(oc);
+			label = currentGraph.getLabel(oc);
 			if( label == null ){
-				label = graph.getIdentifier(oc);
+				label = currentGraph.getIdentifier(oc);
 			}
 		}
 		
@@ -287,7 +307,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		
 		// enabled_by(_label)
 		OWLClass oc = u.getEnabledBy();
-		String oc_id = graph.getIdentifier(oc);
+		String oc_id = currentGraph.getIdentifier(oc);
 		String oc_lbl = bestLabel(oc);
 		ca_doc.addField("enabled_by", oc_id);
 		ca_doc.addField("enabled_by_label", oc_lbl);
@@ -299,7 +319,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		if( process_ce != null ){
 			// Get ready for the isa-part_of closure assembly.
 			OWLClass ln_oc = process_ce.asOWLClass();
-			ca_doc.addField("process_class", graph.getIdentifier(ln_oc));
+			ca_doc.addField("process_class", currentGraph.getIdentifier(ln_oc));
 			ca_doc.addField("process_class_label", bestLabel(ln_oc));
 			addClosureToDoc(isap, "process_class_closure", "process_class_closure_label", "process_class_closure_map", ln_oc, ca_doc);
 		}
@@ -310,7 +330,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		OWLClassExpression activity_ce = u.getActivity();
 		if( activity_ce != null ){
 			OWLClass ln_oc = activity_ce.asOWLClass();
-			ca_doc.addField("function_class", graph.getIdentifier(ln_oc));
+			ca_doc.addField("function_class", currentGraph.getIdentifier(ln_oc));
 			ca_doc.addField("function_class_label", bestLabel(ln_oc));
 			addClosureToDoc(isap, "function_class_closure", "function_class_closure_label", "function_class_closure_map", ln_oc, ca_doc);				
 		}
@@ -335,19 +355,19 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		for( OWLClassExpression cell_loc_cls : cell_loc ){
 			
 			// First, the trivial transfer to the final set.
-			String loc_id = graph.getIdentifier(cell_loc_cls);
+			String loc_id = currentGraph.getIdentifier(cell_loc_cls);
 			String loc_lbl = bestLabel(cell_loc_cls);
-			//String loc_lbl = graph.getLabelOrDisplayId(cell_loc_cls);
+			//String loc_lbl = currentGraph.getLabelOrDisplayId(cell_loc_cls);
 			locIDSet.add(loc_id);
 			locLabelSet.add(loc_lbl);
 			locMap.put(loc_id, loc_lbl);
 			
 			// Add closures to cache sets
-			List<String> loc_id_closure = graph.getRelationIDClosure(cell_loc_cls, isap);
+			List<String> loc_id_closure = currentGraph.getRelationIDClosure(cell_loc_cls, isap);
 			locClosureIDSet.addAll(loc_id_closure);
-			List<String> loc_label_closure = graph.getRelationLabelClosure(cell_loc_cls, isap);
+			List<String> loc_label_closure = currentGraph.getRelationLabelClosure(cell_loc_cls, isap);
 			locClosureLabelSet.addAll(loc_label_closure);
-			Map<String, String> loc_closure_map = graph.getRelationClosureMap(cell_loc_cls, isap);
+			Map<String, String> loc_closure_map = currentGraph.getRelationClosureMap(cell_loc_cls, isap);
 			locClosureMap.putAll(loc_closure_map);
 		}
 		
@@ -385,8 +405,8 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 			OWLObject cls, SolrInputDocument solr_doc){
 		
 		// Add closures to doc; label and id.
-		List<String> idClosure = graph.getRelationIDClosure(cls, relations);
-		List<String> labelClosure = graph.getRelationLabelClosure(cls, relations);
+		List<String> idClosure = currentGraph.getRelationIDClosure(cls, relations);
+		List<String> labelClosure = currentGraph.getRelationLabelClosure(cls, relations);
 		solr_doc.addField(closureName, idClosure);
 		solr_doc.addField(closureNameLabel, labelClosure);
 		for( String tid : idClosure){
@@ -394,7 +414,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		}
 
 		// Compile closure maps to JSON.
-		Map<String, String> cmap = graph.getRelationClosureMap(cls, relations);
+		Map<String, String> cmap = currentGraph.getRelationClosureMap(cls, relations);
 		if( ! cmap.isEmpty() ){
 			String jsonized_cmap = gson.toJson(cmap);
 			solr_doc.addField(closureMap, jsonized_cmap);
