@@ -38,17 +38,10 @@ import owltools.sim2.preprocessor.SimPreProcessor;
  * @author cjm
  *
  */
-public class BasicOWLSimTest extends OWLToolsTestBasics {
+public class BasicOWLSimTest extends AbstractOWLSimTest {
 
 	private Logger LOG = Logger.getLogger(BasicOWLSimTest.class);
-	OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-	OWLDataFactory df = manager.getOWLDataFactory();
-	OWLOntology sourceOntol;
-	SimPreProcessor pproc;
-	OWLPrettyPrinter owlpp;
-	OWLGraphWrapper g;
-	SimpleOwlSim sos;
-
+	
 	@Test
 	public void testBasicSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
 		ParserWrapper pw = new ParserWrapper();
@@ -110,46 +103,6 @@ public class BasicOWLSimTest extends OWLToolsTestBasics {
 		finally {
 			reasoner.dispose();
 		}		
-	}
-
-	protected void parseAssociations(File file, OWLGraphWrapper g) throws IOException {
-		TableToAxiomConverter ttac = new TableToAxiomConverter(g);
-		ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
-		ttac.config.isSwitchSubjectObject = true;
-		ttac.parse(file);			
-	}
-
-
-
-	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
-
-		if (i==j) return;
-		float s = sos.getElementJaccardSimilarity(i, j);
-		if (s > 0.1) {
-			LOG.info("SimJ( "+i+" , "+j+" ) = "+s);
-
-			ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
-			LOG.info("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+show(maxic.attributeClassSet));
-
-			ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
-			LOG.info("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+show(bma.attributeClassSet));
-		}
-
-	}
-
-
-
-
-	private String show(Set<OWLClassExpression> cset) {
-		StringBuffer sb = new StringBuffer();
-		for (OWLClassExpression c : cset) {
-			sb.append(owlpp.render(c) + " ; ");
-		}
-		return sb.toString();
-	}
-
-	private OWLClass get(String iri) {
-		return df.getOWLClass(IRI.create("http://x.org#"+iri));
 	}
 
 

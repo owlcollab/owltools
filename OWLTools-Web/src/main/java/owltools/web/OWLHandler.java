@@ -39,6 +39,8 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import com.google.gson.Gson;
+
 import owltools.gaf.inference.TaxonConstraintsEngine;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
@@ -48,7 +50,9 @@ import owltools.io.OWLGsonRenderer;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
+import owltools.sim2.SimJSONEngine;
 import owltools.sim2.SimpleOwlSim;
+import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 
@@ -91,6 +95,7 @@ public class OWLHandler {
 	private OWLServer owlserver;
 	private String format = null;
 	private String commandName;
+	private SimpleOwlSim sos;
 
 	// consider replacing with a generic result list
 	private Set<OWLAxiom> cachedAxioms = new HashSet<OWLAxiom>();
@@ -105,7 +110,8 @@ public class OWLHandler {
 	}
 	public enum Param {
 		id, iri, label, taxid, expression,
-		format, direct, reflexive
+		format, direct, reflexive,
+		a, b
 	}
 
 	public OWLHandler(OWLServer owlserver, OWLGraphWrapper graph,  HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -125,6 +131,13 @@ public class OWLHandler {
 		if (format == null)
 			return "txt";
 		return format;
+	}
+	
+	
+
+
+	public void setOwlSim(SimpleOwlSim sos) {
+		this.sos = sos;
 	}
 
 	public void setFormat(String format) {
@@ -514,7 +527,41 @@ public class OWLHandler {
 			// TODO - throw
 		}
 	}
-
+	
+	public void compareAttributeSetsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+		if (isHelp()) {
+			info("Returns LCSs and their ICs for two sets of attributes (e.g. phenotypes for disease vs model) using sim2");
+			return;
+		}
+		headerText();
+		SimpleOwlSim sos = getOWLSim();
+		
+		Set<OWLClass> objAs = this.resolveClassList(Param.a);
+		Set<OWLClass> objBs = this.resolveClassList(Param.b);
+		
+		SimJSONEngine sj = new SimJSONEngine(graph,sos);
+		String jsonStr = sj.compareAttributeSetPair(objAs, objBs);
+		response.getWriter().write(jsonStr);
+	}
+	
+	public void searchByAttributeSet() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+		if (isHelp()) {
+			info("Entities that have a similar attribute profile to the specified one, using sim2");
+			return;
+		}
+		headerText();
+		SimpleOwlSim sos = getOWLSim();
+		
+		Set<OWLClass> atts = this.resolveClassList(Param.id);
+		IRI iri = IRI.create("http://owlsim/"+UUID.randomUUID());
+//		for (OWLNamedIndividual i : sos.getAllElements()) {
+//			OWLNamedIndividual j;
+//			sos.getElementJaccardSimilarity(i, j);
+//		}
+//		SimJSONEngine sj = new SimJSONEngine(graph,sos);
+		// TODO
+		//response.getWriter().write(jsonStr);
+	}
 
 	// ----------------------------------------
 	// END OF COMMANDS
@@ -551,7 +598,10 @@ public class OWLHandler {
 	}
 
 	private Set<OWLObject> resolveEntityList() {
-		String[] ids = getParams(Param.id);
+		return resolveEntityList(Param.id);
+	}
+	private Set<OWLObject> resolveEntityList(Param p) {
+		String[] ids = getParams(p);
 		Set<OWLObject> objs = new HashSet<OWLObject>();
 		for (String id : ids) {
 			// TODO - unresolvable

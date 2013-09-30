@@ -57,6 +57,11 @@ public class OWLServer extends AbstractHandler
 		super();
 		graph = g;
 	}
+	public OWLServer(OWLGraphWrapper g, SimpleOwlSim s) {
+		super();
+		graph = g;
+		sos = s;
+	}
 
 	public void handle(String target,
                        Request baseRequest,
@@ -68,6 +73,8 @@ public class OWLServer extends AbstractHandler
         baseRequest.setHandled(true);
      
         OWLHandler handler = new OWLHandler(this, graph, request, response);
+        if (sos != null)
+        	handler.setOwlSim(sos);
         
         String[] toks = path.split("/");
         String m;

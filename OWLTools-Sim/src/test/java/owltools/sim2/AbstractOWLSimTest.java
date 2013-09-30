@@ -59,7 +59,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 
 
 
-	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
 
 		if (i==j) return;
 		float s = sos.getElementJaccardSimilarity(i, j);
