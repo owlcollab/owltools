@@ -37,12 +37,19 @@ public class SimJSONEngine {
 				attPairMap.put("A", makeObj(objA));
 				attPairMap.put("B", makeObj(objB));
 				
-				ScoreAttributePair sim = sos.getLowestCommonSubsumerIC(objA, objB);
-				attPairMap.put("LCS", makeObj((OWLClass)sim.attributeClass));
-				attPairMap.put("LCS_Score", sim.score);
-				
-				pairs.add(attPairMap);
-				LOG.info("ADDED PAIR:"+attPairMap);
+        ScoreAttributePair sim = sos.getLowestCommonSubsumerIC(objA, objB);
+        if (sim == null) {
+        	//alternatively, could put the pair there, and add a note that
+        	//says it's below the threshold.. that would require a new pair
+        	//or return null for class/score
+        	LOG.info("PAIR NOT ADDED:"+attPairMap);
+        } else {
+                attPairMap.put("LCS", makeObj((OWLClass)sim.attributeClass));
+                attPairMap.put("LCS_Score", sim.score);
+
+                pairs.add(attPairMap);
+                LOG.info("PAIR ADDED:"+attPairMap);
+        }
 			}
 		}
 		

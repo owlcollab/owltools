@@ -1354,6 +1354,7 @@ public class SimpleOwlSim {
 			lcsICcache.put(new ClassExpressionPair(c1,c2),
 					new ScoreAttributePair(Double.valueOf(vals[2]), a));
 		}
+		isLCSCacheFullyPopulated = true;
 	}
 
 	public final String icIRIString = "http://owlsim.org/ontology/ic"; // TODO
