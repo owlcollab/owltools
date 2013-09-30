@@ -12,8 +12,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -31,9 +29,7 @@ import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
  * @version June 2013
  *
  */
-public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
-{
-	private final static Logger log = LogManager.getLogger(OWLGraphWrapperEdgesExtended.class.getName());
+public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 	
 	/**
 	 * A cache for super properties relations. Each <code>OWLObjectPropertyExpression</code> 
@@ -93,11 +89,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * @return				<code>true</code> if <code>testObject</code> belongs to a subset 
      * 						in <code>subsets</code>, <code>false</code> otherwise.
      */
-    public boolean isOWLObjectInSubsets(OWLObject testObject, Collection<String> subsets)
-    {
-//    	log.entry(testObject, subsets);
-//		return log.exit(
-//				!Collections.disjoint(subsets, this.getSubsets(testObject)));
+    public boolean isOWLObjectInSubsets(OWLObject testObject, Collection<String> subsets) {
     	return !Collections.disjoint(subsets, this.getSubsets(testObject));
     }
     
@@ -113,7 +105,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
 	 */
 	public Set<OWLObjectPropertyExpression> getSubPropertiesOf(
 			OWLObjectPropertyExpression prop) {
-//		log.entry(prop);
 		Set<OWLObjectPropertyExpression> subProps = new HashSet<OWLObjectPropertyExpression>();
 		for (OWLOntology ont : this.getAllOntologies()) {
 			for (OWLSubObjectPropertyOfAxiom axiom : 
@@ -121,7 +112,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
 				subProps.add(axiom.getSubProperty());
 			}
 		}
-//		return log.exit(subProps);
 		return subProps;
 	}
 	/**
@@ -139,19 +129,12 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      */
 	public LinkedHashSet<OWLObjectPropertyExpression> getSubPropertyClosureOf(
 			OWLObjectPropertyExpression prop) {
-		
-//		log.entry(prop);
 		//try to get the sub-properties from the cache
 		LinkedHashSet<OWLObjectPropertyExpression> subProps = 
 				this.subPropertyCache.get(prop);
 		if (subProps != null) {
-//			log.trace("Sub-properties of {} retrieved from cache: {}", 
-//					prop, subProps);
-//			return log.exit(subProps);
 			return subProps;
 		}
-//		log.trace("Sub-properties of {} not retrieved from cache, acquiring them", 
-//				prop);
     	subProps = new LinkedHashSet<OWLObjectPropertyExpression>();
 		Stack<OWLObjectPropertyExpression> stack = new Stack<OWLObjectPropertyExpression>();
 		stack.add(prop);
@@ -165,7 +148,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
 		//put the sub-properties in cache
 		this.subPropertyCache.put(prop, subProps);
 		
-//		return log.exit(subProps);
 		return subProps;
 	}
 	/**
@@ -186,9 +168,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * @see #getSubPropertyClosureOf(OWLObjectPropertyExpression)
      */
 	public LinkedHashSet<OWLObjectPropertyExpression> getSubPropertyReflexiveClosureOf(
-			OWLObjectPropertyExpression prop) 
-	{
-//		log.entry(prop);
+			OWLObjectPropertyExpression prop) {
 		
 		LinkedHashSet<OWLObjectPropertyExpression> subProps = 
 				new LinkedHashSet<OWLObjectPropertyExpression>();
@@ -196,7 +176,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
 		subProps.add(prop);
 		subProps.addAll(this.getSubPropertyClosureOf(prop));
 		
-//		return log.exit(subProps);
 		return subProps;
 	}
 	
@@ -215,19 +194,12 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      */
 	//TODO: Remove if OWLGraphWrapper changes its implementation
     public LinkedHashSet<OWLObjectPropertyExpression> getSuperPropertyReflexiveClosureOf(
-    		OWLObjectPropertyExpression prop) 
-    {
-//    	log.entry(prop);
+    		OWLObjectPropertyExpression prop) {
     	
     	//try to get the super properties from the cache
     	LinkedHashSet<OWLObjectPropertyExpression> superProps = 
     			this.superPropertyCache.get(prop);
-    	if (superProps != null) {
-//    		log.trace("Super properties of {} retrieved from cache: {}", 
-//    				prop, superProps);
-    	} else {
-//    		log.trace("Super properties of {} not retrieved from cache, acquiring them", 
-//    				prop);
+    	if (superProps == null) {
 
     		superProps = new LinkedHashSet<OWLObjectPropertyExpression>();
     		Stack<OWLObjectPropertyExpression> stack = 
@@ -251,7 +223,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
     			new LinkedHashSet<OWLObjectPropertyExpression>();
     	superPropsReflexive.add(prop);
 		superPropsReflexive.addAll(superProps);
-//		return log.exit(superPropsReflexive);
 		return superPropsReflexive;
 	}
     
@@ -276,10 +247,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
 	 * 				An empty <code>Set</code> if the <code>OWLQuantifiedProperty</code>s 
 	 * 				of <code>edge</code> have no sub-properties.
 	 */
-	public LinkedHashSet<OWLGraphEdge> getOWLGraphEdgeSubRelsReflexive(OWLGraphEdge edge) 
-	{
-//		log.entry(edge);
-//		return log.exit(this.getOWLGraphEdgeSubRelsReflexive(edge, 0));
+	public LinkedHashSet<OWLGraphEdge> getOWLGraphEdgeSubRelsReflexive(OWLGraphEdge edge) {
 		return this.getOWLGraphEdgeSubRelsReflexive(edge, 0);
 	}
 	
@@ -303,53 +271,45 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
 	 * 				have no sub-properties.
 	 */
 	private LinkedHashSet<OWLGraphEdge> getOWLGraphEdgeSubRelsReflexive(OWLGraphEdge edge, 
-			int propIndex) 
-	{
-//		log.entry(edge, propIndex);
-		//hack to use a private method of OWLGraphWrapperEdges
+			int propIndex) {
 		LinkedHashSet<OWLGraphEdge> subRels = new LinkedHashSet<OWLGraphEdge>();
-		try {
-			if (propIndex >= edge.getQuantifiedPropertyList().size()) {
-				subRels.add(new OWLGraphEdge(edge.getSource(), edge.getTarget(), 
-						new Vector<OWLQuantifiedProperty>(), null));
-				return subRels;
-			}
-			OWLQuantifiedProperty quantProp = edge.getQuantifiedPropertyList().get(propIndex);
-			LinkedHashSet<OWLQuantifiedProperty> subQuantProps = 
-					new LinkedHashSet<OWLQuantifiedProperty>();
-			subQuantProps.add(quantProp);
-			OWLObjectProperty prop = quantProp.getProperty();
-			if (prop != null) {
-				for (OWLObjectPropertyExpression propExp : this.getSubPropertyClosureOf(prop)) {
-					if (propExp.equals(this.getDataFactory().
-							getOWLTopObjectProperty()))
-						continue;
-					if (propExp instanceof OWLObjectProperty) {
-						OWLQuantifiedProperty newQp = 
-								new OWLQuantifiedProperty(propExp, quantProp.getQuantifier());
-						boolean isExcluded = isExcluded(newQp);
-						if (!isExcluded) {
-							subQuantProps.add(newQp);
-						}
-					}
-				}
-			}
-			for (OWLQuantifiedProperty subQuantProp : subQuantProps) {
-				for (OWLGraphEdge nextPropEdge : this.getOWLGraphEdgeSubRelsReflexive(edge, 
-						propIndex+1)) {
-					List<OWLQuantifiedProperty> quantProps = new Vector<OWLQuantifiedProperty>();
-					quantProps.add(subQuantProp);
-					quantProps.addAll(nextPropEdge.getQuantifiedPropertyList());
+		if (propIndex >= edge.getQuantifiedPropertyList().size()) {
+		    subRels.add(new OWLGraphEdge(edge.getSource(), edge.getTarget(), 
+		            new Vector<OWLQuantifiedProperty>(), null));
+		    return subRels;
+		}
+		OWLQuantifiedProperty quantProp = edge.getQuantifiedPropertyList().get(propIndex);
+		LinkedHashSet<OWLQuantifiedProperty> subQuantProps = 
+		        new LinkedHashSet<OWLQuantifiedProperty>();
+		subQuantProps.add(quantProp);
+		OWLObjectProperty prop = quantProp.getProperty();
+		if (prop != null) {
+		    for (OWLObjectPropertyExpression propExp : this.getSubPropertyClosureOf(prop)) {
+		        if (propExp.equals(this.getDataFactory().
+		                getOWLTopObjectProperty()))
+		            continue;
+		        if (propExp instanceof OWLObjectProperty) {
+		            OWLQuantifiedProperty newQp = 
+		                    new OWLQuantifiedProperty(propExp, quantProp.getQuantifier());
+		            boolean isExcluded = isExcluded(newQp);
+		            if (!isExcluded) {
+		                subQuantProps.add(newQp);
+		            }
+		        }
+		    }
+		}
+		for (OWLQuantifiedProperty subQuantProp : subQuantProps) {
+		    for (OWLGraphEdge nextPropEdge : this.getOWLGraphEdgeSubRelsReflexive(edge, 
+		            propIndex+1)) {
+		        List<OWLQuantifiedProperty> quantProps = new Vector<OWLQuantifiedProperty>();
+		        quantProps.add(subQuantProp);
+		        quantProps.addAll(nextPropEdge.getQuantifiedPropertyList());
 
-					subRels.add(new OWLGraphEdge(edge.getSource(),edge.getTarget(),
-							quantProps, edge.getOntology()));
-				}
-			}
-		} catch (Exception e) {
-			log.error("Error due to hack to use owltools private methods", e);
+		        subRels.add(new OWLGraphEdge(edge.getSource(),edge.getTarget(),
+		                quantProps, edge.getOntology()));
+		    }
 		}
 
-//		return log.exit(subRels);
 		return subRels;
 	}
 	
@@ -377,9 +337,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * 						in a regular way, but also over super properties. 
      */
     public OWLGraphEdge combineEdgePairWithSuperProps(OWLGraphEdge firstEdge, 
-    		OWLGraphEdge secondEdge) 
-    {
-//    	log.entry(firstEdge, secondEdge);
+    		OWLGraphEdge secondEdge) {
     	OWLGraphEdge combine = 
 				this.combineEdgePair(
 						firstEdge.getSource(), firstEdge, secondEdge, 0);
@@ -404,7 +362,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
 			}
 		}
 		
-//		return log.exit(combine);
 		return combine;
     }
     
@@ -442,11 +399,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * 					<code>null</code> if cannot be combined. 
      */
     OWLQuantifiedProperty combinePropertyPairOverSuperProperties(
-            OWLQuantifiedProperty prop1, OWLQuantifiedProperty prop2) 
-    {
-//    	log.entry(prop1, prop2);
-//    	log.trace("Searching for common super property to combine {} and {}", 
-//    			prop1, prop2);
+            OWLQuantifiedProperty prop1, OWLQuantifiedProperty prop2) {
     	//local implementation of getSuperPropertyReflexiveClosureOf, to order super properties 
     	//from the more precise to the more general, with prop as the first element. 
     	//the first element is the property itself, 
@@ -455,49 +408,27 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
     			this.getSuperPropertyReflexiveClosureOf(prop1.getProperty());
     	LinkedHashSet<OWLObjectPropertyExpression> superProps2 = 
     			this.getSuperPropertyReflexiveClosureOf(prop2.getProperty());
-    	
-    	//hack to use private method
-    	try {
-    		//hack to use private method
-//    		Method excludedMethod = OWLGraphWrapperEdges.class.getDeclaredMethod(
-//    				"isExcluded", 
-//    				new Class<?>[] {OWLQuantifiedProperty.class});
-//    		excludedMethod.setAccessible(true);
 
-    		//search for a common super property
-    		superProps1.retainAll(superProps2);
-//    		log.trace("Common properties: {}", superProps1);
-    		for (OWLObjectPropertyExpression prop: superProps1) {
+    	//search for a common super property
+    	superProps1.retainAll(superProps2);
+    	for (OWLObjectPropertyExpression prop: superProps1) {
 
-    			//code from OWLGraphWrapperEdges.getOWLGraphEdgeSubsumers
-    			if (!prop.equals(
-    					this.getDataFactory().getOWLTopObjectProperty()) && 
+    	    //code from OWLGraphWrapperEdges.getOWLGraphEdgeSubsumers
+    	    if (!prop.equals(
+    	            this.getDataFactory().getOWLTopObjectProperty()) && 
 
-    					prop instanceof OWLObjectProperty) {
-//    				log.trace("{} is a valid property", prop);
-    				OWLQuantifiedProperty newQp = 
-    						new OWLQuantifiedProperty(prop, prop1.getQuantifier());
-    				boolean isExcluded = isExcluded(newQp);
-    				if (!isExcluded) {
-//        				log.trace("And {} is not excluded", newQp);
-    					OWLQuantifiedProperty combined = combinedQuantifiedPropertyPair(newQp, newQp);
-    					if (combined != null) {
-//    						log.trace("Common super property identified, combining {}", 
-//    								newQp);
-//    						return log.exit(combined);
-    						return combined;
-    					}
-//						log.trace("But could not combine over {}, likely not transitive", 
-//								newQp);
-    				}
-    			}
-    		}
-    	} catch (Exception e) {
-    		log.error("Error when combining properties", e);
+    	            prop instanceof OWLObjectProperty) {
+    	        OWLQuantifiedProperty newQp = 
+    	                new OWLQuantifiedProperty(prop, prop1.getQuantifier());
+    	        boolean isExcluded = isExcluded(newQp);
+    	        if (!isExcluded) {
+    	            OWLQuantifiedProperty combined = combinedQuantifiedPropertyPair(newQp, newQp);
+    	            if (combined != null) {
+    	                return combined;
+    	            }
+    	        }
+    	    }
     	}
-    	
-//    	log.trace("No common super property found to combine.");
-//    	return log.exit(null);
     	return null;
     }
 
@@ -507,9 +438,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * @return 	a <code>Set</code> of <code>OWLClass</code>es that contains 
      * 			all <code>OWLClass</code>es from all ontologies.
      */
-    public Set<OWLClass> getAllOWLClasses()
-    {
-//    	log.entry();
+    public Set<OWLClass> getAllOWLClasses() {
     	//maybe classes can be shared between ontologies?
     	//use a Set to check
     	Set<OWLClass> allClasses = new HashSet<OWLClass>();
@@ -518,7 +447,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
 				allClasses.add(iterateClass);
 			}
 		}
-//    	return log.exit(allClasses);
     	return allClasses;
     }
     
@@ -529,19 +457,15 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * @return	A <code>Set</code> of <code>OWLClass</code>es that are 
      * 			the roots of any ontology.
      */
-    public Set<OWLClass> getOntologyRoots()
-    {
-//    	log.entry();
+    public Set<OWLClass> getOntologyRoots() {
     	Set<OWLClass> ontRoots = new HashSet<OWLClass>();
     	for (OWLOntology ont: this.getAllOntologies()) {
 			for (OWLClass testClass: ont.getClassesInSignature()) {
 				if (this.getOutgoingEdges(testClass).isEmpty()) {
-//    				log.trace("Ontology root identified: {}", testClass);
 					ontRoots.add(testClass);
 				}
 			}
 		}
-//    	return log.exit(ontRoots);
     	return ontRoots;
     }
     
@@ -556,20 +480,15 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * @return 	A <code>Set</code> of <code>OWLClass</code>es being the descendants 
      * 			of <code>parentClass</code>.
      */
-    public Set<OWLClass> getOWLClassDescendants(OWLClass parentClass)
-    {
-//    	log.entry(parentClass);
-    	
+    public Set<OWLClass> getOWLClassDescendants(OWLClass parentClass) {
     	Set<OWLClass> descendants = new HashSet<OWLClass>();
 		for (OWLObject descendant: 
 			    this.getDescendants(parentClass)) {
 			if (descendant instanceof OWLClass) {
 				descendants.add((OWLClass) descendant);
-//				log.trace("OWLClass descendant: {}", descendant);
 			}
 		}
 		
-//		return log.exit(descendants);
 		return descendants;
     }
     /**
@@ -582,9 +501,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * 			of <code>parentClass</code>.
      * @see owltools.graph.OWLGraphWrapperEdges#getIncomingEdges(OWLObject)
      */
-    public Set<OWLClass> getOWLClassDirectDescendants(OWLClass parentClass)
-    {
-//    	log.entry(parentClass);
+    public Set<OWLClass> getOWLClassDirectDescendants(OWLClass parentClass) {
     	
     	Set<OWLClass> directDescendants = new HashSet<OWLClass>();
     	for (OWLGraphEdge incomingEdge: 
@@ -596,7 +513,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
     		}
     	}
 		
-//		return log.exit(directDescendants);
     	return directDescendants;
     }
     
@@ -612,20 +528,16 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges
      * @return 	A <code>Set</code> of <code>OWLClass</code>es being the ancestors 
      * 			of <code>sourceClass</code>.
      */
-    public Set<OWLClass> getOWLClassAncestors(OWLClass sourceClass)
-    {
-//    	log.entry(sourceClass);
+    public Set<OWLClass> getOWLClassAncestors(OWLClass sourceClass) {
     	
     	Set<OWLClass> ancestors = new HashSet<OWLClass>();
 		for (OWLObject ancestor: 
 			    this.getAncestors(sourceClass)) {
 			if (ancestor instanceof OWLClass) {
 				ancestors.add((OWLClass) ancestor);
-//				log.trace("OWLClass ancestor: {}", ancestor);
 			}
 		}
 		
-//		return log.exit(ancestors);
 		return ancestors;
     }
 }
