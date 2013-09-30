@@ -618,8 +618,13 @@ public class OWLHandler {
 		String[] ids = getParams(p);
 		Set<OWLClass> objs = new HashSet<OWLClass>();
 		for (String id : ids) {
-			// TODO - unresolvable
-			objs.add(graph.getOWLClassByIdentifier(id));
+			OWLClass c = graph.getOWLClassByIdentifier(id);
+			if (c == null) {
+				// TODO - strict mode - for now we include unresolvable classes
+				IRI iri = graph.getIRIByIdentifier(id);
+				c = graph.getDataFactory().getOWLClass(iri);
+			}
+			objs.add(c);
 		}
 		return objs;
 	}
