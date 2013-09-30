@@ -287,7 +287,7 @@ public class PANTHERTree {
 				}catch(UnsupportedOperationException uoe) {
 				      ind = -1; // probably the root
 				}
-				Map<String,String> mmap = new HashMap<String,String>();
+				Map<String, Object> mmap = new HashMap<String,Object>();
 				mmap.put("duplication_p", Boolean.toString(dupP));
 				mmap.put("speciation_p", Boolean.toString(specP));
 				mmap.put("layout_index", Integer.toString(ind));
@@ -612,7 +612,7 @@ public class PANTHERTree {
 			String maybeID = uuidInternal(n.lbl);
 			if( nodeToGpMap.containsKey(maybeID) ){
 
-				Map<String, String> md = n.getMetadata();
+				Map<String, Object> md = n.getMetadata();
 				
 				Set<String> gpSet = nodeToGpMap.get(maybeID);				
 				md.put("annotations", StringUtils.join(gpSet, "|"));

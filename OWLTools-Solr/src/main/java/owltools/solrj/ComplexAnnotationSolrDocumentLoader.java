@@ -191,7 +191,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		// Assemble the group shunt graph from available information.
 		// Most of the interesting stuff is happening with the meta-information.
 		OWLShuntGraph shuntGraph = new OWLShuntGraph();
-		OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
+		OWLPrettyPrinter pp = new OWLPrettyPrinter(currentGraph);
 		
 		// nodes
 		for( LegoNode node : nodes ){
@@ -201,7 +201,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 			OWLShuntNode shuntNode = new OWLShuntNode(uid, uid);
 
 			// Try and get some info in there.
-			Map<String, String> metadata = new HashMap<String,String>();
+			Map<String,Object> metadata = new HashMap<String,Object>();
 
 			OWLClass enabledByClass = node.getActiveEntity();
 			if( enabledByClass != null ){
@@ -217,14 +217,12 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 				String processLbl;
 				if (type == null ) {
 					processLbl = "Unknown Process";
-				}
-				else if (type.isAnonymous() == false) {
+				}else if (type.isAnonymous() == false) {
 					OWLClass processClass = type.asOWLClass();
 					String iid = processClass.getIRI().toString();
 					processLbl = bestLabel(processClass);
 					LOG.info("unit process (id): " + iid);
-				}
-				else {
+				}else{
 					processLbl = pp.render(type);
 				}
 				metadata.put("process", processLbl);
@@ -236,14 +234,12 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 				if (type == null) {
 					// use custom label or GO:0003674 'molecular function' 
 					activityLbl = "Unknown Activity";
-				}
-				else if (type.isAnonymous() == false) {
+				}else if (type.isAnonymous() == false) {
 					OWLClass ln_oc = type.asOWLClass();
 					String iid = ln_oc.getIRI().toString();
 					activityLbl = bestLabel(ln_oc);
 					LOG.info("unit activity (id): " + iid);
-				}
-				else {
+				}else {
 					activityLbl = pp.render(type);
 				}
 				metadata.put("activity", activityLbl);
@@ -255,18 +251,18 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 				List<String> locationLabels = new ArrayList<String>();
 				for (OWLClassExpression ce : locations) {
 					String locationlbl;
-					if (ce.isAnonymous() == false) {
+					if( ce.isAnonymous() == false ){
 						OWLClass locationClass = ce.asOWLClass();
 						//String locationId = locationClass.getIRI().toString();
 						locationlbl = bestLabel(locationClass);
-					}
-					else {
-						locationlbl = pp.render(ce);
-						
+					}else {
+						locationlbl = pp.render(ce);	
 					}
 					locationLabels.add(locationlbl);
 				}
-				//TODO add locationLabels to meta data map
+				// Add locationLabels to meta data map
+				metadata.put("location", locationLabels);
+				LOG.info("unit location (lbl): " + StringUtils.join(locationLabels, ", "));
 			}
 			
 			// TODO decide on if and how to include the other class expressions
@@ -276,8 +272,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 					if (ce.isAnonymous() == false) {
 						OWLClass otherClass = ce.asOWLClass();
 						String lbl = bestLabel(otherClass);
-					}
-					else {
+					}else {
 						String lbl = pp.render(ce);
 					}
 				}

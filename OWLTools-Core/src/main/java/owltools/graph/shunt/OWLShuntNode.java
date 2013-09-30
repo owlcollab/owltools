@@ -17,7 +17,7 @@ public class OWLShuntNode {
 	public String id = null;
 	public String type = null;
 	public String lbl = null;
-	public Map<String,String> meta = null;
+	public Map<String,Object> meta = null;
 
 	/**
 	 * @param id
@@ -89,14 +89,14 @@ public class OWLShuntNode {
 	/**
 	 * @return the metadata
 	 */
-	public Map<String,String> getMetadata() {
+	public Map<String,Object> getMetadata() {
 		return meta;
 	}
 	
 	/**
 	 * @param metadata the metadata to set
 	 */
-	public void setMetadata(Map<String,String> metadata) {
+	public void setMetadata(Map<String,Object> metadata) {
 		this.meta = metadata;
 	}
 
