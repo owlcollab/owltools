@@ -44,6 +44,7 @@ import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
 import owltools.graph.shunt.OWLShuntNode;
+import owltools.io.OWLPrettyPrinter;
 
 import com.google.gson.*;
 
@@ -95,129 +96,64 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 				List<LegoLink> links = lUnitTools.getLinks();
 				List<LegoNode> nodes = lUnitTools.getNodes();
 				List<LegoUnit> units = lUnitTools.getUnits();
-
-				// Store node information for later access during assembly.
-				//Map<String, LegoNode> nInfo = new HashMap<String, LegoNode>(); 
-				Map<String,LegoNode> nodeInfo = new HashMap<String,LegoNode>(); 
-				Map<String,List<String>> nodeLoc = new HashMap<String,List<String>>(); 
-				for( LegoNode n : nodes ){
-
-					// Resolve node ID and label.
-					if( n != null ){
-
-						OWLClassExpression ntype = n.getType();
-						String nid = null;
-						String nlbl = null;
-						if( ! ntype.isAnonymous() ){
-							nid = n.getType().asOWLClass().getIRI().toString();
-							nlbl = bestLabel(n.getType());
-						}else{
-							// TODO: What case is this.
-							nid = ntype.toString();
-							nlbl = ntype.toString();
-						}
-						LOG.info("\nnode (id): " + nid);
-						LOG.info("node (lbl): " + nlbl);
-						nodeInfo.put(nid, n);
-						
-						OWLClass e = n.getActiveEntity();
-						if( e != null ){
-							String aid = n.getActiveEntity().getIRI().toString();
-							String albl = currentGraph.getLabelOrDisplayId(n.getActiveEntity());
-							LOG.info("node-a (id): " + aid);
-							LOG.info("node-a (lbl): " + albl);
-						}
-						if( n.isBp() ){
-							LOG.info("node is process^");
-						}
-					
-						// Collect cell information if possible.
-						List<String> llist = new ArrayList<String>();
-						Collection<OWLClassExpression> cell_loc = n.getCellularLocation();
-						for( OWLClassExpression cell_loc_cls : cell_loc ){	
-							// First, the trivial transfer to the final set.
-							String loc_id = currentGraph.getIdentifier(cell_loc_cls);
-							String loc_lbl = bestLabel(cell_loc_cls);
-							LOG.info("node location: " + loc_lbl + " (" + loc_id + ")");
-						
-							llist.add(loc_lbl);
-							
-							//// Ensure 
-							//if( ! nodeLoc.containsKey(nid) ){
-							//	
-							//}
-						}
-						nodeLoc.put(nid, llist);
-					}
-				}
-					
-				// Assemble the group shunt graph from available information.
-				// Most of the interesting stuff is happening with the meta-information.
-				OWLShuntGraph shuntGraph = new OWLShuntGraph();
-				for( LegoUnit u : units ){
-
-					String uid = u.getId().toString();
-					String ulbl = u.toString();
-					
-					LOG.info("\nunit id: " + uid);
-					LOG.info("unit lbl: " + ulbl);
-					
-					OWLShuntNode shuntNode = new OWLShuntNode(uid, ulbl);
-
-					// Try and get some info in there.
-					Map<String, String> metadata = new HashMap<String,String>();
-
-					OWLClass oc = u.getEnabledBy();
-					if( oc != null ){
-						//String iid = currentGraph.getIdentifier(oc);
-						String iid = oc.getIRI().toString();
-						String ilbl = bestLabel(oc);
-						metadata.put("enabled_by", ilbl);
-						LOG.info("unit enabled_by (id): " + iid);
-						LOG.info("unit enabled_by (lbl): " + ilbl);
-					}
-					
-					OWLClassExpression process_ce = u.getProcess();
-					if( process_ce != null ){
-						OWLClass ln_oc = process_ce.asOWLClass();
-						//String iid = currentGraph.getIdentifier(ln_oc);
-						String iid = ln_oc.getIRI().toString();
-						String ilbl = bestLabel(ln_oc);
-						metadata.put("process", ilbl);
-						LOG.info("unit process (id): " + iid);
-						LOG.info("unit process (lbl): " + ilbl);
-					}
-						
-					OWLClassExpression activity_ce = u.getActivity();
-					if( activity_ce != null ){
-						OWLClass ln_oc = activity_ce.asOWLClass();
-						//String iid = currentGraph.getIdentifier(ln_oc);
-						String iid = ln_oc.getIRI().toString();
-						String ilbl = bestLabel(ln_oc);
-						metadata.put("activity", ilbl);
-						LOG.info("unit activity (id): " + iid);
-						LOG.info("unit activity (lbl): " + ilbl);
-					}
-					
-					shuntNode.setMetadata(metadata);
-					shuntGraph.addNode(shuntNode);
-				}
 				
-				// 
-				for( LegoLink l : links ){
+				OWLShuntGraph shuntGraph = createShuntGraph(links, nodes);
 
-					String sid = l.getSource().getIRI().toString();
-					String oid = l.getNamedTarget().getIRI().toString();
-					//String pid = l.getRelation().toString();
-					String pid = l.getProperty().asOWLObjectProperty().getIRI().toString();
+//				// Store node information for later access during assembly.
+//				//Map<String, LegoNode> nInfo = new HashMap<String, LegoNode>(); 
+//				Map<String,LegoNode> nodeInfo = new HashMap<String,LegoNode>(); 
+//				Map<String,List<String>> nodeLoc = new HashMap<String,List<String>>(); 
+//				for( LegoNode n : nodes ){
+//
+//					// Resolve node ID and label.
+//					if( n != null ){
+//
+//						OWLClassExpression ntype = n.getType();
+//						String nid = null;
+//						String nlbl = null;
+//						if( ! ntype.isAnonymous() ){
+//							nid = n.getType().asOWLClass().getIRI().toString();
+//							nlbl = bestLabel(n.getType());
+//						}else{
+//							// TODO: What case is this.
+//							nid = ntype.toString();
+//							nlbl = ntype.toString();
+//						}
+//						LOG.info("\nnode (id): " + nid);
+//						LOG.info("node (lbl): " + nlbl);
+//						nodeInfo.put(nid, n);
+//						
+//						OWLClass e = n.getActiveEntity();
+//						if( e != null ){
+//							String aid = n.getActiveEntity().getIRI().toString();
+//							String albl = currentGraph.getLabelOrDisplayId(n.getActiveEntity());
+//							LOG.info("node-a (id): " + aid);
+//							LOG.info("node-a (lbl): " + albl);
+//						}
+//						if( n.isBp() ){
+//							LOG.info("node is process^");
+//						}
+//					
+//						// Collect cell information if possible.
+//						List<String> llist = new ArrayList<String>();
+//						Collection<OWLClassExpression> cell_loc = n.getCellularLocation();
+//						for( OWLClassExpression cell_loc_cls : cell_loc ){	
+//							// First, the trivial transfer to the final set.
+//							String loc_id = currentGraph.getIdentifier(cell_loc_cls);
+//							String loc_lbl = bestLabel(cell_loc_cls);
+//							LOG.info("node location: " + loc_lbl + " (" + loc_id + ")");
+//						
+//							llist.add(loc_lbl);
+//							
+//							//// Ensure 
+//							//if( ! nodeLoc.containsKey(nid) ){
+//							//	
+//							//}
+//						}
+//						nodeLoc.put(nid, llist);
+//					}
+//				}
 					
-					LOG.info("\nlink (sid): " + sid);
-					LOG.info("link (sid): " + oid);
-					LOG.info("link (sid): " + pid);
-
-					OWLShuntEdge shuntEdge = new OWLShuntEdge(sid, oid, pid);
-					shuntGraph.addEdge(shuntEdge);
-				}
 				
 				// Collect the high-level group information: topo graph and group label/id
 				//LegoShuntGraphTool shuntTool = new LegoShuntGraphTool();
@@ -250,6 +186,124 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 			LOG.info("Done.");
 		}
 	
+	
+	private OWLShuntGraph createShuntGraph(List<LegoLink> links, List<LegoNode> nodes) {
+		// Assemble the group shunt graph from available information.
+		// Most of the interesting stuff is happening with the meta-information.
+		OWLShuntGraph shuntGraph = new OWLShuntGraph();
+		OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
+		
+		// nodes
+		for( LegoNode node : nodes ){
+
+			String uid = node.getId().toString();
+			LOG.info("\nunit id: " + uid);
+			OWLShuntNode shuntNode = new OWLShuntNode(uid, uid);
+
+			// Try and get some info in there.
+			Map<String, String> metadata = new HashMap<String,String>();
+
+			OWLClass enabledByClass = node.getActiveEntity();
+			if( enabledByClass != null ){
+				String iid = enabledByClass.getIRI().toString();
+				String ilbl = bestLabel(enabledByClass);
+				metadata.put("enabled_by", ilbl);
+				LOG.info("unit enabled_by (id): " + iid);
+				LOG.info("unit enabled_by (lbl): " + ilbl);
+			}
+			
+			OWLClassExpression type = node.getType();
+			if (node.isBp()){
+				String processLbl;
+				if (type == null ) {
+					processLbl = "Unknown Process";
+				}
+				else if (type.isAnonymous() == false) {
+					OWLClass processClass = type.asOWLClass();
+					String iid = processClass.getIRI().toString();
+					processLbl = bestLabel(processClass);
+					LOG.info("unit process (id): " + iid);
+				}
+				else {
+					processLbl = pp.render(type);
+				}
+				metadata.put("process", processLbl);
+				LOG.info("unit process (lbl): " + processLbl);
+			}
+			
+			if (node.isMf() || node.isCmf()) { 
+				String activityLbl;
+				if (type == null) {
+					// use custom label or GO:0003674 'molecular function' 
+					activityLbl = "Unknown Activity";
+				}
+				else if (type.isAnonymous() == false) {
+					OWLClass ln_oc = type.asOWLClass();
+					String iid = ln_oc.getIRI().toString();
+					activityLbl = bestLabel(ln_oc);
+					LOG.info("unit activity (id): " + iid);
+				}
+				else {
+					activityLbl = pp.render(type);
+				}
+				metadata.put("activity", activityLbl);
+				LOG.info("unit activity (lbl): " + activityLbl);
+			}
+			
+			Collection<OWLClassExpression> locations = node.getCellularLocation();
+			if (locations != null && !locations.isEmpty()) {
+				List<String> locationLabels = new ArrayList<String>();
+				for (OWLClassExpression ce : locations) {
+					String locationlbl;
+					if (ce.isAnonymous() == false) {
+						OWLClass locationClass = ce.asOWLClass();
+						//String locationId = locationClass.getIRI().toString();
+						locationlbl = bestLabel(locationClass);
+					}
+					else {
+						locationlbl = pp.render(ce);
+						
+					}
+					locationLabels.add(locationlbl);
+				}
+				//TODO add locationLabels to meta data map
+			}
+			
+			// TODO decide on if and how to include the other class expressions
+			Collection<OWLClassExpression> others = node.getUnknowns();
+			if (others != null && !others.isEmpty()) {
+				for (OWLClassExpression ce : others) {
+					if (ce.isAnonymous() == false) {
+						OWLClass otherClass = ce.asOWLClass();
+						String lbl = bestLabel(otherClass);
+					}
+					else {
+						String lbl = pp.render(ce);
+					}
+				}
+			}
+			
+			shuntNode.setMetadata(metadata);
+			shuntGraph.addNode(shuntNode);
+		}
+		
+		// edges
+		for( LegoLink l : links ){
+
+			String sid = l.getSource().getIRI().toString();
+			String oid = l.getNamedTarget().getIRI().toString();
+			String pid = l.getProperty().asOWLObjectProperty().getIRI().toString();
+			
+			LOG.info("\nlink (sid): " + sid);
+			LOG.info("link (sid): " + oid);
+			LOG.info("link (sid): " + pid);
+
+			OWLShuntEdge shuntEdge = new OWLShuntEdge(sid, oid, pid);
+			shuntGraph.addEdge(shuntEdge);
+		}
+		
+		return shuntGraph;
+	}
 	
 	private String bestLabel(OWLObject oc){
 		String label = "???";
