@@ -35,6 +35,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
+import owltools.util.ClassExpressionPair;
 
 /**
  * 
@@ -869,6 +870,22 @@ public class SimpleOwlSim {
 		}
 		ScoreAttributesPair sap = new ScoreAttributesPair(total / n, atts);
 		return sap;
+	}
+	
+	public void search(Set<OWLClass> atts, Metric metric) {
+		Set<Node<OWLClass>> iatts = new HashSet<Node<OWLClass>>();
+		for (OWLClass att : atts) {
+			iatts.addAll(getNamedReflexiveSubsumers(att));
+		}
+		for (OWLNamedIndividual j : this.getAllElements()) {
+			Set<Node<OWLClass>> jatts = this.getInferredAttributes(j);
+			Set<Node<OWLClass>> attsInBoth = new HashSet<Node<OWLClass>>(iatts);
+			iatts.retainAll(jatts);
+			Set<Node<OWLClass>> attsInEither = new HashSet<Node<OWLClass>>(iatts);
+			iatts.addAll(jatts);
+			double simj = attsInBoth.size() / attsInEither.size();
+			// TODO
+		}
 	}
 
 	//
