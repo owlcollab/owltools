@@ -1,7 +1,9 @@
 package org.geneontology.lego.json;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.geneontology.lego.model.LegoLink;
@@ -75,7 +77,7 @@ public class LegoShuntGraphTool {
 			label = getLabel(node.getType(), owlpp, graph);
 		}
 		shuntNode.setLabel(label);
-		Map<String, String> metaData = new HashMap<String, String>();
+		Map<String, Object> metaData = new HashMap<String, Object>();
 		
 		StringBuilder line = new StringBuilder();
 		
@@ -105,7 +107,7 @@ public class LegoShuntGraphTool {
 		
 		Collection<OWLClassExpression> cellularLocations = node.getCellularLocation();
 		if (cellularLocations != null) {
-			int count = 0;
+			List<String> locations = new ArrayList<String>();
 			for(OWLClassExpression cellularLocation : cellularLocations) {
 				String location;
 				if (!cellularLocation.isAnonymous()) {
@@ -115,10 +117,11 @@ public class LegoShuntGraphTool {
 					location = owlpp.render(cellularLocation);
 				}
 				line.append("<TD BGCOLOR=\""+CC_COLOR+"\">").append(location).append("</TD>");
-				metaData.put("cellularLocation"+count, location);
-				count += 1;
+				locations.add(location);
 			}
-			metaData.put("cellularLocationCount", Integer.toString(count));
+			if (locations.isEmpty() == false) {
+				metaData.put("cellularLocations", locations);
+			}
 		}
 		line.append("</TR>");
 		Collection<OWLClassExpression> unknowns = node.getUnknowns();
