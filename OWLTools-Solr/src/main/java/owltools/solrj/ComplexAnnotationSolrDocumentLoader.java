@@ -267,17 +267,22 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 			
 			// TODO decide on if and how to include the other class expressions
 			Collection<OWLClassExpression> others = node.getUnknowns();
-			if (others != null && !others.isEmpty()) {
+			if (others != null && ! others.isEmpty()) {
+				List<String> unknownLabels = new ArrayList<String>();
 				for (OWLClassExpression ce : others) {
+					String lbl = null;
 					if (ce.isAnonymous() == false) {
 						OWLClass otherClass = ce.asOWLClass();
-						String lbl = bestLabel(otherClass);
+						lbl = bestLabel(otherClass);
 					}else {
-						String lbl = pp.render(ce);
+						lbl = pp.render(ce);
 					}
+					unknownLabels.add(lbl);
 				}
+				metadata.put("unknown", unknownLabels);
 			}
 			
+			// Set meta-data and add to node assembly.
 			shuntNode.setMetadata(metadata);
 			shuntGraph.addNode(shuntNode);
 		}
