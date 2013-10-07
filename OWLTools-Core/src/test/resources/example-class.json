@@ -14,6 +14,7 @@
     obo_namespace: "biological_process",
 
     // synonym: "activation of T cell proliferation" NARROW MADE-UP [GOC:ai]
+    // in the amigo display, the source does not need to be prominent
     synonym: [
         {
             value: "activation of T cell proliferation",
@@ -34,9 +35,46 @@
         }
     ],
 
+    // note that in OWL, all "relationship types" are SubClassOf axioms
+    //
+    // obo:is_a is a direct subclass axiom between two classes;
+    // obo:relationship is a subclass axiom between a class and a class restriction (e.g. part_of some cell).
+    // 
+    // one way to display this is to group by property (relationship type); i.e. named superclasses first,
+    // followed by part_of, followed by, ...
+    // 
+    // the payload that reaches amigo will be pre-reasoned; we may in fact even infer the most specific
+    // parent for each relation, such that we can almost always have a "part of" slot in the display filled
     subClassOf: [
+        // PARENT #1 - is_a - a direct superclass axiom between named classes
         // is_a: GO:0042129 {is_inferred="true"} ! regulation of T cell proliferation
         {
+            id : "GO:0042129",
+            label : "regulation of T cell proliferation"
+
+            // todo - decide - this is not really a property of the superclass
+            source: [
+                {"is_inferred" : "true"}
+            ],
+        },
+
+        // PARENT #2
+        // relationship: positively_regulates GO:0042098 {is_inferred="true"} ! T cell proliferation
+
+        {
+            source: [
+                {"is_inferred" : "true"}
+            ],
+
+            type: "owl:Restriction",
+            onProperty : {
+                id: "RO:nnnnn",
+                label: "positiively_regulates"
+            },
+            someValuesFrom : {
+                id: "GO:0042098"
+                label: "T cell proliferation"
+            }
             
         },
         // ...
@@ -53,7 +91,11 @@
             intersectionOf: [
                     
                 // by convenion, GO logical defs are genus-differentia, but this should not be assumed
-                "GO:0065007",    // 'genus'
+                // 'genus'
+                { id : "GO:0065007",    
+                  label : "positive regulation of biological process"},
+
+                // 'differentia'
                 {
                     type: "owl:Restriction",
                     onProperty : {

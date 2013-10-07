@@ -1,0 +1,41 @@
+Ontology: <http://x.org>
+Prefix: : <http://x.org/>
+
+ObjectProperty: part_of InverseOf: has_part Characteristics: transitive
+ObjectProperty: has_part
+ObjectProperty: activates
+
+Class: Process
+Class: FooPathway SubClassOf: Process
+Class: Apoptosis SubClassOf: Process
+Class: Activity
+Class: Binding SubClassOf: Activity
+Class: Transport SubClassOf: Activity
+
+Individual: pathway1
+ Types: FooPathway
+ Facts: has_part step1
+
+Individual: step1
+ Types: Binding
+ Facts: activates step2
+
+Individual: step2
+ Types: Transport
+ Facts: activates step3
+
+Individual: external
+ Types: Binding
+ Facts: activates step3
+
+Individual: step3
+ Types: Binding
+ Facts: activates step4
+
+Individual: step4
+ Types: Binding
+ Facts: part_of ap1
+
+Individual: ap1
+ Types: Apoptosis
+

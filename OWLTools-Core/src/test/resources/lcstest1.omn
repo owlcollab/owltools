@@ -1,0 +1,604 @@
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+
+Ontology: <http://example.org>
+
+
+AnnotationProperty: <http://example.org#has>
+
+    
+ObjectProperty: <http://example.org#outputs>
+
+    
+ObjectProperty: <http://example.org#has_quality>
+
+    
+ObjectProperty: <http://example.org#overlaps>
+
+    SubPropertyChain: 
+        <http://example.org#has_part> o <http://example.org#part_of>
+    
+    
+ObjectProperty: <http://example.org#has_part>
+
+    Characteristics: 
+        Transitive
+    
+    InverseOf: 
+        <http://example.org#part_of>
+    
+    
+ObjectProperty: <http://example.org#part_of>
+
+    Characteristics: 
+        Transitive
+    
+    InverseOf: 
+        <http://example.org#has_part>
+    
+    
+Class: <http://example.org#nerveous_system>
+
+    SubClassOf: 
+        <http://example.org#system>
+    
+    
+Class: <http://example.org#decreased>
+
+    
+Class: <http://example.org#system>
+
+    
+Class: <http://example.org#left_ear>
+
+    EquivalentTo: 
+        <http://example.org#ear>
+         and <http://example.org#left>
+    
+    
+Class: <http://example.org#mitochondrion_membrane>
+
+    
+Class: <http://example.org#morphology>
+
+    SubClassOf: 
+        <http://example.org#quality>
+    
+    
+Class: <http://example.org#mitochondrion>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#cell>
+    
+    
+Class: <http://example.org#brain>
+
+    SubClassOf: 
+        <http://example.org#organ>,
+        <http://example.org#part_of> some <http://example.org#nervous_system>
+    
+    
+Class: <http://example.org#o1_x>
+
+    SubClassOf: 
+        <http://example.org#organism>
+         and (<http://example.org#has_part> some <http://example.org#thin_mm_in_axon_of_dn_of_sn>)
+    
+    
+Class: <http://example.org#axon>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#neuron>
+    
+    
+Class: <http://example.org#inclusion>
+
+    
+Class: <http://example.org#big>
+
+    EquivalentTo: 
+        <http://example.org#increased>
+         and <http://example.org#size>
+    
+    
+Class: <http://example.org#o3_x>
+
+    SubClassOf: 
+        <http://example.org#organism>
+         and (<http://example.org#has_part> some <http://example.org#axon_degenerated_in_hippocampus>)
+    
+    
+Class: <http://example.org#axon_degenerated_in_hippocampus>
+
+    EquivalentTo: 
+        <http://example.org#hippocampus>
+         and (<http://example.org#has_part> some 
+            (<http://example.org#axon>
+             and (<http://example.org#has_quality> some <http://example.org#degenerated>)))
+    
+    
+Class: <http://example.org#neurotransmitter>
+
+    
+Class: <http://example.org#eye>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#head>
+    
+    
+Class: <http://example.org#thin_mm_in_axon_of_dn_of_sn>
+
+    EquivalentTo: 
+        <http://example.org#mitochondrion_membrane>
+         and (<http://example.org#has_quality> some <http://example.org#thin>)
+         and (<http://example.org#part_of> some <http://example.org#axon>)
+         and (<http://example.org#part_of> some <http://example.org#dopaminergic_neuron>)
+         and (<http://example.org#part_of> some <http://example.org#sn>)
+    
+    
+Class: <http://example.org#small>
+
+    EquivalentTo: 
+        <http://example.org#decreased>
+         and <http://example.org#size>
+    
+    
+Class: <http://example.org#deformed_ca2>
+
+    EquivalentTo: 
+        <http://example.org#ca2>
+         and (<http://example.org#has_quality> some <http://example.org#deformed>)
+    
+    
+Class: <http://example.org#blue>
+
+    SubClassOf: 
+        <http://example.org#color>
+    
+    
+Class: <http://example.org#o2_x>
+
+    SubClassOf: 
+        <http://example.org#organism>
+         and (<http://example.org#has_part> some <http://example.org#axon_terminals_degenerated_in_ca3>)
+    
+    
+Class: <http://example.org#deformed_blue_right_eye>
+
+    EquivalentTo: 
+        <http://example.org#right_eye>
+         and (<http://example.org#has_quality> some <http://example.org#blue>)
+         and (<http://example.org#has_quality> some <http://example.org#deformed>)
+    
+    
+Class: <http://example.org#dopmainergic_neuron>
+
+    EquivalentTo: 
+        <http://example.org#neuron>
+         and (<http://example.org#outputs> some <http://example.org#dopamine>)
+    
+    
+Class: <http://example.org#right>
+
+    
+Class: <http://example.org#mitochondrial_membrane>
+
+    EquivalentTo: 
+        <http://example.org#membrane>
+         and (<http://example.org#part_of> some <http://example.org#mitochondrion>)
+    
+    
+Class: <http://example.org#degenerated>
+
+    SubClassOf: 
+        <http://example.org#morphology>
+    
+    
+Class: <http://example.org#lewy_body>
+
+    SubClassOf: 
+        <http://example.org#inclusion>
+    
+    
+Class: <http://example.org#right_eye>
+
+    EquivalentTo: 
+        <http://example.org#eye>
+         and <http://example.org#right>
+    
+    
+Class: <http://example.org#size>
+
+    SubClassOf: 
+        <http://example.org#morphology>
+    
+    
+Class: <http://example.org#neuron>
+
+    SubClassOf: 
+        <http://example.org#cell>,
+        <http://example.org#part_of> some <http://example.org#nervous_system>
+    
+    
+Class: <http://example.org#right_ear>
+
+    EquivalentTo: 
+        <http://example.org#ear>
+         and <http://example.org#right>
+    
+    
+Class: <http://example.org#small_green_left_eye>
+
+    EquivalentTo: 
+        <http://example.org#left_eye>
+         and (<http://example.org#has_quality> some <http://example.org#green>)
+         and (<http://example.org#has_quality> some <http://example.org#small>)
+    
+    
+Class: <http://example.org#deformed_hippocampus>
+
+    EquivalentTo: 
+        <http://example.org#hippocampus>
+         and (<http://example.org#has_quality> some <http://example.org#deformed>)
+    
+    
+Class: <http://example.org#thin>
+
+    SubClassOf: 
+        <http://example.org#decreased>
+         and <http://example.org#morphology>
+    
+    
+Class: <http://example.org#dopamine>
+
+    SubClassOf: 
+        <http://example.org#neurotransmitter>
+    
+    
+Class: <http://example.org#increased>
+
+    
+Class: <http://example.org#lewy_bodies_in_sn>
+
+    EquivalentTo: 
+        <http://example.org#sn>
+         and (<http://example.org#has_part> some <http://example.org#lewy_body>)
+    
+    
+Class: <http://example.org#red>
+
+    SubClassOf: 
+        <http://example.org#color>
+    
+    
+Class: <http://example.org#dopaminergic_neuron>
+
+    
+Class: <http://example.org#deformed_right_ear>
+
+    EquivalentTo: 
+        <http://example.org#right_ear>
+         and (<http://example.org#has_quality> some <http://example.org#deformed>)
+    
+    
+Class: <http://example.org#probe_2>
+
+    EquivalentTo: 
+        <http://example.org#organism>
+         and (<http://example.org#has_part> some 
+            (<http://example.org#hippocampus>
+             and (<http://example.org#has_part> some 
+                (<http://example.org#ca3>
+                 and (<http://example.org#has_part> some 
+                    (<http://example.org#axon>
+                     and (<http://example.org#has_part> some 
+                        (<http://example.org#axon_terminal>
+                         and (<http://example.org#has_quality> some <http://example.org#degenerated>)))))))))
+    
+    
+Class: <http://example.org#green>
+
+    SubClassOf: 
+        <http://example.org#color>
+    
+    
+Class: <http://example.org#probe_4>
+
+    EquivalentTo: 
+        <http://example.org#organism>
+         and (<http://example.org#has_part> some 
+            (<http://example.org#axon>
+             and (<http://example.org#has_part> some 
+                (<http://example.org#axon_terminal>
+                 and (<http://example.org#has_quality> some <http://example.org#degenerated>)))))
+    
+    
+Class: <http://example.org#axon_terminals_degenerated_in_ca2>
+
+    EquivalentTo: 
+        <http://example.org#ca2>
+         and (<http://example.org#has_part> some 
+            (<http://example.org#axon_terminal>
+             and (<http://example.org#has_quality> some <http://example.org#degenerated>)))
+    
+    
+Class: <http://example.org#probe_3>
+
+    EquivalentTo: 
+        <http://example.org#organism>
+         and (<http://example.org#has_part> some 
+            (<http://example.org#axon>
+             and (<http://example.org#has_quality> some <http://example.org#degenerated>)
+             and (<http://example.org#part_of> some <http://example.org#hippocampus>)))
+    
+    
+Class: <http://example.org#axon_terminals_degenerated_in_ca3>
+
+    EquivalentTo: 
+        <http://example.org#ca3>
+         and (<http://example.org#has_part> some 
+            (<http://example.org#axon_terminal>
+             and (<http://example.org#has_quality> some <http://example.org#degenerated>)))
+    
+    
+Class: <http://example.org#axon_terminals_degenerated_in_sn>
+
+    EquivalentTo: 
+        <http://example.org#sn>
+         and (<http://example.org#has_part> some 
+            (<http://example.org#axon_terminal>
+             and (<http://example.org#has_quality> some <http://example.org#degenerated>)))
+    
+    
+Class: <http://example.org#atrophied_hippocampus>
+
+    EquivalentTo: 
+        <http://example.org#hippocampus>
+         and (<http://example.org#has_quality> some <http://example.org#atrophied>)
+    
+    
+Class: <http://example.org#deformed>
+
+    SubClassOf: 
+        <http://example.org#morphology>
+    
+    
+Class: <http://example.org#retina>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#brain>,
+        <http://example.org#part_of> some <http://example.org#eye>
+    
+    
+Class: <http://example.org#ear>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#head>,
+        <http://example.org#organ>
+    
+    
+Class: <http://example.org#head>
+
+    
+Class: <http://example.org#left>
+
+    
+Class: <http://example.org#o4_x>
+
+    SubClassOf: 
+        <http://example.org#organism>
+         and (<http://example.org#has_part> some 
+            (<http://example.org#axon_terminal>
+             and (<http://example.org#has_quality> some <http://example.org#degenerated>)))
+    
+    
+Class: <http://example.org#color>
+
+    SubClassOf: 
+        <http://example.org#quality>
+    
+    
+Class: <http://example.org#hippocampus>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#brain>
+    
+    
+Class: <http://example.org#atrophied_ca2>
+
+    EquivalentTo: 
+        <http://example.org#ca2>
+         and (<http://example.org#has_quality> some <http://example.org#atrophied>)
+    
+    
+Class: <http://example.org#retina_degenerates>
+
+    EquivalentTo: 
+        <http://example.org#retina>
+         and (<http://example.org#has_quality> some <http://example.org#degenerated>)
+    
+    
+Class: <http://example.org#ca3>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#hippocampus>
+    
+    
+Class: <http://example.org#left_eye>
+
+    EquivalentTo: 
+        <http://example.org#eye>
+         and <http://example.org#left>
+    
+    
+Class: <http://example.org#ca2>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#hippocampus>
+    
+    
+Class: <http://example.org#axon_terminal>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#axon>
+    
+    
+Class: <http://example.org#membrane>
+
+    
+Class: <http://example.org#sn>
+
+    
+Class: <http://example.org#cell>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#organism>
+    
+    
+Class: <http://example.org#lewy_bodies_in_sn2>
+
+    EquivalentTo: 
+        <http://example.org#lewy_body>
+         and (<http://example.org#part_of> some <http://example.org#sn>)
+    
+    
+Class: <http://example.org#big_left_ear>
+
+    EquivalentTo: 
+        <http://example.org#left_ear>
+         and (<http://example.org#has_quality> some <http://example.org#big>)
+    
+    
+Class: <http://example.org#organism>
+
+    SubClassOf: 
+        <http://example.org#part_of> some <http://example.org#organism>
+    
+    
+Class: <http://example.org#nervous_system>
+
+    
+Class: <http://example.org#atrophied>
+
+    SubClassOf: 
+        <http://example.org#degenerated>,
+        <http://example.org#small>
+    
+    
+Class: <http://example.org#organ>
+
+    
+Class: <http://example.org#quality>
+
+    
+Individual: <http://example.org#o2p2>
+
+    Types: 
+        <http://example.org#axon_terminals_degenerated_in_ca3>
+    
+    
+Individual: <http://example.org#o2p1>
+
+    Types: 
+        <http://example.org#deformed_right_ear>
+    
+    
+Individual: <http://example.org#o2p4>
+
+    Types: 
+        <http://example.org#deformed_hippocampus>
+    
+    
+Individual: <http://example.org#o2p3>
+
+    Types: 
+        <http://example.org#atrophied_hippocampus>
+    
+    
+Individual: <http://example.org#o1p6>
+
+    Types: 
+        <http://example.org#lewy_bodies_in_sn>
+    
+    
+Individual: <http://example.org#o4p1>
+
+    Types: 
+        <http://example.org#deformed_blue_right_eye>
+    
+    
+Individual: <http://example.org#o3p1>
+
+    Types: 
+        <http://example.org#small_green_left_eye>
+    
+    
+Individual: <http://example.org#o1p1>
+
+    Types: 
+        <http://example.org#big_left_ear>
+    
+    
+Individual: <http://example.org#o1p3>
+
+    Types: 
+        <http://example.org#axon_terminals_degenerated_in_ca2>
+    
+    
+Individual: <http://example.org#o1p2>
+
+    Types: 
+        <http://example.org#retina_degenerates>
+    
+    
+Individual: <http://example.org#o1p5>
+
+    Types: 
+        <http://example.org#thin_mm_in_axon_of_dn_of_sn>
+    
+    
+Individual: <http://example.org#o1p4>
+
+    Types: 
+        <http://example.org#deformed_ca2>
+    
+    
+Individual: <http://example.org#o2p5>
+
+    Types: 
+        <http://example.org#axon_terminals_degenerated_in_sn>
+    
+    
+Individual: <http://example.org#o2p6>
+
+    Types: 
+        <http://example.org#lewy_bodies_in_sn2>
+    
+    
+Individual: <http://example.org#o1>
+
+    Annotations: 
+        <http://example.org#has> <http://example.org#o1p2>,
+        <http://example.org#has> <http://example.org#o1p3>,
+        <http://example.org#has> <http://example.org#o1p1>
+    
+    Types: 
+        <http://example.org#organism>
+    
+    
+Individual: <http://example.org#o2>
+
+    Annotations: 
+        <http://example.org#has> <http://example.org#o2p3>,
+        <http://example.org#has> <http://example.org#o2p2>,
+        <http://example.org#has> <http://example.org#o2p1>
+    
+    Types: 
+        <http://example.org#organism>
+    
+    
