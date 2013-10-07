@@ -1,0 +1,920 @@
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+
+Ontology: <http://purl.obolibrary.org/obo/textbook_glycolysis.owl>
+
+
+AnnotationProperty: <http://www.geneontology.org/formats/oboInOwl#hasDbXref>
+
+    
+AnnotationProperty: <http://www.geneontology.org/formats/oboInOwl#shorthand>
+
+    
+AnnotationProperty: rdfs:label
+
+    
+Datatype: rdf:PlainLiteral
+
+    
+Datatype: xsd:string
+
+    
+ObjectProperty: <http://purl.obolibrary.org/obo/directly_activates>
+
+    
+ObjectProperty: <http://purl.obolibrary.org/obo/RO_0002212>
+
+    Annotations: 
+        rdfs:label "negatively_regulates"^^xsd:string
+    
+    SubPropertyChain: 
+        <http://purl.obolibrary.org/obo/RO_0002212> o <http://purl.obolibrary.org/obo/BFO_0000050>
+    
+    SubPropertyChain: 
+        <http://purl.obolibrary.org/obo/RO_0002212> o <http://purl.obolibrary.org/obo/directly_activates>
+    
+    
+ObjectProperty: <http://purl.obolibrary.org/obo/BFO_0000050>
+
+    Annotations: 
+        rdfs:label "part_of"^^xsd:string,
+        <http://www.geneontology.org/formats/oboInOwl#hasDbXref> "OBO_REL:part_of"^^xsd:string,
+        <http://www.geneontology.org/formats/oboInOwl#hasDbXref> "BFO:0000050"^^xsd:string,
+        <http://www.geneontology.org/formats/oboInOwl#shorthand> "part_of"^^xsd:string
+    
+    Characteristics: 
+        Transitive
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004396>
+
+    Annotations: 
+        rdfs:label "hexokinase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016773>,
+        <http://purl.obolibrary.org/obo/GO_0019200>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016740>
+
+    Annotations: 
+        rdfs:label "transferase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0003824>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0036094>
+
+    Annotations: 
+        rdfs:label "small molecule binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0005488>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0019320>
+
+    Annotations: 
+        rdfs:label "hexose catabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0046365>,
+        <http://purl.obolibrary.org/obo/GO_0019318>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_1901363>
+
+    Annotations: 
+        rdfs:label "heterocyclic compound binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0005488>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0005975>
+
+    Annotations: 
+        rdfs:label "carbohydrate metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0071704>,
+        <http://purl.obolibrary.org/obo/GO_0044238>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0097159>
+
+    Annotations: 
+        rdfs:label "organic cyclic compound binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0005488>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0044237>
+
+    Annotations: 
+        rdfs:label "cellular metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0009987>,
+        <http://purl.obolibrary.org/obo/GO_0008152>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0017076>
+
+    Annotations: 
+        rdfs:label "purine nucleotide binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0000166>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016836>
+
+    Annotations: 
+        rdfs:label "hydro-lyase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016835>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0044238>
+
+    Annotations: 
+        rdfs:label "primary metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0008152>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0043167>
+
+    Annotations: 
+        rdfs:label "ion binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0005488>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0043168>
+
+    Annotations: 
+        rdfs:label "anion binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0043167>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_1901575>
+
+    Annotations: 
+        rdfs:label "organic substance catabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0071704>,
+        <http://purl.obolibrary.org/obo/GO_0009056>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016491>
+
+    Annotations: 
+        rdfs:label "oxidoreductase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0003824>,
+        <http://purl.obolibrary.org/obo/BFO_0000050> some <http://purl.obolibrary.org/obo/GO_0055114>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016772>
+
+    Annotations: 
+        rdfs:label "transferase activity, transferring phosphorus-containing groups"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016740>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0006793>
+
+    Annotations: 
+        rdfs:label "phosphorus metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0044237>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004365>
+
+    Annotations: 
+        rdfs:label "glyceraldehyde-3-phosphate dehydrogenase (NAD+) (phosphorylating) activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016620>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0046365>
+
+    Annotations: 
+        rdfs:label "monosaccharide catabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0005996>,
+        <http://purl.obolibrary.org/obo/GO_0044724>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004634>
+
+    Annotations: 
+        rdfs:label "phosphopyruvate hydratase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016836>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0008152>
+
+    Annotations: 
+        rdfs:label "metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0008150>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0006796>
+
+    Annotations: 
+        rdfs:label "phosphate-containing compound metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0006793>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016830>
+
+    Annotations: 
+        rdfs:label "carbon-carbon lyase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016829>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0044710>
+
+    Annotations: 
+        rdfs:label "single-organism metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0008152>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016301>
+
+    Annotations: 
+        rdfs:label "kinase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016772>,
+        <http://purl.obolibrary.org/obo/BFO_0000050> some <http://purl.obolibrary.org/obo/GO_0016310>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016835>
+
+    Annotations: 
+        rdfs:label "carbon-oxygen lyase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016829>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0006091>
+
+    Annotations: 
+        rdfs:label "generation of precursor metabolites and energy"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0044237>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0003674>
+
+    Annotations: 
+        rdfs:label "molecular_function"^^xsd:string
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016773>
+
+    Annotations: 
+        rdfs:label "phosphotransferase activity, alcohol group as acceptor"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016772>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016774>
+
+    Annotations: 
+        rdfs:label "phosphotransferase activity, carboxyl group as acceptor"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016772>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016832>
+
+    Annotations: 
+        rdfs:label "aldehyde-lyase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016830>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0006096>
+
+    Annotations: 
+        rdfs:label "glycolysis"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0006007>,
+        <http://purl.obolibrary.org/obo/GO_0006091>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016310>
+
+    Annotations: 
+        rdfs:label "phosphorylation"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0006796>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016829>
+
+    Annotations: 
+        rdfs:label "lyase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0003824>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0008150>
+
+    Annotations: 
+        rdfs:label "biological_process"^^xsd:string
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0055114>
+
+    Annotations: 
+        rdfs:label "oxidation-reduction process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0044710>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004743>
+
+    Annotations: 
+        rdfs:label "pyruvate kinase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016301>,
+        <http://purl.obolibrary.org/obo/GO_0016773>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0019200>
+
+    Annotations: 
+        rdfs:label "carbohydrate kinase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/BFO_0000050> some <http://purl.obolibrary.org/obo/GO_0046835>,
+        <http://purl.obolibrary.org/obo/GO_0016301>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016860>
+
+    Annotations: 
+        rdfs:label "intramolecular oxidoreductase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016853>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004332>
+
+    Annotations: 
+        rdfs:label "fructose-bisphosphate aldolase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016832>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0044262>
+
+    Annotations: 
+        rdfs:label "cellular carbohydrate metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0044237>,
+        <http://purl.obolibrary.org/obo/GO_0005975>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0005996>
+
+    Annotations: 
+        rdfs:label "monosaccharide metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0044723>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0005524>
+
+    Annotations: 
+        rdfs:label "ATP binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0032550>,
+        <http://purl.obolibrary.org/obo/GO_0035639>,
+        <http://purl.obolibrary.org/obo/GO_0032559>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016866>
+
+    Annotations: 
+        rdfs:label "intramolecular transferase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016853>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0032559>
+
+    Annotations: 
+        rdfs:label "adenyl ribonucleotide binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0030554>,
+        <http://purl.obolibrary.org/obo/GO_0032555>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016868>
+
+    Annotations: 
+        rdfs:label "intramolecular transferase activity, phosphotransferases"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016866>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0001882>
+
+    Annotations: 
+        rdfs:label "nucleoside binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0036094>,
+        <http://purl.obolibrary.org/obo/GO_1901363>,
+        <http://purl.obolibrary.org/obo/GO_0097159>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0001883>
+
+    Annotations: 
+        rdfs:label "purine nucleoside binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0001882>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016861>
+
+    Annotations: 
+        rdfs:label "intramolecular oxidoreductase activity, interconverting aldoses and ketoses"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016860>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0032555>
+
+    Annotations: 
+        rdfs:label "purine ribonucleotide binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0017076>,
+        <http://purl.obolibrary.org/obo/GO_0032553>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0071704>
+
+    Annotations: 
+        rdfs:label "organic substance metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0008152>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0000166>
+
+    Annotations: 
+        rdfs:label "nucleotide binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_1901265>,
+        <http://purl.obolibrary.org/obo/GO_0036094>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004807>
+
+    Annotations: 
+        rdfs:label "triose-phosphate isomerase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016861>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0003824>
+
+    Annotations: 
+        rdfs:label "catalytic activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0003674>,
+        <http://purl.obolibrary.org/obo/BFO_0000050> some <http://purl.obolibrary.org/obo/GO_0008152>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0044723>
+
+    Annotations: 
+        rdfs:label "single-organism carbohydrate metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0005975>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0044724>
+
+    Annotations: 
+        rdfs:label "single-organism carbohydrate catabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0044723>,
+        <http://purl.obolibrary.org/obo/GO_0016052>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0009056>
+
+    Annotations: 
+        rdfs:label "catabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0008152>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0030554>
+
+    Annotations: 
+        rdfs:label "adenyl nucleotide binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0017076>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016052>
+
+    Annotations: 
+        rdfs:label "carbohydrate catabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_1901575>,
+        <http://purl.obolibrary.org/obo/GO_0005975>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004619>
+
+    Annotations: 
+        rdfs:label "phosphoglycerate mutase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016868>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004618>
+
+    Annotations: 
+        rdfs:label "phosphoglycerate kinase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016301>,
+        <http://purl.obolibrary.org/obo/GO_0016774>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0008443>
+
+    Annotations: 
+        rdfs:label "phosphofructokinase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0019200>,
+        <http://purl.obolibrary.org/obo/GO_0016773>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0004347>
+
+    Annotations: 
+        rdfs:label "glucose-6-phosphate isomerase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016861>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0035639>
+
+    Annotations: 
+        rdfs:label "purine ribonucleoside triphosphate binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_1901265>,
+        <http://purl.obolibrary.org/obo/GO_0043168>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0019318>
+
+    Annotations: 
+        rdfs:label "hexose metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0005996>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0032549>
+
+    Annotations: 
+        rdfs:label "ribonucleoside binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0001882>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0006007>
+
+    Annotations: 
+        rdfs:label "glucose catabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0006006>,
+        <http://purl.obolibrary.org/obo/GO_0019320>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0006006>
+
+    Annotations: 
+        rdfs:label "glucose metabolic process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0019318>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016853>
+
+    Annotations: 
+        rdfs:label "isomerase activity"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0003824>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016903>
+
+    Annotations: 
+        rdfs:label "oxidoreductase activity, acting on the aldehyde or oxo group of donors"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016491>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0009987>
+
+    Annotations: 
+        rdfs:label "cellular process"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0008150>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_1901265>
+
+    Annotations: 
+        rdfs:label "nucleoside phosphate binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_1901363>,
+        <http://purl.obolibrary.org/obo/GO_0097159>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0032553>
+
+    Annotations: 
+        rdfs:label "ribonucleotide binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0000166>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0005488>
+
+    Annotations: 
+        rdfs:label "binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0003674>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0032550>
+
+    Annotations: 
+        rdfs:label "purine ribonucleoside binding"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0032549>,
+        <http://purl.obolibrary.org/obo/GO_0001883>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0046835>
+
+    Annotations: 
+        rdfs:label "carbohydrate phosphorylation"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016310>,
+        <http://purl.obolibrary.org/obo/GO_0044262>
+    
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016620>
+
+    Annotations: 
+        rdfs:label "oxidoreductase activity, acting on the aldehyde or oxo group of donors, NAD or NADP as acceptor"^^xsd:string
+    
+    SubClassOf: 
+        <http://purl.obolibrary.org/obo/GO_0016903>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000009>
+
+    Annotations: 
+        rdfs:label "phosphoglycerate mutase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004619>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000010>,
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000007>
+
+    Annotations: 
+        rdfs:label "glyceraldehyde-3-phosphate dehydrogenase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004365>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>,
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000008>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000008>
+
+    Annotations: 
+        rdfs:label "phosphoglycerate kinase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004618>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>,
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000009>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000010>
+
+    Annotations: 
+        rdfs:label "enolase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004634>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>,
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000011>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000005>
+
+    Annotations: 
+        rdfs:label "aldolase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004332>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000007>,
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000006>,
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000006>
+
+    Annotations: 
+        rdfs:label "triose phosphate isomerse activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004807>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000007>,
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000011>
+
+    Annotations: 
+        rdfs:label "pyruvate kinase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004743>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000012>
+
+    Annotations: 
+        rdfs:label "phosphofructokinase:ATP binding"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0005524>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/RO_0002212>  <http://purl.obolibrary.org/obo/GLY_TEST_0000004>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000003>
+
+    Annotations: 
+        rdfs:label "phosphoglucose isomerase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004347>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000004>,
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000004>
+
+    Annotations: 
+        rdfs:label "phosphofructokinase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0008443>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000005>,
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000001>
+
+    Annotations: 
+        rdfs:label "glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0006096>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000002>
+
+    Annotations: 
+        rdfs:label "hexokinase activity involved in glycolysis"@en
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0004396>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/GLY_TEST_0000001>,
+     <http://purl.obolibrary.org/obo/directly_activates>  <http://purl.obolibrary.org/obo/GLY_TEST_0000003>
+    
+    
