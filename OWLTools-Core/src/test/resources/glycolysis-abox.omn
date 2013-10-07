@@ -37,6 +37,13 @@ ObjectProperty: <http://purl.obolibrary.org/obo/RO_0002212>
     
     SubPropertyChain: 
         <http://purl.obolibrary.org/obo/RO_0002212> o <http://purl.obolibrary.org/obo/directly_activates>
+
+ObjectProperty: <http://purl.obolibrary.org/obo/BFO_0000051>
+
+    Annotations: 
+        rdfs:label "has_part"^^xsd:string
+
+   InverseOf: <http://purl.obolibrary.org/obo/BFO_0000050>
     
     
 ObjectProperty: <http://purl.obolibrary.org/obo/BFO_0000050>
@@ -899,7 +906,7 @@ Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000004>
 Individual: <http://purl.obolibrary.org/obo/GLY_TEST_0000001>
 
     Annotations: 
-        rdfs:label "glycolysis"@en
+        rdfs:label "canonical glycolysis"@en
     
     Types: 
         <http://purl.obolibrary.org/obo/GO_0006096>
