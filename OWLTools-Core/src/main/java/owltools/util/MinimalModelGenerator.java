@@ -91,6 +91,13 @@ public class MinimalModelGenerator {
 		this.reasonerFactory = reasonerFactory;
 		init();
 	}
+	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasoner reasoner) throws OWLOntologyCreationException {
+		tboxOntology = tbox;
+		aboxOntology = abox;
+		if (reasoner != null)
+			this.reasoner = reasoner;
+		init();
+	}
 	private void init() throws OWLOntologyCreationException {
 		if (aboxOntology == null) {
 			IRI ontologyIRI = IRI.create(tboxOntology.getOntologyID().getOntologyIRI()+"__abox");
