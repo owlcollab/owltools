@@ -1,5 +1,8 @@
 package owltools.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +12,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.HermiT.Reasoner.ReasonerFactory;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
@@ -19,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -32,12 +35,17 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLRestriction;
+import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
+
+import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
+import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 /**
  * Generate a minimal models of a TBox or a subset of a TBox
@@ -56,8 +64,9 @@ public class MinimalModelGenerator {
 	private OWLOntology queryOntology;
 	private String contextualizingSuffix;
 	private Map<OWLClass,OWLClassExpression> queryClassMap;
+	Map<OWLOntology,Set<OWLAxiom>> collectedAxioms = new HashMap<OWLOntology,Set<OWLAxiom>>();
 
-	private Map<OWLClass, OWLNamedIndividual> prototypeIndividualMap =
+	protected Map<OWLClass, OWLNamedIndividual> prototypeIndividualMap =
 			new HashMap<OWLClass, OWLNamedIndividual>();
 
 	/**
@@ -86,7 +95,7 @@ public class MinimalModelGenerator {
 	}
 
 	public MinimalModelGenerator(OWLOntology tbox,
-			ReasonerFactory reasonerFactory) throws OWLOntologyCreationException {
+			OWLReasonerFactory reasonerFactory) throws OWLOntologyCreationException {
 		tboxOntology = tbox;
 		this.reasonerFactory = reasonerFactory;
 		init();
@@ -98,9 +107,33 @@ public class MinimalModelGenerator {
 			this.reasoner = reasoner;
 		init();
 	}
+	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox,
+			OWLReasonerFactory rf) throws OWLOntologyCreationException {
+		tboxOntology = tbox;
+		aboxOntology = abox;
+		reasonerFactory = rf;
+		init();
+	}
+
+	/**
+	 * Initialization consists of:
+	 * <ul>
+	 * <li>Setting aboxOntology, if not set - defaults to a new ontology using tbox.IRI as base. 
+	 *   Adds import to tbox.
+	 * <li>Setting queryOntology, if not set. Adds abox imports queryOntology declaration
+	 * <li>Creates a reasoner using reasonerFactory
+	 * </ul>
+	 * 
+	 * @throws OWLOntologyCreationException
+	 */
 	private void init() throws OWLOntologyCreationException {
 		if (aboxOntology == null) {
 			IRI ontologyIRI = IRI.create(tboxOntology.getOntologyID().getOntologyIRI()+"__abox");
+			aboxOntology = tboxOntology.getOWLOntologyManager().getOntology(ontologyIRI);
+			if (aboxOntology != null) {
+				LOG.warn("Removing existing abox ontology");
+				tboxOntology.getOWLOntologyManager().removeOntology(aboxOntology);
+			}
 			aboxOntology = tboxOntology.getOWLOntologyManager().createOntology(ontologyIRI);
 			AddImport ai = new AddImport(aboxOntology, 
 					getOWLDataFactory().getOWLImportsDeclaration(tboxOntology.getOntologyID().getOntologyIRI()));
@@ -110,7 +143,10 @@ public class MinimalModelGenerator {
 			// Imports: {q imports a, a imports t}
 
 			IRI ontologyIRI = IRI.create(tboxOntology.getOntologyID().getOntologyIRI()+"__query"); 
-			queryOntology = aboxOntology.getOWLOntologyManager().createOntology(ontologyIRI);
+			queryOntology = aboxOntology.getOWLOntologyManager().getOntology(ontologyIRI);
+			if (queryOntology == null) {
+				queryOntology = aboxOntology.getOWLOntologyManager().createOntology(ontologyIRI);
+			}
 			AddImport ai = new AddImport(queryOntology, 
 					getOWLDataFactory().getOWLImportsDeclaration(aboxOntology.getOntologyID().getOntologyIRI()));
 			getOWLOntologyManager().applyChange(ai);
@@ -123,30 +159,67 @@ public class MinimalModelGenerator {
 			// TODO - we would like to do this before initializing the reasoner
 		}
 		if (reasoner == null) {			
-			reasoner = reasonerFactory.createReasoner(queryOntology);
+			createReasoner();
 		}
 	}
 
+	private OWLReasoner createReasoner() {
+		if (reasoner == null) {
+			reasoner = reasonerFactory.createReasoner(queryOntology);
+		}
+		return reasoner;
+	}
 
+	protected void disposeReasoner() {
+		if (reasoner != null) {
+			reasoner.dispose();
+			reasoner = null;
+		}
+	}
 
+	/**
+	 * The reasoner factory is used during intialization to
+	 * generate a reasoner abject using abox as ontology
+	 * 
+	 * @param reasonerFactory
+	 */
 	public void setReasonerFactory(OWLReasonerFactory reasonerFactory) {
 		this.reasonerFactory = reasonerFactory;
 	}
+
+	/**
+	 * @return current reasoner, operating over abox
+	 */
 	public OWLReasoner getReasoner() {
 		return reasoner;
 	}
+	/**
+	 * @param reasoner
+	 */
 	public void setReasoner(OWLReasoner reasoner) {
 		this.reasoner = reasoner;
 	}
+
+	/**
+	 * The tbox ontology should contain class axioms used to generate minimal models in the
+	 * abox ontology.
+	 * 
+	 * May be the same as abox, in which case generated abox axioms go in the same ontology 
+	 * 
+	 * @return tbox
+	 */
 	public OWLOntology getTboxOntology() {
 		return tboxOntology;
 	}
+	/**
+	 * @param tboxOntology
+	 */
 	public void setTboxOntology(OWLOntology tboxOntology) {
 		this.tboxOntology = tboxOntology;
 	}
 	/**
 	 * Note: ABox ontology should import TBox ontology
-	 * @return
+	 * @return abox
 	 */
 	public OWLOntology getAboxOntology() {
 		return aboxOntology;
@@ -154,19 +227,51 @@ public class MinimalModelGenerator {
 	private String getContextualizingSuffix() {
 		return contextualizingSuffix;
 	}
+	/**
+	 * @param contextualizingSuffix TODO
+	 */
 	public void setContextualizingSuffix(String contextualizingSuffix) {
 		this.contextualizingSuffix = contextualizingSuffix;
 	}
 
+
+	/**
+	 * @return all individuals that have been generated by this MMG so far
+	 */
+	public Collection<OWLNamedIndividual> getGeneratedIndividuals() {
+		return prototypeIndividualMap.values();
+	}
+
+	/**
+	 * Note that the reasoner may be able to provide a more specific class
+	 * @param i
+	 * @return class that was used to generate i
+	 */
+	protected OWLClass getPrototypeClass(OWLNamedIndividual i) {
+		if (prototypeIndividualMap.containsValue(i)) {
+			for (OWLClass c : prototypeIndividualMap.keySet()) {
+				if (prototypeIndividualMap.get(c).equals(i)) {
+					return c;
+				}
+			}
+		}
+		return null;
+	}
+
+
 	/**
 	 * Generates a graph of ABox axioms rooted at proto(c), where proto(c) is
-	 * the prototype individual of class c
+	 * the prototype individual of class c.
+	 * 
+	 * For example, if c SubClassOf finger, SubClassOf part_of some some hand, then
+	 * generate a finger individual, a hand individual, connect them via part_of  
+	 * 
 	 * 
 	 * @param c
 	 * @return prototype individual of type c
 	 */
 	public OWLNamedIndividual generateNecessaryIndividuals(OWLClassExpression c) {
-		LOG.info("GNI:"+c);
+		LOG.info("GNI type:"+c);
 		if (prototypeIndividualMap.containsKey(c)) {
 			// we assume a single prototype per class;
 			// this also prevents cycles
@@ -238,9 +343,12 @@ public class MinimalModelGenerator {
 		}
 		return ind;
 	}
-	
+
 	/**
-	 * Adds a prototypical individual to the abox
+	 * Adds a prototypical individual to the abox.
+	 * 
+	 * fills in prototypeIndividualMap, unless c satisfies {@link #isNeverMerge(c)}
+	 * 
 	 * @param c
 	 * @return
 	 */
@@ -264,11 +372,20 @@ public class MinimalModelGenerator {
 	}
 
 
+	/**
+	 * attempt to deepen a class expression based on properties the individual holds.
+	 * 
+	 * E.g. if i=hand and j=digit, and p=has_part, then 
+	 * we can reason that (digit and inverseOf(has_part) some hand) is a subclass
+	 * of or equivalent to 'finger'
+	 * 
+	 * @param jType
+	 * @param invProperty
+	 * @param incoming
+	 * @return
+	 */
 	private OWLClassExpression deepen(OWLClassExpression jType,
 			OWLObjectPropertyExpression invProperty, OWLClassExpression incoming) {
-		// attempt to deepen. E.g. if i=hand and j=digit, and p=has_part, then 
-		// we can reason that (digit and inverseOf(has_part) some hand) is a subclass
-		// of or equivalent to 'finger'
 		OWLObjectIntersectionOf jExpr = getOWLDataFactory().getOWLObjectIntersectionOf(
 				jType,
 				getOWLDataFactory().getOWLObjectSomeValuesFrom(
@@ -394,7 +511,7 @@ public class MinimalModelGenerator {
 	public void anonymizeIndividualsNotIn(OWLClass c) {
 		anonymizeIndividualsNotIn(Collections.singleton(c));
 	}
-	
+
 	public void anonymizeIndividualsNotIn(Set<OWLClass> cs) {
 		Set<OWLNamedIndividual> inds = new HashSet<OWLNamedIndividual>();
 		for (OWLNamedIndividual ind : aboxOntology.getIndividualsInSignature(true)) {
@@ -436,10 +553,10 @@ public class MinimalModelGenerator {
 		}
 		// remove incoming
 		getOWLOntologyManager().removeAxioms(aboxOntology, refAxioms);
-		
+
 		// remove outgoing
 		getOWLOntologyManager().removeAxioms(aboxOntology, aboxOntology.getAxioms(ind));
-		
+
 		// remove delcarations
 		getOWLOntologyManager().removeAxiom(aboxOntology, getOWLDataFactory().getOWLDeclarationAxiom(ind));
 	}
@@ -456,20 +573,29 @@ public class MinimalModelGenerator {
 	 * For more sophisticated algorithms, see the DL-learner package, which will
 	 * abduce over multiple instances.
 	 * 
+	 * Alternatively we should start with the maximal path spanning all nodes - TODO
+	 * http://en.wikipedia.org/wiki/Widest_path_problem
+	 * (here it is actually the maximal widest path for all possible sink nodes)
+	 * 
 	 * @param i
 	 * @return
 	 */
 	public OWLClassExpression getMostSpecificClassExpression(OWLNamedIndividual i) {
 		return getMostSpecificClassExpression(i, new HashSet<OWLNamedIndividual>(), null);
 	}
+	public OWLClassExpression getMostSpecificClassExpression(
+			OWLNamedIndividual i, List<OWLObjectProperty> propertySet) {
+		return getMostSpecificClassExpression(i, new HashSet<OWLNamedIndividual>(), propertySet);
+	}
 	public OWLClassExpression getMostSpecificClassExpression(OWLNamedIndividual i,
 			Set<OWLNamedIndividual> visited,
-			Set<OWLObjectProperty> propertySet) {
+			List<OWLObjectProperty> propertySet) {
 		visited.add(i);
 		LOG.info("i="+i);
 		Set<OWLClassExpression> elements = new HashSet<OWLClassExpression>();
 		reasoner.flush();
 		for (OWLClass typeClass : reasoner.getTypes(i, true).getFlattened()) {
+			LOG.info(" t="+typeClass);
 			if (queryClassMap != null && queryClassMap.containsKey(typeClass))
 				continue;
 			elements.add(typeClass);
@@ -484,12 +610,34 @@ public class MinimalModelGenerator {
 				}
 			}
 		}
-		for (OWLObjectProperty p : aboxOntology.getObjectPropertiesInSignature(true)) {
+		if (propertySet == null || propertySet.size() == 0) {
+			propertySet = new ArrayList<OWLObjectProperty>();
+			for (OWLObjectProperty p : aboxOntology.getObjectPropertiesInSignature(true)) {
+				propertySet.add(p);
+			}
+		}
+
+		for (OWLObjectProperty p : propertySet) {
 			LOG.info(" p="+p);
-			if (propertySet != null && !propertySet.contains(p))
-				continue;
+
+			Set<OWLPropertyExpression> invProps = new HashSet<OWLPropertyExpression>();
 			for (OWLOntology ont : aboxOntology.getImportsClosure()) {
-				for (OWLIndividual j : i.getObjectPropertyValues(p, ont)) {
+				invProps.addAll(p.getInverses(ont));
+			}
+			for (OWLOntology ont : aboxOntology.getImportsClosure()) {
+				Set<OWLIndividual> js = new HashSet<OWLIndividual>(i.getObjectPropertyValues(p, ont));
+				// todo - make this more efficient
+				if (invProps.size() > 0) {
+					for (OWLPropertyExpression invProp : invProps) {
+						LOG.info(" invP="+invProp);
+						for (OWLIndividual j : aboxOntology.getIndividualsInSignature(true)) {
+							if (j.getObjectPropertyValues((OWLObjectPropertyExpression) invProp, ont).contains(i)) {
+								js.add(j);
+							}
+						}
+					}
+				}
+				for (OWLIndividual j : js) {
 					LOG.info("  j="+j);
 
 					// note that as this method is recursive, it is possible to end up with
@@ -502,7 +650,7 @@ public class MinimalModelGenerator {
 						continue;
 					}
 					if (j instanceof OWLNamedIndividual) {
-						OWLClassExpression jce = getMostSpecificClassExpression((OWLNamedIndividual) j);
+						OWLClassExpression jce = getMostSpecificClassExpression((OWLNamedIndividual) j, visited, propertySet);
 						LOG.info("    jce="+jce);
 						elements.add(
 								getOWLDataFactory().getOWLObjectSomeValuesFrom(p, jce)
@@ -525,7 +673,7 @@ public class MinimalModelGenerator {
 	 * @param c
 	 * @return
 	 */
-	private Set<OWLObjectSomeValuesFrom> getExistentialRelationships(OWLNamedIndividual ind) {
+	protected Set<OWLObjectSomeValuesFrom> getExistentialRelationships(OWLNamedIndividual ind) {
 		//LOG.info("Querying: "+c);
 		if (queryClassMap == null) {
 			// TODO - document assumption that tbox does not change
@@ -563,21 +711,45 @@ public class MinimalModelGenerator {
 		return results;
 	}
 
-	@Deprecated
-	private Set<OWLObjectSomeValuesFrom> old_____getExistentialRelationships(OWLClass c) {
-		Set<OWLClassExpression> supers = c.getSuperClasses(tboxOntology);
-		Set<OWLObjectSomeValuesFrom> results = new HashSet<OWLObjectSomeValuesFrom>();
-		for (OWLClassExpression ec : c.getEquivalentClasses(tboxOntology)) {
-			if (ec instanceof OWLObjectIntersectionOf) {
-				supers.addAll(((OWLObjectIntersectionOf)ec).getOperands());
-			}
+	protected Set<OWLObjectSomeValuesFrom> getExistentialRelationships(OWLClass c) {
+		//LOG.info("Querying: "+c);
+		if (queryClassMap == null) {
+			// TODO - document assumption that tbox does not change
+			generateQueryOntology();
 		}
-		for (OWLClassExpression s : supers) {
-			if (s instanceof OWLObjectSomeValuesFrom)
-				results.add((OWLObjectSomeValuesFrom)s);
+		Set<OWLObjectSomeValuesFrom> results = new HashSet<OWLObjectSomeValuesFrom>();
+
+		reasoner.flush();
+
+		// all supers (direct and indirect)
+		Set<OWLClass> supers = reasoner.getSuperClasses(c, false).getFlattened();
+		supers.addAll(reasoner.getEquivalentClasses(c).getEntities());
+
+		// we only case about expressions in the query ontology, which should have
+		// all expressions required
+		supers.retainAll(queryClassMap.keySet());
+
+		// use only classes that are non-redundant (within QSet)
+		Set<OWLClass> nrSet = new HashSet<OWLClass>(supers);
+		for (OWLClass s : supers) {
+			nrSet.removeAll(reasoner.getSuperClasses(s, false).getFlattened());
+		}
+
+		// map from materialized class to original expression
+		for (OWLClass s : nrSet) {
+			LOG.info(" SUP:"+s);
+			OWLClassExpression x = queryClassMap.get(s);
+			if (x instanceof OWLObjectSomeValuesFrom) {
+				//LOG.info("  Result:"+x);
+				results.add((OWLObjectSomeValuesFrom)x);
+			}
+			else {
+				LOG.warn("Skipping: "+x+" (future versions may handle this)");
+			}
 		}
 		return results;
 	}
+
 
 	/**
 	 * <b>Motivation</b>: OWL reasoners do not return superclass expressions
@@ -594,15 +766,15 @@ public class MinimalModelGenerator {
 	private void generateQueryOntology() {
 		queryClassMap = new HashMap<OWLClass,OWLClassExpression>(); 
 
-		LOG.info("BM="+reasoner.getBufferingMode());
 		reasoner.flush();
 
 		// cross-product of P x C
 		// TODO - reflexivity and local reflexivity?
 		for (OWLObjectProperty p : tboxOntology.getObjectPropertiesInSignature(true)) {
+			LOG.info(" materializing P some C for P=:"+p);
 			for (OWLClass c : tboxOntology.getClassesInSignature(true)) {
 				OWLRestriction r = getOWLDataFactory().getOWLObjectSomeValuesFrom(p, c);
-				LOG.info(" QMAP:"+r);
+				//LOG.info(" QMAP:"+r);
 				addClassExpressionToQueryMap(r);
 			}
 		}
@@ -612,11 +784,14 @@ public class MinimalModelGenerator {
 			for (OWLAxiom ax : tboxOntology.getAxioms()) {
 				// TODO - check if this is the nest closure. ie (r some (r2 some (r3 some ...))) 
 				for (OWLClassExpression x : ax.getNestedClassExpressions()) {
-					LOG.info(" QMAP+:"+x);
-					addClassExpressionToQueryMap(x);
+					if (x.isAnonymous()) {
+						LOG.info(" QMAP+:"+x);
+						addClassExpressionToQueryMap(x);
+					}
 				}
 			}
 		}
+		addCollectedAxioms();
 		reasoner.flush();
 	}
 
@@ -625,18 +800,22 @@ public class MinimalModelGenerator {
 			// in future we may support a wider variety of expressions - e.g. cardinality
 			return;
 		}
-		if (!reasoner.isSatisfiable(x)) {
-			LOG.info("Not adding unsatisfiable query expression:" +x);
-			return;
-		}
+		// this makes things too slow
+		//if (!reasoner.isSatisfiable(x)) {
+		//	LOG.info("Not adding unsatisfiable query expression:" +x);
+		//	return;
+		//}
 		IRI nxIRI = getSkolemIRI(x.getSignature());
 		OWLClass nx = getOWLDataFactory().getOWLClass(nxIRI);
 		OWLAxiom ax = getOWLDataFactory().getOWLEquivalentClassesAxiom(nx, x);
-		addAxiom(ax, queryOntology);
+		collectAxiom(ax, queryOntology);
 		queryClassMap.put(nx, x);
 	}
 
-	private IRI getSkolemIRI(Set<OWLEntity> objs) {
+	protected IRI getSkolemIRI(OWLEntity... objsArr) {
+		return getSkolemIRI(new HashSet<OWLEntity>(Arrays.asList(objsArr)));
+	}
+	protected IRI getSkolemIRI(Set<OWLEntity> objs) {
 		// TODO Auto-generated method stub
 		IRI iri;
 		StringBuffer sb = new StringBuffer();
@@ -647,7 +826,7 @@ public class MinimalModelGenerator {
 		return iri;
 	}
 
-	private String getFragmentID(OWLObject obj) {
+	protected String getFragmentID(OWLObject obj) {
 		if (obj instanceof OWLNamedObject) {
 			return ((OWLNamedObject) obj).getIRI().toString().replaceAll(".*/", "");
 		}
@@ -676,14 +855,79 @@ public class MinimalModelGenerator {
 		aboxOntology.getOWLOntologyManager().addAxiom(ont, ax);
 	}
 
-	private OWLDataFactory getOWLDataFactory() {
+
+	/**
+	 * Collects an axiom to be added to ont at some later time.
+	 * Cal {@link #addCollectedAxioms()} to add these
+	 * 
+	 * @param ax
+	 * @param ont
+	 */
+	protected void collectAxiom(OWLAxiom ax, OWLOntology ont) {
+		//LOG.info("Collecting: "+ax+" to "+ont);
+		if (!collectedAxioms.containsKey(ont))
+			collectedAxioms.put(ont, new HashSet<OWLAxiom>());
+		collectedAxioms.get(ont).add(ax);
+	}
+
+	/**
+	 * Adds all collected axioms to their specified destination 
+	 */
+	protected void addCollectedAxioms() {
+		for (OWLOntology ont : collectedAxioms.keySet())
+			addCollectedAxioms(ont);
+	}
+
+	/**
+	 * Adds all collected axioms to ont
+	 * @param ont
+	 */
+	private void addCollectedAxioms(OWLOntology ont) {
+		if (collectedAxioms.containsKey(ont)) {
+			aboxOntology.getOWLOntologyManager().addAxioms(ont, collectedAxioms.get(ont));
+			collectedAxioms.remove(ont);
+		}
+
+	}
+
+	/**
+	 * @return data factory for tbox
+	 */
+	protected OWLDataFactory getOWLDataFactory() {
 		return getOWLOntologyManager().getOWLDataFactory();
 	}
 
-	private OWLOntologyManager getOWLOntologyManager() {
-		return aboxOntology.getOWLOntologyManager();
+	/**
+	 * @return ontology manager for tbox
+	 */
+	protected OWLOntologyManager getOWLOntologyManager() {
+		return tboxOntology.getOWLOntologyManager();
 	}
 
+	/**
+	 * Extract a module from tboxOntology using aboxOntology as seed.
+	 * As a side-effect, will remove abox imports tbox axiom, and add extracted axioms
+	 * to abox.
+	 * 
+	 * 
+	 * @see SyntacticLocalityModuleExtractor
+	 */
+	public void extractModule() {
+		SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(aboxOntology.getOWLOntologyManager(),
+				aboxOntology,
+				ModuleType.BOT);
+
+		Set<OWLEntity> objs = new HashSet<OWLEntity>();
+		objs.addAll( aboxOntology.getObjectPropertiesInSignature() );
+		objs.addAll( aboxOntology.getClassesInSignature() );
+
+
+		Set<OWLAxiom> modAxioms = sme.extract(objs);
+		for (OWLImportsDeclaration oid : aboxOntology.getImportsDeclarations()) {
+			aboxOntology.getOWLOntologyManager().applyChange(new RemoveImport(aboxOntology, oid));
+		}
+		aboxOntology.getOWLOntologyManager().addAxioms(aboxOntology, modAxioms);
+	}
 
 
 
