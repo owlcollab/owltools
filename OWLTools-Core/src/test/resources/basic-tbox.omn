@@ -1,6 +1,7 @@
 Ontology: <http://x.org>
 Prefix: obo: <http://purl.obolibrary.org/obo/>
 Prefix: occurs_in: <http://purl.obolibrary.org/obo/BFO_0000066>
+Prefix: enabled_by: <http://purl.obolibrary.org/obo/enabled_by>
 Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 Prefix: : <http://x.org/>
 
@@ -11,7 +12,7 @@ ObjectProperty: ends_with SubPropertyOf: has_part
 ObjectProperty: activates
 ObjectProperty: activated_by InverseOf: activates
 ObjectProperty: regulates
-ObjectProperty: enabled_by
+ObjectProperty: enabled_by:
 ObjectProperty: occurs_in: Annotations: rdfs:label "occurs in" SubPropertyChain: occurs_in: o part_of SubPropertyChain: part_of o occurs_in:
 ObjectProperty: directly_activates SubPropertyOf: activates
 ObjectProperty: indirectly_activates SubPropertyOf: activates Characteristics: transitive ### SubPropertyChain: activates o activates
@@ -47,7 +48,7 @@ Class: transcription SubClassOf: cellular_process, occurs_in: some nucleus
 Class: regulation_of_transcription EquivalentTo: regulation and regulates some transcription
 
 Class: obo:GO_0003674
-Class: activity SubClassOf: obo:GO_0003674
+Class: activity SubClassOf: obo:GO_0003674, enabled_by: some molecular_entity
 Class: binding SubClassOf: activity
 Class: catalytic_activity SubClassOf: activity
 Class: kinase_activity SubClassOf: catalytic_activity, part_of some phosphorylation
@@ -62,3 +63,5 @@ Class: membrane SubClassOf: obo:GO_0005575
 Class: nucleus SubClassOf: obo:GO_0005575
 Class: cytosol SubClassOf: obo:GO_0005575
 Class: plasma_membrane SubClassOf: membrane, part_of some cell
+
+Class: molecular_entity
