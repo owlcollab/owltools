@@ -38,8 +38,6 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.RemoveImport;
-import org.semanticweb.owlapi.reasoner.Node;
-import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
@@ -57,13 +55,13 @@ public class MinimalModelGenerator {
 
 	private static Logger LOG = Logger.getLogger(MinimalModelGenerator.class);
 
-	private OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
-	private OWLReasoner reasoner;
-	private OWLOntology aboxOntology;
-	private OWLOntology tboxOntology;
-	private OWLOntology queryOntology;
-	private String contextualizingSuffix;
-	private Map<OWLClass,OWLClassExpression> queryClassMap;
+	private OWLReasonerFactory reasonerFactory = null;
+	private OWLReasoner reasoner = null;
+	private OWLOntology aboxOntology = null;
+	private OWLOntology tboxOntology = null;
+	private OWLOntology queryOntology = null;
+	private String contextualizingSuffix = null;
+	private Map<OWLClass,OWLClassExpression> queryClassMap = null;
 	Map<OWLOntology,Set<OWLAxiom>> collectedAxioms = new HashMap<OWLOntology,Set<OWLAxiom>>();
 
 	protected Map<OWLClass, OWLNamedIndividual> prototypeIndividualMap =
@@ -78,6 +76,7 @@ public class MinimalModelGenerator {
 	 */
 	public MinimalModelGenerator(OWLOntology tbox) throws OWLOntologyCreationException {
 		tboxOntology = tbox;
+		reasonerFactory = new ElkReasonerFactory();
 		init();
 	}
 	/**
@@ -91,6 +90,7 @@ public class MinimalModelGenerator {
 	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox) throws OWLOntologyCreationException {
 		tboxOntology = tbox;
 		aboxOntology = abox;
+		reasonerFactory = new ElkReasonerFactory();
 		init();
 	}
 
@@ -103,8 +103,13 @@ public class MinimalModelGenerator {
 	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasoner reasoner) throws OWLOntologyCreationException {
 		tboxOntology = tbox;
 		aboxOntology = abox;
-		if (reasoner != null)
+		if (reasoner != null) {
 			this.reasoner = reasoner;
+			reasonerFactory = null;
+		}
+		else {
+			reasonerFactory  = new ElkReasonerFactory();
+		}
 		init();
 	}
 	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox,
