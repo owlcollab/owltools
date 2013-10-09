@@ -24,4 +24,13 @@
         <label value="LEGO Annotations"/>
         <class value="org.geneontology.annotation.view.LegoAnnotationsPreferencesPane"/>
     </extension>
+    
+    <extension id="menu.MakeMinimalModel" name="Make minimal model" point="org.protege.editor.core.application.EditorKitMenuAction">
+        <class value="org.geneontology.model.MakeMinimalModelMenuAction"/>
+        <name value="Make minimal model"/>
+        <toolTip value="Makes a minimal model given the currently selected OWLClass."/>
+       <path value="org.protege.editor.core.application.menu.EditMenu/SlotM-H"/>
+       <editorKitId value="OWLEditorKit"/>
+    </extension>
+    
 </plugin>
