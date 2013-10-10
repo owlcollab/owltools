@@ -26,26 +26,27 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 import owltools.util.MinimalModelGeneratorTest;
 
-public class LegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
-	private static Logger LOG = Logger.getLogger(LegoModelGeneratorTest.class);
+public class PhenoLegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
+	private static Logger LOG = Logger.getLogger(PhenoLegoModelGeneratorTest.class);
 
 	static{
 		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
 		//Logger.getLogger("org.semanticweb.elk.reasoner.indexing.hierarchy").setLevel(Level.ERROR);
 	}
-	
+
 	@Test
-	public void testPombe() throws Exception {
+	public void testMgi() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		FileUtils.forceMkdir(new File("target/lego"));
 		w = new FileWriter(new File("target/lego.out"));
-		
-		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("go-iron-transport-subset.obo"));
+
+		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
+		g.mergeOntology(pw.parseOBO(getResourceIRIString("disease.obo")));
+		//g.m
 
 		GafObjectsBuilder builder = new GafObjectsBuilder();
-		GafDocument gafdoc = builder.buildDocument(getResource("pombase-test.gaf"));
-		GafDocument ppidoc = builder.buildDocument(getResource("pombase-test-ppi.gaf"));
-		gafdoc.getGeneAnnotations().addAll(ppidoc.getGeneAnnotations());
+		GafDocument gafdoc = builder.buildDocument("src/test/resources/mgi-signaling.gaf");
+
 		System.out.println("gMGR = "+pw.getManager());
 		ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
 		ni.initialize(gafdoc, g);
@@ -61,21 +62,20 @@ public class LegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
 		assertEquals(3, qboxImportsSize);
 
 		LOG.info("#process classes in test = "+ni.processClassSet.size());
-		assertEquals(37, ni.processClassSet.size());
+		//assertEquals(37, ni.processClassSet.size());
 		for (OWLClass p : ni.processClassSet) {
-			if (!g.getIdentifier(p).equals("GO:0033215"))
-				continue;
-			
+			if (g.getIdentifier(p) != null && !g.getIdentifier(p).equals("GO:0014029"))
+				continue;			
 			int nSups = ni.getReasoner().getSuperClasses(p, false).getFlattened().size();
 			LOG.info("supers(p) = "+nSups);
-			assertEquals(22, nSups);
-			
+			//assertEquals(22, nSups);
+
 			//ni = new LegoGenerator(g.getSourceOntology(), new ElkReasonerFactory());
 			//ni.initialize(gafdoc, g);
 
 			Set<String> seedGenes = ni.getGenes(p);
 
-			
+
 			LOG.info("\n\nP="+render(p));
 			ni.buildNetwork(p, seedGenes);
 
@@ -84,7 +84,7 @@ public class LegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
 				writeln("# "+k+" = "+stats.get(k));
 			}
 
-			
+
 			for (String gene : seedGenes) {
 				writeln("  SEED="+render(gene));
 			}
@@ -99,17 +99,17 @@ public class LegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
 		}
 		FileOutputStream os = new FileOutputStream(new File("target/qont.owl"));
 		ni.getQueryOntology().getOWLOntologyManager().saveOntology(ni.getQueryOntology(), os);
-		
+
 		w.close();
-		
+
 		LOG.info("Num generated individuals = "+ni.getGeneratedIndividuals().size());
-		assertEquals(7, ni.getGeneratedIndividuals().size());
+		//assertEquals(7, ni.getGeneratedIndividuals().size());
 		LOG.info("Score = "+ni.ccp);
-		
-		
-		
+
+
+
 	}
-	
+
 
 
 }
