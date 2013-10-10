@@ -3266,12 +3266,17 @@ public class CommandRunner {
 		List<String> externalDbNames = null;
 		File outputFolder = new File(".").getCanonicalFile();
 		String commentPrefix = "!";
+		String labelPrefix = "";
 		
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-o|--output|--output-folder"))
 				outputFolder = opts.nextFile().getCanonicalFile();
 			else if (opts.nextEq("--go-external-default")) {
 				externalDbNames = Arrays.asList("EC","MetaCyc","Reactome","RESID","UM-BBD_enzymeID","UM-BBD_pathwayID","Wikipedia");
+				labelPrefix = "GO:";
+			}
+			else if(opts.nextEq("--label-prefix")) {
+				labelPrefix = opts.nextOpt();
 			}
 			else if(opts.nextEq("--externals")) {
 				externalDbNames = opts.nextList();
@@ -3387,6 +3392,7 @@ public class CommandRunner {
 					String lbl = g.getLabel(cls);
 					writer.append(xref);
 					writer.append(" > ");
+					writer.append(labelPrefix);
 					writer.append(lbl);
 					writer.append(" ; ");
 					writer.append(id);
