@@ -1,6 +1,7 @@
 package owltools.vocab;
 
 public enum OBONamespaces {
+	GO("GO"),
 	BFO("BFO"),
 	GOREL("GOREL"),
 	RO("RO");
