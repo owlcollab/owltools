@@ -7,6 +7,7 @@ owltools.gaf
 owltools.gaf.eco
 owltools.gaf.inference
 owltools.gaf.io
+owltools.gaf.lego
 owltools.gaf.owl
 owltools.gaf.owl.mapping
 owltools.gaf.rules
@@ -31,6 +32,7 @@ owltools.phenolog
 owltools.profile
 owltools.reasoner
 owltools.sim
+owltools.sim.io
 owltools.sim2
 owltools.sim2.preprocessor
 owltools.solrj
