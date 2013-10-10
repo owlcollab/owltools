@@ -34,6 +34,7 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.MinimalModelGenerator;
 
 /**
  * Generates a Ontological Functional Network (aka LEGO graph) for a process given an ontology and a set of annotations
@@ -97,7 +98,8 @@ public class NetworkInferenceEngine {
 	OWLGraphWrapper ogw;
 	OWLOntology exportOntology; // destination for OWL/lego. may be refactored into separate class
 	public OWLOntologyManager owlOntologyManager;
-
+	public MinimalModelGenerator mmg;
+	
 	String contextId = ""; // TODO
 
 	private IRI createIRI(String... toks) {
