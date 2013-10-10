@@ -37,6 +37,7 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.MinimalModelGenerator;
+import owltools.vocab.OBOUpperVocabulary;
 
 /**
  * Generates a Ontological Functional Network (aka LEGO graph) for a process given an ontology and a set of annotations
@@ -376,7 +377,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 
 	private void addPartOf(OWLNamedIndividual p, OWLNamedIndividual w) {
-		OWLObjectPropertyExpression rel = this.getObjectProperty("part_of");
+		OWLObjectPropertyExpression rel = this.getObjectProperty(OBOUpperVocabulary.BFO_part_of);
 		addEdge(p, rel, w);
 	}
 
@@ -401,7 +402,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 	private OWLNamedIndividual addActivity(OWLClass bestActivityClass, String gene) {
 		if (bestActivityClass == null) {
-			bestActivityClass =  ogw.getOWLClassByIdentifier("GO:0003674"); // TODO - use vocab
+			bestActivityClass =  getOWLDataFactory().getOWLClass(OBOUpperVocabulary.GO_molecular_function.getIRI());
 		}
 		OWLNamedIndividual ai = this.generateNecessaryIndividuals(bestActivityClass);
 
@@ -415,7 +416,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		}
 		if (geneProductClass != null) {
 			OWLClassExpression x = getOWLDataFactory().getOWLObjectSomeValuesFrom(
-					getObjectProperty("enabled_by"),
+					getObjectProperty(OBOUpperVocabulary.GOREL_enabled_by),
 					geneProductClass); // TODO <-- protein IRI should be here
 			addAxiom(getOWLDataFactory().getOWLClassAssertionAxiom(
 					x,
@@ -460,7 +461,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 				if (aset2 != null) {
 					for (OWLNamedIndividual a1 : aset) {
 						for (OWLNamedIndividual a2 : aset2) {
-							addEdge(a1, getObjectProperty("directly_activates"), a2); // TODO
+							addEdge(a1, getObjectProperty(OBOUpperVocabulary.GOREL_provides_input_for), a2); // TODO
 						}
 					}
 				}
@@ -491,7 +492,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 
 	public void normalizeDirections() {
-		normalizeDirections(getObjectProperty("part_of"));
+		normalizeDirections(getObjectProperty(OBOUpperVocabulary.BFO_part_of));
 	}
 
 	private void normalizeDirections(OWLObjectPropertyExpression p) {
@@ -709,37 +710,31 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		return getOWLDataFactory().getOWLClass(getIRI(id));
 	}
 
-	// TODO - use a vocabulary/enum
-	private OWLObjectPropertyExpression getObjectProperty(String rel) {
-		IRI iri;
-		if (rel.equals("part_of"))
-			rel = "BFO:0000050";
-		if (rel.equals("occurs_in"))
-			rel = "BFO:0000066";
-		if (rel.equals("regulates"))
-			rel = "RO:0002211";
-		if (rel.equals("negatively_regulates"))
-			rel = "RO:0002212";
-		if (rel.equals("positively_regulates"))
-			rel = "RO:0002213";
-		if (rel.contains(":")) {
-			iri = getIRI(rel);
-		}
-		else {
-			iri = getIRI("http://purl.obolibrary.org/obo/"+rel); // TODO
-		}
+	
+	private Set<OWLPropertyExpression> getInvolvedInRelations() {
+		Set<OWLPropertyExpression> rels = new HashSet<OWLPropertyExpression>();
+		rels.add(getObjectProperty(OBOUpperVocabulary.BFO_part_of));
+		rels.add(getObjectProperty(OBOUpperVocabulary.RO_regulates));
+		rels.add(getObjectProperty(OBOUpperVocabulary.RO_negatively_regulates));
+		rels.add(getObjectProperty(OBOUpperVocabulary.RO_positively_regulates));
+		//rels.add(getObjectProperty(OBORelationsVocabulary.BFO_occurs_in));
+		return rels;
+	}
+
+
+	private OWLObjectPropertyExpression getObjectProperty(
+			OBOUpperVocabulary vocab) {
+		// TODO Auto-generated method stub
+		return getObjectProperty(vocab.getIRI());
+	}
+	private OWLObjectPropertyExpression getObjectProperty(
+			IRI iri) {
+		// TODO Auto-generated method stub
 		return getOWLDataFactory().getOWLObjectProperty(iri);
 	}
 
-	private Set<OWLPropertyExpression> getInvolvedInRelations() {
-		Set<OWLPropertyExpression> rels = new HashSet<OWLPropertyExpression>();
-		rels.add(getObjectProperty("part_of"));
-		rels.add(getObjectProperty("regulates"));
-		rels.add(getObjectProperty("negatively_regulates"));
-		rels.add(getObjectProperty("postively_regulates"));
-		//rels.add(getObjectProperty("occurs_in"));
-		return rels;
-	}
+
+
 
 
 	private void addOwlData(OWLObject subj, OWLAnnotationProperty p, String val) {
