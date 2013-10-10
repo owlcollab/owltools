@@ -1,0 +1,389 @@
+format-version: 1.2
+ontology: owltools/test/disease
+
+!!! SPECIAL AXIOMS
+
+[Term]
+id: GO:0014029 ! neural crest formation
+relationship: has_part GO:0016055 ! Wnt receptor signaling pathway
+relationship: has_part GO:0014034 ! neural crest cell fate commitment
+! 12161657
+
+[Term]
+id: GO:0001755 ! neural crest cell migration
+relationship: has_part GO:0060071 ! Wnt receptor signaling pathway, planar cell polarity pathway
+! 15857909
+
+!!! DOID
+
+[Term]
+id: DOID:1289
+name: neurodegenerative disease
+namespace: disease_ontology
+alt_id: DOID:4874
+def: "A central nervous system disease that results_in the progressive deterioration of tissue or organ function or structure, whether due to normal bodily wear or lifestyle choices." [url:http://en.wikipedia.org/wiki/Degenerative_disease]
+synonym: "Neurodegenerative disease" EXACT [NCI2004_11_17:C4802]
+synonym: "degenerative disease" EXACT []
+xref: MSH:D019636
+xref: NCI:C4802
+xref: SNOMEDCT_2010_1_31:362975008
+xref: UMLS_CUI:C0524851
+xref: UMLS_CUI:C1285162
+is_a: DOID:331  ! central nervous system disease
+relationship: has_part MP:0003224 ! neuron degeneration
+
+[Term]
+id: DOID:14330
+name: Parkinson's disease
+namespace: disease_ontology
+def: "A neurodegenerative disease that has_material_basis_in degeneration of the central nervous system that often impairs the sufferer's motor skills, speech, and other functions." [url:http://en.wikipedia.org/wiki/Parkinson%27s_disease]
+comment: OMIM mapping confirmed by DO. [SN].
+synonym: "Paralysis agitans" EXACT [ICD9CM_2006:332.0]
+synonym: "Parkinson's disease" EXACT [ICD9CM_2006:332, NCI2004_11_17:C26845, SNOMEDCT_2005_07_31:154999006, SNOMEDCT_2005_07_31:155000006, SNOMEDCT_2005_07_31:192825001]
+synonym: "Parkinson's disease (disorder)" EXACT [SNOMEDCT_2005_07_31:49049000]
+synonym: "Parkinson's disease NOS" EXACT [SNOMEDCT_2005_07_31:155002003]
+synonym: "Parkinson's disease NOS (disorder)" EXACT [SNOMEDCT_2005_07_31:192831003]
+synonym: "paralysis agitans" EXACT [CSP2005:2057-3689]
+xref: ICD9CM:332
+xref: ICD9CM:332.0
+xref: MSH:D010300
+xref: NCI:C26845
+xref: OMIM:168600
+xref: OMIM:168601
+xref: OMIM:260300
+xref: OMIM:556500
+xref: OMIM:600116
+xref: OMIM:605543
+xref: OMIM:605909
+xref: OMIM:606324
+xref: OMIM:607060
+xref: OMIM:607688
+xref: OMIM:610297
+xref: OMIM:612953
+xref: OMIM:613643
+xref: SNOMEDCT_2010_1_31:154999006
+xref: SNOMEDCT_2010_1_31:155000006
+xref: SNOMEDCT_2010_1_31:155002003
+xref: SNOMEDCT_2010_1_31:192825001
+xref: SNOMEDCT_2010_1_31:192831003
+xref: SNOMEDCT_2010_1_31:49049000
+xref: UMLS_CUI:C0030567
+is_a: DOID:1289  ! neurodegenerative disease
+is_a: DOID:679  ! basal ganglia disease
+relationship: has_part MP:0003244 ! loss of dopaminergic neurons
+
+[Term]
+id: DOID:331
+name: central nervous system disease
+namespace: disease_ontology
+def: "A nervous system disease that affects either the spinal cord (myelopathy) or brain (encephalopathy) of the central nervous system." [url:http://en.wikipedia.org/wiki/Central_nervous_system_disease]
+xref: MSH:D002493
+xref: NCI:C2934
+xref: SNOMEDCT_2010_1_31:138748005
+xref: SNOMEDCT_2010_1_31:154981003
+xref: SNOMEDCT_2010_1_31:155049004
+xref: SNOMEDCT_2010_1_31:155059003
+xref: SNOMEDCT_2010_1_31:192641002
+xref: SNOMEDCT_2010_1_31:193076009
+xref: SNOMEDCT_2010_1_31:194566008
+xref: SNOMEDCT_2010_1_31:23853001
+xref: SNOMEDCT_2010_1_31:267144009
+xref: SNOMEDCT_2010_1_31:267679005
+xref: SNOMEDCT_2010_1_31:267700003
+xref: SNOMEDCT_2010_1_31:267702006
+xref: SNOMEDCT_2010_1_31:275539005
+xref: UMLS_CUI:C0007682
+is_a: DOID:863  ! nervous system disease
+
+[Term]
+id: DOID:4
+name: disease
+namespace: disease_ontology
+def: "A disease is a disposition (i) to undergo pathological processes that (ii) exists in an organism because of one or more disorders in that organism." [url:http://ontology.buffalo.edu/medo/Disease_and_Diagnosis.pdf]
+xref: MSH:D004194
+xref: NCI:C2991
+xref: SNOMEDCT_2010_1_31:64572001
+xref: UMLS_CUI:C0012634
+
+[Term]
+id: DOID:679
+name: basal ganglia disease
+namespace: disease_ontology
+synonym: "basal ganglia disease" EXACT [CSP2005:2057-3403]
+synonym: "disorder of basal ganglia (disorder)" EXACT [SNOMEDCT_2005_07_31:70835005]
+xref: MSH:D001480
+xref: SNOMEDCT_2010_1_31:70835005
+xref: UMLS_CUI:C0004782
+is_a: DOID:936  ! brain disease
+
+[Term]
+id: DOID:7
+name: disease of anatomical entity
+namespace: disease_ontology
+alt_id: DOID:1
+alt_id: DOID:2
+alt_id: DOID:5
+alt_id: DOID:71
+alt_id: DOID:72
+alt_id: DOID:8
+def: "A disease that manifests in a defined anatomical structure." [DO:wk,ls, http://www2.merriam-webster.com/cgi-bin/mwmednlm?book=Medical&va=anatomic]
+is_a: DOID:4  ! disease
+
+[Term]
+id: DOID:863
+name: nervous system disease
+namespace: disease_ontology
+def: "A disease of anatomical entity that is located_in the central nervous system or located_in the peripheral nervous system." [url:http://en.wikipedia.org/wiki/Nervous_system]
+xref: ICD9CM:349.9
+xref: MSH:D009422
+xref: NCI:C26835
+xref: SNOMEDCT_2010_1_31:118940003
+xref: SNOMEDCT_2010_1_31:154981003
+xref: SNOMEDCT_2010_1_31:155262005
+xref: SNOMEDCT_2010_1_31:192641002
+xref: SNOMEDCT_2010_1_31:267679005
+xref: SNOMEDCT_2010_1_31:286946008
+xref: UMLS_CUI:C0027765
+is_a: DOID:7  ! disease of anatomical entity
+
+[Term]
+id: DOID:936
+name: brain disease
+namespace: disease_ontology
+alt_id: DOID:8510
+synonym: "encephalopathy" EXACT []
+xref: MSH:D001927
+xref: SNOMEDCT_2010_1_31:155053002
+xref: SNOMEDCT_2010_1_31:193051008
+xref: SNOMEDCT_2010_1_31:76011009
+xref: SNOMEDCT_2010_1_31:81308009
+xref: UMLS_CUI:C0006111
+xref: UMLS_CUI:C0085584
+is_a: DOID:331  ! central nervous system disease
+
+!!! MP
+
+[Term]
+id: MP:0000811
+name: hippocampal neuron degeneration
+namespace: MPheno.ontology
+def: "a retrogressive impairment of function or destruction of the neuronal cells in the hippocampus" [J:72427, MGI:cml]
+synonym: "degenerating hippocampal neurons" EXACT []
+is_a: MP:0003224  ! neuron degeneration
+is_a: MP:0009939  ! abnormal hippocampus neuron morphology
+
+[Term]
+id: MP:0000876
+name: Purkinje cell degeneration
+namespace: MPheno.ontology
+def: "a retrogressive impairment of function or destruction of the large neurons located at the interface of the molecular and internal granule layers of the cerebellar cortex" [J:46854]
+is_a: MP:0000877  ! abnormal Purkinje cell morphology
+is_a: MP:0003224  ! neuron degeneration
+
+[Term]
+id: MP:0000938
+name: motor neuron degeneration
+namespace: MPheno.ontology
+def: "retrogressive impairment of function or destruction of the cells that innervate an effector (muscle or glandular) tissue and are responsible for transmission of motor impulses" [MGI:csmith]
+synonym: "loss of motor neurons" EXACT []
+synonym: "motoneuron degeneration" EXACT []
+is_a: MP:0000937  ! abnormal motor neuron morphology
+is_a: MP:0003224  ! neuron degeneration
+
+[Term]
+id: MP:0002229
+name: neurodegeneration
+namespace: MPheno.ontology
+def: "a retrogressive impairment of function or destruction of neural tissue" [ISBN:0-683-40008-8, MGI:csmith]
+synonym: "neuronal degeneration" EXACT []
+is_a: MP:0003633  ! abnormal nervous system physiology
+
+[Term]
+id: MP:0002654
+name: spongiform encephalopathy
+namespace: MPheno.ontology
+def: "a neurodegenerative state characterized by the appearance of large vacuolated areas in the brain cells, resembling a sponge" [MGI:csmith]
+synonym: "spongiform degeneration" EXACT []
+is_a: MP:0002229  ! neurodegeneration
+
+[Term]
+id: MP:0002882
+name: abnormal neuron morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the cells of the nervous system that receive, conduct, and transmit impulses" [MESH:A08.663]
+synonym: "neuron dysplasia" EXACT []
+is_a: MP:0003632  ! abnormal nervous system morphology
+
+[Term]
+id: MP:0003224
+name: neuron degeneration
+namespace: MPheno.ontology
+def: "a retrogressive impairment of function or destruction of the functional cells of the nervous system that receive, conduct, and transmit impulses" [ISBN:0-683-40008-8]
+is_a: MP:0002229  ! neurodegeneration
+is_a: MP:0002882  ! abnormal neuron morphology
+relationship: has_part GO:0051402 {source="cjm"} ! neuron apoptotic process
+relationship: has_part GO:0070050 {source="cjm"} ! neuron cellular homeostasis
+
+[Term]
+id: MP:0003225
+name: axonal dystrophy
+namespace: MPheno.ontology
+def: "axon degeneration that may result from genetic abnormalities or inadequate or faulty metabolism" [RGD:cur]
+is_a: MP:0005405  ! axon degeneration
+
+[Term]
+id: MP:0003243
+name: abnormal dopaminergic neuron morphology
+namespace: MPheno.ontology
+def: "any structural anomaly of the neurons that utilize dopamine as a neurotransmitter" [ISBN:0838580343]
+is_a: MP:0002882  ! abnormal neuron morphology
+
+[Term]
+id: MP:0003244
+name: loss of dopaminergic neurons
+namespace: MPheno.ontology
+def: "loss of the neurons that utilize dopamine as a neurotransmitter, commonly due to an apoptotic event" [RGD:cur]
+is_a: MP:0003243  ! abnormal dopaminergic neuron morphology
+relationship: has_part GO:0006915 ! apoptotic process
+
+[Term]
+id: MP:0003631
+name: nervous system phenotype
+namespace: MPheno.ontology
+alt_id: MP:0005368
+alt_id: MP:0005383
+def: "the observable morphological and physiological characteristics of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that are manifested through development and lifespan" [MGI:csmith]
+synonym: "CNS phenotype" NARROW []
+synonym: "PNS phenotype" NARROW []
+synonym: "central nervous system phenotype" NARROW []
+synonym: "peripheral nervous system phenotype" NARROW []
+
+[Term]
+id: MP:0003632
+name: abnormal nervous system morphology
+namespace: MPheno.ontology
+alt_id: Fyler:4135
+alt_id: Fyler:4300
+alt_id: MP:0000769
+alt_id: MP:0000957
+alt_id: MP:0002153
+alt_id: MP:0002157
+alt_id: MP:0002170
+alt_id: MP:0002171
+def: "any structural anomaly of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that receive and interpret stimuli and transmit impulses to effector organs to control body functions" [MGI:csmith]
+synonym: "abnormal central nervous system morphology" NARROW []
+synonym: "abnormal peripheral nervous system" NARROW []
+synonym: "abnormal peripheral nervous system morphology" NARROW []
+synonym: "central nervous system abnormalities" NARROW []
+synonym: "central nervous system anomaly" NARROW []
+synonym: "central nervous system defects" NARROW []
+synonym: "central nervous system: other dysmorphology" NARROW []
+synonym: "nervous system dysplasia" EXACT []
+synonym: "neurologic malformation" EXACT []
+synonym: "other abnormal central nervous system morphology" NARROW []
+synonym: "peripheral nervous system abnormalities" NARROW []
+synonym: "peripheral nervous system abnormality" NARROW []
+synonym: "peripheral nervous system anomaly" NARROW []
+synonym: "peripheral nervous system defects" NARROW []
+synonym: "peripheral nervous system: dysmorphology" NARROW []
+xref: GO:0007417
+xref: MGI:2173613
+xref: MGI:2173617
+is_a: MP:0003631  ! nervous system phenotype
+
+[Term]
+id: MP:0003633
+name: abnormal nervous system physiology
+namespace: MPheno.ontology
+alt_id: MP:0000945
+alt_id: MP:0001887
+alt_id: MP:0001910
+alt_id: MP:0001918
+alt_id: MP:0002155
+alt_id: MP:0002158
+def: "any functional anomaly of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that receive and interpret stimuli and transmit impulses to effector organs to control body functions" [MGI:csmith]
+synonym: "abnormal brain function" NARROW []
+synonym: "abnormal central nervous system physiology" NARROW []
+synonym: "abnormal peripheral nervous system physiology" NARROW []
+synonym: "central nervous system functional abnormalities" NARROW []
+synonym: "central nervous system: other functional anomalies" NARROW []
+synonym: "peripheral nervous system: functional anomalies" NARROW []
+xref: MGI:2173615
+xref: MGI:2173618
+is_a: MP:0003631  ! nervous system phenotype
+
+[Term]
+id: MP:0004324
+name: vestibular hair cell degeneration
+namespace: MPheno.ontology
+def: "degeneration or loss of the sensory epithelial cells of the maculae and cristae of the membranous labyrinth of the inner ear which are normally in synaptic contact with the vestibular nerve" [MGI:anna]
+is_a: MP:0002623  ! abnormal vestibular hair cell morphology
+is_a: MP:0003224  ! neuron degeneration
+relationship: has_part GO:0060118 {source="cjm"} ! vestibular receptor cell development
+
+[Term]
+id: MP:0004362
+name: cochlear hair cell degeneration
+namespace: MPheno.ontology
+def: "degeneration or loss of the sensory epithelial cells of the cochlea; these cells are in synaptic contact with the auditory nerve" [ISBN:0-683-40008-8, MGI:csmith]
+synonym: "auditory hair cell degeneration" RELATED []
+is_a: MP:0002622  ! abnormal cochlear hair cell morphology
+is_a: MP:0003224  ! neuron degeneration
+
+[Term]
+id: MP:0005405
+name: axon degeneration
+namespace: MPheno.ontology
+def: "retrogressive pathologic change in the single process of a nerve cell" [ISBN:0-683-40008-8]
+synonym: "axonal degeneration" EXACT []
+is_a: MP:0002229  ! neurodegeneration
+
+[Term]
+id: MP:0008067
+name: retinal ganglion cell degeneration
+namespace: MPheno.ontology
+def: "degeneration or loss of ganglion neurons located in the innermost nuclear layer of the retina of that receive visual information from photoreceptors via various intermediate cells such as bipolar cells, amacrine cells, and horizontal cells; axons from these cells form the optic nerve and connect mainly to the lateral geniculate nucleus (LGN) and to the suprachiasmatic nucleus in the brain" [MGI:csmith]
+is_a: MP:0003224  ! neuron degeneration
+is_a: MP:0008056  ! abnormal retinal ganglion cell morphology
+
+[Term]
+id: MP:0008103
+name: amacrine cell degeneration
+namespace: MPheno.ontology
+def: "a retrogressive impairment or destruction of one of the three types of interneurons found in the inner nuclear layer of the mature retina; they integrate, modulate, and interpose a temporal domain in the visual message presented to the retinal ganglion cells, with which they synapse in the inner plexiform layer" [MGI:csmith]
+synonym: "amacrine neuron degeneration" EXACT []
+is_a: MP:0003224  ! neuron degeneration
+is_a: MP:0005240  ! abnormal amacrine cell morphology
+
+[Term]
+id: MP:0008450
+name: retinal photoreceptor degeneration
+namespace: MPheno.ontology
+def: "a retrogressive impairment of function or destruction of a cell specialized to detect and transduce light, including rods and cones of the retina" [MESH:A08.663.650.650, MGI:csmith]
+is_a: MP:0001004  ! abnormal retinal photoreceptor morphology
+is_a: MP:0003224  ! neuron degeneration
+
+[Term]
+id: MP:0010047
+name: axonal spheroids
+namespace: MPheno.ontology
+def: "focal 10-50 micron diameter swellings of axons, which are sometimes, but not always, terminal endbulbs, and are filled with disorganized neurofilaments, tubules, organelles or multi-lamellar inclusions" [PMID:15644421]
+is_a: MP:0005405  ! axon degeneration
+
+
+[Typedef]
+id: has_part
+name: has_part
+namespace: gene_ontology
+xref: BFO:0000051
+xref: OBO_REL:has_part
+is_transitive: true
+
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: gene_ontology
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_transitive: true
