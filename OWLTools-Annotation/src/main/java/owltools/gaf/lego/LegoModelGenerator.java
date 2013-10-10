@@ -118,22 +118,6 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	//Set<Process> processSet; // P : process *instances*
 	OWLGraphWrapper ogw;
 
-	String contextId = ""; // TODO
-
-	// TODO - replaceme
-	private IRI createIRI(Object... objs) {
-		IRI iri;
-		StringBuffer sb = new StringBuffer();
-		for (Object obj : objs) {
-			if (obj instanceof OWLObject) {
-				obj = getFragmentID((OWLObject)obj);
-			}
-			sb.append("/"+obj.toString().replace(":", "_"));
-		}
-		iri = IRI.create("http://x.org"+sb.toString());
-		return iri;
-	}
-
 
 
 
@@ -225,8 +209,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			}
 		}
 
-		activityClassSet = new HashSet<OWLClass>();
-		processClassSet = new HashSet<OWLClass>();
+		activityClassSet = getReasoner().getSubClasses(getOWLClass(OBOUpperVocabulary.GO_molecular_function), false).getFlattened();
+		processClassSet = getReasoner().getSubClasses(getOWLClass(OBOUpperVocabulary.GO_biological_process), false).getFlattened();
 		for (OWLClass cls : g.getAllOWLClasses()) {
 			String ns = g.getNamespace(cls);
 			if (ns == null) ns = "";
@@ -409,7 +393,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		String label = getLabel(bestActivityClass);
 		OWLClass geneProductClass = null;
 		if (gene != null) {
-			geneProductClass = getOWLClass(gene);
+			geneProductClass = getOWLClassByIdentifier(gene);
 		}
 		else {
 			//geneProductClass = getOWLClass("PR:00000001");
@@ -433,6 +417,9 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 		return ai;
 	}
+
+
+
 
 
 
@@ -706,8 +693,14 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	private OWLNamedIndividual getIndividual(String id) {
 		return getOWLDataFactory().getOWLNamedIndividual(getIRI(id));
 	}
-	private OWLClass getOWLClass(String id) {
-		return getOWLDataFactory().getOWLClass(getIRI(id));
+
+
+
+	private OWLClass getOWLClassByIdentifier(String id) {
+		return getOWLDataFactory().getOWLClass(ogw.getIRIByIdentifier(id));
+	}
+	private OWLClass getOWLClass(OBOUpperVocabulary v) {
+		return getOWLDataFactory().getOWLClass(v.getIRI());
 	}
 
 	
