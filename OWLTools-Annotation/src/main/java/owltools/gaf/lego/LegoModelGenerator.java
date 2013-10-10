@@ -698,12 +698,6 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 
 
-
-	private void addAxiom(OWLAxiom ax) {
-		LOG.info("Adding: "+ax);
-		getAboxOntology().getOWLOntologyManager().addAxiom(getAboxOntology(), ax);
-	}
-
 	private IRI getIRI(String id) {
 		return ogw.getIRIByIdentifier(id);
 	}
