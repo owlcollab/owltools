@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.MinimalModelGenerator;
@@ -45,12 +46,14 @@ public class MakeMinimalModelMenuAction extends SelectedOWLClassAction {
 		OWLNamedIndividual individual = null;
 		if (reasonerManager.getReasonerStatus() == ReasonerStatus.INITIALIZED) {
 			try {
+				OWLReasonerFactory reasonerFactory = reasonerManager.getCurrentReasonerFactory().getReasonerFactory();
 				OWLOntology ontology = manager.getActiveOntology();
 				if (modelGenerator == null) {
-					modelGenerator = new MinimalModelGenerator(ontology, ontology, reasonerManager.getCurrentReasoner());
+					modelGenerator = new MinimalModelGenerator(ontology, ontology, reasonerFactory);
+					modelGenerator.setPrecomputePropertyClassCombinations(false);
 				}
 				else {
-					modelGenerator.setReasoner(reasonerManager.getCurrentReasoner());
+					//modelGenerator.setReasoner(reasonerManager.getCurrentReasoner());
 				}
 				individual = modelGenerator.generateNecessaryIndividuals(getOWLClass(), true);
 				
