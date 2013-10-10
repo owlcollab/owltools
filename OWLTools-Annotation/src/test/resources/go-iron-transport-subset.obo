@@ -326,6 +326,7 @@ name: has_part
 xref: BFO:0000051
 xref: OBO_REL:has_part
 is_transitive: true
+inverse_of: part_of
 
 [Typedef]
 id: part_of

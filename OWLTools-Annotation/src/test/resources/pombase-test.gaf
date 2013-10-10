@@ -1,3 +1,4 @@
+!gaf-version: 2.0
 PomBase	SPAC1F8.03c	str3		GO:0006879	GO_REF:0000001	IC	GO:0015343	P	siderophore-iron transporter Str3		protein	taxon:4896	20050627	PomBase		
 PomBase	SPAC31A2.11c	cuf1		GO:0006879	PMID:10593913	IMP		P	nutritional copper sensing transcription factor Cuf1		protein	taxon:4896	20050418	PomBase		
 PomBase	SPAC13C5.04	SPAC13C5.04		GO:0005737	GO_REF:0000024	ISO	SGD:S000004116	C	amidotransferase (predicted)		protein	taxon:4896	20050421	PomBase		
