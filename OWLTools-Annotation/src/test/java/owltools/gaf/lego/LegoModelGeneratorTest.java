@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -28,6 +29,10 @@ import owltools.util.MinimalModelGeneratorTest;
 public class LegoModelGeneratorTest extends OWLToolsTestBasics {
 	private static Logger LOG = Logger.getLogger(LegoModelGeneratorTest.class);
 
+	static{
+		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
+		//Logger.getLogger("org.semanticweb.elk.reasoner.indexing.hierarchy").setLevel(Level.ERROR);
+	}
 	LegoModelGenerator ni;
 	Writer w;
 	
@@ -58,21 +63,22 @@ public class LegoModelGeneratorTest extends OWLToolsTestBasics {
 		assertEquals(3, qboxImportsSize);
 
 		LOG.info("#process classes in test = "+ni.processClassSet.size());
+		assertEquals(37, ni.processClassSet.size());
 		for (OWLClass p : ni.processClassSet) {
 			if (!g.getIdentifier(p).equals("GO:0033215"))
 				continue;
 			
-			writeln("supers(p) = "+ni.getReasoner().getSuperClasses(p, false).getFlattened().size());
+			int nSups = ni.getReasoner().getSuperClasses(p, false).getFlattened().size();
+			LOG.info("supers(p) = "+nSups);
+			assertEquals(22, nSups);
 			
 			//ni = new LegoGenerator(g.getSourceOntology(), new ElkReasonerFactory());
 			//ni.initialize(gafdoc, g);
 
 			Set<String> seedGenes = ni.getGenes(p);
-			if (seedGenes.size() > 40)
-				continue;
 
 			
-			writeln("\n\nP="+render(p));
+			LOG.info("\n\nP="+render(p));
 			ni.buildNetwork(p, seedGenes);
 
 			Map<String, Object> stats = ni.getGraphStatistics();
@@ -97,12 +103,20 @@ public class LegoModelGeneratorTest extends OWLToolsTestBasics {
 		ni.getQueryOntology().getOWLOntologyManager().saveOntology(ni.getQueryOntology(), os);
 		
 		w.close();
+		
+		LOG.info("Num generated individuals = "+ni.getGeneratedIndividuals().size());
+		assertEquals(7, ni.getGeneratedIndividuals().size());
+		LOG.info("Score = "+ni.ccp);
+		
+		
+		
 	}
 	
 	protected void write(String s) throws IOException {
 		w.append(s);
 	}
 	protected void writeln(String s) throws IOException {
+		LOG.info(s);
 		w.append(s + "\n");
 	}
 
@@ -115,29 +129,6 @@ public class LegoModelGeneratorTest extends OWLToolsTestBasics {
 		}
 		return x + " ! " + ni.getLabel(x);
 	}
-	
-//	protected String render(InstanceNode x) {
-////		if (x instanceof Process)
-////			return render(((Process)x).typeOf);
-//		if (x instanceof Activity)
-//			return render((Activity)x);
-//		return x + " ! " + ni.getLabel(x.owlObject);
-//	}
-//
-//	protected String render(Activity a) {
-//		String locStr = "";
-//		if (a.locations.size() > 0) {
-//			locStr = "LOCS: "+a.locations.toString();
-//		}
-//		return render(a.gene) + " :: " + render(a.typeOf)+ " ["+a.strength+"] "+locStr;
-//	}
-//	protected String renderActivityEdge(Edge<Activity,Activity> e) {
-//		return render(e.subject) + " --> " + render(e.object) + "  // "+e.type;
-//	}
-//	protected String renderPartonomyEdge(Edge<InstanceNode,InstanceNode> e) {
-//		return render(e.subject) + " -[PO]-> " + render(e.object) + "  // "+e.type;
-//	}
-//	
 
 
 }

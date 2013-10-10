@@ -110,6 +110,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	Set<OWLClass> activityClassSet;
 	public Set<OWLClass> processClassSet;
 	private Map<String,Set<OWLNamedIndividual>> activityByGene;
+	Double ccp = null; // cumulative
+
 
 	/**
 	 * M &sube; N x N, N = A &cup; P
@@ -211,22 +213,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 		activityClassSet = getReasoner().getSubClasses(getOWLClass(OBOUpperVocabulary.GO_molecular_function), false).getFlattened();
 		processClassSet = getReasoner().getSubClasses(getOWLClass(OBOUpperVocabulary.GO_biological_process), false).getFlattened();
-		for (OWLClass cls : g.getAllOWLClasses()) {
-			String ns = g.getNamespace(cls);
-			if (ns == null) ns = "";
 
-			// TODO - use reasoner
-			if (ns.equals("molecular_function")) {
-				activityClassSet.add(cls);
-			}
-			else if (ns.equals("biological_process")) {
-				processClassSet.add(cls);
-			}
-			else if (!ns.equals("cellular_component")) {
-				LOG.info("Adding "+cls+" to process subset - I assume anything not a CC or MF is a process");
-				// todo - make configurable. The default assumption is that phenotypes etc are treated as pathological process
-				processClassSet.add(cls);
-			}
+		for (OWLClass cls : this.getTboxOntology().getClassesInSignature(true)) {
 			String label = g.getLabel(cls);
 			if (label != "" && label != null)
 				labelMap.put(cls, label);
@@ -287,6 +275,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		//contextId = ogw.getIdentifier(processCls); // TODO
 		Collection<OWLNamedIndividual> generatedIndividuals = getGeneratedIndividuals();
 		generatedIndividuals = beforeSet; // better to use instance closure?
+		ccp = 1.0; // cumulative
 		//		generatedIndividuals = new HashSet<OWLNamedIndividual>();
 		//		// note: here ancestors may be sub-parts
 		//		for (OWLObject obj : ogw.getAncestorsReflexive(prototypeIndividualMap.get(processCls))) {
@@ -311,6 +300,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			LOG.info(" num inferred types = "+geneInferredTypes.size());
 
 			Double best = null;
+			Double cp = 1.0;
 			OWLClass bestActivityClass = null;
 			OWLClass bestParentClass = null;
 			OWLNamedIndividual bestParent = null;
@@ -328,6 +318,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 							Double pval;
 							try {
 								pval = calculatePairwiseEnrichment(activityCls, generatedCls);
+								cp = this.calculateConditionalProbaility(generatedCls, activityCls);
 								LOG.info("enrichment of "+getIdLabelPair(activityCls)+" IN: "+getIdLabelPair(generatedCls)+
 										" = "+pval);
 								// temp hack - e.g. frp1 ferric-chelate reductase in iron assimilation by reduction and transport
@@ -353,7 +344,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 				LOG.info(" DONE genIndivid="+getIdLabelPair(gi));
 			}
 
-			OWLNamedIndividual ai = addActivity(bestActivityClass, g);
+			OWLNamedIndividual ai = addActivity(bestActivityClass, g, best, cp);
+			ccp *= cp;
 			addPartOf(ai, bestParent);
 		}
 	}
@@ -384,7 +376,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		}
 	}
 
-	private OWLNamedIndividual addActivity(OWLClass bestActivityClass, String gene) {
+	private OWLNamedIndividual addActivity(OWLClass bestActivityClass, String gene, Double pval, Double cp) {
 		if (bestActivityClass == null) {
 			bestActivityClass =  getOWLDataFactory().getOWLClass(OBOUpperVocabulary.GO_molecular_function.getIRI());
 		}
@@ -413,6 +405,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			}
 			activityByGene.get(gene).add(ai);
 		}
+		label = label + " (pVal_uncorrected="+pval+", p(F|P)="+cp+")";
 		addOwlLabel(ai, label);
 
 		return ai;
@@ -703,7 +696,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		return getOWLDataFactory().getOWLClass(v.getIRI());
 	}
 
-	
+
 	private Set<OWLPropertyExpression> getInvolvedInRelations() {
 		Set<OWLPropertyExpression> rels = new HashSet<OWLPropertyExpression>();
 		rels.add(getObjectProperty(OBOUpperVocabulary.BFO_part_of));
