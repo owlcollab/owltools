@@ -57,9 +57,8 @@ public class LegoModelGeneratorTest extends OWLToolsTestBasics {
 		assertEquals(2, aboxImportsSize);
 		assertEquals(3, qboxImportsSize);
 
-		
+		LOG.info("#process classes in test = "+ni.processClassSet.size());
 		for (OWLClass p : ni.processClassSet) {
-			// TODO - this will only work for one gene at a time
 			if (!g.getIdentifier(p).equals("GO:0033215"))
 				continue;
 			
@@ -85,26 +84,7 @@ public class LegoModelGeneratorTest extends OWLToolsTestBasics {
 			for (String gene : seedGenes) {
 				writeln("  SEED="+render(gene));
 			}
-//			for (Activity a : ni.activityNetwork.activitySet) {
-//				writeln("    A="+render(a));
-//			}
-//			for (Edge<Activity, Activity> e : ni.activityNetwork.activityEdgeSet) {
-//				writeln("    E="+renderActivityEdge(e));
-//			}
-			/*
-			for (Edge<InstanceNode,InstanceNode> e : ni.partonomy.edgeSet) {
-				if (e.subject instanceof Activity) {
-					write("    MA=");
-				}
-				else {
-					write("    MP=");
-				}
 
-				writeln(renderPartonomyEdge(e));
-			}
-			*/
-			
-			//OWLOntology ont = ni.translateNetworkToOWL();
 			ni.extractModule();
 			OWLOntology ont = ni.getAboxOntology();
 			String pid = g.getIdentifier(p);
