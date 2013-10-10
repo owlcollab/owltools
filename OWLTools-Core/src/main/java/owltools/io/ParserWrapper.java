@@ -109,7 +109,7 @@ public class ParserWrapper {
 	public OWLOntology parse(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		if (iriString.endsWith(".obo"))
 			return parseOBO(iriString);
-		if (iriString.endsWith(".owl") || iriString.endsWith(".omn") || iriString.endsWith(".ofn") || iriString.endsWith(".owx") || iriString.endsWith(".ttl") || iriString.endsWith(".n3"))
+		if (iriString.endsWith(".owl") || iriString.endsWith(".omn") || iriString.endsWith(".ofn") || iriString.endsWith(".owx") || iriString.endsWith(".rdf") || iriString.endsWith(".ttl") || iriString.endsWith(".n3"))
 			return parseOWL(iriString);
 		if (isOboFile(iriString))
 			return parseOBO(iriString);
@@ -125,7 +125,7 @@ public class ParserWrapper {
 	    boolean isOboFile = false;
 	    for (int i=0; i<100; i++) {
 	    	String line = in.readLine();
-	    	if (line.startsWith("format-version:"))
+	    	if (line != null && line.startsWith("format-version:"))
 	    		isOboFile = true;
 	    }
 	    return isOboFile;
