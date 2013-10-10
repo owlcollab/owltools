@@ -340,5 +340,6 @@
 		<module>../OWLTools-Web</module>
 		<module>../OWLTools-NCBI</module>
 		<module>../OWLTools-Sim</module>
+		<module>../Lego</module>
 	</modules>
 </project>
