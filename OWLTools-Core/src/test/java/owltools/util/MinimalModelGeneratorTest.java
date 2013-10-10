@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -30,6 +31,8 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.OWLToolsTestBasics;
+import owltools.graph.OWLGraphWrapper;
+import owltools.io.ParserWrapper;
 
 /**
  */
@@ -40,11 +43,20 @@ public class MinimalModelGeneratorTest extends OWLToolsTestBasics {
 	OWLOntology tbox;
 	MinimalModelGenerator mmg;
 
+	// this test may disappeard
 	@Test
-	public void testGenerateAnatomy() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
-		m = OWLManager.createOWLOntologyManager();
-		tbox = m.loadOntologyFromOntologyDocument(getResource("basic-tbox.omn"));
+	public void testImports() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, OBOFormatParserException {
+		ParserWrapper pw = new ParserWrapper();
+		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("go-pombase-basicset.obo"));
+		tbox = g.getSourceOntology();
 		mmg = new MinimalModelGenerator(tbox, new org.semanticweb.HermiT.Reasoner.ReasonerFactory());
+		int aboxImportsSize = mmg.getAboxOntology().getImportsClosure().size();
+		int qboxImportsSize = mmg.getQueryOntology().getImportsClosure().size();
+
+		LOG.info("Abox ontology imports: "+aboxImportsSize);
+		LOG.info("Q ontology imports: "+qboxImportsSize);
+		assertEquals(2, aboxImportsSize);
+		assertEquals(3, qboxImportsSize);
 		OWLClass c = getClass("hand");
 		mmg.generateNecessaryIndividuals(c, true);
 		// TODO - check
@@ -53,6 +65,40 @@ public class MinimalModelGeneratorTest extends OWLToolsTestBasics {
 		mmg.generateNecessaryIndividuals(getClass("foot"), true);
 		save("basic-abox2");
 	}
+
+	@Test
+	public void testGenerateAnatomy() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		m = OWLManager.createOWLOntologyManager();
+		tbox = m.loadOntologyFromOntologyDocument(getResource("basic-tbox.omn"));
+		mmg = new MinimalModelGenerator(tbox, new org.semanticweb.HermiT.Reasoner.ReasonerFactory());
+		int aboxImportsSize = mmg.getAboxOntology().getImportsClosure().size();
+		int qboxImportsSize = mmg.getQueryOntology().getImportsClosure().size();
+
+		LOG.info("Abox ontology imports: "+aboxImportsSize);
+		LOG.info("Q ontology imports: "+qboxImportsSize);
+		assertEquals(2, aboxImportsSize);
+		assertEquals(3, qboxImportsSize);
+		OWLClass c = getClass("hand");
+		mmg.generateNecessaryIndividuals(c, true);
+		// TODO - check
+		save("basic-abox");
+		
+		mmg.generateNecessaryIndividuals(getClass("foot"), true);
+		save("basic-abox2");
+	}
+	
+	@Test
+	public void testGenerateAnatomySameOntology() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		m = OWLManager.createOWLOntologyManager();
+		tbox = m.loadOntologyFromOntologyDocument(getResource("basic-tbox.omn"));
+		//OWLReasoner reasoner = new org.semanticweb.HermiT.Reasoner.ReasonerFactory().createReasoner(tbox);
+		mmg = new MinimalModelGenerator(tbox, tbox, new ElkReasonerFactory());
+		OWLClass c = getClass("hand");
+		mmg.generateNecessaryIndividuals(c, true);
+		// TODO - check
+		save("basic-abox-v2");
+	}
+
 	
 	@Test
 	public void testGenerateGlycolysis() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
@@ -73,6 +119,7 @@ public class MinimalModelGeneratorTest extends OWLToolsTestBasics {
 		m = OWLManager.createOWLOntologyManager();
 		tbox = m.loadOntologyFromOntologyDocument(getResource("basic-tbox.omn"));
 		mmg = new MinimalModelGenerator(tbox, new org.semanticweb.HermiT.Reasoner.ReasonerFactory());
+		//mmg.setPrecomputePropertyClassCombinations(false);
 		OWLClass c = getClass("bar_response_pathway");
 		mmg.generateNecessaryIndividuals(c, true);
 		// TODO - check
@@ -91,8 +138,6 @@ public class MinimalModelGeneratorTest extends OWLToolsTestBasics {
 		OWLOntology mont = m.createOntology(IRI.create("hhtp://x.org/merged"), onts);
 		save("pathway-abox-merged", mont);
 	}
-
-
 
 	@Test
 	public void testMSC() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
