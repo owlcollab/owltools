@@ -805,7 +805,7 @@ sub get_ont_info {
          xao => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'http://xenopus-anatomy-ontology.googlecode.com/svn/trunk/src/ontology/xenopus_anatomy_edit.obo',
+             source_url => 'https://xenopus-anatomy-ontology.googlecode.com/svn/trunk/current-release/xenopus_anatomy.obo',
          },
          mat => {
              method => 'obo2owl',
@@ -1018,7 +1018,7 @@ sub get_ont_info {
          so => {
              notes => 'SWITCH',
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/genomic-proteomic/so.obo',
+             source_url => 'https://sourceforge.net/p/song/svn/HEAD/tree/trunk/so-xp.obo?format=raw',
          },
          hp => {
              method => 'obo2owl',
