@@ -16,6 +16,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -236,7 +237,10 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		//inferLocations();
 		connectGraph();
 		normalizeDirections();
+		combineMultipleEnablers();
 	}
+
+
 	public void buildNetwork(String processClsId, Set<String> seedGenes) throws OWLOntologyCreationException {
 		OWLClass processCls = ogw.getOWLClassByIdentifier(processClsId);
 		buildNetwork(processCls, seedGenes);
@@ -413,12 +417,6 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 
 
-
-
-
-
-
-
 	/**
 	 * Add default edges based on PPI network
 	 *  
@@ -467,7 +465,42 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 	}
 
+	private void combineMultipleEnablers() {
 
+		OWLObjectPropertyExpression enabledBy = this.getObjectProperty(OBOUpperVocabulary.GOREL_enabled_by);
+		for (OWLNamedIndividual i : getAboxOntology().getIndividualsInSignature(false)) {
+			Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+			Set<OWLClassExpression> xs = new HashSet<OWLClassExpression>();
+			for (OWLAxiom ax : getAboxOntology().getAxioms(i)) {
+
+				if (ax instanceof OWLClassAssertionAxiom) {
+					LOG.info("TESTING:"+ax);
+					OWLClassAssertionAxiom caa = (OWLClassAssertionAxiom)ax;
+					if (caa.getClassExpression().getObjectPropertiesInSignature().contains(enabledBy)) {
+						rmAxioms.add(ax);
+						if (caa.getClassExpression() instanceof OWLObjectSomeValuesFrom) {
+							xs.add(((OWLObjectSomeValuesFrom)caa.getClassExpression()).getFiller());
+						}
+						else {
+							LOG.warn("Hmmmm"+caa);
+							//xs.add(caa.getClassExpression());
+						}
+					}
+				}
+			}
+			if (xs.size() > 1) {
+				LOG.info("Concatenating enables for "+getIdLabelPair(i));
+				getOWLOntologyManager().removeAxioms(this.getAboxOntology(), rmAxioms);
+				addAxiom(
+						getOWLDataFactory().getOWLClassAssertionAxiom(
+								getOWLDataFactory().getOWLObjectSomeValuesFrom(
+										enabledBy,
+										getOWLDataFactory().getOWLObjectUnionOf(xs)
+										),
+										i));
+			}
+		}
+	}
 
 
 
