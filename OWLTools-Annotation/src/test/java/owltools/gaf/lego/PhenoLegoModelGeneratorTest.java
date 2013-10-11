@@ -63,8 +63,10 @@ public class PhenoLegoModelGeneratorTest extends AbstractLegoModelGeneratorTest 
 
 		LOG.info("#process classes in test = "+ni.processClassSet.size());
 		//assertEquals(37, ni.processClassSet.size());
-		for (OWLClass p : ni.processClassSet) {
-			if (g.getIdentifier(p) != null && !g.getIdentifier(p).equals("GO:0014029"))
+		
+		
+		for (OWLClass p : ni.getTboxOntology().getClassesInSignature(true)) {
+			if (g.getIdentifier(p) != null && !g.getIdentifier(p).equals("DOID:14330"))
 				continue;			
 			int nSups = ni.getReasoner().getSuperClasses(p, false).getFlattened().size();
 			LOG.info("supers(p) = "+nSups);
