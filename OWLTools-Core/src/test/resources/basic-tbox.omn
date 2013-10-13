@@ -7,6 +7,7 @@ Prefix: : <http://x.org/>
 
 ObjectProperty: part_of InverseOf: has_part Characteristics: transitive
 ObjectProperty: has_part
+
 ObjectProperty: starts_with SubPropertyOf: has_part
 ObjectProperty: ends_with SubPropertyOf: has_part
 ObjectProperty: activates
@@ -17,7 +18,7 @@ ObjectProperty: occurs_in: Annotations: rdfs:label "occurs in" SubPropertyChain:
 ObjectProperty: directly_activates SubPropertyOf: activates
 ObjectProperty: indirectly_activates SubPropertyOf: activates Characteristics: transitive ### SubPropertyChain: activates o activates
 
-
+## LIMB ONTOLOGY
 Class: limb SubClassOf: part_of some organism
 Class: forelimb SubClassOf: limb
 Class: hindlimb SubClassOf: limb
@@ -25,10 +26,17 @@ Class: autopod SubClassOf: part_of some limb, has_part some digit
 Class: hand EquivalentTo: autopod and part_of some forelimb
 Class: foot EquivalentTo: autopod and part_of some hindlimb
 Class: digit
-Class: organism
 Class: finger EquivalentTo: digit and part_of some hand
 Class: toe EquivalentTo: digit and part_of some foot
+Class: human SubClassOf: organism, has_part some forelimb, has_part some hindlimb
+Class: organism
 
+## wish we could do GCIs in manchester...
+Class: _human_limb EquivalentTo: limb and part_of some human SubClassOf: has_part some autopod
+Class: _human_autopod EquivalentTo: autopod and part_of some human
+
+
+## PATHWAY ONTOLOGY
 Class: obo:GO_0008150
 Class: phosphorylation SubClassOf: cellular_process
 Class: regulation SubClassOf: obo:GO_0008150
