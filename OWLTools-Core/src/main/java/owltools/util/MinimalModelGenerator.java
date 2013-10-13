@@ -1333,7 +1333,8 @@ public class MinimalModelGenerator {
 	private Set<OWLIndividual> getDirectOutgoingIndividuals(OWLIndividual i,
 			OWLObjectPropertyExpression p) {
 		// TODO - subproperties
-		Set<OWLIndividual> results = i.getObjectPropertyValues(p, aboxOntology);
+		Set<OWLIndividual> results = new HashSet<OWLIndividual>(
+				i.getObjectPropertyValues(p, aboxOntology));
 		for (OWLObjectPropertyExpression invProp : getInverseObjectProperties(p)) {
 			// todo - make this more efficient
 			LOG.info(" invP="+invProp);
