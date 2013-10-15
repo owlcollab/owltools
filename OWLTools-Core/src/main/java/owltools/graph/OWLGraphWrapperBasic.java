@@ -169,13 +169,13 @@ public class OWLGraphWrapperBasic {
 	
 	public void addImportsFromSupportOntologies() {
 		OWLOntology sourceOntology = getSourceOntology();
-		OWLOntologyManager manager = getManager();
 		OWLDataFactory factory = getDataFactory();
 		for (OWLOntology  o : getSupportOntologySet()) {
-			OWLImportsDeclaration importsDeclaration = factory.getOWLImportsDeclaration(o.getOntologyID().getOntologyIRI());
+			OWLImportsDeclaration importsDeclaration = 
+					factory.getOWLImportsDeclaration(o.getOntologyID().getOntologyIRI());
 			AddImport ai = new AddImport(sourceOntology, importsDeclaration);
 			LOG.info("Applying: "+ai);
-			manager.applyChange(ai);
+			getManager().applyChange(ai);
 		}
 		this.setSupportOntologySet(new HashSet<OWLOntology>());
 	}
