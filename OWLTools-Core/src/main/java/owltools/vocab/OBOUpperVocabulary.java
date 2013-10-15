@@ -27,7 +27,7 @@ public enum OBOUpperVocabulary {
 	final OBONamespaces namespace;
 	final String id;
 	
-	static final String OBO = "http://purl.obolibrary.org/obo/";
+	public static final String OBO = "http://purl.obolibrary.org/obo/";
 	
 	OBOUpperVocabulary(OBONamespaces ns, String id) {
 		this.namespace = ns;
