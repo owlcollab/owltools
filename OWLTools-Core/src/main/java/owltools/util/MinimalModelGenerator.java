@@ -135,18 +135,18 @@ public class MinimalModelGenerator {
 	 * @throws OWLOntologyCreationException
 	 */
 	@Deprecated
-	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasoner reasoner) throws OWLOntologyCreationException {
-		tboxOntology = tbox;
-		aboxOntology = abox;
-		if (reasoner != null) {
-			this.reasoner = reasoner;
-			reasonerFactory = null;
-		}
-		else {
-			reasonerFactory  = new ElkReasonerFactory();
-		}
-		init();
-	}
+//	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasoner reasoner) throws OWLOntologyCreationException {
+//		tboxOntology = tbox;
+//		aboxOntology = abox;
+//		if (reasoner != null) {
+//			this.reasoner = reasoner;
+//			reasonerFactory = null;
+//		}
+//		else {
+//			reasonerFactory  = new ElkReasonerFactory();
+//		}
+//		init();
+//	}
 
 	/**
 	 * Creates a generator with a pre-defined tbox (ontology) and abox (instance store).
@@ -180,6 +180,14 @@ public class MinimalModelGenerator {
 	 */
 	public void setAssertInverses(boolean isAssertInverses) {
 		this.isAssertInverses = isAssertInverses;
+	}
+	
+	
+	public boolean isRemoveAmbiguousIndividuals() {
+		return isRemoveAmbiguousIndividuals;
+	}
+	public void setRemoveAmbiguousIndividuals(boolean isRemoveAmbiguousIndividuals) {
+		this.isRemoveAmbiguousIndividuals = isRemoveAmbiguousIndividuals;
 	}
 	/**
 	 * Initialization consists of:
@@ -239,11 +247,13 @@ public class MinimalModelGenerator {
 	private OWLReasoner createReasoner() {
 		// reasoner -> query -> abox -> tbox
 		if (reasoner == null) {
-			LOG.info("Creating reasoner on "+queryOntology);
+			LOG.info("Creating reasoner on "+queryOntology+" ImportsClosure="+
+					queryOntology.getImportsClosure());
 			reasoner = reasonerFactory.createReasoner(queryOntology);
 		}
 		else {
 			LOG.info("reusing reasoner: "+reasoner);
+			LOG.warn("check reasoning is pointing to query ontology");
 		}
 		return reasoner;
 	}
@@ -608,7 +618,7 @@ public class MinimalModelGenerator {
 		Collection<OWLNamedIndividual> individuals = this.getGeneratedIndividuals();
 		for (OWLNamedIndividual targetSpecificPrototype : individuals) {
 			// e.g. forelimb (target)
-			LOG.info(" testing SPECIFIC target prototype (to be merged into): "+targetSpecificPrototype);
+			//LOG.info(" testing SPECIFIC target prototype (to be merged into): "+targetSpecificPrototype);
 
 			// e.g. limb (candidate merge: limb -> forelimb)
 			Set<OWLClass> mergeClassCandidates = 
@@ -637,13 +647,13 @@ public class MinimalModelGenerator {
 				// avoid splits: check if a merge has already been proposed for the source
 				if (mergeMap.containsKey(sourceGenericPrototype)) {
 
-					LOG.info("  considering pushing down: "+sourceGenericPrototype);
+					//LOG.info("  considering pushing down: "+sourceGenericPrototype);
 
 					// Test if generic class already slated for merging;
 					// e.g. src = limb, tgt = forelimb, existing = hindlimb
 					OWLNamedIndividual existingTargetPrototype =
 							mergeMap.get(sourceGenericPrototype);
-					LOG.info("    existingTgt = "+existingTargetPrototype);
+					//LOG.info("    existingTgt = "+existingTargetPrototype);
 					
 					Set<OWLClass> existingInferredTypes =reasoner.getTypes(existingTargetPrototype, false).getFlattened();
 
@@ -1024,7 +1034,7 @@ public class MinimalModelGenerator {
 
 		reasoner.flush();
 
-		if (isPrecomputePropertyClassCombinations) {
+		if (isPrecomputePropertyClassCombinations()) {
 			LOG.info("Precomputing all OP x Class combos");
 			// cross-product of P x C
 			// TODO - reflexivity and local reflexivity?
@@ -1191,7 +1201,7 @@ public class MinimalModelGenerator {
 	/**
 	 * @return data factory for tbox
 	 */
-	protected OWLDataFactory getOWLDataFactory() {
+	public OWLDataFactory getOWLDataFactory() {
 		return getOWLOntologyManager().getOWLDataFactory();
 	}
 
@@ -1296,7 +1306,7 @@ public class MinimalModelGenerator {
 		for (OWLNamedIndividual i : aboxOntology.getIndividualsInSignature()) {
 			Set<OWLIndividual> redundant = new HashSet<OWLIndividual>();
 			Set<OWLIndividual> js = getIndividualsInProperPath(i, p);
-			LOG.info("PATH("+i+") ==> "+js);
+			//LOG.info("PATH("+i+") ==> "+js);
 			for (OWLIndividual j : js) {
 				redundant.addAll(getIndividualsInProperPath(j, p));
 			}
@@ -1326,6 +1336,7 @@ public class MinimalModelGenerator {
 			nextSet.removeAll(visited);
 			stack.addAll(nextSet);
 			results.addAll(nextSet);
+			visited.addAll(nextSet);
 		}
 		return results;
 	}
