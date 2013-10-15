@@ -39,13 +39,18 @@ public class PropertyExtractor {
 	boolean isExpansive = true;
 	public boolean isCreateShorthand = true;
 
+	/**
+	 * Creates a new PE object
+	 * 
+	 * @param propertyOntology - the ontology in which source properties are declared, annotated and axiomatized
+	 */
 	public PropertyExtractor(OWLOntology propertyOntology) {
 		super();
 		this.propertyOntology = propertyOntology;
 	}
 	/**
-	 * @param propertyOntology
-	 * @param mainOntology
+	 * @param propertyOntology - the ontology in which source properties are declared, annotated and axiomatized
+	 * @param mainOntology - the ontology is which the properties are used (for example, in ObjectSomeValuesFrom axioms)
 	 */
 	public PropertyExtractor(OWLOntology propertyOntology,
 			OWLOntology mainOntology) {
@@ -60,6 +65,12 @@ public class PropertyExtractor {
 		return extractPropertyOntology(iri);
 	}
 
+	/**
+	 * 
+	 * @param newIRI
+	 * @return
+	 * @throws OWLOntologyCreationException
+	 */
 	public OWLOntology extractPropertyOntology(IRI newIRI) throws OWLOntologyCreationException {
 		Set<OWLProperty> props = new HashSet<OWLProperty>();
 		for (OWLObjectProperty p : mainOntology.getObjectPropertiesInSignature(true)) {
@@ -74,6 +85,16 @@ public class PropertyExtractor {
 		return extractPropertyOntology(newIRI);
 	}
 	
+	/**
+	 * Returns a new ontology containing declarations for each prop in props,
+	 * its closure,
+	 * together with associated axioms
+	 * 
+	 * @param newIRI
+	 * @param props
+	 * @return
+	 * @throws OWLOntologyCreationException
+	 */
 	public OWLOntology extractPropertyOntology(IRI newIRI, Set<OWLProperty> props) throws OWLOntologyCreationException {
 
 		OWLGraphWrapper g = new OWLGraphWrapper(propertyOntology);
