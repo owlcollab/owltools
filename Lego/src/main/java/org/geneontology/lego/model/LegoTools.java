@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.vocab.OBOUpperVocabulary;
 
 /**
  * Tool to convert the OWL representation of annotations into the rendering model.
@@ -48,7 +49,7 @@ public class LegoTools {
 	 * @param reasoner
 	 */
 	public LegoTools(OWLGraphWrapper graph, OWLReasoner reasoner) {
-		this(graph, reasoner, false);
+		this(graph, reasoner, true);
 	}
 	
 	/**
@@ -58,15 +59,16 @@ public class LegoTools {
 	 */
 	public LegoTools(OWLGraphWrapper graph, OWLReasoner reasoner, boolean ignoreUnknownTypes) {
 		this(graph, reasoner,
-			findProperties(graph, "http://purl.obolibrary.org/obo/enabled_by"), // enabled_by
+			findProperties(graph, "http://purl.obolibrary.org/obo/enabled_by", OBOUpperVocabulary.GOREL_enabled_by.toString()), // enabled_by
 			findProperties(graph, 
 					"http://purl.obolibrary.org/obo/BFO_0000066", // occurs_in 
-					"http://purl.obolibrary.org/obo/occurs_in"),
+					"http://purl.obolibrary.org/obo/occurs_in",
+					OBOUpperVocabulary.BFO_occurs_in.toString()),
 			findProperties(graph, 
 					"http://purl.obolibrary.org/obo/BFO_0000050", // part_of
 					"http://purl.obolibrary.org/obo/part_of"),
-			graph.getOWLClassByIdentifier("GO:0003674"), // molecular function 
-			graph.getOWLClassByIdentifier("GO:0008150"), // biological process
+			graph.getOWLClass(OBOUpperVocabulary.GO_molecular_function.getIRI()), // molecular function 
+			graph.getOWLClass(OBOUpperVocabulary.GO_biological_process.getIRI()), // biological process
 			ignoreUnknownTypes);
 	}
 
@@ -182,8 +184,9 @@ public class LegoTools {
 			type = mf;
 		}
 		LegoNode node = new LegoNode(individual, type);
-		final NodeSet<OWLClass> superClasses = reasoner.getSuperClasses(type, false);
-		if (superClasses.containsEntity(mf) || mf.equals(type)) {
+		
+		final NodeSet<OWLClass> superClasses = reasoner.getTypes(individual, false);
+		if (mf == null || superClasses.containsEntity(mf)) {
 			// is a molecular function
 			node.setMf(true);
 			
