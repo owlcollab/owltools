@@ -143,13 +143,28 @@ public class OWLInAboxTranslator {
 	private Set<OWLObjectProperty> instanceLevelRelations = new HashSet<OWLObjectProperty>();
 	private Set<OWLNamedIndividual> instances = new HashSet<OWLNamedIndividual>();
 	private Map<IRI,IRI> propertyMap = new HashMap<IRI,IRI>();
-	private boolean isTranslateObjectProperty = true;
+	private boolean isTranslateObjectProperty = true; 
 	private boolean isTranslateSubClassToClassAssertion = false;
+	private boolean isPreserveObjectPropertyIRIs = false;
 
 	public OWLInAboxTranslator(OWLOntology ontology) {
 		super();
 		this.ontology = ontology;
 	}
+	
+	
+
+	public boolean isPreserveObjectPropertyIRIs() {
+		return isPreserveObjectPropertyIRIs;
+	}
+
+
+
+	public void setPreserveObjectPropertyIRIs(boolean isPreserveObjectPropertyIRIs) {
+		this.isPreserveObjectPropertyIRIs = isPreserveObjectPropertyIRIs;
+	}
+
+
 
 	/**
 	 * @return new ontology containing ABox shadow of original ontology
@@ -384,7 +399,14 @@ public class OWLInAboxTranslator {
 	}
 
 	private OWLObjectPropertyExpression trTypeLevel(IRI iri) {
-		return getOWLDataFactory().getOWLObjectProperty(IRI.create(iri.toString()+"TLR"));
+		IRI tlrIRI;
+		if (isPreserveObjectPropertyIRIs) {
+			tlrIRI = iri;
+		}
+		else {
+			tlrIRI = IRI.create(iri.toString()+"TLR");
+		}
+		return getOWLDataFactory().getOWLObjectProperty(tlrIRI);
 	}
 
 	/**
