@@ -837,7 +837,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				}
 			}
 	
-			if (config.isCacheClosure) {
+			if (config.isCacheClosure && overProperties == null) {
 				inferredEdgeBySource.put(s, new HashSet<OWLGraphEdge>(closureSet));
 			}
 			profiler.endTaskNotify("getOutgoingEdgesClosure");
