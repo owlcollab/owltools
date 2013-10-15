@@ -458,11 +458,11 @@ public class PropertyViewOntologyBuilder {
 			OWLClass vc = owlDataFactory.getOWLClass(vcIRI);
 			classToViewClass.put(c, vc);
 			viewClassToClass.put(vc, c);
-			LOG.info("C -> C' : "+c+" -> "+vc);
+			//LOG.info("C -> C' : "+c+" -> "+vc);
 			OWLObjectSomeValuesFrom vx = owlDataFactory.getOWLObjectSomeValuesFrom(viewProperty, c);
 			OWLEquivalentClassesAxiom eca = 
 				owlDataFactory.getOWLEquivalentClassesAxiom(vc, vx);
-			LOG.info("Adding equiv axiom to "+assertedViewOntology);
+			//LOG.info("Adding equiv axiom to "+assertedViewOntology);
 			owlOntologyManager.addAxiom(assertedViewOntology, eca);
 
 			for (List<OWLObjectPropertyExpression> chain : chains) {
@@ -502,7 +502,7 @@ public class PropertyViewOntologyBuilder {
 					owlDataFactory.getOWLObjectSomeValuesFrom(viewProperty, c);
 				OWLSubClassOfAxiom sca = owlDataFactory.getOWLSubClassOfAxiom(c, svf);
 				owlOntologyManager.addAxiom(assertedViewOntology, sca);
-				LOG.info("REFLEXIVE: "+sca);
+				//LOG.info("REFLEXIVE: "+sca);
 			}
 		}		
 	}
