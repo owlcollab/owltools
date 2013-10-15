@@ -686,6 +686,10 @@ public class MinimalModelGenerator {
 		// perform merge
 		Set<OWLClass> staleClasses = new HashSet<OWLClass>();
 
+		// TODO - a more elegant way to do this is to first to start without assumptions of individual
+		// distinctness or identity, incrementally added sameAs axioms (based on heuristics and user params)
+		// testing for inconsistency with each step.
+		// as a final step all sameAs axioms could be merged using the OER
 		OWLEntityRenamer renamer = new OWLEntityRenamer(aboxOntology.getOWLOntologyManager(), 
 				Collections.singleton(aboxOntology));
 		for (OWLNamedIndividual sourceIndividual : mergeMap.keySet()) {
