@@ -1,3 +1,7 @@
+org.geneontology.lego.dot
+org.geneontology.lego.json
+org.geneontology.lego.model
+org.geneontology.lego.model2
 owltools
 owltools.cli
 owltools.cli.tools
@@ -37,5 +41,6 @@ owltools.sim2
 owltools.sim2.preprocessor
 owltools.solrj
 owltools.util
+owltools.vocab
 owltools.web
 owltools.yaml.golrconfig
