@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -36,34 +37,43 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
+import owltools.graph.OWLQuantifiedProperty;
 import owltools.util.MinimalModelGenerator;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
- * Generates a Ontological Functional Network (aka LEGO graph) for a process given an ontology and a set of annotations
+ * Generates a Functional Network (aka LEGO) graphß for a process given an ontology and a set of annotations.
+ * A process can be a 'normal' biological process (e.g. from GO) or a pathological process
+ * (we can treat MP as abnormal processes for the purposes of this analysis, or make a parallel ontology)
  * 
- * The input is a GO BP class and a set of genes (e.g. all genes involved in that BP), construct the most likely
+ * The input is a process class and a set of genes (e.g. all genes involved in that BP), construct the most likely
  * set of gene + activity-type (i.e. MF) pairs that are likely to be executed during this process.
  * Also infer causal relationships between gene-activity pairs based on PPI networks, annotation extensions.
  * 
- *  Finally, break the process into chunks, e.g. using has_part links.
+ * The network generation is broken into two steps
+ * 
+ * <li><i>Minimal Model Generation</i>, which generates a minimal set of individuals inferred to exist given the existence of the process class.
+ * <li>Model <i>Augmentation</I, in which statistical inferences are used to augment the above graph with best guesses about the roles performed
+ * by gene products during the process
  *  
  *  <h2>Definitions</h2>
  *  
  *  <ul>
  *  <li> G : set of genes/products (for a whole genome/organism)
- *  <li> T : set of all ontology classes and object properties
- *  <li> T<sup>A</sup> : all ontology classes in MF (activity) ontology
- *  <li> T<sup>P</sup> : all ontology classes in BP ontology
+ *  <li> T : set of all ontology classes and object properties (OWL TBox and RBox)
+ *  <li> T<sup>A</sup> : all ontology classes representing <i>atomic</i> processes, e.g. in MF (activity)
+ *  <li> T<sup>P</sup> : all ontology classes representing <i>non-atomic</i> processes, e.g. in BP ontology
  *  <li> A : set of all activity instances in a functional network. Each activity is a gene / activity-class pair. ie A &sube; G x T<sup>A</sup>
  *  <li> E : Optionally typed connections between activity instances. ie E &sube; A x A x T<sup>Rel</sup>
  *  <li> P : Set of all process instances. P &sube; T<sup>P</sup>
  *  <li> M : Merelogy (partonomy), from activity instances to process instances, and between process instances.  ie M &sube; A &cup; P x P
  *  </ul>
  *  
- *  <h2>Algorithm</h2>
+ *  <h2>Algorithm - TODO - REDOCUMENT</h2>
  *  
+ *  <h3>Inputs</h3>
  *  <ul>
  *  <li> {@link #seedGraph} - seed initial A
  *  <li> {@link #createPartonomy} - create partonomy P
@@ -107,6 +117,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	Set<String> populationGeneSet;
 	Map<Object,String> labelMap; 
 	Map<OWLClass,Set<String>> geneByInferredClsMap;
+	Map<OWLClass,Set<OWLClass>> anctesorMap;
 	HashMap<String, Set<OWLClass>> clsByGeneMap;
 	Set<OWLClass> activityClassSet;
 	public Set<OWLClass> processClassSet;
@@ -122,21 +133,21 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	OWLGraphWrapper ogw;
 
 
-
-
-
+	/**
+	 * @param tbox
+	 * @throws OWLOntologyCreationException
+	 */
 	public LegoModelGenerator(OWLOntology tbox) throws OWLOntologyCreationException {
 		super(tbox);
 	}
 
-
-	public LegoModelGenerator(OWLOntology tbox, OWLOntology abox,
-			OWLReasoner reasoner) throws OWLOntologyCreationException {
-		super(tbox, abox, reasoner);
-		// TODO Auto-generated constructor stub
-	}
-
-
+	/**
+	 * @param tbox
+	 * @param abox
+	 * @param rf
+	 * @throws OWLOntologyCreationException
+	 */
+	@Deprecated
 	public LegoModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasonerFactory rf)
 			throws OWLOntologyCreationException {
 		super(tbox, abox, rf);
@@ -144,6 +155,11 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	}
 
 
+	/**
+	 * @param tbox
+	 * @param abox
+	 * @throws OWLOntologyCreationException
+	 */
 	public LegoModelGenerator(OWLOntology tbox, OWLOntology abox)
 			throws OWLOntologyCreationException {
 		super(tbox, abox);
@@ -151,12 +167,21 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	}
 
 
+	/**
+	 * @param tbox
+	 * @param reasonerFactory
+	 * @throws OWLOntologyCreationException
+	 */
 	public LegoModelGenerator(OWLOntology tbox, OWLReasonerFactory reasonerFactory)
 			throws OWLOntologyCreationException {
 		super(tbox, reasonerFactory);
 		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * @param gafdoc
+	 * @param g
+	 */
 	public void initialize(GafDocument gafdoc, OWLGraphWrapper g) {
 		ogw = g;
 		geneByInferredClsMap = new HashMap<OWLClass,Set<String>>();
@@ -165,10 +190,12 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		labelMap = new HashMap<Object,String>();
 		proteinInteractionMap = new HashMap<String,Set<String>>();
 		activityByGene = new HashMap<String,Set<OWLNamedIndividual>>(); 
-		// TODO - set context from GAF Doc
 
-		this.setPrecomputePropertyClassCombinations(true);
-		Set<OWLPropertyExpression> rels = getInvolvedInRelations();
+		setRemoveAmbiguousIndividuals(false);
+
+		//this.setPrecomputePropertyClassCombinations(true);
+		Set<OWLPropertyExpression> rels = 
+				new HashSet<OWLPropertyExpression>(getInvolvedInRelations());
 
 		for (GeneAnnotation ann : gafdoc.getGeneAnnotations()) {
 			String c = ann.getCls();
@@ -178,6 +205,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			// special case : protein binding
 			if (c.equals("GO:0005515")) {
 				for (String b : ann.getWithExpression().split("\\|")) {
+					//LOG.info("Adding PPI based on WITH col");
 					addPPI(gene, b);
 				}
 				continue;
@@ -201,13 +229,15 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			clsByGeneMap.get(gene).add(cls);
 
 			//LOG.info("Finding ancestors of "+cls+" over "+rels);
-			for (OWLObject ancCls : g.getAncestorsReflexive(cls, rels)) { // TODO-rel
+			for (OWLObject ancCls : g.getAncestorsReflexive(cls, rels)) { // TODO-use reasoner
 				if (ancCls instanceof OWLClass) {
 					OWLClass anc = (OWLClass) ancCls;
-					//LOG.info("   "+gene + " => "+c+" => "+anc + " // "+ancCls);
-					if (!geneByInferredClsMap.containsKey(anc))
-						geneByInferredClsMap.put(anc, new HashSet<String>());
-					geneByInferredClsMap.get(anc).add(gene);	
+					if (!isQueryClass(anc)) {
+						//LOG.info("   "+gene + " => "+c+" => "+anc + " // "+ancCls);
+						if (!geneByInferredClsMap.containsKey(anc))
+							geneByInferredClsMap.put(anc, new HashSet<String>());
+						geneByInferredClsMap.get(anc).add(gene);
+					}
 				}
 			}
 		}
@@ -231,7 +261,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	 * @param seedGenes
 	 * @throws OWLOntologyCreationException 
 	 */
-	public void buildNetwork(OWLClass processCls, Set<String> seedGenes) throws OWLOntologyCreationException {
+	public void buildNetwork(OWLClass processCls, Collection<String> seedGenes) throws OWLOntologyCreationException {
 		generateNecessaryIndividuals(processCls, true);
 		addGenes(processCls, seedGenes);
 		//inferLocations();
@@ -241,12 +271,12 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	}
 
 
-	public void buildNetwork(String processClsId, Set<String> seedGenes) throws OWLOntologyCreationException {
+	public void buildNetwork(String processClsId, Collection<String> seedGenes) throws OWLOntologyCreationException {
 		OWLClass processCls = ogw.getOWLClassByIdentifier(processClsId);
 		buildNetwork(processCls, seedGenes);
 	}
 
-	public void addGenes(String processClsId, Set<String> seedGenes) throws OWLOntologyCreationException {
+	public void addGenes(String processClsId, Collection<String> seedGenes) throws OWLOntologyCreationException {
 		OWLClass processCls = ogw.getOWLClassByIdentifier(processClsId);
 		addGenes(processCls, seedGenes);
 	}
@@ -272,13 +302,57 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	 * @throws OWLOntologyCreationException 
 	 * @throws MathException 
 	 */
-	public void addGenes(OWLClass processCls, Set<String> seedGenes) throws OWLOntologyCreationException {
+	public void addGenes(OWLClass processCls, Collection<String> seedGenes) throws OWLOntologyCreationException {
 
 		LOG.info("Adding genes...");
-		Collection<OWLNamedIndividual> beforeSet = getGeneratedIndividuals();
+		// TODO - use only instance-level parts and regulators
+
+		Collection<OWLNamedIndividual> leafNodes = 
+				new HashSet<OWLNamedIndividual>();
+
+
+		Set<OWLObjectPropertyExpression> props = getInvolvedInRelations();
+		for (OWLNamedIndividual i : getGeneratedIndividuals()) {
+			boolean isOccurrent = false;
+			for (OWLClass c : getReasoner().getTypes(i, false).getFlattened()) {
+				if (c.getIRI().equals(OBOUpperVocabulary.GO_biological_process.getIRI())) {
+					isOccurrent = true;
+					break;
+				}
+				if (c.getIRI().equals(OBOUpperVocabulary.GO_molecular_function.getIRI())) {
+					isOccurrent = true;
+					break;
+				}
+			}
+			if (!isOccurrent) {
+				continue;
+			}
+
+			// note this has the potential to include individuals which p
+			// is part of - need to contain the scope here. For now, go liberal
+			//leafNodes.add(i);
+
+			boolean isInValidPath = false;
+			Set<OWLIndividual> path = getIndividualsInProperPath(i, props);
+			path.add(i); // reflexive
+			for (OWLIndividual m : path) {
+				if (m instanceof OWLNamedIndividual && getPrototypeClass((OWLNamedIndividual) m) != null) {
+					if (getPrototypeClass((OWLNamedIndividual) m).equals(processCls)) {
+						isInValidPath = true;
+						break;
+					}
+				}
+			}
+			LOG.info(" PPATH "+getIdLabelPair(i)+" "+path);
+			if (isInValidPath) {
+				LOG.info(" **VALID");
+				leafNodes.add(i);
+			}
+
+		}
+
+
 		//contextId = ogw.getIdentifier(processCls); // TODO
-		Collection<OWLNamedIndividual> generatedIndividuals = getGeneratedIndividuals();
-		generatedIndividuals = beforeSet; // better to use instance closure?
 		ccp = 1.0; // cumulative
 		//		generatedIndividuals = new HashSet<OWLNamedIndividual>();
 		//		// note: here ancestors may be sub-parts
@@ -289,6 +363,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 		//activityNetwork = new ActivityNetwork();
 		for (String g : seedGenes) {
+
 			LOG.info("  Seed gene="+getIdLabelPair(g));
 
 			// each gene, find it's most likely function and most direct process class.
@@ -298,35 +373,99 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 			Set<OWLClass> geneActivityTypes = getMostSpecificActivityTypes(g);
 
-			Set<OWLClass> geneProcessTypes = getMostSpecificProcessTypes(g);
+			//Set<OWLClass> geneProcessTypes = getMostSpecificProcessTypes(g);
 			Set<OWLClass> geneInferredTypes = getInferredTypes(g);
 
 			LOG.info(" num inferred types = "+geneInferredTypes.size());
+
+
+			// TODO - first find all other annotations for each gene
+			// and add these if relevant.
+			// E.g. in nodal pathway, Dand5 has 'sequestering of nodal from receptor via nodal binding'
+
+			Collection<OWLNamedIndividual> joinPoints = 
+					new HashSet<OWLNamedIndividual>();
+
+			Set<OWLClass> otherProcesses = getMostSpecificProcessTypes(g);
+			boolean isReset = false;
+			for (OWLClass c : otherProcesses) {
+				boolean isCandidate = false;
+				for (OWLGraphEdge edge : ogw.getOutgoingEdgesClosure(c)) {
+					if (edge.getTarget().equals(processCls)) {
+						isCandidate = true;
+						for (OWLObjectSomeValuesFrom r : getExistentialRelationships(c)) {
+							if (getReasoner().getSuperClasses(r.getFiller(), false).getFlattened().contains(processCls)) {
+								// should not cause a deepening
+								isCandidate = false;
+							}
+						}
+						// only use "pure" edges, no subclass, only involved in relations
+						// TODO - fix me - 
+						//						for (OWLQuantifiedProperty qp : edge.getQuantifiedPropertyList()) {
+						//							if (!(qp.isSomeValuesFrom() && 
+						//									getInvolvedInRelations().contains(qp.getProperty()))) {
+						//								isCandidate = false;
+						//								continue;
+						//							}
+						//						}
+					}
+				}
+				if (isCandidate) {
+					if (getReasoner().getSuperClasses(c, false).getFlattened().contains(processCls)) {
+						// skip
+						// todo - keep the information somehow that g is annotated to specific
+						// subtypes of c
+					}
+					else {
+						// experimenting with aggressive approach
+						OWLNamedIndividual newp = generateNecessaryIndividuals(c);
+						if (!isReset) {
+							isReset = true;
+							joinPoints = new HashSet<OWLNamedIndividual>();
+							//generatedIndividuals = new HashSet<OWLNamedIndividual>();
+						}
+						LOG.info(" Using more specific annotation: "+getIdLabelPair(c));
+						joinPoints.add(newp);
+					}
+				}
+			}
+			if (joinPoints.size() == 0) {
+				joinPoints.addAll(leafNodes);
+			}
+
 
 			Double best = null;
 			Double cp = 1.0;
 			OWLClass bestActivityClass = null;
 			OWLClass bestParentClass = null;
 			OWLNamedIndividual bestParent = null;
-			for (OWLNamedIndividual gi : generatedIndividuals) {
-				LOG.info(" genIndivid="+getIdLabelPair(gi));
-				for (OWLClass generatedCls : getReasoner().getTypes(gi, true).getFlattened()) {
-					LOG.info("  GenCls="+getIdLabelPair(generatedCls));
+			for (OWLNamedIndividual joinPoint : joinPoints) {
+				LOG.info(" candidate join point="+getIdLabelPair(joinPoint));
+				//OWLClass joinPointClass = getPrototypeClass(joinPoint);
+
+				//this seemed to be producing redundant types:
+				Set<OWLClass> jpcs = getReasoner().getTypes(joinPoint, true).getFlattened();
+				Set<OWLClass> rd = new HashSet<OWLClass>();
+				for (OWLClass jpc : jpcs) {
+					rd.addAll(getReasoner().getSuperClasses(jpc, false).getFlattened());
+				}
+				jpcs.removeAll(rd);
+				
+				for (OWLClass joinPointClass : jpcs) {
+					
 					// a gene must have been annotated to some descendant of generatedCls to be considered.
-					if (geneInferredTypes.contains(generatedCls)) {
+					if (geneInferredTypes.contains(joinPointClass)) {
 						for (OWLClass activityCls : geneActivityTypes ) {
-							// pr( G+F | P)
 							// note that generatedCls may be a MF, and may be a subclass,
 							// which case this would be 1.0
-							// todo - replace by hypergeometric test
 							Double pval;
 							try {
-								pval = calculatePairwiseEnrichment(activityCls, generatedCls);
-								cp = this.calculateConditionalProbaility(generatedCls, activityCls);
-								LOG.info("enrichment of "+getIdLabelPair(activityCls)+" IN: "+getIdLabelPair(generatedCls)+
+								pval = calculatePairwiseEnrichment(activityCls, joinPointClass);
+								cp = this.calculateConditionalProbaility(joinPointClass, activityCls);
+								LOG.info("enrichment of "+getIdLabelPair(activityCls)+" IN: "+getIdLabelPair(joinPointClass)+
 										" = "+pval);
 								// temp hack - e.g. frp1 ferric-chelate reductase in iron assimilation by reduction and transport
-								if (activityCls.equals(generatedCls)) {
+								if (activityCls.equals(joinPointClass)) {
 									pval = 0.0;
 								}
 
@@ -335,8 +474,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 									// TODO - pval == best
 									best = pval;
 									bestActivityClass = activityCls;
-									bestParentClass = generatedCls;
-									bestParent = gi;
+									bestParentClass = joinPointClass;
+									bestParent = joinPoint;
 								}
 							} catch (MathException e) {
 								// TODO Auto-generated catch block
@@ -344,22 +483,32 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 							}
 						}
 					}
+					else {
+						LOG.info("Skpping: "+getIdLabelPair(joinPointClass)+" -- not in geneInferredTypes");
+					}
 				}
-				LOG.info(" DONE genIndivid="+getIdLabelPair(gi));
+				//LOG.info(" DONE testIndivid="+getIdLabelPair(gi));
 			}
 
 			OWLNamedIndividual ai = addActivity(bestActivityClass, g, best, cp);
 			ccp *= cp;
-			addPartOf(ai, bestParent);
+			OWLObjectPropertyExpression relation = getObjectProperty(OBOUpperVocabulary.BFO_part_of);
+			LOG.info("Testing if "+getIdLabelPair(bestActivityClass) + " is under "+getIdLabelPair(bestParentClass));
+			if (bestActivityClass != null) {
+				if (getReasoner().getSubClasses(bestActivityClass, false).getFlattened().contains(bestParentClass) ||
+						getReasoner().getEquivalentClasses(bestActivityClass).getEntities().contains(bestParentClass)) {
+					LOG.info("Merging "+bestParent+" --> "+ai);
+					mergeInto(bestParent, ai);
+				}
+				else {
+					addEdge(ai, relation, bestParent);
+				}
+			}
 		}
+		collapseIndividuals();
 	}
 
 
-
-	private void addPartOf(OWLNamedIndividual p, OWLNamedIndividual w) {
-		OWLObjectPropertyExpression rel = this.getObjectProperty(OBOUpperVocabulary.BFO_part_of);
-		addEdge(p, rel, w);
-	}
 
 	private void addEdge(OWLNamedIndividual p, OWLObjectPropertyExpression rel, OWLNamedIndividual w) {
 		if (ogw.getAncestorsReflexive(p).contains(w)) {
@@ -385,6 +534,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			bestActivityClass =  getOWLDataFactory().getOWLClass(OBOUpperVocabulary.GO_molecular_function.getIRI());
 		}
 		OWLNamedIndividual ai = this.generateNecessaryIndividuals(bestActivityClass);
+		//this.collapseIndividuals();
 
 		String label = getLabel(bestActivityClass);
 		OWLClass geneProductClass = null;
@@ -432,13 +582,15 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			Set<OWLNamedIndividual> aset = lookupActivityByGene(p1);
 			if (aset == null || aset.size() == 0)
 				continue;
-			LOG.info("P1="+getIdLabelPair(p1));
+			//LOG.info("P1="+getIdLabelPair(p1));
 			for (String p2 : proteinInteractionMap.get(p1)) {
-				LOG.info(" P2="+getIdLabelPair(p2));
+				//LOG.info(" P2="+getIdLabelPair(p2));
 				Set<OWLNamedIndividual> aset2 = lookupActivityByGene(p2);
 				if (aset2 != null) {
+					// assumption: if P1 and P2 interact then their activities also interact
 					for (OWLNamedIndividual a1 : aset) {
 						for (OWLNamedIndividual a2 : aset2) {
+							LOG.info(" PPI-based edge: "+a1+" => "+a2);
 							addEdge(a1, getObjectProperty(OBOUpperVocabulary.GOREL_provides_input_for), a2); // TODO
 						}
 					}
@@ -474,7 +626,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			for (OWLAxiom ax : getAboxOntology().getAxioms(i)) {
 
 				if (ax instanceof OWLClassAssertionAxiom) {
-					LOG.info("TESTING:"+ax);
+					//LOG.info("TESTING:"+ax);
 					OWLClassAssertionAxiom caa = (OWLClassAssertionAxiom)ax;
 					if (caa.getClassExpression().getObjectPropertiesInSignature().contains(enabledBy)) {
 						rmAxioms.add(ax);
@@ -504,30 +656,18 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 
 
+	/**
+	 * Reroute all has_parts to part_ofs
+	 * 
+	 */
 	public void normalizeDirections() {
 		normalizeDirections(getObjectProperty(OBOUpperVocabulary.BFO_part_of));
+		normalizeDirections(getObjectProperty(OBOUpperVocabulary.BFO_occurs_in));
+		normalizeDirections(getObjectProperty(OBOUpperVocabulary.RO_starts));
+		normalizeDirections(getObjectProperty(OBOUpperVocabulary.RO_ends));
 	}
 
-	private void normalizeDirections(OWLObjectPropertyExpression p) {
-		LOG.info("Normalizing: "+p);
-		Set<OWLObjectPropertyExpression> invProps =
-				p.getInverses(getAboxOntology().getImportsClosure());
-		LOG.info("Inverse props: "+invProps);
-		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
-		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
-		for (OWLObjectPropertyAssertionAxiom opa : 
-			getAboxOntology().getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
-			if (invProps.contains(opa.getProperty())) {
-				LOG.info("  FLIPPING:"+opa);
-				rmAxioms.add(opa);
-				newAxioms.add(getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(p, 
-						opa.getObject(), opa.getSubject()));
 
-			}
-		}
-		getAboxOntology().getOWLOntologyManager().addAxioms(getAboxOntology(), newAxioms);
-		getAboxOntology().getOWLOntologyManager().removeAxioms(getAboxOntology(), rmAxioms);
-	}
 
 	///////////////////
 	//
@@ -596,13 +736,13 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	 */
 	public Set<OWLClass>  getMostSpecificActivityTypes(String g) {
 		Set<OWLClass> cset = getActivityTypes(g);
-		removeRedundant(cset, null);
+		removeRedundantOrHelper(cset, null);
 		return cset;
 	}
 
 	public Set<OWLClass>  getMostSpecificProcessTypes(String g) {
 		Set<OWLClass> cset = getProcessTypes(g);
-		removeRedundant(cset, null);
+		removeRedundantOrHelper(cset, null);
 		return cset;
 	}
 
@@ -614,10 +754,11 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 	public Set<OWLClass> getInferredTypes(String g) {
 		HashSet<OWLClass> cset = new HashSet<OWLClass>();
-		Set<OWLPropertyExpression> rels = this.getInvolvedInRelations();
+		Set<OWLPropertyExpression> rels = 
+				new HashSet<OWLPropertyExpression>(getInvolvedInRelations());
 		for (OWLClass c : clsByGeneMap.get(g)) {
 			for (OWLObject a : ogw.getAncestorsReflexive(c, rels)) { // TODO-rel
-				if (a instanceof OWLClass) {
+				if (a instanceof OWLClass && !isQueryClass((OWLClass) a)) {
 					cset.add((OWLClass) a);
 				}
 			}
@@ -625,7 +766,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		return cset;
 	}
 
-	public Set getInferredRelationshipsForGene(String g) {
+	public Set<OWLObjectSomeValuesFrom> getInferredRelationshipsForGene(String g) {
 		Set<OWLObjectSomeValuesFrom> results = new HashSet<OWLObjectSomeValuesFrom>();
 		HashSet<OWLClass> cset = new HashSet<OWLClass>(clsByGeneMap.get(g));
 		for (OWLClass c : cset) {
@@ -634,12 +775,13 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		return results;
 	}
 
-
-
-
-	private void removeRedundant(Set<OWLClass> cset, Set<OWLPropertyExpression> props) {
+	private void removeRedundantOrHelper(Set<OWLClass> cset, Set<OWLPropertyExpression> props) {
 		Set<OWLClass> allAncs = new HashSet<OWLClass>();
 		for (OWLClass c : cset) {
+			if (isQueryClass(c)) {
+				allAncs.add(c);
+				continue;
+			}
 			Set<OWLObject> ancClsSet = ogw.getAncestors(c, props);
 			for (OWLObject obj : ancClsSet) {
 				if (obj instanceof OWLClass) {
@@ -659,7 +801,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	 */
 	public Set<String> getGenes(OWLClass wholeCls) {
 		if (!geneByInferredClsMap.containsKey(wholeCls)) {
-			LOG.info("Nothing known about "+wholeCls);
+			//LOG.info("Nothing known about "+wholeCls);
 			return new HashSet<String>();
 		}
 		return new HashSet<String>(geneByInferredClsMap.get(wholeCls));
@@ -671,7 +813,6 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	public int getNumberOfGenes() {
 		return populationGeneSet.size();
 	}
-
 
 	// adds an (external) protein-protein interaction
 	private void addPPI(String a, String b) {
@@ -730,12 +871,15 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	}
 
 
-	private Set<OWLPropertyExpression> getInvolvedInRelations() {
-		Set<OWLPropertyExpression> rels = new HashSet<OWLPropertyExpression>();
+	private Set<OWLObjectPropertyExpression> getInvolvedInRelations() {
+		Set<OWLObjectPropertyExpression> rels = new HashSet<OWLObjectPropertyExpression>();
 		rels.add(getObjectProperty(OBOUpperVocabulary.BFO_part_of));
 		rels.add(getObjectProperty(OBOUpperVocabulary.RO_regulates));
+
+		// these should be inferred in the future:
 		rels.add(getObjectProperty(OBOUpperVocabulary.RO_negatively_regulates));
 		rels.add(getObjectProperty(OBOUpperVocabulary.RO_positively_regulates));
+		rels.add(getObjectProperty(OBOUpperVocabulary.RO_starts)); // sub of part_of
 		//rels.add(getObjectProperty(OBORelationsVocabulary.BFO_occurs_in));
 		return rels;
 	}
