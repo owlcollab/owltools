@@ -742,6 +742,10 @@ sub get_ont_info {
              method => 'owl2obo',
              source_url => ' http://purl.obolibrary.org/obo/flu.owl',
          },
+         epo => {
+             method => 'owl2obo',
+             source_url => ' http://purl.obolibrary.org/obo/epo.owl',
+         },
          to => {
              comment => 'switch to jenkins/archive',
              infallible => 1,
