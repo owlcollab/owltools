@@ -135,18 +135,18 @@ public class MinimalModelGenerator {
 	 * @throws OWLOntologyCreationException
 	 */
 	@Deprecated
-//	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasoner reasoner) throws OWLOntologyCreationException {
-//		tboxOntology = tbox;
-//		aboxOntology = abox;
-//		if (reasoner != null) {
-//			this.reasoner = reasoner;
-//			reasonerFactory = null;
-//		}
-//		else {
-//			reasonerFactory  = new ElkReasonerFactory();
-//		}
-//		init();
-//	}
+	//	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasoner reasoner) throws OWLOntologyCreationException {
+	//		tboxOntology = tbox;
+	//		aboxOntology = abox;
+	//		if (reasoner != null) {
+	//			this.reasoner = reasoner;
+	//			reasonerFactory = null;
+	//		}
+	//		else {
+	//			reasonerFactory  = new ElkReasonerFactory();
+	//		}
+	//		init();
+	//	}
 
 	/**
 	 * Creates a generator with a pre-defined tbox (ontology) and abox (instance store).
@@ -181,8 +181,8 @@ public class MinimalModelGenerator {
 	public void setAssertInverses(boolean isAssertInverses) {
 		this.isAssertInverses = isAssertInverses;
 	}
-	
-	
+
+
 	public boolean isRemoveAmbiguousIndividuals() {
 		return isRemoveAmbiguousIndividuals;
 	}
@@ -383,10 +383,10 @@ public class MinimalModelGenerator {
 	}
 
 
-	
+
 	private OWLNamedIndividual generateNecessaryIndividualsImpl(OWLClassExpression c, 
 			OWLNamedIndividual incomingSource, OWLObjectPropertyExpression incomingProperty) {
-		LOG.info("GNI type:"+c);
+		LOG.info("GNI type:"+c+" // src="+incomingSource+" via "+incomingProperty);
 		OWLNamedIndividual generatedIndividual;
 		if (prototypeIndividualMap.containsKey(c)) {
 			// we assume a single prototype per class;
@@ -451,7 +451,7 @@ public class MinimalModelGenerator {
 		}
 		return generatedIndividual;
 	}
-	
+
 	/**
 	 * Generates a graph of ABox axioms rooted at proto(c), where proto(c) is
 	 * the prototype individual of class c.
@@ -479,7 +479,7 @@ public class MinimalModelGenerator {
 	public OWLNamedIndividual generateNecessaryIndividuals(OWLClassExpression c, boolean isCollapse) {
 		return generateNecessaryIndividuals(c, isCollapse, true);
 	}
-	
+
 	/**
 	 * Calls {@link #generateNecessaryIndividuals(OWLClassExpression)}
 	 * 
@@ -566,10 +566,10 @@ public class MinimalModelGenerator {
 				true).getFlattened();
 		deeperClasses.addAll(reasoner.getEquivalentClasses(jExpr).getEntities());
 		for (OWLClass dc: deeperClasses) {
-			LOG.info(" Deepen_candidate="+dc);
 			// don't include artificial
 			if (queryClassMap.containsKey(dc))
 				continue;
+			//LOG.info(" Deepen_candidate="+dc);
 			if (reasoner.getSuperClasses(dc, false).getFlattened().contains(jType)) {
 				LOG.info("   DEEPENED_TO="+dc);
 				// must be more specific that original choice
@@ -609,7 +609,7 @@ public class MinimalModelGenerator {
 		// e.g. limb(limb-proto) -> forelimb(limb-proto)
 		Map<OWLNamedIndividual, OWLNamedIndividual> mergeMap = 
 				new HashMap<OWLNamedIndividual,OWLNamedIndividual>();
-		
+
 		// set of prototypes that are possibly ambiguous;
 		// e.g. limb -> {forelimb, hindlimb}
 		Set<OWLNamedIndividual> hasMultipleCandidates = new HashSet<OWLNamedIndividual>();
@@ -633,13 +633,13 @@ public class MinimalModelGenerator {
 				// only classes that correspond to a prototype
 				if (!prototypeIndividualMap.containsKey(sourceGenericClass))
 					continue;
-				
+
 				OWLNamedIndividual sourceGenericPrototype =
 						prototypeIndividualMap.get(sourceGenericClass);
-				
+
 				if (sourceGenericPrototype.equals(targetSpecificPrototype))
 					continue;
-				
+
 				// never merge owl:Thing, etc
 				if (isNeverMerge(sourceGenericClass))
 					continue;
@@ -654,7 +654,7 @@ public class MinimalModelGenerator {
 					OWLNamedIndividual existingTargetPrototype =
 							mergeMap.get(sourceGenericPrototype);
 					//LOG.info("    existingTgt = "+existingTargetPrototype);
-					
+
 					Set<OWLClass> existingInferredTypes =reasoner.getTypes(existingTargetPrototype, false).getFlattened();
 
 					// overwrite existing entity if more specific.
@@ -673,7 +673,7 @@ public class MinimalModelGenerator {
 						// this blocks the merge of s
 						Set<OWLClass> uniqueToTarget = new HashSet<OWLClass>(targetInferredTypes);
 						uniqueToTarget.removeAll(existingInferredTypes);
-						LOG.info("       DUAL TARGETS "+sourceGenericPrototype+ " ==> { "+existingTargetPrototype+" ==OR== "+targetSpecificPrototype+" } // "+uniqueToTarget);
+						LOG.info("       DUAL TARGETS "+sourceGenericPrototype+ " ==> { "+existingTargetPrototype+" ==OR== "+targetSpecificPrototype+" }");
 						hasMultipleCandidates.add(sourceGenericPrototype);
 					}
 				}
@@ -709,7 +709,7 @@ public class MinimalModelGenerator {
 			applyChanges(renamer.changeIRI(sourceIndividual.getIRI(),
 					targetIndividual.getIRI()));
 		}
-		
+
 		if (this.isRemoveAmbiguousIndividuals) {
 			for (OWLNamedIndividual i : hasMultipleCandidates) {
 				for (OWLClass c: prototypeIndividualMap.keySet()) {
@@ -729,10 +729,18 @@ public class MinimalModelGenerator {
 			}
 			aboxOntology.getOWLOntologyManager().removeAxioms(aboxOntology, rmAxioms);
 		}
-		
+
 		for (OWLClass c : staleClasses)
 			prototypeIndividualMap.remove(c);
 
+	}
+	
+	protected boolean mergeInto(OWLNamedIndividual src, OWLNamedIndividual tgt) {
+		OWLEntityRenamer renamer = new OWLEntityRenamer(aboxOntology.getOWLOntologyManager(), 
+				Collections.singleton(aboxOntology));
+		applyChanges(renamer.changeIRI(src.getIRI(),
+				tgt.getIRI()));
+		return true;
 	}
 
 	private boolean isNeverMerge(OWLClass c) {
@@ -938,6 +946,7 @@ public class MinimalModelGenerator {
 	 * @param c
 	 * @return
 	 */
+
 	protected Set<OWLObjectSomeValuesFrom> getExistentialRelationships(OWLNamedIndividual ind) {
 		//LOG.info("Querying: "+c);
 		if (queryClassMap == null) {
@@ -951,9 +960,9 @@ public class MinimalModelGenerator {
 		// all supers (direct and indirect)
 		Set<OWLClass> supers = reasoner.getTypes(ind, false).getFlattened();
 		LOG.info("Supers for "+ind+" is "+supers.size());
-		for (OWLClass sup : supers) {
-			LOG.info(" SUP(unfiltered)="+sup);
-		}
+		//for (OWLClass sup : supers) {
+		//LOG.info(" SUP(unfiltered)="+sup);
+		//}
 
 		// we only case about expressions in the query ontology, which should have
 		// all expressions required
@@ -968,10 +977,10 @@ public class MinimalModelGenerator {
 
 		// map from materialized class to original expression
 		for (OWLClass s : nrSet) {
-			LOG.info(" SUP:"+s);
+			//LOG.info(" SUP:"+s);
 			OWLClassExpression x = queryClassMap.get(s);
 			if (x instanceof OWLObjectSomeValuesFrom) {
-				LOG.info("  Result:"+x);
+				//LOG.info("  Result:"+x);
 				results.add((OWLObjectSomeValuesFrom)x);
 			}
 			else {
@@ -981,7 +990,10 @@ public class MinimalModelGenerator {
 		return results;
 	}
 
-	protected Set<OWLObjectSomeValuesFrom> getExistentialRelationships(OWLClass c) {
+	protected Set<OWLObjectSomeValuesFrom> getExistentialRelationships(OWLClassExpression c) {
+		return getExistentialRelationships(c, true);
+	}
+	protected Set<OWLObjectSomeValuesFrom> getExistentialRelationships(OWLClassExpression c, boolean isDirect) {
 		//LOG.info("Querying: "+c);
 		if (queryClassMap == null) {
 			// TODO - document assumption that tbox does not change
@@ -1001,13 +1013,15 @@ public class MinimalModelGenerator {
 
 		// use only classes that are non-redundant (within QSet)
 		Set<OWLClass> nrSet = new HashSet<OWLClass>(supers);
-		for (OWLClass s : supers) {
-			nrSet.removeAll(reasoner.getSuperClasses(s, false).getFlattened());
+		if (isDirect) {
+			for (OWLClass s : supers) {
+				nrSet.removeAll(reasoner.getSuperClasses(s, false).getFlattened());
+			}
 		}
 
 		// map from materialized class to original expression
 		for (OWLClass s : nrSet) {
-			LOG.info(" SUP:"+s);
+			//LOG.info(" SUP:"+s);
 			OWLClassExpression x = queryClassMap.get(s);
 			if (x instanceof OWLObjectSomeValuesFrom) {
 				//LOG.info("  Result:"+x);
@@ -1020,6 +1034,26 @@ public class MinimalModelGenerator {
 		return results;
 	}
 
+	public Set<OWLClassExpression> getSuperClassExpressions(OWLClassExpression x, boolean isDirect) {
+		Set<OWLClassExpression> results = new HashSet<OWLClassExpression>(getExistentialRelationships(x, isDirect));
+		Set<OWLClass> supers = new HashSet<OWLClass>(getReasoner().getSuperClasses(x, false).getFlattened());
+		supers.removeAll(queryClassMap.keySet());
+		Set<OWLClass> nrSet = new HashSet<OWLClass>(supers);
+		if (isDirect) {
+			for (OWLClass s : supers) {
+				nrSet.removeAll(reasoner.getSuperClasses(s, false).getFlattened());
+			}
+		}
+	    results.addAll(nrSet);
+		return results;
+	}
+
+	protected boolean isQueryClass(OWLClass c) {
+		if (queryClassMap != null && queryClassMap.containsKey(c)) {
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * <b>Motivation</b>: OWL reasoners do not return superclass expressions
@@ -1125,7 +1159,7 @@ public class MinimalModelGenerator {
 				getFactAxioms(sourceIndividual, property, targetIndividual, isAssertInverses());
 		addAxioms(axioms);
 	}
-	
+
 	private Set<OWLObjectPropertyAssertionAxiom> getFactAxioms(OWLNamedIndividual sourceIndividual,
 			OWLObjectPropertyExpression property,
 			OWLNamedIndividual targetIndividual,
@@ -1286,7 +1320,7 @@ public class MinimalModelGenerator {
 		getAboxOntology().getOWLOntologyManager().addAxioms(getAboxOntology(), newAxioms);
 		getAboxOntology().getOWLOntologyManager().removeAxioms(getAboxOntology(), rmAxioms);
 	}
-	
+
 	public void performTransitiveReduction() {
 		for (OWLObjectProperty p : aboxOntology.getObjectPropertiesInSignature(true)) {
 			if (p.isTransitive(aboxOntology.getImportsClosure())) {
@@ -1294,9 +1328,9 @@ public class MinimalModelGenerator {
 			}
 		}
 	}
-	
+
 	/**
-	 * TODO - use reasoner
+	 * TODO - use reasoner if DL reasoner available
 	 * 
 	 * Limitations:
 	 *  does not use
@@ -1316,7 +1350,7 @@ public class MinimalModelGenerator {
 			}
 			for (OWLIndividual j : redundant) {
 				if (j instanceof OWLNamedIndividual) {
-					LOG.info("redundant: "+i+" "+j);
+					//LOG.info("redundant: "+i+" "+j);
 					rmAxioms.addAll(this.getFactAxioms(i, p, (OWLNamedIndividual) j, true));
 				}
 				else {
@@ -1329,6 +1363,10 @@ public class MinimalModelGenerator {
 	}
 
 	public Set<OWLIndividual> getIndividualsInProperPath(OWLIndividual i, OWLObjectPropertyExpression p) {
+		return getIndividualsInProperPath(i, Collections.singleton(p));
+	}
+
+	public Set<OWLIndividual> getIndividualsInProperPath(OWLIndividual i, Set<OWLObjectPropertyExpression> ps) {
 		// TODO - use reasoner if not hermit
 		Set<OWLIndividual> results = new HashSet<OWLIndividual>();
 		Set<OWLIndividual> visited = new HashSet<OWLIndividual>();
@@ -1336,7 +1374,7 @@ public class MinimalModelGenerator {
 		stack.add(i);
 		while (!stack.isEmpty()) {
 			OWLIndividual x = stack.pop();
-			Set<OWLIndividual> nextSet = getDirectOutgoingIndividuals(x, p);
+			Set<OWLIndividual> nextSet = getDirectOutgoingIndividuals(x, ps);
 			nextSet.removeAll(visited);
 			stack.addAll(nextSet);
 			results.addAll(nextSet);
@@ -1346,16 +1384,19 @@ public class MinimalModelGenerator {
 	}
 
 	private Set<OWLIndividual> getDirectOutgoingIndividuals(OWLIndividual i,
-			OWLObjectPropertyExpression p) {
+			Set<OWLObjectPropertyExpression> ps) {
 		// TODO - subproperties
-		Set<OWLIndividual> results = new HashSet<OWLIndividual>(
-				i.getObjectPropertyValues(p, aboxOntology));
-		for (OWLObjectPropertyExpression invProp : getInverseObjectProperties(p)) {
-			// todo - make this more efficient
-			LOG.info(" invP="+invProp);
-			for (OWLIndividual j : aboxOntology.getIndividualsInSignature(true)) {
-				if (j.getObjectPropertyValues((OWLObjectPropertyExpression) invProp, aboxOntology).contains(i)) {
-					results.add(j);
+		Set<OWLIndividual> results = new HashSet<OWLIndividual>();
+
+		for (OWLObjectPropertyExpression p : ps) {
+			results.addAll(i.getObjectPropertyValues(p, aboxOntology));
+			for (OWLObjectPropertyExpression invProp : getInverseObjectProperties(p)) {
+				// todo - make this more efficient
+				//LOG.info(" invP="+invProp);
+				for (OWLIndividual j : aboxOntology.getIndividualsInSignature(true)) {
+					if (j.getObjectPropertyValues((OWLObjectPropertyExpression) invProp, aboxOntology).contains(i)) {
+						results.add(j);
+					}
 				}
 			}
 		}
