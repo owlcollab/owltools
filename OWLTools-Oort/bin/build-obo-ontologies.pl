@@ -540,6 +540,11 @@ sub get_ont_info {
              checkout => 'svn co http://obo.svn.sourceforge.net/svnroot/obo/ontologies/trunk/HAO',
          },
 
+         omp => {
+             method => 'obo2owl',
+             source_url => 'https://sourceforge.net/p/microphenotypes/code/HEAD/tree/trunk/omp-edit.obo?format=raw',
+         },
+
          fypo => {
              infallible => 1,
              method => 'obo2owl',
