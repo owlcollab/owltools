@@ -701,7 +701,7 @@ sub get_ont_info {
          },
          pw => {
              method => 'obo2owl',
-             source_url => 'ftp://rgd.mcw.edu/pub/data_release/pathway.obo',
+             source_url => 'ftp://rgd.mcw.edu/pub/data_release/ontology_obo_files/pathway/pathway.obo',
          },
          vo => {
              method => 'obo2owl',
