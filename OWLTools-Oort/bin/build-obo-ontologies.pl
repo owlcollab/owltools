@@ -603,6 +603,12 @@ sub get_ont_info {
              source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/zfs/zfs.obo',
          },
 
+         upheno => {
+             method => 'archive',
+             path => 'archive/ontology',
+             source_url => 'http://build.berkeleybop.org/job/build-pheno-ontologies/lastSuccessfulBuild/artifact/*zip*/archive.zip',
+         },
+
          hsapdv => {
              infallible => 1,
              method => 'obo2owl',
