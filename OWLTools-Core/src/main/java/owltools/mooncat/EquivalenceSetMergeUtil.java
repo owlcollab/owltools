@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -125,8 +126,27 @@ public class EquivalenceSetMergeUtil {
 					LOG.info(c + " --> "+rep);
 					e2iri.put(c, rep.getIRI());
 					if (isAddEquivalenceAxioms) {
-						// note: this creates a dangler
-						newAxioms.add(graph.getDataFactory().getOWLEquivalentClassesAxiom(c, rep));
+						// if A is equivalent to B we may wish to retain a historical
+						// record of this equivalance - after A is merged into B
+						// (assuming B is the representative), all axioms referencing A
+						// will be gone, so we re-add the original equivalence,
+						// possibly translating to an obo-style xref
+						OWLAxiom eca = graph.getDataFactory().getOWLEquivalentClassesAxiom(c, rep);
+						if (true) {
+							// TODO - allow other options - for now make an xref
+							OWLAnnotationProperty lap = graph.getAnnotationProperty(OboFormatTag.TAG_XREF.getTag());
+							OWLAnnotationValue value = 
+									graph.getDataFactory().getOWLLiteral(graph.getIdentifier(c));
+							eca =
+									graph.getDataFactory().getOWLAnnotationAssertionAxiom(lap, rep.getIRI(), value);
+						}
+						else {
+							// note: this creates a dangler
+							// note: if  |equivalence set| = n>2, creates n-1 axioms 
+							
+						}
+						LOG.info("Preserving ECA to represetative: "+eca);
+						newAxioms.add(eca);
 					}
 				}
 			}
