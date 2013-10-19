@@ -228,6 +228,12 @@ foreach my $k (keys %ont_info) {
                 $success = run("(cd $tmpdir && unzip -o ../$SRC && chmod -R 777 *)");
                 if ($success) {
                     $success = run("rsync -avz --delete $tmpdir/$path/ $ont");
+                    if ($success) {
+                        debug("archive successful for $ont");
+                    }
+                    else {
+                        debug("Failed to rsync to $ont");
+                    }
                 }
                 else {
                     debug("unzip failed for $ont");
