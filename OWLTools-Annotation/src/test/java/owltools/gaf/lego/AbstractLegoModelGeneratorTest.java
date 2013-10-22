@@ -18,15 +18,17 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
+import owltools.util.AbstractMinimalModelGeneratorTest;
 import owltools.util.MinimalModelGeneratorTest;
 
-public abstract class AbstractLegoModelGeneratorTest extends OWLToolsTestBasics {
+public abstract class AbstractLegoModelGeneratorTest extends AbstractMinimalModelGeneratorTest {
 	private static Logger LOG = Logger.getLogger(AbstractLegoModelGeneratorTest.class);
 
 	static{
@@ -35,7 +37,8 @@ public abstract class AbstractLegoModelGeneratorTest extends OWLToolsTestBasics 
 	}
 	LegoModelGenerator ni;
 	Writer w;
-	
+	OWLGraphWrapper g;
+	GafDocument gafdoc;
 
 	
 	protected void write(String s) throws IOException {
@@ -54,6 +57,20 @@ public abstract class AbstractLegoModelGeneratorTest extends OWLToolsTestBasics 
 			return "null";
 		}
 		return x + " ! " + ni.getLabel(x);
+	}
+
+	protected void parseGAF(String fn) throws IOException {
+		GafObjectsBuilder builder = new GafObjectsBuilder();
+		gafdoc = builder.buildDocument(getResource(fn));
+	}
+
+	protected void saveByClass(OWLClass p) throws OWLOntologyStorageException, IOException {
+		FileUtils.forceMkdir(new File("target/lego"));
+
+		String pid = g.getIdentifier(p);
+		String fn = "lego/"+pid.replaceAll(":", "_");
+		LOG.info("Saving to: "+fn);
+		save(fn);		
 	}
 
 
