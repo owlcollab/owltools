@@ -11,6 +11,7 @@ public enum OBOUpperVocabulary {
 	 */
 	GO_molecular_function(OBONamespaces.GO, "0003674"),
 	GO_biological_process(OBONamespaces.GO, "0008150"),
+	GO_cellular_process(OBONamespaces.GO, "0009987"),
 	BFO_part_of(OBONamespaces.BFO, "0000050"),
 	BFO_has_part(OBONamespaces.BFO, "0000051"),
 	BFO_occurs_in(OBONamespaces.BFO, "0000066"),
