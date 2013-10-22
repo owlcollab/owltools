@@ -1,11 +1,16 @@
 package owltools.gaf.lego;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
@@ -242,8 +247,13 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			}
 		}
 
-		activityClassSet = getReasoner().getSubClasses(getOWLClass(OBOUpperVocabulary.GO_molecular_function), false).getFlattened();
-		processClassSet = getReasoner().getSubClasses(getOWLClass(OBOUpperVocabulary.GO_biological_process), false).getFlattened();
+		OWLClass MF = getOWLClass(OBOUpperVocabulary.GO_molecular_function);
+		OWLClass BP = getOWLClass(OBOUpperVocabulary.GO_biological_process);
+
+		LOG.info("Getting subclasses of "+MF);
+		activityClassSet = getReasoner().getSubClasses(MF, false).getFlattened();
+		LOG.info("Getting subclasses of "+BP);
+		processClassSet = getReasoner().getSubClasses(BP, false).getFlattened();
 
 		for (OWLClass cls : this.getTboxOntology().getClassesInSignature(true)) {
 			String label = g.getLabel(cls);
@@ -450,9 +460,9 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 					rd.addAll(getReasoner().getSuperClasses(jpc, false).getFlattened());
 				}
 				jpcs.removeAll(rd);
-				
+
 				for (OWLClass joinPointClass : jpcs) {
-					
+
 					// a gene must have been annotated to some descendant of generatedCls to be considered.
 					if (geneInferredTypes.contains(joinPointClass)) {
 						for (OWLClass activityCls : geneActivityTypes ) {
@@ -667,6 +677,70 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		normalizeDirections(getObjectProperty(OBOUpperVocabulary.RO_ends));
 	}
 
+	///////////////////
+	//
+	// Experimental
+
+	public Map<OWLClass, Double> fetchScoredCandidateProcesses(OWLClass disease, Integer populationClassSize) {
+		OWLNamedIndividual ind = this.generateNecessaryIndividuals(disease);
+		Set<OWLClass> phenotypes = new HashSet<OWLClass>();
+		for (OWLNamedIndividual j : getGeneratedIndividuals()) {
+			phenotypes.addAll(getReasoner().getTypes(j, true).getFlattened());
+		}
+		OWLClass CELLULAR_PROCESS = getOWLDataFactory().getOWLClass(OBOUpperVocabulary.GO_cellular_process.getIRI());
+
+		Map<OWLClass, Double> smap = new HashMap<OWLClass, Double>();
+		for (OWLClass gc : getReasoner().getSubClasses(CELLULAR_PROCESS, false).getFlattened()) {
+			double cumLogScore = 0.0; 
+
+			int n=0;
+			for (OWLClass pc : phenotypes) {
+				try {
+					Double pval = calculatePairwiseEnrichment(pc, gc, populationClassSize);
+					double logScore = -Math.log(pval)/Math.log(2);
+					//LOG.info("  PSCORE: "+getIdLabelPair(gc)+ " = "+logScore+" for: "+getIdLabelPair(pc)+ " pval="+pval);
+					if (pval >= 0.0) {
+						cumLogScore += logScore;
+						n++;
+					}
+
+				} catch (MathException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if (n>0) {
+				smap.put(gc, cumLogScore);
+				LOG.info("SCORE: "+getIdLabelPair(gc)+ " = "+cumLogScore);
+			}
+			else {
+				//smap.remove(key)
+			}
+		}
+		Map<OWLClass, Double> osmap = sortByValue(smap);
+		return osmap;
+	}
+
+	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue( Map<K, V> map )   {
+		List<Map.Entry<K, V>> list =
+				new LinkedList<Map.Entry<K, V>>( map.entrySet() );
+		Collections.sort( list, new Comparator<Map.Entry<K, V>>() {
+
+			public int compare( Map.Entry<K, V> o1, Map.Entry<K, V> o2 ) {
+
+				return (o1.getValue()).compareTo( o2.getValue() );
+			}
+		} );
+		Collections.reverse(list);
+		Map<K, V> result = new LinkedHashMap<K, V>();
+		for (Map.Entry<K, V> entry : list) {
+
+			result.put( entry.getKey(), entry.getValue() );
+		}
+		return result;
+	}
+
+
 
 
 	///////////////////
@@ -795,7 +869,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	}
 
 	/**
-	 * Gets all genes annotated to cls or descendant
+	 * Gets all genes annotated to cls or descendant via involved-in relations
 	 * @param t
 	 * @return { g : g x t &in; InferredInvolvedIn }
 	 */
@@ -880,7 +954,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		rels.add(getObjectProperty(OBOUpperVocabulary.RO_negatively_regulates));
 		rels.add(getObjectProperty(OBOUpperVocabulary.RO_positively_regulates));
 		rels.add(getObjectProperty(OBOUpperVocabulary.RO_starts)); // sub of part_of
-		//rels.add(getObjectProperty(OBORelationsVocabulary.BFO_occurs_in));
+		rels.add(getObjectProperty(OBOUpperVocabulary.BFO_occurs_in));
 		return rels;
 	}
 
