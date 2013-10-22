@@ -846,7 +846,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	}
 
 	/**
-	 * as getOutgoingEdgesClosure(s), but also includes an identity edge
+	 * as {@link #getOutgoingEdgesClosure(OWLObject)}, but also includes an identity edge
 	 * @param s
 	 * @return set of {@link OWLGraphEdge}
 	 */
@@ -855,6 +855,19 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		edges.add(new OWLGraphEdge(s,s,null,Quantifier.IDENTITY,getSourceOntology()));
 		return edges;
 	}
+	
+	/**
+	 * as {@link #getOutgoingEdgesClosure(OWLObject, Set)}, but also include an identify edge
+	 * @param s
+	 * @param props
+	 * @return
+	 */
+	public Set<OWLGraphEdge> getOutgoingEdgesClosureReflexive(OWLObject s, Set<OWLPropertyExpression> props) {
+		Set<OWLGraphEdge> edges = getOutgoingEdgesClosure(s, props);
+		edges.add(new OWLGraphEdge(s,s,null,Quantifier.IDENTITY,getSourceOntology()));
+		return edges;
+	}
+
 
 	/**
 	 * find the set of classes or class expressions subsuming source, using the graph closure.
