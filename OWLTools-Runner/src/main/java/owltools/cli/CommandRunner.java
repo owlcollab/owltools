@@ -106,6 +106,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLProperty;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
@@ -170,6 +171,8 @@ import owltools.reasoner.GraphReasonerFactory;
 import owltools.reasoner.OWLExtendedReasoner;
 import owltools.reasoner.PrecomputingMoreReasonerFactory;
 import owltools.sim2.preprocessor.ABoxUtils;
+import owltools.util.MinimalModelGenerator;
+import owltools.vocab.OBOUpperVocabulary;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
@@ -225,6 +228,7 @@ public class CommandRunner {
 	public Set<OWLObject> owlObjectCachedSet = null;
 
 	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
+	MinimalModelGenerator mmg = null;
 
 	protected ParserWrapper pw = new ParserWrapper();
 
@@ -428,8 +432,8 @@ public class CommandRunner {
 			else if (opts.nextEq("--map-ontology-iri")) {
 				opts.info("OntologyIRI FILEPATH", "maps an ontology IRI to a file in your filesystem");
 				OWLOntologyIRIMapper iriMapper = 
-					new SimpleIRIMapper(IRI.create(opts.nextOpt()),
-							IRI.create(new File(opts.nextOpt())));
+						new SimpleIRIMapper(IRI.create(opts.nextOpt()),
+								IRI.create(new File(opts.nextOpt())));
 				LOG.info("Adding "+iriMapper+" to "+pw.getManager());
 				pw.getManager().addIRIMapper(iriMapper);
 			}
@@ -460,8 +464,8 @@ public class CommandRunner {
 				List<String> importsIRIs = opts.nextList();
 				for (String importIRI : importsIRIs) {
 					AddImport ai = 
-						new AddImport(g.getSourceOntology(),
-								g.getDataFactory().getOWLImportsDeclaration(IRI.create(importIRI)));
+							new AddImport(g.getSourceOntology(),
+									g.getDataFactory().getOWLImportsDeclaration(IRI.create(importIRI)));
 					g.getManager().applyChange(ai);
 				}
 			}
@@ -666,7 +670,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--save-closure-for-chado")) {
 				opts.info("OUTPUTFILENAME",
-				"saves the graph closure in a format that is oriented towards loading into a Chado database");
+						"saves the graph closure in a format that is oriented towards loading into a Chado database");
 				boolean isChain = opts.nextEq("--chain");
 				ChadoGraphClosureRenderer gcw = new ChadoGraphClosureRenderer(opts.nextOpt());
 				gcw.isChain = isChain;
@@ -674,7 +678,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--export-table")) {
 				opts.info("OUTPUTFILENAME",
-				"saves the ontology in tabular format (PARTIALLY IMPLEMENTED)");
+						"saves the ontology in tabular format (PARTIALLY IMPLEMENTED)");
 				String out = opts.nextOpt();
 				TableRenderer tr = new TableRenderer(out);
 				tr.render(g);				
@@ -705,9 +709,9 @@ public class CommandRunner {
 					g.getManager().removeAxioms(o, aas);
 
 					// TODO - remove axiom annotations
-					
+
 				}
-				
+
 			}
 			else if (opts.nextEq("--apply-patch")) {
 				opts.info("minusAxiomsOntology plusAxiomsOntology", "applies 'patch' to current ontology");
@@ -766,22 +770,22 @@ public class CommandRunner {
 				EquivalenceSetMergeUtil esmu = new EquivalenceSetMergeUtil(g, reasoner);
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-s")) {
-						opts.info("PREFIX SCORE", "Assigns a priority score for a prefix used to determine representative more merging. E.g. -s HP 5 -s MP 4");
+						opts.info("PREFIX SCORE", "Assigns a priority score for a prefix used to determine REPRESENTATIVE IRI for merging. E.g. -s HP 5 -s MP 4");
 						esmu.setPrefixScore( opts.nextOpt(), Double.parseDouble(opts.nextOpt()) );
 					}
 					else if (opts.nextEq("-l")) {
-						opts.info("PREFIX SCORE", "Assigns a priority score to determine which label should be used post-merge. E.g. -s HP 5 -s MP 4 means HP prefered");
+						opts.info("PREFIX SCORE", "Assigns a priority score to determine which LABEL should be used post-merge. E.g. -s HP 5 -s MP 4 means HP prefered");
 						OWLAnnotationProperty p = g.getDataFactory().getOWLAnnotationProperty( OWLRDFVocabulary.RDFS_LABEL.getIRI() );
 						esmu.setPropertyPrefixScore( p, opts.nextOpt(), Double.parseDouble(opts.nextOpt()) );
 					}
 					else if (opts.nextEq("-c")) {
-						opts.info("PREFIX SCORE", "Assigns a priority score to determine which comment should be used post-merge. E.g. -s HP 5 -s MP 4 means HP prefered");
+						opts.info("PREFIX SCORE", "Assigns a priority score to determine which COMMENT should be used post-merge. E.g. -s HP 5 -s MP 4 means HP prefered");
 						OWLAnnotationProperty p = g.getDataFactory().getOWLAnnotationProperty( OWLRDFVocabulary.RDFS_COMMENT.getIRI() );
 						esmu.setPropertyPrefixScore( p, opts.nextOpt(), Double.parseDouble(opts.nextOpt()) );
 					}
 					else if (opts.nextEq("-d")) {
-						opts.info("PREFIX SCORE", "Assigns a priority score to determine which definition should be used post-merge. E.g. -s HP 5 -s MP 4");
-						
+						opts.info("PREFIX SCORE", "Assigns a priority score to determine which DEFINITION should be used post-merge. E.g. -s HP 5 -s MP 4");
+
 						OWLAnnotationProperty p = g.getDataFactory().getOWLAnnotationProperty( Obo2OWLVocabulary.IRI_IAO_0000115.getIRI() );
 						esmu.setPropertyPrefixScore( p, opts.nextOpt(), Double.parseDouble(opts.nextOpt()) );
 					}
@@ -997,7 +1001,7 @@ public class CommandRunner {
 				fileWriter.close();
 			}
 			else if (opts.nextEq("--extract-properties")) {
-				opts.info("[-p PROP]* [--list PLIST]", "extracts properties from source ontology");
+				opts.info("[-p PROP]* [--list PLIST]", "extracts properties from source ontology. If properties not specified, then support ontologies will be used");
 				Set<OWLProperty> props = new HashSet<OWLProperty>();
 				boolean useProps = false;
 				boolean isCreateShorthand = true;
@@ -1006,15 +1010,18 @@ public class CommandRunner {
 				IRI newIRI = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-p")) {
+						opts.info("PROP", "Add this property to the set of interest");
 						props.add(this.resolveObjectProperty(opts.nextOpt()));
 						useProps = true;
 					}
 					else if (opts.nextEq("--list")) {
+						opts.info("PROPLIST", "Terminated by '//'. Add these properties to the set of interest");
 						Set<OWLObjectProperty> nprops = this.resolveObjectPropertyList(opts);
 						props.addAll(nprops);
 						useProps = true;
 					}
 					else if (opts.nextEq("--no-shorthand")) {
+						opts.info("", "Do not create OBO shorthands. Resulting OBO format will use numeric IDs as primary");
 						isCreateShorthand = false;
 					}
 					else {
@@ -1027,9 +1034,11 @@ public class CommandRunner {
 				pe.isCreateShorthand = isCreateShorthand;
 				OWLOntology pont;
 				if (useProps) {
+					// use user-specified proeprty list
 					pont = pe.extractPropertyOntology(newIRI, props);
 				}
 				else {
+					// use the support ontology as the source of property usages
 					pont = pe.extractPropertyOntology(newIRI, g.getSupportOntologySet().iterator().next());
 				}
 
@@ -1183,7 +1192,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--expand-macros")) {
 				opts.info("", "performs expansion on assertions and expressions. See OBO spec sec7");
 				MacroExpansionVisitor mev = 
-					new MacroExpansionVisitor(g.getSourceOntology());
+						new MacroExpansionVisitor(g.getSourceOntology());
 				mev.expandAll();
 			}
 			else if (opts.nextEq("--expand-expression")) {
@@ -1196,7 +1205,7 @@ public class CommandRunner {
 						g.getDataFactory().getOWLLiteral(expr));
 				g.getManager().addAxiom(g.getSourceOntology(), aaa);
 				MacroExpansionVisitor mev = 
-					new MacroExpansionVisitor(g.getSourceOntology());
+						new MacroExpansionVisitor(g.getSourceOntology());
 				mev.expandAll();
 			}
 			else if (opts.nextEq("--expand-assertion")) {
@@ -1209,7 +1218,7 @@ public class CommandRunner {
 						g.getDataFactory().getOWLLiteral(expr));
 				g.getManager().addAxiom(g.getSourceOntology(), aaa);
 				MacroExpansionVisitor mev = 
-					new MacroExpansionVisitor(g.getSourceOntology());
+						new MacroExpansionVisitor(g.getSourceOntology());
 				mev.expandAll();
 			}
 			else if (opts.nextEq("--oppl")) {
@@ -1419,7 +1428,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--reasoner-query")) {
 				opts.info("[-r reasonername] [-m] [-d] [-a] [-x] [-c IRI] (--stdin | CLASS-EXPRESSION | -l CLASS-LABEL)", 
 						"Queries current ontology for descendants, ancestors and equivalents of CE using reasoner.\n"+
-				"Enclose all labels in quotes (--stdin only). E.g. echo \"'part of' some 'tentacle'\" | owltools ceph.owl --reasoner-query --stdin");
+						"Enclose all labels in quotes (--stdin only). E.g. echo \"'part of' some 'tentacle'\" | owltools ceph.owl --reasoner-query --stdin");
 				boolean isManifest = false;
 				boolean isDescendants = true;
 				boolean isIndividuals = false;
@@ -1442,7 +1451,7 @@ public class CommandRunner {
 					}
 					else if (opts.nextEq("-m")) {
 						opts.info("", 
-						"manifests the class exression as a class equivalent to query CE and uses this as a query; required for Elk");
+								"manifests the class exression as a class equivalent to query CE and uses this as a query; required for Elk");
 						isManifest = true;
 					}
 					else if (opts.nextEq("-d")) {
@@ -1613,12 +1622,12 @@ public class CommandRunner {
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-f|--follow-closure|--fill-gaps")) {
 						opts.info("", 
-						"using mooncat will have the effect of including the graph closure of all results in the output ontology");
+								"using mooncat will have the effect of including the graph closure of all results in the output ontology");
 						followClosure = true;
 					}
 					else if (opts.nextEq("-m|--use-mooncat")) {
 						opts.info("", 
-						"using mooncat will have the effect of including the graph closure of all results in the output ontology");
+								"using mooncat will have the effect of including the graph closure of all results in the output ontology");
 						useMooncat = true;
 					}
 					else
@@ -1679,15 +1688,25 @@ public class CommandRunner {
 					g.setSourceOntology(subOnt);
 				}
 			}
+			else if (opts.nextEq("--remove-equivalent-to-nothing-axioms")) {
+				Set<OWLAxiom> axs = new HashSet<OWLAxiom>();
+				OWLClass nothing = g.getDataFactory().getOWLNothing();
+				for (OWLAxiom ax : g.getSourceOntology().getAxioms(AxiomType.EQUIVALENT_CLASSES)) {
+					if (ax.getClassesInSignature().contains(nothing)) {
+						axs.add(ax);
+					}
+				}
+				g.getManager().removeAxioms(g.getSourceOntology(), axs);
+			}
 			else if (opts.nextEq("--check-disjointness-axioms")) {
 				boolean isTranslateEquivalentToNothing = true;
 				owlpp = new OWLPrettyPrinter(g);
 
 				OWLOntology ont = g.getSourceOntology();
 				Set<OWLObjectIntersectionOf> dPairs = new
-				HashSet<OWLObjectIntersectionOf>();
+						HashSet<OWLObjectIntersectionOf>();
 				Map<OWLClassExpression, Set<OWLClassExpression>> dMap = 
-					new HashMap<OWLClassExpression, Set<OWLClassExpression>>();
+						new HashMap<OWLClassExpression, Set<OWLClassExpression>>();
 				OWLClass nothing = g.getDataFactory().getOWLNothing();
 				Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 				if (isTranslateEquivalentToNothing) {
@@ -1703,10 +1722,10 @@ public class CommandRunner {
 							}
 							rmAxioms.add(eca);
 						}
-						
+
 					}
 				}
-				
+
 				for (OWLDisjointClassesAxiom dca : ont.getAxioms(AxiomType.DISJOINT_CLASSES)) {
 					for (OWLClassExpression x : dca.getClassExpressions()) {
 						for (OWLClassExpression y : dca.getClassExpressions()) {
@@ -1716,7 +1735,7 @@ public class CommandRunner {
 						}						
 					}
 				}
-				
+
 				g.getManager().removeAxioms(ont, ont.getAxioms(AxiomType.DISJOINT_CLASSES));
 				g.getManager().removeAxioms(ont, rmAxioms);
 				reasoner.flush();
@@ -1736,8 +1755,101 @@ public class CommandRunner {
 			else if (opts.nextEq("--make-default-abox")) {
 				ABoxUtils.makeDefaultIndividuals(g.getSourceOntology());
 			}
+			else if (opts.nextEq("--generate-minimal-model")) {
+				opts.info("[--no-collapse] [-x] CLASS", "Generates default/proto individuals for a class");
+				boolean isCollapse = true;
+				boolean isReduce = true;
+				boolean isExtractModule = false;
+				boolean isPrecomputePropertyClassCombinations = true;
+				boolean isCreateNewAbox = true;
+				Set<OWLObjectProperty> normProps = new HashSet<OWLObjectProperty>();
+				Set<OWLClass> preservedClassSet = null;
+				OWLClass c;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("--no-collapse")) {
+						isCollapse = false;
+					}
+					else if (opts.nextEq("--no-reduce")) {
+						isReduce = false;
+					}
+					else if (opts.nextEq("--reuse-tbox")) {
+						isCreateNewAbox = false;
+					}
+					else if (opts.nextEq("-x|--extract-module")) {
+						isExtractModule = true;
+					}
+					else if (opts.nextEq("-q|--quick")) {
+						isPrecomputePropertyClassCombinations = false;
+					}
+					else if (opts.nextEq("-p|--property")) {
+						normProps.add(this.resolveObjectProperty(opts.nextOpt()));
+					}
+					else if (opts.nextEq("-l|--plist")) {
+						normProps.addAll(this.resolveObjectPropertyList(opts));
+					}
+					else if (opts.nextEq("--lego")) {
+						preservedClassSet = new HashSet<OWLClass>();
+						preservedClassSet.add(g.getDataFactory().getOWLClass(OBOUpperVocabulary.GO_biological_process.getIRI()));
+						preservedClassSet.add(g.getDataFactory().getOWLClass(OBOUpperVocabulary.GO_molecular_function.getIRI()));
+					}
+
+					else {
+						break;
+					}
+				}
+				mmg = getMinimalModelGenerator(isCreateNewAbox);
+				c = this.resolveClass(opts.nextOpt());
+				mmg.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
+				mmg.generateNecessaryIndividuals(c, isCollapse, isReduce);
+				for (OWLObjectProperty p : normProps) {
+					mmg.normalizeDirections(p);
+				}
+				if (preservedClassSet != null && preservedClassSet.size() > 0) {
+					mmg.anonymizeIndividualsNotIn(preservedClassSet);
+				}
+				if (isExtractModule) {
+					LOG.info("Extracting module");
+					mmg.extractModule();
+				}
+				g.setSourceOntology(mmg.getAboxOntology());
+			}
+			else if (opts.nextEq("--most-specific-class-expression|--msce")) {
+				opts.info("[-c CLASS] INDIVIDUAL", "Generates MSCE for an individual using MinimalModelGenerator");
+				mmg = getMinimalModelGenerator(false);
+				OWLNamedIndividual ind;
+				OWLClass c = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-c|--class")) {
+						opts.info("CLASS", "if set will add equivalence axioms to CLASS");
+						c = this.resolveClass(opts.nextOpt());
+					}
+					else {
+						break;
+					}
+				}
+				ind =  (OWLNamedIndividual) this.resolveEntity(opts);
+				OWLClassExpression ce = mmg.getMostSpecificClassExpression(ind);
+				owlpp = new OWLPrettyPrinter(g);
+
+				System.out.println(owlpp.render(ce));
+				System.out.println(ce);
+
+				if (c != null) {
+					OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(c, ce);
+					g.getManager().addAxiom(g.getSourceOntology(), ax);
+				}
+			}
 			else if (opts.nextEq("--tbox-to-abox")) {
 				OWLInAboxTranslator t = new OWLInAboxTranslator(g.getSourceOntology());
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p|--preserve-iris|--preserve-object-properties")) {
+						opts.info("", "Use the same OP IRIs for ABox shows (danger will robinson!)");
+						t.setPreserveObjectPropertyIRIs(true);
+					}
+					else {
+						break;
+					}
+				}
 				OWLOntology abox = t.translate();
 				g.setSourceOntology(abox);
 			}
@@ -1981,7 +2093,7 @@ public class CommandRunner {
 					for (OWLObject obj : g.getAllOWLObjects()) {
 						if (obj instanceof OWLClass) {
 							Set<OWLClassExpression> assertedSuperclasses =
-								((OWLClass) obj).getSuperClasses(g.getSourceOntology());
+									((OWLClass) obj).getSuperClasses(g.getSourceOntology());
 							//System.out.println(obj+ " #subclasses:"+
 							//		reasoner.getSubClasses((OWLClassExpression) obj, false).getFlattened().size());
 							for (OWLClass sup : reasoner.getSuperClasses((OWLClassExpression) obj, isDirect).getFlattened()) {
@@ -2004,7 +2116,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--stash-subclasses")) {
 				opts.info("[-a][--prefix PREFIX][--ontology RECAP-ONTOLOGY-IRI", 
-				"removes all subclasses in current source ontology; after reasoning, try to re-infer these");
+						"removes all subclasses in current source ontology; after reasoning, try to re-infer these");
 				boolean isDefinedOnly = true;
 				Set<String> prefixes = new HashSet<String>();
 				OWLOntology recapOnt = g.getSourceOntology();
@@ -2099,16 +2211,56 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("-a|--ancestors")) {
 				opts.info("LABEL", "list edges in graph closure to root nodes");
+				Set<OWLPropertyExpression> props = new HashSet<OWLPropertyExpression>();
+				boolean useProps = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p")) {
+						opts.info("PROP", "Add this property to the set of interest");
+						props.add(this.resolveObjectProperty(opts.nextOpt()));
+						useProps = true;
+					}
+					else if (opts.nextEq("--plist")) {
+						opts.info("PROPLIST", "Terminated by '//'. Add these properties to the set of interest");
+						Set<OWLObjectProperty> nprops = this.resolveObjectPropertyList(opts);
+						props.addAll(nprops);
+						useProps = true;
+					}
+					else {
+						break;
+					}
+				}
 				OWLObject obj = resolveEntity(opts);
-				System.out.println(obj+ " "+obj.getClass());
-				Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj);
+				System.out.println(obj+ " "+obj.getClass()+" P:"+props);
+				if (!useProps)
+					props = null;
+				Set<OWLGraphEdge> edges = g.getOutgoingEdgesClosureReflexive(obj,props);
 				showEdges(edges);
 			}
 			else if (opts.nextEq("--ancestor-nodes")) {
 				opts.info("LABEL", "list nodes in graph closure to root nodes");
-				OWLObject obj = resolveEntity( opts);
-				System.out.println(obj+ " "+obj.getClass());
-				for (OWLObject a : g.getAncestors(obj)) 
+				Set<OWLPropertyExpression> props = new HashSet<OWLPropertyExpression>();
+				boolean useProps = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p")) {
+						opts.info("PROP", "Add this property to the set of interest");
+						props.add(this.resolveObjectProperty(opts.nextOpt()));
+						useProps = true;
+					}
+					else if (opts.nextEq("--plist")) {
+						opts.info("PROPLIST", "Terminated by '//'. Add these properties to the set of interest");
+						Set<OWLObjectProperty> nprops = this.resolveObjectPropertyList(opts);
+						props.addAll(nprops);
+						useProps = true;
+					}
+					else {
+						break;
+					}
+				}
+				OWLObject obj = resolveEntity(opts);
+				System.out.println(obj+ " "+obj.getClass()+" P:"+props);
+				if (!useProps)
+					props = null;
+				for (OWLObject a : g.getAncestors(obj, props)) 
 					System.out.println(a);
 			}
 			else if (opts.nextEq("--parents-named")) {
@@ -2384,9 +2536,11 @@ public class CommandRunner {
 						break;
 					}
 				}
-				Set<OWLAxiom> axioms = g.getSourceOntology().getAxioms(t);
-				LOG.info("Removing axioms: "+axioms.size());
-				g.getManager().removeAxioms(g.getSourceOntology(), axioms);
+				for (OWLOntology o : g.getSourceOntology().getImportsClosure()) {
+					Set<OWLAxiom> axioms = o.getAxioms(t);
+					LOG.info("Removing axioms: "+axioms.size());
+					g.getManager().removeAxioms(o, axioms);
+				}
 			}
 			else if (opts.nextEq("--remove-axiom-annotations")) {
 				for (OWLAxiom a : g.getSourceOntology().getAxioms()) {
@@ -2398,7 +2552,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--split-ontology")) {
 				opts.info("[-p IRI-PREFIX] [-s IRI-SUFFIX] [-d OUTDIR] [-l IDSPACE1 ... IDPSPACEn]", 
-				"Takes current only extracts all axioms in ID spaces and writes to separate ontology PRE+lc(IDSPACE)+SUFFIX saving to outdir. Also adds imports");
+						"Takes current only extracts all axioms in ID spaces and writes to separate ontology PRE+lc(IDSPACE)+SUFFIX saving to outdir. Also adds imports");
 				String prefix = g.getSourceOntology().getOntologyID().getOntologyIRI().toString().replace(".owl", "/");
 				String suffix = "_import.owl";
 				String outdir = ".";
@@ -2422,11 +2576,11 @@ public class CommandRunner {
 					String name = prefix + idspace + suffix;
 					IRI iri = IRI.create(name);
 					OWLOntology subOnt = 
-						g.getManager().createOntology(iri);
+							g.getManager().createOntology(iri);
 					m.transferAxiomsUsingIdSpace(idspace, subOnt);
 					AddImport ai = 
-						new AddImport(g.getSourceOntology(),
-								g.getDataFactory().getOWLImportsDeclaration(iri));
+							new AddImport(g.getSourceOntology(),
+									g.getDataFactory().getOWLImportsDeclaration(iri));
 					g.getManager().applyChange(ai);
 					String path = outdir + "/" + name.replaceAll(".*/", "");
 					FileOutputStream stream = new FileOutputStream(new File(path));
@@ -2468,7 +2622,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--follow-subclass")) {
 				opts.info("", "follow subclass axioms (and also equivalence axioms) in graph traversal.\n"+
-				"     default is to follow ALL. if this is specified then only explicitly specified edges followed");
+						"     default is to follow ALL. if this is specified then only explicitly specified edges followed");
 				if (g.getConfig().graphEdgeIncludeSet == null)
 					g.getConfig().graphEdgeIncludeSet = new HashSet<OWLQuantifiedProperty>();
 
@@ -2476,7 +2630,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--follow-property")) {
 				opts.info("PROP-LABEL", "follow object properties of this type in graph traversal.\n"+
-				"     default is to follow ALL. if this is specified then only explicitly specified edges followed");
+						"     default is to follow ALL. if this is specified then only explicitly specified edges followed");
 				OWLObjectProperty p = (OWLObjectProperty) resolveEntity( opts);
 				if (g.getConfig().graphEdgeIncludeSet == null)
 					g.getConfig().graphEdgeIncludeSet = new HashSet<OWLQuantifiedProperty>();
@@ -2485,7 +2639,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--exclude-property")) {
 				opts.info("PROP-LABEL", "exclude object properties of this type in graph traversal.\n"+
-				"     default is to exclude NONE.");
+						"     default is to exclude NONE.");
 				OWLObjectProperty p = g.getOWLObjectProperty(opts.nextOpt());
 				System.out.println("Excluding "+p+" "+p.getClass());
 				if (g.getConfig().graphEdgeExcludeSet == null)
@@ -2495,7 +2649,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--exclusion-annotation-property")) {
 				opts.info("[-o ONT] PROP-LABEL", "exclude object properties of this type in graph traversal.\n"+
-				"     default is to exclude NONE.");
+						"     default is to exclude NONE.");
 				OWLOntology xo = g.getSourceOntology();
 				if (opts.hasOpts()) {
 					if (opts.nextEq("-o")) {
@@ -2509,7 +2663,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--inclusion-annotation-property")) {
 				opts.info("[-o ONT] PROP-LABEL", "include object properties of this type in graph traversal.\n"+
-				"     default is to include NONE.");
+						"     default is to include NONE.");
 				OWLOntology xo = g.getSourceOntology();
 				if (opts.hasOpts()) {
 					if (opts.nextEq("-o")) {
@@ -2523,7 +2677,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--exclude-metaclass")) {
 				opts.info("METACLASS-LABEL", "exclude classes of this type in graph traversal.\n"+
-				"     default is to follow ALL classes");
+						"     default is to follow ALL classes");
 				OWLClass c = (OWLClass) resolveEntity( opts);
 
 				g.getConfig().excludeMetaClass = c;	
@@ -2770,13 +2924,14 @@ public class CommandRunner {
 						isMerge = true;
 					}
 					else if (opts.nextEq("-s|--source")) {
-						baseOnt = g.getManager().getOntology(IRI.create(opts.nextOpt()));
+						String srcName = opts.nextOpt();
+						baseOnt = g.getManager().getOntology(IRI.create(srcName));
 						if (baseOnt == null) {
-							LOG.error("Could not find specified ontology for --source");
+							LOG.error("Could not find specified ontology "+srcName+" for --source");
 						}
 					}
 					else if (opts.nextEq("-m") || opts.nextEq("--module-type")) {
-						opts.info("MODULE-TYPE", "One of: STAR (default), TOP, BOT");
+						opts.info("MODULE-TYPE", "One of: STAR, TOP, BOT (default)");
 						mtype = ModuleType.valueOf(opts.nextOpt());
 					}
 					else {
@@ -2785,6 +2940,8 @@ public class CommandRunner {
 				}
 				Set<OWLObject> objs = new HashSet<OWLObject>();
 				if (isMerge) {
+					// add all relations and classes to seed set
+					// merge support set closure
 					objs.addAll( g.getSourceOntology().getObjectPropertiesInSignature() );
 					objs.addAll( g.getSourceOntology().getClassesInSignature() );
 					for (OWLOntology ont : g.getSupportOntologySet())
@@ -2841,7 +2998,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--build-property-view-ontology|--bpvo")) {
 				opts.info("[-p PROPERTY] [-o OUTFILE] [-r REASONER] [--filter-unused] [--prefix STR] [--suffix STR] [--avfile FILE] [--i2c]", 
-				"generates a new ontology O' from O using property P such that for each C in O, O' contains C' = P some C");
+						"generates a new ontology O' from O using property P such that for each C in O, O' contains C' = P some C");
 				OWLOntology sourceOntol = g.getSourceOntology();
 				// TODO - for now assume exactly 0 or 1 support ontology; if 1, the support is the element ontology
 				OWLOntology annotOntol;
@@ -2903,16 +3060,16 @@ public class CommandRunner {
 						isReplace = true;
 					}
 					else if (opts.nextEq("" +
-					"")) {
+							"")) {
 						annotOntol = g.getSourceOntology();
 					}
 					else
 						break;
 				}
 				PropertyViewOntologyBuilder pvob = 
-					new PropertyViewOntologyBuilder(sourceOntol,
-							annotOntol,
-							viewProperty);
+						new PropertyViewOntologyBuilder(sourceOntol,
+								annotOntol,
+								viewProperty);
 				pvob.setViewLabelPrefix(prefix);
 				pvob.setViewLabelSuffix(suffix);
 				pvob.buildViewOntology(IRI.create("http://x.org/assertedViewOntology"), IRI.create(viewIRI));
@@ -2985,7 +3142,7 @@ public class CommandRunner {
 				Set<OWLClass> allvcs = new HashSet<OWLClass>();
 				for (OWLObjectProperty vp : vps) {
 					PropertyViewOntologyBuilder pvob = 
-						new PropertyViewOntologyBuilder(baseOntology, vp);
+							new PropertyViewOntologyBuilder(baseOntology, vp);
 					if (reflexiveVps.contains(vp))
 						pvob.setCreateReflexiveClasses(true);
 					pvob.buildViewOntology();
@@ -3199,8 +3356,22 @@ public class CommandRunner {
 				}
 			}
 		}
-
 	}
+
+	private MinimalModelGenerator getMinimalModelGenerator(boolean isCreateNewAbox) throws OWLOntologyCreationException {
+
+		if (mmg == null) {
+			OWLReasonerFactory rf = new ElkReasonerFactory();
+			if (isCreateNewAbox) {
+				mmg = new MinimalModelGenerator(g.getSourceOntology(), rf);
+			}
+			else {
+				mmg = new MinimalModelGenerator(g.getSourceOntology(), g.getSourceOntology(), rf);				
+			}
+		}
+		return mmg;
+	}
+
 
 	private Set<OWLClass> removeUnreachableAxioms(OWLOntology src,
 			Set<OWLClass> seedClasses) {
@@ -3252,7 +3423,7 @@ public class CommandRunner {
 		}
 		axioms.removeAll(rmAxioms);
 	}
-	
+
 	@CLIMethod("--external-mappings-files")
 	public void createExternalMappings(Opts opts) throws Exception {
 		if (g == null) {
@@ -3260,14 +3431,13 @@ public class CommandRunner {
 			exit(-1);
 			return;
 		}
-		
+
 		File headerFilesFolder = null;
 		String headerFileSuffix = ".header"; 
 		List<String> externalDbNames = null;
 		File outputFolder = new File(".").getCanonicalFile();
 		String commentPrefix = "!";
 		String labelPrefix = "";
-		
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-o|--output|--output-folder"))
 				outputFolder = opts.nextFile().getCanonicalFile();
@@ -3302,7 +3472,7 @@ public class CommandRunner {
 			exit(-1);
 			return;
 		}
-		
+
 		// setup date string and ontology version strings
 		StringBuilder header = new StringBuilder();
 		OWLOntology ont = g.getSourceOntology();
@@ -3326,8 +3496,8 @@ public class CommandRunner {
 		}
 		header.append('\n');
 		header.append(commentPrefix).append('\n');
-		
-		
+
+
 		// load external mappings per db type
 		for(String db : externalDbNames) {
 			String prefix = db+":";
@@ -3356,10 +3526,10 @@ public class CommandRunner {
 			// sort
 			List<String> xrefList = new ArrayList<String>(externalMappings.keySet());
 			Collections.sort(xrefList);
-			
+
 			// open writer
 			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outputFolder, db.toLowerCase()+"2go")));
-			
+
 			// check for pre-defined headers
 			if (headerFilesFolder != null) {
 				File headerFile = new File(headerFilesFolder, db.toLowerCase()+headerFileSuffix);
@@ -3378,10 +3548,10 @@ public class CommandRunner {
 					}
 				}
 			}
-			
+
 			// add generated header
 			writer.append(header);
-			
+
 			// append sorted xrefs
 			for (String xref : xrefList) {
 				Set<OWLClass> classes = externalMappings.get(xref);
@@ -3408,7 +3578,7 @@ public class CommandRunner {
 		opts.info("", "Finds all inferred OPEs and ClassAssertions and asserts them. Does not handle DPEs. Resulting ontology can be used for sparql queries");
 		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
 		OWLOntology ont = g.getSourceOntology();
-		
+
 		// TODO : move this to a utility class
 		OWLOntologyManager mgr = ont.getOWLOntologyManager();
 		OWLDataFactory df = mgr.getOWLDataFactory();
@@ -3432,6 +3602,8 @@ public class CommandRunner {
 
 	@CLIMethod("--assert-inferred-subclass-axioms")
 	public void assertInferredSubClassAxioms(Opts opts) throws Exception {
+		opts.info("[--removeRedundant] [--keepRedundant] [--markIsInferred] [--useIsInferred] [--ignoreNonInferredForRemove] [--allowEquivalencies] [--reportProfile]",
+				"Adds SubClassOf axioms for all entailed direct SubClasses not already asserted");
 		boolean removeRedundant = true;
 		boolean checkConsistency = true; 
 		boolean useIsInferred = false;
@@ -3545,7 +3717,7 @@ public class CommandRunner {
 			}
 		}
 	}
-	
+
 	@CLIMethod("--rdf-to-json-ld")
 	public void rdfToJsonLd(Opts opts) throws Exception {
 		String ofn = null;
@@ -3561,17 +3733,17 @@ public class CommandRunner {
 		File inputFile = opts.nextFile();
 		LOG.info("input rdf: "+inputFile);
 		FileInputStream s = new FileInputStream(inputFile);
-        final Model modelResult = ModelFactory.createDefaultModel().read(
-                s, "", "RDF/XML");
-        final JenaRDFParser parser = new JenaRDFParser();
-        Options jsonOpts = new Options();
-        
+		final Model modelResult = ModelFactory.createDefaultModel().read(
+				s, "", "RDF/XML");
+		final JenaRDFParser parser = new JenaRDFParser();
+		Options jsonOpts = new Options();
+
 		final Object json = JSONLD.fromRDF(modelResult, jsonOpts , parser);
 		FileOutputStream out = new FileOutputStream(ofn);
-        String jsonStr = JSONUtils.toPrettyString(json);
+		String jsonStr = JSONUtils.toPrettyString(json);
 		IOUtils.write(jsonStr, out);
 	}
-	
+
 	@CLIMethod("--json-ld-to-rdf")
 	public void jsonLdToRdf(Opts opts) throws Exception {
 		String ofn = null;
@@ -3595,7 +3767,7 @@ public class CommandRunner {
 		FileOutputStream out = new FileOutputStream(ofn);
 		IOUtils.write(w.toString(), out);
 	}
-	
+
 	/**
 	 * Retain only subclass of axioms and intersection of axioms if they contain
 	 * a class in it's signature of a given set of parent terms.
@@ -3981,7 +4153,7 @@ public class CommandRunner {
 
 	private void catOntologies(Opts opts) throws OWLOntologyCreationException, IOException {
 		opts.info("[-r|--ref-ont ONT] [-i|--use-imports]", "Catenate ontologies taking only referenced subsets of supporting onts.\n"+
-		"        See Mooncat docs");
+				"        See Mooncat docs");
 		Mooncat m = new Mooncat(g);
 		ParserWrapper pw = new ParserWrapper();
 		String newURI = null;
@@ -4185,7 +4357,7 @@ public class CommandRunner {
 		System.out.println("  you can pass in either a class label (enclosed in single quotes), an OBO ID or a IRI");
 		System.out.println("\nExecution:");
 		System.out.println("  note that commands are processed *in order*. This allows you to run mini-pipelines" +
-		"  or programs on the command line.");
+				"  or programs on the command line.");
 		System.out.println("  Each command has its own 'grammar'. Type owltools COMMAND -h to see options.");
 		System.out.println("  Any argument that is not a command is assumed to be an ontology, and an attempt is made to load it.");
 		System.out.println("  (again, this happens sequentially).");

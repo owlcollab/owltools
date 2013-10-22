@@ -880,7 +880,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	// NEW
 	@CLIMethod("--all-by-all-enrichment-analysis")
 	public void owlsimEnrichmentAnalysisAllByAll(Opts opts) throws Exception {
-		opts.info("", "performs all by all enrichment");
+		opts.info("[-p pValCutOff] [-i IC_Cutoff] SAMPLECLASS TESTCLASS", 
+				"performs all by all enrichment on every c x d where c Sub SAMPLECLASS and d Sub TESTCLASS");
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (sos == null) {
 			sos = new SimpleOwlSim(g.getSourceOntology());

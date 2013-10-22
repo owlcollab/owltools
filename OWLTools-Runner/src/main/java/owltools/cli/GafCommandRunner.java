@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.FileUtils;
@@ -58,6 +59,7 @@ import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.lego.GafToLegoTranslator;
+import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.NetworkInferenceEngine;
 import owltools.gaf.lego.NetworkInferenceEngine.Activity;
 import owltools.gaf.lego.NetworkInferenceEngine.Edge;
@@ -1022,15 +1024,34 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	@CLIMethod("--build-activity-network")
-	public void buildActivityNetwork(Opts opts) throws Exception {
-		opts.info("[--dot FILE] [--owl FILE] PROCESS", "Generates an activity network (aka lego) from existing GAF and ontology");
+	@CLIMethod("--generate-molecular-model")
+	public void generateMolecularModel(Opts opts) throws Exception {
+		opts.info("[--dot FILE] [--owl FILE] [-s SEED-GENE-LIST] [-a] [-r] -p PROCESS", "Generates an activity network (aka lego) from existing GAF and ontology");
 		OWLClass processCls = null;
 		File owlOutputFile = null;
 		String dotOutputFile = null;
+		boolean isReplaceSourceOntology = false;
+		boolean isPrecomputePropertyClassCombinations = false;
+		boolean isExtractModule = false;
+		List<String> seedGenes = new ArrayList<String>();
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-p")) {
 				processCls = this.resolveClass(opts.nextOpt());
+			}
+			else if (opts.nextEq("-r|--replace")) {
+				isReplaceSourceOntology = true;
+			}
+			else if (opts.nextEq("-q|--quick")) {
+				isPrecomputePropertyClassCombinations = false;
+			}
+			else if (opts.nextEq("-x|--extract-module")) {
+				isExtractModule = false;
+			}
+			else if (opts.nextEq("-a|--all-relation-class-pairs")) {
+				isPrecomputePropertyClassCombinations = true;
+			}
+			else if (opts.nextEq("-s|--seed")) {
+				seedGenes = opts.nextList();
 			}
 			else if (opts.nextEq("-o|--dot")) {
 				dotOutputFile = opts.nextOpt();
@@ -1042,23 +1063,161 @@ public class GafCommandRunner extends CommandRunner {
 				break;
 			}
 		}
-		NetworkInferenceEngine ni = new NetworkInferenceEngine();
-		
+		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
+		ni.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
 		ni.initialize(gafdoc, g);
 		
 		String p = g.getIdentifier(processCls);
-		Set<String> seedGenes = ni.getGenes(processCls);
+		seedGenes.addAll(ni.getGenes(processCls));
+
 		ni.buildNetwork(p, seedGenes);
 
-		OWLOntology ont = ni.translateNetworkToOWL();
+		
+		OWLOntology ont = ni.getAboxOntology();
+		if (isExtractModule) {
+			ni.extractModule();
+		}
 		if (owlOutputFile != null) {
 			FileOutputStream os = new FileOutputStream(owlOutputFile);
-			ni.owlOntologyManager.saveOntology(ont, os);
+			g.getManager().saveOntology(ont, os);
 		}
 		if (dotOutputFile != null) {
 			writeLego(ont, dotOutputFile, p);
 		}
+		if (isReplaceSourceOntology) {
+			g.setSourceOntology(ni.getAboxOntology());
+		}
 	}
+	
+	@CLIMethod("--fetch-candidate-process")
+	public void fetchCandidateProcess(Opts opts) throws Exception {
+		Double pvalThresh = 0.05;
+		Double pvalCorrectedThresh = 0.05;
+		Integer popSize = null;
+		boolean isDirect = false;
+		boolean isReflexive = false;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-p")) {
+				pvalCorrectedThresh = Double.valueOf(opts.nextOpt());
+			}
+			else if (opts.nextEq("--pval-uncorrected")) {
+				pvalThresh = Double.valueOf(opts.nextOpt());
+			}
+			else if (opts.nextEq("--pop-size")) {
+				popSize = Integer.valueOf(opts.nextOpt());
+			}
+			else if (opts.nextEq("-d")) {
+				isDirect = true;
+			}
+			else if (opts.nextEq("-r")) {
+				isReflexive = true;
+			}
+			else {
+				break;
+			}
+		}
+		OWLClass disease = this.resolveClass(opts.nextOpt());
+
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
+		LOG.info("DISEASE: "+owlpp.render(disease));
+		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
+		ni.setPrecomputePropertyClassCombinations(false);
+		
+		ni.initialize(gafdoc, g);
+		OWLClass nothing = g.getDataFactory().getOWLNothing();
+		Map<OWLClass, Double> smap = ni.fetchScoredCandidateProcesses(disease, popSize);
+		int MAX = 500;
+		int n=0;
+		for (Map.Entry<OWLClass, Double> e : smap.entrySet()) {
+			n++;
+			if (n > MAX) {
+				break;
+			}
+			Double score = e.getValue();
+			OWLClass c = e .getKey();
+			System.out.println("PROC\t"+owlpp.render(c)+"\t"+score);
+		}
+	}
+	
+	@CLIMethod("--go-multi-enrichment")
+	public void goMultiEnrichment(Opts opts) throws Exception {
+		opts.info("P1 P2", "Generates an activity network (aka lego) from existing GAF and ontology");
+		Double pvalThresh = 0.05;
+		Double pvalCorrectedThresh = 0.05;
+		Integer popSize = null;
+		boolean isDirect = false;
+		boolean isReflexive = false;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-p")) {
+				pvalCorrectedThresh = Double.valueOf(opts.nextOpt());
+			}
+			else if (opts.nextEq("--pval-uncorrected")) {
+				pvalThresh = Double.valueOf(opts.nextOpt());
+			}
+			else if (opts.nextEq("--pop-size")) {
+				popSize = Integer.valueOf(opts.nextOpt());
+			}
+			else if (opts.nextEq("-d")) {
+				isDirect = true;
+			}
+			else if (opts.nextEq("-r")) {
+				isReflexive = true;
+			}
+			else {
+				break;
+			}
+		}
+		OWLClass rc1 = this.resolveClass(opts.nextOpt());
+		OWLClass rc2 = this.resolveClass(opts.nextOpt());
+		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
+		
+		ni.initialize(gafdoc, g);
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
+		OWLClass nothing = g.getDataFactory().getOWLNothing();
+		Set<OWLClass> sampleSet = ni.getReasoner().getSubClasses(rc2, false).getFlattened();
+		sampleSet.remove(nothing);
+		if (isDirect) {
+			sampleSet = Collections.singleton(rc2);
+		}
+		if (isReflexive) {
+			sampleSet.add(rc2);
+		}
+		
+		// calc correction factor
+		int numHypotheses = 0;
+		for (OWLClass c1 : ni.getReasoner().getSubClasses(rc1, false).getFlattened()) {
+			if (c1.equals(nothing))
+				continue;
+			if (ni.getGenes(c1).size() < 2) {
+				continue;
+			}
+			for (OWLClass c2 : sampleSet) {
+				if (ni.getGenes(c2).size() < 2) {
+					continue;
+				}
+				numHypotheses++;
+			}
+		}
+		
+		
+		for (OWLClass c1 : ni.getReasoner().getSubClasses(rc1, false).getFlattened()) {
+			if (c1.equals(nothing))
+				continue;
+			System.out.println("Sample: "+c1);
+			for (OWLClass c2 : sampleSet) {
+				if (c2.equals(nothing))
+					continue;
+				Double pval = ni.calculatePairwiseEnrichment(c1, c2, popSize);
+				if (pval == null || pval > pvalThresh)
+					continue;
+				Double pvalCorrected = pval * numHypotheses;
+				if (pvalCorrected == null || pvalCorrected > pvalCorrectedThresh)
+					continue;
+				System.out.println("enrich\t"+owlpp.render(c1)+"\t"+owlpp.render(c2)+"\t"+pval+"\t"+pvalCorrected);
+			}
+		}
+	}
+	
 	
 	@CLIMethod("--visualize-lego")
 	public void visualizeLego(Opts opts) throws Exception {
