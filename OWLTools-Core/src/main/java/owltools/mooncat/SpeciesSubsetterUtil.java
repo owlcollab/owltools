@@ -19,6 +19,24 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import owltools.graph.OWLGraphWrapper;
 
 /**
+ * This implements species subsetting (module generation) using
+ * OWL reasoning.
+ * 
+ * The procedure is to assert
+ * Thing SubClassOf in_taxon some My-taxon-of-interest
+ * 
+ * Then remove all unsatisfiable classes.
+ * 
+ * This is a somewhat brutal way of doing things. A more
+ * elegant approach would be to test every class (C in_taxon some T),
+ * but this would be a little slower.
+ * 
+ * The current approach requires removing all taxon-crossing
+ * relationships first to avoid removing too many
+ * (e.g. if C is unsatisfiable, then homologous_to some C is
+ * also unsatisfiable, we don't want to remove the homologs)
+ * 
+ * See: https://github.com/obophenotype/uberon/wiki/Taxon-constraints
  * 
  * 
  * @author cjm
@@ -108,7 +126,7 @@ public class SpeciesSubsetterUtil {
 		Set<OWLClass> ucs = reasoner.getEquivalentClasses(fac.getOWLNothing()).getEntities();
 		LOG.info("UCS: "+ucs.size());
 		for (OWLClass uc : ucs) {
-			LOG.info("Removing: "+uc);
+			LOG.info("Removing: "+uc+" "+graph.getLabel(uc));
 			rmAxioms.addAll(ont.getAxioms(uc));
 			rmAxioms.add(fac.getOWLDeclarationAxiom(uc));
 			rmAxioms.addAll(ont.getAnnotationAssertionAxioms(uc.getIRI()));
