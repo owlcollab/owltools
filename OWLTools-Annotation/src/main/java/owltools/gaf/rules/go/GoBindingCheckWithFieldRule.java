@@ -23,7 +23,7 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 	public static final String PERMANENT_JAVA_ID = "org.geneontology.rules.GO_AR_0000003";
 	
 	// TODO retrieve message from title in the annotation_qc.xml
-	private static final String MESSAGE = "Annotations to 'binding ; GO:0005488' and 'protein binding ; GO:0005515' should be made with IPI and an interactor in the 'with' field";
+	private static final String MESSAGE = "Annotations to 'binding ; GO:0005488' and 'protein binding ; GO:0005515' should be made with $CODE and an interactor in the 'with' field";
 	private static final Set<String> entities = createEntities();
 	private final Set<String> evidences;
 	
@@ -49,7 +49,7 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 				// check with field
 				String withExpression = a.getWithExpression();
 				if (withExpression == null || withExpression.isEmpty()) {
-					AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), MESSAGE, a, ViolationType.Warning);
+					AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), MESSAGE.replace("$CODE", evidence), a, ViolationType.Warning);
 					return Collections.singleton(violation);
 				}
 			}
