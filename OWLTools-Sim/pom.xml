@@ -20,7 +20,7 @@
 					<excludes>
 						<!-- May exclude because they use GO; they take a while to run. -->
 						<exclude>sim1/PhenologSimTest.java</exclude>
-                                                <exclude>sim2/SimSpeedTest.java</exclude>
+                                                <exclude>owltools/sim2/SimSpeedTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
