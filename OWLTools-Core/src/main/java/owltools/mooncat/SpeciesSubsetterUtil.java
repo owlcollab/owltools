@@ -22,19 +22,24 @@ import owltools.graph.OWLGraphWrapper;
  * This implements species subsetting (module generation) using
  * OWL reasoning.
  * 
- * The procedure is to assert
- * Thing SubClassOf in_taxon some My-taxon-of-interest
+ * The procedure is 
  * 
- * Then remove all unsatisfiable classes.
+ * 1. to assert
+ *      Thing SubClassOf in_taxon some My-taxon-of-interest
+ * 
+ * 2. Remove all unsatisfiable classes.
  * 
  * This is a somewhat brutal way of doing things. A more
  * elegant approach would be to test every class (C in_taxon some T),
- * but this would be a little slower.
+ * but this would be a little slower. But it avoids stating falsehoods.
  * 
  * The current approach requires removing all taxon-crossing
  * relationships first to avoid removing too many
  * (e.g. if C is unsatisfiable, then homologous_to some C is
- * also unsatisfiable, we don't want to remove the homologs)
+ * also unsatisfiable, we don't want to remove the homologs).
+ * 
+ * A few of these are hardcoded in the module, but the user
+ * should be careful to remove others depending on their ontology.
  * 
  * See: https://github.com/obophenotype/uberon/wiki/Taxon-constraints
  * 
