@@ -35,23 +35,23 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 	@Test
 	public void testSimRunnerMouse100WithCache() throws Exception {
 		load("mp.obo");
-		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-instances "+path("mgi-g2p-1000.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
 		//load("Mus_musculus-label.owl");
 		//load("Mus_musculus-label.obo");
-		run("--sim-compare-atts -p "+path("test-sim.properties"));
-		run("--sim-save-lcs-cache -m 2.0 target/lcs-cache"); // there is currently no method with this name?
+		//run("--sim-compare-atts -p "+path("test-sim.properties"));
+		run("--sim-save-lcs-cache -m 3.0 target/lcs-cache"); 
 		run("--sim-save-ic-cache target/ic-cache.ttl");
 
 		//create a variety of sim property files and test here
 		//this one tests that it runs with the default properties
-		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
+		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100run1.out");
 
 		// test with a fresh instance
 		runner = createCommandRunner();
 		runner.exitOnException = false;
 		load("mp.obo");
-		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-instances "+path("mgi-g2p-1000.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
 		
 		//run("-o -f obo /tmp/foo.obo");	
