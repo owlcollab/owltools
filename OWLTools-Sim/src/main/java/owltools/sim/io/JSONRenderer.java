@@ -296,6 +296,13 @@ public class JSONRenderer implements SimResultRenderer {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public void dispose() {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 }
 

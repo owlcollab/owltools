@@ -55,9 +55,12 @@ public class TabularRenderer implements SimResultRenderer {
 		OWLClass b = simScores.b;
 		List<String> vals = new ArrayList<String>();
 		List<String> cols = new ArrayList<String>();
+		String bestMarker = "";
+		if (simScores.isBestMatch)
+			bestMarker = "*";
 		// elements
 		cols.add("A_ID");
-		vals.add(graph.getIdentifier(a));
+		vals.add(bestMarker+graph.getIdentifier(a));
 		cols.add("A_Label");
 		vals.add(graph.getLabel(a));
 		cols.add("B_ID");
@@ -284,6 +287,12 @@ public class TabularRenderer implements SimResultRenderer {
 	@Override
 	public void printAttributeSim(AttributesSimScores simScores,
 			OWLGraphWrapper graph, OWLPrettyPrinter owlpp) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dispose() {
 		// TODO Auto-generated method stub
 		
 	}

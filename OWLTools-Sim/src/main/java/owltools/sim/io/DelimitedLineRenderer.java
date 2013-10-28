@@ -243,5 +243,11 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 		
 	}
 
+	@Override
+	public void dispose() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
 
