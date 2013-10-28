@@ -44,7 +44,7 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 	/**
 	 * This example uses an ontology that has grouping classes like "pedal digit bone".
 	 * 
-	 * It shoukd return sensible results even without a view
+	 * It should return sensible results even without a view
 	 * 
 	 * We expect g2 vs g3 at UBERON:0001449 'phalanx of pes' UBERON:0004248 'pedal digit bone'   
 	 * @throws Exception
@@ -86,9 +86,7 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--sim-basic -p "+path("test-sim.properties") + " -o target/autopod-test3.out");
 		//run("--sim-basic");
 		run("--show-sim-properties");
-		run("-o file:///tmp/z.owl");
-		
-		//run("-o -f obo /tmp/foo.obo");
+		run("-o target/autopod-parts-sim.owl");
 		
 	}
 	
