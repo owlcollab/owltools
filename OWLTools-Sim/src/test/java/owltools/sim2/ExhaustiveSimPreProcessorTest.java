@@ -6,8 +6,6 @@ import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -16,11 +14,6 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
-import owltools.io.OWLPrettyPrinter;
-import owltools.io.ParserWrapper;
-import owltools.io.TableToAxiomConverter;
-import owltools.sim2.SimpleOwlSim;
-import owltools.sim2.preprocessor.AutomaticSimPreProcessor;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder
