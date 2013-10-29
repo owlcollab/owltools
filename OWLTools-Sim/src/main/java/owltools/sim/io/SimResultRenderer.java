@@ -5,8 +5,8 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
-import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 import owltools.util.ClassExpressionPair;
 
 public interface SimResultRenderer {
@@ -102,22 +102,22 @@ public interface SimResultRenderer {
 		public int numberOfElementsI;
 		public int numberOfElementsJ;
 		
-		public ScoreAttributesPair maxIC = null;
+		public ScoreAttributeSetPair maxIC = null;
 		public String maxICLabel = null;
 		
 		public Double simjScore = null;
 		public String simjScoreLabel = null;
 		
-		public ScoreAttributesPair bmaAsymIC = null;
+		public ScoreAttributeSetPair bmaAsymIC = null;
 		public String bmaAsymICLabel = null;
 		
-		public ScoreAttributesPair bmaSymIC = null;
+		public ScoreAttributeSetPair bmaSymIC = null;
 		public String bmaSymICLabel = null;
 		
-		public ScoreAttributesPair bmaAsymJ = null;
+		public ScoreAttributeSetPair bmaAsymJ = null;
 		public String bmaAsymJLabel = null;
 		
-		public ScoreAttributesPair bmaSymJ = null;
+		public ScoreAttributeSetPair bmaSymJ = null;
 		public String bmaSymJLabel = null;
 		
 		public Double simGIC = null;

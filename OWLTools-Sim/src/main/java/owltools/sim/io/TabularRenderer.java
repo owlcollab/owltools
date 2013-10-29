@@ -210,7 +210,7 @@ public class TabularRenderer implements SimResultRenderer {
 		return sb;
 	}
 
-	protected CharSequence show(Set<OWLClassExpression> cset, OWLPrettyPrinter owlpp) {
+	protected CharSequence show(Set<OWLClass> cset, OWLPrettyPrinter owlpp) {
 		StringBuffer sb = new StringBuffer();
 		for (OWLClassExpression c : cset) {
 			sb.append(owlpp.render(c)).append('\t');

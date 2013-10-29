@@ -118,7 +118,7 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 		resultOutStream.flush();
 	}
 
-	protected void renderIndividualScore(String label, double score, Set<OWLClassExpression> attributeClassSet, OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
+	protected void renderIndividualScore(String label, double score, Set<OWLClass> attributeClassSet, OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
 		resultOutStream.print(label);
 		resultOutStream.print(separator);
 		resultOutStream.print(renderPair(i,j, owlpp));
@@ -129,6 +129,11 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 		resultOutStream.println();
 	}
 	
+	private char[] show(Set<OWLClass> attributeClassSet, OWLPrettyPrinter owlpp) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	protected void renderAttScore(String label, double score, OWLClass a, OWLClass b, OWLGraphWrapper g, OWLPrettyPrinter owlpp) {
 		resultOutStream.print(label);
 		resultOutStream.print(separator);
