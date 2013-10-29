@@ -37,6 +37,7 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.sim.io.SimResultRenderer.AttributesSimScores;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 import owltools.util.ClassExpressionPair;
@@ -210,7 +211,7 @@ import owltools.util.ClassExpressionPair;
  * @author cjm
  * 
  */
-public class SimpleOwlSim {
+public class SimpleOwlSim implements OwlSim{
 
 	private Logger LOG = Logger.getLogger(SimpleOwlSim.class);
 
@@ -236,7 +237,7 @@ public class SimpleOwlSim {
 
 	// private OWLOntology resultsOntology = null;
 
-	private Map<OWLClassExpression, Set<Node<OWLClass>>> superclassMap = null;
+	private Map<OWLClass, Set<Node<OWLClass>>> superclassMap = null;
 	
 	private Map<OWLNamedIndividual, Set<OWLClass>> elementToAttributesMap;
 
@@ -256,8 +257,8 @@ public class SimpleOwlSim {
 
 	Map<OWLClass, Integer> attributeElementCount = null;
 
-	// private Map<OWLClassExpression,OWLClass> lcsExpressionToClass = new
-	// HashMap<OWLClassExpression,OWLClass>();
+	// private Map<OWLClass,OWLClass> lcsExpressionToClass = new
+	// HashMap<OWLClass,OWLClass>();
 
 	/**
 	 * Base similarity metric - may be applied at individual or class level
@@ -444,9 +445,9 @@ public class SimpleOwlSim {
 	public class ScoreAttributePair implements Comparable<ScoreAttributePair> {
 		public double score;
 
-		public OWLClassExpression attributeClass;
+		public OWLClass attributeClass;
 
-		public ScoreAttributePair(double score, OWLClassExpression attributeClass) {
+		public ScoreAttributePair(double score, OWLClass attributeClass) {
 			super();
 			this.score = score;
 			this.attributeClass = attributeClass;
@@ -459,57 +460,6 @@ public class SimpleOwlSim {
 		}
 	}
 
-	/**
-	 * A pair consisting of a set of equal-scoring attributes, and a score
-	 * 
-	 * @author cjm
-	 * 
-	 */
-	public class ScoreAttributesPair implements Comparable<ScoreAttributesPair> {
-		public double score;
-
-		public Set<OWLClassExpression> attributeClassSet = new HashSet<OWLClassExpression>(); // all
-		// attributes
-		// with
-		// this
-		// score
-
-		public ScoreAttributesPair(double score, OWLClassExpression ac) {
-			super();
-			this.score = score;
-			if (ac != null) attributeClassSet.add(ac);
-		}
-
-		public ScoreAttributesPair(double score, Set<OWLClassExpression> acs) {
-			super();
-			this.score = score;
-			this.attributeClassSet = acs;
-		}
-
-		public ScoreAttributesPair(double score) {
-			super();
-			this.score = score;
-		}
-
-		public void addAttributeClass(OWLClassExpression ac) {
-			if (attributeClassSet == null)
-				attributeClassSet = new HashSet<OWLClassExpression>();
-			this.attributeClassSet.add(ac);
-		}
-
-		public void setAttributeClassSet(Set<OWLClass> acs) {
-			attributeClassSet = new HashSet<OWLClassExpression>();
-			for (OWLClass ac : acs)
-				attributeClassSet.add(ac);
-		}
-
-		@Override
-		public int compareTo(ScoreAttributesPair p2) {
-			// TODO Auto-generated method stub
-			return 0 - Double.compare(score, p2.score);
-		}
-
-	}
 
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getSourceOntology()
@@ -591,9 +541,9 @@ public class SimpleOwlSim {
 
 	// TODO - DRY - preprocessor
 	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#getNamedSubsumers(org.semanticweb.owlapi.model.OWLClassExpression)
+	 * @see owltools.sim2.OwlSim#getNamedSubsumers(org.semanticweb.owlapi.model.OWLClass)
 	 */
-	public Set<Node<OWLClass>> getNamedSubsumers(OWLClassExpression a) {
+	public Set<Node<OWLClass>> getNamedSubsumers(OWLClass a) {
 		return getReasoner().getSuperClasses(a, false).getNodes();
 	}
 
@@ -620,21 +570,21 @@ public class SimpleOwlSim {
 
 	// TODO - DRY - preprocessor
 	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#getNamedReflexiveSubsumers(org.semanticweb.owlapi.model.OWLClassExpression)
+	 * @see owltools.sim2.OwlSim#getNamedReflexiveSubsumers(org.semanticweb.owlapi.model.OWLClass)
 	 */
 	// TODO - CACHE
 	
-	public Set<Node<OWLClass>> getNamedReflexiveSubsumers(OWLClassExpression a) {
+	public Set<Node<OWLClass>> getNamedReflexiveSubsumers(OWLClass a) {
 		if (superclassMap != null && superclassMap.containsKey(a)) {
 			// return a copy to prevent caller from accidentally modifying cache
 			return new HashSet<Node<OWLClass>>(superclassMap.get(a));
 		}
 		LOG.info("finding superclasses of:" + a); // TODO - tmp
-		Set<Node<OWLClass>> nodes = getReasoner()
-				.getSuperClasses(a, false).getNodes();
+		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>(getReasoner()
+				.getSuperClasses(a, false).getNodes());
 		nodes.add(getReasoner().getEquivalentClasses(a));
 		if (superclassMap == null) {
-			superclassMap = new HashMap<OWLClassExpression, Set<Node<OWLClass>>>();
+			superclassMap = new HashMap<OWLClass, Set<Node<OWLClass>>>();
 		}
 		// cache results.
 		superclassMap.put(a, nodes);
@@ -644,11 +594,11 @@ public class SimpleOwlSim {
 	}
 
 	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#getNamedCommonSubsumers(org.semanticweb.owlapi.model.OWLClassExpression, org.semanticweb.owlapi.model.OWLClassExpression)
+	 * @see owltools.sim2.OwlSim#getNamedCommonSubsumers(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
 	
-	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClassExpression a,
-			OWLClassExpression b) {
+	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClass a,
+			OWLClass b) {
 		// - assume named
 		// classes
 		//if (csCache.containsKey(pair))
@@ -661,11 +611,11 @@ public class SimpleOwlSim {
 	}
 	
 	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#getNamedCommonSubsumersCount(org.semanticweb.owlapi.model.OWLClassExpression, org.semanticweb.owlapi.model.OWLClassExpression)
+	 * @see owltools.sim2.OwlSim#getNamedCommonSubsumersCount(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
 	
-	public int getNamedCommonSubsumersCount(OWLClassExpression a,
-			OWLClassExpression b) {
+	public int getNamedCommonSubsumersCount(OWLClass a,
+			OWLClass b) {
 		// - assume named
 		// classes
 		//if (csCache.containsKey(pair))
@@ -699,11 +649,11 @@ public class SimpleOwlSim {
 
 
 	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#getNamedLowestCommonSubsumers(org.semanticweb.owlapi.model.OWLClassExpression, org.semanticweb.owlapi.model.OWLClassExpression)
+	 * @see owltools.sim2.OwlSim#getNamedLowestCommonSubsumers(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
 	
 	public Set<Node<OWLClass>> getNamedLowestCommonSubsumers(
-			OWLClassExpression a, OWLClassExpression b) {
+			OWLClass a, OWLClass b) {
 		// currently no need to cache this, as only called from
 		// getLowestCommonSubsumerIC, which does its own caching
 		Set<Node<OWLClass>> commonSubsumerNodes = getNamedCommonSubsumers(a, b);
@@ -717,10 +667,10 @@ public class SimpleOwlSim {
 	}
 
 	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#getAttributeSimilarity(org.semanticweb.owlapi.model.OWLClassExpression, org.semanticweb.owlapi.model.OWLClassExpression, owltools.sim2.SimpleOwlSim.Metric)
+	 * @see owltools.sim2.OwlSim#getAttributeSimilarity(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass, owltools.sim2.SimpleOwlSim.Metric)
 	 */
 	
-	public double getAttributeSimilarity(OWLClassExpression a, OWLClassExpression b, Metric metric) {
+	public double getAttributeSimilarity(OWLClass a, OWLClass b, Metric metric) {
 		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b);
 		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a);
 		cu.addAll(getNamedReflexiveSubsumers(b));
@@ -747,11 +697,11 @@ public class SimpleOwlSim {
 	}
 
 	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#getAttributeJaccardSimilarity(org.semanticweb.owlapi.model.OWLClassExpression, org.semanticweb.owlapi.model.OWLClassExpression)
+	 * @see owltools.sim2.OwlSim#getAttributeJaccardSimilarity(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
 	
-	public double getAttributeJaccardSimilarity(OWLClassExpression a,
-			OWLClassExpression b) {
+	public double getAttributeJaccardSimilarity(OWLClass a,
+			OWLClass b) {
 		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a);
 		cu.addAll(getNamedReflexiveSubsumers(b));
 		return getNamedCommonSubsumersCount(a, b) / (float) cu.size();
@@ -761,7 +711,7 @@ public class SimpleOwlSim {
 	 * @see owltools.sim2.OwlSim#getElementJaccardSimilarity(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
 	
-	public float getElementJaccardSimilarity(OWLNamedIndividual i,
+	public double getElementJaccardSimilarity(OWLNamedIndividual i,
 			OWLNamedIndividual j) {
 		Set<Node<OWLClass>> cu = getInferredAttributes(i);
 		cu.addAll(getInferredAttributes(j));
@@ -769,11 +719,11 @@ public class SimpleOwlSim {
 	}
 
 	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#getAsymmerticAttributeJaccardSimilarity(org.semanticweb.owlapi.model.OWLClassExpression, org.semanticweb.owlapi.model.OWLClassExpression)
+	 * @see owltools.sim2.OwlSim#getAsymmerticAttributeJaccardSimilarity(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
 	
-	public double getAsymmerticAttributeJaccardSimilarity(OWLClassExpression c,
-			OWLClassExpression d) {
+	public double getAsymmerticAttributeJaccardSimilarity(OWLClass c,
+			OWLClass d) {
 		return getNamedCommonSubsumersCount(c, d) / (float) getNamedReflexiveSubsumers(d).size();
 	}
 
@@ -799,6 +749,14 @@ public class SimpleOwlSim {
 		return sumICboth / sumICunion;
 	}
 
+	// bridge to old method
+	@Override
+	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c, OWLClass d)
+			throws UnknownOWLClassException {
+		ScoreAttributePair sap = getLowestCommonSubsumerIC(c,d);
+		return new ScoreAttributeSetPair(sap.score, Collections.singleton(sap.attributeClass));
+	}
+
 	/**
 	 * 
 	 * <pre>
@@ -812,12 +770,12 @@ public class SimpleOwlSim {
 	 * @param b
 	 * @return Lowest common Subsumer plus its Information Content
 	 */
-	public ScoreAttributePair getLowestCommonSubsumerIC(OWLClassExpression a,
-			OWLClassExpression b) {
+	public ScoreAttributePair getLowestCommonSubsumerIC(OWLClass a,
+			OWLClass b) {
 		return getLowestCommonSubsumerIC(a, b, null);
 	}
-	public ScoreAttributePair getLowestCommonSubsumerIC(OWLClassExpression a,
-			OWLClassExpression b, Double minimumIC) {
+	public ScoreAttributePair getLowestCommonSubsumerIC(OWLClass a,
+			OWLClass b, Double minimumIC) {
 
 		ClassExpressionPair pair = new ClassExpressionPair(a, b);
 		
@@ -887,12 +845,12 @@ public class SimpleOwlSim {
 	 * @see owltools.sim2.OwlSim#getSimilarityMaxIC(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
 	
-	public ScoreAttributesPair getSimilarityMaxIC(OWLNamedIndividual i,
+	public ScoreAttributeSetPair getSimilarityMaxIC(OWLNamedIndividual i,
 			OWLNamedIndividual j) {
 		Set<Node<OWLClass>> atts = getInferredAttributes(i);
 		atts.retainAll(getInferredAttributes(j)); // intersection
 
-		ScoreAttributesPair best = new ScoreAttributesPair(0.0);
+		ScoreAttributeSetPair best = new ScoreAttributeSetPair(0.0);
 		for (Node<OWLClass> n : atts) {
 			OWLClass c = n.getRepresentativeElement();
 			Double ic = this.getInformationContentForAttribute(c);
@@ -901,7 +859,7 @@ public class SimpleOwlSim {
 				best.addAttributeClass(c);
 			}
 			if (ic > best.score) {
-				best = new ScoreAttributesPair(ic, c);
+				best = new ScoreAttributeSetPair(ic, c);
 			}
 		}
 		return best;
@@ -911,7 +869,7 @@ public class SimpleOwlSim {
 	 * @see owltools.sim2.OwlSim#getSimilarityBestMatchAverageAsym(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
 	
-	public ScoreAttributesPair getSimilarityBestMatchAverageAsym(
+	public ScoreAttributeSetPair getSimilarityBestMatchAverageAsym(
 			OWLNamedIndividual i, OWLNamedIndividual j) {
 		return getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
 	}
@@ -920,7 +878,7 @@ public class SimpleOwlSim {
 	 * @see owltools.sim2.OwlSim#getSimilarityBestMatchAverageAsym(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual, owltools.sim2.SimpleOwlSim.Metric)
 	 */
 	
-	public ScoreAttributesPair getSimilarityBestMatchAverageAsym(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric) {
+	public ScoreAttributeSetPair getSimilarityBestMatchAverageAsym(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric) {
 		return getSimilarityBestMatchAverage(i, j, metric, Direction.A_TO_B);
 	}
 
@@ -928,32 +886,32 @@ public class SimpleOwlSim {
 	 * @see owltools.sim2.OwlSim#getSimilarityBestMatchAverage(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual, owltools.sim2.SimpleOwlSim.Metric, owltools.sim2.SimpleOwlSim.Direction)
 	 */
 	
-	public ScoreAttributesPair getSimilarityBestMatchAverage(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric, Direction dir) {
+	public ScoreAttributeSetPair getSimilarityBestMatchAverage(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric, Direction dir) {
 
 		if (dir.equals(Direction.B_TO_A)) {
 			return getSimilarityBestMatchAverage(j, i, metric, Direction.A_TO_B);
 		}
 		if (dir.equals(Direction.AVERAGE)) {
 			LOG.error("TODO - make this more efficient");
-			ScoreAttributesPair bma1 = getSimilarityBestMatchAverage(i, j, metric,
+			ScoreAttributeSetPair bma1 = getSimilarityBestMatchAverage(i, j, metric,
 					Direction.A_TO_B);
-			ScoreAttributesPair bma2 = getSimilarityBestMatchAverage(j, i, metric,
+			ScoreAttributeSetPair bma2 = getSimilarityBestMatchAverage(j, i, metric,
 					Direction.A_TO_B);
-			Set<OWLClassExpression> atts = new HashSet<OWLClassExpression>(
+			Set<OWLClass> atts = new HashSet<OWLClass>(
 					bma1.attributeClassSet);
 			atts.addAll(bma2.attributeClassSet);
-			ScoreAttributesPair bma = new ScoreAttributesPair(
+			ScoreAttributeSetPair bma = new ScoreAttributeSetPair(
 					(bma1.score + bma2.score) / 2, bma1.attributeClassSet);
 			return bma;
 		}
 
 		// no cache - assume only called once for each pair
-		List<ScoreAttributesPair> bestMatches = new ArrayList<ScoreAttributesPair>();
-		Set<OWLClassExpression> atts = new HashSet<OWLClassExpression>();
+		List<ScoreAttributeSetPair> bestMatches = new ArrayList<ScoreAttributeSetPair>();
+		Set<OWLClass> atts = new HashSet<OWLClass>();
 		double total = 0.0;
 		int n = 0;
 		for (OWLClass t1 : this.getAttributesForElement(i)) {
-			ScoreAttributesPair best = new ScoreAttributesPair(0.0);
+			ScoreAttributeSetPair best = new ScoreAttributeSetPair(0.0);
 
 			for (OWLClass t2 : this.getAttributesForElement(j)) {
 				ScoreAttributePair sap;
@@ -977,7 +935,7 @@ public class SimpleOwlSim {
 					best.addAttributeClass(sap.attributeClass);
 				}
 				if (sap.score > best.score) {
-					best = new ScoreAttributesPair(sap.score, sap.attributeClass);
+					best = new ScoreAttributeSetPair(sap.score, sap.attributeClass);
 				}
 			}
 			atts.addAll(best.attributeClassSet);
@@ -985,7 +943,7 @@ public class SimpleOwlSim {
 			total += best.score;
 			n++;
 		}
-		ScoreAttributesPair sap = new ScoreAttributesPair(total / n, atts);
+		ScoreAttributeSetPair sap = new ScoreAttributeSetPair(total / n, atts);
 		return sap;
 	}
 	
@@ -1331,11 +1289,11 @@ public class SimpleOwlSim {
 	 * @param e
 	 * @return
 	 */
-	public List<ScoreAttributesPair> getScoredAttributesForElement(OWLNamedIndividual e) {
-		List<ScoreAttributesPair> saps = new ArrayList<ScoreAttributesPair>();
+	public List<ScoreAttributeSetPair> getScoredAttributesForElement(OWLNamedIndividual e) {
+		List<ScoreAttributeSetPair> saps = new ArrayList<ScoreAttributeSetPair>();
 		for (Node<OWLClass> n : getReasoner().getTypes(e, true)) {
 			double score = getInformationContentForAttribute(n.getRepresentativeElement());
-			ScoreAttributesPair sap = new ScoreAttributesPair(score);
+			ScoreAttributeSetPair sap = new ScoreAttributeSetPair(score);
 			sap.setAttributeClassSet(n.getEntities());
 			saps.add(sap);
 		}
@@ -1490,7 +1448,7 @@ public class SimpleOwlSim {
 	// ---------------
 
 	final String prefix = "http://purl.obolibrary.org/obo/";
-	private String getShortId(OWLClassExpression c) {
+	private String getShortId(OWLClass c) {
 		IRI x = ((OWLClass) c).getIRI();
 		return x.toString().replace(prefix, ""); // todo - do not hardcode
 	}
@@ -1516,7 +1474,7 @@ public class SimpleOwlSim {
 			if (thresholdIC != null && sap.score < thresholdIC) {
 				continue;
 			}
-			IOUtils.write(getShortId(p.c1) +"\t" + getShortId(p.c2) + "\t" + sap.score + "\t" + 
+			IOUtils.write(getShortId((OWLClass) p.c1) +"\t" + getShortId((OWLClass) p.c2) + "\t" + sap.score + "\t" + 
 					getShortId(sap.attributeClass) + "\n", fos);
 		}
 		fos.close();

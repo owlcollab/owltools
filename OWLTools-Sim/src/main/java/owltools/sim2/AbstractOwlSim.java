@@ -10,7 +10,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
-import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 
 public abstract class AbstractOwlSim implements OwlSim {
 

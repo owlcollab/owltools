@@ -12,6 +12,7 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.sim.io.SimResultRenderer.AttributesSimScores;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 
@@ -475,7 +476,10 @@ public interface OwlSim {
 	 */
 	public Double getEntropy(Set<OWLClass> cset);
 
-	List<AttributesSimScores> compareAllAttributes(OWLClass c, Set<OWLClass> ds) throws UnknownOWLClassException;
+	public List<AttributesSimScores> compareAllAttributes(OWLClass c, Set<OWLClass> ds) throws UnknownOWLClassException;
+
+	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c, OWLClass d)
+			throws UnknownOWLClassException;
 
 	/**
 	 * A pair consisting of a set of equal-scoring attributes, and a score
@@ -528,5 +532,48 @@ public interface OwlSim {
 		}
 
 	}
+	
+	public class AttributePairScores {
+		OWLClass c;
+		OWLClass d;
+		
+		public Double lcIC = null;
+		public Set<OWLClass> lcsSet = null;
+		
+		public Double simjScore = null;
+		public Double asymmetricSimjScore = null;
+		public Double inverseAsymmetricSimjScore = null;
+		
+		public Double simGIC = null;		
+	}
+	
+	public class ElementPairScores {
+		OWLNamedIndividual i;
+		OWLNamedIndividual j;
+		
+		public int numberOfAttributesI;
+		public int numberOfAttributesJ;
+		
+		public Double maxIC = null;
+		public Set<OWLClass> maxICwitness = null;
+		
+		public Double simjScore = null;
+		public Double asymmetricSimjScore = null;
+		public Double inverseAsymmetricSimjScore = null;
+		
+		
+		public ScoreAttributeSetPair bmaSymIC = null;
+		public ScoreAttributeSetPair bmaAsymIC = null;
+		public ScoreAttributeSetPair bmaInverseAsymIC = null;
+		
+		//public ScoreAttributeSetPair bmaAsymJ = null;
+		
+		//public ScoreAttributeSetPair bmaSymJ = null;
+		
+		public Double simGIC = null;
+
+		
+	}
+
 
 }
