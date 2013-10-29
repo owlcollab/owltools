@@ -11,7 +11,6 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -21,8 +20,6 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.cli.tools.CLIMethod;
@@ -37,10 +34,10 @@ import owltools.sim.SimEngine;
 import owltools.sim.SimEngine.SimilarityAlgorithmException;
 import owltools.sim.SimSearch;
 import owltools.sim.Similarity;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
 import owltools.sim2.SimpleOwlSim.EnrichmentResult;
-import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
@@ -465,15 +462,15 @@ public class SimCommandRunner extends SolrCommandRunner {
 	}
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
-		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
+		ScoreAttributeSetPair maxic = sos.getSimilarityMaxIC(i, j);
 		if ( maxic.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
 			return;
 		}
-		float s = sos.getElementJaccardSimilarity(i, j);
+		double s = sos.getElementJaccardSimilarity(i, j);
 		if (s < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
 			return;
 		}
-		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
+		ScoreAttributeSetPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
 
 		System.out.println("SimJ\t"+renderPair(i,j, owlpp)+"\t"+s);
 
@@ -634,9 +631,9 @@ public class SimCommandRunner extends SolrCommandRunner {
 	}
 
 
-	private String show(Set<OWLClassExpression> cset, OWLPrettyPrinter owlpp) {
+	private String show(Set<OWLClass> attributeClassSet, OWLPrettyPrinter owlpp) {
 		StringBuffer sb = new StringBuffer();
-		for (OWLClassExpression c : cset) {
+		for (OWLClassExpression c : attributeClassSet) {
 			sb.append(owlpp.render(c) + "\t");
 		}
 		return sb.toString();
