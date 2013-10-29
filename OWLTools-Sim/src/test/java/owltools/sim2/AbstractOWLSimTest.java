@@ -28,7 +28,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
-import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 
@@ -62,14 +62,14 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
 
 		if (i==j) return;
-		float s = sos.getElementJaccardSimilarity(i, j);
+		double s = sos.getElementJaccardSimilarity(i, j);
 		if (s > 0.1) {
 			LOG.info("SimJ( "+i+" , "+j+" ) = "+s);
 
-			ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
+			ScoreAttributeSetPair maxic = sos.getSimilarityMaxIC(i, j);
 			LOG.info("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+show(maxic.attributeClassSet));
 
-			ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
+			ScoreAttributeSetPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
 			LOG.info("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+show(bma.attributeClassSet));
 		}
 
@@ -78,9 +78,9 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 
 
 
-	private String show(Set<OWLClassExpression> cset) {
+	private String show(Set<OWLClass> attributeClassSet) {
 		StringBuffer sb = new StringBuffer();
-		for (OWLClassExpression c : cset) {
+		for (OWLClassExpression c : attributeClassSet) {
 			sb.append(owlpp.render(c) + " ; ");
 		}
 		return sb.toString();

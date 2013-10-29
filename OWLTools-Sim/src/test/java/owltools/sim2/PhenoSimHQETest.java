@@ -25,8 +25,8 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim;
-import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 
@@ -130,13 +130,13 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 
 	private void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
 		
-		float s = sos.getElementJaccardSimilarity(i, j);
+		double s = sos.getElementJaccardSimilarity(i, j);
 		System.out.println("SimJ( "+i+" , "+j+" ) = "+s);
 
-		ScoreAttributesPair maxic = sos.getSimilarityMaxIC(i, j);
+		ScoreAttributeSetPair maxic = sos.getSimilarityMaxIC(i, j);
 		System.out.println("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+show(maxic.attributeClassSet));
 
-		ScoreAttributesPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
+		ScoreAttributeSetPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
 		System.out.println("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+show(bma.attributeClassSet));
 		
 	}
@@ -144,9 +144,9 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 
 
 
-	private String show(Set<OWLClassExpression> cset) {
+	private String show(Set<OWLClass> attributeClassSet) {
 		StringBuffer sb = new StringBuffer();
-		for (OWLClassExpression c : cset) {
+		for (OWLClassExpression c : attributeClassSet) {
 			sb.append(owlpp.render(c) + " ; ");
 		}
 		return sb.toString();

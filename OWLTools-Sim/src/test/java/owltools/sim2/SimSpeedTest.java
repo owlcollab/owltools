@@ -31,6 +31,15 @@ import owltools.OWLToolsTestBasics;
 import owltools.io.ParserWrapper;
 import owltools.sim2.preprocessor.ABoxUtils;
 
+/**
+ * 
+ * Consider also:
+ * 
+ * http://stackoverflow.com/questions/10784951/do-any-jvms-jit-compilers-generate-code-that-uses-vectorized-floating-point-ins
+ * 
+ * @author cjm
+ *
+ */
 public class SimSpeedTest extends OWLToolsTestBasics{
 
 	OWLOntology ontology;
@@ -39,9 +48,12 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 	Map<OWLClass,Set<Node<OWLClass>>> superclassMap;
 	Map<OWLClass,Set<Integer>> superclassIntMap;
 	Map<OWLClass,EWAHCompressedBitmap> superclassBitmapMap;
+	Map<OWLClass,EWAHCompressedBitmap> properSuperclassBitmapMap;
 	Map<OWLClass,Integer> classIndex;
 	Vector<OWLClass> classByNumber;
 	OWLClass[] classArray;
+	short[][] classPairScaledICofLCSIndex;
+	
 
 	public enum Method {NAIVE, INTS, GUAVA, EFFICIENT, BITMAP};
 
@@ -65,6 +77,7 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 	public void testGuavaIntsMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.GUAVA, "mp", 2000);
 	}
+
 	@Test
 	public void testBitmapMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.BITMAP, "mp", 2000);
@@ -101,6 +114,17 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 	public void testBitmapMammal10k() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.BITMAP, "mammal-merged", 10000);
 	}
+	
+	@Test
+	public void testLCSBitmapMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
+		testLCS(Method.BITMAP, "mammal-merged", 400);
+	}
+	@Test
+	public void testLCSNaiveMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
+		testLCS(Method.NAIVE, "mammal-merged", 400);
+	}
+
+	
 	@Test
 	public void bitmapTest() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		Set<Integer> ixs = new HashSet<Integer>();
@@ -117,6 +141,19 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 		
 	}
 
+	@Test
+	public void testLCS() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
+		String idspace="mp";
+		load(idspace);
+		precompute(Method.BITMAP);
+		OWLClass c1 = getCls("MP_0003737"); // ossification of pinnae
+		OWLClass c2 = getCls("MP_0002895"); // abnormal otolithic membrane morphology
+		Set<Node<OWLClass>> cs = this.getNamedCommonSubsumers(c1, c2);
+		msg("CS="+cs);
+		Set<Node<OWLClass>> lcs = this.getNamedLowestCommonSubsumers(c1, c2, Method.BITMAP);
+		msg("LCS="+lcs);
+	}
+	
 	public void t(Method m, String idspace, int size) throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		Runtime rt = Runtime.getRuntime();
 		load(idspace);
@@ -143,6 +180,39 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 			Set<Node<OWLClass>> c1ancs = ancsByMethod(c1,m);
 			msg("ANCS(c1) = "+c1ancs.size()+" // "+c1ancs);
 		}
+	}
+	
+	public void testLCS(Method m, String idspace, int size) throws OWLOntologyCreationException, OBOFormatParserException, IOException {
+		Runtime rt = Runtime.getRuntime();
+		load(idspace);
+		ABoxUtils.makeDefaultIndividuals(ontology);
+		long usedMB0 = (rt.totalMemory() - rt.freeMemory()) / 1024 / 1024;
+		precompute(m);
+		long t1 = System.currentTimeMillis();
+		long usedMB1 = (rt.totalMemory() - rt.freeMemory()) / 1024 / 1024;
+		msg("LCSLOADED: "+idspace+" M:"+m+" NUM:"+size+" usedMB:"+usedMB0);
+		msg("LCSTEST: "+idspace+" M:"+m+" NUM:"+size+" usedMB:"+usedMB1);
+		Set<OWLClass> all = ontology.getClassesInSignature();
+		Set<OWLClass> cset = new HashSet<OWLClass>();
+		int i=0;
+		for (OWLClass c : ontology.getClassesInSignature()) {
+			i++;
+			if (i>size)
+				break;
+			cset.add(c);
+		}
+		for (OWLClass c : cset) {
+			for (OWLClass d : cset) {
+				getNamedLowestCommonSubsumers(c, d, m);
+			}
+		}
+		long t2 = System.currentTimeMillis();
+		long usedMB2 = (rt.totalMemory() - rt.freeMemory()) / 1024 / 1024;
+		msg("LCSCOMPLETED TEST: "+idspace+" M:"+m+" NUM:"+size+" usedMB:"+usedMB2+
+				" usedMBDelta:" + (usedMB2-usedMB1) +
+				" TIME (ms):"+(t2-t1));		
+
+	
 	}
 
 	private OWLClass getCls(String id) {
@@ -171,6 +241,7 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 			ancsCachedModifiable(c);
 			ancsIntsCachedModifiable(c);
 			ancsBitmapCachedModifiable(c);
+			ancsProperBitmapCachedModifiable(c);
 		}
 
 
@@ -199,9 +270,12 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 		for (OWLClass c : cset) {
 			//msg("Attr(c)="+c);
 			for (OWLClass d : cset) {
-				double s = jaccard(c,d,m);
+				double s = jaccard(c,d,m);				
 				//msg(" "+c+" , "+d+" = "+s);
 				total += s;
+				
+				//Set<Node<OWLClass>> lcs = getNamedCommonSubsumers(c, d);
+				//msg(" "+c+" , "+d+" = "+lcs);
 				n++;
 			}
 		}
@@ -285,6 +359,33 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 			bm.set(i.intValue());
 		}
 		return bm;
+	}
+
+	public EWAHCompressedBitmap ancsProperBitmapCachedModifiable(OWLClass c) {
+		if (properSuperclassBitmapMap != null && properSuperclassBitmapMap.containsKey(c)) {
+			return properSuperclassBitmapMap.get(c);
+		}
+		
+		Set<Integer> ancsInts = new HashSet<Integer>();
+		for (Node<OWLClass> anc : reasoner.getSuperClasses(c, false)) {
+			// TODO - verify robust for non-Rep elements
+			OWLClass ac = anc.getRepresentativeElement();
+			if (ac.equals(thing))
+				continue;
+			Integer ix = classIndex.get(ac);
+			if (ix == null) {
+				msg("??"+anc);
+			}
+			ancsInts.add(ix.intValue());
+		}
+
+
+		//msg(c + " ancs = "+caints.size());
+		EWAHCompressedBitmap bm = bm(ancsInts);
+		if (properSuperclassBitmapMap == null)
+			properSuperclassBitmapMap = new HashMap<OWLClass,EWAHCompressedBitmap>();
+		properSuperclassBitmapMap.put(c, bm);
+		return bm;		
 	}
 
 	public EWAHCompressedBitmap ancsBitmapCachedModifiable(OWLClass c) {
@@ -377,6 +478,68 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 		nodes.add(reasoner.getEquivalentClasses(c));
 		return nodes;
 	}
+
+	
+	
+	// LCS etc
+	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClass c, OWLClass d) {
+		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(c);
+		EWAHCompressedBitmap bmd = ancsBitmapCachedModifiable(d);
+		EWAHCompressedBitmap cad = bmc.and(bmd);
+		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>();
+		for (int ix : cad.toArray()) {
+			OWLClassNode node = new OWLClassNode(classArray[ix]);
+			nodes.add(node);
+		}
+		return nodes;
+	}
+	
+	public Set<Node<OWLClass>> getNamedLowestCommonSubsumers(OWLClass a,
+			OWLClass b, Method m) {
+		if (m.equals(Method.NAIVE)) {
+			return getNamedLowestCommonSubsumersNaive(a,b);
+		}
+		else if (m.equals(Method.BITMAP)) {
+			return getNamedLowestCommonSubsumersBitmap(a,b);
+		}
+		return null;	
+	}
+
+	
+	public Set<Node<OWLClass>> getNamedLowestCommonSubsumersNaive(OWLClass a,
+			OWLClass b)  {
+		// currently no need to cache this, as only called from
+		// getLowestCommonSubsumerIC, which does its own caching
+		Set<Node<OWLClass>> commonSubsumerNodes = getNamedCommonSubsumers(a, b);
+		Set<Node<OWLClass>> rNodes = new HashSet<Node<OWLClass>>();
+
+		// remove redundant
+		for (Node<OWLClass> node : commonSubsumerNodes) {
+			rNodes.addAll(reasoner.getSuperClasses(
+					node.getRepresentativeElement(), false).getNodes());
+		}
+		commonSubsumerNodes.removeAll(rNodes);
+		return commonSubsumerNodes;
+	}
+
+
+	public Set<Node<OWLClass>> getNamedLowestCommonSubsumersBitmap(OWLClass c,
+			OWLClass d)  {
+		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(c);
+		EWAHCompressedBitmap bmd = ancsBitmapCachedModifiable(d);
+		EWAHCompressedBitmap cad = bmc.and(bmd);	
+		int[] csInts = cad.toArray();
+		for (int ix : csInts) {
+			cad = cad.andNot(ancsProperBitmapCachedModifiable(classArray[ix]));
+		}
+		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>();
+		for (int ix : cad.toArray()) {
+			OWLClassNode node = new OWLClassNode(classArray[ix]);
+			nodes.add(node);
+		}
+		return nodes;
+	}
+
 
 	private void load(String idspace) throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		msg("Loading");
