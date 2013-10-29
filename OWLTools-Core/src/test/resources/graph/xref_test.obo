@@ -1,0 +1,10 @@
+ormat-version: 1.2
+ontology: foo
+
+[Term]
+id: FOO:0001
+name: root
+def: "Bla bla bla bla bla." [DEFXREF:one, DEFXREF:two]
+xref: XREF:one
+xref: XREF:two
+

@@ -162,7 +162,6 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		Set<OWLAnnotation>anns = new HashSet<OWLAnnotation>();
 		if (c instanceof OWLEntity) {
 			for (OWLOntology ont : getAllOntologies()) {
-				// TODO : import closure
 				anns.addAll(((OWLEntity) c).getAnnotations(ont,lap));
 			}
 		}
@@ -617,53 +616,83 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	}
 
 
-	// TODO - fix for multiple ontologies
 	/**
-	 * true if c is transitive in the source ontology
+	 * true if c is transitive in the graph
 	 * 
 	 * @param c
 	 * @return boolean
 	 */
 	public boolean getIsTransitive(OWLObjectProperty c) {
-		Set<OWLTransitiveObjectPropertyAxiom> ax = sourceOntology.getTransitiveObjectPropertyAxioms(c);
-
-		return ax.size()>0;
+		for(OWLOntology ont : getAllOntologies()) {
+			Set<OWLTransitiveObjectPropertyAxiom> ax = ont.getTransitiveObjectPropertyAxioms(c);
+			if (ax.isEmpty() == false) {
+				return true;
+			}
+		}
+		return false;
 	}
 
-	// TODO - fix for multiple ontologies
 	/**
-	 * true if c is functional in the source ontology
+	 * true if c is functional in the graph
 	 * 
 	 * @param c
 	 * @return boolean
 	 */
 	public boolean getIsFunctional(OWLObjectProperty c) {
-		Set<OWLFunctionalObjectPropertyAxiom> ax = sourceOntology.getFunctionalObjectPropertyAxioms(c);
-
-		return ax.size()>0;
+		for(OWLOntology ont : getAllOntologies()) {
+			Set<OWLFunctionalObjectPropertyAxiom> ax = ont.getFunctionalObjectPropertyAxioms(c);
+			if (ax.isEmpty() == false) {
+				return true;
+			}
+		}
+		return false;
 	}
 
-	// TODO - fix for multiple ontologies
+	/**
+	 * true if c is inverse functional in the graph
+	 * 
+	 * @param c
+	 * @return boolean
+	 */
 	public boolean getIsInverseFunctional(OWLObjectProperty c) {
-		Set<OWLInverseFunctionalObjectPropertyAxiom> ax = sourceOntology.getInverseFunctionalObjectPropertyAxioms(c);
-
-		return ax.size()>0;
+		for(OWLOntology ont : getAllOntologies()) {
+			Set<OWLInverseFunctionalObjectPropertyAxiom> ax = ont.getInverseFunctionalObjectPropertyAxioms(c);
+			if (ax.isEmpty() == false) {
+				return true;
+			}
+		}
+		return false;
 	}
 
-
-
-	// TODO - fix for multiple ontologies
+	/**
+	 * true if c is reflexive in the graph
+	 * 
+	 * @param c
+	 * @return boolean
+	 */
 	public boolean getIsReflexive(OWLObjectProperty c) {
-		Set<OWLReflexiveObjectPropertyAxiom> ax = sourceOntology.getReflexiveObjectPropertyAxioms(c);
-
-		return ax.size()>0;
+		for(OWLOntology ont : getAllOntologies()) {
+			Set<OWLReflexiveObjectPropertyAxiom> ax = ont.getReflexiveObjectPropertyAxioms(c);
+			if (ax.isEmpty() == false) {
+				return true;
+			}
+		}
+		return false;
 	}
 
-	// TODO - fix for multiple ontologies
+	/**
+	 * true if c is symmetric in the graph
+	 * @param c
+	 * @return boolean
+	 */
 	public boolean getIsSymmetric(OWLObjectProperty c) {
-		Set<OWLSymmetricObjectPropertyAxiom> ax = sourceOntology.getSymmetricObjectPropertyAxioms(c);
-
-		return ax.size()>0;
+		for(OWLOntology ont : getAllOntologies()) {
+			Set<OWLSymmetricObjectPropertyAxiom> ax = ont.getSymmetricObjectPropertyAxioms(c);
+			if (ax.isEmpty() == false) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -672,26 +701,10 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @param c
 	 * @return It returns null if no xref annotation is found.
 	 */
-
 	public List<String> getXref(OWLObject c){
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_XREF.getTag());
-
-		Set<OWLAnnotation>anns = null;
-		if (c instanceof OWLEntity) {
-			anns = ((OWLEntity) c).getAnnotations(sourceOntology,lap);
-		}
-		else {
-			return null;
-		}
-		List<String> list = new ArrayList<String>();
-		for (OWLAnnotation a : anns) {
-
-			if (a.getValue() instanceof OWLLiteral) {
-				OWLLiteral val = (OWLLiteral) a.getValue();
-				list.add( val.getLiteral()) ;
-			}
-		}
-		return list;
+		List<String> values = getAnnotationValues(c, lap);
+		return values;
 	}
 
 	/**
@@ -718,24 +731,27 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		OWLAnnotationProperty lap = getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI()); 
 		OWLAnnotationProperty xap = getAnnotationProperty(OboFormatTag.TAG_XREF.getTag());
 		
-		List<String> list = new ArrayList<String>();
-
-		if(c instanceof OWLEntity){
-			for (OWLAnnotationAssertionAxiom oaax :((OWLEntity) c).getAnnotationAssertionAxioms(sourceOntology)){
-
-				if(lap.equals(oaax.getProperty())){
-
-					for(OWLAnnotation a: oaax.getAnnotations(xap)){
-						if(a.getValue() instanceof OWLLiteral){
-							list.add( ((OWLLiteral)a.getValue()).getLiteral() );
+		if (c instanceof OWLEntity) {
+			List<String> list = new ArrayList<String>();
+			for (OWLOntology ont : getAllOntologies()) {
+				Set<OWLAnnotationAssertionAxiom> axioms = ((OWLEntity) c).getAnnotationAssertionAxioms(ont);
+				for (OWLAnnotationAssertionAxiom axiom :axioms){
+					if(lap.equals(axiom.getProperty())){
+						for(OWLAnnotation annotation: axiom.getAnnotations(xap)){
+							OWLAnnotationValue value = annotation.getValue();
+							if(value instanceof OWLLiteral){
+								list.add(((OWLLiteral)value).getLiteral());
+							}
 						}
 					}
+
 				}
-
 			}
+			return list;
 		}
-
-		return list;
+		else {
+			return null;
+		}
 	}
 
 	
