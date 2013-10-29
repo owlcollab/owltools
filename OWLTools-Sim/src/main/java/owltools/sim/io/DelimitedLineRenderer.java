@@ -167,13 +167,6 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 		return sb;
 	}
 	
-	protected CharSequence show(Set<OWLClassExpression> cset, OWLPrettyPrinter owlpp) {
-		StringBuffer sb = new StringBuffer();
-		for (OWLClassExpression c : cset) {
-			sb.append(owlpp.render(c)).append('\t');
-		}
-		return sb;
-	}
 
 	@Override
 	public void printAttributeSimWithIndividuals(AttributesSimScores simScores, OWLPrettyPrinter owlpp,
