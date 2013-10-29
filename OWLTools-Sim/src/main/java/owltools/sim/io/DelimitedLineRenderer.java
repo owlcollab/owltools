@@ -129,9 +129,12 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 		resultOutStream.println();
 	}
 	
-	private char[] show(Set<OWLClass> attributeClassSet, OWLPrettyPrinter owlpp) {
-		// TODO Auto-generated method stub
-		return null;
+	private CharSequence show(Set<OWLClass> attributeClassSet, OWLPrettyPrinter owlpp) {
+		StringBuffer sb = new StringBuffer();
+		for (OWLClass c : attributeClassSet) {
+			sb.append(owlpp.render(c)).append('\t');
+		}
+		return sb;
 	}
 
 	protected void renderAttScore(String label, double score, OWLClass a, OWLClass b, OWLGraphWrapper g, OWLPrettyPrinter owlpp) {
