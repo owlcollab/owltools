@@ -50,11 +50,11 @@ import owltools.io.OWLGsonRenderer;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimJSONEngine;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
-import owltools.sim2.SimpleOwlSim.ScoreAttributesPair;
 
 /**
  * See http://code.google.com/p/owltools/wiki/WebServices
@@ -483,17 +483,17 @@ public class OWLHandler {
 			return;
 		}
 		SimpleOwlSim sos = getOWLSim();
-		List<ScoreAttributesPair> saps = new Vector<ScoreAttributesPair>();
+		List<ScoreAttributeSetPair> saps = new Vector<ScoreAttributeSetPair>();
 		for (OWLNamedIndividual j : this.getOWLOntology().getIndividualsInSignature()) {
 			// TODO - make configurable
-			ScoreAttributesPair match = sos.getSimilarityMaxIC(i, j);
+			ScoreAttributeSetPair match = sos.getSimilarityMaxIC(i, j);
 			saps.add(match);
 		}
 		Collections.sort(saps);
 		int limit = 100; // todo - configurable
 		
 		int n=0;
-		for (ScoreAttributesPair sap : saps) {
+		for (ScoreAttributeSetPair sap : saps) {
 			//output(sap.attributeClass); TODO
 			this.outputLine("score="+sap.score); // todo - jsonify
 			n++;
