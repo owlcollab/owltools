@@ -30,6 +30,7 @@ import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
+import owltools.graph.RelationSets;
 import owltools.panther.PANTHERForest;
 import owltools.panther.PANTHERTree;
 
@@ -344,11 +345,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 //				}
 	
 				// Regulates closures.
-				ArrayList<String> reg = new ArrayList<String>();
-				reg.add("BFO:0000050");
-				reg.add("RO:0002211");
-				reg.add("RO:0002212");
-				reg.add("RO:0002213");
+				List<String> reg = RelationSets.getRelationSet(RelationSets.COMMON);
 				Map<String, String> curr_reg_map = addClosureToAnnAndBio(reg, "regulates_closure", "regulates_closure_label", "regulates_closure_map",
 						  			               cls, graph, annotation_doc, bioentity_doc);
 				reg_map.putAll(curr_reg_map); // add to aggregate map
@@ -716,7 +713,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	 * Add specified closure of OWLObject to annotation and bioentity docs.
 	 * Not the map for bio.
 	 */
-	private Map<String, String> addClosureToAnnAndBio(ArrayList<String> relations, String closureName, String closureNameLabel, String closureMap,
+	private Map<String, String> addClosureToAnnAndBio(List<String> relations, String closureName, String closureNameLabel, String closureMap,
 			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc){
 		
 		// Add closures to doc; label and id.

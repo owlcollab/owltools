@@ -185,7 +185,7 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 			return null;
 		}
 
-		ArrayList<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<String>();
 		for (OWLAnnotation a : anns) {
 			if (a.getValue() instanceof OWLLiteral) {
 				OWLLiteral val = (OWLLiteral) a.getValue();
@@ -240,7 +240,7 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 	 * @param sargs (currently unused)
 	 * @return string list of synonyms
 	 */
-	public List<String> getOBOSynonymStrings(OWLObject c, ArrayList<String> sargs) {
+	public List<String> getOBOSynonymStrings(OWLObject c, List<String> sargs) {
 
 		// Buffer against later possible changes.
 		if( sargs == null )

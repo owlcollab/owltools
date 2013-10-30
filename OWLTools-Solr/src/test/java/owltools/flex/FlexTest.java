@@ -45,23 +45,23 @@ public class FlexTest {
 		FlexCollection fc = new FlexCollection(g);
 		
 		// Trivial 1
-		ArrayList<String> sexpr_t1 = new ArrayList<String>();
+		List<String> sexpr_t1 = new ArrayList<String>();
 		sexpr_t1.add("getIdentifier");
-		String ans_t1 = fc.getExtString(a1, sexpr_t1);		
+		String ans_t1 = fc.getExtString(a1, sexpr_t1);
 		assertNotNull("Hope not!", ans_t1);
 		assertEquals("Get identifier", "A:0000001", ans_t1);
 
 		// Trivial 2
-		ArrayList<String> sexpr_t2 = new ArrayList<String>();
+		List<String> sexpr_t2 = new ArrayList<String>();
 		sexpr_t2.add("getLabel");
-		String ans_t2 = fc.getExtString(a1, sexpr_t2);		
+		String ans_t2 = fc.getExtString(a1, sexpr_t2);
 		assertEquals("Get label a1", "a1", ans_t2);
 		
 		// Non-trivial 1
-		ArrayList<String> sexpr_t3 = new ArrayList<String>();
+		List<String> sexpr_t3 = new ArrayList<String>();
 		sexpr_t3.add("getAnnotationPropertyValues");
 		sexpr_t3.add("alt_id");
-		ArrayList<String> ans_t3 = (ArrayList<String>) fc.getExtStringList(a1, sexpr_t3);		
+		List<String> ans_t3 = fc.getExtStringList(a1, sexpr_t3);
 		assertTrue("Get label a1 alt_id a:0000001", ans_t3.contains("a:0000001"));
 		assertTrue("Get label a1 alt_id AY:0000001", ans_t3.contains("AY:0000001"));
 	}

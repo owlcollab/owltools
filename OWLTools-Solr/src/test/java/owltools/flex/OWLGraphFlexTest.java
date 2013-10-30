@@ -5,6 +5,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
@@ -97,16 +98,17 @@ public class OWLGraphFlexTest {
 		OWLObject a3 = g.getOWLObjectByIdentifier("A:0000003");
 		OWLObject a4 = g.getOWLObjectByIdentifier("A:0000004");
 		// Define isa.
-		ArrayList<String> isa = new ArrayList<String>();
+		List<String> isa = new ArrayList<String>();
 		isa.add("getRelationIDClosure");
 		// Define isa_partof.
-		ArrayList<String> isa_partof = new ArrayList<String>();
+		List<String> isa_partof = new ArrayList<String>();
 		isa_partof.add("getRelationIDClosure");
 		isa_partof.add("BFO:0000050");
 		// Define regulates.
-		ArrayList<String> reg = new ArrayList<String>();
+		List<String> reg = new ArrayList<String>();
 		reg.add("getRelationIDClosure");
 		reg.add("BFO:0000050");
+		reg.add("BFO:0000066");
 		reg.add("RO:0002211");
 		reg.add("RO:0002212");
 		reg.add("RO:0002213");
@@ -114,26 +116,26 @@ public class OWLGraphFlexTest {
 		FlexCollection fc = new FlexCollection(g);
 		
 		// Small closure on a3, over just is_a.
-		ArrayList<String> ans_t1 = (ArrayList<String>) fc.getExtStringList(a3, isa);
+		List<String> ans_t1 = fc.getExtStringList(a3, isa);
 		assertTrue("In is_a closure: A:0000001", ans_t1.contains("A:0000001"));
 		assertFalse("/Not/ in is_a closure: A:0000002", ans_t1.contains("A:0000002"));
 		assertTrue("In is_a closure: A:0000003", ans_t1.contains("A:0000003"));
 
 		// Small closure on a3, over is_a/part_of.
-		ArrayList<String> ans_t2 = (ArrayList<String>) fc.getExtStringList(a3, isa_partof);
+		List<String> ans_t2 = fc.getExtStringList(a3, isa_partof);
 		assertTrue("In is_a/part_of closure: A:0000001", ans_t2.contains("A:0000001"));
 		assertFalse("/Not/ in is_a/part_of closure: A:0000002", ans_t2.contains("A:0000002"));
 		assertTrue("In is_a/part_of closure: A:0000003", ans_t2.contains("A:0000003"));
 
 		// Small closure on a4, over is_a.
-		ArrayList<String> ans_t3 = (ArrayList<String>) fc.getExtStringList(a4, isa);
+		List<String> ans_t3 = fc.getExtStringList(a4, isa);
 		assertTrue("In is_a closure: A:0000001", ans_t3.contains("A:0000001"));
 		assertFalse("/Not/ in is_a closure: A:0000002", ans_t3.contains("A:0000002"));
 		assertTrue("In is_a closure: A:0000003", ans_t3.contains("A:0000003"));
 		assertTrue("In is_a closure: A:0000004", ans_t3.contains("A:0000004"));
 		
 		// Small closure on a4, over is_a/part_of.
-		ArrayList<String> ans_t4 = (ArrayList<String>) fc.getExtStringList(a4, isa_partof);
+		List<String> ans_t4 = fc.getExtStringList(a4, isa_partof);
 		assertTrue("In is_a/part_of closure: A:0000001", ans_t4.contains("A:0000001"));
 		assertTrue("In is_a/part_of closure: A:0000002", ans_t4.contains("A:0000002"));
 		assertTrue("In is_a/part_of closure: A:0000003", ans_t4.contains("A:0000003"));

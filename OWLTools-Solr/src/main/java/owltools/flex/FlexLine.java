@@ -2,6 +2,7 @@ package owltools.flex;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -12,7 +13,7 @@ public class FlexLine implements Iterable<String> {
 	
 	//private static Logger LOG = Logger.getLogger(FlexLine.class);
 	protected String field = null;
-	protected ArrayList<String> value = null;
+	protected List<String> value = null;
 		
 	/**
 	 * Singleton init.
@@ -56,7 +57,7 @@ public class FlexLine implements Iterable<String> {
 	 * 
 	 * @return values
 	 */
-	public ArrayList<String> values (){
+	public List<String> values (){
 		return value;
 	}
 	

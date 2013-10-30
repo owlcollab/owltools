@@ -2,6 +2,7 @@ package owltools.graph;
 
 import static junit.framework.Assert.*;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
@@ -148,9 +149,20 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 	 * where is seems to be dropping a bunch of the expected nodes in one case: GO:0000124.
 	 * https://github.com/kltm/amigo/issues/52
 	 */
+	//@Test
 	@Ignore("we should add this once getOutgoingEdgesClosure is fixed") @Test
 	public void testClosureTruth() throws Exception{
-		closureTestRunner(wrapper, true);
+		
+		HashSet<String> ids = closureTestRunner(wrapper, true);
+
+		//LOG.info("unfiltered tally: " + unfiltered_tally);
+		//LOG.info("\"correctness\" filtered tally: " + filtered_tally);
+		LOG.info("remainder: " + ids.size());
+		for( String id : ids ){
+			LOG.info("remainder id: " + id);
+		}
+		//assertEquals("have 24 ids in closure", 24, filtered_tally);
+		assertEquals("the correct 24 entities were in the closure", 0, ids.size());
 	}
 
 	/*
@@ -170,10 +182,10 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 		int last_run = -1;
 		for( int x = 1; x <= 10; x++ ){
 			OWLGraphWrapper newWrapper = getOntologyWrapper("go.owl");
-			int ndr = closureTestRunner(newWrapper, false);
+			HashSet<String> ndr = closureTestRunner(newWrapper, false);
 			LOG.info("run with (" + x + "): " + ndr);
 			if( last_run == -1 ){
-				last_run = ndr;
+				last_run = ndr.size();
 			}else{
 				assertEquals("this answer should always be the same", last_run, ndr);				
 			}
@@ -182,7 +194,8 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 
 	// The runner for one of our more problematic test cases.
 	// Sometimes returns 18, 30, 40, 42...a lot of things.
-	private int closureTestRunner(OWLGraphWrapper gw, boolean runAssertionsP){
+	// Most often get 18, should be 24.
+	private HashSet<String> closureTestRunner(OWLGraphWrapper gw, boolean runAssertionsP){
 		
 		// The nodes we should have.
 		HashSet<String> ids = new HashSet<String>();
@@ -211,29 +224,27 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 		ids.add("GO:0005622");
 		ids.add("GO:0005654");
 
-		int unfiltered_tally = 0;
-		int filtered_tally = 0;
+		//int unfiltered_tally = 0;
+		//int filtered_tally = 0;
 
 		OWLObject saga = gw.getOWLClassByIdentifier("GO:0000124");
 		String topicID = gw.getIdentifier(saga);
 
-		ArrayList<String> rel_ids = new ArrayList<String>();
-		rel_ids.add("BFO:0000050");
-		rel_ids.add("RO:0002211");
-		rel_ids.add("RO:0002212");
-		rel_ids.add("RO:0002213");
+		// Rel set to properties.
+		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
 		HashSet<OWLObjectProperty> props = gw.relationshipIDsToPropertySet(rel_ids);
+
 		Set<OWLGraphEdge> oge = gw.getOutgoingEdgesClosure(saga);
 		for( OWLGraphEdge e : oge ){
 			OWLObject target = e.getTarget();
 			
 			String rel = gw.classifyRelationship(e, target, props);
-			//LOG.info("id: " + gw.getIdentifier(target) + ", " + rel);
+			LOG.info("id: " + gw.getIdentifier(target) + ", " + rel);
 
-			unfiltered_tally++;
+			//unfiltered_tally++;
 
 			if( rel != null ){
-				//LOG.info("\tclass" + rel);
+				//LOG.info("relation: " + rel);
 
 				// Placeholders.
 				String objectID = null;
@@ -257,24 +268,12 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 					ids.remove(topicID);
 					ids.remove(objectID);
 					
-					filtered_tally++;
+					//filtered_tally++;
 				}
 			}
 		}
 		
-		// Our internal tests.
-		if( runAssertionsP ){
-			LOG.info("unfiltered tally: " + unfiltered_tally);
-			LOG.info("\"correctness\" filtered tally: " + filtered_tally);
-			LOG.info("remainder: " + ids.size());
-			for( String id : ids ){
-				LOG.info("remainder id: " + id);
-			}
-			assertEquals("have 24 ids in closure", 24, filtered_tally);
-			assertEquals("the correct 24 entities were in the closure", 0, ids.size());
-		}
-			
-		return filtered_tally;	
+		return ids;	
 	}
 	
 	private static OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException{

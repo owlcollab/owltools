@@ -23,7 +23,7 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	protected transient ConfigManager config = null;
 	protected transient OWLGraphWrapper graph = null;
 	
-	protected ArrayList<FlexDocument> docs = null;
+	protected List<FlexDocument> docs = null;
 	
 	/**
 	 * More fun init.
@@ -109,7 +109,7 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 * @return a (possibly null) string return value
 	 */
 	//private String getExtString(OWLObject oobj, ArrayList <String> function_sexpr){
-	public String getExtString(OWLObject oobj, ArrayList <String> function_sexpr){
+	public String getExtString(OWLObject oobj, List <String> function_sexpr){
 
 		String retval = null;
 		
@@ -124,7 +124,7 @@ public class FlexCollection implements Iterable<FlexDocument> {
 
 			// Note that this list may be empty ().
 			List<String> foo = function_sexpr.subList(1, function_sexpr.size());
-			ArrayList <String> fargs = new ArrayList<String>(foo);
+			List <String> fargs = new ArrayList<String>(foo);
 
 //			LOG.info("1: " + owlfunction);
 //			LOG.info("2: " + fargs);
@@ -134,8 +134,13 @@ public class FlexCollection implements Iterable<FlexDocument> {
 
 			// Try to invoke said method.
 			try {
-				java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, fargs.getClass());
-				retval = (method != null) ? (String) method.invoke(graph, oobj, fargs) : null;
+				//java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, fargs.getClass());
+				java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, List.class);
+				if( method != null ){
+					retval = (String) method.invoke(graph, oobj, fargs);
+				}else{
+					retval = null;
+				}
 			} catch (SecurityException e) {
 				LOG.info("ERROR: apparently a security problem with: " + owlfunction);
 				e.printStackTrace();
@@ -163,10 +168,10 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 * @return a (possibly empty) string list of returned values
 	 */
 	@SuppressWarnings("unchecked")
-	//private List<String> getExtStringList(OWLObject oobj, ArrayList <String> function_sexpr){
-	public List<String> getExtStringList(OWLObject oobj, ArrayList <String> function_sexpr){
+	//private List<String> getExtStringList(OWLObject oobj, List <String> function_sexpr){
+	public List<String> getExtStringList(OWLObject oobj, List <String> function_sexpr){
 
-		ArrayList<String> retvals = new ArrayList<String>();
+		List<String> retvals = new ArrayList<String>();
 
 		// First, let's tease out the thing that we're going to try and call.
 		// As it stands now, the list should behave essentially the same way as a list sexpr.
@@ -179,17 +184,24 @@ public class FlexCollection implements Iterable<FlexDocument> {
 
 			// Note that this list may be empty ().
 			List<String> foo = function_sexpr.subList(1, function_sexpr.size());
-			ArrayList <String> fargs = new ArrayList<String>(foo);
+			List <String> fargs = new ArrayList<String>(foo);
 
 			// Try to invoke said method.
 			try {
-				java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, fargs.getClass());
-				retvals = (method != null) ? (ArrayList<String>) method.invoke(graph, oobj, fargs) : new ArrayList<String>();
+				//java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, fargs.getClass());
+				java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, List.class);
+				if( method != null ){
+					retvals = (List<String>) method.invoke(graph, oobj, fargs);
+				}else{
+					retvals = new ArrayList<String>();					
+				}
 			} catch (SecurityException e) {
 				LOG.info("ERROR: apparently a security problem with: " + owlfunction);
 				e.printStackTrace();
 			} catch (NoSuchMethodException e) {
 				LOG.info("ERROR: couldn't find method: " + owlfunction);
+				LOG.info("ERROR: couldn't with class: " + OWLObject.class.toString());
+				LOG.info("ERROR: couldn't with arg class: " + fargs.getClass().toString());
 				e.printStackTrace();
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
@@ -210,8 +222,8 @@ public class FlexCollection implements Iterable<FlexDocument> {
 //	 * @param cdr
 //	 * @return
 //	 */
-//	private ArrayList<String> joinLine(String car, String cdr) {
-//		ArrayList<String> c = new ArrayList<String>();
+//	private List<String> joinLine(String car, String cdr) {
+//		List<String> c = new ArrayList<String>();
 //		c.add(car);
 //		c.add(cdr);
 //		return c;
@@ -251,7 +263,7 @@ public class FlexCollection implements Iterable<FlexDocument> {
 		for( GOlrField field : config.getFields() ){
 
 			String did = field.id;
-			ArrayList <String> prop_meth_and_args = field.property;
+			List <String> prop_meth_and_args = field.property;
 			String card = field.cardinality;
 
 			//LOG.info("Add: (" + StringUtils.join(prop_meth_and_args, " ") + ")");

@@ -39,7 +39,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	}
 
 	// A cache of an arbitrary relationship closure for a certain object.
-	private Map<OWLObject,Map<ArrayList<String>,Map<String,String>>> mgrcmCache = null;
+	private Map<OWLObject,Map<List<String>,Map<String,String>>> mgrcmCache = null;
 
 
 	/**
@@ -47,7 +47,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * 
 	 * @param relation_ids
 	 * @return property hash
-	 * @see #getRelationClosureMapEngine(OWLObject, ArrayList)
+	 * @see #getRelationClosureMapEngine(OWLObject, List)
 	 */
 	public HashSet<OWLObjectProperty> relationshipIDsToPropertySet(List<String> relation_ids){
 		HashSet<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
@@ -60,6 +60,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		return props;
 	}
 
+	
 	/**
 	 * Classify the an edge and target as a human readable string for further processing.
 	 * 
@@ -67,7 +68,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @param edgeDirector 
 	 * @param props properties set
 	 * @return null, "simplesubclass", "typesubclass", or "identity".
-	 * @see #getRelationClosureMap(OWLObject, ArrayList)
+	 * @see #getRelationClosureMap(OWLObject, List)
 	 * @see #addDirectDescendentsToShuntGraph(OWLObject, OWLShuntGraph)
 	 * @see #addStepwiseAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
 	 * @see #addTransitiveAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
@@ -98,17 +99,16 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		return retval;
 	}
 
+	
 	/**
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
-	 * <p>
-	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
 	 *
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
 	 */
-	public OWLShuntGraph addStepwiseAncestorsToShuntGraph(OWLObject x, OWLShuntGraph g) {
+	public OWLShuntGraph addStepwiseAncestorsToShuntGraph(OWLObject x, OWLShuntGraph g, List<String> rel_ids) {
 
 		// Add this node, our seed.
 		String topicID = getIdentifier(x);
@@ -117,11 +117,6 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		g.addNode(tn);
 
 		// NEW VERSION
-		ArrayList<String> rel_ids = new ArrayList<String>();
-		rel_ids.add("BFO:0000050");
-		rel_ids.add("RO:0002211");
-		rel_ids.add("RO:0002212");
-		rel_ids.add("RO:0002213");
 		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
 		for (OWLGraphEdge e : getOutgoingEdges(x)) {
 			OWLObject target = e.getTarget();
@@ -158,7 +153,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 
 					// Recur on node if it already wasn't there.
 					if( wuzAdded ){
-						addStepwiseAncestorsToShuntGraph(target, g);
+						addStepwiseAncestorsToShuntGraph(target, g, rel_ids);
 					}
 				
 					//Add edge 
@@ -206,17 +201,16 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		return g;
 	}
 
+	
 	/**
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
-	 * <p>
-	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
 	 *
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
 	 */
-	public OWLShuntGraph addTransitiveAncestorsToShuntGraph(OWLObject x, OWLShuntGraph g) {
+	public OWLShuntGraph addTransitiveAncestorsToShuntGraph(OWLObject x, OWLShuntGraph g, List<String> rel_ids) {
 
 		// Add this node, our seed.
 		String topicID = getIdentifier(x);
@@ -225,19 +219,14 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		g.addNode(tn);
 
 		// NEW VERSION
-		ArrayList<String> rel_ids = new ArrayList<String>();
-		rel_ids.add("BFO:0000050");
-		rel_ids.add("RO:0002211");
-		rel_ids.add("RO:0002212");
-		rel_ids.add("RO:0002213");
 		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
 		Set<OWLGraphEdge> oge = getOutgoingEdgesClosure(x);
 		for( OWLGraphEdge e : oge ){
 			OWLObject target = e.getTarget();
 			
 			String rel = classifyRelationship(e, target, props);
-
 			//LOG.info("id: " + getIdentifier(target) + ", " + rel);
+
 			if( rel != null ){
 				//LOG.info("\tclass" + rel);
 
@@ -311,17 +300,16 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		return g;
 	}
 
+	
 	/**
 	 * Add a set of edges, as descendants to x in OWLShuntGraph g.
 	 * This is reflexive.
-	 * <p>
-	 * This method uses the regulates relations: 'BFO_0000050', 'RO_0002211', 'RO_0002212', and 'RO_0002213'.
 	 *
 	 * @param x
 	 * @param g
 	 * @return the modified OWLShuntGraph
 	 */
-	public OWLShuntGraph addDirectDescendentsToShuntGraph(OWLObject x, OWLShuntGraph g) {
+	public OWLShuntGraph addDirectDescendentsToShuntGraph(OWLObject x, OWLShuntGraph g, List<String> rel_ids) {
 
 		// Add this node, our seed.
 		String topicID = getIdentifier(x);
@@ -330,11 +318,6 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		g.addNode(tn);
 		
 		// NEW VERSION
-		ArrayList<String> rel_ids = new ArrayList<String>();
-		rel_ids.add("BFO:0000050");
-		rel_ids.add("RO:0002211");
-		rel_ids.add("RO:0002212");
-		rel_ids.add("RO:0002213");
 		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
 		for (OWLGraphEdge e : getIncomingEdges(x)) {
 			OWLObject source = e.getSource();
@@ -419,6 +402,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 
 		return g;
 	}
+
 	
 	/**
 	 * Gets all ancestors and direct descendants (distance == 1) that are OWLNamedObjects.
@@ -432,7 +416,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @param x
 	 * @return set of named ancestors and direct descendents
 	 */
-	public OWLShuntGraph getSegmentShuntGraph(OWLObject x) {
+	public OWLShuntGraph getSegmentShuntGraph(OWLObject x, List<String> rel_ids) {
 
 		// Collection depot.
 		OWLShuntGraph graphSegment = new OWLShuntGraph();
@@ -444,30 +428,16 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		graphSegment.addNode(tn);
 
 		// Next, get all of the named ancestors and add them to our shunt graph.
-		graphSegment = addStepwiseAncestorsToShuntGraph(x, graphSegment);
+		graphSegment = addStepwiseAncestorsToShuntGraph(x, graphSegment, rel_ids);
 
 		// Next, get all of the immediate descendents.
-		graphSegment = addDirectDescendentsToShuntGraph(x, graphSegment);
+		graphSegment = addDirectDescendentsToShuntGraph(x, graphSegment, rel_ids);
 
 		//		
 		return graphSegment;
 	}
 
-//	/**
-//	 * Gets all ancestors and direct descendents (distance == 1) that are OWLNamedObjects.
-//	 * i.e. excludes anonymous class expressions
-//	 * 
-//	 * This is a curried FlexLoader s-expression version of {@link #getSegmentShuntGraph(OWLObject)}.
-//	 * 
-//	 * @param x
-//	 * @param sargs
-//	 * @return set of named ancestors and direct descendents
-//	 * @see #getSegmentShuntGraph(OWLObject)
-//	 */
-//	public OWLShuntGraph getSegmentShuntGraph(OWLObject x, ArrayList<String> sargs) {
-//		return getSegmentShuntGraph(x);
-//	}
-
+	
 	/**
 	 * Gets all ancestors that are OWLNamedObjects.
 	 * i.e. excludes anonymous class expressions
@@ -475,9 +445,10 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * This graph information is concerned almost exclusively with the arguments transitive relations with all of its ancestors.
 	 * 
 	 * @param x
+	 * @ param sargs
 	 * @return set of named ancestors and direct descendents
 	 */
-	public OWLShuntGraph getLineageShuntGraph(OWLObject x) {
+	public OWLShuntGraph getLineageShuntGraph(OWLObject x, List<String> rel_ids) {
 
 		// Collection depot.
 		OWLShuntGraph graphSegment = new OWLShuntGraph();
@@ -489,71 +460,45 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		graphSegment.addNode(tn);
 
 		// Next, get all of the named ancestors and add them to our shunt graph.
-		graphSegment = addTransitiveAncestorsToShuntGraph(x, graphSegment);
+		graphSegment = addTransitiveAncestorsToShuntGraph(x, graphSegment, rel_ids);
 
 		//		
 		return graphSegment;
 	}
+
 	
 	/**
 	 * Return a JSONized version of the output of getSegmentShuntGraph
 	 *
+	 * Defaults to is_a/part_of and regulates.
+	 *
 	 * @param x
 	 * @return String representing part of the stepwise OWL graph
 	 */
-	public String getSegmentShuntGraphJSON(OWLObject x) {
+	public String getSegmentShuntGraphJSON(OWLObject x, List<String> sargs) {
 
-		// Collection depot.
-		OWLShuntGraph graphSegment = getSegmentShuntGraph(x);
+		// Collection depot.		
+		OWLShuntGraph graphSegment = getSegmentShuntGraph(x, sargs);
 
 		return graphSegment.toJSON();
 	}
 
-	/**
-	 * Return a JSONized version of the output of getSegmentShuntGraph
-	 * <p>
-	 * This is a curried FlexLoader s-expression version of {@link #getSegmentShuntGraphJSON(OWLObject)}.
-	 *
-	 * @param x
-	 * @param sargs
-	 * @return String representing part of the stepwise OWL graph
-	 * @see #getSegmentShuntGraphJSON(OWLObject)
-	 */
-	public String getSegmentShuntGraphJSON(OWLObject x, ArrayList<String> sargs) {
-		return getSegmentShuntGraphJSON(x);
-	}
-
+	
 	/**
 	 * Return a JSONized version of the output of getLineageShuntGraph
-	 *
 	 * @param x
+	 * @param sargs
 	 * @return String representing part of the transitive OWL graph
 	 */
-	public String getLineageShuntGraphJSON(OWLObject x) {
+	public String getLineageShuntGraphJSON(OWLObject x, List<String> sargs) {
 
 		// Collection depot.
-		OWLShuntGraph graphSegment = getLineageShuntGraph(x);
+		OWLShuntGraph graphSegment = getLineageShuntGraph(x, sargs);
 
 		return graphSegment.toJSON();
 	}
 
-	/**
-	 * Return a JSONized version of the output of getLineageShuntGraph
-	 *<p>
-	 * This is a curried FlexLoader s-expression version of {@link #getLineageShuntGraphJSON(OWLObject)}.
-	 *
-	 * @param x
-	 * @param sargs
-	 * @return String representing part of the transitive OWL graph
-	 * @see #getLineageShuntGraphJSON(OWLObject)
-	 */
-	public String getLineageShuntGraphJSON(OWLObject x, ArrayList<String> sargs) {
-		return getLineageShuntGraphJSON(x);
-	}	
 	
-	
-
-
 	/**
 	 * Return a map of id to label for the closure of the ontology using the supplied relation id list and .isSubClassOf().
 	 * <p>
@@ -562,18 +507,18 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @param c
 	 * @param relation_ids
 	 * @return map of ids to their displayable labels
-	 * @see #getRelationClosureMapEngine(OWLObject, ArrayList)
+	 * @see #getRelationClosureMapEngine(OWLObject, List)
 	 */
-	public Map<String,String> getRelationClosureMap(OWLObject c, ArrayList<String> relation_ids){
+	public Map<String,String> getRelationClosureMap(OWLObject c, List<String> relation_ids){
 
 		Map<String,String> retmap = new HashMap<String,String>();
 
-		//private Map<OWLObject,Map<ArrayList<String>,Map<String,String>>> mgrcmCache = null;
+		//private Map<OWLObject,Map<List<String>,Map<String,String>>> mgrcmCache = null;
 		if( mgrcmCache == null ){ // initialize the cache, if necessary
-				mgrcmCache = new HashMap<OWLObject,Map<ArrayList<String>,Map<String,String>>>();
+				mgrcmCache = new HashMap<OWLObject,Map<List<String>,Map<String,String>>>();
 		}
 		if( mgrcmCache.containsKey(c) == false ){ // assemble level 1, if necessary
-			mgrcmCache.put(c, new HashMap<ArrayList<String>,Map<String,String>>());
+			mgrcmCache.put(c, new HashMap<List<String>,Map<String,String>>());
 		}
 		if( mgrcmCache.get(c).containsKey(relation_ids) == false ){ // generate
 			retmap = getRelationClosureMapEngine(c, relation_ids);
@@ -584,23 +529,22 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		
 		return retmap;
 	}
-		
+
+	
 	/**
-	 * Generator for the cache in {@link #getRelationClosureMap(OWLObject, ArrayList)}.
+	 * Generator for the cache in {@link #getRelationClosureMap(OWLObject, List)}.
 	 * 
 	 * @param c
 	 * @param relation_ids
 	 * @return map of ids to their displayable labels
-	 * @see #getRelationClosureMap(OWLObject, ArrayList)
+	 * @see #getRelationClosureMap(OWLObject, List)
 	 */
-	public Map<String,String> getRelationClosureMapEngine(OWLObject c, ArrayList<String> relation_ids){
-	//private Map<String,String> getRelationClosureMapEngine(OWLObject c, ArrayList<String> relation_ids){
+	public Map<String,String> getRelationClosureMapEngine(OWLObject c, List<String> relation_ids){
 
 		Map<String,String> relation_map = new HashMap<String,String>(); // capture labels/ids
 
 		// Our relation collection.
 		HashSet<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
-		//final OWLObjectProperty partOfProperty = getOWLObjectPropertyByIdentifier("BFO:0000050");
 		for( String rel_id : relation_ids ){
 			props.add(getOWLObjectPropertyByIdentifier(rel_id));
 		}
@@ -652,7 +596,6 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	public Map<String,String> getIsaPartofClosureMap(OWLObject c){
 
 		Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
-
 		final OWLObjectProperty partOfProperty = getOWLObjectPropertyByIdentifier("BFO:0000050");
 		
 		Set<OWLGraphEdge> edges = getOutgoingEdgesClosureReflexive(c);
@@ -713,7 +656,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @see #getIsaPartofIDClosure(OWLObject)
 	 */
 	@Deprecated
-	public List<String> getIsaPartofIDClosure(OWLObject c, ArrayList<String> sargs){
+	public List<String> getIsaPartofIDClosure(OWLObject c, List<String> sargs){
 		return getIsaPartofIDClosure(c);
 	}
 
@@ -726,7 +669,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @param relation_ids
 	 * @return list of is_partof_closure ids
 	 */
-	public List<String> getRelationIDClosure(OWLObject c, ArrayList<String> relation_ids){
+	public List<String> getRelationIDClosure(OWLObject c, List<String> relation_ids){
 		Map<String, String> foo = getRelationClosureMap(c, relation_ids);
 		List<String> bar = new ArrayList<String>(foo.keySet());
 		return bar;
@@ -760,7 +703,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @see #getIsaPartofLabelClosure(OWLObject)
 	 */
 	@Deprecated
-	public List<String> getIsaPartofLabelClosure(OWLObject c, ArrayList<String> sargs){
+	public List<String> getIsaPartofLabelClosure(OWLObject c, List<String> sargs){
 		return getIsaPartofLabelClosure(c);
 	}
 
@@ -773,7 +716,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @param relation_ids
 	 * @return list of is_partof_closure labels
 	 */
-	public List<String> getRelationLabelClosure(OWLObject c, ArrayList<String> relation_ids){
+	public List<String> getRelationLabelClosure(OWLObject c, List<String> relation_ids){
 		Map<String, String> foo = getRelationClosureMap(c, relation_ids);
 		List<String> bar = new ArrayList<String>(foo.values());
 		return bar;
@@ -792,7 +735,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		Set<OWLClassExpression> st = cls.getSubClasses(sourceOntology);
 
 
-		ArrayList<String> ar = new ArrayList<String>();
+		List<String> ar = new ArrayList<String>();
 		for(OWLClassExpression ce: st){
 			if(ce instanceof OWLNamedObject)
 				ar.add(getLabel(ce)); 

@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -44,8 +45,11 @@ public class OWLGraphShuntTest extends OWLToolsTestBasics {
 
 		OWLObject c = wrapper.getOWLClassByIdentifier("GO:0022008");
 
+		// The rels to use on this test run.
+		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
+
 		// Exists.
-		OWLShuntGraph g = wrapper.getLineageShuntGraph(c);
+		OWLShuntGraph g = wrapper.getLineageShuntGraph(c, rel_ids);
 		assertNotNull("have a shunt graph, not a complete failure apparently", g);
 		
 		// Now let's go through and exhaust this subgraph, there should be 13 nodes.
@@ -81,7 +85,7 @@ public class OWLGraphShuntTest extends OWLToolsTestBasics {
 		assertEquals("e11", g.hasEdge(new OWLShuntEdge("GO:0022008", "GO:0048869", "is_a")), true);
 		assertEquals("e12", g.hasEdge(new OWLShuntEdge("GO:0022008", "GO:0030154", "is_a")), true);
 
-		LOG.info("lineage: " + wrapper.getLineageShuntGraphJSON(c));
+		LOG.info("lineage: " + wrapper.getLineageShuntGraphJSON(c, rel_ids));
 
 		// Total on edges.
 		// TODO: I'm getting an extra edge here. 

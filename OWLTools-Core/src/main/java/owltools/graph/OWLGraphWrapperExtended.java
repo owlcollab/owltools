@@ -82,7 +82,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * 
 	 * @see #getLabel(OWLObject)
 	 */
-	public String getLabel(OWLObject c, ArrayList<String> sargs) {
+	public String getLabel(OWLObject c, List<String> sargs) {
 		return getLabel(c);
 	}
 
@@ -142,7 +142,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return comment of null
 	 * @see #getComment(OWLObject)
 	 */
-	public String getComment(OWLObject c, ArrayList<String> sargs) {
+	public String getComment(OWLObject c, List<String> sargs) {
 		OWLAnnotationProperty lap = getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_COMMENT.getIRI()); 
 
 		return getAnnotationValue(c, lap);
@@ -195,7 +195,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 			return null;
 		}
 
-		ArrayList<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<String>();
 		for (OWLAnnotation a : anns) {
 			if (a.getValue() instanceof OWLLiteral) {
 				OWLLiteral val = (OWLLiteral) a.getValue();
@@ -239,7 +239,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * 
 	 * @see #getDef(OWLObject)
 	 */
-	public String getDef(OWLObject c, ArrayList<String> sargs) {
+	public String getDef(OWLObject c, List<String> sargs) {
 		return getDef(c);
 	}
 	
@@ -281,7 +281,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return values
 	 * @see #getSubsets(OWLObject)
 	 */
-	public List<String> getSubsets(OWLObject c, ArrayList<String> sargs) {
+	public List<String> getSubsets(OWLObject c, List<String> sargs) {
 		return getSubsets(c);
 	}
 
@@ -412,7 +412,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * 
 	 * @return String
 	 */
-	public String getIsObsoleteBinaryString(OWLObject c, ArrayList<String> sargs) {
+	public String getIsObsoleteBinaryString(OWLObject c, List<String> sargs) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_IS_OBSELETE.getTag()); 
 		String val = getAnnotationValue(c, lap);
 		return val == null ? "false": "true";
@@ -445,7 +445,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return String
 	 * @see #getAnnotationPropertyValues(OWLObject c, String tag)
 	 */
-	public String getAnnotationPropertyValue(OWLObject c, ArrayList<String> tags) {
+	public String getAnnotationPropertyValue(OWLObject c, List<String> tags) {
 		String retval = null;
 		if( tags != null && tags.size() == 1 ){
 			String tag = tags.get(0);
@@ -480,7 +480,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @param tags
 	 * @return String List
 	 */
-	public List<String> getAnnotationPropertyValues(OWLObject c, ArrayList<String> tags) {
+	public List<String> getAnnotationPropertyValues(OWLObject c, List<String> tags) {
 		List<String> retvals = new ArrayList<String>();
 		if( tags != null && tags.size() == 1 ){
 			String tag = tags.get(0);
@@ -568,7 +568,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * 
 	 * @see #getNamespace(OWLObject)
 	 */
-	public String getNamespace(OWLObject c, ArrayList<String> sargs) {
+	public String getNamespace(OWLObject c, List<String> sargs) {
 		return getNamespace(c);
 	}
 
@@ -717,7 +717,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return It returns null if no xref annotation is found.
 	 * @see #getXref(OWLObject)
 	 */
-	public List<String> getXref(OWLObject c, ArrayList<String> sargs){
+	public List<String> getXref(OWLObject c, List<String> sargs){
 		return getXref(c);
 	}
 
@@ -765,7 +765,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return list of definition xrefs
 	 * @see #getDefXref(OWLObject)
 	 */
-	public List<String> getDefXref(OWLObject c, ArrayList<String> sargs){
+	public List<String> getDefXref(OWLObject c, List<String> sargs){
 		return getDefXref(c);
 	}
 
@@ -791,7 +791,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * 
 	 * @see #getIdentifier(OWLObject)
 	 */
-	public String getIdentifier(OWLObject owlObject, ArrayList<String> sargs) {
+	public String getIdentifier(OWLObject owlObject, List<String> sargs) {
 		return getIdentifier(owlObject);
 	}
 

@@ -47,6 +47,7 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.TaxonTools;
 import owltools.graph.OWLGraphWrapper;
+import owltools.graph.RelationSets;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
 import owltools.graph.shunt.OWLShuntNode;
@@ -579,7 +580,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	@CLIMethod("--solr-load-gpads")
 	public void loadGPADsSolr(Opts opts) throws Exception {
 		// Check to see if the global url has been set.
-		String url = sortOutSolrURL(globalSolrURL);
+		//String url = sortOutSolrURL(globalSolrURL);
 
 		List<String> files = opts.nextList();
 		if( files.size() % 2 != 0 ){
@@ -695,7 +696,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// TODO: A more realistic output (the segement graph is still partial).
 		OWLGraphWrapper wrapper = getOntologyWrapper("go.owl");		
 		OWLObject c = wrapper.getOWLClass(OWLGraphWrapper.DEFAULT_IRI_PREFIX + "GO_0022008");
-		OWLShuntGraph g2 = wrapper.getSegmentShuntGraph(c);
+		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
+		OWLShuntGraph g2 = wrapper.getSegmentShuntGraph(c, rel_ids);
 		System.out.println(g2.toJSON());
 	}
 	private OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException{

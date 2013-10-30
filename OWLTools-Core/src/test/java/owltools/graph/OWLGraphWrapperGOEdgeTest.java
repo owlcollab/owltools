@@ -5,6 +5,7 @@ import static junit.framework.Assert.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -55,11 +56,7 @@ public class OWLGraphWrapperGOEdgeTest extends OWLToolsTestBasics {
 		/// Part 2: generate a set of them.
 		///
 		
-		ArrayList<String> rel_ids = new ArrayList<String>();
-		rel_ids.add("BFO:0000050");
-		rel_ids.add("RO:0002211");
-		rel_ids.add("RO:0002212");
-		rel_ids.add("RO:0002213");
+		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
 		HashSet<OWLObjectProperty> props = g.relationshipIDsToPropertySet(rel_ids);
 		
 		// Since neurogenesis.obo should only have is_a and part_of defined, there
@@ -79,11 +76,7 @@ public class OWLGraphWrapperGOEdgeTest extends OWLToolsTestBasics {
 		OWLGraphWrapper g = getOntologyWrapper("graph/neurogenesis.obo");
 		OWLObject x = g.getOWLClassByIdentifier("GO:0022008");
 
-		ArrayList<String> rel_ids = new ArrayList<String>();
-		rel_ids.add("BFO:0000050");
-		rel_ids.add("RO:0002211");
-		rel_ids.add("RO:0002212");
-		rel_ids.add("RO:0002213");
+		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
 		HashSet<OWLObjectProperty> props = g.relationshipIDsToPropertySet(rel_ids);
 		Set<OWLGraphEdge> oge = g.getOutgoingEdgesClosure(x); // over reports
 		for( OWLGraphEdge e : oge ){
@@ -119,11 +112,7 @@ public class OWLGraphWrapperGOEdgeTest extends OWLToolsTestBasics {
 
 		OWLObject x = g.getOWLClassByIdentifier("GO:0022008");
 
-		ArrayList<String> rel_ids = new ArrayList<String>();
-		rel_ids.add("BFO:0000050");
-		rel_ids.add("RO:0002211");
-		rel_ids.add("RO:0002212");
-		rel_ids.add("RO:0002213");
+		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
 		HashSet<OWLObjectProperty> props = g.relationshipIDsToPropertySet(rel_ids);
 		Set<OWLGraphEdge> oge = g.getOutgoingEdgesClosure(x); // over reports?
 		for( OWLGraphEdge e : oge ){
