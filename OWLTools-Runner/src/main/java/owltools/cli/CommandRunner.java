@@ -684,29 +684,68 @@ public class CommandRunner {
 				tr.render(g);				
 			}
 			else if (opts.nextEq("--remove-annotation-assertions")) {
+				opts.info("[-l][-d][-s][-p IRI]*", 
+						"removes annotation assertions to make a pure logic subset. Select acioms can be preserved");
 				boolean isPreserveLabels = false;
+				boolean isPreserveDefinitions = false;
+				boolean isPreserveSynonyms = false;
+				Set<IRI> preserveAnnotationPropertyIRIs = new HashSet<IRI>();
 				while (opts.hasOpts()) {
-					if (opts.nextEq("-l")) {
+					if (opts.nextEq("-l|--preserve-labels")) {
+						opts.info("", "if specified, all rdfs labels are preserved");
 						isPreserveLabels = true;
+					}
+					else if (opts.nextEq("-d|--preserve-definitions")) {
+						opts.info("", "if specified, all obo text defs are preserved");
+						isPreserveDefinitions = true;
+					}
+					else if (opts.nextEq("-s|--preserve-synonyms")) {
+						opts.info("", "if specified, all obo-style synonyms are preserved");
+						isPreserveSynonyms = true;
+					}
+					else if (opts.nextEq("-p|--preserve-property")) {
+						opts.info("IRI",
+								"if specified, all properties with IRI are preserved. Can be specified multiple times");
+						preserveAnnotationPropertyIRIs.add(IRI.create(opts.nextOpt()));
 					}
 					else
 						break;
 				}
 				for (OWLOntology o : g.getAllOntologies()) {
-					Set<OWLAnnotationAssertionAxiom> aas;
-
-					if (isPreserveLabels) {
-						aas = new HashSet<OWLAnnotationAssertionAxiom>();
-						for (OWLAnnotationAssertionAxiom aaa : o.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
-							if (!aaa.getProperty().isLabel()) {
-								aas.add(aaa);
+					Set<OWLAxiom> rmAxioms =
+							new HashSet<OWLAxiom>();
+					Set<OWLAxiom> keepAxioms = 
+							new HashSet<OWLAxiom>();
+					rmAxioms.addAll( o.getAxioms(AxiomType.ANNOTATION_ASSERTION) );
+					for (OWLAnnotationAssertionAxiom aaa : o.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
+						IRI piri = aaa.getProperty().getIRI();
+						if (isPreserveLabels) {
+							if (aaa.getProperty().isLabel()) {
+								keepAxioms.add(aaa);
 							}
 						}
+						if (isPreserveDefinitions) {
+							if (piri.equals(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI())) {
+								keepAxioms.add(aaa);
+							}
+						}
+						if (isPreserveSynonyms) {
+							if (piri.equals(Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym) ||
+									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasExactSynonym) ||
+									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasRelatedSynonym) ||
+									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasNarrowSynonym)) {
+								keepAxioms.add(aaa);
+							}
+						}
+						if (preserveAnnotationPropertyIRIs.contains(piri))
+							keepAxioms.add(aaa);
 					}
-					else {
-						aas = o.getAxioms(AxiomType.ANNOTATION_ASSERTION);
-					}
-					g.getManager().removeAxioms(o, aas);
+					LOG.info("Number of annotation assertion axioms:"+rmAxioms.size());
+					LOG.info("Axioms to preserve:"+keepAxioms.size());
+					rmAxioms.removeAll(keepAxioms);
+					LOG.info("Number of axioms being removed:"+rmAxioms.size());
+					
+					g.getManager().removeAxioms(o, rmAxioms);
 
 					// TODO - remove axiom annotations
 
@@ -4319,7 +4358,7 @@ public class CommandRunner {
 			prop = g.getOWLObjectPropertyByIdentifier(id);
 		}
 		if (prop == null) {
-			LOG.error("Could not find an OWLObjectProperty for id: '"+id+"'");
+			LOG.warn("Could not find an OWLObjectProperty for id: '"+id+"'");
 		}
 		return prop;
 	}
