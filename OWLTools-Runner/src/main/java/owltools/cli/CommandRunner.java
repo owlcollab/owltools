@@ -3562,21 +3562,24 @@ public class CommandRunner {
 			Map<String, Set<OWLClass>> externalMappings = new HashMap<String, Set<OWLClass>>();
 			Set<OWLClass> allOWLClasses = g.getAllOWLClasses();
 			for (OWLClass owlClass : allOWLClasses) {
-				List<String> xrefs = g.getXref(owlClass);
-				if (xrefs != null && !xrefs.isEmpty()) {
-					for (String xref : xrefs) {
-						if (xref.startsWith(prefix)) {
-							String x = xref;
-							int whitespacePos = xref.indexOf(' ');
-							if (whitespacePos > 0) {
-								x = xref.substring(0, whitespacePos);
+				boolean obsolete = g.isObsolete(owlClass);
+				if (obsolete == false) {
+					List<String> xrefs = g.getXref(owlClass);
+					if (xrefs != null && !xrefs.isEmpty()) {
+						for (String xref : xrefs) {
+							if (xref.startsWith(prefix)) {
+								String x = xref;
+								int whitespacePos = xref.indexOf(' ');
+								if (whitespacePos > 0) {
+									x = xref.substring(0, whitespacePos);
+								}
+								Set<OWLClass> classSet = externalMappings.get(x);
+								if (classSet == null) {
+									classSet = new HashSet<OWLClass>();
+									externalMappings.put(x, classSet);
+								}
+								classSet.add(owlClass);
 							}
-							Set<OWLClass> classSet = externalMappings.get(x);
-							if (classSet == null) {
-								classSet = new HashSet<OWLClass>();
-								externalMappings.put(x, classSet);
-							}
-							classSet.add(owlClass);
 						}
 					}
 				}
