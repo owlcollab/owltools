@@ -716,6 +716,7 @@ public class CommandRunner {
 							new HashSet<OWLAxiom>();
 					Set<OWLAxiom> keepAxioms = 
 							new HashSet<OWLAxiom>();
+					Set<OWLAnnotationProperty> propsToKeep = new HashSet<OWLAnnotationProperty>();
 					rmAxioms.addAll( o.getAxioms(AxiomType.ANNOTATION_ASSERTION) );
 					for (OWLAnnotationAssertionAxiom aaa : o.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
 						IRI piri = aaa.getProperty().getIRI();
@@ -730,20 +731,38 @@ public class CommandRunner {
 							}
 						}
 						if (isPreserveSynonyms) {
-							if (piri.equals(Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym) ||
-									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasExactSynonym) ||
-									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasRelatedSynonym) ||
-									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasNarrowSynonym)) {
+							if (piri.equals(Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym.getIRI()) ||
+									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasExactSynonym.getIRI()) ||
+									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasRelatedSynonym.getIRI()) ||
+									piri.equals(Obo2OWLVocabulary.IRI_OIO_hasNarrowSynonym.getIRI())) {
 								keepAxioms.add(aaa);
 							}
 						}
 						if (preserveAnnotationPropertyIRIs.contains(piri))
 							keepAxioms.add(aaa);
+						if (aaa.getSubject() instanceof IRI) {
+							OWLClass c = g.getDataFactory().getOWLClass((IRI) aaa.getSubject());
+							if (o.getDeclarationAxioms(c).size() == 0) {
+								keepAxioms.remove(aaa);
+							}
+						}
+						
+						if (keepAxioms.contains(aaa)) {
+							propsToKeep.add(aaa.getProperty());
+						}
 					}
 					LOG.info("Number of annotation assertion axioms:"+rmAxioms.size());
 					LOG.info("Axioms to preserve:"+keepAxioms.size());
 					rmAxioms.removeAll(keepAxioms);
-					LOG.info("Number of axioms being removed:"+rmAxioms.size());
+					LOG.info("Number of annotation assertion axioms being removed:"+rmAxioms.size());
+					
+					for (OWLAnnotationProperty p : o.getAnnotationPropertiesInSignature()) {
+						if (propsToKeep.contains(p))
+							continue;
+						rmAxioms.addAll(o.getAnnotationAssertionAxioms(p.getIRI()));
+						rmAxioms.add(g.getDataFactory().getOWLDeclarationAxiom(p));
+					}
+					LOG.info("Total number of axioms being removed, including annotation properties:"+rmAxioms.size());
 					
 					g.getManager().removeAxioms(o, rmAxioms);
 
