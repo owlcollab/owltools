@@ -15,14 +15,16 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.scores.AttributePairScores;
+import owltools.sim2.scores.ElementPairScores;
+import owltools.sim2.scores.PairScores;
 
-public class TabularRenderer implements SimResultRenderer {
+public class TabularRenderer extends AbstractRenderer implements SimResultRenderer {
 
 	private static NumberFormat doubleRenderer = new DecimalFormat("#.##########");
 
 	boolean isHeaderLine = true;
 
-	private final PrintStream resultOutStream;
 	private final String separator;
 	private final String commentPrefix;
 
@@ -296,6 +298,21 @@ public class TabularRenderer implements SimResultRenderer {
 		// TODO Auto-generated method stub
 		
 	}
+
+
+	// NEW
+	@Override
+	public void printPairScores(ElementPairScores scores) {
+		// TODO
+	}
+	@Override
+	public void printPairScores(AttributePairScores scores) {
+		// TODO
+	}
+
+
+	
+	
 
 }
 

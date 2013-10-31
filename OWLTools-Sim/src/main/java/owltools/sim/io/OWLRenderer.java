@@ -31,21 +31,23 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.scores.AttributePairScores;
+import owltools.sim2.scores.ElementPairScores;
+import owltools.sim2.scores.PairScores;
 
-public class OWLRenderer implements SimResultRenderer {
+public class OWLRenderer extends AbstractRenderer implements SimResultRenderer {
 
-	private static NumberFormat doubleRenderer = new DecimalFormat("#.##########");
+
+	private static NumberFormat doubleRenderer = new DecimalFormat("#.###");
 
 	boolean isHeaderLine = true;
 
-	private final PrintStream resultOutStream;
 	private OWLOntology ontology;
-	OWLGraphWrapper graph;
-	
+
 	public OWLRenderer(PrintStream resultOutStream) {
 		this.resultOutStream = resultOutStream;
 	}
-	
+
 	private OWLOntologyManager getOWLOntologyManager() {
 		return graph.getManager();
 	}
@@ -131,6 +133,7 @@ public class OWLRenderer implements SimResultRenderer {
 	 * @see owltools.sim.io.SimResultRenderer#printSim(owltools.sim.io.Foobar.SimScores, org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass, owltools.graph.OWLGraphWrapper)
 	 */
 	@Override
+	@Deprecated
 	public void printAttributeSim(AttributesSimScores simScores, OWLGraphWrapper graph)
 	{
 		this.graph = graph;
@@ -146,13 +149,13 @@ public class OWLRenderer implements SimResultRenderer {
 		IRI mi = IRI.create(ai + "-" + graph.getIdentifier(b));
 		String mlabel = "match to "+graph.getLabel(b)+ " from "+graph.getLabel(a);
 		addType(mi, "match");
-		
+
 		addMatch(ai, mi);
 		addMatch(bi, mi);
-		
+
 		OWLIndividual m = getOWLDataFactory().getOWLNamedIndividual(mi);
-		
-		
+
+
 
 		//scores
 		if (simScores.simJScore != null) {
@@ -195,7 +198,7 @@ public class OWLRenderer implements SimResultRenderer {
 	public void printAttributeSim(AttributesSimScores simScores,
 			OWLGraphWrapper graph, OWLPrettyPrinter owlpp) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -206,7 +209,61 @@ public class OWLRenderer implements SimResultRenderer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
+	}
+
+	// NEW
+	/* (non-Javadoc)
+	 * @see owltools.sim.io.SimResultRenderer#printPairScores(owltools.sim2.scores.ElementPairScores, owltools.io.OWLPrettyPrinter, owltools.graph.OWLGraphWrapper)
+	 */
+	@Override
+	public void printPairScores(ElementPairScores scores) {
+		// TODO
+	}
+	/* (non-Javadoc)
+	 * @see owltools.sim.io.SimResultRenderer#printPairScores(owltools.sim2.scores.AttributePairScores, owltools.io.OWLPrettyPrinter, owltools.graph.OWLGraphWrapper)
+	 */
+	@Override
+	public void printPairScores(AttributePairScores simScores) {
+		OWLClass a = simScores.getA();
+		OWLClass b = simScores.getB();
+
+		IRI ai = a.getIRI();
+		IRI bi = b.getIRI();
+		//addLabel(ai, graph.getLabel(a));
+		//addLabel(bi, graph.getLabel(b));
+
+		IRI mi = IRI.create(ai + "-" + graph.getIdentifier(b));
+		String mlabel = "match to "+graph.getLabel(b)+ " from "+graph.getLabel(a);
+		addType(mi, "match");
+
+		addMatch(ai, mi);
+		addMatch(bi, mi);
+
+		OWLIndividual m = getOWLDataFactory().getOWLNamedIndividual(mi);
+
+
+
+		//scores
+		if (simScores.simjScore != null) {
+			mlabel += " EquivScore=" + doubleRenderer.format(simScores.simjScore);
+			addScore(m, Metric.SIMJ.toString(), simScores.simjScore);
+		}
+		if (simScores.asymmetricSimjScore != null) {
+			mlabel += " SubclassScore=" + doubleRenderer.format(simScores.asymmetricSimjScore);
+			addScore(m, "AsymmetricSimJ", simScores.asymmetricSimjScore);
+		}
+
+		Set<OWLClass> lcsSet = simScores.lcsSet;
+		if (lcsSet != null) {
+			// LCS points to a class so we use an AP
+			for (OWLClass lcs : lcsSet ) {
+				addFact(mi, getIRI("LCS"),  ((OWLNamedObject) lcs).getIRI());
+			}
+			addScore(m, Metric.LCSIC.toString(), simScores.lcsIC);
+		}
+
+		addLabel(mi, mlabel);	
 	}
 
 }

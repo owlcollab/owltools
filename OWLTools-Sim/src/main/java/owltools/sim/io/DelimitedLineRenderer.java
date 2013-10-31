@@ -15,14 +15,16 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.scores.AttributePairScores;
+import owltools.sim2.scores.ElementPairScores;
+import owltools.sim2.scores.PairScores;
 
-public class DelimitedLineRenderer implements SimResultRenderer {
+public class DelimitedLineRenderer extends AbstractRenderer implements SimResultRenderer {
 	
 	private static NumberFormat doubleRenderer = new DecimalFormat("#.##########");
 	
 	boolean isHeaderLine = true;
-	
-	private final PrintStream resultOutStream;
+
 	private final String separator;
 	private final String commentPrefix;
 	
@@ -248,6 +250,22 @@ public class DelimitedLineRenderer implements SimResultRenderer {
 	public void dispose() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	// NEW
+	/* (non-Javadoc)
+	 * @see owltools.sim.io.SimResultRenderer#printPairScores(owltools.sim2.scores.ElementPairScores, owltools.io.OWLPrettyPrinter, owltools.graph.OWLGraphWrapper)
+	 */
+	@Override
+	public void printPairScores(ElementPairScores scores) {
+		// TODO
+	}
+	/* (non-Javadoc)
+	 * @see owltools.sim.io.SimResultRenderer#printPairScores(owltools.sim2.scores.AttributePairScores, owltools.io.OWLPrettyPrinter, owltools.graph.OWLGraphWrapper)
+	 */
+	@Override
+	public void printPairScores(AttributePairScores scores) {
+		// TODO
 	}
 
 }

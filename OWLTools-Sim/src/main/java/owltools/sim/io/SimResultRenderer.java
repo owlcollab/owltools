@@ -7,6 +7,9 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.scores.AttributePairScores;
+import owltools.sim2.scores.ElementPairScores;
+import owltools.sim2.scores.PairScores;
 import owltools.util.ClassExpressionPair;
 
 public interface SimResultRenderer {
@@ -26,7 +29,15 @@ public interface SimResultRenderer {
 	public abstract void printIndividualPairSim(IndividualSimScores scores, OWLPrettyPrinter owlpp,
 			OWLGraphWrapper graph);
 
+	public OWLGraphWrapper getGraph();
+	public void setGraph(OWLGraphWrapper graph);
 	
+	// NEW
+	public abstract void printPairScores(ElementPairScores scores);
+	public abstract void printPairScores(AttributePairScores scores);
+
+	
+	// note: will be deprecated when transition to new OwlSim interface is complete
 	public static class AttributesSimScores {
 		
 		public final OWLClass a;
@@ -85,6 +96,7 @@ public interface SimResultRenderer {
 		
 	}
 	
+	// note: will be deprecated when transition to new OwlSim interface is complete
 	public static class IndividualSimScores {
 		
 		public final OWLNamedIndividual i;

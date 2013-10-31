@@ -1,35 +1,20 @@
 package owltools.sim2;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
-import owltools.io.TableToAxiomConverter;
-import owltools.sim2.preprocessor.NullSimPreProcessor;
-import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder
