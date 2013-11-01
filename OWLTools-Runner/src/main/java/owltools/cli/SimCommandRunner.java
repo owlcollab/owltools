@@ -39,6 +39,7 @@ import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
 import owltools.sim2.SimpleOwlSim.EnrichmentResult;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
+import owltools.sim2.UnknownOWLClassException;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
@@ -411,8 +412,9 @@ public class SimCommandRunner extends SolrCommandRunner {
 	/**
 	 * performs all by all individual comparison
 	 * @param opts 
+	 * @throws UnknownOWLClassException 
 	 */
-	public void runOwlSim(Opts opts) {
+	public void runOwlSim(Opts opts) throws UnknownOWLClassException {
 		sos.setSimProperties(simProperties);
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (opts.nextEq("-q")) {

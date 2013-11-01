@@ -2532,7 +2532,7 @@ public class CommandRunner {
 				ics.save(dir, catfile);
 			}
 			else if (opts.nextEq("-o|--output")) {
-				opts.info("FILE", "writes source ontology -- MUST BE specified as IRI, e.g. file://`pwd`/foo.owl");
+				opts.info("FILE", "writes source ontology.");
 				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
 
 				if ( g.getSourceOntology().getOntologyID() != null && g.getSourceOntology().getOntologyID().getOntologyIRI() != null) {
