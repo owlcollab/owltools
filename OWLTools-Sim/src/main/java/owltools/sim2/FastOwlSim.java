@@ -1,5 +1,8 @@
 package owltools.sim2;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -24,9 +28,11 @@ import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
+import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
 import owltools.sim2.scores.ScoreMatrix;
+import owltools.util.ClassExpressionPair;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah.IntIterator;
@@ -81,6 +87,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	public void dispose() {
 		showTimings();
 	}
+	
 
 	
 
@@ -921,6 +928,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	// uses integer 2D array cache
 	private ScoreAttributeSetPair getLowestCommonSubsumerWithIC(int cix, int dix)
 			throws UnknownOWLClassException {
+		return getLowestCommonSubsumerWithIC(cix, dix, null);
+	}
+	private ScoreAttributeSetPair getLowestCommonSubsumerWithIC(int cix, int dix, Double thresh)
+			throws UnknownOWLClassException {
 		if (ciPairIsCached == null) {
 			// Estimates: 350mb for MP
 			// 5.4Gb for 30k classes
@@ -939,8 +950,18 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 					classArray[ciPairLCS[cix][dix]]);
 
 		}
+		if (isLCSCacheFullyPopulated) {
+			// true if a pre-generated cache has been loaded and there is no entry for this pair;
+			// a cache excludes certain pairs if they are below threshold
+			return null;
+		}
+		
 		ScoreAttributeSetPair sap = 
 				getLowestCommonSubsumerWithICNoCache(cix, dix);
+		if (thresh != null && sap.score < thresh) {
+			return null;
+		}
+		
 		//testCache[cix][dix] = sap;
 		ciPairIsCached[cix][dix] = true;
 		OWLClass lcsCls = null;
@@ -962,6 +983,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c,
 			OWLClass d) throws UnknownOWLClassException {
 		return getLowestCommonSubsumerWithIC(classIndex.get(c), classIndex.get(d));
+	}
+	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c,
+			OWLClass d, Double thresh) throws UnknownOWLClassException {
+		return getLowestCommonSubsumerWithIC(classIndex.get(c), classIndex.get(d), thresh);
 	}
 
 	private ScoreAttributeSetPair getLowestCommonSubsumerWithICNoCache(int cix, int dix)
@@ -1063,6 +1088,81 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return thingNode;
 	}
 
+
+	// I/O
+	
+	@Override
+	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException {
+		FileOutputStream fos = new FileOutputStream(fileName);
+		
+		for ( int cix = 0; cix< ciPairIsCached.length; cix++) {
+			boolean[] arr = ciPairIsCached[cix];
+			OWLClass c = classArray[cix];
+			for ( int dix = 0; dix< arr.length; dix++) {
+				if (arr[dix]) {
+					double s = ciPairScaledScore[cix][dix] / (double) scaleFactor;
+					if (s >= thresholdIC) {
+						OWLClass d = classArray[dix];
+						OWLClass lcs = classArray[ciPairLCS[cix][dix]];
+						IOUtils.write(getShortId((OWLClass) c) +"\t" + getShortId((OWLClass) d) + "\t" + s + "\t" + 
+								getShortId(lcs) + "\n", fos);
+					
+					}
+				}
+			}
+			
+			
+		}
+
+		fos.close();
+	}
+
+	/**
+	 * @param fileName
+	 * @throws IOException
+	 */
+	@Override
+	public void loadLCSCache(String fileName) throws IOException {
+		clearLCSCache();
+		FileInputStream s = new FileInputStream(fileName);
+		List<String> lines = IOUtils.readLines(s);
+		for (String line : lines) {
+			String[] vals = line.split("\t");
+			OWLClass c1 = getOWLClassFromShortId(vals[0]);
+			OWLClass c2 = getOWLClassFromShortId(vals[1]);
+			OWLClass a = getOWLClassFromShortId(vals[3]);
+			int cix = classIndex.get(c1);
+			int dix = classIndex.get(c2);
+			
+			ciPairIsCached[cix][dix] = true;
+			ciPairScaledScore[cix][dix] = (short)(Double.valueOf(vals[2]) * scaleFactor);
+			ciPairLCS[cix][dix] = classIndex.get(a);
+		}
+		isLCSCacheFullyPopulated = true;
+	}
+
+	@Override
+	protected void setInformtionContectForAttribute(OWLClass c, Double v) {
+		icCache.put(c, v);
+		if (icClassArray == null)
+			icClassArray = new Double[classArray.length];
+		icClassArray[classIndex.get(c)] = v;
+	}
+
+	@Override
+	protected void clearInformationContentCache() {
+		testCache = null;
+		icCache = new HashMap<OWLClass,Double>();
+		icClassArray = null;
+	}
+	
+	protected void clearLCSCache() {
+		ciPairLCS = new int[classArray.length][classArray.length];
+		ciPairScaledScore = new short[classArray.length][classArray.length];
+		ciPairIsCached = new boolean[classArray.length][classArray.length];		
+	}
+
+	
 
 
 }

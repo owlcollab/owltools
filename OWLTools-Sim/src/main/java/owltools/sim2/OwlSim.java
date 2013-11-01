@@ -1,13 +1,17 @@
 package owltools.sim2;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -494,6 +498,31 @@ public interface OwlSim {
 
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c, OWLClass d)
 			throws UnknownOWLClassException;
+	
+	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass i, OWLClass j, Double thresh)
+			throws UnknownOWLClassException;;
+
+	
+	/**
+	 * Saves the contents of the LCS-IC cache
+	 * 
+	 * Assumes that this has already been filled by comparing all classes by all classes.
+	 * 
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public void saveLCSCache(String fileName) throws IOException;
+	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException;
+	public void loadLCSCache(String fileName) throws IOException;
+	public OWLOntology cacheInformationContentInOntology() throws OWLOntologyCreationException, UnknownOWLClassException;
+	public void setInformationContentFromOntology(OWLOntology o);
+	
+	/**
+	 * Set to true if use of the cache should be overridden
+	 * 
+	 * @param b
+	 */
+	public void setNoLookupForLCSCache(boolean b);
 
 	/**
 	 * A pair consisting of a set of equal-scoring attributes, and a score
@@ -539,14 +568,29 @@ public interface OwlSim {
 				attributeClassSet.add(ac);
 		}
 
+		
+		
 		@Override
 		public int compareTo(ScoreAttributeSetPair p2) {
 			// TODO Auto-generated method stub
 			return 0 - Double.compare(score, p2.score);
 		}
 
+		@Deprecated
+		public OWLClass getArbitraryAttributeClass() {
+			if (attributeClassSet == null)
+				return null;
+			return this.attributeClassSet.iterator().next();
+		}
+
 	}
 
 	public void dispose();
+
+	public void setSimProperties(Properties simProperties);
+	public Properties getSimProperties();
+	
+	SimStats getSimStats();
+
 
 }

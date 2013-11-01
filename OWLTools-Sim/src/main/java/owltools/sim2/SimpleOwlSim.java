@@ -233,14 +233,13 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	// number of individuals in domain
 	private Integer corpusSize;
 
-	public SimStats simStats;
 
 	private SimPreProcessor simPreProcessor = null;
 
 	// private OWLOntology resultsOntology = null;
 
 	private Map<OWLClass, Set<Node<OWLClass>>> superclassMap = null;
-	
+
 	private Map<OWLNamedIndividual, Set<OWLClass>> elementToAttributesMap;
 
 	private Map<OWLNamedIndividual, Set<Node<OWLClass>>> elementToInferredAttributesMap;
@@ -248,9 +247,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	private Map<OWLClass, Set<OWLNamedIndividual>> attributeToElementsMap;
 
 	private Map<ClassExpressionPair, ScoreAttributePair> lcsICcache;
-	private boolean isLCSCacheFullyPopulated = false;
 	private boolean isICCacheFullyPopulated = false;
-	public boolean isNoLookupForLCSCache = false;
 
 	// @Deprecated
 	private Map<ClassExpressionPair, Set<Node<OWLClass>>> csCache;
@@ -305,8 +302,8 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 */
 	public enum Direction {
 		A_TO_B("Asymmetric, matching all annotations on first element"), B_TO_A(
-		"Asymmetric, matching all annotations on second element"), AVERAGE(
-		"Symmetric - taking average of both directions");
+				"Asymmetric, matching all annotations on second element"), AVERAGE(
+						"Symmetric - taking average of both directions");
 
 		private final String description;
 
@@ -329,7 +326,6 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		TXT, CSV, ROW, JSON, OWL, FORMATTED;
 	}
 
-	private Properties simProperties;
 
 	/**
 	 * This class will hold some basic statistics about the most-recently invoked
@@ -474,13 +470,6 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		this.sourceOntology = sourceOntology;
 	}
 
-	public Properties getSimProperties() {
-		return simProperties;
-	}
-
-	public void setSimProperties(Properties simProperties) {
-		this.simProperties = simProperties;
-	}
 
 	public SimPreProcessor getSimPreProcessor() {
 		return simPreProcessor;
@@ -552,7 +541,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getInferredAttributes(org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
-	
+
 	public Set<Node<OWLClass>> getInferredAttributes(OWLNamedIndividual a) {
 		// TODO - refactor this method - in previous versions of Elk it was
 		// not possible to ask for the types an instance instantiates, now
@@ -575,7 +564,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 * @see owltools.sim2.OwlSim#getNamedReflexiveSubsumers(org.semanticweb.owlapi.model.OWLClass)
 	 */
 	// TODO - CACHE
-	
+
 	public Set<Node<OWLClass>> getNamedReflexiveSubsumers(OWLClass a) {
 		if (superclassMap != null && superclassMap.containsKey(a)) {
 			// return a copy to prevent caller from accidentally modifying cache
@@ -598,7 +587,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getNamedCommonSubsumers(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
-	
+
 	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLClass a,
 			OWLClass b) {
 		// - assume named
@@ -611,11 +600,11 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		//todo - we don't need to make a copy any more as this is not cached
 		return new HashSet<Node<OWLClass>>(nodes);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getNamedCommonSubsumersCount(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
-	
+
 	public int getNamedCommonSubsumersCount(OWLClass a,
 			OWLClass b) {
 		// - assume named
@@ -632,7 +621,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getNamedCommonSubsumers(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
-	
+
 	public Set<Node<OWLClass>> getNamedCommonSubsumers(OWLNamedIndividual a,
 			OWLNamedIndividual b) {
 		// we don't cache this as we assume it will be called at most once
@@ -640,7 +629,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		nodes.retainAll(getInferredAttributes(b));
 		return nodes;
 	}
-	
+
 	private int getNamedCommonSubsumersCount(OWLNamedIndividual a,
 			OWLNamedIndividual b) {
 		// we don't cache this as we assume it will be called at most once
@@ -653,7 +642,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getNamedLowestCommonSubsumers(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
-	
+
 	public Set<Node<OWLClass>> getNamedLowestCommonSubsumers(
 			OWLClass a, OWLClass b) {
 		// currently no need to cache this, as only called from
@@ -671,7 +660,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getAttributeSimilarity(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass, owltools.sim2.SimpleOwlSim.Metric)
 	 */
-	
+
 	public double getAttributeSimilarity(OWLClass a, OWLClass b, Metric metric) {
 		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(a,b);
 		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a);
@@ -683,13 +672,13 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 			return ci.size();
 		} else if (metric.equals(Metric.NORMALIZED_OVERLAP)) {
 			return ci.size()
-			/ Math.min(getNamedReflexiveSubsumers(a).size(),
-					getNamedReflexiveSubsumers(b).size());
+					/ Math.min(getNamedReflexiveSubsumers(a).size(),
+							getNamedReflexiveSubsumers(b).size());
 		} else if (metric.equals(Metric.DICE)) {
 			return 2
-			* ci.size()
-			/ ((getNamedReflexiveSubsumers(a).size() + getNamedReflexiveSubsumers(
-					b).size()));
+					* ci.size()
+					/ ((getNamedReflexiveSubsumers(a).size() + getNamedReflexiveSubsumers(
+							b).size()));
 		} else if (metric.equals(Metric.JACCARD)) {
 			return ci.size() / (float) cu.size();
 		} else {
@@ -701,7 +690,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getAttributeJaccardSimilarity(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
-	
+
 	public double getAttributeJaccardSimilarity(OWLClass a,
 			OWLClass b) {
 		Set<Node<OWLClass>> cu = getNamedReflexiveSubsumers(a);
@@ -712,7 +701,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getElementJaccardSimilarity(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
-	
+
 	public double getElementJaccardSimilarity(OWLNamedIndividual i,
 			OWLNamedIndividual j) {
 		Set<Node<OWLClass>> cu = getInferredAttributes(i);
@@ -723,7 +712,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getAsymmerticAttributeJaccardSimilarity(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
-	
+
 	public double getAsymmerticAttributeJaccardSimilarity(OWLClass c,
 			OWLClass d) {
 		return getNamedCommonSubsumersCount(c, d) / (float) getNamedReflexiveSubsumers(d).size();
@@ -732,7 +721,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getElementGraphInformationContentSimilarity(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
-	
+
 	public double getElementGraphInformationContentSimilarity(
 			OWLNamedIndividual i, OWLNamedIndividual j) {
 		Set<Node<OWLClass>> ci = getNamedCommonSubsumers(i, j);
@@ -780,9 +769,9 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 			OWLClass b, Double minimumIC) {
 
 		ClassExpressionPair pair = new ClassExpressionPair(a, b);
-		
+
 		// lookup cache to see if this has been calculated already
-		if (!isNoLookupForLCSCache) {
+		if (!this.isNoLookupForLCSCache()) {
 			if (lcsICcache.containsKey(pair)) {
 				return lcsICcache.get(pair); // don't make a copy, assume unmodified
 			}
@@ -804,7 +793,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		Set<Node<OWLClass>> lcsSet = getNamedLowestCommonSubsumers(a, b);
 		return getLowestCommonSubsumerIC(pair, lcsSet, minimumIC);
 	}
-	
+
 	private ScoreAttributePair getLowestCommonSubsumerIC(ClassExpressionPair pair,
 			Set<Node<OWLClass>> lcsSet,
 			Double minimumIC) {
@@ -846,7 +835,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getSimilarityMaxIC(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
-	
+
 	public ScoreAttributeSetPair getSimilarityMaxIC(OWLNamedIndividual i,
 			OWLNamedIndividual j) {
 		Set<Node<OWLClass>> atts = getInferredAttributes(i);
@@ -870,7 +859,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getSimilarityBestMatchAverageAsym(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
-	
+
 	public ScoreAttributeSetPair getSimilarityBestMatchAverageAsym(
 			OWLNamedIndividual i, OWLNamedIndividual j) {
 		return getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
@@ -879,7 +868,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getSimilarityBestMatchAverageAsym(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual, owltools.sim2.SimpleOwlSim.Metric)
 	 */
-	
+
 	public ScoreAttributeSetPair getSimilarityBestMatchAverageAsym(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric) {
 		return getSimilarityBestMatchAverage(i, j, metric, Direction.A_TO_B);
 	}
@@ -887,7 +876,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getSimilarityBestMatchAverage(org.semanticweb.owlapi.model.OWLNamedIndividual, org.semanticweb.owlapi.model.OWLNamedIndividual, owltools.sim2.SimpleOwlSim.Metric, owltools.sim2.SimpleOwlSim.Direction)
 	 */
-	
+
 	public ScoreAttributeSetPair getSimilarityBestMatchAverage(OWLNamedIndividual i, OWLNamedIndividual j, Metric metric, Direction dir) {
 
 		if (dir.equals(Direction.B_TO_A)) {
@@ -948,7 +937,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		ScoreAttributeSetPair sap = new ScoreAttributeSetPair(total / n, atts);
 		return sap;
 	}
-	
+
 	/**
 	 * 
 	 * @param c
@@ -957,10 +946,10 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 */
 	public List<AttributesSimScores> compareAllAttributes(OWLClass c, Set<OWLClass> ds) {
 		List<AttributesSimScores> scoresets = new ArrayList<AttributesSimScores>();
-		
+
 		Set<Node<OWLClass>> cSupers = getNamedReflexiveSubsumers(c);
 		int cSize = cSupers.size();
-		
+
 		Set<AttributesSimScores> best = new HashSet<AttributesSimScores>();
 		Double bestScore = null;
 		LOG.info("MEM="+Runtime.getRuntime().totalMemory()+" FREE="+Runtime.getRuntime().freeMemory());
@@ -973,7 +962,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 			int cadSize = cad.size();
 			dSupers.addAll(cSupers);
 			int cudSize = dSupers.size();
-			
+
 			AttributesSimScores s = new AttributesSimScores(c,d);
 			s.simJScore = cadSize / (double)cudSize;
 			s.AsymSimJScore = cadSize / (double) dSize;
@@ -981,7 +970,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 			//ScoreAttributePair lcs = getLowestCommonSubsumerIC(pair, cad, null);
 			//s.lcsScore = lcs;
 			scoresets.add(s);
-			
+
 			if (bestScore == null) {
 				best.add(s);
 				bestScore = s.simJScore;
@@ -997,14 +986,14 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		for (AttributesSimScores s : best) {
 			s.isBestMatch = true;
 		}
-		
-		
+
+
 		return scoresets;
-		
+
 	}
-	
-	
-	
+
+
+
 	// TODO
 	public void search(Set<OWLClass> atts, Metric metric) {
 		Set<Node<OWLClass>> iatts = new HashSet<Node<OWLClass>>();
@@ -1068,7 +1057,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		@Override
 		public String toString() {
 			return sampleSetClass + " " + enrichedClass + " " + pValue + " "
-			+ pValueCorrected;
+					+ pValueCorrected;
 		}
 
 	}
@@ -1103,7 +1092,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 */
 	public List<EnrichmentResult> calculateAllByAllEnrichment(
 			OWLClass populationClass, OWLClass pc1, OWLClass pc2)
-			throws MathException {
+					throws MathException {
 		List<EnrichmentResult> results = new Vector<EnrichmentResult>();
 		OWLClass nothing = this.owlDataFactory.getOWLNothing();
 		for (OWLClass sampleSetClass : getReasoner().getSubClasses(pc1, false)
@@ -1212,7 +1201,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getAllAttributeClasses()
 	 */
-	
+
 	public Set<OWLClass> getAllAttributeClasses() {
 		if (cachedAttributeClasses == null)
 			return sourceOntology.getClassesInSignature(true);
@@ -1224,7 +1213,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 * @see owltools.sim2.OwlSim#createElementAttributeMapFromOntology()
 	 */
 	// TODO - make this private & call automatically
-	
+
 	public void createElementAttributeMapFromOntology() {
 		elementToAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
 		Set<OWLClass> allTypes = new HashSet<OWLClass>();
@@ -1275,7 +1264,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getAttributesForElement(org.semanticweb.owlapi.model.OWLNamedIndividual)
 	 */
-	
+
 	public Set<OWLClass> getAttributesForElement(OWLNamedIndividual e) {
 		if (elementToAttributesMap == null)
 			createElementAttributeMapFromOntology();
@@ -1331,10 +1320,10 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getElementsForAttribute(org.semanticweb.owlapi.model.OWLClass)
 	 */
-	
+
 	public Set<OWLNamedIndividual> getElementsForAttribute(OWLClass c) {
 		Set<OWLClass> subclasses = getReasoner().getSubClasses(c, false)
-		.getFlattened();
+				.getFlattened();
 		subclasses.add(c);
 		Set<OWLNamedIndividual> elts = new HashSet<OWLNamedIndividual>();
 		for (OWLClass sc : subclasses) {
@@ -1348,7 +1337,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getNumElementsForAttribute(org.semanticweb.owlapi.model.OWLClass)
 	 */
-	
+
 	public int getNumElementsForAttribute(OWLClass c) {
 		if (attributeElementCount == null) precomputeAttributeElementCount();
 		if (attributeElementCount.containsKey(c))
@@ -1370,7 +1359,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getAllElements()
 	 */
-	
+
 	public Set<OWLNamedIndividual> getAllElements() {
 		if (elementToAttributesMap == null)
 			createElementAttributeMapFromOntology();
@@ -1380,7 +1369,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getCorpusSize()
 	 */
-	
+
 	public int getCorpusSize() {
 		if (corpusSize == null) {
 			corpusSize = getAllElements().size();
@@ -1392,7 +1381,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#setCorpusSize(int)
 	 */
-	
+
 	public void setCorpusSize(int size) {
 		corpusSize = size;
 	}
@@ -1404,7 +1393,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getInformationContentForAttribute(org.semanticweb.owlapi.model.OWLClass)
 	 */
-	
+
 	public Double getInformationContentForAttribute(OWLClass c) {
 		if (icCache.containsKey(c)) return icCache.get(c);
 		if (this.isICCacheFullyPopulated) {
@@ -1449,26 +1438,8 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	// CACHE I/O
 	// ---------------
 
-	final String prefix = "http://purl.obolibrary.org/obo/";
-	private String getShortId(OWLClass c) {
-		IRI x = ((OWLClass) c).getIRI();
-		return x.toString().replace(prefix, ""); // todo - do not hardcode
-	}
-	private OWLClass getOWLClassFromShortId(String id) {
-		return owlDataFactory.getOWLClass(IRI.create(prefix + id));
-	}
 
-	/**
-	 * Saves the contents of the LCS-IC cache
-	 * 
-	 * Assumes that this has already been filled by comparing all classes by all classes.
-	 * 
-	 * @param fileName
-	 * @throws IOException
-	 */
-	public void saveLCSCache(String fileName) throws IOException {
-		saveLCSCache(fileName, null);
-	}
+	@Override
 	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException {
 		FileOutputStream fos = new FileOutputStream(fileName);
 		for (ClassExpressionPair p : lcsICcache.keySet()) {
@@ -1486,6 +1457,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 * @param fileName
 	 * @throws IOException
 	 */
+	@Override
 	public void loadLCSCache(String fileName) throws IOException {
 		lcsICcache = new HashMap<ClassExpressionPair, ScoreAttributePair>();
 		FileInputStream s = new FileInputStream(fileName);
@@ -1501,39 +1473,46 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		isLCSCacheFullyPopulated = true;
 	}
 
-	public final String icIRIString = "http://owlsim.org/ontology/ic"; // TODO
+//	public final String icIRIString = "http://owlsim.org/ontology/ic"; // TODO
 
-	public OWLOntology cacheInformationContentInOntology() throws OWLOntologyCreationException {
-		OWLOntology o = this.owlOntologyManager.createOntology();
-		OWLAnnotationProperty p = owlDataFactory.getOWLAnnotationProperty(IRI.create(icIRIString));
-		for (OWLClass c : sourceOntology.getClassesInSignature()) {
-			Double ic = this.getInformationContentForAttribute(c);
-			if (ic != null) {
-				owlOntologyManager.addAxiom(o,
-						this.owlDataFactory.getOWLAnnotationAssertionAxiom(p, 
-								c.getIRI(), 
-								owlDataFactory.getOWLLiteral(ic)));
-			}
+//	public OWLOntology cacheInformationContentInOntology() throws OWLOntologyCreationException {
+//		OWLOntology o = this.owlOntologyManager.createOntology();
+//		OWLAnnotationProperty p = owlDataFactory.getOWLAnnotationProperty(IRI.create(icIRIString));
+//		for (OWLClass c : sourceOntology.getClassesInSignature()) {
+//			Double ic = this.getInformationContentForAttribute(c);
+//			if (ic != null) {
+//				owlOntologyManager.addAxiom(o,
+//						this.owlDataFactory.getOWLAnnotationAssertionAxiom(p, 
+//								c.getIRI(), 
+//								owlDataFactory.getOWLLiteral(ic)));
+//			}
+//
+//		}
+//		return o;
+//	}
 
-		}
-		return o;
-	}
-
-	public void setInformationContentFromOntology(OWLOntology o) {
+	protected void clearInformationContentCache() {
 		icCache = new HashMap<OWLClass, Double>();
-		for (OWLAnnotationAssertionAxiom ax : o.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
-			if (ax.getProperty().getIRI().toString().equals(icIRIString)) {
-				OWLLiteral lit = (OWLLiteral) ax.getValue();
-				icCache.put(owlDataFactory.getOWLClass((IRI) ax.getSubject()), 
-						lit.parseDouble());
-			}
-		}
+	}
+//	public void setInformationContentFromOntology(OWLOntology o) {
+//		icCache = new HashMap<OWLClass, Double>();
+//		for (OWLAnnotationAssertionAxiom ax : o.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
+//			if (ax.getProperty().getIRI().toString().equals(icIRIString)) {
+//				OWLLiteral lit = (OWLLiteral) ax.getValue();
+//				icCache.put(owlDataFactory.getOWLClass((IRI) ax.getSubject()), 
+//						lit.parseDouble());
+//			}
+//		}
+//	}
+
+	protected void setInformtionContectForAttribute(OWLClass c, Double v) {
+		icCache.put(c, v);
 	}
 
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getEntropy()
 	 */
-	
+
 	public Double getEntropy() {
 		return getEntropy(getAllAttributeClasses());
 	}
@@ -1541,7 +1520,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getEntropy(java.util.Set)
 	 */
-	
+
 	public Double getEntropy(Set<OWLClass> cset) {
 		double e = 0.0;
 		for (OWLClass c : cset) {
@@ -1554,6 +1533,8 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		return -e / Math.log(2);
 	}
 
+	// these methods come from the OwlSim refactoring
+	
 	@Override
 	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i,
 			OWLNamedIndividual j) throws UnknownOWLClassException {
@@ -1573,6 +1554,13 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 			OWLClass d) throws UnknownOWLClassException {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass i,
+			OWLClass j, Double thresh) throws UnknownOWLClassException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

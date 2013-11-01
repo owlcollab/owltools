@@ -18,7 +18,6 @@ import owltools.sim2.scores.ElementPairScores;
 public class FormattedRenderer extends AbstractRenderer implements SimResultRenderer {
 
 	private static NumberFormat doubleRenderer = new DecimalFormat("#.##########");
-	OWLPrettyPrinter owlpp;
 
 	boolean isHeaderLine = true;
 
@@ -53,11 +52,6 @@ public class FormattedRenderer extends AbstractRenderer implements SimResultRend
 
 	}
 
-	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
-
-	}
 
 	/* (non-Javadoc)
 	 * @see owltools.sim.io.SimResultRenderer#printPairScores(owltools.sim2.scores.PairScores, owltools.io.OWLPrettyPrinter, owltools.graph.OWLGraphWrapper)

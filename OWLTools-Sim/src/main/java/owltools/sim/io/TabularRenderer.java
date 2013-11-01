@@ -108,7 +108,6 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 			isHeaderLine = false;
 		}
 		resultOutStream.println(StringUtils.join(vals, separator));
-		resultOutStream.flush();
 	}
 
 	@Override
@@ -202,7 +201,6 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 
 		resultOutStream.println(StringUtils.join(vals, separator));
 
-		resultOutStream.flush();
 	}
 
 
@@ -283,7 +281,6 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 			isHeaderLine = false;
 		}
 		resultOutStream.println(StringUtils.join(vals, separator));
-		resultOutStream.flush();
 	}
 
 	@Override
@@ -293,11 +290,6 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 		
 	}
 
-	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
-		
-	}
 
 
 	// NEW
@@ -306,13 +298,65 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 		// TODO
 	}
 	@Override
-	public void printPairScores(AttributePairScores scores) {
-		// TODO
+	public void printPairScores(AttributePairScores simScores) {
+		OWLClass a = simScores.getA();
+		OWLClass b = simScores.getB();
+
+		List<String> vals = new ArrayList<String>();
+		List<String> cols = new ArrayList<String>();
+		String bestMarker = "";
+		if (simScores.isBestMatchForI)
+			bestMarker = "*";
+		// elements
+		cols.add("A_ID");
+		vals.add(bestMarker+graph.getIdentifier(a));
+		cols.add("A_Label");
+		vals.add(graph.getLabel(a));
+		cols.add("B_ID");
+		vals.add(graph.getIdentifier(b));
+		cols.add("B_Label");
+		vals.add(graph.getLabel(b));
+
+		//scores
+		cols.add("SimJ");
+		if (simScores.simjScore != null) {
+			vals.add(doubleRenderer.format(simScores.simjScore));
+		}
+		else {
+			vals.add("");
+		}
+
+		cols.add("AsymSymJ");
+		if (simScores.asymmetricSimjScore != null) {
+			vals.add(doubleRenderer.format(simScores.asymmetricSimjScore));
+		}
+		else {
+			vals.add("");
+		}
+
+		cols.add("IC-of-LCS");
+		cols.add("LCS-ID");
+		cols.add("LCS_Label");
+
+		if (simScores.lcsSet != null) {
+			OWLClass lcs = simScores.lcsSet.iterator().next();
+			vals.add(doubleRenderer.format(simScores.lcsIC));
+			vals.add(graph.getIdentifier(lcs));
+			vals.add(graph.getLabel(lcs));
+		}
+		else {
+			vals.add("");
+			vals.add("");
+			vals.add("");
+		}
+
+		if (isHeaderLine) {
+			resultOutStream.println(StringUtils.join(cols, separator));
+			isHeaderLine = false;
+		}
+		resultOutStream.println(StringUtils.join(vals, separator));
+		
 	}
-
-
-	
-	
 
 }
 

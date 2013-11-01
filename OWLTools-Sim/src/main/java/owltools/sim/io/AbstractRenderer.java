@@ -43,14 +43,22 @@ public abstract class AbstractRenderer implements SimResultRenderer {
 
 	protected PrintStream resultOutStream;
 	public OWLGraphWrapper graph;
+	protected OWLPrettyPrinter owlpp;
+
 	public OWLGraphWrapper getGraph() {
 		return graph;
 	}
 	public void setGraph(OWLGraphWrapper graph) {
 		this.graph = graph;
+		owlpp = new OWLPrettyPrinter(graph);
 	}
 	
-	
+	@Override
+	public void dispose() {
+		resultOutStream.flush();		
+		resultOutStream.close();
+	}
+
 
 }
 

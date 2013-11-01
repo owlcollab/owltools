@@ -1,9 +1,12 @@
 package owltools.sim2.preprocessor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -29,17 +32,35 @@ public class ABoxUtils {
 
 	public static void randomizeClassAssertions(OWLOntology ont, int num) {
 		Set<OWLClassAssertionAxiom> caas = new HashSet<OWLClassAssertionAxiom>();
-		Set<OWLNamedIndividual> inds = ont.getIndividualsInSignature(true);
+		Set<OWLClassAssertionAxiom> caasNew = new HashSet<OWLClassAssertionAxiom>();
+			Set<OWLNamedIndividual> inds = ont.getIndividualsInSignature(true);
 		OWLNamedIndividual[] indArr = (OWLNamedIndividual[]) inds.toArray();
 		for (OWLNamedIndividual ind : inds) {
 			caas.addAll( ont.getClassAssertionAxioms(ind) );
 		}
 		for (OWLClassAssertionAxiom caa : caas) {
 			OWLIndividual randomIndividual = null;
-			ont.getOWLOntologyManager().getOWLDataFactory().getOWLClassAssertionAxiom(caa.getClassExpression(), 
-					randomIndividual);
+			caasNew.add(ont.getOWLOntologyManager().getOWLDataFactory().getOWLClassAssertionAxiom(caa.getClassExpression(), 
+					randomIndividual));
 		}
 		ont.getOWLOntologyManager().removeAxioms(ont, caas);
+		ont.getOWLOntologyManager().addAxioms(ont, caasNew);
+	}
+
+	public static void createRandomClassAssertions(OWLOntology ont, int num, int maxAssertionsPerInstance) {
+		Set<OWLClassAssertionAxiom> caasNew = new HashSet<OWLClassAssertionAxiom>();
+		Vector<OWLClass> clist = new Vector<OWLClass>(ont.getClassesInSignature(true));
+		for (int i=0; i<num; i++) {
+			OWLNamedIndividual ind = ont.getOWLOntologyManager().getOWLDataFactory().
+			getOWLNamedIndividual(IRI.create("http://x.org/"+i));
+			for (int j=0; j< Math.random() * maxAssertionsPerInstance; j++) {
+				OWLClass c = clist.get((int)(Math.random() * clist.size()));
+				caasNew.add(ont.getOWLOntologyManager().getOWLDataFactory().
+						getOWLClassAssertionAxiom(c, ind));
+			}
+			
+		}
+		ont.getOWLOntologyManager().addAxioms(ont, caasNew);
 	}
 
 	public static void mapClassAssertionsUp(OWLOntology ont, OWLReasoner reasoner, Set<OWLClass> targetClasses, Set<OWLClass> inputClasses) {
@@ -163,10 +184,28 @@ public class ABoxUtils {
 	 * @throws OWLOntologyCreationException
 	 */
 	public static void makeDefaultIndividuals(OWLOntology srcOnt) throws OWLOntologyCreationException {
+		makeDefaultIndividuals(srcOnt, null);
+	}
+	/**
+	 * Creates a "fake" individual for every class.
+	 * 
+	 * ABox IRI = TBox IRI + suffix
+	 * 
+	 * if suffix == null, then we are punning
+	 * 
+	 * @param srcOnt
+	 * @param iriSuffix
+	 * @throws OWLOntologyCreationException
+	 */
+	public static void makeDefaultIndividuals(OWLOntology srcOnt, String iriSuffix) throws OWLOntologyCreationException {
 		OWLOntologyManager m = srcOnt.getOWLOntologyManager();
 		OWLDataFactory df = m.getOWLDataFactory();
 		for (OWLClass c : srcOnt.getClassesInSignature(true)) {
-			IRI iri = c.getIRI();
+			IRI iri;
+			if (iriSuffix == null || iriSuffix.equals(""))
+			  iri = c.getIRI();
+			else
+				iri = IRI.create(c.getIRI().toString()+iriSuffix);
 			OWLNamedIndividual ind = df.getOWLNamedIndividual(iri);
 			m.addAxiom(srcOnt, df.getOWLDeclarationAxiom(ind));
 			m.addAxiom(srcOnt, df.getOWLClassAssertionAxiom(c, ind));

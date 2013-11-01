@@ -75,7 +75,6 @@ public class DelimitedLineRenderer extends AbstractRenderer implements SimResult
 		resultOutStream.print(graph.getLabel(lcs.attributeClass));
 		resultOutStream.println();
 		
-		resultOutStream.flush();
 	}
 
 	@Override
@@ -117,7 +116,6 @@ public class DelimitedLineRenderer extends AbstractRenderer implements SimResult
 			resultOutStream.println();
 		}
 		
-		resultOutStream.flush();
 	}
 
 	protected void renderIndividualScore(String label, double score, Set<OWLClass> attributeClassSet, OWLNamedIndividual i, OWLNamedIndividual j, OWLPrettyPrinter owlpp) {
@@ -236,18 +234,11 @@ public class DelimitedLineRenderer extends AbstractRenderer implements SimResult
 			isHeaderLine = false;
 		}
 		resultOutStream.println(StringUtils.join(vals, separator));
-		resultOutStream.flush();
 	}
 
 	@Override
 	public void printAttributeSim(AttributesSimScores simScores,
 			OWLGraphWrapper graph) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void dispose() {
 		// TODO Auto-generated method stub
 		
 	}
@@ -264,8 +255,33 @@ public class DelimitedLineRenderer extends AbstractRenderer implements SimResult
 	 * @see owltools.sim.io.SimResultRenderer#printPairScores(owltools.sim2.scores.AttributePairScores, owltools.io.OWLPrettyPrinter, owltools.graph.OWLGraphWrapper)
 	 */
 	@Override
-	public void printPairScores(AttributePairScores scores) {
-		// TODO
+	public void printPairScores(AttributePairScores simScores) {
+		OWLClass a = simScores.getA();
+		OWLClass b = simScores.getB();
+		
+		//scores
+		renderAttScore("SimJ",
+				simScores.simjScore,a,b,
+				graph,owlpp);
+		renderAttScore("AsymSimJ",simScores.asymmetricSimjScore,a,b,
+				graph,
+				owlpp);
+		
+		//ScoreAttributePair lcs = simScores.;
+
+		OWLClass lcs = simScores.lcsSet.iterator().next();
+		resultOutStream.print("LCS");
+		resultOutStream.print(separator);
+		resultOutStream.print(owlpp.render(a));
+		resultOutStream.print(separator);
+		resultOutStream.print(owlpp.render(b));
+		resultOutStream.print(separator);
+		resultOutStream.print(doubleRenderer.format(simScores.lcsIC));
+		resultOutStream.print(separator);
+		resultOutStream.print(graph.getIdentifier(lcs));
+		resultOutStream.print(separator);
+		resultOutStream.print(graph.getLabel(lcs));
+		resultOutStream.println();
 	}
 
 }
