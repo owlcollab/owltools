@@ -13,8 +13,12 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.graph.OWLGraphWrapperEdges;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import owltools.sim2.AbstractOWLSimTest;
+import owltools.sim2.SimpleOwlSim;
+import owltools.sim2.UnknownOWLClassException;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder
@@ -27,7 +31,7 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 	private Logger LOG = Logger.getLogger(BasicOWLSimTest.class);
 	
 	@Test
-	public void testBasicSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException {
+	public void testBasicSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
 		g =  new OWLGraphWrapper(sourceOntol);
@@ -40,7 +44,7 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 		try {
 
 			sos = new SimpleOwlSim(sourceOntol);
-			sos.setReasoner(reasoner);
+			((SimpleOwlSim) sos).setReasoner(reasoner);
 			LOG.info("Reasoner="+sos.getReasoner());
 
 			//sos.saveOntology("/tmp/z.owl");
@@ -72,7 +76,7 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 		try {
 
 			sos = new SimpleOwlSim(sourceOntol);
-			sos.setReasoner(reasoner);
+			((SimpleOwlSim) sos).setReasoner(reasoner);
 
 			reasoner.flush();
 			Double e = sos.getEntropy();

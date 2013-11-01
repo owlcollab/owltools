@@ -37,6 +37,8 @@ import owltools.sim2.preprocessor.ABoxUtils;
  * 
  * http://stackoverflow.com/questions/10784951/do-any-jvms-jit-compilers-generate-code-that-uses-vectorized-floating-point-ins
  * 
+ * http://stackoverflow.com/questions/504103/how-do-i-write-a-correct-micro-benchmark-in-java
+ * 
  * @author cjm
  *
  */

@@ -37,7 +37,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 	SimPreProcessor pproc;
 	OWLPrettyPrinter owlpp;
 	OWLGraphWrapper g;
-	SimpleOwlSim sos;
+	OwlSim sos;
 
 	
 	protected void parseAssociations(File file, OWLGraphWrapper g) throws IOException {
@@ -49,7 +49,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 
 
 
-	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) {
+	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
 
 		if (i==j) return;
 		double s = sos.getElementJaccardSimilarity(i, j);
