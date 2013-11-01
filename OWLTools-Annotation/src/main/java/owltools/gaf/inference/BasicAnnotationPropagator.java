@@ -31,14 +31,22 @@ import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
 
 /**
- * This performs basic annotation inferences involving propagation
- * between the 3 sub-ontologies in GO
+ * This performs basic annotation inferences involving propagation between the 3
+ * sub-ontologies in GO
  * 
  * <ul>
- *  <li> MF -> BP over part_of
- *  <li> BP -> CC over occurs_in
+ * <li>MF -> BP over part_of
+ * <li>BP -> CC over occurs_in
  * </ul>
  * 
+ * This approach pre-computes the possible non-redundant propagations classes
+ * for each class during the setup. The actual prediction step looks at the
+ * annotations for each bioentity and evidence code as a separate unit.
+ * <br>
+ * All annotations, which were assigned by the 'GOC', are considered to be
+ * predictions and are ignored for the new predictions. This has the effect that
+ * even if there are 'old' predictions in the GAF, they still we be re-inferred
+ * for the report.
  */
 public class BasicAnnotationPropagator extends AbstractAnnotationPredictor implements AnnotationPredictor {
 
@@ -515,6 +523,10 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 			if (SKIP_IEA && "IEA".equals(evidenceCls)) {
 				// Do *not* propagate from IEA
+				continue;
+			}
+			if ("GOC".equals(ann.getAssignedBy())) {
+				// if the annotation was assigned by the GOC, assume it is an previous prediction and ignore it.
 				continue;
 			}
 			
