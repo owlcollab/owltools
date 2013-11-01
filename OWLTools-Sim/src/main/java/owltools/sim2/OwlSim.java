@@ -15,6 +15,8 @@ import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
+import owltools.sim2.scores.AttributePairScores;
+import owltools.sim2.scores.ElementPairScores;
 
 /**
  * 
@@ -334,6 +336,9 @@ public interface OwlSim {
 	public double getElementGraphInformationContentSimilarity(
 			OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException;
 
+	public double getAttributeGraphInformationContentSimilarity(
+			OWLClass c, OWLClass d) throws UnknownOWLClassException;
+
 	/**
 	 * Find the inferred attribute shared by both i and j that has highest IC. If
 	 * there is a tie then the resulting structure will have multiple classes.
@@ -357,6 +362,12 @@ public interface OwlSim {
 
 	public ScoreAttributeSetPair getSimilarityBestMatchAverageAsym(
 			OWLNamedIndividual i, OWLNamedIndividual j);
+
+	public AttributePairScores getPairwiseSimilarity(OWLClass c, OWLClass d) throws UnknownOWLClassException;
+
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException;
+
 
 	/**
 	 * See: Pesquita et al
@@ -403,10 +414,12 @@ public interface OwlSim {
 	// TODO - make this private & call automatically
 	public void createElementAttributeMapFromOntology() throws UnknownOWLClassException;
 
+	public void precomputeAttributeAllByAll()  throws UnknownOWLClassException;
+	
 	/**
 	 * Gets all attribute classes used to describe individual element e.
 	 * 
-	 * Includes inferred classes
+	 * Does *not* include inferred classes
 	 * @param e
 	 * @return Type(e,indirect)
 	 * @throws UnknownOWLClassException 
@@ -462,8 +475,9 @@ public interface OwlSim {
 	 * IC = -(log {@link #getNumElementsForAttribute(c)} / corpus size) / log(2)
 	 * @param c
 	 * @return Information Content value for a given class
+	 * @throws UnknownOWLClassException 
 	 */
-	public Double getInformationContentForAttribute(OWLClass c);
+	public Double getInformationContentForAttribute(OWLClass c) throws UnknownOWLClassException;
 
 	/**
 	 * @return -Σ<sub>i</sub>[ (P(x<sub>i</sub>)log<sub>2</sub>P(x<sub>i</sub>)]
@@ -532,48 +546,7 @@ public interface OwlSim {
 		}
 
 	}
-	
-	public class AttributePairScores {
-		OWLClass c;
-		OWLClass d;
-		
-		public Double lcIC = null;
-		public Set<OWLClass> lcsSet = null;
-		
-		public Double simjScore = null;
-		public Double asymmetricSimjScore = null;
-		public Double inverseAsymmetricSimjScore = null;
-		
-		public Double simGIC = null;		
-	}
-	
-	public class ElementPairScores {
-		OWLNamedIndividual i;
-		OWLNamedIndividual j;
-		
-		public int numberOfAttributesI;
-		public int numberOfAttributesJ;
-		
-		public Double maxIC = null;
-		public Set<OWLClass> maxICwitness = null;
-		
-		public Double simjScore = null;
-		public Double asymmetricSimjScore = null;
-		public Double inverseAsymmetricSimjScore = null;
-		
-		
-		public ScoreAttributeSetPair bmaSymIC = null;
-		public ScoreAttributeSetPair bmaAsymIC = null;
-		public ScoreAttributeSetPair bmaInverseAsymIC = null;
-		
-		//public ScoreAttributeSetPair bmaAsymJ = null;
-		
-		//public ScoreAttributeSetPair bmaSymJ = null;
-		
-		public Double simGIC = null;
 
-		
-	}
-
+	public void dispose();
 
 }
