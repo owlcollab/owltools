@@ -50,11 +50,13 @@ import owltools.io.OWLGsonRenderer;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
+import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimJSONEngine;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.UnknownOWLClassException;
 
 /**
  * See http://code.google.com/p/owltools/wiki/WebServices
@@ -95,7 +97,7 @@ public class OWLHandler {
 	private OWLServer owlserver;
 	private String format = null;
 	private String commandName;
-	private SimpleOwlSim sos;
+	private OwlSim sos;
 
 	// consider replacing with a generic result list
 	private Set<OWLAxiom> cachedAxioms = new HashSet<OWLAxiom>();
@@ -136,8 +138,8 @@ public class OWLHandler {
 	
 
 
-	public void setOwlSim(SimpleOwlSim sos) {
-		this.sos = sos;
+	public void setOwlSim(OwlSim sos2) {
+		this.sos = sos2;
 	}
 
 	public void setFormat(String format) {
@@ -434,7 +436,7 @@ public class OWLHandler {
 
 	// sim2
 	
-	private SimpleOwlSim getOWLSim() {
+	private OwlSim getOWLSim() throws UnknownOWLClassException {
 		if (owlserver.sos == null) {
 			owlserver.sos = new SimpleOwlSim(graph.getSourceOntology());
 			owlserver.sos.createElementAttributeMapFromOntology();
@@ -442,25 +444,25 @@ public class OWLHandler {
 		return owlserver.sos;
 	}
 	
-	public void getSimilarClassesCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void getSimilarClassesCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Returns semantically similar classes using OWLSim2");
 			return;
 		}
 		headerOWL();
 		OWLClass a = this.resolveClass();
-		SimpleOwlSim sos = getOWLSim();
-		List<ScoreAttributePair> saps = new Vector<ScoreAttributePair>();
+		OwlSim sos = getOWLSim();
+		List<ScoreAttributeSetPair> saps = new ArrayList<ScoreAttributeSetPair>();
 		for (OWLClass b : this.getOWLOntology().getClassesInSignature()) {
 			double score = sos.getAttributeJaccardSimilarity(a, b);
-			saps.add(sos.new ScoreAttributePair(score, b) );
+			saps.add(new ScoreAttributeSetPair(score, b) );
 		}
 		Collections.sort(saps);
 		int limit = 100;
 		
 		int n=0;
-		for (ScoreAttributePair sap : saps) {
-			output(sap.attributeClass);
+		for (ScoreAttributeSetPair sap : saps) {
+			output(sap.getArbitraryAttributeClass());
 			this.outputLine("score="+sap.score); // todo - jsonify
 			n++;
 			if (n > limit) {
@@ -469,7 +471,7 @@ public class OWLHandler {
 		}
 	}
 	
-	public void getSimilarIndividualsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void getSimilarIndividualsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Returns matching individuals using OWLSim2");
 			return;
@@ -482,7 +484,7 @@ public class OWLHandler {
 			// TODO - throw
 			return;
 		}
-		SimpleOwlSim sos = getOWLSim();
+		OwlSim sos = getOWLSim();
 		List<ScoreAttributeSetPair> saps = new Vector<ScoreAttributeSetPair>();
 		for (OWLNamedIndividual j : this.getOWLOntology().getIndividualsInSignature()) {
 			// TODO - make configurable
@@ -503,13 +505,13 @@ public class OWLHandler {
 		}
 	}
 	
-	public void getLowestCommonSubsumersCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void getLowestCommonSubsumersCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Returns LCSs using sim2");
 			return;
 		}
 		headerOWL();
-		SimpleOwlSim sos = getOWLSim();
+		OwlSim sos = getOWLSim();
 
 		Set<OWLObject> objs = this.resolveEntityList();
 		if (objs.size() == 2) {
@@ -528,13 +530,13 @@ public class OWLHandler {
 		}
 	}
 	
-	public void compareAttributeSetsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void compareAttributeSetsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Returns LCSs and their ICs for two sets of attributes (e.g. phenotypes for disease vs model) using sim2");
 			return;
 		}
 		headerText();
-		SimpleOwlSim sos = getOWLSim();
+		OwlSim sos = getOWLSim();
 		
 		Set<OWLClass> objAs = this.resolveClassList(Param.a);
 		Set<OWLClass> objBs = this.resolveClassList(Param.b);
@@ -544,13 +546,13 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 	
-	public void searchByAttributeSet() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public void searchByAttributeSet() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Entities that have a similar attribute profile to the specified one, using sim2");
 			return;
 		}
 		headerText();
-		SimpleOwlSim sos = getOWLSim();
+		OwlSim sos = getOWLSim();
 		
 		Set<OWLClass> atts = this.resolveClassList(Param.id);
 		IRI iri = IRI.create("http://owlsim/"+UUID.randomUUID());

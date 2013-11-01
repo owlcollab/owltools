@@ -3,7 +3,7 @@ package owltools.web;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
- 
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
- 
+
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -25,8 +25,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
 import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
-
 import owltools.graph.OWLGraphWrapper;
+import owltools.sim2.OwlSim;
 import owltools.sim2.SimpleOwlSim;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
@@ -51,16 +51,16 @@ public class OWLServer extends AbstractHandler
 
 	OWLGraphWrapper graph;
 	Map<String,OWLReasoner> reasonerMap = new HashMap<String,OWLReasoner>();
-	SimpleOwlSim sos = null;
+	OwlSim sos = null;
 		
 	public OWLServer(OWLGraphWrapper g) {
 		super();
 		graph = g;
 	}
-	public OWLServer(OWLGraphWrapper g, SimpleOwlSim s) {
+	public OWLServer(OWLGraphWrapper g, OwlSim sos2) {
 		super();
 		graph = g;
-		sos = s;
+		sos = sos2;
 	}
 
 	public void handle(String target,
