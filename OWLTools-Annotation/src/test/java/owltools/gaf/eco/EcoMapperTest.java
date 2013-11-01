@@ -32,7 +32,7 @@ public class EcoMapperTest {
 		assertTrue(mapper.isGoEvidenceCode("ND"));
 		assertTrue(mapper.isGoEvidenceCode("IPI"));
 		
-		assertEquals(graph.getOWLClassByIdentifier("ECO:0000021"), mapper.getEcoClassForCode("IPI"));
+		assertEquals(graph.getOWLClassByIdentifier("ECO:0000353"), mapper.getEcoClassForCode("IPI"));
 		
 		assertEquals(2, mapper.getAllEcoClassesForCode("IGC").size());
 	}
@@ -55,7 +55,7 @@ public class EcoMapperTest {
 		single(mapper, g, "0000320", "IKR"); // same as IMR ?
 		single(mapper, g, "0000315", "IMP");
 		single(mapper, g, "0000320", "IMR"); // same as IKR ?
-		single(mapper, g, "0000021", "IPI");
+		single(mapper, g, "0000353", "IPI");
 		single(mapper, g, "0000321", "IRD");
 		single(mapper, g, "0000247", "ISA");
 		single(mapper, g, "0000255", "ISM");
@@ -81,9 +81,9 @@ public class EcoMapperTest {
 						"GO_REF:0000038", "GO_REF:0000039", "GO_REF:0000040", "GO_REF:0000049"));
 		
 		multiple(mapper, g, 
-				Arrays.asList("0000250", "0000255", "0000031", "0000031", "0000031"), 
+				Arrays.asList("0000250", "0000255", "0000031", "0000031"), 
 				"ISS", 
-				Arrays.asList("GO_REF:0000011", "GO_REF:0000012", "GO_REF:0000018", "GO_REF:0000027"));
+				Arrays.asList("GO_REF:0000011", "GO_REF:0000012", "GO_REF:0000027"));
 	}
 	
 	private void single(TraversingEcoMapper mapper, OWLGraphWrapper ecoGraph, String eco, String go) {
