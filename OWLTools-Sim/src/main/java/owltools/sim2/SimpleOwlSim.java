@@ -40,6 +40,8 @@ import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
+import owltools.sim2.scores.AttributePairScores;
+import owltools.sim2.scores.ElementPairScores;
 import owltools.util.ClassExpressionPair;
 
 /**
@@ -211,7 +213,7 @@ import owltools.util.ClassExpressionPair;
  * @author cjm
  * 
  */
-public class SimpleOwlSim implements OwlSim{
+public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 
 	private Logger LOG = Logger.getLogger(SimpleOwlSim.class);
 
@@ -324,7 +326,7 @@ public class SimpleOwlSim implements OwlSim{
 	 * configurable parameter.
 	 */
 	public enum OutputFormat {
-		TXT, CSV, ROW, JSON, OWL;
+		TXT, CSV, ROW, JSON, OWL, FORMATTED;
 	}
 
 	private Properties simProperties;
@@ -1550,6 +1552,27 @@ public class SimpleOwlSim implements OwlSim{
 			e += p * Math.log(p) ;
 		}
 		return -e / Math.log(2);
+	}
+
+	@Override
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AttributePairScores getPairwiseSimilarity(OWLClass c, OWLClass d)
+			throws UnknownOWLClassException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public double getAttributeGraphInformationContentSimilarity(OWLClass c,
+			OWLClass d) throws UnknownOWLClassException {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 
