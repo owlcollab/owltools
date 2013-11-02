@@ -46,6 +46,11 @@ public class ElementPairScores implements PairScores<OWLNamedIndividual> {
 	//ScoreMatrix<Double> icMatrix;
 	public ScoreMatrix<ScoreAttributeSetPair> iclcsMatrix;
 		
+	public ElementPairScores(OWLNamedIndividual i, OWLNamedIndividual j) {
+		this.i = i;
+		this.j = j;
+	}
+
 	// note: a renderer should be used here
 	public String toString() {
 		return i+" "+j+" maxIC:" + maxIC + " maxIC(term): "+ maxICwitness + " simJ: " + simjScore + " bma(IC):" + bmaSymIC;
