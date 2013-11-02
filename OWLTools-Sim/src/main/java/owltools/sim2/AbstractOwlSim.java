@@ -39,7 +39,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	long totalCallsLCSIC = 0;
 	long totalTimeGIC = 0;
 	long totalCallsGIC = 0;
-	public SimStats simStats = new SimStats(); // TODO - force access via get/set?
+	public SimStats simStats = new SimStats(); 
 
 
 	protected OWLReasoner reasoner;
@@ -246,6 +246,5 @@ public abstract class AbstractOwlSim implements OwlSim {
 	protected OWLClass getOWLClassFromShortId(String id) {
 		return getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClass(IRI.create(prefix + id));
 	}
-
 
 }

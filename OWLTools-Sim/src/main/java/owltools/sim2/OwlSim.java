@@ -592,5 +592,7 @@ public interface OwlSim {
 	
 	SimStats getSimStats();
 
+	public void showTimings();
+
 
 }

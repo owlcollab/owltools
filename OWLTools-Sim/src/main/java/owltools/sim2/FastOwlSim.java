@@ -815,9 +815,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	@Override
 	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
-		ElementPairScores s = new ElementPairScores();
-		s.i = i;
-		s.j = j;
+		ElementPairScores s = new ElementPairScores(i,j);
 		populateSimilarityMatrix(i, j, s);
 		s.simGIC = getElementGraphInformationContentSimilarity(i, j);
 		return s;

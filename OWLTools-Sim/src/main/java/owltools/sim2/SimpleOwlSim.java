@@ -293,6 +293,33 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		private Boolean isJmetric() {
 			return isJmetric;
 		}
+		
+		/**
+		 * @param m - metric name
+		 * @return boolean the given metric m is a measurement that uses IC values
+		 */
+		public static Boolean isICmetric(String m) {
+			for (Metric metric : Metric.values()) {
+				if (m.equals(metric.toString())) {
+					return metric.isICmetric();
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * @param m - metric name
+		 * @return boolean of the given metric m is a measurement that uses J values
+		 */
+		public static Boolean isJmetric(String m) {
+			for (Metric metric : Metric.values()) {
+				if (m.equals(metric.toString())) {
+					return metric.isJmetric();
+				}
+			}
+			return false;
+		}
+
 
 	};
 
@@ -1408,31 +1435,6 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		return ic;
 	}
 
-	/**
-	 * @param m - metric name
-	 * @return boolean the given metric m is a measurement that uses IC values
-	 */
-	public Boolean isICmetric(String m) {
-		for (Metric metric : Metric.values()) {
-			if (m.equals(metric.toString())) {
-				return metric.isICmetric();
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * @param m - metric name
-	 * @return boolean of the given metric m is a measurement that uses J values
-	 */
-	public Boolean isJmetric(String m) {
-		for (Metric metric : Metric.values()) {
-			if (m.equals(metric.toString())) {
-				return metric.isJmetric();
-			}
-		}
-		return false;
-	}
 
 	// ---------------
 	// CACHE I/O
