@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
@@ -295,8 +296,99 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 	// NEW
 	@Override
 	public void printPairScores(ElementPairScores scores) {
-		// TODO
+		OWLNamedIndividual i = scores.i;
+		OWLNamedIndividual j = scores.j;
+
+		List<String> vals = new ArrayList<String>();
+		List<String> cols = new ArrayList<String>();
+
+		// elements
+		cols.add("A");
+		vals.add(graph.getIdentifier(i));
+		cols.add("A_Label");
+		vals.add(graph.getLabel(i));
+		cols.add("B_ID");
+		vals.add(graph.getIdentifier(j));
+		cols.add("B_Label");
+		vals.add(graph.getLabel(j));
+
+		cols.add("NumAnnots A");
+		vals.add(scores.cs.size()+"");
+
+		cols.add("NumAnnots B");
+		vals.add(scores.ds.size()+"");
+
+		cols.add("MaxIC");
+		cols.add("MaxIC Term");
+		if (scores.maxIC != null) {
+			vals.add(doubleRenderer.format(scores.maxIC));
+			//should just be a single term with the max(maxIC)
+			vals.add(show(scores.maxICwitness, owlpp).toString());
+		}	else {
+			vals.add("");
+			vals.add("");
+		}
+
+		cols.add("AsymBMA_IC");
+		cols.add("AsymBMC_IC Terms");
+		if (scores.bmaAsymIC != null) {			
+			vals.add(doubleRenderer.format(scores.bmaAsymIC));
+			//terms in common
+			//vals.add(show(scores.bmaAsymIC.attributeClassSet, owlpp).toString());
+			ScoreAttributeSetPair[] saps = scores.iclcsMatrix.bestForC;
+			StringBuffer sb = new StringBuffer();
+			for (ScoreAttributeSetPair sap : saps) {
+				sb.append(show(sap.attributeClassSet, owlpp)+";");
+			}
+			vals.add(sb.toString()); // TODO
+		} else {
+			vals.add("");
+			vals.add("");
+		}
+
+		if (scores.bmaSymIC != null) {
+			vals.add(doubleRenderer.format(scores.bmaSymIC));
+		} else {
+			vals.add("");
+		}
+
+		cols.add("SimJ");
+		if (scores.simjScore != null) {
+			vals.add(doubleRenderer.format(scores.simjScore));
+		}
+		else {
+			vals.add("");
+		}
+
+//		cols.add("ASym");
+//		if (scores.bmaAsymJ != null) {
+//			vals.add(doubleRenderer.format(scores.bmaAsymJ.score));
+//		}	else {
+//			vals.add("");
+//		}
+//
+//		cols.add(scores.bmaSymJLabel);
+//		if (scores.bmaSymJ != null) {
+//			vals.add(doubleRenderer.format(scores.bmaSymJ.score));
+//		} else {
+//			vals.add("");
+//		}
+//
+//		cols.add(scores.simGICLabel);
+//		if (scores.simGIC != null) {
+//			vals.add(doubleRenderer.format(scores.simGIC));
+//		} else {
+//			vals.add("");
+//		}		
+
+		if (isHeaderLine) {
+			resultOutStream.println(StringUtils.join(cols, separator));
+			isHeaderLine = false;
+		}
+
+		resultOutStream.println(StringUtils.join(vals, separator));
 	}
+	
 	@Override
 	public void printPairScores(AttributePairScores simScores) {
 		OWLClass a = simScores.getA();
