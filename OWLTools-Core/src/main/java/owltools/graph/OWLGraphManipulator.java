@@ -23,8 +23,10 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.util.OWLEntityRemover;
 
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
@@ -90,23 +92,42 @@ public class OWLGraphManipulator {
 	//    CONSTRUCTORS
 	//*********************************
 	/**
-	 * Default constructor. This class should be instantiated only through 
-	 * the constructor <code>OWLGraphManipulator(OWLGraphWrapper)</code>.
-	 * @see #OWLGraphManipulator(OWLGraphWrapper)
-	 */
-	@SuppressWarnings("unused")
-	private OWLGraphManipulator() {
-    	this(null);
+     * Default constructor. This class should be instantiated only through 
+     * the constructor {@code OWLGraphManipulator(OWLGraphWrapper)} or 
+     * {@code OWLGraphManipulator(OWLOntology)}.
+     * @see #OWLGraphManipulator(OWLGraphWrapper)
+     * @see #OWLGraphManipulator(OWLOntology)
+     */
+    @SuppressWarnings("unused")
+    private OWLGraphManipulator() {
+        this((OWLGraphWrapper) null);
     }
-	/**
-	 * Constructor of the class, providing the <code>OWLGraphWrapper</code> 
-	 * wrapping the ontology on which modifications will be performed. 
-	 * 
-	 * @param owlGraphWrapper 	The <code>OWLGraphWrapper</code> on which the operations 
-	 * 							will be performed.
-	 */
+    /**
+     * Constructor providing the {@code OWLGraphWrapper} 
+     * wrapping the ontology on which modifications will be performed. 
+     * 
+     * @param owlGraphWrapper   The {@code OWLGraphWrapper} on which the operations 
+     *                          will be performed.
+     */
     public OWLGraphManipulator(OWLGraphWrapper owlGraphWrapper) {
-    	this.setOwlGraphWrapper(owlGraphWrapper);
+        this.setOwlGraphWrapper(owlGraphWrapper);
+    }
+    /**
+     * Constructor providing the {@code OWLOntology} on which modifications 
+     * will be performed, that will be wrapped in a {@code OWLGraphWrapper}. 
+     * 
+     * @param ont   The {@code OWLOntology}  on which the operations will be 
+     *              performed.
+     * @throws OWLOntologyCreationException If an error occurred while wrapping 
+     *                                      the {@code OWLOntology} into a 
+     *                                      {@code OWLGraphWrapper}.
+     * @throws UnknownOWLOntologyException  If an error occurred while wrapping 
+     *                                      the {@code OWLOntology} into a 
+     *                                      {@code OWLGraphWrapper}.
+     */
+    public OWLGraphManipulator(OWLOntology ont) throws UnknownOWLOntologyException, 
+        OWLOntologyCreationException {
+        this.setOwlGraphWrapper(new OWLGraphWrapper(ont));
     }
 
 	//*********************************
