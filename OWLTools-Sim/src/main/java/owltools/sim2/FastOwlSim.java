@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.impl.DefaultNode;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 
 import owltools.sim.io.SimResultRenderer.AttributesSimScores;
@@ -64,6 +65,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	Map<OWLClass,EWAHCompressedBitmap> properSuperclassBitmapMap; // cache of Sub(c)->BM
 
+	// TODO - implement
+	Map<Node<OWLClass>, OWLClass> representativeClassMap;
+	Map<OWLClass, OWLClass> classTorepresentativeClassMap;
 
 	private Map<OWLClass,Integer> classIndex;
 	private OWLClass[] classArray;
@@ -77,7 +81,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	//	private Map<ClassIntPair, ScoreAttributeSetPair> classPairICLCSMap;
 
 	final int scaleFactor = 1000;
-	short[][] ciPairScaledScore;
+	//short[][] ciPairScaledScore;
 	ScoreAttributeSetPair[][] testCache = null;
 	boolean[][] ciPairIsCached = null;
 	int[][] ciPairLCS = null;
@@ -87,9 +91,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	public void dispose() {
 		showTimings();
 	}
-	
 
-	
+
+
 
 	// represents a pair of classes using their indices
 	// NOTE; replaced by arrays
@@ -146,15 +150,57 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return allTypes; // note - only attributes used directly or indirectly
 	}
 
+	private int getClassIndex(OWLClass c) throws UnknownOWLClassException {
+		Integer ix = classIndex.get(c);
+		if (ix == null) {
+			throw new UnknownOWLClassException(c);
+		}
+		return ix;
+	}
+	private int getClassIndex(Node<OWLClass> n) throws UnknownOWLClassException {
+		OWLClass c = n.getRepresentativeElement();
+		return getClassIndex(c);
+	}
+	
+	// not yet implemented: guaranteed to yield and indexed class
+	private OWLClass getIndexedClass(Node<OWLClass> n) throws UnknownOWLClassException {
+		if (representativeClassMap == null)
+			representativeClassMap = new HashMap<Node<OWLClass>, OWLClass>();
+		else if (representativeClassMap.containsKey(n))
+			return representativeClassMap.get(n);
+		for (OWLClass c : n.getEntities()) {
+			if (classIndex.containsKey(c)) {
+				representativeClassMap.put(n,c);
+				return c;				
+			}
+		}
+		throw new UnknownOWLClassException(n.getRepresentativeElement());
+	}
+
 	@Override
 	public void createElementAttributeMapFromOntology() throws UnknownOWLClassException {
 		getReasoner().flush();
 		Set<OWLClass> cset = getSourceOntology().getClassesInSignature();
 		Set<OWLNamedIndividual> inds = getSourceOntology().getIndividualsInSignature(true);
-		LOG.info("Cset size="+cset.size());
-		LOG.info("Inds size="+inds.size());
+		LOG.info("|C|="+cset.size());
+		LOG.info("|I|="+inds.size());
 
+		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>();
+		for (OWLClass c : cset) {
+			nodes.add(getReasoner().getEquivalentClasses(c));
+		}
+		LOG.info("|N|="+nodes.size()); // TODO - use this
 
+		representativeClassMap = new HashMap<Node<OWLClass>, OWLClass>();
+		classTorepresentativeClassMap = new HashMap<OWLClass, OWLClass>();
+		for (Node<OWLClass> n : nodes) {
+			OWLClass c = n.getRepresentativeElement();
+			representativeClassMap.put(n, c);
+			for (OWLClass c2 : n.getEntities()) {
+				classTorepresentativeClassMap.put(c2, c);
+			}
+		}
+		
 		// Create a bidirectional index, class by number
 		int n=0;
 		classArray = (OWLClass[]) Array.newInstance(OWLClass.class, cset.size()+1);
@@ -206,6 +252,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		}
 
+		// cache
 		for (OWLClass c : cset) {
 			getInformationContentForAttribute(c);
 			getInformationContentForAttribute(classIndex.get(c));
@@ -311,7 +358,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}	
 
 	// all ancestors as IntSet
-	// note that for equivalence sets, the representatibe element is returned
+	// note that for equivalence sets, the representative element is returned
 	private Set<Integer> ancsInts(OWLClass c) throws UnknownOWLClassException {
 		Set<Node<OWLClass>> ancs = ancsCachedModifiable(c);
 		Set<Integer> ancsInts = new HashSet<Integer>();
@@ -930,6 +977,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	private ScoreAttributeSetPair getLowestCommonSubsumerWithIC(int cix, int dix, Double thresh)
 			throws UnknownOWLClassException {
+		if (isDisableLCSCache) {
+			return getLowestCommonSubsumerWithICNoCache(cix, dix);
+		}
+		// set up cache
 		if (ciPairIsCached == null) {
 			// Estimates: 350mb for MP
 			// 5.4Gb for 30k classes
@@ -939,41 +990,50 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			ciPairIsCached = new boolean[size][size];
 			ciPairLCS = new int[size][size];
 			LOG.info("Created LCS cache"+size+" * "+size);
-			ciPairScaledScore = new short[size][size];
-			LOG.info("Created score cache cache"+size+" * "+size);
+			//ciPairScaledScore = new short[size][size];
+			//LOG.info("Created score cache cache"+size+" * "+size);
 		}
-		if (ciPairIsCached[cix][dix]) {
+		if (!isNoLookupForLCSCache && ciPairIsCached[cix][dix]) {
 			// TODO null vs 0
-			return new ScoreAttributeSetPair(ciPairScaledScore[cix][dix] / (float)scaleFactor,
-					classArray[ciPairLCS[cix][dix]]);
+			// TODO - consider getting IC directly from main IC cache - single lookup
+			// rather than 2D lookup
+			int lcsix = ciPairLCS[cix][dix];
+			
+			return new ScoreAttributeSetPair(icClassArray[lcsix],
+					classArray[lcsix]);
+			//return new ScoreAttributeSetPair(ciPairScaledScore[cix][dix] / (float)scaleFactor,
+			//		classArray[ciPairLCS[cix][dix]]);
 
 		}
-		if (isLCSCacheFullyPopulated) {
+		if (!isNoLookupForLCSCache && isLCSCacheFullyPopulated) {
 			// true if a pre-generated cache has been loaded and there is no entry for this pair;
 			// a cache excludes certain pairs if they are below threshold
 			return null;
 		}
-		
+
 		ScoreAttributeSetPair sap = 
 				getLowestCommonSubsumerWithICNoCache(cix, dix);
 		if (thresh != null && sap.score < thresh) {
 			return null;
 		}
-		
+
 		//testCache[cix][dix] = sap;
 		ciPairIsCached[cix][dix] = true;
 		OWLClass lcsCls = null;
 		if (sap.attributeClassSet != null && !sap.attributeClassSet.isEmpty()) {
 			lcsCls = sap.attributeClassSet.iterator().next();
 			// note: others are discarded
-			ciPairLCS[cix][dix] = classIndex.get(lcsCls);
+			Integer lcsix = classIndex.get(lcsCls);
+			ciPairLCS[cix][dix] = lcsix;
+			icClassArray[lcsix] = sap.score;
 		}
 		else {
 			//TODO - remove obsoletes
 			//LOG.warn("uh oh"+classArray[cix] + " "+
 			//	classArray[dix]+" "+sap.attributeClassSet);
 		}
-		ciPairScaledScore[cix][dix] = (short)(sap.score * scaleFactor);
+		
+		//ciPairScaledScore[cix][dix] = (short)(sap.score * scaleFactor);
 		return sap;
 	}
 
@@ -1088,28 +1148,30 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 
 	// I/O
-	
+
 	@Override
 	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException {
 		FileOutputStream fos = new FileOutputStream(fileName);
-		
+
 		for ( int cix = 0; cix< ciPairIsCached.length; cix++) {
 			boolean[] arr = ciPairIsCached[cix];
 			OWLClass c = classArray[cix];
 			for ( int dix = 0; dix< arr.length; dix++) {
 				if (arr[dix]) {
-					double s = ciPairScaledScore[cix][dix] / (double) scaleFactor;
-					if (s >= thresholdIC) {
+					//double s = ciPairScaledScore[cix][dix] / (double) scaleFactor;
+					int lcsix = ciPairLCS[cix][dix];
+					double s = icClassArray[lcsix];
+					if (thresholdIC == null || s >= thresholdIC) {
 						OWLClass d = classArray[dix];
-						OWLClass lcs = classArray[ciPairLCS[cix][dix]];
+						OWLClass lcs = classArray[lcsix];
 						IOUtils.write(getShortId((OWLClass) c) +"\t" + getShortId((OWLClass) d) + "\t" + s + "\t" + 
 								getShortId(lcs) + "\n", fos);
-					
+
 					}
 				}
 			}
-			
-			
+
+
 		}
 
 		fos.close();
@@ -1121,7 +1183,13 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	 */
 	@Override
 	public void loadLCSCache(String fileName) throws IOException {
-		clearLCSCache();
+		try {
+			clearLCSCache();
+		} catch (UnknownOWLClassException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new IOException("Cannot clear cache");
+		}
 		FileInputStream s = new FileInputStream(fileName);
 		List<String> lines = IOUtils.readLines(s);
 		for (String line : lines) {
@@ -1131,9 +1199,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			OWLClass a = getOWLClassFromShortId(vals[3]);
 			int cix = classIndex.get(c1);
 			int dix = classIndex.get(c2);
-			
+
 			ciPairIsCached[cix][dix] = true;
-			ciPairScaledScore[cix][dix] = (short)(Double.valueOf(vals[2]) * scaleFactor);
+			//ciPairScaledScore[cix][dix] = (short)(Double.valueOf(vals[2]) * scaleFactor);
+			// TODO - set all IC caches
 			ciPairLCS[cix][dix] = classIndex.get(a);
 		}
 		isLCSCacheFullyPopulated = true;
@@ -1153,14 +1222,17 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		icCache = new HashMap<OWLClass,Double>();
 		icClassArray = null;
 	}
-	
-	protected void clearLCSCache() {
+
+	protected void clearLCSCache() throws UnknownOWLClassException  {
+		if (classArray == null) {
+			createElementAttributeMapFromOntology();
+		}
 		ciPairLCS = new int[classArray.length][classArray.length];
-		ciPairScaledScore = new short[classArray.length][classArray.length];
+		//ciPairScaledScore = new short[classArray.length][classArray.length];
 		ciPairIsCached = new boolean[classArray.length][classArray.length];		
 	}
 
-	
+
 
 
 }
