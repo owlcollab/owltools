@@ -27,7 +27,7 @@ import owltools.io.ParserWrapper;
 /**
  * Test of {@link OWLGraphWrapperEdgesExtended}.
  * @author Frederic Bastian
- * @version June 2013
+ * @version November 2013
  *
  */
 public class OWLGraphWrapperEdgesExtendedTest
@@ -324,6 +324,28 @@ public class OWLGraphWrapperEdgesExtendedTest
 				roots.contains(wrapper.getOWLClassByIdentifier("FOO:0001")) && 
 				roots.contains(wrapper.getOWLClassByIdentifier("FOO:0100")));
 	}
+    
+    /**
+     * Test {@link OWLGraphWrapperEdgesExtended#getOntologyLeaves()}
+     */
+    @Test
+    public void shouldGetOntologyLeaves()
+    {
+        //the ontology has 8 leaves, FOO:0100, FOO:0003, FOO:0005, FOO:0010, FOO:0011, 
+        //FOO:0012, FOO:0013, FOO:0014 and FOO:0015
+        Set<OWLClass> leaves = wrapper.getOntologyLeaves();
+        assertTrue("Incorrect leaves returned: " + leaves, 
+                leaves.size() == 9 && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0100")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0003")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0005")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0012")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0013")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0015")));
+    }
 	
 	/**
 	 * Test {@link OWLGraphWrapperEdgesExtended#getOWLClassDescendants(OWLClass)}

@@ -26,7 +26,7 @@ import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
  * to <code>OWLGraphWrapper</code> and parent classes.
  * 
  * @author Frederic Bastian
- * @version June 2013
+ * @version November 2013
  *
  */
 public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
@@ -467,6 +467,25 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 			}
 		}
     	return ontRoots;
+    }
+    
+    /**
+     * Return the <code>OWLClass</code>es leaves of any ontology 
+     * (<code>OWLClass</code>es with no descendants)
+     * 
+     * @return  A <code>Set</code> of <code>OWLClass</code>es that are 
+     *          the leaves of any ontology.
+     */
+    public Set<OWLClass> getOntologyLeaves() {
+        Set<OWLClass> ontLeaves = new HashSet<OWLClass>();
+        for (OWLOntology ont: this.getAllOntologies()) {
+            for (OWLClass testClass: ont.getClassesInSignature()) {
+                if (this.getIncomingEdges(testClass).isEmpty()) {
+                    ontLeaves.add(testClass);
+                }
+            }
+        }
+        return ontLeaves;
     }
     
     /**
