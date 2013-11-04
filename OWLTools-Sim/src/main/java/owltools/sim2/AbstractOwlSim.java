@@ -40,13 +40,14 @@ public abstract class AbstractOwlSim implements OwlSim {
 	long totalTimeGIC = 0;
 	long totalCallsGIC = 0;
 	public SimStats simStats = new SimStats(); 
+	protected boolean isDisableLCSCache = false;
 
 
 	protected OWLReasoner reasoner;
 	protected Integer corpusSize; // number of individuals in domain
 
 	protected boolean isLCSCacheFullyPopulated = false;
-	private boolean isNoLookupForLCSCache = false;
+	protected boolean isNoLookupForLCSCache = false;
 	private Properties simProperties;
 
 
@@ -68,6 +69,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 
 	public void setNoLookupForLCSCache(boolean isNoLookupForLCSCache) {
 		this.isNoLookupForLCSCache = isNoLookupForLCSCache;
+	}
+	
+	
+
+	public boolean isDisableLCSCache() {
+		return isDisableLCSCache;
+	}
+
+	public void setDisableLCSCache(boolean isDisableLCSCache) {
+		this.isDisableLCSCache = isDisableLCSCache;
 	}
 
 	@Override

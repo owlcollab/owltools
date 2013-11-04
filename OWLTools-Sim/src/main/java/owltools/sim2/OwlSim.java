@@ -584,6 +584,9 @@ public interface OwlSim {
 		}
 
 	}
+	
+	public void setDisableLCSCache(boolean isDisableLCSCache);
+
 
 	public void dispose();
 
