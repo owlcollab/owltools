@@ -39,7 +39,9 @@ owltools.sim
 owltools.sim.io
 owltools.sim2
 owltools.sim2.preprocessor
+owltools.sim2.scores
 owltools.solrj
+owltools.tr
 owltools.util
 owltools.vocab
 owltools.web
