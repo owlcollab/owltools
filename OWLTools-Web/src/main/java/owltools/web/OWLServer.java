@@ -27,7 +27,6 @@ import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim2.OwlSim;
-import owltools.sim2.SimpleOwlSim;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
  
@@ -76,6 +75,7 @@ public class OWLServer extends AbstractHandler
         if (sos != null)
         	handler.setOwlSim(sos);
         
+        LOG.info("Request "+path);
         String[] toks = path.split("/");
         String m;
         if (toks.length == 0) {

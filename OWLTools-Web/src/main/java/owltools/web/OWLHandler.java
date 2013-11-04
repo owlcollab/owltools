@@ -438,6 +438,7 @@ public class OWLHandler {
 	
 	private OwlSim getOWLSim() throws UnknownOWLClassException {
 		if (owlserver.sos == null) {
+			LOG.info("Creating sim object"); // TODO - use factory
 			owlserver.sos = new SimpleOwlSim(graph.getSourceOntology());
 			owlserver.sos.createElementAttributeMapFromOntology();
 		}
@@ -540,9 +541,12 @@ public class OWLHandler {
 		
 		Set<OWLClass> objAs = this.resolveClassList(Param.a);
 		Set<OWLClass> objBs = this.resolveClassList(Param.b);
+		LOG.info("Comparison set A:"+objAs);
+		LOG.info("Comparison set B:"+objBs);
 		
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
-		String jsonStr = sj.compareAttributeSetPair(objAs, objBs);
+		String jsonStr = sj.compareAttributeSetPair(objAs, objBs, true);
+		LOG.info("Finished comparison");
 		response.getWriter().write(jsonStr);
 	}
 	
