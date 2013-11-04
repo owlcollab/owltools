@@ -1,38 +1,28 @@
 package owltools.sim2;
 
-import java.io.File;
+import static org.junit.Assert.*;
+
 import java.io.IOException;
-import java.util.List;
+import java.util.Collections;
 import java.util.Set;
 
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
-import owltools.io.TableToAxiomConverter;
-import owltools.sim2.preprocessor.NullSimPreProcessor;
-import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
- * This is the main test class for PropertyViewOntologyBuilder
+ * Tests the JSON wrapper to OwlSim, used by OWLServer
  * 
  * @author cjm
  *
@@ -55,8 +45,8 @@ public class SimJSONTest extends AbstractOWLSimTest {
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
 		try {
 
-			sos = new FastOwlSim(sourceOntol);
-			//sos.setReasoner(reasoner);
+			createOwlSim();
+				//sos.setReasoner(reasoner);
 			LOG.info("Reasoner="+sos.getReasoner());
 
 			SimJSONEngine sj = new SimJSONEngine(g, sos);
@@ -77,6 +67,28 @@ public class SimJSONTest extends AbstractOWLSimTest {
 						LOG.info("SAMPLE:"+jsonStr.substring(0,  truncLen));
 				}
 			}
+			
+			
+			// test to ensure robust in face of unknown classes
+			df = g.getDataFactory();
+			OWLClass unkC = df.getOWLClass(IRI.create("http://x.org"));
+			Set<OWLClass> uset = Collections.singleton(unkC);
+			boolean isThrown = false;
+			try {
+				sj.compareAttributeSetPair(uset, uset);
+			} catch (UnknownOWLClassException e) {
+				// we expect this
+				isThrown = true;
+			}
+			assertTrue(isThrown);
+			sj.compareAttributeSetPair(uset, uset, true);
+			
+			OWLClass thing = df.getOWLThing();
+			Set<OWLClass> things = Collections.singleton(unkC);
+			
+			// we expect no results here
+			LOG.info("TxT:"+sj.compareAttributeSetPair(things, things, true));
+			
 		}
 		finally {
 			reasoner.dispose();

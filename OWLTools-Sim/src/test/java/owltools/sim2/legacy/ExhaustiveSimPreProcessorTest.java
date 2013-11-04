@@ -1,4 +1,4 @@
-package owltools.sim2;
+package owltools.sim2.legacy;
 
 import java.io.IOException;
 
@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
+import owltools.sim2.SimpleOwlSim;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder

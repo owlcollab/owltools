@@ -38,6 +38,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 	OWLPrettyPrinter owlpp;
 	OWLGraphWrapper g;
 	OwlSim sos;
+	OwlSimFactory owlSimFactory = new FastOwlSimFactory();
 
 	
 	protected void parseAssociations(File file, OWLGraphWrapper g) throws IOException {
@@ -80,8 +81,9 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 		return df.getOWLClass(IRI.create("http://x.org#"+iri));
 	}
 
-
-
+	protected void createOwlSim() {
+		sos = owlSimFactory.createOwlSim(sourceOntol);
+	}
 
 
 }

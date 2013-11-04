@@ -116,6 +116,10 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 	public void testBitmapMammal10k() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.BITMAP, "mammal-merged", 10000);
 	}
+	@Test
+	public void testGuavaIntsMammal10k() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
+		t(Method.GUAVA, "mammal-merged", 10000);
+	}
 	
 	@Test
 	public void testLCSBitmapMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
@@ -250,12 +254,27 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 		msg("Precomputed DONE");
 
 	}
+	
+	private boolean isPhenotype(OWLClass c) {
+		String s = c.getIRI().toString();
+		if (s.contains("/MP_"))
+			return true;
+		if (s.contains("/HP_"))
+			return true;
+		if (s.contains("/WBPhenotype_"))
+			return true;
+		if (s.contains("/ZP_"))
+			return true;
+		return false;
+	}
 
 	private void axa(Method m, int size) {
 		Set<OWLClass> all = ontology.getClassesInSignature();
 		Set<OWLClass> cset = new HashSet<OWLClass>();
 		int i=0;
 		for (OWLClass c : ontology.getClassesInSignature()) {
+			if (!isPhenotype(c))
+				continue;
 			i++;
 			if (i>size)
 				break;
