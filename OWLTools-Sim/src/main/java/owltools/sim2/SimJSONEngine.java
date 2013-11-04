@@ -30,10 +30,26 @@ public class SimJSONEngine {
 
 	public String compareAttributeSetPair(Set<OWLClass> objAs, Set<OWLClass> objBs) throws UnknownOWLClassException {
 		Gson gson = new Gson();
+		return compareAttributeSetPair(objAs, objBs, false);
+	}
+	public String compareAttributeSetPair(Set<OWLClass> objAs, Set<OWLClass> objBs, 
+			boolean isIgnoreUnknownClasses) throws UnknownOWLClassException {
+		Gson gson = new Gson();
 
+		Set<OWLClass> known = sos.getAllAttributeClasses();
 		List<Map> pairs = new ArrayList<Map>();
 		for (OWLClass objA : objAs) {
+			if (!known.contains(objA)) {
+				if (isIgnoreUnknownClasses)
+					continue;
+				throw new UnknownOWLClassException(objA);
+			}
 			for (OWLClass objB : objBs) {
+				if (!known.contains(objB)) {
+					if (isIgnoreUnknownClasses)
+						continue;
+					throw new UnknownOWLClassException(objB);
+				}
 				Map<String,Object> attPairMap = new HashMap<String,Object>();
 				attPairMap.put("A", makeObj(objA));
 				attPairMap.put("B", makeObj(objB));
