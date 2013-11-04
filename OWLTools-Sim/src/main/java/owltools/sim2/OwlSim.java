@@ -419,7 +419,7 @@ public interface OwlSim {
 	public void createElementAttributeMapFromOntology() throws UnknownOWLClassException;
 
 	public void precomputeAttributeAllByAll()  throws UnknownOWLClassException;
-	
+
 	/**
 	 * Gets all attribute classes used to describe individual element e.
 	 * 
@@ -498,27 +498,72 @@ public interface OwlSim {
 
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c, OWLClass d)
 			throws UnknownOWLClassException;
-	
-	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass i, OWLClass j, Double thresh)
-			throws UnknownOWLClassException;;
 
-	
+	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass i, OWLClass j, Double thresh)
+			throws UnknownOWLClassException;
+
+
 	/**
 	 * Saves the contents of the LCS-IC cache
 	 * 
 	 * Assumes that this has already been filled by comparing all classes by all classes.
 	 * 
+	 * 
 	 * @param fileName
 	 * @throws IOException
 	 */
 	public void saveLCSCache(String fileName) throws IOException;
-	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException;
-	public void loadLCSCache(String fileName) throws IOException;
-	public OWLOntology cacheInformationContentInOntology() throws OWLOntologyCreationException, UnknownOWLClassException;
-	public void setInformationContentFromOntology(OWLOntology o);
 	
 	/**
-	 * Set to true if use of the cache should be overridden
+	 * As {@link #saveLCSCache(String)}, but do not write a line for any LCS
+	 * whose IC falls below the threshold.
+	 * 
+	 * Use this if you expect the size of the cache to be large. If not set,
+	 * the number of lines will be |A| x |A|
+	 * 
+	 * @param fileName
+	 * @param thresholdIC
+	 * @throws IOException
+	 */
+	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException;
+	
+	/**
+	 * Loads a pregenerated IC cache.
+	 * 
+	 * May or may not set IC values of LCS classes - implementation dependent
+	 * 
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public void loadLCSCache(String fileName) throws IOException;
+	
+	/**
+	 * Generates an ontology containing annotation assertion axioms connecting
+	 * a class to an IC value.
+	 * 
+	 * Can be used to persist class to IC mappings
+	 * 
+	 * @return
+	 * @throws OWLOntologyCreationException
+	 * @throws UnknownOWLClassException
+	 */
+	public OWLOntology cacheInformationContentInOntology() throws OWLOntologyCreationException, UnknownOWLClassException;
+
+	
+	/**
+	 * Populate the IC cache from an ontology of class-IC mappings.
+	 * 
+	 * Can be used to restore an IC cache from a previously persisted state.
+	 * 
+	 * 
+	 * @param o
+	 */
+	public void setInformationContentFromOntology(OWLOntology o);
+
+	/**
+	 *  Ff set, the cache is written to but not read from.
+	 *  
+	 *  Set this is you are building a cached to be persisted.
 	 * 
 	 * @param b
 	 */
@@ -568,8 +613,8 @@ public interface OwlSim {
 				attributeClassSet.add(ac);
 		}
 
-		
-		
+
+
 		@Override
 		public int compareTo(ScoreAttributeSetPair p2) {
 			// TODO Auto-generated method stub
@@ -584,7 +629,16 @@ public interface OwlSim {
 		}
 
 	}
-	
+
+	/**
+	 * 
+	 * if set, the cache is neither read nor written to.
+	 * 
+	 * Set this if you expect to do each att comparison once, 
+	 * and you do not wish to persist the cache when done.
+	 * Contrast with {@link OwlSim#setNoLookupForLCSCache(boolean)}
+	 * @param isDisableLCSCache
+	 */
 	public void setDisableLCSCache(boolean isDisableLCSCache);
 
 
@@ -592,7 +646,7 @@ public interface OwlSim {
 
 	public void setSimProperties(Properties simProperties);
 	public Properties getSimProperties();
-	
+
 	SimStats getSimStats();
 
 	public void showTimings();
