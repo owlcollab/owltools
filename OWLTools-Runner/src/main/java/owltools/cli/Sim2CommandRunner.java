@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -68,6 +69,7 @@ import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.PropertyViewSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 import owltools.sim2.scores.AttributePairScores;
+import owltools.sim2.scores.ElementPairScores;
 import owltools.web.OWLServer;
 
 
@@ -86,13 +88,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	private String defaultPropertiesFile = "default-sim.properties";
 
-	// WILL BE DEPRECATED - TODO
-	//SimpleOwlSim sos;
-	OwlSim sos; // simple owlsim
+	OwlSim owlsim; // simple owlsim
 
-	// REPLACEMENT
-	OwlSim owlsim;
-	
+
 	OwlSimFactory owlSimFactory = new SimpleOwlSimFactory();
 
 	SimPreProcessor pproc;
@@ -191,8 +189,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	public void attributeAllByAllOld(Opts opts) throws UnknownOWLClassException {
 		try {
-			((SimpleOwlSim) sos).setSimProperties(simProperties);
-			Set<OWLClass> atts = sos.getAllAttributeClasses();
+			((SimpleOwlSim) owlsim).setSimProperties(simProperties);
+			Set<OWLClass> atts = owlsim.getAllAttributeClasses();
 			LOG.info("All by all for " + atts.size() + " classes");
 
 			//set the renderer
@@ -294,6 +292,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			long totalTimeGIC = 0;
 			long totalCallsGIC = 0;
 
+			double totalScoreSimJ = 0;
+
 			for (OWLClass i : atts) {
 				if (!isComparable(i, null)) {
 					continue;
@@ -322,6 +322,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					if (metrics.contains(Metric.JACCARD) || metrics.contains(Metric.SIMJ)) {
 						t = System.currentTimeMillis();
 						scores.simjScore = sim.getAttributeJaccardSimilarity(i, j);
+						totalScoreSimJ += scores.simjScore;
 						totalTimeSimJ += tdelta(t);
 						totalCallsSimJ++;
 
@@ -344,7 +345,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 						totalTimeGIC += tdelta(t);
 						totalCallsGIC++;
 					}
-					
+
 					if (best == null) {
 						best = new ArrayList<AttributePairScores>();
 						best.add(scores);
@@ -394,6 +395,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			// LOG.info("Number of pairs filtered as they scored beneath threshold: "+this.numberOfPairsFiltered);
 			if (totalCallsSimJ > 0) {
 				LOG.info("t(SimJ) ms = "+totalTimeSimJ + " / "+totalCallsSimJ + " = " + totalTimeSimJ / (double) totalCallsSimJ);
+				LOG.info("avg(SimJ)  = " + totalScoreSimJ / (double) totalCallsSimJ);
 			}
 			if (totalCallsLCS > 0) {
 				LOG.info("t(LCS) ms = "+totalTimeLCS + " / "+totalCallsLCS + " = " + totalTimeLCS / (double) totalCallsLCS);
@@ -421,7 +423,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 */
 	public void attributeSimilarityAllByAllPairwise(Opts opts) throws UnknownOWLClassException {
 		try {
-			sos.setSimProperties(simProperties);
+			owlsim.setSimProperties(simProperties);
 			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
 					.getIndividualsInSignature();
 
@@ -440,7 +442,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					if (isComparable(i, j)) {
 						comparableCounter += 1;
 						attributeSimilarityByPair(i, j);
-						attrCounter += (sos.getAttributesForElement(i).size() + sos
+						attrCounter += (owlsim.getAttributesForElement(i).size() + owlsim
 								.getAttributesForElement(j).size());
 					} else {
 						LOG.info("skipping (not comparable): " + i + " + " + j);
@@ -471,14 +473,14 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			OWLNamedIndividual j) throws UnknownOWLClassException {
 		if (isComparable(i, j)) {
 			try {
-				sos.setSimProperties(simProperties);
+				owlsim.setSimProperties(simProperties);
 
 				//set the renderer
 				SimResultRenderer renderer = setRenderer();
 
 
-				Set<OWLClass> iatts = sos.getAttributesForElement(i);
-				Set<OWLClass> jatts = sos.getAttributesForElement(j);
+				Set<OWLClass> iatts = owlsim.getAttributesForElement(i);
+				Set<OWLClass> jatts = owlsim.getAttributesForElement(j);
 				for (OWLClass a : iatts) {
 					for (OWLClass b : jatts) {
 						AttributesSimScores scores = computeSim(a, b);
@@ -504,13 +506,13 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 */
 	public void runOwlSim(Opts opts) throws UnknownOWLClassException {
 		try {
-			((SimpleOwlSim) sos).setSimProperties(simProperties);
+			if (owlsim instanceof SimpleOwlSim)
+				((SimpleOwlSim) owlsim).setSimProperties(simProperties);
 			if (opts.nextEq("-q")) {
 				runOwlSimOnQuery(opts, opts.nextOpt());
 				return;
 			}
-			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
-					.getIndividualsInSignature();
+			Set<OWLNamedIndividual> insts = owlsim.getAllElements();
 			LOG.info("All by all for " + insts.size() + " individuals");
 
 			//set the renderer
@@ -529,8 +531,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					// similarity is symmetrical
 					if (isComparable(i, j)) {
 						IndividualSimScores scores = computeSim(i, j);
-						sos.getSimStats().incrementIndividualPairCount();
-						sos.getSimStats().incrementClassPairCount(scores.numberOfElementsI * scores.numberOfElementsJ);
+						owlsim.getSimStats().incrementIndividualPairCount();
+						owlsim.getSimStats().incrementClassPairCount(scores.numberOfElementsI * scores.numberOfElementsJ);
 						renderSim(scores, renderer);
 					} else {
 						LOG.info("skipping " + i + " + " + j);
@@ -572,18 +574,22 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					// similarity is symmetrical
 					if (isComparable(i, j)) {
 						// TODO
-						IndividualSimScores scores = computeSim(i, j);
-						sos.getSimStats().incrementIndividualPairCount();
-						sos.getSimStats().incrementClassPairCount(scores.numberOfElementsI * scores.numberOfElementsJ);
-						renderSim(scores, renderer);
+						ElementPairScores scores = owlsim.getGroupwiseSimilarity(i, j);
+						//sos.getSimStats().incrementIndividualPairCount();
+						//sos.getSimStats().incrementClassPairCount(scores.numberOfElementsI * scores.numberOfElementsJ);
+						renderer.printPairScores(scores);
 					} else {
 						LOG.info("skipping " + i + " + " + j);
 					}
 				}
 			}
+			if (owlsim instanceof FastOwlSim)
+				owlsim.showTimings();
 			LOG.info("FINISHED All by all for " + insts.size() + " individuals");
 			LOG.info("Number of pairs filtered as they scored beneath threshold: "
 					+ this.numberOfPairsFiltered);
+			renderer.dispose();
+
 		} finally {
 			IOUtils.closeQuietly(resultOutStream);
 		}
@@ -722,7 +728,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	private AttributesSimScores computeSim(OWLClass a, OWLClass b) throws UnknownOWLClassException {
 
 		AttributesSimScores scores = new AttributesSimScores(a, b);
-		double simJScore = sos.getAttributeJaccardSimilarity(a, b);
+		double simJScore = owlsim.getAttributeJaccardSimilarity(a, b);
 		if (simJScore < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
 			numberOfPairsFiltered++;
 			scores.isFiltered = true;
@@ -730,7 +736,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		scores.simJScore = simJScore;
 
-		double asymSimJScore = sos.getAsymmerticAttributeJaccardSimilarity(a, b);
+		double asymSimJScore = owlsim.getAsymmerticAttributeJaccardSimilarity(a, b);
 
 		if (asymSimJScore < getPropertyAsDouble(SimConfigurationProperty.minimumAsymSimJ)) {
 			numberOfPairsFiltered++;
@@ -739,7 +745,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		scores.AsymSimJScore = asymSimJScore;
 
-		ScoreAttributePair lcsScore = ((SimpleOwlSim) sos).getLowestCommonSubsumerIC(a, b);
+		ScoreAttributePair lcsScore = ((SimpleOwlSim) owlsim).getLowestCommonSubsumerIC(a, b);
 		if (lcsScore.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
 			numberOfPairsFiltered++;
 			scores.isFiltered = true;
@@ -780,61 +786,63 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 		IndividualSimScores scores = new IndividualSimScores(i, j);
 
-		scores.numberOfElementsI = sos.getAttributesForElement(i).size();
-		scores.numberOfElementsJ = sos.getAttributesForElement(j).size();
+		scores.numberOfElementsI = owlsim.getAttributesForElement(i).size();
+		scores.numberOfElementsJ = owlsim.getAttributesForElement(j).size();
 
 		String[] metrics = getProperty(SimConfigurationProperty.scoringMetrics)
 				.split(",");
 
 		// only do this test if we end up using the IC measures
 		for (String metric : metrics) {
-			if (((SimpleOwlSim) sos).isICmetric(metric)) {
-				ScoreAttributeSetPair maxIC = sos.getSimilarityMaxIC(i, j);
+			if (Metric.isICmetric(metric)) {
+				ScoreAttributeSetPair maxIC = owlsim.getSimilarityMaxIC(i, j);
 				if (maxIC.score < getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC)) {
 					numberOfPairsFiltered++;
 					return scores;
 				}
 				scores.maxIC = maxIC;
-				sos.getSimStats().setValue(Metric.MAXIC,scores.maxIC.score);
+				owlsim.getSimStats().setValue(Metric.MAXIC,scores.maxIC.score);
 				break; // only need to test once.
 			}
 		}
 
 		// only do this test if we end up using the J measures
 		for (String metric : metrics) {
-			if (((SimpleOwlSim) sos).isJmetric(metric)) {
-				double simJ = sos.getElementJaccardSimilarity(i, j);
+			if (Metric.isJmetric(metric)) {
+				double simJ = owlsim.getElementJaccardSimilarity(i, j);
 				if (simJ < getPropertyAsDouble(SimConfigurationProperty.minimumSimJ)) {
 					numberOfPairsFiltered++;
 					return scores;
 				}
 				scores.simjScore = simJ;
-				sos.getSimStats().setValue(Metric.SIMJ,scores.simjScore);
+				owlsim.getSimStats().setValue(Metric.SIMJ,scores.simjScore);
 				break; // only need to test once.
 			}
 		}
 
 		for (String metric : metrics) {
 			if (metric.equals(Metric.IC_MCS.toString())) {
-				scores.bmaAsymIC = sos.getSimilarityBestMatchAverage(i, j,
+				scores.bmaAsymIC = owlsim.getSimilarityBestMatchAverage(i, j,
 						Metric.IC_MCS, Direction.A_TO_B);
-				sos.getSimStats().setValue(Metric.IC_MCS,scores.bmaAsymIC.score);
+				owlsim.getSimStats().setValue(Metric.IC_MCS,scores.bmaAsymIC.score);
 				// TODO: do reciprocal BMA
-				scores.bmaSymIC = sos.getSimilarityBestMatchAverage(i, j,
+				scores.bmaSymIC = owlsim.getSimilarityBestMatchAverage(i, j,
 						Metric.IC_MCS, Direction.AVERAGE);
 			} else if (metric.equals(Metric.JACCARD.toString())) {
-				scores.bmaAsymJ = sos.getSimilarityBestMatchAverage(i, j,
+				scores.bmaAsymJ = owlsim.getSimilarityBestMatchAverage(i, j,
 						Metric.JACCARD, Direction.A_TO_B);
 				// TODO: do reciprocal BMA
-				sos.getSimStats().setValue(Metric.JACCARD,scores.bmaAsymJ.score);
-				scores.bmaSymJ = sos.getSimilarityBestMatchAverage(i, j,
+				owlsim.getSimStats().setValue(Metric.JACCARD,scores.bmaAsymJ.score);
+				scores.bmaSymJ = owlsim.getSimilarityBestMatchAverage(i, j,
 						Metric.JACCARD, Direction.AVERAGE);
 			} else if (metric.equals(Metric.GIC.toString())) {
-				scores.simGIC = sos.getElementGraphInformationContentSimilarity(i, j);
+				scores.simGIC = owlsim.getElementGraphInformationContentSimilarity(i, j);
 			}
 		}
 		return scores;
 	}
+
+
 
 
 	private String renderPair(OWLNamedIndividual i, OWLNamedIndividual j,
@@ -864,6 +872,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				String file = opts.nextOpt();
 				FileOutputStream fos;
 				try {
+					LOG.info("Writing results to "+file);
 					fos = new FileOutputStream(file);
 					this.resultOutStream = new PrintStream(new BufferedOutputStream(fos));
 				} catch (FileNotFoundException e) {
@@ -913,6 +922,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	}
 
 	@CLIMethod("--phenosim")
+	@Deprecated
 	public void phenoSim(Opts opts) throws Exception {
 		loadProperties(opts);
 		try {
@@ -923,9 +933,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.setOutputOntology(g.getSourceOntology());
 			pproc.preprocess();
 			pproc.getReasoner().flush();
-			sos = new SimpleOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+			owlsim = new SimpleOwlSim(g.getSourceOntology());
+			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+			owlsim.createElementAttributeMapFromOntology();
 			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
 			runOwlSim(opts);
 		} catch (Exception e) {
@@ -940,6 +950,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	}
 
 	@CLIMethod("--phenosim-attribute-matrix")
+	@Deprecated
 	public void phenoSimAttributeMatrix(Opts opts) throws Exception {
 		loadProperties(opts);
 		try {
@@ -950,9 +961,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.setOutputOntology(g.getSourceOntology());
 			pproc.preprocess();
 			pproc.getReasoner().flush();
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+			owlsim.createElementAttributeMapFromOntology();
 			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
 			attributeAllByAllOld(opts);
 		} catch (Exception e) {
@@ -967,6 +978,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	}
 
 	@CLIMethod("--sim-resume")
+	@Deprecated
 	public void simResume(Opts opts) throws Exception {
 		loadProperties(opts);
 		OWLOntology ont = pw.parse("file:///tmp/phenosim-analysis-ontology.owl");
@@ -981,9 +993,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.setSimProperties(simProperties);
 			pproc.setInputOntology(g.getSourceOntology());
 			pproc.setOutputOntology(g.getSourceOntology());
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+			owlsim.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1014,24 +1026,40 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.setSimProperties(simProperties);
 			pproc.setInputOntology(g.getSourceOntology());
 			pproc.setOutputOntology(g.getSourceOntology());
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			if (sos instanceof SimpleOwlSim)
-				((SimpleOwlSim) sos).setSimPreProcessor(pproc);
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			if (owlsim instanceof SimpleOwlSim)
+				((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
 			pproc.preprocess();
-			sos.createElementAttributeMapFromOntology();
+			owlsim.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
 		} finally {
-			sos.dispose();
+			owlsim.dispose();
 			pproc.dispose();
 		}
 	}
 
-	@CLIMethod("--fsim")
-	public void fsim(Opts opts) throws Exception {
+	@CLIMethod("--fsim-basic")
+	public void fsimBasic(Opts opts) throws Exception {
+		// assumes that individuals in abox are of types named classes in tbox
+		owlSimFactory = new FastOwlSimFactory();
+		loadProperties(opts);
+		try {
+			if (owlsim == null) {
+				owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+				owlsim.createElementAttributeMapFromOntology();
+			}
+			runOwlSim(owlsim, opts);
+		} finally {
+			owlsim.dispose();
+		}
+	}
+
+	@CLIMethod("--use-fsim")
+	public void useFastOwlSim(Opts opts) throws Exception {
 		owlSimFactory = new FastOwlSimFactory();
 	}
-	
-	
+
+
 
 
 	/**
@@ -1045,7 +1073,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	@CLIMethod("--sim-basic-stats")
 	public void simBasicStats(Opts opts) throws Exception {
 		//TODO: iterate over all metrics, and print out results, perhaps put method into renderer
-		LOG.info(Metric.JACCARD.name() + " max: " + sos.getSimStats().getMax(Metric.JACCARD));		
+		LOG.info(Metric.JACCARD.name() + " max: " + owlsim.getSimStats().getMax(Metric.JACCARD));		
 	}	
 
 	@CLIMethod("--sim-dl-query")
@@ -1056,9 +1084,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc = new NullSimPreProcessor();
 			pproc.setInputOntology(g.getSourceOntology());
 			pproc.setOutputOntology(g.getSourceOntology());
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+			owlsim.createElementAttributeMapFromOntology();
 			runOwlSim(opts);
 		} finally {
 			pproc.dispose();
@@ -1073,10 +1101,10 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc = new NullSimPreProcessor();
 			pproc.setInputOntology(g.getSourceOntology());
 			pproc.setOutputOntology(g.getSourceOntology());
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			if (sos instanceof SimpleOwlSim)
-				((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			if (owlsim instanceof SimpleOwlSim)
+				((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+			owlsim.createElementAttributeMapFromOntology();
 			attributeAllByAllOld(opts);
 		} finally {
 			pproc.dispose();
@@ -1089,12 +1117,159 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		loadProperties(opts);
 		owlsim = new FastOwlSim(g.getSourceOntology());
 		owlsim.createElementAttributeMapFromOntology();
-		sos = owlsim; // TODO
 		attributeAllByAll(owlsim, opts);
-		if (owlsim instanceof FastOwlSim) {
-			((FastOwlSim) owlsim).showTimings();
-		}
+		((FastOwlSim) owlsim).showTimings();
 
+	}
+
+	// get an attribute set for comparison based on compare property;
+	// if n=0, setA; if n=1, setB
+	private Set<OWLClass> getAttSet(int n) {
+		String cmp = getProperty(SimConfigurationProperty.compare);
+		String[] idspaces = cmp.split(",");
+		Set<OWLClass> cset = owlsim.getAllAttributeClasses();
+		Set<OWLClass> cs = new HashSet<OWLClass>();
+		LOG.info("|cset|="+cset.size());
+		for (OWLClass c : cset) {
+			if (g.isObsolete(c))
+				continue;
+			if (c.getIRI().toString().contains("/" + idspaces[n] + "_")) {
+				cs.add(c);
+			}
+		}
+		return cs;
+	}
+
+	@CLIMethod("--fsim-bench-simj")
+	public void fsimCompareAttsSimJ(Opts opts) throws Exception {
+
+		loadProperties(opts);
+		owlSimFactory = new FastOwlSimFactory();
+		owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+		owlsim.createElementAttributeMapFromOntology();
+
+		String cmp = getProperty(SimConfigurationProperty.compare);
+		String[] idspaces = cmp.split(",");
+		Set<OWLClass> cset = owlsim.getAllAttributeClasses();
+		Set<OWLClass> cs = new HashSet<OWLClass>();
+		Set<OWLClass> ds = new HashSet<OWLClass>();
+		LOG.info("|cset|="+cset.size());
+		for (OWLClass c : cset) {
+			if (c.getIRI().toString().contains("/" + idspaces[0] + "_")) {
+				cs.add(c);
+			}
+			if (c.getIRI().toString().contains("/" + idspaces[1] + "_")) {
+				ds.add(c);
+			}
+
+		}
+		LOG.info("|cs|="+cs.size());
+		LOG.info("|ds|="+ds.size());
+		long t = System.currentTimeMillis();
+		int n=0;
+		for (OWLClass c : cs) {
+			n++;
+			if (n % 100 ==0) {
+				LOG.info("N="+n);
+			}
+			for (OWLClass d : ds) {
+				double score = owlsim.getAttributeJaccardSimilarity(c, d);
+			}
+		}
+		LOG.info("t(All x All)="+tdelta(t));
+	}
+
+	@CLIMethod("--fsim-bench-lcs")
+	public void fsimCompareAttsLCS(Opts opts) throws Exception {
+
+		loadProperties(opts);
+		owlSimFactory = new FastOwlSimFactory();
+		owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+		owlsim.createElementAttributeMapFromOntology();
+
+		Set<OWLClass> cs = getAttSet(0);
+		Set<OWLClass> ds = getAttSet(1);
+		LOG.info("|cs|="+cs.size());
+		LOG.info("|ds|="+ds.size());
+		long t = System.currentTimeMillis();
+		int n=0;
+		for (OWLClass c : cs) {
+			n++;
+			if (n % 100 ==0) {
+				LOG.info("N="+n);
+			}
+			double best = 0;
+			OWLClass bestWitness = null;
+			for (OWLClass d : ds) {
+				ScoreAttributeSetPair sap = owlsim.getLowestCommonSubsumerWithIC(c, d, 3.0);
+			}
+		}
+		LOG.info("fsim-bench-simj t(All x All)="+tdelta(t)+" comparisons:"+cs.size() +" * "+ds.size());
+	}
+
+	@CLIMethod("--fsim-att-top-simj")
+	public void fsimAttTopSimJ(Opts opts) throws Exception {
+		opts.info("OWLSIMPARAMS", 
+				"Finds top matches for each attribute in C, shows scores. Faster than fsim-atts");
+		loadProperties(opts);
+		owlSimFactory = new FastOwlSimFactory();
+		owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+		owlsim.createElementAttributeMapFromOntology();
+		owlsim.setDisableLCSCache(true);
+
+		Set<OWLClass> cs = getAttSet(0);
+		Set<OWLClass> ds = getAttSet(1);
+		LOG.info("|cs|="+cs.size());
+		LOG.info("|ds|="+ds.size());
+		long t = System.currentTimeMillis();
+		int n=0;
+		for (OWLClass c : cs) {
+			String cid = g.getIdentifier(c);
+			String clabel = g.getLabel(c);
+			n++;
+			if (n % 100 ==0) {
+				LOG.info("N="+n);
+			}
+			double best = 0;
+			Set<OWLClass> bestWitnesses = new HashSet<OWLClass>();
+
+			for (OWLClass d : ds) {
+				double score = owlsim.getAttributeJaccardSimilarity(c, d);
+				if (score == best) {
+					if (score > 0)
+						bestWitnesses.add(d);
+				}
+				else if (score > best) {
+					best = score;
+					bestWitnesses = new HashSet<OWLClass>(Collections.singleton(d));
+				}
+			}
+			if (bestWitnesses.size() == 0) {
+				bestWitnesses.add(g.getDataFactory().getOWLThing());
+			}
+			for (OWLClass bestWitness : bestWitnesses) {
+				ScoreAttributeSetPair lcsic = owlsim.getLowestCommonSubsumerWithIC(c, bestWitness);
+				StringBuffer lcsId = new StringBuffer();
+				StringBuffer lcsName = new StringBuffer();
+
+				for (OWLClass lcs : lcsic.attributeClassSet) {
+					lcsId.append(g.getIdentifier(lcs)+";");
+					lcsName.append(g.getLabel(lcs)+";");
+				}
+
+				resultOutStream.println(cid+"\t"+
+						clabel+"\t"+
+						g.getIdentifier(bestWitness)+"\t"+
+						g.getLabel(bestWitness)+"\t"+
+						best+"\t"+
+						owlsim.getAsymmerticAttributeJaccardSimilarity(c, bestWitness)+"\t"+
+						lcsic.score+"\t"+
+						lcsId+"\t"+lcsName
+						);
+			}
+		}
+		LOG.info("fsim-att-top-simj t(All x All)="+tdelta(t)+" comparisons:"+cs.size() +" * "+ds.size());
+		resultOutStream.close();
 	}
 
 	@CLIMethod("--fsim-compare-atts-lite")
@@ -1120,8 +1295,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			FastOwlSim sim = new FastOwlSim(g.getSourceOntology());
 
 			// temporary - required for renderer
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			sos.setSimProperties(simProperties);
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			owlsim.setSimProperties(simProperties);
 
 			sim.createElementAttributeMapFromOntology();
 			attributeAllByAll(sim, opts);
@@ -1150,9 +1325,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc = new NullSimPreProcessor();
 			pproc.setInputOntology(g.getSourceOntology());
 			pproc.setOutputOntology(g.getSourceOntology());
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+			owlsim.createElementAttributeMapFromOntology();
 			this.attributeSimilarityAllByAllPairwise(opts);
 		} finally {
 			pproc.dispose();
@@ -1175,48 +1350,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 
 		// No SOS object, so all by all has not yet been calculated
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			sos.createElementAttributeMapFromOntology();
-			sos.setNoLookupForLCSCache(true);
-			Set<OWLClass> atts = sos.getAllAttributeClasses();
-			LOG.info("Number of attribute classes: "+atts.size());
-			for (OWLClass i : atts) {
-				LOG.info("Comparing "+i+" to all attributes");
-				for (OWLClass j : atts) {
-					if (i.compareTo(j) < 0)
-						continue;
-					((SimpleOwlSim) sos).getLowestCommonSubsumerIC(i, j, thresh);					
-				}
-			}
-
-		}
-
-		sos.saveLCSCache(opts.nextOpt(), thresh);
-		LOG.info("Saved cache");
-	}
-	
-	@CLIMethod("--fsim-save-lcs-cache")
-	public void fsimSaveLCSCache(Opts opts) throws Exception {
-		opts.info("[-m ICTHRESHOLD] OUTFILE", "saves a LCS cache to a file. This should be called AFTER --sim-compare-atts");
-		Double thresh = null;
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-m|--min-ic")) {
-				opts.info("ICTHRESHOLD", "If the IC of the LCS is less than this value, an entry is not written.\n" +
-						"After subsequent loading of the cache, pairs with no entry are equivalent to pairs with a LCS with IC=0");
-				thresh = Double.valueOf(opts.nextOpt());
-			}
-			else {
-				break;
-			}
-		}
-
-		// No OwlSim object, so all by all has not yet been calculated
 		if (owlsim == null) {
-			owlsim = new FastOwlSim(g.getSourceOntology());
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
 			owlsim.createElementAttributeMapFromOntology();
 			owlsim.setNoLookupForLCSCache(true);
-			Set<OWLClass> atts = sos.getAllAttributeClasses();
+			Set<OWLClass> atts = owlsim.getAllAttributeClasses();
 			LOG.info("Number of attribute classes: "+atts.size());
 			for (OWLClass i : atts) {
 				LOG.info("Comparing "+i+" to all attributes");
@@ -1233,22 +1371,24 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		LOG.info("Saved cache");
 	}
 
+
+
 	@CLIMethod("--sim-load-lcs-cache")
 	public void simLoadLCSCache(Opts opts) throws Exception {
 		opts.info("INFILE", "loads a LCS cache from a file");
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
 		}
-		sos.loadLCSCache(opts.nextOpt());
+		owlsim.loadLCSCache(opts.nextOpt());
 	}
 
 	@CLIMethod("--sim-save-ic-cache")
 	public void simSaveICCache(Opts opts) throws Exception {
 		opts.info("OUTFILE", "saves ICs as RDF/turtle cache");
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
 		}
-		OWLOntology o = sos.cacheInformationContentInOntology();
+		OWLOntology o = owlsim.cacheInformationContentInOntology();
 		TurtleOntologyFormat fmt = new TurtleOntologyFormat();
 		fmt.setPrefix("obo", "http://purl.obolibrary.org/obo/");
 		fmt.setPrefix("sim", "http://owlsim.org/ontology/");
@@ -1260,12 +1400,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	@CLIMethod("--sim-load-ic-cache")
 	public void simLoadICCache(Opts opts) throws Exception {
 		opts.info("INFILE", "loads ICs from RDF/turtle cache");
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
 		}
 		OWLOntology o = 
 				g.getManager().loadOntologyFromOntologyDocument(opts.nextFile());
-		sos.setInformationContentFromOntology(o);
+		owlsim.setInformationContentFromOntology(o);
 	}
 
 
@@ -1278,12 +1418,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		OWLClass c1 = (OWLClass) this.resolveClass(opts.nextOpt());
 		OWLClass c2 = (OWLClass) this.resolveClass(opts.nextOpt());
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			sos.createElementAttributeMapFromOntology();
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			owlsim.createElementAttributeMapFromOntology();
 		}
-		sos.createElementAttributeMapFromOntology();
-		Set<Node<OWLClass>> lcsSet = sos.getNamedLowestCommonSubsumers(c1, c2);
+		owlsim.createElementAttributeMapFromOntology();
+		Set<Node<OWLClass>> lcsSet = owlsim.getNamedLowestCommonSubsumers(c1, c2);
 
 		for (Node<OWLClass> lcsNode : lcsSet) {
 			System.out.println(owlpp.render(lcsNode.getRepresentativeElement()));
@@ -1296,9 +1436,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
 		opts.info("", "performs enrichment on gene set. TODO");
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			sos.createElementAttributeMapFromOntology();
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			owlsim.createElementAttributeMapFromOntology();
 		}
 		EnrichmentConfig ec = new EnrichmentConfig();
 		while (opts.hasOpts()) {
@@ -1310,7 +1450,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			} else
 				break;
 		}
-		SimpleOwlSim ee = (SimpleOwlSim)sos;
+		SimpleOwlSim ee = (SimpleOwlSim)owlsim;
 		ee.setEnrichmentConfig(ec);
 		OWLClass rc1 = this.resolveClass(opts.nextOpt());
 		OWLClass rc2 = this.resolveClass(opts.nextOpt());
@@ -1328,9 +1468,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		opts.info("[-p pValCutOff] [-i IC_Cutoff] SAMPLECLASS TESTCLASS", 
 				"performs all by all enrichment on every c x d where c Sub SAMPLECLASS and d Sub TESTCLASS");
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			sos.createElementAttributeMapFromOntology();
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			owlsim.createElementAttributeMapFromOntology();
 		}
 		EnrichmentConfig ec = new EnrichmentConfig();
 		while (opts.hasOpts()) {
@@ -1342,11 +1482,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			} else
 				break;
 		}
-		((SimpleOwlSim) sos).setEnrichmentConfig(ec);
+		((SimpleOwlSim) owlsim).setEnrichmentConfig(ec);
 		OWLClass rc1 = this.resolveClass(opts.nextOpt());
 		OWLClass rc2 = this.resolveClass(opts.nextOpt());
 		OWLClass pc = g.getDataFactory().getOWLThing();
-		List<EnrichmentResult> results = ((SimpleOwlSim) sos).calculateAllByAllEnrichment(pc, rc1,
+		List<EnrichmentResult> results = ((SimpleOwlSim) owlsim).calculateAllByAllEnrichment(pc, rc1,
 				rc2);
 		for (EnrichmentResult result : results) {
 			System.out.println(render(result, owlpp));
@@ -1357,12 +1497,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	public void classICPairs(Opts opts) throws Exception {
 		opts.info("", "show all classes with their IC");
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			sos.createElementAttributeMapFromOntology();
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			owlsim.createElementAttributeMapFromOntology();
 		}
 		for (OWLClass c : g.getSourceOntology().getClassesInSignature()) {
-			Double ic = sos.getInformationContentForAttribute(c);
+			Double ic = owlsim.getInformationContentForAttribute(c);
 			if (ic != null) {
 				System.out.println(owlpp.render(c)+"\t"+ic);
 			}
@@ -1389,8 +1529,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				break;
 			}
 		}
+		LOG.info("Starting server on port "+port+" using sim: "+owlsim);
 		Server server = new Server(port);
-		server.setHandler(new OWLServer(g, sos));
+		if (owlsim == null)
+			this.createSlim(opts);
+		server.setHandler(new OWLServer(g, owlsim));
 
 
 		try {
@@ -1454,10 +1597,10 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc = new NullSimPreProcessor();
 			pproc.setInputOntology(g.getSourceOntology());
 			pproc.setOutputOntology(g.getSourceOntology());
-			if (sos == null) {
-				sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-				((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-				sos.createElementAttributeMapFromOntology();
+			if (owlsim == null) {
+				owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+				((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+				owlsim.createElementAttributeMapFromOntology();
 			}
 			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
 					.getIndividualsInSignature();
@@ -1498,8 +1641,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					statsPerIDSpace = statsPerIndividualPerIDSpace.get(idSpace);
 					sumsPerIDSpace = meanOfIndividualSumsPerIDSpace.get(idSpace);
 				}
-				for (OWLClass c : sos.getAttributesForElement(i)) {
-					statsPerIndividual.addIndividualIC(sos.getInformationContentForAttribute(c));  		
+				for (OWLClass c : owlsim.getAttributesForElement(i)) {
+					statsPerIndividual.addIndividualIC(owlsim.getInformationContentForAttribute(c));  		
 				}
 				statsPerIDSpace.add(statsPerIndividual);
 				statsPerIndividualPerIDSpace.put(idSpace, statsPerIDSpace);
@@ -1634,22 +1777,22 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc = new NullSimPreProcessor();
 			pproc.setInputOntology(g.getSourceOntology());
 			pproc.setOutputOntology(g.getSourceOntology());
-			if (sos == null) {
-				sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-				((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-				sos.createElementAttributeMapFromOntology();
+			if (owlsim == null) {
+				owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+				((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+				owlsim.createElementAttributeMapFromOntology();
 			}
 			Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
 					.getIndividualsInSignature();
 			LOG.info("Writing IC values for all " + insts.size() + " annotations.");
 
 			for (OWLNamedIndividual i : insts) {
-				for (OWLClass c : sos.getAttributesForElement(i)) {
+				for (OWLClass c : owlsim.getAttributesForElement(i)) {
 					resultOutStream.print(g.getIdentifier(i));
 					resultOutStream.print("\t");
 					resultOutStream.print(g.getIdentifier(c));
 					resultOutStream.print("\t");
-					resultOutStream.print(sos.getInformationContentForAttribute(c));
+					resultOutStream.print(owlsim.getInformationContentForAttribute(c));
 					resultOutStream.println();
 					resultOutStream.flush();
 				}
@@ -1699,10 +1842,10 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		pproc = new NullSimPreProcessor();
 		pproc.setInputOntology(g.getSourceOntology());
 		pproc.setOutputOntology(g.getSourceOntology());
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+			owlsim.createElementAttributeMapFromOntology();
 		}
 		Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
 				.getIndividualsInSignature();
@@ -1720,12 +1863,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		resultOutStream.flush();
 
 		for (OWLNamedIndividual i : insts) {
-			for (OWLClass c : sos.getAttributesForElement(i)) {
+			for (OWLClass c : owlsim.getAttributesForElement(i)) {
 				resultOutStream.print(g.getIdentifier(i));
 				resultOutStream.print("\t");
 				resultOutStream.print(owlpp.render(c));
 				resultOutStream.print("\t");
-				resultOutStream.print(sos.getInformationContentForAttribute(c));
+				resultOutStream.print(owlsim.getInformationContentForAttribute(c));
 				for (OWLClass gc : groupingClasses) {
 					resultOutStream.print("\t");
 					if (g.getAncestors(c).contains(gc)) {
@@ -1776,10 +1919,10 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		pproc = new NullSimPreProcessor();
 		pproc.setInputOntology(g.getSourceOntology());
 		pproc.setOutputOntology(g.getSourceOntology());
-		if (sos == null) {
-			sos = owlSimFactory.createOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) sos).setSimPreProcessor(pproc);
-			sos.createElementAttributeMapFromOntology();
+		if (owlsim == null) {
+			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+			owlsim.createElementAttributeMapFromOntology();
 		}
 		Set<OWLNamedIndividual> insts = pproc.getOutputOntology()
 				.getIndividualsInSignature();
@@ -1794,12 +1937,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		resultOutStream.flush();
 
 		for (OWLNamedIndividual i : insts) {
-			for (OWLClass c : sos.getAttributesForElement(i)) {
+			for (OWLClass c : owlsim.getAttributesForElement(i)) {
 				resultOutStream.print(g.getIdentifier(i));
 				resultOutStream.print("\t");
 				resultOutStream.print(owlpp.render(c));
 				resultOutStream.print("\t");
-				resultOutStream.print(sos.getInformationContentForAttribute(c));
+				resultOutStream.print(owlsim.getInformationContentForAttribute(c));
 				resultOutStream.print("\t");
 				List<String> l = new ArrayList<String>();
 				for (OWLClass gc : groupingClasses) {
