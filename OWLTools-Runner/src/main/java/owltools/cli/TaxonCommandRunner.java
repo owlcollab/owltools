@@ -11,17 +11,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -30,6 +30,7 @@ import owltools.cli.tools.CLIMethod;
 import owltools.gaf.inference.ClassTaxonMatrix;
 import owltools.gaf.inference.TaxonConstraintsEngine;
 import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 
 /**
@@ -164,6 +165,7 @@ public class TaxonCommandRunner extends GafCommandRunner {
 		else {
 			throw new RuntimeException("No root identifier specified.");
 		}
+		
 		// Task: create disjoint axioms for all siblings in the slim
 		// avoid functional recursion
 		
@@ -177,6 +179,8 @@ public class TaxonCommandRunner extends GafCommandRunner {
 			OWLImportsDeclaration decl = f.getOWLImportsDeclaration(IRI.create(importIRI));
 			m.applyChange(new AddImport(disjointOntology, decl));
 		}
+		
+		OWLObjectProperty inTaxon = f.getOWLObjectProperty(IRI.create("http://purl.obolibrary.org/obo/RO_0002162"));
 		
 		// add disjoints
 		Queue<OWLClass> queue = new LinkedList<OWLClass>();
@@ -199,11 +203,12 @@ public class TaxonCommandRunner extends GafCommandRunner {
 					}
 				}
 				if (siblings.size() > 1) {
-					Set<OWLDisjointClassesAxiom> disjointAxioms = new HashSet<OWLDisjointClassesAxiom>();
+					Set<OWLAxiom> disjointAxioms = new HashSet<OWLAxiom>();
 					for (OWLClass sibling1 : siblings) {
 						for (OWLClass sibling2 : siblings) {
 							if (sibling1 != sibling2) {
-								disjointAxioms.add(f.getOWLDisjointClassesAxiom(sibling1, sibling2));
+								disjointAxioms.add(createDisjoint(f, sibling1, sibling2, inTaxon));
+								disjointAxioms.add(createDisjoint(f, sibling1, sibling2));
 							}
 						}
 					}
@@ -217,5 +222,28 @@ public class TaxonCommandRunner extends GafCommandRunner {
 		
 		// save to file
 		m.saveOntology(disjointOntology, new FileOutputStream(outputFile));
+	}
+
+	/**
+	 * @param f
+	 * @param sibling1
+	 * @param sibling2
+	 * @param property
+	 * @return axiom
+	 */
+	protected OWLAxiom createDisjoint(OWLDataFactory f,	OWLClass sibling1, OWLClass sibling2, OWLObjectProperty property) {
+		OWLClassExpression ce1 = f.getOWLObjectSomeValuesFrom(property, sibling1);
+		OWLClassExpression ce2 = f.getOWLObjectSomeValuesFrom(property, sibling2);
+		return f.getOWLDisjointClassesAxiom(ce1, ce2);
+	}
+	
+	/**
+	 * @param f
+	 * @param sibling1
+	 * @param sibling2
+	 * @return axiom
+	 */
+	protected OWLAxiom createDisjoint(OWLDataFactory f,	OWLClass sibling1, OWLClass sibling2) {
+		return f.getOWLDisjointClassesAxiom(sibling1, sibling2);
 	}
 }
