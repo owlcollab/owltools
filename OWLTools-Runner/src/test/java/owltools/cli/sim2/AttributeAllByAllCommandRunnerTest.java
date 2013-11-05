@@ -42,6 +42,17 @@ public class AttributeAllByAllCommandRunnerTest extends AbstractCommandRunnerTes
 	}
 
 	@Test
+	public void testTopAtts() throws Exception {
+		init();
+		load("autopod.obo");
+		//run("--load-instances "+path("autopod-data-test.txt"));
+		run("--make-default-abox");
+		run("--fsim-att-top-simj -p "+path("test-sim.properties") +
+				" --set compare UBERON,UBERON" +
+				" -o target/autopod-att-top.out");
+	}
+
+	@Test
 	public void testCompareAttsFormatted() throws Exception {
 		init();
 		load("autopod.obo");
