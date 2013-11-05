@@ -383,6 +383,21 @@ public class OWLGraphWrapperEdgesExtendedTest
 				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) && 
 				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) );
 	}
+    
+    /**
+     * Test {@link OWLGraphWrapperEdgesExtended#getOWLClassDirectAncestors(OWLClass)}
+     */
+    @Test
+    public void shouldGetOWLClassDirectAncestors()
+    {
+        Set<OWLClass> parents = wrapper.getOWLClassDirectAncestors(
+                wrapper.getOWLClassByIdentifier("FOO:0011"));
+        //FOO:0011 has 2 direct parents, FOO:0009 and FOO:0002
+        assertTrue("Incorrect parents returned: " + parents, 
+                parents.size() == 2 && 
+                parents.contains(wrapper.getOWLClassByIdentifier("FOO:0009")) && 
+                parents.contains(wrapper.getOWLClassByIdentifier("FOO:0002")));
+    }
 	
 	/**
 	 * Test {@link OWLGraphWrapperEdgesExtended#getOWLClassAncestors(OWLClass)}

@@ -515,7 +515,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * This method returns all sources of all edges incoming to <code>parentClass</code>, 
      * that are <code>OWLClass</code>es.
      * 
-     * @param parentClass 
+     * @param parentClass   The {@code OWLClass} for which we want the direct 
+     *                      descendant {@code OWLClass}es
      * @return 	A <code>Set</code> of <code>OWLClass</code>es being the direct descendants 
      * 			of <code>parentClass</code>.
      * @see owltools.graph.OWLGraphWrapperEdges#getIncomingEdges(OWLObject)
@@ -533,6 +534,30 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     	}
 		
     	return directDescendants;
+    }
+    /**
+     * Return the <code>OWLClass</code>es that are direct parent of <code>subClass</code>.
+     * This method returns all sources of all edges incoming to <code>subClass</code>, 
+     * that are <code>OWLClass</code>es.
+     * 
+     * @param subClass 
+     * @return  A <code>Set</code> of <code>OWLClass</code>es being the direct parents 
+     *          of <code>subClass</code>.
+     * @see owltools.graph.OWLGraphWrapperEdges#getOutgoingEdges(OWLObject)
+     */
+    public Set<OWLClass> getOWLClassDirectAncestors(OWLClass subClass) {
+        
+        Set<OWLClass> directParents = new HashSet<OWLClass>();
+        for (OWLGraphEdge outgoingEdge: 
+                this.getOutgoingEdges(subClass)) {
+
+            OWLObject directParent = outgoingEdge.getTarget();
+            if (directParent instanceof OWLClass) { 
+                directParents.add((OWLClass) directParent);
+            }
+        }
+        
+        return directParents;
     }
     
     
