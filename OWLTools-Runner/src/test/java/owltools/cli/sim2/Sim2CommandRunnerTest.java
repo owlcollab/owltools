@@ -21,18 +21,18 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		return new Sim2CommandRunner();
 	}
 
-//	@Test
-//	public void testSimRunnerMouse100() throws Exception {
-//		load("mp.obo");
-//		run("--load-instances "+path("mgi-g2p-100.txt"));
-//		run("--load-labels "+path("mgi-labels.txt"));
-//		//run("--sim-compare-atts -p "+path("test-sim.properties"));
-//		run("--fsim");
-//		//run("--fsim-compare-atts");
-//		run("--fsim-compare-atts");
-//		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
-//
-//	}
+	@Test
+	public void testSimRunnerMouse100() throws Exception {
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-100.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
+		//run("--sim-compare-atts -p "+path("test-sim.properties"));
+		run("--use-fsim");
+		//run("--fsim-compare-atts");
+		run("--fsim-compare-atts");
+		run("--fsim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
+
+	}
 
 	@Test
 	public void testSimRunnerMouse100WithCache() throws Exception {
