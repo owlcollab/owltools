@@ -230,6 +230,9 @@ public class OWLRenderer extends AbstractRenderer implements SimResultRenderer {
 
 		IRI ai = a.getIRI();
 		IRI bi = b.getIRI();
+		
+		// we may want to make this optional in future - turn off
+		// for now as it makes file too voluminous
 		//addLabel(ai, graph.getLabel(a));
 		//addLabel(bi, graph.getLabel(b));
 

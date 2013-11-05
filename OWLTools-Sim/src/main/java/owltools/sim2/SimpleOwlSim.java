@@ -735,12 +735,18 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		cu.addAll(getInferredAttributes(j));
 		return getNamedCommonSubsumersCount(i, j) / (float) cu.size();
 	}
+	
+	@Override
+	public double getAsymmetricElementJaccardSimilarity(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException {
+		return getNamedCommonSubsumersCount(i, j) / (float) getInferredAttributes(j).size();
+	}
 
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getAsymmerticAttributeJaccardSimilarity(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 */
 
-	public double getAsymmerticAttributeJaccardSimilarity(OWLClass c,
+	public double getAsymmetricAttributeJaccardSimilarity(OWLClass c,
 			OWLClass d) {
 		return getNamedCommonSubsumersCount(c, d) / (float) getNamedReflexiveSubsumers(d).size();
 	}
@@ -1564,6 +1570,8 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
 
 
 }

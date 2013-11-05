@@ -9,14 +9,12 @@ import java.util.Set;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.sim.io.SimResultRenderer.AttributesSimScores;
-import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.scores.AttributePairScores;
@@ -108,7 +106,7 @@ import owltools.sim2.scores.ElementPairScores;
  * </ul>
  * 
  * The latter two are combined to yield the <i>reflexive</i> common subsumers list - 
- * see {@link #getNamedReflexiveSubsumers(OWLClassExpression)}. We write this here as
+ * see {@link #getNamedReflexiveSubsumers(OWLClass)}. We write this here as
  * RSub(c). i.e.
  * <pre>
  * RSub(c) = Sub(c) &cup; Eq(c)
@@ -145,7 +143,7 @@ import owltools.sim2.scores.ElementPairScores;
  * LCS(c,d) = { a : a &in; CS(c,d), not [ &E; a' : a' &in; CS(c,d), c' in Sub(c) ] }
  * </pre>
  * 
- * This is implemented by {@link #getLowestCommonSubsumerIC(OWLClassExpression, OWLClassExpression)}
+ * This is implemented by {@link #getLowestCommonSubsumerWithIC(OWLClass, OWLClass)}
  * 
  * <h4>Information Content</h4>
  * 
@@ -168,7 +166,7 @@ import owltools.sim2.scores.ElementPairScores;
  *  <h4>Similarity between classes</h4>
  *  
  *  One measure of similarity between two classes is the IC of the lowest common
- *  subsumer. See {@link #getLowestCommonSubsumerIC(OWLClassExpression, OWLClassExpression)}
+ *  subsumer. See {@link #getLowestCommonSubsumerWithIC(OWLClass, OWLClass)}
  *  
  *  <h4>Similarity Measures between Entities (Individuals)</h4>
  *  
@@ -195,19 +193,29 @@ import owltools.sim2.scores.ElementPairScores;
  */
 public interface OwlSim {
 
+	/**
+	 * @return ontology used to store both classes and individuals
+	 */
 	public OWLOntology getSourceOntology();
 
+	/**
+	 * @return reasoner initialized with source ontology
+	 */
 	public OWLReasoner getReasoner();
 
+	/**
+	 * @param a
+	 * @return Sub(c)
+	 */
 	public Set<Node<OWLClass>> getNamedSubsumers(OWLClass a);
 
 	/**
 	 * 
-	 * @param a
-	 * @return nodes for all classes that a instantiates - direct and inferred
+	 * @param i
+	 * @return Type(i) - nodes for all classes that a instantiates - direct and inferred
 	 */
 	public Set<Node<OWLClass>> getInferredAttributes(
-			OWLNamedIndividual a);
+			OWLNamedIndividual i);
 
 	/**
 	 * 
@@ -234,6 +242,15 @@ public interface OwlSim {
 	public Set<Node<OWLClass>> getNamedCommonSubsumers(
 			OWLClass a, OWLClass b) throws UnknownOWLClassException;
 
+	/**
+	 * <pre>
+	 *  | CS(i,j) | = | { c : c &isin; Type(i), c &isin; Type(j) } |
+	 * </pre>
+	 * @param a
+	 * @param b
+	 * @return | CS(a,b) | 
+	 * @throws UnknownOWLClassException
+	 */
 	public int getNamedCommonSubsumersCount(OWLClass a,
 			OWLClass b) throws UnknownOWLClassException;
 
@@ -244,7 +261,7 @@ public interface OwlSim {
 	 * 
 	 * @param a
 	 * @param b
-	 * @return
+	 * @return CS(i,j)
 	 * @throws UnknownOWLClassException 
 	 */
 	public Set<Node<OWLClass>> getNamedCommonSubsumers(
@@ -258,7 +275,7 @@ public interface OwlSim {
 	 * 
 	 * @param a
 	 * @param b
-	 * @return Lowest Common Subsumers of a and b
+	 * @return LCS(a,b)
 	 * @throws UnknownOWLClassException 
 	 */
 	public Set<Node<OWLClass>> getNamedLowestCommonSubsumers(
@@ -273,7 +290,7 @@ public interface OwlSim {
 	 * @param a
 	 * @param b
 	 * @param metric
-	 * @return
+	 * @return Sim<sub>M</sub>(a,b)
 	 * @throws UnknownOWLClassException 
 	 */
 	public double getAttributeSimilarity(OWLClass a,
@@ -292,6 +309,8 @@ public interface OwlSim {
 	public double getAttributeJaccardSimilarity(OWLClass a,
 			OWLClass b) throws UnknownOWLClassException;
 
+
+	
 	/**
 	 * <pre>
 	 * SimJ(i,j) = | Type(i) &cap; Type(j) | / | Type(i) &cup; Type(j) |
@@ -310,6 +329,20 @@ public interface OwlSim {
 
 	/**
 	 * <pre>
+	 * SimJ(i,j) = | Type(i) &cap; Type(j) | / | Type(j) |
+	 * </pre>
+	 * 
+	 * 
+	 * @param i
+	 * @param j
+	 * @return SimJ(i,j)
+	 * @throws UnknownOWLClassException
+	 */
+	public double getAsymmetricElementJaccardSimilarity(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException;
+
+	/**
+	 * <pre>
 	 * SimJ<sup>ASym</sup>(c,d) = | anc(c) &cap; anc(d) | / | anc(d)  |
 	 * </pre>
 	 * 
@@ -323,7 +356,7 @@ public interface OwlSim {
 	 * @return Asymmetric SimJ of two attribute classes
 	 * @throws UnknownOWLClassException 
 	 */
-	public double getAsymmerticAttributeJaccardSimilarity(
+	public double getAsymmetricAttributeJaccardSimilarity(
 			OWLClass c, OWLClass d) throws UnknownOWLClassException;
 
 	/**
@@ -334,12 +367,24 @@ public interface OwlSim {
 	 * 
 	 * @param i
 	 * @param j
-	 * @return similarity. 
+	 * @return Σ<sub>t &in; Type(i) &cap; Type(j)</sub> IC(t) / Σ<sub>t &in; Type(i) &cup; Type(j)</sub> IC(t)
 	 * @throws UnknownOWLClassException 
 	 */
 	public double getElementGraphInformationContentSimilarity(
 			OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException;
 
+	/**
+	 * sums of IC of the intersection attributes/ sum of IC of union attributes.
+	 * <img src=
+	 * "http://www.pubmedcentral.nih.gov/picrender.fcgi?artid=2238903&blobname=gkm806um8.jpg"
+	 * alt="formula for simGIC"/>
+	 * 
+	 * 
+	 * @param c
+	 * @param d
+	 * @return Σ<sub>t &in; RSub(c) &cap; RSub(d)</sub> IC(t) / Σ<sub>t &in; RSub(c) &cup; RSub(d)</sub> IC(t)
+	 * @throws UnknownOWLClassException
+	 */
 	public double getAttributeGraphInformationContentSimilarity(
 			OWLClass c, OWLClass d) throws UnknownOWLClassException;
 
@@ -348,7 +393,8 @@ public interface OwlSim {
 	 * there is a tie then the resulting structure will have multiple classes.
 	 * 
 	 * <pre>
-	 * MaxIC(i,j) = max { IC(c) : c &in LCS(i,j) }
+	 * MaxIC(i,j) = max { IC(c) : c &in; LCS(i,j) }
+	 * C<sub>MaxIC(i,j)</sub> =  { c : c &in; LCS(i,j), IC(c) = MaxIC(i,j) }
 	 * </pre>
 	 * 
 	 * As a convenience, this method also returns the LCS class as well as the IC
@@ -358,17 +404,38 @@ public interface OwlSim {
 	 * 
 	 * @param i
 	 * @param j
-	 * @return ScoreAttributesPair
+	 * @return <MaxIC(i,j) C<sub>MaxIC(i,j)</sub> 
 	 * @throws UnknownOWLClassException 
 	 */
 	public ScoreAttributeSetPair getSimilarityMaxIC(
 			OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException;
 
+	/**
+	 * @param i
+	 * @param j
+	 * @return BMA<sub>Asym</sub>(i,j)
+	 */
+	@Deprecated
 	public ScoreAttributeSetPair getSimilarityBestMatchAverageAsym(
 			OWLNamedIndividual i, OWLNamedIndividual j);
 
+	/**
+	 * @param c
+	 * @param d
+	 * @return scores
+	 * @throws UnknownOWLClassException
+	 */
+	@Deprecated
 	public AttributePairScores getPairwiseSimilarity(OWLClass c, OWLClass d) throws UnknownOWLClassException;
 
+	/**
+	 * Perform multiple groupwise similarity measures on (i,j) 
+	 * 
+	 * @param i
+	 * @param j
+	 * @return scores
+	 * @throws UnknownOWLClassException
+	 */
 	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i,
 			OWLNamedIndividual j) throws UnknownOWLClassException;
 
@@ -394,11 +461,54 @@ public interface OwlSim {
 	 * @param j
 	 * @param metric
 	 * @param dir
-	 * @return
+	 * @return scores
 	 */
+	@Deprecated
 	public ScoreAttributeSetPair getSimilarityBestMatchAverage(
 			OWLNamedIndividual i, OWLNamedIndividual j, Metric metric,
 			Direction dir);
+	
+	// Possible optimizations:
+	
+	/**
+	 * Equivalent to {@link #getAttributeJaccardSimilarity(OWLClass, OWLClass)} * 100
+	 * @param a
+	 * @param b
+	 * @return simj*100
+	 * @throws UnknownOWLClassException
+	 */
+	public int getAttributeJaccardSimilarityAsPercent(OWLClass a,
+			OWLClass b) throws UnknownOWLClassException;
+	
+	/**
+	 * Equivalent to {@link #getElementJaccardSimilarity(OWLNamedIndividual, OWLNamedIndividual)} * 100
+	 * @param i
+	 * @param j
+	 * @return simj*100
+	 * @throws UnknownOWLClassException
+	 */
+	public int getElementJaccardSimilarityAsPercent(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException;
+
+	/**
+	 * Equivalent to {@link #getAsymmetricAttributeJaccardSimilarity(OWLClass, OWLClass)} * 100
+	 * @param a
+	 * @param b
+	 * @return asimj*100
+	 * @throws UnknownOWLClassException
+	 */
+	public int getAsymmetricAttributeJaccardSimilarityAsPercent(OWLClass a,
+			OWLClass b) throws UnknownOWLClassException;
+
+	/**
+	 * Equivalent to {@link #getAsymmetricElementJaccardSimilarity(OWLNamedIndividual, OWLNamedIndividual)} * 100
+	 * @param i
+	 * @param j
+	 * @return asimj*100
+	 * @throws UnknownOWLClassException
+	 */
+	public int getAsymmetricElementJaccardSimilarityAsPercent(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException;
 
 	/**
 	 * returns all attribute classes - i.e. the classes used to annotate the
@@ -411,13 +521,25 @@ public interface OwlSim {
 	public Set<OWLClass> getAllAttributeClasses();
 
 	/**
+	 * This must be called prior to calculation of any similarity metrics.
+	 * 
+	 * It creates a set of attribute classes (the subset of classes that
+	 * have inferred or direct individuals) and the set of elements (individuals),
+	 * together with any internal indexing
+	 * 
 	 * assumes that the ontology contains both attributes (TBox) and elements +
 	 * associations (ABox)
+	 * 
 	 * @throws UnknownOWLClassException 
 	 */
-	// TODO - make this private & call automatically
 	public void createElementAttributeMapFromOntology() throws UnknownOWLClassException;
 
+	/**
+	 * For implementations that use a cache, this performs an all by all comparison
+	 * of all attributes and caches the results.
+	 * 
+	 * @throws UnknownOWLClassException
+	 */
 	public void precomputeAttributeAllByAll()  throws UnknownOWLClassException;
 
 	/**
@@ -476,7 +598,7 @@ public interface OwlSim {
 	// IC = 2.0 : 25% (1/4)
 	// IC = 3.0 : 12.5% (1/8)
 	/**
-	 * IC = -(log {@link #getNumElementsForAttribute(c)} / corpus size) / log(2)
+	 * IC = -(log {@link #getNumElementsForAttribute(OWLClass)} / corpus size) / log(2)
 	 * @param c
 	 * @return Information Content value for a given class
 	 * @throws UnknownOWLClassException 
@@ -494,14 +616,32 @@ public interface OwlSim {
 	 */
 	public Double getEntropy(Set<OWLClass> cset);
 
+	/**
+	 * @param c - query class
+	 * @param ds - target class set
+	 * @return list of scores
+	 * @throws UnknownOWLClassException
+	 */
 	public List<AttributesSimScores> compareAllAttributes(OWLClass c, Set<OWLClass> ds) throws UnknownOWLClassException;
 
+	/**
+	 * @param c
+	 * @param d
+	 * @return LCS together with IC(LCS)
+	 * @throws UnknownOWLClassException
+	 */
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c, OWLClass d)
 			throws UnknownOWLClassException;
 
+	/**
+	 * @param i
+	 * @param j
+	 * @param thresh
+	 * @return LCS together with IC(LCS)
+	 * @throws UnknownOWLClassException
+	 */
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass i, OWLClass j, Double thresh)
 			throws UnknownOWLClassException;
-
 
 	/**
 	 * Saves the contents of the LCS-IC cache
@@ -543,7 +683,7 @@ public interface OwlSim {
 	 * 
 	 * Can be used to persist class to IC mappings
 	 * 
-	 * @return
+	 * @return ontology containing annotation assertions
 	 * @throws OWLOntologyCreationException
 	 * @throws UnknownOWLClassException
 	 */
@@ -576,37 +716,62 @@ public interface OwlSim {
 	 * 
 	 */
 	public class ScoreAttributeSetPair implements Comparable<ScoreAttributeSetPair> {
+		/**
+		 * Score shared by all attributes in attribute set
+		 */
 		public double score;
 
+		/**
+		 * Set of attributes that have the score
+		 */
 		public Set<OWLClass> attributeClassSet = new HashSet<OWLClass>(); // all
 		// attributes
 		// with
 		// this
 		// score
 
+		/**
+		 * @param score
+		 * @param ac
+		 */
 		public ScoreAttributeSetPair(double score, OWLClass ac) {
 			super();
 			this.score = score;
 			if (ac != null) attributeClassSet.add(ac);
 		}
 
+		/**
+		 * @param score
+		 * @param acs
+		 */
 		public ScoreAttributeSetPair(double score, Set<OWLClass> acs) {
 			super();
 			this.score = score;
 			this.attributeClassSet = acs;
 		}
 
+		/**
+		 * @param score
+		 */
 		public ScoreAttributeSetPair(double score) {
 			super();
 			this.score = score;
 		}
 
+		/**
+		 * Adds am attribute to set (first creating empty set if not already present)
+		 * @param ac
+		 */
 		public void addAttributeClass(OWLClass ac) {
 			if (attributeClassSet == null)
 				attributeClassSet = new HashSet<OWLClass>();
 			this.attributeClassSet.add(ac);
 		}
 
+		/**
+		 * Setter
+		 * @param acs
+		 */
 		public void setAttributeClassSet(Set<OWLClass> acs) {
 			attributeClassSet = new HashSet<OWLClass>();
 			for (OWLClass ac : acs)
@@ -617,10 +782,12 @@ public interface OwlSim {
 
 		@Override
 		public int compareTo(ScoreAttributeSetPair p2) {
-			// TODO Auto-generated method stub
 			return 0 - Double.compare(score, p2.score);
 		}
 
+		/**
+		 * @return an arbitrary member of the attribute class set
+		 */
 		@Deprecated
 		public OWLClass getArbitraryAttributeClass() {
 			if (attributeClassSet == null)
@@ -642,14 +809,30 @@ public interface OwlSim {
 	public void setDisableLCSCache(boolean isDisableLCSCache);
 
 
+	/**
+	 * call when owlsim object is no longer required
+	 */
 	public void dispose();
 
+	/**
+	 * @param simProperties
+	 */
 	public void setSimProperties(Properties simProperties);
+	/**
+	 * @return properties
+	 */
 	public Properties getSimProperties();
 
+	/**
+	 * @return stats
+	 */
 	SimStats getSimStats();
 
+	/**
+	 * Writes timing information using log4j. For benchmarking
+	 */
 	public void showTimings();
+
 
 
 }

@@ -41,7 +41,7 @@ import com.googlecode.javaewah.IntIterator;
 /**
  * Faster implementation of OwlSim
  * 
- * Makes use of integers to index classes, and bitmaps to represent class sets
+ * Makes use of integers to index classes, and bitmaps to represent class sets.
  * 
  * @author cjm
  *
@@ -177,6 +177,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		throw new UnknownOWLClassException(n.getRepresentativeElement());
 	}
 
+	/* (non-Javadoc)
+	 * @see owltools.sim2.OwlSim#createElementAttributeMapFromOntology()
+	 */
 	@Override
 	public void createElementAttributeMapFromOntology() throws UnknownOWLClassException {
 		getReasoner().flush();
@@ -273,7 +276,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 
 	// cached proper superclasses (i.e. excludes equivalent classes) as BitMap
-	public EWAHCompressedBitmap ancsProperBitmapCachedModifiable(OWLClass c) {
+	private EWAHCompressedBitmap ancsProperBitmapCachedModifiable(OWLClass c) {
 		if (properSuperclassBitmapMap != null && properSuperclassBitmapMap.containsKey(c)) {
 			return properSuperclassBitmapMap.get(c);
 		}
@@ -692,6 +695,16 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		return bmc.andCardinality(bmd) / (double) bmc.orCardinality(bmd);
 	}
+	
+	@Override
+	public int getAttributeJaccardSimilarityAsPercent(OWLClass c,
+			OWLClass d) throws UnknownOWLClassException {
+		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(c);
+		EWAHCompressedBitmap bmd = ancsBitmapCachedModifiable(d);
+
+		return (bmc.andCardinality(bmd) * 100) / bmc.orCardinality(bmd);
+	}
+
 
 	@Override
 	public double getElementJaccardSimilarity(OWLNamedIndividual i,
@@ -701,9 +714,20 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		return bmc.andCardinality(bmd) / (double) bmc.orCardinality(bmd);
 	}
+	
+	@Override
+	public int getElementJaccardSimilarityAsPercent(OWLNamedIndividual i,
+	OWLNamedIndividual j) throws UnknownOWLClassException {
+		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(i);
+		EWAHCompressedBitmap bmd = ancsBitmapCachedModifiable(j);
+
+		return (bmc.andCardinality(bmd) * 100) / bmc.orCardinality(bmd);
+	}
+
+
 
 	@Override
-	public double getAsymmerticAttributeJaccardSimilarity(OWLClass c, OWLClass d) throws UnknownOWLClassException {
+	public double getAsymmetricAttributeJaccardSimilarity(OWLClass c, OWLClass d) throws UnknownOWLClassException {
 		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(c);
 		EWAHCompressedBitmap bmd = ancsBitmapCachedModifiable(d);
 
@@ -717,6 +741,15 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		EWAHCompressedBitmap bmd = ancsBitmapCachedModifiable(j);
 
 		return bmc.andCardinality(bmd) / (double) bmd.cardinality();
+	}
+
+	//@Override
+	public int getAsymmetricElementJaccardSimilarityAsPercent(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException {
+		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(i);
+		EWAHCompressedBitmap bmd = ancsBitmapCachedModifiable(j);
+
+		return (bmc.andCardinality(bmd) * 100) / bmd.cardinality();
 	}
 
 
@@ -766,7 +799,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 
 
-	public double getAttributeGraphInformationContentSimilarity(
+	private double getAttributeGraphInformationContentSimilarity(
 			int cix, int dix) throws UnknownOWLClassException {
 		long t = System.currentTimeMillis();
 		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(cix);
@@ -868,7 +901,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return s;
 	}
 
-	public void populateSimilarityMatrix(
+	private void populateSimilarityMatrix(
 			OWLNamedIndividual i, OWLNamedIndividual j,
 			ElementPairScores ijscores) throws UnknownOWLClassException {
 
@@ -901,7 +934,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		populateSimilarityMatrix(cs, ds, ijscores);
 	}
 
-	public void populateSimilarityMatrix(Vector<OWLClass> cs,
+	private void populateSimilarityMatrix(Vector<OWLClass> cs,
 			Vector<OWLClass> ds, ElementPairScores ijscores)  throws UnknownOWLClassException {
 
 		ScoreAttributeSetPair bestsap = null;
@@ -1042,6 +1075,8 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			OWLClass d) throws UnknownOWLClassException {
 		return getLowestCommonSubsumerWithIC(classIndex.get(c), classIndex.get(d));
 	}
+	
+	@Override
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c,
 			OWLClass d, Double thresh) throws UnknownOWLClassException {
 		return getLowestCommonSubsumerWithIC(classIndex.get(c), classIndex.get(d), thresh);
@@ -1135,11 +1170,21 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	OWLClass thing = null;
 	Node<OWLClass> thingNode = null;
+	
+	/**
+	 * Convenience method. Warning: method name may change
+	 * @return owl:Thing (root class)
+	 */
 	public OWLClass owlThing() {
 		if (thing == null)
 			thing = getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLThing();
 		return thing;
 	}
+	
+	/**
+	 * Convenience method. Warning: method name may change
+	 * @return root class (owl:Thing and anything equivalent)
+	 */
 	public Node<OWLClass> owlThingNode() {
 		if (thingNode == null)
 			thingNode = getReasoner().getTopClassNode();

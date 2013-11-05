@@ -172,6 +172,30 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public void setCorpusSize(int size) {
 		corpusSize = size;
 	}
+	
+	// may be less performant than direct computation
+	public int getAttributeJaccardSimilarityAsPercent(OWLClass a,
+			OWLClass b) throws UnknownOWLClassException {
+		return (int) (getAttributeJaccardSimilarity(a, b) * 100);
+	}
+	// may be less performant than direct computation
+	public int getElementJaccardSimilarityAsPercent(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException {
+		return (int) (getElementJaccardSimilarity(i, j) * 100);
+	}
+	
+	// may be less performant than direct computation
+	public int getAsymmetricAttributeJaccardSimilarityAsPercent(OWLClass a,
+			OWLClass b) throws UnknownOWLClassException {
+		return (int) (getAsymmetricAttributeJaccardSimilarity(a, b) * 100);
+	}
+
+	// may be less performant than direct computation
+	public int getAsymmetricElementJaccardSimilarityAsPercent(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException {
+		return (int) (getAsymmetricElementJaccardSimilarity(i, j) * 100);
+	}
+
 
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getEntropy()
