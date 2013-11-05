@@ -2,15 +2,29 @@ package owltools.cli;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.inference.ClassTaxonMatrix;
@@ -129,5 +143,79 @@ public class TaxonCommandRunner extends GafCommandRunner {
 				System.out.println(cid);
 			}
 		}
+	}
+	
+	@CLIMethod("--create-taxon-disjoint-over-in-taxon")
+	public void createTaxonDisjointOverInTaxon(Opts opts) throws Exception {
+		
+		String outputFile = "taxslim-disjoint-over-in-taxon.owl";
+		String ontologyIRI = "http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim-disjoint-over-in-taxon.owl";
+		List<String> imports = Arrays.asList("http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl",
+				"http://purl.obolibrary.org/obo/ro.owl");
+		
+		OWLClass root = null;
+		if (opts.nextEq("-r|--root")) {
+			String s = opts.nextOpt();
+			root = g.getOWLClassByIdentifier(s);
+			if (root == null) {
+				throw new RuntimeException("No class was found for the specified identifier: "+s);
+			}
+		}
+		else {
+			throw new RuntimeException("No root identifier specified.");
+		}
+		// Task: create disjoint axioms for all siblings in the slim
+		// avoid functional recursion
+		
+		// create new disjoint ontology
+		OWLOntologyManager m = g.getManager();
+		OWLDataFactory f = m.getOWLDataFactory();
+		OWLOntology disjointOntology = m.createOntology(IRI.create(ontologyIRI));
+		
+		// setup imports
+		for(String importIRI : imports) {
+			OWLImportsDeclaration decl = f.getOWLImportsDeclaration(IRI.create(importIRI));
+			m.applyChange(new AddImport(disjointOntology, decl));
+		}
+		
+		// add disjoints
+		Queue<OWLClass> queue = new LinkedList<OWLClass>();
+		queue.add(root);
+		Set<OWLClass> done = new HashSet<OWLClass>();
+		
+		final OWLOntology ont = g.getSourceOntology();
+		int axiomCount = 0;
+		while (queue.isEmpty() == false) {
+			OWLClass current = queue.remove();
+			if (done.add(current)) {
+				Set<OWLSubClassOfAxiom> axioms = ont.getSubClassAxiomsForSuperClass(current);
+				Set<OWLClass> siblings = new HashSet<OWLClass>();
+				for (OWLSubClassOfAxiom ax : axioms) {
+					OWLClassExpression ce = ax.getSubClass();
+					if (ce.isAnonymous() == false) {
+						OWLClass subCls = ce.asOWLClass();
+						siblings.add(subCls);
+						queue.add(subCls);
+					}
+				}
+				if (siblings.size() > 1) {
+					Set<OWLDisjointClassesAxiom> disjointAxioms = new HashSet<OWLDisjointClassesAxiom>();
+					for (OWLClass sibling1 : siblings) {
+						for (OWLClass sibling2 : siblings) {
+							if (sibling1 != sibling2) {
+								disjointAxioms.add(f.getOWLDisjointClassesAxiom(sibling1, sibling2));
+							}
+						}
+					}
+					m.addAxioms(disjointOntology, disjointAxioms);
+					axiomCount += disjointAxioms.size();
+				}
+			}
+		}
+		LOG.info("Created "+axiomCount+" disjoint axioms.");
+		
+		
+		// save to file
+		m.saveOntology(disjointOntology, new FileOutputStream(outputFile));
 	}
 }
