@@ -328,7 +328,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 						if (!isAboveMinimum(SimConfigurationProperty.minimumSimJ, scores.simjScore))
 							continue;
-						scores.asymmetricSimjScore = sim.getAsymmerticAttributeJaccardSimilarity(i, j);
+						scores.asymmetricSimjScore = sim.getAsymmetricAttributeJaccardSimilarity(i, j);
 					}
 					if (metrics.contains(Metric.LCSIC)) {
 						t = System.currentTimeMillis();
@@ -736,7 +736,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		scores.simJScore = simJScore;
 
-		double asymSimJScore = owlsim.getAsymmerticAttributeJaccardSimilarity(a, b);
+		double asymSimJScore = owlsim.getAsymmetricAttributeJaccardSimilarity(a, b);
 
 		if (asymSimJScore < getPropertyAsDouble(SimConfigurationProperty.minimumAsymSimJ)) {
 			numberOfPairsFiltered++;
@@ -1198,10 +1198,8 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			if (n % 100 ==0) {
 				LOG.info("N="+n);
 			}
-			double best = 0;
-			OWLClass bestWitness = null;
 			for (OWLClass d : ds) {
-				ScoreAttributeSetPair sap = owlsim.getLowestCommonSubsumerWithIC(c, d, 3.0);
+				owlsim.getLowestCommonSubsumerWithIC(c, d, 3.0);
 			}
 		}
 		LOG.info("fsim-bench-simj t(All x All)="+tdelta(t)+" comparisons:"+cs.size() +" * "+ds.size());
@@ -1230,11 +1228,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			if (n % 100 ==0) {
 				LOG.info("N="+n);
 			}
-			double best = 0;
+			int best = 0;
 			Set<OWLClass> bestWitnesses = new HashSet<OWLClass>();
 
 			for (OWLClass d : ds) {
-				double score = owlsim.getAttributeJaccardSimilarity(c, d);
+				int score = owlsim.getAttributeJaccardSimilarityAsPercent(c, d);
 				if (score == best) {
 					if (score > 0)
 						bestWitnesses.add(d);
@@ -1262,7 +1260,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 						g.getIdentifier(bestWitness)+"\t"+
 						g.getLabel(bestWitness)+"\t"+
 						best+"\t"+
-						owlsim.getAsymmerticAttributeJaccardSimilarity(c, bestWitness)+"\t"+
+						owlsim.getAsymmetricAttributeJaccardSimilarityAsPercent(c, bestWitness)+"\t"+
 						lcsic.score+"\t"+
 						lcsId+"\t"+lcsName
 						);
