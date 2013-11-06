@@ -317,6 +317,14 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 
 		cols.add("NumAnnots B");
 		vals.add(scores.ds.size()+"");
+		
+		cols.add("SimJ");
+		if (scores.simjScore != null) {
+			vals.add(doubleRenderer.format(scores.simjScore));
+		}
+		else {
+			vals.add("");
+		}
 
 		cols.add("MaxIC");
 		cols.add("MaxIC Term");
@@ -352,13 +360,6 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 			vals.add("");
 		}
 
-		cols.add("SimJ");
-		if (scores.simjScore != null) {
-			vals.add(doubleRenderer.format(scores.simjScore));
-		}
-		else {
-			vals.add("");
-		}
 
 //		cols.add("ASym");
 //		if (scores.bmaAsymJ != null) {
