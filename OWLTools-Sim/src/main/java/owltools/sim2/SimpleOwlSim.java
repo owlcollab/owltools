@@ -36,182 +36,20 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
+import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
 import owltools.util.ClassExpressionPair;
 
+
 /**
- * 
- * <h2>Semantic Similarity</h2>
- * 
- * <h3>Basic Concepts</h3>
- * 
- * This class allows the comparison of one or more entities (modeled as
- * OWLIndividuals) to another set, based on the attributes they possess (modeled
- * as OWLClasses).
- * 
- * Entities may be genes, genotypes, diseases, organisms, ...
- * 
- * Attributes may be functions, phenotypes, ...
- * 
- * Usage is generic beyond biology. The entities compared could be pizzas,
- * and the attrubutes could be toppings.
- * 
- * Similarity scores are generated for any pair of entities based on
- * shared attributes. An <i>ontology</i> is used so that we can compare based
- * on shared <i>inferred</i> attributes as well.
- * 
- * <h3>Pre-processing (optional)</h3>
- * 
- * Each individual is assumed to be an instance of the class used in the
- * comparison. This may not be the natural representation, so some
- * pre-processing may be required.
- * 
- * For example, for representing the relationships between gene individuals and
- * tissues, the natural representation may be
- * 
- * <pre>
- * Individual: g1
- *   Types: gene, expressed_in some hand
- * Individual: g2
- *   Types: gene, expressed_in some toe
- * </pre>
- * 
- * Here the only *named* class commonly instantiated between g1 and g2 is
- * 'gene'. OWLReasoners do not return anonymous class expressions.
- * 
- * The input ontology should be pre-processed to pre-generate named classes such
- * as
- * 
- * <pre>
- * "X gene" EquivalentTo expressed_in some X
- * </pre>
- * 
- * If we assume a property chain
- * 
- * <pre>
- * expressed_in o part_of -> expressed_in
- * </pre>
- * 
- * And a typical partonomy
- * 
- * Then g1 and g2 will both instantiate "expressed_in some autopod"
- * 
- * See the "--mpi" command in OWLTools for building these views
- * 
- * Note that for some applications, it may be best to model entities such as
- * genes and diseases as classes. However, to compare these effectively, the
- * representation should be translated to individuals.
- * 
- * <h3>Reasoning</h3>
- * 
- * Any reasoner can be plugged in but for most datasets we use Elk 0.4.x, which
- * can scale well.
- * 
- * A reasoner performs operations over an ontology consisting of OWLIndividuals and OWLClasses.
- * We typically use i, j for variable names for instances, and a, b, c, d as variable names
- * for classes.
- * 
- * The following operations are used:
- * 
- * <ul>
- * <li> <i>Type(i)</i> : {@link OWLReasoner#getTypes(OWLNamedIndividual, boolean)} - to find all of the attributes possessed
- * by an entity - may be direct or indirect. The inverse operation is <i>Inst(c)</i>
- * <li> <i>Sub(c)</i> :  {@link OWLReasoner#getSuperClasses(OWLClassExpression, boolean)} - to find all the ancestors (subsumers) of an attribute - direct and indirect.
- * The inverse operation is <i>SubBy(c)</i>
- * <li> <i>Eq(c)</i> : {@link OWLReasoner#getEquivalentClasses(OWLClassExpression)} - find all all equivalent attributes/
- * Note that OWLSim is cycle-safe - cycles over SubClassOf are permitted, these are the same as an equivalence axiom between the classes
- * </ul>
- * 
- * The latter two are combined to yield the <i>reflexive</i> common subsumers list - 
- * see {@link #getNamedReflexiveSubsumers(OWLClassExpression)}. We write this here as
- * RSub(c). i.e.
- * <pre>
- * RSub(c) = Sub(c) &cup; Eq(c)
- * </pre>
- * 
- * The use of an OWLReasoner could be replaced with a basic graph traversal algorithm,
- * but it's useful to use a reasoner here, as the ontology may not have been <i>pre-reasoned</i>
- * 	
- * 
- * <h3>Similarity metrics</h3>
- * 
- * See individual methods for details. Generally there are two kinds of
- * comparison
- * 
- * <ul>
- * <li>Between two <i>classes</i> (aka attributes, which are used to describe individuals)
- * <li>Between two <i>individuals</i> (aka entities, e.g. between two genes, two organisms, or a
- * disease vs genotype)
- * </ul>
- * 
- * The former can be used to calculate the latter.
- * 
- * <h4>Common Subsumers and Lowest Common Subsumers</h4>
- * 
- * class-class comparisons are based on <i>inferred common subsumers</i>.
- * <pre>
- * CS(c,d) = RSub(c) &cup; RSub(d)
- * </pre>
- * 
- * The <i>Lowest Common Subsumer</i> is the set of common subsumers that are not
- * redundant with other common subsumers:
- * 
- * <pre>
- * LCS(c,d) = { a : a &in; CS(c,d), not [ &E; a' : a' &in; CS(c,d), c' in Sub(c) ] }
- * </pre>
- * 
- * This is implemented by {@link #getLowestCommonSubsumerIC(OWLClassExpression, OWLClassExpression)}
- * 
- * <h4>Information Content</h4>
- * 
- * The <i>information content</i> (IC) of an class is a measure of how rare the class is
- * 
- *  <pre>
- *  IC(c) = -log<sub>2</sub>( Pr(c) )
- *  </pre>
- *  
- *  Where the probability Pr of a class c is the frequency of that class (number of
- *  instances that instantiate it) divided by the number of instances in the corpus:
- *  
- *  <pre>
- *  Pr(c) = | Inst(c) | / | Inst(RootClass) |
- *  </pre>
- * 
- *  Here the semantics of Inst(c) are provided by
- *   {@link OWLReasoner#getInstances(OWLClassExpression, boolean)}
- *  
- *  <h4>Similarity between classes</h4>
- *  
- *  One measure of similarity between two classes is the IC of the lowest common
- *  subsumer. See {@link #getLowestCommonSubsumerIC(OWLClassExpression, OWLClassExpression)}
- *  
- *  <h4>Similarity Measures between Entities (Individuals)</h4>
- *  
- *  There are a variety of methods for comparing two entities based on the
- *  attributes they share.
- *  
- *  Some methods take the two best-mtaching attributes, others compute some kind of
- *  sum of similarity over the ensemble of attributes.
- *  
- *  An example of a best-attribute method is the <i>maximum information content
- *  of the lowest common subsumers</i>. This is implemented by
- *  {@link #getSimilarityMaxIC(OWLNamedIndividual, OWLNamedIndividual)}. This
- *  is the same method as described in Lord et al 2003.
- *  
- *  Other methods
- *  <ul>
- *  <li> {@link #getElementJaccardSimilarity(OWLNamedIndividual, OWLNamedIndividual)}
- *  <li> {@link #getElementGraphInformationContentSimilarity(OWLNamedIndividual, OWLNamedIndividual)}
- *  <li> 
- *  </ul>
+ * Soon to be deprecated implementation of OwlSim
  * 
  * @author cjm
- * 
+ *
  */
 public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 
@@ -975,7 +813,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 * 
 	 * @param c
 	 * @param ds
-	 * @return
+	 * @return scores
 	 */
 	public List<AttributesSimScores> compareAllAttributes(OWLClass c, Set<OWLClass> ds) {
 		List<AttributesSimScores> scoresets = new ArrayList<AttributesSimScores>();
@@ -1128,7 +966,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 * Results are ordered with highest IC first
 	 * 
 	 * @param e
-	 * @return
+	 * @return scores
 	 */
 	public List<ScoreAttributeSetPair> getScoredAttributesForElement(OWLNamedIndividual e) {
 		List<ScoreAttributeSetPair> saps = new ArrayList<ScoreAttributeSetPair>();

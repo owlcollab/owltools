@@ -25,11 +25,11 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.impl.DefaultNode;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 
-import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
 import owltools.sim2.scores.ScoreMatrix;
@@ -1120,7 +1120,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	 * 
 	 * @param c
 	 * @param ds
-	 * @return
+	 * @return scores
 	 * @throws UnknownOWLClassException 
 	 */
 	// TODO - rewrite

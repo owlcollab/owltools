@@ -386,10 +386,11 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return results;
 	}
 	
+	
 	/**
 	 * @param populationClass
 	 * @param sampleSetClass
-	 * @return
+	 * @return results
 	 * @throws MathException
 	 */
 	public List<EnrichmentResult> calculateEnrichment(OWLClass populationClass,
