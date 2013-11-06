@@ -16,10 +16,10 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapperEdges;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
-import owltools.sim.io.FormattedRenderer;
 import owltools.sim2.AbstractOWLSimTest;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.UnknownOWLClassException;
+import owltools.sim2.io.FormattedRenderer;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder

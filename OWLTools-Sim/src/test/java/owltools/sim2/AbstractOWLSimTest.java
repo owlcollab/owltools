@@ -23,9 +23,9 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.TableToAxiomConverter;
-import owltools.sim.io.FormattedRenderer;
-import owltools.sim.io.SimResultRenderer;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
+import owltools.sim2.io.FormattedRenderer;
+import owltools.sim2.io.SimResultRenderer;
 import owltools.sim2.preprocessor.SimPreProcessor;
 import owltools.sim2.scores.ElementPairScores;
 
