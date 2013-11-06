@@ -225,6 +225,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			n++;
 		}
 
+		cset.add(owlThing());
 		for (OWLClass c : cset) {
 			ancsCachedModifiable(c);
 			ancsIntsCachedModifiable(c);
@@ -901,7 +902,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return s;
 	}
 
-	private void populateSimilarityMatrix(
+	protected void populateSimilarityMatrix(
 			OWLNamedIndividual i, OWLNamedIndividual j,
 			ElementPairScores ijscores) throws UnknownOWLClassException {
 
@@ -1032,6 +1033,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			// rather than 2D lookup
 			int lcsix = ciPairLCS[cix][dix];
 			
+			//LOG.info("lcsix="+lcsix+" // "+icClassArray.length);
 			return new ScoreAttributeSetPair(icClassArray[lcsix],
 					classArray[lcsix]);
 			//return new ScoreAttributeSetPair(ciPairScaledScore[cix][dix] / (float)scaleFactor,

@@ -24,8 +24,6 @@ import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
 import owltools.sim2.SimpleOwlSim;
-import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
-import owltools.sim2.SimpleOwlSim.EnrichmentResult;
 import owltools.sim2.preprocessor.AutomaticSimPreProcessor;
 
 /**

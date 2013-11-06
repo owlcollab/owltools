@@ -1,4 +1,4 @@
-package owltools.sim2;
+package owltools.sim2.legacy;
 
 import java.io.IOException;
 
@@ -16,7 +16,6 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapperEdges;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
-import owltools.sim.io.FormattedRenderer;
 import owltools.sim2.AbstractOWLSimTest;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.UnknownOWLClassException;
@@ -27,9 +26,9 @@ import owltools.sim2.UnknownOWLClassException;
  * @author cjm
  *
  */
-public class BasicOWLSimTest extends AbstractOWLSimTest {
+public class BasicOWLSimTestUsingSOS extends AbstractOWLSimTest {
 
-	private Logger LOG = Logger.getLogger(BasicOWLSimTest.class);
+	private Logger LOG = Logger.getLogger(BasicOWLSimTestUsingSOS.class);
 	
 	@Test
 	public void testBasicSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
@@ -37,23 +36,24 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
 		g =  new OWLGraphWrapper(sourceOntol);
 		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
-		setOutput("target/basic-owlsim-test.out");
-		
+
 		owlpp = new OWLPrettyPrinter(g);
 
 		// assume buffering
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
 		try {
 
-			this.createOwlSim();
-			sos.createElementAttributeMapFromOntology();
-			
+			sos = new SimpleOwlSim(sourceOntol);
+			((SimpleOwlSim) sos).setReasoner(reasoner);
+			LOG.info("Reasoner="+sos.getReasoner());
+
 			//sos.saveOntology("/tmp/z.owl");
 
 			reasoner.flush();
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				//System.out.println("COMPARING: "+i);
 				for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
-					showSim(i,j);
+					showSimOld(i,j);
 				}
 			}
 		}

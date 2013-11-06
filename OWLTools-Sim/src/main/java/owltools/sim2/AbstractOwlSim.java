@@ -3,12 +3,16 @@ package owltools.sim2;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.math.MathException;
+import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -27,6 +31,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.scores.ElementPairScores;
 import owltools.util.ClassExpressionPair;
 
 public abstract class AbstractOwlSim implements OwlSim {
@@ -195,11 +200,29 @@ public abstract class AbstractOwlSim implements OwlSim {
 			OWLNamedIndividual j) throws UnknownOWLClassException {
 		return (int) (getAsymmetricElementJaccardSimilarity(i, j) * 100);
 	}
+	
+
+	@Override
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
+		ElementPairScores ijscores = new ElementPairScores(i,j);
+		//populateSimilarityMatrix(i, j, s);
+		ijscores.simGIC = getElementGraphInformationContentSimilarity(i, j);
+		ijscores.simjScore = getElementJaccardSimilarity(i, j);
+		ijscores.asymmetricSimjScore = 
+				getAsymmetricElementJaccardSimilarity(i, j);
+		ijscores.inverseAsymmetricSimjScore =
+				getAsymmetricElementJaccardSimilarity(j, i);
+		
+		ScoreAttributeSetPair bma = this.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
+		ijscores.bmaSymIC = bma.score;
+		return ijscores;
+	}
 
 
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getEntropy()
 	 */
+
 
 	@Override
 	public Double getEntropy() {
@@ -280,6 +303,164 @@ public abstract class AbstractOwlSim implements OwlSim {
 	}
 	protected OWLClass getOWLClassFromShortId(String id) {
 		return getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClass(IRI.create(prefix + id));
+	}
+	
+	
+	//
+	// ENRICHMENT
+	//
+
+	public EnrichmentConfig enrichmentConfig;
+
+	public EnrichmentConfig getEnrichmentConfig() {
+		return enrichmentConfig;
+	}
+
+	public void setEnrichmentConfig(EnrichmentConfig enrichmentConfig) {
+		this.enrichmentConfig = enrichmentConfig;
+	}
+
+	private void addEnrichmentResult(EnrichmentResult result,
+			List<EnrichmentResult> results) throws UnknownOWLClassException {
+		if (result == null)
+			return;
+		if (enrichmentConfig != null) {
+			if (enrichmentConfig.pValueCorrectedCutoff != null
+					&& result.pValueCorrected > enrichmentConfig.pValueCorrectedCutoff) {
+				return;
+			}
+			if (enrichmentConfig.attributeInformationContentCutoff != null
+					&& this.getInformationContentForAttribute(result.enrichedClass) < enrichmentConfig.attributeInformationContentCutoff) {
+				return;
+			}
+
+		}
+		LOG.info(result);
+		results.add(result);
+	}
+
+	/**
+	 * @param populationClass
+	 * @param pc1
+	 *          - sample set root class
+	 * @param pc2
+	 *          - enriched set root class
+	 * @return enrichment results
+	 * @throws MathException
+	 * @throws UnknownOWLClassException 
+	 */
+	public List<EnrichmentResult> calculateAllByAllEnrichment(
+			OWLClass populationClass, OWLClass pc1, OWLClass pc2)
+					throws MathException, UnknownOWLClassException {
+		List<EnrichmentResult> results = new Vector<EnrichmentResult>();
+		OWLClass nothing = getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLNothing();
+		for (OWLClass sampleSetClass : getReasoner().getSubClasses(pc1, false)
+				.getFlattened()) {
+			if (sampleSetClass.equals(nothing)) continue;
+			int sampleSetSize = getNumElementsForAttribute(sampleSetClass);
+			LOG.info("sample set class:" + sampleSetClass + " size="+sampleSetSize);
+			if (sampleSetSize < 2)
+				continue;
+			List<EnrichmentResult> resultsInner = new Vector<EnrichmentResult>();
+			for (OWLClass enrichedClass : this.getReasoner()
+					.getSubClasses(pc2, false).getFlattened()) {
+				if (enrichedClass.equals(nothing)) continue;
+				if (getNumElementsForAttribute(enrichedClass) < 2)
+					continue;
+				if (sampleSetClass.equals(enrichedClass)
+						|| this.getNamedSubsumers(enrichedClass).contains(sampleSetClass)
+						|| this.getNamedSubsumers(sampleSetClass).contains(enrichedClass)) {
+					continue;
+				}
+				EnrichmentResult result = calculatePairwiseEnrichment(populationClass,
+						sampleSetClass, enrichedClass);
+				addEnrichmentResult(result, resultsInner);
+			}
+			// LOG.info("sorting results:"+resultsInner.size());
+			Collections.sort(resultsInner);
+			// LOG.info("sorted results:"+resultsInner.size());
+			results.addAll(resultsInner);
+		}
+		LOG.info("enrichment completed");
+		// Collections.sort(results);
+		return results;
+	}
+	
+	/**
+	 * @param populationClass
+	 * @param sampleSetClass
+	 * @return
+	 * @throws MathException
+	 */
+	public List<EnrichmentResult> calculateEnrichment(OWLClass populationClass,
+			OWLClass sampleSetClass) throws MathException {
+		List<EnrichmentResult> results = new Vector<EnrichmentResult>();
+		for (OWLClass enrichedClass : this.getReasoner()
+				.getSubClasses(populationClass, false).getFlattened()) {
+			LOG.info("Enrichment test for: " + enrichedClass + " vs "
+					+ populationClass);
+			results.add(calculatePairwiseEnrichment(populationClass, sampleSetClass,
+					enrichedClass));
+		}
+		Collections.sort(results);
+		return results;
+	}
+
+	/**
+	 * @param populationClass
+	 * @param sampleSetClass
+	 * @param enrichedClass
+	 * @return enrichment result
+	 * @throws MathException
+	 */
+	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,
+			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException {
+
+		// LOG.info("Hyper :"+populationClass
+		// +" "+sampleSetClass+" "+enrichedClass);
+		int populationClassSize = getNumElementsForAttribute(populationClass);
+		int sampleSetClassSize = getNumElementsForAttribute(sampleSetClass);
+		int enrichedClassSize = getNumElementsForAttribute(enrichedClass);
+		// LOG.info("Hyper :"+populationClassSize
+		// +" "+sampleSetClassSize+" "+enrichedClassSize);
+		Set<OWLNamedIndividual> eiSet = getElementsForAttribute(sampleSetClass);
+		eiSet.retainAll(this.getElementsForAttribute(enrichedClass));
+		if (eiSet.size() == 0) {
+			return null;
+		}
+		LOG.info(" shared elements: "+eiSet.size()+" for "+enrichedClass);
+		HypergeometricDistributionImpl hg = new HypergeometricDistributionImpl(
+				populationClassSize, sampleSetClassSize, enrichedClassSize);
+		/*
+		 * LOG.info("popsize="+getNumElementsForAttribute(populationClass));
+		 * LOG.info("sampleSetSize="+getNumElementsForAttribute(sampleSetClass));
+		 * LOG.info("enrichedClass="+getNumElementsForAttribute(enrichedClass));
+		 */
+		// LOG.info("both="+eiSet.size());
+		double p = hg.cumulativeProbability(eiSet.size(),
+				Math.min(sampleSetClassSize, enrichedClassSize));
+		double pCorrected = p * getCorrectionFactor(populationClass);
+		return new EnrichmentResult(sampleSetClass, enrichedClass, p, pCorrected);
+	}
+
+	// hardcode bonferoni for now
+	Integer correctionFactor = null; // todo - robust cacheing
+
+	private int getCorrectionFactor(OWLClass populationClass) {
+		if (correctionFactor == null) {
+			int n = 0;
+			for (OWLClass sc : this.getReasoner()
+					.getSubClasses(populationClass, false).getFlattened()) {
+				LOG.info("testing count for " + sc);
+				if (getNumElementsForAttribute(sc) > 1) {
+					n++;
+					LOG.info("  ++testing count for " + sc);
+				}
+			}
+
+			correctionFactor = n;
+		}
+		return correctionFactor;
 	}
 
 }

@@ -1,7 +1,11 @@
 package owltools.sim2;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -19,11 +23,14 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.TableToAxiomConverter;
+import owltools.sim.io.FormattedRenderer;
+import owltools.sim.io.SimResultRenderer;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.preprocessor.SimPreProcessor;
+import owltools.sim2.scores.ElementPairScores;
 
 /**
- * This is the main test class for PropertyViewOntologyBuilder
+ * Shared convenience methods for sim2 tests
  * 
  * @author cjm
  *
@@ -31,16 +38,28 @@ import owltools.sim2.preprocessor.SimPreProcessor;
 public class AbstractOWLSimTest extends OWLToolsTestBasics {
 
 	private Logger LOG = Logger.getLogger(AbstractOWLSimTest.class);
-	OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-	OWLDataFactory df = manager.getOWLDataFactory();
-	OWLOntology sourceOntol;
-	SimPreProcessor pproc;
-	OWLPrettyPrinter owlpp;
-	OWLGraphWrapper g;
-	OwlSim sos;
-	OwlSimFactory owlSimFactory = new FastOwlSimFactory();
+	protected OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+	protected OWLDataFactory df = manager.getOWLDataFactory();
+	protected OWLOntology sourceOntol;
+	
+	@Deprecated
+	protected SimPreProcessor pproc;
+	protected OWLPrettyPrinter owlpp;
+	protected OWLGraphWrapper g;
+	protected OwlSim sos;
+	protected OwlSimFactory owlSimFactory = new FastOwlSimFactory(); // default is now FOS
+	SimResultRenderer renderer ;
 
 	
+	/**
+	 * Parses a 2-column file into owl class assertions.
+	 *  - Col1 : instance ID (e.g. gene)
+	 *  - Col2 : type ID (e.g. phenotype) 
+	 * 
+	 * @param file
+	 * @param g
+	 * @throws IOException
+	 */
 	protected void parseAssociations(File file, OWLGraphWrapper g) throws IOException {
 		TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 		ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
@@ -48,9 +67,8 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 		ttac.parse(file);			
 	}
 
-
-
-	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
+	@Deprecated
+	protected void showSimOld(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
 
 		if (i==j) return;
 		double s = sos.getElementJaccardSimilarity(i, j);
@@ -66,8 +84,27 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 
 	}
 
+	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
+
+		if (i==j) return;
+		double s = sos.getElementJaccardSimilarity(i, j);
+		if (s > 0.1) {
+			LOG.info("SimJ( "+i+" , "+j+" ) = "+s);
+
+			//ScoreAttributeSetPair maxic = owlsim.getSimilarityMaxIC(i, j);
+			//LOG.info("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+show(maxic.attributeClassSet));
+
+			//ScoreAttributeSetPair bma = owlsim.getSimilarityBestMatchAverageAsym(i, j);
+			//LOG.info("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+show(bma.attributeClassSet));
+			ElementPairScores scores = sos.getGroupwiseSimilarity(i,j);
+			//LOG.info("Groupwise = "+gwsim);
+			renderer.printPairScores(scores);
+		}
+
+	}
 
 
+	// rendering
 
 	protected String show(Set<OWLClass> attributeClassSet) {
 		StringBuffer sb = new StringBuffer();
@@ -77,12 +114,21 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 		return sb.toString();
 	}
 
-	private OWLClass get(String iri) {
+	private OWLClass getTestClass(String iri) {
 		return df.getOWLClass(IRI.create("http://x.org#"+iri));
 	}
 
 	protected void createOwlSim() {
 		sos = owlSimFactory.createOwlSim(sourceOntol);
+		
+	}
+	
+	protected void setOutput(String f) throws FileNotFoundException {
+		FileOutputStream fos = new FileOutputStream(f);
+		PrintStream resultOutStream = new PrintStream(new BufferedOutputStream(fos));
+
+		renderer = new FormattedRenderer(g, resultOutStream);
+
 	}
 
 
