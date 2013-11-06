@@ -684,11 +684,12 @@ public class CommandRunner {
 				tr.render(g);				
 			}
 			else if (opts.nextEq("--remove-annotation-assertions")) {
-				opts.info("[-l][-d][-s][-p IRI]*", 
+				opts.info("[-l][-d][-s][-r][-p IRI]*", 
 						"removes annotation assertions to make a pure logic subset. Select acioms can be preserved");
 				boolean isPreserveLabels = false;
 				boolean isPreserveDefinitions = false;
 				boolean isPreserveSynonyms = false;
+				boolean isPreserveRelations = false;
 				Set<IRI> preserveAnnotationPropertyIRIs = new HashSet<IRI>();
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-l|--preserve-labels")) {
@@ -702,6 +703,10 @@ public class CommandRunner {
 					else if (opts.nextEq("-s|--preserve-synonyms")) {
 						opts.info("", "if specified, all obo-style synonyms are preserved");
 						isPreserveSynonyms = true;
+					}
+					else if (opts.nextEq("-r|--preserve-relations")) {
+						opts.info("", "unless specified, all axioms about properties are removed");
+						isPreserveRelations = true;
 					}
 					else if (opts.nextEq("-p|--preserve-property")) {
 						opts.info("IRI",
@@ -740,13 +745,17 @@ public class CommandRunner {
 						}
 						if (preserveAnnotationPropertyIRIs.contains(piri))
 							keepAxioms.add(aaa);
-						if (aaa.getSubject() instanceof IRI) {
-							OWLClass c = g.getDataFactory().getOWLClass((IRI) aaa.getSubject());
-							if (o.getDeclarationAxioms(c).size() == 0) {
-								keepAxioms.remove(aaa);
+
+						// remove non-classes
+						if (!isPreserveRelations) {
+							if (aaa.getSubject() instanceof IRI) {
+								OWLClass c = g.getDataFactory().getOWLClass((IRI) aaa.getSubject());
+								if (o.getDeclarationAxioms(c).size() == 0) {
+									keepAxioms.remove(aaa);
+								}
 							}
 						}
-						
+
 						if (keepAxioms.contains(aaa)) {
 							propsToKeep.add(aaa.getProperty());
 						}
@@ -755,15 +764,16 @@ public class CommandRunner {
 					LOG.info("Axioms to preserve:"+keepAxioms.size());
 					rmAxioms.removeAll(keepAxioms);
 					LOG.info("Number of annotation assertion axioms being removed:"+rmAxioms.size());
-					
-					for (OWLAnnotationProperty p : o.getAnnotationPropertiesInSignature()) {
-						if (propsToKeep.contains(p))
-							continue;
-						rmAxioms.addAll(o.getAnnotationAssertionAxioms(p.getIRI()));
-						rmAxioms.add(g.getDataFactory().getOWLDeclarationAxiom(p));
+
+					if (!isPreserveRelations) {
+						for (OWLAnnotationProperty p : o.getAnnotationPropertiesInSignature()) {
+							if (propsToKeep.contains(p))
+								continue;
+							rmAxioms.addAll(o.getAnnotationAssertionAxioms(p.getIRI()));
+							rmAxioms.add(g.getDataFactory().getOWLDeclarationAxiom(p));
+						}
+						LOG.info("Total number of axioms being removed, including annotation properties:"+rmAxioms.size());
 					}
-					LOG.info("Total number of axioms being removed, including annotation properties:"+rmAxioms.size());
-					
 					g.getManager().removeAxioms(o, rmAxioms);
 
 					// TODO - remove axiom annotations
@@ -1059,7 +1069,7 @@ public class CommandRunner {
 				fileWriter.close();
 			}
 			else if (opts.nextEq("--extract-properties")) {
-				opts.info("[-p PROP]* [--list PLIST]", "extracts properties from source ontology. If properties not specified, then support ontologies will be used");
+				opts.info("[-p PROP]* [--list PLIST] [--no-shorthand]", "extracts properties from source ontology. If properties not specified, then support ontologies will be used");
 				Set<OWLProperty> props = new HashSet<OWLProperty>();
 				boolean useProps = false;
 				boolean isCreateShorthand = true;
@@ -1073,7 +1083,8 @@ public class CommandRunner {
 						useProps = true;
 					}
 					else if (opts.nextEq("--list")) {
-						opts.info("PROPLIST", "Terminated by '//'. Add these properties to the set of interest");
+						opts.info("PROPLIST", 
+								"Terminated by '//'. Add these properties to the set of interest. ALL-POPERTIES for all");
 						Set<OWLObjectProperty> nprops = this.resolveObjectPropertyList(opts);
 						props.addAll(nprops);
 						useProps = true;
