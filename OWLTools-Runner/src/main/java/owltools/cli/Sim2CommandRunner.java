@@ -48,6 +48,8 @@ import owltools.sim.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim.io.SimResultRenderer.IndividualSimScores;
 import owltools.sim.io.TabularRenderer;
 import owltools.sim.io.JSONRenderer;
+import owltools.sim2.EnrichmentConfig;
+import owltools.sim2.EnrichmentResult;
 import owltools.sim2.FastOwlSim;
 import owltools.sim2.FastOwlSimFactory;
 import owltools.sim2.OwlSim;
@@ -56,8 +58,6 @@ import owltools.sim2.OwlSimFactory;
 import owltools.sim2.SimStats;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Direction;
-import owltools.sim2.SimpleOwlSim.EnrichmentConfig;
-import owltools.sim2.SimpleOwlSim.EnrichmentResult;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.OutputFormat;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
@@ -134,6 +134,14 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	private Double getPropertyAsDouble(SimConfigurationProperty p) {
 		String v = getProperty(p);
 		return Double.valueOf(v);
+	}
+
+	private Double getPropertyAsDouble(SimConfigurationProperty p, 
+			Double dv) {
+		Double v = getPropertyAsDouble(p);
+		if (v==null)
+			return dv;
+		return v;
 	}
 
 	private Boolean getPropertyAsBoolean(SimConfigurationProperty p) {
@@ -504,6 +512,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 * @param opts
 	 * @throws UnknownOWLClassException 
 	 */
+	@Deprecated
 	public void runOwlSim(Opts opts) throws UnknownOWLClassException {
 		try {
 			if (owlsim instanceof SimpleOwlSim)
@@ -557,7 +566,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			//			}
 			Set<OWLNamedIndividual> insts = owlsim.getAllElements();
 			LOG.info("All by all for " + insts.size() + " individuals");
+			double minSimJ = getPropertyAsDouble(SimConfigurationProperty.minimumSimJ, 0.1);
+			LOG.info("min(SimJ)="+minSimJ);
+			double minMaxIC = getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC, 3.0);
+			LOG.info("min(MaxIC)="+minMaxIC);
 
+			
 			//set the renderer
 			SimResultRenderer renderer = setRenderer();
 
@@ -573,8 +587,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				for (OWLNamedIndividual j : insts) {
 					// similarity is symmetrical
 					if (isComparable(i, j)) {
-						// TODO
+						// TODO - optimize this
 						ElementPairScores scores = owlsim.getGroupwiseSimilarity(i, j);
+						if (scores.simjScore < minSimJ)
+							continue;
+						if (scores.maxIC < minMaxIC)
+							continue;
 						//sos.getSimStats().incrementIndividualPairCount();
 						//sos.getSimStats().incrementClassPairCount(scores.numberOfElementsI * scores.numberOfElementsJ);
 						renderer.printPairScores(scores);
