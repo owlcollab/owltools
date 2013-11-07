@@ -279,7 +279,7 @@ public abstract class LCSEnabledSimPreProcessor extends AbstractSimPreProcessor 
 	 * 
 	 * Note: modifies ontology but does not flush
 	 * 
-	 * @see materializeClassExpression(..)
+	 * see materializeClassExpression(..)
 	 * 
 	 * @param x
 	 * @return class

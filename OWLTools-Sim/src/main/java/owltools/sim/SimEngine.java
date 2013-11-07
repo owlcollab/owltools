@@ -402,7 +402,7 @@ public class SimEngine {
 	}
 
 	/**
-	 * @todo rename - actually gets common named ancestors
+	 * todo rename - actually gets common named ancestors
 	 * @param a
 	 * @param b
 	 * @return set of ancestors
