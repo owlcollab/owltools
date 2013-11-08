@@ -31,6 +31,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.scores.ElementPairScores;
 import owltools.util.ClassExpressionPair;
 
@@ -218,6 +219,12 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return ijscores;
 	}
 
+	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace)
+			throws UnknownOWLClassException {
+		Set<OWLClass> atts = getAttributesForElement(i);
+		return findMatches(atts, targetIdSpace);
+	}
+
 
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getEntropy()
@@ -358,7 +365,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 				.getFlattened()) {
 			if (sampleSetClass.equals(nothing)) continue;
 			int sampleSetSize = getNumElementsForAttribute(sampleSetClass);
-			LOG.info("sample set class:" + sampleSetClass + " size="+sampleSetSize);
+			//LOG.info("sample set class:" + sampleSetClass + " size="+sampleSetSize);
 			if (sampleSetSize < 2)
 				continue;
 			List<EnrichmentResult> resultsInner = new Vector<EnrichmentResult>();
@@ -429,7 +436,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		if (eiSet.size() == 0) {
 			return null;
 		}
-		LOG.info(" shared elements: "+eiSet.size()+" for "+enrichedClass);
+		//LOG.info(" shared elements: "+eiSet.size()+" for "+enrichedClass);
 		HypergeometricDistributionImpl hg = new HypergeometricDistributionImpl(
 				populationClassSize, sampleSetClassSize, enrichedClassSize);
 		/*
@@ -462,6 +469,38 @@ public abstract class AbstractOwlSim implements OwlSim {
 			correctionFactor = n;
 		}
 		return correctionFactor;
+	}
+
+	// PROPS
+	
+	protected String getProperty(SimConfigurationProperty p) {
+		if (simProperties == null) {
+			return null;
+		}
+		return simProperties.getProperty(p.toString());
+	}
+
+	protected Double getPropertyAsDouble(SimConfigurationProperty p) {
+		String v = getProperty(p);
+		if (v == null)
+			return null;
+		return Double.valueOf(v);
+	}
+
+	protected Double getPropertyAsDouble(SimConfigurationProperty p, 
+			Double dv) {
+		Double v = getPropertyAsDouble(p);
+		if (v==null)
+			return dv;
+		return v;
+	}
+
+	protected Boolean getPropertyAsBoolean(SimConfigurationProperty p) {
+		String v = getProperty(p);
+		if (v == null) {
+			return false;
+		}
+		return Boolean.valueOf(v);
 	}
 
 }

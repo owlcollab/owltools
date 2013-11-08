@@ -1,5 +1,7 @@
 package owltools.sim2.io;
 
+import java.io.PrintStream;
+
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
@@ -31,6 +33,8 @@ public interface SimResultRenderer {
 
 	public OWLGraphWrapper getGraph();
 	public void setGraph(OWLGraphWrapper graph);
+	
+	public PrintStream getResultOutStream();
 	
 	// NEW
 	public abstract void printPairScores(ElementPairScores scores);

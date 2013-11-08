@@ -15,7 +15,7 @@ import owltools.sim2.OwlSim.ScoreAttributeSetPair;
  * @author cjm
  *
  */
-public class ElementPairScores implements PairScores<OWLNamedIndividual> {
+public class ElementPairScores implements PairScores<OWLNamedIndividual>, Comparable<ElementPairScores> {
 	public OWLNamedIndividual i;
 	public OWLNamedIndividual j;
 
@@ -72,4 +72,42 @@ public class ElementPairScores implements PairScores<OWLNamedIndividual> {
 	public int getNumberOfAttributesForJ() {
 		return ds.size();
 	}
+
+	@Override
+	public int compareTo(ElementPairScores s2) {
+		return s2.simGIC.compareTo(this.simGIC);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((i == null) ? 0 : i.hashCode());
+		result = prime * result + ((j == null) ? 0 : j.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ElementPairScores other = (ElementPairScores) obj;
+		if (i == null) {
+			if (other.i != null)
+				return false;
+		} else if (!i.equals(other.i))
+			return false;
+		if (j == null) {
+			if (other.j != null)
+				return false;
+		} else if (!j.equals(other.j))
+			return false;
+		return true;
+	}
+	
+	
 }

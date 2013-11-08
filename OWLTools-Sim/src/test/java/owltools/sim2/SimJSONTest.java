@@ -47,9 +47,9 @@ public class SimJSONTest extends AbstractOWLSimTest {
 
 			createOwlSim();
 				//sos.setReasoner(reasoner);
-			LOG.info("Reasoner="+sos.getReasoner());
+			LOG.info("Reasoner="+owlsim.getReasoner());
 
-			SimJSONEngine sj = new SimJSONEngine(g, sos);
+			SimJSONEngine sj = new SimJSONEngine(g, owlsim);
 
 			//sos.saveOntology("/tmp/z.owl");
 
@@ -58,8 +58,8 @@ public class SimJSONTest extends AbstractOWLSimTest {
 				//System.out.println("COMPARING: "+i);
 				for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
 					String jsonStr = sj.compareAttributeSetPair(
-							sos.getAttributesForElement(i),
-							sos.getAttributesForElement(j)
+							owlsim.getAttributesForElement(i),
+							owlsim.getAttributesForElement(j)
 							);
 					if(jsonStr.length() < truncLen)
 						LOG.warn(jsonStr);

@@ -1,6 +1,7 @@
 package owltools.sim2;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
@@ -20,6 +21,7 @@ import owltools.sim2.AbstractOWLSimTest;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.UnknownOWLClassException;
 import owltools.sim2.io.FormattedRenderer;
+import owltools.sim2.scores.ElementPairScores;
 
 /**
  * This is the main test class for PropertyViewOntologyBuilder
@@ -27,18 +29,18 @@ import owltools.sim2.io.FormattedRenderer;
  * @author cjm
  *
  */
-public class BasicOWLSimTest extends AbstractOWLSimTest {
+public class FindMatchesSimTest extends AbstractOWLSimTest {
 
-	private Logger LOG = Logger.getLogger(BasicOWLSimTest.class);
-	
+	private Logger LOG = Logger.getLogger(FindMatchesSimTest.class);
+
 	@Test
 	public void testBasicSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
 		g =  new OWLGraphWrapper(sourceOntol);
 		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
-		setOutput("target/basic-owlsim-test.out");
-		
+		setOutput("target/find-matches-test.out");
+
 		owlpp = new OWLPrettyPrinter(g);
 
 		// assume buffering
@@ -47,13 +49,20 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 
 			this.createOwlSim();
 			owlsim.createElementAttributeMapFromOntology();
-			
+
 			//sos.saveOntology("/tmp/z.owl");
 
 			reasoner.flush();
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
-				for (OWLNamedIndividual j : sourceOntol.getIndividualsInSignature()) {
-					showSim(i,j);
+
+				renderer.getResultOutStream().println("\nI = "+i);
+				
+				List<ElementPairScores> scoreSets = owlsim.findMatches(i, "MGI");
+				int rank = 1;
+				for (ElementPairScores s : scoreSets) {
+					renderer.getResultOutStream().println("\n  RANK = "+rank);
+					renderer.printPairScores(s);
+					rank++;
 				}
 			}
 		}
@@ -62,39 +71,7 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 		}
 	}
 
-	@Test 
-	public void testGetEntropy() throws OWLOntologyCreationException, IOException, OBOFormatParserException {
-		ParserWrapper pw = new ParserWrapper();
-		sourceOntol = pw.parseOBO(getResourceIRIString("sim/mp-subset-1.obo"));
-		g =  new OWLGraphWrapper(sourceOntol);
-		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
-
-		owlpp = new OWLPrettyPrinter(g);
-
-		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
-		try {
-
-			owlsim = new SimpleOwlSim(sourceOntol);
-			((SimpleOwlSim) owlsim).setReasoner(reasoner);
-
-			reasoner.flush();
-			Double e = owlsim.getEntropy();
-			LOG.info("ENTROPY OF ONTOLOGY = "+e);
-
-			for (String subset : g.getAllUsedSubsets()) {
-				LOG.info("SUBSET:"+subset);
-				e = owlsim.getEntropy(g.getOWLClassesInSubset(subset));
-				LOG.info(" ENTROPY OF "+subset+" = "+e);
-			}
-		}
-		finally {
-			reasoner.dispose();
-		}		
-	}
-
-
-
+	
 
 
 }

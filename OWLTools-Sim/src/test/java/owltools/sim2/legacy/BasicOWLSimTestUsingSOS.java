@@ -43,9 +43,9 @@ public class BasicOWLSimTestUsingSOS extends AbstractOWLSimTest {
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
 		try {
 
-			sos = new SimpleOwlSim(sourceOntol);
-			((SimpleOwlSim) sos).setReasoner(reasoner);
-			LOG.info("Reasoner="+sos.getReasoner());
+			owlsim = new SimpleOwlSim(sourceOntol);
+			((SimpleOwlSim) owlsim).setReasoner(reasoner);
+			LOG.info("Reasoner="+owlsim.getReasoner());
 
 			//sos.saveOntology("/tmp/z.owl");
 
@@ -75,16 +75,16 @@ public class BasicOWLSimTestUsingSOS extends AbstractOWLSimTest {
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
 		try {
 
-			sos = new SimpleOwlSim(sourceOntol);
-			((SimpleOwlSim) sos).setReasoner(reasoner);
+			owlsim = new SimpleOwlSim(sourceOntol);
+			((SimpleOwlSim) owlsim).setReasoner(reasoner);
 
 			reasoner.flush();
-			Double e = sos.getEntropy();
+			Double e = owlsim.getEntropy();
 			LOG.info("ENTROPY OF ONTOLOGY = "+e);
 
 			for (String subset : g.getAllUsedSubsets()) {
 				LOG.info("SUBSET:"+subset);
-				e = sos.getEntropy(g.getOWLClassesInSubset(subset));
+				e = owlsim.getEntropy(g.getOWLClassesInSubset(subset));
 				LOG.info(" ENTROPY OF "+subset+" = "+e);
 			}
 		}

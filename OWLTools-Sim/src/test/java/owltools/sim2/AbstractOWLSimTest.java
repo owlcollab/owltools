@@ -46,7 +46,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 	protected SimPreProcessor pproc;
 	protected OWLPrettyPrinter owlpp;
 	protected OWLGraphWrapper g;
-	protected OwlSim sos;
+	protected OwlSim owlsim;
 	protected OwlSimFactory owlSimFactory = new FastOwlSimFactory(); // default is now FOS
 	SimResultRenderer renderer ;
 
@@ -71,14 +71,14 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 	protected void showSimOld(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
 
 		if (i==j) return;
-		double s = sos.getElementJaccardSimilarity(i, j);
+		double s = owlsim.getElementJaccardSimilarity(i, j);
 		if (s > 0.1) {
 			LOG.info("SimJ( "+i+" , "+j+" ) = "+s);
 
-			ScoreAttributeSetPair maxic = sos.getSimilarityMaxIC(i, j);
+			ScoreAttributeSetPair maxic = owlsim.getSimilarityMaxIC(i, j);
 			LOG.info("MaxIC( "+i+" , "+j+" ) = "+maxic.score+" "+show(maxic.attributeClassSet));
 
-			ScoreAttributeSetPair bma = sos.getSimilarityBestMatchAverageAsym(i, j);
+			ScoreAttributeSetPair bma = owlsim.getSimilarityBestMatchAverageAsym(i, j);
 			LOG.info("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+show(bma.attributeClassSet));
 		}
 
@@ -87,7 +87,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
 
 		if (i==j) return;
-		double s = sos.getElementJaccardSimilarity(i, j);
+		double s = owlsim.getElementJaccardSimilarity(i, j);
 		if (s > 0.1) {
 			LOG.info("SimJ( "+i+" , "+j+" ) = "+s);
 
@@ -96,7 +96,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 
 			//ScoreAttributeSetPair bma = owlsim.getSimilarityBestMatchAverageAsym(i, j);
 			//LOG.info("BMAasym( "+i+" , "+j+" ) = "+bma.score+" "+show(bma.attributeClassSet));
-			ElementPairScores scores = sos.getGroupwiseSimilarity(i,j);
+			ElementPairScores scores = owlsim.getGroupwiseSimilarity(i,j);
 			//LOG.info("Groupwise = "+gwsim);
 			renderer.printPairScores(scores);
 		}
@@ -114,12 +114,23 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 		return sb.toString();
 	}
 
-	private OWLClass getTestClass(String iri) {
+	protected OWLClass getTestClass(String iri) {
 		return df.getOWLClass(IRI.create("http://x.org#"+iri));
 	}
+	
+
+	protected String render(EnrichmentResult r, OWLPrettyPrinter pp) {
+		return pp.render(r.sampleSetClass) +" "+ pp.render(r.enrichedClass)
+		+" "+ r.pValue +" "+ r.pValueCorrected;
+	}
+
+	protected OWLClass get(String label) {
+		return (OWLClass)g.getOWLObjectByLabel(label);
+	}
+
 
 	protected void createOwlSim() {
-		sos = owlSimFactory.createOwlSim(sourceOntol);
+		owlsim = owlSimFactory.createOwlSim(sourceOntol);
 		
 	}
 	

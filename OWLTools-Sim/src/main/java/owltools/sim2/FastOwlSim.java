@@ -29,6 +29,7 @@ import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
+import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
@@ -161,7 +162,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		OWLClass c = n.getRepresentativeElement();
 		return getClassIndex(c);
 	}
-	
+
 	// not yet implemented: guaranteed to yield and indexed class
 	private OWLClass getIndexedClass(Node<OWLClass> n) throws UnknownOWLClassException {
 		if (representativeClassMap == null)
@@ -203,7 +204,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				classTorepresentativeClassMap.put(c2, c);
 			}
 		}
-		
+
 		// Create a bidirectional index, class by number
 		int n=0;
 		classArray = (OWLClass[]) Array.newInstance(OWLClass.class, cset.size()+1);
@@ -335,6 +336,15 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			inferredTypesBitmapMap = new HashMap<OWLNamedIndividual,EWAHCompressedBitmap>();
 		inferredTypesBitmapMap.put(i, bm);
 		return bm;		
+	}
+
+	private EWAHCompressedBitmap ancsBitmapCached(Set<OWLClass> cset) throws UnknownOWLClassException {
+		Set<Integer> csetInts = new HashSet<Integer>();
+
+		for (OWLClass c : cset) {
+			csetInts.add(classIndex.get(c));
+		}
+		return convertIntsToBitmap(csetInts);
 	}
 
 
@@ -696,7 +706,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		return bmc.andCardinality(bmd) / (double) bmc.orCardinality(bmd);
 	}
-	
+
 	@Override
 	public int getAttributeJaccardSimilarityAsPercent(OWLClass c,
 			OWLClass d) throws UnknownOWLClassException {
@@ -715,10 +725,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		return bmc.andCardinality(bmd) / (double) bmc.orCardinality(bmd);
 	}
-	
+
 	@Override
 	public int getElementJaccardSimilarityAsPercent(OWLNamedIndividual i,
-	OWLNamedIndividual j) throws UnknownOWLClassException {
+			OWLNamedIndividual j) throws UnknownOWLClassException {
 		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(i);
 		EWAHCompressedBitmap bmd = ancsBitmapCachedModifiable(j);
 
@@ -1032,7 +1042,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			// TODO - consider getting IC directly from main IC cache - single lookup
 			// rather than 2D lookup
 			int lcsix = ciPairLCS[cix][dix];
-			
+
 			//LOG.info("lcsix="+lcsix+" // "+icClassArray.length);
 			return new ScoreAttributeSetPair(icClassArray[lcsix],
 					classArray[lcsix]);
@@ -1067,7 +1077,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			//LOG.warn("uh oh"+classArray[cix] + " "+
 			//	classArray[dix]+" "+sap.attributeClassSet);
 		}
-		
+
 		//ciPairScaledScore[cix][dix] = (short)(sap.score * scaleFactor);
 		return sap;
 	}
@@ -1077,7 +1087,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			OWLClass d) throws UnknownOWLClassException {
 		return getLowestCommonSubsumerWithIC(classIndex.get(c), classIndex.get(d));
 	}
-	
+
 	@Override
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c,
 			OWLClass d, Double thresh) throws UnknownOWLClassException {
@@ -1113,6 +1123,107 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		this.totalCallsLCSIC++;
 
 		return new ScoreAttributeSetPair(maxScore, lcsClasses);
+	}
+
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws UnknownOWLClassException {
+		Set<OWLClass> csetFilteredDirect = new HashSet<OWLClass>(); // direct
+		Set<OWLClass> cset = new HashSet<OWLClass>(); // closure
+		Set<OWLClass> redundant = new HashSet<OWLClass>(); // closure
+		boolean isIgnoreUnknownClasses = false;
+		List<ElementPairScores> scoreSets = 
+				new ArrayList<ElementPairScores>();
+		int minSimJPct = 
+				(int) (getPropertyAsDouble(SimConfigurationProperty.minimumSimJ, 0.05) * 100);
+		double minMaxIC = getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC, 2.5);
+
+		// FIND CLOSURE
+		for (OWLClass c : atts) {
+			if (!this.getAllAttributeClasses().contains(c)) {
+				if (isIgnoreUnknownClasses)
+					continue;
+				throw new UnknownOWLClassException(c);
+			}
+			csetFilteredDirect.add(c);
+			for (Node<OWLClass> n : getNamedReflexiveSubsumers(c)) {
+				cset.add(n.getRepresentativeElement());
+			}
+			for (Node<OWLClass> n :getNamedSubsumers(c)) {
+				redundant.addAll(n.getEntities());
+			}
+		}
+
+		csetFilteredDirect.removeAll(redundant);
+		Vector csetV = new Vector<OWLClass>(atts.size());
+		for (OWLClass c : csetFilteredDirect) {
+			csetV.add(c);
+		}
+		
+
+		EWAHCompressedBitmap searchProfileBM = ancsBitmapCached(cset);
+		for (OWLNamedIndividual j : getAllElements()) {
+			if (targetIdSpace != null && !j.getIRI().toString().contains("/"+targetIdSpace+"_")) {
+				continue;
+			}
+			LOG.info(" Comparing with:"+j);
+			// SIMJ
+			EWAHCompressedBitmap jAttsBM = ancsBitmapCachedModifiable(j);
+			int cadSize = searchProfileBM.andCardinality(jAttsBM);
+			int cudSize = searchProfileBM.orCardinality(jAttsBM);
+			int simJPct = (cadSize * 100) / cudSize;
+			if (simJPct < minSimJPct) {
+				LOG.info("simJ pct too low : "+simJPct+" = "+cadSize+" / "+cudSize);
+				continue;
+			}
+			ElementPairScores s = new ElementPairScores(null, j);
+			s.simjScore = simJPct / (double) 100;
+			EWAHCompressedBitmap cad = searchProfileBM.and(jAttsBM);
+
+			// COMMON SUBSUMERS (ALL)
+			Set<OWLClass> csSet = new HashSet<OWLClass>();
+			for (int ix : cad.toArray()) {
+				csSet.add(classArray[ix]);
+			}
+
+			// MAXIC
+			ScoreAttributeSetPair best = new ScoreAttributeSetPair(0.0);
+			double icBest = 0;
+			double icSumCAD = 0;
+			for (int ix : cad.toArray()) {
+				Double ic = getInformationContentForAttribute(ix);
+				//OWLClass c = n.getRepresentativeElement();
+				//Double ic = getInformationContentForAttribute(c);
+				if (ic > icBest) {
+					icBest = ic;
+				}
+				icSumCAD += ic;
+			}
+			if (icBest < minMaxIC) {
+				LOG.info("maxIC too low : "+icBest);
+				continue;
+			}
+			s.maxIC = icBest;
+			LOG.info("computing simGIC");
+
+			// SIMGIC
+			EWAHCompressedBitmap cud = searchProfileBM.or(jAttsBM);
+			double icSumCUD = 0;
+			for (int ix : cud.toArray()) {
+				Double ic = getInformationContentForAttribute(ix);
+				icSumCUD += ic;
+			}
+			s.simGIC = icSumCAD / icSumCUD;
+
+			Vector dsetV = new Vector<OWLClass>(atts.size());
+			for (OWLClass d : this.getAttributesForElement(j)) {
+				dsetV.add(d);
+			}
+			// BEST MATCHES
+			populateSimilarityMatrix(csetV, dsetV, s);
+			scoreSets.add(s);
+		}
+		LOG.info("Sorting "+scoreSets.size()+" matches");
+		Collections.sort(scoreSets);
+		return scoreSets;
 	}
 
 
@@ -1172,7 +1283,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	OWLClass thing = null;
 	Node<OWLClass> thingNode = null;
-	
+
 	/**
 	 * Convenience method. Warning: method name may change
 	 * @return owl:Thing (root class)
@@ -1182,7 +1293,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			thing = getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLThing();
 		return thing;
 	}
-	
+
 	/**
 	 * Convenience method. Warning: method name may change
 	 * @return root class (owl:Thing and anything equivalent)

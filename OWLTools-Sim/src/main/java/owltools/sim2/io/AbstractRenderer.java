@@ -58,6 +58,14 @@ public abstract class AbstractRenderer implements SimResultRenderer {
 		resultOutStream.flush();		
 		resultOutStream.close();
 	}
+	public PrintStream getResultOutStream() {
+		return resultOutStream;
+	}
+	public void setResultOutStream(PrintStream resultOutStream) {
+		this.resultOutStream = resultOutStream;
+	}
+	
+	
 
 
 }

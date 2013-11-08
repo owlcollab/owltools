@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.math.MathException;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -310,7 +311,7 @@ public interface OwlSim {
 			OWLClass b) throws UnknownOWLClassException;
 
 
-	
+
 	/**
 	 * <pre>
 	 * SimJ(i,j) = | Type(i) &cap; Type(j) | / | Type(i) &cup; Type(j) |
@@ -467,9 +468,9 @@ public interface OwlSim {
 	public ScoreAttributeSetPair getSimilarityBestMatchAverage(
 			OWLNamedIndividual i, OWLNamedIndividual j, Metric metric,
 			Direction dir);
-	
+
 	// Possible optimizations:
-	
+
 	/**
 	 * Equivalent to {@link #getAttributeJaccardSimilarity(OWLClass, OWLClass)} * 100
 	 * @param a
@@ -479,7 +480,7 @@ public interface OwlSim {
 	 */
 	public int getAttributeJaccardSimilarityAsPercent(OWLClass a,
 			OWLClass b) throws UnknownOWLClassException;
-	
+
 	/**
 	 * Equivalent to {@link #getElementJaccardSimilarity(OWLNamedIndividual, OWLNamedIndividual)} * 100
 	 * @param i
@@ -625,6 +626,22 @@ public interface OwlSim {
 	public List<AttributesSimScores> compareAllAttributes(OWLClass c, Set<OWLClass> ds) throws UnknownOWLClassException;
 
 	/**
+	 * @param atts
+	 * @param targetIdSpace
+	 * @return sorted scores
+	 * @throws UnknownOWLClassException
+	 */
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws UnknownOWLClassException;
+
+	/**
+	 * @param i
+	 * @param targetIdSpace
+	 * @return sorted scores
+	 * @throws UnknownOWLClassException
+	 */
+	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace) throws UnknownOWLClassException;
+
+	/**
 	 * @param c
 	 * @param d
 	 * @return LCS together with IC(LCS)
@@ -653,7 +670,7 @@ public interface OwlSim {
 	 * @throws IOException
 	 */
 	public void saveLCSCache(String fileName) throws IOException;
-	
+
 	/**
 	 * As {@link #saveLCSCache(String)}, but do not write a line for any LCS
 	 * whose IC falls below the threshold.
@@ -666,7 +683,7 @@ public interface OwlSim {
 	 * @throws IOException
 	 */
 	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException;
-	
+
 	/**
 	 * Loads a pregenerated IC cache.
 	 * 
@@ -676,7 +693,7 @@ public interface OwlSim {
 	 * @throws IOException
 	 */
 	public void loadLCSCache(String fileName) throws IOException;
-	
+
 	/**
 	 * Generates an ontology containing annotation assertion axioms connecting
 	 * a class to an IC value.
@@ -689,7 +706,7 @@ public interface OwlSim {
 	 */
 	public OWLOntology cacheInformationContentInOntology() throws OWLOntologyCreationException, UnknownOWLClassException;
 
-	
+
 	/**
 	 * Populate the IC cache from an ontology of class-IC mappings.
 	 * 
@@ -834,5 +851,58 @@ public interface OwlSim {
 	public void showTimings();
 
 
+	// enrichment
 
+	/**
+	 * @return current configuration
+	 */
+	public EnrichmentConfig getEnrichmentConfig();
+
+	/**
+	 * @param enrichmentConfig
+	 */
+	public void setEnrichmentConfig(EnrichmentConfig enrichmentConfig);
+
+	/**
+	 * For every c &in; sample set, test c against all classes &in; enriched class set.
+	 * 
+	 * Uses {@link #calculatePairwiseEnrichment(OWLClass, OWLClass, OWLClass)}}
+	 * 
+	 * @param populationClass
+	 * @param pc1
+	 *          - sample set root class
+	 * @param pc2
+	 *          - enriched set root class
+	 * @return enrichment results
+	 * @throws MathException
+	 * @throws UnknownOWLClassException 
+	 */
+	public List<EnrichmentResult> calculateAllByAllEnrichment(
+			OWLClass populationClass, OWLClass pc1, OWLClass pc2)
+					throws MathException, UnknownOWLClassException;
+
+
+	/**
+	 * 
+	 * Uses {@link #calculatePairwiseEnrichment(OWLClass, OWLClass, OWLClass)}}
+	 *
+	 * @param populationClass
+	 * @param sampleSetClass
+	 * @return enrichment results
+	 * @throws MathException
+	 */
+	public List<EnrichmentResult> calculateEnrichment(OWLClass populationClass,
+			OWLClass sampleSetClass) throws MathException;
+
+	/**
+	 * Pairwise enrichment test
+	 * 
+	 * @param populationClass
+	 * @param sampleSetClass
+	 * @param enrichedClass
+	 * @return
+	 * @throws MathException
+	 */
+	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,
+			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException;
 }
