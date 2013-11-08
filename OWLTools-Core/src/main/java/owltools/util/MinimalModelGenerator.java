@@ -1067,7 +1067,7 @@ public class MinimalModelGenerator {
 	 * 
 	 * The results are stored in queryClassMap
 	 */
-	private void generateQueryOntology() {
+	protected void generateQueryOntology() {
 		queryClassMap = new HashMap<OWLClass,OWLClassExpression>(); 
 
 		reasoner.flush();
@@ -1111,7 +1111,7 @@ public class MinimalModelGenerator {
 	 * 
 	 * @param x
 	 */
-	private void addClassExpressionToQueryMap(OWLClassExpression x) {
+	protected void addClassExpressionToQueryMap(OWLClassExpression x) {
 		if (!(x instanceof OWLObjectSomeValuesFrom)) {
 			// in future we may support a wider variety of expressions - e.g. cardinality
 			return;
