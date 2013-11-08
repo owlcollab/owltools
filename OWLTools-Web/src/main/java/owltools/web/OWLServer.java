@@ -76,6 +76,7 @@ public class OWLServer extends AbstractHandler
         	handler.setOwlSim(sos);
         
         LOG.info("Request "+path);
+        path = path.replace("/owlsim/", "/");
         String[] toks = path.split("/");
         String m;
         if (toks.length == 0) {
