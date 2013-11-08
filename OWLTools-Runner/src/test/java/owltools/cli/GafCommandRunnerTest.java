@@ -29,6 +29,20 @@ public class GafCommandRunnerTest extends AbstractCommandRunnerTest {
 	}
 	
 	@Test
+	public void testRemoveRedundant() throws Exception {
+		init();
+		load("go_sample_mf_subset.obo");
+		String gafpath = getResource("test_gene_association_mgi.gaf").getAbsolutePath();
+		run("--gaf "+gafpath);
+		
+		run("--gaf-remove-redundant --write-gaf target/nr.gaf");
+		
+		//run("-o -f obo /tmp/foo.obo");
+		
+	}
+
+	
+	@Test
 	public void testFolder() throws Exception {
 		init();
 		load("go_sample_mf_subset.obo");

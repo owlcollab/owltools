@@ -113,7 +113,7 @@ public class OWLServerTest {
 		URIBuilder uriBuilder = new URIBuilder()
 			.setScheme("http")
 			.setHost("localhost").setPort(9031)
-			.setPath("/compareAttributeSets/")
+			.setPath("/owlsim/compareAttributeSets/")
 			.setParameter("a", "MP:0000001")
 			.setParameter("b", "MP:0000003");
 			

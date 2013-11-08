@@ -35,6 +35,15 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 	}
 
 	@Test
+	public void testSimRunnerFindMatches() throws Exception {
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-1000.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
+		run("--fsim-find-matches -p "+path("test-sim.properties") + " --set outputFormat TXT -o target/fsim-search.out -q MGI:101757 -t MGI");
+
+	}
+
+	@Test
 	public void testSimRunnerMouse100WithCache() throws Exception {
 		load("mp.obo");
 		run("--load-instances "+path("mgi-g2p-1000.txt"));
