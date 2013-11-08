@@ -905,6 +905,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		if (simProperties == null) {
 			initProperties();
 		}
+
 	}
 
 	private void loadProperties(String fn) throws IOException {
@@ -939,92 +940,93 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		simProperties.setProperty(opts.nextOpt(), opts.nextOpt());
 	}
 
-	@CLIMethod("--phenosim")
-	@Deprecated
-	public void phenoSim(Opts opts) throws Exception {
-		loadProperties(opts);
-		try {
-			pproc = new PhenoSimHQEPreProcessor();
-			pproc.setSimProperties(simProperties);
+//	@CLIMethod("--phenosim")
+//	@Deprecated
+//	public void phenoSim(Opts opts) throws Exception {
+//		loadProperties(opts);
+//		try {
+//			pproc = new PhenoSimHQEPreProcessor();
+//			pproc.setSimProperties(simProperties);
+//
+//			pproc.setInputOntology(g.getSourceOntology());
+//			pproc.setOutputOntology(g.getSourceOntology());
+//			pproc.preprocess();
+//			pproc.getReasoner().flush();
+//			owlsim = new SimpleOwlSim(g.getSourceOntology());
+//			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+//			owlsim.createElementAttributeMapFromOntology();
+//			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
+//			runOwlSim(opts);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		} finally {
+//			LOG.info("clearing up...");
+//			if (pproc != null) {
+//				pproc.dispose();
+//			}
+//		}
+//
+//	}
+//
+//	@CLIMethod("--phenosim-attribute-matrix")
+//	@Deprecated
+//	public void phenoSimAttributeMatrix(Opts opts) throws Exception {
+//		loadProperties(opts);
+//		try {
+//			pproc = new PhenoSimHQEPreProcessor();
+//			pproc.setSimProperties(simProperties);
+//
+//			pproc.setInputOntology(g.getSourceOntology());
+//			pproc.setOutputOntology(g.getSourceOntology());
+//			pproc.preprocess();
+//			pproc.getReasoner().flush();
+//			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+//			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+//			owlsim.createElementAttributeMapFromOntology();
+//			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
+//			attributeAllByAllOld(opts);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		} finally {
+//			LOG.info("clearing up...");
+//			if (pproc != null) {
+//				pproc.dispose();
+//			}
+//		}
+//
+//	}
 
-			pproc.setInputOntology(g.getSourceOntology());
-			pproc.setOutputOntology(g.getSourceOntology());
-			pproc.preprocess();
-			pproc.getReasoner().flush();
-			owlsim = new SimpleOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
-			owlsim.createElementAttributeMapFromOntology();
-			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
-			runOwlSim(opts);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			LOG.info("clearing up...");
-			if (pproc != null) {
-				pproc.dispose();
-			}
-		}
-
-	}
-
-	@CLIMethod("--phenosim-attribute-matrix")
-	@Deprecated
-	public void phenoSimAttributeMatrix(Opts opts) throws Exception {
-		loadProperties(opts);
-		try {
-			pproc = new PhenoSimHQEPreProcessor();
-			pproc.setSimProperties(simProperties);
-
-			pproc.setInputOntology(g.getSourceOntology());
-			pproc.setOutputOntology(g.getSourceOntology());
-			pproc.preprocess();
-			pproc.getReasoner().flush();
-			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
-			owlsim.createElementAttributeMapFromOntology();
-			// pproc.saveState("/tmp/phenosim-analysis-ontology.owl");
-			attributeAllByAllOld(opts);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			LOG.info("clearing up...");
-			if (pproc != null) {
-				pproc.dispose();
-			}
-		}
-
-	}
-
-	@CLIMethod("--sim-resume")
-	@Deprecated
-	public void simResume(Opts opts) throws Exception {
-		loadProperties(opts);
-		OWLOntology ont = pw.parse("file:///tmp/phenosim-analysis-ontology.owl");
-		if (g == null) {
-			g = new OWLGraphWrapper(ont);
-		} else {
-			System.out.println("adding support ont " + ont);
-			g.addSupportOntology(ont);
-		}
-		try {
-			pproc = new NullSimPreProcessor();
-			pproc.setSimProperties(simProperties);
-			pproc.setInputOntology(g.getSourceOntology());
-			pproc.setOutputOntology(g.getSourceOntology());
-			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
-			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
-			owlsim.createElementAttributeMapFromOntology();
-			runOwlSim(opts);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (pproc != null) {
-				pproc.dispose();
-			}
-		}
-	}
+//	@CLIMethod("--sim-resume")
+//	@Deprecated
+//	public void simResume(Opts opts) throws Exception {
+//		loadProperties(opts);
+//		OWLOntology ont = pw.parse("file:///tmp/phenosim-analysis-ontology.owl");
+//		if (g == null) {
+//			g = new OWLGraphWrapper(ont);
+//		} else {
+//			System.out.println("adding support ont " + ont);
+//			g.addSupportOntology(ont);
+//		}
+//		try {
+//			pproc = new NullSimPreProcessor();
+//			pproc.setSimProperties(simProperties);
+//			pproc.setInputOntology(g.getSourceOntology());
+//			pproc.setOutputOntology(g.getSourceOntology());
+//			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+//			((SimpleOwlSim) owlsim).setSimPreProcessor(pproc);
+//			owlsim.createElementAttributeMapFromOntology();
+//			runOwlSim(opts);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		} finally {
+//			if (pproc != null) {
+//				pproc.dispose();
+//			}
+//		}
+//	}
 
 	@CLIMethod("--sim-basic")
+	@Deprecated
 	public void simBasic(Opts opts) throws Exception {
 		// assumes that individuals in abox are of types named classes in tbox
 		loadProperties(opts);
@@ -1077,6 +1079,45 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		owlSimFactory = new FastOwlSimFactory();
 	}
 
+	@CLIMethod("--fsim-find-matches")
+	public void fsimFindMatches(Opts opts) throws Exception {
+		// assumes that individuals in abox are of types named classes in tbox
+		owlSimFactory = new FastOwlSimFactory();
+		String targetIdSpace = null;
+		loadProperties(opts);
+		OWLNamedIndividual i = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-t|--target-id-space")) {
+				targetIdSpace = opts.nextOpt();
+			}
+			else if (opts.nextEq("-q|--query")) {
+				IRI iri = g.getIRIByIdentifier(opts.nextOpt());
+				i = g.getDataFactory().getOWLNamedIndividual(iri);
+			}
+			else {
+				break;
+			}
+		}
+		
+		try {
+			if (owlsim == null) {
+				owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+				owlsim.createElementAttributeMapFromOntology();
+			}
+			owlsim.setSimProperties(simProperties);
+			LOG.info("Query: "+i);
+			List<ElementPairScores> matches = owlsim.findMatches(i, targetIdSpace);
+			SimResultRenderer renderer = setRenderer();
+			for (int n=0; n<matches.size(); n++) {
+				renderer.getResultOutStream().println("Rank: " + (n+1));
+				ElementPairScores m = matches.get(n);
+				renderer.printPairScores(m);
+				
+			}
+		} finally {
+			owlsim.dispose();
+		}
+	}
 
 
 
@@ -1394,6 +1435,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		opts.info("INFILE", "loads a LCS cache from a file");
 		if (owlsim == null) {
 			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			owlsim.createElementAttributeMapFromOntology();
 		}
 		owlsim.loadLCSCache(opts.nextOpt());
 	}
@@ -1498,11 +1540,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			} else
 				break;
 		}
-		((SimpleOwlSim) owlsim).setEnrichmentConfig(ec);
+		owlsim.setEnrichmentConfig(ec);
 		OWLClass rc1 = this.resolveClass(opts.nextOpt());
 		OWLClass rc2 = this.resolveClass(opts.nextOpt());
 		OWLClass pc = g.getDataFactory().getOWLThing();
-		List<EnrichmentResult> results = ((SimpleOwlSim) owlsim).calculateAllByAllEnrichment(pc, rc1,
+		List<EnrichmentResult> results = owlsim.calculateAllByAllEnrichment(pc, rc1,
 				rc2);
 		for (EnrichmentResult result : results) {
 			System.out.println(render(result, owlpp));
