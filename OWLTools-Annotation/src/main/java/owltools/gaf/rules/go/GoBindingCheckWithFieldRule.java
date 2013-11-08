@@ -36,7 +36,10 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 
 	public GoBindingCheckWithFieldRule(TraversingEcoMapper eco) {
 		super();
-		evidences = eco.getAllValidEvidenceIds("IPI", true);
+		Set<String> codes = new HashSet<String>();
+		codes.add("IPI");
+		codes.add("IEA");
+		evidences = eco.getAllValidEvidenceIds(codes, true);
 	}
 	
 	@Override
