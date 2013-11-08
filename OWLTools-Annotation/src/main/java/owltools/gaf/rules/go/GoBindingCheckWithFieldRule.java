@@ -23,7 +23,7 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 	public static final String PERMANENT_JAVA_ID = "org.geneontology.rules.GO_AR_0000003";
 	
 	// TODO retrieve message from title in the annotation_qc.xml
-	private static final String MESSAGE = "Annotations to 'binding ; GO:0005488' and 'protein binding ; GO:0005515' should be made with $CODE and an interactor in the 'with' field";
+	private static final String MESSAGE = "Annotations to 'binding' (GO:0005488) and 'protein binding' (GO:0005515) should be made with an IPI evidence code and the interactor in the 'with' field";
 	private static final Set<String> entities = createEntities();
 	private final Set<String> evidences;
 	
@@ -36,8 +36,7 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 
 	public GoBindingCheckWithFieldRule(TraversingEcoMapper eco) {
 		super();
-		Set<String> codes = new HashSet<String>(Arrays.asList("NAS","TAS","IDA","IMP","IGC","IEP","ND","IC","RCA","EXP", "IGI"));
-		evidences = eco.getAllValidEvidenceIds(codes, false);
+		evidences = eco.getAllValidEvidenceIds("IPI", true);
 	}
 	
 	@Override
@@ -45,13 +44,15 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 		String cls = a.getCls();
 		if (cls != null && entities.contains(cls)) {
 			String evidence = a.getEvidenceCls();
-			if (evidences.contains(evidence)) {
-				// check with field
-				String withExpression = a.getWithExpression();
-				if (withExpression == null || withExpression.isEmpty()) {
-					AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), MESSAGE.replace("$CODE", evidence), a, ViolationType.Warning);
-					return Collections.singleton(violation);
-				}
+			if (evidences.contains(evidence) == false) {
+				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), MESSAGE, a, ViolationType.Warning);
+				return Collections.singleton(violation);
+			}
+			// check with field
+			String withExpression = a.getWithExpression();
+			if (withExpression == null || withExpression.isEmpty()) {
+				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), MESSAGE, a, ViolationType.Warning);
+				return Collections.singleton(violation);
 			}
 			
 		}
