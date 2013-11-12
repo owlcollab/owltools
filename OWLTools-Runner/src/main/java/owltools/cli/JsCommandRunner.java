@@ -21,7 +21,7 @@ import owltools.graph.OWLGraphWrapper;
  * Provide a JavaScript interpreter for OWLTools. 
  * Allows to use/modify the internal {@link OWLGraphWrapper} with dynamic scripts.
  */
-public class JsCommandRunner extends Sim2CommandRunner {
+public class JsCommandRunner extends AnalysisCommandRunner {
 
 	private static final Logger LOG = Logger.getLogger(JsCommandRunner.class);
 	

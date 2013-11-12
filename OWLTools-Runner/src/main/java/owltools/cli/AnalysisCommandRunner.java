@@ -44,71 +44,6 @@ public class AnalysisCommandRunner extends Sim2CommandRunner {
 
   public Map<String, Set<OWLClass>> permutedElementMap = null;
 
-	
-	public OWLGraphWrapper g = null;
-	public OWLOntology queryOntology = null;
-	public boolean exitOnException = true;
-	public boolean isDisposeReasonerOnExit = true;
-
-	public OWLReasoner reasoner = null;
-	public String reasonerName = "hermit";
-	public Set<OWLObject> owlObjectCachedSet = null;
-
-	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
-	MinimalModelGenerator mmg = null;
-
-	protected ParserWrapper pw = new ParserWrapper();
-
-	/**
-	 * Use {@link #getPrettyPrinter()} to access a pre-configured or the default pretty printer.
-	 */
-	private OWLPrettyPrinter owlpp;
-	private String prettyPrinterFormat = null;
-	private boolean prettyPrinterHideIds = false;
-
-	public class OptionException extends Exception {
-
-		// generated
-		private static final long serialVersionUID = 8770773099868997872L;
-
-		public OptionException(String msg) {
-			super(msg);
-		}
-
-	}
-
-	protected void exit(int code) {
-
-		// if we are using this in a REPL context (e.g. owlrhino), we don't want to exit the shell
-		// on an error - reporting the error is sufficient
-		if (exitOnException)
-			System.exit(code);
-	}
-
-
-	public List<String> parseArgString(String str) {
-		List<String> args = new ArrayList<String>();
-		int p = 0;
-		StringBuffer ns = new StringBuffer();
-		while (p < str.length()) {
-			if (str.charAt(p) == ' ') {
-				if (ns.length() > 0) {
-					args.add(ns.toString());
-					ns = new StringBuffer();
-				}
-			}
-			else {
-				ns.append(str.charAt(p));
-			}
-			p++;
-		}
-		if (ns.length() > 0) {
-			args.add(ns.toString());
-		}		
-		return args;
-	}
-
-
 	@CLIMethod("--generate-simulated-reduction-data")
 	public void createSimulatedData(Opts opts) throws Exception {
 		//to be run after --load-instances
@@ -275,28 +210,5 @@ public class AnalysisCommandRunner extends Sim2CommandRunner {
 			
 	}
 	*/
-
-
-	public void help() {
-		System.out.println("owltools [ONTOLOGY ...] [COMMAND ...]\n");
-		System.out.println("Commands/Options");
-		System.out.println("  (type 'owltools COMMAND -h' for more info)");
-	}
-
-	public void helpFooter() {
-		System.out.println("\nOntologies:");
-		System.out.println("  These are specified as IRIs. The IRI is typically  'file:PATH' or a URL");
-		System.out.println("\nLabel Resolution:");
-		System.out.println("  you can pass in either a class label (enclosed in single quotes), an OBO ID or a IRI");
-		System.out.println("\nExecution:");
-		System.out.println("  note that commands are processed *in order*. This allows you to run mini-pipelines" +
-				"  or programs on the command line.");
-		System.out.println("  Each command has its own 'grammar'. Type owltools COMMAND -h to see options.");
-		System.out.println("  Any argument that is not a command is assumed to be an ontology, and an attempt is made to load it.");
-		System.out.println("  (again, this happens sequentially).");
-		System.out.println("\nExamples:");
-		System.out.println("  ");
-
-	}
 
 }
