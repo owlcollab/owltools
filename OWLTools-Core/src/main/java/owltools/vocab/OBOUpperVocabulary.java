@@ -1,6 +1,9 @@
 package owltools.vocab;
 
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.vocab.Namespaces;
 
 
@@ -44,7 +47,12 @@ public enum OBOUpperVocabulary {
 		return iri;
 	}
 
-
+	public OWLObjectProperty getObjectProperty(OWLDataFactory f) {
+		return f.getOWLObjectProperty(iri);
+	}
+	public OWLObjectProperty getObjectProperty(OWLOntology o) {
+		return getObjectProperty(o.getOWLOntologyManager().getOWLDataFactory());
+	}
 
 	@Override
 	public String toString() {
