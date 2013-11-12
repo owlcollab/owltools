@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -99,7 +100,25 @@ public class Sim2CommandRunner extends SimCommandRunner {
 
 	int numberOfPairsFiltered = 0;
 
-	protected PrintStream resultOutStream = System.out;
+	protected PrintStream resultOutStream = new PrintStream(System.out) {
+
+		@Override
+		public void close() {
+			// Never close the system streams!
+			// This will stop logging, only a VM restart can fix this.
+			if (this.out == System.out && this.out == System.err) {
+					try {
+						this.out.flush();
+					} catch (IOException e) {
+						// ignore quietly
+					}
+			}
+			else {
+				super.close();
+			}
+		}
+		
+	};
 
 	private void initProperties() {
 		simProperties = new Properties();
