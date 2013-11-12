@@ -22,6 +22,12 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+/**
+ * Static methods for performing common logical transforms and view creation on OWL ontologies
+ * 
+ * @author cjm
+ *
+ */
 public class TransformationUtils {
 
 	//	public static void nameAnonymousExpressions(OWLOntology srcOntology,
