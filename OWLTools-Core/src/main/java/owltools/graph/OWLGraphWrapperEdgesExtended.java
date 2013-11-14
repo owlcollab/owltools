@@ -444,21 +444,43 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     	Set<OWLClass> allClasses = new HashSet<OWLClass>();
     	for (OWLOntology ont : this.getAllOntologies()) {
 			for (OWLClass iterateClass: ont.getClassesInSignature()) {
-				allClasses.add(iterateClass);
+			    if (!iterateClass.isTopEntity() && !iterateClass.isBottomEntity()) {
+				    allClasses.add(iterateClass);
+			    }
 			}
 		}
     	return allClasses;
     }
+
+    /**
+     * Get only the <code>OWLClass</code>es from the {@code OWLOntology} returned 
+     * by {@link #getSourceOntology()}, that are neither top entity (owl:thing), 
+     * not bottom entity (owl:nothing).
+     * 
+     * @return  a <code>Set</code> of <code>OWLClass</code>es from the source ontology, 
+     *          owl:thing and owl:nothing excluded.
+     */
+    public Set<OWLClass> getOWLClassesFromSource() {
+        Set<OWLClass> allClasses = new HashSet<OWLClass>();
+        for (OWLClass iterateClass: this.getSourceOntology().getClassesInSignature()) {
+            if (!iterateClass.isTopEntity() && !iterateClass.isBottomEntity()) {
+                allClasses.add(iterateClass);
+            }
+        }
+        return allClasses;
+    }
     
     /**
      * Return the <code>OWLClass</code>es root of any ontology 
-     * (<code>OWLClass</code>es with no parent)
+     * (<code>OWLClass</code>es with no parent other than {@code owl:thing})
      * 
      * @return	A <code>Set</code> of <code>OWLClass</code>es that are 
      * 			the roots of any ontology.
      */
     public Set<OWLClass> getOntologyRoots() {
     	Set<OWLClass> ontRoots = new HashSet<OWLClass>();
+    	//TODO: modify OWLGraphWrapperdges so that it could be possible to obtain 
+    	//edges incoming to owl:thing. This would be much cleaner to get the roots.
     	for (OWLOntology ont: this.getAllOntologies()) {
 			for (OWLClass testClass: ont.getClassesInSignature()) {
 				if (this.getOutgoingEdges(testClass).isEmpty()) {
@@ -471,7 +493,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     
     /**
      * Return the <code>OWLClass</code>es leaves of any ontology 
-     * (<code>OWLClass</code>es with no descendants)
+     * (<code>OWLClass</code>es with no descendants other than {@code owl:nothing})
      * 
      * @return  A <code>Set</code> of <code>OWLClass</code>es that are 
      *          the leaves of any ontology.

@@ -15,7 +15,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -310,6 +309,16 @@ public class OWLGraphWrapperEdgesExtendedTest
 		assertEquals("Incorrect Set of OWLClasses returned", 16, 
 				wrapper.getAllOWLClasses().size());
 	}
+    
+    /**
+     * Test {@link OWLGraphWrapperEdgesExtended#getOWLClassesFromSource()}
+     */
+    @Test
+    public void shouldGetOWLClassesFromSource()
+    {
+        assertEquals("Incorrect Set of OWLClasses returned", 16, 
+                wrapper.getOWLClassesFromSource().size());
+    }
 	
 	/**
 	 * Test {@link OWLGraphWrapperEdgesExtended#getOntologyRoots()}
