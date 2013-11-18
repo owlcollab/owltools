@@ -155,14 +155,23 @@ public class TaxonCommandRunner extends GafCommandRunner {
 				"http://purl.obolibrary.org/obo/ro.owl");
 		
 		OWLClass root = null;
-		if (opts.nextEq("-r|--root")) {
-			String s = opts.nextOpt();
-			root = g.getOWLClassByIdentifier(s);
-			if (root == null) {
-				throw new RuntimeException("No class was found for the specified identifier: "+s);
+		boolean compact = false;
+		while (opts.hasArgs()) {
+			if (opts.nextEq("-r|--root")) {
+				String s = opts.nextOpt();
+				root = g.getOWLClassByIdentifier(s);
+				if (root == null) {
+					throw new RuntimeException("No class was found for the specified identifier: "+s);
+				}
+			}
+			else if (opts.nextEq("--compact")) {
+				compact = true;
+			}
+			else {
+				break;
 			}
 		}
-		else {
+		if (root == null) {
 			throw new RuntimeException("No root identifier specified.");
 		}
 		
@@ -204,11 +213,19 @@ public class TaxonCommandRunner extends GafCommandRunner {
 				}
 				if (siblings.size() > 1) {
 					Set<OWLAxiom> disjointAxioms = new HashSet<OWLAxiom>();
-					for (OWLClass sibling1 : siblings) {
-						for (OWLClass sibling2 : siblings) {
-							if (sibling1 != sibling2) {
-								disjointAxioms.add(createDisjoint(f, sibling1, sibling2, inTaxon));
-								disjointAxioms.add(createDisjoint(f, sibling1, sibling2));
+					if (compact) {
+						// create compact disjoint and disjoint over never_in_taxon axioms
+						disjointAxioms.add(f.getOWLDisjointClassesAxiom(siblings));
+						disjointAxioms.add(createDisjoint(f, siblings, inTaxon));
+					}
+					else {
+						// create pairwise disjoint and disjoint over never_in_taxon axioms
+						for (OWLClass sibling1 : siblings) {
+							for (OWLClass sibling2 : siblings) {
+								if (sibling1 != sibling2) {
+									disjointAxioms.add(createDisjoint(f, sibling1, sibling2, inTaxon));
+									disjointAxioms.add(createDisjoint(f, sibling1, sibling2));
+								}
 							}
 						}
 					}
@@ -222,6 +239,20 @@ public class TaxonCommandRunner extends GafCommandRunner {
 		
 		// save to file
 		m.saveOntology(disjointOntology, new FileOutputStream(outputFile));
+	}
+
+	/**
+	 * @param f
+	 * @param siblings
+	 * @param inTaxon
+	 * @return axiom
+	 */
+	protected OWLAxiom createDisjoint(OWLDataFactory f, Set<OWLClass> siblings, OWLObjectProperty inTaxon) {
+		Set<OWLClassExpression> expressions = new HashSet<OWLClassExpression>();
+		for (OWLClass cls : siblings) {
+			expressions.add(f.getOWLObjectSomeValuesFrom(inTaxon, cls));
+		}
+		return f.getOWLDisjointClassesAxiom(expressions);
 	}
 
 	/**
