@@ -144,6 +144,7 @@ public class SpeciesMergeUtil {
 		OWLEquivalentClassesAxiom qax = fac.getOWLEquivalentClassesAxiom(
 				rootSpeciesSpecificClass, rx);
 		mgr.addAxiom(ont, qax);
+		reasoner.flush();
 		LOG.info("Getting species classes via: " + rootSpeciesSpecificClass
 				+ " == " + rx);
 
@@ -167,15 +168,17 @@ public class SpeciesMergeUtil {
 		 */
 		for (OWLEquivalentClassesAxiom eca : ont.getAxioms(
 				AxiomType.EQUIVALENT_CLASSES, true)) {
-			LOG.info("TESTING: " + eca);
+			//LOG.info("TESTING ECA: " + eca);
 
 			// Looking for: FBbt:nnn = Ubr:nnn and part_of some NCBITaxon:7997
 			if (eca.getClassesInSignature().contains(taxClass)
 					&& eca.getObjectPropertiesInSignature().contains(
 							viewProperty)) {
+				LOG.info("  CONTAINS_TAX_AND_PROP: " + eca);
 				for (OWLClass c : eca.getClassesInSignature()) {
 					if (!ssClasses.contains(c))
 						continue;
+					LOG.info("   ssC = " + c);
 					for (OWLClassExpression x : eca.getClassExpressionsMinus(c)) {
 						if (x instanceof OWLObjectIntersectionOf) {
 
@@ -217,13 +220,13 @@ public class SpeciesMergeUtil {
 			LOG.info("ssClass = " + c);
 
 			// Do not preserve GCIs for upper-level classes
-			// TODO - makre this configurable
-			if (ecmap.containsKey(c)) {
-				if (isSkippable(ecmap.get(c))) {
-					LOG.info("Slipping: "+c);
-					continue;
-				}
-			}
+			// TODO - make this configurable
+//			if (ecmap.containsKey(c)) {
+//				if (isSkippable(ecmap.get(c))) {
+//					LOG.info("Skipping: "+c);
+//					continue;
+//				}
+//			}
 
 			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 			Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
@@ -248,7 +251,7 @@ public class SpeciesMergeUtil {
 				
 				if (newAxiom != null && ecmap.containsKey(c)) {
 					// avoid axioms like: (ubr:brain and part_of some fly) SubClassOf multi-tissue-structure
-					//  only keep rewritten axioms if they refer exlucsively to high-value classes.
+					//  only keep rewritten axioms if they refer exclusively to high-value classes.
 					//  however, non-unfolded classes will keep their axioms
 					for (OWLClass sc : newAxiom.getClassesInSignature()) {
 						if (isSkippable(sc)) {
