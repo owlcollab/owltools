@@ -620,8 +620,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 					}
 				}
 			}
-			if (owlsim instanceof FastOwlSim)
-				owlsim.showTimings();
+			owlsim.showTimings();
 			LOG.info("FINISHED All by all for " + insts.size() + " individuals");
 			LOG.info("Number of pairs filtered as they scored beneath threshold: "
 					+ this.numberOfPairsFiltered);
@@ -1608,8 +1607,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		}
 		LOG.info("Starting server on port "+port+" using sim: "+owlsim);
 		Server server = new Server(port);
-		if (owlsim == null)
-			this.createSlim(opts);
+		if (owlsim == null) {
+			owlsim = new FastOwlSim(g.getSourceOntology());
+		}
 		server.setHandler(new OWLServer(g, owlsim));
 
 

@@ -28,6 +28,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
+import owltools.sim2.FastOwlSimFactory;
 import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSimFactory;
 import owltools.sim2.SimpleOwlSim;
@@ -39,15 +40,16 @@ import owltools.sim2.preprocessor.SimPreProcessor;
 /**
  * Simple test for the client server communication for the OWLTools web server.
  */
-public class OWLServerTest {
+public class OWLServerSimSearchTest {
 
 	OWLGraphWrapper g;
 	@Test
 	public void testServerCommunication() throws Exception {
 		g = loadOntology("../OWLTools-Sim/src/test/resources/sim/mp-subset-1.obo");
 		
+		ABoxUtils.createRandomClassAssertions(g.getSourceOntology(), 100, 20);
 		// set sim
-		OwlSimFactory owlSimFactory = new SimpleOwlSimFactory();
+		OwlSimFactory owlSimFactory = new FastOwlSimFactory();
 		OwlSim sos = owlSimFactory.createOwlSim(g.getSourceOntology());
 //		SimPreProcessor pproc = new NullSimPreProcessor();
 //		pproc.setInputOntology(g.getSourceOntology());
@@ -68,7 +70,7 @@ public class OWLServerTest {
 
 			// prepare a request
 			//final HttpUriRequest httpUriRequest = createRequest(200);
-			HttpUriRequest httppost = createPostRequest(300);
+			HttpUriRequest httppost = createRequest(300);
 
 			// run request
 			Log.info("Executing="+httppost);
@@ -113,15 +115,12 @@ public class OWLServerTest {
 		URIBuilder uriBuilder = new URIBuilder()
 			.setScheme("http")
 			.setHost("localhost").setPort(9031)
-			.setPath("/owlsim/compareAttributeSets/")
-			.setParameter("a", "MP:0000001")
-			.setParameter("b", "MP:0000003");
+			.setPath("/owlsim/searchByAttributeSet/");
 			
 		int i=0;
 		for (OWLClass c : g.getAllOWLClasses()) {
 			String id = g.getIdentifier(c);
 			uriBuilder.addParameter("a", id);
-			uriBuilder.addParameter("b", id);
 			i++;
 			if (i >= n)
 				break;
@@ -133,32 +132,7 @@ public class OWLServerTest {
 		return httpUriRequest;
 	}
 
-	protected HttpUriRequest createPostRequest(int n) throws URISyntaxException, UnsupportedEncodingException {
-		URIBuilder uriBuilder = new URIBuilder()
-			.setScheme("http")
-			.setHost("localhost").setPort(9031)
-			.setPath("/compareAttributeSets/");
-		
-		HttpPost httpost = new HttpPost(uriBuilder.build());
-	
-			//.setParameter("a", "MP:0000001")
-			//.setParameter("b", "MP:0000003");
-			
-		int i=0;
-		List <NameValuePair> nvps = new ArrayList <NameValuePair>();
-		for (OWLClass c : g.getAllOWLClasses()) {
-			String id = g.getIdentifier(c);
-		       
-			nvps.add(new BasicNameValuePair("a", id));
-			nvps.add(new BasicNameValuePair("b", id));
-			i++;
-			if (i >= n)
-				break;
-		}
-		httpost.setEntity((HttpEntity) new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 
-		return httpost;
-	}
 	/**
 	 * @param responseContent
 	 */
