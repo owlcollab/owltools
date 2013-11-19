@@ -2,6 +2,7 @@ package owltools.sim2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,6 +14,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
+import owltools.sim2.scores.ElementPairScores;
 
 import com.google.gson.Gson;
 
@@ -50,14 +52,25 @@ public class SimJSONEngine {
 			}
 			filteredClasses.add(objA);
 		}
-		for (OWLNamedIndividual j : sos.getAllElements()) {
-			j.getIRI();
-			if (!j.toString().contains("/"+targetIdSpace+"_")) {
-				continue;
-			}
-			
+		LOG.info("Finding matches for :"+filteredClasses);
+		LOG.info("OwlSim = "+sos);
+		List<ElementPairScores> matches = sos.findMatches(filteredClasses, targetIdSpace);
+		
+		// todo use a gson writer
+		Gson gson = new Gson();
+		List<Map> matchObjs = new ArrayList<Map>();
+		for (ElementPairScores m : matches) {
+			Map mObj = new HashMap();
+			makeObjAndSet(mObj, "i", m.i);
+			makeObjAndSet(mObj, "j", m.j);
+			mObj.put("maxIC", m.maxIC);
+			mObj.put("maxIC_class",makeObj(m.maxICwitness.iterator().next()));
+			mObj.put("simJ", m.simjScore);
+			mObj.put("simGIC", m.simGIC);
+			matchObjs.add(mObj);
 		}
-		return "";
+		
+		return gson.toJson(matchObjs);
 	}
 	/**
 	 * @param objAs
@@ -124,6 +137,12 @@ public class SimJSONEngine {
 		m.put("id", g.getIdentifier(obj));
 		m.put("label", g.getLabel(obj));
 		return m;
+	}
+	
+	protected void makeObjAndSet(Map<String,Object> subj, String key, OWLObject t) {
+		Map<String,Object> tobj = makeObj(t);
+		if (tobj.keySet().size() > 0)
+			subj.put(key, tobj);
 	}
 
 }

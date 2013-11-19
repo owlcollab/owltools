@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.math.MathException;
@@ -20,6 +21,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import owltools.sim2.scores.ElementPairScores;
 
 /**
  * Tests the JSON wrapper to OwlSim, used by OWLServer
@@ -32,7 +34,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 	private Logger LOG = Logger.getLogger(SimJSONTest.class);
 
 	@Test
-	public void testJSONOutput() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
+	public void testCompareIndividuals() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
 		g =  new OWLGraphWrapper(sourceOntol);
@@ -88,6 +90,42 @@ public class SimJSONTest extends AbstractOWLSimTest {
 			
 			// we expect no results here
 			LOG.info("TxT:"+sj.compareAttributeSetPair(things, things, true));
+			
+		}
+		finally {
+			reasoner.dispose();
+		}
+	}
+
+	@Test
+	public void testSearch() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
+
+		owlpp = new OWLPrettyPrinter(g);
+		final int truncLen = 200;
+		
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+
+			createOwlSim();
+				//sos.setReasoner(reasoner);
+			LOG.info("Reasoner="+owlsim.getReasoner());
+
+			SimJSONEngine sj = new SimJSONEngine(g, owlsim);
+
+			//sos.saveOntology("/tmp/z.owl");
+
+			reasoner.flush();
+			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				Set<OWLClass> atts = owlsim.getAttributesForElement(i);
+				String jsonStr = sj.search(atts, "MGI", true);
+				
+				LOG.info(jsonStr);
+			}
 			
 		}
 		finally {
