@@ -29,7 +29,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.sim2.OwlSim;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
- 
+
 /**
  * 
  * See http://code.google.com/p/owltools/wiki/WebServices
@@ -45,13 +45,13 @@ import uk.ac.manchester.cs.jfact.JFactFactory;
  */
 public class OWLServer extends AbstractHandler
 {
- 
+
 	private static Logger LOG = Logger.getLogger(OWLServer.class);
 
 	OWLGraphWrapper graph;
 	Map<String,OWLReasoner> reasonerMap = new HashMap<String,OWLReasoner>();
 	OwlSim sos = null;
-		
+
 	public OWLServer(OWLGraphWrapper g) {
 		super();
 		graph = g;
@@ -63,65 +63,73 @@ public class OWLServer extends AbstractHandler
 	}
 
 	public void handle(String target,
-                       Request baseRequest,
-                       HttpServletRequest request,
-                       HttpServletResponse response) 
-        throws IOException, ServletException
-    {
+			Request baseRequest,
+			HttpServletRequest request,
+			HttpServletResponse response) 
+					throws IOException, ServletException
+					{
 		String path = request.getPathInfo();
-        baseRequest.setHandled(true);
-     
-        OWLHandler handler = new OWLHandler(this, graph, request, response);
-        if (sos != null)
-        	handler.setOwlSim(sos);
-        
-        LOG.info("Request "+path);
-        path = path.replace("/owlsim/", "/");
-        String[] toks = path.split("/");
-        String m;
-        if (toks.length == 0) {
-        	m = "top";
-        }
-        else {
-        	m = toks[1];
-        }
-        if (m.contains(".")) {
-        	String[] mpa = m.split("\\.", 2);
-        	m = mpa[0];
-        	handler.setFormat(mpa[1]);
-        }
-        handler.setCommandName(m);
-        Class[] mArgs = new Class[0];
-        try {
-			Method method = handler.getClass().getMethod(m + "Command", mArgs);
-			Object[] oArgs = new Object[0];
-			method.invoke(handler, oArgs);
-			handler.printCachedObjects();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
-			System.err.println("M="+m+" // mArgs="+mArgs);
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (OWLOntologyCreationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (OWLOntologyStorageException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		baseRequest.setHandled(true);
+
+		OWLHandler handler = new OWLHandler(this, graph, request, response);
+		if (sos != null)
+			handler.setOwlSim(sos);
+
+		LOG.info("Request "+path);
+		path = path.replace("/owlsim/", "/");
+		String[] toks = path.split("/");
+		String m;
+		if (toks.length == 0) {
+			m = "top";
 		}
-    }
-	
+		else {
+			m = toks[1];
+		}
+		if (m.contains(".")) {
+			String[] mpa = m.split("\\.", 2);
+			m = mpa[0];
+			handler.setFormat(mpa[1]);
+		}
+		handler.setCommandName(m);
+		Class[] mArgs = new Class[0];
+		Method method = null;
+		try {
+			method = handler.getClass().getMethod(m + "Command", mArgs);
+		} catch (SecurityException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (NoSuchMethodException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if (method != null) {
+			try {
+				LOG.info("Method="+method);
+				Object[] oArgs = new Object[0];
+				method.invoke(handler, oArgs);
+				handler.printCachedObjects();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (OWLOntologyCreationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (OWLOntologyStorageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+					}
+
 	public synchronized OWLReasoner getReasoner(String reasonerName) {
 		// TODO - reasoner synchronization
 		if (reasonerMap.containsKey(reasonerName))

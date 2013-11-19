@@ -50,6 +50,7 @@ import owltools.io.OWLGsonRenderer;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
+import owltools.sim2.FastOwlSim;
 import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimJSONEngine;
@@ -112,7 +113,7 @@ public class OWLHandler {
 	}
 	public enum Param {
 		id, iri, label, taxid, expression,
-		format, direct, reflexive,
+		format, direct, reflexive, target,
 		a, b
 	}
 
@@ -439,7 +440,7 @@ public class OWLHandler {
 	private OwlSim getOWLSim() throws UnknownOWLClassException {
 		if (owlserver.sos == null) {
 			LOG.info("Creating sim object"); // TODO - use factory
-			owlserver.sos = new SimpleOwlSim(graph.getSourceOntology());
+			owlserver.sos = new FastOwlSim(graph.getSourceOntology());
 			owlserver.sos.createElementAttributeMapFromOntology();
 		}
 		return owlserver.sos;
@@ -550,23 +551,20 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 	
-	public void searchByAttributeSet() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+	public void searchByAttributeSetCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Entities that have a similar attribute profile to the specified one, using sim2");
 			return;
 		}
 		headerText();
 		OwlSim sos = getOWLSim();
+		Set<OWLClass> atts = this.resolveClassList(Param.a);
 		
-		Set<OWLClass> atts = this.resolveClassList(Param.id);
-		IRI iri = IRI.create("http://owlsim/"+UUID.randomUUID());
-//		for (OWLNamedIndividual i : sos.getAllElements()) {
-//			OWLNamedIndividual j;
-//			sos.getElementJaccardSimilarity(i, j);
-//		}
-//		SimJSONEngine sj = new SimJSONEngine(graph,sos);
-		// TODO
-		//response.getWriter().write(jsonStr);
+		SimJSONEngine sj = new SimJSONEngine(graph,sos);
+		String targetIdSpace = getParam(Param.target);
+		String jsonStr = sj.search(atts, targetIdSpace, true);
+		LOG.info("Finished comparison");
+		response.getWriter().write(jsonStr);
 	}
 
 	// ----------------------------------------
