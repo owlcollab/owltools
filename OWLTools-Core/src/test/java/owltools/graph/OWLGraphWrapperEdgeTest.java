@@ -1,20 +1,30 @@
 package owltools.graph;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.owlapi.model.AddAxiom;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 import owltools.OWLToolsTestBasics;
+import owltools.graph.OWLQuantifiedProperty.Quantifier;
 
 public class OWLGraphWrapperEdgeTest extends OWLToolsTestBasics {
 
@@ -99,6 +109,136 @@ public class OWLGraphWrapperEdgeTest extends OWLToolsTestBasics {
 		assertNotNull(edges);
 		
 		assertEquals(1, edges.size());
+	}
+	
+	/**
+	 * Test the behavior of {@code OWLGraphEdge}s to store their underlying 
+	 * {@code OWLAxiom}s (different {@code OWLAxiom}s can produce a same 
+	 * {@code OWLGraphEdge}, which will store these {@code OWLAxiom}s).
+	 */
+	@Test
+	public void testOWLGraphEdgeAxioms() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
+        OWLGraphWrapper g = getGraph("graph/owlgraphedge.obo");
+        
+        OWLOntology o = g.getSourceOntology();
+        OWLOntologyManager m = o.getOWLOntologyManager();
+        OWLDataFactory f = m.getOWLDataFactory();
+        
+        
+        
+        OWLClass root = g.getOWLClassByIdentifier("FOO:0001");
+        OWLClass cls1 = g.getOWLClassByIdentifier("FOO:0003");
+        
+        Set<OWLGraphEdge> edges = g.getOutgoingEdges(cls1);
+        Set<OWLGraphEdge> expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls1, root, g.getSourceOntology()));
+        assertEquals("Incorrect OWLGraphEdges generated for Foo:0003", expectedEdges, edges);
+        
+        OWLGraphEdge edge = edges.iterator().next();
+        Set<OWLAxiom> expectedAxioms = new HashSet<OWLAxiom>();
+        expectedAxioms.add(f.getOWLSubClassOfAxiom(cls1, root));
+        expectedAxioms.add(f.getOWLEquivalentClassesAxiom(cls1, root));
+        assertEquals("Incorrect underlying OWLAxioms", expectedAxioms, edge.getAxioms());
+        
+
+        
+        OWLClass cls2 = g.getOWLClassByIdentifier("FOO:0004");
+        OWLClass cls3 = g.getOWLClassByIdentifier("FOO:0002");
+        
+        edges = g.getOutgoingEdges(cls2);
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        OWLGraphEdge edge1 = new OWLGraphEdge(cls2, cls3, g.getSourceOntology());
+        OWLObjectSomeValuesFrom clsExp = f.getOWLObjectSomeValuesFrom(
+                g.getOWLObjectPropertyByIdentifier("BFO:0000050"), cls1);
+        OWLGraphEdge edge2 = new OWLGraphEdge(cls2, cls1, clsExp.getProperty(), 
+                OWLQuantifiedProperty.Quantifier.SOME, g.getSourceOntology());
+        expectedEdges.add(edge1);
+        expectedEdges.add(edge2);
+        assertEquals("Incorrect OWLGraphEdges generated for Foo:0004", expectedEdges, 
+                edges);
+        
+        OWLAxiom equivAx = f.getOWLEquivalentClassesAxiom(cls2, 
+                f.getOWLObjectIntersectionOf(cls3, clsExp));
+        for (OWLGraphEdge edgeToTest: edges) {
+            expectedAxioms = new HashSet<OWLAxiom>();
+            if (edgeToTest.equals(edge1)) {
+                expectedAxioms.add(f.getOWLSubClassOfAxiom(cls2, cls3));
+                expectedAxioms.add(equivAx);
+            } else if (edgeToTest.equals(edge2)) {
+                expectedAxioms.add(f.getOWLSubClassOfAxiom(cls2, clsExp));
+                expectedAxioms.add(equivAx);
+                
+            }
+            assertEquals("Incorrect underlying OWLAxioms", expectedAxioms, edgeToTest.getAxioms());
+        }
+        
+        
+        
+        edges = g.getOutgoingEdges(cls3);
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls3, root, g.getSourceOntology()));
+        assertEquals("Incorrect OWLGraphEdges generated for Foo:0002", expectedEdges, edges);
+        
+        edge = edges.iterator().next();
+        expectedAxioms = new HashSet<OWLAxiom>();
+        expectedAxioms.add(f.getOWLSubClassOfAxiom(cls3, root));
+        
+        Set<OWLAnnotation> annots = new HashSet<OWLAnnotation>();
+        annots.add(f.getOWLAnnotation(
+            f.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#source")), 
+            f.getOWLLiteral("mysource")));
+        expectedAxioms.add(f.getOWLSubClassOfAxiom(cls3, root, annots));
+        
+        assertEquals("Incorrect underlying OWLAxioms", expectedAxioms, edge.getAxioms());
+        
+        
+
+        OWLClass cls4 = g.getOWLClassByIdentifier("FOO:0005");
+        OWLClass cls5 = g.getOWLClassByIdentifier("FOO:0006");
+        
+        edges = g.getOutgoingEdges(cls5);
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls5, root, g.getSourceOntology()));
+        assertEquals("Incorrect OWLGraphEdges generated for Foo:0006", expectedEdges, edges);
+        
+        edge = edges.iterator().next();
+        expectedAxioms = new HashSet<OWLAxiom>();
+        expectedAxioms.add(f.getOWLSubClassOfAxiom(cls5, root));
+        
+        equivAx = f.getOWLEquivalentClassesAxiom(root, 
+                f.getOWLObjectUnionOf(cls4, cls5));
+        expectedAxioms.add(equivAx);
+        
+        assertEquals("Incorrect underlying OWLAxioms", expectedAxioms, edge.getAxioms());
+        
+        
+        
+        edges = g.getOutgoingEdges(cls4);
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls4, root, g.getSourceOntology()));
+        assertEquals("Incorrect OWLGraphEdges generated for Foo:0005", expectedEdges, edges);
+        
+        edge = edges.iterator().next();
+        expectedAxioms = new HashSet<OWLAxiom>();
+        expectedAxioms.add(equivAx);
+        
+        assertEquals("Incorrect underlying OWLAxioms", expectedAxioms, edge.getAxioms());
+        
+        
+//        OWLIndividual ind = g.getOWLIndividualByIdentifier("john");
+//        
+//        edges = g.getOutgoingEdges(ind);
+//        expectedEdges = new HashSet<OWLGraphEdge>();
+//        expectedEdges.add(new OWLGraphEdge(ind, f.getOWLClassAssertionAxiom(root, ind), 
+//                null, Quantifier.INSTANCE_OF, g.getSourceOntology()));
+//        assertEquals("Incorrect OWLGraphEdges generated for John", expectedEdges, edges);
+//        
+//        edge = edges.iterator().next();
+//        expectedAxioms = new HashSet<OWLAxiom>();
+//        expectedAxioms.add(f.getOWLClassAssertionAxiom(root, ind));
+//        
+//        assertEquals("Incorrect underlying OWLAxioms", expectedAxioms, edge.getAxioms());
+        
 	}
 	
 }

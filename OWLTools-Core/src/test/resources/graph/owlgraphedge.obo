@@ -1,0 +1,49 @@
+format-version: 1.2
+ontology: owlgraphedge
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_transitive: true
+
+[Term]
+id: FOO:0001
+name: root
+union_of: FOO:0005
+union_of: FOO:0006
+
+[Term]
+id: FOO:0002
+name: left
+is_a: FOO:0001 ! root
+is_a: FOO:0001 {source="mysource"} ! root
+
+[Term]
+id: FOO:0003
+name: right
+is_a: FOO:0001 ! root
+equivalent_to: FOO:0001 ! root
+
+[Term]
+id: FOO:0004
+name: root
+is_a: FOO:0002 ! left
+relationship: part_of FOO:0003 ! right
+intersection_of: FOO:0002 ! left
+intersection_of: part_of FOO:0003 ! right
+
+[Term]
+id: FOO:0005
+name: sdfdsf
+
+[Term]
+id: FOO:0006
+name: ffdgfx
+is_a: FOO:0001 ! root
+
+! [Instance]
+! id: john
+! name: John Day-Richter
+! instance_of: FOO:0001 

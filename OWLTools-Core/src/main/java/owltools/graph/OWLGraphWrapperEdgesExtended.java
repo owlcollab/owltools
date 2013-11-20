@@ -272,10 +272,14 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 	 */
 	private LinkedHashSet<OWLGraphEdge> getOWLGraphEdgeSubRelsReflexive(OWLGraphEdge edge, 
 			int propIndex) {
+	    //we do not use a mechanism such as provided by OWLGraphEdge.OWLGraphEdgeSet, 
+	    //first because we need a LinkedHashSet, not a HashSet, second because 
+	    //by definition, subRels will not be populated with potentially equal edges.
 		LinkedHashSet<OWLGraphEdge> subRels = new LinkedHashSet<OWLGraphEdge>();
 		if (propIndex >= edge.getQuantifiedPropertyList().size()) {
 		    subRels.add(new OWLGraphEdge(edge.getSource(), edge.getTarget(), 
-		            new Vector<OWLQuantifiedProperty>(), null));
+		            new Vector<OWLQuantifiedProperty>(), edge.getOntology(), 
+		            edge.getAxioms()));
 		    return subRels;
 		}
 		OWLQuantifiedProperty quantProp = edge.getQuantifiedPropertyList().get(propIndex);
@@ -306,7 +310,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 		        quantProps.addAll(nextPropEdge.getQuantifiedPropertyList());
 
 		        subRels.add(new OWLGraphEdge(edge.getSource(),edge.getTarget(),
-		                quantProps, edge.getOntology()));
+		                quantProps, edge.getOntology(), edge.getAxioms()));
 		    }
 		}
 
@@ -356,8 +360,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 					//create a combined edge
 					List<OWLQuantifiedProperty>  qps = new ArrayList<OWLQuantifiedProperty>();
 					qps.add(combinedQp);
-					combine = new OWLGraphEdge(firstEdge.getSource(), 
-							secondEdge.getTarget(), qps, firstEdge.getOntology());
+					combine = this.createMergedEdge(firstEdge.getSource(), firstEdge, secondEdge);
+					combine.setQuantifiedPropertyList(qps);
 				}
 			}
 		}
