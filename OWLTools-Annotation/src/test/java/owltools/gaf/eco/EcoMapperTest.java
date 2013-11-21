@@ -66,7 +66,7 @@ public class EcoMapperTest {
 		single(mapper, g, "0000304", "TAS");
 		
 		multiple(mapper, g, 
-				Arrays.asList("0000317", "0000084"), 
+				Arrays.asList("0000317", "0000354"), 
 				"IGC", 
 				Arrays.asList("GO_REF:0000025"));
 		
