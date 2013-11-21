@@ -1,19 +1,31 @@
 {
+    // we want to leverage json-ld as far as possible, without requiring
+    // that the owl be a strict mapping to the json via the context.
+    // In particular we want to leverage the standard way of:
+    //  - declaring namespaces
+    //  - declaring how a tag maps to an annotation property IRI
+    //  - declaring how a relation symbol (e.g. part_of) maps to a object property IRI
     "@" : {
         "GOC": "http://geneontology.org/curators#",
-        "GO" : "http://purl.obolibrary.org/obo/GO_"
+        "GO" : "http://purl.obolibrary.org/obo/GO_",
+        "rdfs" : "http://www.w3.org/2000/01/rdf-schema#",
+        "id" : "@id",
+        "type" : {"@id":"rdf:type", "@type":"@id"},
+        "label": "rdfs:label",
+        "comment": "rdfs:comment",
     },
 
     // id: GO:0042102
+    // note that by JSON-LD this is automatically an IRI in the standard purl space
     id: "GO:nnnn",     //  obo-style ID
 
     // name: positive regulation of T cell proliferation
-    label: "positive regulation of T cell proliferation",      // rdfs:label
+    label: "positive regulation of T cell proliferation",      // json-ld context maps this to rdfs:label
 
     // namespace: biological_process
     obo_namespace: "biological_process",
 
-    // synonym: "activation of T cell proliferation" NARROW MADE-UP [GOC:ai]
+    // EXAMPLE OBO: synonym: "activation of T cell proliferation" NARROW MADE-UP [GOC:ai]
     // in the amigo display, the source does not need to be prominent
     synonym: [
         {
@@ -52,8 +64,9 @@
             id : "GO:0042129",
             label : "regulation of T cell proliferation"
 
-            // todo - decide - this is not really a property of the superclass
-            source: [
+            // todo - decide - this is not really a property of the superclass;
+            // this is where we deviate from strict json-ld
+            annotations: [
                 {"is_inferred" : "true"}
             ],
         },
@@ -62,14 +75,14 @@
         // relationship: positively_regulates GO:0042098 {is_inferred="true"} ! T cell proliferation
 
         {
-            source: [
+            annotations: [
                 {"is_inferred" : "true"}
             ],
 
             type: "owl:Restriction",
             onProperty : {
                 id: "RO:nnnnn",
-                label: "positiively_regulates"
+                label: "positively_regulates"
             },
             someValuesFrom : {
                 id: "GO:0042098"
@@ -78,6 +91,30 @@
             
         },
         // ...
+
+        // TAXON CONSTRAINTS
+        // TBD - make this a separate tag, or just present the OWL subclass axioms directly. Probably the latter.
+        // we would probably work with the shortcut axioms rather than expanded?
+        // EXAMPLE: relationship: only_in_taxon NCBITaxon:7711 {source="PMID:123"} ! Chordata
+
+        {
+            annotations: [
+                "is_inferred" : "true",
+                "reference": "PMID:123",
+            ]
+
+            type: "owl:Restriction",
+            onProperty : {
+                id: "RO:nnnnn",
+                label: "only_in_taxon"
+            },
+            someValuesFrom : {
+                id: "NCBITaxon:7711"
+                label: "Chordata"
+            }
+            
+        },
+        
     ]
         
     // maps to owl EquivalentClasses.
@@ -98,6 +135,9 @@
                 // 'differentia'
                 {
                     type: "owl:Restriction",
+
+                    // we could make this more compact by just supplying the ID placing the label elsewhere;
+                    // the repetition may make it easier for logic-free templating
                     onProperty : {
                         id: "RO:nnnnn",
                         label: "positiively_regulates"

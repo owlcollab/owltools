@@ -1,0 +1,1726 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY obo "http://purl.obolibrary.org/obo/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY oboInOwl "http://www.geneontology.org/formats/oboInOwl#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.w3.org/2002/07/owl#"
+     xml:base="http://www.w3.org/2002/07/owl"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#">
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000115 -->
+
+    <AnnotationProperty rdf:about="&obo;IAO_0000115"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasAlternativeId -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;hasAlternativeId"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;hasBroadSynonym"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasDbXref -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;hasDbXref"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasExactSynonym -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;hasExactSynonym"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;hasNarrowSynonym"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasOBONamespace -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;hasOBONamespace"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;hasRelatedSynonym"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasVariable -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;hasVariable"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#id -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;id"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#inSubset -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;inSubset"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#shorthand -->
+
+    <AnnotationProperty rdf:about="&oboInOwl;shorthand"/>
+    
+
+
+    <!-- http://www.w3.org/2000/01/rdf-schema#comment -->
+
+    <AnnotationProperty rdf:about="&rdfs;comment"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000050 -->
+
+    <ObjectProperty rdf:about="&obo;BFO_0000050">
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <rdfs:label rdf:datatype="&xsd;string">part of</rdfs:label>
+        <rdfs:label rdf:datatype="&xsd;string">part_of</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">BFO:0000050</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="&xsd;string">part_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="&xsd;string">part_of</oboInOwl:id>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000051 -->
+
+    <ObjectProperty rdf:about="&obo;BFO_0000051">
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <rdfs:label rdf:datatype="&xsd;string">has_part</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">BFO:0000051</oboInOwl:hasDbXref>
+        <oboInOwl:shorthand rdf:datatype="&xsd;string">has_part</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="&xsd;string">has_part</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000052 -->
+
+    <ObjectProperty rdf:about="&obo;BFO_0000052">
+        <rdfs:label rdf:datatype="&xsd;string">inheres in</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">BFO:0000052</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="&xsd;string">inheres_in</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="&xsd;string">inheres_in</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <rdfs:subPropertyOf rdf:resource="&obo;RO_0002314"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000070 -->
+
+    <ObjectProperty rdf:about="&obo;BFO_0000070">
+        <rdfs:label rdf:datatype="&xsd;string">towards</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">BFO:0000070</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="&xsd;string">towards</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="&xsd;string">towards</oboInOwl:id>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002180 -->
+
+    <ObjectProperty rdf:about="&obo;RO_0002180">
+        <rdfs:label rdf:datatype="&xsd;string">qualifier</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">RO:0002180</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <rdfs:comment rdf:datatype="&xsd;string">placeholder relation to indicate normality/abnormality.</rdfs:comment>
+        <oboInOwl:id rdf:datatype="&xsd;string">qualifier</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="&xsd;string">qualifier</oboInOwl:shorthand>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002202 -->
+
+    <ObjectProperty rdf:about="&obo;RO_0002202">
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <rdfs:label rdf:datatype="&xsd;string">develops_from</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">RO:0002202</oboInOwl:hasDbXref>
+        <oboInOwl:shorthand rdf:datatype="&xsd;string">develops_from</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="&xsd;string">develops_from</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="&obo;BFO_0000050"/>
+            <rdf:Description rdf:about="&obo;RO_0002202"/>
+        </propertyChainAxiom>
+        <propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="&obo;RO_0002202"/>
+            <rdf:Description rdf:about="&obo;BFO_0000050"/>
+        </propertyChainAxiom>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002314 -->
+
+    <ObjectProperty rdf:about="&obo;RO_0002314">
+        <rdfs:label rdf:datatype="&xsd;string">inheres in part of</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">RO:0002314</oboInOwl:hasDbXref>
+        <oboInOwl:shorthand rdf:datatype="&xsd;string">inheres_in_part_of</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="&xsd;string">inheres_in_part_of</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="&obo;BFO_0000052"/>
+            <rdf:Description rdf:about="&obo;BFO_0000050"/>
+        </propertyChainAxiom>
+    </ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000000 -->
+
+    <Class rdf:about="&obo;CL_0000000">
+        <rdfs:label rdf:datatype="&xsd;string">cell</rdfs:label>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000003 -->
+
+    <Class rdf:about="&obo;CL_0000003">
+        <rdfs:label rdf:datatype="&xsd;string">native cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000000"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000031 -->
+
+    <Class rdf:about="&obo;CL_0000031">
+        <rdfs:label rdf:datatype="&xsd;string">neuroblast</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000047"/>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000055"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000034 -->
+
+    <Class rdf:about="&obo;CL_0000034">
+        <rdfs:label rdf:datatype="&xsd;string">stem cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000003"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000047 -->
+
+    <Class rdf:about="&obo;CL_0000047">
+        <rdfs:label rdf:datatype="&xsd;string">neuronal stem cell</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&obo;CL_0000048"/>
+                    <Restriction>
+                        <onProperty rdf:resource="&obo;BFO_0000050"/>
+                        <someValuesFrom rdf:resource="&obo;UBERON_0001017"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000048"/>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0002319"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002202"/>
+                <someValuesFrom rdf:resource="&obo;CL_0000133"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0001017"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000048 -->
+
+    <Class rdf:about="&obo;CL_0000048">
+        <rdfs:label rdf:datatype="&xsd;string">multi fate stem cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000723"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000052 -->
+
+    <Class rdf:about="&obo;CL_0000052">
+        <rdfs:label rdf:datatype="&xsd;string">totipotent stem cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000723"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000055 -->
+
+    <Class rdf:about="&obo;CL_0000055">
+        <rdfs:label rdf:datatype="&xsd;string">non-terminally differentiated cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000003"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000133 -->
+
+    <Class rdf:about="&obo;CL_0000133">
+        <rdfs:label rdf:datatype="&xsd;string">neurectodermal cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000221"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000211 -->
+
+    <Class rdf:about="&obo;CL_0000211">
+        <rdfs:label rdf:datatype="&xsd;string">electrically active cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000003"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000221 -->
+
+    <Class rdf:about="&obo;CL_0000221">
+        <rdfs:label rdf:datatype="&xsd;string">ectodermal cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0002321"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000924"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000255 -->
+
+    <Class rdf:about="&obo;CL_0000255">
+        <rdfs:label rdf:datatype="&xsd;string">eukaryotic cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000003"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000352 -->
+
+    <Class rdf:about="&obo;CL_0000352">
+        <rdfs:label rdf:datatype="&xsd;string">epiblast cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000052"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000393 -->
+
+    <Class rdf:about="&obo;CL_0000393">
+        <rdfs:label rdf:datatype="&xsd;string">electrically responsive cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000211"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000404 -->
+
+    <Class rdf:about="&obo;CL_0000404">
+        <rdfs:label rdf:datatype="&xsd;string">electrically signaling cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000211"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000540 -->
+
+    <Class rdf:about="&obo;CL_0000540">
+        <rdfs:label rdf:datatype="&xsd;string">neuron</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000393"/>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000404"/>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0002319"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002202"/>
+                <someValuesFrom rdf:resource="&obo;CL_0000031"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000548 -->
+
+    <Class rdf:about="&obo;CL_0000548">
+        <rdfs:label rdf:datatype="&xsd;string">animal cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000255"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000700 -->
+
+    <Class rdf:about="&obo;CL_0000700">
+        <rdfs:label rdf:datatype="&xsd;string">dopaminergic neuron</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000540"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0000723 -->
+
+    <Class rdf:about="&obo;CL_0000723">
+        <rdfs:label rdf:datatype="&xsd;string">somatic stem cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000034"/>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0002371"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0002319 -->
+
+    <Class rdf:about="&obo;CL_0002319">
+        <rdfs:label rdf:datatype="&xsd;string">neural cell</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&obo;CL_0000000"/>
+                    <Restriction>
+                        <onProperty rdf:resource="&obo;BFO_0000050"/>
+                        <someValuesFrom rdf:resource="&obo;UBERON_0001016"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000548"/>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0002371"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0001016"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0002321 -->
+
+    <Class rdf:about="&obo;CL_0002321">
+        <rdfs:label rdf:datatype="&xsd;string">embryonic cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000548"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/CL_0002371 -->
+
+    <Class rdf:about="&obo;CL_0002371">
+        <rdfs:label rdf:datatype="&xsd;string">somatic cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;CL_0000003"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0001701 -->
+
+    <Class rdf:about="&obo;GO_0001701">
+        <rdfs:label rdf:datatype="&xsd;string">in utero embryonic development</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0043009"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0005575 -->
+
+    <Class rdf:about="&obo;GO_0005575">
+        <rdfs:label rdf:datatype="&xsd;string">cellular_component</rdfs:label>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0005623 -->
+
+    <Class rdf:about="&obo;GO_0005623">
+        <rdfs:label rdf:datatype="&xsd;string">cell</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0005575"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0007275 -->
+
+    <Class rdf:about="&obo;GO_0007275">
+        <rdfs:label rdf:datatype="&xsd;string">multicellular organismal development</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0032502"/>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0044707"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0008150 -->
+
+    <Class rdf:about="&obo;GO_0008150">
+        <rdfs:label rdf:datatype="&xsd;string">biological_process</rdfs:label>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0009790 -->
+
+    <Class rdf:about="&obo;GO_0009790">
+        <rdfs:label rdf:datatype="&xsd;string">embryo development</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0044767"/>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0048856"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;GO_0007275"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0009792 -->
+
+    <Class rdf:about="&obo;GO_0009792">
+        <rdfs:label rdf:datatype="&xsd;string">embryo development ending in birth or egg hatching</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0009790"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0032501 -->
+
+    <Class rdf:about="&obo;GO_0032501">
+        <rdfs:label rdf:datatype="&xsd;string">multicellular organismal process</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0008150"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0032502 -->
+
+    <Class rdf:about="&obo;GO_0032502">
+        <rdfs:label rdf:datatype="&xsd;string">developmental process</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0008150"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0043009 -->
+
+    <Class rdf:about="&obo;GO_0043009">
+        <rdfs:label rdf:datatype="&xsd;string">chordate embryonic development</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0009792"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044464 -->
+
+    <Class rdf:about="&obo;GO_0044464">
+        <rdfs:label rdf:datatype="&xsd;string">cell part</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&obo;GO_0005575"/>
+                    <Restriction>
+                        <onProperty rdf:resource="&obo;BFO_0000050"/>
+                        <someValuesFrom rdf:resource="&obo;GO_0005623"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0005575"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;GO_0005623"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044699 -->
+
+    <Class rdf:about="&obo;GO_0044699">
+        <rdfs:label rdf:datatype="&xsd;string">single-organism process</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0008150"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044707 -->
+
+    <Class rdf:about="&obo;GO_0044707">
+        <rdfs:label rdf:datatype="&xsd;string">single-multicellular organism process</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0032501"/>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0044699"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044767 -->
+
+    <Class rdf:about="&obo;GO_0044767">
+        <rdfs:label rdf:datatype="&xsd;string">single-organism developmental process</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0032502"/>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0044699"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0048856 -->
+
+    <Class rdf:about="&obo;GO_0048856">
+        <rdfs:label rdf:datatype="&xsd;string">anatomical structure development</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;GO_0032502"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0000001 -->
+
+    <Class rdf:about="&obo;MP_0000001">
+        <rdfs:label rdf:datatype="&xsd;string">mammalian phenotype</rdfs:label>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0000001</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">the observable morphological, physiological, behavioral and other characteristics of mammalian organisms that are manifested through development and lifespan</obo:IAO_0000115>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:csmith</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">the observable morphological, physiological, behavioral and other characteristics of mammalian organisms that are manifested through development and lifespan</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0000001"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0000358 -->
+
+    <Class rdf:about="&obo;MP_0000358">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal cell morphology</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;CL_0000000"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0005384"/>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0000311</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0000312</oboInOwl:hasAlternativeId>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0000358</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasBroadSynonym rdf:datatype="&xsd;string">abnormal cell</oboInOwl:hasBroadSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">abnormal cell content</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="&xsd;string">abnormal cell content or morphology</oboInOwl:hasExactSynonym>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">any structural anomaly of the minute protoplasmic masses that make up organized tissues and which are the fundamental structural and functional units of living organisms</obo:IAO_0000115>
+        <oboInOwl:hasBroadSynonym rdf:datatype="&xsd;string">cell abnormalities</oboInOwl:hasBroadSynonym>
+        <oboInOwl:hasBroadSynonym rdf:datatype="&xsd;string">cellular abnormalities</oboInOwl:hasBroadSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MESH:A11</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:cwg</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">any structural anomaly of the minute protoplasmic masses that make up organized tissues and which are the fundamental structural and functional units of living organisms</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0000358"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0001672 -->
+
+    <Class rdf:about="&obo;MP_0001672">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal embryogenesis/ development</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000001"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;GO_0001701"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0005380"/>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">GO:0007275</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0001672</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">anomaly in the establishment of the characteristic configuration of the embryonic body</obo:IAO_0000115>
+        <oboInOwl:hasExactSynonym rdf:datatype="&xsd;string">embryogenesis/ development abnormalities</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">ISBN:0-683-40008-8</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">anomaly in the establishment of the characteristic configuration of the embryonic body</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0001672"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002085 -->
+
+    <Class rdf:about="&obo;MP_0002085">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal embryonic tissue morphology</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;UBERON_0005291"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0001672"/>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:2173530</oboInOwl:hasDbXref>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0001673</oboInOwl:hasAlternativeId>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0002085</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasRelatedSynonym rdf:datatype="&xsd;string">abnormal embryogenesis</oboInOwl:hasRelatedSynonym>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">any structural anomaly or development of any embryonic tissue resulting in morphological abnormality</obo:IAO_0000115>
+        <oboInOwl:hasExactSynonym rdf:datatype="&xsd;string">embryogenesis: embryonic tissue dysmorphology</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="&xsd;string">embryonic tissue dysplasia</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:csmith</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">any structural anomaly or development of any embryonic tissue resulting in morphological abnormality</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0002085"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002399 -->
+
+    <Class rdf:about="&obo;MP_0002399">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal pluripotent precursor cell morphology/development</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0002085"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0002399</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">any structural anomaly of the cells that give rise to most types of cells necessary for fetal development</obo:IAO_0000115>
+        <oboInOwl:hasBroadSynonym rdf:datatype="&xsd;string">pluripotent stem cell abnormalities</oboInOwl:hasBroadSynonym>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MESH:A11.872.700</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:cwg</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">any structural anomaly of the cells that give rise to most types of cells necessary for fetal development</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0002399"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002400 -->
+
+    <Class rdf:about="&obo;MP_0002400">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal multipotent stem cell morphology</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;CL_0000048"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0002399"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0002400</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">any structural anomaly of the specialized cells that are committed to giving rise to cells with particular functions</obo:IAO_0000115>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasBroadSynonym rdf:datatype="&xsd;string">multipotent stem cell abnormalities</oboInOwl:hasBroadSynonym>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MESH:A11.872.590</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:cwg</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">any structural anomaly of the specialized cells that are committed to giving rise to cells with particular functions</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0002400"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0002882 -->
+
+    <Class rdf:about="&obo;MP_0002882">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal neuron morphology</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;CL_0000540"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0003632"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0002882</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">any structural anomaly of the cells of the nervous system that receive, conduct, and transmit impulses</obo:IAO_0000115>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="&xsd;string">neuron dysplasia</oboInOwl:hasExactSynonym>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MESH:A08.663</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">any structural anomaly of the cells of the nervous system that receive, conduct, and transmit impulses</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0002882"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0003243 -->
+
+    <Class rdf:about="&obo;MP_0003243">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal dopaminergic neuron morphology</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;CL_0000700"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0002882"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0003243</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">any structural anomaly of the neurons that utilize dopamine as a neurotransmitter</obo:IAO_0000115>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">ISBN:0838580343</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">any structural anomaly of the neurons that utilize dopamine as a neurotransmitter</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0003243"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0003244 -->
+
+    <Class rdf:about="&obo;MP_0003244">
+        <rdfs:label rdf:datatype="&xsd;string">loss of dopaminergic neurons</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0002000"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;UBERON_0001016"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000070"/>
+                                <someValuesFrom rdf:resource="&obo;CL_0000700"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0003243"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0003244</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">loss of the neurons that utilize dopamine as a neurotransmitter, commonly due to an apoptotic event</obo:IAO_0000115>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">RGD:cur</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">loss of the neurons that utilize dopamine as a neurotransmitter, commonly due to an apoptotic event</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0003244"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0003631 -->
+
+    <Class rdf:about="&obo;MP_0003631">
+        <rdfs:label rdf:datatype="&xsd;string">nervous system phenotype</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000001"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002314"/>
+                                <someValuesFrom rdf:resource="&obo;UBERON_0001016"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0000001"/>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">CNS phenotype</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0003631</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0005368</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0005383</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">PNS phenotype</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">central nervous system phenotype</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">peripheral nervous system phenotype</oboInOwl:hasNarrowSynonym>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">the observable morphological and physiological characteristics of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that are manifested through development and lifespan</obo:IAO_0000115>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:csmith</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">the observable morphological and physiological characteristics of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that are manifested through development and lifespan</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0003631"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0003632 -->
+
+    <Class rdf:about="&obo;MP_0003632">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal nervous system morphology</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;UBERON_0001016"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0003631"/>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">Fyler:4135</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">Fyler:4300</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">GO:0007417</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:2173613</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:2173617</oboInOwl:hasDbXref>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0000769</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0000957</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0002153</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0002157</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0002170</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="&xsd;string">MP:0002171</oboInOwl:hasAlternativeId>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0003632</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">abnormal central nervous system morphology</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">abnormal peripheral nervous system</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">abnormal peripheral nervous system morphology</oboInOwl:hasNarrowSynonym>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">any structural anomaly of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that receive and interpret stimuli and transmit impulses to effector organs to control body functions</obo:IAO_0000115>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">central nervous system abnormalities</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">central nervous system anomaly</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">central nervous system defects</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">central nervous system: other dysmorphology</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="&xsd;string">nervous system dysplasia</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="&xsd;string">neurologic malformation</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">other abnormal central nervous system morphology</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">peripheral nervous system abnormalities</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">peripheral nervous system abnormality</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">peripheral nervous system anomaly</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">peripheral nervous system defects</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="&xsd;string">peripheral nervous system: dysmorphology</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:inSubset rdf:resource="&obo;mp#CvDC_Terms"/>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MGI:csmith</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">any structural anomaly of the extensive, intricate network of electochemical structures in the body that is comprised of the brain, spinal cord, nerves, ganglia and parts of the receptor organs that receive and interpret stimuli and transmit impulses to effector organs to control body functions</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0003632"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0005380 -->
+
+    <Class rdf:about="&obo;MP_0005380">
+        <rdfs:label rdf:datatype="&xsd;string">embryogenesis phenotype</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000001"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;GO_0009790"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0000001"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0005380</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0005384 -->
+
+    <Class rdf:about="&obo;MP_0005384">
+        <rdfs:label rdf:datatype="&xsd;string">cellular phenotype</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000001"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;GO_0005623"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0000001"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0005384</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="&xsd;string">cell phenotype</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/MP_0008946 -->
+
+    <Class rdf:about="&obo;MP_0008946">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal neuron number</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0001555"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;CL_0000540"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;MP_0002882"/>
+        <oboInOwl:id rdf:datatype="&xsd;string">MP:0008946</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">MPheno.ontology</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115 rdf:datatype="&xsd;string">anomaly in the number of the cells of the nervous system that receive, conduct, and transmit impulses</obo:IAO_0000115>
+        <oboInOwl:hasOBONamespace rdf:datatype="&xsd;string">mammalian_phenotype_xp</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="&xsd;string">MESH:A08.663</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="&xsd;string">anomaly in the number of the cells of the nervous system that receive, conduct, and transmit impulses</annotatedTarget>
+        <annotatedProperty rdf:resource="&obo;IAO_0000115"/>
+        <annotatedSource rdf:resource="&obo;MP_0008946"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0000001 -->
+
+    <Class rdf:about="&obo;PATO_0000001">
+        <rdfs:label rdf:datatype="&xsd;string">quality</rdfs:label>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0000051 -->
+
+    <Class rdf:about="&obo;PATO_0000051">
+        <rdfs:label rdf:datatype="&xsd;string">morphology</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0001241"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0000068 -->
+
+    <Class rdf:about="&obo;PATO_0000068">
+        <rdfs:label rdf:datatype="&xsd;string">qualitative</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0000001"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0000069 -->
+
+    <Class rdf:about="&obo;PATO_0000069">
+        <rdfs:label rdf:datatype="&xsd;string">deviation(from_normal)</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0000068"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0000460 -->
+
+    <Class rdf:about="&obo;PATO_0000460">
+        <rdfs:label rdf:datatype="&xsd;string">abnormal</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0000069"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0001241 -->
+
+    <Class rdf:about="&obo;PATO_0001241">
+        <rdfs:label rdf:datatype="&xsd;string">physical object quality</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0000001"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002180"/>
+                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    <Axiom>
+        <rdfs:comment>In future this should be removed and all MP/HP assertions should be explicitly marked as abnormal</rdfs:comment>
+        <annotatedSource rdf:resource="&obo;PATO_0001241"/>
+        <annotatedProperty rdf:resource="&rdfs;subClassOf"/>
+        <annotatedTarget>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002180"/>
+                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+            </Restriction>
+        </annotatedTarget>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0001555 -->
+
+    <Class rdf:about="&obo;PATO_0001555">
+        <rdfs:label rdf:datatype="&xsd;string">has number of</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0001241"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0001999 -->
+
+    <Class rdf:about="&obo;PATO_0001999">
+        <rdfs:label rdf:datatype="&xsd;string">lacks parts or has fewer parts of type</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0002083"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0002000 -->
+
+    <Class rdf:about="&obo;PATO_0002000">
+        <rdfs:label rdf:datatype="&xsd;string">lacks all parts of type</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0001999"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0002083 -->
+
+    <Class rdf:about="&obo;PATO_0002083">
+        <rdfs:label rdf:datatype="&xsd;string">altered number of</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;PATO_0001555"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000061 -->
+
+    <Class rdf:about="&obo;UBERON_0000061">
+        <rdfs:label rdf:datatype="&xsd;string">anatomical structure</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000465"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000465 -->
+
+    <Class rdf:about="&obo;UBERON_0000465">
+        <rdfs:label rdf:datatype="&xsd;string">material anatomical entity</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0001062"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000467 -->
+
+    <Class rdf:about="&obo;UBERON_0000467">
+        <rdfs:label rdf:datatype="&xsd;string">anatomical system</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000480"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000468"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000468 -->
+
+    <Class rdf:about="&obo;UBERON_0000468">
+        <rdfs:label rdf:datatype="&xsd;string">multi-cellular organism</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000061"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000470 -->
+
+    <Class rdf:about="&obo;UBERON_0000470">
+        <rdfs:label rdf:datatype="&xsd;string">cell part</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&obo;UBERON_0000061"/>
+                    <Restriction>
+                        <onProperty rdf:resource="&obo;BFO_0000050"/>
+                        <someValuesFrom rdf:resource="&obo;CL_0000000"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000061"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;CL_0000000"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000477 -->
+
+    <Class rdf:about="&obo;UBERON_0000477">
+        <rdfs:label rdf:datatype="&xsd;string">anatomical cluster</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000480"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000479 -->
+
+    <Class rdf:about="&obo;UBERON_0000479">
+        <rdfs:label rdf:datatype="&xsd;string">tissue</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0010000"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000468"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000480 -->
+
+    <Class rdf:about="&obo;UBERON_0000480">
+        <rdfs:label rdf:datatype="&xsd;string">anatomical group</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000061"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000468"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000922 -->
+
+    <Class rdf:about="&obo;UBERON_0000922">
+        <rdfs:label rdf:datatype="&xsd;string">embryo</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000468"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000923 -->
+
+    <Class rdf:about="&obo;UBERON_0000923">
+        <rdfs:label rdf:datatype="&xsd;string">germ layer</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0010316"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000922"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002202"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0002532"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0000924 -->
+
+    <Class rdf:about="&obo;UBERON_0000924">
+        <rdfs:label rdf:datatype="&xsd;string">ectoderm</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000923"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom rdf:resource="&obo;CL_0000221"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002202"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0006601"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0001016 -->
+
+    <Class rdf:about="&obo;UBERON_0001016">
+        <rdfs:label rdf:datatype="&xsd;string">nervous system</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000467"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0001017 -->
+
+    <Class rdf:about="&obo;UBERON_0001017">
+        <rdfs:label rdf:datatype="&xsd;string">central nervous system</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0004121"/>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0011216"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0001016"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002202"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000924"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0001062 -->
+
+    <Class rdf:about="&obo;UBERON_0001062">
+        <rdfs:label rdf:datatype="&xsd;string">anatomical entity</rdfs:label>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0002050 -->
+
+    <Class rdf:about="&obo;UBERON_0002050">
+        <rdfs:label rdf:datatype="&xsd;string">embryonic structure</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&obo;UBERON_0000061"/>
+                    <Restriction>
+                        <onProperty rdf:resource="&obo;BFO_0000050"/>
+                        <someValuesFrom rdf:resource="&obo;UBERON_0000922"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000061"/>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0005423"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000922"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0002532 -->
+
+    <Class rdf:about="&obo;UBERON_0002532">
+        <rdfs:label rdf:datatype="&xsd;string">epiblast (generic)</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0002050"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom rdf:resource="&obo;CL_0000352"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0004121 -->
+
+    <Class rdf:about="&obo;UBERON_0004121">
+        <rdfs:label rdf:datatype="&xsd;string">ectoderm-derived structure</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&obo;UBERON_0000061"/>
+                    <Restriction>
+                        <onProperty rdf:resource="&obo;RO_0002202"/>
+                        <someValuesFrom rdf:resource="&obo;UBERON_0000924"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000061"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002202"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000924"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0005291 -->
+
+    <Class rdf:about="&obo;UBERON_0005291">
+        <rdfs:label rdf:datatype="&xsd;string">embryonic tissue</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&obo;UBERON_0000479"/>
+                    <Restriction>
+                        <onProperty rdf:resource="&obo;BFO_0000050"/>
+                        <someValuesFrom rdf:resource="&obo;UBERON_0000922"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000479"/>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0002050"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0002050"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000922"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0005423 -->
+
+    <Class rdf:about="&obo;UBERON_0005423">
+        <rdfs:label rdf:datatype="&xsd;string">developing anatomical structure</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000465"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0006598 -->
+
+    <Class rdf:about="&obo;UBERON_0006598">
+        <rdfs:label rdf:datatype="&xsd;string">presumptive structure</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0005423"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000922"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0006601 -->
+
+    <Class rdf:about="&obo;UBERON_0006601">
+        <rdfs:label rdf:datatype="&xsd;string">presumptive ectoderm</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0006598"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0010000 -->
+
+    <Class rdf:about="&obo;UBERON_0010000">
+        <rdfs:label rdf:datatype="&xsd;string">multicellular anatomical structure</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000061"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000468"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0010316 -->
+
+    <Class rdf:about="&obo;UBERON_0010316">
+        <rdfs:label rdf:datatype="&xsd;string">germ layer / neural crest</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0005291"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;RO_0002202"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0002532"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UBERON_0011216 -->
+
+    <Class rdf:about="&obo;UBERON_0011216">
+        <rdfs:label rdf:datatype="&xsd;string">organ system subdivision</rdfs:label>
+        <rdfs:subClassOf rdf:resource="&obo;UBERON_0000477"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="&obo;BFO_0000050"/>
+                <someValuesFrom rdf:resource="&obo;UBERON_0000467"/>
+            </Restriction>
+        </rdfs:subClassOf>
+    </Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <Axiom>
+        <oboInOwl:hasVariable rdf:resource="&obo;CL_0000540"/>
+        <oboInOwl:hasVariable rdf:resource="&obo;PATO_0000051"/>
+        <annotatedProperty rdf:resource="&rdfs;subClassOf"/>
+        <annotatedTarget>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                    <Restriction>
+                        <onProperty rdf:resource="&obo;BFO_0000052"/>
+                        <someValuesFrom rdf:resource="&obo;CL_0000540"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </annotatedTarget>
+        <annotatedSource>
+            <Restriction>
+                <rdfs:subClassOf>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;CL_0000540"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </rdfs:subClassOf>
+                <onProperty rdf:resource="&obo;BFO_0000051"/>
+                <someValuesFrom>
+                    <Class>
+                        <intersectionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="&obo;PATO_0000051"/>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;BFO_0000052"/>
+                                <someValuesFrom rdf:resource="&obo;CL_0000540"/>
+                            </Restriction>
+                            <Restriction>
+                                <onProperty rdf:resource="&obo;RO_0002180"/>
+                                <someValuesFrom rdf:resource="&obo;PATO_0000460"/>
+                            </Restriction>
+                        </intersectionOf>
+                    </Class>
+                </someValuesFrom>
+            </Restriction>
+        </annotatedSource>
+    </Axiom>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.4.2) http://owlapi.sourceforge.net -->
+
