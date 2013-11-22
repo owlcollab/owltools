@@ -63,8 +63,10 @@ public class SpeciesSubsetterUtil {
 	String[] defaultRelationsToRemove =
 	{
 		"evolved_from",
-		"homologous_to"
-		
+		"homologous_to",
+		"evolved_multiple_times_in",
+		//"shares ancestor with"
+		"RO:0002158"
 	};
 
 	public SpeciesSubsetterUtil(OWLGraphWrapper g) {
@@ -89,18 +91,20 @@ public class SpeciesSubsetterUtil {
 		}
 		LOG.info("View property = "+viewProperty);
 
-		Set<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
+		//Set<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (String p : defaultRelationsToRemove) {
 			IRI iri = graph.getIRIByIdentifier(p);
 			OWLObjectProperty prop = fac.getOWLObjectProperty(iri);
-			LOG.info(" FILTERING: "+prop);
-			//props.add(prop);
-			for (OWLAxiom ax : ont.getAxioms()) {
-				if (ax.getObjectPropertiesInSignature().contains(prop)) {
-					LOG.info("REMOVING:"+ax);
-					rmAxioms.add(ax);
-				}
+			if (prop != null) {
+			    LOG.info(" FILTERING: "+prop);
+			    //props.add(prop);
+			    for (OWLAxiom ax : ont.getAxioms()) {
+			        if (ax.getObjectPropertiesInSignature().contains(prop)) {
+			            LOG.info("REMOVING:"+ax);
+			            rmAxioms.add(ax);
+			        }
+			    }
 			}
 		}
 
