@@ -48,10 +48,7 @@ public class OWLGraphWrapperEdgesExtendedTest
 //	}
 	
 	/**
-	 * Load the (really basic) ontology <code>/ontologies/OWLGraphManipulatorTest.obo</code> 
-	 * into {@link #wrapper}.
-	 * It is loaded before the execution of each test, so that a test can modify it 
-	 * without impacting another test.
+	 * Load the ontology <code>/graph/OWLGraphManipulatorTest.obo</code> into {@link #wrapper}.
 	 *  
 	 * @throws OWLOntologyCreationException 
 	 * @throws OBOFormatParserException
@@ -66,7 +63,7 @@ public class OWLGraphWrapperEdgesExtendedTest
 		log.debug("Wrapping test ontology into CustomOWLGraphWrapper...");
 		ParserWrapper parserWrapper = new ParserWrapper();
         OWLOntology ont = parserWrapper.parse(OWLGraphWrapperEdgesExtendedTest.class.getResource(
-        		"/ontologies/OWLGraphManipulatorTest.obo").getFile());
+        		"/graph/OWLGraphManipulatorTest.obo").getFile());
     	wrapper = new OWLGraphWrapper(ont);
 		log.debug("Done wrapping test ontology into CustomOWLGraphWrapper.");
 	}

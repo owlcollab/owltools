@@ -12,12 +12,14 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
@@ -32,7 +34,7 @@ import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 	
 	/**
-	 * A cache for super properties relations. Each <code>OWLObjectPropertyExpression</code> 
+	 * A cache for super property relations. Each <code>OWLObjectPropertyExpression</code> 
 	 * is associated in the <code>Map</code> to a <code>LinkedHashSet</code> of 
 	 * <code>OWLObjectPropertyExpression</code>s, that contains its super properties, 
 	 * ordered from the more specific to the more general 
@@ -43,7 +45,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 	    superPropertyCache;
 	
 	/**
-	 * A cache for sub-properties relations. Each <code>OWLObjectPropertyExpression</code> 
+	 * A cache for sub-property relations. Each <code>OWLObjectPropertyExpression</code> 
 	 * is associated in the <code>Map</code> to a <code>LinkedHashSet</code> of 
 	 * <code>OWLObjectPropertyExpression</code>s, that contains its sub-properties, 
 	 * ordered from the more general to the more specific 
@@ -52,6 +54,16 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 	 */
 	private Map<OWLObjectPropertyExpression, LinkedHashSet<OWLObjectPropertyExpression>>
 	    subPropertyCache;
+
+    /**
+     * A cache for relations to sub annotation properties. Each <code>OWLAnnotationProperty</code> 
+     * is associated in the <code>Map</code> to a <code>LinkedHashSet</code> of 
+     * <code>OWLAnnotationProperty</code>s, that contains its sub-properties, 
+     * ordered from the more general to the more specific 
+     * @see #getSubAnnotationPropertyClosureOf(OWLAnnotationProperty)
+     */
+    private Map<OWLAnnotationProperty, LinkedHashSet<OWLAnnotationProperty>>
+        subAnnotationPropertyCache;
 
 	/**
 	 * Default constructor. 
@@ -64,6 +76,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 		super(ontology);
     	this.subPropertyCache = new HashMap<OWLObjectPropertyExpression, 
     			LinkedHashSet<OWLObjectPropertyExpression>>();
+        this.subAnnotationPropertyCache = new HashMap<OWLAnnotationProperty, 
+                LinkedHashSet<OWLAnnotationProperty>>();
     	this.superPropertyCache = new HashMap<OWLObjectPropertyExpression, 
     			LinkedHashSet<OWLObjectPropertyExpression>>();
 	}
@@ -91,6 +105,98 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      */
     public boolean isOWLObjectInSubsets(OWLObject testObject, Collection<String> subsets) {
     	return !Collections.disjoint(subsets, this.getSubsets(testObject));
+    }
+    
+
+    /**
+     * Returns the direct child properties of <code>prop</code> in all ontologies.
+     * @param prop      The <code>OWLAnnotationProperty</code> for which 
+     *                  we want the direct sub-properties.
+     * @return          A <code>Set</code> of <code>OWLAnnotationProperty</code>s 
+     *                  that are the direct sub-properties of <code>prop</code>.
+     * 
+     * @see #getSubPropertyClosureOf(OWLObjectPropertyExpression)
+     * @see #getSubPropertyReflexiveClosureOf(OWLObjectPropertyExpression)
+     */
+    public Set<OWLAnnotationProperty> getSubAnnotationPropertiesOf(
+            OWLAnnotationProperty prop) {
+        Set<OWLAnnotationProperty> subProps = new HashSet<OWLAnnotationProperty>();
+        for (OWLOntology ont : this.getAllOntologies()) {
+            //we need to iterate each annotation property, to get 
+            //its getSubAnnotationPropertyOfAxioms and see if prop is its parent 
+            //(there is no method "getSuperAnnotationPropertyOfAxioms").
+            for (OWLAnnotationProperty subProp : ont.getAnnotationPropertiesInSignature()) {
+                for (OWLSubAnnotationPropertyOfAxiom ax: 
+                        ont.getSubAnnotationPropertyOfAxioms(subProp)) {
+                    if (ax.getSuperProperty().equals(prop)) {
+                        subProps.add(subProp);
+                    }
+                }
+            }
+        }
+        return subProps;
+    }
+    /**
+     * Returns all child properties of <code>prop</code> in all ontologies,  
+     * ordered from the more general (closer from <code>prop</code>) to the more precise. 
+     * 
+     * @param prop  the <code>OWLAnnotationProperty</code> for which we want 
+     *              the ordered sub-properties. 
+     * @return      A <code>LinkedHashSet</code> of <code>OWLAnnotationProperty</code>s 
+     *              ordered from the more general to the more precise.
+     * 
+     * @see #getSubAnnotationPropertiesOf(OWLAnnotationProperty)
+     * @see #getSubAnnotationPropertyReflexiveClosureOf(OWLAnnotationProperty)
+     */
+    //TODO: DRY, it is almost the same code than getSubPropertyClosureOf
+    public LinkedHashSet<OWLAnnotationProperty> getSubAnnotationPropertyClosureOf(
+            OWLAnnotationProperty prop) {
+        //try to get the sub-properties from the cache
+        LinkedHashSet<OWLAnnotationProperty> subProps = 
+                this.subAnnotationPropertyCache.get(prop);
+        if (subProps != null) {
+            return subProps;
+        }
+        subProps = new LinkedHashSet<OWLAnnotationProperty>();
+        Stack<OWLAnnotationProperty> stack = new Stack<OWLAnnotationProperty>();
+        stack.add(prop);
+        while (!stack.isEmpty()) {
+            OWLAnnotationProperty nextProp = stack.pop();
+            Set<OWLAnnotationProperty> directSubs = this.getSubAnnotationPropertiesOf(nextProp);
+            directSubs.removeAll(subProps);
+            stack.addAll(directSubs);
+            subProps.addAll(directSubs);
+        }
+        //put the sub-properties in cache
+        this.subAnnotationPropertyCache.put(prop, subProps);
+        
+        return subProps;
+    }
+    /**
+     * Returns all sub-properties of <code>prop</code> in all ontologies, 
+     * and <code>prop</code> itself as the first element (reflexive). 
+     * The returned sub-properties are ordered from the more general (the closest 
+     * from <code>prop</code>) to the more precise.
+     * 
+     * @param prop  the <code>OWLAnnotationProperty</code> for which we want 
+     *              the ordered sub-properties. 
+     * @return      A <code>LinkedHashSet</code> of <code>OWLAnnotationProperty</code>s 
+     *              ordered from the more general to the more precise, with <code>prop</code> 
+     *              as the first element. 
+     * 
+     * @see #getSubAnnotationPropertiesOf(OWLAnnotationProperty)
+     * @see #getSubAnnotationPropertyClosureOf(OWLAnnotationProperty)
+     */
+    public LinkedHashSet<OWLAnnotationProperty> getSubAnnotationPropertyReflexiveClosureOf(
+            OWLAnnotationProperty prop) {
+        
+        LinkedHashSet<OWLAnnotationProperty> subProps = 
+                new LinkedHashSet<OWLAnnotationProperty>();
+        
+        subProps.add(prop);
+        subProps.addAll(this.getSubAnnotationPropertyClosureOf(prop));
+        
+        return subProps;
     }
     
     /**

@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.obolibrary.org/obo/test#"
+     xml:base="http://purl.obolibrary.org/obo/test.owl"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:foaf="http://xmlns.com/foaf/0.1/"
+     xmlns:terms="http://purl.org/dc/terms/"
+     xmlns:uberon="http://purl.obolibrary.org/obo/uberon#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:core="http://purl.obolibrary.org/obo/uberon/core#"
+     xmlns:doap="http://usefulinc.com/ns/doap#"
+     xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#">
+    <owl:Ontology rdf:about="http://purl.obolibrary.org/obo/uberon/ext.owl">
+        <oboInOwl:hasOBOFormatVersion rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1.2</oboInOwl:hasOBOFormatVersion>
+        <oboInOwl:treat-xrefs-as-reverse-genus-differentia rdf:datatype="http://www.w3.org/2001/XMLSchema#string">AAO part_of NCBITaxon:8292</oboInOwl:treat-xrefs-as-reverse-genus-differentia>
+    </owl:Ontology>
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#SubsetProperty -->
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#SubsetProperty">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">subset_property</rdfs:label>
+    </owl:AnnotationProperty>
+
+
+    <!-- http://purl.obolibrary.org/obo/uberon/core#grouping_class -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/uberon/core#grouping_class">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Subset consisting of classes creating for grouping purposes</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.geneontology.org/formats/oboInOwl#SubsetProperty"/>
+    </owl:AnnotationProperty>
+
+
+    <!-- http://purl.obolibrary.org/obo/uberon/core#fake1 -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/uberon/core#fake1">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fake1</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/uberon/core#grouping_class"/>
+    </owl:AnnotationProperty>
+
+
+    <!-- http://purl.obolibrary.org/obo/uberon/core#fake2 -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/uberon/core#fake2">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fake2</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/uberon/core#grouping_class"/>
+    </owl:AnnotationProperty>
+
+
+    <!-- http://purl.obolibrary.org/obo/uberon/core#lonely -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/uberon/core#lonely">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">lonely</rdfs:comment>
+    </owl:AnnotationProperty>
+</rdf:RDF>
