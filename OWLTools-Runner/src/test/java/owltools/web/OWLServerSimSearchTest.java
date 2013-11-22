@@ -47,7 +47,7 @@ public class OWLServerSimSearchTest {
 	public void testServerCommunication() throws Exception {
 		g = loadOntology("../OWLTools-Sim/src/test/resources/sim/mp-subset-1.obo");
 		
-		ABoxUtils.createRandomClassAssertions(g.getSourceOntology(), 100, 20);
+		ABoxUtils.createRandomClassAssertions(g.getSourceOntology(), 200, 20);
 		// set sim
 		OwlSimFactory owlSimFactory = new FastOwlSimFactory();
 		OwlSim sos = owlSimFactory.createOwlSim(g.getSourceOntology());

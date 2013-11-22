@@ -56,7 +56,7 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 
 		//create a variety of sim property files and test here
 		//this one tests that it runs with the default properties
-		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100run1.out");
+		run("--fsim-basic -p "+path("test-sim.properties") + " -o target/test100run1.out");
 
 		// test with a fresh instance
 		runner = createCommandRunner();
@@ -69,7 +69,7 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--sim-load-lcs-cache target/lcs-cache");
 		run("--sim-load-ic-cache target/ic-cache.ttl");
 		//TODO
-		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100run2.out");
+		run("--fsim-basic -p "+path("test-sim.properties") + " -o target/test100run2.out");
 
 
 	}
@@ -80,7 +80,7 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		load("mp.obo");
 		run("--load-instances "+path("mgi-g2p-100.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
-		run("--sim-basic -p "+path("default-sim.properties")+ " -o target/test100.default-sim.out");	
+		run("--fsim-basic -p "+path("default-sim.properties")+ " -o target/test100.default-sim.out");	
 		run("--show-sim-properties");
 //		run("--sim-basic -o target/test100.default.out");		
 	}
@@ -91,7 +91,7 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		load("mp.obo");
 		run("--load-instances "+path("mgi-g2p-100.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
-		run("--sim-basic -o target/test100.default.out");		
+		run("--fsim-basic -o target/test100.default.out");		
 		run("--show-sim-properties");
 	}	
 	
