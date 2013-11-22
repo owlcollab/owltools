@@ -805,8 +805,14 @@ public class CommandRunner {
 
 			}
 			else if (opts.nextEq("--translate-xrefs-to-equivs")) {
-				// TODO
-				//g.getXref(c);
+				for (OWLClass c : g.getAllOWLClasses()) {
+					for (String x : g.getXref(c)) {
+						IRI iri = g.getIRIByIdentifier(x);
+						g.getManager().addAxiom(g.getSourceOntology(), 
+								g.getDataFactory().getOWLEquivalentClassesAxiom(c,
+										g.getDataFactory().getOWLClass(iri)));
+					}
+				}
 			}
 			else if (opts.nextEq("--repair-relations")) {
 				opts.info("", "replaces un-xrefed relations with correct IRIs");
@@ -2594,6 +2600,27 @@ public class CommandRunner {
 					throw new OptionException(msg);
 				}
 
+			}
+			else if (opts.nextEq("--filter-axioms")) {
+				Set<AxiomType> types = new HashSet<AxiomType>();
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-t|--axiom-type")) {
+						types.add( AxiomType.getAxiomType(opts.nextOpt()) );
+					}
+					else {
+						break;
+					}
+				}
+				for (OWLOntology o : g.getSourceOntology().getImportsClosure()) {
+					Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+					for (OWLAxiom ax :  o.getAxioms()) {
+						if (!types.contains(ax.getAxiomType())) {
+							rmAxioms.add(ax);
+						}
+					}
+					LOG.info("Removing axioms: "+rmAxioms.size());
+					g.getManager().removeAxioms(o, rmAxioms);
+				}
 			}
 			else if (opts.nextEq("--remove-axioms")) {
 				AxiomType t = null;

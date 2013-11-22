@@ -92,7 +92,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	OwlSim owlsim; // simple owlsim
 
 
-	OwlSimFactory owlSimFactory = new SimpleOwlSimFactory();
+	OwlSimFactory owlSimFactory = new FastOwlSimFactory();
 
 	SimPreProcessor pproc;
 
@@ -1478,6 +1478,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		opts.info("INFILE", "loads ICs from RDF/turtle cache");
 		if (owlsim == null) {
 			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			owlsim.createElementAttributeMapFromOntology();
 		}
 		OWLOntology o = 
 				g.getManager().loadOntologyFromOntologyDocument(opts.nextFile());
@@ -1589,7 +1590,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	private String render(EnrichmentResult r, OWLPrettyPrinter owlpp) {
 		return owlpp.render(r.sampleSetClass) + "\t"
 				+ owlpp.render(r.enrichedClass) + "\t" + r.pValue + "\t"
-				+ r.pValueCorrected;
+				+ r.pValueCorrected +"t"
+				+ r.eiSetSize +"t"
+				+ r.enrichedClassSize +"t"
+				+ r.sampleSetClassSize +"t"
+				+ r.populationClassSize;
 	}
 
 
@@ -1849,6 +1854,35 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	 */
 	@CLIMethod("--show-instance-IC-values")
 	public void instanceICValues(Opts opts) throws Exception {
+		try {
+			loadProperties(opts);
+			if (owlsim == null) {
+				owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+				owlsim.createElementAttributeMapFromOntology();
+			}
+			Set<OWLNamedIndividual> insts = owlsim.getAllElements();
+			LOG.info("Writing IC values for all " + insts.size() + " annotations.");
+
+			for (OWLNamedIndividual i : insts) {
+				for (OWLClass c : owlsim.getAttributesForElement(i)) {
+					resultOutStream.print(g.getIdentifier(i));
+					resultOutStream.print("\t");
+					resultOutStream.print(g.getIdentifier(c));
+					resultOutStream.print("\t");
+					resultOutStream.print(owlsim.getInformationContentForAttribute(c));
+					resultOutStream.println();
+					resultOutStream.flush();
+				}
+			}
+
+		} finally {
+			IOUtils.closeQuietly(resultOutStream);
+		}
+
+	}	
+
+	@Deprecated
+	public void OLDinstanceICValues(Opts opts) throws Exception {
 		try {
 			loadProperties(opts);
 			pproc = new NullSimPreProcessor();
