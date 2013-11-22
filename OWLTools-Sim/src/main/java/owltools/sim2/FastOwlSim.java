@@ -184,7 +184,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	@Override
 	public void createElementAttributeMapFromOntology() throws UnknownOWLClassException {
 		getReasoner().flush();
-		Set<OWLClass> cset = getSourceOntology().getClassesInSignature();
+		Set<OWLClass> cset = getSourceOntology().getClassesInSignature(true);
 		Set<OWLNamedIndividual> inds = getSourceOntology().getIndividualsInSignature(true);
 		LOG.info("|C|="+cset.size());
 		LOG.info("|I|="+inds.size());
@@ -1164,14 +1164,14 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			if (targetIdSpace != null && !j.getIRI().toString().contains("/"+targetIdSpace+"_")) {
 				continue;
 			}
-			LOG.info(" Comparing with:"+j);
+			//LOG.info(" Comparing with:"+j);
 			// SIMJ
 			EWAHCompressedBitmap jAttsBM = ancsBitmapCachedModifiable(j);
 			int cadSize = searchProfileBM.andCardinality(jAttsBM);
 			int cudSize = searchProfileBM.orCardinality(jAttsBM);
 			int simJPct = (cadSize * 100) / cudSize;
 			if (simJPct < minSimJPct) {
-				LOG.info("simJ pct too low : "+simJPct+" = "+cadSize+" / "+cudSize);
+				//LOG.info("simJ pct too low : "+simJPct+" = "+cadSize+" / "+cudSize);
 				continue;
 			}
 			ElementPairScores s = new ElementPairScores(null, j);
@@ -1355,9 +1355,15 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			OWLClass c1 = getOWLClassFromShortId(vals[0]);
 			OWLClass c2 = getOWLClassFromShortId(vals[1]);
 			OWLClass a = getOWLClassFromShortId(vals[3]);
-			int cix = classIndex.get(c1);
-			int dix = classIndex.get(c2);
-
+			Integer cix = classIndex.get(c1);
+			Integer dix = classIndex.get(c2);
+			if (cix == null) {
+				LOG.error("Unknown class: "+c1);
+			}
+			if (dix == null) {
+				LOG.error("Unknown class: "+c2);
+			}
+			
 			ciPairIsCached[cix][dix] = true;
 			//ciPairScaledScore[cix][dix] = (short)(Double.valueOf(vals[2]) * scaleFactor);
 			// TODO - set all IC caches
