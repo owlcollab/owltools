@@ -1348,6 +1348,8 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			e.printStackTrace();
 			throw new IOException("Cannot clear cache");
 		}
+		LOG.info("Loading LCS cache from "+fileName);
+
 		FileInputStream s = new FileInputStream(fileName);
 		List<String> lines = IOUtils.readLines(s);
 		for (String line : lines) {
@@ -1357,18 +1359,23 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			OWLClass a = getOWLClassFromShortId(vals[3]);
 			Integer cix = classIndex.get(c1);
 			Integer dix = classIndex.get(c2);
+			Integer aix = classIndex.get(a);
 			if (cix == null) {
-				LOG.error("Unknown class: "+c1);
+				LOG.error("Unknown class C: "+c1);
 			}
 			if (dix == null) {
-				LOG.error("Unknown class: "+c2);
+				LOG.error("Unknown class D: "+c2);
+			}
+			if (aix == null) {
+				LOG.error("Unknown ancestor class: "+aix);
 			}
 			
 			ciPairIsCached[cix][dix] = true;
 			//ciPairScaledScore[cix][dix] = (short)(Double.valueOf(vals[2]) * scaleFactor);
 			// TODO - set all IC caches
-			ciPairLCS[cix][dix] = classIndex.get(a);
+			ciPairLCS[cix][dix] = aix;
 		}
+		LOG.info("Finished loading LCS cache from "+fileName);
 		isLCSCacheFullyPopulated = true;
 	}
 
@@ -1382,12 +1389,14 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	@Override
 	protected void clearInformationContentCache() {
+		LOG.info("Clearing IC cache");
 		testCache = null;
 		icCache = new HashMap<OWLClass,Double>();
 		icClassArray = null;
 	}
 
 	protected void clearLCSCache() throws UnknownOWLClassException  {
+		LOG.info("Clearing LCS cache");
 		if (classArray == null) {
 			createElementAttributeMapFromOntology();
 		}
