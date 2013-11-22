@@ -346,6 +346,8 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 			ScoreAttributeSetPair[] saps = scores.iclcsMatrix.bestForC;
 			StringBuffer sb = new StringBuffer();
 			for (ScoreAttributeSetPair sap : saps) {
+				if (sap == null)
+					continue;
 				sb.append(show(sap.attributeClassSet, owlpp)+";");
 			}
 			vals.add(sb.toString()); // TODO

@@ -900,9 +900,16 @@ public interface OwlSim {
 	 * @param populationClass
 	 * @param sampleSetClass
 	 * @param enrichedClass
-	 * @return
+	 * @return enrichment result
 	 * @throws MathException
 	 */
 	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,
 			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException;
+
+	/**
+	 * @param c
+	 * @param d
+	 * @return P(c|d) = P(c &cap; d)|p(d)
+	 */
+	public abstract double getConditionalProbability(OWLClass c, OWLClass d);
 }

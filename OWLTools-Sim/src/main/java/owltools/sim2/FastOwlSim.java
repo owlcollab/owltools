@@ -970,6 +970,8 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				OWLClass d = ds.elementAt(dx);
 				int dix = classIndex.get(d);
 				ScoreAttributeSetPair sap = getLowestCommonSubsumerWithIC(cix,dix);
+				if (sap == null)
+					continue;
 				sapMatrix[cx][dx] = sap;
 				double score = sap.score;
 				total += score;
@@ -981,7 +983,8 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				}
 			}
 			bestSapForC[cx] = bestcsap;
-			bestMatchCTotal += bestcsap.score;
+			if (bestcsap != null)
+				bestMatchCTotal += bestcsap.score;
 		}
 
 		// retrieve best values for each D
@@ -989,12 +992,14 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			ScoreAttributeSetPair bestdsap = null;
 			for (int cx=0; cx<csize; cx++) {
 				ScoreAttributeSetPair sap = sapMatrix[cx][dx];
-				if (bestdsap == null || sap.score >= bestdsap.score) {
+				if (sap != null && (bestdsap == null || sap.score >= bestdsap.score)) {
 					bestdsap = sap;
 				}
 			}
-			bestSapForD[dx] = bestdsap;
-			bestMatchDTotal += bestdsap.score;
+			if (bestdsap != null) {
+				bestSapForD[dx] = bestdsap;
+				bestMatchDTotal += bestdsap.score;
+			}
 		}
 
 		// TODO - use these
@@ -1008,9 +1013,15 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		ijscores.iclcsMatrix.bestForC = bestSapForC;
 		ijscores.iclcsMatrix.bestForD = bestSapForD;
 
-
-		ijscores.maxIC = bestsap.score;
-		ijscores.maxICwitness = bestsap.attributeClassSet;
+		if (bestsap != null) {
+			ijscores.maxIC = bestsap.score;
+			ijscores.maxICwitness = bestsap.attributeClassSet;
+		}
+		else {
+			LOG.warn("No best S.A.P. for "+ijscores);
+			ijscores.maxIC = 0.0;
+			ijscores.maxICwitness = null;			
+		}
 
 	}
 
@@ -1157,7 +1168,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		for (OWLClass c : csetFilteredDirect) {
 			csetV.add(c);
 		}
-		
+
 
 		EWAHCompressedBitmap searchProfileBM = ancsBitmapCached(cset);
 		for (OWLNamedIndividual j : getAllElements()) {
@@ -1367,9 +1378,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				LOG.error("Unknown class D: "+c2);
 			}
 			if (aix == null) {
-				LOG.error("Unknown ancestor class: "+aix);
+				LOG.error("Unknown ancestor class: "+a);
 			}
-			
+
 			ciPairIsCached[cix][dix] = true;
 			//ciPairScaledScore[cix][dix] = (short)(Double.valueOf(vals[2]) * scaleFactor);
 			// TODO - set all IC caches

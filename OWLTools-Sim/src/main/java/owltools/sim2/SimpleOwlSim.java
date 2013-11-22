@@ -1227,6 +1227,10 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		return null;
 	}
 
+	public double getConditionalProbability(OWLClass c, OWLClass d) {
+		return 0;
+	}
+
 
 
 

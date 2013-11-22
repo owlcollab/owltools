@@ -309,6 +309,12 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return x.toString().replace(prefix, ""); // todo - do not hardcode
 	}
 	protected OWLClass getOWLClassFromShortId(String id) {
+		// todo - standardize this
+		if (id.equals("http://www.w3.org/2002/07/owl#Thing") ||
+				id.equals("Thing") ||
+				id.equals("owl:Thing")) {
+			return getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLThing();
+		}
 		return getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClass(IRI.create(prefix + id));
 	}
 	
@@ -433,7 +439,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 		// +" "+sampleSetClassSize+" "+enrichedClassSize);
 		Set<OWLNamedIndividual> eiSet = getElementsForAttribute(sampleSetClass);
 		eiSet.retainAll(this.getElementsForAttribute(enrichedClass));
-		if (eiSet.size() == 0) {
+		int eiSetSize = eiSet.size();
+		if (eiSetSize == 0) {
 			return null;
 		}
 		//LOG.info(" shared elements: "+eiSet.size()+" for "+enrichedClass);
@@ -448,7 +455,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 		double p = hg.cumulativeProbability(eiSet.size(),
 				Math.min(sampleSetClassSize, enrichedClassSize));
 		double pCorrected = p * getCorrectionFactor(populationClass);
-		return new EnrichmentResult(sampleSetClass, enrichedClass, p, pCorrected);
+		return new EnrichmentResult(sampleSetClass, enrichedClass, p, pCorrected, 
+				populationClassSize, sampleSetClassSize, enrichedClassSize, eiSetSize);
 	}
 
 	// hardcode bonferoni for now
@@ -469,6 +477,19 @@ public abstract class AbstractOwlSim implements OwlSim {
 			correctionFactor = n;
 		}
 		return correctionFactor;
+	}
+	
+	/**
+	 * @param c
+	 * @param d
+	 * @return P(c|d) = P(c^d|d)
+	 */
+	@Override
+	public double getConditionalProbability(OWLClass c, OWLClass d) {
+		Set<OWLNamedIndividual> cis = this.getElementsForAttribute(c);
+		Set<OWLNamedIndividual> dis = this.getElementsForAttribute(d);
+		cis.retainAll(dis);
+		return cis.size() / (double) dis.size();
 	}
 
 	// PROPS
