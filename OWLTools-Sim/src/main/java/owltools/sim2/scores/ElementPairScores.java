@@ -22,6 +22,8 @@ public class ElementPairScores implements PairScores<OWLNamedIndividual>, Compar
 	public Vector<OWLClass> cs;
 	public Vector<OWLClass> ds;
 	
+	public Integer combinedScore;
+	
 	public Double avgIC = null;
 	public Double maxIC = null;
 	public Set<OWLClass> maxICwitness = null;
@@ -75,7 +77,7 @@ public class ElementPairScores implements PairScores<OWLNamedIndividual>, Compar
 
 	@Override
 	public int compareTo(ElementPairScores s2) {
-		return s2.simGIC.compareTo(this.simGIC);
+		return s2.combinedScore.compareTo(this.combinedScore);
 	}
 
 	@Override

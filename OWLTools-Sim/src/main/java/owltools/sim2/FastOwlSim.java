@@ -196,6 +196,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		}
 		LOG.info("|N|="+nodes.size()); // TODO - use this
 
+		// classes are collapsed into nodes. Create a map from node to
+		// class, and a map of every class
+		// to the representative element from its node
 		representativeClassMap = new HashMap<Node<OWLClass>, OWLClass>();
 		classTorepresentativeClassMap = new HashMap<OWLClass, OWLClass>();
 		for (Node<OWLClass> n : nodes) {
@@ -910,6 +913,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		ElementPairScores s = new ElementPairScores(i,j);
 		populateSimilarityMatrix(i, j, s);
 		s.simGIC = getElementGraphInformationContentSimilarity(i, j);
+		s.combinedScore = (int) (s.simGIC * 100); // default - TODO - combined
 		return s;
 	}
 
@@ -1170,18 +1174,43 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			csetV.add(c);
 		}
 
-
+		// benchmarking
+		long tSimJ = 0;
+		int nSimJ = 0;
+		long tMaxIC = 0;
+		int nMaxIC = 0;
+		long tSimGIC = 0;
+		int nSimGIC = 0;
+		long tBMA = 0;
+		int nBMA = 0;
+		long startTime = System.currentTimeMillis();
+		
+		// for calculation of phenodigm score
+		double maxMaxIC = 0.0;
+		double maxBMA = 0.0;
+		
 		EWAHCompressedBitmap searchProfileBM = ancsBitmapCached(cset);
 		for (OWLNamedIndividual j : getAllElements()) {
 			if (targetIdSpace != null && !j.getIRI().toString().contains("/"+targetIdSpace+"_")) {
 				continue;
 			}
+			long t = System.currentTimeMillis();
 			//LOG.info(" Comparing with:"+j);
 			// SIMJ
 			EWAHCompressedBitmap jAttsBM = ancsBitmapCachedModifiable(j);
 			int cadSize = searchProfileBM.andCardinality(jAttsBM);
 			int cudSize = searchProfileBM.orCardinality(jAttsBM);
 			int simJPct = (cadSize * 100) / cudSize;
+			nSimJ++;
+			tSimJ += tdelta(t);
+			
+			if (nSimJ % 100 == 0) {
+				LOG.info("tSimJ = "+tSimJ +" / "+nSimJ);
+				LOG.info("tMaxIC = "+tMaxIC +" / "+nMaxIC);
+				LOG.info("tSimGIC = "+tSimGIC +" / "+nSimGIC);
+				LOG.info("tBMA = "+tBMA +" / "+nBMA);
+			}
+			
 			if (simJPct < minSimJPct) {
 				//LOG.info("simJ pct too low : "+simJPct+" = "+cadSize+" / "+cudSize);
 				continue;
@@ -1197,6 +1226,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			}
 
 			// MAXIC
+			// TODO - evaluate if this is optimal;
+			// MaxIC falls out of BMA calculation, but it may be useful
+			// to calculate here to test if more expensive AxA is required
+			t = System.currentTimeMillis();
 			ScoreAttributeSetPair best = new ScoreAttributeSetPair(0.0);
 			double icBest = 0;
 			double icSumCAD = 0;
@@ -1209,6 +1242,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				}
 				icSumCAD += ic;
 			}
+			tMaxIC += tdelta(t);
+			nMaxIC++;
+			if (icBest > maxMaxIC) {
+				maxMaxIC = icBest;
+			}
 			if (icBest < minMaxIC) {
 				LOG.info("maxIC too low : "+icBest);
 				continue;
@@ -1217,6 +1255,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			LOG.info("computing simGIC");
 
 			// SIMGIC
+			t = System.currentTimeMillis();
 			EWAHCompressedBitmap cud = searchProfileBM.or(jAttsBM);
 			double icSumCUD = 0;
 			for (int ix : cud.toArray()) {
@@ -1224,18 +1263,46 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				icSumCUD += ic;
 			}
 			s.simGIC = icSumCAD / icSumCUD;
+			tSimGIC += tdelta(t);
+			nSimGIC++;
 
+			// BEST MATCHES
+			t = System.currentTimeMillis();
 			Vector dsetV = new Vector<OWLClass>(atts.size());
 			for (OWLClass d : this.getAttributesForElement(j)) {
 				dsetV.add(d);
 			}
-			// BEST MATCHES
 			populateSimilarityMatrix(csetV, dsetV, s);
+			if (s.bmaSymIC > maxBMA) {
+				maxBMA = s.bmaAsymIC;
+			}
+			tBMA += tdelta(t);
+			nBMA++;
+			
 			scoreSets.add(s);
 		}
+		// calculate combined/phenodigm score
+		// TODO - 
+		calculateCombinedScores(scoreSets, maxMaxIC, maxBMA);
+		LOG.info("tSimJ = "+tSimJ +" / "+nSimJ);
+		LOG.info("tSearch = "+tdelta(startTime) +" / "+nSimJ);
 		LOG.info("Sorting "+scoreSets.size()+" matches");
 		Collections.sort(scoreSets);
 		return scoreSets;
+	}
+	
+	public void calculateCombinedScores(List<ElementPairScores> scoreSets,
+			double maxMaxIC, double maxBMA) {
+		int maxMaxIC100 = (int)(maxMaxIC * 100);
+		int maxBMA100 = (int)(maxBMA * 100);
+		LOG.info("Calculating combinedScores - upper bounds = "+maxMaxIC100+ " " + maxBMA100);
+		// TODO - optimize this by using % scores as inputs
+		for (ElementPairScores s : scoreSets) {
+			int pctMaxScore = ((int) (s.maxIC * 10000)) / maxMaxIC100;
+			int pctAvgScore = ((int) (s.bmaSymIC * 10000)) / maxMaxIC100;
+			s.combinedScore = (pctMaxScore + pctAvgScore)/2;
+		}
+		
 	}
 
 

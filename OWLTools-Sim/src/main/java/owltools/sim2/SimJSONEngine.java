@@ -42,8 +42,9 @@ public class SimJSONEngine {
 			String targetIdSpace,
 			boolean isIgnoreUnknownClasses) throws UnknownOWLClassException {
 		Set<OWLClass> known = sos.getAllAttributeClasses();
-		Set<OWLClass> filteredClasses = sos.getAllAttributeClasses();
+		Set<OWLClass> filteredClasses = new HashSet<OWLClass>();
 		
+		Set<String> ids = new HashSet<String>();
 		for (OWLClass objA : objAs) {
 			if (!known.contains(objA)) {
 				if (isIgnoreUnknownClasses)
@@ -51,6 +52,7 @@ public class SimJSONEngine {
 				throw new UnknownOWLClassException(objA);
 			}
 			filteredClasses.add(objA);
+			ids.add(objA.getIRI().toString());
 		}
 		LOG.info("Finding matches for :"+filteredClasses);
 		LOG.info("OwlSim = "+sos);
@@ -63,14 +65,22 @@ public class SimJSONEngine {
 			Map mObj = new HashMap();
 			makeObjAndSet(mObj, "i", m.i);
 			makeObjAndSet(mObj, "j", m.j);
+			mObj.put("combinedScore", m.combinedScore);
 			mObj.put("maxIC", m.maxIC);
-			mObj.put("maxIC_class",makeObj(m.maxICwitness.iterator().next()));
+			mObj.put("bmaSymIC", m.bmaSymIC);
+			mObj.put("bmaAsymIC", m.bmaAsymIC);
+			mObj.put("bmaInverseAsymIC", m.bmaInverseAsymIC);
+			if (m.maxICwitness != null) {
+				mObj.put("maxIC_class",makeObj(m.maxICwitness.iterator().next()));
+			}
 			mObj.put("simJ", m.simjScore);
 			mObj.put("simGIC", m.simGIC);
 			matchObjs.add(mObj);
 		}
-		
-		return gson.toJson(matchObjs);
+		Map payload = new HashMap();
+		payload.put("query_IRIs", ids);
+		payload.put("results", matchObjs);
+		return gson.toJson(payload);
 	}
 	/**
 	 * @param objAs
@@ -98,12 +108,14 @@ public class SimJSONEngine {
 		List<Map> pairs = new ArrayList<Map>();
 		for (OWLClass objA : objAs) {
 			if (!known.contains(objA)) {
+				LOG.info("Unknown class: "+objA);
 				if (isIgnoreUnknownClasses)
 					continue;
 				throw new UnknownOWLClassException(objA);
 			}
 			for (OWLClass objB : objBs) {
 				if (!known.contains(objB)) {
+					LOG.info("Unknown class: "+objB);
 					if (isIgnoreUnknownClasses)
 						continue;
 					throw new UnknownOWLClassException(objB);

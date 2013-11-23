@@ -768,6 +768,10 @@ public interface OwlSim {
 		}
 
 		/**
+		 * Combined/Summary score
+		 * 
+		 * May vary depending on the method used
+		 * 
 		 * @param score
 		 */
 		public ScoreAttributeSetPair(double score) {
