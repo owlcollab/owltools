@@ -137,8 +137,8 @@ public class OWLServerSimSearchTest {
 	 * @param responseContent
 	 */
 	protected void handleResponse(String responseContent) {
-		if (responseContent.length() > 1000) {
-			System.out.println("0.."+responseContent.length() + " => "+responseContent.substring(0, 1000));
+		if (responseContent.length() > 10000) {
+			System.out.println("0.."+responseContent.length() + " => "+responseContent.substring(0, 10000));
 		}
 		else {
 			System.out.println(responseContent);
