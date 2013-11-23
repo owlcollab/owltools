@@ -29,10 +29,10 @@ public class Sim2MapOntologyCommandRunnerTest extends AbstractCommandRunnerTest 
 		run("--make-ontology-from-results http://x.org");
 		run("--load-instances "+path("mgi-g2p-1000.txt"));
 		run("--remove-dangling-annotations");
-		run("-o file:///tmp/foo.owl");
+		run("-o target/ns-test.owl");
 		run("--reasoner elk");
 		run("--map-abox-to-namespace http://purl.obolibrary.org/obo/HP_");
-		run("--sim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
+		run("--fsim-basic -p "+path("test-sim.properties") + " -o target/test100.out");
 		run("-o -f obo /tmp/foo.obo");
 		
 	}
