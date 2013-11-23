@@ -50,7 +50,7 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--load-labels "+path("mgi-labels.txt"));
 		//load("Mus_musculus-label.owl");
 		//load("Mus_musculus-label.obo");
-		//run("--sim-compare-atts -p "+path("test-sim.properties"));
+		//run("--fsim-compare-atts");
 		run("--sim-save-lcs-cache -m 3.0 target/lcs-cache"); 
 		run("--sim-save-ic-cache target/ic-cache.ttl");
 
