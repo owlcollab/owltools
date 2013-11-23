@@ -1424,10 +1424,12 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			}
 		}
 
-		// No SOS object, so all by all has not yet been calculated
+		// No Sim object, so all by all has not yet been calculated
 		if (owlsim == null) {
 			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
 			owlsim.createElementAttributeMapFromOntology();
+			
+			// todo: don't set this if we have previously compared all attributes
 			owlsim.setNoLookupForLCSCache(true);
 			Set<OWLClass> atts = owlsim.getAllAttributeClasses();
 			LOG.info("Number of attribute classes: "+atts.size());
@@ -1463,6 +1465,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		opts.info("OUTFILE", "saves ICs as RDF/turtle cache");
 		if (owlsim == null) {
 			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			owlsim.createElementAttributeMapFromOntology();
 		}
 		OWLOntology o = owlsim.cacheInformationContentInOntology();
 		TurtleOntologyFormat fmt = new TurtleOntologyFormat();
