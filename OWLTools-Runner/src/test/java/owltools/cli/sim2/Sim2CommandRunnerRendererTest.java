@@ -22,7 +22,7 @@ public class Sim2CommandRunnerRendererTest extends AbstractCommandRunnerTest {
 		load("mp.obo");
 		run("--load-instances "+path("mgi-g2p-100.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
-		run("--sim-basic -p "+path("test-sim-txt.properties") + " -o target/testRendererTXT.out");
+		run("--fsim-basic -p "+path("test-sim-txt.properties") + " -o target/testRendererTXT.out");
 	}
 
 	@Test
@@ -30,7 +30,7 @@ public class Sim2CommandRunnerRendererTest extends AbstractCommandRunnerTest {
 		load("mp.obo");
 		run("--load-instances "+path("mgi-g2p-100.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
-		run("--sim-basic -p "+path("test-sim-row.properties") + " -o target/testRendererROW.out");
+		run("--fsim-basic -p "+path("test-sim-row.properties") + " -o target/testRendererROW.out");
 	}
 
 	@Test
@@ -38,7 +38,7 @@ public class Sim2CommandRunnerRendererTest extends AbstractCommandRunnerTest {
 		load("mp.obo");
 		run("--load-instances "+path("mgi-g2p-100.txt"));
 		run("--load-labels "+path("mgi-labels.txt"));
-		run("--sim-basic -p "+path("test-sim-json.properties") + " -o target/testRendererJSON.out");
+		run("--fsim-basic -p "+path("test-sim-json.properties") + " -o target/testRendererJSON.out");
 	}
 
 	
