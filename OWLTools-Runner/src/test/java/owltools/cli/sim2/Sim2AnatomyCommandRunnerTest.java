@@ -34,7 +34,7 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 		load("autopod-parts.obo");
 		run("--load-instances "+path("autopod-data-test.txt"));
 		//run("--sim-compare-atts -p "+path("test-sim.properties"));
-		run("--sim-basic -p "+path("test-sim.properties") + " -o target/autopod-test1.out");
+		run("--fsim-basic -p "+path("test-sim.properties") + " -o target/autopod-test1.out");
 		//run("--sim-basic");
 		
 		//run("-o -f obo /tmp/foo.obo");
@@ -55,7 +55,7 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 		load("autopod.obo");
 		run("--load-instances "+path("autopod-data-test.txt"));
 		//run("--sim-compare-atts -p "+path("test-sim.properties"));
-		run("--sim-basic -p "+path("test-sim.properties") + " -o target/autopod-test2.out");
+		run("--fsim-basic -p "+path("test-sim.properties") + " -o target/autopod-test2.out");
 		//run("--sim-basic");
 		
 		//run("-o -f obo /tmp/foo.obo");
@@ -83,7 +83,7 @@ public class Sim2AnatomyCommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--set-sim-property analysisRelation BFO:0000050");
 		run("--load-instances -p BFO:0000050 "+path("autopod-data-test.txt"));
 		//run("--sim-compare-atts -p "+path("test-sim.properties"));
-		run("--sim-basic -p "+path("test-sim.properties") + " -o target/autopod-test3.out");
+		run("--fsim-basic -p "+path("test-sim.properties") + " -o target/autopod-test3.out");
 		//run("--sim-basic");
 		run("--show-sim-properties");
 		run("-o target/autopod-parts-sim.owl");
