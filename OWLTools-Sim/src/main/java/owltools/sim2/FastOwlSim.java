@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -1362,8 +1363,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		LOG.info("Loading LCS cache from "+fileName);
 
 		FileInputStream s = new FileInputStream(fileName);
-		List<String> lines = IOUtils.readLines(s);
-		for (String line : lines) {
+		//List<String> lines = IOUtils.readLines(s);
+		LineIterator itr = IOUtils.lineIterator(s, null);
+		while (itr.hasNext()) {
+			//for (String line : lines) {
+			String line = itr.nextLine();
 			String[] vals = line.split("\t");
 			OWLClass c1 = getOWLClassFromShortId(vals[0]);
 			OWLClass c2 = getOWLClassFromShortId(vals[1]);
@@ -1386,6 +1390,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			// TODO - set all IC caches
 			ciPairLCS[cix][dix] = aix;
 		}
+		s.close();
 		LOG.info("Finished loading LCS cache from "+fileName);
 		isLCSCacheFullyPopulated = true;
 	}
