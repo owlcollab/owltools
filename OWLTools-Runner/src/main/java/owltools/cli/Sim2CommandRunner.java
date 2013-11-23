@@ -1097,6 +1097,11 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		owlSimFactory = new FastOwlSimFactory();
 	}
 
+	@CLIMethod("--use-simple-owlsim")
+	public void useSimpleOwlSim(Opts opts) throws Exception {
+		owlSimFactory = new SimpleOwlSimFactory();
+	}
+
 	@CLIMethod("--fsim-find-matches")
 	public void fsimFindMatches(Opts opts) throws Exception {
 		// assumes that individuals in abox are of types named classes in tbox
