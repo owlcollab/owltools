@@ -621,6 +621,7 @@ public class OWLHandler {
 	private Set<OWLClass> resolveClassList(Param p) {
 		String[] ids = getParams(p);
 		Set<OWLClass> objs = new HashSet<OWLClass>();
+		LOG.info("Param "+p+" IDs: "+ids);
 		for (String id : ids) {
 			OWLClass c = graph.getOWLClassByIdentifier(id);
 			if (c == null) {
@@ -630,6 +631,7 @@ public class OWLHandler {
 			}
 			objs.add(c);
 		}
+		LOG.info("Num objs: "+objs.size());
 		return objs;
 	}
 
