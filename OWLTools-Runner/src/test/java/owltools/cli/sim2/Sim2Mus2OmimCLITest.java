@@ -19,23 +19,24 @@ public class Sim2Mus2OmimCLITest extends AbstractCommandRunnerTest {
 		runner = new Sim2CommandRunner();
 	}
 
-	@Test
-	public void testMus2Omim() throws Exception {
-		init();
-		load("mp.obo");
-		load("hp.obo");
-		load("mp_hp-align-equiv.obo");
-		run("--merge-support-ontologies");
-		run("--load-instances "+path("mgi-g2p-100.txt"));
-		run("--load-instances "+path("omim-d2p-100.txt"));
-		//load("Mus_musculus-label.owl");
-		//load("Mus_musculus-label.obo");
-		run("--fsim-basic -p "+path("test-sim.properties") + " --set compare MGI,MIM -o target/test100.out");
-		//run("--sim-basic");
-		
-		//run("-o -f obo /tmp/foo.obo");
-		
-	}
+	
+//	@Test
+//	public void testMus2Omim() throws Exception {
+//		init();
+//		load("mp.obo");
+//		load("hp.obo");
+//		load("mp_hp-align-equiv.obo");
+//		run("--merge-support-ontologies");
+//		run("--load-instances "+path("mgi-g2p-100.txt"));
+//		run("--load-instances "+path("omim-d2p-100.txt"));
+//		//load("Mus_musculus-label.owl");
+//		//load("Mus_musculus-label.obo");
+//		run("--fsim-basic -p "+path("test-sim.properties") + " --set compare MGI,MIM -o target/test100.out");
+//		//run("--sim-basic");
+//		
+//		//run("-o -f obo /tmp/foo.obo");
+//		
+//	}
 
 	
 	public String path(String in) {
