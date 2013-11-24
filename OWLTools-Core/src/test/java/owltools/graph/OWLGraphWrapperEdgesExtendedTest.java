@@ -308,13 +308,13 @@ public class OWLGraphWrapperEdgesExtendedTest
 	}
     
     /**
-     * Test {@link OWLGraphWrapperEdgesExtended#getOWLClassesFromSource()}
+     * Test {@link OWLGraphWrapperEdgesExtended#getAllOWLClassesFromSource()}
      */
     @Test
-    public void shouldGetOWLClassesFromSource()
+    public void shouldGetAllOWLClassesFromSource()
     {
         assertEquals("Incorrect Set of OWLClasses returned", 16, 
-                wrapper.getOWLClassesFromSource().size());
+                wrapper.getAllOWLClassesFromSource().size());
     }
 	
 	/**

@@ -542,20 +542,27 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     	return null;
     }
 
+    
+    //***************************************
+    // CONVENIENT METHODS TO GET OWLCLASSES
+    //***************************************
 	/**
-     * Get all <code>OWLClass</code>es from all ontologies.
+     * Get all <code>OWLClass</code>es from all ontologies, 
+     * that are neither top entity (owl:thing), nor bottom entity (owl:nothing), 
+     * nor deprecated ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} 
+     * returns {@code false}).
      * 
-     * @return 	a <code>Set</code> of <code>OWLClass</code>es that contains 
-     * 			all <code>OWLClass</code>es from all ontologies.
+     * @return 	a <code>Set</code> containing all "real" <code>OWLClass</code>es 
+     *          from all ontologies.
      */
     public Set<OWLClass> getAllOWLClasses() {
     	//maybe classes can be shared between ontologies?
     	//use a Set to check
     	Set<OWLClass> allClasses = new HashSet<OWLClass>();
     	for (OWLOntology ont : this.getAllOntologies()) {
-			for (OWLClass iterateClass: ont.getClassesInSignature()) {
-			    if (!iterateClass.isTopEntity() && !iterateClass.isBottomEntity()) {
-				    allClasses.add(iterateClass);
+			for (OWLClass cls: ont.getClassesInSignature()) {
+			    if (this.isRealClass(cls)) {
+				    allClasses.add(cls);
 			    }
 			}
 		}
@@ -565,16 +572,17 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     /**
      * Get only the <code>OWLClass</code>es from the {@code OWLOntology} returned 
      * by {@link #getSourceOntology()}, that are neither top entity (owl:thing), 
-     * not bottom entity (owl:nothing).
+     * nor bottom entity (owl:nothing), nor deprecated ({@link 
+     * OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}).
      * 
      * @return  a <code>Set</code> of <code>OWLClass</code>es from the source ontology, 
-     *          owl:thing and owl:nothing excluded.
+     *          owl:thing, owl:nothing, deprecated classes excluded.
      */
-    public Set<OWLClass> getOWLClassesFromSource() {
+    public Set<OWLClass> getAllOWLClassesFromSource() {
         Set<OWLClass> allClasses = new HashSet<OWLClass>();
-        for (OWLClass iterateClass: this.getSourceOntology().getClassesInSignature()) {
-            if (!iterateClass.isTopEntity() && !iterateClass.isBottomEntity()) {
-                allClasses.add(iterateClass);
+        for (OWLClass cls: this.getSourceOntology().getClassesInSignature()) {
+            if (this.isRealClass(cls)) {
+                allClasses.add(cls);
             }
         }
         return allClasses;
@@ -582,7 +590,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     
     /**
      * Return the <code>OWLClass</code>es root of any ontology 
-     * (<code>OWLClass</code>es with no parent other than {@code owl:thing})
+     * (<code>OWLClass</code>es with no outgoing edges as returned by 
+     * {OWLGraphWrapperEdges#getOutgoingEdges(OWLObject)}), and not deprecated 
+     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false})).
      * 
      * @return	A <code>Set</code> of <code>OWLClass</code>es that are 
      * 			the roots of any ontology.
@@ -592,9 +602,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     	//TODO: modify OWLGraphWrapperdges so that it could be possible to obtain 
     	//edges incoming to owl:thing. This would be much cleaner to get the roots.
     	for (OWLOntology ont: this.getAllOntologies()) {
-			for (OWLClass testClass: ont.getClassesInSignature()) {
-				if (this.getOutgoingEdges(testClass).isEmpty()) {
-					ontRoots.add(testClass);
+			for (OWLClass cls: ont.getClassesInSignature()) {
+				if (this.isRealClass(cls) && this.getOutgoingEdges(cls).isEmpty()) {
+					ontRoots.add(cls);
 				}
 			}
 		}
@@ -603,7 +613,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     
     /**
      * Return the <code>OWLClass</code>es leaves of any ontology 
-     * (<code>OWLClass</code>es with no descendants other than {@code owl:nothing})
+     * (<code>OWLClass</code>es with no incoming edges as returned by 
+     * {OWLGraphWrapperEdges#getIncomingEdges(OWLObject)}), and not deprecated 
+     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false})
      * 
      * @return  A <code>Set</code> of <code>OWLClass</code>es that are 
      *          the leaves of any ontology.
@@ -611,9 +623,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     public Set<OWLClass> getOntologyLeaves() {
         Set<OWLClass> ontLeaves = new HashSet<OWLClass>();
         for (OWLOntology ont: this.getAllOntologies()) {
-            for (OWLClass testClass: ont.getClassesInSignature()) {
-                if (this.getIncomingEdges(testClass).isEmpty()) {
-                    ontLeaves.add(testClass);
+            for (OWLClass cls: ont.getClassesInSignature()) {
+                if (this.isRealClass(cls) && this.getIncomingEdges(cls).isEmpty()) {
+                    ontLeaves.add(cls);
                 }
             }
         }
@@ -624,8 +636,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * Return the <code>OWLClass</code>es descendant of <code>parentClass</code>.
      * This method is the same than 
      * <code>owltools.graph.OWLGraphWrapperEdges.getDescendants(OWLObject)</code>, 
-     * except it returns only the descendant <code>OWLClass</code>es, not 
-     * other <code>OWLObject</code>s.
+     * except it returns only <code>OWLClass</code>es.
      * 
      * @param parentClass 
      * @return 	A <code>Set</code> of <code>OWLClass</code>es being the descendants 
@@ -635,7 +646,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     	Set<OWLClass> descendants = new HashSet<OWLClass>();
 		for (OWLObject descendant: 
 			    this.getDescendants(parentClass)) {
-			if (descendant instanceof OWLClass) {
+			if (this.isRealClass(descendant)) {
 				descendants.add((OWLClass) descendant);
 			}
 		}
@@ -660,7 +671,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     		    this.getIncomingEdges(parentClass)) {
 
     		OWLObject directDescendant = incomingEdge.getSource();
-    		if (directDescendant instanceof OWLClass) { 
+    		if (this.isRealClass(directDescendant)) { 
     			directDescendants.add((OWLClass) directDescendant);
     		}
     	}
@@ -684,7 +695,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                 this.getOutgoingEdges(subClass)) {
 
             OWLObject directParent = outgoingEdge.getTarget();
-            if (directParent instanceof OWLClass) { 
+            if (this.isRealClass(directParent)) { 
                 directParents.add((OWLClass) directParent);
             }
         }
@@ -697,8 +708,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * Return the <code>OWLClass</code>es ancestor of <code>sourceClass</code>.
      * This method is the same than 
      * <code>owltools.graph.OWLGraphWrapperEdges.getAncestors(OWLObject)</code>, 
-     * except it returns only the ancestor <code>OWLClass</code>es, not 
-     * other <code>OWLObject</code>s.
+     * except it returns only the ancestor that are <code>OWLClass</code>es.
      * 
      * @param sourceClass 
      * @return 	A <code>Set</code> of <code>OWLClass</code>es being the ancestors 
@@ -709,11 +719,26 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     	Set<OWLClass> ancestors = new HashSet<OWLClass>();
 		for (OWLObject ancestor: 
 			    this.getAncestors(sourceClass)) {
-			if (ancestor instanceof OWLClass) {
+			if (this.isRealClass(ancestor)) {
 				ancestors.add((OWLClass) ancestor);
 			}
 		}
 		
 		return ancestors;
+    }
+    
+    /**
+     * Determines that {@code object} is an {@code OWLClass} that is neither owl:thing, 
+     * nor owl:nothing, and that it is not deprecated 
+     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}).
+     * 
+     * @param cls   An {@code OWLObject} to be checked to be an {@code OWLClass} 
+     *              actually used.
+     * @return      {@code true} if {@code object} is an {@code OWLClass} that is not 
+     *              owl:thing, nor owl:nothing, and is not deprecated.
+     */
+    private boolean isRealClass(OWLObject object) {
+        return (object instanceof OWLClass) && !isObsolete(object) && 
+                !object.isTopEntity() && !object.isBottomEntity();
     }
 }

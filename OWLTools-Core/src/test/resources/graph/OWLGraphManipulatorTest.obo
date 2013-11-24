@@ -107,6 +107,12 @@ comment: test of propagation when using removeClassAndPropagateEdges(String) on 
 is_a: FOO:0004 ! C
 relationship: part_of FOO:0001 ! root
 
+[Term]
+id: FOO:0016
+name: F
+is_a: FOO:0004 ! C
+is_obsolete: true
+
 [Typedef]
 id: overlaps
 name: overlaps
