@@ -114,6 +114,7 @@ public class OWLHandler {
 	public enum Param {
 		id, iri, label, taxid, expression,
 		format, direct, reflexive, target,
+		limit,
 		a, b
 	}
 
@@ -562,7 +563,8 @@ public class OWLHandler {
 		
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String targetIdSpace = getParam(Param.target);
-		String jsonStr = sj.search(atts, targetIdSpace, true);
+		Integer limit = getParamAsInteger(Param.limit, 1000);
+		String jsonStr = sj.search(atts, targetIdSpace, true, limit);
 		LOG.info("Finished comparison");
 		response.getWriter().write(jsonStr);
 	}
@@ -878,6 +880,16 @@ public class OWLHandler {
 			return false;
 		else
 			return def;
+	}
+	private Integer getParamAsInteger(Param p, Integer def) {
+		String sv = request.getParameter(p.toString());
+		if (sv == null || sv.equals(""))
+			return def;
+		Integer v = Integer.valueOf(sv);
+		if (v == null) {
+			v = def;
+		}
+		return v;
 	}
 
 	private PrintWriter getWriter() throws IOException {
