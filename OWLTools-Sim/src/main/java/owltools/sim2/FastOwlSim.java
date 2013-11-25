@@ -485,7 +485,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		Double ic = null;
 		if (freq > 0) {
 			ic = -Math.log(((double) (freq) / getCorpusSize())) / Math.log(2);
-			// experimental: use depth in graph as tie-breaker
+			// experimental: use depth in graph as tie-breaker.
+			// the amount added is |ancs(c)| / SF,
+			// where SF is large enough to make overall increase negligible
 			int numAncs = ancsBitmapCachedModifiable(c).cardinality();
 			ic += numAncs / (double) scaleFactor;
 		}
@@ -1248,11 +1250,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				maxMaxIC = icBest;
 			}
 			if (icBest < minMaxIC) {
-				LOG.info("maxIC too low : "+icBest);
+				//LOG.info("maxIC too low : "+icBest);
 				continue;
 			}
 			s.maxIC = icBest;
-			LOG.info("computing simGIC");
+			//LOG.info("computing simGIC");
 
 			// SIMGIC
 			t = System.currentTimeMillis();
@@ -1390,6 +1392,17 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException {
 		FileOutputStream fos = new FileOutputStream(fileName);
 
+		// ensure ICs are cached
+		for (OWLClass c : getSourceOntology().getClassesInSignature()) {
+			try {
+				getInformationContentForAttribute(c);
+			} catch (UnknownOWLClassException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				throw new IOException("unknown: "+c);
+			}
+		}
+		
 		for ( int cix = 0; cix< ciPairIsCached.length; cix++) {
 			boolean[] arr = ciPairIsCached[cix];
 			OWLClass c = classArray[cix];

@@ -41,18 +41,37 @@ public class SimJSONEngine {
 	public String search(Set<OWLClass> objAs,
 			String targetIdSpace,
 			boolean isIgnoreUnknownClasses) throws UnknownOWLClassException {
+		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, 3000);
+	}
+	
+	/**
+	 * @param objAs
+	 * @param targetIdSpace
+	 * @param isIgnoreUnknownClasses
+	 * @param limit
+	 * @return json string
+	 * @throws UnknownOWLClassException
+	 */
+	public String search(Set<OWLClass> objAs,
+			String targetIdSpace,
+			boolean isIgnoreUnknownClasses,
+			Integer limit) throws UnknownOWLClassException {
 		Set<OWLClass> known = sos.getAllAttributeClasses();
 		Set<OWLClass> filteredClasses = new HashSet<OWLClass>();
 		
 		Set<String> ids = new HashSet<String>();
+		Set<String> idsUnresolved = new HashSet<String>();
 		for (OWLClass objA : objAs) {
+			String objAId = objA.getIRI().toString();
 			if (!known.contains(objA)) {
+				LOG.info("unknown attribute:"+objA);
+				idsUnresolved.add(objAId);
 				if (isIgnoreUnknownClasses)
 					continue;
 				throw new UnknownOWLClassException(objA);
 			}
 			filteredClasses.add(objA);
-			ids.add(objA.getIRI().toString());
+			ids.add(objAId);
 		}
 		LOG.info("Finding matches for :"+filteredClasses);
 		LOG.info("OwlSim = "+sos);
@@ -61,9 +80,13 @@ public class SimJSONEngine {
 		// todo use a gson writer
 		Gson gson = new Gson();
 		List<Map> matchObjs = new ArrayList<Map>();
+		int n=0;
 		for (ElementPairScores m : matches) {
+			n++;
+			if (limit != null && n > limit)
+				break;
 			Map mObj = new HashMap();
-			makeObjAndSet(mObj, "i", m.i);
+			mObj.put("i", "_query");
 			makeObjAndSet(mObj, "j", m.j);
 			mObj.put("combinedScore", m.combinedScore);
 			mObj.put("maxIC", m.maxIC);
@@ -75,10 +98,20 @@ public class SimJSONEngine {
 			}
 			mObj.put("simJ", m.simjScore);
 			mObj.put("simGIC", m.simGIC);
+			List<Map> matchingAtts = new ArrayList<Map>();
+			for (int ci = 0; ci < m.cs.size(); ci++) {
+				ScoreAttributeSetPair v = m.iclcsMatrix.bestForC[ci];
+				if (v != null) {
+					matchingAtts.add(makeObj(v.getArbitraryAttributeClass()));
+				}
+			}
+			mObj.put("matches", matchingAtts);
+			
 			matchObjs.add(mObj);
 		}
 		Map payload = new HashMap();
 		payload.put("query_IRIs", ids);
+		payload.put("unresolved", idsUnresolved);
 		payload.put("results", matchObjs);
 		return gson.toJson(payload);
 	}
