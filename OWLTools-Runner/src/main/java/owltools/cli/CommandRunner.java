@@ -565,6 +565,22 @@ public class CommandRunner {
 				Mooncat m = new Mooncat(g);
 				m.removeDanglingAxioms();
 			}
+			else if (opts.nextEq("--remove-uninstantiated-classes")) {
+				opts.info("", 
+						"removes all classes for which the reasoner can infer no instances");
+				Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+				int n = 0;
+				reasoner.flush();
+				for (OWLClass obj : g.getAllOWLClasses()) {
+					if (reasoner.getInstances(obj, false).getFlattened().size() == 0) {
+						LOG.info("Unused: "+obj);
+						n++;
+						rmAxioms.addAll(g.getSourceOntology().getReferencingAxioms(obj, true));
+					}
+				}
+				LOG.info("Removing "+rmAxioms.size()+" referencing "+n+" unused classes");
+				g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
+			}
 			else if (opts.nextEq("--make-subset-by-properties")) {
 				opts.info("PROPERTY-LIST",
 						"make an ontology subset that excludes axioms that use properties not in the specified set.\n"+
