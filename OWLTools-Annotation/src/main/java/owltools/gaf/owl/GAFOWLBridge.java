@@ -1,6 +1,7 @@
 package owltools.gaf.owl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -203,7 +204,13 @@ public class GAFOWLBridge {
 		String clsId = a.getCls();
 		appendCls(labelBuilder, graph.getOWLObjectByIdentifier(clsId), clsId);
 		
+		OWLObjectProperty geneAnnotationRelation = getGeneAnnotationRelation(a);
 		List<List<ExtensionExpression>> groups = a.getExtensionExpressions();
+		if (groups.isEmpty()) {
+			OWLObjectSomeValuesFrom r = fac.getOWLObjectSomeValuesFrom(geneAnnotationRelation, annotatedToClass);
+			GAFDescription desc = new GAFDescription(r, labelBuilder.toString());
+			return Collections.singletonList(desc);
+		}
 		List<GAFDescription> results = new ArrayList<GAFOWLBridge.GAFDescription>(groups.size());
 		for(List<ExtensionExpression> exts : groups) {
 			StringBuilder c16Label = null;
@@ -225,24 +232,22 @@ public class GAFOWLBridge {
 					OWLClass filler = getOWLClass(extCls);
 					appendCls(c16Label, filler, extCls);
 					c16Label.append(')');
-					
+
 					//LOG.info(" EXT:"+p+" "+filler);
 					ops.add(fac.getOWLObjectSomeValuesFrom(p, filler));
 				}
 				annotatedToClass = fac.getOWLObjectIntersectionOf(ops);
 			}
-			
-			
+
+
 			if (c16Label != null) {
 				labelBuilder.append(c16Label);
 			}
-	
-	
-			OWLObjectProperty p = getGeneAnnotationRelation(a);
-			OWLObjectSomeValuesFrom r = fac.getOWLObjectSomeValuesFrom(p, annotatedToClass);
+
+			OWLObjectSomeValuesFrom r = fac.getOWLObjectSomeValuesFrom(geneAnnotationRelation, annotatedToClass);
 			results.add(new GAFDescription(r, labelBuilder.toString()));
 		}
-		
+
 		return results;
 	}
 	
