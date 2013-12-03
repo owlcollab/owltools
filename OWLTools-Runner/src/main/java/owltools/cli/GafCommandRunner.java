@@ -30,7 +30,12 @@ import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -77,6 +82,9 @@ import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.Mooncat;
+import owltools.util.MinimalModelGenerator;
+import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
+import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 /**
  * GAF tools for command-line, includes validation of GAF files.
@@ -273,6 +281,7 @@ public class GafCommandRunner extends CommandRunner {
 		boolean isSkipIndividuals = false;
 		boolean isBasic = false;
 		BioentityMapping bioentityMapping = null;
+		boolean makeMinimalModel = false;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-n"))
 				iri = opts.nextOpt();
@@ -298,6 +307,9 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			else if (opts.nextEq("--basic")) {
 				isBasic = true;
+			}
+			else if (opts.nextEq("--make-minimal-model")) {
+				makeMinimalModel = true;
 			}
 			else
 				break;
@@ -327,8 +339,57 @@ public class GafCommandRunner extends CommandRunner {
 		LOG.info("Start converting GAF to OWL");
 		bridge.translate(gafdoc);
 		LOG.info("Finished converting GAF to OWL");
+		
+		OWLOntology ontology = bridge.getTargetOntology();
+		if (makeMinimalModel) {
+			OWLOntologyManager manager = ontology.getOWLOntologyManager();
+			OWLDataFactory fac = manager.getOWLDataFactory();
+			Set<OWLEntity> entities = new HashSet<OWLEntity>();
+			if (bridge.isGenerateIndividuals()) {
+				LOG.info("Generating minimal model based on individuals");
+				
+				Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
+				if (individuals.isEmpty()) {
+					LOG.info("No individuals found skipping minimization step.");
+				}
+				else {
+					entities.addAll(individuals);
+				}
+			}
+			else if (bridge.getBioentityMapping() == BioentityMapping.NAMED_CLASS) {
+				LOG.info("Generating minimal model using named classes of annotations");
+				// find all classes with a line number annotation
+				OWLAnnotationProperty property = fac.getOWLAnnotationProperty(GAFOWLBridge.GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI);
+				Set<OWLClass> allClasses = ontology.getClassesInSignature(true);
+				for (OWLClass cls : allClasses) {
+					Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(cls.getIRI());
+					for (OWLAnnotationAssertionAxiom axiom : axioms) {
+						if (property.equals(axiom.getProperty())) {
+							entities.add(cls);
+						}
+					}
+				}
+				if (entities.isEmpty()) {
+					LOG.info("No classes found, skipping minimization step.");
+				}
+			}
+			else {
+				LOG.info("Cann't extract entities for minimal model generation, skipping minimzation step.");
+			}
+			if (entities.isEmpty() == false) {
+				LOG.info("Start module extraction");
+				SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(manager, ontology, ModuleType.BOT);
+				Set<OWLAxiom> moduleAxioms = sme.extract(entities);
+				
+				OWLOntology modOnt = manager.createOntology();
+				manager.addAxioms(modOnt, moduleAxioms);
+				ontology = modOnt;
+				LOG.info("Finished module extraction");
+			}
+		}
+		
 		if (out != null) {
-			pw.saveOWL(bridge.getTargetOntology(),out,g);
+			pw.saveOWL(ontology,out,g);
 		}
 	}
 	
