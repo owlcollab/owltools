@@ -2,6 +2,10 @@ package owltools.graph.shunt;
 
 import java.util.Map;
 
+import org.semanticweb.owlapi.model.OWLObject;
+
+import owltools.graph.OWLGraphWrapper;
+
 /**
  * An edge reduced to nothing; for use with OWLShuntGraph.
  * 
@@ -34,6 +38,18 @@ public class OWLShuntEdge {
 	public OWLShuntEdge(String subject_id, String object_id, String predicate_id) {
 		this.sub = subject_id;
 		this.obj = object_id;
+		this.pred = predicate_id;
+	}
+	
+	/**
+	 * @param subject_id
+	 * @param object_id
+	 * @param predicate_id
+	 * @param g
+	 */
+	public OWLShuntEdge(OWLObject subject_id, OWLObject object_id, String predicate_id, OWLGraphWrapper g) {
+		this.sub = g.getIdentifier(subject_id);
+		this.obj = g.getIdentifier(object_id);
 		this.pred = predicate_id;
 	}
 

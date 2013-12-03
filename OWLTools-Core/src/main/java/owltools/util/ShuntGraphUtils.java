@@ -2,6 +2,7 @@ package owltools.util;
 
 import java.util.Set;
 
+import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
@@ -31,8 +32,8 @@ public class ShuntGraphUtils {
 	 * <li> E = { e : e &in; E<sup>O</sup>, e<sub>subj</sub> &in; V, e<sub>obj</sub> &in; V }
 	 * 
 	 * Note that caching is controlled by the underlying OWLGraphWrapper object.
-	 * Typically relation-indepedent paths are cached, but any path specific to a relation
-	 * set is not cached. Consult OGW docs for details.
+	 * Typically relation-independent paths are cached, but any path specific to a relation
+	 * set is not cached. Consult {@link OWLGraphWrapper} docs for details.
 	 * 
 	 * TODO: write test
 	 * 
@@ -40,7 +41,7 @@ public class ShuntGraphUtils {
 	 * @param focusObject
 	 * @param props - if null, all properties are included
 	 * @param isIncludeDirectChildren - if true, include all children of focusObject in V
-	 * @return
+	 * @return graph
 	 */
 	public static OWLShuntGraph createShuntCraph(
 			OWLGraphWrapper ogw,
@@ -57,6 +58,9 @@ public class ShuntGraphUtils {
 			}
 		}
 		for (OWLObject anc : nodeSet) {
+			if ((anc instanceof OWLNamedObject) == false) {
+				continue;
+			}
 			Set<OWLGraphEdge> edges = ogw.getOutgoingEdges(anc);
 			
 			for (OWLGraphEdge edge : edges) {
@@ -73,7 +77,7 @@ public class ShuntGraphUtils {
 				else {
 					continue;
 				}
-				OWLShuntEdge sge = new OWLShuntEdge(edge.getSourceId(), edge.getTargetId(), pred);
+				OWLShuntEdge sge = new OWLShuntEdge(edge.getSource(), edge.getTarget(), pred, ogw);
 				osg.addEdge(sge);
 			}
 			osg.addNode(new OWLShuntNode(ogw, anc));
