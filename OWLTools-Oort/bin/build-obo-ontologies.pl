@@ -567,7 +567,12 @@ sub get_ont_info {
              path => 'archive/main',
              source_url => 'http://build.berkeleybop.org/job/build-chebi/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
-         'bio-attributes' => {
+         #'bio-attributes' => {
+         #    method => 'archive',
+         #    path => 'archive/main/go/extensions',   # <-- this will be changed later
+         #    source_url => 'http://build.berkeleybop.org/job/build-bio-attributes/lastSuccessfulBuild/artifact/*zip*/archive.zip',
+         #},
+         oba => {
              method => 'archive',
              path => 'archive/main/go/extensions',   # <-- this will be changed later
              source_url => 'http://build.berkeleybop.org/job/build-bio-attributes/lastSuccessfulBuild/artifact/*zip*/archive.zip',
