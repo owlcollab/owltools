@@ -300,7 +300,6 @@ public class SpeciesSubsetterUtil {
                 //get the class which to continue the walk from
                 OWLObject currentStep = aWalk.get(aWalk.size() - 1);
                 OWLClass clsToWalk = null;
-                boolean explanationFound = false;
                 
                 if (currentStep instanceof OWLClass) {
                     clsToWalk = (OWLClass) currentStep;
@@ -366,9 +365,8 @@ public class SpeciesSubsetterUtil {
                             List<OWLObject> explanation = new ArrayList<OWLObject>(aWalk);
                             explanation.add(graph.edgeToTargetExpression(edge));
                             allExplanations.add(explanation);
-                            explanationFound = true;
-                        }
-                    }
+                        } 
+                    } 
                 }
                 
                 //**************never_in_taxon check***************
@@ -389,19 +387,17 @@ public class SpeciesSubsetterUtil {
                             explanation.add(fac.getOWLAnnotation(neverInTaxon, 
                                     targetedTaxon.getIRI()));
                             allExplanations.add(explanation);
-                            explanationFound = true;
                         }
                     }
                 }
                 
                 //****************continue walk to the root*****************
-                //if we could not find any explanation, we continue the walk
-                if (!explanationFound) {
-                    for (OWLGraphEdge edge: graph.getOutgoingEdges(clsToWalk)) {
-                        List<OWLObject> walkContinue = new ArrayList<OWLObject>(aWalk);
-                        walkContinue.add(graph.edgeToTargetExpression(edge));
-                        walks.offerLast(walkContinue);
-                    }
+                //we continue the walk even if we found an explanation, maybe 
+                //there is a contradictory taxon constraint further
+                for (OWLGraphEdge edge: graph.getOutgoingEdges(clsToWalk)) {
+                    List<OWLObject> walkContinue = new ArrayList<OWLObject>(aWalk);
+                    walkContinue.add(graph.edgeToTargetExpression(edge));
+                    walks.offerLast(walkContinue);
                 }
             }
         }
