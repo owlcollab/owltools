@@ -779,6 +779,24 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public String getIdentifier(OWLObject owlObject) {
 		return Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
 	}
+	
+	/**
+	 * Gets the OBO-style ID of the specified object. E.g. "GO:0008150". Set the
+	 * parameter useShorthand to false to ignore shorthands.
+	 * 
+	 * @param owlObject
+	 * @param useShorthand
+	 * @return OBO-style identifier, using obo2owl mapping
+	 */
+	public String getIdentifier(OWLObject owlObject, boolean useShorthand) {
+		if (useShorthand) {
+			return getIdentifier(owlObject);
+		}
+		if (owlObject instanceof OWLNamedObject) {
+			return Owl2Obo.getIdentifier(((OWLNamedObject) owlObject).getIRI());
+		}
+		return null;
+	}
 
 	/**
 	 * Same as {@link #getIdentifier(OWLObject)} but a different profile to support the FlexLoader.
