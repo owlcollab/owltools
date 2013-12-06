@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -50,10 +49,9 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
 	/**
 	 * Test {@link SpeciesSubsetterUtil#explainTaxonConstraint(Set, Set)}.
 	 */
-	@Ignore
     @SuppressWarnings("unchecked")
     @Test
-    public void testExplainTaxonConytraint() throws Exception {
+    public void testExplainTaxonConstraint() throws Exception {
         ParserWrapper p = new ParserWrapper();
         OWLOntology owlOntology = p.parse(getResourceIRIString("graph/explainConstraints.owl"));
         OWLGraphWrapper graph = new OWLGraphWrapper(owlOntology);
@@ -177,11 +175,13 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
                 Arrays.asList(expectedExplain1, expectedExplain2, expectedExplain4, 
                         expectedExplain5, expectedExplain7) + 
                  ", but was: " + allExplanations, 
-                 allExplanations.size() == 5 && 
+                 allExplanations.size() == 7 && 
                  allExplanations.contains(expectedExplain1) && 
                  allExplanations.contains(expectedExplain2) && 
+                 allExplanations.contains(expectedExplain3) && 
                  allExplanations.contains(expectedExplain4) && 
                  allExplanations.contains(expectedExplain5) && 
+                 allExplanations.contains(expectedExplain6) && 
                  allExplanations.contains(expectedExplain7));
     }
 
