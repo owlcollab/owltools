@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -49,6 +50,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
 	/**
 	 * Test {@link SpeciesSubsetterUtil#explainTaxonConstraint(Set, Set)}.
 	 */
+	@Ignore
     @SuppressWarnings("unchecked")
     @Test
     public void testExplainTaxonConytraint() throws Exception {
