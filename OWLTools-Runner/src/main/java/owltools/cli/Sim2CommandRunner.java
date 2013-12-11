@@ -1573,6 +1573,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		OWLClass pc = g.getDataFactory().getOWLThing();
 		List<EnrichmentResult> results = owlsim.calculateAllByAllEnrichment(pc, rc1,
 				rc2);
+		LOG.info("# Results = "+results.size());
 		for (EnrichmentResult result : results) {
 			System.out.println(render(result, owlpp));
 		}
@@ -1598,10 +1599,10 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	private String render(EnrichmentResult r, OWLPrettyPrinter owlpp) {
 		return owlpp.render(r.sampleSetClass) + "\t"
 				+ owlpp.render(r.enrichedClass) + "\t" + r.pValue + "\t"
-				+ r.pValueCorrected +"t"
-				+ r.eiSetSize +"t"
-				+ r.enrichedClassSize +"t"
-				+ r.sampleSetClassSize +"t"
+				+ r.pValueCorrected +"\t"
+				+ r.eiSetSize +"\t"
+				+ r.enrichedClassSize +"\t"
+				+ r.sampleSetClassSize +"\t"
 				+ r.populationClassSize;
 	}
 
