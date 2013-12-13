@@ -574,7 +574,7 @@ sub get_ont_info {
          #},
          oba => {
              method => 'archive',
-             path => 'archive/main/go/extensions',   # <-- this will be changed later
+             path => 'archive/main/',   # <-- this will be changed later
              source_url => 'http://build.berkeleybop.org/job/build-bio-attributes/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
 
