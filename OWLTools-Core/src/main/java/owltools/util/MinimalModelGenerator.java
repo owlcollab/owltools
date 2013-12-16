@@ -735,7 +735,17 @@ public class MinimalModelGenerator {
 
 	}
 	
+	/**
+	 * Moves all axioms about src to tgt
+	 * 
+	 * @param src
+	 * @param tgt
+	 * @return true if success (currently always true)
+	 */
 	protected boolean mergeInto(OWLNamedIndividual src, OWLNamedIndividual tgt) {
+		if (src.equals(tgt))
+			return true;
+		LOG.info("Merging "+src+" into "+tgt);
 		OWLEntityRenamer renamer = new OWLEntityRenamer(aboxOntology.getOWLOntologyManager(), 
 				Collections.singleton(aboxOntology));
 		applyChanges(renamer.changeIRI(src.getIRI(),
@@ -1331,6 +1341,7 @@ public class MinimalModelGenerator {
 
 	/**
 	 * TODO - use reasoner if DL reasoner available
+	 * (currently Elk 0.4.x will not perform OPE inferences)
 	 * 
 	 * Limitations:
 	 *  does not use
@@ -1342,6 +1353,11 @@ public class MinimalModelGenerator {
 	public void performTransitiveReduction(OWLObjectPropertyExpression p) {
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLNamedIndividual i : aboxOntology.getIndividualsInSignature()) {
+			if (hasCycle(i, p)) {
+				LOG.info("Property "+p+" has cyles from "+i+" -- no transitive reductions");
+				continue;
+			}
+			
 			Set<OWLIndividual> redundant = new HashSet<OWLIndividual>();
 			Set<OWLIndividual> js = getIndividualsInProperPath(i, p);
 			//LOG.info("PATH("+i+") ==> "+js);
@@ -1349,8 +1365,9 @@ public class MinimalModelGenerator {
 				redundant.addAll(getIndividualsInProperPath(j, p));
 			}
 			for (OWLIndividual j : redundant) {
+				// TODO - check for cycles (can happen in pathological scenarios)
 				if (j instanceof OWLNamedIndividual) {
-					//LOG.info("redundant: "+i+" "+j);
+					LOG.info("redundant: OPE("+p+" "+i+" "+j+"); PATH(i) = "+js);
 					rmAxioms.addAll(this.getFactAxioms(i, p, (OWLNamedIndividual) j, true));
 				}
 				else {
@@ -1360,6 +1377,28 @@ public class MinimalModelGenerator {
 		}
 		LOG.info("removing redundant axioms, #="+rmAxioms.size());
 		aboxOntology.getOWLOntologyManager().removeAxioms(aboxOntology, rmAxioms);
+	}
+
+	public boolean hasCycle(OWLIndividual i, OWLObjectPropertyExpression p) {
+		return hasCycle(i, p, new HashSet<OWLIndividual>());
+	}
+	public boolean hasCycle(OWLIndividual i, OWLObjectPropertyExpression p,
+			Set<OWLIndividual> visited) {
+		if (visited.contains(i)) {
+			return true;
+		}
+		// make a copy
+		Set<OWLIndividual> v2 = new HashSet<OWLIndividual>(visited);
+		v2.add(i);
+		Set<OWLIndividual> nextSet = 
+				getDirectOutgoingIndividuals(i, Collections.singleton(p));
+		
+		for (OWLIndividual j : nextSet) {
+			if (hasCycle(j, p, v2)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public Set<OWLIndividual> getIndividualsInProperPath(OWLIndividual i, OWLObjectPropertyExpression p) {
