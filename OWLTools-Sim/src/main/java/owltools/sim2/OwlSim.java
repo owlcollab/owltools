@@ -642,6 +642,9 @@ public interface OwlSim {
 	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace) throws UnknownOWLClassException;
 
 	/**
+	 * Resnick similarity measure, together with all LCSs (MICAs) that
+	 * have this as IC
+	 * 
 	 * @param c
 	 * @param d
 	 * @return LCS together with IC(LCS)
@@ -650,6 +653,10 @@ public interface OwlSim {
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass c, OWLClass d)
 			throws UnknownOWLClassException;
 
+	public ScoreAttributeSetPair getLowestCommonSubsumerWithLinScore(OWLClass c, OWLClass d)
+			throws UnknownOWLClassException;
+
+	
 	/**
 	 * @param i
 	 * @param j

@@ -3,8 +3,10 @@ package owltools.sim2;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -28,6 +30,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
@@ -178,6 +181,74 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public void setCorpusSize(int size) {
 		corpusSize = size;
 	}
+	
+	// Note: inefficient for graphs with multiple parentage, due to
+	// use of unmemoized recursion
+	protected Set<List<OWLClass>> getPaths(OWLClass c, OWLClass d) {
+		Set<List<OWLClass>> paths = new HashSet<List<OWLClass>>();
+		for (Node<OWLClass> node : getReasoner().getSuperClasses(c, true)) {
+			if (node.contains(d)) {
+				ArrayList<OWLClass> path = new ArrayList<OWLClass>();
+				path.add(d);
+				path.add(c);
+				paths.add(path);
+			}
+			else {
+				OWLClass nc = node.getRepresentativeElement();
+				if (getReasoner().getSuperClasses(nc, false).getFlattened().contains(d)) {
+					Set<List<OWLClass>> ppaths = getPaths(nc, d);
+					for (List<OWLClass> ppath : ppaths) {
+						ArrayList<OWLClass> path = new ArrayList<OWLClass>(ppath);
+						path.add(c);
+						paths.add(path);
+					}
+				}
+				else {
+					// veered off path
+				}
+			}
+		}
+		return paths;
+	}
+	
+	protected int getMinimumDistanceToAncestor(OWLClass c, OWLClass d) {
+		int minDist = 0;
+		for (List<OWLClass> path : getPaths(c,d)) {
+			int dist = path.size()-1;
+			if (dist<minDist)
+				minDist = dist;
+		}
+		return minDist;
+	}
+	
+	protected int getMinimumDistanceViaMICA(OWLClass c, OWLClass d) throws UnknownOWLClassException {
+		int minDist = 0;
+		for (OWLClass a : getLowestCommonSubsumerWithIC(c, d).attributeClassSet) {
+			int dist = getMinimumDistanceToAncestor(c,a) + getMinimumDistanceToAncestor(d,a);
+			if (dist<minDist)
+				minDist = dist;
+		}
+		return minDist;
+	}
+	
+	public void getICSimDisj(OWLClass c, OWLClass d) {
+		
+	}
+	
+	/* (non-Javadoc)
+	 * @see owltools.sim2.OwlSim#getLowestCommonSubsumerWithLinScore(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
+	 * 
+	 * Note this is uncached - subclasses may wish to impement caching
+	 */
+	public ScoreAttributeSetPair getLowestCommonSubsumerWithLinScore(OWLClass c, OWLClass d)
+			throws UnknownOWLClassException {
+		ScoreAttributeSetPair sap = this.getLowestCommonSubsumerWithIC(c, d);
+		sap.score = (sap.score * 2) / 
+				(getInformationContentForAttribute(c) +
+						getInformationContentForAttribute(d));
+		return sap;
+	}
+
 	
 	// may be less performant than direct computation
 	public int getAttributeJaccardSimilarityAsPercent(OWLClass a,
@@ -369,15 +440,18 @@ public abstract class AbstractOwlSim implements OwlSim {
 		OWLClass nothing = getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLNothing();
 		for (OWLClass sampleSetClass : getReasoner().getSubClasses(pc1, false)
 				.getFlattened()) {
-			if (sampleSetClass.equals(nothing)) continue;
+			if (sampleSetClass.equals(nothing)) {
+				continue;
+			}
 			int sampleSetSize = getNumElementsForAttribute(sampleSetClass);
-			//LOG.info("sample set class:" + sampleSetClass + " size="+sampleSetSize);
+			LOG.info("sample set class:" + sampleSetClass + " size="+sampleSetSize);
 			if (sampleSetSize < 2)
 				continue;
 			List<EnrichmentResult> resultsInner = new Vector<EnrichmentResult>();
 			for (OWLClass enrichedClass : this.getReasoner()
 					.getSubClasses(pc2, false).getFlattened()) {
 				if (enrichedClass.equals(nothing)) continue;
+				//LOG.info(" population class:" + enrichedClass + " size="+getNumElementsForAttribute(enrichedClass));
 				if (getNumElementsForAttribute(enrichedClass) < 2)
 					continue;
 				if (sampleSetClass.equals(enrichedClass)
