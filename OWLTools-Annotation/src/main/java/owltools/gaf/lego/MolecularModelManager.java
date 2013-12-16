@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -224,6 +227,22 @@ public class MolecularModelManager {
 		LegoModelGenerator mod = getModel(modelId);
 		return mod.getAboxOntology().getIndividualsInSignature();
 	}
+	
+	/**
+	 * @param modelId
+	 * @return
+	 */
+	public List<Map> getIndividualObjects(String modelId) {
+		LegoModelGenerator mod = getModel(modelId);
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer();
+		OWLOntology ont = mod.getAboxOntology();
+		List<Map> objs = new ArrayList();
+		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
+			objs.add(renderer.renderObject(ont, i));
+		}
+		return objs;
+	}
+
 
 	/**
 	 * TODO - autogenerate a label

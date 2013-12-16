@@ -54,7 +54,7 @@ public class MolecularModelJsonRenderer {
 		
 	}
 	
-	private Map renderObject(OWLOntology ont, OWLNamedIndividual i) {
+	public Map renderObject(OWLOntology ont, OWLNamedIndividual i) {
 		Map iObj = new HashMap();
 		iObj.put(KEY.id, getId(i));
 		iObj.put(KEY.label, getLabel(i));
