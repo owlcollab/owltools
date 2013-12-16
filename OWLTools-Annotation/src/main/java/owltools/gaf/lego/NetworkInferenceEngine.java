@@ -75,6 +75,7 @@ import owltools.util.MinimalModelGenerator;
  *  
  *
  */
+@Deprecated
 public class NetworkInferenceEngine {
 
 	private static Logger LOG = Logger.getLogger(NetworkInferenceEngine.class);

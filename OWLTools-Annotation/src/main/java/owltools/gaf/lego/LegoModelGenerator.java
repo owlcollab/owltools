@@ -503,7 +503,9 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			OWLNamedIndividual ai = addActivity(bestActivityClass, g, best, cp);
 			ccp *= cp;
 			OWLObjectPropertyExpression relation = getObjectProperty(OBOUpperVocabulary.BFO_part_of);
-			LOG.info("Testing if "+getIdLabelPair(bestActivityClass) + " is under "+getIdLabelPair(bestParentClass));
+			LOG.info("Testing if "+getIdLabelPair(bestActivityClass) + 
+					" is under/equiv to "+getIdLabelPair(bestParentClass) +
+					" for gene: "+g);
 			if (bestActivityClass != null) {
 				if (getReasoner().getSubClasses(bestActivityClass, false).getFlattened().contains(bestParentClass) ||
 						getReasoner().getEquivalentClasses(bestActivityClass).getEntities().contains(bestParentClass)) {
