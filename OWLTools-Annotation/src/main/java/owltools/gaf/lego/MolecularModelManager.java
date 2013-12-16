@@ -234,7 +234,7 @@ public class MolecularModelManager {
 	 */
 	public List<Map> getIndividualObjects(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer();
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
 		OWLOntology ont = mod.getAboxOntology();
 		List<Map> objs = new ArrayList();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {

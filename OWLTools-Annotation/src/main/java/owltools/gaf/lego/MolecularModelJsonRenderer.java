@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -15,6 +17,8 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
+
+import owltools.graph.OWLGraphWrapper;
 
 import com.google.gson.Gson;
 
@@ -27,6 +31,10 @@ import com.google.gson.Gson;
  */
 public class MolecularModelJsonRenderer {
 	
+	private static Logger LOG = Logger.getLogger(MolecularModelJsonRenderer.class);
+	
+	OWLGraphWrapper graph;
+
 	public enum KEY {
 		id,
 		label,
@@ -43,6 +51,11 @@ public class MolecularModelJsonRenderer {
 	
 	Gson gson = new Gson();
 	
+	public MolecularModelJsonRenderer(OWLGraphWrapper graph) {
+		super();
+		this.graph = graph;
+	}
+
 	public Map renderObject(OWLOntology ont) {
 		Map model = new HashMap();
 		List<Map> iObjs = new ArrayList<Map>();
@@ -62,6 +75,10 @@ public class MolecularModelJsonRenderer {
 		List<Object> typeObjs = new ArrayList<Object>();		
 		for (OWLClassExpression x : i.getTypes(ont)) {
 			typeObjs.add(renderObject(ont, x));
+		}
+		Map<OWLObjectPropertyExpression, Set<OWLIndividual>> pvs = i.getObjectPropertyValues(ont);
+		for (OWLObjectPropertyExpression p : pvs.keySet()) {
+			//typeObjs.add(renderObject(ont, x));
 		}
 		iObj.put(KEY.type, typeObjs);
 		return iObj;
@@ -104,12 +121,13 @@ public class MolecularModelJsonRenderer {
 	}
 
 	private Object getLabel(OWLNamedObject i) {
-		// TODO Auto-generated method stub
-		return null;
+		return graph.getLabel(i);
 	}
 	
 	private Object getAtom(OWLNamedObject i) {
 		Map xObj = new HashMap();
+		
+		LOG.info("atom: "+i+" "+getId(i));
 		xObj.put(KEY.id, getId(i));
 		xObj.put(KEY.label, getLabel(i));
 		String type = null;
@@ -128,7 +146,7 @@ public class MolecularModelJsonRenderer {
 
 
 	private String getId(OWLNamedObject i) {
-		return null;
+		return graph.getIdentifier(i).replaceAll(":", "_");
 	}
 
 	public String renderJson(OWLOntology ont) {
