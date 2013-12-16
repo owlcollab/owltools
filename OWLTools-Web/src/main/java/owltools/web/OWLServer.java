@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
 import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
+import owltools.gaf.lego.MolecularModelManager;
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim2.OwlSim;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
@@ -51,6 +52,7 @@ public class OWLServer extends AbstractHandler
 	OWLGraphWrapper graph;
 	Map<String,OWLReasoner> reasonerMap = new HashMap<String,OWLReasoner>();
 	OwlSim sos = null;
+	MolecularModelManager molecularModelManager = null;
 
 	public OWLServer(OWLGraphWrapper g) {
 		super();
@@ -128,7 +130,8 @@ public class OWLServer extends AbstractHandler
 				e.printStackTrace();
 			}
 		}
-					}
+					
+	}
 
 	public synchronized OWLReasoner getReasoner(String reasonerName) {
 		// TODO - reasoner synchronization

@@ -22,16 +22,21 @@ import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -42,6 +47,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import com.google.gson.Gson;
 
 import owltools.gaf.inference.TaxonConstraintsEngine;
+import owltools.gaf.lego.MolecularModelManager;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphEdge;
@@ -58,6 +64,7 @@ import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.UnknownOWLClassException;
+import owltools.vocab.OBOUpperVocabulary;
 
 /**
  * See http://code.google.com/p/owltools/wiki/WebServices
@@ -115,6 +122,11 @@ public class OWLHandler {
 		id, iri, label, taxid, expression,
 		format, direct, reflexive, target,
 		limit,
+		ontology,
+		classId,
+		individualId,
+		propertyId,
+		fillerId,
 		a, b
 	}
 
@@ -568,6 +580,129 @@ public class OWLHandler {
 		LOG.info("Finished comparison");
 		response.getWriter().write(jsonStr);
 	}
+	
+	// ----------------------------------------
+	// WRITE/UPDATE OPERATIONS
+	// ----------------------------------------
+	
+	public void assertTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ClassAssertion");
+			return;
+		}
+		OWLOntology ont = resolveOntology(Param.ontology);
+		OWLClass c = resolveClass(Param.classId);
+		OWLIndividual i = resolveIndividual(Param.individualId);
+		addAxiom(ont, graph.getDataFactory().getOWLClassAssertionAxiom(c, i));
+		String jsonStr = "";
+		response.getWriter().write(jsonStr);
+	}
+	
+	public void assertFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ClassAssertion");
+			return;
+		}
+		OWLOntology ont = resolveOntology(Param.ontology);
+		OWLIndividual i = resolveIndividual(Param.individualId);
+		OWLIndividual j = resolveIndividual(Param.fillerId);
+		OWLObjectProperty p = resolveObjectProperty(Param.propertyId);
+		addAxiom(ont, graph.getDataFactory().getOWLObjectPropertyAssertionAxiom(p, i, j));
+		String jsonStr = "";
+		response.getWriter().write(jsonStr);
+	}
+	
+	public void deleteFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ClassAssertion");
+			return;
+		}
+		OWLOntology ont = resolveOntology(Param.ontology);
+		OWLIndividual i = resolveIndividual(Param.individualId);
+		OWLIndividual j = resolveIndividual(Param.fillerId);
+		OWLObjectProperty p = resolveObjectProperty(Param.propertyId);
+		for (OWLObjectPropertyAssertionAxiom ax : ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
+			if (ax.getSubject().equals(i)) {
+				if (p == null || ax.getProperty().equals(p)) {
+					if (j == null || ax.getObject().equals(j)) {
+						removeAxiom(ont, graph.getDataFactory().getOWLObjectPropertyAssertionAxiom(p, i, j));
+					}
+				}
+			}
+		}
+		String jsonStr = "";
+		response.getWriter().write(jsonStr);
+	}
+	
+	// --M3--
+	
+	private MolecularModelManager getMolecularModelManager() throws UnknownOWLClassException, OWLOntologyCreationException {
+		if (owlserver.molecularModelManager == null) {
+			LOG.info("Creating m3 object"); // TODO - use factory
+			owlserver.molecularModelManager = new MolecularModelManager(graph);
+		}
+		return owlserver.molecularModelManager;
+	}
+
+	public void m3AssertTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ClassAssertion");
+			return;
+		}
+		MolecularModelManager m = getMolecularModelManager();
+		m.addType(getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
+		OWLOntology ont = resolveOntology(Param.ontology);
+		OWLClass c = resolveClass(Param.classId);
+		OWLIndividual i = resolveIndividual(Param.individualId);
+		addAxiom(ont, graph.getDataFactory().getOWLClassAssertionAxiom(c, i));
+		String jsonStr = "";
+		response.getWriter().write(jsonStr);
+	}
+
+
+	public void assertEnabledByCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ClassAssertion");
+			return;
+		}
+		OWLOntology ont = resolveOntology(Param.ontology);
+		OWLIndividual i = resolveIndividual(Param.individualId);
+		OWLClass j = resolveClass(Param.fillerId);
+		OWLObjectProperty p = 
+				OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(graph.getDataFactory());
+		addSomeValuesFromClassAssertion(ont, i, j, p);
+		String jsonStr = "";
+		response.getWriter().write(jsonStr);
+	}
+	
+	public void assertOccursInCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ClassAssertion");
+			return;
+		}
+		OWLOntology ont = resolveOntology(Param.ontology);
+		OWLIndividual i = resolveIndividual(Param.individualId);
+		OWLClass j = resolveClass(Param.fillerId);
+		OWLObjectProperty p = 
+				OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(graph.getDataFactory());
+		addSomeValuesFromClassAssertion(ont, i, j, p);
+		String jsonStr = "";
+		response.getWriter().write(jsonStr);
+	}
+	
+	
+	public void generateMolecularModelCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates Minimal Model augmented with GO associations");
+			return;
+		}
+		
+		// TODO
+		String jsonStr = "";
+		response.getWriter().write(jsonStr);
+	}
+	
+
 
 	// ----------------------------------------
 	// END OF COMMANDS
@@ -575,6 +710,27 @@ public class OWLHandler {
 
 
 	// UTIL
+
+	private void addSomeValuesFromClassAssertion(OWLOntology ont,
+			OWLIndividual i, OWLClass j, OWLObjectProperty p) {
+		OWLDataFactory df = ont.getOWLOntologyManager().getOWLDataFactory();
+		OWLObjectSomeValuesFrom svf = 
+				df.getOWLObjectSomeValuesFrom(p, j);
+		addAxiom(ont, df.getOWLClassAssertionAxiom(svf, i));
+	}
+
+	private void addAxiom(OWLOntology ont,
+			OWLAxiom ax) {
+		LOG.info("Added: " + ax);
+		// TODO - rollbacks
+		graph.getManager().addAxiom(ont, ax);
+	}
+	private void removeAxiom(OWLOntology ont,
+			OWLAxiom ax) {
+		LOG.info("Removed: " + ax);
+		// TODO - rollbacks
+		graph.getManager().removeAxiom(ont, ax);
+	}
 
 	private OWLObject resolveEntity() {
 		String id = getParam(Param.id);
@@ -585,6 +741,10 @@ public class OWLHandler {
 
 	private OWLClass resolveClass() {
 		String id = getParam(Param.id);
+		return graph.getOWLClassByIdentifier(id);
+	}
+	private OWLClass resolveClass(Param p) {
+		String id = getParam(p);
 		return graph.getOWLClassByIdentifier(id);
 	}
 	private OWLClass resolveClassByLabel() {
@@ -602,6 +762,16 @@ public class OWLHandler {
 		ManchesterSyntaxTool parser = new ManchesterSyntaxTool(graph.getSourceOntology(), graph.getSupportOntologySet());
 		return parser.parseManchesterExpression(expr);
 	}
+	
+	private OWLIndividual resolveIndividual(Param p) {
+		String id = getParam(p);
+		return graph.getOWLIndividualByIdentifier(id);
+	}
+	private OWLObjectProperty resolveObjectProperty(Param p) {
+		String id = getParam(p);
+		return graph.getOWLObjectPropertyByIdentifier(id);
+	}
+
 
 	private Set<OWLObject> resolveEntityList() {
 		return resolveEntityList(Param.id);
@@ -618,6 +788,18 @@ public class OWLHandler {
 
 	private Set<OWLClass> resolveClassList() {
 		return resolveClassList(Param.id);
+	}
+	
+	private OWLOntology resolveOntology(Param p) {
+		 String oid = getParam(p);
+		 for (OWLOntology ont : graph.getManager().getOntologies()) {
+			 String iri = ont.getOntologyID().getOntologyIRI().toString();
+			 // HACK
+			 if (iri.endsWith("/"+oid)) {
+				 return ont;
+			 }
+		 }
+		 return null;
 	}
 
 	private Set<OWLClass> resolveClassList(Param p) {
