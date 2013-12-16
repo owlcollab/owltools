@@ -496,6 +496,86 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 		assertEquals(2, psig.size());
 	}
 	
+	@Test
+	public void testTransitiveCycle2() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		m = OWLManager.createOWLOntologyManager();
+		OWLOntology tbox = m.loadOntologyFromOntologyDocument(getResource("cycle.omn"));
+		mmg = new MinimalModelGenerator(tbox);
+		mmg.setAssertInverses(true); // NECESSARY FOR ELK
+
+		
+		OWLClass c = getClass("cyclic_molecule2");
+		
+		// for this test we leave the transitive reduction stee until later
+		mmg.generateNecessaryIndividuals(c, true, false);
+		
+		// we expect the molecule plus 6 atoms = 7
+		LOG.info("#inds (after adding CM):"+mmg.getGeneratedIndividuals().size());
+		assertEquals(7, mmg.getGeneratedIndividuals().size());
+		
+		expectedIndividiuals("c", 6);
+		// test deepening
+		expectedIndividiuals("molecule", 1);
+		
+		expectFact("c1-proto", "part_of", "cyclic_molecule2-proto");
+		expectFact("c1-proto", "connected_to", "c2-proto");
+		expectFact("c6-proto", "connected_to", "c1-proto");
+
+		OWLObjectProperty connectedTo = mmg.getOWLDataFactory().getOWLObjectProperty(this.getIRI("connected_to"));
+		expectedOPAs("pre-reduced", 8);
+		// we expect this to have no-effect; connected_to should not be reduced
+		// as it contains cycles
+		mmg.performTransitiveReduction(connectedTo);
+		expectedOPAs("reduced", 8);
+
+		mmg.normalizeDirections(connectedTo);
+		//expectedOPAs("post-hand, reduced, normalized", 3);
+		
+		
+		// for debugging
+		save("cycle-abox-elk");
+	}
+	
+//  This one can lead to cycles:	
+//	@Test
+//	public void testTransitiveCycle1() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+//		m = OWLManager.createOWLOntologyManager();
+//		OWLOntology tbox = m.loadOntologyFromOntologyDocument(getResource("cycle.omn"));
+//		mmg = new MinimalModelGenerator(tbox);
+//		mmg.setAssertInverses(true); // NECESSARY FOR ELK
+//
+//		
+//		OWLClass c = getClass("cyclic_molecule");
+//		
+//		// for this test we leave the transitive reduction stee until later
+//		mmg.generateNecessaryIndividuals(c, true, false);
+//		
+//		// we expect the molecule plus 6 atoms = 7
+//		LOG.info("#inds (after adding CM):"+mmg.getGeneratedIndividuals().size());
+//		assertEquals(7, mmg.getGeneratedIndividuals().size());
+//		
+//		expectedIndividiuals("c", 6);
+//		// test deepening
+//		expectedIndividiuals("molecule", 1);
+//		
+//		expectFact("c1-proto", "part_of", "cyclic_molecule2-proto");
+//		expectFact("c1-proto", "connected_to", "c2-proto");
+//		expectFact("c6-proto", "connected_to", "c1-proto");
+//
+//		OWLObjectProperty connectedTo = mmg.getOWLDataFactory().getOWLObjectProperty(this.getIRI("connected_to"));
+//		expectedOPAs("pre-reduced", 8);
+//		// we expect this to have no-effect; connected_to should not be reduced
+//		// as it contains cycles
+//		mmg.performTransitiveReduction(connectedTo);
+//		expectedOPAs("reduced", 8);
+//
+//		mmg.normalizeDirections(connectedTo);
+//		//expectedOPAs("post-hand, reduced, normalized", 3);
+//		
+//		
+//		// for debugging
+//		save("cycle-abox-elk");
+//	}
 	// UTIL
 	
 	private OWLObjectProperty partOf() {
