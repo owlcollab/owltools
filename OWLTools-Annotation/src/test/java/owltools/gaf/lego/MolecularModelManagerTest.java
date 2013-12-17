@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
@@ -67,8 +68,12 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		}
 		assertTrue(inds.size() == 15);
 		
+		String bindingId = mmm.createActivityIndividual(modelId, g.getOWLClassByIdentifier("GO:0001158"));
+		LOG.info("New: "+bindingId);
+		
 		List<Map> objs = mmm.getIndividualObjects(modelId);
-		Gson gson = new Gson();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	
 		String js = gson.toJson(objs);
 		LOG.info("INDS:" + js);
 	}
