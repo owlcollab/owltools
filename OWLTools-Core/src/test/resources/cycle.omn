@@ -1,0 +1,27 @@
+Ontology: <http://x.org>
+Prefix: obo: <http://purl.obolibrary.org/obo/>
+Prefix: occurs_in: <http://purl.obolibrary.org/obo/BFO_0000066>
+Prefix: enabled_by: <http://purl.obolibrary.org/obo/enabled_by>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: : <http://x.org/>
+
+ObjectProperty: part_of InverseOf: has_part Characteristics: transitive
+ObjectProperty: has_part
+
+ObjectProperty: connected_to Characteristics: transitive
+
+Class: molecule
+
+Class: c
+Class: cyclic_molecule
+  SubClassOf: molecule, has_part some (c and connected_to some (c and connected_to some (c and connected_to some (c and connected_to some (c and connected_to some c)))))
+
+Class: c1 SubClassOf: c
+Class: c2 SubClassOf: c
+Class: c3 SubClassOf: c
+Class: c4 SubClassOf: c
+Class: c5 SubClassOf: c
+Class: c6 SubClassOf: c
+
+Class: cyclic_molecule2
+  SubClassOf: molecule, has_part some (c1 and connected_to some (c2 and connected_to some (c3 and connected_to some (c4 and connected_to some (c5 and connected_to some (c6 and connected_to some c1))))))
