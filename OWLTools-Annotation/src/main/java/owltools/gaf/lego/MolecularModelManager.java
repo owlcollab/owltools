@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -219,6 +220,21 @@ public class MolecularModelManager {
 	}
 	
 	/**
+	 * Adds a process individual (and inferred individuals) to a model
+	 * 
+	 * @param modelId
+	 * @param processCls
+	 * @return null TODO
+	 * @throws OWLOntologyCreationException
+	 */
+	public String addProcess(String modelId, OWLClass processCls) throws OWLOntologyCreationException {
+		LegoModelGenerator mod = getModel(modelId);
+		Set<String> genes = new HashSet<String>();
+		mod.buildNetwork(processCls, genes);
+		return null;
+	}
+	
+	/**
 	 * 
 	 * @param modelId
 	 * @return all individuals in the model
@@ -257,6 +273,7 @@ public class MolecularModelManager {
 		IRI iri = graph.getIRIByIdentifier(iid);
 		OWLNamedIndividual i = getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
 		addType(modelId, i, c);
+		// TODO - add declaration
 		return iid;
 	}
 

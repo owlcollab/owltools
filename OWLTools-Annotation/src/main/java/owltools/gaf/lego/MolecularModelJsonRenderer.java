@@ -16,6 +16,7 @@ import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.graph.OWLGraphWrapper;
@@ -43,9 +44,13 @@ public class MolecularModelJsonRenderer {
 		occursIn,
 		
 		onProperty,
-		someValuesFrom
+		someValuesFrom,
+		
+		intersectionOf,
+		unionOf
 	};
 	public enum VAL {
+		Restriction,
 		someValueFrom
 	};
 	
@@ -78,7 +83,11 @@ public class MolecularModelJsonRenderer {
 		}
 		Map<OWLObjectPropertyExpression, Set<OWLIndividual>> pvs = i.getObjectPropertyValues(ont);
 		for (OWLObjectPropertyExpression p : pvs.keySet()) {
-			//typeObjs.add(renderObject(ont, x));
+			List<Object> valObjs = new ArrayList<Object>();
+			for (OWLIndividual v : pvs.get(p)) {
+				valObjs.add(getAtom((OWLNamedObject) v));
+			}
+			iObj.put(getId((OWLNamedObject) p), valObjs);
 		}
 		iObj.put(KEY.type, typeObjs);
 		return iObj;
@@ -92,11 +101,18 @@ public class MolecularModelJsonRenderer {
 				for (OWLClassExpression y : ((OWLObjectIntersectionOf)x).getOperands()) {
 					yObjs.add(renderObject(ont, y));
 				}
-				return yObjs;
+				xObj.put(KEY.intersectionOf, yObjs);
+			}
+			else if (x instanceof OWLObjectUnionOf) {
+				List<Object> yObjs = new ArrayList<Object>();		
+				for (OWLClassExpression y : ((OWLObjectUnionOf)x).getOperands()) {
+					yObjs.add(renderObject(ont, y));
+				}
+				xObj.put(KEY.unionOf, yObjs);
 			}
 			else if (x instanceof OWLObjectSomeValuesFrom) {
 				OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)x;
-				xObj.put(KEY.type, VAL.someValueFrom);
+				xObj.put(KEY.type, VAL.Restriction);
 				xObj.put(KEY.onProperty, renderObject(ont, svf.getProperty()));
 				xObj.put(KEY.someValuesFrom, renderObject(ont, svf.getFiller()));				
 			}
