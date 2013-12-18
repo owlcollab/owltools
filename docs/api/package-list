@@ -35,6 +35,7 @@ owltools.panther
 owltools.phenolog
 owltools.profile
 owltools.reasoner
+owltools.renderer.markdown
 owltools.sim
 owltools.sim2
 owltools.sim2.io
