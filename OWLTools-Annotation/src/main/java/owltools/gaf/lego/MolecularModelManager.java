@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -34,6 +35,7 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.graph.OWLGraphWrapper;
+import owltools.vocab.OBOUpperVocabulary;
 
 /**
  * Manager object for operations on collections of MolecularModels (aka lego diagrams)
@@ -404,13 +406,37 @@ public class MolecularModelManager {
 	public OWLOperationResponse addType(String modelId,
 			OWLIndividual i, 
 			OWLObjectPropertyExpression p,
-			OWLClass filler) {
+			OWLClassExpression filler) {
 		OWLClassAssertionAxiom axiom = 
 				getOWLDataFactory(modelId).getOWLClassAssertionAxiom(
 						getOWLDataFactory(modelId).getOWLObjectSomeValuesFrom(p, filler),
 						i);
 		return addAxiom(modelId, axiom);
 	}
+	
+	/**
+	 * Adds a ClassAssertion to the model, connecting an activity instance to the class of molecule
+	 * that enables the activity.
+	 * 
+	 * Example: FGFR receptor activity enabledBy some UniProtKB:FGF
+	 * 
+	 * The reasoner may detect an inconsistency under different scenarios:
+	 *  - i may be an instance of a class that is disjoint with a bfo process
+	 *  - the enabled may be an instance of a class that is disjoint with molecular entity
+	 *  
+	 *  Under these circumstances, no error is thrown, but the response code indicates that no operation
+	 *  was performed on the kb, and the response object indicates the operation caused an inconsistency
+	 * 
+	 * @param modelId
+	 * @param i
+	 * @param enabler
+	 * @return response info
+	 */
+	public OWLOperationResponse addEnabledBy(String modelId,
+			OWLIndividual i, 
+			OWLClassExpression enabler) {
+		return addType(modelId, i, OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(getOntology()), enabler);
+	}	
 
 	
 	/**
