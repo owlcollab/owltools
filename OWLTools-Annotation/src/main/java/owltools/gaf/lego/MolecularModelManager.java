@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.coode.owlapi.obo.parser.OBOVocabulary;
 import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -68,7 +69,7 @@ public class MolecularModelManager {
 	public class OWLOperationResponse {
 		boolean isSuccess = true;
 		boolean isResultsInInconsistency = false;
-		
+
 		/**
 		 * @param isSuccess
 		 */
@@ -86,7 +87,7 @@ public class MolecularModelManager {
 			this.isSuccess = isSuccess;
 			this.isResultsInInconsistency = isResultsInInconsistency;
 		}
-		
+
 	}
 
 	/**
@@ -107,7 +108,7 @@ public class MolecularModelManager {
 		this.graph = new OWLGraphWrapper(ont);
 		init();
 	}
-	
+
 	protected void init() throws OWLOntologyCreationException {
 		molecularModelGenerator = 
 				new LegoModelGenerator(graph.getSourceOntology(), new ElkReasonerFactory());
@@ -159,7 +160,7 @@ public class MolecularModelManager {
 		}
 		return dbToGafdoc.get(db);
 	}
-	
+
 	/**
 	 * Loads and caches a GAF document from a specified location
 	 * 
@@ -178,7 +179,7 @@ public class MolecularModelManager {
 		return dbToGafdoc.get(db);
 	}
 
-	
+
 	/**
 	 * @param db
 	 * @return Gaf document for db
@@ -188,7 +189,7 @@ public class MolecularModelManager {
 	public GafDocument getGaf(String db) throws IOException, URISyntaxException {
 		return loadGaf(db);
 	}
-	
+
 
 	/**
 	 * Generates a 
@@ -220,7 +221,7 @@ public class MolecularModelManager {
 		return modelId;
 
 	}
-	
+
 	/**
 	 * Adds a process individual (and inferred individuals) to a model
 	 * 
@@ -235,7 +236,7 @@ public class MolecularModelManager {
 		mod.buildNetwork(processCls, genes);
 		return null;
 	}
-	
+
 	/**
 	 * 
 	 * @param modelId
@@ -245,10 +246,10 @@ public class MolecularModelManager {
 		LegoModelGenerator mod = getModel(modelId);
 		return mod.getAboxOntology().getIndividualsInSignature();
 	}
-	
+
 	/**
 	 * @param modelId
-	 * @return
+	 * @return List of key-val pairs ready for Gson
 	 */
 	public List<Map> getIndividualObjects(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
@@ -328,7 +329,7 @@ public class MolecularModelManager {
 	public void saveModel(String id) {
 		// TODO - save to persistent store
 	}
-	
+
 	private OWLIndividual getIndividual(String iid) {
 		return graph.getOWLIndividualByIdentifier(iid);
 	}
@@ -338,7 +339,12 @@ public class MolecularModelManager {
 	private OWLObjectProperty getObjectProperty(String pid) {
 		return graph.getOWLObjectPropertyByIdentifier(pid);
 	}
-	
+
+	private OWLObjectPropertyExpression getObjectProperty(
+			OBOUpperVocabulary vocabElement) {
+		return vocabElement.getObjectProperty(getOntology());
+	}
+
 	/**
 	 * 
 	 * @param modelId
@@ -352,7 +358,7 @@ public class MolecularModelManager {
 		// model would mean the entire kb is inconsistent
 		return model.getReasoner().isConsistent();
 	}
-	
+
 	/**
 	 * @param modelId
 	 * @return data factory for the specified model
@@ -361,7 +367,7 @@ public class MolecularModelManager {
 		LegoModelGenerator model = getModel(modelId);
 		return model.getOWLDataFactory();
 	}
-	
+
 	/**
 	 * Adds ClassAssertion(c,i) to specified model
 	 * 
@@ -375,7 +381,7 @@ public class MolecularModelManager {
 		OWLClassAssertionAxiom axiom = getOWLDataFactory(modelId).getOWLClassAssertionAxiom(c,i);
 		return addAxiom(modelId, axiom);
 	}
-	
+
 	/**
 	 * Convenience wrapper for {@link #addType(String, OWLIndividual, OWLClass)}
 	 * 
@@ -390,7 +396,8 @@ public class MolecularModelManager {
 	}
 
 
-	
+
+
 	/**
 	 * Adds a ClassAssertion, where the class expression instantiated is an
 	 * ObjectSomeValuesFrom expression
@@ -413,7 +420,57 @@ public class MolecularModelManager {
 						i);
 		return addAxiom(modelId, axiom);
 	}
-	
+
+	/**
+	 * Convenience wrapper for {@link #addOccursIn(String, OWLIndividual, OWLClassExpression)}
+	 * 
+	 * @param modelId
+	 * @param iid
+	 * @param eid - e.g. PR:P12345
+	 * @return response info
+	 */
+	public OWLOperationResponse addOccursIn(String modelId,
+			String iid, String eid) {
+		return addOccursIn(modelId, getIndividual(iid), getClass(eid));
+	}
+
+	/**
+	 * Adds a ClassAssertion to the model, connecting an activity instance to the class of molecule
+	 * that enables the activity.
+	 * 
+	 * Example: FGFR receptor activity occursIn some UniProtKB:FGF
+	 * 
+	 * The reasoner may detect an inconsistency under different scenarios:
+	 *  - i may be an instance of a class that is disjoint with a bfo process
+	 *  - the enabled may be an instance of a class that is disjoint with molecular entity
+	 *  
+	 *  Under these circumstances, no error is thrown, but the response code indicates that no operation
+	 *  was performed on the kb, and the response object indicates the operation caused an inconsistency
+	 * 
+	 * @param modelId
+	 * @param i
+	 * @param enabler
+	 * @return response info
+	 */
+	public OWLOperationResponse addOccursIn(String modelId,
+			OWLIndividual i, 
+			OWLClassExpression enabler) {
+		return addType(modelId, i, OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(getOntology()), enabler);
+	}	
+
+	/**
+	 * Convenience wrapper for {@link #addEnabledBy(String, OWLIndividual, OWLClassExpression)}
+	 * 
+	 * @param modelId
+	 * @param iid
+	 * @param eid - e.g. PR:P12345
+	 * @return response info
+	 */
+	public OWLOperationResponse addEnabledBy(String modelId,
+			String iid, String eid) {
+		return addEnabledBy(modelId, getIndividual(iid), getClass(eid));
+	}
+
 	/**
 	 * Adds a ClassAssertion to the model, connecting an activity instance to the class of molecule
 	 * that enables the activity.
@@ -438,7 +495,7 @@ public class MolecularModelManager {
 		return addType(modelId, i, OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(getOntology()), enabler);
 	}	
 
-	
+
 	/**
 	 * Adds triple (i,p,j) to specified model
 	 * 
@@ -453,7 +510,22 @@ public class MolecularModelManager {
 		OWLObjectPropertyAssertionAxiom axiom = getOWLDataFactory(modelId).getOWLObjectPropertyAssertionAxiom(p, i, j);
 		return addAxiom(modelId, axiom);
 	}
-	
+
+	/**
+	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLIndividual, OWLIndividual)}
+	 *	
+	 * @param modelId
+	 * @param vocabElement
+	 * @param i
+	 * @param j
+	 * @return response info
+	 */
+	public OWLOperationResponse addFact(String modelId, OBOUpperVocabulary vocabElement,
+			OWLIndividual i, OWLIndividual j) {
+		OWLObjectProperty p = vocabElement.getObjectProperty(getOntology());
+		return addFact(modelId, p, i, j);
+	}
+
 	/**
 	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLIndividual, OWLIndividual)}
 	 * 
@@ -468,7 +540,50 @@ public class MolecularModelManager {
 		return addFact(modelId, getObjectProperty(pid), getIndividual(iid), getIndividual(jid));
 	}
 
-	
+	/**
+	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLIndividual, OWLIndividual)}
+	 * 
+	 * @param modelId
+	 * @param vocabElement
+	 * @param iid
+	 * @param jid
+	 * @return response info
+	 */
+	public OWLOperationResponse addFact(String modelId, OBOUpperVocabulary vocabElement,
+			String iid, String jid) {
+		return addFact(modelId, getObjectProperty(vocabElement), getIndividual(iid), getIndividual(jid));
+	}
+
+	/**
+	 * Convenience wrapper for {@link #addPartOf(String, OWLIndividual, OWLIndividual)}
+	 *
+	 * @param modelId
+	 * @param iid
+	 * @param jid
+	 * @return
+	 */
+	public OWLOperationResponse addPartOf(String modelId, 
+			String iid, String jid) {
+		return addPartOf(modelId, getIndividual(iid), getIndividual(jid));
+	}
+
+	/**
+	 * Adds an OWL ObjectPropertyAssertion connecting i to j via part_of
+	 * 
+	 * Note that the inverse assertion is entailed, but not asserted
+	 * 
+	 * @param modelId
+	 * @param i
+	 * @param j
+	 * @return response info
+	 */
+	public OWLOperationResponse addPartOf(String modelId,
+			OWLIndividual i, OWLIndividual j) {
+		return addFact(modelId, getObjectProperty(OBOUpperVocabulary.BFO_part_of), i, j);
+	}
+
+
+
 	/**
 	 * @param modelId
 	 * @param axiom
@@ -486,12 +601,12 @@ public class MolecularModelManager {
 			// rollback
 			ont.getOWLOntologyManager().removeAxiom(ont, axiom);
 			return new OWLOperationResponse(false, true);
-			
+
 		}
 		else {
 			return new OWLOperationResponse(true);
 		}
-		
+
 	}
 
 	/**
