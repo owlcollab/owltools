@@ -316,6 +316,14 @@ public class MinimalModelGenerator {
 	public OWLOntology getAboxOntology() {
 		return aboxOntology;
 	}
+	
+	/**
+	 * Note: ABox ontology should import TBox ontology
+	 * @param aboxOntology
+	 */
+	public void setAboxOntology(OWLOntology aboxOntology) {
+		this.aboxOntology = aboxOntology;
+	}
 	/**
 	 * You should not need to use this directly - exposed for debugging
 	 * 
