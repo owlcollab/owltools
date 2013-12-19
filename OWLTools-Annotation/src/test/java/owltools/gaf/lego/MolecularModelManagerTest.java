@@ -68,14 +68,25 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		}
 		assertTrue(inds.size() == 15);
 		
+		// GO:0001158 ! enhancer sequence-specific DNA binding
 		String bindingId = mmm.createActivityIndividual(modelId, g.getOWLClassByIdentifier("GO:0001158"));
 		LOG.info("New: "+bindingId);
+		// GO:0005654 ! nucleoplasm
+		mmm.addOccursIn(modelId, bindingId, "GO:0005654");
+
+		mmm.addEnabledBy(modelId, bindingId, "PR:P123456");
+
+		// todo - add a test that results in an inconsistency
 		
 		List<Map> objs = mmm.getIndividualObjects(modelId);
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	
 		String js = gson.toJson(objs);
 		LOG.info("INDS:" + js);
+		
+		LOG.info(mmm.generateDot(modelId));
+		LOG.info(mmm.generateImage(modelId));
+		
 	}
 
 
