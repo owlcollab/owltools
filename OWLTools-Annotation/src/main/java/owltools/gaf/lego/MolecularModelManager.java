@@ -1,9 +1,11 @@
 package owltools.gaf.lego;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,13 +15,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.imageio.ImageIO;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.coode.owlapi.obo.parser.OBOVocabulary;
 import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
+import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -29,8 +39,14 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyFormat;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
@@ -52,6 +68,9 @@ import owltools.vocab.OBOUpperVocabulary;
  *
  */
 public class MolecularModelManager {
+	
+	private static Logger LOG = Logger.getLogger(MolecularModelManager.class);
+
 
 	LegoModelGenerator molecularModelGenerator;
 	OWLGraphWrapper graph;
@@ -59,7 +78,10 @@ public class MolecularModelManager {
 	Map<String, GafDocument> dbToGafdoc = new HashMap<String, GafDocument>();
 	Map<String, LegoModelGenerator> modelMap = new HashMap<String, LegoModelGenerator>();
 	String pathToGafs = "";
+	String pathToOWLFiles = "";
 	GafObjectsBuilder builder = new GafObjectsBuilder();
+	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
+
 
 	/**
 	 * Represents the reponse to a requested translation on an
@@ -67,9 +89,11 @@ public class MolecularModelManager {
 	 * 
 	 */
 	public class OWLOperationResponse {
+		OWLAxiomChange change;
+		int changeId;
 		boolean isSuccess = true;
 		boolean isResultsInInconsistency = false;
-
+		
 		/**
 		 * @param isSuccess
 		 */
@@ -87,6 +111,16 @@ public class MolecularModelManager {
 			this.isSuccess = isSuccess;
 			this.isResultsInInconsistency = isResultsInInconsistency;
 		}
+		
+		public OWLOperationResponse(OWLAxiomChange change, boolean isSuccess,
+				boolean isResultsInInconsistency) {
+			super();
+			this.isSuccess = isSuccess;
+			this.isResultsInInconsistency = isResultsInInconsistency;
+			this.change = change;
+		}
+		
+		
 
 	}
 
@@ -241,6 +275,7 @@ public class MolecularModelManager {
 	 * 
 	 * @param modelId
 	 * @return all individuals in the model
+	 * @throws OWLOntologyCreationException 
 	 */
 	public Set<OWLNamedIndividual> getIndividuals(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
@@ -250,6 +285,7 @@ public class MolecularModelManager {
 	/**
 	 * @param modelId
 	 * @return List of key-val pairs ready for Gson
+	 * @throws OWLOntologyCreationException 
 	 */
 	public List<Map> getIndividualObjects(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
@@ -275,8 +311,8 @@ public class MolecularModelManager {
 		String iid = modelId+"-"+cid;
 		IRI iri = graph.getIRIByIdentifier(iid);
 		OWLNamedIndividual i = getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
+		addAxiom(modelId, getOWLDataFactory(modelId).getOWLDeclarationAxiom(i));
 		addType(modelId, i, c);
-		// TODO - add declaration
 		return iid;
 	}
 
@@ -303,10 +339,16 @@ public class MolecularModelManager {
 	 * 
 	 * @param id
 	 * @return wrapped model
+	 * @throws OWLOntologyCreationException 
 	 */
-	public LegoModelGenerator getModel(String id) {
+	public LegoModelGenerator getModel(String id)  {
 		if (!modelMap.containsKey(id)) {
-			// TODO - retrieve from persistent store
+			try {
+				loadModel(id, false);
+			} catch (OWLOntologyCreationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return modelMap.get(id);
 	}
@@ -323,21 +365,63 @@ public class MolecularModelManager {
 		// TODO - retrieve from persistent store
 		modelMap.remove(id);
 	}
+
 	/**
-	 * @param id
+	 * TODO - locking
+	 * 
+	 * @param modelId 
+	 * @throws OWLOntologyStorageException 
+	 * @throws OWLOntologyCreationException 
 	 */
-	public void saveModel(String id) {
-		// TODO - save to persistent store
+	public void saveModel(String modelId) throws OWLOntologyStorageException, OWLOntologyCreationException {
+		// TODO - delegate to a bridge object, allow different impls (triplestore, filesystem, etc)
+		LegoModelGenerator m = getModel(modelId);
+		OWLOntology ont = m.getAboxOntology();
+		String file = getPathToModelOWL(modelId);
+		getOWLOntologyManager(modelId).saveOntology(ont, ontologyFormat, IRI.create(new File(file)));
+	}
+	
+	/**
+	 * @throws OWLOntologyStorageException
+	 * @throws OWLOntologyCreationException
+	 */
+	public void saveAllModels() throws OWLOntologyStorageException, OWLOntologyCreationException {
+		for (String modelId : modelMap.keySet()) {
+			saveModel(modelId);
+		}
+	}
+	
+	// TODO - ensure load/save are synchronized
+	protected void loadModel(String modelId, boolean isOverride) throws OWLOntologyCreationException {
+		if (modelMap.containsKey(modelId)) {
+			if (!isOverride) {
+				throw new OWLOntologyCreationException("Model already esxists: "+modelId);
+			}
+		}
+		String file = getPathToModelOWL(modelId);
+		
+		OWLOntology ont = graph.getManager().loadOntologyFromOntologyDocument(IRI.create(new File(file)));
+		LegoModelGenerator m = new LegoModelGenerator(graph.getSourceOntology());
+		m.setAboxOntology(ont);
+		modelMap.put(modelId, m);
 	}
 
-	private OWLIndividual getIndividual(String iid) {
-		return graph.getOWLIndividualByIdentifier(iid);
+	
+	private String getPathToModelOWL(String modelId) {
+		return pathToOWLFiles + "/" + modelId + ".owl";
+	}
+
+	private OWLIndividual getIndividual(String modelId, String iid) {
+		IRI iri = graph.getIRIByIdentifier(iid);
+		return getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
 	}
 	private OWLClass getClass(String cid) {
-		return graph.getOWLClassByIdentifier(cid);
+		IRI iri = graph.getIRIByIdentifier(cid);
+		return graph.getDataFactory().getOWLClass(iri);
 	}
 	private OWLObjectProperty getObjectProperty(String pid) {
-		return graph.getOWLObjectPropertyByIdentifier(pid);
+		IRI iri = graph.getIRIByIdentifier(pid);
+		return graph.getDataFactory().getOWLObjectProperty(iri);
 	}
 
 	private OWLObjectPropertyExpression getObjectProperty(
@@ -362,10 +446,16 @@ public class MolecularModelManager {
 	/**
 	 * @param modelId
 	 * @return data factory for the specified model
+	 * @throws OWLOntologyCreationException 
 	 */
 	public OWLDataFactory getOWLDataFactory(String modelId) {
 		LegoModelGenerator model = getModel(modelId);
 		return model.getOWLDataFactory();
+	}
+
+	protected OWLOntologyManager getOWLOntologyManager(String modelId) {
+		LegoModelGenerator model = getModel(modelId);
+		return model.getAboxOntology().getOWLOntologyManager();
 	}
 
 	/**
@@ -392,7 +482,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addType(String modelId,
 			String iid, String cid) {
-		return addType(modelId, getIndividual(iid), getClass(cid));
+		return addType(modelId, getIndividual(modelId, iid), getClass(cid));
 	}
 
 
@@ -414,12 +504,75 @@ public class MolecularModelManager {
 			OWLIndividual i, 
 			OWLObjectPropertyExpression p,
 			OWLClassExpression filler) {
+		LOG.info("Adding "+i+ " type "+p+" some "+filler);
+		OWLObjectSomeValuesFrom c = getOWLDataFactory(modelId).getOWLObjectSomeValuesFrom(p, filler);
+		OWLClassAssertionAxiom axiom = 
+				getOWLDataFactory(modelId).getOWLClassAssertionAxiom(
+						c,
+						i);
+		return addAxiom(modelId, axiom);
+	}
+	
+	/**
+	 * Adds ClassAssertion(c,i) to specified model
+	 * 
+	 * @param modelId
+	 * @param i
+	 * @param c
+	 * @return response info
+	 */
+	public OWLOperationResponse removeType(String modelId,
+			OWLIndividual i, OWLClass c) {
+		OWLClassAssertionAxiom axiom = getOWLDataFactory(modelId).getOWLClassAssertionAxiom(c,i);
+		return addAxiom(modelId, axiom);
+	}
+
+	/**
+	 * Convenience wrapper for {@link #removeType(String, OWLIndividual, OWLClass)}
+	 * 
+	 * @param modelId
+	 * @param iid
+	 * @param cid
+	 * @return response info
+	 */
+	public OWLOperationResponse removeType(String modelId,
+			String iid, String cid) {
+		return removeType(modelId, getIndividual(modelId, iid), getClass(cid));
+	}
+	
+	/**
+	 * Removes a ClassAssertion, where the class expression instantiated is an
+	 * ObjectSomeValuesFrom expression
+	 * 
+	 * TODO - in fuure it should be possible to remove multiple assertions by leaving some fields null
+	 * 
+	 * @param modelId
+	 * @param i
+	 * @param p
+	 * @param filler
+	 * @return response info
+	 */
+	public OWLOperationResponse removeType(String modelId,
+			OWLIndividual i, 
+			OWLObjectPropertyExpression p,
+			OWLClassExpression filler) {
 		OWLClassAssertionAxiom axiom = 
 				getOWLDataFactory(modelId).getOWLClassAssertionAxiom(
 						getOWLDataFactory(modelId).getOWLObjectSomeValuesFrom(p, filler),
 						i);
-		return addAxiom(modelId, axiom);
+		return removeAxiom(modelId, axiom);
 	}
+	
+	
+	// TODO
+//	public OWLOperationResponse removeTypes(String modelId,
+//			OWLIndividual i, 
+//			OWLObjectPropertyExpression p) {
+//		return removeType(modelId, i, p, null);
+//	}
+
+
+	
 
 	/**
 	 * Convenience wrapper for {@link #addOccursIn(String, OWLIndividual, OWLClassExpression)}
@@ -431,7 +584,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addOccursIn(String modelId,
 			String iid, String eid) {
-		return addOccursIn(modelId, getIndividual(iid), getClass(eid));
+		return addOccursIn(modelId, getIndividual(modelId, iid), getClass(eid));
 	}
 
 	/**
@@ -468,7 +621,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addEnabledBy(String modelId,
 			String iid, String eid) {
-		return addEnabledBy(modelId, getIndividual(iid), getClass(eid));
+		return addEnabledBy(modelId, getIndividual(modelId, iid), getClass(eid));
 	}
 
 	/**
@@ -537,7 +690,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addFact(String modelId, String pid,
 			String iid, String jid) {
-		return addFact(modelId, getObjectProperty(pid), getIndividual(iid), getIndividual(jid));
+		return addFact(modelId, getObjectProperty(pid), getIndividual(modelId, iid), getIndividual(modelId, jid));
 	}
 
 	/**
@@ -551,7 +704,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addFact(String modelId, OBOUpperVocabulary vocabElement,
 			String iid, String jid) {
-		return addFact(modelId, getObjectProperty(vocabElement), getIndividual(iid), getIndividual(jid));
+		return addFact(modelId, getObjectProperty(vocabElement), getIndividual(modelId, iid), getIndividual(modelId, jid));
 	}
 
 	/**
@@ -564,7 +717,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addPartOf(String modelId, 
 			String iid, String jid) {
-		return addPartOf(modelId, getIndividual(iid), getIndividual(jid));
+		return addPartOf(modelId, getIndividual(modelId, iid), getIndividual(modelId, jid));
 	}
 
 	/**
@@ -585,6 +738,8 @@ public class MolecularModelManager {
 
 
 	/**
+	 * In general, should not be called directly - use a wrapper method
+	 * 
 	 * @param modelId
 	 * @param axiom
 	 * @return response info
@@ -593,21 +748,38 @@ public class MolecularModelManager {
 		LegoModelGenerator model = getModel(modelId);
 		OWLOntology ont = model.getAboxOntology();
 		boolean isConsistentAtStart = model.getReasoner().isConsistent();
-		ont.getOWLOntologyManager().addAxiom(ont, axiom);
+		AddAxiom change = new AddAxiom(ont, axiom);
+		ont.getOWLOntologyManager().applyChange(change);
 		// TODO - track axioms to allow redo
 		model.getReasoner().flush();
 		boolean isConsistentAtEnd = model.getReasoner().isConsistent();
 		if (isConsistentAtStart && !isConsistentAtEnd) {
 			// rollback
 			ont.getOWLOntologyManager().removeAxiom(ont, axiom);
-			return new OWLOperationResponse(false, true);
+			return new OWLOperationResponse(change, false, true);
 
 		}
 		else {
-			return new OWLOperationResponse(true);
+			return new OWLOperationResponse(change, true, false);
 		}
 
 	}
+	
+	/**
+	 * In general, should not be called directly - use a wrapper method
+	 * 
+	 * @param modelId
+	 * @param axiom
+	 * @return response info
+	 */
+	public OWLOperationResponse removeAxiom(String modelId, OWLAxiom axiom) {
+		LegoModelGenerator model = getModel(modelId);
+		OWLOntology ont = model.getAboxOntology();
+		RemoveAxiom change = new RemoveAxiom(ont, axiom);
+		ont.getOWLOntologyManager().applyChange(change);
+		// TODO - track axioms to allow redo
+		return new OWLOperationResponse(true);
+	}	
 
 	/**
 	 * @param p
@@ -616,6 +788,109 @@ public class MolecularModelManager {
 	 */
 	private String getModelId(String p, String db) {
 		return "gomodel:"+db + "-"+p.replaceAll(":", "_");
+	}
+	
+	
+	protected abstract class LegoStringDotRenderer extends LegoDotWriter {
+		public LegoStringDotRenderer(OWLGraphWrapper graph, OWLReasoner reasoner) {
+			super(graph, reasoner);
+			// TODO Auto-generated constructor stub
+		}
+
+		public StringBuffer sb = new StringBuffer();
+		
+	}
+	
+	/**
+	 * For testing purposes - may be obsoleted with rendering moved to client
+	 * 
+	 * @param modelId
+	 * @return dot string
+	 * @throws IOException
+	 * @throws UnExpectedStructureException
+	 */
+	public String generateDot(String modelId) throws IOException, UnExpectedStructureException {
+		LegoModelGenerator m = getModel(modelId);
+		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
+	
+		LegoStringDotRenderer renderer = 
+				new LegoStringDotRenderer(graph, m.getReasoner()) {
+
+
+			@Override
+			protected void open() throws IOException {
+			}
+
+			@Override
+			protected void close() {
+			}
+
+			@Override
+			protected void appendLine(CharSequence line) throws IOException {
+				//System.out.println(line);
+				sb.append(line).append('\n');
+			}
+		};
+		renderer.render(individuals, modelId, true);
+		return renderer.sb.toString();
+	}
+	
+	/**
+	 * @param modelId
+	 * @return 
+	 * @throws IOException 
+	 * @throws UnExpectedStructureException 
+	 * @throws InterruptedException 
+	 */
+	public File generateImage(String modelId) throws IOException, UnExpectedStructureException, InterruptedException {
+		final File dotFile = File.createTempFile("LegoAnnotations", ".dot");
+		final File pngFile = File.createTempFile("LegoAnnotations", ".png");
+
+		LegoModelGenerator m = getModel(modelId);
+		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
+		OWLReasoner reasoner = m.getReasoner();
+		String dotPath = "/opt/local/bin/dot"; // TODO
+		try {
+			// Step 1: render dot file
+			LegoRenderer dotWriter = new LegoDotWriter(graph, reasoner) {
+				
+				private PrintWriter writer = null;
+				
+				@Override
+				protected void open() throws IOException {
+					writer = new PrintWriter(dotFile);
+				}
+				
+				@Override
+				protected void appendLine(CharSequence line) throws IOException {
+					writer.println(line);
+				}
+
+				@Override
+				protected void close() {
+					IOUtils.closeQuietly(writer);
+				}
+				
+			};
+			dotWriter.render(individuals, null, true);
+			
+			// Step 2: render png file using graphiz (i.e. dot)
+			Runtime r = Runtime.getRuntime();
+
+			final String in = dotFile.getAbsolutePath();
+			final String out = pngFile.getAbsolutePath();
+			
+			Process process = r.exec(dotPath + " " + in + " -Tpng -q -o " + out);
+
+			process.waitFor();
+			
+			return pngFile;
+		} finally {
+			// delete temp files, do not rely on deleteOnExit
+			FileUtils.deleteQuietly(dotFile);
+			FileUtils.deleteQuietly(pngFile);
+		}
+	
 	}
 
 	/**
@@ -653,5 +928,6 @@ public class MolecularModelManager {
 		renderer.render(individuals, name, true);
 
 	}
+	
 
 }
