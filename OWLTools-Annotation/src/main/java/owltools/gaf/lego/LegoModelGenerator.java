@@ -107,6 +107,7 @@ import owltools.vocab.OBOUpperVocabulary;
  *  <li>Rules for inferring occurs_in (requires extending A to be A &sube; G x T<sup>A</sup> x T<sup>C</sup>)
  *  </ul>
  *  
+ *  {@link https://docs.google.com/document/d/1TV8Eb9sSvFY-weVZaIfzCxF1qbnmkUaiUhTm9Bs3gRE/edit}
  *
  */
 public class LegoModelGenerator extends MinimalModelGenerator {
