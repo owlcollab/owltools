@@ -85,7 +85,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		LOG.info("INDS:" + js);
 		
 		LOG.info(mmm.generateDot(modelId));
-		LOG.info(mmm.generateImage(modelId));
+//		LOG.info(mmm.generateImage(modelId)); // problematic due to missing dot application
 		
 	}
 
