@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
@@ -45,9 +46,11 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import owltools.gaf.inference.TaxonConstraintsEngine;
 import owltools.gaf.lego.MolecularModelManager;
+import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphEdge;
@@ -127,7 +130,7 @@ public class OWLHandler {
 		individualId,
 		propertyId,
 		fillerId,
-		a, b
+		a, b, modelId
 	}
 
 	public OWLHandler(OWLServer owlserver, OWLGraphWrapper graph,  HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -585,6 +588,7 @@ public class OWLHandler {
 	// WRITE/UPDATE OPERATIONS
 	// ----------------------------------------
 	
+	@Deprecated
 	public void assertTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("generates ClassAssertion");
@@ -598,6 +602,7 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 	
+	@Deprecated
 	public void assertFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("generates ClassAssertion");
@@ -612,6 +617,7 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 	
+	@Deprecated
 	public void deleteFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("generates ClassAssertion");
@@ -635,6 +641,8 @@ public class OWLHandler {
 	}
 	
 	// --M3--
+	// Note these may eventually be replaced by either JAX-RS REST calls
+	// or COMET/WebSockets
 	
 	private MolecularModelManager getMolecularModelManager() throws UnknownOWLClassException, OWLOntologyCreationException {
 		if (owlserver.molecularModelManager == null) {
@@ -643,22 +651,51 @@ public class OWLHandler {
 		}
 		return owlserver.molecularModelManager;
 	}
+	
+	// TODO!!!
+	private void returnResponse(OWLOperationResponse resp) throws IOException {
+		// TODO Auto-generated method stub
+		response.getWriter().write("{status:\"ok\"}");
+	}
 
+	// m3 commands
+	
 	public void m3AssertTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("generates ClassAssertion");
 			return;
 		}
-		MolecularModelManager m = getMolecularModelManager();
-		m.addType(getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
-		OWLOntology ont = resolveOntology(Param.ontology);
-		OWLClass c = resolveClass(Param.classId);
-		OWLIndividual i = resolveIndividual(Param.individualId);
-		addAxiom(ont, graph.getDataFactory().getOWLClassAssertionAxiom(c, i));
-		String jsonStr = "";
-		response.getWriter().write(jsonStr);
+		MolecularModelManager mmm = getMolecularModelManager();
+		OWLOperationResponse resp = mmm.addType(getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
+		returnResponse(resp);
 	}
 
+	public void m3AssertFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ObjectPropertyAssertion");
+			return;
+		}
+		MolecularModelManager mmm = getMolecularModelManager();
+		OWLOperationResponse resp = mmm.addFact(getParam(Param.propertyId),
+				getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
+		returnResponse(resp);
+	}
+
+	public void m3GetModelCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("fetches molecular model json");
+			return;
+		}
+		MolecularModelManager mmm = getMolecularModelManager();
+		Map<String, Object> obj = mmm.getModelObject(getParam(Param.modelId));
+		returnJSON(obj);
+	}
+
+	public void returnJSON(Object obj) throws IOException {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String js = gson.toJson(obj);
+		response.getWriter().write(js);
+	}
 
 	public void assertEnabledByCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
