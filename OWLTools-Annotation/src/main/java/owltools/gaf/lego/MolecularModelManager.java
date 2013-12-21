@@ -77,8 +77,8 @@ public class MolecularModelManager {
 	boolean isPrecomputePropertyClassCombinations;
 	Map<String, GafDocument> dbToGafdoc = new HashMap<String, GafDocument>();
 	Map<String, LegoModelGenerator> modelMap = new HashMap<String, LegoModelGenerator>();
-	String pathToGafs = "";
-	String pathToOWLFiles = "";
+	String pathToGafs = "gene-associations";
+	String pathToOWLFiles = "owl-models";
 	GafObjectsBuilder builder = new GafObjectsBuilder();
 	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
 
@@ -177,6 +177,23 @@ public class MolecularModelManager {
 	 */
 	public void setPathToGafs(String pathToGafs) {
 		this.pathToGafs = pathToGafs;
+	}
+	
+	
+	
+	/**
+	 * Note this may move to an implementation-specific subclass in future
+	 * 
+	 * @return path to owl on server
+	 */
+	public String getPathToOWLFiles() {
+		return pathToOWLFiles;
+	}
+	/**
+	 * @param pathToOWLFiles
+	 */
+	public void setPathToOWLFiles(String pathToOWLFiles) {
+		this.pathToOWLFiles = pathToOWLFiles;
 	}
 	/**
 	 * loads/register a Gaf document
@@ -285,7 +302,6 @@ public class MolecularModelManager {
 	/**
 	 * @param modelId
 	 * @return List of key-val pairs ready for Gson
-	 * @throws OWLOntologyCreationException 
 	 */
 	public List<Map> getIndividualObjects(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
@@ -297,7 +313,34 @@ public class MolecularModelManager {
 		}
 		return objs;
 	}
+	
+	/**
+	 * @param modelId
+	 * @return Map object ready for Gson
+	 */
+	public Map<String,Object> getModelObject(String modelId) {
+		LegoModelGenerator mod = getModel(modelId);
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
+		return renderer.renderObject(mod.getAboxOntology());
+	}
 
+	/**
+	 * Given an instance, generate the most specific class instance that classifies
+	 * this instance, and add this as a class to the model ontology
+	 * 
+	 * @param modelId
+	 * @param individualId
+	 * @param newClassId
+	 * @return newClassId
+	 */
+	public String createMostSpecificClass(String modelId, String individualId, String newClassId) {
+		LegoModelGenerator mod = getModel(modelId);
+		OWLIndividual ind = getIndividual(modelId, individualId);
+		OWLClassExpression msce = mod.getMostSpecificClassExpression((OWLNamedIndividual) ind);
+		OWLClass c = this.getClass(newClassId);
+		addAxiom(modelId, getOWLDataFactory(modelId).getOWLEquivalentClassesAxiom(msce, c));
+		return newClassId;
+	}
 
 	/**
 	 * TODO - autogenerate a label
@@ -356,6 +399,8 @@ public class MolecularModelManager {
 	 * @param id
 	 */
 	public void unlinkModel(String id) {
+		LegoModelGenerator model = modelMap.get(id);
+		model.dispose();
 		modelMap.remove(id);
 	}
 	/**
@@ -364,6 +409,13 @@ public class MolecularModelManager {
 	public void deleteModel(String id) {
 		// TODO - retrieve from persistent store
 		modelMap.remove(id);
+	}
+	
+	/**
+	 * @return ids for all loaded models
+	 */
+	public Set<String> getModelIds() {
+		return modelMap.keySet();
 	}
 
 	/**

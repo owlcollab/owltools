@@ -183,6 +183,13 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		super(tbox, reasonerFactory);
 		// TODO Auto-generated constructor stub
 	}
+	
+	/**
+	 * Unregisters abox ontology
+	 */
+	public void dispose() {
+		getOWLOntologyManager().removeOntology(getAboxOntology());
+	}
 
 	/**
 	 * @param gafdoc
