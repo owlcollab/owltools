@@ -170,6 +170,7 @@ import owltools.reasoner.ExpressionMaterializingReasoner;
 import owltools.reasoner.GraphReasonerFactory;
 import owltools.reasoner.OWLExtendedReasoner;
 import owltools.reasoner.PrecomputingMoreReasonerFactory;
+import owltools.renderer.markdown.MarkdownRenderer;
 import owltools.sim2.preprocessor.ABoxUtils;
 import owltools.util.MinimalModelGenerator;
 import owltools.vocab.OBOUpperVocabulary;
@@ -665,6 +666,35 @@ public class CommandRunner {
 					summarizeOntology(ont);
 				}
 			}
+			else if (opts.nextEq("--save-superclass-closure")) {
+				opts.info("[-r reasoner] FILENAME", "write out superclass closure of graph.");
+				GraphRenderer gcw;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-r|--reasoner")) {
+						opts.info("REASONER", "select reasoner.");
+						reasonerName = opts.nextOpt();				
+					}
+					else {
+						break;
+					}
+				}
+				String filename = opts.nextOpt();
+				List<String> lines = new ArrayList<String>();
+				for (OWLClass c : g.getAllOWLClasses()) {
+					Set<OWLClass> ecs = reasoner.getEquivalentClasses(c).getEntities();
+					Set<OWLClass> scs = reasoner.getSuperClasses(c, false).getFlattened();
+					Set<OWLClass> all = new HashSet<OWLClass>(ecs);
+					all.addAll(scs);
+					List<String> ids = new ArrayList<String>();
+					for (OWLClass sc : all) {
+						ids.add(g.getIdentifier(sc));
+					}
+					Collections.sort(ids);
+					lines.add(g.getIdentifier(c)+"\t"+StringUtils.join(ids.iterator(), ","));
+				}
+				Collections.sort(lines);
+				FileUtils.writeLines(new File(filename), lines);
+			}
 			else if (opts.nextEq("--save-closure")) {
 				opts.info("[-c] FILENAME", "write out closure of graph.");
 				GraphRenderer gcw;
@@ -1089,6 +1119,12 @@ public class CommandRunner {
 				String s = OntologyMetadataMarkdownWriter.renderMarkdown(g, ".", true);
 				fileWriter.write(s);
 				fileWriter.close();
+			}
+			else if (opts.nextEq("--ontology-to-markdown")) {
+				opts.info("DIR", "writes md from ontology");
+				String dir = opts.nextOpt();
+				MarkdownRenderer mr = new MarkdownRenderer();
+				mr.render(g.getSourceOntology(), dir);
 			}
 			else if (opts.nextEq("--extract-properties")) {
 				opts.info("[-p PROP]* [--list PLIST] [--no-shorthand]", "extracts properties from source ontology. If properties not specified, then support ontologies will be used");
@@ -2700,12 +2736,22 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--remove-subset")) {
-				opts.info("SUBSET", "Removes a subset (aka slim) from an ontology");
+				opts.info("[-d] SUBSET", "Removes a subset (aka slim) from an ontology");
+				boolean isRemoveDangling = true;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-d|--keep-dangling")) {
+						opts.info("",
+								"if specified, dangling axioms (ie pointing to removed classes) are preserved");
+						isRemoveDangling = false;
+					}
+					else
+						break;
+				}
 				String subset = opts.nextOpt();
 				Set<OWLClass> cset = g.getOWLClassesInSubset(subset);
 				LOG.info("Removing "+cset.size()+" classes");
 				Mooncat m = new Mooncat(g);
-				m.removeSubsetClasses(cset, false);
+				m.removeSubsetClasses(cset, isRemoveDangling);
 			}
 			else if (opts.nextEq("--extract-subset")) {
 				opts.info("SUBSET", "Keeps a subset (aka slim) from an ontology");
@@ -3128,6 +3174,8 @@ public class CommandRunner {
 				boolean isFilterUnused = false;
 				boolean isReplace = false;
 				boolean noReasoner = false;
+				boolean isCreateReflexiveClasses = false;
+
 				String avFile =  null;
 				String viewIRI = "http://example.org/";
 				while (opts.hasOpts()) {
@@ -3167,6 +3215,10 @@ public class CommandRunner {
 						opts.info("", "if set, any class or individual that is not subsumed by P some Thing is removed from O(P)");
 						isFilterUnused = true;
 					}
+					else if (opts.nextEq("--reflexive")) {
+						opts.info("", "Treat property as reflexive");
+						isCreateReflexiveClasses = true;
+					}
 					else if (opts.nextEq("--replace")) {
 						opts.info("", "if set, the source ontology is replaced with O(P)'");
 						isReplace = true;
@@ -3186,6 +3238,7 @@ public class CommandRunner {
 				pvob.setViewLabelSuffix(suffix);
 				pvob.buildViewOntology(IRI.create("http://x.org/assertedViewOntology"), IRI.create(viewIRI));
 				pvob.setFilterUnused(isFilterUnused);
+				pvob.setCreateReflexiveClasses(isCreateReflexiveClasses);
 				OWLOntology avo = pvob.getAssertedViewOntology();
 				if (avFile != null)
 					pw.saveOWL(avo, avFile, g);
