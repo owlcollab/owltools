@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.semanticweb.owlapi.model.IRI;
@@ -238,11 +239,12 @@ public class MarkdownRenderer {
 				StringBuffer v = 
 						new StringBuffer(cvt(aaa.getValue()));
 				if (aaa.getAnnotations().size() > 0) {
-					v.append(" [");
+					List<String> avs = new ArrayList<String>();
 					for (OWLAnnotation ann : aaa.getAnnotations()) {
-						v.append(cvt(ann));
+						avs.add(cvt(ann));
 					}
-					v.append("]");
+					Collections.sort(avs);
+					v.append(" [ "+StringUtils.join(avs, ", ")+" ]");
 				}
 				vs.add(v.toString());
 				consumed.add(aaa);
@@ -310,7 +312,7 @@ public class MarkdownRenderer {
 		}
 		else if (x instanceof OWLAnnotation) {
 			OWLAnnotation a = (OWLAnnotation)x;
-			return (cvt(a.getProperty()) + " =  + " + cvt(a.getValue()));
+			return (cvt(a.getProperty()) + " = " + cvt(a.getValue()));
 		}
 		else {
 			// TODO
