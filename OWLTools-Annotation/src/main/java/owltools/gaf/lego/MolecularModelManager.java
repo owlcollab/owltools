@@ -1,6 +1,5 @@
 package owltools.gaf.lego;
 
-import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -8,20 +7,16 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.imageio.ImageIO;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
-import org.coode.owlapi.obo.parser.OBOVocabulary;
 import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
@@ -50,7 +45,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
-import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -343,20 +337,52 @@ public class MolecularModelManager {
 	}
 
 	/**
-	 * TODO - autogenerate a label
+	 * TODO - autogenerate a label?
+	 * TODO - finalize identifier policy. Currently concatenates model and class IDs
 	 * 
 	 * @param modelId
 	 * @param c
 	 * @return id of created individual
 	 */
 	public String createIndividual(String modelId, OWLClass c) {
-		String cid = graph.getIdentifier(c).replaceAll(":","_");
-		String iid = modelId+"-"+cid;
+		LOG.info("Creating individual of type: "+c);
+		String cid = graph.getIdentifier(c).replaceAll(":","-"); // e.g. GO-0123456
+		String iid = modelId+"-"+cid; // TODO - uniqueify
+		LOG.info("  new OD: "+iid);
 		IRI iri = graph.getIRIByIdentifier(iid);
 		OWLNamedIndividual i = getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
 		addAxiom(modelId, getOWLDataFactory(modelId).getOWLDeclarationAxiom(i));
 		addType(modelId, i, c);
 		return iid;
+	}
+
+	/**
+	 * Shortcut for {@link #createIndividual(String, OWLClass)}
+	 * 
+	 * @param modelId
+	 * @param cid
+	 * @return id of created individual
+	 */
+	public String createIndividual(String modelId, String cid) {
+		return createIndividual(modelId, getClass(cid));
+	}
+	
+	/**
+	 * Deletes an individual
+	 * 
+	 * @param modelId
+	 * @param iid
+	 * @return response into
+	 */
+	public OWLOperationResponse deleteIndividual(String modelId,String iid) {
+		OWLNamedIndividual i = (OWLNamedIndividual) getIndividual(modelId, iid);
+		removeAxiom(modelId, getOWLDataFactory(modelId).getOWLDeclarationAxiom(i));
+		LegoModelGenerator m = getModel(modelId);
+		OWLOntology ont = m.getAboxOntology();
+		for (OWLAxiom ax : ont.getAxioms(i)) {
+			removeAxiom(modelId, ax);
+		}
+		return new OWLOperationResponse(true);
 	}
 
 	/**
@@ -758,7 +784,36 @@ public class MolecularModelManager {
 			String iid, String jid) {
 		return addFact(modelId, getObjectProperty(vocabElement), getIndividual(modelId, iid), getIndividual(modelId, jid));
 	}
+	
+	/**
+	 * @param modelId
+	 * @param p
+	 * @param i
+	 * @param j
+	 * @return response info
+	 */
+	public OWLOperationResponse removeFact(String modelId, OWLObjectPropertyExpression p,
+			OWLIndividual i, OWLIndividual j) {
+		OWLObjectPropertyAssertionAxiom axiom = getOWLDataFactory(modelId).getOWLObjectPropertyAssertionAxiom(p, i, j);
+		return removeAxiom(modelId, axiom);
+	}
 
+	/**
+	 * @param modelId
+	 * @param vocabElement
+	 * @param iid
+	 * @param jid
+	 * @return response info
+	 */
+	public OWLOperationResponse removeFact(String modelId, String pid,
+			String iid, String jid) {
+		return removeFact(modelId, 
+				getObjectProperty(pid), 
+				getIndividual(modelId, iid), getIndividual(modelId, jid));
+	}
+
+
+	
 	/**
 	 * Convenience wrapper for {@link #addPartOf(String, OWLIndividual, OWLIndividual)}
 	 *
@@ -820,6 +875,11 @@ public class MolecularModelManager {
 	/**
 	 * In general, should not be called directly - use a wrapper method
 	 * 
+	 * TODO: an error should be returned if the user attempts to remove
+	 * any inferred axiom. For example, if f1 part_of p1, and p1 Type occurs_in some cytosol,
+	 * and the user attempts to delete "located in cytosol", the axiom will "come back"
+	 * as it is inferred. 
+	 * 
 	 * @param modelId
 	 * @param axiom
 	 * @return response info
@@ -827,19 +887,27 @@ public class MolecularModelManager {
 	public OWLOperationResponse removeAxiom(String modelId, OWLAxiom axiom) {
 		LegoModelGenerator model = getModel(modelId);
 		OWLOntology ont = model.getAboxOntology();
+		// TODO - check axiom exists
 		RemoveAxiom change = new RemoveAxiom(ont, axiom);
 		ont.getOWLOntologyManager().applyChange(change);
 		// TODO - track axioms to allow redo
 		return new OWLOperationResponse(true);
 	}	
 
+	public OWLOperationResponse undo(String modelId, String chageId) {
+		LOG.error("Not implemented");
+		return null;
+	}
+	
 	/**
+	 * TODO: decide identifier policy for models
+	 * 
 	 * @param p
 	 * @param db
-	 * @return
+	 * @return identifier
 	 */
 	private String getModelId(String p, String db) {
-		return "gomodel:"+db + "-"+p.replaceAll(":", "_");
+		return "gomodel:"+db + "-"+p.replaceAll(":", "-");
 	}
 	
 	

@@ -24,7 +24,10 @@ import owltools.graph.OWLGraphWrapper;
 import com.google.gson.Gson;
 
 /**
+ * A Renderer that takes a MolecularModel (an OWL ABox) and generates Map objects
+ * that can be translated to JSON using Gson.
  * 
+ * TODO - make this inherit from a generic renderer - use OWLAPI visitor?
  * TODO - abstract some of this into a generic OWL to JSON-LD converter
  * 
  * @author cjm
@@ -36,6 +39,17 @@ public class MolecularModelJsonRenderer {
 	
 	OWLGraphWrapper graph;
 
+	/**
+	 * JSON-LD keywords for elements of different vocabularies:
+	 * 
+	 *<li>RDF
+	 *<li>OWL
+	 *<li>GO
+	 *<li>RO
+	 *
+	 * TODO: use a complex enum to generate IRIs for each
+	 *
+	 */
 	public enum KEY {
 		id,
 		label,
@@ -49,6 +63,11 @@ public class MolecularModelJsonRenderer {
 		intersectionOf,
 		unionOf
 	};
+	
+	/**
+	 * merge with KEY?
+	 *
+	 */
 	public enum VAL {
 		Restriction,
 		someValueFrom
@@ -56,22 +75,34 @@ public class MolecularModelJsonRenderer {
 	
 	Gson gson = new Gson();
 	
+	/**
+	 * @param graph
+	 */
 	public MolecularModelJsonRenderer(OWLGraphWrapper graph) {
 		super();
 		this.graph = graph;
 	}
 
+	/**
+	 * @param ont
+	 * @return Map to be passed to Gson
+	 */
 	public Map renderObject(OWLOntology ont) {
 		Map model = new HashMap();
 		List<Map> iObjs = new ArrayList<Map>();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
 			iObjs.add(renderObject(ont, i));
 		}
-		
+		model.put("individuals", iObjs);
 		return model;
 		
 	}
 	
+	/**
+	 * @param ont
+	 * @param i
+	 * @return Map to be passed to Gson
+	 */
 	public Map renderObject(OWLOntology ont, OWLNamedIndividual i) {
 		Map iObj = new HashMap();
 		iObj.put(KEY.id, getId(i));
@@ -93,6 +124,11 @@ public class MolecularModelJsonRenderer {
 		return iObj;
 	}
 	
+	/**
+	 * @param ont
+	 * @param x
+	 * @return  Object to be passed to Gson
+	 */
 	private Object renderObject(OWLOntology ont, OWLClassExpression x) {
 		Map xObj = new HashMap();
 		if (x.isAnonymous()) {
@@ -161,6 +197,7 @@ public class MolecularModelJsonRenderer {
 	}
 
 
+	// TODO - fix for individuals
 	private String getId(OWLNamedObject i) {
 		return graph.getIdentifier(i).replaceAll(":", "_");
 	}
