@@ -657,10 +657,29 @@ public class OWLHandler {
 		// TODO Auto-generated method stub
 		response.getWriter().write("{status:\"ok\"}");
 	}
+	
+	public void returnJSON(Object obj) throws IOException {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String js = gson.toJson(obj);
+		response.getWriter().write(js);
+	}
+
 
 	// m3 commands
 	
-	public void m3AssertTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+	public void m3CreateIndividualCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ObjectPropertyAssertion");
+			return;
+		}
+		MolecularModelManager mmm = getMolecularModelManager();
+		String id = 
+				mmm.createIndividual(getParam(Param.modelId),
+						getParam(Param.classId));
+		response.getWriter().write("{\"id\":\""+id+"\"}");
+	}
+	
+	public void m3AddTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("generates ClassAssertion");
 			return;
@@ -670,13 +689,23 @@ public class OWLHandler {
 		returnResponse(resp);
 	}
 
-	public void m3AssertFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+	public void m3AddFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("generates ObjectPropertyAssertion");
 			return;
 		}
 		MolecularModelManager mmm = getMolecularModelManager();
 		OWLOperationResponse resp = mmm.addFact(getParam(Param.propertyId),
+				getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
+		returnResponse(resp);
+	}
+	public void m3RemoveFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ObjectPropertyAssertion");
+			return;
+		}
+		MolecularModelManager mmm = getMolecularModelManager();
+		OWLOperationResponse resp = mmm.removeFact(getParam(Param.propertyId),
 				getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
 		returnResponse(resp);
 	}
@@ -691,11 +720,6 @@ public class OWLHandler {
 		returnJSON(obj);
 	}
 
-	public void returnJSON(Object obj) throws IOException {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String js = gson.toJson(obj);
-		response.getWriter().write(js);
-	}
 
 	public void assertEnabledByCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
