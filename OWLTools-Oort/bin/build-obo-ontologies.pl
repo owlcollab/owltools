@@ -493,6 +493,12 @@ sub get_ont_info {
              checkout => 'git clone https://github.com/obophenotype/cephalopod-ontology.git',
              path => 'src/ontology',
          },
+         cteno => {
+             method => 'vcs',
+             system => 'git',
+             checkout => 'git clone https://github.com/cmungall/ctenophore-ontology.git',
+             path => 'src/ontology',
+         },
          ehdaa2 => {
              method => 'vcs',
              system => 'git',
