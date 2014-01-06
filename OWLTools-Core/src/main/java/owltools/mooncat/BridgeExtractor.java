@@ -61,10 +61,48 @@ public class BridgeExtractor {
 	private Logger LOG = Logger.getLogger(BridgeExtractor.class);
 	Map<String,OWLOntology> nameToOntologyMap;
 	OWLOntology importOntology;
+	Set<Combo> combos;
+	
+	/**
+	 * Maps a set of ontologies (e.g. cl, uberon) to a single target (e.g. uberon-plus-cl)
+	 *
+	 */
+	public class Combo {
+		Set<String> srcOntIds;
+		String tgtOntId;
+		
+		public Combo(Set<String> srcOntIds, String tgtOntId) {
+			super();
+			this.srcOntIds = srcOntIds;
+			this.tgtOntId = tgtOntId;
+		}
+		/**
+		 * if srcOntIds is a subset of xOntIds, then replace that subset
+		 * with tgtOntId
+		 * 
+		 * @param xOntIds
+		 */
+		public void reduce(List<String> xOntIds) {
+			List<String> x = new ArrayList<String>(xOntIds);
+			x.removeAll(srcOntIds);
+			if ((xOntIds.size() - x.size()) == srcOntIds.size()) {
+				xOntIds.removeAll(srcOntIds);
+				xOntIds.add(tgtOntId);
+				Collections.sort(xOntIds);
+			}
+		}
+	}
 
 	public BridgeExtractor(OWLOntology ontology) {
 		super();
 		this.ontology = ontology;
+	}
+	
+	public void addCombo(String tgtOntId, Set<String> srcOntIds) {
+		Combo combo = new Combo(srcOntIds, tgtOntId);
+		if (combos == null)
+			combos = new HashSet<Combo>();
+		combos.add(combo);
 	}
 
 	/**
@@ -155,6 +193,11 @@ public class BridgeExtractor {
 
 	private OWLOntology getBridgeOntology(String srcOntId, List<String> xOntIds) throws OWLOntologyCreationException {
 		StringBuffer n = new StringBuffer(srcOntId + "-bridge-to-");
+		if (combos != null) {
+			for (Combo combo: combos) {
+				combo.reduce(xOntIds);
+			}
+		}
 		int i = 0;
 		for (String xo : xOntIds) {
 			if (i>0)
