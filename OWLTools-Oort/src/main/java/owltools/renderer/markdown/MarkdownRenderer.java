@@ -20,15 +20,20 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedObject;
+import org.semanticweb.owlapi.model.OWLNaryBooleanClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -56,6 +61,11 @@ public class MarkdownRenderer {
 		}
 	}
 
+	public void renderAbout(OWLClass c) throws IOException {
+		Set<OWLAxiom> axioms = ontology.getReferencingAxioms(c, true);
+		
+	}
+	
 	public void render(OWLClass c) throws IOException {
 		IRI iri = c.getIRI();
 		String id = getId(c);
@@ -145,18 +155,27 @@ public class MarkdownRenderer {
 				List<OWLClassExpression> pcs = mParents.get(p);
 				Collections.sort(pcs);
 				for (OWLClassExpression pc : pcs) {
-					renderTagValue("", cvt(p)+" some "+cvt(pc));
+					renderTagValue("", generateText(p)+" some "+generateText(pc));
 				}
 			}
 
 			renderSection("Equivalencies");
 			Collections.sort(lEquiv);
 			for (OWLClassExpression x : lEquiv) {
-				renderTagValue("", cvt(x));
+				renderTagValue("", generateText(x));
 			}
 
 
 			renderSection("Other Logical Axioms");
+			
+			List<String> axstrs = new ArrayList<String>();
+			for (OWLAxiom ax : logicalAxioms) {
+				axstrs.add(generateText(ax));
+			}
+			Collections.sort(axstrs);
+			for (String axstr : axstrs) {
+				renderTagValue("", axstr);
+			}
 
 			renderSection("Other Annotations");
 
@@ -167,14 +186,22 @@ public class MarkdownRenderer {
 			List<OWLAnnotationProperty> lProp = new ArrayList<OWLAnnotationProperty>(props);
 			Collections.sort(lProp);
 			for (OWLAnnotationProperty prop : lProp) {
+				if (prop.getIRI().equals(Obo2OWLVocabulary.IRI_OIO_hasOboNamespace.getIRI())) {
+					continue;
+				}
+				if (prop.getIRI().getFragment().equals("id")) {
+					continue;
+				}
 				List<String> vs = new ArrayList<String>();
 				for (OWLAnnotationAssertionAxiom aaa : annotationAxioms) {
 					if (aaa.getProperty().equals(prop)) {
-						vs.add(cvt(aaa.getValue()));
+						vs.add(generateText(aaa.getValue()));
 					}
 				}	
-				renderTagValues(cvt(prop), vs);
+				renderTagValues(generateText(prop), vs);
 			}
+			
+			renderSection("Usage");
 
 
 			renderSection("External Comments");
@@ -208,7 +235,7 @@ public class MarkdownRenderer {
 		String label = null;
 		for (OWLAnnotationAssertionAxiom aaa : ontology.getAnnotationAssertionAxioms(ob.getIRI())) {
 			if (aaa.getProperty().isLabel()) {
-				label = cvt(aaa.getValue());
+				label = generateText(aaa.getValue());
 				break;
 			}
 		}
@@ -237,11 +264,11 @@ public class MarkdownRenderer {
 		for (OWLAnnotationAssertionAxiom aaa : annotationAxioms) {
 			if (aaa.getProperty().getIRI().equals(piri)) {
 				StringBuffer v = 
-						new StringBuffer(cvt(aaa.getValue()));
+						new StringBuffer(generateText(aaa.getValue()));
 				if (aaa.getAnnotations().size() > 0) {
 					List<String> avs = new ArrayList<String>();
 					for (OWLAnnotation ann : aaa.getAnnotations()) {
-						avs.add(cvt(ann));
+						avs.add(generateText(ann));
 					}
 					Collections.sort(avs);
 					v.append(" [ "+StringUtils.join(avs, ", ")+" ]");
@@ -272,7 +299,7 @@ public class MarkdownRenderer {
 	private void renderObjectTagValues(String tag, List<OWLClass> lSuper) {
 		Collections.sort(lSuper);
 		for (OWLClass s : lSuper) {
-			renderTagValue(tag, cvt(s));
+			renderTagValue(tag, generateText(s));
 		}
 	}
 
@@ -301,7 +328,7 @@ public class MarkdownRenderer {
 		render("");
 	}
 
-	private String cvt(OWLObject x) {
+	private String generateText(OWLObject x) {
 		if (x instanceof OWLNamedObject) {
 			OWLNamedObject s = (OWLNamedObject)x;
 			return getMarkdownLink(s);
@@ -310,14 +337,39 @@ public class MarkdownRenderer {
 			OWLLiteral lx = (OWLLiteral)x;
 			return lx.getLiteral();
 		}
-		else if (x instanceof OWLAnnotation) {
-			OWLAnnotation a = (OWLAnnotation)x;
-			return (cvt(a.getProperty()) + " = " + cvt(a.getValue()));
-		}
-		else {
-			// TODO
+		else if (x instanceof IRI) {
 			return x.toString();
 		}
+		else if (x instanceof OWLAnnotation) {
+			OWLAnnotation a = (OWLAnnotation)x;
+			return (generateText(a.getProperty()) + " = " + generateText(a.getValue()));
+		}
+		else if (x instanceof OWLNaryBooleanClassExpression) {
+			List<String> vs = new ArrayList<String>();
+			for (OWLClassExpression y : ((OWLNaryBooleanClassExpression)x).getOperands()) {
+				vs.add(generateText(y));
+			}
+			Collections.sort(vs);
+			String op = " and ";
+			if (x instanceof OWLObjectUnionOf) {
+				op = "or";
+			}
+			return StringUtils.join(vs.iterator(), op);
+		}
+		else if (x instanceof OWLObjectSomeValuesFrom) {
+			OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)x;
+			return generateText(svf.getProperty()) + " some " + generateText(svf.getFiller());
+		}
+		else if (x instanceof OWLObjectAllValuesFrom) {
+			OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)x;
+			return generateText(svf.getProperty()) + " only " + generateText(svf.getFiller());
+		}
+		else {
+			LOG.warn("Using default for "+x+" "+x.getClass());
+			// TODO
+			
+		}
+		return x.toString();
 	}
 
 	private String getMarkdownLink(OWLNamedObject s) {
