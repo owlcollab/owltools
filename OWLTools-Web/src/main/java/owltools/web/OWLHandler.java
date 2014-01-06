@@ -710,7 +710,7 @@ public class OWLHandler {
 		}
 		MolecularModelManager mmm = getMolecularModelManager();
 		OWLOperationResponse resp = mmm.addFact(getParam(Param.propertyId),
-				getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
+				getParam(Param.ontology), getParam(Param.individualId), getParam(Param.fillerId));
 		returnResponse(resp);
 	}
 	public void m3RemoveFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
@@ -720,7 +720,7 @@ public class OWLHandler {
 		}
 		MolecularModelManager mmm = getMolecularModelManager();
 		OWLOperationResponse resp = mmm.removeFact(getParam(Param.propertyId),
-				getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
+				getParam(Param.ontology), getParam(Param.individualId), getParam(Param.fillerId));
 		returnResponse(resp);
 	}
 
