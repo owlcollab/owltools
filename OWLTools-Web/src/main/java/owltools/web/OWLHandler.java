@@ -669,7 +669,7 @@ public class OWLHandler {
 	
 	public void m3CreateIndividualCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
-			info("generates ObjectPropertyAssertion");
+			info("generates a new individual");
 			return;
 		}
 		MolecularModelManager mmm = getMolecularModelManager();
@@ -681,13 +681,27 @@ public class OWLHandler {
 	
 	public void m3AddTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
-			info("generates ClassAssertion");
+			info("generates ClassAssertion (named class)");
 			return;
 		}
 		MolecularModelManager mmm = getMolecularModelManager();
 		OWLOperationResponse resp = mmm.addType(getParam(Param.ontology), getParam(Param.individualId), getParam(Param.classId));
 		returnResponse(resp);
 	}
+	
+	public void m3AddTypeExpressionCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("generates ClassAssertion (anon class expression)");
+			return;
+		}
+		MolecularModelManager mmm = getMolecularModelManager();
+		OWLOperationResponse resp = mmm.addType(getParam(Param.ontology), 
+				getParam(Param.individualId), 
+				getParam(Param.propertyId), 
+				getParam(Param.classId));
+		returnResponse(resp);
+	}
+
 
 	public void m3AddFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
@@ -720,6 +734,7 @@ public class OWLHandler {
 		returnJSON(obj);
 	}
 
+	// end of m3 commands
 
 	public void assertEnabledByCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
