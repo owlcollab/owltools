@@ -592,6 +592,24 @@ public class MolecularModelManager {
 	}
 	
 	/**
+	 * Convenience wrapper for
+	 *  {@link #addType(String, OWLIndividual, OWLObjectPropertyExpression, OWLClassExpression)}
+	 * 
+	 * @param modelId
+	 * @param iid
+	 * @param pid
+	 * @param cid
+	 * @return response info
+	 */
+	public OWLOperationResponse addType(String modelId,
+			String iid, String pid, String cid) {
+		return addType(modelId, getIndividual(modelId, iid), 
+				getObjectProperty(pid),
+				getClass(cid));
+	}
+
+	
+	/**
 	 * Adds ClassAssertion(c,i) to specified model
 	 * 
 	 * @param modelId
