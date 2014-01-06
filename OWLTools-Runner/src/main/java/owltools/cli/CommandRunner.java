@@ -172,6 +172,9 @@ import owltools.reasoner.OWLExtendedReasoner;
 import owltools.reasoner.PrecomputingMoreReasonerFactory;
 import owltools.renderer.markdown.MarkdownRenderer;
 import owltools.sim2.preprocessor.ABoxUtils;
+import owltools.tr.LinkMaker;
+import owltools.tr.LinkMaker.LinkMakerResult;
+import owltools.tr.LinkMaker.LinkPattern;
 import owltools.util.MinimalModelGenerator;
 import owltools.vocab.OBOUpperVocabulary;
 import owltools.web.OWLServer;
@@ -3818,6 +3821,92 @@ public class CommandRunner {
 		}
 	}
 
+	/**
+	 * GeneOntology specific function to create links between molecular
+	 * functions and their corresponding processes. This method uses the exact
+	 * matching of the equivalence axioms to establish the part_of relations.<br>
+	 * All relations created by this method are going to be tagged with an axiom
+	 * annotation http://purl.org/dc/terms/source and corresponding GO_REF.
+	 * 
+	 * @param opts 
+	 * @throws Exception
+	 */
+	@CLIMethod("--create-part-of")
+	public void createPartOfLinks(Opts opts) throws Exception {
+		String goRef = "GO_REF:0000090";
+		String annotationIRIString = "http://purl.org/dc/terms/source";
+		String targetFileName = null;
+		
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--go-ref")) {
+				goRef = opts.nextOpt();
+			}
+			else if (opts.nextEq("--annotation-iri")) {
+				annotationIRIString = opts.nextOpt();
+			}
+			else if (opts.nextEq("--target-file")) {
+				targetFileName = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		
+		if (targetFileName == null) {
+			LOG.error("No target-file as output was specified.");
+			exit(-1);
+		}
+		final File targetFile = new File(targetFileName);
+		final IRI targetFileIRI = IRI.create(targetFile);
+		
+		final IRI annotationIRI = IRI.create(annotationIRIString);
+		
+		// first hard coded test for MF -> BP mappings:
+		// transporter activity -part_of-> transporter
+		// transmembrane transporter activity -part_of-> transmembrane transport
+		
+		final OWLClass ta = g.getOWLClassByIdentifier("GO:0005215"); // transporter activity
+		final OWLClass t = g.getOWLClassByIdentifier("GO:0006810"); // transport
+		final OWLClass tmta = g.getOWLClassByIdentifier("GO:0022857"); // transmembrane transport activity
+		final OWLClass tmt = g.getOWLClassByIdentifier("GO:0055085"); // transmembrane transport
+		final OWLObjectProperty partOf = g.getOWLObjectPropertyByIdentifier("part_of");
+		final OWLObjectProperty transports = g.getOWLObjectPropertyByIdentifier("transports_or_maintains_localization_of");
+		
+		List<LinkPattern> patterns = new ArrayList<LinkPattern>(2);
+		patterns.add(new LinkPattern(ta, t, transports, partOf));
+		patterns.add(new LinkPattern(tmta, tmt, transports, partOf));
+		
+		OWLDataFactory factory = g.getDataFactory();
+		OWLAnnotationProperty property = factory.getOWLAnnotationProperty(annotationIRI);
+		OWLAnnotation sourceAnnotation = factory.getOWLAnnotation(property, factory.getOWLLiteral(goRef));
+		
+		LinkMaker maker = new LinkMaker(g, reasoner);
+		LinkMakerResult result = maker.makeLinks(patterns, sourceAnnotation);
+		
+		LOG.info("Predictions size: "+result.getPredictions().size());
+		LOG.info("Existing size: "+result.getExisiting().size());
+		LOG.info("Modified size: "+result.getModified().size());
+
+		ParserWrapper pw = new ParserWrapper();
+		OWLOntology outputOntology = pw.parse(targetFileIRI.toString());
+		OWLOntologyManager manager = outputOntology.getOWLOntologyManager();
+		manager.removeAxioms(outputOntology, result.getExisiting());
+		manager.addAxioms(outputOntology, result.getModified());
+		manager.addAxioms(outputOntology, result.getPredictions());
+		
+		if (targetFileName.endsWith(".obo")) {
+			// handle as obo
+			Owl2Obo owl2Obo = new Owl2Obo();
+			OBODoc outputOBO = owl2Obo.convert(outputOntology);
+			OBOFormatWriter writer = new OBOFormatWriter();
+			writer.write(outputOBO, targetFileName);
+		}
+		else {
+			// assume owl
+			manager.saveOntology(outputOntology, targetFileIRI);
+		}
+	}
+	
 	@CLIMethod("--create-biochebi")
 	public void createBioChebi(Opts opts) throws Exception {
 		final String chebiPURL = "http://purl.obolibrary.org/obo/chebi.owl";
