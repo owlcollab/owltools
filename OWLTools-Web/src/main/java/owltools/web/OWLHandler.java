@@ -3,6 +3,7 @@ package owltools.web;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -130,7 +131,7 @@ public class OWLHandler {
 		individualId,
 		propertyId,
 		fillerId,
-		a, b, modelId
+		a, b, modelId, db
 	}
 
 	public OWLHandler(OWLServer owlserver, OWLGraphWrapper graph,  HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -667,6 +668,27 @@ public class OWLHandler {
 
 	// m3 commands
 	
+	public void m3GenerateMolecularModelCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException, URISyntaxException {
+		if (isHelp()) {
+			info("generates Minimal Model augmented with GO associations");
+			return;
+		}
+		MolecularModelManager mmm = getMolecularModelManager();
+		String mid = mmm.generateModel(getParam(Param.classId), getParam(Param.db));
+		response.getWriter().write("{\"id\":\""+mid+"\"}");
+	}
+	
+	public void m3preloadGaf() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException, URISyntaxException {
+		if (isHelp()) {
+			info("loads a GAF into memory (saves parsing time later on)");
+			return;
+		}
+		MolecularModelManager mmm = getMolecularModelManager();
+		String db = getParam(Param.db);
+		mmm.loadGaf(db);
+		response.getWriter().write("{\"db\":\""+db+"\"}");
+	}
+	
 	public void m3CreateIndividualCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("generates a new individual");
@@ -710,7 +732,7 @@ public class OWLHandler {
 		}
 		MolecularModelManager mmm = getMolecularModelManager();
 		OWLOperationResponse resp = mmm.addFact(
-				getParam(Param.modelId), getParam(Param.propertyId), getParam(Param.individualId),getParam(Param.fillerId));
+				getParam(Param.modelId), getParam(Param.propertyId),  getParam(Param.individualId),getParam(Param.fillerId));
 		returnResponse(resp);
 	}
 	public void m3RemoveFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
@@ -767,17 +789,7 @@ public class OWLHandler {
 	}
 	
 	
-	public void generateMolecularModelCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
-		if (isHelp()) {
-			info("generates Minimal Model augmented with GO associations");
-			return;
-		}
-		
-		// TODO
-		String jsonStr = "";
-		response.getWriter().write(jsonStr);
-	}
-	
+
 
 
 	// ----------------------------------------
