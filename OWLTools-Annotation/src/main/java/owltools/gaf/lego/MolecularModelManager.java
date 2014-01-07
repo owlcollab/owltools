@@ -200,7 +200,7 @@ public class MolecularModelManager {
 	public GafDocument loadGaf(String db) throws IOException, URISyntaxException {
 		if (!dbToGafdoc.containsKey(db)) {
 
-			GafDocument gafdoc = builder.buildDocument(pathToGafs + "/" + db + ".gz");
+			GafDocument gafdoc = builder.buildDocument(pathToGafs + "/gene_association." + db + ".gz");
 			dbToGafdoc.put(db, gafdoc);
 		}
 		return dbToGafdoc.get(db);
@@ -265,6 +265,20 @@ public class MolecularModelManager {
 		modelMap.put(modelId, molecularModelGenerator);
 		return modelId;
 
+	}
+	
+	/**
+	 * wrapper for {@link #generateModel(OWLClass, String)}
+	 * 
+	 * @param pid
+	 * @param db
+	 * @return modelId
+	 * @throws OWLOntologyCreationException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	public String generateModel(String pid, String db) throws OWLOntologyCreationException, IOException, URISyntaxException {
+		return generateModel(this.getClass(pid), db);
 	}
 
 	/**
