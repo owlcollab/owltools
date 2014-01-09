@@ -1091,6 +1091,7 @@ public class GafCommandRunner extends CommandRunner {
 		OWLClass processCls = null;
 		File owlOutputFile = null;
 		String dotOutputFile = null;
+		String pngOutputFile = null;
 		boolean isReplaceSourceOntology = false;
 		boolean isPrecomputePropertyClassCombinations = false;
 		boolean isExtractModule = false;
@@ -1106,7 +1107,7 @@ public class GafCommandRunner extends CommandRunner {
 				isPrecomputePropertyClassCombinations = false;
 			}
 			else if (opts.nextEq("-x|--extract-module")) {
-				isExtractModule = false;
+				isExtractModule = true;
 			}
 			else if (opts.nextEq("-a|--all-relation-class-pairs")) {
 				isPrecomputePropertyClassCombinations = true;
@@ -1116,6 +1117,10 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			else if (opts.nextEq("-o|--dot")) {
 				dotOutputFile = opts.nextOpt();
+			}
+			else if (opts.nextEq("--png")) {
+				// TODO
+				pngOutputFile = opts.nextOpt();
 			}
 			else if (opts.nextEq("--owl")) {
 				owlOutputFile = opts.nextFile();

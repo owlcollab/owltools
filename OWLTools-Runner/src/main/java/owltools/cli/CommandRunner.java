@@ -1292,7 +1292,7 @@ public class CommandRunner {
 				g.setSourceOntology(newOnt);				
 			}
 			else if (opts.nextEq("--extract-bridge-ontologies")) {
-				opts.info("[-d OUTDIR] [-x] [-s]", "");
+				opts.info("[-d OUTDIR] [-x] [-s ONTID]", "");
 				String dir = "bridge/";
 				String ontId = null;
 				boolean isRemoveBridgeAxiomsFromSource = false;
@@ -1302,11 +1302,17 @@ public class CommandRunner {
 						opts.info("DIR", "bridge files are generated in this directory. Default: ./bridge/");
 						dir = opts.nextOpt();
 					}
+					else if (opts.nextEq("-c")) {
+						opts.info("TGT SRCLIST", "Combines all src onts to tgt. TODO");
+						String tgt = opts.nextOpt();
+						List<String> srcs = opts.nextList();
+					}
 					else if (opts.nextEq("-x")) {
 						opts.info("", "If specified, bridge axioms are removed from the source");
 						isRemoveBridgeAxiomsFromSource = true;
 					}
 					else if (opts.nextEq("-s")) {
+						opts.info("ONTID", "If specified, ...");
 						ontId = opts.nextOpt();
 					}
 					else {
