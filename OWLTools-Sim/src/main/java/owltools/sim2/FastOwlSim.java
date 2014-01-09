@@ -71,13 +71,13 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	Map<Node<OWLClass>, OWLClass> representativeClassMap;
 	Map<OWLClass, OWLClass> classTorepresentativeClassMap;
 
-	private Map<OWLClass,Integer> classIndex;
-	private OWLClass[] classArray;
+	Map<OWLClass,Integer> classIndex;
+	OWLClass[] classArray;
 
 	private Set<OWLClass> allTypes = null; // all Types used in Type(e) for all e in E
 
 	private Map<OWLClass, Double> icCache = new HashMap<OWLClass,Double>();
-	private Double[] icClassArray = null;
+	Double[] icClassArray = null;
 
 	//	private Map<ClassIntPair, Set<Integer>> classPairLCSMap;
 	//	private Map<ClassIntPair, ScoreAttributeSetPair> classPairICLCSMap;
@@ -489,13 +489,17 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			// the amount added is |ancs(c)| / SF,
 			// where SF is large enough to make overall increase negligible
 			int numAncs = ancsBitmapCachedModifiable(c).cardinality();
-			ic += numAncs / (double) scaleFactor;
+			double bump = numAncs / (double) scaleFactor;
+			if (bump > 0.2) {
+				LOG.warn("Bump = "+bump+" for "+c);
+			}
+			ic += bump;
 		}
 		icCache.put(c, ic);
 		return ic;
 	}
 
-	private Double getInformationContentForAttribute(int cix) throws UnknownOWLClassException {
+	Double getInformationContentForAttribute(int cix) throws UnknownOWLClassException {
 		if (icClassArray != null && icClassArray[cix] != null) {
 			return icClassArray[cix];
 		}
@@ -1117,18 +1121,22 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		long t = System.currentTimeMillis();
 		EWAHCompressedBitmap cad = getNamedLowestCommonSubsumersAsBitmap(cix, dix);
 
-		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>();
-		for (int ix : cad.toArray()) {
-			OWLClassNode node = new OWLClassNode(classArray[ix]);
-			nodes.add(node);
-		}
+//		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>();
+//		for (int ix : cad.toArray()) {
+//			OWLClassNode node = new OWLClassNode(classArray[ix]);
+//			nodes.add(node);
+//		}
 
 		Set<OWLClass> lcsClasses = new HashSet<OWLClass>();
 		double maxScore = 0.0;
 		for (int ix : cad.toArray()) {
 			double score = 
 					getInformationContentForAttribute(ix);
-			if (score >= maxScore) {
+			if (score == maxScore) {
+				lcsClasses= new HashSet<OWLClass>(Collections.singleton(classArray[ix]));
+				maxScore = score;
+			}
+			else if (score >= maxScore) {
 				lcsClasses.add(classArray[ix]);
 				maxScore = score;
 			}
@@ -1393,16 +1401,23 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		FileOutputStream fos = new FileOutputStream(fileName);
 
 		// ensure ICs are cached
-		for (OWLClass c : getSourceOntology().getClassesInSignature()) {
+		int n=0;
+		for (OWLClass c : this.getAllAttributeClasses()) {
 			try {
-				getInformationContentForAttribute(c);
+				int cix = classIndex.get(c);
+				Double ic = getInformationContentForAttribute(cix);
+				Double icCheck = icClassArray[cix]; // for debugging
+				//if (n % 100 == 0 || c.getIRI()) {
+					LOG.info("Class "+c+" has ix="+cix+" IC="+ic+" IC(check)="+icCheck+" C(check)="+getShortId(classArray[cix]));
+				//}
+				n++;
 			} catch (UnknownOWLClassException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error("cannot find IC values for class "+c, e);
 				throw new IOException("unknown: "+c);
 			}
 		}
 		
+		// assumes this has been calculated
 		for ( int cix = 0; cix< ciPairIsCached.length; cix++) {
 			boolean[] arr = ciPairIsCached[cix];
 			OWLClass c = classArray[cix];
@@ -1410,8 +1425,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				if (arr[dix]) {
 					//double s = ciPairScaledScore[cix][dix] / (double) scaleFactor;
 					int lcsix = ciPairLCS[cix][dix];
-					double s = icClassArray[lcsix];
-					if (thresholdIC == null || s >= thresholdIC) {
+					Double s = icClassArray[lcsix];
+					if (s == null || s.isNaN() || s.isInfinite()) {
+						throw new IOException("No IC for "+classArray[lcsix]);
+					}
+					if (thresholdIC == null || s.doubleValue() >= thresholdIC) {
 						OWLClass d = classArray[dix];
 						OWLClass lcs = classArray[lcsix];
 						IOUtils.write(getShortId((OWLClass) c) +"\t" + getShortId((OWLClass) d) + "\t" + s + "\t" + 

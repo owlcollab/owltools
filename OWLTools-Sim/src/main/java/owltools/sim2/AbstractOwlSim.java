@@ -506,7 +506,15 @@ public abstract class AbstractOwlSim implements OwlSim {
 
 		// LOG.info("Hyper :"+populationClass
 		// +" "+sampleSetClass+" "+enrichedClass);
-		int populationClassSize = getNumElementsForAttribute(populationClass);
+		int populationClassSize;
+		if (populationClass != null) {
+			populationClassSize = getNumElementsForAttribute(populationClass);
+		}
+		else {
+			populationClassSize = getCorpusSize();
+			populationClass =  
+					getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLThing();
+		}
 		int sampleSetClassSize = getNumElementsForAttribute(sampleSetClass);
 		int enrichedClassSize = getNumElementsForAttribute(enrichedClass);
 		// LOG.info("Hyper :"+populationClassSize
@@ -541,10 +549,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 			int n = 0;
 			for (OWLClass sc : this.getReasoner()
 					.getSubClasses(populationClass, false).getFlattened()) {
-				LOG.info("testing count for " + sc);
+				//LOG.info("testing count for " + sc);
 				if (getNumElementsForAttribute(sc) > 1) {
 					n++;
-					LOG.info("  ++testing count for " + sc);
+					//LOG.info("  ++testing count for " + sc);
 				}
 			}
 

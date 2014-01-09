@@ -2,11 +2,13 @@ package owltools.sim2;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.math.MathException;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
@@ -24,8 +26,10 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.TransformationUtils;
+import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
@@ -154,6 +158,48 @@ public class OwlSimUtil {
 
 	private static IRI getIRIById(String id) {
 		return IRI.create(OBOUpperVocabulary.OBO + id.replace(":", "_"));
+	}
+	
+	public static void compareLCSWithEnrichmentGrouping(OWLOntology ont, Double pthresh, OWLPrettyPrinter owlpp) throws UnknownOWLClassException, MathException {
+		OwlSimFactory osf = new FastOwlSimFactory();
+		OwlSim sim = osf.createOwlSim(ont);
+		sim.createElementAttributeMapFromOntology();
+		OWLClass populationClass = null;
+		if (pthresh == null)
+			pthresh = 0.01;
+		int nHypotheses = ((sim.getAllAttributeClasses().size()-1) * sim.getAllAttributeClasses().size())/2;
+		for (OWLClass c : sim.getAllAttributeClasses()) {
+			for (OWLClass d : sim.getAllAttributeClasses()) {
+				if (c.compareTo(d) > 0) {
+					ScoreAttributeSetPair lcsic = sim.getLowestCommonSubsumerWithIC(c, d);
+					//System.out.println("TEST: "+c+" "+d);
+					EnrichmentResult enr = sim.calculatePairwiseEnrichment(populationClass, c, d);
+					if (enr == null) {
+						//System.err.println("NULL: "+c+" "+d);
+						continue;
+					}
+					double pvc = enr.pValue * nHypotheses;
+					if (pvc < pthresh) {
+						// TODO - place this in OwlSim
+						Set<OWLNamedIndividual> inds = 
+								new HashSet<OWLNamedIndividual>(sim.getElementsForAttribute(c));
+						inds.addAll(sim.getElementsForAttribute(d));
+						double pu = inds.size() / (double)sim.getCorpusSize();
+						double ic = - Math.log(pu) / Math.log(2);
+						double foldChange = ic / lcsic.score;
+						if (foldChange < 1.5)
+							continue;
+						if (lcsic.attributeClassSet.size() == 0) {
+							System.err.println("# no LCS for "+c+" "+d);
+							continue;
+						}
+						System.out.println(owlpp.render(c)+"\t"+owlpp.render(d)+"\t"+pvc+"\t"+owlpp.render(lcsic.getArbitraryAttributeClass())+"\t"+lcsic.score+"\t"+ic+"\t"+foldChange);
+					}
+				}
+			}
+			
+			
+		}
 	}
 	
 }
