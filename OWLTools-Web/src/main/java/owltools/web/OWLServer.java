@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -73,6 +74,19 @@ public class OWLServer extends AbstractHandler
 		String path = request.getPathInfo();
 		baseRequest.setHandled(true);
 
+		// TODO/BUG: A real server interface that we can operate on.
+		// Check the incoming args (if any) to see if we're going to use JSONP wrapping.
+		String jsonp_callback = request.getParameter("json.wrf");
+		// Check to make sure that the jsonp callback argument is legit.
+		if( jsonp_callback == null || jsonp_callback.isEmpty() ){
+			jsonp_callback = null; // a miss is as good as a mile
+		}
+		// About to sin...
+		// TODO: We'd like to change the header to javascript here--no longer JSON.
+		// TODO: We'll happily wrap non-JSON things here as well.
+		// The closer is later on.
+		if( jsonp_callback != null ){ response.getWriter().write(jsonp_callback + '('); }
+		
 		OWLHandler handler = new OWLHandler(this, graph, request, response);
 		if (sos != null)
 			handler.setOwlSim(sos);
@@ -108,8 +122,8 @@ public class OWLServer extends AbstractHandler
 			try {
 				LOG.info("Method="+method);
 				Object[] oArgs = new Object[0];
-				method.invoke(handler, oArgs);
-				handler.printCachedObjects();
+				method.invoke(handler, oArgs);				
+				handler.printCachedObjects();	
 			} catch (SecurityException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -130,7 +144,10 @@ public class OWLServer extends AbstractHandler
 				e.printStackTrace();
 			}
 		}
-					
+		
+		// TODO/BUG: Remove for a real system
+		// Close in case of JSONP. See above.
+		if( jsonp_callback != null ){ response.getWriter().write(')'); }			
 	}
 
 	public synchronized OWLReasoner getReasoner(String reasonerName) {
