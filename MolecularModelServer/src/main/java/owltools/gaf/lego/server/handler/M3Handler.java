@@ -1,5 +1,7 @@
 package owltools.gaf.lego.server.handler;
 
+import java.util.Map;
+
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -22,29 +24,46 @@ public interface M3Handler {
 	static final String PARAM_FILLERID = "fillerId";
 	static final String PARAM_FORMAT = "format";
 	
+	public static class M3Response {
+		public static final String ERROR = "error";
+		public static final String WARNING = "warning";
+		public static final String SUCCESS = "success";
+		public static final String INCONSISTENT = "inconsistent";
+		public static final String MERGE = "merge";
+		
+		public final String messageType;
+		public String message = null;
+		public Map<String, Object> commentary = null;
+		public Object data;
+		
+		public M3Response(String messageType) {
+			this.messageType = messageType;
+		}
+	}
+	
 	@Path("m3GenerateMolecularModel")
 	@GET
-	public Object m3GenerateMolecularModel(
+	public M3Response m3GenerateMolecularModel(
 			@QueryParam(PARAM_CLASSID) String classId,
 			@QueryParam(PARAM_DB) String db,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3preloadGaf")
 	@GET
-	public Object m3preloadGaf(
+	public M3Response m3preloadGaf(
 			@QueryParam(PARAM_DB) String db,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3CreateIndividual")
 	@GET
-	public Object m3CreateIndividual(
+	public M3Response m3CreateIndividual(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_CLASSID) String classId,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3AddType")
 	@GET
-	public Object m3AddType(
+	public M3Response m3AddType(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_INDIVIDIALID) String individualId,
 			@QueryParam(PARAM_CLASSID) String classId,
@@ -52,7 +71,7 @@ public interface M3Handler {
 
 	@Path("m3AddTypeExpression")
 	@GET
-	public Object m3AddTypeExpression(
+	public M3Response m3AddTypeExpression(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_INDIVIDIALID) String individualId,
 			@QueryParam(PARAM_PROPERTYID) String propertyId,
@@ -61,7 +80,7 @@ public interface M3Handler {
 
 	@Path("m3AddFact")
 	@GET
-	public Object m3AddFact(
+	public M3Response m3AddFact(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_PROPERTYID) String propertyId,
 			@QueryParam(PARAM_INDIVIDIALID) String individualId,
@@ -70,7 +89,7 @@ public interface M3Handler {
 
 	@Path("m3RemoveFact")
 	@GET
-	public Object m3RemoveFact(
+	public M3Response m3RemoveFact(
 			@QueryParam(PARAM_PROPERTYID) String propertyId,
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_INDIVIDIALID) String individualId,
@@ -79,13 +98,13 @@ public interface M3Handler {
 
 	@Path("m3GetModel")
 	@GET
-	public Object m3GetModel(
+	public M3Response m3GetModel(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3ExportModel")
 	@GET
-	public Object m3ExportModel(
+	public M3Response m3ExportModel(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_FORMAT) String format,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);

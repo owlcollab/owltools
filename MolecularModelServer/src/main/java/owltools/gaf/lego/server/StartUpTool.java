@@ -24,6 +24,7 @@ public class StartUpTool {
 		// data configuration
 		String ontology = null;
 		String modelFolder = null;
+		String gafFolder = null; // optional
 		
 		// server configuration
 		int port = 6800; 
@@ -35,6 +36,9 @@ public class StartUpTool {
 			}
 			else if (opts.nextEq("-f|--model-folder")) {
 				modelFolder = opts.nextOpt();
+			}
+			else if (opts.nextEq("--gaf-folder")) {
+				gafFolder = opts.nextOpt();
 			}
 			else if (opts.nextEq("--context-prefix")) {
 				contextPrefix = opts.nextOpt();
@@ -57,10 +61,10 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, modelFolder, port, contextString);
+		startUp(ontology, modelFolder, gafFolder, port, contextString);
 	}
 
-	public static void startUp(String ontology, String modelFolder, int port, String contextString)
+	public static void startUp(String ontology, String modelFolder, String gafFolder, int port, String contextString)
 			throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
@@ -71,6 +75,9 @@ public class StartUpTool {
 		LOGGER.info("Start initializing MMM");
 		MolecularModelManager models = new MolecularModelManager(graph);
 		models.setPathToOWLFiles(modelFolder);
+		if (gafFolder != null) {
+			models.setPathToGafs(gafFolder);
+		}
 
 		LOGGER.info("Setup Jetty config.");
 		// Configuration: Use an already existing handler instance
