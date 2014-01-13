@@ -114,8 +114,20 @@ public class MolecularModelManager {
 			this.change = change;
 		}
 		
+		/**
+		 * @return the isSuccess
+		 */
+		public boolean isSuccess() {
+			return isSuccess;
+		}
 		
-
+		/**
+		 * @return the isResultsInInconsistency
+		 */
+		public boolean isResultsInInconsistency() {
+			return isResultsInInconsistency;
+		}
+		
 	}
 
 	/**
