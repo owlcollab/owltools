@@ -50,8 +50,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import owltools.gaf.inference.TaxonConstraintsEngine;
-import owltools.gaf.lego.MolecularModelManager;
-import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphEdge;
@@ -641,122 +639,11 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 	
-	// --M3--
-	// Note these may eventually be replaced by either JAX-RS REST calls
-	// or COMET/WebSockets
-	
-	private MolecularModelManager getMolecularModelManager() throws UnknownOWLClassException, OWLOntologyCreationException {
-		if (owlserver.molecularModelManager == null) {
-			LOG.info("Creating m3 object"); // TODO - use factory
-			owlserver.molecularModelManager = new MolecularModelManager(graph);
-		}
-		return owlserver.molecularModelManager;
-	}
-	
-	// TODO!!!
-	private void returnResponse(OWLOperationResponse resp) throws IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().write("{status:\"ok\"}");
-	}
-	
 	public void returnJSON(Object obj) throws IOException {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String js = gson.toJson(obj);
 		response.getWriter().write(js);
 	}
-
-
-	// m3 commands
-	
-	public void m3GenerateMolecularModelCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException, URISyntaxException {
-		if (isHelp()) {
-			info("generates Minimal Model augmented with GO associations");
-			return;
-		}
-		MolecularModelManager mmm = getMolecularModelManager();
-		String mid = mmm.generateModel(getParam(Param.classId), getParam(Param.db));
-		response.getWriter().write("{\"id\":\""+mid+"\"}");
-	}
-	
-	public void m3preloadGaf() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException, URISyntaxException {
-		if (isHelp()) {
-			info("loads a GAF into memory (saves parsing time later on)");
-			return;
-		}
-		MolecularModelManager mmm = getMolecularModelManager();
-		String db = getParam(Param.db);
-		mmm.loadGaf(db);
-		response.getWriter().write("{\"db\":\""+db+"\"}");
-	}
-	
-	public void m3CreateIndividualCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
-		if (isHelp()) {
-			info("generates a new individual");
-			return;
-		}
-		MolecularModelManager mmm = getMolecularModelManager();
-		String id = 
-				mmm.createIndividual(getParam(Param.modelId),
-						getParam(Param.classId));
-		response.getWriter().write("{\"id\":\""+id+"\"}");
-	}
-	
-	public void m3AddTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
-		if (isHelp()) {
-			info("generates ClassAssertion (named class)");
-			return;
-		}
-		MolecularModelManager mmm = getMolecularModelManager();
-		OWLOperationResponse resp = mmm.addType(getParam(Param.modelId), getParam(Param.individualId), getParam(Param.classId));
-		returnResponse(resp);
-	}
-	
-	public void m3AddTypeExpressionCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
-		if (isHelp()) {
-			info("generates ClassAssertion (anon class expression)");
-			return;
-		}
-		MolecularModelManager mmm = getMolecularModelManager();
-		OWLOperationResponse resp = mmm.addType(getParam(Param.modelId), 
-				getParam(Param.individualId), 
-				getParam(Param.propertyId), 
-				getParam(Param.classId));
-		returnResponse(resp);
-	}
-
-
-	public void m3AddFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
-		if (isHelp()) {
-			info("generates ObjectPropertyAssertion");
-			return;
-		}
-		MolecularModelManager mmm = getMolecularModelManager();
-		OWLOperationResponse resp = mmm.addFact(
-				getParam(Param.modelId), getParam(Param.propertyId),  getParam(Param.individualId),getParam(Param.fillerId));
-		returnResponse(resp);
-	}
-	public void m3RemoveFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
-		if (isHelp()) {
-			info("generates ObjectPropertyAssertion");
-			return;
-		}
-		MolecularModelManager mmm = getMolecularModelManager();
-		OWLOperationResponse resp = mmm.removeFact(getParam(Param.propertyId),
-				getParam(Param.modelId), getParam(Param.individualId), getParam(Param.fillerId));
-		returnResponse(resp);
-	}
-
-	public void m3GetModelCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
-		if (isHelp()) {
-			info("fetches molecular model json");
-			return;
-		}
-		MolecularModelManager mmm = getMolecularModelManager();
-		Map<String, Object> obj = mmm.getModelObject(getParam(Param.modelId));
-		returnJSON(obj);
-	}
-
-	// end of m3 commands
 
 	public void assertEnabledByCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {

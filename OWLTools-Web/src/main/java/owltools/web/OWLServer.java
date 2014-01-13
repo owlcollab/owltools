@@ -53,7 +53,6 @@ public class OWLServer extends AbstractHandler
 	OWLGraphWrapper graph;
 	Map<String,OWLReasoner> reasonerMap = new HashMap<String,OWLReasoner>();
 	OwlSim sos = null;
-	MolecularModelManager molecularModelManager = null;
 
 	public OWLServer(OWLGraphWrapper g) {
 		super();
