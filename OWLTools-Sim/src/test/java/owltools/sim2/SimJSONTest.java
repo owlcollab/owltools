@@ -120,6 +120,11 @@ public class SimJSONTest extends AbstractOWLSimTest {
 			//sos.saveOntology("/tmp/z.owl");
 
 			reasoner.flush();
+			
+			owlsim.createElementAttributeMapFromOntology();
+			owlsim.computeSystemStats();
+			
+
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
 				Set<OWLClass> atts = owlsim.getAttributesForElement(i);
 				String jsonStr = sj.search(atts, "MGI", true);

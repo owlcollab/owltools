@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.sim2.AbstractOwlSim.Stat;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
@@ -957,8 +958,9 @@ public interface OwlSim {
 	 * @param stat	Integer flag for the statistic (1:mean ; 2:sum; 3:min; 4:max; 5:N)
 	 * @return {@link SummaryStatistics} 
 	 */
-	public SummaryStatistics getSummaryStatistics(int stat);
+	public SummaryStatistics getSummaryStatistics(Stat stat);
 	
+
 }
 
 

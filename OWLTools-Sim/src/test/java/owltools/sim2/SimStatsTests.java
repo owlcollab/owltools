@@ -17,6 +17,7 @@ import owltools.graph.OWLGraphWrapperEdges;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.sim2.AbstractOWLSimTest;
+import owltools.sim2.AbstractOwlSim.Stat;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.UnknownOWLClassException;
 import owltools.sim2.io.FormattedRenderer;
@@ -32,14 +33,12 @@ public class SimStatsTests extends AbstractOWLSimTest {
 	private Logger LOG = Logger.getLogger(SimStatsTests.class);
 	
 	@Test
-	public void testStats() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
+	public void testStats() throws IOException, OWLOntologyCreationException, MathException, UnknownOWLClassException, OBOFormatParserException {
 		ParserWrapper pw = new ParserWrapper();
-		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
 		g =  new OWLGraphWrapper(sourceOntol);
 		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
 		setOutput("target/basic-owlsim-test.out");
-
-		owlpp = new OWLPrettyPrinter(g);
 
 		// assume buffering
 		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
@@ -51,17 +50,14 @@ public class SimStatsTests extends AbstractOWLSimTest {
 			owlsim.computeSystemStats();
 			LOG.info("Overall statistical summary for Test:");
 			LOG.info(owlsim.getSystemStats().toString());
-			LOG.info("Averaged statistical summary (Mean) for Test:");
-			LOG.info(owlsim.getSummaryStatistics(1).toString());
-			LOG.info("Averaged statistical summary (Max) for Test:");
-			LOG.info(owlsim.getSummaryStatistics(4).toString());
-
-//			LOG.info("mean(maxIC):"+owlsim.getSummaryStatistics(4).getMean());
-//			LOG.info("max(maxIC):"+owlsim.getSummaryStatistics(4).getMax());
-//			LOG.info("mean(sumIC):"+owlsim.getSummaryStatistics(2).getMean());
-			LOG.info("Averaged statistical summary (Sum) for Test:");
-			LOG.info(owlsim.getSummaryStatistics(2).toString());
-
+			LOG.info("Averaged statistical summary for Individuals in Test:");
+//			LOG.info(owlsim.getSummaryStatistics(Stat.MEAN).toString());
+			LOG.info("individuals: "+owlsim.getSummaryStatistics(Stat.N).getN());
+			LOG.info("mean(n/indiv): "+String.format("%1$.5f", owlsim.getSummaryStatistics(Stat.N).getMean()));
+			LOG.info("mean(meanIC): "+String.format("%1$.5f", owlsim.getSummaryStatistics(Stat.MEAN).getMean()));
+			LOG.info("mean(maxIC): "+String.format("%1$.5f", owlsim.getSummaryStatistics(Stat.MAX).getMean()));
+			LOG.info("max(maxIC): "+String.format("%1$.5f", owlsim.getSummaryStatistics(Stat.MAX).getMax()));
+			LOG.info("mean(sumIC): "+String.format("%1$.5f", owlsim.getSummaryStatistics(Stat.SUM).getMean()));
 		}
 		finally {
 			reasoner.dispose();

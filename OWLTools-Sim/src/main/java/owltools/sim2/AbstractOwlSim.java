@@ -43,6 +43,7 @@ import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.scores.ElementPairScores;
 import owltools.util.ClassExpressionPair;
 
+
 public abstract class AbstractOwlSim implements OwlSim {
 
 	private Logger LOG = Logger.getLogger(AbstractOwlSim.class);
@@ -71,6 +72,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public SummaryStatistics maxStatsPerIndividual = new SummaryStatistics();
 	public SummaryStatistics nStatsPerIndividual = new SummaryStatistics();
 	public SummaryStatistics sumStatsPerIndividual = new SummaryStatistics();
+
+	public enum Stat {
+		MEAN,MIN,MAX,N,SUM
+	}
 
 	
 	@Override
@@ -621,7 +626,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public void computeSystemStats() throws UnknownOWLClassException {
 		Set<OWLNamedIndividual> insts = this.getAllElements();
 		LOG.info("Computing system stats for " + insts.size() + " individuals");
-		LOG.info("Creating uniform stat scores for all IDspaces");
+		LOG.info("Creating singular stat scores for all IDspaces");
 				
 		Collection<SummaryStatistics> aggregate = new ArrayList<SummaryStatistics>();
 
@@ -630,17 +635,21 @@ public abstract class AbstractOwlSim implements OwlSim {
 		for (OWLNamedIndividual i : insts) {			
 			SummaryStatistics statsPerIndividual = computeIndividualStats(i);			
 			//put this individual into the aggregate
-			aggregate.add(statsPerIndividual);
+			if (statsPerIndividual.getN() == 0) {
+				LOG.error("No annotations found for Individual "+i.toStringID());
+			} else {
+				aggregate.add(statsPerIndividual);
+			}
 			//TODO: put this individual into an idSpace aggregate
 			String idSpace = i.getIRI().getNamespace();
 			this.overallStats.addValue(statsPerIndividual.getMean());
 		}		
 		this.aggregateStatsPerIndividual = AggregateSummaryStatistics.aggregate(aggregate);	
-		this.meanStatsPerIndividual = getSummaryStatisticsForCollection(aggregate,1);
-		this.sumStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,2);
-		this.minStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,3);
-		this.maxStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,4);
-		this.nStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,5);
+		this.meanStatsPerIndividual = getSummaryStatisticsForCollection(aggregate,Stat.MEAN);
+		this.sumStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,Stat.SUM);
+		this.minStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,Stat.MIN);
+		this.maxStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,Stat.MAX);
+		this.nStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,Stat.N);
 
 	}
 
@@ -662,24 +671,27 @@ public abstract class AbstractOwlSim implements OwlSim {
 	 * @param stat  Integer flag for the statistic (1:mean ; 2:sum; 3:min; 4:max; 5:N)
 	 * @return {@link SummaryStatistics} of the selected statistic
 	 */
-	public SummaryStatistics getSummaryStatisticsForCollection(Collection<SummaryStatistics> aggregate, int stat) {
-		LOG.info("Computing stats over collection of "+aggregate.size()+" elements ("+stat+"):");
+	public SummaryStatistics getSummaryStatisticsForCollection(Collection<SummaryStatistics> aggregate, Stat stat) {
+		//LOG.info("Computing stats over collection of "+aggregate.size()+" elements ("+stat+"):");
 		//TODO: turn stat into enum
 		int x = 0;
+		//To save memory, I am using SummaryStatistics, which does not store the values,
+		//but this could be changed to DescriptiveStatistics to see values
+		//as well as other statistical functions like distributions
 		SummaryStatistics stats = new SummaryStatistics();
 		Double v = 0.0;
 		ArrayList<String> vals = new ArrayList();
 		for (SummaryStatistics s : aggregate) {
 			switch (stat) {
-				case 1 : v= s.getMean(); stats.addValue(s.getMean()); break;
-				case 2 : v=s.getSum(); stats.addValue(s.getSum()); break;
-				case 3 : v=s.getMin(); stats.addValue(s.getMin()); break;
-				case 4 : v=s.getMax(); stats.addValue(s.getMax()); break;
-				case 5 : v= ((int)s.getN())*1.0; stats.addValue(s.getN()); break;
+				case MEAN : v= s.getMean(); stats.addValue(s.getMean()); break;
+				case SUM : v=s.getSum(); stats.addValue(s.getSum()); break;
+				case MIN : v=s.getMin(); stats.addValue(s.getMin()); break;
+				case MAX : v=s.getMax(); stats.addValue(s.getMax()); break;
+				case N : v= ((int)s.getN())*1.0; stats.addValue(s.getN()); break;
 			};
-			vals.add(v.toString());
+			//vals.add(v.toString());
 		};
-		LOG.info("vals: "+vals.toString());
+		//LOG.info("vals: "+vals.toString());
 		return stats;
 	}
 
@@ -692,8 +704,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 		for (OWLClass c : this.getAttributesForElement(i)) {
 			statsPerIndividual.addValue(this.getInformationContentForAttribute(c));	
 		}
-		LOG.info("Computing stats for individual "+i.getIRI().toString()+":");
-		LOG.info(statsPerIndividual.getSummary().toString());
+		//LOG.info("Computing stats for individual "+i.getIRI().toString()+":");
+		//LOG.info(statsPerIndividual.getSummary().toString());
 		return statsPerIndividual;
 	}
 	
@@ -701,15 +713,17 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return this.aggregateStatsPerIndividual;
 	}
 	
-	public SummaryStatistics getSummaryStatistics(int stat) {
+	public SummaryStatistics getSummaryStatistics(Stat stat) {
 		SummaryStatistics s = null;
 		switch (stat) {
-			case 1 : s = this.meanStatsPerIndividual;  break;
-			case 2 : s = this.sumStatsPerIndividual; break;
-			case 3 : s = this.minStatsPerIndividual; break;
-			case 4 : s = this.maxStatsPerIndividual; break;
-			case 5 : s = this.nStatsPerIndividual; break;
+			case MEAN : s = this.meanStatsPerIndividual;  break;
+			case SUM : s = this.sumStatsPerIndividual; break;
+			case MIN : s = this.minStatsPerIndividual; break;
+			case MAX : s = this.maxStatsPerIndividual; break;
+			case N : s = this.nStatsPerIndividual; break;
 		};
 		return s;
 	}
+	
+	
 }

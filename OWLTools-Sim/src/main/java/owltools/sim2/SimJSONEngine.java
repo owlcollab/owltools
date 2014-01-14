@@ -13,6 +13,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.sim2.AbstractOwlSim.Stat;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.scores.ElementPairScores;
 
@@ -106,6 +107,7 @@ public class SimJSONEngine {
 				}
 			}
 			mObj.put("matches", matchingAtts);
+			mObj.put("system_stats", makeSummaryStatistics());
 			
 			matchObjs.add(mObj);
 		}
@@ -177,17 +179,33 @@ public class SimJSONEngine {
 		return gson.toJson(pairs);
 	}
 
-	protected Map<String,Object> makeObj(OWLObject obj) {
+	protected Map<String,Object> makeObj(OWLObject obj) throws UnknownOWLClassException {
 		Map<String,Object> m = new HashMap<String,Object>();
 		m.put("id", g.getIdentifier(obj));
 		m.put("label", g.getLabel(obj));
+		m.put("IC",sos.getInformationContentForAttribute(g.getOWLClass(obj)));
 		return m;
 	}
 	
-	protected void makeObjAndSet(Map<String,Object> subj, String key, OWLObject t) {
+	protected void makeObjAndSet(Map<String,Object> subj, String key, OWLObject t) throws UnknownOWLClassException {
 		Map<String,Object> tobj = makeObj(t);
 		if (tobj.keySet().size() > 0)
 			subj.put(key, tobj);
+	}
+	
+	public HashMap<String,String> makeSummaryStatistics() {
+//		Gson gson = new Gson();
+		HashMap<String,String> stats = new HashMap<String,String>();
+		stats.put("individuals", String.format("%d",sos.getSummaryStatistics(Stat.MEAN).getN()));		
+		stats.put("mean(meanIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.MEAN).getMean()));		
+		stats.put("mean(maxIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.MAX).getMean()));		
+		stats.put("max(maxIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.MAX).getMax()));		
+		stats.put("max(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.SUM).getMax()));		
+		stats.put("mean(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.SUM).getMean()));		
+		stats.put("mean(n)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.N).getMean()));		
+		
+//		return gson.toJson(stats);
+		return stats;
 	}
 
 }
