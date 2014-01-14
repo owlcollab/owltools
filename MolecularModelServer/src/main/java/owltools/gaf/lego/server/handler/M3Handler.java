@@ -31,13 +31,13 @@ public interface M3Handler {
 		public static final String INCONSISTENT = "inconsistent";
 		public static final String MERGE = "merge";
 		
-		public final String messageType;
+		public final String message_type; // due to introspection, not camelCase here
 		public String message = null;
 		public Map<String, Object> commentary = null;
 		public Object data;
 		
 		public M3Response(String messageType) {
-			this.messageType = messageType;
+			this.message_type = messageType;
 		}
 	}
 	
