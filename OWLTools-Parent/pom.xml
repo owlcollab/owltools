@@ -341,5 +341,6 @@
 		<module>../OWLTools-NCBI</module>
 		<module>../OWLTools-Sim</module>
 		<module>../Lego</module>
+		<module>../MolecularModelServer</module>
 	</modules>
 </project>

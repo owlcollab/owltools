@@ -43,6 +43,9 @@ public class StartUpTool {
 			else if (opts.nextEq("--context-prefix")) {
 				contextPrefix = opts.nextOpt();
 			}
+			else if (opts.nextEq("-p|--port")) {
+				port = Integer.parseInt(opts.nextOpt());
+			}
 			else {
 				break;
 			}

@@ -10,6 +10,39 @@
 
 	<artifactId>MolecularModelServer</artifactId>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+	  			<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<finalName>m3-server</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+					<attach>false</attach>
+					<outputDirectory>${project.basedir}/bin</outputDirectory>
+					<descriptors>
+						<descriptor>src/main/assembly/m3-server.xml</descriptor>
+					</descriptors>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<mainClass>owltools.gaf.lego.server.StartUpTool</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.bbop</groupId>
