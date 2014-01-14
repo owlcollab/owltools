@@ -32,9 +32,9 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 	private Logger LOG = Logger.getLogger(BasicOWLSimTest.class);
 	
 	@Test
-	public void testBasicSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
+	public void testBasicSim() throws IOException, OWLOntologyCreationException, MathException, UnknownOWLClassException, OBOFormatParserException {
 		ParserWrapper pw = new ParserWrapper();
-		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
 		g =  new OWLGraphWrapper(sourceOntol);
 		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
 		setOutput("target/basic-owlsim-test.out");
