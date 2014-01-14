@@ -38,6 +38,11 @@ public interface M3Handler {
 		
 		public M3Response(String messageType) {
 			this.message_type = messageType;
+			this.message = messageType; // can't have a message type without a message
+		}
+		public M3Response(String messageType, String message) {
+			this.message_type = messageType;
+			this.message = message;
 		}
 	}
 	
