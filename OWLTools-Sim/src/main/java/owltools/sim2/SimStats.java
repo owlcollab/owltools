@@ -1,5 +1,8 @@
 package owltools.sim2;
 
+import java.util.HashMap;
+import java.util.HashSet;
+
 import owltools.sim2.SimpleOwlSim.Metric;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
@@ -18,28 +21,13 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
  * 
  */
 public class SimStats {
-	
-	public SummaryStatistics analysisBMAJ;
-	public SummaryStatistics analysisLCSIC;
-	public SummaryStatistics analysisMaxIC;
-	public SummaryStatistics analysisBMAIC;
-  public SummaryStatistics analysisSimJ;
-    
+
+	public HashMap<SimpleOwlSim.Metric,SummaryStatistics> analysisStats = new HashMap<SimpleOwlSim.Metric,SummaryStatistics>();
+	    
   public SummaryStatistics individualsIC;
 
   public SummaryStatistics attributesIC;
   
-/*	public double minAnalysisBMAJ;
-	public double maxAnalysisBMAJ;
-	public double minAnalysisBMAIC;
-	public double maxAnalysisBMAIC;
-	public double minAnalysisMaxIC;
-	public double maxAnalysisMaxIC;
-	public double minAnalysisSimJ;
-	public double maxAnalysisSimJ;
-	public double minAnalysisLCSIC;
-	public double maxAnalysisLCSIC; */
-
 	public int classPairCount;
 
 	public int uniqueClassPairCount;
@@ -53,27 +41,17 @@ public class SimStats {
 	}
 
 	public void init() {
-/*		this.minAnalysisBMAJ = 0.0;
-		this.maxAnalysisBMAJ = 0.0;
-		this.minAnalysisBMAIC = 0.0;
-		this.maxAnalysisBMAIC = 0.0;
-		this.minAnalysisMaxIC = 0.0;
-		this.maxAnalysisMaxIC = 0.0;
-		this.minAnalysisSimJ = 0.0;
-		this.maxAnalysisSimJ = 0.0;
-		this.minAnalysisLCSIC = 0.0;
-		this.maxAnalysisLCSIC = 0.0; */
+
 		this.classPairCount = 0;
 		this.uniqueClassPairCount = 0;
 		this.individualPairCount = 0;
 		this.uniqueClassCount = 0;
 		
-		analysisBMAJ = new SummaryStatistics();
-		analysisLCSIC = new SummaryStatistics();
-		analysisMaxIC = new SummaryStatistics();
-		analysisBMAIC = new SummaryStatistics();
-		analysisSimJ = new SummaryStatistics();				
-  
+		//make a placeholder for each metric
+		for (SimpleOwlSim.Metric m : SimpleOwlSim.Metric.values()) {			
+			analysisStats.put(m, new SummaryStatistics());
+		}
+		  		
 		individualsIC = new SummaryStatistics();
 		attributesIC = new SummaryStatistics();
 	  	
@@ -100,99 +78,11 @@ public class SimStats {
 	}
 
 	public void setValue(Metric m, double s) {
-		switch (m) {
-		case IC_MCS:
-				this.analysisBMAIC.addValue(s);
-		case JACCARD:
-				this.analysisBMAJ.addValue(s);
-		case MAXIC:
-				this.analysisMaxIC.addValue(s);
-		case SIMJ:
-				this.analysisSimJ.addValue(s);
-		case LCSIC:
-				this.analysisLCSIC.addValue(s);
-		}		
+		this.analysisStats.get(m).addValue(s);
 	}
 
 	public double getMax(Metric m) {
-		double s = 0.0;
-		switch (m) {
-		case IC_MCS:
-			s = this.analysisBMAIC.getMax();
-		case JACCARD:
-			s = this.analysisBMAJ.getMax();
-		case MAXIC:
-			s = this.analysisMaxIC.getMax();
-		case SIMJ:
-			s = this.analysisSimJ.getMax();
-		case LCSIC:
-			s = this.analysisLCSIC.getMax();
-		}
-		return s;
+		return this.analysisStats.get(m).getMax();
 	}
 
-/*	
-
-	public void setMin(Metric m, double s) {
-		switch (m) {
-		case IC_MCS:
-			this.minAnalysisBMAIC = s;
-		case JACCARD:
-			this.minAnalysisBMAJ = s;
-		case MAXIC:
-			this.minAnalysisMaxIC = s;
-		case SIMJ:
-			this.minAnalysisSimJ = s;
-		case LCSIC:
-			this.minAnalysisLCSIC = s;
-		}
-	}
-
-	public void setMax(Metric m, double s) {
-		switch (m) {
-		case IC_MCS:
-			if (s > this.maxAnalysisBMAIC) {
-				this.maxAnalysisBMAIC = s;
-			}
-			;
-		case JACCARD:
-			if (s > this.maxAnalysisBMAJ) {
-				this.maxAnalysisBMAJ = s;
-			}
-			;
-		case MAXIC:
-			if (s > this.maxAnalysisMaxIC) {
-				this.maxAnalysisMaxIC = s;
-			}
-			;
-		case SIMJ:
-			if (s > this.maxAnalysisSimJ) {
-				this.maxAnalysisSimJ = s;
-			}
-			;
-		case LCSIC:
-			if (s > this.maxAnalysisLCSIC) {
-				this.maxAnalysisLCSIC = s;
-			}
-			;
-		}
-	}
-
-	public double getMax(Metric m) {
-		double s = 0.0;
-		switch (m) {
-		case IC_MCS:
-			s = this.maxAnalysisBMAIC;
-		case JACCARD:
-			s = this.maxAnalysisBMAJ;
-		case MAXIC:
-			s = this.maxAnalysisMaxIC;
-		case SIMJ:
-			s = this.maxAnalysisSimJ;
-		case LCSIC:
-			s = this.maxAnalysisLCSIC;
-		}
-		return s;
-	}
-	*/
 }

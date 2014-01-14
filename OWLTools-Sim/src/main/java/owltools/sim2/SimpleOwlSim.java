@@ -19,6 +19,7 @@ import java.util.Vector;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -101,13 +102,15 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 * Base similarity metric - may be applied at individual or class level
 	 */
 	public enum Metric {
-		JACCARD("Best Match Average using Jaccard scoring", false, true), OVERLAP(
-				"", false, false), NORMALIZED_OVERLAP("", false, false), DICE("", true,
-						false), IC_MCS("Best Match Average using Information Content", true,
-								false), GIC("GraphInformationContent", true, false), MAXIC(
-										"Maximum Information Content", true, false), SIMJ(
-												"Similarity based on Jaccard score", false, true), LCSIC(
-														"Least Common Subsumer Information Content Score", true, false);
+		JACCARD("Best Match Average using Jaccard scoring", false, true), 
+		OVERLAP("", false, false), 
+		NORMALIZED_OVERLAP("", false, false), 
+		DICE("", true,false), 
+		IC_MCS("Best Match Average using Information Content", true,false), 
+		GIC("GraphInformationContent", true, false), 
+		MAXIC("Maximum Information Content", true, false), 
+		SIMJ("Similarity based on Jaccard score", false, true), 
+		LCSIC("Least Common Subsumer Information Content Score", true, false);
 
 		private final String description;
 		private final Boolean isICmetric;
@@ -1049,10 +1052,16 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	 */
 
 	public Set<OWLNamedIndividual> getAllElements() {
-		if (elementToAttributesMap == null)
-			createElementAttributeMapFromOntology();
+		getElementToAttributesMap();
 		return elementToAttributesMap.keySet();
 	}
+	
+	public Map<OWLNamedIndividual, Set<OWLClass>> getElementToAttributesMap() {
+		if (elementToAttributesMap == null)
+			createElementAttributeMapFromOntology();
+		return elementToAttributesMap;
+	}
+
 
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getCorpusSize()
@@ -1229,6 +1238,14 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 
 	public double getConditionalProbability(OWLClass c, OWLClass d) {
 		return 0;
+	}
+
+	public SummaryStatistics computeIndividualStats(OWLNamedIndividual i)
+			throws UnknownOWLClassException {
+		return null;
+	}
+
+	public void computeSystemStats() throws UnknownOWLClassException {
 	}
 
 

@@ -3,10 +3,14 @@ package owltools.sim2;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.math.MathException;
+import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummaryValues;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -861,7 +865,11 @@ public interface OwlSim {
 	 */
 	public void showTimings();
 
-
+	
+	/**
+	 * @return elementToAttributesMap
+	 */
+	public Map<OWLNamedIndividual, Set<OWLClass>> getElementToAttributesMap();
 	// enrichment
 
 	/**
@@ -923,4 +931,34 @@ public interface OwlSim {
 	 * @return P(c|d) = P(c &cap; d)|p(d)
 	 */
 	public abstract double getConditionalProbability(OWLClass c, OWLClass d);
+
+	/**
+	 * This will compute the individual summary statistics over the 
+	 * set of anntoated classes to an individual i.
+	 * @param i
+	 * @return
+	 * @throws UnknownOWLClassException
+	 */
+	public SummaryStatistics computeIndividualStats(OWLNamedIndividual i)
+			throws UnknownOWLClassException;
+
+	/**
+	 * This function will compute the summary statistics over the set of 
+	 * individuals for direct annotations.  It will generate a statistical 
+	 * summary over each individual, as well as over the whole set.  
+	 * @throws UnknownOWLClassException 
+	 */
+	public void computeSystemStats() throws UnknownOWLClassException;
+
+	public StatisticalSummaryValues getSystemStats();
+
+	/**
+	 * Fetch the pre-computed summary values for a specified summary statistic
+	 * @param stat	Integer flag for the statistic (1:mean ; 2:sum; 3:min; 4:max; 5:N)
+	 * @return {@link SummaryStatistics} 
+	 */
+	public SummaryStatistics getSummaryStatistics(int stat);
+	
 }
+
+

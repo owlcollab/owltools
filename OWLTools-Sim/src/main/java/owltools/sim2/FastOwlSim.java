@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +16,9 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -1519,7 +1523,17 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		ciPairIsCached = new boolean[classArray.length][classArray.length];		
 	}
 
+	@Override
+	public Map<OWLNamedIndividual, Set<OWLClass>> getElementToAttributesMap() {
+		if (elementToDirectAttributesMap == null) try {
+			createElementAttributeMapFromOntology();
+		} catch (UnknownOWLClassException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return elementToDirectAttributesMap;
+	}
 
-
-
+	
+	
 }
