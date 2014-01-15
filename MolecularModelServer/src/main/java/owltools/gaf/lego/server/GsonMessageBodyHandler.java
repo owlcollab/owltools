@@ -21,7 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 @Provider
-@Produces({MediaType.APPLICATION_JSON, "text/json"})
+@Produces({MediaType.APPLICATION_JSON + ";charset=utf-8", "text/json"})
 @Consumes({MediaType.APPLICATION_JSON, "text/json"})
 public final class GsonMessageBodyHandler implements MessageBodyWriter<Object>, MessageBodyReader<Object> {
 
