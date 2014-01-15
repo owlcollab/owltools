@@ -315,7 +315,10 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 	private void load(String idspace, OwlSimFactory simfactory) throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		msg("Loading");
 		ParserWrapper pw = new ParserWrapper();
-		OWLOntology ontology = pw.parseOBO("/Users/cjm/repos/phenotype-ontologies/src/ontology/"+idspace+".obo");
+		String base;
+		//base = "/Users/cjm/repos/phenotype-ontologies/src/ontology/";
+		base = "http://purl.obolibrary.org/obo/";
+		OWLOntology ontology = pw.parseOBO(base+idspace+".obo");
 		//ElkReasonerFactory reasonerFactory = new ElkReasonerFactory();
 		//OWLReasoner reasoner = reasonerFactory.createReasoner(ontology);
 		owlsim = simfactory.createOwlSim(ontology);
