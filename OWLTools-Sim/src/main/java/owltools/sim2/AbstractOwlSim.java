@@ -79,15 +79,6 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public HashMap<String,SummaryStatistics> metricStatMaxes = new HashMap<String,SummaryStatistics>(); 
 	public HashMap<String,SummaryStatistics> metricStatMins = new HashMap<String,SummaryStatistics>(); 
 	
-	//TODO: replace with enum
-	public String[] metrics = {"bmaAsymIC","bmaSymIC","bmaInverseAsymIC", "combinedScore", "simJ", "simGIC","maxIC"};
-
-
-	public enum Stat {
-		MEAN,MIN,MAX,N,SUM
-	}
-
-	
 	@Override
 	public OWLOntology getSourceOntology() {
 		return getReasoner().getRootOntology();

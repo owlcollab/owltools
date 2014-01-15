@@ -9,12 +9,11 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.sim2.AbstractOwlSim.Stat;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
+import owltools.sim2.OwlSim.Stat;
 import owltools.sim2.scores.ElementPairScores;
 
 import com.google.gson.Gson;

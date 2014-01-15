@@ -1248,6 +1248,17 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	public void computeSystemStats() throws UnknownOWLClassException {
 	}
 
+	@Override
+	public SummaryStatistics getSimStatistics(String stat) {
+		throw new RuntimeException("This method is not implemented.");
+	}
+
+	@Override
+	public void calculateMetricStats(Set<OWLNamedIndividual> iset,
+			Set<OWLNamedIndividual> jset) throws UnknownOWLClassException {
+		throw new RuntimeException("This method is not implemented.");
+	}
+
 
 
 

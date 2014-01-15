@@ -9,7 +9,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.math.MathException;
-import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummaryValues;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -20,7 +19,6 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.sim2.AbstractOwlSim.Stat;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
@@ -199,6 +197,15 @@ import owltools.sim2.scores.ElementPairScores;
  * 
  */
 public interface OwlSim {
+	
+	//TODO: replace with enum
+	public String[] metrics = {"bmaAsymIC","bmaSymIC","bmaInverseAsymIC", "combinedScore", "simJ", "simGIC","maxIC"};
+
+
+	public enum Stat {
+		MEAN,MIN,MAX,N,SUM
+	}
+
 
 	/**
 	 * @return ontology used to store both classes and individuals
