@@ -1,12 +1,17 @@
 package owltools.sim2;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.math.MathException;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -21,6 +26,7 @@ import owltools.sim2.AbstractOwlSim.Stat;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.UnknownOWLClassException;
 import owltools.sim2.io.FormattedRenderer;
+import owltools.sim2.scores.ElementPairScores;
 
 /**
  * This is the main test class for SimStats
@@ -63,5 +69,35 @@ public class SimStatsTests extends AbstractOWLSimTest {
 			reasoner.dispose();
 		}
 	}
+	
+	@Test
+	public void testIxI() throws IOException, OWLOntologyCreationException, MathException, UnknownOWLClassException, OBOFormatParserException {
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
+		setOutput("target/basic-owlsim-test.out");
 
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+			this.createOwlSim();
+			owlsim.createElementAttributeMapFromOntology();
+			
+			reasoner.flush();
+			owlsim.computeSystemStats();
+			owlsim.calculateMetricStats(owlsim.getAllElements(),owlsim.getAllElements());
+
+			String[] metrics = {"bmaAsymIC","bmaSymIC","bmaInverseAsymIC", "combinedScore", "simJ", "simGIC","maxIC"};
+			for (String m : metrics) {
+				LOG.info("Test Summary(mean) for "+m+": "+owlsim.getMetricStats(Stat.MEAN).get(m).getSummary());
+				LOG.info("Test Summary(min) for "+m+": "+owlsim.getMetricStats(Stat.MIN).get(m).getSummary());
+				LOG.info("Test Summary(max) for "+m+": "+owlsim.getMetricStats(Stat.MAX).get(m).getSummary());
+			}
+		} finally {
+			reasoner.dispose();
+		}
+		
+	}
+	
 }

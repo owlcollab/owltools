@@ -1534,6 +1534,43 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return elementToDirectAttributesMap;
 	}
 
+	@Override
+	public SummaryStatistics getSimStatistics(String stat) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
-	
+	@Override
+	public void calculateMetricStats(Set<OWLNamedIndividual> iset, Set<OWLNamedIndividual> jset) throws UnknownOWLClassException {
+		LOG.info("Calculating all-by-all summary statistics for all metrics");
+		
+		for (String m : metrics) {
+			metricStatMeans.put(m, new SummaryStatistics());
+			metricStatMins.put(m, new SummaryStatistics());
+			metricStatMaxes.put(m, new SummaryStatistics());
+		}
+
+		for (OWLNamedIndividual i : iset) {
+			HashMap<String,SummaryStatistics>  metricStatIndividual = new HashMap<String,SummaryStatistics>();
+			for (String m : metrics) {
+				metricStatIndividual.put(m, new SummaryStatistics());
+			}
+			for (OWLNamedIndividual j : jset) {
+				ElementPairScores gwsim = this.getGroupwiseSimilarity(i, j);
+				metricStatIndividual.get("bmaAsymIC").addValue(gwsim.bmaAsymIC);
+				metricStatIndividual.get("bmaSymIC").addValue(gwsim.bmaSymIC);
+				metricStatIndividual.get("bmaInverseAsymIC").addValue(gwsim.bmaInverseAsymIC);
+				metricStatIndividual.get("combinedScore").addValue(gwsim.combinedScore);
+				metricStatIndividual.get("simJ").addValue(gwsim.simjScore);
+				metricStatIndividual.get("simGIC").addValue(gwsim.simGIC);
+				metricStatIndividual.get("maxIC").addValue(gwsim.maxIC);
+			}
+			for (String m : metrics) {
+				metricStatMins.get(m).addValue(metricStatIndividual.get(m).getMin());
+				metricStatMeans.get(m).addValue(metricStatIndividual.get(m).getMean());
+				metricStatMaxes.get(m).addValue(metricStatIndividual.get(m).getMax());
+			}
+		}
+
+	}
 }

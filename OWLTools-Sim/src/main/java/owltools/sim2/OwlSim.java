@@ -1,6 +1,7 @@
 package owltools.sim2;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -960,6 +961,12 @@ public interface OwlSim {
 	 */
 	public SummaryStatistics getSummaryStatistics(Stat stat);
 	
+	public SummaryStatistics getSimStatistics(String stat);
+	
+	void calculateMetricStats(Set<OWLNamedIndividual> iset,
+			Set<OWLNamedIndividual> jset) throws UnknownOWLClassException;
+	
+	public HashMap<String,SummaryStatistics> getMetricStats(Stat stat);
 
 }
 

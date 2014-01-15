@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -255,7 +256,10 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 	public void ixi(Set<OWLNamedIndividual> iset, Set<OWLNamedIndividual> jset) throws UnknownOWLClassException {
 		double total = 0;
 		int n = 0;
+		SummaryStatistics overallStat = new SummaryStatistics();
 		for (OWLNamedIndividual i : iset) {
+			SummaryStatistics stat = new SummaryStatistics();
+
 			for (OWLNamedIndividual j : jset) {
 				Set<OWLClass> cs = owlsim.getAttributesForElement(i);
 				Set<OWLClass> ds = owlsim.getAttributesForElement(j);
@@ -267,9 +271,13 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 				//msg("  simj="+s);
 				//msg("  atts="+cs+" "+ds);
 				n++;
+				stat.addValue(gwsim.bmaAsymIC);
 			}
+			msg("Mean bmaAsymIC for "+i.getIRI()+": "+overallStat.getMean());
+			overallStat.addValue(stat.getMean());
 		}
 		msg("AVG: "+total / (double) n);
+		msg("Overall Mean for bmaAsymIC:"+overallStat.getMean());
 	}
 
 

@@ -72,6 +72,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public SummaryStatistics maxStatsPerIndividual = new SummaryStatistics();
 	public SummaryStatistics nStatsPerIndividual = new SummaryStatistics();
 	public SummaryStatistics sumStatsPerIndividual = new SummaryStatistics();
+	
+	public SummaryStatistics simStatsPerIndividual = new SummaryStatistics();
+	
+	public HashMap<String,SummaryStatistics> metricStatMeans = new HashMap<String,SummaryStatistics>(); 
+	public HashMap<String,SummaryStatistics> metricStatMaxes = new HashMap<String,SummaryStatistics>(); 
+	public HashMap<String,SummaryStatistics> metricStatMins = new HashMap<String,SummaryStatistics>(); 
+	
+	//TODO: replace with enum
+	public String[] metrics = {"bmaAsymIC","bmaSymIC","bmaInverseAsymIC", "combinedScore", "simJ", "simGIC","maxIC"};
+
 
 	public enum Stat {
 		MEAN,MIN,MAX,N,SUM
@@ -725,5 +735,26 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return s;
 	}
 	
+	public SummaryStatistics getSimStatistics() {
+		SummaryStatistics s = new SummaryStatistics();
+		//for each metric, we need the min/max/average
+				
+		return s;
+	}
 	
+	public SummaryStatistics computeIndividualSimilarityStats(OWLNamedIndividual i) throws UnknownOWLClassException {
+		SummaryStatistics s = new SummaryStatistics();
+
+		return s;
+	}
+	
+	public HashMap<String,SummaryStatistics> getMetricStats(Stat stat) {
+		HashMap<String,SummaryStatistics> s = new HashMap<String,SummaryStatistics>();
+		switch(stat) {
+		case MIN : s = this.metricStatMins; break;
+		case MAX : s = this.metricStatMaxes; break;
+		case MEAN : s = this.metricStatMeans; break;
+		}
+		return s;
+	}
 }
