@@ -71,15 +71,25 @@ public interface M3Handler {
 	public M3Response m3AddType(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_INDIVIDIALID) String individualId,
-			@QueryParam(PARAM_CLASSID) String classId,
+			@QueryParam(PARAM_CLASSID) String classId, // typically MF or BP
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
+	/**
+	 * Always generates a restriction.
+	 * 
+	 * @param modelId
+	 * @param individualId
+	 * @param propertyId
+	 * @param classId
+	 * @param help
+	 * @return response
+	 */
 	@Path("m3AddTypeExpression")
 	@GET
 	public M3Response m3AddTypeExpression(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_INDIVIDIALID) String individualId,
-			@QueryParam(PARAM_PROPERTYID) String propertyId,
+			@QueryParam(PARAM_PROPERTYID) String propertyId, // occurs_in, enabled_by
 			@QueryParam(PARAM_CLASSID) String classId,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
@@ -87,9 +97,9 @@ public interface M3Handler {
 	@GET
 	public M3Response m3AddFact(
 			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_PROPERTYID) String propertyId,
-			@QueryParam(PARAM_INDIVIDIALID) String individualId,
-			@QueryParam(PARAM_FILLERID) String fillerId,
+			@QueryParam(PARAM_PROPERTYID) String propertyId, // rel
+			@QueryParam(PARAM_INDIVIDIALID) String individualId, // Subject
+			@QueryParam(PARAM_FILLERID) String fillerId, // Target
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3RemoveFact")
