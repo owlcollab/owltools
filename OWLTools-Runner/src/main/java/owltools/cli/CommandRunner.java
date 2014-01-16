@@ -3020,10 +3020,12 @@ public class CommandRunner {
 				// TODO...
 			}
 			else if (opts.nextEq("--extract-ontology-subset")) {
-				opts.info("[-i FILE][-u IRI][-s SUBSET]", "performs slimdown using IDs from FILE or from named subset");
+				opts.info("[-i FILE][-u IRI][-s SUBSET][--fill-gaps]", "performs slimdown using IDs from FILE or from named subset");
 				IRI subOntIRI = IRI.create("http://purl.obolibrary.org/obo/"+g.getOntologyId()+"-subset");
 				String fileName = null;
 				String subset = null;
+				boolean isFillGaps = false;
+				boolean isSpanGaps = true;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-u|--uri|--iri")) {
 						subOntIRI = IRI.create(opts.nextOpt());
@@ -3033,6 +3035,14 @@ public class CommandRunner {
 					}
 					else if (opts.nextEq("-s|--subset")) {
 						subset = opts.nextOpt();
+					}
+					else if (opts.nextEq("--fill-gaps")) {
+						isFillGaps = true;
+						isSpanGaps = false;
+					}
+					else if (opts.nextEq("--minimal")) {
+						isFillGaps = false;
+						isSpanGaps = false;
 					}
 					else {
 						break;
@@ -3070,7 +3080,7 @@ public class CommandRunner {
 				}
 				// todo
 				LOG.info("Making subset ontology seeded from "+cs.size()+" classes");
-				g.setSourceOntology(m.makeMinimalSubsetOntology(cs, subOntIRI, false, true));
+				g.setSourceOntology(m.makeMinimalSubsetOntology(cs, subOntIRI, isFillGaps, isSpanGaps));
 				LOG.info("Made subset ontology; # classes = "+cs.size());				
 			}
 			else if (opts.nextEq("--extract-module")) {
