@@ -62,7 +62,7 @@ public class MolecularModelJsonRenderer {
 		
 		intersectionOf,
 		unionOf
-	};
+	}
 	
 	/**
 	 * merge with KEY?
@@ -71,7 +71,7 @@ public class MolecularModelJsonRenderer {
 	public enum VAL {
 		Restriction,
 		someValueFrom
-	};
+	}
 	
 	Gson gson = new Gson();
 	
@@ -87,9 +87,9 @@ public class MolecularModelJsonRenderer {
 	 * @param ont
 	 * @return Map to be passed to Gson
 	 */
-	public Map renderObject(OWLOntology ont) {
-		Map model = new HashMap();
-		List<Map> iObjs = new ArrayList<Map>();
+	public Map<Object, Object> renderObject(OWLOntology ont) {
+		Map<Object, Object> model = new HashMap<Object, Object>();
+		List<Map<Object, Object>> iObjs = new ArrayList<Map<Object, Object>>();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
 			iObjs.add(renderObject(ont, i));
 		}
@@ -103,8 +103,8 @@ public class MolecularModelJsonRenderer {
 	 * @param i
 	 * @return Map to be passed to Gson
 	 */
-	public Map renderObject(OWLOntology ont, OWLNamedIndividual i) {
-		Map iObj = new HashMap();
+	public Map<Object, Object> renderObject(OWLOntology ont, OWLNamedIndividual i) {
+		Map<Object, Object> iObj = new HashMap<Object, Object>();
 		iObj.put(KEY.id, getId(i));
 		iObj.put(KEY.label, getLabel(i));
 		
@@ -130,7 +130,7 @@ public class MolecularModelJsonRenderer {
 	 * @return  Object to be passed to Gson
 	 */
 	private Object renderObject(OWLOntology ont, OWLClassExpression x) {
-		Map xObj = new HashMap();
+		Map<Object, Object> xObj = new HashMap<Object, Object>();
 		if (x.isAnonymous()) {
 			if (x instanceof OWLObjectIntersectionOf) {
 				List<Object> yObjs = new ArrayList<Object>();		
@@ -177,7 +177,7 @@ public class MolecularModelJsonRenderer {
 	}
 	
 	private Object getAtom(OWLNamedObject i) {
-		Map xObj = new HashMap();
+		Map<Object, Object> xObj = new HashMap<Object, Object>();
 		
 		LOG.info("atom: "+i+" "+getId(i));
 		xObj.put(KEY.id, getId(i));
@@ -203,7 +203,7 @@ public class MolecularModelJsonRenderer {
 	}
 
 	public String renderJson(OWLOntology ont) {
-		Map obj = renderObject(ont);
+		Map<Object, Object> obj = renderObject(ont);
 		return gson.toJson(obj);
 	}
 

@@ -96,8 +96,8 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates a new individual");
 		}
 		try {
-			System.out.println("mod: " + modelId);
-			System.out.println("cls: " + classId);
+//			System.out.println("mod: " + modelId);
+//			System.out.println("cls: " + classId);
 			MolecularModelManager mmm = getMolecularModelManager();
 			String id = mmm.createIndividual(modelId, classId);
 			return success(Collections.singletonMap("id", id), mmm);
@@ -177,7 +177,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
-			Map<String, Object> obj = mmm.getModelObject(modelId);
+			Map<Object, Object> obj = mmm.getModelObject(modelId);
 			return success(obj, mmm);
 		} catch (Exception exception) {
 			return errorMsg("Could not retrieve model", exception);
@@ -247,7 +247,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		M3Response response = new M3Response(M3Response.SUCCESS);
 		response.data = data;
 		if (mmm != null) {
-			// TODO add consistent m3 model to result
+			// TODO add consistent m3 model to result ?
 		}
 		return response;
 	}
@@ -268,8 +268,8 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		else {
 			response = new M3Response(M3Response.ERROR);
 		}
-		if (mmm != null) {
-			// TODO add consistent m3 model to result
+		if (resp.getModelData() != null) {
+			response.data = resp.getModelData();
 		}
 		return response;
 	}

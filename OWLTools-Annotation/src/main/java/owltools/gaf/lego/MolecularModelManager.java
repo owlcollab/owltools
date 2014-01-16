@@ -90,6 +90,7 @@ public class MolecularModelManager {
 		int changeId;
 		boolean isSuccess = true;
 		boolean isResultsInInconsistency = false;
+		List<Map<Object, Object>> modelData = null;
 		
 		/**
 		 * @param isSuccess
@@ -131,6 +132,19 @@ public class MolecularModelManager {
 			return isResultsInInconsistency;
 		}
 		
+		/**
+		 * @return the modelData
+		 */
+		public List<Map<Object, Object>> getModelData() {
+			return modelData;
+		}
+		
+		/**
+		 * @param modelData the modelData to set
+		 */
+		public void setModelData(List<Map<Object, Object>> modelData) {
+			this.modelData = modelData;
+		}
 	}
 
 	/**
@@ -323,14 +337,16 @@ public class MolecularModelManager {
 	}
 
 	/**
+	 * Only use for testing.
+	 * 
 	 * @param modelId
 	 * @return List of key-val pairs ready for Gson
 	 */
-	public List<Map> getIndividualObjects(String modelId) {
+	List<Map<Object, Object>> getIndividualObjects(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
 		OWLOntology ont = mod.getAboxOntology();
-		List<Map> objs = new ArrayList();
+		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
 			objs.add(renderer.renderObject(ont, i));
 		}
@@ -341,7 +357,7 @@ public class MolecularModelManager {
 	 * @param modelId
 	 * @return Map object ready for Gson
 	 */
-	public Map<String,Object> getModelObject(String modelId) {
+	public Map<Object, Object> getModelObject(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
 		return renderer.renderObject(mod.getAboxOntology());
@@ -581,7 +597,21 @@ public class MolecularModelManager {
 	public OWLOperationResponse addType(String modelId,
 			OWLIndividual i, OWLClass c) {
 		OWLClassAssertionAxiom axiom = getOWLDataFactory(modelId).getOWLClassAssertionAxiom(c,i);
-		return addAxiom(modelId, axiom);
+		OWLOperationResponse response = addAxiom(modelId, axiom);
+		addIndividualsData(response, getModel(modelId), i);
+		return response;
+	}
+	
+	private void addIndividualsData(OWLOperationResponse resp, LegoModelGenerator mod, OWLIndividual...individuals) {
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
+		OWLOntology ont = mod.getAboxOntology();
+		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
+		for (OWLIndividual i : individuals) {
+			if (i instanceof OWLNamedIndividual) {
+				objs.add(renderer.renderObject(ont, (OWLNamedIndividual)i));
+			}
+		}
+		resp.setModelData(objs);
 	}
 
 	/**
@@ -622,7 +652,9 @@ public class MolecularModelManager {
 				getOWLDataFactory(modelId).getOWLClassAssertionAxiom(
 						c,
 						i);
-		return addAxiom(modelId, axiom);
+		OWLOperationResponse resp = addAxiom(modelId, axiom);
+		addIndividualsData(resp, getModel(modelId), i);
+		return resp;
 	}
 	
 	/**
@@ -654,7 +686,9 @@ public class MolecularModelManager {
 	public OWLOperationResponse removeType(String modelId,
 			OWLIndividual i, OWLClass c) {
 		OWLClassAssertionAxiom axiom = getOWLDataFactory(modelId).getOWLClassAssertionAxiom(c,i);
-		return addAxiom(modelId, axiom);
+		OWLOperationResponse resp = addAxiom(modelId, axiom);
+		addIndividualsData(resp, getModel(modelId), i);
+		return resp;
 	}
 
 	/**
@@ -690,7 +724,9 @@ public class MolecularModelManager {
 				getOWLDataFactory(modelId).getOWLClassAssertionAxiom(
 						getOWLDataFactory(modelId).getOWLObjectSomeValuesFrom(p, filler),
 						i);
-		return removeAxiom(modelId, axiom);
+		OWLOperationResponse resp = removeAxiom(modelId, axiom);
+		addIndividualsData(resp, getModel(modelId), i);
+		return resp;
 	}
 	
 	
@@ -791,7 +827,9 @@ public class MolecularModelManager {
 	public OWLOperationResponse addFact(String modelId, OWLObjectPropertyExpression p,
 			OWLIndividual i, OWLIndividual j) {
 		OWLObjectPropertyAssertionAxiom axiom = getOWLDataFactory(modelId).getOWLObjectPropertyAssertionAxiom(p, i, j);
-		return addAxiom(modelId, axiom);
+		OWLOperationResponse response = addAxiom(modelId, axiom);
+		addIndividualsData(response, getModel(modelId), i, j);
+		return response;
 	}
 
 	/**
@@ -847,12 +885,14 @@ public class MolecularModelManager {
 	public OWLOperationResponse removeFact(String modelId, OWLObjectPropertyExpression p,
 			OWLIndividual i, OWLIndividual j) {
 		OWLObjectPropertyAssertionAxiom axiom = getOWLDataFactory(modelId).getOWLObjectPropertyAssertionAxiom(p, i, j);
-		return removeAxiom(modelId, axiom);
+		OWLOperationResponse resp = removeAxiom(modelId, axiom);
+		addIndividualsData(resp, getModel(modelId), i, j);
+		return resp;
 	}
 
 	/**
 	 * @param modelId
-	 * @param vocabElement
+	 * @param pid
 	 * @param iid
 	 * @param jid
 	 * @return response info
@@ -872,7 +912,7 @@ public class MolecularModelManager {
 	 * @param modelId
 	 * @param iid
 	 * @param jid
-	 * @return
+	 * @return response info
 	 */
 	public OWLOperationResponse addPartOf(String modelId, 
 			String iid, String jid) {
@@ -946,7 +986,7 @@ public class MolecularModelManager {
 		return new OWLOperationResponse(true);
 	}	
 
-	public OWLOperationResponse undo(String modelId, String chageId) {
+	public OWLOperationResponse undo(String modelId, String changeId) {
 		LOG.error("Not implemented");
 		return null;
 	}
@@ -991,10 +1031,12 @@ public class MolecularModelManager {
 
 			@Override
 			protected void open() throws IOException {
+				// do nothing
 			}
 
 			@Override
 			protected void close() {
+				// do nothing
 			}
 
 			@Override
@@ -1009,7 +1051,7 @@ public class MolecularModelManager {
 	
 	/**
 	 * @param modelId
-	 * @return 
+	 * @return png File
 	 * @throws IOException 
 	 * @throws UnExpectedStructureException 
 	 * @throws InterruptedException 
