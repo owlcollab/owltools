@@ -3042,8 +3042,9 @@ public class CommandRunner {
 				Set<OWLClass> cs = new HashSet<OWLClass>();
 
 				if (fileName != null) {
+					LOG.info("Reading IDs from: "+fileName);
 					Set<String> unmatchedIds = new HashSet<String>();
-					for (String line : FileUtils.readLines(opts.nextFile())) {
+					for (String line : FileUtils.readLines(new File(fileName))) {
 						OWLClass c = g.getOWLClassByIdentifier(line);
 						if (c == null) {
 							unmatchedIds.add(line);
@@ -3052,6 +3053,7 @@ public class CommandRunner {
 						cs.add(c);
 
 					}
+					LOG.info("# IDs = "+cs.size());
 					if (unmatchedIds.size() > 0) {
 						LOG.error(fileName+" contains "+unmatchedIds.size()+" unmatched IDs");
 						for (String id : unmatchedIds) {
@@ -3060,6 +3062,7 @@ public class CommandRunner {
 					}
 				}
 				if (subset != null) {
+					LOG.info("Adding IDs from "+subset);
 					cs.addAll(g.getOWLClassesInSubset(subset));
 				}
 				if (cs.size() == 0) {
