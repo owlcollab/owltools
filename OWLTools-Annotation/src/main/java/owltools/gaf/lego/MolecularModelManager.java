@@ -76,6 +76,9 @@ public class MolecularModelManager {
 	GafObjectsBuilder builder = new GafObjectsBuilder();
 	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
 
+	// TODO: Temporarily for keeping instances unique (search for "unique" below).
+	String uniqueTop = Long.toHexString((System.currentTimeMillis()/1000));
+	long instanceCounter = 0;
 
 	/**
 	 * Represents the reponse to a requested translation on an
@@ -373,8 +376,13 @@ public class MolecularModelManager {
 	public String createIndividual(String modelId, OWLClass c) {
 		LOG.info("Creating individual of type: "+c);
 		String cid = graph.getIdentifier(c).replaceAll(":","-"); // e.g. GO-0123456
-		String iid = modelId+"-"+cid; // TODO - uniqueify
+
+		// Make something unique to tag onto the generated IDs.
+		instanceCounter++;
+		String unique = uniqueTop + String.format("%07d", instanceCounter);
+		String iid = modelId+"-"+ cid + "-" + unique; // TODO - unique-ify in a way that makes Chris happy
 		LOG.info("  new OD: "+iid);
+
 		IRI iri = graph.getIRIByIdentifier(iid);
 		OWLNamedIndividual i = getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
 		addAxiom(modelId, getOWLDataFactory(modelId).getOWLDeclarationAxiom(i));

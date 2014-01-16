@@ -96,6 +96,8 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates a new individual");
 		}
 		try {
+			System.out.println("mod: " + modelId);
+			System.out.println("cls: " + classId);
 			MolecularModelManager mmm = getMolecularModelManager();
 			String id = mmm.createIndividual(modelId, classId);
 			return success(Collections.singletonMap("id", id), mmm);
