@@ -773,6 +773,7 @@ id: CEPH:0000136
 name: horny rings of suckers
 def: "Suckers of decapodiforms have two types of hard, horny rings. One, the inner ring, lies around the inner walls of the acetabulum and often bears teeth. The other, the outer ring, is composed of numerous platelets and lies on the surface of the infundibulum.        " [http://tolweb.org/accessory/Cephalopoda_Glossary?acc_id=587]
 is_a: UBERON:0000061 ! anatomical structure
+relationship: part_of CEPH:0000256 ! tentacle
 
 [Term]
 id: CEPH:0000137
