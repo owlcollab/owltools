@@ -1,5 +1,8 @@
 package owltools.cli;
 
+import java.io.File;
+
+import org.eclipse.jetty.util.log.Log;
 import org.junit.Test;
 
 /**
@@ -56,4 +59,16 @@ public class CommandRunnerMooncatTest extends AbstractCommandRunnerTest {
 		
 	}
 	
+	@Test
+	public void testExtractOntologySubset() throws Exception {
+		load("ceph.obo");
+		File subsetIdFile = getResource("ceph-subset.txt");
+		System.out.println(subsetIdFile);
+		run("--extract-ontology-subset --fill-gaps -i "+subsetIdFile+" -o -f obo target/ceph-subset-filled.obo");
+		// we expect the resulting file to have all paths to root, including classes not in subset: e.g. appendage, head
+		
+		run("--extract-ontology-subset -i "+subsetIdFile+" -o -f obo target/ceph-subset-gapped.obo");
+		// we expect the resulting file to have gaps between classes be spanned - i.e. tentacular club connects directly to tentacle
+		
+	}
 }
