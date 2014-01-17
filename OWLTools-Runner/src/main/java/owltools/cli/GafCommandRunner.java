@@ -47,6 +47,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.cli.tools.CLIMethod;
+import owltools.gaf.Bioentity;
 import owltools.gaf.GAFParser;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafLineFilter;
@@ -79,6 +80,7 @@ import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.AnnotationRulesFactory;
 import owltools.gaf.rules.AnnotationRulesReportWriter;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
+import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.Mooncat;
@@ -411,6 +413,7 @@ public class GafCommandRunner extends CommandRunner {
 	
 	@CLIMethod("--gaf-term-IC-values")
 	public void gafTermICValues(Opts opts) {
+		opts.info("", "Calculate IC for every term based on an input GAF. Ensure relations are filtered accordingly first");
 		// TODO - ensure has_part and other relations are excluded
 		Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
 		double corpusSize = gafdoc.getBioentities().size();
@@ -433,6 +436,57 @@ public class GafCommandRunner extends CommandRunner {
 				System.out.println(g.getIdentifier(c)+"\t"+g.getLabel(c)+"\t"+ ic);
 			}
 		}
+	}
+	
+	@CLIMethod("--gaf-calculate-specificity")
+	public void gaCalculateSpecificity(Opts opts) {
+		opts.info("", "Calculate IC for every term based on an input GAF. Ensure relations are filtered accordingly first");
+		// TODO - ensure has_part and other relations are excluded
+		Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
+		double corpusSize = gafdoc.getBioentities().size();
+		int nA = 0;
+		int sumA = 0;
+		int nG = 0;
+		int sumG = 0;
+		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
+			if (a.getQualifiers().size() > 0) {
+				continue;
+			}
+			nA++;
+			OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
+			int maxDist = 0;
+			for (OWLGraphEdge edge : g.getOutgoingEdgesClosure(c)) {
+				// TODO - make more efficient
+				int dist = edge.getDistance();
+				if (dist > maxDist) {
+					maxDist = dist;
+				}
+			}
+			System.out.println(maxDist + "\t" + a.toString());
+			sumA += maxDist;
+		}
+		// per-gene
+		// TODO - don't repeat yourself
+		for (Bioentity e : gafdoc.getBioentities()) {
+			int maxDist = 0;
+			nG++;
+			for ( GeneAnnotation a : gafdoc.getGeneAnnotations(e.getId())) {
+				if (a.getQualifiers().size() > 0) {
+					continue;
+				}
+				OWLObject c = g.getOWLObjectByIdentifier(a.getCls());
+				for (OWLGraphEdge edge : g.getOutgoingEdgesClosure(c)) {
+					// TODO - make more efficient
+					int dist = edge.getDistance();
+					if (dist > maxDist) {
+						maxDist = dist;
+					}
+				}
+			}
+			sumG += maxDist;
+		}
+		System.out.println("Avg dist per annotation: "+ sumA / (float) nA);
+		System.out.println("Avg dist per gene: "+ sumG / (float) nG);
 	}
 	
 	@CLIMethod("--gaf-term-counts")
