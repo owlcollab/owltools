@@ -561,7 +561,7 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 	
-	public void getAnnotationSufficiencyScore() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+	public void getAnnotationSufficiencyScoreCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Specificity score for a set of annotations");
 			return;
