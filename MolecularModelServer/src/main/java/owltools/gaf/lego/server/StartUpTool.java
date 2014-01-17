@@ -87,6 +87,7 @@ public class StartUpTool {
 		// Configuration: Use custom JSON renderer (GSON)
 		ResourceConfig resourceConfig = new ResourceConfig();
 		resourceConfig.register(GsonMessageBodyHandler.class);
+		resourceConfig.register(RequireJsonpFilter.class);
 		JsonOrJsonpModelHandler modelHandler = new JsonOrJsonpModelHandler(graph, models);
 		resourceConfig = resourceConfig.registerInstances(modelHandler);
 
