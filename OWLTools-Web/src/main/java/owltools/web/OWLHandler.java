@@ -319,29 +319,7 @@ public class OWLHandler {
 		}
 	}
 
-	/**
-	 * @throws IOException 
-	 * @throws OWLOntologyCreationException 
-	 * @throws OWLOntologyStorageException 
-	 * @see owltools.sim.SimEngine
-	 */
-	@Deprecated
-//	public void lcsExpressionCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
-//		if (isHelp()) {
-//			info("Returns least common subsumer class expression using OWLSim");
-//			return;
-//		}
-//		headerOWL();
-//		Set<OWLObject> objs = this.resolveEntityList();
-//		if (objs.size() == 2) {
-//			SimEngine se = new SimEngine(graph);
-//			OWLObject[] objsA = objs.toArray(new OWLObject[objs.size()]);
-//			OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(objsA[0], objsA[1]);		
-//		}
-//		else {
-//			// TODO - throw
-//		}
-//	}
+
 
 
 	/**
@@ -580,6 +558,21 @@ public class OWLHandler {
 		Integer limit = getParamAsInteger(Param.limit, 1000);
 		String jsonStr = sj.search(atts, targetIdSpace, true, limit);
 		LOG.info("Finished comparison");
+		response.getWriter().write(jsonStr);
+	}
+	
+	public void getAnnotationSufficiencyScore() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("Specificity score for a set of annotations");
+			return;
+		}
+		headerText();
+		OwlSim sos = getOWLSim();
+		Set<OWLClass> atts = this.resolveClassList(Param.a);
+		
+		SimJSONEngine sj = new SimJSONEngine(graph,sos);
+		String jsonStr = sj.getAnnotationSufficiencyScore(atts);
+		LOG.info("Finished getAnnotationSufficiencyScore");
 		response.getWriter().write(jsonStr);
 	}
 	
