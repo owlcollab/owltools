@@ -975,6 +975,10 @@ public interface OwlSim {
 	
 	public HashMap<String,SummaryStatistics> getMetricStats(Stat stat);
 
+	public double calculateOverallAnnotationSufficiencyForIndividual(OWLNamedIndividual i) throws UnknownOWLClassException;
+
+	public double calculateOverallAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts) throws UnknownOWLClassException;
+
 }
 
 

@@ -10,6 +10,7 @@ import java.util.Set;
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -98,9 +99,9 @@ public class SimJSONTest extends AbstractOWLSimTest {
 	}
 
 	@Test
-	public void testSearch() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
+	public void testSearch() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException, OBOFormatParserException {
 		ParserWrapper pw = new ParserWrapper();
-		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
 		g =  new OWLGraphWrapper(sourceOntol);
 		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
 
@@ -138,6 +139,78 @@ public class SimJSONTest extends AbstractOWLSimTest {
 		}
 	}
 
+	@Test
+	public void testScores() throws OWLOntologyCreationException, IOException, UnknownOWLClassException, OBOFormatParserException {
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
 
+		owlpp = new OWLPrettyPrinter(g);
+		final int truncLen = 200;
+		
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
 
+			createOwlSim();
+				//sos.setReasoner(reasoner);
+			LOG.info("Reasoner="+owlsim.getReasoner());
+
+			SimJSONEngine sj = new SimJSONEngine(g, owlsim);
+
+			//sos.saveOntology("/tmp/z.owl");
+
+			reasoner.flush();
+			
+			owlsim.createElementAttributeMapFromOntology();
+			owlsim.computeSystemStats();
+			
+			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				String jsonStr = sj.getAnnotationSufficiencyScore(i);
+				LOG.info("ANNOTSUFFICIENCY:"+jsonStr);
+			}
+		}
+		finally {
+			reasoner.dispose();
+		}
+	}
+	
+	@Test
+	public void testInfoProfile() throws OWLOntologyCreationException, IOException, UnknownOWLClassException, OBOFormatParserException {
+
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
+
+		owlpp = new OWLPrettyPrinter(g);
+		final int truncLen = 200;
+		
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+
+			createOwlSim();
+				//sos.setReasoner(reasoner);
+			LOG.info("Reasoner="+owlsim.getReasoner());
+
+			SimJSONEngine sj = new SimJSONEngine(g, owlsim);
+
+			//sos.saveOntology("/tmp/z.owl");
+
+			reasoner.flush();
+			
+			owlsim.createElementAttributeMapFromOntology();
+			owlsim.computeSystemStats();
+			
+			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				String jsonStr = sj.getAttributeInformationProfile(owlsim.getAttributesForElement(i));
+				LOG.info("InformationInfo:"+jsonStr);
+			}
+		}
+		finally {
+			reasoner.dispose();
+		}
+	}
 }

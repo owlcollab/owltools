@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -86,4 +87,32 @@ public class SimStatsTests extends AbstractOWLSimTest {
 		
 	}
 	
+	@Test
+	public void testAnnotationSufficiencyScore() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
+		setOutput("target/basic-owlsim-test.out");
+
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+			this.createOwlSim();
+			owlsim.createElementAttributeMapFromOntology();
+			
+			reasoner.flush();
+			owlsim.computeSystemStats();
+			LOG.info("Overall statistical summary for Test:");
+			LOG.info(owlsim.getSystemStats().toString());
+
+			for (OWLNamedIndividual i : owlsim.getAllElements()) {
+				LOG.info(i.toStringID()+" scores:");
+				double score = owlsim.calculateOverallAnnotationSufficiencyForIndividual(i);
+				LOG.info(owlsim.computeIndividualStats(i).getSummary()+"annotation_sufficiency: "+score);
+			}
+		} finally {
+			reasoner.dispose();
+		}
+	}
 }

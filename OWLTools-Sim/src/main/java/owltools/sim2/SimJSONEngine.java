@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
@@ -207,4 +208,40 @@ public class SimJSONEngine {
 		return stats;
 	}
 
+	public String getAnnotationSufficiencyScore(OWLNamedIndividual i) throws UnknownOWLClassException {
+		Gson gson = new Gson();
+		return gson.toJson(this.makeAnnotationSufficiencyScore(sos.getAttributesForElement(i)));
+	}
+
+
+	public String getAnnotationSufficiencyScore(Set<OWLClass> atts) throws UnknownOWLClassException {
+		Gson gson = new Gson();
+		return gson.toJson(this.makeAnnotationSufficiencyScore(atts));
+	}
+
+	private Map<String,Object> makeAnnotationSufficiencyScore(Set<OWLClass> atts) throws UnknownOWLClassException {
+		HashMap<String,String> s = new HashMap<String,String>();
+		double score = sos.calculateOverallAnnotationSufficiencyForAttributeSet(atts);
+		s.put("score",String.format("%1$.5f",score));
+		Map<String,Object> annotation_sufficiency = new HashMap<String,Object>();
+		annotation_sufficiency.put("annotation_sufficiency",s);
+  	return annotation_sufficiency;
+	}
+	
+	private Map<String,Object> makeAttributeInformationProfile(Set<OWLClass> atts) throws UnknownOWLClassException {
+		List<Map> alist = new ArrayList<Map>();
+		for (OWLClass a : atts) {
+			alist.add(makeObj(a));
+		}
+		//TODO: add unmatched classes
+		Map<String,Object> results = new HashMap<String,Object>();
+		results.put("input",alist);
+		results.put("system_stats",this.makeSummaryStatistics());
+		return results;
+	}	
+	
+	public String getAttributeInformationProfile(Set<OWLClass> atts) throws UnknownOWLClassException {
+		Gson gson = new Gson();
+		return gson.toJson(this.makeAttributeInformationProfile(atts));
+	}
 }

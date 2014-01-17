@@ -16,6 +16,7 @@ import java.util.Vector;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
+import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummaryValues;
@@ -697,18 +698,17 @@ public abstract class AbstractOwlSim implements OwlSim {
 	}
 
 	
-	/* (non-Javadoc)
-	 * @see owltools.sim2.OwlSim#computeIndividualStats(org.semanticweb.owlapi.model.OWLNamedIndividual)
-	 */
 	public SummaryStatistics computeIndividualStats(OWLNamedIndividual i) throws UnknownOWLClassException {
-		SummaryStatistics statsPerIndividual = new SummaryStatistics();
-		for (OWLClass c : this.getAttributesForElement(i)) {
-			statsPerIndividual.addValue(this.getInformationContentForAttribute(c));	
-		}
-		//LOG.info("Computing stats for individual "+i.getIRI().toString()+":");
-		//LOG.info(statsPerIndividual.getSummary().toString());
-		return statsPerIndividual;
+		return this.computeAttributeSetSimilarityStats(this.getAttributesForElement(i));
 	}
+	
+	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts) throws UnknownOWLClassException {
+		SummaryStatistics statsPerAttSet = new SummaryStatistics();
+		for (OWLClass c : atts) {
+			statsPerAttSet.addValue(this.getInformationContentForAttribute(c));	
+		}
+		return statsPerAttSet;
+	}	
 	
 	public StatisticalSummaryValues getSystemStats() {
 		return this.aggregateStatsPerIndividual;
@@ -747,5 +747,20 @@ public abstract class AbstractOwlSim implements OwlSim {
 		case MEAN : s = this.metricStatMeans; break;
 		}
 		return s;
+	}
+
+	public double calculateOverallAnnotationSufficiencyForIndividual(OWLNamedIndividual i) throws UnknownOWLClassException {
+		return calculateOverallAnnotationSufficiencyForAttributeSet(this.getAttributesForElement(i));
+	}	
+	
+	public double calculateOverallAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts) throws UnknownOWLClassException {
+		SummaryStatistics stats = computeAttributeSetSimilarityStats(atts);
+		// score = mean(atts)/mean(overall) + max(atts)/max(overall) + sum(atts)/mean(sum(overall))
+		double mean_score = StatUtils.min(new double[]{(stats.getMean() / this.meanStatsPerIndividual.getMean()),1.0});
+		double max_score = StatUtils.min(new double[]{(stats.getMax() / this.maxStatsPerIndividual.getMax()),1.0});
+		double sum_score = StatUtils.min(new double[]{(stats.getSum() / this.sumStatsPerIndividual.getMean()),1.0});
+		double overall_score = (mean_score + max_score + sum_score) / 3;		
+//		LOG.info("mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+overall_score);
+		return overall_score;
 	}
 }

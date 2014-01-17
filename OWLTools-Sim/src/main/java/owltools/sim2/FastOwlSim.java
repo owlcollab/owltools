@@ -1573,4 +1573,5 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		}
 
 	}
+
 }
