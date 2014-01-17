@@ -44,7 +44,7 @@ public class SimJSONEngine {
 			boolean isIgnoreUnknownClasses) throws UnknownOWLClassException {
 		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, 3000);
 	}
-	
+
 	/**
 	 * @param objAs
 	 * @param targetIdSpace
@@ -59,7 +59,7 @@ public class SimJSONEngine {
 			Integer limit) throws UnknownOWLClassException {
 		Set<OWLClass> known = sos.getAllAttributeClasses();
 		Set<OWLClass> filteredClasses = new HashSet<OWLClass>();
-		
+
 		Set<String> ids = new HashSet<String>();
 		Set<String> idsUnresolved = new HashSet<String>();
 		for (OWLClass objA : objAs) {
@@ -77,7 +77,7 @@ public class SimJSONEngine {
 		LOG.info("Finding matches for :"+filteredClasses);
 		LOG.info("OwlSim = "+sos);
 		List<ElementPairScores> matches = sos.findMatches(filteredClasses, targetIdSpace);
-		
+
 		// todo use a gson writer
 		Gson gson = new Gson();
 		List<Map> matchObjs = new ArrayList<Map>();
@@ -108,7 +108,7 @@ public class SimJSONEngine {
 			}
 			mObj.put("matches", matchingAtts);
 			mObj.put("system_stats", makeSummaryStatistics());
-			
+
 			matchObjs.add(mObj);
 		}
 		Map payload = new HashMap();
@@ -127,7 +127,7 @@ public class SimJSONEngine {
 		Gson gson = new Gson();
 		return compareAttributeSetPair(objAs, objBs, false);
 	}
-	
+
 	/**
 	 * @param objAs
 	 * @param objBs
@@ -186,15 +186,15 @@ public class SimJSONEngine {
 		m.put("IC",sos.getInformationContentForAttribute(g.getOWLClass(obj)));
 		return m;
 	}
-	
+
 	protected void makeObjAndSet(Map<String,Object> subj, String key, OWLObject t) throws UnknownOWLClassException {
 		Map<String,Object> tobj = makeObj(t);
 		if (tobj.keySet().size() > 0)
 			subj.put(key, tobj);
 	}
-	
+
 	public HashMap<String,String> makeSummaryStatistics() {
-//		Gson gson = new Gson();
+		//		Gson gson = new Gson();
 		HashMap<String,String> stats = new HashMap<String,String>();
 		stats.put("individuals", String.format("%d",sos.getSummaryStatistics(Stat.MEAN).getN()));		
 		stats.put("mean(meanIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.MEAN).getMean()));		
@@ -203,8 +203,8 @@ public class SimJSONEngine {
 		stats.put("max(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.SUM).getMax()));		
 		stats.put("mean(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.SUM).getMean()));		
 		stats.put("mean(n)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.N).getMean()));		
-		
-//		return gson.toJson(stats);
+
+		//		return gson.toJson(stats);
 		return stats;
 	}
 
@@ -225,9 +225,9 @@ public class SimJSONEngine {
 		s.put("score",String.format("%1$.5f",score));
 		Map<String,Object> annotation_sufficiency = new HashMap<String,Object>();
 		annotation_sufficiency.put("annotation_sufficiency",s);
-  	return annotation_sufficiency;
+		return annotation_sufficiency;
 	}
-	
+
 	private Map<String,Object> makeAttributeInformationProfile(Set<OWLClass> atts) throws UnknownOWLClassException {
 		List<Map> alist = new ArrayList<Map>();
 		for (OWLClass a : atts) {
@@ -239,7 +239,7 @@ public class SimJSONEngine {
 		results.put("system_stats",this.makeSummaryStatistics());
 		return results;
 	}	
-	
+
 	public String getAttributeInformationProfile(Set<OWLClass> atts) throws UnknownOWLClassException {
 		Gson gson = new Gson();
 		return gson.toJson(this.makeAttributeInformationProfile(atts));
