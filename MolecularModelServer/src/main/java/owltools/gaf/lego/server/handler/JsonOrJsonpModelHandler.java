@@ -41,7 +41,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 
 	static final String JSONP_DEFAULT_CALLBACK = "jsonp";
 	//static final String JSONP_DEFAULT_OVERWRITE = "jsonpCallback";
-	static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
+	public static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
 	
 	private final OWLGraphWrapper graph;
 	private MolecularModelManager models = null;
