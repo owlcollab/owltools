@@ -117,6 +117,9 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 	protected OWLClass getTestClass(String iri) {
 		return df.getOWLClass(IRI.create("http://x.org#"+iri));
 	}
+	protected OWLClass getOBOClass(String id) {
+		return df.getOWLClass(IRI.create("http://purl.obolibrary.org/obo/"+id.replaceAll(":", "_")));
+	}
 	
 
 	protected String render(EnrichmentResult r, OWLPrettyPrinter pp) {

@@ -164,7 +164,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 			reasoner.flush();
 			
 			owlsim.createElementAttributeMapFromOntology();
-			owlsim.computeSystemStats();
+			//owlsim.computeSystemStats();
 			
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
 				String jsonStr = sj.getAnnotationSufficiencyScore(i);
