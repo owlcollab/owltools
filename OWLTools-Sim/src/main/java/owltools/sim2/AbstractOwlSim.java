@@ -312,7 +312,11 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace)
 			throws UnknownOWLClassException {
 		Set<OWLClass> atts = getAttributesForElement(i);
-		return findMatches(atts, targetIdSpace);
+		List<ElementPairScores> matches = findMatches(atts, targetIdSpace);
+		for (ElementPairScores m : matches) {
+			m.i = i;
+		}
+		return matches;
 	}
 
 
@@ -755,6 +759,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 	
 	public double calculateOverallAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts) throws UnknownOWLClassException {
 		SummaryStatistics stats = computeAttributeSetSimilarityStats(atts);
+		if (Double.isNaN(this.maxStatsPerIndividual.getMean())) {
+			LOG.info("Stats have not been computed yet - doing this now");
+			this.computeSystemStats();
+		}
 		// score = mean(atts)/mean(overall) + max(atts)/max(overall) + sum(atts)/mean(sum(overall))
 		double mean_score = StatUtils.min(new double[]{(stats.getMean() / this.meanStatsPerIndividual.getMean()),1.0});
 		double max_score = StatUtils.min(new double[]{(stats.getMax() / this.maxStatsPerIndividual.getMax()),1.0});

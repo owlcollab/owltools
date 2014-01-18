@@ -1502,6 +1502,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		icCache.put(c, v);
 		if (icClassArray == null)
 			icClassArray = new Double[classArray.length];
+		if (!classIndex.containsKey(c)) {
+			LOG.warn("Non-indexed class: "+c);
+		}
 		icClassArray[classIndex.get(c)] = v;
 	}
 
