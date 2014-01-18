@@ -538,9 +538,8 @@ public class MolecularModelManager {
 	private String getPathToModelOWL(String modelId) {
 		return pathToOWLFiles + "/" + modelId + ".owl";
 	}
-
-	private OWLIndividual getIndividual(String modelId, String iid) {
-		IRI iri = graph.getIRIByIdentifier(iid);
+	private OWLIndividual getIndividual(String modelId, String indId) {
+		IRI iri = graph.getIRIByIdentifier(indId);
 		return getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
 	}
 	private OWLClass getClass(String cid) {
@@ -627,9 +626,6 @@ public class MolecularModelManager {
 		return addType(modelId, getIndividual(modelId, iid), getClass(cid));
 	}
 
-
-
-
 	/**
 	 * Adds a ClassAssertion, where the class expression instantiated is an
 	 * ObjectSomeValuesFrom expression
@@ -674,7 +670,6 @@ public class MolecularModelManager {
 				getClass(cid));
 	}
 
-	
 	/**
 	 * Adds ClassAssertion(c,i) to specified model
 	 * 

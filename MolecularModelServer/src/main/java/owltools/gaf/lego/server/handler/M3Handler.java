@@ -25,20 +25,22 @@ public interface M3Handler {
 	static final String PARAM_FORMAT = "format";
 	
 	public static class M3Response {
-		public static final String ERROR = "error";
-		public static final String WARNING = "warning";
-		public static final String SUCCESS = "success";
-		public static final String INCONSISTENT = "inconsistent";
-		public static final String MERGE = "merge";
+		public static final String ERROR = "error"; // non-update response (informational)
+		public static final String WARNING = "warning"; // non-update response (informational)
+		public static final String SUCCESS = "success"; // non-update response (informational)
+		public static final String INCONSISTENT = "inconsistent"; // full likely necessary for client
+		public static final String MERGE = "merge"; // attempt to update client
 		
 		public final String message_type; // due to introspection, not camelCase here
 		public String message = null;
+		//public String signal = null;
 		public Map<String, Object> commentary = null;
 		public Object data;
 		
 		public M3Response(String messageType) {
 			this.message_type = messageType;
 			this.message = messageType; // can't have a message type without a message
+			//this.signal = signal;
 		}
 		public M3Response(String messageType, String message) {
 			this.message_type = messageType;
@@ -97,9 +99,9 @@ public interface M3Handler {
 	@GET
 	public M3Response m3AddFact(
 			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_PROPERTYID) String propertyId, // rel
+			@QueryParam(PARAM_PROPERTYID) String propertyId, // Relation
 			@QueryParam(PARAM_INDIVIDIALID) String individualId, // Subject
-			@QueryParam(PARAM_FILLERID) String fillerId, // Target
+			@QueryParam(PARAM_FILLERID) String fillerId, // Object
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3RemoveFact")

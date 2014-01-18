@@ -39,8 +39,9 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 
 	private static Logger LOG = Logger.getLogger(JsonOrJsonpModelHandler.class);
 
-	static final String JSONP_DEFAULT_CALLBACK = "eval";
-	static final String JSONP_DEFAULT_OVERWRITE = "jsonpCallback";
+	static final String JSONP_DEFAULT_CALLBACK = "jsonp";
+	//static final String JSONP_DEFAULT_OVERWRITE = "jsonpCallback";
+	static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
 	
 	private final OWLGraphWrapper graph;
 	private MolecularModelManager models = null;
@@ -59,6 +60,26 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		return models;
 	}
 
+	/*
+	 * Builder: {"id": <id>, "instances": [...]}
+	 */
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3Response m3GetModel(String modelId, boolean help) {
+		if (help) {
+			return helpMsg("fetches molecular model json");
+		}
+		try {
+			MolecularModelManager mmm = getMolecularModelManager();
+			return bulk(modelId, mmm);
+		} catch (Exception exception) {
+			return errorMsg("Could not retrieve model", exception);
+		}
+	}
+
+	/*
+	 * Builder: {"id": <id>, "instances": [...]}
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GenerateMolecularModel(String classId, String db, boolean help) {
@@ -66,14 +87,19 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates Minimal Model augmented with GO associations");
 		}
 		try {
+			System.out.println("db: " + db);
+			System.out.println("cls: " + classId);
 			MolecularModelManager mmm = getMolecularModelManager();
 			String mid = mmm.generateModel(classId, db);
-			return success(Collections.singletonMap("id", mid), mmm);
+			return bulk(mid, mmm);
 		} catch (Exception exception) {
 			return errorMsg("Could not generate model", exception);
 		}
 	}
 	
+	/*
+	 * Info: {"message_type": "success", ..., "data: {"db": <db>}}
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3preloadGaf(String db, boolean help) {
@@ -89,6 +115,9 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 	}
 	
+	/*
+	 * TODO: Individiuals: [...]
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3CreateIndividual(String modelId, String classId, boolean help) {
@@ -100,12 +129,16 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 //			System.out.println("cls: " + classId);
 			MolecularModelManager mmm = getMolecularModelManager();
 			String id = mmm.createIndividual(modelId, classId);
+			//mmm.getIndividual(modelId, id)
 			return success(Collections.singletonMap("id", id), mmm);
 		} catch (Exception exception) {
 			return errorMsg("Could not create individual in model", exception);
 		}
 	}
 	
+	/*
+	 * Individiuals: [...]
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3AddType(String modelId, String individualId, String classId, boolean help) {
@@ -115,12 +148,15 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addType(modelId, individualId, classId);
-			return response(resp, mmm);
+			return response(resp, mmm, M3Response.MERGE);
 		} catch (OWLOntologyCreationException exception) {
 			return errorMsg("Could not add type to model", exception);
 		}
 	}
 	
+	/*
+	 * Individiuals: [...]
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3AddTypeExpression(String modelId, String individualId, String propertyId,
@@ -131,12 +167,15 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addType(modelId, individualId, propertyId, classId);
-			return response(resp, mmm);
+			return response(resp, mmm, M3Response.MERGE);
 		} catch (Exception exception) {
 			return errorMsg("Could not add type expression to model", exception);
 		}
 	}
 
+	/*
+	 * Individiuals: [...]
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3AddFact(String modelId, String propertyId, String individualId,
@@ -145,14 +184,21 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates ObjectPropertyAssertion");
 		}
 		try {
+			//System.out.println("mod: " + modelId);
+			//System.out.println("fil: " + fillerId);
+			//System.out.println("ind: " + individualId);
+			//System.out.println("rel: " + propertyId);
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addFact(modelId, propertyId, individualId, fillerId);
-			return response(resp, mmm);
+			return response(resp, mmm, M3Response.MERGE);
 		} catch (Exception exception) {
 			return errorMsg("Could not add fact to model", exception);
 		}
 	}
 	
+	/*
+	 * Individiuals: [...]
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3RemoveFact(String propertyId, String modelId, String individualId,
@@ -163,27 +209,15 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.removeFact(propertyId, modelId, individualId, fillerId);
-			return response(resp, mmm);
+			return response(resp, mmm, M3Response.MERGE);
 		} catch (Exception exception) {
 			return errorMsg("Could not remove fact from model", exception);
 		}
 	}
 
-	@Override
-	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3Response m3GetModel(String modelId, boolean help) {
-		if (help) {
-			return helpMsg("fetches molecular model json");
-		}
-		try {
-			MolecularModelManager mmm = getMolecularModelManager();
-			Map<Object, Object> obj = mmm.getModelObject(modelId);
-			return success(obj, mmm);
-		} catch (Exception exception) {
-			return errorMsg("Could not retrieve model", exception);
-		}
-	}
-
+	/*
+	 * Other.
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3ExportModel(String modelId, String format, boolean help) {
@@ -253,20 +287,37 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	}
 	
 	/**
+	 * @param data
+	 * @return REST response, never null
+	 */
+	private M3Response bulk(String modelId, MolecularModelManager mmm) {
+		M3Response response = new M3Response(M3Response.INCONSISTENT);
+		if (mmm != null) {
+			// TODO add consistent m3 model to result ?
+			Map<Object, Object> obj = mmm.getModelObject(modelId);
+			obj.put("id", modelId);
+			response.data = obj;
+		}
+		return response;
+	}
+	
+	/**
 	 * @param resp
 	 * @param mmm
 	 * @return REST response, never null
 	 */
-	private M3Response response(OWLOperationResponse resp, MolecularModelManager mmm) {
+	private M3Response response(OWLOperationResponse resp, MolecularModelManager mmm, String intention) {
 		M3Response response;
 		if (resp.isResultsInInconsistency()) {
 			response = new M3Response(M3Response.INCONSISTENT);
+			response.message = "unintentional inconsistency";
 		}
-		else if (resp.isSuccess()) {
-			response = new M3Response(M3Response.SUCCESS);
+		else if ( ! resp.isSuccess()) {
+			response = new M3Response(M3Response.ERROR);
 		}
 		else {
-			response = new M3Response(M3Response.ERROR);
+			//response = new M3Response(M3Response.SUCCESS);
+			response = new M3Response(intention);
 		}
 		if (resp.getModelData() != null) {
 			response.data = resp.getModelData();
