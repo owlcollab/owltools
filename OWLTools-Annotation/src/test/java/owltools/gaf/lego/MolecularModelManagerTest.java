@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
+import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.io.ParserWrapper;
 
 import com.google.gson.Gson;
@@ -54,7 +55,8 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		assertTrue(inds.size() == 15);
 		
 		// GO:0001158 ! enhancer sequence-specific DNA binding
-		String bindingId = mmm.createActivityIndividual(modelId, g.getOWLClassByIdentifier("GO:0001158"));
+		OWLOperationResponse response = mmm.createIndividual(modelId, g.getOWLClassByIdentifier("GO:0001158"));
+		String bindingId = response.getIndividualIds().get(0);
 		LOG.info("New: "+bindingId);
 		// GO:0005654 ! nucleoplasm
 		mmm.addOccursIn(modelId, bindingId, "GO:0005654");

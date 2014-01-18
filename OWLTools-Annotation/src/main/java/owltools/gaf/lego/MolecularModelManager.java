@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
+import org.obolibrary.obo2owl.Owl2Obo;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
@@ -45,6 +47,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -91,6 +94,7 @@ public class MolecularModelManager {
 		boolean isSuccess = true;
 		boolean isResultsInInconsistency = false;
 		List<Map<Object, Object>> modelData = null;
+		List<String> individualIds = null;
 		
 		/**
 		 * @param isSuccess
@@ -144,6 +148,20 @@ public class MolecularModelManager {
 		 */
 		public void setModelData(List<Map<Object, Object>> modelData) {
 			this.modelData = modelData;
+		}
+		
+		/**
+		 * @return the individualIds
+		 */
+		public List<String> getIndividualIds() {
+			return individualIds;
+		}
+		
+		/**
+		 * @param individualIds the individualIds to set
+		 */
+		public void setIndividualIds(List<String> individualIds) {
+			this.individualIds = individualIds;
 		}
 	}
 
@@ -389,7 +407,7 @@ public class MolecularModelManager {
 	 * @param c
 	 * @return id of created individual
 	 */
-	public String createIndividual(String modelId, OWLClass c) {
+	public OWLOperationResponse createIndividual(String modelId, OWLClass c) {
 		LOG.info("Creating individual of type: "+c);
 		String cid = graph.getIdentifier(c).replaceAll(":","-"); // e.g. GO-0123456
 
@@ -402,8 +420,8 @@ public class MolecularModelManager {
 		IRI iri = graph.getIRIByIdentifier(iid);
 		OWLNamedIndividual i = getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
 		addAxiom(modelId, getOWLDataFactory(modelId).getOWLDeclarationAxiom(i));
-		addType(modelId, i, c);
-		return iid;
+		OWLOperationResponse resp = addType(modelId, i, c);
+		return resp;
 	}
 
 	/**
@@ -413,7 +431,7 @@ public class MolecularModelManager {
 	 * @param cid
 	 * @return id of created individual
 	 */
-	public String createIndividual(String modelId, String cid) {
+	public OWLOperationResponse createIndividual(String modelId, String cid) {
 		return createIndividual(modelId, getClass(cid));
 	}
 	
@@ -433,24 +451,6 @@ public class MolecularModelManager {
 			removeAxiom(modelId, ax);
 		}
 		return new OWLOperationResponse(true);
-	}
-
-	/**
-	 * @param modelId
-	 * @param c
-	 * @return id of created individual
-	 */
-	public String createActivityIndividual(String modelId, OWLClass c) {
-		return createIndividual(modelId, c);
-	}
-
-	/**
-	 * @param modelId
-	 * @param c
-	 * @return id of created individual
-	 */
-	public String createProcessIndividual(String modelId, OWLClass c) {
-		return createIndividual(modelId, c);
 	}
 
 	/**
@@ -605,12 +605,16 @@ public class MolecularModelManager {
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
 		OWLOntology ont = mod.getAboxOntology();
 		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
+		List<String> individualIds = new ArrayList<String>();
 		for (OWLIndividual i : individuals) {
 			if (i instanceof OWLNamedIndividual) {
-				objs.add(renderer.renderObject(ont, (OWLNamedIndividual)i));
+				OWLNamedIndividual named = (OWLNamedIndividual)i;
+				objs.add(renderer.renderObject(ont, named));
+				individualIds.add(Owl2Obo.getIdentifier(named.getIRI()));
 			}
 		}
 		resp.setModelData(objs);
+		resp.setIndividualIds(individualIds);
 	}
 
 	/**

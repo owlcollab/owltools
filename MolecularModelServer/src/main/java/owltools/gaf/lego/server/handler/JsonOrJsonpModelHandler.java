@@ -116,7 +116,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	}
 	
 	/*
-	 * TODO: Individiuals: [...]
+	 * Individiuals: [...]
 	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
@@ -125,12 +125,10 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates a new individual");
 		}
 		try {
-//			System.out.println("mod: " + modelId);
-//			System.out.println("cls: " + classId);
 			MolecularModelManager mmm = getMolecularModelManager();
-			String id = mmm.createIndividual(modelId, classId);
-			//mmm.getIndividual(modelId, id)
-			return success(Collections.singletonMap("id", id), mmm);
+			OWLOperationResponse resp = mmm.createIndividual(modelId, classId);
+			// TODO fix intention
+			return response(resp, mmm, null);
 		} catch (Exception exception) {
 			return errorMsg("Could not create individual in model", exception);
 		}
