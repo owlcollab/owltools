@@ -113,6 +113,17 @@ public class GafCommandRunnerTest extends AbstractCommandRunnerTest {
 		
 	}
 
+	@Test
+	public void testGafSpecificity() throws Exception {
+		init();
+		load("gaf/mgi-exttest-go-subset.obo");
+		String gafpath = getResource("gaf/mgi-exttest.gaf").getAbsolutePath();
+		run("--gaf "+gafpath);
+		
+		run("--gaf-calculate-specificity");
+
+		
+	}
 
 	
 	
