@@ -1361,16 +1361,26 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			pproc.dispose();
 		}
 	}
+	
+	@CLIMethod("--sim-save-state")
+	public void simSaveState(Opts opts) throws Exception {
+		opts.info("OUTFILE", "experimental: saves state");
+		owlsim.saveState(opts.nextOpt());
+	}
 
 	@CLIMethod("--sim-save-lcs-cache")
 	public void simSaveLCSCache(Opts opts) throws Exception {
 		opts.info("[-m ICTHRESHOLD] OUTFILE", "saves a LCS cache to a file. This should be called AFTER --sim-compare-atts");
 		Double thresh = null;
+		OWLClass debugClass = null;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-m|--min-ic")) {
 				opts.info("ICTHRESHOLD", "If the IC of the LCS is less than this value, an entry is not written.\n" +
 						"After subsequent loading of the cache, pairs with no entry are equivalent to pairs with a LCS with IC=0");
 				thresh = Double.valueOf(opts.nextOpt());
+			}
+			else if (opts.nextEq("--debug-class")) {
+				debugClass = this.resolveClass(opts.nextOpt());
 			}
 			else {
 				break;
@@ -1380,9 +1390,13 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		// No Sim object, so all by all has not yet been calculated
 		if (owlsim == null) {
 			owlsim = owlSimFactory.createOwlSim(g.getSourceOntology());
+			if (debugClass != null) {
+				((FastOwlSim)owlsim).debugClass = debugClass;
+			}
 			owlsim.createElementAttributeMapFromOntology();
 
-			// todo: don't set this if we have previously compared all attributes
+			// we have just created a sim object, so the cache is not populated;
+			// therefore we can be more efficient by avoiding lookups
 			owlsim.setNoLookupForLCSCache(true);
 			Set<OWLClass> atts = owlsim.getAllAttributeClasses();
 			LOG.info("Number of attribute classes: "+atts.size());

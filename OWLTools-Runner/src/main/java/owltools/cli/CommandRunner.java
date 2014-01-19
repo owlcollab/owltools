@@ -533,7 +533,6 @@ public class CommandRunner {
 					SetOntologyID soid;
 					soid = new SetOntologyID(g.getSourceOntology(), oid);
 					g.getManager().applyChange(soid);
-
 				}
 			}
 			else if (opts.nextEq("--merge-import-closure") || opts.nextEq("--merge-imports-closure")) {
