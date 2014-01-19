@@ -1,11 +1,11 @@
 package owltools.sim2;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,8 +16,6 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
-import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -27,19 +25,15 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.impl.DefaultNode;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 
-import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
-import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
 import owltools.sim2.scores.ScoreMatrix;
-import owltools.util.ClassExpressionPair;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah.IntIterator;
@@ -56,36 +50,96 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	private Logger LOG = Logger.getLogger(FastOwlSim.class);
 
+	public OWLClass debugClass;
+	int debugClassMessages = 0;
+	int debugClassMessages2 = 0;
+	
 	private Map<OWLNamedIndividual, Set<OWLClass>> elementToDirectAttributesMap;
-	private Map<OWLNamedIndividual, Set<Node<OWLClass>>> elementToInferredAttributesMap; // REDUNDANT WITH typesMap
+	
+	// -----------
+	// CACHES
+	// -----------
+	
+	// all direct and inferred classes for al individual
+	// todo: resolve redundancy with inferredTypesMap
+	private Map<OWLNamedIndividual, Set<Node<OWLClass>>> elementToInferredAttributesMap;
 
-	private Map<OWLClass,Set<Node<OWLClass>>> superclassMap; // cache of RSub(c)->Cs
-	private Map<OWLNamedIndividual,Set<Node<OWLClass>>> inferredTypesMap; // cache of Type(i)->Cs
+	 // caches RSub(c) (reflexive subsumers of a class) - NodeSet
+	private Map<OWLClass,Set<Node<OWLClass>>> superclassMap;
+	
+	// cache of Type(i)->Cs
+	private Map<OWLNamedIndividual,Set<Node<OWLClass>>> inferredTypesMap; 
 
-	private Map<OWLClass,Set<Integer>> superclassIntMap; // cache of RSub(c)->Ints
+	// cache of RSub(c)->Ints
+	private Map<OWLClass,Set<Integer>> superclassIntMap; 
 	private Map<OWLNamedIndividual,Set<Integer>> inferredTypesIntMap; // cache of RSub(c)->Ints
 
-	private EWAHCompressedBitmap[] superclassBitmapIndex; // cache of RSub(c)->BM
-	private Map<OWLClass,EWAHCompressedBitmap> superclassBitmapMap; // cache of RSub(c)->BM
+	// -------------
+	// BITMAP CACHES
+	// -------------
+	// for efficiency, we store sets of classes as bitmaps.
+	// each class is assigned an integer value, resulting
+	// it bitmaps of with |c| bits
+	
+	// given a class index, return superclasses, as a bitmap
+	// e.g. if class C has index 7, then superclassBitmapIndex[7] returns a bitmap,
+	// in which every "1" value is the index of a superclass of C
+	private EWAHCompressedBitmap[] superclassBitmapIndex;
+	
+	// given a class object, return superclasses, as a bitmap. Fast cache for RSub(c)
+	private Map<OWLClass,EWAHCompressedBitmap> superclassBitmapMap; 
+	
+	// given an individual, return superclasses as a bit map
 	private Map<OWLNamedIndividual, EWAHCompressedBitmap> inferredTypesBitmapMap; // cache of Type(i)->BM
 
+	// given a class object, return proper superclasses, as a bitmap. Fast cache for Sub(c)
 	Map<OWLClass,EWAHCompressedBitmap> properSuperclassBitmapMap; // cache of Sub(c)->BM
 
-	// TODO - implement
+	// -------------
+	// CLASS INDICES
+	// -------------
+	// Each class is assigned a numeric index.
+	// We can collapse sets of equivalent classes into a node, which
+	// has an arbitrarily assigned representative element.
+	//
+	// note that the following are for *all* classes in the ontology.
+	// E.g. may include anatomy classes in a phenotype analysis.
+	// to limit memory usage, first filter ontology to classes with members
+	// (being sure to retain inferred axioms).
+	// in practice this may not be necessary, as 2D arrays are only used
+	// for classes with members.
+	
+	// maps a set of equivalent classes to a representative
 	Map<Node<OWLClass>, OWLClass> representativeClassMap;
+	
+	// maps a class to a representative for that class (typically itself)
 	Map<OWLClass, OWLClass> classTorepresentativeClassMap;
 
+	// maps a class to a unique integer
 	Map<OWLClass,Integer> classIndex;
+	
+	// maps a class index to a class
 	OWLClass[] classArray;
 
-	private Set<OWLClass> allTypes = null; // all Types used in Type(e) for all e in E
+	// all types used directly.
+	// same as elementToDirectAttributesMap.values()
+	private Set<OWLClass> allTypesDirect = null; 
 
+	// all Types used in Type(e) for all e in E.
+	// note this excludes classes with no (inferred) members
+	// same as elementToInferredAttributesMap.values()
+	private Set<OWLClass> allTypesInferred = null; 
+
+	// cache of information content, by class
 	private Map<OWLClass, Double> icCache = new HashMap<OWLClass,Double>();
+	
+	// cache of information content, by class index
 	Double[] icClassArray = null;
 
 	//	private Map<ClassIntPair, Set<Integer>> classPairLCSMap;
 	//	private Map<ClassIntPair, ScoreAttributeSetPair> classPairICLCSMap;
 
+	// used for storing IC values as integers
 	final int scaleFactor = 1000;
 	//short[][] ciPairScaledScore;
 	ScoreAttributeSetPair[][] testCache = null;
@@ -153,7 +207,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	@Override
 	public Set<OWLClass> getAllAttributeClasses() {
-		return allTypes; // note - only attributes used directly or indirectly
+		return allTypesInferred; // note - only attributes used directly or indirectly
 	}
 
 	private int getClassIndex(OWLClass c) throws UnknownOWLClassException {
@@ -189,8 +243,36 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	@Override
 	public void createElementAttributeMapFromOntology() throws UnknownOWLClassException {
 		getReasoner().flush();
-		Set<OWLClass> cset = getSourceOntology().getClassesInSignature(true);
+		
+		// cache E -> Type(E)
+		elementToDirectAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
+		elementToInferredAttributesMap = new HashMap<OWLNamedIndividual,Set<Node<OWLClass>>>();
+		allTypesDirect = new HashSet<OWLClass>();
+		allTypesInferred = new HashSet<OWLClass>();
 		Set<OWLNamedIndividual> inds = getSourceOntology().getIndividualsInSignature(true);
+		for (OWLNamedIndividual e : inds) {
+
+			// The attribute classes for an individual are the direct inferred
+			// named types. We assume that grouping classes have already been
+			// generated.
+			NodeSet<OWLClass> nodesetDirect = getReasoner().getTypes(e, true);
+			NodeSet<OWLClass> nodesetInferred = getReasoner().getTypes(e, false);
+			allTypesDirect.addAll(nodesetDirect.getFlattened());
+			allTypesInferred.addAll(nodesetInferred.getFlattened());
+			elementToDirectAttributesMap.put(e, nodesetDirect.getFlattened());
+			elementToInferredAttributesMap.put(e, nodesetInferred.getNodes());
+
+			// TODO - remove deprecated classes
+			elementToDirectAttributesMap.get(e).remove(owlThing());
+			elementToInferredAttributesMap.get(e).remove(owlThing());
+		}
+		
+		LOG.info("|TypesUsedDirectly|="+allTypesDirect.size());
+		LOG.info("|TypesUsedInferred|="+allTypesInferred.size());
+
+		Set<OWLClass> cset;
+		//cset = getSourceOntology().getClassesInSignature(true);
+		cset = allTypesInferred;
 		LOG.info("|C|="+cset.size());
 		LOG.info("|I|="+inds.size());
 
@@ -198,7 +280,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		for (OWLClass c : cset) {
 			nodes.add(getReasoner().getEquivalentClasses(c));
 		}
-		LOG.info("|N|="+nodes.size()); // TODO - use this
+		LOG.info("|N|="+nodes.size()); // TODO - use thisg
 
 		// classes are collapsed into nodes. Create a map from node to
 		// class, and a map of every class
@@ -234,38 +316,21 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			n++;
 		}
 
+		// ensure cached
 		cset.add(owlThing());
 		for (OWLClass c : cset) {
 			ancsCachedModifiable(c);
 			ancsIntsCachedModifiable(c);
 			ancsBitmapCachedModifiable(c);
 		}
-
-
-		// cache E -> Type(E)
-		elementToDirectAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
-		elementToInferredAttributesMap = new HashMap<OWLNamedIndividual,Set<Node<OWLClass>>>();
-		allTypes = new HashSet<OWLClass>();
 		for (OWLNamedIndividual e : inds) {
-
-			// The attribute classes for an individual are the direct inferred
-			// named types. We assume that grouping classes have already been
-			// generated.
-			NodeSet<OWLClass> nodesetDirect = getReasoner().getTypes(e, true);
-			NodeSet<OWLClass> nodesetInferred = getReasoner().getTypes(e, false);
-			allTypes.addAll(nodesetDirect.getFlattened());
-			elementToInferredAttributesMap.put(e, nodesetInferred.getNodes());
-			elementToDirectAttributesMap.put(e, nodesetDirect.getFlattened());
-
-			// TODO - remove deprecated classes
-			elementToDirectAttributesMap.get(e).remove(owlThing());
-			elementToInferredAttributesMap.get(e).remove(owlThing());
 			// force cacheing
 			ancsBitmapCachedModifiable(e);
-
 		}
 
-		// cache
+
+
+		// cache - this is for ALL classes in signature
 		for (OWLClass c : cset) {
 			getInformationContentForAttribute(c);
 			getInformationContentForAttribute(classIndex.get(c));
@@ -417,11 +482,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return ancsInts;
 	}
 
-	@Deprecated
-	private Set<Node<OWLClass>> ancsCached(OWLClass c) {
-		return new HashSet<Node<OWLClass>>(ancsCachedModifiable(c));
-	}
-
 	private Set<Node<OWLClass>> ancsCachedModifiable(OWLClass c) {
 		if (superclassMap != null && superclassMap.containsKey(c)) {
 			return superclassMap.get(c);
@@ -503,12 +563,20 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return ic;
 	}
 
+	// gets IC by class index, cacheing if required
 	Double getInformationContentForAttribute(int cix) throws UnknownOWLClassException {
+		// check if present in cache; if so, use cached value
 		if (icClassArray != null && icClassArray[cix] != null) {
 			return icClassArray[cix];
 		}
+
+		// not cached - retrieve IC using the class
 		OWLClass c = classArray[cix];
 		Double ic = getInformationContentForAttribute(c);
+		if (debugClass != null && c.equals(debugClass)) {
+			LOG.info("DEBUG "+c+" IX:"+cix+" IC= "+ic);
+		}
+		// place results in cache, creating a new cache if none exists
 		if (icClassArray == null) {
 			icClassArray = new Double[classArray.length];
 		}
@@ -1033,7 +1101,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			ijscores.maxICwitness = bestsap.attributeClassSet;
 		}
 		else {
-			LOG.warn("No best S.A.P. for "+ijscores);
+			//LOG.warn("No best S.A.P. for "+ijscores);
 			ijscores.maxIC = 0.0;
 			ijscores.maxICwitness = null;			
 		}
@@ -1047,10 +1115,13 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	private ScoreAttributeSetPair getLowestCommonSubsumerWithIC(int cix, int dix, Double thresh)
 			throws UnknownOWLClassException {
+		
+		// if cache is disabled altogether, head straight for the implementation
 		if (isDisableLCSCache) {
 			return getLowestCommonSubsumerWithICNoCache(cix, dix);
 		}
-		// set up cache
+
+		// if the cache does not exist, initialize it
 		if (ciPairIsCached == null) {
 			// Estimates: 350mb for MP
 			// 5.4Gb for 30k classes
@@ -1063,48 +1134,56 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			//ciPairScaledScore = new short[size][size];
 			//LOG.info("Created score cache cache"+size+" * "+size);
 		}
+		
+		// if either (1) an entry exists in the cache or (2) we are
+		// building the cache from fresh, then do a lookup
 		if (!isNoLookupForLCSCache && ciPairIsCached[cix][dix]) {
 			// TODO null vs 0
-			// TODO - consider getting IC directly from main IC cache - single lookup
-			// rather than 2D lookup
 			int lcsix = ciPairLCS[cix][dix];
 
-			//LOG.info("lcsix="+lcsix+" // "+icClassArray.length);
 			return new ScoreAttributeSetPair(icClassArray[lcsix],
 					classArray[lcsix]);
-			//return new ScoreAttributeSetPair(ciPairScaledScore[cix][dix] / (float)scaleFactor,
-			//		classArray[ciPairLCS[cix][dix]]);
-
 		}
 		if (!isNoLookupForLCSCache && isLCSCacheFullyPopulated) {
 			// true if a pre-generated cache has been loaded and there is no entry for this pair;
-			// a cache excludes certain pairs if they are below threshold
+			// a cache excludes certain pairs if they are below threshold (see below)
 			return null;
 		}
 
+		// use base method and cache results.
+		// if score is below threshold, then nothing is returned or cached.
+		// This reduces the size of the cache.
 		ScoreAttributeSetPair sap = 
 				getLowestCommonSubsumerWithICNoCache(cix, dix);
-		if (thresh != null && sap.score < thresh) {
+		if (debugClass != null && sap.attributeClassSet != null &&
+				debugClassMessages < 100 &&
+				sap.attributeClassSet.contains(debugClass)) {
+			LOG.info("DEBUG1 "+debugClass+" ix="+ classIndex.get(debugClass)+" "+sap.score);
+			debugClassMessages++;
+		}
+		if (thresh != null && sap.score < thresh) {			
 			return null;
 		}
 
-		//testCache[cix][dix] = sap;
 		ciPairIsCached[cix][dix] = true;
 		OWLClass lcsCls = null;
 		if (sap.attributeClassSet != null && !sap.attributeClassSet.isEmpty()) {
+			// we take an arbitrary member
 			lcsCls = sap.attributeClassSet.iterator().next();
-			// note: others are discarded
-			Integer lcsix = classIndex.get(lcsCls);
+			int lcsix = classIndex.get(lcsCls);
 			ciPairLCS[cix][dix] = lcsix;
-			icClassArray[lcsix] = sap.score;
+			if (debugClass != null && lcsCls.equals(debugClass) && debugClassMessages2 < 100) {
+				LOG.info("DEBUG2 "+lcsix+" " +sap.attributeClassSet+" sap.score="+sap.score);
+				debugClassMessages2++;
+			}
+			//icClassArray[lcsix] = sap.score;
 		}
 		else {
 			//TODO - remove obsoletes
-			//LOG.warn("uh oh"+classArray[cix] + " "+
-			//	classArray[dix]+" "+sap.attributeClassSet);
+			LOG.warn("uh oh"+classArray[cix] + " "+
+					classArray[dix]+" "+sap.attributeClassSet);
 		}
 
-		//ciPairScaledScore[cix][dix] = (short)(sap.score * scaleFactor);
 		return sap;
 	}
 
@@ -1399,21 +1478,60 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 
 	// I/O
+	
+	/* (non-Javadoc)
+	 * @see owltools.sim2.AbstractOwlSim#saveState(java.lang.String)
+	 */
+	public void saveState(String fileName) throws IOException {
+		FileOutputStream fos = new FileOutputStream(fileName);
+		IOUtils.write("classArray:"+classArray.length+"\n", fos);
+		for (int i=0; i<classArray.length; i++) {
+			IOUtils.write("classArray "+i+" "+classArray[i]+"\n", fos);			
+		}
+		IOUtils.write("classIndex:"+classIndex.keySet().size()+"\n", fos);
+		for (OWLClass c : classIndex.keySet()) {
+			IOUtils.write("classIndex "+c+" "+classIndex.get(c)+"\n", fos);			
+		}
+		IOUtils.write("attributeClass-index: "+getAllAttributeClasses().size()+"\n", fos);
+		for (OWLClass c : this.getAllAttributeClasses()) {
+			IOUtils.write("attributeClass-index "+c+" "+classIndex.get(c)+"\n", fos);			
+		}
+		IOUtils.write("icClassArray:\n", fos);
+		for (int i=0; i<icClassArray.length; i++) {
+			IOUtils.write("icClassArray "+i+" "+icClassArray[i]+"\n", fos);			
+		}
+		IOUtils.write("icCache:\n", fos);
+		for (OWLClass c : icCache.keySet()) {
+			IOUtils.write("icCache "+c+" "+icCache.get(c)+"\n", fos);			
+		}
+		IOUtils.write("classToRepresentativeClassMap:\n", fos);
+		for (OWLClass c : classTorepresentativeClassMap.keySet()) {
+			IOUtils.write("classTorepresentativeClassMap "+c+" "+classTorepresentativeClassMap.get(c)+"\n", fos);			
+		}
+		IOUtils.write("representativeClassMap:\n", fos);
+		for (Node<OWLClass> n : representativeClassMap.keySet()) {
+			IOUtils.write("representativeClassMap "+n+" "+representativeClassMap.get(n)+"\n", fos);			
+		}
+		fos.close();
+	}
+	
 
 	@Override
 	public void saveLCSCache(String fileName, Double thresholdIC) throws IOException {
 		FileOutputStream fos = new FileOutputStream(fileName);
-
-		// ensure ICs are cached
+		
+		// iterate through all classes fetching their ICs, using the class index.
+		// this has the side effect of ensuring that icClassArray is populated.
 		int n=0;
 		for (OWLClass c : this.getAllAttributeClasses()) {
 			try {
 				int cix = classIndex.get(c);
 				Double ic = getInformationContentForAttribute(cix);
 				Double icCheck = icClassArray[cix]; // for debugging
-				//if (n % 100 == 0 || c.getIRI()) {
-					LOG.info("Class "+c+" has ix="+cix+" IC="+ic+" IC(check)="+icCheck+" C(check)="+getShortId(classArray[cix]));
-				//}
+				Double icBase = getInformationContentForAttribute(c);
+				LOG.info("Class "+c+" has ix="+cix+" IC="+ic+
+						" IC(check)="+icCheck+" IC(base)="+icBase+
+						" C(check)="+getShortId(classArray[cix]));
 				n++;
 			} catch (UnknownOWLClassException e) {
 				LOG.error("cannot find IC values for class "+c, e);
@@ -1421,7 +1539,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			}
 		}
 		
-		// assumes this has been calculated
+		// We assume ciPairIsCached is populated
 		for ( int cix = 0; cix< ciPairIsCached.length; cix++) {
 			boolean[] arr = ciPairIsCached[cix];
 			OWLClass c = classArray[cix];
@@ -1448,6 +1566,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		fos.close();
 	}
+
 
 	/**
 	 * @param fileName

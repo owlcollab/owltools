@@ -393,6 +393,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 	}
 	
+	public void saveState(String fileName) throws IOException {
+		LOG.warn("not implemented");
+	}
+	
 	public void saveLCSCache(String fileName) throws IOException {
 		saveLCSCache(fileName, null);
 	}

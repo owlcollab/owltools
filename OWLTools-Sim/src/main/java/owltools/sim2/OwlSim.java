@@ -526,7 +526,7 @@ public interface OwlSim {
 
 	/**
 	 * returns all attribute classes - i.e. the classes used to annotate the
-	 * elements (genes, diseases, etc) being studied
+	 * elements (genes, diseases, etc) being studied, either directly or indirectly
 	 * 
 	 * defaults to all classes in source ontology signature
 	 * 
@@ -680,6 +680,13 @@ public interface OwlSim {
 	public ScoreAttributeSetPair getLowestCommonSubsumerWithIC(OWLClass i, OWLClass j, Double thresh)
 			throws UnknownOWLClassException;
 
+	/**
+	 * Experimental: save internal state of object
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public void saveState(String fileName) throws IOException;
+	
 	/**
 	 * Saves the contents of the LCS-IC cache
 	 * 
