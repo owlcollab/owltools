@@ -576,6 +576,21 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 	
+	public void getAttributeInformationProfileCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("Attribute Profile Information");
+			return;
+		}
+		headerText();
+		OwlSim sos = getOWLSim();
+		Set<OWLClass> atts = this.resolveClassList(Param.a);
+		
+		SimJSONEngine sj = new SimJSONEngine(graph,sos);
+		String jsonStr = sj.getAttributeInformationProfile(atts);
+		LOG.info("Finished getAttributeInformationProfileCommand");
+		response.getWriter().write(jsonStr);
+	}
+	
 	// ----------------------------------------
 	// WRITE/UPDATE OPERATIONS
 	// ----------------------------------------
