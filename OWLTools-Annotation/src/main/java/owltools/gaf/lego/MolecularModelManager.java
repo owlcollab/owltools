@@ -284,9 +284,15 @@ public class MolecularModelManager {
 
 
 	/**
-	 * Generates a 
+	 * Generates a new model taking as input a biological process P and a database D.
+	 * The axioms from P and annotations to P from D are used to seed a new model
 	 * 
 	 * See {@link LegoModelGenerator#buildNetwork(OWLClass, java.util.Collection)}
+	 * And also https://docs.google.com/document/d/1TV8Eb9sSvFY-weVZaIfzCxF1qbnmkUaiUhTm9Bs3gRE/edit
+	 * 
+	 * Note the resulting model is uniquely identified by the modeId, which is currently constructed
+	 * as a concatenation of the db and the P id. This means that if there is an existing model by
+	 * this ID it will be overwritten
 	 * 
 	 * @param processCls
 	 * @param db
@@ -309,6 +315,9 @@ public class MolecularModelManager {
 
 		//OWLOntology model = molecularModelGenerator.getAboxOntology();
 		String modelId = getModelId(p, db);
+		if (modelMap.containsKey(modelId)) {
+			throw new OWLOntologyCreationException("A model already exists for this process and db: "+modelId);
+		}
 		modelMap.put(modelId, molecularModelGenerator);
 		return modelId;
 
@@ -1002,6 +1011,7 @@ public class MolecularModelManager {
 	}
 	
 	
+	@Deprecated
 	protected abstract class LegoStringDotRenderer extends LegoDotWriter {
 		public LegoStringDotRenderer(OWLGraphWrapper graph, OWLReasoner reasoner) {
 			super(graph, reasoner);
@@ -1020,6 +1030,7 @@ public class MolecularModelManager {
 	 * @throws IOException
 	 * @throws UnExpectedStructureException
 	 */
+	@Deprecated
 	public String generateDot(String modelId) throws IOException, UnExpectedStructureException {
 		LegoModelGenerator m = getModel(modelId);
 		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
