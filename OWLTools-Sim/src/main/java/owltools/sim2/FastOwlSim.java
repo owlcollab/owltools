@@ -335,6 +335,8 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			getInformationContentForAttribute(c);
 			getInformationContentForAttribute(classIndex.get(c));
 		}
+		
+		this.computeSystemStats();
 
 	}
 
@@ -1204,25 +1206,30 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		long t = System.currentTimeMillis();
 		EWAHCompressedBitmap cad = getNamedLowestCommonSubsumersAsBitmap(cix, dix);
 
-//		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>();
-//		for (int ix : cad.toArray()) {
-//			OWLClassNode node = new OWLClassNode(classArray[ix]);
-//			nodes.add(node);
-//		}
-
 		Set<OWLClass> lcsClasses = new HashSet<OWLClass>();
 		double maxScore = 0.0;
 		for (int ix : cad.toArray()) {
 			double score = 
 					getInformationContentForAttribute(ix);
-			if (score == maxScore) {
-				lcsClasses= new HashSet<OWLClass>(Collections.singleton(classArray[ix]));
-				maxScore = score;
+			double sdiff = score - maxScore;
+			if (sdiff >= 0) {
+				if (sdiff > 0.01) {
+					lcsClasses= new HashSet<OWLClass>(Collections.singleton(classArray[ix]));
+					maxScore = score;					
+				}
+				else {
+					lcsClasses.add(classArray[ix]);
+					maxScore = score;					
+				}
 			}
-			else if (score >= maxScore) {
-				lcsClasses.add(classArray[ix]);
-				maxScore = score;
-			}
+//			if (score == maxScore) {
+//				lcsClasses.add(classArray[ix]);
+//				maxScore = score;
+//			}
+//			else if (score >= maxScore) {
+//				lcsClasses= new HashSet<OWLClass>(Collections.singleton(classArray[ix]));
+//				maxScore = score;
+//			}
 		}
 		if (lcsClasses.size() == 0) {
 			// TODO - remove obsoletes
