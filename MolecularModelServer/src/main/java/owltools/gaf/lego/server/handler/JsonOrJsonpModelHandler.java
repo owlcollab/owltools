@@ -246,6 +246,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	}
 	
 	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GetAllModelIds(boolean help) {
 		if (help) {
 			return helpMsg("Export the current content of the model");
