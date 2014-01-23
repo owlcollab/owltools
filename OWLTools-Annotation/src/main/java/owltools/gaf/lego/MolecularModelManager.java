@@ -38,6 +38,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -165,6 +166,28 @@ public class MolecularModelManager {
 		}
 	}
 
+	public static class UnknownIdentifierException extends Exception {
+
+		// generated
+		private static final long serialVersionUID = -847970910712518838L;
+
+		/**
+		 * @param message
+		 * @param cause
+		 */
+		public UnknownIdentifierException(String message, Throwable cause) {
+			super(message, cause);
+		}
+
+		/**
+		 * @param message
+		 */
+		public UnknownIdentifierException(String message) {
+			super(message);
+		}
+
+	}
+	
 	/**
 	 * @param graph
 	 * @throws OWLOntologyCreationException
@@ -332,9 +355,14 @@ public class MolecularModelManager {
 	 * @throws OWLOntologyCreationException
 	 * @throws IOException
 	 * @throws URISyntaxException
+	 * @throws UnknownIdentifierException
 	 */
-	public String generateModel(String pid, String db) throws OWLOntologyCreationException, IOException, URISyntaxException {
-		return generateModel(this.getClass(pid), db);
+	public String generateModel(String pid, String db) throws OWLOntologyCreationException, IOException, URISyntaxException, UnknownIdentifierException {
+		OWLClass cls = getClass(pid);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+pid);
+		}
+		return generateModel(cls, db);
 	}
 
 	/**
@@ -439,9 +467,14 @@ public class MolecularModelManager {
 	 * @param modelId
 	 * @param cid
 	 * @return id of created individual
+	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse createIndividual(String modelId, String cid) {
-		return createIndividual(modelId, getClass(cid));
+	public OWLOperationResponse createIndividual(String modelId, String cid) throws UnknownIdentifierException {
+		OWLClass cls = getClass(cid);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
+		}
+		return createIndividual(modelId, cls);
 	}
 	
 	/**
@@ -633,10 +666,19 @@ public class MolecularModelManager {
 	 * @param iid
 	 * @param cid
 	 * @return response info
+	 * @throws UnknownIdentifierException 
 	 */
 	public OWLOperationResponse addType(String modelId,
-			String iid, String cid) {
-		return addType(modelId, getIndividual(modelId, iid), getClass(cid));
+			String iid, String cid) throws UnknownIdentifierException {
+		OWLIndividual individual = getIndividual(modelId, iid);
+		if (individual == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLClass cls = getClass(cid);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
+		}
+		return addType(modelId, individual, cls);
 	}
 
 	/**
@@ -675,12 +717,23 @@ public class MolecularModelManager {
 	 * @param pid
 	 * @param cid
 	 * @return response info
+	 * @throws UnknownIdentifierException 
 	 */
 	public OWLOperationResponse addType(String modelId,
-			String iid, String pid, String cid) {
-		return addType(modelId, getIndividual(modelId, iid), 
-				getObjectProperty(pid),
-				getClass(cid));
+			String iid, String pid, String cid) throws UnknownIdentifierException {
+		OWLIndividual individual = getIndividual(modelId, iid);
+		if (individual == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLObjectProperty property = getObjectProperty(pid);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
+		}
+		OWLClass cls = getClass(cid);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
+		}
+		return addType(modelId, individual, property, cls);
 	}
 
 	/**
@@ -863,10 +916,23 @@ public class MolecularModelManager {
 	 * @param iid
 	 * @param jid
 	 * @return response info
+	 * @throws UnknownIdentifierException 
 	 */
 	public OWLOperationResponse addFact(String modelId, String pid,
-			String iid, String jid) {
-		return addFact(modelId, getObjectProperty(pid), getIndividual(modelId, iid), getIndividual(modelId, jid));
+			String iid, String jid) throws UnknownIdentifierException {
+		OWLObjectProperty property = getObjectProperty(pid);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
+		}
+		OWLIndividual individual1 = getIndividual(modelId, iid);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLIndividual individual2 = getIndividual(modelId, jid);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
+		}
+		return addFact(modelId, property, individual1, individual2);
 	}
 
 	/**
@@ -904,12 +970,23 @@ public class MolecularModelManager {
 	 * @param iid
 	 * @param jid
 	 * @return response info
+	 * @throws UnknownIdentifierException 
 	 */
 	public OWLOperationResponse removeFact(String modelId, String pid,
-			String iid, String jid) {
-		return removeFact(modelId, 
-				getObjectProperty(pid), 
-				getIndividual(modelId, iid), getIndividual(modelId, jid));
+			String iid, String jid) throws UnknownIdentifierException {
+		OWLObjectProperty property = getObjectProperty(pid);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
+		}
+		OWLIndividual individual1 = getIndividual(modelId, iid);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLIndividual individual2 = getIndividual(modelId, jid);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
+		}
+		return removeFact(modelId, property, individual1, individual2);
 	}
 
 

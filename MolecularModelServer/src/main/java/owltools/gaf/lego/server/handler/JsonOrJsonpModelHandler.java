@@ -147,7 +147,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addType(modelId, individualId, classId);
 			return response(resp, mmm, M3Response.MERGE);
-		} catch (OWLOntologyCreationException exception) {
+		} catch (Exception exception) {
 			return errorMsg("Could not add type to model", exception);
 		}
 	}
