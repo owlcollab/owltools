@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -244,6 +245,19 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 	}
 	
+	@Override
+	public M3Response m3GetAllModelIds(boolean help) {
+		if (help) {
+			return helpMsg("Export the current content of the model");
+		}
+		try {
+			MolecularModelManager mmm = getMolecularModelManager();
+			Set<String> modelIds = mmm.getAvailableModelIds();
+			return success(modelIds, mmm);
+		} catch (Exception exception) {
+			return errorMsg("Could not retrieve all available model ids", exception);
+		}
+	}
 
 	// ----------------------------------------
 	// END OF COMMANDS
@@ -273,6 +287,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	
 	/**
 	 * @param data
+	 * @param mmm
 	 * @return REST response, never null
 	 */
 	private M3Response success(Object data, MolecularModelManager mmm) {
@@ -285,7 +300,8 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	}
 	
 	/**
-	 * @param data
+	 * @param modelId
+	 * @param mmm 
 	 * @return REST response, never null
 	 */
 	private M3Response bulk(String modelId, MolecularModelManager mmm) {
@@ -302,6 +318,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	/**
 	 * @param resp
 	 * @param mmm
+	 * @param intention
 	 * @return REST response, never null
 	 */
 	private M3Response response(OWLOperationResponse resp, MolecularModelManager mmm, String intention) {

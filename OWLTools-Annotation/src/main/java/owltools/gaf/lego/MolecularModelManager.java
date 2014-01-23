@@ -3,6 +3,7 @@ package owltools.gaf.lego;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
@@ -559,6 +561,37 @@ public class MolecularModelManager {
 		for (String modelId : modelMap.keySet()) {
 			saveModel(modelId);
 		}
+	}
+	
+	/**
+	 * Retrieve a collection of all available model ids.<br>
+	 * Note: Models may not be loaded at this point.
+	 * 
+	 * @return set of modelids.
+	 * @throws IOException
+	 */
+	public Set<String> getAvailableModelIds() throws IOException {
+		Set<String> allModelIds = new HashSet<String>();
+		// look for all owl file in the model folder
+		File modelFolder = new File(pathToOWLFiles);
+		File[] modelFiles = modelFolder.listFiles(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				if (name.endsWith(".owl")) {
+					return true;
+				}
+				return false;
+			}
+		});
+		for (File modelFile : modelFiles) {
+			String modelFileName = modelFile.getName();
+			String modelId = FilenameUtils.removeExtension(modelFileName);
+			allModelIds.add(modelId);
+		}
+		// add all model ids currently in memory
+		allModelIds.addAll(modelMap.keySet());
+		return allModelIds;
 	}
 	
 	// TODO - ensure load/save are synchronized

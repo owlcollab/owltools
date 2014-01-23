@@ -126,4 +126,7 @@ public interface M3Handler {
 			@QueryParam(PARAM_FORMAT) String format,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
+	@Path("m3GetAllModelIds")
+	@GET
+	public M3Response m3GetAllModelIds(@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 }
