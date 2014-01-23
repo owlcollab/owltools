@@ -245,6 +245,11 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 	}
 	
+	/*
+	 * Return all meta-infomation about models in a format that the client can pick apart to help build an interface.
+	 * 
+	 * @see owltools.gaf.lego.server.handler.M3Handler#m3GetAllModelIds(boolean)
+	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GetAllModelIds(boolean help) {
