@@ -76,7 +76,67 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		
 	}
 
+	/**
+	 * The purpose of this test is to ensure that different models are properly insulated from each other.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testSeedingMultipleModels() throws Exception {
+		ParserWrapper pw = new ParserWrapper();
 
+		g = pw.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
+
+		mmm = new MolecularModelManager(g);
+		//File gafPath = getResource("mgi-signaling.gaf");
+		///mmm.loadGaf("mgi", gafPath);
+		mmm.setPathToGafs(getResource("gene-associations").toString());
+
+		OWLClass p = g.getOWLClassByIdentifier("GO:0014029"); // neural crest formation
+		
+		
+		String model1Id = mmm.generateModel(p, "mgi");
+		LOG.info("Model: "+model1Id);
+		LegoModelGenerator model1 = mmm.getModel(model1Id);
+
+		Set<OWLNamedIndividual> inds = mmm.getIndividuals(model1Id);
+		LOG.info("Individuals: "+inds.size());
+		for (OWLNamedIndividual i : inds) {
+			LOG.info("I="+i);
+		}
+		assertTrue(inds.size() == 17);
+		
+		String model2Id = mmm.generateModel(p, "fake");
+		LOG.info("Model: "+model2Id);
+		LegoModelGenerator model2 = mmm.getModel(model2Id);
+
+		Set<OWLNamedIndividual> inds2 = mmm.getIndividuals(model2Id);
+		LOG.info("Individuals: "+inds2.size());
+		for (OWLNamedIndividual i : inds2) {
+			LOG.info("I="+i);
+		}
+		assertTrue(inds2.size() == 17);
+		
+		
+//		// GO:0001158 ! enhancer sequence-specific DNA binding
+//		OWLOperationResponse response = mmm.createIndividual(model1Id, g.getOWLClassByIdentifier("GO:0001158"));
+//		String bindingId = response.getIndividualIds().get(0);
+//		LOG.info("New: "+bindingId);
+//		// GO:0005654 ! nucleoplasm
+//		mmm.addOccursIn(model1Id, bindingId, "GO:0005654");
+//
+//		mmm.addEnabledBy(model1Id, bindingId, "PR:P123456");
+//
+//		// todo - add a test that results in an inconsistency
+		
+		List<Map<Object, Object>> objs = mmm.getIndividualObjects(model1Id);
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	
+		String js = gson.toJson(objs);
+		LOG.info("INDS:" + js);
+		
+		
+	}
 
 
 }
