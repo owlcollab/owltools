@@ -28,6 +28,7 @@ public interface M3Handler {
 		public static final String ERROR = "error"; // non-update response (informational)
 		public static final String WARNING = "warning"; // non-update response (informational)
 		public static final String SUCCESS = "success"; // non-update response (informational)
+		public static final String INFORMATION = "information"; // update meta information about server
 		public static final String INCONSISTENT = "inconsistent"; // full likely necessary for client
 		public static final String MERGE = "merge"; // attempt to update client
 		

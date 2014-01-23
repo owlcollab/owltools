@@ -252,9 +252,19 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("Export the current content of the model");
 		}
 		try {
+			// Get the different kinds of model IDs for the client.
 			MolecularModelManager mmm = getMolecularModelManager();
-			Set<String> modelIds = mmm.getAvailableModelIds();
-			return success(modelIds, mmm);
+
+			Set<String> allModelIds = mmm.getAvailableModelIds();
+			Set<String> storedModelIds = mmm.getStoredModelIds();
+			Set<String> memoryModelIds = mmm.getCurrentModelIds();
+
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("models_all", allModelIds);
+			map.put("models_memory", memoryModelIds);
+			map.put("models_stored", storedModelIds);
+			
+			return information(map, mmm);
 		} catch (Exception exception) {
 			return errorMsg("Could not retrieve all available model ids", exception);
 		}
@@ -293,6 +303,20 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	 */
 	private M3Response success(Object data, MolecularModelManager mmm) {
 		M3Response response = new M3Response(M3Response.SUCCESS);
+		response.data = data;
+		if (mmm != null) {
+			// TODO add consistent m3 model to result ?
+		}
+		return response;
+	}
+	
+	/**
+	 * @param data
+	 * @param mmm
+	 * @return REST response, never null
+	 */
+	private M3Response information(Object data, MolecularModelManager mmm) {
+		M3Response response = new M3Response(M3Response.INFORMATION);
 		response.data = data;
 		if (mmm != null) {
 			// TODO add consistent m3 model to result ?

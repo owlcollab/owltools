@@ -564,13 +564,13 @@ public class MolecularModelManager {
 	}
 	
 	/**
-	 * Retrieve a collection of all available model ids.<br>
+	 * Retrieve a collection of all file/stored model ids.<br>
 	 * Note: Models may not be loaded at this point.
 	 * 
 	 * @return set of modelids.
 	 * @throws IOException
 	 */
-	public Set<String> getAvailableModelIds() throws IOException {
+	public Set<String> getStoredModelIds() throws IOException {
 		Set<String> allModelIds = new HashSet<String>();
 		// look for all owl file in the model folder
 		File modelFolder = new File(pathToOWLFiles);
@@ -589,8 +589,33 @@ public class MolecularModelManager {
 			String modelId = FilenameUtils.removeExtension(modelFileName);
 			allModelIds.add(modelId);
 		}
+		return allModelIds;
+	}
+	
+	/**
+	 * Retrieve a collection of all model ids currently in memory.<br>
+	 * 
+	 * @return set of modelids.
+	 * @throws IOException
+	 */
+	public Set<String> getCurrentModelIds() throws IOException {
+		Set<String> allModelIds = new HashSet<String>();
 		// add all model ids currently in memory
 		allModelIds.addAll(modelMap.keySet());
+		return allModelIds;
+	}
+
+	/**
+	 * Retrieve a collection of all available model ids.<br>
+	 * Note: Models may not be loaded at this point.
+	 * 
+	 * @return set of modelids.
+	 * @throws IOException
+	 */
+	public Set<String> getAvailableModelIds() throws IOException {
+		Set<String> allModelIds = new HashSet<String>();
+		allModelIds.addAll(this.getStoredModelIds());
+		allModelIds.addAll(this.getCurrentModelIds());
 		return allModelIds;
 	}
 	
