@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.AddImport;
@@ -61,6 +62,9 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 public class MinimalModelGenerator {
 
 	private static Logger LOG = Logger.getLogger(MinimalModelGenerator.class);
+	static {
+		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
+	}
 
 	private OWLReasonerFactory reasonerFactory = null;
 	private OWLReasoner reasoner = null;
@@ -73,6 +77,7 @@ public class MinimalModelGenerator {
 	boolean isPrecomputePropertyClassCombinations = true;
 	boolean isAssertInverses = true;
 	boolean isRemoveAmbiguousIndividuals = true;
+	public boolean isStrict;
 
 	protected Map<OWLClass, OWLNamedIndividual> prototypeIndividualMap =
 			new HashMap<OWLClass, OWLNamedIndividual>();
@@ -538,7 +543,25 @@ public class MinimalModelGenerator {
 		return ind;
 	}
 
-
+	public void generateAllNecessaryIndividuals() {
+		generateAllNecessaryIndividuals(false, false);
+	}
+	public void generateAllNecessaryIndividuals(boolean isCollapse, boolean isReduce) {
+		OWLEntityRenamer renamer = new OWLEntityRenamer(getOWLOntologyManager(), 
+				Collections.singleton(getAboxOntology()));
+		List<OWLOntologyChange> chgs = new ArrayList<OWLOntologyChange>();
+		for (OWLNamedIndividual ind : getTboxOntology().getIndividualsInSignature(true)) {
+			for (OWLClassExpression cx : ind.getTypes(getTboxOntology())) {
+				OWLNamedIndividual j = 
+						generateNecessaryIndividuals(cx, isCollapse, isReduce);
+				chgs.addAll(renamer.changeIRI(j.getIRI(), ind.getIRI()));
+				//m.addAxiom(m.getOWLDataFactory().getOWLO, axiom)
+			}
+		}
+		LOG.info("Changes = "+chgs.size());
+		getOWLOntologyManager().applyChanges(chgs);
+	}
+	
 	/**
 	 * attempt to deepen a class expression based on properties the individual holds.
 	 * 
@@ -705,7 +728,7 @@ public class MinimalModelGenerator {
 
 			LOG.info("  ?collapsing "+sourceIndividual+ " -> "+targetIndividual);
 			if (hasMultipleCandidates.contains(sourceIndividual)) {
-				LOG.info("   **multi-candidate");
+				LOG.info("   **multi-candidate; skipping");
 				continue;
 			}
 			LOG.info("  ACTUALLY collapsing "+sourceIndividual+ " -> "+targetIndividual);
@@ -765,6 +788,8 @@ public class MinimalModelGenerator {
 		if (c.equals(getOWLDataFactory().getOWLNothing()))
 			return true;
 		// TODO - customize
+		if (isStrict)
+			return true;
 		return false;
 	}
 
@@ -1120,8 +1145,11 @@ public class MinimalModelGenerator {
 		for (OWLOntology ont : collectedAxioms.keySet()) {
 			LOG.info("TOTAL axioms in QMAP: "+collectedAxioms.get(ont).size());
 		}
+		LOG.info("Adding collected axioms");
 		addCollectedAxioms();
+		LOG.info("Flushing reasoner...");
 		reasoner.flush();
+		LOG.info("Flushed reasoner");
 	}
 
 	/**
