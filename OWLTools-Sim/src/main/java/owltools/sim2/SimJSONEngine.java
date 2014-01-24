@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
@@ -123,18 +124,21 @@ public class SimJSONEngine {
 				for (int di = 0; di < m.ds.size(); di++) {
 					ScoreAttributeSetPair cv = m.iclcsMatrix.bestForC[ci];
 					ScoreAttributeSetPair dv = m.iclcsMatrix.bestForD[di];
-					if (cv != null) {
+					if ((cv != null) && (dv != null)) {
+						OWLClass c = ((FastOwlSim)sos).classTorepresentativeClassMap.get(m.cs.get(ci));
 						if (cv.equals(dv)) {
 							Map<String,Object> o;
 							String objID;
 							if (includeFullMatchingTriples) {
-								objID = m.cs.get(ci).getIRI().getFragment();
-								objID.concat(m.ds.get(di).getIRI().getFragment());
-								objID.concat(cv.getArbitraryAttributeClass().getIRI().getFragment());
+								OWLClass d = ((FastOwlSim)sos).classTorepresentativeClassMap.get(m.ds.get(di));
+								OWLClass lcs = ((FastOwlSim)sos).classTorepresentativeClassMap.get(cv.getArbitraryAttributeClass());
+								objID = g.getIdentifier(c);
+								objID.concat(g.getIdentifier(d));
+								objID.concat(g.getIdentifier(lcs));								
 								o = makeLCSTriple(m.cs.get(ci),m.ds.get(di),cv.getArbitraryAttributeClass());
 								//LOG.info("added triple: "+gson.toJson(o));
 							} else {
-								objID = cv.getArbitraryAttributeClass().getIRI().getFragment();
+								objID = g.getIdentifier(c);
 								o = makeObj(cv.getArbitraryAttributeClass());
 							}
 							matchingAtts.put(objID,o);
