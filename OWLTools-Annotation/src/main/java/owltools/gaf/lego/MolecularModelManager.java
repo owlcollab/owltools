@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +39,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -50,7 +48,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
-import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -385,7 +382,6 @@ public class MolecularModelManager {
 	 * 
 	 * @param modelId
 	 * @return all individuals in the model
-	 * @throws OWLOntologyCreationException 
 	 */
 	public Set<OWLNamedIndividual> getIndividuals(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
@@ -501,7 +497,6 @@ public class MolecularModelManager {
 	 * 
 	 * @param id
 	 * @return wrapped model
-	 * @throws OWLOntologyCreationException 
 	 */
 	public LegoModelGenerator getModel(String id)  {
 		if (!modelMap.containsKey(id)) {
@@ -638,16 +633,16 @@ public class MolecularModelManager {
 		return pathToOWLFiles + "/" + modelId + ".owl";
 	}
 	private OWLIndividual getIndividual(String modelId, String indId) {
-		IRI iri = graph.getIRIByIdentifier(indId);
+		IRI iri = MolecularModelJsonRenderer.getIRI(indId, graph);
 		return getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
 	}
 	private OWLClass getClass(String cid) {
-		IRI iri = graph.getIRIByIdentifier(cid);
-		return graph.getDataFactory().getOWLClass(iri);
+		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
+		return graph.getOWLClass(iri);
 	}
 	private OWLObjectProperty getObjectProperty(String pid) {
-		IRI iri = graph.getIRIByIdentifier(pid);
-		return graph.getDataFactory().getOWLObjectProperty(iri);
+		IRI iri = MolecularModelJsonRenderer.getIRI(pid, graph);
+		return graph.getOWLObjectProperty(iri);
 	}
 
 	private OWLObjectPropertyExpression getObjectProperty(
@@ -672,7 +667,6 @@ public class MolecularModelManager {
 	/**
 	 * @param modelId
 	 * @return data factory for the specified model
-	 * @throws OWLOntologyCreationException 
 	 */
 	public OWLDataFactory getOWLDataFactory(String modelId) {
 		LegoModelGenerator model = getModel(modelId);
@@ -902,10 +896,19 @@ public class MolecularModelManager {
 	 * @param iid
 	 * @param eid - e.g. PR:P12345
 	 * @return response info
+	 * @throws UnknownIdentifierException 
 	 */
 	public OWLOperationResponse addEnabledBy(String modelId,
-			String iid, String eid) {
-		return addEnabledBy(modelId, getIndividual(modelId, iid), getClass(eid));
+			String iid, String eid) throws UnknownIdentifierException {
+		OWLIndividual individual = getIndividual(modelId, iid);
+		if (individual == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLClass cls = getClass(eid);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+eid);
+		}
+		return addEnabledBy(modelId, individual, cls);
 	}
 
 	/**
@@ -1000,10 +1003,23 @@ public class MolecularModelManager {
 	 * @param iid
 	 * @param jid
 	 * @return response info
+	 * @throws UnknownIdentifierException
 	 */
 	public OWLOperationResponse addFact(String modelId, OBOUpperVocabulary vocabElement,
-			String iid, String jid) {
-		return addFact(modelId, getObjectProperty(vocabElement), getIndividual(modelId, iid), getIndividual(modelId, jid));
+			String iid, String jid) throws UnknownIdentifierException {
+		OWLObjectPropertyExpression property = getObjectProperty(vocabElement);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+vocabElement);
+		}
+		OWLIndividual individual1 = getIndividual(modelId, iid);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLIndividual individual2 = getIndividual(modelId, jid);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
+		}
+		return addFact(modelId, property, individual1, individual2);
 	}
 	
 	/**

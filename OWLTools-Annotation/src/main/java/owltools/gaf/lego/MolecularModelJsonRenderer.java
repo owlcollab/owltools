@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -20,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.vocab.OBOUpperVocabulary;
 
 import com.google.gson.Gson;
 
@@ -105,7 +108,7 @@ public class MolecularModelJsonRenderer {
 	 */
 	public Map<Object, Object> renderObject(OWLOntology ont, OWLNamedIndividual i) {
 		Map<Object, Object> iObj = new HashMap<Object, Object>();
-		iObj.put(KEY.id, getId(i));
+		iObj.put(KEY.id, getId(i, graph));
 		iObj.put(KEY.label, getLabel(i));
 		
 		List<Object> typeObjs = new ArrayList<Object>();		
@@ -118,7 +121,7 @@ public class MolecularModelJsonRenderer {
 			for (OWLIndividual v : pvs.get(p)) {
 				valObjs.add(getAtom((OWLNamedObject) v));
 			}
-			iObj.put(getId((OWLNamedObject) p), valObjs);
+			iObj.put(getId((OWLNamedObject) p, graph), valObjs);
 		}
 		iObj.put(KEY.type, typeObjs);
 		return iObj;
@@ -180,9 +183,9 @@ public class MolecularModelJsonRenderer {
 		Map<Object, Object> xObj = new HashMap<Object, Object>();
 		
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("atom: "+i+" "+getId(i));
+			LOG.debug("atom: "+i+" "+getId(i, graph));
 		}
-		xObj.put(KEY.id, getId(i));
+		xObj.put(KEY.id, getId(i, graph));
 		xObj.put(KEY.label, getLabel(i));
 		String type = null;
 		if (i instanceof OWLNamedIndividual) {
@@ -199,9 +202,42 @@ public class MolecularModelJsonRenderer {
 	}
 
 
-	// TODO - fix for individuals
-	private String getId(OWLNamedObject i) {
-		return graph.getIdentifier(i).replaceAll(":", "_");
+	/**
+	 * @param i
+	 * @param graph 
+	 * @return id
+	 * 
+	 * @see MolecularModelJsonRenderer#getIRI
+	 */
+	public static String getId(OWLNamedObject i, OWLGraphWrapper graph) {
+		if (i instanceof OWLObjectProperty) {
+			String relId = graph.getIdentifier(i.getIRI());
+			return relId;
+		}
+		IRI iri = i.getIRI();
+		String iriString = iri.toString();
+		// remove obo prefix from IRI
+		String full = StringUtils.removeStart(iriString, OBOUpperVocabulary.OBO);
+		// replace first '_' char with ':' char
+		String replaced = StringUtils.replaceOnce(full, "_", ":");
+		return replaced;
+	}
+	
+	/**
+	 * Inverse method to {@link #getId}
+	 * 
+	 * @param id
+	 * @param graph
+	 * @return IRI
+	 * 
+	 * @see MolecularModelJsonRenderer#getId
+	 */
+	public static IRI getIRI(String id, OWLGraphWrapper graph) {
+		if (id.indexOf(':') > 0) {
+			return graph.getIRIByIdentifier(id);
+		}
+		String fullIRI = OBOUpperVocabulary.OBO + StringUtils.replaceOnce(id, ":", "_");
+		return IRI.create(fullIRI);
 	}
 
 	public String renderJson(OWLOntology ont) {
