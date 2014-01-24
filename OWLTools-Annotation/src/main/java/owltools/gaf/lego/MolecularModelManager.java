@@ -334,7 +334,7 @@ public class MolecularModelManager {
 		Set<String> seedGenes = new HashSet<String>();
 		String p = graph.getIdentifier(processCls);
 		seedGenes.addAll(molecularModelGenerator.getGenes(processCls));
-
+		molecularModelGenerator.setContextualizingSuffix(db);
 		molecularModelGenerator.buildNetwork(p, seedGenes);
 
 		//OWLOntology model = molecularModelGenerator.getAboxOntology();

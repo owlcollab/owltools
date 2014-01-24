@@ -3,6 +3,7 @@ package owltools.gaf.lego;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +16,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.io.ParserWrapper;
+import owltools.util.MinimalModelGenerator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -26,6 +28,8 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 	static{
 		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
+		//Logger.getLogger(MinimalModelGenerator.class).setLevel(Level.ERROR);
+		//Logger.getLogger(LegoModelGenerator.class).setLevel(Level.ERROR);
 		//Logger.getLogger("org.semanticweb.elk.reasoner.indexing.hierarchy").setLevel(Level.ERROR);
 	}
 
@@ -98,25 +102,33 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		String model1Id = mmm.generateModel(p, "mgi");
 		LOG.info("Model: "+model1Id);
 		LegoModelGenerator model1 = mmm.getModel(model1Id);
+		assertNotNull(model1);
 
 		Set<OWLNamedIndividual> inds = mmm.getIndividuals(model1Id);
 		LOG.info("Individuals: "+inds.size());
 		for (OWLNamedIndividual i : inds) {
 			LOG.info("I="+i);
 		}
-		assertTrue(inds.size() == 17);
+		assertEquals(17, inds.size());
 		
 		String model2Id = mmm.generateModel(p, "fake");
 		LOG.info("Model: "+model2Id);
 		LegoModelGenerator model2 = mmm.getModel(model2Id);
+		assertNotNull(model2);
 
 		Set<OWLNamedIndividual> inds2 = mmm.getIndividuals(model2Id);
 		LOG.info("Individuals: "+inds2.size());
 		for (OWLNamedIndividual i : inds2) {
 			LOG.info("I="+i);
 		}
-		assertTrue(inds2.size() == 17);
+		assertEquals(17, inds2.size());
 		
+		for (OWLNamedIndividual i : inds) {
+			assertFalse(inds2.contains(i));
+		}
+		for (OWLNamedIndividual i : inds2) {
+			assertFalse(inds.contains(i));
+		}
 		
 //		// GO:0001158 ! enhancer sequence-specific DNA binding
 //		OWLOperationResponse response = mmm.createIndividual(model1Id, g.getOWLClassByIdentifier("GO:0001158"));
