@@ -738,6 +738,7 @@ public class CommandRunner {
 				boolean isPreserveDefinitions = false;
 				boolean isPreserveSynonyms = false;
 				boolean isPreserveRelations = false;
+				boolean isPreserveDeprecations = true;
 				Set<IRI> preserveAnnotationPropertyIRIs = new HashSet<IRI>();
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-l|--preserve-labels")) {
@@ -751,6 +752,10 @@ public class CommandRunner {
 					else if (opts.nextEq("-s|--preserve-synonyms")) {
 						opts.info("", "if specified, all obo-style synonyms are preserved");
 						isPreserveSynonyms = true;
+					}
+					else if (opts.nextEq("--remove-deprecation-axioms")) {
+						opts.info("", "if specified, all owl:deprecated in NOT preserved");
+						isPreserveDeprecations = true;
 					}
 					else if (opts.nextEq("-r|--preserve-relations")) {
 						opts.info("", "unless specified, all axioms about properties are removed");
@@ -775,6 +780,11 @@ public class CommandRunner {
 						IRI piri = aaa.getProperty().getIRI();
 						if (isPreserveLabels) {
 							if (aaa.getProperty().isLabel()) {
+								keepAxioms.add(aaa);
+							}
+						}
+						if (isPreserveDeprecations) {
+							if (aaa.getProperty().isDeprecated()) {
 								keepAxioms.add(aaa);
 							}
 						}
@@ -1891,24 +1901,35 @@ public class CommandRunner {
 				ABoxUtils.makeDefaultIndividuals(g.getSourceOntology());
 			}
 			else if (opts.nextEq("--generate-minimal-model")) {
-				opts.info("[--no-collapse] [-x] CLASS", "Generates default/proto individuals for a class");
+				opts.info("[--no-collapse] [--no-reduce] [--reuse-tblox] [-x] [-a] [-s] CLASS", "Generates default/proto individuals for a class");
 				boolean isCollapse = true;
 				boolean isReduce = true;
 				boolean isExtractModule = false;
 				boolean isPrecomputePropertyClassCombinations = true;
 				boolean isCreateNewAbox = true;
+				boolean isAllIndividuals = false;
+				boolean isStrict = true;
 				Set<OWLObjectProperty> normProps = new HashSet<OWLObjectProperty>();
 				Set<OWLClass> preservedClassSet = null;
 				OWLClass c;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("--no-collapse")) {
+						opts.info("", "if set, do not heuristically collapse individuals");
 						isCollapse = false;
 					}
 					else if (opts.nextEq("--no-reduce")) {
+						opts.info("", "if set, do not perform transitive reduction");
 						isReduce = false;
 					}
 					else if (opts.nextEq("--reuse-tbox")) {
+						opts.info("", "if set, place new individuals in the ontology");
 						isCreateNewAbox = false;
+					}
+					else if (opts.nextEq("-a|--all-individuals")) {
+						isAllIndividuals = true;
+					}
+					else if (opts.nextEq("-s|--is-strict")) {
+						isStrict = true;
 					}
 					else if (opts.nextEq("-x|--extract-module")) {
 						isExtractModule = true;
@@ -1933,9 +1954,18 @@ public class CommandRunner {
 					}
 				}
 				mmg = getMinimalModelGenerator(isCreateNewAbox);
-				c = this.resolveClass(opts.nextOpt());
+				if (isStrict) {
+					mmg.isStrict = true;
+				}
 				mmg.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-				mmg.generateNecessaryIndividuals(c, isCollapse, isReduce);
+
+				if (isAllIndividuals) {
+					mmg.generateAllNecessaryIndividuals(isCollapse, isReduce);
+				}
+				else {
+					c = this.resolveClass(opts.nextOpt());
+					mmg.generateNecessaryIndividuals(c, isCollapse, isReduce);
+				}
 				for (OWLObjectProperty p : normProps) {
 					mmg.normalizeDirections(p);
 				}
@@ -2123,22 +2153,25 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--run-reasoner")) {
-				opts.info("[-r reasonername] [--assert-implied] [--indirect]", "infer new relationships");
+				opts.info("[-r reasonername] [--assert-implied] [--indirect] [-u]", "infer new relationships");
 				boolean isAssertImplied = false;
 				boolean isDirect = true;
 				boolean isShowUnsatisfiable = false;
 
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
+						opts.info("REASONERNAME", "selects the reasoner to use");
 						reasonerName = opts.nextOpt();
 					}
 					else if (opts.nextEq("--assert-implied")) {
 						isAssertImplied = true;
 					}
 					else if (opts.nextEq("--indirect")) {
+						opts.info("", "include indirect inferences");
 						isDirect = false;
 					}
 					else if (opts.nextEq("-u|--list-unsatisfiable")) {
+						opts.info("", "list all unsatisfiable classes");
 						isShowUnsatisfiable = true;
 					}
 					else {
@@ -2178,6 +2211,8 @@ public class CommandRunner {
 						isQueryProcessed = true;
 					}
 				}
+				// this should probably be deprecated - deliberate
+				// non-local effects from separate command
 				if (queryExpressionMap != null) {
 					// Assume --query-ontontology -m ONT has been processed
 					for (OWLClass qc : queryExpressionMap.keySet()) {
@@ -2227,23 +2262,34 @@ public class CommandRunner {
 					}
 					for (OWLObject obj : g.getAllOWLObjects()) {
 						if (obj instanceof OWLClass) {
+							OWLClass c = ((OWLClass) obj);
+							// find all asserted parents in ontology and its import closure;
+							// we do not want to re-assert 
 							Set<OWLClassExpression> assertedSuperclasses =
-									((OWLClass) obj).getSuperClasses(g.getSourceOntology());
-							//System.out.println(obj+ " #subclasses:"+
-							//		reasoner.getSubClasses((OWLClassExpression) obj, false).getFlattened().size());
-							for (OWLClass sup : reasoner.getSuperClasses((OWLClassExpression) obj, isDirect).getFlattened()) {
+									c.getSuperClasses(g.getSourceOntology().getImportsClosure());
+							//assertedSuperclasses.addAll(c.getEquivalentClasses(g.getSourceOntology().getImportsClosure()));
+							//Set<OWLClass> eqCs = reasoner.getEquivalentClasses(c).getEntities();
+							for (OWLClass sup : reasoner.getSuperClasses(c, isDirect).getFlattened()) {
 								if (assertedSuperclasses.contains(sup)) {
 									continue;
 								}
+								if (sup.isOWLThing())
+									continue;
 								System.out.println("INFERENCE: "+owlpp.render(obj)+" SubClassOf "+owlpp.render(sup));
 								if (isAssertImplied) {
-									OWLSubClassOfAxiom sca = g.getDataFactory().getOWLSubClassOfAxiom((OWLClass)obj, sup);
+									OWLSubClassOfAxiom sca = g.getDataFactory().getOWLSubClassOfAxiom(c, sup);
 									g.getManager().addAxiom(g.getSourceOntology(), sca);
 								}
 							}
+
 							for (OWLClass ec : reasoner.getEquivalentClasses(((OWLClassExpression) obj)).getEntities()) {
 								if (!ec.equals(obj))
 									System.out.println("INFERENCE: "+owlpp.render(obj)+" EquivalentTo "+owlpp.render(ec));
+								if (isAssertImplied) {
+									OWLEquivalentClassesAxiom eca = g.getDataFactory().getOWLEquivalentClassesAxiom(c, ec);
+									g.getManager().addAxiom(g.getSourceOntology(), eca);
+								}
+
 							}
 						}
 					}
@@ -3854,7 +3900,7 @@ public class CommandRunner {
 		String goRef = "GO_REF:0000090";
 		String annotationIRIString = "http://purl.org/dc/terms/source";
 		String targetFileName = null;
-		
+
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--go-ref")) {
 				goRef = opts.nextOpt();
@@ -3869,38 +3915,38 @@ public class CommandRunner {
 				break;
 			}
 		}
-		
+
 		if (targetFileName == null) {
 			LOG.error("No target-file as output was specified.");
 			exit(-1);
 		}
 		final File targetFile = new File(targetFileName);
 		final IRI targetFileIRI = IRI.create(targetFile);
-		
+
 		final IRI annotationIRI = IRI.create(annotationIRIString);
-		
+
 		// first hard coded test for MF -> BP mappings:
 		// transporter activity -part_of-> transporter
 		// transmembrane transporter activity -part_of-> transmembrane transport
-		
+
 		final OWLClass ta = g.getOWLClassByIdentifier("GO:0005215"); // transporter activity
 		final OWLClass t = g.getOWLClassByIdentifier("GO:0006810"); // transport
 		final OWLClass tmta = g.getOWLClassByIdentifier("GO:0022857"); // transmembrane transport activity
 		final OWLClass tmt = g.getOWLClassByIdentifier("GO:0055085"); // transmembrane transport
 		final OWLObjectProperty partOf = g.getOWLObjectPropertyByIdentifier("part_of");
 		final OWLObjectProperty transports = g.getOWLObjectPropertyByIdentifier("transports_or_maintains_localization_of");
-		
+
 		List<LinkPattern> patterns = new ArrayList<LinkPattern>(2);
 		patterns.add(new LinkPattern(ta, t, transports, partOf));
 		patterns.add(new LinkPattern(tmta, tmt, transports, partOf));
-		
+
 		OWLDataFactory factory = g.getDataFactory();
 		OWLAnnotationProperty property = factory.getOWLAnnotationProperty(annotationIRI);
 		OWLAnnotation sourceAnnotation = factory.getOWLAnnotation(property, factory.getOWLLiteral(goRef));
-		
+
 		LinkMaker maker = new LinkMaker(g, reasoner);
 		LinkMakerResult result = maker.makeLinks(patterns, sourceAnnotation);
-		
+
 		LOG.info("Predictions size: "+result.getPredictions().size());
 		LOG.info("Existing size: "+result.getExisiting().size());
 		LOG.info("Modified size: "+result.getModified().size());
@@ -3911,7 +3957,7 @@ public class CommandRunner {
 		manager.removeAxioms(outputOntology, result.getExisiting());
 		manager.addAxioms(outputOntology, result.getModified());
 		manager.addAxioms(outputOntology, result.getPredictions());
-		
+
 		if (targetFileName.endsWith(".obo")) {
 			// handle as obo
 			Owl2Obo owl2Obo = new Owl2Obo();
@@ -3924,7 +3970,7 @@ public class CommandRunner {
 			manager.saveOntology(outputOntology, targetFileIRI);
 		}
 	}
-	
+
 	@CLIMethod("--create-biochebi")
 	public void createBioChebi(Opts opts) throws Exception {
 		final String chebiPURL = "http://purl.obolibrary.org/obo/chebi.owl";
