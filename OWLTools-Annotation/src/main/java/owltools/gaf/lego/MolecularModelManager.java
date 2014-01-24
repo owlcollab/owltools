@@ -982,7 +982,7 @@ public class MolecularModelManager {
 			String iid, String jid) throws UnknownIdentifierException {
 		OWLObjectProperty property = getObjectProperty(pid);
 		if (property == null) {
-			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
 		}
 		OWLIndividual individual1 = getIndividual(modelId, iid);
 		if (individual1 == null) {
