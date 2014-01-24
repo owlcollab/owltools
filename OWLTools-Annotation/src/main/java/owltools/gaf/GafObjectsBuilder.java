@@ -313,6 +313,7 @@ public class GafObjectsBuilder {
 		
 		boolean isContributesTo = compositeQualifier.contains("contributes_to");
 		boolean isIntegeralTo = compositeQualifier.contains("integral_to");
+		boolean isNegated = compositeQualifier.contains("NOT");
 		
 		String clsId = parser.getGOId();
 
