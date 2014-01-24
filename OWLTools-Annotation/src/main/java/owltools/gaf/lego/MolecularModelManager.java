@@ -72,7 +72,6 @@ public class MolecularModelManager {
 	private static Logger LOG = Logger.getLogger(MolecularModelManager.class);
 
 
-	LegoModelGenerator molecularModelGenerator;
 	OWLGraphWrapper graph;
 	boolean isPrecomputePropertyClassCombinations;
 	Map<String, GafDocument> dbToGafdoc = new HashMap<String, GafDocument>();
@@ -210,8 +209,6 @@ public class MolecularModelManager {
 	}
 
 	protected void init() throws OWLOntologyCreationException {
-		molecularModelGenerator = 
-				new LegoModelGenerator(graph.getSourceOntology(), new ElkReasonerFactory());
 	}
 
 
@@ -327,6 +324,8 @@ public class MolecularModelManager {
 	 * @throws IOException 
 	 */
 	public String generateModel(OWLClass processCls, String db) throws OWLOntologyCreationException, IOException, URISyntaxException {
+
+		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(graph.getSourceOntology(), new ElkReasonerFactory());
 
 		molecularModelGenerator.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
 		GafDocument gafdoc = getGaf(db);
@@ -1258,13 +1257,14 @@ public class MolecularModelManager {
 	 * @param name
 	 * @throws Exception
 	 */
+	@Deprecated
 	public void writeLego(OWLOntology ontology, final String output, String name) throws Exception {
 
 		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
 
 
 		LegoRenderer renderer = 
-				new LegoDotWriter(graph, molecularModelGenerator.getReasoner()) {
+				new LegoDotWriter(graph, getModel(name).getReasoner()) {
 
 			BufferedWriter fileWriter = null;
 
