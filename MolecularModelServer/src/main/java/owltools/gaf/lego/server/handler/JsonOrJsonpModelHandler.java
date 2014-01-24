@@ -246,6 +246,18 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	}
 	
 	/*
+	 * @see owltools.gaf.lego.server.handler.M3Handler#m3ImportModel
+	 */
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3Response m3ImportModel(String modelId, String model, boolean help) {
+		if (help) {
+			return helpMsg("Import the model into the server.");
+		}
+		return errorMsg("This methods is not implemented.", null);
+	}
+
+	/*
 	 * Return all meta-infomation about models in a format that the client can pick apart to help build an interface.
 	 * 
 	 * @see owltools.gaf.lego.server.handler.M3Handler#m3GetAllModelIds(boolean)
@@ -254,7 +266,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GetAllModelIds(boolean help) {
 		if (help) {
-			return helpMsg("Export the current content of the model");
+			return helpMsg("Get the current available model ids.");
 		}
 		try {
 			// Get the different kinds of model IDs for the client.
@@ -273,6 +285,18 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		} catch (Exception exception) {
 			return errorMsg("Could not retrieve all available model ids", exception);
 		}
+	}
+	
+	/*
+	 * @see owltools.gaf.lego.server.handler.M3Handler#m3SaveModel
+	 */
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3Response m3StoreModel(String modelId, boolean help) {
+		if (help) {
+			return helpMsg("Persist the given model on the server.");
+		}
+		return errorMsg("This methods is not implemented.", null);
 	}
 
 	// ----------------------------------------
