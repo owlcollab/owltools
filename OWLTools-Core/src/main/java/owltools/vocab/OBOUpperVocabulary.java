@@ -23,7 +23,7 @@ public enum OBOUpperVocabulary {
 	RO_positively_regulates(OBONamespaces.RO, "0002213"),
 	RO_starts(OBONamespaces.RO, "0002223"),
 	RO_ends(OBONamespaces.RO, "0002229"),
-	GOREL_enabled_by(OBONamespaces.GOREL, "enabled_by"),
+	GOREL_enabled_by(OBONamespaces.RO, "0002333"),
 	GOREL_provides_input_for(OBONamespaces.GOREL, "provides_input_for");
 	
 
