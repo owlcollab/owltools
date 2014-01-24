@@ -179,7 +179,9 @@ public class MolecularModelJsonRenderer {
 	private Object getAtom(OWLNamedObject i) {
 		Map<Object, Object> xObj = new HashMap<Object, Object>();
 		
-		LOG.info("atom: "+i+" "+getId(i));
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("atom: "+i+" "+getId(i));
+		}
 		xObj.put(KEY.id, getId(i));
 		xObj.put(KEY.label, getLabel(i));
 		String type = null;
