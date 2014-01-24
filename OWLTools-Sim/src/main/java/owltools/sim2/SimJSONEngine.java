@@ -89,6 +89,7 @@ public class SimJSONEngine {
 			filteredClasses.add(objA);
 			ids.add(objAId);
 		}
+		LOG.info("Unresoved classes: "+idsUnresolved.toString());
 		LOG.info("Finding matches for :"+filteredClasses);
 		LOG.info("OwlSim = "+sos);
 		List<ElementPairScores> matches = sos.findMatches(filteredClasses, targetIdSpace);
@@ -114,25 +115,33 @@ public class SimJSONEngine {
 			}
 			mObj.put("simJ", m.simjScore);
 			mObj.put("simGIC", m.simGIC);
-			List<Map> matchingAtts = new ArrayList<Map>();
+			//use a hashmap so that we eliminate duplicate values
+			//that come from C and D having identical terms
+			HashMap<String,Map> matchingAtts = new HashMap<String,Map>();
+			
 			for (int ci = 0; ci < m.cs.size(); ci++) {
 				for (int di = 0; di < m.ds.size(); di++) {
-					ScoreAttributeSetPair cv = m.iclcsMatrix.bestForC[di];
-					ScoreAttributeSetPair dv = m.iclcsMatrix.bestForD[ci];
+					ScoreAttributeSetPair cv = m.iclcsMatrix.bestForC[ci];
+					ScoreAttributeSetPair dv = m.iclcsMatrix.bestForD[di];
 					if (cv.equals(dv)) {
 						Map<String,Object> o;
+						String objID;
 						if (includeFullMatchingTriples) {
+							 objID = m.cs.get(ci).getIRI().getFragment();
+							objID.concat(m.ds.get(di).getIRI().getFragment());
+							objID.concat(cv.getArbitraryAttributeClass().getIRI().getFragment());
 							o = makeLCSTriple(m.cs.get(ci),m.ds.get(di),cv.getArbitraryAttributeClass());
 							//LOG.info("added triple: "+gson.toJson(o));
-							matchingAtts.add(o);
 						} else {
+							objID = cv.getArbitraryAttributeClass().getIRI().getFragment();
 							o = makeObj(cv.getArbitraryAttributeClass());
 						}
-						matchingAtts.add(o);
+						matchingAtts.put(objID,o);
 					}
 				}
 			}
-			mObj.put("matches", matchingAtts);
+//			mObj.put("matches", matchingAtts);
+			mObj.put("matches", matchingAtts.values());
 			mObj.put("system_stats", makeSummaryStatistics());
 
 			matchObjs.add(mObj);
@@ -143,6 +152,12 @@ public class SimJSONEngine {
 		payload.put("results", matchObjs);
 		return gson.toJson(payload);
 	}
+
+	public List<Map> makeUniqAttSet(List<Map> list) {
+
+		return list;
+	}
+	
 	/**
 	 * @param objAs
 	 * @param objBs

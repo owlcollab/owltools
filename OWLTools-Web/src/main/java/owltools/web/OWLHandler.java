@@ -556,10 +556,12 @@ public class OWLHandler {
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String targetIdSpace = getParam(Param.target);
 		Integer limit = getParamAsInteger(Param.limit, 1000);
-		String jsonStr = sj.search(atts, targetIdSpace, true, limit);
+		String jsonStr = sj.search(atts, targetIdSpace, true, limit, true);
 		LOG.info("Finished comparison");
 		response.getWriter().write(jsonStr);
 	}
+	
+	
 	
 	public void getAnnotationSufficiencyScoreCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
