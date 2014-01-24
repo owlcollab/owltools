@@ -211,7 +211,7 @@ public class MolecularModelJsonRenderer {
 	 */
 	public static String getId(OWLNamedObject i, OWLGraphWrapper graph) {
 		if (i instanceof OWLObjectProperty) {
-			String relId = graph.getIdentifier(i.getIRI());
+			String relId = graph.getIdentifier(i);
 			return relId;
 		}
 		IRI iri = i.getIRI();
