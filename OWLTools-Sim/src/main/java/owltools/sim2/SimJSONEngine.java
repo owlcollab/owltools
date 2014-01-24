@@ -3,6 +3,7 @@ package owltools.sim2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +43,13 @@ public class SimJSONEngine {
 	public String search(Set<OWLClass> objAs,
 			String targetIdSpace,
 			boolean isIgnoreUnknownClasses) throws UnknownOWLClassException {
-		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, 3000);
+		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, 3000, false);
+	}
+	
+	public String search(Set<OWLClass> objAs,
+			String targetIdSpace,
+			boolean isIgnoreUnknownClasses, boolean includeFullMatchingTriples) throws UnknownOWLClassException {
+		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, 3000, includeFullMatchingTriples);
 	}
 
 	/**
@@ -57,6 +64,14 @@ public class SimJSONEngine {
 			String targetIdSpace,
 			boolean isIgnoreUnknownClasses,
 			Integer limit) throws UnknownOWLClassException {
+		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, limit, false);
+	}
+
+	
+	public String search(Set<OWLClass> objAs,
+			String targetIdSpace,
+			boolean isIgnoreUnknownClasses,
+			Integer limit, boolean includeFullMatchingTriples) throws UnknownOWLClassException {
 		Set<OWLClass> known = sos.getAllAttributeClasses();
 		Set<OWLClass> filteredClasses = new HashSet<OWLClass>();
 
@@ -101,9 +116,20 @@ public class SimJSONEngine {
 			mObj.put("simGIC", m.simGIC);
 			List<Map> matchingAtts = new ArrayList<Map>();
 			for (int ci = 0; ci < m.cs.size(); ci++) {
-				ScoreAttributeSetPair v = m.iclcsMatrix.bestForC[ci];
-				if (v != null) {
-					matchingAtts.add(makeObj(v.getArbitraryAttributeClass()));
+				for (int di = 0; di < m.ds.size(); di++) {
+					ScoreAttributeSetPair cv = m.iclcsMatrix.bestForC[di];
+					ScoreAttributeSetPair dv = m.iclcsMatrix.bestForD[ci];
+					if (cv.equals(dv)) {
+						Map<String,Object> o;
+						if (includeFullMatchingTriples) {
+							o = makeLCSTriple(m.cs.get(ci),m.ds.get(di),cv.getArbitraryAttributeClass());
+							//LOG.info("added triple: "+gson.toJson(o));
+							matchingAtts.add(o);
+						} else {
+							o = makeObj(cv.getArbitraryAttributeClass());
+						}
+						matchingAtts.add(o);
+					}
 				}
 			}
 			mObj.put("matches", matchingAtts);
@@ -179,6 +205,14 @@ public class SimJSONEngine {
 		return gson.toJson(pairs);
 	}
 
+	protected Map<String,Object> makeLCSTriple(OWLObject a, OWLObject b, OWLObject lcs) throws UnknownOWLClassException {
+		Map<String,Object> triple = new HashMap<String,Object>();
+		triple.put("a", makeObj(a));
+		triple.put("b", makeObj(b));
+		triple.put("lcs", makeObj(lcs));
+		return triple;
+	}
+	
 	protected Map<String,Object> makeObj(OWLObject obj) throws UnknownOWLClassException {
 		Map<String,Object> m = new HashMap<String,Object>();
 		m.put("id", g.getIdentifier(obj));

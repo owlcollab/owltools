@@ -128,8 +128,48 @@ public class SimJSONTest extends AbstractOWLSimTest {
 
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
 				Set<OWLClass> atts = owlsim.getAttributesForElement(i);
-				String jsonStr = sj.search(atts, "MGI", true);
+				String jsonStr = sj.search(atts, "MGI", true, false);
 				
+				LOG.info(jsonStr);
+			}
+			
+		}
+		finally {
+			reasoner.dispose();
+		}
+	}
+	
+	@Test
+	public void testSearchWithFullMatches() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException, OBOFormatParserException {
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
+
+		owlpp = new OWLPrettyPrinter(g);
+		final int truncLen = 200;
+		
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+
+			createOwlSim();
+				//sos.setReasoner(reasoner);
+			LOG.info("Reasoner="+owlsim.getReasoner());
+
+			SimJSONEngine sj = new SimJSONEngine(g, owlsim);
+
+			//sos.saveOntology("/tmp/z.owl");
+
+			reasoner.flush();
+			
+			owlsim.createElementAttributeMapFromOntology();
+			owlsim.computeSystemStats();
+			
+			
+			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				Set<OWLClass> atts = owlsim.getAttributesForElement(i);
+				String jsonStr = sj.search(atts, "MGI", true, true);				
 				LOG.info(jsonStr);
 			}
 			
