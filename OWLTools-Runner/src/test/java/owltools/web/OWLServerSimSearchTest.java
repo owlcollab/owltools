@@ -70,7 +70,7 @@ public class OWLServerSimSearchTest {
 
 			// prepare a request
 			//final HttpUriRequest httpUriRequest = createRequest(200);
-			HttpUriRequest httppost = createRequest(300);
+			HttpUriRequest httppost = createRequest(5);
 
 			// run request
 			Log.info("Executing="+httppost);
@@ -90,6 +90,30 @@ public class OWLServerSimSearchTest {
 				EntityUtils.consumeQuietly(entity);
 			}
 
+			// prepare a request
+			//final HttpUriRequest httpUriRequest = createRequest(200);
+			httppost = createBogusRequest(5);
+
+			// run request
+			Log.info("Executing="+httppost);
+			//HttpResponse response = httpclient.execute(httpUriRequest);
+			response = httpclient.execute(httppost);
+			Log.info("Executed="+httpclient);
+			
+			// check response
+			entity = response.getEntity();
+			statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() == 200) {
+				String responseContent = EntityUtils.toString(entity);
+				handleResponse(responseContent);
+			}
+			else {
+				Log.info("Status="+statusLine.getStatusCode());
+				EntityUtils.consumeQuietly(entity);
+			}
+
+			
+			
 		}
 		finally {
 			// clean up
@@ -100,6 +124,7 @@ public class OWLServerSimSearchTest {
 //			}
 		}
 	}
+	
 
 	protected OWLGraphWrapper loadOntology(String location) throws Exception {
 		// load server ontology
@@ -125,6 +150,22 @@ public class OWLServerSimSearchTest {
 			if (i >= n)
 				break;
 		}
+		uriBuilder.addParameter("limit","5");
+		URI uri = uriBuilder.build();
+		Log.info("Getting URL="+uri);
+		HttpUriRequest httpUriRequest = new HttpGet(uri);
+		Log.info("Got URL="+uri);
+		return httpUriRequest;
+	}
+	
+	protected HttpUriRequest createBogusRequest(int n) throws URISyntaxException {
+		URIBuilder uriBuilder = new URIBuilder()
+			.setScheme("http")
+			.setHost("localhost").setPort(9031)
+			.setPath("/owlsim/searchByAttributeSet/");
+			
+		uriBuilder.addParameter("a", "BOGUS:1234567");
+		uriBuilder.addParameter("limit","5");
 		URI uri = uriBuilder.build();
 		Log.info("Getting URL="+uri);
 		HttpUriRequest httpUriRequest = new HttpGet(uri);

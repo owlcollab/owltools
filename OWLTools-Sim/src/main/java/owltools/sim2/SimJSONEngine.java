@@ -123,20 +123,22 @@ public class SimJSONEngine {
 				for (int di = 0; di < m.ds.size(); di++) {
 					ScoreAttributeSetPair cv = m.iclcsMatrix.bestForC[ci];
 					ScoreAttributeSetPair dv = m.iclcsMatrix.bestForD[di];
-					if (cv.equals(dv)) {
-						Map<String,Object> o;
-						String objID;
-						if (includeFullMatchingTriples) {
-							 objID = m.cs.get(ci).getIRI().getFragment();
-							objID.concat(m.ds.get(di).getIRI().getFragment());
-							objID.concat(cv.getArbitraryAttributeClass().getIRI().getFragment());
-							o = makeLCSTriple(m.cs.get(ci),m.ds.get(di),cv.getArbitraryAttributeClass());
-							//LOG.info("added triple: "+gson.toJson(o));
-						} else {
-							objID = cv.getArbitraryAttributeClass().getIRI().getFragment();
-							o = makeObj(cv.getArbitraryAttributeClass());
+					if (cv != null) {
+						if (cv.equals(dv)) {
+							Map<String,Object> o;
+							String objID;
+							if (includeFullMatchingTriples) {
+								objID = m.cs.get(ci).getIRI().getFragment();
+								objID.concat(m.ds.get(di).getIRI().getFragment());
+								objID.concat(cv.getArbitraryAttributeClass().getIRI().getFragment());
+								o = makeLCSTriple(m.cs.get(ci),m.ds.get(di),cv.getArbitraryAttributeClass());
+								//LOG.info("added triple: "+gson.toJson(o));
+							} else {
+								objID = cv.getArbitraryAttributeClass().getIRI().getFragment();
+								o = makeObj(cv.getArbitraryAttributeClass());
+							}
+							matchingAtts.put(objID,o);
 						}
-						matchingAtts.put(objID,o);
 					}
 				}
 			}
