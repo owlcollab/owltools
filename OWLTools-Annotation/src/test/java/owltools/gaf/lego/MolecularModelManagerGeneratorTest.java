@@ -45,7 +45,7 @@ public class MolecularModelManagerGeneratorTest extends AbstractLegoModelGenerat
 		for (OWLNamedIndividual i : inds) {
 			LOG.info("I="+i);
 		}
-		assertEquals("Expected 15 individuals from the minimal model generation.", 17, inds.size());
+		assertEquals("Expected 15 individuals from the minimal model generation.", 17, inds.size()); // todo - checkme
 
 	
 	}
