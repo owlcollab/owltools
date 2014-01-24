@@ -739,11 +739,15 @@ public class Mooncat {
 	/**
 	 * Given a set of classes (e.g. those corresponding to an obo-subset or go-slim), and an ontology
 	 * in which these are declared, generate a sub-ontology.
-	 * The sub-ontology will ONLY include classes in the subset. It will remove any axioms that refer
-	 * to classes not in the subset. Inference is used to ensure that as many entailments as possible
+	 * 
+	 * The sub-ontology will ONLY include classes in the subset (unless isFillGaps is true).
+	 * 
+	 * It will remove any axioms that refer to classes not in the subset.
+	 * Basic graph inference is used to ensure that as many entailments as possible
 	 * are preserved.
 	 *  
 	 * note: this does the same as the perl script go-slimdown, used by the GO Consortium
+	 * 
 	 * @param subset
 	 * @param subOntIRI
 	 * @param isFillGaps - if true, subset will be extended to include intermediates terms
@@ -754,6 +758,7 @@ public class Mooncat {
 	public OWLOntology makeMinimalSubsetOntology(Set<OWLClass> subset, IRI subOntIRI, boolean isFillGaps, Boolean isSpanGaps) throws OWLOntologyCreationException {
 		OWLOntology o = getOntology();
 
+		// if fill gaps is true, first extend the subset to closure
 		if (isFillGaps) {
 			Set<OWLClass> extSet = new HashSet<OWLClass>();
 			for (OWLClass c : subset) {
@@ -811,6 +816,7 @@ public class Mooncat {
 		LOG.info("Checking closure for: "+subset.size());
 
 		// transitive reduction
+		int n = 0;
 		if (!isFillGaps && isSpanGaps) {
 			// if gaps are not filled, then they are spanned
 			for (OWLClass x : subset) {
@@ -836,10 +842,12 @@ public class Mooncat {
 							if (!isRedundant) {
 								if (qp.isSubClassOf()) {
 									axioms.add(dataFactory.getOWLSubClassOfAxiom((OWLClass)e.getSource(), (OWLClass)e.getTarget()));
+									n++;
 								}
 								else if (qp.hasProperty()) {
 									axioms.add(dataFactory.getOWLSubClassOfAxiom((OWLClass)e.getSource(), 
 											dataFactory.getOWLObjectSomeValuesFrom(qp.getProperty(), (OWLClass)e.getTarget())));
+									n++;
 								}
 								else {
 								}
@@ -849,6 +857,7 @@ public class Mooncat {
 				}
 			}
 		}
+		LOG.info("# of gaps spanned = "+n);
 
 		// Note that the OWLAPI is slow to remove axioms from an existing ontology.
 		// It is more efficient to remove the axioms from the seed set first.
