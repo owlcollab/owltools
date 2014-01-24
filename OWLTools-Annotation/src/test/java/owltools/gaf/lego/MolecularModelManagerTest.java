@@ -56,7 +56,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		for (OWLNamedIndividual i : inds) {
 			LOG.info("I="+i);
 		}
-		assertTrue(inds.size() == 15);
+		assertEquals(17, inds.size()); // TODO checkme
 		
 		// GO:0001158 ! enhancer sequence-specific DNA binding
 		OWLOperationResponse response = mmm.createIndividual(modelId, g.getOWLClassByIdentifier("GO:0001158"));
