@@ -233,7 +233,7 @@ public class MolecularModelJsonRenderer {
 	 * @see MolecularModelJsonRenderer#getId
 	 */
 	public static IRI getIRI(String id, OWLGraphWrapper graph) {
-		if (id.indexOf(':') > 0) {
+		if (id.indexOf(':') < 0) {
 			return graph.getIRIByIdentifier(id);
 		}
 		String fullIRI = OBOUpperVocabulary.OBO + StringUtils.replaceOnce(id, ":", "_");

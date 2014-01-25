@@ -22,6 +22,9 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
@@ -183,13 +186,19 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates ObjectPropertyAssertion");
 		}
 		try {
-			//System.out.println("mod: " + modelId);
-			//System.out.println("fil: " + fillerId);
-			//System.out.println("ind: " + individualId);
-			//System.out.println("rel: " + propertyId);
+			System.out.println("mod: " + modelId);
+			System.out.println("fil: " + fillerId);
+			System.out.println("ind: " + individualId);
+			System.out.println("rel: " + propertyId);
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addFact(modelId, propertyId, individualId, fillerId);
-			return response(resp, mmm, M3Response.MERGE);
+			M3Response response = response(resp, mmm, M3Response.MERGE);
+			GsonBuilder gsonBuilder = new GsonBuilder();
+			gsonBuilder.setPrettyPrinting();
+			Gson gson = gsonBuilder.create();
+			String json = gson.toJson(response);
+			System.out.println("json: " + json);
+			return response;
 		} catch (Exception exception) {
 			return errorMsg("Could not add fact to model", exception);
 		}
