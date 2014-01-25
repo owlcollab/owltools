@@ -59,7 +59,9 @@ public class LegoTools {
 	 */
 	public LegoTools(OWLGraphWrapper graph, OWLReasoner reasoner, boolean ignoreUnknownTypes) {
 		this(graph, reasoner,
-			findProperties(graph, "http://purl.obolibrary.org/obo/enabled_by", OBOUpperVocabulary.GOREL_enabled_by.toString()), // enabled_by
+			findProperties(graph, "http://purl.obolibrary.org/obo/enabled_by",
+					"http://purl.obolibrary.org/obo/GOREL_enabled_by",
+					OBOUpperVocabulary.GOREL_enabled_by.toString()), // enabled_by
 			findProperties(graph, 
 					"http://purl.obolibrary.org/obo/BFO_0000066", // occurs_in 
 					"http://purl.obolibrary.org/obo/occurs_in",
