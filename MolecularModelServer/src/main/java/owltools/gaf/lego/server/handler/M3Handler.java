@@ -15,6 +15,7 @@ import owltools.gaf.lego.MolecularModelManager;
 @Path("/")
 public interface M3Handler {
 
+	// General purpose arguments,
 	static final String PARAM_HELP = "help";
 	static final String PARAM_DB = "db";
 	static final String PARAM_CLASSID = "classId";
@@ -23,6 +24,10 @@ public interface M3Handler {
 	static final String PARAM_PROPERTYID = "propertyId";
 	static final String PARAM_FILLERID = "fillerId";
 	static final String PARAM_FORMAT = "format";
+	
+	// Arguments for composite functions.
+	static final String PARAM_SIMPLE_ENABLED_BY = "enabledById";
+	static final String PARAM_SIMPLE_OCCURS_IN = "occursInId";
 	
 	public static class M3Response {
 		public static final String ERROR = "error"; // non-update response (informational)
@@ -114,6 +119,15 @@ public interface M3Handler {
 			@QueryParam(PARAM_FILLERID) String fillerId,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
+	@Path("m3CreateSimpleCompositeIndividual")
+	@GET
+	public M3Response m3CreateSimpleCompositeIndividual(
+			@QueryParam(PARAM_MODELID) String modelId,
+			@QueryParam(PARAM_CLASSID) String classId,
+			@QueryParam(PARAM_SIMPLE_ENABLED_BY) String enabledById,
+			@QueryParam(PARAM_SIMPLE_OCCURS_IN) String occursInId,
+			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+	
 	@Path("m3GetModel")
 	@GET
 	public M3Response m3GetModel(

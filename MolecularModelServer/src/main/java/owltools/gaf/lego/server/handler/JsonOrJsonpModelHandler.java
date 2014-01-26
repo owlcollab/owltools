@@ -131,7 +131,8 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.createIndividual(modelId, classId);
-			// TODO fix intention
+			
+			
 			return response(resp, mmm, null);
 		} catch (Exception exception) {
 			return errorMsg("Could not create individual in model", exception);
@@ -186,18 +187,18 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates ObjectPropertyAssertion");
 		}
 		try {
-			System.out.println("mod: " + modelId);
-			System.out.println("fil: " + fillerId);
-			System.out.println("ind: " + individualId);
-			System.out.println("rel: " + propertyId);
+			//System.out.println("mod: " + modelId);
+			//System.out.println("fil: " + fillerId);
+			//System.out.println("ind: " + individualId);
+			//System.out.println("rel: " + propertyId);
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addFact(modelId, propertyId, individualId, fillerId);
 			M3Response response = response(resp, mmm, M3Response.MERGE);
-			GsonBuilder gsonBuilder = new GsonBuilder();
-			gsonBuilder.setPrettyPrinting();
-			Gson gson = gsonBuilder.create();
-			String json = gson.toJson(response);
-			System.out.println("json: " + json);
+			//GsonBuilder gsonBuilder = new GsonBuilder();
+			//gsonBuilder.setPrettyPrinting();
+			//Gson gson = gsonBuilder.create();
+			//String json = gson.toJson(response);
+			//System.out.println("json: " + json);
 			return response;
 		} catch (Exception exception) {
 			return errorMsg("Could not add fact to model", exception);
@@ -223,6 +224,47 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 	}
 
+	/*
+	 * Individiuals: [...]
+	 */
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3Response m3CreateSimpleCompositeIndividual(String modelId, String classId, String enabledById, String occursInId, boolean help) {
+		if (help) {
+			return helpMsg("generates a new simple composite individual");
+		}
+		try {
+			System.out.println("mod: " + modelId);
+			System.out.println("act: " + classId);
+			System.out.println("enb: " + enabledById);
+			System.out.println("occ: " + occursInId);
+
+			// Create base instance.
+			MolecularModelManager mmm = getMolecularModelManager();
+			OWLOperationResponse resp = mmm.createIndividual(modelId, classId);
+
+			// Optional.
+			if( enabledById != null && ! enabledById.isEmpty() ){
+				resp = mmm.addFact(modelId, "RO:0002333", classId, enabledById);
+				//resp = mmm.addFact(modelId, "RO_0002333", classId, enabledById);
+				//M3Response response = response(resp, mmm, M3Response.MERGE);				
+			}
+
+			// Optional.
+			if( occursInId != null && ! occursInId.isEmpty() ){
+				resp = mmm.addFact(modelId, "BFO:0000066", classId, occursInId);
+				//resp = mmm.addFact(modelId, "BFO_0000066", classId, occursInId);
+				//M3Response response = response(resp, mmm, M3Response.MERGE);				
+			}
+			
+			//M3Response response = response(resp, mmm, M3Response.MERGE);
+			
+			return response(resp, mmm, M3Response.MERGE);
+		} catch (Exception exception) {
+			return errorMsg("Could not create individual in model", exception);
+		}
+	}
+	
 	/*
 	 * Other.
 	 */
