@@ -236,6 +236,9 @@ public class MolecularModelJsonRenderer {
 		if (id.indexOf(':') < 0) {
 			return graph.getIRIByIdentifier(id);
 		}
+		if(id.startsWith(OBOUpperVocabulary.OBO) ){
+			return IRI.create(id);
+		}
 		String fullIRI = OBOUpperVocabulary.OBO + StringUtils.replaceOnce(id, ":", "_");
 		return IRI.create(fullIRI);
 	}

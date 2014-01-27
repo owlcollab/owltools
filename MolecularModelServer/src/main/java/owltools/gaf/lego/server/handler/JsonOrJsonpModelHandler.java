@@ -5,18 +5,21 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -131,8 +134,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.createIndividual(modelId, classId);
-			
-			
 			return response(resp, mmm, null);
 		} catch (Exception exception) {
 			return errorMsg("Could not create individual in model", exception);
@@ -234,30 +235,16 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates a new simple composite individual");
 		}
 		try {
-			System.out.println("mod: " + modelId);
-			System.out.println("act: " + classId);
-			System.out.println("enb: " + enabledById);
-			System.out.println("occ: " + occursInId);
+			System.out.println("mod: " + modelId); // necessatry
+			System.out.println("act: " + classId); // necessatry
+			System.out.println("enb: " + enabledById); // optional
+			System.out.println("occ: " + occursInId); // optional
 
-			// Create base instance.
+			// Create base instance, along with any simples optionals that are along for the ride.
 			MolecularModelManager mmm = getMolecularModelManager();
-			OWLOperationResponse resp = mmm.createIndividual(modelId, classId);
-
-			// Optional.
-			if( enabledById != null && ! enabledById.isEmpty() ){
-				resp = mmm.addFact(modelId, "RO:0002333", classId, enabledById);
-				//resp = mmm.addFact(modelId, "RO_0002333", classId, enabledById);
-				//M3Response response = response(resp, mmm, M3Response.MERGE);				
-			}
-
-			// Optional.
-			if( occursInId != null && ! occursInId.isEmpty() ){
-				resp = mmm.addFact(modelId, "BFO:0000066", classId, occursInId);
-				//resp = mmm.addFact(modelId, "BFO_0000066", classId, occursInId);
-				//M3Response response = response(resp, mmm, M3Response.MERGE);				
-			}
-			
-			//M3Response response = response(resp, mmm, M3Response.MERGE);
+			OWLOperationResponse resp = mmm.addCompositeIndividual(modelId, classId,
+																   StringUtils.stripToNull(enabledById),
+																   StringUtils.stripToNull(occursInId));
 			
 			return response(resp, mmm, M3Response.MERGE);
 		} catch (Exception exception) {
@@ -359,6 +346,12 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		M3Response response = new M3Response(M3Response.SUCCESS);
 		response.message = msg;
 		return response;
+	}
+	
+	private M3Response warningMsg(String msg) {
+		M3Response response = new M3Response(M3Response.WARNING);
+		response.message = msg;
+ 		return response;
 	}
 	
 	private M3Response errorMsg(String msg, Exception e) {

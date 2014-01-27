@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.geneontology.lego.dot.LegoDotWriter;
@@ -48,6 +50,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -94,6 +97,7 @@ public class MolecularModelManager {
 		boolean isResultsInInconsistency = false;
 		List<Map<Object, Object>> modelData = null;
 		List<String> individualIds = null;
+		List<OWLNamedIndividual> individuals = null;
 		
 		/**
 		 * @param isSuccess
@@ -102,6 +106,7 @@ public class MolecularModelManager {
 			super();
 			this.isSuccess = isSuccess;
 		}
+		
 		/**
 		 * @param isSuccess
 		 * @param isResultsInInconsistency
@@ -162,6 +167,51 @@ public class MolecularModelManager {
 		public void setIndividualIds(List<String> individualIds) {
 			this.individualIds = individualIds;
 		}
+
+		/**
+		 * @return the individuals
+		 */
+		public List<OWLNamedIndividual> getIndividuals() {
+			return individuals;
+		}
+
+		/**
+		 * @param individuals the individuals to set
+		 */
+		public void setIndividuals(List<OWLNamedIndividual> individuals) {
+			this.individuals = individuals;
+		}
+		
+		
+//		/**
+//		 * Combine two responses together.
+//		 * 
+//		 * @param response
+//		 */
+//		public void mergeIn(OWLOperationResponse toMerge) {
+//
+//			// success and inconsistency dominate false and true respectively.
+//			if( ! toMerge.isSuccess ) this.isSuccess = false;
+//			if( ! toMerge.isResultsInInconsistency() ) this.isResultsInInconsistency = true;
+//			
+//			// Merge model data.
+//			Map<Object, Object> newMap = new HashMap<Object,Object>();
+//			List<Map<Object, Object>> toLoop = this.getModelData(); // add this response
+//			toLoop.addAll(toMerge.getModelData()); // add merging response
+//			for( Map<Object, Object>mergable : toLoop){
+//				// If new, add to new.
+//				if( mergable.containsKey("id") ){
+//					
+//				}
+//			}
+//			
+//			// Merge ID list via Set (no dupes).
+//		    Set<String> set = new HashSet<String>();
+//		    set.addAll(this.getIndividualIds());
+//		    set.addAll(toMerge.getIndividualIds());
+//			this.individualIds = new ArrayList<String>(set);
+//		}
+		
 	}
 
 	public static class UnknownIdentifierException extends Exception {
@@ -451,13 +501,14 @@ public class MolecularModelManager {
 		String iid = modelId+"-"+ cid + "-" + unique; // TODO - unique-ify in a way that makes Chris happy
 		LOG.info("  new OD: "+iid);
 
-		IRI iri = graph.getIRIByIdentifier(iid);
+		IRI iri = MolecularModelJsonRenderer.getIRI(iid, graph);
 		OWLNamedIndividual i = getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
 		addAxiom(modelId, getOWLDataFactory(modelId).getOWLDeclarationAxiom(i));
 		OWLOperationResponse resp = addType(modelId, i, c);
+		resp.setIndividuals(Collections.singletonList(i));
 		return resp;
 	}
-
+	
 	/**
 	 * Shortcut for {@link #createIndividual(String, OWLClass)}
 	 * 
@@ -472,6 +523,22 @@ public class MolecularModelManager {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
 		return createIndividual(modelId, cls);
+	}
+
+	/**
+	 * Get the individual information for return.
+	 * 
+	 * @param modelId
+	 * @param iid
+	 * @return response concerning individual data
+	 */
+	public OWLOperationResponse getIndividualById(String modelId, String iid) {
+		IRI iri = MolecularModelJsonRenderer.getIRI(iid, graph);
+		OWLNamedIndividual i = getOWLDataFactory(modelId).getOWLNamedIndividual(iri);
+		//LegoModelGenerator model = getModel(modelId);
+		OWLOperationResponse resp = new OWLOperationResponse(true, false); // no op, so this
+		addIndividualsData(resp, getModel(modelId), i);
+		return resp;
 	}
 	
 	/**
@@ -639,6 +706,10 @@ public class MolecularModelManager {
 	private OWLClass getClass(String cid) {
 		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
 		return graph.getOWLClass(iri);
+	}
+	private OWLClass getGeneClass(String modelId, String cid) {
+		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
+		return getOWLDataFactory(modelId).getOWLClass(iri);
 	}
 	private OWLObjectProperty getObjectProperty(String pid) {
 		IRI iri = MolecularModelJsonRenderer.getIRI(pid, graph);
@@ -986,11 +1057,11 @@ public class MolecularModelManager {
 		}
 		OWLIndividual individual1 = getIndividual(modelId, iid);
 		if (individual1 == null) {
-			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+			throw new UnknownIdentifierException("Could not find a individual (1) for id: "+iid);
 		}
 		OWLIndividual individual2 = getIndividual(modelId, jid);
 		if (individual2 == null) {
-			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
+			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
 		return addFact(modelId, property, individual1, individual2);
 	}
@@ -1302,6 +1373,63 @@ public class MolecularModelManager {
 		};
 		renderer.render(individuals, name, true);
 
+	}
+	
+	/**
+	 * A simple wrapping function that captures the most basic type of editting.
+	 * 
+	 * @param modelId
+	 * @param classId
+	 * @param enabledById
+	 * @param occursInId
+	 * @return
+	 * @throws UnknownIdentifierException
+	 */
+	public OWLOperationResponse addCompositeIndividual(String modelId, String classId,
+			String enabledById, String occursInId) throws UnknownIdentifierException {
+
+		// Create the base individual.
+		OWLClass cls = getClass(classId);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+classId);
+		}
+		// Bail out early if it looks like there are any problems.
+		OWLOperationResponse resp = createIndividual(modelId, cls);
+		if( resp.isSuccess == false || resp.isResultsInInconsistency() ){
+			return resp;
+		}
+		
+		// Should just be the one--extract the individual that we created.
+		List<OWLNamedIndividual> individuals = resp.getIndividuals();
+		if( individuals == null || individuals.isEmpty() ){
+			return resp;
+		}
+		OWLNamedIndividual i = individuals.get(0);
+		
+		// Optionally, add occurs_in.
+		if( occursInId != null ){
+			OWLClass occCls = getClass(occursInId);
+			if (occCls == null) {
+				throw new UnknownIdentifierException("Could not find a class for id: "+occursInId);
+			}
+			resp = addOccursIn(modelId, i, occCls);
+			// Bail out early if it looks like there are any problems.
+			if( resp.isSuccess == false || resp.isResultsInInconsistency() ){
+				return resp;
+			}
+		}
+		
+		// Optionally, add enabled_by.
+		if( enabledById != null ){
+			OWLClass enbCls = getGeneClass(modelId, enabledById);
+			resp = addEnabledBy(modelId, i, enbCls);
+			// Bail out early if it looks like there are any problems.
+			if( resp.isSuccess == false || resp.isResultsInInconsistency() ){
+				return resp;
+			}
+		}
+		
+		return resp;
 	}
 	
 
