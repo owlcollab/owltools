@@ -25,19 +25,24 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -66,7 +71,8 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 	@Test
 	public void testGenerateAnatomyDL() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
 		m = OWLManager.createOWLOntologyManager();
-		OWLOntology tbox = m.loadOntologyFromOntologyDocument(getResource("basic-tbox.omn"));
+		m.addIRIMapper(new CatalogXmlIRIMapper(getResource("catalog-v001.xml")));
+		OWLOntology tbox = m.loadOntologyFromOntologyDocument(getResource("basic-tbox-importer.omn"));
 		mmg = new MinimalModelGenerator(tbox, new org.semanticweb.HermiT.Reasoner.ReasonerFactory());
 		mmg.setAssertInverses(false);  // NOT NECESSARY FOR A DL REASONER
 		int aboxImportsSize = mmg.getAboxOntology().getImportsClosure().size();
@@ -74,8 +80,8 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 
 		LOG.info("Abox ontology imports: "+aboxImportsSize);
 		LOG.info("Q ontology imports: "+qboxImportsSize);
-		assertEquals(2, aboxImportsSize);
-		assertEquals(3, qboxImportsSize);
+		assertEquals(3, aboxImportsSize);
+		assertEquals(4, qboxImportsSize);
 		OWLClass c = getClass("hand");
 		mmg.generateNecessaryIndividuals(c);
 		
@@ -403,6 +409,35 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 	}
 	
 	/**
+	 * DNA replication
+	 * 
+	 * @throws OWLOntologyCreationException
+	 * @throws OWLOntologyStorageException
+	 * @throws IOException
+	 */
+	@Test
+	public void testGenerateDNAReplication() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		m = OWLManager.createOWLOntologyManager();
+		OWLOntology tbox = m.loadOntologyFromOntologyDocument(getResource("dna-replication-tbox.owl"));
+		mmg = new MinimalModelGenerator(tbox, tbox, new ElkReasonerFactory());
+		LOG.info("MMG = "+mmg);
+		OWLClass c = 
+				tbox.getOWLOntologyManager().getOWLDataFactory().getOWLClass(IRI.create("http://purl.obolibrary.org/obo/GO_0006261"));
+
+		LOG.info("Generating for :"+c);
+		mmg.generateNecessaryIndividuals(c);
+		mmg.normalizeDirections(mmg.getOWLDataFactory().getOWLObjectProperty(
+				OBOUpperVocabulary.BFO_part_of.getIRI()));
+		
+		//this.expectedOPAs("glyc", 15);
+		
+		mmg.extractModule();
+		//mmg.generateNecessaryIndividuals(getClass("foot"), true);
+		save("dna-replication-tbox2abox");
+	}
+	
+	
+	/**
 	 * tests {@link MinimalModelGenerator#generateNecessaryIndividuals(OWLClassExpression)}
 	 * 
 	 * @throws OWLOntologyCreationException
@@ -495,6 +530,32 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 		LOG.info("|PSig|="+psig.size());
 		assertEquals(2, psig.size());
 	}
+	
+	@Test
+	public void testAllIndividuals() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		m = OWLManager.createOWLOntologyManager();
+		OWLOntology tbox = m.loadOntologyFromOntologyDocument(getResource("anonClassAssertions.owl"));
+		mmg = new MinimalModelGenerator(tbox);
+		mmg.isStrict = true;
+		mmg.generateAllNecessaryIndividuals();
+//		OWLEntityRenamer renamer = new OWLEntityRenamer(m, 
+//				Collections.singleton(mmg.getAboxOntology()));
+//		List<OWLOntologyChange> chgs = new ArrayList<OWLOntologyChange>();
+//		for (OWLNamedIndividual ind : tbox.getIndividualsInSignature(true)) {
+//			//OWLDeclarationAxiom decl = m.getOWLDataFactory().getOWLDeclarationAxiom(ind);
+//			//m.addAxiom(mmg.getAboxOntology(), decl);
+//			for (OWLClassExpression cx : ind.getTypes(tbox)) {
+//				OWLNamedIndividual j = 
+//						mmg.generateNecessaryIndividuals(cx, false, false);
+//				chgs.addAll(renamer.changeIRI(j.getIRI(), ind.getIRI()));
+//				//m.addAxiom(m.getOWLDataFactory().getOWLO, axiom)
+//			}
+//		}
+//		LOG.info("Changes = "+chgs.size());
+//		m.applyChanges(chgs);
+		save("foo");
+	}
+	
 	
 	@Test
 	public void testTransitiveCycle2() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
