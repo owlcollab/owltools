@@ -603,10 +603,11 @@ sub get_ont_info {
              source_url => 'ftp://ftp.informatics.jax.org/pub/reports/adult_mouse_anatomy.obo',
          },
          zfa => {
-             #infallible => 1,  # CURRENTLY BROKEN
+             infallible => 1, 
              notes => 'may be ready to switch to vcs soon',
              method => 'obo2owl',
-             source_url => 'https://zebrafish-anatomical-ontology.googlecode.com/svn/trunk/src/zebrafish_anatomy.obo',
+             source_url => 'https://zebrafish-anatomical-ontology.googlecode.com/svn/trunk/src/preversion.zfish.obo',
+             #source_url => 'https://zebrafish-anatomical-ontology.googlecode.com/svn/trunk/src/zebrafish_anatomy.obo',
          },
          #zfa_dev => {
          #    
@@ -765,6 +766,10 @@ sub get_ont_info {
          lipro => {
              method => 'owl2obo',
              source_url => 'http://www.lipidprofiles.com/LipidOntology',
+         },
+         dron => {
+             method => 'owl2obo',
+             source_url => 'http://purl.obolibrary.org/obo/dron.owl',
          },
          flu => {
              method => 'owl2obo',
