@@ -27,6 +27,7 @@ import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.AddAxiom;
+import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomChange;
@@ -34,6 +35,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -41,6 +43,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -371,27 +374,57 @@ public class MolecularModelManager {
 	 * @throws IOException 
 	 */
 	public String generateModel(OWLClass processCls, String db) throws OWLOntologyCreationException, IOException, URISyntaxException {
-
-		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(graph.getSourceOntology(), new ElkReasonerFactory());
-
-		molecularModelGenerator.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-		GafDocument gafdoc = getGaf(db);
-		molecularModelGenerator.initialize(gafdoc, graph);
-
-		Set<String> seedGenes = new HashSet<String>();
-		String p = graph.getIdentifier(processCls);
-		seedGenes.addAll(molecularModelGenerator.getGenes(processCls));
-		molecularModelGenerator.setContextualizingSuffix(db);
-		molecularModelGenerator.buildNetwork(p, seedGenes);
-
-		//OWLOntology model = molecularModelGenerator.getAboxOntology();
+		// quick check, only generate a model if it does not already exists.
+		final String p = graph.getIdentifier(processCls);
 		String modelId = getModelId(p, db);
 		if (modelMap.containsKey(modelId)) {
 			throw new OWLOntologyCreationException("A model already exists for this process and db: "+modelId);
 		}
+		OWLOntology modelOntology;
+		
+		// create empty ontology
+		// use model id as ontology IRI
+		OWLOntologyManager m = graph.getManager();
+		IRI iri = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		modelOntology = m.createOntology(iri);
+		
+		// variant 1: imports everything
+		// setup model ontology to import the source ontology, RO, and RO-pending
+		// add imports
+//		createImports(modelOntology,
+//				graph.getSourceOntology().getOntologyID().getOntologyIRI(),
+//				IRI.create("http://purl.obolibrary.org/obo/ro.owl"),
+//				IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
+		
+		// variant 2: copy all axioms into a new ontology
+		m.addAxioms(modelOntology, graph.getSourceOntology().getAxioms());
+		
+		// create generator
+		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(modelOntology, new ElkReasonerFactory());
+		
+		molecularModelGenerator.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
+		GafDocument gafdoc = getGaf(db);
+		molecularModelGenerator.initialize(gafdoc, new OWLGraphWrapper(modelOntology));
+
+		Set<String> seedGenes = new HashSet<String>();
+		seedGenes.addAll(molecularModelGenerator.getGenes(processCls));
+		molecularModelGenerator.setContextualizingSuffix(db);
+		molecularModelGenerator.buildNetwork(p, seedGenes);
+
 		modelMap.put(modelId, molecularModelGenerator);
 		return modelId;
 
+	}
+	
+	private void createImports(OWLOntology ont, IRI...imports) {
+		OWLOntologyManager m = ont.getOWLOntologyManager();
+		OWLDataFactory f = m.getOWLDataFactory();
+		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
+		for (IRI importIRI : imports) {
+			OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(importIRI);
+			changes.add(new AddImport(ont, importDeclaration));
+		}
+		m.applyChanges(changes);
 	}
 	
 	/**
@@ -933,7 +966,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addOccursIn(String modelId,
 			String iid, String eid) {
-		return addOccursIn(modelId, getIndividual(modelId, iid), getClass(eid));
+		return addOccursIn(modelId, getIndividual(modelId, iid), getGeneClass(modelId, eid));
 	}
 
 	/**
@@ -1287,6 +1320,7 @@ public class MolecularModelManager {
 	 * @throws UnExpectedStructureException 
 	 * @throws InterruptedException 
 	 */
+	@Deprecated
 	public File generateImage(String modelId) throws IOException, UnExpectedStructureException, InterruptedException {
 		final File dotFile = File.createTempFile("LegoAnnotations", ".dot");
 		final File pngFile = File.createTempFile("LegoAnnotations", ".png");
