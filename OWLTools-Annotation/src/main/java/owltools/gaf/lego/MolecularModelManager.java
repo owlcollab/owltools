@@ -18,13 +18,11 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
-import org.obolibrary.obo2owl.Owl2Obo;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -53,7 +51,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
-import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -99,7 +96,6 @@ public class MolecularModelManager {
 		boolean isSuccess = true;
 		boolean isResultsInInconsistency = false;
 		List<Map<Object, Object>> modelData = null;
-		List<String> individualIds = null;
 		List<OWLNamedIndividual> individuals = null;
 		
 		/**
@@ -157,20 +153,6 @@ public class MolecularModelManager {
 			this.modelData = modelData;
 		}
 		
-		/**
-		 * @return the individualIds
-		 */
-		public List<String> getIndividualIds() {
-			return individualIds;
-		}
-		
-		/**
-		 * @param individualIds the individualIds to set
-		 */
-		public void setIndividualIds(List<String> individualIds) {
-			this.individualIds = individualIds;
-		}
-
 		/**
 		 * @return the individuals
 		 */
@@ -802,16 +784,16 @@ public class MolecularModelManager {
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
 		OWLOntology ont = mod.getAboxOntology();
 		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
-		List<String> individualIds = new ArrayList<String>();
+		List<OWLNamedIndividual> individualIds = new ArrayList<OWLNamedIndividual>();
 		for (OWLIndividual i : individuals) {
 			if (i instanceof OWLNamedIndividual) {
 				OWLNamedIndividual named = (OWLNamedIndividual)i;
 				objs.add(renderer.renderObject(ont, named));
-				individualIds.add(Owl2Obo.getIdentifier(named.getIRI()));
+				individualIds.add(named);
 			}
 		}
 		resp.setModelData(objs);
-		resp.setIndividualIds(individualIds);
+		resp.setIndividuals(individualIds);
 	}
 
 	/**
@@ -966,7 +948,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addOccursIn(String modelId,
 			String iid, String eid) {
-		return addOccursIn(modelId, getIndividual(modelId, iid), getGeneClass(modelId, eid));
+		return addOccursIn(modelId, getIndividual(modelId, iid), getClass(eid));
 	}
 
 	/**
@@ -1008,7 +990,7 @@ public class MolecularModelManager {
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		OWLClass cls = getClass(eid);
+		OWLClass cls = getGeneClass(modelId, eid);
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+eid);
 		}
@@ -1410,13 +1392,13 @@ public class MolecularModelManager {
 	}
 	
 	/**
-	 * A simple wrapping function that captures the most basic type of editting.
+	 * A simple wrapping function that captures the most basic type of editing.
 	 * 
 	 * @param modelId
 	 * @param classId
 	 * @param enabledById
 	 * @param occursInId
-	 * @return
+	 * @return response
 	 * @throws UnknownIdentifierException
 	 */
 	public OWLOperationResponse addCompositeIndividual(String modelId, String classId,
