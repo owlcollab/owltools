@@ -25,7 +25,7 @@ Start the MolecularModelManager server
   -g path-to/go.owl
   -f path-to/owl-models
   --gaf-folder path-to/gaf-folder
- For more details an option please check the source code of owltools.gaf.lego.server.StartUpTool
+ For more details and options, please check the source code of owltools.gaf.lego.server.StartUpTool
 
 #Alternative for developers:
 * Requires all the data (go, GAFs, and models)
