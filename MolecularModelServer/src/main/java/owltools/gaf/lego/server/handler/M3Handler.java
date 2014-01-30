@@ -61,6 +61,12 @@ public interface M3Handler {
 			@QueryParam(PARAM_DB) String db,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
+	@Path("m3GenerateBlankMolecularModel")
+	@GET
+	public M3Response m3GenerateBlankMolecularModel(
+						@QueryParam(PARAM_DB) String db,
+			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+
 	@Path("m3preloadGaf")
 	@GET
 	public M3Response m3preloadGaf(

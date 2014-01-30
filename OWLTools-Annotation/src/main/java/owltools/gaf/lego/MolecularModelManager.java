@@ -82,8 +82,13 @@ public class MolecularModelManager {
 	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
 
 	// TODO: Temporarily for keeping instances unique (search for "unique" below).
-	String uniqueTop = Long.toHexString((System.currentTimeMillis()/1000));
-	long instanceCounter = 0;
+	static String uniqueTop = Long.toHexString((System.currentTimeMillis()/1000));
+	static long instanceCounter = 0;
+	private static String localUnique(){
+		instanceCounter++;
+		String unique = uniqueTop + String.format("%07d", instanceCounter);
+		return unique;		
+	}
 
 	/**
 	 * Represents the reponse to a requested translation on an
@@ -429,6 +434,38 @@ public class MolecularModelManager {
 	}
 
 	/**
+	 * Generates a new model taking as input a database D.
+	 * 
+	 * Note that the resulting model is uniquely identified by the modeId, which is currently constructed
+	 * as a concatenation of the db and a hidden UUID state. This means that in the unlikely case that
+	 * there is an existing model by this ID, it will be overwritten,
+	 * 
+	 * @param db
+	 * @return modelId
+	 * @throws OWLOntologyCreationException
+	 * @throws URISyntaxException 
+	 * @throws IOException 
+	 */
+	public String generateBlankModel(String db) throws OWLOntologyCreationException, IOException, URISyntaxException {
+
+		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(graph.getSourceOntology(), new ElkReasonerFactory());
+
+		molecularModelGenerator.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
+		GafDocument gafdoc = getGaf(db);
+		molecularModelGenerator.initialize(gafdoc, graph);
+
+		molecularModelGenerator.setContextualizingSuffix(db);
+		
+		// Create an arbitrary unique ID and add it to the system.
+		String modelId = "gomodel:" + db +"-"+ localUnique(); // TODO: another case of our temporary identifiers.
+		if (modelMap.containsKey(modelId)) {
+			throw new OWLOntologyCreationException("A model already exists for this db: "+modelId);
+		}
+		modelMap.put(modelId, molecularModelGenerator);
+		return modelId;
+	}
+	
+	/**
 	 * Adds a process individual (and inferred individuals) to a model
 	 * 
 	 * @param modelId
@@ -511,9 +548,8 @@ public class MolecularModelManager {
 		String cid = graph.getIdentifier(c).replaceAll(":","-"); // e.g. GO-0123456
 
 		// Make something unique to tag onto the generated IDs.
-		instanceCounter++;
-		String unique = uniqueTop + String.format("%07d", instanceCounter);
-		String iid = modelId+"-"+ cid + "-" + unique; // TODO - unique-ify in a way that makes Chris happy
+		String unique = localUnique();
+		String iid = modelId +"-"+ cid +"-"+ unique; // TODO - unique-ify in a way that makes Chris happy
 		LOG.info("  new OD: "+iid);
 
 		IRI iri = MolecularModelJsonRenderer.getIRI(iid, graph);
@@ -1243,7 +1279,7 @@ public class MolecularModelManager {
 	 * @return identifier
 	 */
 	private String getModelId(String p, String db) {
-		return "gomodel:"+db + "-"+p.replaceAll(":", "-");
+		return "gomodel:" + db + "-"+ p.replaceAll(":", "-");
 	}
 	
 	

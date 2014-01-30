@@ -105,6 +105,25 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	}
 	
 	/*
+	 * Builder: {"id": <id>, "instances": [...]}
+	 */
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3Response m3GenerateBlankMolecularModel(String db, boolean help) {
+		if (help) {
+			return helpMsg("generates Minimal Model augmented with GO associations");
+		}
+		try {
+			System.out.println("db: " + db);
+			MolecularModelManager mmm = getMolecularModelManager();
+			String mid = mmm.generateBlankModel(db);
+			return bulk(mid, mmm);
+		} catch (Exception exception) {
+			return errorMsg("Could not generate model", exception);
+		}
+	}
+	
+	/*
 	 * Info: {"message_type": "success", ..., "data: {"db": <db>}}
 	 */
 	@Override
