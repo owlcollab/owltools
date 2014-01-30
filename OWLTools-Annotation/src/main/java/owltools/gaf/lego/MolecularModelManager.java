@@ -390,11 +390,13 @@ public class MolecularModelManager {
 		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(modelOntology, new ElkReasonerFactory());
 		
 		molecularModelGenerator.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-		GafDocument gafdoc = getGaf(db);
-		molecularModelGenerator.initialize(gafdoc, new OWLGraphWrapper(modelOntology));
-
 		Set<String> seedGenes = new HashSet<String>();
-		seedGenes.addAll(molecularModelGenerator.getGenes(processCls));
+		// only look for genes if a GAF is available
+		if (db != null) {
+			GafDocument gafdoc = getGaf(db);
+			molecularModelGenerator.initialize(gafdoc, new OWLGraphWrapper(modelOntology));
+			seedGenes.addAll(molecularModelGenerator.getGenes(processCls));
+		}
 		molecularModelGenerator.setContextualizingSuffix(db);
 		molecularModelGenerator.buildNetwork(p, seedGenes);
 
