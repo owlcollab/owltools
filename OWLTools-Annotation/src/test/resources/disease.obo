@@ -197,6 +197,7 @@ namespace: MPheno.ontology
 def: "a retrogressive impairment of function or destruction of neural tissue" [ISBN:0-683-40008-8, MGI:csmith]
 synonym: "neuronal degeneration" EXACT []
 is_a: MP:0003633  ! abnormal nervous system physiology
+relationship: has_part GO:0014029 {notes="this is fake - just for testing only"} ! neural crest formation
 
 [Term]
 id: MP:0002654
@@ -370,6 +371,10 @@ namespace: MPheno.ontology
 def: "focal 10-50 micron diameter swellings of axons, which are sometimes, but not always, terminal endbulbs, and are filled with disorganized neurofilaments, tubules, organelles or multi-lamellar inclusions" [PMID:15644421]
 is_a: MP:0005405  ! axon degeneration
 
+
+[Typedef]
+id: has_variant_part
+name: has_variant_part
 
 [Typedef]
 id: has_part
