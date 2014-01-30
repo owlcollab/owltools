@@ -1,0 +1,600 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://x.org#"
+     xml:base="http://x.org"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://x.org"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://x.org/part_of -->
+
+    <owl:ObjectProperty rdf:about="http://x.org/part_of">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">part_of</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://x.org/phenotype_in -->
+
+    <owl:ObjectProperty rdf:about="http://x.org/phenotype_in">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">phenotype_in</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://x.org/brain -->
+
+    <owl:Class rdf:about="http://x.org/brain">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">brain</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/liver -->
+
+    <owl:Class rdf:about="http://x.org/liver">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">liver</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region1 -->
+
+    <owl:Class rdf:about="http://x.org/region1">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region1</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region10 -->
+
+    <owl:Class rdf:about="http://x.org/region10">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region10</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region2 -->
+
+    <owl:Class rdf:about="http://x.org/region2">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region2</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region3 -->
+
+    <owl:Class rdf:about="http://x.org/region3">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region3</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region4 -->
+
+    <owl:Class rdf:about="http://x.org/region4">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region4</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region5 -->
+
+    <owl:Class rdf:about="http://x.org/region5">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region5</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region6 -->
+
+    <owl:Class rdf:about="http://x.org/region6">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region6</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region7 -->
+
+    <owl:Class rdf:about="http://x.org/region7">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region7</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region8 -->
+
+    <owl:Class rdf:about="http://x.org/region8">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region8</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://x.org/region9 -->
+
+    <owl:Class rdf:about="http://x.org/region9">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">region9</rdfs:label>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                <owl:someValuesFrom rdf:resource="http://x.org/brain"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://x.org/i1 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i1">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region1"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i1</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i10 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i10">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region10"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i10</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i2 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i2">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region2"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i2</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i3 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i3">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region3"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i3</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i4 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i4">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region4"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i4</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i5 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i5">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region5"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i5</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i6 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i6">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region6"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i6</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i7 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i7">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region7"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i7</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i8 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i8">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region8"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i8</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/i9 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/i9">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/region9"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">i9</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j1 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j1">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j1</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j10 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j10">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j10</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j2 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j2">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j2</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j3 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j3">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j3</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j4 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j4">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j4</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j5 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j5">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j5</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j6 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j6">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j6</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j7 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j7">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j7</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j8 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j8">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j8</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://x.org/j9 -->
+
+    <owl:NamedIndividual rdf:about="http://x.org/j9">
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://x.org/phenotype_in"/>
+                <owl:someValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://x.org/part_of"/>
+                        <owl:someValuesFrom rdf:resource="http://x.org/liver"/>
+                    </owl:Restriction>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">j9</rdfs:label>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 0.2.1-SNAPSHOT) http://owlapi.sourceforge.net -->
+
