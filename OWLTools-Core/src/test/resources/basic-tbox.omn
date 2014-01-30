@@ -1,4 +1,4 @@
-Ontology: <http://x.org>
+Ontology: <http://x.org/basic-tbox.owl>
 Prefix: obo: <http://purl.obolibrary.org/obo/>
 Prefix: occurs_in: <http://purl.obolibrary.org/obo/BFO_0000066>
 Prefix: enabled_by: <http://purl.obolibrary.org/obo/enabled_by>
