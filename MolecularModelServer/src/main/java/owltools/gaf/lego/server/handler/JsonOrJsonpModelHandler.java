@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,7 +18,6 @@ import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -47,7 +45,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	private static Logger LOG = Logger.getLogger(JsonOrJsonpModelHandler.class);
 
 	static final String JSONP_DEFAULT_CALLBACK = "jsonp";
-	//static final String JSONP_DEFAULT_OVERWRITE = "jsonpCallback";
 	public static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
 	
 	private final OWLGraphWrapper graph;
@@ -159,6 +156,21 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 	}
 	
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3Response m3DeleteIndividual(String modelId, String individualId, boolean help) {
+		if (help) {
+			return helpMsg("delete the given individual");
+		}
+		try {
+			MolecularModelManager mmm = getMolecularModelManager();
+			OWLOperationResponse resp = mmm.deleteIndividual(modelId, individualId);
+			return bulk(modelId, mmm); // TODO for now return the whole thing
+		} catch (Exception exception) {
+			return errorMsg("Could not create individual in model", exception);
+		}
+	}
+	
 	/*
 	 * Individiuals: [...]
 	 */
@@ -214,11 +226,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addFact(modelId, propertyId, individualId, fillerId);
 			M3Response response = response(resp, mmm, M3Response.MERGE);
-			//GsonBuilder gsonBuilder = new GsonBuilder();
-			//gsonBuilder.setPrettyPrinting();
-			//Gson gson = gsonBuilder.create();
-			//String json = gson.toJson(response);
-			//System.out.println("json: " + json);
+			//printJsonResponse(response);
 			return response;
 		} catch (Exception exception) {
 			return errorMsg("Could not add fact to model", exception);
@@ -481,5 +489,16 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		return ofmt;
 	}
 
-
+	/**
+	 * Function for debugging: print JSON representation of a response to System.out.
+	 * 
+	 * @param response
+	 */
+	static void printJsonResponse(M3Response response) {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.setPrettyPrinting();
+		Gson gson = gsonBuilder.create();
+		String json = gson.toJson(response);
+		System.out.println("json: " + json);
+	}
 }

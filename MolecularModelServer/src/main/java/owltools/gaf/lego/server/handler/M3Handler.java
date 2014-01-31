@@ -79,6 +79,13 @@ public interface M3Handler {
 			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_CLASSID) String classId,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+	
+	@Path("m3DeleteIndividual")
+	@GET
+	public M3Response m3DeleteIndividual(
+			@QueryParam(PARAM_MODELID) String modelId,
+			@QueryParam(PARAM_INDIVIDIALID) String individualId,
+			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3AddType")
 	@GET

@@ -139,14 +139,53 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 //
 //		// todo - add a test that results in an inconsistency
 		
-		List<Map<Object, Object>> objs = mmm.getIndividualObjects(model1Id);
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-	
-		String js = gson.toJson(objs);
+		String js = renderJSON(model1Id);
 		LOG.info("INDS:" + js);
 		
 		
 	}
+	
+	private String renderJSON(String modelId) {
+		List<Map<Object, Object>> objs = mmm.getIndividualObjects(modelId);
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	
+		String js = gson.toJson(objs);
+		return js;
+	}
 
+	@Test
+	public void testDeleteIndividual() throws Exception {
+		ParserWrapper pw = new ParserWrapper();
+		g = pw.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
+		
+		// GO:0038024 ! cargo receptor activity
+		// GO:0042803 ! protein homodimerization activity
+		
+		mmm = new MolecularModelManager(g);
+		
+		String modelId = mmm.generateBlankModel(null);
+		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024");
+		OWLNamedIndividual i1 = resp.getIndividuals().get(0);
+		
+		resp = mmm.createIndividual(modelId, "GO:0042803");
+		OWLNamedIndividual i2 = resp.getIndividuals().get(0);
+		
+		mmm.addPartOf(modelId, i1, i2);
+		
+//		String js = renderJSON(modelId);
+//		System.out.println("-------------");
+//		System.out.println("INDS:" + js);
+//		
+//		System.out.println("-------------");
+		
+		mmm.deleteIndividual(modelId, i2);
+		
+//		js = renderJSON(modelId);
+//		System.out.println("INDS:" + js);
+//		System.out.println("-------------");
+		
+		Set<OWLNamedIndividual> individuals = mmm.getIndividuals(modelId);
+		assertEquals(1, individuals.size());
+	}
 
 }

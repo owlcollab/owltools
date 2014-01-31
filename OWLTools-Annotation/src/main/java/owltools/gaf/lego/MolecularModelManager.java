@@ -26,6 +26,7 @@ import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomChange;
@@ -73,7 +74,7 @@ public class MolecularModelManager {
 
 
 	OWLGraphWrapper graph;
-	boolean isPrecomputePropertyClassCombinations;
+	boolean isPrecomputePropertyClassCombinations = false;
 	Map<String, GafDocument> dbToGafdoc = new HashMap<String, GafDocument>();
 	Map<String, LegoModelGenerator> modelMap = new HashMap<String, LegoModelGenerator>();
 	String pathToGafs = "gene-associations";
@@ -387,20 +388,20 @@ public class MolecularModelManager {
 		m.addAxioms(modelOntology, graph.getSourceOntology().getAxioms());
 		
 		// create generator
-		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(modelOntology, new ElkReasonerFactory());
+		LegoModelGenerator model = new LegoModelGenerator(modelOntology, new ElkReasonerFactory());
 		
-		molecularModelGenerator.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
+		model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
 		Set<String> seedGenes = new HashSet<String>();
 		// only look for genes if a GAF is available
 		if (db != null) {
 			GafDocument gafdoc = getGaf(db);
-			molecularModelGenerator.initialize(gafdoc, new OWLGraphWrapper(modelOntology));
-			seedGenes.addAll(molecularModelGenerator.getGenes(processCls));
+			model.initialize(gafdoc, new OWLGraphWrapper(modelOntology));
+			seedGenes.addAll(model.getGenes(processCls));
 		}
-		molecularModelGenerator.setContextualizingSuffix(db);
-		molecularModelGenerator.buildNetwork(p, seedGenes);
+		model.setContextualizingSuffix(db);
+		model.buildNetwork(p, seedGenes);
 
-		modelMap.put(modelId, molecularModelGenerator);
+		modelMap.put(modelId, model);
 		return modelId;
 
 	}
@@ -450,20 +451,39 @@ public class MolecularModelManager {
 	 */
 	public String generateBlankModel(String db) throws OWLOntologyCreationException, IOException, URISyntaxException {
 
-		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(graph.getSourceOntology(), new ElkReasonerFactory());
-
-		molecularModelGenerator.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-		GafDocument gafdoc = getGaf(db);
-		molecularModelGenerator.initialize(gafdoc, graph);
-
-		molecularModelGenerator.setContextualizingSuffix(db);
-		
 		// Create an arbitrary unique ID and add it to the system.
-		String modelId = "gomodel:" + db +"-"+ localUnique(); // TODO: another case of our temporary identifiers.
+		String modelId;
+		if (db != null) {
+			modelId = "gomodel:" + db +"-"+ localUnique(); // TODO: another case of our temporary identifiers.
+		}
+		else{
+			modelId = "gomodel:" + localUnique(); // TODO: another case of our temporary identifiers.
+		}
 		if (modelMap.containsKey(modelId)) {
 			throw new OWLOntologyCreationException("A model already exists for this db: "+modelId);
 		}
-		modelMap.put(modelId, molecularModelGenerator);
+
+		// create empty ontology, use model id as ontology IRI
+		OWLOntologyManager m = graph.getManager();
+		IRI iri = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		OWLOntology modelOntology = m.createOntology(iri);
+
+		// setup model ontology to import the source ontology, RO, and RO-pending
+		createImports(modelOntology,
+				graph.getSourceOntology().getOntologyID().getOntologyIRI(),
+				IRI.create("http://purl.obolibrary.org/obo/ro.owl"),
+				IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
+		
+		LegoModelGenerator model = new LegoModelGenerator(modelOntology, new ElkReasonerFactory());
+		
+		model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
+		if (db != null) {
+			GafDocument gafdoc = getGaf(db);
+			model.initialize(gafdoc, new OWLGraphWrapper(modelOntology));
+			model.setContextualizingSuffix(db);
+		}
+		
+		modelMap.put(modelId, model);
 		return modelId;
 	}
 	
@@ -603,14 +623,47 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse deleteIndividual(String modelId,String iid) {
 		OWLNamedIndividual i = (OWLNamedIndividual) getIndividual(modelId, iid);
-		removeAxiom(modelId, getOWLDataFactory(modelId).getOWLDeclarationAxiom(i));
+		return deleteIndividual(modelId, i);
+	}
+	
+	/**
+	 * Deletes an individual
+	 * 
+	 * @param modelId
+	 * @param i
+	 * @return response into
+	 */
+	public OWLOperationResponse deleteIndividual(String modelId, OWLNamedIndividual i) {
+		Set<OWLAxiom> toRemoveAxioms = new HashSet<OWLAxiom>();
+		
 		LegoModelGenerator m = getModel(modelId);
 		OWLOntology ont = m.getAboxOntology();
+		
+		// Declaration axiom
+		toRemoveAxioms.add(getOWLDataFactory(modelId).getOWLDeclarationAxiom(i));
+		
+		// Logic axiom
 		for (OWLAxiom ax : ont.getAxioms(i)) {
-			removeAxiom(modelId, ax);
+			toRemoveAxioms.add(ax);
 		}
+		
+		// OWLObjectPropertyAssertionAxiom
+		Set<OWLObjectPropertyAssertionAxiom> allAssertions = ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
+		for (OWLObjectPropertyAssertionAxiom ax : allAssertions) {
+			if (toRemoveAxioms.contains(ax) == false) {
+				Set<OWLNamedIndividual> currentIndividuals = ax.getIndividualsInSignature();
+				if (currentIndividuals.contains(i)) {
+					toRemoveAxioms.add(ax);
+				}
+			}
+		}
+		// OWLAnnotationAssertionAxiom
+		toRemoveAxioms.addAll(ont.getAnnotationAssertionAxioms(i.getIRI()));
+		
+		removeAxioms(m, toRemoveAxioms);
 		return new OWLOperationResponse(true);
 	}
+
 
 	/**
 	 * Fetches a model by its Id
@@ -944,7 +997,7 @@ public class MolecularModelManager {
 	 * Removes a ClassAssertion, where the class expression instantiated is an
 	 * ObjectSomeValuesFrom expression
 	 * 
-	 * TODO - in fuure it should be possible to remove multiple assertions by leaving some fields null
+	 * TODO - in future it should be possible to remove multiple assertions by leaving some fields null
 	 * 
 	 * @param modelId
 	 * @param i
@@ -1258,15 +1311,43 @@ public class MolecularModelManager {
 	 * @param axiom
 	 * @return response info
 	 */
-	public OWLOperationResponse removeAxiom(String modelId, OWLAxiom axiom) {
+	OWLOperationResponse removeAxiom(String modelId, OWLAxiom axiom) {
 		LegoModelGenerator model = getModel(modelId);
 		OWLOntology ont = model.getAboxOntology();
 		// TODO - check axiom exists
 		RemoveAxiom change = new RemoveAxiom(ont, axiom);
 		ont.getOWLOntologyManager().applyChange(change);
+		model.getReasoner().flush();
 		// TODO - track axioms to allow redo
 		return new OWLOperationResponse(true);
-	}	
+	}
+
+	/**
+	 * In general, should not be called directly - use a wrapper method
+	 * 
+	 * @param modelId
+	 * @param axioms
+	 * @return response info
+	 */
+	OWLOperationResponse removeAxioms(String modelId, Set<OWLAxiom> axioms) {
+		LegoModelGenerator model = getModel(modelId);
+		return removeAxioms(model, axioms);
+	}
+	
+	private OWLOperationResponse removeAxioms(LegoModelGenerator model, Set<OWLAxiom> axioms) {
+		OWLOntology ont = model.getAboxOntology();
+		
+		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
+		for(OWLAxiom ax  : axioms) {
+			// TODO - check axiom exists
+			RemoveAxiom change = new RemoveAxiom(ont, ax);
+			changes.add(change);
+		}
+		ont.getOWLOntologyManager().applyChanges(changes);
+		// TODO - track axioms to allow redo
+		model.getReasoner().flush();
+		return new OWLOperationResponse(true);
+	}
 
 	public OWLOperationResponse undo(String modelId, String changeId) {
 		LOG.error("Not implemented");
