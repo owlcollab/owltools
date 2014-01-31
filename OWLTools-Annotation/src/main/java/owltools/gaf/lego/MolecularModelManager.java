@@ -280,8 +280,6 @@ public class MolecularModelManager {
 		this.pathToGafs = pathToGafs;
 	}
 	
-	
-	
 	/**
 	 * Note this may move to an implementation-specific subclass in future
 	 * 
@@ -296,6 +294,7 @@ public class MolecularModelManager {
 	public void setPathToOWLFiles(String pathToOWLFiles) {
 		this.pathToOWLFiles = pathToOWLFiles;
 	}
+		
 	/**
 	 * loads/register a Gaf document
 	 * 
@@ -730,17 +729,12 @@ public class MolecularModelManager {
 		}
 	}
 	
-	/**
-	 * Retrieve a collection of all file/stored model ids.<br>
-	 * Note: Models may not be loaded at this point.
-	 * 
-	 * @return set of modelids.
-	 * @throws IOException
+	/*
+	 * look for all owl files in the give model folder.
 	 */
-	public Set<String> getStoredModelIds() throws IOException {
+	private Set<String> getOWLFilesFromPath(String pathTo) {
 		Set<String> allModelIds = new HashSet<String>();
-		// look for all owl file in the model folder
-		File modelFolder = new File(pathToOWLFiles);
+		File modelFolder = new File(pathTo);
 		File[] modelFiles = modelFolder.listFiles(new FilenameFilter() {
 			
 			@Override
@@ -757,6 +751,17 @@ public class MolecularModelManager {
 			allModelIds.add(modelId);
 		}
 		return allModelIds;
+	}
+		
+	/**
+	 * Retrieve a collection of all file/stored model ids found in the repo.<br>
+	 * Note: Models may not be loaded at this point.
+	 * 
+	 * @return set of modelids.
+	 * @throws IOException
+	 */
+	public Set<String> getStoredModelIds() throws IOException {
+		return getOWLFilesFromPath(this.pathToOWLFiles);
 	}
 	
 	/**
@@ -790,7 +795,7 @@ public class MolecularModelManager {
 	protected void loadModel(String modelId, boolean isOverride) throws OWLOntologyCreationException {
 		if (modelMap.containsKey(modelId)) {
 			if (!isOverride) {
-				throw new OWLOntologyCreationException("Model already esxists: "+modelId);
+				throw new OWLOntologyCreationException("Model already exists: "+modelId);
 			}
 		}
 		String file = getPathToModelOWL(modelId);

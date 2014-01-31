@@ -342,13 +342,15 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			MolecularModelManager mmm = getMolecularModelManager();
 
 			Set<String> allModelIds = mmm.getAvailableModelIds();
-			Set<String> storedModelIds = mmm.getStoredModelIds();
-			Set<String> memoryModelIds = mmm.getCurrentModelIds();
+			//Set<String> scratchModelIds = mmm.getScratchModelIds();
+			//Set<String> storedModelIds = mmm.getStoredModelIds();
+			//Set<String> memoryModelIds = mmm.getCurrentModelIds();
 
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("models_all", allModelIds);
-			map.put("models_memory", memoryModelIds);
-			map.put("models_stored", storedModelIds);
+			//map.put("models_memory", memoryModelIds);
+			//map.put("models_stored", storedModelIds);
+			//map.put("models_scratch", scratchModelIds);
 			
 			return information(map, mmm);
 		} catch (Exception exception) {
