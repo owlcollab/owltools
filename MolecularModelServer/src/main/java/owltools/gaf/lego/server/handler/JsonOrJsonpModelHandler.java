@@ -236,8 +236,12 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates ObjectPropertyAssertion");
 		}
 		try {
+			System.out.println("mod: " + modelId);
+			System.out.println("rel: " + propertyId);
+			System.out.println("ind: " + individualId);
+			System.out.println("fil: " + fillerId);
 			MolecularModelManager mmm = getMolecularModelManager();
-			OWLOperationResponse resp = mmm.removeFact(propertyId, modelId, individualId, fillerId);
+			OWLOperationResponse resp = mmm.removeFact(modelId, propertyId, individualId, fillerId);
 			return response(resp, mmm, M3Response.MERGE);
 		} catch (Exception exception) {
 			return errorMsg("Could not remove fact from model", exception);
