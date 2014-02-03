@@ -1216,7 +1216,7 @@ public class MinimalModelGenerator {
 				sourceIndividual, targetIndividual));
 		if (isIncludeInverses) {
 			for (OWLObjectPropertyExpression ip : this.getInverseObjectProperties(property)) {
-				LOG.info("Including inverse: "+ip+" "+targetIndividual+" "+sourceIndividual);
+				//LOG.info("Including inverse: "+ip+" "+targetIndividual+" "+sourceIndividual);
 				axioms.add(getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(ip, 
 						targetIndividual,
 						sourceIndividual 
@@ -1403,7 +1403,7 @@ public class MinimalModelGenerator {
 			for (OWLIndividual j : redundant) {
 				// TODO - check for cycles (can happen in pathological scenarios)
 				if (j instanceof OWLNamedIndividual) {
-					LOG.info("redundant: OPE("+p+" "+i+" "+j+"); PATH(i) = "+js);
+					//LOG.info("redundant: OPE("+p+" "+i+" "+j+"); PATH(i) = "+js);
 					rmAxioms.addAll(this.getFactAxioms(i, p, (OWLNamedIndividual) j, true));
 				}
 				else {
