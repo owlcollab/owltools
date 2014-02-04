@@ -792,7 +792,11 @@ public class OWLHandler {
 		Set<OWLClass> objs = new HashSet<OWLClass>();
 		LOG.info("Param "+p+" IDs: "+ids);
 		for (String id : ids) {
-			OWLClass c = graph.getOWLClassByIdentifier(id);
+			// we allow resolution by altId, if present; in future we
+			// may want to check the altId map at this level so we can
+			// provide metadata in the payload about any mappings provided.
+			// See: https://github.com/monarch-initiative/monarch-app/issues/97
+			OWLClass c = graph.getOWLClassByIdentifier(id, true);
 			if (c == null) {
 				// TODO - strict mode - for now we include unresolvable classes
 				IRI iri = graph.getIRIByIdentifier(id);
