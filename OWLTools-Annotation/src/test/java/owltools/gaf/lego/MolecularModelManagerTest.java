@@ -220,6 +220,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		mmm.addPartOf(modelId, mit, cc);
 
 		// we expect inference to be to: GO:0038023  signaling receptor activity
+		// See discussion here: https://github.com/kltm/go-mme/issues/3
 
 		System.out.println(renderJSON(modelId));
 		//List<Map<Object, Object>> gson = mmm.getIndividualObjects(modelId);
