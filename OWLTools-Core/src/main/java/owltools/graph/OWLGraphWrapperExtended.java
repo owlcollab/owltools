@@ -49,6 +49,8 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
  */
 public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
+	private Map<String,OWLObject> altIdMap = null;
+
 	protected OWLGraphWrapperExtended(OWLOntology ontology) throws UnknownOWLOntologyException, OWLOntologyCreationException {
 		super(ontology);
 	}
@@ -69,8 +71,8 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public String getLabel(OWLObject c) {
 		return getAnnotationValue(c, getDataFactory().getRDFSLabel());
 	}
-	
-	
+
+
 	/**
 	 * fetches the rdfs:label for an OWLObject
 	 * <p>
@@ -86,7 +88,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return getLabel(c);
 	}
 
-	
+
 	public String getLabelOrDisplayId(OWLObject c) {
 		String label = getLabel(c);
 		if (label == null) {
@@ -242,8 +244,8 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public String getDef(OWLObject c, List<String> sargs) {
 		return getDef(c);
 	}
-	
-	
+
+
 	/**
 	 * It returns the value of the is_metadata_tag tag.
 	 * 
@@ -432,7 +434,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return getAnnotationValue(c, lap);
 	}
 
-	
+
 	/**
 	 * Get the annotation property value for a tag.
 	 * <p>
@@ -450,7 +452,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		if( tags != null && tags.size() == 1 ){
 			String tag = tags.get(0);
 			retval = getAnnotationPropertyValue(c, tag);
-			
+
 		}
 		return retval;
 	}
@@ -498,6 +500,32 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public List<String> getAltIds(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_ALT_ID.getTag());
 		return getAnnotationValues(c, lap);
+	}
+
+	private Map<String,OWLObject> getAltIdMap(boolean isReset) {
+		if (isReset)
+			altIdMap = null;
+		if (altIdMap == null) {
+			altIdMap = new HashMap<String,OWLObject>();
+			for (OWLObject obj : getAllOWLObjects()) {
+				for (String id : getAltIds(obj)) {
+					altIdMap.put(id, obj);
+				}
+			}
+		}
+		return altIdMap;
+	}
+	
+	/**
+	 * @param altId
+	 * @return OWLObject that has matching altId, or null if not found
+	 */
+	public OWLObject getObjectByAltId(String altId) {
+		Map<String, OWLObject> m = getAltIdMap(false);
+		if (m.containsKey(altId))
+			return m.get(altId);
+		else
+			return null;
 	}
 
 	/**
@@ -556,7 +584,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return getAnnotationValue(c, lap);
 	}
 
-	
+
 	/**
 	 * It returns the value of the OBO-namespace tag.
 	 * <p>
@@ -572,7 +600,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return getNamespace(c);
 	}
 
-	
+
 	/**
 	 * It returns the value of the created_by tag
 	 * 
@@ -730,7 +758,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public List<String> getDefXref(OWLObject c){
 		OWLAnnotationProperty lap = getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI()); 
 		OWLAnnotationProperty xap = getAnnotationProperty(OboFormatTag.TAG_XREF.getTag());
-		
+
 		if (c instanceof OWLEntity) {
 			List<String> list = new ArrayList<String>();
 			for (OWLOntology ont : getAllOntologies()) {
@@ -754,7 +782,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 	}
 
-	
+
 	/**
 	 * Get the definition xrefs (IAO_0000115)
 	 * <p>
@@ -769,7 +797,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return getDefXref(c);
 	}
 
-	
+
 	/**
 	 * gets the OBO-style ID of the specified object. E.g. "GO:0008150"
 	 * 
@@ -779,7 +807,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public String getIdentifier(OWLObject owlObject) {
 		return Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
 	}
-	
+
 	/**
 	 * Gets the OBO-style ID of the specified object. E.g. "GO:0008150". Set the
 	 * parameter useShorthand to false to ignore shorthands.
@@ -823,9 +851,17 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public String getIdentifier(IRI iriId) {
 		return Owl2Obo.getIdentifier(iriId);
 	}
-
 	public IRI getIRIByIdentifier(String id) {
-		
+		return getIRIByIdentifier(id, false);
+	}
+	public IRI getIRIByIdentifier(String id, boolean isAutoResolve) {
+		if (isAutoResolve) {
+			OWLObject obj = this.getObjectByAltId(id);
+			if (obj != null) {
+				return ((OWLNamedObject) obj).getIRI();
+			}
+		}
+
 		// special magic for finding IRIs from a non-standard identifier
 		// This is the case for relations (OWLObject properties) with a short hand
 		// or for relations with a non identifiers with-out a colon, e.g. negative_regulation
@@ -856,8 +892,8 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 				}
 			}
 		}
-		
-		
+
+
 		// otherwise use the obo2owl method
 		Obo2Owl b = new Obo2Owl();
 		b.setObodoc(new OBODoc());
@@ -910,7 +946,27 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return OWLClass with id or null
 	 */
 	public OWLClass getOWLClassByIdentifier(String id) {
-		IRI iri = getIRIByIdentifier(id);
+		return getOWLClassByIdentifier(id, false);
+	}
+	
+	/**
+	 * 
+	 * As {@link #getOWLClassByIdentifier(String)} but include pre-resolution step
+	 * using altId map.
+	 * 
+	 * Currently this additional boolean option is obo-format specific; in OBO,
+	 * when a class A is merged into B, the OBO-ID of A is preserved with an hasAlternateId
+	 * annotation on the IRI of B. Using this method, with isAutoResolve=true, a query for
+	 * the OBO ID of A will return class B.
+	 * 
+	 * In future, analogous options will be added to IRI-based access to classes.
+	 * 
+	 * @param id
+	 * @param isAutoResolve
+	 * @return OWLClass with id or null
+	 */
+	public OWLClass getOWLClassByIdentifier(String id, boolean isAutoResolve) {
+		IRI iri = getIRIByIdentifier(id, isAutoResolve);
 		if (iri != null)
 			return getOWLClass(iri);
 		return null;
@@ -1082,7 +1138,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 		return results;
 	}
-	
+
 	/**
 	 * Returns an OWLClass given an IRI string
 	 * <p>
@@ -1284,7 +1340,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 		return versions;
 	}
-	
+
 	private String getOntologyAnnotationValue(OWLOntology o, OboFormatTag tag) {
 		IRI dateTagIRI = Obo2Owl.trTagToIRI(tag.getTag());
 		Set<OWLAnnotation> annotations = o.getAnnotations();

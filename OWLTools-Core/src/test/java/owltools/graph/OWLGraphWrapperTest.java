@@ -124,6 +124,10 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 		// test retrieve all
 		Map<String, OWLObject> all = graph.getAllOWLObjectsByAltId();
 		assertEquals(4, all.size());
+		
+		assertEquals("ventral neurogenic region", graph.getLabel(graph.getOWLClassByIdentifier("FBbt:00000113", true)));
+		assertEquals(null, graph.getOWLClassByIdentifier("FBbt:00000113", false));
+		assertEquals(null, graph.getOWLClassByIdentifier("xyz", false));
 	}
 	
 	@Test
