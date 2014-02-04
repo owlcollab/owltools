@@ -587,6 +587,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--make-subset-by-properties")) {
 				opts.info("PROPERTY-LIST",
 						"make an ontology subset that excludes axioms that use properties not in the specified set.\n"+
+								" Note the ontology should be relaxed e.g. X=A and R some B ==> X SubClassOf A" +
 								"  A property list is a space-separated list of object property OBO-IDs, shorthands, URIs, or labels.\n"+
 								"  Example: my.owl --make-subset-by-properties BFO:0000050 'develops from' // -o my-slim.owl \n"+
 								"  The special symbol 'ALL-PROPERTIES' selects all properties in the signature.\n"+								
