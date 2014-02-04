@@ -210,15 +210,16 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		mmm = new MolecularModelManager(g);
 
 		String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0007049"); // cell cycle
+		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0004872"); // receptor activity
 		OWLNamedIndividual cc = resp.getIndividuals().get(0);
 
 		
-		resp = mmm.createIndividual(modelId, "GO:0007067"); // mitosis
+		resp = mmm.createIndividual(modelId, "GO:0007166"); // cell surface receptor signaling pathway
 		OWLNamedIndividual mit = resp.getIndividuals().get(0);
 
 		mmm.addPartOf(modelId, mit, cc);
 
+		// we expect inference to be to: GO:0038023  signaling receptor activity
 
 		System.out.println(renderJSON(modelId));
 		//List<Map<Object, Object>> gson = mmm.getIndividualObjects(modelId);
