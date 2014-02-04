@@ -87,6 +87,9 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 		for (OWLNamedIndividual i : individuals) {
 			System.out.println(i.getIRI().toString());
 		}
+		FileOutputStream os = new FileOutputStream(new File("target/aonti.owl"));
+		ni.getQueryOntology().getOWLOntologyManager().saveOntology(ni.getAboxOntology(), os);
+
 		assertEquals(7, individuals.size());
 	}
 	

@@ -32,6 +32,7 @@ import com.google.gson.Gson;
  * 
  * TODO - make this inherit from a generic renderer - use OWLAPI visitor?
  * TODO - abstract some of this into a generic OWL to JSON-LD converter
+ * TODO - include inferred types
  * 
  * @author cjm
  *

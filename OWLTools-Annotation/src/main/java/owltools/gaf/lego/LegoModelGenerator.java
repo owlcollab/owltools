@@ -220,7 +220,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			OWLClass cls = ogw.getOWLClassByIdentifier(c);
 			String gene = ann.getBioentity();
 
-			// special case : protein binding
+			// special case : protein binding - we build a PPI
+			// using the WITH/FROM column
 			if (c.equals("GO:0005515")) {
 				for (String b : ann.getWithExpression().split("\\|")) {
 					//LOG.info("Adding PPI based on WITH col");
@@ -339,8 +340,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		LOG.info("Adding seed genes, #=" + seedGenes.size());
 		// TODO - use only instance-level parts and regulators
 
-		// Set of all MF individuals that necessarily exists given P exist;
-		// also extended to include leaf processes
+		// Set of all individuals that necessarily exists given P exist;
+		// (MFs and BPs)
 		Collection<OWLNamedIndividual> leafNodes = 
 				new HashSet<OWLNamedIndividual>();
 
@@ -423,6 +424,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 			// g is also annotated to multiple other processes; find the more specific ones
 			Set<OWLClass> alternateProcesses = getMostSpecificProcessTypes(g);
+			LOG.info(" alt processes = "+alternateProcesses.size());
 			boolean isReset = false;
 			for (OWLClass alternateProcessCls : alternateProcesses) {
 				boolean isCandidate = false;
@@ -436,15 +438,6 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 								isCandidate = false;
 							}
 						}
-						// only use "pure" edges, no subclass, only involved in relations
-						// TODO - fix me - 
-						//						for (OWLQuantifiedProperty qp : edge.getQuantifiedPropertyList()) {
-						//							if (!(qp.isSomeValuesFrom() && 
-						//									getInvolvedInRelations().contains(qp.getProperty()))) {
-						//								isCandidate = false;
-						//								continue;
-						//							}
-						//						}
 					}
 				}
 				if (isCandidate) {
@@ -468,7 +461,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 				}
 			}
 			if (joinPoints.size() == 0) {
-				LOG.info("No more specific annotations found; using leafNodes, #="+leafNodes.size());
+				// TODO - use process instance
+				LOG.info("No more specific process annotations found; using leafNodes, #="+leafNodes.size());
 				joinPoints.addAll(leafNodes);
 			}
 
@@ -496,7 +490,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 					LOG.info("    Testing JPC: "+getIdLabelPair(joinPointClass));
 							
 					// a gene must have been annotated to some descendant of generatedCls to be considered.
-					if (geneInferredTypes.contains(joinPointClass)) {
+					if (true || geneInferredTypes.contains(joinPointClass)) {
 						for (OWLClass activityCls : geneActivityTypes ) {
 							// note that generatedCls may be a MF, and may be a subclass,
 							// which case this would be 1.0

@@ -23,6 +23,7 @@ import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
+import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -509,6 +510,29 @@ public class MolecularModelManager {
 	public Set<OWLNamedIndividual> getIndividuals(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
 		return mod.getAboxOntology().getIndividualsInSignature();
+	}
+
+	
+	/**
+	 * @param modelId
+	 * @param q
+	 * @return all individuals in the model that satisfy q
+	 */
+	public Set<OWLNamedIndividual> getIndividualsByQuery(String modelId, OWLClassExpression q) {
+		LegoModelGenerator mod = getModel(modelId);
+		return mod.getReasoner().getInstances(q, false).getFlattened();
+	}
+
+	/**
+	 * @param modelId
+	 * @param qs
+	 * @return all individuals in the model that satisfy q
+	 */
+	public Set<OWLNamedIndividual> getIndividualsByQuery(String modelId, String qs) {
+		LegoModelGenerator mod = getModel(modelId);
+		ManchesterSyntaxTool mst = new ManchesterSyntaxTool(mod.getAboxOntology(), null, true);
+		OWLClassExpression q = mst.parseManchesterExpression(qs);
+		return getIndividualsByQuery(modelId, q);
 	}
 
 	/**
