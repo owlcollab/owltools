@@ -216,6 +216,14 @@ public class MolecularModelJsonRenderer {
 			return relId;
 		}
 		IRI iri = i.getIRI();
+		return getId(iri);
+	}
+
+	/**
+	 * @param iri
+	 * @return id
+	 */
+	public static String getId(IRI iri) {
 		String iriString = iri.toString();
 		// remove obo prefix from IRI
 		String full = StringUtils.removeStart(iriString, OBOUpperVocabulary.OBO);
