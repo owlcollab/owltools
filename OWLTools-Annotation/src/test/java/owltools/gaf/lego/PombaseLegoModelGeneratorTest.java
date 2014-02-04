@@ -5,17 +5,14 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -29,7 +26,6 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
@@ -44,28 +40,26 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 
 	static{
 		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
-		//Logger.getLogger("org.semanticweb.elk.reasoner.indexing.hierarchy").setLevel(Level.ERROR);
 	}
 
 	@Test
-	@Ignore("Ignore for now until fixed")
 	public void testPombeImports() throws Exception {
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 		
-		OWLOntology sourceOntology = 
+		OWLOntology tbox = 
 				m.loadOntologyFromOntologyDocument(getResource("go-iron-transport-subset.owl"));
 		
-		OWLOntology modelOntology = m.createOntology(IRI.create("foo/bar"));
-		createImports(modelOntology,
-			sourceOntology.getOntologyID().getOntologyIRI(),
+		OWLOntology abox = m.createOntology(IRI.create("foo/bar"));
+		createImports(abox,
+				tbox.getOntologyID().getOntologyIRI(),
 			IRI.create("http://purl.obolibrary.org/obo/ro.owl"),
 			IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
 		
-		g = new OWLGraphWrapper(sourceOntology);
+		g = new OWLGraphWrapper(tbox);
 		OWLClass p = g.getOWLClassByIdentifier("GO:0033215"); // iron
 		assertNotNull(p);
 		
-		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(modelOntology, new ElkReasonerFactory());
+		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(tbox, abox);
 		
 		molecularModelGenerator.setPrecomputePropertyClassCombinations(false);
 		Set<String> seedGenes = new HashSet<String>();
@@ -87,8 +81,8 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 		for (OWLNamedIndividual i : individuals) {
 			System.out.println(i.getIRI().toString());
 		}
-		FileOutputStream os = new FileOutputStream(new File("target/aonti.owl"));
-		ni.getQueryOntology().getOWLOntologyManager().saveOntology(ni.getAboxOntology(), os);
+		FileOutputStream os = new FileOutputStream(new File("target/aonti-imports.owl"));
+		m.saveOntology(molecularModelGenerator.getAboxOntology(), os);
 
 		assertEquals(7, individuals.size());
 	}
@@ -96,13 +90,11 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 	private void createImports(OWLOntology ont, IRI...imports) throws OWLOntologyCreationException {
 		OWLOntologyManager m = ont.getOWLOntologyManager();
 		OWLDataFactory f = m.getOWLDataFactory();
-		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		for (IRI importIRI : imports) {
 			OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(importIRI);
 			m.loadOntology(importIRI);
-			changes.add(new AddImport(ont, importDeclaration));
+			m.applyChange(new AddImport(ont, importDeclaration));
 		}
-		m.applyChanges(changes);
 	}
 	
 	@Test
@@ -203,7 +195,7 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 		//			ont.getOWLOntologyManager().removeOntology(ont);
 
 		FileOutputStream os = new FileOutputStream(new File("target/qont.owl"));
-		ni.getQueryOntology().getOWLOntologyManager().saveOntology(ni.getQueryOntology(), os);
+		m.saveOntology(ni.getQueryOntology(), os);
 		os.close();
 		
 		os = new FileOutputStream(new File("target/aont.owl"));
