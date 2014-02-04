@@ -30,7 +30,6 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
-import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -39,7 +38,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -234,9 +232,14 @@ public class MinimalModelGenerator {
 					getOWLDataFactory().getOWLImportsDeclaration(aboxOntology.getOntologyID().getOntologyIRI()));
 			getOWLOntologyManager().applyChange(ai);
 		}
-		LOG.info("manager(T) = "+tboxOntology.getOWLOntologyManager());
-		LOG.info("manager(A) = "+aboxOntology.getOWLOntologyManager());
-		LOG.info("manager(Q) = "+queryOntology.getOWLOntologyManager());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("manager(T) = "+tboxOntology.getOWLOntologyManager());
+			LOG.debug("manager(A) = "+aboxOntology.getOWLOntologyManager());
+			LOG.debug("manager(Q) = "+queryOntology.getOWLOntologyManager());
+			LOG.debug("id(T) = "+tboxOntology.getOntologyID().getOntologyIRI());
+			LOG.debug("id(A) = "+aboxOntology.getOntologyID().getOntologyIRI());
+			LOG.debug("id(Q) = "+queryOntology.getOntologyID().getOntologyIRI());
+		}
 
 		if (contextualizingSuffix == null) {
 			contextualizingSuffix = "-proto";
@@ -271,6 +274,17 @@ public class MinimalModelGenerator {
 		if (reasoner != null) {
 			reasoner.dispose();
 			reasoner = null;
+		}
+	}
+	
+	public void dispose() {
+		disposeReasoner();
+		final OWLOntologyManager m = getOWLOntologyManager();
+		if (queryOntology != null) {
+			m.removeOntology(queryOntology);
+		}
+		if (aboxOntology != null) {
+			m.removeOntology(aboxOntology);
 		}
 	}
 
