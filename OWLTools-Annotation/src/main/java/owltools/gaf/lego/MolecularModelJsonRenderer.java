@@ -2,12 +2,14 @@ package owltools.gaf.lego;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -16,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
@@ -65,7 +68,11 @@ public class MolecularModelJsonRenderer {
 		someValuesFrom,
 		
 		intersectionOf,
-		unionOf
+		unionOf,
+		
+		subject,
+		property,
+		object
 	}
 	
 	/**
@@ -93,11 +100,34 @@ public class MolecularModelJsonRenderer {
 	 */
 	public Map<Object, Object> renderObject(OWLOntology ont) {
 		Map<Object, Object> model = new HashMap<Object, Object>();
+		
+		// per-Individual
 		List<Map<Object, Object>> iObjs = new ArrayList<Map<Object, Object>>();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
 			iObjs.add(renderObject(ont, i));
 		}
 		model.put("individuals", iObjs);
+		
+		// per-Assertion
+		Set<OWLObjectProperty> usedProps = new HashSet<OWLObjectProperty>();
+		
+		List<Map<Object, Object>> aObjs = new ArrayList<Map<Object, Object>>();
+		for (OWLObjectPropertyAssertionAxiom opa : 
+			ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
+			aObjs.add(renderObject(ont, opa));
+			usedProps.addAll(opa.getObjectPropertiesInSignature());
+		}
+		model.put("facts", aObjs);
+
+		// per-Property
+		List<Map<Object, Object>> pObjs = new ArrayList<Map<Object, Object>>();
+		for (OWLObjectProperty p : ont.getObjectPropertiesInSignature(true)) {
+			if (usedProps.contains(p)) {
+				pObjs.add(renderObject(ont, p));
+			}
+		}
+		model.put("properties", pObjs);
+
 		return model;
 		
 	}
@@ -128,6 +158,36 @@ public class MolecularModelJsonRenderer {
 		return iObj;
 	}
 	
+	/**
+	 * @param ont
+	 * @param opa
+	 * @return Map to be passed to Gson
+	 */
+	public Map<Object, Object> renderObject(OWLOntology ont, OWLObjectPropertyAssertionAxiom opa) {
+		Map<Object, Object> aObj = new HashMap<Object, Object>();
+		OWLNamedIndividual subject;
+		OWLObjectProperty property;
+		OWLNamedIndividual object;
+
+		subject = (OWLNamedIndividual) opa.getSubject();
+		property = (OWLObjectProperty) opa.getProperty();
+		object = (OWLNamedIndividual) opa.getObject();
+
+		aObj.put(KEY.subject, getId(subject, graph));
+		aObj.put(KEY.property, getId(property, graph));
+		aObj.put(KEY.object, getId(object, graph));
+		
+		return aObj;
+	}
+
+	public Map<Object, Object> renderObject(OWLOntology ont, OWLObjectProperty p) {
+		Map<Object, Object> iObj = new HashMap<Object, Object>();
+		iObj.put(KEY.id, getId(p, graph));
+		iObj.put(KEY.label, getLabel(p));
+		
+		iObj.put(KEY.type, "ObjectProperty");
+		return iObj;
+	}
 	/**
 	 * @param ont
 	 * @param x
