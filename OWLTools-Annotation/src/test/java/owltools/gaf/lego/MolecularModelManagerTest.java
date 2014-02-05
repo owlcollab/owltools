@@ -158,10 +158,11 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 	}
 
 	private String renderJSON(String modelId) {
-		List<Map<Object, Object>> objs = mmm.getIndividualObjects(modelId);
+
+		Map<Object, Object> obj = mmm.getModelObject(modelId);
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-		String js = gson.toJson(objs);
+		String js = gson.toJson(obj);
 		return js;
 	}
 
