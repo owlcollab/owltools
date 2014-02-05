@@ -42,6 +42,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
@@ -54,7 +55,6 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyRenameException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.SetOntologyID;
@@ -111,7 +111,7 @@ public class MolecularModelManager {
 		int changeId;
 		boolean isSuccess = true;
 		boolean isResultsInInconsistency = false;
-		List<Map<Object, Object>> modelData = null;
+		Object modelData = null;
 		List<OWLNamedIndividual> individuals = null;
 		
 		/**
@@ -158,14 +158,14 @@ public class MolecularModelManager {
 		/**
 		 * @return the modelData
 		 */
-		public List<Map<Object, Object>> getModelData() {
+		public Object getModelData() {
 			return modelData;
 		}
 		
 		/**
 		 * @param modelData the modelData to set
 		 */
-		public void setModelData(List<Map<Object, Object>> modelData) {
+		public void setModelData(Object modelData) {
 			this.modelData = modelData;
 		}
 		
@@ -256,7 +256,11 @@ public class MolecularModelManager {
 		init();
 	}
 
+	/**
+	 * @throws OWLOntologyCreationException
+	 */
 	protected void init() throws OWLOntologyCreationException {
+		// empty
 	}
 
 
@@ -1050,19 +1054,49 @@ public class MolecularModelManager {
 		return response;
 	}
 	
+	/**
+	 * TODO better re-use of MolecularModelJsonRenderer.
+	 * At the moment this method is a partial copy of
+	 * {@link MolecularModelJsonRenderer#renderObject(OWLOntology)}
+	 * 
+	 * TODO rename to reflect extended task, i.e. facts
+	 * @param resp
+	 * @param mod
+	 * @param individuals
+	 */
 	private void addIndividualsData(OWLOperationResponse resp, LegoModelGenerator mod, OWLIndividual...individuals) {
+		// TODO re-use more code from MolecularModelJsonRenderer
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
 		OWLOntology ont = mod.getAboxOntology();
-		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		List<Map<Object, Object>> iObjs = new ArrayList<Map<Object, Object>>();
 		List<OWLNamedIndividual> individualIds = new ArrayList<OWLNamedIndividual>();
+		Set<OWLObjectPropertyAssertionAxiom> opAxioms = new HashSet<OWLObjectPropertyAssertionAxiom>();
 		for (OWLIndividual i : individuals) {
 			if (i instanceof OWLNamedIndividual) {
 				OWLNamedIndividual named = (OWLNamedIndividual)i;
-				objs.add(renderer.renderObject(ont, named));
+				iObjs.add(renderer.renderObject(ont, named));
 				individualIds.add(named);
+				
+				Set<OWLIndividualAxiom> iAxioms = ont.getAxioms(i);
+				for (OWLIndividualAxiom owlIndividualAxiom : iAxioms) {
+					if (owlIndividualAxiom instanceof OWLObjectPropertyAssertionAxiom) {
+						opAxioms.add((OWLObjectPropertyAssertionAxiom) owlIndividualAxiom);
+					}
+				}
 			}
 		}
-		resp.setModelData(objs);
+		map.put("individuals", iObjs);
+		
+		List<Map<Object, Object>> aObjs = new ArrayList<Map<Object, Object>>();
+		for (OWLObjectPropertyAssertionAxiom opa : opAxioms) {
+			aObjs.add(renderer.renderObject(ont, opa));
+		}
+		map.put("facts", aObjs);
+		
+		// TODO decide on properties
+		
+		resp.setModelData(map);
 		resp.setIndividuals(individualIds);
 	}
 
