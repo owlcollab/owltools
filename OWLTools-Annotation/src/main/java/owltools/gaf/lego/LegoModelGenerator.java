@@ -491,7 +491,6 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 							Double pval;
 							try {
 								pval = calculatePairwiseEnrichment(activityCls, joinPointClass);
-								cp = this.calculateConditionalProbaility(joinPointClass, activityCls);
 								LOG.info("    enrichment of "+getIdLabelPair(activityCls)+" IN: "+getIdLabelPair(joinPointClass)+
 										" = "+pval);
 								// temp hack - e.g. frp1 ferric-chelate reductase in iron assimilation by reduction and transport
@@ -500,8 +499,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 								}
 
 								if (best == null || pval < best) {
-									// 
-									// TODO - pval == best
+									cp = this.calculateConditionalProbaility(joinPointClass, activityCls);
 									best = pval;
 									bestActivityClass = activityCls;
 									bestParentClass = joinPointClass;
