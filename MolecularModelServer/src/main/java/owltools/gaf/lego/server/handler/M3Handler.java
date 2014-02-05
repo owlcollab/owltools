@@ -151,13 +151,11 @@ public interface M3Handler {
 	@GET
 	public M3Response m3ExportModel(
 			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_FORMAT) String format,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 	
 	@Path("m3ImportModel")
 	@GET
 	public M3Response m3ImportModel(
-			@QueryParam(PARAM_MODELID) String modelId,
 			@QueryParam(PARAM_MODELID) String model,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 

@@ -1,6 +1,5 @@
 package owltools.gaf.lego.server.handler;
 
-import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -13,20 +12,12 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.glassfish.jersey.server.JSONP;
-import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.graph.OWLGraphWrapper;
@@ -288,27 +279,14 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3Response m3ExportModel(String modelId, String format, boolean help) {
+	public M3Response m3ExportModel(String modelId, boolean help) {
 		if (help) {
 			return helpMsg("Export the current content of the model");
 		}
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
-			LegoModelGenerator model = mmm.getModel(modelId);
-			OWLOntology ont = model.getAboxOntology();
-			OWLOntologyManager ontologyManager = ont.getOWLOntologyManager();
-			
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			
-			OWLOntologyFormat ontologyFormat = getOWLOntologyFormat(format);
-			if (ontologyFormat != null) {
-				ontologyManager.saveOntology(ont, ontologyFormat, outputStream);
-			}
-			else {
-				ontologyManager.saveOntology(ont, outputStream);
-			}
-			String modelString = outputStream.toString();
-			return success(Collections.singletonMap("export", modelString), null);
+			String model = mmm.exportModel(modelId);
+			return success(Collections.singletonMap("export", model), null);
 		} catch (Exception exception) {
 			return errorMsg("Could not export model", exception);
 		}
@@ -319,11 +297,19 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3Response m3ImportModel(String modelId, String model, boolean help) {
+	public M3Response m3ImportModel(String model, boolean help) {
 		if (help) {
 			return helpMsg("Import the model into the server.");
 		}
+		// throw error until the bug in the OWL-API is fixed.
 		return errorMsg("This methods is not implemented.", null);
+//		try {
+//			MolecularModelManager mmm = getMolecularModelManager();
+//			String modelId = mmm.importModel(model);
+//			return bulk(modelId, mmm);
+//		} catch (Exception exception) {
+//			return errorMsg("Could not import model", exception);
+//		}
 	}
 
 	/*
@@ -471,26 +457,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		return response;
 	}
 	
-	private OWLOntologyFormat getOWLOntologyFormat(String fmt) {
-		OWLOntologyFormat ofmt = null;
-		if (fmt != null) {
-			fmt = fmt.toLowerCase();
-			if (fmt.equals("rdfxml"))
-				ofmt = new RDFXMLOntologyFormat();
-			else if (fmt.equals("owl"))
-				ofmt = new RDFXMLOntologyFormat();
-			else if (fmt.equals("rdf"))
-				ofmt = new RDFXMLOntologyFormat();
-			else if (fmt.equals("owx"))
-				ofmt = new OWLXMLOntologyFormat();
-			else if (fmt.equals("owf"))
-				ofmt = new OWLFunctionalSyntaxOntologyFormat();
-			else if (fmt.equals("obo"))
-				ofmt = new OBOOntologyFormat();
-		}
-		return ofmt;
-	}
-
 	/**
 	 * Function for debugging: print JSON representation of a response to System.out.
 	 * 

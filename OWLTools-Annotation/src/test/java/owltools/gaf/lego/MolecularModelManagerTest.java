@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -197,6 +198,39 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 		Set<OWLNamedIndividual> individuals = mmm.getIndividuals(modelId);
 		assertEquals(1, individuals.size());
+	}
+
+	@Ignore("Will not work until a bug in the OWL-API is fixed!")
+	@Test
+	public void testExportImport() throws Exception {
+		ParserWrapper pw = new ParserWrapper();
+		g = pw.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
+
+		// GO:0038024 ! cargo receptor activity
+		// GO:0042803 ! protein homodimerization activity
+
+		mmm = new MolecularModelManager(g);
+
+		String modelId = mmm.generateBlankModel(null);
+		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024");
+		OWLNamedIndividual i1 = resp.getIndividuals().get(0);
+
+		resp = mmm.createIndividual(modelId, "GO:0042803");
+		OWLNamedIndividual i2 = resp.getIndividuals().get(0);
+
+		mmm.addPartOf(modelId, i1, i2);
+		
+		// export
+		String modelContent = mmm.exportModel(modelId);
+		System.out.println("-------------------");
+		System.out.println(modelContent);
+		System.out.println("-------------------");
+		
+		// import
+		String modelId2 = mmm.importModel(modelContent);
+		
+		assertEquals(modelId, modelId2);
+		assertEquals(2, mmm.getIndividuals(modelId2));
 	}
 
 	@Test

@@ -1,6 +1,7 @@
 package owltools.gaf.lego;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -24,7 +25,11 @@ import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.obolibrary.macro.ManchesterSyntaxTool;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
+import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -43,12 +48,16 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyRenameException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.GafDocument;
@@ -368,34 +377,35 @@ public class MolecularModelManager {
 		if (modelMap.containsKey(modelId)) {
 			throw new OWLOntologyCreationException("A model already exists for this process and db: "+modelId);
 		}
-		OWLOntology modelOntology;
+		OWLOntology tbox = graph.getSourceOntology();
+		OWLOntology abox;
 		
 		// create empty ontology
 		// use model id as ontology IRI
 		OWLOntologyManager m = graph.getManager();
 		IRI iri = MolecularModelJsonRenderer.getIRI(modelId, graph);
-		modelOntology = m.createOntology(iri);
+		abox = m.createOntology(iri);
 		
 		// variant 1: imports everything
 		// setup model ontology to import the source ontology, RO, and RO-pending
 		// add imports
-//		createImports(modelOntology,
-//				graph.getSourceOntology().getOntologyID().getOntologyIRI(),
-//				IRI.create("http://purl.obolibrary.org/obo/ro.owl"),
-//				IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
+		createImports(abox,
+				tbox.getOntologyID().getOntologyIRI(),
+				IRI.create("http://purl.obolibrary.org/obo/ro.owl"),
+				IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
 		
 		// variant 2: copy all axioms into a new ontology
-		m.addAxioms(modelOntology, graph.getSourceOntology().getAxioms());
+//		m.addAxioms(abox, tbox.getAxioms());
 		
 		// create generator
-		LegoModelGenerator model = new LegoModelGenerator(modelOntology, new ElkReasonerFactory());
+		LegoModelGenerator model = new LegoModelGenerator(tbox, abox);
 		
 		model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
 		Set<String> seedGenes = new HashSet<String>();
 		// only look for genes if a GAF is available
 		if (db != null) {
 			GafDocument gafdoc = getGaf(db);
-			model.initialize(gafdoc, new OWLGraphWrapper(modelOntology));
+			model.initialize(gafdoc, graph);
 			seedGenes.addAll(model.getGenes(processCls));
 		}
 		model.setContextualizingSuffix(db);
@@ -406,15 +416,14 @@ public class MolecularModelManager {
 
 	}
 	
-	private void createImports(OWLOntology ont, IRI...imports) {
+	private void createImports(OWLOntology ont, IRI...imports) throws OWLOntologyCreationException {
 		OWLOntologyManager m = ont.getOWLOntologyManager();
 		OWLDataFactory f = m.getOWLDataFactory();
-		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		for (IRI importIRI : imports) {
 			OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(importIRI);
-			changes.add(new AddImport(ont, importDeclaration));
+			m.loadOntology(importIRI);
+			m.applyChange(new AddImport(ont, importDeclaration));
 		}
-		m.applyChanges(changes);
 	}
 	
 	/**
@@ -464,22 +473,23 @@ public class MolecularModelManager {
 		}
 
 		// create empty ontology, use model id as ontology IRI
-		OWLOntologyManager m = graph.getManager();
-		IRI iri = MolecularModelJsonRenderer.getIRI(modelId, graph);
-		OWLOntology modelOntology = m.createOntology(iri);
+		final OWLOntologyManager m = graph.getManager();
+		IRI aBoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		final OWLOntology tbox = graph.getSourceOntology();
+		final OWLOntology abox = m.createOntology(aBoxIRI);
 
 		// setup model ontology to import the source ontology, RO, and RO-pending
-		createImports(modelOntology,
-				graph.getSourceOntology().getOntologyID().getOntologyIRI(),
+		createImports(abox,
+				tbox.getOntologyID().getOntologyIRI(),
 				IRI.create("http://purl.obolibrary.org/obo/ro.owl"),
 				IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
 		
-		LegoModelGenerator model = new LegoModelGenerator(modelOntology, new ElkReasonerFactory());
+		LegoModelGenerator model = new LegoModelGenerator(tbox, abox);
 		
 		model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
 		if (db != null) {
 			GafDocument gafdoc = getGaf(db);
-			model.initialize(gafdoc, new OWLGraphWrapper(modelOntology));
+			model.initialize(gafdoc, graph);
 			model.setContextualizingSuffix(db);
 		}
 		
@@ -753,6 +763,141 @@ public class MolecularModelManager {
 		}
 	}
 	
+	/**
+	 * Export the ABox for the given modelId in the default ontology format.
+	 * 
+	 * @param modelId
+	 * @return modelContent
+	 * @throws OWLOntologyStorageException
+	 */
+	public String exportModel(String modelId) throws OWLOntologyStorageException {
+		return exportModel(modelId, "owf");
+	}
+	
+	public String exportModel(String modelId, String format) throws OWLOntologyStorageException {
+		if (format == null) {
+			format = "owf";
+		}
+		OWLOntologyFormat ontologyFormat = getOWLOntologyFormat(format);
+		return exportModel(modelId, ontologyFormat);
+	}
+	
+	/**
+	 * Export the ABox, will try to set the ontologyID to the given modelId (to
+	 * ensure import assumptions are met)
+	 * 
+	 * @param modelId
+	 * @param ontologyFormat
+	 * @return modelContent
+	 * @throws OWLOntologyStorageException
+	 */
+	public String exportModel(String modelId, OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException {
+		final LegoModelGenerator model = getModel(modelId);
+		final OWLOntology aBox = model.getAboxOntology();
+		final OWLOntologyManager manager = aBox.getOWLOntologyManager();
+		
+		// make sure the exported ontology has an ontologyId and that it maps to the modelId
+		final IRI expectedABoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		OWLOntologyID ontologyID = aBox.getOntologyID();
+		if (ontologyID == null) {
+			manager.applyChange(new SetOntologyID(aBox, expectedABoxIRI));
+		}
+		else {
+			IRI currentABoxIRI = ontologyID.getOntologyIRI();
+			if (expectedABoxIRI.equals(currentABoxIRI) == false) {
+				ontologyID = new OWLOntologyID(expectedABoxIRI, ontologyID.getVersionIRI());
+				manager.applyChange(new SetOntologyID(aBox, ontologyID));
+			}
+		}
+
+		// write the model into a buffer
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		if (ontologyFormat != null) {
+			manager.saveOntology(aBox, ontologyFormat, outputStream);
+		}
+		else {
+			manager.saveOntology(aBox, outputStream);
+		}
+		
+		// extract the string from the buffer
+		String modelString = outputStream.toString();
+		return modelString;
+	}
+	
+	private OWLOntologyFormat getOWLOntologyFormat(String fmt) {
+		OWLOntologyFormat ofmt = null;
+		if (fmt != null) {
+			fmt = fmt.toLowerCase();
+			if (fmt.equals("rdfxml"))
+				ofmt = new RDFXMLOntologyFormat();
+			else if (fmt.equals("owl"))
+				ofmt = new RDFXMLOntologyFormat();
+			else if (fmt.equals("rdf"))
+				ofmt = new RDFXMLOntologyFormat();
+			else if (fmt.equals("owx"))
+				ofmt = new OWLXMLOntologyFormat();
+			else if (fmt.equals("owf"))
+				ofmt = new OWLFunctionalSyntaxOntologyFormat();
+		}
+		return ofmt;
+	}
+	
+	/**
+	 *  Try to load (or replace) a model with the given ontology. It is expected
+	 * that the content is an A-Box ontology, which imports the T-BOX. Also the
+	 * ontology ID is used to extract the modelId.<br>
+	 * <br>
+	 * This method will currently <b>NOT<b> work due to a bug in the OWL-API.
+	 * The functional syntax parser does not properly report the exceptions and
+	 * will return an ontology with an wrong ontology ID!
+	 * 
+	 * @param modelData
+	 * @return modelId
+	 * @throws OWLOntologyCreationException
+	 */
+	public String importModel(String modelData) throws OWLOntologyCreationException {
+		// load data from String
+		final OWLOntologyManager manager = graph.getManager();
+		final OWLOntologyDocumentSource documentSource = new StringDocumentSource(modelData);
+		OWLOntology modelOntology;
+		try {
+			modelOntology = manager.loadOntologyFromOntologyDocument(documentSource);
+		}
+		catch (OWLOntologyAlreadyExistsException e) {
+			// exception is thrown if there is an ontology with the same ID already in memory 
+			OWLOntologyID id = e.getOntologyID();
+			String existingModelId = MolecularModelJsonRenderer.getId(id.getOntologyIRI());
+
+			// remove the existing memory model
+			unlinkModel(existingModelId);
+
+			// try loading the import version (again)
+			modelOntology = manager.loadOntologyFromOntologyDocument(documentSource);
+		}
+		
+		// try to extract modelId
+		String modelId = null;
+		OWLOntologyID ontologyId = modelOntology.getOntologyID();
+		if (ontologyId != null) {
+			IRI iri = ontologyId.getOntologyIRI();
+			if (iri != null) {
+				modelId = MolecularModelJsonRenderer.getId(iri);
+			}
+		}
+		if (modelId == null) {
+			throw new OWLOntologyCreationException("Could not extract the modelId from the given model");
+		}
+		// paranoia check
+		LegoModelGenerator existingModel = modelMap.get(modelId);
+		if (existingModel != null) {
+			unlinkModel(modelId);
+		}
+		
+		// add to internal model
+		addModel(modelId, modelOntology);
+		return modelId;
+	}
+	
 	/*
 	 * look for all owl files in the give model folder.
 	 */
@@ -821,12 +966,17 @@ public class MolecularModelManager {
 			if (!isOverride) {
 				throw new OWLOntologyCreationException("Model already exists: "+modelId);
 			}
+			unlinkModel(modelId);
 		}
 		String file = getPathToModelOWL(modelId);
-		
-		OWLOntology ont = graph.getManager().loadOntologyFromOntologyDocument(IRI.create(new File(file)));
-		LegoModelGenerator m = new LegoModelGenerator(graph.getSourceOntology());
-		m.setAboxOntology(ont);
+		IRI sourceIRI = IRI.create(new File(file));
+		OWLOntology abox = graph.getManager().loadOntologyFromOntologyDocument(sourceIRI);
+		addModel(modelId, abox);
+	}
+
+	private void addModel(String modelId, OWLOntology abox) throws OWLOntologyCreationException {
+		OWLOntology tbox = graph.getSourceOntology();
+		LegoModelGenerator m = new LegoModelGenerator(tbox, abox);
 		modelMap.put(modelId, m);
 	}
 
