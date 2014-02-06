@@ -498,10 +498,13 @@ public class CommandRunner {
 				g.getManager().applyChange(soid);
 			}
 			else if (opts.nextEq("--add-ontology-annotation")) {
+				opts.info("[-u] PROP VAL", "Sets an ontology annotation");
 				OWL2Datatype dt = OWL2Datatype.XSD_STRING;
 				while (opts.hasOpts()) {
-					if (opts.nextEq("-u"))
+					if (opts.nextEq("-u")) {
+						opts.info("", "Ase xsd:anyURI as datatype");
 						dt = OWL2Datatype.XSD_ANY_URI;
+					}
 					else
 						break;
 				}
@@ -592,10 +595,34 @@ public class CommandRunner {
 								"  Example: my.owl --make-subset-by-properties BFO:0000050 'develops from' // -o my-slim.owl \n"+
 								"  The special symbol 'ALL-PROPERTIES' selects all properties in the signature.\n"+								
 						"  The property list should be terminated by '//' (this is optional and a new command starting with '-' is sufficient to end the list)");
+				boolean isForceRemoveDangling = false;
+				boolean isSuppressRemoveDangling = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-f|--force")) {
+						isForceRemoveDangling = true;
+					}
+					else if (opts.nextEq("-n|--no-remove-dangling")) {
+						isSuppressRemoveDangling = true;
+					}
+					else {
+						break;
+					}
+				}
 				Set<OWLObjectProperty> props = this.resolveObjectPropertyList(opts);
 				Mooncat m = new Mooncat(g);
+				int numDanglingAxioms = m.getDanglingAxioms(g.getSourceOntology()).size();
+				LOG.info("# Dangling axioms prior to filtering: "+numDanglingAxioms);
+				if (numDanglingAxioms > 0) {
+					if (!isForceRemoveDangling && !isSuppressRemoveDangling) {
+						LOG.error("Will not proceed until dangling axioms removed, or -n or -f options are set");
+						throw new Exception("Dangling axioms will be lost");
+					}
+				}
 				m.retainAxiomsInPropertySubset(g.getSourceOntology(),props,reasoner);
-				m.removeDanglingAxioms();
+				if (!isSuppressRemoveDangling) {
+					LOG.info("# Dangling axioms post-filtering: " + m.getDanglingAxioms(g.getSourceOntology()).size());
+					m.removeDanglingAxioms();
+				}
 			}
 			else if (opts.nextEq("--list-class-axioms")) {
 				OWLClass c = resolveClass(opts.nextOpt());
@@ -1187,10 +1214,15 @@ public class CommandRunner {
 			else if (opts.nextEq("--extract-mingraph")) {
 				opts.info("", "Extracts a minimal graph ontology containing only label, subclass and equivalence axioms");
 				String idspace = null;
+				boolean isPreserveOntologyAnnotations = false;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("--idspace")) {
 						opts.info("IDSPACE", "E.g. GO. If set, only the reflexive closure of this ontology will be included");
 						idspace = opts.nextOpt();
+					}
+					else if (opts.nextEq("-a|--preserve-ontology-annotations")) {
+						opts.info("", "Set if ontology header is to be preserved");
+						isPreserveOntologyAnnotations = true;
 					}
 					else {
 						break;
@@ -1200,6 +1232,11 @@ public class CommandRunner {
 				Set <OWLClass> seedClasses = new HashSet<OWLClass>();
 				OWLOntology src = g.getSourceOntology();
 				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+				Set<OWLAnnotation> anns = new HashSet<OWLAnnotation>();
+				if (isPreserveOntologyAnnotations) {
+					anns = src.getAnnotations();
+				}
+				
 				axioms.addAll(src.getAxioms(AxiomType.SUBCLASS_OF));
 				axioms.addAll(src.getAxioms(AxiomType.EQUIVALENT_CLASSES));
 				for (OWLAnnotationAssertionAxiom aaa : src.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
@@ -1271,7 +1308,13 @@ public class CommandRunner {
 					}
 				}
 				newOnt.getOWLOntologyManager().addAxioms(newOnt, axioms);
-				g.setSourceOntology(newOnt);				
+				g.setSourceOntology(newOnt);	
+				
+				for (OWLAnnotation ann : anns ) {
+					AddOntologyAnnotation addAnn = new AddOntologyAnnotation(g.getSourceOntology(), ann);
+					g.getManager().applyChange(addAnn);
+				}
+
 				//g.mergeOntology(pont);
 				AxiomAnnotationTools.reduceAxiomAnnotationsToOboBasic(newOnt);
 				OboInOwlCardinalityTools.checkAnnotationCardinality(newOnt);
@@ -3136,7 +3179,8 @@ public class CommandRunner {
 				boolean isTraverseDown = false;
 				boolean isMerge = false;
 				OWLOntology baseOnt = g.getSourceOntology();
-
+				IRI dcSource = null;
+				
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-n")) {
 						modIRI = opts.nextOpt();
@@ -3214,8 +3258,24 @@ public class CommandRunner {
 				else {
 					modOnt = g.getManager().createOntology(IRI.create(modIRI));
 				}
+				if (dcSource == null) {
+					OWLOntologyID oid = baseOnt.getOntologyID();
+					dcSource = oid.getVersionIRI();
+					if (dcSource == null) {
+						dcSource = oid.getOntologyIRI();
+					}
+				}
 				g.getManager().addAxioms(modOnt, modAxioms);
 				g.setSourceOntology(modOnt);
+				if (dcSource != null) {	
+					LOG.info("Setting source: "+dcSource);
+					OWLAnnotation ann = 
+							g.getDataFactory().getOWLAnnotation(g.getDataFactory().getOWLAnnotationProperty(
+									IRI.create("http://purl.org/dc/elements/1.1/source")),
+									dcSource);
+					AddOntologyAnnotation addAnn = new AddOntologyAnnotation(g.getSourceOntology(), ann);
+					g.getManager().applyChange(addAnn);
+				}
 			}
 			else if (opts.nextEq("--translate-disjoint-to-equivalent|--translate-disjoints-to-equivalents")) {
 				opts.info("", "adds (Xi and Xj  = Nothing) for every DisjointClasses(X1...Xn) where i<j<n");
