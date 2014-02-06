@@ -2,9 +2,6 @@ package owltools.util;
 
 import static org.junit.Assert.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -13,19 +10,10 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedObject;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.OWLToolsTestBasics;
-import owltools.graph.OWLGraphWrapper;
-import owltools.graph.shunt.OWLShuntEdge;
-import owltools.graph.shunt.OWLShuntGraph;
-import owltools.graph.shunt.OWLShuntNode;
-import owltools.io.CatalogXmlIRIMapper;
-import owltools.util.ShuntGraphUtils.ShuntGraphPair;
-import owltools.vocab.OBOUpperVocabulary;
 
 /**
  * This test is primarily for illustrative purposes - it
@@ -71,7 +59,7 @@ public class GetLabelsTest extends OWLToolsTestBasics {
 					if (label != null) {
 						throw new MultiLabelException(obj);
 					}
-					label = ((OWLLiteral)v).getLiteral().toString();
+					label = ((OWLLiteral)v).getLiteral();
 				}
 			}
 		}
