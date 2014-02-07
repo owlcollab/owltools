@@ -66,7 +66,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
-			return bulk(modelId, mmm);
+			return bulk(modelId, mmm, M3Response.INSTANTIATE);
 		} catch (Exception exception) {
 			return errorMsg("Could not retrieve model", exception);
 		}
@@ -86,7 +86,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			System.out.println("cls: " + classId);
 			MolecularModelManager mmm = getMolecularModelManager();
 			String mid = mmm.generateModel(classId, db);
-			return bulk(mid, mmm);
+			return bulk(mid, mmm, M3Response.INSTANTIATE);
 		} catch (Exception exception) {
 			return errorMsg("Could not generate model", exception);
 		}
@@ -105,7 +105,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			System.out.println("db: " + db);
 			MolecularModelManager mmm = getMolecularModelManager();
 			String mid = mmm.generateBlankModel(db);
-			return bulk(mid, mmm);
+			return bulk(mid, mmm, M3Response.INSTANTIATE);
 		} catch (Exception exception) {
 			return errorMsg("Could not generate model", exception);
 		}
@@ -156,7 +156,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.deleteIndividual(modelId, individualId);
-			return bulk(modelId, mmm); // TODO for now return the whole thing
+			return bulk(modelId, mmm, M3Response.INCONSISTENT); // TODO for now return the whole thing
 		} catch (Exception exception) {
 			return errorMsg("Could not create individual in model", exception);
 		}
@@ -421,8 +421,8 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	 * @param mmm 
 	 * @return REST response, never null
 	 */
-	private M3Response bulk(String modelId, MolecularModelManager mmm) {
-		M3Response response = new M3Response(M3Response.INCONSISTENT);
+	private M3Response bulk(String modelId, MolecularModelManager mmm, String respCat) {
+		M3Response response = new M3Response(respCat);
 		if (mmm != null) {
 			// TODO add consistent m3 model to result ?
 			Map<Object, Object> obj = mmm.getModelObject(modelId);
