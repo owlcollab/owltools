@@ -12,8 +12,6 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLProperty;
 
 import owltools.gaf.GafDocument;
-import owltools.godb.DatabaseDumper;
-import owltools.godb.ReferentialIntegrityException;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;

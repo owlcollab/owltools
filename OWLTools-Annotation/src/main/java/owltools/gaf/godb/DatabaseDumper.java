@@ -14,7 +14,6 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import owltools.godb.ReferentialIntegrityException;
 import owltools.graph.OWLGraphWrapper;
 
 /**
