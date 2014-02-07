@@ -4,7 +4,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -12,12 +14,20 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLProperty;
 
 import owltools.gaf.GafDocument;
+import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
 
+/**
+ * implements DatabaseDumper for GO MySQL db
+ * 
+ * @author cjm
+ *
+ */
 public class GoMySQLDatabaseDumper extends DatabaseDumper {
 
+	
 	protected enum GOMySQLTable {
 		// go general
 		db, dbxref,
@@ -45,6 +55,12 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 		species
 		};
 
+
+	public GoMySQLDatabaseDumper(OWLGraphWrapper g) {
+		graph = g;
+	}
+	
+	
 
 	/**
 	 * dumps all tables
@@ -116,8 +132,8 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 			if (qp.isSubClassOf()) {
 				p = getSubClassAsObjectProperty();
 			}
-			Integer term1_id = getId(GOMySQLTable.term, edge.getTargetId(), true);
-			Integer term2_id = getId(GOMySQLTable.term, edge.getSourceId(), true);
+			Integer term1_id = getId(GOMySQLTable.term, edge.getTarget(), true);
+			Integer term2_id = getId(GOMySQLTable.term, edge.getSource(), true);
 			Integer relationship_type_id = getId(GOMySQLTable.term, p);
 			dumpRow(s, relationship_type_id,  term1_id,  term2_id, 0);
 		}
@@ -146,14 +162,23 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 	}
 
 	public void dumpAssociationTable() throws IOException, ReferentialIntegrityException {
+		PrintStream s = getPrintStream(GOMySQLTable.association.toString());
+		for ( GafDocument gd : gafdocs ) {
+			dumpAssociationRowsForGaf(s, gd);
+		}
+		s.close();		
 	}
 	
-	public void dumpAssociationRowsForGaf(PrintStream s, GafDocument gaf) throws IOException, ReferentialIntegrityException {
-		for ( OWLClass c : graph.getAllOWLClasses() ) {
-			dumpAssociationRow(s, c);
-		}
-		for ( OWLObjectProperty p : graph.getSourceOntology().getObjectPropertiesInSignature() ) {
-			dumpAssociationRow(s, p);
+	public void dumpAssociationRowsForGaf(PrintStream s, GafDocument gafdoc) throws IOException, ReferentialIntegrityException {
+		for ( GeneAnnotation a : gafdoc.getGeneAnnotations() ) {
+			int id = getId(GOMySQLTable.association, a);
+			OWLClass cls = graph.getOWLClassByIdentifier(a.getCls());
+			Integer term1_id = getId(GOMySQLTable.term, cls, true);
+			// TODO
+			dumpRow(s,
+					id,
+					term1_id);
+					
 		}
 	}
 

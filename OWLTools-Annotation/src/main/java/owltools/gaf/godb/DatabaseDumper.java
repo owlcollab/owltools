@@ -1,6 +1,7 @@
 package owltools.gaf.godb;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,10 +11,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
+import owltools.gaf.GafDocument;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -33,9 +36,33 @@ public abstract class DatabaseDumper {
 	protected Map<Object,Integer> objIdMap = new HashMap<Object,Integer>();
 	protected Map<String,Integer> objLastIdMap = new HashMap<String,Integer>();
 	protected Set<String> incrementallyLoadedTables = new HashSet<String>(); 
+	protected String targetDirectory = "target";
+	
+	Set<GafDocument> gafdocs = new HashSet<GafDocument>();
+
+
+	public String getTargetDirectory() {
+		return targetDirectory;
+	}
+
+
+	public void setTargetDirectory(String targetDirectory) {
+		this.targetDirectory = targetDirectory;
+	}
+
+	public void addGafDocument(GafDocument gd) {
+		gafdocs.add(gd);
+	}
 	
 	
 
+	public Set<GafDocument> getGafdocs() {
+		return gafdocs;
+	}
+
+	public void setGafdocs(Set<GafDocument> gafdocs) {
+		this.gafdocs = gafdocs;
+	}
 	/**
 	 * dumps all tables
 	 * @throws IOException 
@@ -77,15 +104,17 @@ public abstract class DatabaseDumper {
 
 	}
 	
-	protected PrintStream getPrintStream(String t) throws FileNotFoundException {
+	protected PrintStream getPrintStream(String t) throws IOException {
 		FileOutputStream fos;
+		FileUtils.forceMkdir(new File(targetDirectory));
+		String path = targetDirectory + "/" + t.toString() + ".txt";
 		if (this.incrementallyLoadedTables.contains(t)) {
 			// TODO - allow option to introspect file for lastId
-			fos = new FileOutputStream(t.toString() + ".txt", true);
+			fos = new FileOutputStream(path, true);
 			
 		}
 		else {
-			fos = new FileOutputStream(t.toString() + ".txt");
+			fos = new FileOutputStream(path);
 		}
 		return new PrintStream(new BufferedOutputStream(fos));
 
