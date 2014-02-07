@@ -1,0 +1,1201 @@
+format-version: 1.2
+subsetdef: Cross_product_review "Involved_in"
+subsetdef: gocheck_do_not_annotate "Term not to be used for direct annotation"
+subsetdef: gocheck_do_not_manually_annotate "Term not to be used for direct manual annotation"
+subsetdef: goslim_aspergillus "Aspergillus GO slim"
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_metagenomics "Metagenomics GO slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+subsetdef: mf_needs_review "Catalytic activity terms in need of attention"
+subsetdef: termgenie_unvetted "Terms created by TermGenie that do not follow a template and require additional vetting by editors"
+subsetdef: virus_checked "Viral overhaul terms"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+ontology: go
+
+[Term]
+id: GO:0003674
+name: molecular_function
+namespace: molecular_function
+alt_id: GO:0005554
+def: "Elemental activities, such as catalysis or binding, describing the actions of a gene product at the molecular level. A given gene product may exhibit one or more molecular functions." [GOC:go_curators]
+comment: Note that, in addition to forming the root of the molecular function ontology, this term is recommended for use for the annotation of gene products whose molecular function is unknown. Note that when this term is used for annotation, it indicates that no information was available about the molecular function of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "molecular function" EXACT []
+synonym: "molecular function unknown" NARROW []
+disjoint_from: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0003724
+name: RNA helicase activity
+namespace: molecular_function
+def: "Catalysis of the reaction: NTP + H2O = NDP + phosphate, to drive the unwinding of a RNA helix." [GOC:jl, GOC:mah]
+subset: gosubset_prok
+xref: EC:2.7.7.-
+xref: Reactome:REACT_110845
+xref: Reactome:REACT_112817
+xref: Reactome:REACT_1521
+xref: Reactome:REACT_31034
+xref: Reactome:REACT_84574
+xref: Reactome:REACT_85111
+xref: Reactome:REACT_98745
+is_a: GO:0004386 ! helicase activity
+
+[Term]
+id: GO:0003824
+name: catalytic activity
+namespace: molecular_function
+def: "Catalysis of a biochemical reaction at physiological temperatures. In biologically catalyzed reactions, the reactants are known as substrates, and the catalysts are naturally occurring macromolecular substances known as enzymes. Enzymes possess specific binding sites for substrates, and are usually composed wholly or largely of protein, but RNA that has catalytic activity (ribozyme) is often also regarded as enzymatic." [ISBN:0198506732]
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "enzyme activity" EXACT [GOC:dph, GOC:tb]
+xref: Wikipedia:Enzyme
+is_a: GO:0003674 ! molecular_function
+relationship: part_of GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0004004
+name: ATP-dependent RNA helicase activity
+namespace: molecular_function
+def: "Catalysis of the reaction: ATP + H2O = ADP + phosphate; this reaction drives the unwinding of an RNA helix." [EC:3.6.1.3, GOC:jl]
+subset: gosubset_prok
+xref: Reactome:REACT_75794
+is_a: GO:0003724 ! RNA helicase activity
+is_a: GO:0008026 ! ATP-dependent helicase activity
+is_a: GO:0008186 ! RNA-dependent ATPase activity
+
+[Term]
+id: GO:0004386
+name: helicase activity
+namespace: molecular_function
+def: "Catalysis of the reaction: NTP + H2O = NDP + phosphate, to drive the unwinding of a DNA or RNA helix." [GOC:mah, ISBN:0198506732]
+comment: Note that most helicases catalyze processive duplex unwinding.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_yeast
+subset: gosubset_prok
+xref: Reactome:REACT_101111
+xref: Reactome:REACT_101247
+xref: Reactome:REACT_101622
+xref: Reactome:REACT_101644
+xref: Reactome:REACT_101823
+xref: Reactome:REACT_101994
+xref: Reactome:REACT_102121
+xref: Reactome:REACT_102441
+xref: Reactome:REACT_102560
+xref: Reactome:REACT_1033
+xref: Reactome:REACT_103861
+xref: Reactome:REACT_103881
+xref: Reactome:REACT_103897
+xref: Reactome:REACT_103959
+xref: Reactome:REACT_104221
+xref: Reactome:REACT_105950
+xref: Reactome:REACT_106346
+xref: Reactome:REACT_107072
+xref: Reactome:REACT_107495
+xref: Reactome:REACT_108159
+xref: Reactome:REACT_108648
+xref: Reactome:REACT_108654
+xref: Reactome:REACT_109035
+xref: Reactome:REACT_109161
+xref: Reactome:REACT_110588
+xref: Reactome:REACT_110827
+xref: Reactome:REACT_110845
+xref: Reactome:REACT_112208
+xref: Reactome:REACT_112817
+xref: Reactome:REACT_113177
+xref: Reactome:REACT_1521
+xref: Reactome:REACT_1817
+xref: Reactome:REACT_1844
+xref: Reactome:REACT_28131
+xref: Reactome:REACT_28343
+xref: Reactome:REACT_28810
+xref: Reactome:REACT_28880
+xref: Reactome:REACT_29155
+xref: Reactome:REACT_29217
+xref: Reactome:REACT_29818
+xref: Reactome:REACT_29850
+xref: Reactome:REACT_30013
+xref: Reactome:REACT_30989
+xref: Reactome:REACT_31034
+xref: Reactome:REACT_31090
+xref: Reactome:REACT_31554
+xref: Reactome:REACT_32533
+xref: Reactome:REACT_33205
+xref: Reactome:REACT_34016
+xref: Reactome:REACT_34089
+xref: Reactome:REACT_34560
+xref: Reactome:REACT_40
+xref: Reactome:REACT_6134
+xref: Reactome:REACT_6184
+xref: Reactome:REACT_6325
+xref: Reactome:REACT_6758
+xref: Reactome:REACT_6768
+xref: Reactome:REACT_6853
+xref: Reactome:REACT_6922
+xref: Reactome:REACT_78086
+xref: Reactome:REACT_78462
+xref: Reactome:REACT_78667
+xref: Reactome:REACT_78771
+xref: Reactome:REACT_79759
+xref: Reactome:REACT_80107
+xref: Reactome:REACT_80325
+xref: Reactome:REACT_80500
+xref: Reactome:REACT_80532
+xref: Reactome:REACT_80605
+xref: Reactome:REACT_81126
+xref: Reactome:REACT_81335
+xref: Reactome:REACT_81427
+xref: Reactome:REACT_81441
+xref: Reactome:REACT_81682
+xref: Reactome:REACT_82776
+xref: Reactome:REACT_83794
+xref: Reactome:REACT_84565
+xref: Reactome:REACT_84574
+xref: Reactome:REACT_84809
+xref: Reactome:REACT_84907
+xref: Reactome:REACT_85111
+xref: Reactome:REACT_85172
+xref: Reactome:REACT_86220
+xref: Reactome:REACT_88362
+xref: Reactome:REACT_89000
+xref: Reactome:REACT_89030
+xref: Reactome:REACT_89363
+xref: Reactome:REACT_89694
+xref: Reactome:REACT_91822
+xref: Reactome:REACT_93391
+xref: Reactome:REACT_93711
+xref: Reactome:REACT_94645
+xref: Reactome:REACT_94679
+xref: Reactome:REACT_95942
+xref: Reactome:REACT_95993
+xref: Reactome:REACT_98273
+xref: Reactome:REACT_98302
+xref: Reactome:REACT_98745
+xref: Reactome:REACT_99120
+is_a: GO:0017111 ! nucleoside-triphosphatase activity
+
+[Term]
+id: GO:0006139
+name: nucleobase-containing compound metabolic process
+namespace: biological_process
+alt_id: GO:0055134
+def: "Any cellular metabolic process involving nucleobases, nucleosides, nucleotides and nucleic acids." [GOC:ai]
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "cellular nucleobase, nucleoside, nucleotide and nucleic acid metabolic process" EXACT []
+synonym: "cellular nucleobase, nucleoside, nucleotide and nucleic acid metabolism" EXACT []
+synonym: "nucleobase, nucleoside and nucleotide metabolic process" RELATED []
+synonym: "nucleobase, nucleoside, nucleotide and nucleic acid metabolic process" RELATED [GOC:dph, GOC:tb]
+synonym: "nucleobase, nucleoside, nucleotide and nucleic acid metabolism" EXACT []
+is_a: GO:0006725 ! cellular aromatic compound metabolic process
+is_a: GO:0034641 ! cellular nitrogen compound metabolic process
+is_a: GO:0044238 ! primary metabolic process
+is_a: GO:0046483 ! heterocycle metabolic process
+is_a: GO:1901360 ! organic cyclic compound metabolic process
+
+[Term]
+id: GO:0006152
+name: purine nucleoside catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of purine nucleoside, one of a family of organic molecules consisting of a purine base covalently bonded to a sugar ribose (a ribonucleoside) or deoxyribose (a deoxyribonucleoside)." [GOC:go_curators]
+subset: gosubset_prok
+synonym: "purine nucleoside breakdown" EXACT []
+synonym: "purine nucleoside catabolism" EXACT []
+synonym: "purine nucleoside degradation" EXACT []
+is_a: GO:0009164 ! nucleoside catabolic process
+is_a: GO:0042278 ! purine nucleoside metabolic process
+is_a: GO:0072523 ! purine-containing compound catabolic process
+
+[Term]
+id: GO:0006163
+name: purine nucleotide metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving a purine nucleotide, a compound consisting of nucleoside (a purine base linked to a deoxyribose or ribose sugar) esterified with a phosphate group at either the 3' or 5'-hydroxyl group of the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "purine metabolic process" NARROW []
+synonym: "purine metabolism" NARROW []
+synonym: "purine nucleotide metabolism" EXACT []
+is_a: GO:0009117 ! nucleotide metabolic process
+is_a: GO:0072521 ! purine-containing compound metabolic process
+
+[Term]
+id: GO:0006195
+name: purine nucleotide catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of a purine nucleotide, a compound consisting of nucleoside (a purine base linked to a deoxyribose or ribose sugar) esterified with a phosphate group at either the 3' or 5'-hydroxyl group of the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "purine nucleotide breakdown" EXACT []
+synonym: "purine nucleotide catabolism" EXACT []
+synonym: "purine nucleotide degradation" EXACT []
+xref: Reactome:REACT_100331
+xref: Reactome:REACT_104277
+xref: Reactome:REACT_105169
+xref: Reactome:REACT_105236
+xref: Reactome:REACT_107505
+xref: Reactome:REACT_113844
+xref: Reactome:REACT_2086
+xref: Reactome:REACT_30574
+xref: Reactome:REACT_31958
+xref: Reactome:REACT_33664
+xref: Reactome:REACT_34219
+xref: Reactome:REACT_58357
+xref: Reactome:REACT_77442
+xref: Reactome:REACT_77815
+xref: Reactome:REACT_78778
+xref: Reactome:REACT_85047
+xref: Reactome:REACT_91836
+xref: Reactome:REACT_95337
+xref: Reactome:REACT_95719
+xref: Reactome:REACT_98589
+xref: Reactome:REACT_99571
+is_a: GO:0006163 ! purine nucleotide metabolic process
+is_a: GO:0009166 ! nucleotide catabolic process
+is_a: GO:0072523 ! purine-containing compound catabolic process
+
+[Term]
+id: GO:0006200
+name: ATP catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of ATP, adenosine 5'-triphosphate, a universally important coenzyme and enzyme regulator." [GOC:ai]
+subset: gosubset_prok
+synonym: "ATP breakdown" EXACT []
+synonym: "ATP catabolism" EXACT []
+synonym: "ATP degradation" EXACT []
+synonym: "ATP hydrolysis" NARROW []
+xref: Wikipedia:ATP_hydrolysis
+is_a: GO:0009154 ! purine ribonucleotide catabolic process
+is_a: GO:0009207 ! purine ribonucleoside triphosphate catabolic process
+is_a: GO:0046034 ! ATP metabolic process
+is_a: GO:0046130 ! purine ribonucleoside catabolic process
+
+[Term]
+id: GO:0006725
+name: cellular aromatic compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving aromatic compounds, any organic compound characterized by one or more planar rings, each of which contains conjugated double bonds and delocalized pi electrons, as carried out by individual cells." [GOC:ai, ISBN:0198506732]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "aromatic compound metabolism" EXACT []
+synonym: "aromatic hydrocarbon metabolic process" NARROW []
+synonym: "aromatic hydrocarbon metabolism" NARROW []
+is_a: GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0006753
+name: nucleoside phosphate metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving any phosphorylated nucleoside." [GOC:mah]
+subset: gosubset_prok
+synonym: "nucleoside phosphate metabolism" EXACT []
+is_a: GO:0006796 ! phosphate-containing compound metabolic process
+is_a: GO:0019637 ! organophosphate metabolic process
+is_a: GO:0055086 ! nucleobase-containing small molecule metabolic process
+
+[Term]
+id: GO:0006793
+name: phosphorus metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving the nonmetallic element phosphorus or compounds that contain phosphorus, usually in the form of a phosphate group (PO4)." [GOC:ai]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "phosphorus metabolism" EXACT []
+is_a: GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0006796
+name: phosphate-containing compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving the phosphate group, the anion or salt of any phosphoric acid." [GOC:ai]
+subset: gosubset_prok
+synonym: "phosphate metabolic process" RELATED []
+synonym: "phosphate metabolism" EXACT []
+is_a: GO:0006793 ! phosphorus metabolic process
+
+[Term]
+id: GO:0006807
+name: nitrogen compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving organic or inorganic compounds that contain nitrogen, including (but not limited to) nitrogen fixation, nitrification, denitrification, assimilatory/dissimilatory nitrate reduction and the interconversion of nitrogenous organic matter and ammonium." [CHEBI:51143, GOC:go_curators, GOC:jl, ISBN:0198506732]
+comment: Note that amino acid and derivative metabolism should not be annotated here. Instead use the 'amino acid and derivative metabolism' node.
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "nitrogen compound metabolism" EXACT []
+is_a: GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0008026
+name: ATP-dependent helicase activity
+namespace: molecular_function
+def: "Catalysis of the reaction: ATP + H2O = ADP + phosphate, to drive the unwinding of a DNA or RNA helix." [EC:3.6.1.3, GOC:jl]
+subset: gosubset_prok
+is_a: GO:0042623 ! ATPase activity, coupled
+is_a: GO:0070035 ! purine NTP-dependent helicase activity
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_pombe
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "biological process" EXACT []
+synonym: "biological process unknown" NARROW []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+
+[Term]
+id: GO:0008152
+name: metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways, including anabolism and catabolism, by which living organisms transform chemical substances. Metabolic processes typically transform small molecules, but also include macromolecular processes such as DNA repair and replication, and protein synthesis and degradation." [GOC:go_curators, ISBN:0198547684]
+comment: Note that metabolic processes do not include single functions or processes such as protein-protein interactions, protein-nucleic acids, nor receptor-ligand interactions.
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "metabolic process resulting in cell growth" NARROW []
+synonym: "metabolism" EXACT []
+synonym: "metabolism resulting in cell growth" NARROW []
+xref: Wikipedia:Metabolism
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0008186
+name: RNA-dependent ATPase activity
+namespace: molecular_function
+alt_id: GO:0004010
+def: "Catalysis of the reaction: ATP + H2O = ADP + phosphate; this reaction requires the presence of RNA, and it drives another reaction." [EC:3.6.1.3, GOC:jl]
+subset: gosubset_prok
+synonym: "RNA-dependent adenosinetriphosphatase activity" EXACT []
+is_a: GO:0042623 ! ATPase activity, coupled
+
+[Term]
+id: GO:0009056
+name: catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of substances, including the breakdown of carbon compounds with the liberation of energy for use by the cell or organism." [ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "breakdown" EXACT []
+synonym: "catabolism" EXACT []
+synonym: "degradation" EXACT []
+xref: Wikipedia:Catabolism
+is_a: GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0009116
+name: nucleoside metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving a nucleoside, a nucleobase linked to either beta-D-ribofuranose (a ribonucleoside) or 2-deoxy-beta-D-ribofuranose, (a deoxyribonucleoside), e.g. adenosine, guanosine, inosine, cytidine, uridine and deoxyadenosine, deoxyguanosine, deoxycytidine and thymidine (= deoxythymidine)." [GOC:ma]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "nucleoside metabolism" EXACT []
+is_a: GO:0055086 ! nucleobase-containing small molecule metabolic process
+is_a: GO:1901135 ! carbohydrate derivative metabolic process
+is_a: GO:1901564 ! organonitrogen compound metabolic process
+is_a: GO:1901657 ! glycosyl compound metabolic process
+
+[Term]
+id: GO:0009117
+name: nucleotide metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving a nucleotide, a nucleoside that is esterified with (ortho)phosphate or an oligophosphate at any hydroxyl group on the glycose moiety; may be mono-, di- or triphosphate; this definition includes cyclic nucleotides (nucleoside cyclic phosphates)." [GOC:ma]
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "nucleotide metabolism" EXACT []
+is_a: GO:0006753 ! nucleoside phosphate metabolic process
+
+[Term]
+id: GO:0009119
+name: ribonucleoside metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving any ribonucleoside, a nucleoside in which purine or pyrimidine base is linked to a ribose (beta-D-ribofuranose) molecule." [CHEBI:18254, GOC:jl]
+subset: gosubset_prok
+synonym: "ribonucleoside metabolism" EXACT []
+is_a: GO:0009116 ! nucleoside metabolic process
+
+[Term]
+id: GO:0009141
+name: nucleoside triphosphate metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving a nucleoside triphosphate, a compound consisting of a nucleobase linked to a deoxyribose or ribose sugar esterified with triphosphate on the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "nucleoside triphosphate metabolism" EXACT []
+is_a: GO:0006753 ! nucleoside phosphate metabolic process
+
+[Term]
+id: GO:0009143
+name: nucleoside triphosphate catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of a nucleoside triphosphate, a compound consisting of a nucleobase linked to a deoxyribose or ribose sugar esterified with triphosphate on the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "nucleoside triphosphate breakdown" EXACT []
+synonym: "nucleoside triphosphate catabolism" EXACT []
+synonym: "nucleoside triphosphate degradation" EXACT []
+is_a: GO:0009141 ! nucleoside triphosphate metabolic process
+is_a: GO:1901292 ! nucleoside phosphate catabolic process
+
+[Term]
+id: GO:0009144
+name: purine nucleoside triphosphate metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving purine nucleoside triphosphate, a compound consisting of a purine base linked to a ribose or deoxyribose sugar esterified with triphosphate on the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "purine nucleoside triphosphate metabolism" EXACT []
+is_a: GO:0009141 ! nucleoside triphosphate metabolic process
+
+[Term]
+id: GO:0009146
+name: purine nucleoside triphosphate catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of purine nucleoside triphosphate, a compound consisting of a purine base linked to a ribose or deoxyribose sugar esterified with triphosphate on the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "purine nucleoside triphosphate breakdown" EXACT []
+synonym: "purine nucleoside triphosphate catabolism" EXACT []
+synonym: "purine nucleoside triphosphate degradation" EXACT []
+is_a: GO:0009143 ! nucleoside triphosphate catabolic process
+is_a: GO:0009144 ! purine nucleoside triphosphate metabolic process
+
+[Term]
+id: GO:0009150
+name: purine ribonucleotide metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving a purine ribonucleotide, a compound consisting of ribonucleoside (a purine base linked to a ribose sugar) esterified with a phosphate group at either the 3' or 5'-hydroxyl group of the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "purine ribonucleotide metabolism" EXACT []
+is_a: GO:0006163 ! purine nucleotide metabolic process
+is_a: GO:0009259 ! ribonucleotide metabolic process
+
+[Term]
+id: GO:0009154
+name: purine ribonucleotide catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of a purine ribonucleotide, a compound consisting of ribonucleoside (a purine base linked to a ribose sugar) esterified with a phosphate group at either the 3' or 5'-hydroxyl group of the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "purine ribonucleotide breakdown" EXACT []
+synonym: "purine ribonucleotide catabolism" EXACT []
+synonym: "purine ribonucleotide degradation" EXACT []
+is_a: GO:0006195 ! purine nucleotide catabolic process
+is_a: GO:0009150 ! purine ribonucleotide metabolic process
+is_a: GO:0009261 ! ribonucleotide catabolic process
+
+[Term]
+id: GO:0009164
+name: nucleoside catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of any one of a family of organic molecules consisting of a purine or pyrimidine base covalently bonded to a sugar ribose (a ribonucleoside) or deoxyribose (a deoxyribonucleoside)." [GOC:jl]
+subset: gosubset_prok
+synonym: "nucleoside breakdown" EXACT []
+synonym: "nucleoside catabolism" EXACT []
+synonym: "nucleoside degradation" EXACT []
+is_a: GO:0009116 ! nucleoside metabolic process
+is_a: GO:0034655 ! nucleobase-containing compound catabolic process
+is_a: GO:1901136 ! carbohydrate derivative catabolic process
+is_a: GO:1901565 ! organonitrogen compound catabolic process
+is_a: GO:1901658 ! glycosyl compound catabolic process
+
+[Term]
+id: GO:0009166
+name: nucleotide catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of nucleotides, any nucleoside that is esterified with (ortho)phosphate or an oligophosphate at any hydroxyl group on the glycose moiety; may be mono-, di- or triphosphate; this definition includes cyclic-nucleotides (nucleoside cyclic phosphates)." [GOC:go_curators]
+subset: gosubset_prok
+synonym: "nucleotide breakdown" EXACT []
+synonym: "nucleotide catabolism" EXACT []
+synonym: "nucleotide degradation" EXACT []
+is_a: GO:0009117 ! nucleotide metabolic process
+is_a: GO:1901292 ! nucleoside phosphate catabolic process
+
+[Term]
+id: GO:0009199
+name: ribonucleoside triphosphate metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving a ribonucleoside triphosphate, a compound consisting of a nucleobase linked to a ribose sugar esterified with triphosphate on the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "ribonucleoside triphosphate metabolism" EXACT []
+is_a: GO:0009141 ! nucleoside triphosphate metabolic process
+
+[Term]
+id: GO:0009203
+name: ribonucleoside triphosphate catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of a ribonucleoside triphosphate, a compound consisting of a nucleobase linked to a ribose sugar esterified with triphosphate on the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "ribonucleoside triphosphate breakdown" EXACT []
+synonym: "ribonucleoside triphosphate catabolism" EXACT []
+synonym: "ribonucleoside triphosphate degradation" EXACT []
+is_a: GO:0009143 ! nucleoside triphosphate catabolic process
+is_a: GO:0009199 ! ribonucleoside triphosphate metabolic process
+
+[Term]
+id: GO:0009205
+name: purine ribonucleoside triphosphate metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving purine ribonucleoside triphosphate, a compound consisting of a purine base linked to a ribose sugar esterified with triphosphate on the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "purine ribonucleoside triphosphate metabolism" EXACT []
+is_a: GO:0009144 ! purine nucleoside triphosphate metabolic process
+is_a: GO:0009199 ! ribonucleoside triphosphate metabolic process
+
+[Term]
+id: GO:0009207
+name: purine ribonucleoside triphosphate catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of purine ribonucleoside triphosphate, a compound consisting of a purine base linked to a ribose sugar esterified with triphosphate on the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "purine ribonucleoside triphosphate breakdown" EXACT []
+synonym: "purine ribonucleoside triphosphate catabolism" EXACT []
+synonym: "purine ribonucleoside triphosphate degradation" EXACT []
+is_a: GO:0009146 ! purine nucleoside triphosphate catabolic process
+is_a: GO:0009203 ! ribonucleoside triphosphate catabolic process
+is_a: GO:0009205 ! purine ribonucleoside triphosphate metabolic process
+
+[Term]
+id: GO:0009259
+name: ribonucleotide metabolic process
+namespace: biological_process
+alt_id: GO:0009121
+def: "The chemical reactions and pathways involving a ribonucleotide, a compound consisting of ribonucleoside (a base linked to a ribose sugar) esterified with a phosphate group at either the 3' or 5'-hydroxyl group of the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "ribonucleotide metabolism" EXACT []
+is_a: GO:0009117 ! nucleotide metabolic process
+is_a: GO:0019693 ! ribose phosphate metabolic process
+
+[Term]
+id: GO:0009261
+name: ribonucleotide catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of a ribonucleotide, a compound consisting of ribonucleoside (a base linked to a ribose sugar) esterified with a phosphate group at either the 3' or 5'-hydroxyl group of the sugar." [GOC:go_curators, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "ribonucleotide breakdown" EXACT []
+synonym: "ribonucleotide catabolism" EXACT []
+synonym: "ribonucleotide degradation" EXACT []
+is_a: GO:0009166 ! nucleotide catabolic process
+is_a: GO:0009259 ! ribonucleotide metabolic process
+is_a: GO:1901136 ! carbohydrate derivative catabolic process
+
+[Term]
+id: GO:0009987
+name: cellular process
+namespace: biological_process
+alt_id: GO:0008151
+alt_id: GO:0050875
+def: "Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators, GOC:isa_complete]
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "cell growth and/or maintenance" NARROW []
+synonym: "cell physiology" EXACT []
+synonym: "cellular physiological process" EXACT []
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0016462
+name: pyrophosphatase activity
+namespace: molecular_function
+def: "Catalysis of the hydrolysis of a pyrophosphate bond between two phosphate groups, leaving one phosphate on each of the two fragments." [EC:3.6.1.-, GOC:curators]
+subset: gosubset_prok
+xref: EC:3.6.1.-
+is_a: GO:0016818 ! hydrolase activity, acting on acid anhydrides, in phosphorus-containing anhydrides
+
+[Term]
+id: GO:0016787
+name: hydrolase activity
+namespace: molecular_function
+def: "Catalysis of the hydrolysis of various bonds, e.g. C-O, C-N, C-C, phosphoric anhydride bonds, etc. Hydrolase is the systematic name for any enzyme of EC class 3." [ISBN:0198506732]
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+xref: EC:3
+xref: Reactome:REACT_110436
+xref: Reactome:REACT_111159
+xref: Reactome:REACT_15331
+xref: Reactome:REACT_83734
+xref: Reactome:REACT_84047
+xref: Reactome:REACT_87959
+xref: Reactome:REACT_88159
+xref: Reactome:REACT_90118
+xref: Reactome:REACT_91045
+xref: Reactome:REACT_98572
+is_a: GO:0003824 ! catalytic activity
+
+[Term]
+id: GO:0016817
+name: hydrolase activity, acting on acid anhydrides
+namespace: molecular_function
+def: "Catalysis of the hydrolysis of any acid anhydride." [GOC:jl]
+subset: gosubset_prok
+synonym: "hydrolase activity, acting on acid anhydrides, involved in cellular and subcellular movement" NARROW []
+xref: EC:3.6
+is_a: GO:0016787 ! hydrolase activity
+
+[Term]
+id: GO:0016818
+name: hydrolase activity, acting on acid anhydrides, in phosphorus-containing anhydrides
+namespace: molecular_function
+def: "Catalysis of the hydrolysis of any acid anhydride which contains phosphorus." [GOC:jl]
+subset: gosubset_prok
+xref: EC:3.6.1
+is_a: GO:0016817 ! hydrolase activity, acting on acid anhydrides
+
+[Term]
+id: GO:0016887
+name: ATPase activity
+namespace: molecular_function
+alt_id: GO:0004002
+def: "Catalysis of the reaction: ATP + H2O = ADP + phosphate + 2 H+. May or may not be coupled to another reaction." [EC:3.6.1.3, GOC:jl]
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "(Ca2+ + Mg2+)-ATPase" NARROW [EC:3.6.1.3]
+synonym: "adenosine 5'-triphosphatase activity" EXACT [EC:3.6.1.3]
+synonym: "adenosine triphosphatase activity" EXACT [EC:3.6.1.3]
+synonym: "adenosinetriphosphatase activity" EXACT []
+synonym: "ATP hydrolase activity" EXACT [EC:3.6.1.3]
+synonym: "ATP monophosphatase activity" EXACT [EC:3.6.1.3]
+synonym: "ATP phosphohydrolase activity" EXACT []
+synonym: "complex V (mitochondrial electron transport)" RELATED [EC:3.6.1.3]
+synonym: "HCO3--ATPase" NARROW [EC:3.6.1.3]
+synonym: "SV40 T-antigen" RELATED [EC:3.6.1.3]
+xref: EC:3.6.1.3
+xref: MetaCyc:ADENOSINETRIPHOSPHATASE-RXN
+xref: Reactome:REACT_100141
+xref: Reactome:REACT_108873
+xref: Reactome:REACT_110992
+xref: Reactome:REACT_113271
+xref: Reactome:REACT_18320
+xref: Reactome:REACT_27184
+xref: Reactome:REACT_33329
+xref: Reactome:REACT_79964
+xref: Reactome:REACT_84196
+xref: Reactome:REACT_87020
+xref: Reactome:REACT_89934
+xref: RHEA:13068
+is_a: GO:0017111 ! nucleoside-triphosphatase activity
+relationship: part_of GO:0006200 ! ATP catabolic process
+
+[Term]
+id: GO:0017111
+name: nucleoside-triphosphatase activity
+namespace: molecular_function
+def: "Catalysis of the reaction: a nucleoside triphosphate + H2O = nucleoside diphosphate + phosphate." [EC:3.6.1.15]
+subset: gosubset_prok
+synonym: "apyrase activity" BROAD []
+synonym: "NTPase activity" EXACT [EC:3.6.1.15]
+synonym: "nucleoside 5-triphosphatase activity" EXACT [EC:3.6.1.15]
+synonym: "nucleoside triphosphatase activity" EXACT []
+synonym: "nucleoside triphosphate hydrolase activity" EXACT [EC:3.6.1.15]
+synonym: "nucleoside triphosphate phosphohydrolase activity" EXACT [EC:3.6.1.15]
+synonym: "nucleoside-5-triphosphate phosphohydrolase activity" EXACT [EC:3.6.1.15]
+synonym: "unspecific diphosphate phosphohydrolase activity" EXACT [EC:3.6.1.15]
+xref: EC:3.6.1.15
+xref: MetaCyc:NUCLEOSIDE-TRIPHOSPHATASE-RXN
+xref: RHEA:23683
+is_a: GO:0016462 ! pyrophosphatase activity
+
+[Term]
+id: GO:0019439
+name: aromatic compound catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of aromatic compounds, any substance containing an aromatic carbon ring." [GOC:ai]
+subset: gosubset_prok
+synonym: "aromatic compound breakdown" EXACT []
+synonym: "aromatic compound catabolism" EXACT []
+synonym: "aromatic compound degradation" EXACT []
+synonym: "aromatic hydrocarbon catabolic process" NARROW []
+synonym: "aromatic hydrocarbon catabolism" NARROW []
+is_a: GO:0006725 ! cellular aromatic compound metabolic process
+is_a: GO:0044248 ! cellular catabolic process
+
+[Term]
+id: GO:0019637
+name: organophosphate metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving organophosphates, any phosphate-containing organic compound." [ISBN:0198506732]
+subset: gosubset_prok
+synonym: "organophosphate metabolism" EXACT []
+is_a: GO:0006793 ! phosphorus metabolic process
+is_a: GO:0071704 ! organic substance metabolic process
+
+[Term]
+id: GO:0019693
+name: ribose phosphate metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving ribose phosphate, any phosphorylated ribose sugar." [GOC:ai]
+subset: gosubset_prok
+synonym: "ribose phosphate metabolism" EXACT []
+is_a: GO:0006796 ! phosphate-containing compound metabolic process
+is_a: GO:0019637 ! organophosphate metabolic process
+is_a: GO:1901135 ! carbohydrate derivative metabolic process
+
+[Term]
+id: GO:0034641
+name: cellular nitrogen compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving various organic and inorganic nitrogenous compounds, as carried out by individual cells." [GOC:mah]
+subset: goslim_generic
+subset: gosubset_prok
+synonym: "cellular nitrogen compound metabolism" EXACT []
+xref: Reactome:REACT_102000
+xref: Reactome:REACT_103710
+xref: Reactome:REACT_107293
+xref: Reactome:REACT_108179
+xref: Reactome:REACT_109042
+xref: Reactome:REACT_13
+xref: Reactome:REACT_28699
+xref: Reactome:REACT_29108
+xref: Reactome:REACT_32429
+xref: Reactome:REACT_33347
+xref: Reactome:REACT_34326
+xref: Reactome:REACT_55564
+xref: Reactome:REACT_77741
+xref: Reactome:REACT_82379
+xref: Reactome:REACT_86268
+xref: Reactome:REACT_90299
+xref: Reactome:REACT_91959
+xref: Reactome:REACT_93580
+xref: Reactome:REACT_95666
+xref: Reactome:REACT_98086
+xref: Reactome:REACT_99241
+is_a: GO:0006807 ! nitrogen compound metabolic process
+is_a: GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0034655
+name: nucleobase-containing compound catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of nucleobases, nucleosides, nucleotides and nucleic acids." [GOC:mah]
+subset: goslim_generic
+subset: gosubset_prok
+synonym: "nucleobase, nucleoside, nucleotide and nucleic acid breakdown" EXACT []
+synonym: "nucleobase, nucleoside, nucleotide and nucleic acid catabolic process" RELATED [GOC:dph, GOC:tb]
+synonym: "nucleobase, nucleoside, nucleotide and nucleic acid catabolism" EXACT []
+synonym: "nucleobase, nucleoside, nucleotide and nucleic acid degradation" EXACT []
+is_a: GO:0006139 ! nucleobase-containing compound metabolic process
+is_a: GO:0019439 ! aromatic compound catabolic process
+is_a: GO:0044270 ! cellular nitrogen compound catabolic process
+is_a: GO:0046700 ! heterocycle catabolic process
+is_a: GO:1901361 ! organic cyclic compound catabolic process
+
+[Term]
+id: GO:0042278
+name: purine nucleoside metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving one of a family of organic molecules consisting of a purine base covalently bonded to a sugar ribose (a ribonucleoside) or deoxyribose (a deoxyribonucleoside)." [GOC:jl, ISBN:0140512713]
+subset: gosubset_prok
+synonym: "purine metabolic process" BROAD []
+synonym: "purine metabolism" BROAD []
+synonym: "purine nucleoside metabolism" EXACT []
+is_a: GO:0009116 ! nucleoside metabolic process
+is_a: GO:0072521 ! purine-containing compound metabolic process
+
+[Term]
+id: GO:0042454
+name: ribonucleoside catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of any ribonucleoside, a nucleoside in which purine or pyrimidine base is linked to a ribose (beta-D-ribofuranose) molecule." [CHEBI:18254, GOC:jl]
+subset: gosubset_prok
+synonym: "ribonucleoside breakdown" EXACT []
+synonym: "ribonucleoside catabolism" EXACT []
+synonym: "ribonucleoside degradation" EXACT []
+is_a: GO:0009119 ! ribonucleoside metabolic process
+is_a: GO:0009164 ! nucleoside catabolic process
+
+[Term]
+id: GO:0042623
+name: ATPase activity, coupled
+namespace: molecular_function
+def: "Catalysis of the reaction: ATP + H2O = ADP + phosphate; this reaction directly drives some other reaction, for example ion transport across a membrane." [EC:3.6.1.3, GOC:jl]
+subset: gosubset_prok
+synonym: "ATP phosphohydrolase (polypeptide-unfolding)" NARROW [EC:3.6.4.9]
+synonym: "chaperonin" RELATED [EC:3.6.4.9]
+synonym: "chaperonin ATPase activity" RELATED []
+synonym: "non-chaperonin molecular chaperone ATPase activity" RELATED []
+synonym: "nucleoplasmin ATPase activity" RELATED []
+synonym: "peroxisome-assembly ATPase activity" RELATED []
+is_a: GO:0016887 ! ATPase activity
+
+[Term]
+id: GO:0044237
+name: cellular metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways by which individual cells transform chemical substances." [GOC:go_curators]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "cellular metabolism" EXACT []
+synonym: "intermediary metabolism" RELATED [GOC:mah]
+is_a: GO:0008152 ! metabolic process
+is_a: GO:0009987 ! cellular process
+
+[Term]
+id: GO:0044238
+name: primary metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving those compounds which are formed as a part of the normal anabolic and catabolic processes. These processes take place in most, if not all, cells of the organism." [GOC:go_curators, http://www.metacyc.org]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "primary metabolism" EXACT []
+is_a: GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0044248
+name: cellular catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of substances, carried out by individual cells." [GOC:jl]
+subset: gosubset_prok
+synonym: "cellular breakdown" EXACT []
+synonym: "cellular catabolism" EXACT []
+synonym: "cellular degradation" EXACT []
+is_a: GO:0009056 ! catabolic process
+is_a: GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0044270
+name: cellular nitrogen compound catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of organic and inorganic nitrogenous compounds." [GOC:jl, ISBN:0198506732]
+subset: gosubset_prok
+synonym: "nitrogen compound breakdown" BROAD []
+synonym: "nitrogen compound catabolism" BROAD []
+synonym: "nitrogen compound degradation" BROAD []
+is_a: GO:0034641 ! cellular nitrogen compound metabolic process
+is_a: GO:0044248 ! cellular catabolic process
+
+[Term]
+id: GO:0044281
+name: small molecule metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving small molecules, any low molecular weight, monomeric, non-encoded molecule." [GOC:curators, GOC:pde, GOC:vw]
+comment: Small molecules in GO include monosaccharides but exclude disaccharides and polysaccharides.
+subset: goslim_generic
+subset: goslim_metagenomics
+synonym: "small molecule metabolism" EXACT []
+xref: Reactome:REACT_111217
+xref: Reactome:REACT_112077
+xref: Reactome:REACT_112140
+xref: Reactome:REACT_112621
+xref: Reactome:REACT_112912
+xref: Reactome:REACT_113131
+xref: Reactome:REACT_113305
+xref: Reactome:REACT_113457
+xref: Reactome:REACT_113568
+xref: Reactome:REACT_113610
+xref: Reactome:REACT_113934
+xref: Reactome:REACT_114081
+xref: Reactome:REACT_114137
+xref: Reactome:REACT_114421
+xref: Reactome:REACT_114473
+xref: Reactome:REACT_114495
+xref: Reactome:REACT_114668
+xref: Reactome:REACT_114983
+xref: Reactome:REACT_115063
+xref: Reactome:REACT_115388
+xref: Reactome:REACT_115420
+xref: Reactome:REACT_115655
+is_a: GO:0044710 ! single-organism metabolic process
+
+[Term]
+id: GO:0044710
+name: single-organism metabolic process
+namespace: biological_process
+def: "A metabolic process - chemical reactions and pathways, including anabolism and catabolism, by which living organisms transform chemical substances - which involves a single organism." [GOC:jl]
+is_a: GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0046034
+name: ATP metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving ATP, adenosine triphosphate, a universally important coenzyme and enzyme regulator." [GOC:go_curators]
+subset: goslim_metagenomics
+subset: gosubset_prok
+synonym: "ATP metabolism" EXACT []
+is_a: GO:0009150 ! purine ribonucleotide metabolic process
+is_a: GO:0009205 ! purine ribonucleoside triphosphate metabolic process
+is_a: GO:0046128 ! purine ribonucleoside metabolic process
+
+[Term]
+id: GO:0046128
+name: purine ribonucleoside metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving any ribonucleoside, a nucleoside in which purine base is linked to a ribose (beta-D-ribofuranose) molecule." [GOC:ai]
+subset: gosubset_prok
+synonym: "purine ribonucleoside metabolism" EXACT []
+is_a: GO:0009119 ! ribonucleoside metabolic process
+is_a: GO:0042278 ! purine nucleoside metabolic process
+
+[Term]
+id: GO:0046130
+name: purine ribonucleoside catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of any purine ribonucleoside, a nucleoside in which purine base is linked to a ribose (beta-D-ribofuranose) molecule." [GOC:ai]
+subset: gosubset_prok
+synonym: "purine ribonucleoside breakdown" EXACT []
+synonym: "purine ribonucleoside catabolism" EXACT []
+synonym: "purine ribonucleoside degradation" EXACT []
+is_a: GO:0006152 ! purine nucleoside catabolic process
+is_a: GO:0042454 ! ribonucleoside catabolic process
+is_a: GO:0046128 ! purine ribonucleoside metabolic process
+
+[Term]
+id: GO:0046434
+name: organophosphate catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of organophosphates, any phosphate-containing organic compound." [GOC:ai]
+subset: gosubset_prok
+synonym: "organophosphate breakdown" EXACT []
+synonym: "organophosphate catabolism" EXACT []
+synonym: "organophosphate degradation" EXACT []
+is_a: GO:0019637 ! organophosphate metabolic process
+is_a: GO:1901575 ! organic substance catabolic process
+
+[Term]
+id: GO:0046483
+name: heterocycle metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving heterocyclic compounds, those with a cyclic molecular structure and at least two different atoms in the ring (or rings)." [CHEBI:5686, ISBN:0198506732]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "heterocycle metabolism" EXACT []
+is_a: GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0046700
+name: heterocycle catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of heterocyclic compounds, those with a cyclic molecular structure and at least two different atoms in the ring (or rings)." [GOC:ai]
+subset: gosubset_prok
+synonym: "heterocycle breakdown" EXACT []
+synonym: "heterocycle catabolism" EXACT []
+synonym: "heterocycle degradation" EXACT []
+is_a: GO:0044248 ! cellular catabolic process
+is_a: GO:0046483 ! heterocycle metabolic process
+
+[Term]
+id: GO:0055086
+name: nucleobase-containing small molecule metabolic process
+namespace: biological_process
+def: "The cellular chemical reactions and pathways involving a nucleobase-containing small molecule: a nucleobase, a nucleoside, or a nucleotide." [GOC:vw]
+subset: goslim_pombe
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "nucleobase, nucleoside and nucleotide metabolic process" RELATED []
+synonym: "nucleobase, nucleoside and nucleotide metabolism" EXACT []
+xref: Reactome:REACT_100770
+xref: Reactome:REACT_105851
+xref: Reactome:REACT_107755
+xref: Reactome:REACT_107894
+xref: Reactome:REACT_116039
+xref: Reactome:REACT_1698
+xref: Reactome:REACT_28046
+xref: Reactome:REACT_29205
+xref: Reactome:REACT_29767
+xref: Reactome:REACT_31512
+xref: Reactome:REACT_33967
+xref: Reactome:REACT_77113
+xref: Reactome:REACT_78257
+xref: Reactome:REACT_82673
+xref: Reactome:REACT_82902
+xref: Reactome:REACT_82978
+xref: Reactome:REACT_83845
+xref: Reactome:REACT_86759
+xref: Reactome:REACT_90903
+xref: Reactome:REACT_96600
+xref: Reactome:REACT_97332
+xref: Reactome:REACT_99343
+is_a: GO:0006139 ! nucleobase-containing compound metabolic process
+is_a: GO:0044281 ! small molecule metabolic process
+
+[Term]
+id: GO:0070035
+name: purine NTP-dependent helicase activity
+namespace: molecular_function
+def: "Catalysis of the reaction: purine NTP + H2O = purine NDP + phosphate, to drive the unwinding of a DNA or RNA helix." [GOC:mah]
+subset: gosubset_prok
+is_a: GO:0004386 ! helicase activity
+
+[Term]
+id: GO:0071704
+name: organic substance metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving an organic substance, any molecular entity containing carbon." [CHEBI:50860, GOC:mah]
+synonym: "organic molecular entity metabolic process" EXACT []
+synonym: "organic molecular entity metabolism" EXACT []
+synonym: "organic substance metabolism" EXACT []
+is_a: GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0072521
+name: purine-containing compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving a purine-containing compound, i.e. any compound that contains purine or a formal derivative thereof." [CHEBI:26401, GOC:mah]
+synonym: "purine and derivative metabolic process" EXACT [GOC:curators]
+synonym: "purine-containing compound metabolism" EXACT [GOC:mah]
+is_a: GO:0006725 ! cellular aromatic compound metabolic process
+is_a: GO:0034641 ! cellular nitrogen compound metabolic process
+is_a: GO:0046483 ! heterocycle metabolic process
+is_a: GO:1901360 ! organic cyclic compound metabolic process
+is_a: GO:1901564 ! organonitrogen compound metabolic process
+
+[Term]
+id: GO:0072523
+name: purine-containing compound catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of a purine-containing compound, i.e. any compound that contains purine or a formal derivative thereof." [CHEBI:26401, GOC:mah]
+synonym: "purine and derivative catabolic process" EXACT [GOC:curators]
+synonym: "purine-containing compound breakdown" EXACT [GOC:mah]
+synonym: "purine-containing compound catabolism" EXACT [GOC:mah]
+synonym: "purine-containing compound degradation" EXACT [GOC:mah]
+is_a: GO:0019439 ! aromatic compound catabolic process
+is_a: GO:0044270 ! cellular nitrogen compound catabolic process
+is_a: GO:0046700 ! heterocycle catabolic process
+is_a: GO:0072521 ! purine-containing compound metabolic process
+is_a: GO:1901361 ! organic cyclic compound catabolic process
+is_a: GO:1901565 ! organonitrogen compound catabolic process
+
+[Term]
+id: GO:1901135
+name: carbohydrate derivative metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving carbohydrate derivative." [GOC:TermGenie]
+synonym: "carbohydrate derivative metabolism" EXACT [GOC:TermGenie]
+is_a: GO:0071704 ! organic substance metabolic process
+
+[Term]
+id: GO:1901136
+name: carbohydrate derivative catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of carbohydrate derivative." [GOC:TermGenie]
+synonym: "carbohydrate derivative breakdown" EXACT [GOC:TermGenie]
+synonym: "carbohydrate derivative catabolism" EXACT [GOC:TermGenie]
+synonym: "carbohydrate derivative degradation" EXACT [GOC:TermGenie]
+is_a: GO:1901135 ! carbohydrate derivative metabolic process
+is_a: GO:1901575 ! organic substance catabolic process
+
+[Term]
+id: GO:1901292
+name: nucleoside phosphate catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of a nucleoside phosphate." [GOC:TermGenie]
+synonym: "nucleoside phosphate breakdown" EXACT [GOC:TermGenie]
+synonym: "nucleoside phosphate catabolism" EXACT [GOC:TermGenie]
+synonym: "nucleoside phosphate degradation" EXACT [GOC:TermGenie]
+is_a: GO:0006753 ! nucleoside phosphate metabolic process
+is_a: GO:0034655 ! nucleobase-containing compound catabolic process
+is_a: GO:0046434 ! organophosphate catabolic process
+
+[Term]
+id: GO:1901360
+name: organic cyclic compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving organic cyclic compound." [GOC:TermGenie]
+synonym: "organic cyclic compound metabolism" EXACT [GOC:TermGenie]
+is_a: GO:0071704 ! organic substance metabolic process
+
+[Term]
+id: GO:1901361
+name: organic cyclic compound catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of organic cyclic compound." [GOC:TermGenie]
+synonym: "organic cyclic compound breakdown" EXACT [GOC:TermGenie]
+synonym: "organic cyclic compound catabolism" EXACT [GOC:TermGenie]
+synonym: "organic cyclic compound degradation" EXACT [GOC:TermGenie]
+is_a: GO:1901360 ! organic cyclic compound metabolic process
+is_a: GO:1901575 ! organic substance catabolic process
+
+[Term]
+id: GO:1901564
+name: organonitrogen compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving organonitrogen compound." [GOC:pr, GOC:TermGenie]
+synonym: "organonitrogen compound metabolism" EXACT [GOC:TermGenie]
+is_a: GO:0006807 ! nitrogen compound metabolic process
+is_a: GO:0071704 ! organic substance metabolic process
+
+[Term]
+id: GO:1901565
+name: organonitrogen compound catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of organonitrogen compound." [GOC:pr, GOC:TermGenie]
+synonym: "organonitrogen compound breakdown" EXACT [GOC:TermGenie]
+synonym: "organonitrogen compound catabolism" EXACT [GOC:TermGenie]
+synonym: "organonitrogen compound degradation" EXACT [GOC:TermGenie]
+is_a: GO:1901564 ! organonitrogen compound metabolic process
+is_a: GO:1901575 ! organic substance catabolic process
+
+[Term]
+id: GO:1901575
+name: organic substance catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of an organic substance, any molecular entity containing carbon." [GOC:pr, GOC:TermGenie]
+synonym: "organic molecular entity breakdown" EXACT [GOC:TermGenie]
+synonym: "organic molecular entity catabolic process" EXACT []
+synonym: "organic molecular entity catabolism" EXACT [GOC:TermGenie]
+synonym: "organic molecular entity degradation" EXACT [GOC:TermGenie]
+synonym: "organic substance breakdown" EXACT []
+synonym: "organic substance catabolism" EXACT []
+synonym: "organic substance degradation" EXACT []
+is_a: GO:0009056 ! catabolic process
+is_a: GO:0071704 ! organic substance metabolic process
+
+[Term]
+id: GO:1901657
+name: glycosyl compound metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving glycosyl compound." [GOC:pr, GOC:TermGenie]
+synonym: "glycosyl compound metabolism" EXACT [GOC:TermGenie]
+is_a: GO:0044710 ! single-organism metabolic process
+is_a: GO:0071704 ! organic substance metabolic process
+
+[Term]
+id: GO:1901658
+name: glycosyl compound catabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the breakdown of glycosyl compound." [GOC:pr, GOC:TermGenie]
+synonym: "glycosyl compound breakdown" EXACT [GOC:TermGenie]
+synonym: "glycosyl compound catabolism" EXACT [GOC:TermGenie]
+synonym: "glycosyl compound degradation" EXACT [GOC:TermGenie]
+is_a: GO:1901575 ! organic substance catabolic process
+is_a: GO:1901657 ! glycosyl compound metabolic process
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: gene_ontology
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_transitive: true
+
