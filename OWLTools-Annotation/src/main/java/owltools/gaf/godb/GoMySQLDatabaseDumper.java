@@ -173,6 +173,9 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 		for ( GeneAnnotation a : gafdoc.getGeneAnnotations() ) {
 			int id = getId(GOMySQLTable.association, a);
 			OWLClass cls = graph.getOWLClassByIdentifier(a.getCls());
+			if (cls == null) {
+				throw new ReferentialIntegrityException("association", a.getCls());
+			}
 			Integer term1_id = getId(GOMySQLTable.term, cls, true);
 			// TODO
 			dumpRow(s,
@@ -183,20 +186,6 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 	}
 
 
-	private void dumpAssociationRow(PrintStream AssociationStream, OWLObject obj) throws ReferentialIntegrityException {
-		Integer id = getId(GOMySQLTable.association, obj);
-		String label = graph.getLabel(obj);
-		String ns = "TODO";
-		dumpRow(AssociationStream, 
-				id, 
-				graph.getLabel(obj),
-				ns,
-				graph.getIdentifier(obj),
-				(graph.isObsolete(obj) ? 1 : 0),
-				(graph.getOutgoingEdges(obj).size() == 0 ? 1 : 0),
-				(obj instanceof OWLObjectProperty ? 1 : 0)
-				);
-	}
 
 	//
 	

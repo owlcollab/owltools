@@ -3,6 +3,7 @@ package owltools.gaf.godb;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +28,7 @@ public class GoMySQLDatabaseDumperTest extends OWLToolsTestBasics {
 		gafdocs.add( b.buildDocument(getResource("lmajor_f2p_test.gaf")) );
 
 	}
+	
 	@Test
 	public void testDump() throws OWLOntologyCreationException, OBOFormatParserException, IOException, ReferentialIntegrityException {
 		load();
@@ -36,4 +38,24 @@ public class GoMySQLDatabaseDumperTest extends OWLToolsTestBasics {
 		dumper.dump();
 	}
 
+	@Test
+	public void testReferentialIntegrity() throws OWLOntologyCreationException, OBOFormatParserException, IOException, URISyntaxException {
+		ParserWrapper pw = new ParserWrapper();
+		g = pw.parseToOWLGraph(getResourceIRIString("lmajor_f2p_test_go_subset_nd.obo"));
+		GoMySQLDatabaseDumper dumper = new GoMySQLDatabaseDumper(g);
+		GafObjectsBuilder b = new GafObjectsBuilder();
+		GafDocument gafdoc = 
+				b.buildDocument("src/test/resources/gene-associations/gene_association.mgi.gz");
+		gafdocs.add( gafdoc );
+		dumper.setGafdocs(gafdocs);
+		dumper.setTargetDirectory("target/godb2");
+		boolean caughtExpectedError = false;
+		try {
+			dumper.dump();
+		} catch (ReferentialIntegrityException e) {
+			caughtExpectedError = true;
+
+		}
+		assertTrue(caughtExpectedError);
+	}
 }

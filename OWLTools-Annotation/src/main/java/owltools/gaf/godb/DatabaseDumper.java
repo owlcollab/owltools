@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -31,6 +32,8 @@ import owltools.graph.OWLGraphWrapper;
  *
  */
 public abstract class DatabaseDumper {
+
+	private static Logger LOG = Logger.getLogger(DatabaseDumper.class);
 
 	protected OWLGraphWrapper graph;
 	protected Map<Object,Integer> objIdMap = new HashMap<Object,Integer>();
@@ -91,7 +94,8 @@ public abstract class DatabaseDumper {
 		if (objIdMap.containsKey(obj)) {
 			return objIdMap.get(obj);
 		}
-		if (isForceExists) {
+		//LOG.info("Making a new ID for "+obj+" in "+table);
+		if (isForceExists) {			
 			throw new ReferentialIntegrityException(table, obj);
 		}
 		if (!objLastIdMap.containsKey(table)) {
@@ -105,6 +109,7 @@ public abstract class DatabaseDumper {
 	}
 	
 	protected PrintStream getPrintStream(String t) throws IOException {
+		LOG.info("Opening table for output: "+t);
 		FileOutputStream fos;
 		FileUtils.forceMkdir(new File(targetDirectory));
 		String path = targetDirectory + "/" + t.toString() + ".txt";
