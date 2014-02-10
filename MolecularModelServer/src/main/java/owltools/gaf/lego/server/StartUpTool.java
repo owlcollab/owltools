@@ -88,7 +88,7 @@ public class StartUpTool {
 		ResourceConfig resourceConfig = new ResourceConfig();
 		resourceConfig.register(GsonMessageBodyHandler.class);
 		resourceConfig.register(RequireJsonpFilter.class);
-		resourceConfig.register(AuthorizationRequestFilter.class);
+		//resourceConfig.register(AuthorizationRequestFilter.class);
 		JsonOrJsonpModelHandler modelHandler = new JsonOrJsonpModelHandler(graph, models);
 		resourceConfig = resourceConfig.registerInstances(modelHandler);
 

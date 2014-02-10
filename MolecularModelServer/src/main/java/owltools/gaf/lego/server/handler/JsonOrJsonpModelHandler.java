@@ -351,7 +351,15 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		if (help) {
 			return helpMsg("Persist the given model on the server.");
 		}
-		return errorMsg("This methods is not implemented.", null);
+		try {
+			MolecularModelManager mmm = getMolecularModelManager();
+			mmm.saveModel(modelId);
+			M3Response response = new M3Response(M3Response.SUCCESS);
+			response.message = "The model has been saved on the server.";
+			return response;
+		} catch (Exception exception) {
+			return errorMsg("Could not save the model on the server.", exception);
+		}
 	}
 
 	// ----------------------------------------
