@@ -90,6 +90,7 @@ public class MolecularModelManager {
 	String pathToGafs = "gene-associations";
 	String pathToOWLFiles = "owl-models";
 	GafObjectsBuilder builder = new GafObjectsBuilder();
+	// WARNING: Do *NOT* switch to functional syntax until the OWL-API has fixed a bug.
 	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
 
 	// TODO: Temporarily for keeping instances unique (search for "unique" below).
@@ -741,6 +742,16 @@ public class MolecularModelManager {
 	public Set<String> getModelIds() {
 		return modelMap.keySet();
 	}
+	
+	/**
+	 * internal method to cleanup this instance
+	 */
+	void dispose() {
+		Set<String> ids = new HashSet<String>(getModelIds());
+		for (String id : ids) {
+			unlinkModel(id);
+		}
+	}
 
 	/**
 	 * TODO - locking
@@ -748,41 +759,80 @@ public class MolecularModelManager {
 	 * @param modelId 
 	 * @throws OWLOntologyStorageException 
 	 * @throws OWLOntologyCreationException 
+	 * @throws IOException
 	 */
-	public void saveModel(String modelId) throws OWLOntologyStorageException, OWLOntologyCreationException {
+	public void saveModel(String modelId) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
 		// TODO - delegate to a bridge object, allow different impls (triplestore, filesystem, etc)
 		LegoModelGenerator m = getModel(modelId);
 		OWLOntology ont = m.getAboxOntology();
 		String file = getPathToModelOWL(modelId);
-		getOWLOntologyManager(modelId).saveOntology(ont, ontologyFormat, IRI.create(new File(file)));
+		// prelimiary checks for the target file
+		File finalFile = new File(file).getCanonicalFile();
+		if (finalFile.exists()) {
+			if (finalFile.isFile() == false) {
+				throw new IOException("For modelId: '"+modelId+"', the resulting path is not a file: "+finalFile.getAbsolutePath());
+			}
+			if (finalFile.canWrite() == false) {
+				throw new IOException("For modelId: '"+modelId+"', Cannot write to the file: "+finalFile.getAbsolutePath());
+			}
+		}
+		else {
+			File targetFolder = finalFile.getParentFile();
+			FileUtils.forceMkdir(targetFolder);
+		}
+		File tempFile = null;
+		try {
+			// create tempFile
+			tempFile = File.createTempFile(modelId, ".owl");
+		
+			// write to a temp file
+			getOWLOntologyManager(modelId).saveOntology(ont, ontologyFormat, IRI.create(tempFile));
+			
+			// copy temp file to the finalFile
+			FileUtils.copyFile(tempFile, finalFile);
+		}
+		finally {
+			// delete temp file
+			FileUtils.deleteQuietly(tempFile);
+		}
 	}
 	
 	/**
 	 * @throws OWLOntologyStorageException
 	 * @throws OWLOntologyCreationException
+	 * @throws IOException 
 	 */
-	public void saveAllModels() throws OWLOntologyStorageException, OWLOntologyCreationException {
+	public void saveAllModels() throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
 		for (String modelId : modelMap.keySet()) {
 			saveModel(modelId);
 		}
 	}
 	
 	/**
-	 * Export the ABox for the given modelId in the default ontology format.
+	 * Export the ABox for the given modelId in the default {@link OWLOntologyFormat}.
 	 * 
 	 * @param modelId
 	 * @return modelContent
 	 * @throws OWLOntologyStorageException
 	 */
 	public String exportModel(String modelId) throws OWLOntologyStorageException {
-		return exportModel(modelId, "owf");
+		return exportModel(modelId, ontologyFormat);
 	}
 	
+	/**
+	 * Export the ABox for the given modelId in the given ontology format.<br>
+	 * Warning: The mapping from String to {@link OWLOntologyFormat} does not map every format!
+	 * 
+	 * @param modelId
+	 * @param format
+	 * @return modelContent
+	 * @throws OWLOntologyStorageException
+	 */
 	public String exportModel(String modelId, String format) throws OWLOntologyStorageException {
-		if (format == null) {
-			format = "owf";
-		}
 		OWLOntologyFormat ontologyFormat = getOWLOntologyFormat(format);
+		if (ontologyFormat == null) {
+			ontologyFormat = this.ontologyFormat;
+		}
 		return exportModel(modelId, ontologyFormat);
 	}
 	
@@ -842,6 +892,8 @@ public class MolecularModelManager {
 				ofmt = new OWLXMLOntologyFormat();
 			else if (fmt.equals("owf"))
 				ofmt = new OWLFunctionalSyntaxOntologyFormat();
+			else if (fmt.equals("owm"))
+				ofmt = new ManchesterOWLSyntaxOntologyFormat();
 		}
 		return ofmt;
 	}

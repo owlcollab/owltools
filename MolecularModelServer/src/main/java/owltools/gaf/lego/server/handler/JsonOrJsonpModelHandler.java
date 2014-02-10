@@ -301,15 +301,13 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		if (help) {
 			return helpMsg("Import the model into the server.");
 		}
-		// throw error until the bug in the OWL-API is fixed.
-		return errorMsg("This methods is not implemented.", null);
-//		try {
-//			MolecularModelManager mmm = getMolecularModelManager();
-//			String modelId = mmm.importModel(model);
-//			return bulk(modelId, mmm);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not import model", exception);
-//		}
+		try {
+			MolecularModelManager mmm = getMolecularModelManager();
+			String modelId = mmm.importModel(model);
+			return bulk(modelId, mmm, M3Response.INSTANTIATE);
+		} catch (Exception exception) {
+			return errorMsg("Could not import model", exception);
+		}
 	}
 
 	/*
@@ -419,6 +417,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	/**
 	 * @param modelId
 	 * @param mmm 
+	 * @param respCat
 	 * @return REST response, never null
 	 */
 	private M3Response bulk(String modelId, MolecularModelManager mmm, String respCat) {

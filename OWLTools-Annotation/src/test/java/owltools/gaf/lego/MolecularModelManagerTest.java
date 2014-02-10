@@ -3,14 +3,17 @@ package owltools.gaf.lego;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
@@ -23,13 +26,17 @@ import com.google.gson.GsonBuilder;
 public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 	private static Logger LOG = Logger.getLogger(MolecularModelManagerTest.class);
 
+	// JUnit way of creating a temporary test folder
+	// will be deleted after the test has run, by JUnit.
+	@Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+	
 	MolecularModelManager mmm;
 
 	static{
 		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
 		//Logger.getLogger(MinimalModelGenerator.class).setLevel(Level.ERROR);
 		//Logger.getLogger(LegoModelGenerator.class).setLevel(Level.ERROR);
-		//Logger.getLogger("org.semanticweb.elk.reasoner.indexing.hierarchy").setLevel(Level.ERROR);
 	}
 
 	@Test
@@ -201,7 +208,6 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		assertEquals(1, individuals.size());
 	}
 
-	@Ignore("Will not work until a bug in the OWL-API is fixed!")
 	@Test
 	public void testExportImport() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
@@ -209,29 +215,100 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 		// GO:0038024 ! cargo receptor activity
 		// GO:0042803 ! protein homodimerization activity
+		// GO:0008233 ! peptidase activity
 
 		mmm = new MolecularModelManager(g);
 
-		String modelId = mmm.generateBlankModel(null);
+		final String modelId = mmm.generateBlankModel(null);
 		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024");
-		OWLNamedIndividual i1 = resp.getIndividuals().get(0);
+		final OWLNamedIndividual i1 = resp.getIndividuals().get(0);
 
 		resp = mmm.createIndividual(modelId, "GO:0042803");
-		OWLNamedIndividual i2 = resp.getIndividuals().get(0);
+		final OWLNamedIndividual i2 = resp.getIndividuals().get(0);
 
 		mmm.addPartOf(modelId, i1, i2);
 		
 		// export
-		String modelContent = mmm.exportModel(modelId);
+		final String modelContent = mmm.exportModel(modelId);
 		System.out.println("-------------------");
 		System.out.println(modelContent);
 		System.out.println("-------------------");
 		
+		// add an additional individual to model after export
+		resp = mmm.createIndividual(modelId, "GO:0008233");
+		final OWLNamedIndividual i3 = resp.getIndividuals().get(0);
+		assertEquals(3, mmm.getIndividuals(modelId).size());
+
+		
 		// import
-		String modelId2 = mmm.importModel(modelContent);
+		final String modelId2 = mmm.importModel(modelContent);
 		
 		assertEquals(modelId, modelId2);
-		assertEquals(2, mmm.getIndividuals(modelId2));
+		Set<OWLNamedIndividual> loaded = mmm.getIndividuals(modelId2);
+		assertEquals(2, loaded.size());
+		for (OWLNamedIndividual i : loaded) {
+			IRI iri = i.getIRI();
+			// check that the model only contains the individuals created before the export
+			assertTrue(iri.equals(i1.getIRI()) || iri.equals(i2.getIRI()));
+			assertFalse(iri.equals(i3.getIRI()));
+		}
+	}
+	
+	@Test
+	public void testSaveModel() throws Exception {
+		final File saveFolder = folder.newFolder();
+		final ParserWrapper pw1 = new ParserWrapper();
+		g = pw1.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
+
+		mmm = new MolecularModelManager(g);
+		mmm.setPathToOWLFiles(saveFolder.getCanonicalPath());
+		
+		// GO:0038024 ! cargo receptor activity
+		// GO:0042803 ! protein homodimerization activity
+		// GO:0008233 ! peptidase activity
+
+		final String modelId = mmm.generateBlankModel(null);
+		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024");
+		final OWLNamedIndividual i1 = resp.getIndividuals().get(0);
+
+		resp = mmm.createIndividual(modelId, "GO:0042803");
+		final OWLNamedIndividual i2 = resp.getIndividuals().get(0);
+
+		mmm.addPartOf(modelId, i1, i2);
+		
+		// save
+		mmm.saveModel(modelId);
+		
+		// add an additional individual to model after export
+		resp = mmm.createIndividual(modelId, "GO:0008233");
+		final OWLNamedIndividual i3 = resp.getIndividuals().get(0);
+		assertEquals(3, mmm.getIndividuals(modelId).size());
+
+		// discard mmm
+		mmm.dispose();
+		mmm = null;
+		
+		final ParserWrapper pw2 = new ParserWrapper();
+		g = pw2.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
+		
+		
+		mmm = new MolecularModelManager(g);
+		mmm.setPathToOWLFiles(saveFolder.getCanonicalPath());
+		
+		Set<String> availableModelIds = mmm.getAvailableModelIds();
+		assertTrue(availableModelIds.contains(modelId));
+		
+		final LegoModelGenerator model = mmm.getModel(modelId);
+		assertNotNull(model);
+		
+		Collection<OWLNamedIndividual> loaded = mmm.getIndividuals(modelId);
+		assertEquals(2, loaded.size());
+		for (OWLNamedIndividual i : loaded) {
+			IRI iri = i.getIRI();
+			// check that the model only contains the individuals created before the save
+			assertTrue(iri.equals(i1.getIRI()) || iri.equals(i2.getIRI()));
+			assertFalse(iri.equals(i3.getIRI()));
+		}
 	}
 
 	@Test
