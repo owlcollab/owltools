@@ -20,6 +20,7 @@ public interface M3Handler {
 	static final String PARAM_DB = "db";
 	static final String PARAM_CLASSID = "classId";
 	static final String PARAM_MODELID = "modelId";
+	static final String PARAM_MODEL_STRING = "modelString";
 	static final String PARAM_INDIVIDIALID = "individualId";
 	static final String PARAM_PROPERTYID = "propertyId";
 	static final String PARAM_FILLERID = "fillerId";
@@ -157,7 +158,7 @@ public interface M3Handler {
 	@Path("m3ImportModel")
 	@GET
 	public M3Response m3ImportModel(
-			@QueryParam(PARAM_MODELID) String model,
+			@QueryParam(PARAM_MODEL_STRING) String model,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3GetAllModelIds")
