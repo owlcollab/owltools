@@ -75,6 +75,9 @@ public class MinimalModelGenerator {
 	boolean isPrecomputePropertyClassCombinations = true;
 	boolean isAssertInverses = true;
 	boolean isRemoveAmbiguousIndividuals = true;
+	Set<OWLClass> inclusionSet = null;
+	Set<OWLClass> exclusionSet = null;
+	Set<OWLClass> directExclusionSet = null;
 	public boolean isStrict;
 
 	protected Map<OWLClass, OWLNamedIndividual> prototypeIndividualMap =
@@ -127,29 +130,7 @@ public class MinimalModelGenerator {
 		init();
 	}
 
-	/**
-	 * Creates a generator with specified abox, tbox and reasoner
-	 * 
-	 * NOT TESTED - need to ensure the reasoner includes the query ontology
-	 * 
-	 * @param tbox
-	 * @param abox
-	 * @param reasoner
-	 * @throws OWLOntologyCreationException
-	 */
-	@Deprecated
-	//	public MinimalModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasoner reasoner) throws OWLOntologyCreationException {
-	//		tboxOntology = tbox;
-	//		aboxOntology = abox;
-	//		if (reasoner != null) {
-	//			this.reasoner = reasoner;
-	//			reasonerFactory = null;
-	//		}
-	//		else {
-	//			reasonerFactory  = new ElkReasonerFactory();
-	//		}
-	//		init();
-	//	}
+
 
 	/**
 	 * Creates a generator with a pre-defined tbox (ontology) and abox (instance store).
@@ -172,7 +153,9 @@ public class MinimalModelGenerator {
 	}
 
 	/**
-	 * @return
+	 * {@see #setAssertInverses(boolean)}
+	 * 
+	 * @return true is inverses are to be asserted
 	 */
 	public boolean isAssertInverses() {
 		return isAssertInverses;
@@ -189,8 +172,33 @@ public class MinimalModelGenerator {
 	public boolean isRemoveAmbiguousIndividuals() {
 		return isRemoveAmbiguousIndividuals;
 	}
+
+	/**
+	 * @param isRemoveAmbiguousIndividuals
+	 */
 	public void setRemoveAmbiguousIndividuals(boolean isRemoveAmbiguousIndividuals) {
 		this.isRemoveAmbiguousIndividuals = isRemoveAmbiguousIndividuals;
+	}
+	
+	
+
+	public Set<OWLClass> getInclusionSet() {
+		return inclusionSet;
+	}
+	public void setInclusionSet(Set<OWLClass> inclusionSet) {
+		this.inclusionSet = inclusionSet;
+	}
+	public Set<OWLClass> getExclusionSet() {
+		return exclusionSet;
+	}
+	public void setExclusionSet(Set<OWLClass> exclusionSet) {
+		this.exclusionSet = exclusionSet;
+	}
+	public Set<OWLClass> getDirectExclusionSet() {
+		return directExclusionSet;
+	}
+	public void setDirectExclusionSet(Set<OWLClass> directExclusionSet) {
+		this.directExclusionSet = directExclusionSet;
 	}
 	/**
 	 * Initialization consists of:
@@ -276,7 +284,7 @@ public class MinimalModelGenerator {
 			reasoner = null;
 		}
 	}
-	
+
 	public void dispose() {
 		disposeReasoner();
 		final OWLOntologyManager m = getOWLOntologyManager();
@@ -335,7 +343,7 @@ public class MinimalModelGenerator {
 	public OWLOntology getAboxOntology() {
 		return aboxOntology;
 	}
-	
+
 	/**
 	 * Note: ABox ontology should import TBox ontology
 	 * @param aboxOntology
@@ -409,8 +417,10 @@ public class MinimalModelGenerator {
 		return null;
 	}
 
-
-
+	// Generate an individual <generatedIndividual> and a triple
+	// [ incomingSource, incomingProperty, generatedIndividual ]
+	// where generatedIndividual is of type.
+	// will also generate additional triples, where existence is entailed
 	private OWLNamedIndividual generateNecessaryIndividualsImpl(OWLClassExpression c, 
 			OWLNamedIndividual incomingSource, OWLObjectPropertyExpression incomingProperty) {
 		LOG.info("GNI type:"+c+" // src="+incomingSource+" via "+incomingProperty);
@@ -469,12 +479,45 @@ public class MinimalModelGenerator {
 
 		rels.addAll(getExistentialRelationships(generatedIndividual));
 		for (OWLObjectSomeValuesFrom rel : rels) {
-			LOG.info("  Rel: "+rel);
+
 			OWLClassExpression jType = deepen(rel.getFiller(), rel.getProperty(), c);
 
+			boolean isExcluded = false;
+			if (directExclusionSet != null) {
+				if (directExclusionSet.contains(jType)) {
+					isExcluded = true;
+				}
+			}
+			if (isExcluded) {
+				continue;
+			}
+			if (exclusionSet != null) {
+				for (OWLClass testC : exclusionSet) {
+					if (getReasoner().getSuperClasses(jType, false).getFlattened().contains(testC)) {
+						isExcluded = true;
+						break;
+					}
+				}
+			}
+			if (isExcluded) {
+				continue;
+			}
+			if (inclusionSet != null) {
+				isExcluded = true;
+				for (OWLClass testC : inclusionSet) {
+					if (getReasoner().getSuperClasses(jType, false).getFlattened().contains(testC)) {
+						isExcluded = false;
+						break;
+					}
+
+
+				}
+			}
+			if (isExcluded) {
+				continue;
+			}
 			OWLNamedIndividual targetIndividual =
 					generateNecessaryIndividualsImpl(jType, generatedIndividual, rel.getProperty());
-			//addTriple(generatedIndividual, rel.getProperty(), targetIndividual);
 		}
 		return generatedIndividual;
 	}
@@ -575,7 +618,7 @@ public class MinimalModelGenerator {
 		LOG.info("Changes = "+chgs.size());
 		getOWLOntologyManager().applyChanges(chgs);
 	}
-	
+
 	/**
 	 * attempt to deepen a class expression based on properties the individual holds.
 	 * 
@@ -779,7 +822,7 @@ public class MinimalModelGenerator {
 			prototypeIndividualMap.remove(c);
 
 	}
-	
+
 	/**
 	 * Moves all axioms about src to tgt
 	 * 
@@ -1000,10 +1043,17 @@ public class MinimalModelGenerator {
 		return invProps;
 	}
 	/**
+	 * Given an individual i, return a set of existential restrictions <P,C>,
+	 * where i instantiates P some C.
+	 * 
+	 * The implementation for this method depends on the pre-materialization of a
+	 * Query Ontology containing <P some C> combinations.
+	 * 
+	 * Redundant expressions are filtered out
+	 * 
 	 * @param c
-	 * @return
+	 * @return set of existential restrictions
 	 */
-
 	protected Set<OWLObjectSomeValuesFrom> getExistentialRelationships(OWLNamedIndividual ind) {
 		//LOG.info("Querying: "+c);
 		if (queryClassMap == null) {
@@ -1017,9 +1067,6 @@ public class MinimalModelGenerator {
 		// all supers (direct and indirect)
 		Set<OWLClass> supers = reasoner.getTypes(ind, false).getFlattened();
 		LOG.info("Supers for "+ind+" is "+supers.size());
-		//for (OWLClass sup : supers) {
-		//LOG.info(" SUP(unfiltered)="+sup);
-		//}
 
 		// we only case about expressions in the query ontology, which should have
 		// all expressions required
@@ -1101,7 +1148,7 @@ public class MinimalModelGenerator {
 				nrSet.removeAll(reasoner.getSuperClasses(s, false).getFlattened());
 			}
 		}
-	    results.addAll(nrSet);
+		results.addAll(nrSet);
 		return results;
 	}
 
@@ -1407,7 +1454,7 @@ public class MinimalModelGenerator {
 				LOG.info("Property "+p+" has cyles from "+i+" -- no transitive reductions");
 				continue;
 			}
-			
+
 			Set<OWLIndividual> redundant = new HashSet<OWLIndividual>();
 			Set<OWLIndividual> js = getIndividualsInProperPath(i, p);
 			//LOG.info("PATH("+i+") ==> "+js);
@@ -1442,7 +1489,7 @@ public class MinimalModelGenerator {
 		v2.add(i);
 		Set<OWLIndividual> nextSet = 
 				getDirectOutgoingIndividuals(i, Collections.singleton(p));
-		
+
 		for (OWLIndividual j : nextSet) {
 			if (hasCycle(j, p, v2)) {
 				return true;
