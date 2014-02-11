@@ -43,9 +43,12 @@ import owltools.util.MinimalModelGenerator;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
- * Generates a Functional Network (aka LEGO) graphß for a process given an ontology and a set of annotations.
+ * Generates an augmented Minimal Model (aka LEGO) graph for a given process,
+ * given an ontology and a set of annotations.
+ * 
  * A process can be a 'normal' biological process (e.g. from GO) or a pathological process
- * (we can treat MP as abnormal processes for the purposes of this analysis, or make a parallel ontology)
+ * (we can treat MP as abnormal processes for the purposes of this analysis,
+ * or make a parallel ontology)
  * 
  * The input is a process class and a set of genes (e.g. all genes involved in that BP), construct the most likely
  * set of gene + activity-type (i.e. MF) pairs that are likely to be executed during this process.
@@ -288,8 +291,24 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		connectGraph();
 		normalizeDirections();
 		combineMultipleEnablers();
+		anonymizeMaterialEntities();
 	}
 
+	/**
+	 * Example: if we have triples:
+	 * <p123 occurs_in c987>
+	 * <c987 type Nucleus>
+	 * 
+	 * This will generate:
+	 * ClassAssertion( occurs_in some Nucleus, p123)
+	 * 
+	 */
+	public void anonymizeMaterialEntities() {
+		Set<OWLClass> occs = new HashSet<OWLClass>();		
+		occs.add(getOWLClass(OBOUpperVocabulary.GO_molecular_function));
+		occs.add(getOWLClass(OBOUpperVocabulary.GO_biological_process));
+		anonymizeIndividualsNotIn(occs);
+	}
 
 	/**
 	 * Wraps {@link #buildNetwork(OWLClass, Collection)}
