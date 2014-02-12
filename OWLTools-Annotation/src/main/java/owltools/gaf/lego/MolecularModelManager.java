@@ -25,6 +25,7 @@ import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.obolibrary.macro.ManchesterSyntaxTool;
+import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
@@ -40,6 +41,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLIndividualAxiom;
@@ -1352,18 +1354,47 @@ public class MolecularModelManager {
 	 * @param eid - e.g. PR:P12345
 	 * @return response info
 	 * @throws UnknownIdentifierException 
+	 * @throws OWLException
 	 */
 	public OWLOperationResponse addEnabledBy(String modelId,
-			String iid, String eid) throws UnknownIdentifierException {
+			String iid, String eid) throws UnknownIdentifierException,
+			OWLException {
 		OWLIndividual individual = getIndividual(modelId, iid);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		OWLClass cls = getGeneClass(modelId, eid);
-		if (cls == null) {
-			throw new UnknownIdentifierException("Could not find a class for id: "+eid);
+		OWLClassExpression clsExpr;
+		if (eid.contains(" ")) {
+			clsExpr = parseClassExpression(modelId, eid);
 		}
-		return addEnabledBy(modelId, individual, cls);
+		else {
+			clsExpr = getGeneClass(modelId, eid);
+			if (clsExpr == null) {
+				throw new UnknownIdentifierException("Could not find a class for id: "+eid);
+			}
+		}
+		return addEnabledBy(modelId, individual, clsExpr);
+	}
+
+	private OWLClassExpression parseClassExpression(String modelId, String expression) throws OWLException {
+		ManchesterSyntaxTool syntaxTool = null;
+		try {
+			syntaxTool = new ManchesterSyntaxTool(getModel(modelId).getAboxOntology());
+			OWLClassExpression clsExpr = syntaxTool.parseManchesterExpression(expression);
+			return clsExpr;
+		}
+		catch (ParserException e) {
+			// wrap in an Exception (not RuntimeException) to enable proper error handling
+			throw new OWLException("Could not parse expression: \""+expression+"\"", e) {
+
+				private static final long serialVersionUID = -9158071212925724138L;
+			};
+		}
+		finally {
+			if (syntaxTool != null) {
+				syntaxTool.dispose();
+			}
+		}
 	}
 
 	/**
