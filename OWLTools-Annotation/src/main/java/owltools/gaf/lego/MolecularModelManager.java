@@ -92,6 +92,7 @@ public class MolecularModelManager {
 	GafObjectsBuilder builder = new GafObjectsBuilder();
 	// WARNING: Do *NOT* switch to functional syntax until the OWL-API has fixed a bug.
 	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
+	List<IRI> additionalImports;
 
 	// TODO: Temporarily for keeping instances unique (search for "unique" below).
 	static String uniqueTop = Long.toHexString((System.currentTimeMillis()/1000));
@@ -261,7 +262,10 @@ public class MolecularModelManager {
 	 * @throws OWLOntologyCreationException
 	 */
 	protected void init() throws OWLOntologyCreationException {
-		// empty
+		// set default imports
+		additionalImports = new ArrayList<IRI>();
+		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/ro.owl"));
+		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
 	}
 
 
@@ -356,6 +360,18 @@ public class MolecularModelManager {
 		return loadGaf(db);
 	}
 
+	/**
+	 * Add additional import declarations for any newly generated model.
+	 * 
+	 * @param imports
+	 */
+	public void addImports(Iterable<String> imports) {
+		if (imports != null) {
+			for (String importIRIString : imports) {
+				additionalImports.add(IRI.create(importIRIString));
+			}
+		}
+	}
 
 	/**
 	 * Generates a new model taking as input a biological process P and a database D.
@@ -391,16 +407,8 @@ public class MolecularModelManager {
 		IRI iri = MolecularModelJsonRenderer.getIRI(modelId, graph);
 		abox = m.createOntology(iri);
 		
-		// variant 1: imports everything
-		// setup model ontology to import the source ontology, RO, and RO-pending
-		// add imports
-		createImports(abox,
-				tbox.getOntologyID().getOntologyIRI(),
-				IRI.create("http://purl.obolibrary.org/obo/ro.owl"),
-				IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
-		
-		// variant 2: copy all axioms into a new ontology
-//		m.addAxioms(abox, tbox.getAxioms());
+		// setup model ontology to import the source ontology and other imports
+		createImports(abox, tbox.getOntologyID());
 		
 		// create generator
 		LegoModelGenerator model = new LegoModelGenerator(tbox, abox);
@@ -420,11 +428,17 @@ public class MolecularModelManager {
 		return modelId;
 
 	}
-	
-	private void createImports(OWLOntology ont, IRI...imports) throws OWLOntologyCreationException {
+
+	private void createImports(OWLOntology ont, OWLOntologyID tboxId) throws OWLOntologyCreationException {
 		OWLOntologyManager m = ont.getOWLOntologyManager();
 		OWLDataFactory f = m.getOWLDataFactory();
-		for (IRI importIRI : imports) {
+		
+		// import T-Box
+		OWLImportsDeclaration tBoxImportDeclaration = f.getOWLImportsDeclaration(tboxId.getOntologyIRI());
+		m.applyChange(new AddImport(ont, tBoxImportDeclaration));
+		
+		// import additional ontologies via IRI
+		for (IRI importIRI : additionalImports) {
 			OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(importIRI);
 			m.loadOntology(importIRI);
 			m.applyChange(new AddImport(ont, importDeclaration));
@@ -483,12 +497,10 @@ public class MolecularModelManager {
 		final OWLOntology tbox = graph.getSourceOntology();
 		final OWLOntology abox = m.createOntology(aBoxIRI);
 
-		// setup model ontology to import the source ontology, RO, and RO-pending
-		createImports(abox,
-				tbox.getOntologyID().getOntologyIRI(),
-				IRI.create("http://purl.obolibrary.org/obo/ro.owl"),
-				IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
+		// add imports to T-Box and additional ontologies via IRI
+		createImports(abox, tbox.getOntologyID());
 		
+		// generate model
 		LegoModelGenerator model = new LegoModelGenerator(tbox, abox);
 		
 		model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
@@ -498,6 +510,7 @@ public class MolecularModelManager {
 			model.setContextualizingSuffix(db);
 		}
 		
+		// add to internal map
 		modelMap.put(modelId, model);
 		return modelId;
 	}

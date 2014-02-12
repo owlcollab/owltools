@@ -1,5 +1,9 @@
 package owltools.gaf.lego.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -25,6 +29,7 @@ public class StartUpTool {
 		String ontology = null;
 		String modelFolder = null;
 		String gafFolder = null; // optional
+		List<String> additionalImports = new ArrayList<String>();
 		
 		// server configuration
 		int port = 6800; 
@@ -46,6 +51,9 @@ public class StartUpTool {
 			else if (opts.nextEq("-p|--port")) {
 				port = Integer.parseInt(opts.nextOpt());
 			}
+			else if (opts.nextEq("-i|--import|--additional-import")) {
+				additionalImports.add(StringUtils.trim(opts.nextOpt()));
+			}
 			else {
 				break;
 			}
@@ -64,10 +72,10 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, modelFolder, gafFolder, port, contextString);
+		startUp(ontology, modelFolder, gafFolder, port, contextString, additionalImports);
 	}
 
-	public static void startUp(String ontology, String modelFolder, String gafFolder, int port, String contextString)
+	public static void startUp(String ontology, String modelFolder, String gafFolder, int port, String contextString, List<String> additionalImports)
 			throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
@@ -81,6 +89,7 @@ public class StartUpTool {
 		if (gafFolder != null) {
 			models.setPathToGafs(gafFolder);
 		}
+		models.addImports(additionalImports);
 
 		LOGGER.info("Setup Jetty config.");
 		// Configuration: Use an already existing handler instance
