@@ -15,6 +15,7 @@ import owltools.cli.Opts;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler;
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
 
 
@@ -27,6 +28,7 @@ public class StartUpTool {
 		
 		// data configuration
 		String ontology = null;
+		String catalog = null;
 		String modelFolder = null;
 		String gafFolder = null; // optional
 		List<String> additionalImports = new ArrayList<String>();
@@ -38,6 +40,9 @@ public class StartUpTool {
 		while (opts.hasArgs()) {
 			if (opts.nextEq("-g|--graph")) {
 				ontology = opts.nextOpt();
+			}
+			else if (opts.nextEq("-c|--catalog")) {
+				catalog = opts.nextOpt();
 			}
 			else if (opts.nextEq("-f|--model-folder")) {
 				modelFolder = opts.nextOpt();
@@ -72,14 +77,18 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, modelFolder, gafFolder, port, contextString, additionalImports);
+		startUp(ontology, catalog, modelFolder, gafFolder, port, contextString, additionalImports);
 	}
 
-	public static void startUp(String ontology, String modelFolder, String gafFolder, int port, String contextString, List<String> additionalImports)
+	public static void startUp(String ontology, String catalog, String modelFolder, String gafFolder, int port, String contextString, List<String> additionalImports)
 			throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
 		ParserWrapper pw = new ParserWrapper();
+		// if available, set catalog
+		if (catalog != null) {
+			pw.addIRIMapper(new CatalogXmlIRIMapper(catalog));
+		}
 		OWLGraphWrapper graph = pw.parseToOWLGraph(ontology);
 
 		// create model manager
