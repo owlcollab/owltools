@@ -269,7 +269,7 @@ public class InferenceBuilder{
 		List<OWLAxiom> equivAxiomsToAdd = new ArrayList<OWLAxiom>();
 		OWLDataFactory dataFactory = ontology.getOWLOntologyManager().getOWLDataFactory();
 		Inferences inferences = new Inferences();
-		
+				
 		logInfo("Finding asserted equivalencies...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 
@@ -338,7 +338,7 @@ public class InferenceBuilder{
 				// we do not want to report inferred subclass links
 				// if they are already asserted in the ontology
 				boolean isAsserted = false;
-				for (OWLClassExpression asc : cls.getSuperClasses(ontology)) {
+				for (OWLClassExpression asc : cls.getSuperClasses(ontology.getImportsClosure())) {
 					if (asc.equals(sc)) {
 						// we don't want to report this
 						isAsserted = true;
