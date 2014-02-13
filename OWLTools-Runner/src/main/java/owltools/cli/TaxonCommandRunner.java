@@ -30,7 +30,6 @@ import owltools.cli.tools.CLIMethod;
 import owltools.gaf.inference.ClassTaxonMatrix;
 import owltools.gaf.inference.TaxonConstraintsEngine;
 import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 
 /**
@@ -151,8 +150,9 @@ public class TaxonCommandRunner extends GafCommandRunner {
 		
 		String outputFile = "taxslim-disjoint-over-in-taxon.owl";
 		String ontologyIRI = "http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim-disjoint-over-in-taxon.owl";
-		List<String> imports = Arrays.asList("http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl",
-				"http://purl.obolibrary.org/obo/ro.owl");
+		List<String> imports = Arrays.asList("http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl");
+		
+		
 		
 		OWLClass root = null;
 		boolean compact = false;
@@ -189,7 +189,11 @@ public class TaxonCommandRunner extends GafCommandRunner {
 			m.applyChange(new AddImport(disjointOntology, decl));
 		}
 		
-		OWLObjectProperty inTaxon = f.getOWLObjectProperty(IRI.create("http://purl.obolibrary.org/obo/RO_0002162"));
+		// create one property 'in taxon' to remove the dependency on ro.owl 
+		final OWLObjectProperty inTaxon = f.getOWLObjectProperty(IRI.create("http://purl.obolibrary.org/obo/RO_0002162"));
+		m.addAxiom(disjointOntology, f.getOWLDeclarationAxiom(inTaxon));
+		OWLAxiom lblAxiom = f.getOWLAnnotationAssertionAxiom(inTaxon.getIRI(), f.getOWLAnnotation(f.getRDFSLabel(), f.getOWLLiteral("in taxon")));
+		m.addAxiom(disjointOntology, lblAxiom);
 		
 		// add disjoints
 		Queue<OWLClass> queue = new LinkedList<OWLClass>();
