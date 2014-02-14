@@ -1166,6 +1166,35 @@ public class CommandRunner {
 				MarkdownRenderer mr = new MarkdownRenderer();
 				mr.render(g.getSourceOntology(), dir);
 			}
+			else if (opts.nextEq("--add-obo-shorthand-to-properties")) {
+				Set<OWLObjectProperty> props = g.getSourceOntology().getObjectPropertiesInSignature(true);
+				OWLDataFactory df = g.getDataFactory();
+				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+				for (OWLObjectProperty prop : props) {
+					// Note: copied from PropertyExtractor - need to centralize code
+					String id = g.getLabel(prop);
+					if (id != null) {
+						id = id.replaceAll(" ", "_");
+						OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(
+								df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#shorthand")),
+								prop.getIRI(), 
+								df.getOWLLiteral(id));
+						axioms.add(ax);
+						LOG.info(ax);
+						String pid = Owl2Obo.getIdentifier(prop.getIRI());
+						axioms.add(
+								df.getOWLAnnotationAssertionAxiom(
+										df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasDbXref")),
+										prop.getIRI(), 
+										df.getOWLLiteral(pid))
+						);
+					}
+					else {
+						LOG.error("No label: "+prop);
+					}
+				}
+				g.getManager().addAxioms(g.getSourceOntology(), axioms);
+			}
 			else if (opts.nextEq("--extract-properties")) {
 				opts.info("[-p PROP]* [--list PLIST] [--no-shorthand]", "extracts properties from source ontology. If properties not specified, then support ontologies will be used");
 				Set<OWLProperty> props = new HashSet<OWLProperty>();
@@ -3258,7 +3287,7 @@ public class CommandRunner {
 				else {
 					modOnt = g.getManager().createOntology(IRI.create(modIRI));
 				}
-				if (dcSource == null) {
+				if (dcSource == null) {	
 					OWLOntologyID oid = baseOnt.getOntologyID();
 					dcSource = oid.getVersionIRI();
 					if (dcSource == null) {
