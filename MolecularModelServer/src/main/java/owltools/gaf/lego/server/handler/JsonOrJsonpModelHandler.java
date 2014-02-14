@@ -361,6 +361,51 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return errorMsg("Could not save the model on the server.", exception);
 		}
 	}
+	
+	// ----------------------------------------
+	// END OF COMMANDS
+	// ----------------------------------------
+
+	// ----------------------------------------
+	// Reworked calls for batch operations 
+	// ----------------------------------------
+
+	static class Request {
+		String entity;
+		String operation;
+		Argument arguments;
+	}
+	
+	static class Argument {
+		String modelId;
+		String subject;
+		String object;
+		String predicate;
+		String individual;
+		
+		Expression[] expressions;
+		Pair[] values;
+	}
+	
+	static class Pair {
+		String key;
+		String value;
+	}
+	
+	static class Expression {
+		String type;
+		String onProp;
+		String literal;
+//		Expression expression;
+	}
+	
+	static class BatchResponse {
+		
+	}
+	
+	public BatchResponse call(Request[] requests) {
+		return null;
+	}
 
 	// ----------------------------------------
 	// END OF COMMANDS
