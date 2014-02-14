@@ -572,7 +572,7 @@ public class OWLHandler {
 		headerText();
 		OwlSim sos = getOWLSim();
 		Set<OWLClass> atts = this.resolveClassList(Param.a);
-		
+		LOG.info("Calculating AnnotationSufficiency score for "+atts.toString());
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String jsonStr = sj.getAnnotationSufficiencyScore(atts);
 		LOG.info("Finished getAnnotationSufficiencyScore");
@@ -789,8 +789,7 @@ public class OWLHandler {
 	}
 
 	private Set<OWLClass> resolveClassList(Param p) {
-		ArrayList<String> ids = new ArrayList<String>();
-		ids.addAll(Arrays.asList(getParams(p)));
+		ArrayList<String> ids = new ArrayList<String>(Arrays.asList(getParams(p)));
 		Set<OWLClass> objs = new HashSet<OWLClass>();
 
 		LOG.info("Param "+p+" IDs: "+ids.toString());
