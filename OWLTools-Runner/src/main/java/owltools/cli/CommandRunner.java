@@ -4151,6 +4151,123 @@ public class CommandRunner {
 	}
 
 	/**
+	 * Extract all xps ({@link OWLEquivalentClassesAxiom}) from the loaded
+	 * ontology. Requires a set of roots classes to restrict the set of
+	 * extracted xps.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--extract-extension-file")
+	public void extractExtensionFile(Opts opts) throws Exception {
+		final Set<OWLClass> rootTerms = new HashSet<OWLClass>();
+		String ontologyIRI = null;
+		String outputFileOwl = null;
+		String outputFileObo = null;
+		String versionIRI = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-id|--ontology-id")) {
+				ontologyIRI = opts.nextOpt();
+			}
+			else if (opts.nextEq("-owl|--output-owl")) {
+				outputFileOwl = opts.nextOpt();
+			}
+			else if (opts.nextEq("-obo|--output-obo")) {
+				outputFileObo = opts.nextOpt();
+			}
+			else if (opts.nextEq("-v|--version")) {
+				versionIRI = opts.nextOpt();
+			}
+			else if (opts.nextEq("-t|--term")) {
+				String term = opts.nextOpt();
+				OWLClass owlClass = g.getOWLClassByIdentifier(term);
+				if (owlClass != null) {
+					rootTerms.add(owlClass);
+				}
+				else {
+					throw new RuntimeException("Could not find a class for id: "+term);
+				}
+			}
+			else {
+				break;
+			}
+		}
+		if (rootTerms.isEmpty()) {
+			throw new RuntimeException("At least one term is required for filtering");
+		}
+		if (ontologyIRI == null) {
+			throw new RuntimeException("An ontology IRI is required.");
+		}
+		
+		final OWLOntologyID newID;
+		final IRI newOntologyIRI = IRI.create(ontologyIRI);
+		if (versionIRI != null) {
+			final IRI newVersionIRI = IRI.create(versionIRI);
+			newID = new OWLOntologyID(newOntologyIRI, newVersionIRI);
+		}
+		else {
+			newID = new OWLOntologyID(newOntologyIRI);
+		}
+		final OWLOntologyManager m = g.getManager();
+		final OWLOntology work = m.createOntology(newID);
+		
+
+		// filter axioms
+		final Set<OWLObjectProperty> usedProperties = new HashSet<OWLObjectProperty>();
+		final Set<OWLAxiom> filtered = new HashSet<OWLAxiom>();
+		
+		final OWLOntology source = g.getSourceOntology();
+		
+		// get relevant equivalent class axioms
+		for(OWLClass cls : source.getClassesInSignature()) {
+			Set<OWLEquivalentClassesAxiom> eqAxioms = source.getEquivalentClassesAxioms(cls);
+			for (OWLEquivalentClassesAxiom eqAxiom : eqAxioms) {
+				if (hasFilterClass(eqAxiom, rootTerms)) {
+					filtered.add(eqAxiom);
+					usedProperties.addAll(eqAxiom.getObjectPropertiesInSignature());
+				}
+			}
+		}
+		// add used properties
+		for (OWLObjectProperty p : usedProperties) {
+			filtered.addAll(source.getDeclarationAxioms(p));
+			filtered.addAll(source.getAxioms(p));
+			filtered.addAll(source.getAnnotationAssertionAxioms(p.getIRI()));
+		}
+
+		// add all axioms into the ontology
+		m.addAxioms(work, filtered);
+
+		// write ontology
+		// owl
+		if (outputFileOwl != null) {
+			OutputStream outputStream = new FileOutputStream(outputFileOwl);
+			try {
+				m.saveOntology(work, new RDFXMLOntologyFormat(), outputStream);
+			}
+			finally {
+				outputStream.close();
+			}
+		}
+		// obo
+		if (outputFileObo != null) {
+			Owl2Obo owl2Obo = new Owl2Obo();
+			OBODoc doc = owl2Obo.convert(work);
+
+			OBOFormatWriter writer = new OBOFormatWriter();
+			BufferedWriter fileWriter = null;
+			try {
+				fileWriter = new BufferedWriter(new FileWriter(outputFileObo));
+				NameProvider nameprovider = new OWLGraphWrapperNameProvider(g);
+				writer.write(doc, fileWriter, nameprovider);
+			}
+			finally {
+				IOUtils.closeQuietly(fileWriter);
+			}
+		}
+	}
+	
+	/**
 	 * Retain only subclass of axioms and intersection of axioms if they contain
 	 * a class in it's signature of a given set of parent terms.
 	 * 
@@ -4307,6 +4424,29 @@ public class CommandRunner {
 								return true;
 							}
 						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Check that there is an axiom, which use a class (in its signature) that
+	 * has a ancestor in the root term set.
+	 * 
+	 * @param axioms set to check
+	 * @param rootTerms set root of terms
+	 * @return boolean
+	 */
+	private boolean hasFilterClass(OWLEquivalentClassesAxiom axiom, Set<OWLClass> rootTerms) {
+		if (axiom != null) {
+			Set<OWLClass> signature = axiom.getClassesInSignature();
+			for (OWLClass sigCls : signature) {
+				NodeSet<OWLClass> superClasses = reasoner.getSuperClasses(sigCls, false);
+				for(OWLClass root : rootTerms) {
+					if (superClasses.containsEntity(root)) {
+						return true;
 					}
 				}
 			}
