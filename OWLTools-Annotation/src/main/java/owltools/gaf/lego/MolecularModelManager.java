@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -373,6 +374,10 @@ public class MolecularModelManager {
 				additionalImports.add(IRI.create(importIRIString));
 			}
 		}
+	}
+	
+	public Collection<IRI> getImports() {
+		return Collections.unmodifiableCollection(additionalImports);
 	}
 
 	/**

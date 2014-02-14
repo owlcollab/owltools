@@ -170,4 +170,8 @@ public interface M3Handler {
 	public M3Response m3StoreModel(
 			@QueryParam(PARAM_MODELID) String modelId,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+	
+	@Path("getRelations")
+	@GET
+	public M3Response getRelations();
 }

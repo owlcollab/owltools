@@ -2,8 +2,12 @@ package owltools.gaf.lego.server.handler;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,11 +17,16 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.graph.OWLGraphWrapper;
@@ -406,7 +415,65 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	public BatchResponse call(Request[] requests) {
 		return null;
 	}
-
+	
+	
+	/**
+	 * Get all relations/object properties (e.g. ro)
+	 * TODO provide this also in Batch mode
+	 * 
+	 * @return response
+	 */
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3Response getRelations() {
+		/*
+		 * data: [{
+		 * 	 id: {String}
+		 *   label: {String}
+		 *   ?color: {String} // TODO in the future
+		 *   ?glyph: {String} // TODO in the future
+		 * }]
+		 */
+		try {
+			final MolecularModelManager mmm = getMolecularModelManager();
+			
+			// retrieve (or load) all ontologies
+			// put in a new wrapper
+			OWLGraphWrapper wrapper = new OWLGraphWrapper(mmm.getOntology());
+			Collection<IRI> imports = mmm.getImports();
+			OWLOntologyManager manager = wrapper.getManager();
+			for (IRI iri : imports) {
+				OWLOntology ontology = manager.loadOntology(iri);
+				wrapper.addSupportOntology(ontology);
+			}
+			
+			// get all properties from all loaded ontologies
+			Set<OWLObjectProperty> properties = new HashSet<OWLObjectProperty>();
+			for(OWLOntology o : graph.getAllOntologies()) {
+				properties.addAll(o.getObjectPropertiesInSignature());
+			}
+			
+			// retrieve id and label for all properties
+			List<Map<String, String>> data = new ArrayList<Map<String,String>>();
+			for (OWLObjectProperty p : properties) {
+				String identifier = MolecularModelJsonRenderer.getId(p, wrapper);
+				String label = wrapper.getLabel(p);
+				Map<String, String> entry = new HashMap<String, String>();
+				entry.put("id", identifier);
+				entry.put("label", label);
+				data.add(entry);
+			}
+			
+			// create response
+			M3Response resp = new M3Response(M3Response.SUCCESS);
+			resp.data = data;
+			return resp ;
+		} catch (OWLOntologyCreationException exception) {
+			return errorMsg("Could not retrieve relations on the server.", exception);
+		}
+		
+	}
+	
 	// ----------------------------------------
 	// END OF COMMANDS
 	// ----------------------------------------
