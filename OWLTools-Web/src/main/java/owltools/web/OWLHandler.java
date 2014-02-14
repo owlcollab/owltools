@@ -790,7 +790,7 @@ public class OWLHandler {
 	private Set<OWLClass> resolveClassList(Param p) {
 		String[] ids = getParams(p);
 		Set<OWLClass> objs = new HashSet<OWLClass>();
-		LOG.info("Param "+p+" IDs: "+ids);
+		LOG.info("Param "+p+" IDs: "+ids.toString());
 		for (String id : ids) {
 			// we allow resolution by altId, if present; in future we
 			// may want to check the altId map at this level so we can
@@ -801,6 +801,7 @@ public class OWLHandler {
 				// TODO - strict mode - for now we include unresolvable classes
 				IRI iri = graph.getIRIByIdentifier(id);
 				c = graph.getDataFactory().getOWLClass(iri);
+				LOG.info("Unresolvable id:"+id+". Making temp class element:"+c.toString());
 			}
 			objs.add(c);
 		}
