@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -788,8 +789,10 @@ public class OWLHandler {
 	}
 
 	private Set<OWLClass> resolveClassList(Param p) {
-		String[] ids = getParams(p);
+		ArrayList<String> ids = new ArrayList<String>();
+		ids.addAll(Arrays.asList(getParams(p)));
 		Set<OWLClass> objs = new HashSet<OWLClass>();
+
 		LOG.info("Param "+p+" IDs: "+ids.toString());
 		for (String id : ids) {
 			// we allow resolution by altId, if present; in future we

@@ -716,6 +716,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts)  {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
 		for (OWLClass c : atts) {
+			if (this.getAllAttributeClasses().contains(c)) {
 				Double ic;
 				try {
 					ic = this.getInformationContentForAttribute(c);
@@ -730,10 +731,13 @@ public abstract class AbstractOwlSim implements OwlSim {
 					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
 					continue;
 				}
- 		 //If a class hasn't been annotated in the loaded corpus, we will
-			//assume that it is very rare, and assign MaxIC
-			//a different option would be to skip adding this value, 
-			//but i'm not sure that's wise
+				//If a class hasn't been annotated in the loaded corpus, we will
+				//assume that it is very rare, and assign MaxIC
+				//a different option would be to skip adding this value, 
+				//but i'm not sure that's wise
+			}  else {
+				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+			}
 		}
 		return statsPerAttSet;
 	}	
