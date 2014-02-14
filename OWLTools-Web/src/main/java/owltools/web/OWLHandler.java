@@ -190,6 +190,7 @@ public class OWLHandler {
 			outputLine("</li>");
 		}
 		outputLine("</ul>");
+		outputLine("Version-2014-02-14");
 	}
 
 	public void helpCommand() throws IOException {
