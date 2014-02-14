@@ -185,4 +185,166 @@ public class OWLServerSimSearchTest {
 			System.out.println(responseContent);
 		}
 	}
+	
+	
+	@Test
+	public void testGetAnnotationSufficiencyScore() throws Exception {
+		g = loadOntology("../OWLTools-Sim/src/test/resources/sim/mp-subset-1.obo");
+		
+		ABoxUtils.createRandomClassAssertions(g.getSourceOntology(), 200, 20);
+		// set sim
+		OwlSimFactory owlSimFactory = new FastOwlSimFactory();
+		OwlSim sos = owlSimFactory.createOwlSim(g.getSourceOntology());
+//		SimPreProcessor pproc = new NullSimPreProcessor();
+//		pproc.setInputOntology(g.getSourceOntology());
+//		pproc.setOutputOntology(g.getSourceOntology());
+//		if (sos instanceof SimpleOwlSim)
+//			((SimpleOwlSim) sos).setSimPreProcessor(pproc);
+		sos.createElementAttributeMapFromOntology();
+		// TODO	attributeAllByAllOld(opts);
+		
+		// create server
+		Server server = new Server(9031);
+		server.setHandler(new OWLServer(g, sos));
+		try {
+			server.start();
+
+			// create a client
+			HttpClient httpclient = new DefaultHttpClient();
+
+			// prepare a request
+			//final HttpUriRequest httpUriRequest = createRequest(200);
+			HttpUriRequest httppost = createGoodAnnotSufRequest(5);
+
+			// run request
+			Log.info("Executing="+httppost);
+			//HttpResponse response = httpclient.execute(httpUriRequest);
+			HttpResponse response = httpclient.execute(httppost);
+			Log.info("Executed="+httpclient);
+			
+			// check response
+			HttpEntity entity = response.getEntity();
+			StatusLine statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() == 200) {
+				String responseContent = EntityUtils.toString(entity);
+				handleResponse(responseContent);
+			}
+			else {
+				Log.info("Status="+statusLine.getStatusCode());
+				EntityUtils.consumeQuietly(entity);
+			}
+
+			// prepare a request
+			//final HttpUriRequest httpUriRequest = createRequest(200);
+			httppost = createBogusAnnotSufRequest(5);
+
+			// run request
+			Log.info("Executing="+httppost);
+			//HttpResponse response = httpclient.execute(httpUriRequest);
+			response = httpclient.execute(httppost);
+			Log.info("Executed="+httpclient);
+			
+			// check response
+			entity = response.getEntity();
+			statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() == 200) {
+				String responseContent = EntityUtils.toString(entity);
+				handleResponse(responseContent);
+			}
+			else {
+				Log.info("Status="+statusLine.getStatusCode());
+				EntityUtils.consumeQuietly(entity);
+			}
+			
+			httppost = createPartiallyBogusAnnotSufRequest(5);
+
+			// run request
+			Log.info("Executing="+httppost);
+			//HttpResponse response = httpclient.execute(httpUriRequest);
+			response = httpclient.execute(httppost);
+			Log.info("Executed="+httpclient);
+			
+			// check response
+			entity = response.getEntity();
+			statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() == 200) {
+				String responseContent = EntityUtils.toString(entity);
+				handleResponse(responseContent);
+			}
+			else {
+				Log.info("Status="+statusLine.getStatusCode());
+				EntityUtils.consumeQuietly(entity);
+			}
+
+			
+			
+		}
+		finally {
+			// clean up
+			server.stop();
+
+//			if (pproc != null) {
+//				pproc.dispose();
+//			}
+		}
+	}
+	
+	protected HttpUriRequest createGoodAnnotSufRequest(int n) throws URISyntaxException {
+		URIBuilder uriBuilder = new URIBuilder()
+			.setScheme("http")
+			.setHost("localhost").setPort(9031)
+			.setPath("/owlsim/getAnnotationSufficiencyScore/");
+			
+		int i=0;
+		for (OWLClass c : g.getAllOWLClasses()) {
+			String id = g.getIdentifier(c);
+			uriBuilder.addParameter("a", id);
+			i++;
+			if (i >= n)
+				break;
+		}
+		uriBuilder.addParameter("limit","5");
+		URI uri = uriBuilder.build();
+		Log.info("Getting URL="+uri);
+		HttpUriRequest httpUriRequest = new HttpGet(uri);
+		Log.info("Got URL="+uri);
+		return httpUriRequest;
+	}
+
+	protected HttpUriRequest createBogusAnnotSufRequest(int n) throws URISyntaxException {
+		URIBuilder uriBuilder = new URIBuilder()
+			.setScheme("http")
+			.setHost("localhost").setPort(9031)
+			.setPath("/owlsim/getAnnotationSufficiencyScore/");
+			
+		uriBuilder.addParameter("a", "BOGUS:1234567");
+		uriBuilder.addParameter("limit","5");
+		URI uri = uriBuilder.build();
+		Log.info("Getting URL="+uri);
+		HttpUriRequest httpUriRequest = new HttpGet(uri);
+		Log.info("Got URL="+uri);
+		return httpUriRequest;
+	}
+	
+	protected HttpUriRequest createPartiallyBogusAnnotSufRequest(int n) throws URISyntaxException {
+		URIBuilder uriBuilder = new URIBuilder()
+			.setScheme("http")
+			.setHost("localhost").setPort(9031)
+			.setPath("/owlsim/getAnnotationSufficiencyScore/");
+		int i=0;
+		for (OWLClass c : g.getAllOWLClasses()) {
+			String id = g.getIdentifier(c);
+			uriBuilder.addParameter("a", id);
+			uriBuilder.addParameter("a", "BOGUS:000000"+i);
+			i++;
+			if (i >= n)
+				break;
+		}
+		uriBuilder.addParameter("limit","5");
+		URI uri = uriBuilder.build();
+		Log.info("Getting URL="+uri);
+		HttpUriRequest httpUriRequest = new HttpGet(uri);
+		Log.info("Got URL="+uri);
+		return httpUriRequest;
+	}
 }

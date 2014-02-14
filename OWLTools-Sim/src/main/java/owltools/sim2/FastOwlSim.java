@@ -528,13 +528,16 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 
 	@Override
-	public Set<OWLNamedIndividual> getElementsForAttribute(OWLClass c) {
+	public Set<OWLNamedIndividual> getElementsForAttribute(OWLClass c) throws UnknownOWLClassException {
+		if (!this.getAllAttributeClasses().contains(c)) {
+			throw new UnknownOWLClassException(c);
+		}
 		return getReasoner().getInstances(c, false).getFlattened();
 	}
 
 	@Override
-	public int getNumElementsForAttribute(OWLClass c) {
-		return getElementsForAttribute(c).size();
+	public int getNumElementsForAttribute(OWLClass c) throws UnknownOWLClassException {
+		return this.getElementsForAttribute(c).size();
 	}
 
 	@Override
@@ -548,7 +551,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	public Double getInformationContentForAttribute(OWLClass c) throws UnknownOWLClassException {
 		if (icCache.containsKey(c)) return icCache.get(c);
 		int freq = getNumElementsForAttribute(c);
-		Double ic = null;
+		Double ic = null ;
 		if (freq > 0) {
 			ic = -Math.log(((double) (freq) / getCorpusSize())) / Math.log(2);
 			// experimental: use depth in graph as tie-breaker.
@@ -1702,5 +1705,4 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		}
 
 	}
-
 }

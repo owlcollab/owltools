@@ -326,7 +326,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 
 
 	@Override
-	public Double getEntropy() {
+	public Double getEntropy() throws UnknownOWLClassException {
 		return getEntropy(getAllAttributeClasses());
 	}
 
@@ -335,7 +335,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	 */
 
 	@Override
-	public Double getEntropy(Set<OWLClass> cset) {
+	public Double getEntropy(Set<OWLClass> cset) throws UnknownOWLClassException {
 		double e = 0.0;
 		for (OWLClass c : cset) {
 			int freq = getNumElementsForAttribute(c);
@@ -506,9 +506,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 	 * @param sampleSetClass
 	 * @return results
 	 * @throws MathException
+	 * @throws UnknownOWLClassException 
 	 */
 	public List<EnrichmentResult> calculateEnrichment(OWLClass populationClass,
-			OWLClass sampleSetClass) throws MathException {
+			OWLClass sampleSetClass) throws MathException, UnknownOWLClassException {
 		List<EnrichmentResult> results = new Vector<EnrichmentResult>();
 		for (OWLClass enrichedClass : this.getReasoner()
 				.getSubClasses(populationClass, false).getFlattened()) {
@@ -527,9 +528,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 	 * @param enrichedClass
 	 * @return enrichment result
 	 * @throws MathException
+	 * @throws UnknownOWLClassException 
 	 */
 	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,
-			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException {
+			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException, UnknownOWLClassException {
 
 		// LOG.info("Hyper :"+populationClass
 		// +" "+sampleSetClass+" "+enrichedClass);
@@ -571,7 +573,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	// hardcode bonferoni for now
 	Integer correctionFactor = null; // todo - robust cacheing
 
-	private int getCorrectionFactor(OWLClass populationClass) {
+	private int getCorrectionFactor(OWLClass populationClass) throws UnknownOWLClassException {
 		if (correctionFactor == null) {
 			int n = 0;
 			for (OWLClass sc : this.getReasoner()
@@ -592,9 +594,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 	 * @param c
 	 * @param d
 	 * @return P(c|d) = P(c^d|d)
+	 * @throws UnknownOWLClassException 
 	 */
 	@Override
-	public double getConditionalProbability(OWLClass c, OWLClass d) {
+	public double getConditionalProbability(OWLClass c, OWLClass d) throws UnknownOWLClassException {
 		Set<OWLNamedIndividual> cis = this.getElementsForAttribute(c);
 		Set<OWLNamedIndividual> dis = this.getElementsForAttribute(d);
 		cis.retainAll(dis);
@@ -710,10 +713,27 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return this.computeAttributeSetSimilarityStats(this.getAttributesForElement(i));
 	}
 	
-	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts) throws UnknownOWLClassException {
+	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts)  {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
 		for (OWLClass c : atts) {
-			statsPerAttSet.addValue(this.getInformationContentForAttribute(c));	
+				Double ic;
+				try {
+					ic = this.getInformationContentForAttribute(c);
+					if (ic.isInfinite() || ic.isNaN()) {
+						ic = this.getSummaryStatistics(Stat.MAX).getMax();
+					}
+					LOG.info("IC for "+c.toString()+"is: "+ic);
+					statsPerAttSet.addValue(ic);	
+
+				} catch (UnknownOWLClassException e) {
+					//This is an extra catch here, but really it should be caught upstream.
+					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+					continue;
+				}
+ 		 //If a class hasn't been annotated in the loaded corpus, we will
+			//assume that it is very rare, and assign MaxIC
+			//a different option would be to skip adding this value, 
+			//but i'm not sure that's wise
 		}
 		return statsPerAttSet;
 	}	
@@ -767,12 +787,38 @@ public abstract class AbstractOwlSim implements OwlSim {
 			LOG.info("Stats have not been computed yet - doing this now");
 			this.computeSystemStats();
 		}
+		LOG.info(stats.getMean());
 		// score = mean(atts)/mean(overall) + max(atts)/max(overall) + sum(atts)/mean(sum(overall))
+		double overall_score = 0.0;
+		Double mean_score = stats.getMean();
+		Double max_score = stats.getMax();
+		Double sum_score = stats.getSum();
+		if (!(mean_score.isNaN() || max_score.isNaN() || sum_score.isNaN())) {
+			mean_score = StatUtils.min(new double[]{(mean_score / this.meanStatsPerIndividual.getMean()),1.0});
+			max_score = StatUtils.min(new double[]{(max_score / this.maxStatsPerIndividual.getMax()),1.0});
+			sum_score = StatUtils.min(new double[]{(sum_score / this.sumStatsPerIndividual.getMean()),1.0});
+			overall_score = (mean_score + max_score + sum_score) / 3;		
+			LOG.info("mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+overall_score);
+		}
+		return overall_score;
+	}
+	
+/*	
+	public double calculateSubAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts, OWLClass sub) throws UnknownOWLClassException {
+		SummaryStatistics stats = computeAttributeSetSimilarityStatsSubgraph(atts,sub);
+		//TODO: compute statsPerIndividual for this subgraph
+		if (Double.isNaN(this.maxStatsPerIndividual.getMean())) {
+			LOG.info("Stats have not been computed yet - doing this now");
+			this.computeSystemStats();
+		}
+		// score = mean(atts)/mean(overall) + max(atts)/max(overall) + sum(atts)/mean(sum(overall))
+		//TODO: need to normalize this based on the whole corpus
 		double mean_score = StatUtils.min(new double[]{(stats.getMean() / this.meanStatsPerIndividual.getMean()),1.0});
 		double max_score = StatUtils.min(new double[]{(stats.getMax() / this.maxStatsPerIndividual.getMax()),1.0});
 		double sum_score = StatUtils.min(new double[]{(stats.getSum() / this.sumStatsPerIndividual.getMean()),1.0});
-		double overall_score = (mean_score + max_score + sum_score) / 3;		
-//		LOG.info("mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+overall_score);
+		double overall_score = (mean_score + max_score + sum_score) / 3;				
+		LOG.info("mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+overall_score);
 		return overall_score;
 	}
+	*/
 }

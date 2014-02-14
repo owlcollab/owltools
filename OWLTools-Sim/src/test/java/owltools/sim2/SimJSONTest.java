@@ -169,7 +169,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 			
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
 				Set<OWLClass> atts = owlsim.getAttributesForElement(i);
-				String jsonStr = sj.search(atts, "MGI", true, true);				
+				String jsonStr = sj.search(atts, "MGI", true, 1000, true);				
 				LOG.info(jsonStr);
 			}
 			

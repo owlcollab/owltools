@@ -571,16 +571,18 @@ public interface OwlSim {
 	 * 
 	 * @param c
 	 * @return set of entities
+	 * @throws UnknownOWLClassException 
 	 */
-	public Set<OWLNamedIndividual> getElementsForAttribute(OWLClass c);
+	public Set<OWLNamedIndividual> getElementsForAttribute(OWLClass c) throws UnknownOWLClassException;
 
 	/**
 	 * |{e : e &isin; Inst(c)}|
 	 * 
 	 * @param c
 	 * @return count
+	 * @throws UnknownOWLClassException 
 	 */
-	public int getNumElementsForAttribute(OWLClass c);
+	public int getNumElementsForAttribute(OWLClass c) throws UnknownOWLClassException;
 
 	/**
 	 * @return E = {e : e &isin; Inst(Τ)}
@@ -621,14 +623,16 @@ public interface OwlSim {
 
 	/**
 	 * @return -Σ<sub>i</sub>[ (P(x<sub>i</sub>)log<sub>2</sub>P(x<sub>i</sub>)]
+	 * @throws UnknownOWLClassException 
 	 */
-	public Double getEntropy();
+	public Double getEntropy() throws UnknownOWLClassException;
 
 	/**
 	 * @param cset
 	 * @return -Σ<sub>i</sub>[ (P(x<sub>i</sub>)log<sub>2</sub>P(x<sub>i</sub>)] for x<sub>i</sub> &isin; cset
+	 * @throws UnknownOWLClassException 
 	 */
-	public Double getEntropy(Set<OWLClass> cset);
+	public Double getEntropy(Set<OWLClass> cset) throws UnknownOWLClassException;
 
 	/**
 	 * @param c - query class
@@ -925,9 +929,10 @@ public interface OwlSim {
 	 * @param sampleSetClass
 	 * @return enrichment results
 	 * @throws MathException
+	 * @throws UnknownOWLClassException 
 	 */
 	public List<EnrichmentResult> calculateEnrichment(OWLClass populationClass,
-			OWLClass sampleSetClass) throws MathException;
+			OWLClass sampleSetClass) throws MathException, UnknownOWLClassException;
 
 	/**
 	 * Pairwise enrichment test
@@ -937,16 +942,18 @@ public interface OwlSim {
 	 * @param enrichedClass
 	 * @return enrichment result
 	 * @throws MathException
+	 * @throws UnknownOWLClassException 
 	 */
 	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,
-			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException;
+			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException, UnknownOWLClassException;
 
 	/**
 	 * @param c
 	 * @param d
 	 * @return P(c|d) = P(c &cap; d)|p(d)
+	 * @throws UnknownOWLClassException 
 	 */
-	public abstract double getConditionalProbability(OWLClass c, OWLClass d);
+	public abstract double getConditionalProbability(OWLClass c, OWLClass d) throws UnknownOWLClassException;
 
 	/**
 	 * This will compute the individual summary statistics over the 
@@ -959,12 +966,13 @@ public interface OwlSim {
 			throws UnknownOWLClassException;
 
 	/**
-	 * This function will compute the summary statistics over the set of 
+	 * This function will compute the IC-based summary statistics over the set of 
 	 * individuals for direct annotations.  It will generate a statistical 
 	 * summary over each individual, as well as over the whole set.  
 	 * @throws UnknownOWLClassException 
 	 */
 	public void computeSystemStats() throws UnknownOWLClassException;
+
 
 	public StatisticalSummaryValues getSystemStats();
 

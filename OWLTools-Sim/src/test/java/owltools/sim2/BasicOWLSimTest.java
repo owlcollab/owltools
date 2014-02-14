@@ -63,7 +63,7 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 	}
 
 	@Test 
-	public void testGetEntropy() throws OWLOntologyCreationException, IOException, OBOFormatParserException {
+	public void testGetEntropy() throws OWLOntologyCreationException, IOException, OBOFormatParserException, UnknownOWLClassException {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResourceIRIString("sim/mp-subset-1.obo"));
 		g =  new OWLGraphWrapper(sourceOntol);
