@@ -536,8 +536,12 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 
 	@Override
-	public int getNumElementsForAttribute(OWLClass c) throws UnknownOWLClassException {
-		return this.getElementsForAttribute(c).size();
+	public int getNumElementsForAttribute(OWLClass c) {
+		try {
+			return this.getElementsForAttribute(c).size();
+		} catch (UnknownOWLClassException e) {
+			return 0;
+		}
 	}
 
 	@Override
