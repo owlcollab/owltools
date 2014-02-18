@@ -457,6 +457,10 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			// retrieve id and label for all properties
 			List<Map<String, String>> data = new ArrayList<Map<String,String>>();
 			for (OWLObjectProperty p : properties) {
+				if (p.isBuiltIn()) {
+					// skip owl:topObjectProperty
+					continue;
+				}
 				String identifier = MolecularModelJsonRenderer.getId(p, wrapper);
 				String label = wrapper.getLabel(p);
 				Map<String, String> entry = new HashMap<String, String>();
