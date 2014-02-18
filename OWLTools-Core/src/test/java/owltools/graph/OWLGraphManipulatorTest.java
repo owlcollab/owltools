@@ -74,7 +74,7 @@ public class OWLGraphManipulatorTest
 		log.debug("Wrapping test ontology into OWLGraphManipulator...");
 		ParserWrapper parserWrapper = new ParserWrapper();
         OWLOntology ont = parserWrapper.parse(
-        		this.getClass().getResource("/ontologies/OWLGraphManipulatorTest.obo").getFile());
+        		this.getClass().getResource("/graph/OWLGraphManipulatorTest.obo").getFile());
     	this.graphManipulator = new OWLGraphManipulator(new OWLGraphWrapper(ont));
 		log.debug("Done wrapping test ontology into OWLGraphManipulator.");
 	}
@@ -818,8 +818,8 @@ public class OWLGraphManipulatorTest
 		toKeep.add("FOO:0014");
 		int countRemoved = this.graphManipulator.filterSubgraphs(toKeep);
 		
-		//The test ontology is designed so that 6 classes should have been removed
-		assertEquals("Incorrect number of classes removed", 6, countRemoved);
+		//The test ontology is designed so that 7 classes should have been removed
+		assertEquals("Incorrect number of classes removed", 7, countRemoved);
 		
 		//test that these classes were actually removed from the ontology
 		int newClassCount = this.graphManipulator.getOwlGraphWrapper()
@@ -886,8 +886,8 @@ public class OWLGraphManipulatorTest
 		toRemove.add("FOO:0008");
 		int countRemoved = this.graphManipulator.removeSubgraphs(toRemove, true);
 
-		//The test ontology is designed so that 6 classes should have been removed
-		assertEquals("Incorrect number of classes removed", 6, countRemoved);
+		//The test ontology is designed so that 7 classes should have been removed
+		assertEquals("Incorrect number of classes removed", 7, countRemoved);
 		//test that these classes were actually removed from the ontology
 		int newClassCount = this.graphManipulator.getOwlGraphWrapper()
 				.getSourceOntology().getClassesInSignature().size();
