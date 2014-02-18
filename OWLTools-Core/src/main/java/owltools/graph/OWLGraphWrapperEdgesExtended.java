@@ -23,12 +23,15 @@ import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
+import owltools.graph.OWLGraphEdge.OWLGraphEdgeSet;
+
 /**
  * This class groups methods that could be modified, or added 
  * to <code>OWLGraphWrapper</code> and parent classes.
  * 
  * @author Frederic Bastian
- * @version November 2013
+ * @version January 2014
+ * @since November 2013
  *
  */
 public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
@@ -520,7 +523,10 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     			this.getSuperPropertyReflexiveClosureOf(prop2.getProperty());
 
     	//search for a common super property
+    	//TODO: hmm, this looks like an error. Properties can be combined thanks to 
+    	//chained composition rules, they do not have to be identical
     	superProps1.retainAll(superProps2);
+    	
     	for (OWLObjectPropertyExpression prop: superProps1) {
 
     	    //code from OWLGraphWrapperEdges.getOWLGraphEdgeSubsumers
@@ -540,6 +546,76 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     	    }
     	}
     	return null;
+    }
+    
+    /**
+     * Same method as {@link OWLGraphWrapperEdges.getOutgoingEdgesClosure(OWLObject)}, 
+     * except that the list of connecting edge properties are not only combined using the 
+     * composition rules as usual, but also over super properties (see for instance 
+     * {@link #combineEdgePairWithSuperProps(OWLGraphEdge, OWLGraphEdge}).
+     * 
+     * @param s     The {@code OWLObject} which outgoing edges start from.
+     * @return      A {@code Set} of {@code OWLGraphEdge}s that represent 
+     *              the graph closure originating from {@code s}, 
+     *              with {@code OWLQuantifiedProperty}s combined using 
+     *              standard composition rules, but also over super-properties.
+     */
+    public Set<OWLGraphEdge> getOutgoingEdgesClosureOverSuperProps(OWLObject s) {
+        Set<OWLGraphEdge> edges = this.getOutgoingEdgesClosure(s);
+        Set<OWLGraphEdge> newEdgesCombined = new OWLGraphEdgeSet();
+        
+        for (OWLGraphEdge e: edges) {
+            OWLGraphEdge newEdge = e;
+            
+            if (e.getQuantifiedPropertyList().size() > 1) {
+                List<OWLQuantifiedProperty> combinedQps = new ArrayList<OWLQuantifiedProperty>();
+                
+                //we will try to combine a property from the original list with its predecessor, 
+                //so we start the iteration at the second property of the original list.
+                for (int i = 1; i < e.getQuantifiedPropertyList().size(); i++) {
+                    //for the first iteration, get the first property of the original list
+                    OWLQuantifiedProperty firstToCombine = e.getQuantifiedPropertyList().get(i - 1);
+                    //after the first iteration, we should combine with the properties 
+                    //already obtained at previous iterations. 
+                    if (!combinedQps.isEmpty()) {
+                        //get the latest property combined, and remove it from the List, 
+                        //so that it can be replaced with a newly combined property
+                        firstToCombine = combinedQps.remove(combinedQps.size() - 1);
+                    }
+                    
+                    //OK, try to combine with the current property iterated
+                    OWLQuantifiedProperty secondToCombine = e.getQuantifiedPropertyList().get(i);
+                    OWLQuantifiedProperty combined = 
+                            this.combinePropertyPairOverSuperProperties(
+                                    firstToCombine, secondToCombine);
+                    if (combined != null) {
+                        combinedQps.add(combined);
+                    } else {
+                        //if the properties could not be combined, we put back 
+                        //in combinedQps the property we removed from it, plus 
+                        //the property currently iterated.
+                        combinedQps.add(firstToCombine);
+                        combinedQps.add(secondToCombine);
+                    }
+                }
+                
+                //combine done, let's see if we combined anything
+                if (!combinedQps.equals(e.getQuantifiedPropertyList())) {
+                    if (combinedQps.size() >= e.getQuantifiedPropertyList().size()) {
+                        throw new AssertionError("Property composition should generate " +
+                        		"less properties than in the original set of properties.");
+                    }
+                    
+                    newEdge = new OWLGraphEdge(e.getSource(), e.getTarget(), combinedQps, 
+                            e.getOntology(), e.getAxioms());
+                    newEdge.setDistance(e.getDistance());
+                }
+            }
+            
+            newEdgesCombined.add(newEdge);
+        }
+        
+        return newEdgesCombined;
     }
 
     
@@ -599,7 +675,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      */
     public Set<OWLClass> getOntologyRoots() {
     	Set<OWLClass> ontRoots = new HashSet<OWLClass>();
-    	//TODO: modify OWLGraphWrapperdges so that it could be possible to obtain 
+    	//TODO: modify OWLGraphWrapperEdges so that it could be possible to obtain 
     	//edges incoming to owl:thing. This would be much cleaner to get the roots.
     	for (OWLOntology ont: this.getAllOntologies()) {
 			for (OWLClass cls: ont.getClassesInSignature()) {
@@ -732,10 +808,10 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * nor owl:nothing, and that it is not deprecated 
      * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}).
      * 
-     * @param cls   An {@code OWLObject} to be checked to be an {@code OWLClass} 
-     *              actually used.
-     * @return      {@code true} if {@code object} is an {@code OWLClass} that is not 
-     *              owl:thing, nor owl:nothing, and is not deprecated.
+     * @param object    An {@code OWLObject} to be checked to be an {@code OWLClass} 
+     *                  actually used.
+     * @return          {@code true} if {@code object} is an {@code OWLClass} that is not 
+     *                  owl:thing, nor owl:nothing, and is not deprecated.
      */
     private boolean isRealClass(OWLObject object) {
         return (object instanceof OWLClass) && !isObsolete(object) && 

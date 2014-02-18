@@ -39,7 +39,7 @@ import owltools.io.ParserWrapper;
  * @since Bgee 13
  *
  */
-public class OWLGraphManipulatorTest // extends TestAncestor
+public class OWLGraphManipulatorTest
 {
     private final static Logger log = 
     		LogManager.getLogger(OWLGraphManipulatorTest.class.getName());
@@ -51,14 +51,9 @@ public class OWLGraphManipulatorTest // extends TestAncestor
 	/**
 	 * Default Constructor. 
 	 */
-	public OWLGraphManipulatorTest()
-	{
-		super();
+	public OWLGraphManipulatorTest() {
+	
 	}
-//	@Override
-//	protected Logger getLogger() {
-//		return log;
-//	}
 	
 	/**
 	 * Load the (really basic) ontology <code>/ontologies/OWLGraphManipulatorTest.obo</code> 

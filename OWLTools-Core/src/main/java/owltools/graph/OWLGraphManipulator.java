@@ -1629,7 +1629,7 @@ public class OWLGraphManipulator {
      * @return					An <code>int</code> representing the number of classes 
      * 							actually removed as a result. 
      */
-    private int filterClasses(Set<OWLClass> classesToKeep) {
+    public int filterClasses(Set<OWLClass> classesToKeep) {
     	//now remove all classes not included in classIdsToKeep
     	int classCount = 0;
     	for (OWLOntology o : this.getOwlGraphWrapper().getAllOntologies()) {

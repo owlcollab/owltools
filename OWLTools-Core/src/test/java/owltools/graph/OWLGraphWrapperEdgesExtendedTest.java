@@ -38,14 +38,9 @@ public class OWLGraphWrapperEdgesExtendedTest
 	/**
 	 * Default Constructor. 
 	 */
-	public OWLGraphWrapperEdgesExtendedTest()
-	{
+	public OWLGraphWrapperEdgesExtendedTest() {
 		super();
 	}
-//	@Override
-//	protected Logger getLogger() {
-//		return log;
-//	}
 	
 	/**
 	 * Load the ontology <code>/graph/OWLGraphManipulatorTest.obo</code> into {@link #wrapper}.
