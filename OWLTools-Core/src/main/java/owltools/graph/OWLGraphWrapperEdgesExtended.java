@@ -481,21 +481,20 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     /**
      * Perform a combination of a pair of <code>OWLQuantifiedProperty</code>s 
      * over super properties, unlike the method 
-     * <code>owltools.graph.OWLGraphWrapperEdges.combinedQuantifiedPropertyPair</code>. 
-     * <strong>Warning: </strong> note that you should call this method only after 
-     * <code>combinedQuantifiedPropertyPair</code> failed to combine properties. 
+     * {@code owltools.graph.OWLGraphWrapperEdges.combinedQuantifiedPropertyPair}. 
      * <p>
-     * This methods determines if <code>prop1</code> is a super property 
-     * of <code>prop2</code> that can be combined, or <code>prop2</code> a super property 
-     * of <code>prop1</code> that can be combined, 
-     * or if they have a super property in common that can be combined. 
-     * If such a suitable super property is identified, <code>prop1</code> and 
-     * <code>prop2</code> are combined by calling the method 
-     * <code>owltools.graph.OWLGraphWrapperEdges.combinedQuantifiedPropertyPair</code> 
-     * on that super property, as a pair (notably to check for transitivity). 
-     * All super properties will be sequentially tested from the more precise one 
-     * to the more general one, trying to find one that can be combined. 
-     * If no combination can be performed, return <code>null</code>.
+     * This method successively tries to combine {@code prop1}, or its super-properties 
+     * (from the more specific to the more general), to {@code prop2}, or one of its 
+     * super-property (from the more specific to the more general). It returns 
+     * the first successfully combined property (meaning, the most precise property 
+     * that could be combined). If no properties could be combined, this method returns 
+     * {@code null}.
+     * <p>
+     * Note that if {@code prop1} and {@code prop2} could be combined directly, 
+     * then this method should produce the same result as {@code combinedQuantifiedPropertyPair}. 
+     * Otherwise, it will try to combine {@code prop1} with one of the super-properties 
+     * of {@code prop2}, then one of the super-properties of {@code prop1} to 
+     * {@code prop2}, or one of its super-properties, etc.
      * <p>
      * For example: 
      * <ul>
@@ -503,6 +502,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * A r1 B * B r2 C --> A r2 C
      * <li>If property r3 is transitive, and is the super property of both r1 and r2, then 
      * A r1 B * B r2 C --> A r3 C 
+     * <li>If r1 * r3 --> r4, and r3 is a super-property of r2, then 
+     * A r1 B * B r2 C --> A r4 C
      * </ul>
      * 
      * @param prop1 	First <code>OWLQuantifiedProperty</code> to combine
@@ -521,31 +522,53 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     			this.getSuperPropertyReflexiveClosureOf(prop1.getProperty());
     	LinkedHashSet<OWLObjectPropertyExpression> superProps2 = 
     			this.getSuperPropertyReflexiveClosureOf(prop2.getProperty());
-
-    	//search for a common super property
-    	//TODO: hmm, this looks like an error. Properties can be combined thanks to 
-    	//chained composition rules, they do not have to be identical
-    	superProps1.retainAll(superProps2);
     	
-    	for (OWLObjectPropertyExpression prop: superProps1) {
-
-    	    //code from OWLGraphWrapperEdges.getOWLGraphEdgeSubsumers
-    	    if (!prop.equals(
-    	            this.getDataFactory().getOWLTopObjectProperty()) && 
-
-    	            prop instanceof OWLObjectProperty) {
-    	        OWLQuantifiedProperty newQp = 
-    	                new OWLQuantifiedProperty(prop, prop1.getQuantifier());
-    	        boolean isExcluded = isExcluded(newQp);
-    	        if (!isExcluded) {
-    	            OWLQuantifiedProperty combined = combinedQuantifiedPropertyPair(newQp, newQp);
-    	            if (combined != null) {
-    	                return combined;
-    	            }
-    	        }
-    	    }
+    	for (OWLObjectPropertyExpression p1: superProps1) {
+            if (!(p1 instanceof OWLObjectProperty)) {
+                continue;
+            }
+            OWLQuantifiedProperty newQp1 = 
+                    new OWLQuantifiedProperty(p1, prop1.getQuantifier());
+            if (!this.isValidQP(newQp1)) {
+                continue;
+            }
+            for (OWLObjectPropertyExpression p2: superProps2) {
+                if (!(p2 instanceof OWLObjectProperty)) {
+                    continue;
+                }
+                OWLQuantifiedProperty newQp2 = 
+                        new OWLQuantifiedProperty(p2, prop2.getQuantifier());
+                if (!this.isValidQP(newQp2)) {
+                    continue;
+                }
+                OWLQuantifiedProperty combined = 
+                        combinedQuantifiedPropertyPair(newQp1, newQp2);
+                if (combined != null) {
+                    return combined;
+                }
+            }
     	}
     	return null;
+    }
+    
+    /**
+     * Checks that the {@code OWLObjectProperty} of {@code qp} is not a top object 
+     * property, and that {@code qp} is not excluded (see {@link 
+     * OWLGraphWrapperEdges#isExcluded(OWLQuantifiedProperty)}).
+     * 
+     * @param qp    The {@code OWLQuantifiedProperty} to be checked for validity.
+     * @return      {@code true} if {@code qp} is valid.
+     */
+    private boolean isValidQP(OWLQuantifiedProperty qp) {
+        //code from OWLGraphWrapperEdges.getOWLGraphEdgeSubsumers
+        if (qp.getProperty().equals(
+                this.getDataFactory().getOWLTopObjectProperty())) {
+            return false;
+        }
+        if (isExcluded(qp)) {
+            return false;
+        }
+        return true;
     }
     
     /**

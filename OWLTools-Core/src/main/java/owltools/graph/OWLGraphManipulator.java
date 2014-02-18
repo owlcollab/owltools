@@ -1620,7 +1620,7 @@ public class OWLGraphManipulator {
     	return classCount;
     }
     /**
-     * Filter from the ontologyies all <code>OWLClass</code>es 
+     * Filter from the ontologies all <code>OWLClass</code>es 
      * present in <code>classesToKeep</code>,  
      * and then update the <code>OWLGraphWrapper</code> container. 
      * 

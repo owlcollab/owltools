@@ -222,7 +222,7 @@ public class OWLGraphWrapperEdgesExtendedTest
 	{
 		//try to combine a has_developmental_contribution_from 
 		//and a transformation_of relation (one is a super property of the other, 
-		//2 levels higher, interesting unit test)
+		//2 levels higher)
 		OWLObjectProperty transf = wrapper.getOWLObjectPropertyByIdentifier(
 				"http://semanticscience.org/resource/SIO_000657");
 		OWLQuantifiedProperty transfQp = 
@@ -231,7 +231,6 @@ public class OWLGraphWrapperEdgesExtendedTest
 		OWLQuantifiedProperty devContQp = 
 				new OWLQuantifiedProperty(devCont, Quantifier.SOME);
 		
-		//"combinePropertyPairOverSuperProperties" is package private, so we can test it
 		OWLQuantifiedProperty combine = wrapper.combinePropertyPairOverSuperProperties(transfQp, devContQp);
 		assertEquals("relations SIO:000657 and RO:0002254 were not properly combined " +
 				"into RO:0002254", devContQp, combine);
@@ -241,9 +240,7 @@ public class OWLGraphWrapperEdgesExtendedTest
 				devContQp, combine);
 		
 		//another test case: two properties where none is parent of the other one, 
-		//sharing several common parents, only the more general one is transitive. 
-		//as I couldn't find any suitable example, fake relations were created
-		//in the test ontology: 
+		//sharing several common parents, only the more general one is transitive.
 		//fake_rel3 and fake_rel4 are both sub-properties of fake_rel2, 
 		//which is not transitive, but has the super-property fake_rel1 
 		//which is transitive. fake_rel3 and fake_rel4 should be combined into fake_rel1.
@@ -262,6 +259,36 @@ public class OWLGraphWrapperEdgesExtendedTest
 		combine = wrapper.combinePropertyPairOverSuperProperties(fakeRel4Qp, fakeRel3Qp);
 		assertEquals("Reversing relations in method call generated an error", 
 				fakeRel1, combine.getProperty());
+		
+		//another test case: part_of o develops_from -> develops_from 
+		//fake_rel5 is a sub-property of develops_from, so we should have 
+		//part_of o fake_rel5 -> develops_from
+		OWLObjectProperty fakeRel5 = wrapper.getOWLObjectPropertyByIdentifier("fake_rel5");
+        OWLQuantifiedProperty fakeRel5Qp = 
+                new OWLQuantifiedProperty(fakeRel5, Quantifier.SOME);
+        OWLObjectProperty partOf = wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050");
+        OWLQuantifiedProperty partOfQp = 
+                new OWLQuantifiedProperty(partOf, Quantifier.SOME);
+        
+        combine = wrapper.combinePropertyPairOverSuperProperties(partOfQp, fakeRel5Qp);
+        OWLObjectProperty dvlpFrom = wrapper.getOWLObjectPropertyByIdentifier("RO:0002202");
+        assertEquals("relations part_of and fake_rel5 were not properly combined " +
+                "into develops_from", dvlpFrom, combine.getProperty());
+        
+        //should  work also with a sub-property of part_of
+        OWLObjectProperty deepPartOf = wrapper.getOWLObjectPropertyByIdentifier("in_deep_part_of");
+        OWLQuantifiedProperty deepPartOfQp = 
+                new OWLQuantifiedProperty(deepPartOf, Quantifier.SOME);
+        combine = wrapper.combinePropertyPairOverSuperProperties(deepPartOfQp, fakeRel5Qp);
+        assertEquals("relations in_deep_part_of and fake_rel5 were not properly combined " +
+                "into develops_from", dvlpFrom, combine.getProperty());
+        
+        //finally, check that the method produce the same result 
+        //as combinedQuantifiedPropertyPair, for instance with the fake_rel3, 
+        //which is transitive
+        combine = wrapper.combinePropertyPairOverSuperProperties(fakeRel3Qp, fakeRel3Qp);
+        assertEquals("relations fake_rel3 and fake_rel3 were not properly combined " +
+                "into fake_rel3", fakeRel3, combine.getProperty());
 	}
 	
 	/**

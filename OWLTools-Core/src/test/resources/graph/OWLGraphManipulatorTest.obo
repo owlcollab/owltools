@@ -199,3 +199,9 @@ namespace: fake_rel
 is_transitive: true
 is_a: fake_rel2 ! fake_rel2
 
+[Typedef]
+id: fake_rel5
+name: fake_rel5
+namespace: fake_rel
+is_a: develops_from ! develops from
+
