@@ -449,7 +449,8 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			
 			// get all properties from all loaded ontologies
 			Set<OWLObjectProperty> properties = new HashSet<OWLObjectProperty>();
-			for(OWLOntology o : graph.getAllOntologies()) {
+			Set<OWLOntology> allOntologies = wrapper.getAllOntologies();
+			for(OWLOntology o : allOntologies) {
 				properties.addAll(o.getObjectPropertiesInSignature());
 			}
 			
