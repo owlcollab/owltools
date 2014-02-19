@@ -16,7 +16,6 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
@@ -30,7 +29,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 
 	private static Logger LOG = Logger.getLogger(OWLGraphWrapper.class);
 
-	protected OWLGraphWrapperEdgesAdvanced(OWLOntology ontology) throws UnknownOWLOntologyException, OWLOntologyCreationException {
+	protected OWLGraphWrapperEdgesAdvanced(OWLOntology ontology) {
 		super(ontology);
 	}
 

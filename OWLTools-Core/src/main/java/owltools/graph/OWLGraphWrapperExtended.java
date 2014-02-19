@@ -36,7 +36,6 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
-import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
@@ -51,7 +50,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 	private Map<String,OWLObject> altIdMap = null;
 
-	protected OWLGraphWrapperExtended(OWLOntology ontology) throws UnknownOWLOntologyException, OWLOntologyCreationException {
+	protected OWLGraphWrapperExtended(OWLOntology ontology) {
 		super(ontology);
 	}
 

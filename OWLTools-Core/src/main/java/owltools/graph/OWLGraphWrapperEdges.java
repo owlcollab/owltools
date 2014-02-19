@@ -47,7 +47,6 @@ import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
-import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -174,7 +173,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	}
 
-	protected OWLGraphWrapperEdges(OWLOntology ontology) throws UnknownOWLOntologyException, OWLOntologyCreationException {
+	protected OWLGraphWrapperEdges(OWLOntology ontology) {
 		super(ontology);
 	}
 

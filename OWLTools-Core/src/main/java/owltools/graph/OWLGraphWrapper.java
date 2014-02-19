@@ -100,11 +100,8 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 	 * Create a new wrapper for an OWLOntology
 	 * 
 	 * @param ontology 
-	 * 
-	 * @throws OWLOntologyCreationException 
-	 * @throws UnknownOWLOntologyException 
 	 */
-	public OWLGraphWrapper(OWLOntology ontology) throws UnknownOWLOntologyException, OWLOntologyCreationException {
+	public OWLGraphWrapper(OWLOntology ontology) {
 		super(ontology);
 	}
 

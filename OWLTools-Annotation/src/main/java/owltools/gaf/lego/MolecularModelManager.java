@@ -1087,24 +1087,25 @@ public class MolecularModelManager {
 		return pathToOWLFiles + "/" + modelId + ".owl";
 	}
 	private OWLNamedIndividual getIndividual(String indId, LegoModelGenerator model) {
-		OWLGraphWrapper graph = model.ogw;
+		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(indId, graph);
 		return model.getOWLDataFactory().getOWLNamedIndividual(iri);
 	}
 	private OWLClass getClass(String cid, LegoModelGenerator model) {
-		return getClass(cid, model.ogw);
+		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
+		return getClass(cid, graph);
 	}
 	private OWLClass getClass(String cid, OWLGraphWrapper graph) {
 		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
 		return graph.getOWLClass(iri);
 	}
 	private OWLClass getGeneClass(String cid, LegoModelGenerator model) {
-		OWLGraphWrapper graph = model.ogw;
+		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
 		return model.getOWLDataFactory().getOWLClass(iri);
 	}
 	private OWLObjectProperty getObjectProperty(String pid, LegoModelGenerator model) {
-		OWLGraphWrapper graph = model.ogw;
+		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(pid, graph);
 		return graph.getOWLObjectProperty(iri);
 	}

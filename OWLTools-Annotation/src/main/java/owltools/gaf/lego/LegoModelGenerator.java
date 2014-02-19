@@ -133,7 +133,10 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	 */
 	//public Partonomy partonomy;
 	//Set<Process> processSet; // P : process *instances*
-	OWLGraphWrapper ogw;
+	
+	// this should only be used for the generation of candidates/seeds from GAF and/or ontology
+	// the proper model is the Abox ontology
+	private OWLGraphWrapper ogw;
 
 
 	/**

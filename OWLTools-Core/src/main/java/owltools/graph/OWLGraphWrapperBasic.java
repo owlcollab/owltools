@@ -19,7 +19,6 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
-import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
 /**
  * Basic methods for handling multiple {@link OWLOntology} objects as one graph.
@@ -35,10 +34,9 @@ public class OWLGraphWrapperBasic {
 
 	protected Set<OWLOntology> supportOntologySet = new HashSet<OWLOntology>();
 
-	protected OWLGraphWrapperBasic(OWLOntology ontology) throws UnknownOWLOntologyException, OWLOntologyCreationException {
+	protected OWLGraphWrapperBasic(OWLOntology ontology) {
 		super();
 		sourceOntology = ontology;
-		getManager().getOntologyFormat(ontology);
 	}
 	
 	protected OWLGraphWrapperBasic(String iri) throws OWLOntologyCreationException {

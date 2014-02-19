@@ -71,11 +71,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 	/**
 	 * Default constructor. 
 	 * @param ontology 		The <code>OWLOntology</code> that this object wraps.
-	 * @throws UnknownOWLOntologyException 	
-	 * @throws OWLOntologyCreationException
 	 */
-	public OWLGraphWrapperEdgesExtended(OWLOntology ontology)
-			throws UnknownOWLOntologyException, OWLOntologyCreationException {
+	public OWLGraphWrapperEdgesExtended(OWLOntology ontology) {
 		super(ontology);
     	this.subPropertyCache = new HashMap<OWLObjectPropertyExpression, 
     			LinkedHashSet<OWLObjectPropertyExpression>>();
