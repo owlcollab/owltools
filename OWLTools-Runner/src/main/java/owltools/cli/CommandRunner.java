@@ -394,11 +394,39 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--object-to-label-table")) {
 				Set<OWLObject> objs = g.getAllOWLObjects();
+				boolean useIds = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-i")) {
+						useIds = true;
+					}
+					else {
+						break;
+					}
+				}
 				for (OWLObject c : objs) {
 					if (c instanceof OWLNamedObject) {
 						String label = g.getLabel(c);
-						System.out.println(((OWLNamedObject)c).getIRI()+"\t"+label);
+						String id;
+						if (useIds) {
+							id = g.getIdentifier(c);
+						}
+						else {
+							id = ((OWLNamedObject)c).getIRI().toString();
+						}					
+						System.out.println(id+"\t"+label);
 					}
+				}
+			}
+			else if (opts.nextEq("--write-all-subclass-relationships")) {
+				for (OWLSubClassOfAxiom ax : g.getSourceOntology().getAxioms(AxiomType.SUBCLASS_OF)) {
+					OWLClassExpression parent = ax.getSuperClass();
+					OWLClassExpression child = ax.getSubClass();
+					if (parent.isAnonymous() || child.isAnonymous())
+						continue;
+					System.out.println(g.getIdentifier(parent) +
+							"\t" +
+							g.getIdentifier(parent));
+								
 				}
 			}
 			else if (opts.nextEq("--query-ontology")) {
@@ -2168,6 +2196,7 @@ public class CommandRunner {
 						Set<OWLClass> supers = reasoner.getSuperClasses(c, isDirect).getFlattened();
 						for (OWLClass sc : supers) {
 							OWLSubClassOfAxiom ax = g.getDataFactory().getOWLSubClassOfAxiom(c, sc);
+							ax.getObjectPropertiesInSignature();
 							if (!ont.containsAxiom(ax, true)) {
 								LOG.info("INFERRED: "+owlpp.render(ax));
 								iAxioms.add(ax);
