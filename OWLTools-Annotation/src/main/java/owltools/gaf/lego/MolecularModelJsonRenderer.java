@@ -87,6 +87,13 @@ public class MolecularModelJsonRenderer {
 	Gson gson = new Gson();
 	
 	/**
+	 * @param ontology
+	 */
+	public MolecularModelJsonRenderer(OWLOntology ontology) {
+		this(new OWLGraphWrapper(ontology));
+	}
+	
+	/**
 	 * @param graph
 	 */
 	public MolecularModelJsonRenderer(OWLGraphWrapper graph) {

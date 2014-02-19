@@ -578,7 +578,7 @@ public class MolecularModelManager {
 	 */
 	List<Map<Object, Object>> getIndividualObjects(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
 		OWLOntology ont = mod.getAboxOntology();
 		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
@@ -593,7 +593,7 @@ public class MolecularModelManager {
 	 */
 	public Map<Object, Object> getModelObject(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
 		return renderer.renderObject(mod.getAboxOntology());
 	}
 
@@ -1155,7 +1155,7 @@ public class MolecularModelManager {
 	 */
 	private void addIndividualsData(OWLOperationResponse resp, LegoModelGenerator mod, OWLIndividual...individuals) {
 		// TODO re-use more code from MolecularModelJsonRenderer
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(graph);
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
 		OWLOntology ont = mod.getAboxOntology();
 		Map<Object, Object> map = new HashMap<Object, Object>();
 		List<Map<Object, Object>> iObjs = new ArrayList<Map<Object, Object>>();
