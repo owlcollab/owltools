@@ -67,6 +67,7 @@ import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.UnknownOWLClassException;
+import owltools.version.VersionInfo;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
@@ -190,7 +191,15 @@ public class OWLHandler {
 			outputLine("</li>");
 		}
 		outputLine("</ul>");
-		outputLine("Version-2014-02-14");
+		// this will only return a value, if this is called from an owltools-jar
+		// otherwise it's null
+		String manifestVersion = VersionInfo.getManifestVersion("owltools-build-timestamp");
+		if (manifestVersion != null) {
+			outputLine("Version: "+manifestVersion);
+		}
+		else {
+			outputLine("Version: not available");
+		}
 	}
 
 	public void helpCommand() throws IOException {
