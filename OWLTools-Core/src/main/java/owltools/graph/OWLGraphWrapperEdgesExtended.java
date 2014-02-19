@@ -151,7 +151,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * @see #getSubAnnotationPropertiesOf(OWLAnnotationProperty)
      * @see #getSubAnnotationPropertyReflexiveClosureOf(OWLAnnotationProperty)
      */
-    //TODO: DRY, it is almost the same code than getSubPropertyClosureOf
+    //TODO: DRY, it is almost the same code as getSubPropertyClosureOf
     public LinkedHashSet<OWLAnnotationProperty> getSubAnnotationPropertyClosureOf(
             OWLAnnotationProperty prop) {
         //try to get the sub-properties from the cache
@@ -573,9 +573,13 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     
     /**
      * Same method as {@link OWLGraphWrapperEdges.getOutgoingEdgesClosure(OWLObject)}, 
-     * except that the list of connecting edge properties are not only combined using the 
+     * except that only the {@code OWLGraphEdge}s going to a **named** target are returned, 
+     * and that the list of connecting edge properties are not only combined using the 
      * composition rules as usual, but also over super properties (see for instance 
      * {@link #combineEdgePairWithSuperProps(OWLGraphEdge, OWLGraphEdge}).
+     * <p>
+     * Also, redundant edges are filtered: if an edge is a sub-property of another one, 
+     * only the most precise edge is returned. 
      * 
      * @param s     The {@code OWLObject} which outgoing edges start from.
      * @return      A {@code Set} of {@code OWLGraphEdge}s that represent 
@@ -583,11 +587,15 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      *              with {@code OWLQuantifiedProperty}s combined using 
      *              standard composition rules, but also over super-properties.
      */
-    public Set<OWLGraphEdge> getOutgoingEdgesClosureOverSuperProps(OWLObject s) {
+    public Set<OWLGraphEdge> getOutgoingEdgesNamedClosureOverSupProps(OWLObject s) {
         Set<OWLGraphEdge> edges = this.getOutgoingEdgesClosure(s);
-        Set<OWLGraphEdge> newEdgesCombined = new OWLGraphEdgeSet();
+        Set<OWLGraphEdge> edgesCombined = new OWLGraphEdgeSet();
         
         for (OWLGraphEdge e: edges) {
+            //keep only edges going to a named target
+            if (!e.isTargetNamedObject()) {
+                continue;
+            }
             OWLGraphEdge newEdge = e;
             
             if (e.getQuantifiedPropertyList().size() > 1) {
@@ -635,10 +643,29 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                 }
             }
             
-            newEdgesCombined.add(newEdge);
+            edgesCombined.add(newEdge);
         }
         
-        return newEdgesCombined;
+        //now, we make sure that there is no redundant combined edges, 
+        //where one is a sub-property of the other, with the same target
+        Set<OWLGraphEdge> filteredEdgesCombined = new OWLGraphEdgeSet();
+        edge1: for (OWLGraphEdge edge1: edgesCombined) {
+            edge2: for (OWLGraphEdge edge2: edgesCombined) {
+                if (edge1.equals(edge2) || !edge1.getTarget().equals(edge2.getTarget())) {
+                    continue edge2;
+                }
+                //check that edge1 is not a sub-relation of edge2
+                //(the reciprocal test will be done during another iteration)
+                if (this.getOWLGraphEdgeSubsumers(edge1).contains(edge2)) {
+                    //invalidate edge1
+                    continue edge1;
+                }
+            }
+            //OK, edge1 is not a sub-relation of any other edge, validated
+            filteredEdgesCombined.add(edge1);
+        }
+        
+        return filteredEdgesCombined;
     }
 
     

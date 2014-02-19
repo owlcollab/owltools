@@ -1,0 +1,87 @@
+format-version: 1.2
+ontology: superObjectProps
+
+[Term]
+id: FOO:0001
+name: FOO:0001
+
+[Term]
+id: FOO:0002
+name: FOO:0002
+is_a: FOO:0001
+
+[Term]
+id: FOO:0003
+name: FOO:0003
+relationship: part_of FOO:0001
+
+[Term]
+id: FOO:0004
+name: FOO:0004
+comment: no indirect relation should be composed to FOO:0001
+relationship: fake_rel1 FOO:0003
+
+[Term]
+id: FOO:0005
+name: FOO:0005
+comment: indirect relation part_of should be composed to FOO:0001
+relationship: in_deep_part_of FOO:0003
+
+[Term]
+id: FOO:0006
+name: FOO:0006
+comment: indirect relation in_deep_part_of and develops_from should be composed to FOO:0001
+relationship: in_deep_part_of FOO:0002
+relationship: develops_from FOO:0003
+
+[Term]
+id: FOO:0007
+name: FOO:0007
+comment: indirect relation develops_from should be composed to FOO:0001 and FOO:0003
+relationship: develops_from FOO:0005
+
+[Typedef]
+id: overlaps
+name: overlaps
+def: "A overlaps B if they share some part in common." []
+xref: RO:0002131
+transitive_over: part_of ! part of
+holds_over_chain: has_part overlaps ! overlaps
+holds_over_chain: has_part part_of ! part of
+expand_expression_to: "BFO_0000051 some (BFO_0000050 some ?Y)" []
+
+[Typedef]
+id: part_of
+name: part of
+is_transitive: true
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_a: overlaps ! overlaps
+
+[Typedef]
+id: in_deep_part_of
+name: in_deep_part_of
+namespace: uberon
+is_a: part_of ! part of
+
+[Typedef]
+id: has_developmental_contribution_from
+name: has developmental contribution from
+namespace: uberon
+is_transitive: true
+xref: RO:0002254
+holds_over_chain: has_part develops_from  ! develops from
+
+[Typedef]
+id: develops_from
+name: develops from
+namespace: zebrafish_anatomical_ontology
+is_transitive: true
+xref: RO:0002202
+is_a: has_developmental_contribution_from  ! has developmental contribution from
+transitive_over: part_of  ! part of
+holds_over_chain: part_of develops_from  ! develops from
+
+[Typedef]
+id: fake_rel1
+name: fake_rel1

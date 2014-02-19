@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -317,6 +319,110 @@ public class OWLGraphWrapperEdgesExtendedTest
 		
 		assertEquals("Incorrect combined relation", expectedEdge, 
 				wrapper.combineEdgePairWithSuperProps(edge1, edge2));
+	}
+	
+	/**
+	 * Test {@link OWLGraphWrapperEdgesExtended#getOutgoingEdgesNamedClosureOverSupProps(OWLObject)}.
+	 * Note that this method uses a different test ontology than the other tests: 
+	 * {@code graph/superObjectProps.obo}.
+	 */
+	@Test
+	public void shouldGetNamedClosureOverSuperProps() throws OWLOntologyCreationException, 
+	    OBOFormatParserException, IOException {
+	    ParserWrapper parserWrapper = new ParserWrapper();
+        OWLOntology ont = parserWrapper.parse(OWLGraphWrapperEdgesExtendedTest.class.getResource(
+                "/graph/superObjectProps.obo").getFile());
+        OWLGraphWrapper ontWrapper = new OWLGraphWrapper(ont);
+        
+        //get all required objects
+        OWLClass foo1 = ontWrapper.getOWLClassByIdentifier("FOO:0001");
+        OWLClass foo2 = ontWrapper.getOWLClassByIdentifier("FOO:0002");
+        OWLClass foo3 = ontWrapper.getOWLClassByIdentifier("FOO:0003");
+        OWLClass foo4 = ontWrapper.getOWLClassByIdentifier("FOO:0004");
+        OWLClass foo5 = ontWrapper.getOWLClassByIdentifier("FOO:0005");
+        OWLClass foo6 = ontWrapper.getOWLClassByIdentifier("FOO:0006");
+        OWLClass foo7 = ontWrapper.getOWLClassByIdentifier("FOO:0007");
+        
+        OWLGraphEdge foo2IsAFoo1 = 
+                new OWLGraphEdge(foo2, foo1, null, Quantifier.SUBCLASS_OF, ont);
+        
+        OWLObjectProperty partOf = ontWrapper.
+                getOWLObjectPropertyByIdentifier("BFO:0000050");
+        OWLGraphEdge foo3PartOfFoo1 = 
+                new OWLGraphEdge(foo3, foo1, partOf, Quantifier.SOME, ont);
+        
+        OWLObjectProperty fakeRel = ontWrapper.
+                getOWLObjectPropertyByIdentifier("fake_rel1");
+        OWLGraphEdge foo4ToFoo3 = 
+                new OWLGraphEdge(foo4, foo3, fakeRel, Quantifier.SOME, ont);
+        OWLGraphEdge foo4ToFoo1 = 
+                new OWLGraphEdge(foo4, foo1, Arrays.asList(
+                        new OWLQuantifiedProperty(fakeRel, Quantifier.SOME), 
+                        new OWLQuantifiedProperty(partOf, Quantifier.SOME)), 
+                        ont);
+        
+        OWLObjectProperty deepPartOf = ontWrapper.
+                getOWLObjectPropertyByIdentifier("in_deep_part_of");
+        OWLGraphEdge foo5ToFoo3 = 
+                new OWLGraphEdge(foo5, foo3, deepPartOf, Quantifier.SOME, ont);
+        OWLGraphEdge foo5ToFoo1 = 
+                new OWLGraphEdge(foo5, foo1, partOf, Quantifier.SOME, ont);
+        
+        OWLObjectProperty developsFrom = ontWrapper.
+                getOWLObjectPropertyByIdentifier("RO:0002202");
+        OWLGraphEdge foo6ToFoo2 = 
+                new OWLGraphEdge(foo6, foo2, deepPartOf, Quantifier.SOME, ont);
+        OWLGraphEdge foo6ToFoo3 = 
+                new OWLGraphEdge(foo6, foo3, developsFrom, Quantifier.SOME, ont);
+        OWLGraphEdge foo6ToFoo1 = 
+                new OWLGraphEdge(foo6, foo1, deepPartOf, Quantifier.SOME, ont);
+        OWLGraphEdge foo6ToFoo1Bis = 
+                new OWLGraphEdge(foo6, foo1, developsFrom, Quantifier.SOME, ont);
+        
+        OWLGraphEdge foo7ToFoo5 = 
+                new OWLGraphEdge(foo7, foo5, developsFrom, Quantifier.SOME, ont);
+        OWLGraphEdge foo7ToFoo3 = 
+                new OWLGraphEdge(foo7, foo3, developsFrom, Quantifier.SOME, ont);
+        OWLGraphEdge foo7ToFoo1 = 
+                new OWLGraphEdge(foo7, foo1, developsFrom, Quantifier.SOME, ont);
+        
+        //Start tests
+        Set<OWLGraphEdge> expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(foo2IsAFoo1);
+        assertEquals("Incorrect closure edges for foo2", expectedEdges, 
+                ontWrapper.getOutgoingEdgesNamedClosureOverSupProps(foo2));
+        
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(foo3PartOfFoo1);
+        assertEquals("Incorrect closure edges for foo3", expectedEdges, 
+                ontWrapper.getOutgoingEdgesNamedClosureOverSupProps(foo3));
+        
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(foo4ToFoo3);
+        expectedEdges.add(foo4ToFoo1);
+        assertEquals("Incorrect closure edges for foo4", expectedEdges, 
+                ontWrapper.getOutgoingEdgesNamedClosureOverSupProps(foo4));
+        
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(foo5ToFoo3);
+        expectedEdges.add(foo5ToFoo1);
+        assertEquals("Incorrect closure edges for foo4", expectedEdges, 
+                ontWrapper.getOutgoingEdgesNamedClosureOverSupProps(foo5));
+        
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(foo6ToFoo3);
+        expectedEdges.add(foo6ToFoo2);
+        expectedEdges.add(foo6ToFoo1);
+        expectedEdges.add(foo6ToFoo1Bis);
+        assertEquals("Incorrect closure edges for foo4", expectedEdges, 
+                ontWrapper.getOutgoingEdgesNamedClosureOverSupProps(foo6));
+        
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(foo7ToFoo5);
+        expectedEdges.add(foo7ToFoo3);
+        expectedEdges.add(foo7ToFoo1);
+        assertEquals("Incorrect closure edges for foo4", expectedEdges, 
+                ontWrapper.getOutgoingEdgesNamedClosureOverSupProps(foo7));
 	}
 	
 	/**
