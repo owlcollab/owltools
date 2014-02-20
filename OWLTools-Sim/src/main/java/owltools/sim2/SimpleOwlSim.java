@@ -1259,6 +1259,12 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		throw new RuntimeException("This method is not implemented.");
 	}
 
+	@Override
+	public StatsPerIndividual getSummaryStatistics() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 

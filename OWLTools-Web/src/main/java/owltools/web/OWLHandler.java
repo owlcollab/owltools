@@ -131,7 +131,11 @@ public class OWLHandler {
 		individualId,
 		propertyId,
 		fillerId,
-		a, b, modelId, db
+		a, b, modelId, db,
+		/**
+		 * r : root node of subgraph, class id
+		 */
+		r
 	}
 
 	public OWLHandler(OWLServer owlserver, OWLGraphWrapper graph,  HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -597,9 +601,10 @@ public class OWLHandler {
 		headerText();
 		OwlSim sos = getOWLSim();
 		Set<OWLClass> atts = this.resolveClassList(Param.a);
+		Set<OWLClass> roots = this.resolveClassList(Param.r);
 		
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
-		String jsonStr = sj.getAttributeInformationProfile(atts);
+		String jsonStr = sj.getAttributeInformationProfile(atts,roots);
 		LOG.info("Finished getAttributeInformationProfileCommand");
 		response.getWriter().write(jsonStr);
 	}

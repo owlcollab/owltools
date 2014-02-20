@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -251,13 +252,13 @@ public class SimJSONEngine {
 	public HashMap<String,String> makeSummaryStatistics() {
 		//		Gson gson = new Gson();
 		HashMap<String,String> stats = new HashMap<String,String>();
-		stats.put("individuals", String.format("%d",sos.getSummaryStatistics(Stat.MEAN).getN()));		
-		stats.put("mean(meanIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.MEAN).getMean()));		
-		stats.put("mean(maxIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.MAX).getMean()));		
-		stats.put("max(maxIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.MAX).getMax()));		
-		stats.put("max(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.SUM).getMax()));		
-		stats.put("mean(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.SUM).getMean()));		
-		stats.put("mean(n)", String.format("%1$.5f",sos.getSummaryStatistics(Stat.N).getMean()));		
+		stats.put("individuals", String.format("%d",sos.getSummaryStatistics().max.getN()));		
+		stats.put("mean(meanIC)", String.format("%1$.5f",sos.getSummaryStatistics().mean.getMean()));		
+		stats.put("mean(maxIC)", String.format("%1$.5f",sos.getSummaryStatistics().max.getMean()));		
+		stats.put("max(maxIC)", String.format("%1$.5f",sos.getSummaryStatistics().max.getMax()));		
+		stats.put("max(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics().sum.getMax()));		
+		stats.put("mean(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics().sum.getMean()));		
+		stats.put("mean(n)", String.format("%1$.5f",sos.getSummaryStatistics().n.getMean()));		
 
 		//		return gson.toJson(stats);
 		return stats;
@@ -273,6 +274,11 @@ public class SimJSONEngine {
 		Gson gson = new Gson();
 		return gson.toJson(this.makeAnnotationSufficiencyScore(atts));
 	}
+	
+	public String getAnnotationSufficiencyScore(Set<OWLClass> atts, OWLClass c) throws UnknownOWLClassException {
+		Gson gson = new Gson();
+		return gson.toJson(this.makeAnnotationSufficiencySubgraphScore(atts,c));
+	}
 
 	private Map<String,Object> makeAnnotationSufficiencyScore(Set<OWLClass> atts) throws UnknownOWLClassException {
 		HashMap<String,String> s = new HashMap<String,String>();
@@ -282,21 +288,108 @@ public class SimJSONEngine {
 		annotation_sufficiency.put("annotation_sufficiency",s);
 		return annotation_sufficiency;
 	}
+	
+	private Map<String,Object> makeAnnotationSufficiencySubgraphScore(Set<OWLClass> atts, OWLClass c) throws UnknownOWLClassException {
+		HashMap<String,String> s = new HashMap<String,String>();
+		double score = sos.calculateSubgraphAnnotationSufficiencyForAttributeSet(atts,c);
+		s.put("score",String.format("%1$.5f",score));
+		Map<String,Object> annotation_sufficiency = new HashMap<String,Object>();
+		annotation_sufficiency.put("annotation_sufficiency",s);
+		return annotation_sufficiency;
+	}
 
 	private Map<String,Object> makeAttributeInformationProfile(Set<OWLClass> atts) throws UnknownOWLClassException {
 		List<Map> alist = new ArrayList<Map>();
+		List<Map> badAttList = new ArrayList<Map>();
+		Set<OWLClass> goodAtts = new HashSet<OWLClass>();
+		//filter to include only resolvable classes
 		for (OWLClass a : atts) {
-			alist.add(makeObj(a));
+			if (!(sos.getAllAttributeClasses().contains(a))) {
+				badAttList.add(makeObj(a));
+				LOG.info("Class "+a.toString()+" does not exist.  Tossing from profile calculation.");
+			} else {
+				alist.add(makeObj(a));
+				goodAtts.add(a);
+			}		
 		}
-		//TODO: add unmatched classes
+		
 		Map<String,Object> results = new HashMap<String,Object>();
 		results.put("input",alist);
+		results.put("annotation_sufficiency", makeAnnotationSufficiencyScore(goodAtts).get("annotation_sufficiency"));
 		results.put("system_stats",this.makeSummaryStatistics());
+		results.put("unresolvable_classes",badAttList);
 		return results;
 	}	
+	
+	/**
+	 * Given a set of query classes that together make an annotation profile, 
+	 * and a set of (optional) classes to root a subgraph calculation,
+	 * this will deliver an overall annotation sufficiency score, along with 
+	 * metadata about the classes used as input, and the system statistics as a whole.
+	 * 
+	 * @param atts classes in annotation profile
+	 * @param nodes classes to root a categorical score calculation
+	 * @return JSON object with the following format: <br />
+	 *   input : [ list of resolvable classes, together with labels and IC scores], <br />
+	 *   system_stats : min/max/sum/avg from {@link getSystemStats}, <br />
+	 *   annotation_sufficiency : {@link makeAnnotationSufficiencyScore} <br />
+	 *   unresolvable_classes : [ list of unresolvable classes ], <br />
+	 *   categorical_scores : [ { id, label, score, n }... ], <br />
+	 *   unresolvable_categories : [ list of unresolvable categories ] <br />
+	 *   
+	 * @throws UnknownOWLClassException
+	 * @see makeAttributeInformationProfile
+	 */
+	private Map<String,Object> makeAttributeInformationProfileWithSubgraphScores(Set<OWLClass> atts, Set<OWLClass> nodes) throws UnknownOWLClassException {
+		//TODO: add unmatched classes
+		List<Map> badNodeList = new ArrayList<Map>();
+		Set<OWLClass> goodNodes = new HashSet<OWLClass>();
+		LOG.info("Attempting to compute subgraph scores with "+nodes.size()+" classes");
+		nodes.remove(null);
+		for (OWLClass n : nodes) {
+			if (!(sos.getAllAttributeClasses().contains(n))) {
+				badNodeList.add(makeObj(n));
+				LOG.info("Class "+n.toString()+" does not exist.  Tossing from subgraph calculation.");
+			} else {
+				goodNodes.add(n);
+			}
+		}
+		LOG.info("Now computing subgraph scores with "+goodNodes.size()+" available classes");
+
+		List<Map> subgraphScores = new ArrayList<Map>();
+
+		Map<String,Object> results = makeAttributeInformationProfile(atts);
+
+		for (OWLClass n : goodNodes) {
+			Map<String,Object> score = new HashMap<String,Object>();
+			score.put("id", g.getIdentifier(n, true));
+			score.put("label", g.getLabel(n));
+			score.put("score", String.format("%1$.5f",sos.calculateSubgraphAnnotationSufficiencyForAttributeSet(atts,n)));
+			SummaryStatistics stats = sos.computeAttributeSetSimilarityStatsForSubgraph(atts,n);
+			//number of annotations in the query per category
+			score.put("n", stats.getN());
+			subgraphScores.add(score);
+		}
+		results.put("categorical_scores", subgraphScores);
+		results.put("unresolvable_categories", badNodeList);
+
+		return results;
+	}	
+		
+		
 
 	public String getAttributeInformationProfile(Set<OWLClass> atts) throws UnknownOWLClassException {
 		Gson gson = new Gson();
 		return gson.toJson(this.makeAttributeInformationProfile(atts));
+	}
+	
+	
+	public String getAttributeInformationProfile(Set<OWLClass> atts, Set<OWLClass> nodes) throws UnknownOWLClassException {
+		Gson gson = new Gson();
+		if (nodes == null) {
+			return gson.toJson(this.makeAttributeInformationProfile(atts));
+		} else {
+		return gson.toJson(this.makeAttributeInformationProfileWithSubgraphScores(atts, nodes));
+		}
 	}
 }

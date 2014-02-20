@@ -22,6 +22,7 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummaryValues;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
+import org.semanticweb.elk.reasoner.saturation.conclusions.ForwardLink.ThisBackwardLinkRule;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -66,19 +67,21 @@ public abstract class AbstractOwlSim implements OwlSim {
 	protected boolean isNoLookupForLCSCache = false;
 	private Properties simProperties;
 
-	public StatisticalSummaryValues aggregateStatsPerIndividual;
 	public SummaryStatistics overallStats;
-	public SummaryStatistics meanStatsPerIndividual = new SummaryStatistics();
-	public SummaryStatistics minStatsPerIndividual = new SummaryStatistics();
-	public SummaryStatistics maxStatsPerIndividual = new SummaryStatistics();
-	public SummaryStatistics nStatsPerIndividual = new SummaryStatistics();
-	public SummaryStatistics sumStatsPerIndividual = new SummaryStatistics();
-	
+
+	public StatsPerIndividual overallSummaryStatsPerIndividual = new StatsPerIndividual();
+	public HashMap<OWLClass,StatsPerIndividual> subgraphSummaryStatsPerIndividual = new HashMap<OWLClass,StatsPerIndividual>();
+
 	public SummaryStatistics simStatsPerIndividual = new SummaryStatistics();
 	
 	public HashMap<String,SummaryStatistics> metricStatMeans = new HashMap<String,SummaryStatistics>(); 
 	public HashMap<String,SummaryStatistics> metricStatMaxes = new HashMap<String,SummaryStatistics>(); 
 	public HashMap<String,SummaryStatistics> metricStatMins = new HashMap<String,SummaryStatistics>(); 
+	
+	
+
+	
+		
 	
 	@Override
 	public OWLOntology getSourceOntology() {
@@ -657,14 +660,49 @@ public abstract class AbstractOwlSim implements OwlSim {
 			String idSpace = i.getIRI().getNamespace();
 			this.overallStats.addValue(statsPerIndividual.getMean());
 		}		
-		this.aggregateStatsPerIndividual = AggregateSummaryStatistics.aggregate(aggregate);	
-		this.meanStatsPerIndividual = getSummaryStatisticsForCollection(aggregate,Stat.MEAN);
-		this.sumStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,Stat.SUM);
-		this.minStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,Stat.MIN);
-		this.maxStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,Stat.MAX);
-		this.nStatsPerIndividual  = getSummaryStatisticsForCollection(aggregate,Stat.N);
-
+//		this.aggregateStatsPerIndividual = AggregateSummaryStatistics.aggregate(aggregate);	
+    StatsPerIndividual myStats = new StatsPerIndividual();
+    
+		myStats.mean = getSummaryStatisticsForCollection(aggregate,Stat.MEAN);
+		myStats.sum  = getSummaryStatisticsForCollection(aggregate,Stat.SUM);
+		myStats.min  = getSummaryStatisticsForCollection(aggregate,Stat.MIN);
+		myStats.max  = getSummaryStatisticsForCollection(aggregate,Stat.MAX);
+		myStats.n  = getSummaryStatisticsForCollection(aggregate,Stat.N);		
+		myStats.aggregate = AggregateSummaryStatistics.aggregate(aggregate);
+		this.overallSummaryStatsPerIndividual = myStats;
 	}
+	
+	public void computeSystemStatsForSubgraph(OWLClass c) throws UnknownOWLClassException {
+		Set<OWLNamedIndividual> insts = this.getAllElements();
+		LOG.info("Computing system stats for subgraph rooted at" + c.toString() +" with "+ insts.size() + " individuals");
+		LOG.info("Creating singular stat scores for all IDspaces");
+				
+		Collection<SummaryStatistics> aggregate = new ArrayList<SummaryStatistics>();
+
+		SummaryStatistics subgraphStats = new SummaryStatistics();
+		
+		for (OWLNamedIndividual i : insts) {			
+			SummaryStatistics statsPerIndividual = computeIndividualStatsForSubgraph(i,c);			
+			//put this individual into the aggregate
+			if (statsPerIndividual.getN() == 0) {
+				//LOG.info("No annotations found in this subgraph for Individual "+i.toStringID());
+			} else {
+				//LOG.info(statsPerIndividual.getN()+" Annotations found in this subgraph for Individual "+i.toStringID());
+				aggregate.add(statsPerIndividual);
+			}
+			//TODO: put this individual into an idSpace aggregate
+			//String idSpace = i.getIRI().getNamespace();
+			subgraphStats.addValue(statsPerIndividual.getMean());
+		}		
+    StatsPerIndividual myStats = new StatsPerIndividual();
+		myStats.mean = getSummaryStatisticsForCollection(aggregate,Stat.MEAN);
+		myStats.sum  = getSummaryStatisticsForCollection(aggregate,Stat.SUM);
+		myStats.min  = getSummaryStatisticsForCollection(aggregate,Stat.MIN);
+		myStats.max  = getSummaryStatisticsForCollection(aggregate,Stat.MAX);
+		myStats.n  = getSummaryStatisticsForCollection(aggregate,Stat.N);		
+		this.subgraphSummaryStatsPerIndividual.put(c, myStats);
+	}
+	
 
 	/**
 	 * This function will take an aggregated collection of Summary Statistics
@@ -712,6 +750,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public SummaryStatistics computeIndividualStats(OWLNamedIndividual i) throws UnknownOWLClassException {
 		return this.computeAttributeSetSimilarityStats(this.getAttributesForElement(i));
 	}
+		
+	public SummaryStatistics computeIndividualStatsForSubgraph(OWLNamedIndividual i,OWLClass c) throws UnknownOWLClassException {
+		return this.computeAttributeSetSimilarityStatsForSubgraph(this.getAttributesForElement(i),c);
+	}
 	
 	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts)  {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
@@ -721,9 +763,13 @@ public abstract class AbstractOwlSim implements OwlSim {
 				try {
 					ic = this.getInformationContentForAttribute(c);
 					if (ic.isInfinite() || ic.isNaN()) {
-						ic = this.getSummaryStatistics(Stat.MAX).getMax();
+						//If a class hasn't been annotated in the loaded corpus, we will
+						//assume that it is very rare, and assign MaxIC
+						//a different option would be to skip adding this value, 
+						//but i'm not sure that's wise
+						ic = this.getSummaryStatistics().max.getMax();
 					}
-					LOG.info("IC for "+c.toString()+"is: "+ic);
+					//LOG.info("IC for "+c.toString()+"is: "+ic);
 					statsPerAttSet.addValue(ic);	
 
 				} catch (UnknownOWLClassException e) {
@@ -731,10 +777,6 @@ public abstract class AbstractOwlSim implements OwlSim {
 					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
 					continue;
 				}
-				//If a class hasn't been annotated in the loaded corpus, we will
-				//assume that it is very rare, and assign MaxIC
-				//a different option would be to skip adding this value, 
-				//but i'm not sure that's wise
 			}  else {
 				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
 			}
@@ -742,20 +784,49 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return statsPerAttSet;
 	}	
 	
+	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(Set<OWLClass> atts, OWLClass sub)  {
+		SummaryStatistics statsPerAttSet = new SummaryStatistics();
+		for (OWLClass c : atts) {
+			if (this.getAllAttributeClasses().contains(c)) {				
+				Double ic;
+				try {
+				//check if sub is an inferred superclass of the current annotated class
+					if (getReasoner().getSuperClasses(c, false).containsEntity(sub)) { 
+						ic = this.getInformationContentForAttribute(c);
+						if (ic.isInfinite() || ic.isNaN()) {
+							//If a class hasn't been annotated in the loaded corpus, we will
+							//assume that it is very rare, and assign MaxIC
+							ic = this.getSummaryStatistics().max.getMax();
+						}
+						//LOG.info("IC for "+c.toString()+"is: "+ic);
+						statsPerAttSet.addValue(ic);	
+					} else {
+						//LOG.info("tossing "+c.toString()+"; not a subclass of "+sub.toString());
+					}
+				} catch (UnknownOWLClassException e) {
+					//This is an extra catch here, but really it should be caught upstream.
+					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+					continue;
+				}
+			}  else {
+				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+			}
+		}
+		return statsPerAttSet;
+	}	
+	
+	
 	public StatisticalSummaryValues getSystemStats() {
-		return this.aggregateStatsPerIndividual;
+//		return this.aggregateStatsPerIndividual;
+		return this.overallSummaryStatsPerIndividual.aggregate;
 	}
 	
-	public SummaryStatistics getSummaryStatistics(Stat stat) {
-		SummaryStatistics s = null;
-		switch (stat) {
-			case MEAN : s = this.meanStatsPerIndividual;  break;
-			case SUM : s = this.sumStatsPerIndividual; break;
-			case MIN : s = this.minStatsPerIndividual; break;
-			case MAX : s = this.maxStatsPerIndividual; break;
-			case N : s = this.nStatsPerIndividual; break;
-		};
-		return s;
+	public StatsPerIndividual getSummaryStatistics() {
+		return this.overallSummaryStatsPerIndividual;
+	}
+	
+	public StatsPerIndividual getSummaryStatistics(OWLClass c) {
+		return this.subgraphSummaryStatsPerIndividual.get(c);
 	}
 	
 	public SummaryStatistics getSimStatistics() {
@@ -785,44 +856,59 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return calculateOverallAnnotationSufficiencyForAttributeSet(this.getAttributesForElement(i));
 	}	
 	
+	public double calculateSubgraphAnnotationSufficiencyForIndividual(OWLNamedIndividual i, OWLClass c) throws UnknownOWLClassException {
+		return calculateSubgraphAnnotationSufficiencyForAttributeSet(this.getAttributesForElement(i), c);
+	}	
+	
 	public double calculateOverallAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts) throws UnknownOWLClassException {
 		SummaryStatistics stats = computeAttributeSetSimilarityStats(atts);
-		if (Double.isNaN(this.maxStatsPerIndividual.getMean())) {
+		if ((this.getSummaryStatistics() == null) || Double.isNaN(this.getSummaryStatistics().mean.getMean())) {
 			LOG.info("Stats have not been computed yet - doing this now");
 			this.computeSystemStats();
 		}
-		LOG.info(stats.getMean());
 		// score = mean(atts)/mean(overall) + max(atts)/max(overall) + sum(atts)/mean(sum(overall))
 		double overall_score = 0.0;
 		Double mean_score = stats.getMean();
 		Double max_score = stats.getMax();
 		Double sum_score = stats.getSum();
 		if (!(mean_score.isNaN() || max_score.isNaN() || sum_score.isNaN())) {
-			mean_score = StatUtils.min(new double[]{(mean_score / this.meanStatsPerIndividual.getMean()),1.0});
-			max_score = StatUtils.min(new double[]{(max_score / this.maxStatsPerIndividual.getMax()),1.0});
-			sum_score = StatUtils.min(new double[]{(sum_score / this.sumStatsPerIndividual.getMean()),1.0});
+			mean_score = StatUtils.min(new double[]{(mean_score / this.overallSummaryStatsPerIndividual.mean.getMean()),1.0});
+			max_score = StatUtils.min(new double[]{(max_score / this.overallSummaryStatsPerIndividual.max.getMax()),1.0});
+			sum_score = StatUtils.min(new double[]{(sum_score / this.overallSummaryStatsPerIndividual.sum.getMean()),1.0});
 			overall_score = (mean_score + max_score + sum_score) / 3;		
-			LOG.info("mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+overall_score);
 		}
+		LOG.info("Overall mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+overall_score);
 		return overall_score;
 	}
 	
-/*	
-	public double calculateSubAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts, OWLClass sub) throws UnknownOWLClassException {
-		SummaryStatistics stats = computeAttributeSetSimilarityStatsSubgraph(atts,sub);
+	
+	public double calculateSubgraphAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts, OWLClass c) throws UnknownOWLClassException {
+		SummaryStatistics stats = computeAttributeSetSimilarityStatsForSubgraph(atts,c);
 		//TODO: compute statsPerIndividual for this subgraph
-		if (Double.isNaN(this.maxStatsPerIndividual.getMean())) {
+		if ((this.overallSummaryStatsPerIndividual == null ) || (Double.isNaN(this.overallSummaryStatsPerIndividual.max.getMean()))) {
 			LOG.info("Stats have not been computed yet - doing this now");
 			this.computeSystemStats();
 		}
+
+		if (!(this.subgraphSummaryStatsPerIndividual.containsKey(c))) {
+			//only do this once for the whole system, per class requested
+			this.computeSystemStatsForSubgraph(c);
+		}
 		// score = mean(atts)/mean(overall) + max(atts)/max(overall) + sum(atts)/mean(sum(overall))
 		//TODO: need to normalize this based on the whole corpus
-		double mean_score = StatUtils.min(new double[]{(stats.getMean() / this.meanStatsPerIndividual.getMean()),1.0});
-		double max_score = StatUtils.min(new double[]{(stats.getMax() / this.maxStatsPerIndividual.getMax()),1.0});
-		double sum_score = StatUtils.min(new double[]{(stats.getSum() / this.sumStatsPerIndividual.getMean()),1.0});
-		double overall_score = (mean_score + max_score + sum_score) / 3;				
-		LOG.info("mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+overall_score);
-		return overall_score;
+		double score = 0.0;
+		Double mean_score = stats.getMean();
+		Double max_score = stats.getMax();
+		Double sum_score = stats.getSum();
+
+		if (!(mean_score.isNaN() || max_score.isNaN() || sum_score.isNaN())) {
+			mean_score = StatUtils.min(new double[]{(mean_score / this.subgraphSummaryStatsPerIndividual.get(c).mean.getMean()),1.0});
+			max_score = StatUtils.min(new double[]{(max_score / this.subgraphSummaryStatsPerIndividual.get(c).max.getMax()),1.0});
+			sum_score = StatUtils.min(new double[]{(sum_score / this.subgraphSummaryStatsPerIndividual.get(c).sum.getMean()),1.0});
+			score = (mean_score + max_score + sum_score) / 3;		
+		}
+		LOG.info(getShortId(c)+" n: "+stats.getN()+" mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+score);
+		return score;
 	}
-	*/
+
 }

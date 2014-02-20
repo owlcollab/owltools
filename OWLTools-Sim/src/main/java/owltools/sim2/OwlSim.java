@@ -977,11 +977,10 @@ public interface OwlSim {
 	public StatisticalSummaryValues getSystemStats();
 
 	/**
-	 * Fetch the pre-computed summary values for a specified summary statistic
-	 * @param stat	Integer flag for the statistic (1:mean ; 2:sum; 3:min; 4:max; 5:N)
+	 * Fetch the pre-computed summary values
 	 * @return {@link SummaryStatistics} 
 	 */
-	public SummaryStatistics getSummaryStatistics(Stat stat);
+	public StatsPerIndividual getSummaryStatistics();
 	
 	public SummaryStatistics getSimStatistics(String stat);
 	
@@ -993,6 +992,53 @@ public interface OwlSim {
 	public double calculateOverallAnnotationSufficiencyForIndividual(OWLNamedIndividual i) throws UnknownOWLClassException;
 
 	public double calculateOverallAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts) throws UnknownOWLClassException;
+
+	public void computeSystemStatsForSubgraph(OWLClass c) throws UnknownOWLClassException;
+
+	
+	public class StatsPerIndividual {
+		//TODO: make top-level class
+		//TODO: getters and setters
+		public SummaryStatistics mean;
+		public SummaryStatistics min;
+		public SummaryStatistics max;
+		public SummaryStatistics n;
+		public SummaryStatistics sum;
+		public StatisticalSummaryValues aggregate;
+		
+		public StatsPerIndividual() {
+			this.mean = new SummaryStatistics();
+			this.min = new SummaryStatistics();
+			this.max = new SummaryStatistics();
+			this.n = new SummaryStatistics();
+			this.sum = new SummaryStatistics();
+		}
+
+		public String toString() {
+			String s = "";
+			s+="individuals: "+n.getN()+"\n";
+			s+="mean(n/indiv): "+String.format("%1$.5f", n.getMean())+"\n";
+			s+="mean(meanIC): "+String.format("%1$.5f", mean.getMean())+"\n";
+			s+="mean(maxIC): "+String.format("%1$.5f", max.getMean())+"\n";
+			s+="max(maxIC): "+String.format("%1$.5f", max.getMax())+"\n";
+			s+="mean(sumIC): "+String.format("%1$.5f", sum.getMean())+"\n";
+			return s;
+		}
+	}
+
+	/**
+	 * {@link StatsPerIndividual} summary statistic calculations using {@link OWLClass} c as the root node
+	 * @param c {@link OWLClass}
+	 * @return {@link StatsPerIndividual} 
+	 */
+	public StatsPerIndividual getSummaryStatistics(OWLClass c);
+
+	public double calculateSubgraphAnnotationSufficiencyForAttributeSet(
+			Set<OWLClass> atts, OWLClass c) throws UnknownOWLClassException;
+
+	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(
+			Set<OWLClass> atts, OWLClass n);
+	
 
 }
 

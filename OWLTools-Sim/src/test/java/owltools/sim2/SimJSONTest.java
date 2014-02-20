@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -247,6 +248,60 @@ public class SimJSONTest extends AbstractOWLSimTest {
 			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
 				String jsonStr = sj.getAttributeInformationProfile(owlsim.getAttributesForElement(i));
 				LOG.info("InformationInfo:"+jsonStr);
+			}
+		}
+		finally {
+			reasoner.dispose();
+		}
+	}
+	
+	@Test
+	public void testInfoProfileWithSubscores() throws OWLOntologyCreationException, IOException, UnknownOWLClassException, OBOFormatParserException {
+
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
+
+		owlpp = new OWLPrettyPrinter(g);
+
+		Set<OWLClass> upperLevelClasses = new HashSet<OWLClass>();
+		upperLevelClasses.add(g.getOWLClassByIdentifier("MP:0000001")); //root, should be the same as overall
+		upperLevelClasses.add(g.getOWLClassByIdentifier("MP:0000003")); //Adipose Tissue Morphology
+		upperLevelClasses.add(g.getOWLClassByIdentifier("MP:0001544")); //Abnormal Blood morphology
+		String id = "BOGUS:1234567";
+		IRI iri = g.getIRIByIdentifier(id);
+		OWLClass c = g.getDataFactory().getOWLClass(iri);
+		LOG.info("Unresolvable id:"+id+". Making temp class element:"+c.toString());
+		upperLevelClasses.add(c);
+
+		upperLevelClasses.add(g.getOWLClassByIdentifier("MP:0002160")); //Abnormal Reproductive System Morphology
+		upperLevelClasses.add(g.getOWLClassByIdentifier("MP:0002152")); //Abnormal Brain Morphology
+		upperLevelClasses.add(g.getOWLClassByIdentifier("MP:0003631")); //Nervous System Phenotype
+		id = "BOGUS:2345678";
+		iri = g.getIRIByIdentifier(id);
+		c = g.getDataFactory().getOWLClass(iri);
+		LOG.info("Unresolvable id:"+id+". Making temp class element:"+c.toString());
+		upperLevelClasses.add(c);
+
+		
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+
+			createOwlSim();
+			LOG.info("Reasoner="+owlsim.getReasoner());
+
+			SimJSONEngine sj = new SimJSONEngine(g, owlsim);
+
+			reasoner.flush();
+			
+			owlsim.createElementAttributeMapFromOntology();
+			owlsim.computeSystemStats();
+			
+			for (OWLNamedIndividual i : sourceOntol.getIndividualsInSignature()) {
+				String jsonStr = sj.getAttributeInformationProfile(owlsim.getAttributesForElement(i),upperLevelClasses);
+				LOG.info("InformationProfile:"+jsonStr);
 			}
 		}
 		finally {
