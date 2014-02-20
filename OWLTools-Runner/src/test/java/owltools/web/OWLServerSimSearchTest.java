@@ -126,7 +126,7 @@ public class OWLServerSimSearchTest {
 	}
 	
 	@Test
-	public void testServerGetAnnotationProfileCommand() throws Exception {
+	public void testServerGetAnnotationProfileWithSubgraphsCommand() throws Exception {
 		g = loadOntology("../OWLTools-Sim/src/test/resources/sim/mp-subset-1.obo");
 		
 		ABoxUtils.createRandomClassAssertions(g.getSourceOntology(), 200, 20);
@@ -141,6 +141,24 @@ public class OWLServerSimSearchTest {
 		runServerCommunication(httppost,sos);
 
 	}
+
+	@Test
+	public void testServerGetAnnotationProfileNoSubgraphsCommand() throws Exception {
+		g = loadOntology("../OWLTools-Sim/src/test/resources/sim/mp-subset-1.obo");
+		
+		ABoxUtils.createRandomClassAssertions(g.getSourceOntology(), 200, 20);
+
+		OwlSimFactory owlSimFactory = new FastOwlSimFactory();
+		OwlSim sos = owlSimFactory.createOwlSim(g.getSourceOntology());
+
+		sos.createElementAttributeMapFromOntology();
+		
+		HttpUriRequest httppost = createGoodAnnotProfileRequest(5);
+
+		runServerCommunication(httppost,sos);
+
+	}
+
 	
 	@Test
 	public void testServerGetAnnotationProfileCommandBad() throws Exception {
@@ -357,6 +375,7 @@ public class OWLServerSimSearchTest {
 		LOG.info("Got URL="+uri);
 		return httpUriRequest;
 	}
+	
 	
 	protected HttpUriRequest createGoodAnnotProfileWithSubgraphsRequest(int n) throws URISyntaxException {
 		URIBuilder uriBuilder = new URIBuilder()

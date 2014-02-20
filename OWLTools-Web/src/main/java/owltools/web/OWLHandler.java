@@ -804,23 +804,25 @@ public class OWLHandler {
 	}
 
 	private Set<OWLClass> resolveClassList(Param p) {
-		ArrayList<String> ids = new ArrayList<String>(Arrays.asList(getParams(p)));
 		Set<OWLClass> objs = new HashSet<OWLClass>();
+		if (getParams(p) != null) {
+			ArrayList<String> ids = new ArrayList<String>(Arrays.asList(getParams(p)));
 
-		LOG.info("Param "+p+" IDs: "+ids.toString());
-		for (String id : ids) {
-			// we allow resolution by altId, if present; in future we
-			// may want to check the altId map at this level so we can
-			// provide metadata in the payload about any mappings provided.
-			// See: https://github.com/monarch-initiative/monarch-app/issues/97
-			OWLClass c = graph.getOWLClassByIdentifier(id, true);
-			if (c == null) {
-				// TODO - strict mode - for now we include unresolvable classes
-				IRI iri = graph.getIRIByIdentifier(id);
-				c = graph.getDataFactory().getOWLClass(iri);
-				LOG.info("Unresolvable id:"+id+". Making temp class element:"+c.toString());
+			LOG.info("Param "+p+" IDs: "+ids.toString());
+			for (String id : ids) {
+				// we allow resolution by altId, if present; in future we
+				// may want to check the altId map at this level so we can
+				// provide metadata in the payload about any mappings provided.
+				// See: https://github.com/monarch-initiative/monarch-app/issues/97
+				OWLClass c = graph.getOWLClassByIdentifier(id, true);
+				if (c == null) {
+					// TODO - strict mode - for now we include unresolvable classes
+					IRI iri = graph.getIRIByIdentifier(id);
+					c = graph.getDataFactory().getOWLClass(iri);
+					LOG.info("Unresolvable id:"+id+". Making temp class element:"+c.toString());
+				}
+				objs.add(c);
 			}
-			objs.add(c);
 		}
 		LOG.info("Num objs: "+objs.size());
 		return objs;
