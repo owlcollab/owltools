@@ -21,6 +21,8 @@ public interface M3BatchHandler {
 		String object;
 		String predicate;
 		String individual;
+		String db;
+		String importModel;
 		
 		M3Expression[] expressions;
 		M3Pair[] values;
@@ -43,9 +45,12 @@ public interface M3BatchHandler {
 		final String intention; // pass-through
 		
 		/*
-		 * "merge", "rebuild"
+		 * "merge", "rebuild", "meta"
 		 */
 		String signal;
+		/*
+		 * "error", "success", //"warning"
+		 */
 		String message_type;
 		String message;
 		Map<String, Object> commentary = null;
@@ -54,6 +59,7 @@ public interface M3BatchHandler {
 		 * {
 		 * 	 inconsistent_p: boolean
 		 * 	 modelId: String
+		 *   relations: [] (optional)
 		 *   individuals: []
 		 *   ...
 		 * }

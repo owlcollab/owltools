@@ -25,6 +25,8 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
@@ -354,6 +356,48 @@ public class MolecularModelJsonRenderer {
 		return IRI.create(fullIRI);
 	}
 	
+	public static List<Map<Object, Object>> renderRelations(MolecularModelManager mmm) throws OWLOntologyCreationException {
+		/* [{
+		 *   id: {String}
+		 *   label: {String}
+		 *   ?color: {String} // TODO in the future
+		 *   ?glyph: {String} // TODO in the future
+		 * }]
+		 */
+		// retrieve (or load) all ontologies
+		// put in a new wrapper
+		OWLGraphWrapper wrapper = new OWLGraphWrapper(mmm.getOntology());
+		Collection<IRI> imports = mmm.getImports();
+		OWLOntologyManager manager = wrapper.getManager();
+		for (IRI iri : imports) {
+			OWLOntology ontology = manager.loadOntology(iri);
+			wrapper.addSupportOntology(ontology);
+		}
+	
+		// get all properties from all loaded ontologies
+		Set<OWLObjectProperty> properties = new HashSet<OWLObjectProperty>();
+		Set<OWLOntology> allOntologies = wrapper.getAllOntologies();
+		for(OWLOntology o : allOntologies) {
+			properties.addAll(o.getObjectPropertiesInSignature());
+		}
+	
+		// retrieve id and label for all properties
+		List<Map<Object, Object>> relList = new ArrayList<Map<Object,Object>>();
+		for (OWLObjectProperty p : properties) {
+			if (p.isBuiltIn()) {
+				// skip owl:topObjectProperty
+				continue;
+			}
+			String identifier = MolecularModelJsonRenderer.getId(p, wrapper);
+			String label = wrapper.getLabel(p);
+			Map<Object, Object> entry = new HashMap<Object, Object>();
+			entry.put("id", identifier);
+			entry.put("label", label);
+			relList.add(entry);
+		}
+		return relList;
+	}
+
 	public String renderJson(OWLOntology ont) {
 		Map<Object, Object> obj = renderObject(ont);
 		return gson.toJson(obj);

@@ -385,12 +385,14 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response getRelations() {
 		/*
-		 * data: {relations: [{
-		 * 	 id: {String}
-		 *   label: {String}
-		 *   ?color: {String} // TODO in the future
-		 *   ?glyph: {String} // TODO in the future
-		 * }]}
+		 * data: {
+		 *   relations: [{
+		 * 	   id: {String}
+		 *     label: {String}
+		 *     ?color: {String} // TODO in the future
+		 *     ?glyph: {String} // TODO in the future
+		 *   }]
+		 * }
 		 */
 		try {
 			final MolecularModelManager mmm = getMolecularModelManager();
