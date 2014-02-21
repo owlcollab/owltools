@@ -44,7 +44,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 
 	private static Logger LOG = Logger.getLogger(JsonOrJsonpModelHandler.class);
 
-	static final String JSONP_DEFAULT_CALLBACK = "jsonp";
+	public static final String JSONP_DEFAULT_CALLBACK = "jsonp";
 	public static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
 	
 	private final OWLGraphWrapper graph;
@@ -56,7 +56,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		this.models = models;
 	}
 
-	private synchronized MolecularModelManager getMolecularModelManager() throws OWLOntologyCreationException {
+	protected synchronized MolecularModelManager getMolecularModelManager() throws OWLOntologyCreationException {
 		if (models == null) {
 			LOG.info("Creating m3 object");
 			models = new MolecularModelManager(graph);
@@ -149,7 +149,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 		try {
 			MolecularModelManager mmm = getMolecularModelManager();
-			OWLOperationResponse resp = mmm.createIndividual(modelId, classId);
+			OWLOperationResponse resp = mmm.createIndividual(modelId, classId, null);
 			return response(resp, mmm, null);
 		} catch (Exception exception) {
 			return errorMsg("Could not create individual in model", exception);
@@ -224,7 +224,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			//System.out.println("ind: " + individualId);
 			//System.out.println("rel: " + propertyId);
 			MolecularModelManager mmm = getMolecularModelManager();
-			OWLOperationResponse resp = mmm.addFact(modelId, propertyId, individualId, fillerId);
+			OWLOperationResponse resp = mmm.addFact(modelId, propertyId, individualId, fillerId, null);
 			M3Response response = response(resp, mmm, M3Response.MERGE);
 			//printJsonResponse(response);
 			return response;
@@ -375,48 +375,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	// END OF COMMANDS
 	// ----------------------------------------
 
-	// ----------------------------------------
-	// Reworked calls for batch operations 
-	// ----------------------------------------
-
-	static class Request {
-		String entity;
-		String operation;
-		Argument arguments;
-	}
-	
-	static class Argument {
-		String modelId;
-		String subject;
-		String object;
-		String predicate;
-		String individual;
-		
-		Expression[] expressions;
-		Pair[] values;
-	}
-	
-	static class Pair {
-		String key;
-		String value;
-	}
-	
-	static class Expression {
-		String type;
-		String onProp;
-		String literal;
-//		Expression expression;
-	}
-	
-	static class BatchResponse {
-		
-	}
-	
-	public BatchResponse call(Request[] requests) {
-		return null;
-	}
-	
-	
 	/**
 	 * Get all relations/object properties (e.g. ro)
 	 * TODO provide this also in Batch mode

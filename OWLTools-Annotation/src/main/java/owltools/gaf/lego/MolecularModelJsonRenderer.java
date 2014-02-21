@@ -1,6 +1,7 @@
 package owltools.gaf.lego;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -137,6 +139,39 @@ public class MolecularModelJsonRenderer {
 
 		return model;
 		
+	}
+	
+	public Map<Object, Object> renderIndividuals(Collection<OWLNamedIndividual> individuals) {
+		OWLOntology ont = graph.getSourceOntology();
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		List<Map<Object, Object>> iObjs = new ArrayList<Map<Object, Object>>();
+		List<OWLNamedIndividual> individualIds = new ArrayList<OWLNamedIndividual>();
+		Set<OWLObjectPropertyAssertionAxiom> opAxioms = new HashSet<OWLObjectPropertyAssertionAxiom>();
+		for (OWLIndividual i : individuals) {
+			if (i instanceof OWLNamedIndividual) {
+				OWLNamedIndividual named = (OWLNamedIndividual)i;
+				iObjs.add(renderObject(ont, named));
+				individualIds.add(named);
+				
+				Set<OWLIndividualAxiom> iAxioms = ont.getAxioms(i);
+				for (OWLIndividualAxiom owlIndividualAxiom : iAxioms) {
+					if (owlIndividualAxiom instanceof OWLObjectPropertyAssertionAxiom) {
+						opAxioms.add((OWLObjectPropertyAssertionAxiom) owlIndividualAxiom);
+					}
+				}
+			}
+		}
+		map.put("individuals", iObjs);
+		
+		List<Map<Object, Object>> aObjs = new ArrayList<Map<Object, Object>>();
+		for (OWLObjectPropertyAssertionAxiom opa : opAxioms) {
+			aObjs.add(renderObject(ont, opa));
+		}
+		map.put("facts", aObjs);
+		
+		// TODO decide on properties
+		
+		return map;
 	}
 	
 	/**
@@ -318,7 +353,7 @@ public class MolecularModelJsonRenderer {
 		String fullIRI = OBOUpperVocabulary.OBO + StringUtils.replaceOnce(id, ":", "_");
 		return IRI.create(fullIRI);
 	}
-
+	
 	public String renderJson(OWLOntology ont) {
 		Map<Object, Object> obj = renderObject(ont);
 		return gson.toJson(obj);

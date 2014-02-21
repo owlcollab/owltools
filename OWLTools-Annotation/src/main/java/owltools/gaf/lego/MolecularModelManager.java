@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.geneontology.lego.dot.LegoDotWriter;
@@ -32,10 +34,13 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
-import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -45,7 +50,6 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
@@ -53,13 +57,11 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -611,7 +613,7 @@ public class MolecularModelManager {
 		OWLIndividual ind = getIndividual(individualId, mod);
 		OWLClassExpression msce = mod.getMostSpecificClassExpression((OWLNamedIndividual) ind);
 		OWLClass c = getClass(newClassId, mod);
-		addAxiom(mod, mod.getOWLDataFactory().getOWLEquivalentClassesAxiom(msce, c));
+		addAxiom(mod, mod.getOWLDataFactory().getOWLEquivalentClassesAxiom(msce, c), true);
 		return newClassId;
 	}
 
@@ -622,14 +624,23 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse createIndividual(String modelId, OWLClass c) {
 		LegoModelGenerator model = getModel(modelId);
-		return createIndividual(model, modelId, c);
+		OWLNamedIndividual individual = createIndividual(model, modelId, c, null, true);
+		
+		return createResponse(true, model, individual);
+	}
+	
+	private OWLOperationResponse createResponse(boolean success, LegoModelGenerator model, OWLNamedIndividual...individuals) {
+		OWLOperationResponse resp = new OWLOperationResponse(true, model.getReasoner().isConsistent());
+		resp.setIndividuals(Arrays.asList(individuals));
+		return resp;
 	}
 	
 	/*
 	 * TODO - finalize identifier policy. Currently concatenates model and class IDs
 	 */
-	private OWLOperationResponse createIndividual(LegoModelGenerator model, String modelId, OWLClass c) {
+	private OWLNamedIndividual createIndividual(LegoModelGenerator model, String modelId, OWLClass c, Set<OWLAnnotation> annotations, boolean flushReasoner) {
 		LOG.info("Creating individual of type: "+c);
+		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		String cid = graph.getIdentifier(c).replaceAll(":","-"); // e.g. GO-0123456
 
 		// Make something unique to tag onto the generated IDs.
@@ -640,10 +651,21 @@ public class MolecularModelManager {
 		IRI iri = MolecularModelJsonRenderer.getIRI(iid, graph);
 		OWLDataFactory f = model.getOWLDataFactory();
 		OWLNamedIndividual i = f.getOWLNamedIndividual(iri);
-		addAxiom(model, f.getOWLDeclarationAxiom(i));
-		OWLOperationResponse resp = addType(model, i, c);
-		resp.setIndividuals(Collections.singletonList(i));
-		return resp;
+		
+		// create axioms
+		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+		// declaration
+		axioms.add(f.getOWLDeclarationAxiom(i));
+		// annotation assertions
+		if(annotations != null) {
+			for(OWLAnnotation annotation : annotations) {
+				axioms.add(f.getOWLAnnotationAssertionAxiom(iri, annotation));
+			}
+		}
+		
+		addAxioms(model, axioms, flushReasoner);
+		addType(model, i, c, flushReasoner);
+		return i;
 	}
 	
 	/**
@@ -651,16 +673,53 @@ public class MolecularModelManager {
 	 * 
 	 * @param modelId
 	 * @param cid
+	 * @param annotations
 	 * @return id of created individual
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse createIndividual(String modelId, String cid) throws UnknownIdentifierException {
+	public OWLOperationResponse createIndividual(String modelId, String cid, Collection<Pair<String, String>> annotations) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
 		OWLClass cls = getClass(cid, model);
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		return createIndividual(model, modelId, cls);
+		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model.getOWLDataFactory());
+		OWLNamedIndividual individual = createIndividual(model, modelId, cls, owlAnnotations , true);
+		return createResponse(true, model, individual);
+	}
+	
+	private static Set<OWLAnnotation> createAnnotations(Collection<Pair<String, String>> pairs, OWLDataFactory f) {
+		Set<OWLAnnotation> owlAnnotations = null;
+		if (pairs != null && !pairs.isEmpty()) {
+			owlAnnotations = new HashSet<OWLAnnotation>();
+			for(Pair<String, String> pair : pairs) {
+				OWLAnnotationValue value = f.getOWLLiteral(pair.getValue());
+				OWLAnnotationProperty property = f.getOWLAnnotationProperty(IRI.create(pair.getKey()));
+				OWLAnnotation annotation = f.getOWLAnnotation(property, value);
+				owlAnnotations.add(annotation);
+			}
+		}
+		return owlAnnotations;
+	}
+	
+	/**
+	 * Shortcut for {@link #createIndividual(String, OWLClass)}
+	 * 
+	 * @param modelId
+	 * @param cid
+	 * @param annotations
+	 * @return id of created individual
+	 * @throws UnknownIdentifierException 
+	 */
+	public Pair<String, OWLNamedIndividual> createIndividualNonReasoning(String modelId, String cid, Collection<Pair<String, String>> annotations) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLClass cls = getClass(cid, model);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
+		}
+		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model.getOWLDataFactory());
+		OWLNamedIndividual i = createIndividual(model, modelId, cls, owlAnnotations, false);
+		return Pair.of(MolecularModelJsonRenderer.getId(i.getIRI()), i);
 	}
 
 	/**
@@ -682,6 +741,15 @@ public class MolecularModelManager {
 		return resp;
 	}
 	
+	public OWLNamedIndividual getNamedIndividual(String modelId, String iid) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		return i;
+	}
+	
 	/**
 	 * Deletes an individual
 	 * 
@@ -696,7 +764,8 @@ public class MolecularModelManager {
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		return deleteIndividual(model, i);
+		deleteIndividual(model, i, true);
+		return createResponse(true, model);
 	}
 	
 	/**
@@ -708,7 +777,8 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse deleteIndividual(String modelId, OWLNamedIndividual i) {
 		LegoModelGenerator model = getModel(modelId);
-		return deleteIndividual(model, i);
+		deleteIndividual(model, i, true);
+		return createResponse(true, model);
 	}
 	
 	/**
@@ -716,9 +786,9 @@ public class MolecularModelManager {
 	 * 
 	 * @param model
 	 * @param i
-	 * @return response into
+	 * @param flushReasoner
 	 */
-	private OWLOperationResponse deleteIndividual(LegoModelGenerator model, OWLNamedIndividual i) {
+	private void deleteIndividual(LegoModelGenerator model, OWLNamedIndividual i, boolean flushReasoner) {
 		Set<OWLAxiom> toRemoveAxioms = new HashSet<OWLAxiom>();
 		
 		OWLOntology ont = model.getAboxOntology();
@@ -744,10 +814,68 @@ public class MolecularModelManager {
 		// OWLAnnotationAssertionAxiom
 		toRemoveAxioms.addAll(ont.getAnnotationAssertionAxioms(i.getIRI()));
 		
-		removeAxioms(model, toRemoveAxioms);
-		return new OWLOperationResponse(true);
+		removeAxioms(model, toRemoveAxioms, flushReasoner);
+	}
+	
+	public OWLNamedIndividual addAnnotations(String modelId, String iid, 
+			Collection<Pair<String, String>> pairs) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		if (pairs != null) {
+			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+			addAnnotations(model, i.getIRI(), annotations);
+		}
+		return i;
+	}
+	
+	public void addAnnotations(String modelId, OWLNamedIndividual i, Collection<OWLAnnotation> annotations) {
+		LegoModelGenerator model = getModel(modelId);
+		addAnnotations(model, i.getIRI(), annotations);
+	}
+	
+	private void addAnnotations(LegoModelGenerator model, IRI subject, Collection<OWLAnnotation> annotations) {
+		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+		OWLDataFactory f = model.getOWLDataFactory();
+		for (OWLAnnotation annotation : annotations) {
+			axioms.add(f.getOWLAnnotationAssertionAxiom(subject, annotation));
+		}
+		addAxioms(model, axioms, false);
 	}
 
+	public OWLNamedIndividual removeAnnotations(String modelId, String iid,
+			Collection<Pair<String, String>> pairs) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		if (pairs != null) {
+			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+			removeAnnotations(model, i.getIRI(), annotations);
+		}
+		return i;
+	}
+	
+	public void removeAnnotations(String modelId, OWLNamedIndividual i, Collection<OWLAnnotation> annotations) {
+		LegoModelGenerator model = getModel(modelId);
+		removeAnnotations(model, i.getIRI(), annotations);
+	}
+	
+	private void removeAnnotations(LegoModelGenerator model, IRI subject, Collection<OWLAnnotation> annotations) {
+		OWLOntology ont = model.getAboxOntology();
+		Set<OWLAxiom> toRemove = new HashSet<OWLAxiom>();
+		Set<OWLAnnotationAssertionAxiom> candidates = ont.getAnnotationAssertionAxioms(subject);
+		for (OWLAnnotationAssertionAxiom axiom : candidates) {
+			OWLAnnotation annotation = axiom.getAnnotation();
+			if (annotations.contains(annotation)) {
+				toRemove.add(axiom);
+			}
+		}
+		removeAxioms(model, toRemove, false);
+	}
 
 	/**
 	 * Fetches a model by its Id
@@ -1154,41 +1282,18 @@ public class MolecularModelManager {
 	 * @param individuals
 	 */
 	private void addIndividualsData(OWLOperationResponse resp, LegoModelGenerator mod, OWLIndividual...individuals) {
-		// TODO re-use more code from MolecularModelJsonRenderer
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
-		OWLOntology ont = mod.getAboxOntology();
-		Map<Object, Object> map = new HashMap<Object, Object>();
-		List<Map<Object, Object>> iObjs = new ArrayList<Map<Object, Object>>();
 		List<OWLNamedIndividual> individualIds = new ArrayList<OWLNamedIndividual>();
-		Set<OWLObjectPropertyAssertionAxiom> opAxioms = new HashSet<OWLObjectPropertyAssertionAxiom>();
 		for (OWLIndividual i : individuals) {
 			if (i instanceof OWLNamedIndividual) {
-				OWLNamedIndividual named = (OWLNamedIndividual)i;
-				iObjs.add(renderer.renderObject(ont, named));
-				individualIds.add(named);
-				
-				Set<OWLIndividualAxiom> iAxioms = ont.getAxioms(i);
-				for (OWLIndividualAxiom owlIndividualAxiom : iAxioms) {
-					if (owlIndividualAxiom instanceof OWLObjectPropertyAssertionAxiom) {
-						opAxioms.add((OWLObjectPropertyAssertionAxiom) owlIndividualAxiom);
-					}
-				}
+				individualIds.add((OWLNamedIndividual)i);
 			}
 		}
-		map.put("individuals", iObjs);
-		
-		List<Map<Object, Object>> aObjs = new ArrayList<Map<Object, Object>>();
-		for (OWLObjectPropertyAssertionAxiom opa : opAxioms) {
-			aObjs.add(renderer.renderObject(ont, opa));
-		}
-		map.put("facts", aObjs);
-		
-		// TODO decide on properties
-		
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
+		Map<Object, Object> map = renderer.renderIndividuals(individualIds);
 		resp.setModelData(map);
 		resp.setIndividuals(individualIds);
 	}
-
+	
 	/**
 	 * Adds ClassAssertion(c,i) to specified model
 	 * 
@@ -1197,12 +1302,13 @@ public class MolecularModelManager {
 	 * @param c
 	 * @return response info
 	 */
-	public OWLOperationResponse addType(String modelId, OWLIndividual i, OWLClass c) {
+	public OWLOperationResponse addType(String modelId, OWLNamedIndividual i, OWLClass c) {
 		LegoModelGenerator model = getModel(modelId);
-		return addType(model, i, c);
+		addType(model, i, c, true);
+		return createResponse(true, model, i);
 	}
 	/**
-	 * Convenience wrapper for {@link #addType(String, OWLIndividual, OWLClass)}
+	 * Convenience wrapper for {@link #addType(String, OWLNamedIndividual, OWLClass)}
 	 * 
 	 * @param modelId
 	 * @param iid
@@ -1212,7 +1318,7 @@ public class MolecularModelManager {
 	 */
 	public OWLOperationResponse addType(String modelId, String iid, String cid) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
-		OWLIndividual individual = getIndividual(iid, model);
+		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
@@ -1220,7 +1326,29 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		return addType(model, individual, cls);
+		addType(model, individual, cls, true);
+		return createResponse(true, model, individual);
+	}
+	
+	/**
+	 * @param modelId
+	 * @param iid
+	 * @param cid
+	 * @return individual
+	 * @throws UnknownIdentifierException 
+	 */
+	public OWLNamedIndividual addTypeNonReasoning(String modelId, String iid, String cid) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLNamedIndividual individual = getIndividual(iid, model);
+		if (individual == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLClass cls = getClass(cid, model);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
+		}
+		addType(model, individual, cls, false);
+		return individual;
 	}
 	
 	/**
@@ -1229,13 +1357,11 @@ public class MolecularModelManager {
 	 * @param model
 	 * @param i
 	 * @param c
-	 * @return response info
+	 * @param flushReasoner
 	 */
-	private OWLOperationResponse addType(LegoModelGenerator model, OWLIndividual i, OWLClass c) {
+	private void addType(LegoModelGenerator model, OWLIndividual i, OWLClass c, boolean flushReasoner) {
 		OWLClassAssertionAxiom axiom = model.getOWLDataFactory().getOWLClassAssertionAxiom(c,i);
-		OWLOperationResponse response = addAxiom(model, axiom);
-		addIndividualsData(response, model, i);
-		return response;
+		addAxiom(model, axiom, flushReasoner);
 	}
 
 	/**
@@ -1251,16 +1377,17 @@ public class MolecularModelManager {
 	 * @return response info
 	 */
 	public OWLOperationResponse addType(String modelId,
-			OWLIndividual i, 
+			OWLNamedIndividual i, 
 			OWLObjectPropertyExpression p,
 			OWLClassExpression filler) {
 		LegoModelGenerator model = getModel(modelId);
-		return addType(model, i, p, filler);
+		addType(model, i, p, filler, true);
+		return createResponse(true, model, i);
 	}
 	
 	/**
 	 * Convenience wrapper for
-	 *  {@link #addType(String, OWLIndividual, OWLObjectPropertyExpression, OWLClassExpression)}
+	 *  {@link #addType(String, OWLNamedIndividual, OWLObjectPropertyExpression, OWLClassExpression)}
 	 * 
 	 * @param modelId
 	 * @param iid
@@ -1272,7 +1399,7 @@ public class MolecularModelManager {
 	public OWLOperationResponse addType(String modelId,
 			String iid, String pid, String cid) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
-		OWLIndividual individual = getIndividual(iid, model);
+		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
@@ -1284,7 +1411,27 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		return addType(model, individual, property, cls);
+		addType(model, individual, property, cls, true);
+		return createResponse(true, model, individual);
+	}
+	
+	public OWLNamedIndividual addTypeNonReasoning(String modelId,
+			String iid, String pid, String cid) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLNamedIndividual individual = getIndividual(iid, model);
+		if (individual == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLObjectProperty property = getObjectProperty(pid, model);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
+		}
+		OWLClass cls = getClass(cid, model);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
+		}
+		addType(model, individual, property, cls, false);
+		return individual;
 	}
 
 	/**
@@ -1297,19 +1444,18 @@ public class MolecularModelManager {
 	 * @param i
 	 * @param p
 	 * @param filler
-	 * @return response info
+	 * @param flushReasoner
 	 */
-	private OWLOperationResponse addType(LegoModelGenerator model,
+	private void addType(LegoModelGenerator model,
 			OWLIndividual i, 
 			OWLObjectPropertyExpression p,
-			OWLClassExpression filler) {
+			OWLClassExpression filler,
+			boolean flushReasoner) {
 		LOG.info("Adding "+i+ " type "+p+" some "+filler);
 		OWLDataFactory f = model.getOWLDataFactory();
 		OWLObjectSomeValuesFrom c = f.getOWLObjectSomeValuesFrom(p, filler);
 		OWLClassAssertionAxiom axiom = f.getOWLClassAssertionAxiom(c, i);
-		OWLOperationResponse resp = addAxiom(model, axiom);
-		addIndividualsData(resp, model, i);
-		return resp;
+		addAxiom(model, axiom, flushReasoner);
 	}
 	
 	/**
@@ -1320,13 +1466,14 @@ public class MolecularModelManager {
 	 * @param c
 	 * @return response info
 	 */
-	public OWLOperationResponse removeType(String modelId, OWLIndividual i, OWLClass c) {
+	public OWLOperationResponse removeType(String modelId, OWLNamedIndividual i, OWLClass c) {
 		LegoModelGenerator model = getModel(modelId);
-		return removeType(model, i, c);
+		removeType(model, i, c, true);
+		return createResponse(true, model, i);
 	}
 
 	/**
-	 * Convenience wrapper for {@link #removeType(String, OWLIndividual, OWLClass)}
+	 * Convenience wrapper for {@link #removeType(String, OWLNamedIndividual, OWLClass)}
 	 * 
 	 * @param modelId
 	 * @param iid
@@ -1344,7 +1491,40 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		return removeType(modelId, individual, cls);
+		removeType(model, individual, cls, true);
+		return createResponse(true, model, individual);
+	}
+	
+	public OWLNamedIndividual removeTypeNonReasoning(String modelId, String iid, String cid) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLNamedIndividual individual = getIndividual(iid, model);
+		if (individual == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLClass cls = getClass(cid, model);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
+		}
+		removeType(model, individual, cls, false);
+		return individual;
+	}
+	
+	public OWLNamedIndividual removeTypeNonReasoning(String modelId, String iid, String pid, String cid) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLNamedIndividual individual = getIndividual(iid, model);
+		if (individual == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLObjectProperty property = getObjectProperty(pid, model);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
+		}
+		OWLClass cls = getClass(cid, model);
+		if (cls == null) {
+			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
+		}
+		removeType(model, individual, property, cls, false);
+		return individual;
 	}
 	
 	/**
@@ -1353,14 +1533,12 @@ public class MolecularModelManager {
 	 * @param model
 	 * @param i
 	 * @param c
-	 * @return response info
+	 * @param flushReasoner
 	 */
-	private OWLOperationResponse removeType(LegoModelGenerator model, OWLIndividual i, OWLClass c) {
+	private void removeType(LegoModelGenerator model, OWLIndividual i, OWLClass c, boolean flushReasoner) {
 		OWLDataFactory f = model.getOWLDataFactory();
 		OWLClassAssertionAxiom axiom = f.getOWLClassAssertionAxiom(c,i);
-		OWLOperationResponse resp = removeAxiom(model, axiom);
-		addIndividualsData(resp, model, i);
-		return resp;
+		removeAxiom(model, axiom, flushReasoner);
 	}
 	
 	/**
@@ -1376,11 +1554,12 @@ public class MolecularModelManager {
 	 * @return response info
 	 */
 	public OWLOperationResponse removeType(String modelId,
-			OWLIndividual i, 
+			OWLNamedIndividual i, 
 			OWLObjectPropertyExpression p,
 			OWLClassExpression filler) {
 		LegoModelGenerator model = getModel(modelId);
-		return removeType(model, i, p, filler);
+		removeType(model, i, p, filler, true);
+		return createResponse(true, model, i);
 	}
 	
 	
@@ -1391,20 +1570,19 @@ public class MolecularModelManager {
 //		return removeType(modelId, i, p, null);
 //	}
 
-	private OWLOperationResponse removeType(LegoModelGenerator model,
+	private void removeType(LegoModelGenerator model,
 			OWLIndividual i, 
 			OWLObjectPropertyExpression p,
-			OWLClassExpression filler) {
+			OWLClassExpression filler,
+			boolean flushReasoner) {
 		OWLDataFactory f = model.getOWLDataFactory();
 		OWLClassAssertionAxiom axiom = f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(p, filler), i);
-		OWLOperationResponse resp = removeAxiom(model, axiom);
-		addIndividualsData(resp, model, i);
-		return resp;
+		removeAxiom(model, axiom, flushReasoner);
 	}
 	
 
 	/**
-	 * Convenience wrapper for {@link #addOccursIn(String, OWLIndividual, OWLClassExpression)}
+	 * Convenience wrapper for {@link #addOccursIn(String, OWLNamedIndividual, OWLClassExpression)}
 	 * 
 	 * @param modelId
 	 * @param iid
@@ -1445,20 +1623,21 @@ public class MolecularModelManager {
 	 * @return response info
 	 */
 	public OWLOperationResponse addOccursIn(String modelId,
-			OWLIndividual i, 
+			OWLNamedIndividual i, 
 			OWLClassExpression enabler) {
 		LegoModelGenerator model = getModel(modelId);
 		return addOccursIn(model, i, enabler);
 	}
 	
 	private OWLOperationResponse addOccursIn(LegoModelGenerator model,
-			OWLIndividual i, 
+			OWLNamedIndividual i, 
 			OWLClassExpression enabler) {
-		return addType(model, i, OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(getOntology()), enabler);
+		addType(model, i, OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(getOntology()), enabler, true);
+		return createResponse(true, model, i);
 	} 
 
 	/**
-	 * Convenience wrapper for {@link #addEnabledBy(String, OWLIndividual, OWLClassExpression)}
+	 * Convenience wrapper for {@link #addEnabledBy(String, OWLNamedIndividual, OWLClassExpression)}
 	 * 
 	 * @param modelId
 	 * @param iid
@@ -1471,7 +1650,7 @@ public class MolecularModelManager {
 			String iid, String eid) throws UnknownIdentifierException,
 			OWLException {
 		LegoModelGenerator model = getModel(modelId);
-		OWLIndividual individual = getIndividual(iid, model);
+		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
@@ -1528,17 +1707,18 @@ public class MolecularModelManager {
 	 * @return response info
 	 */
 	public OWLOperationResponse addEnabledBy(String modelId,
-			OWLIndividual i, 
+			OWLNamedIndividual i, 
 			OWLClassExpression enabler) {
 		LegoModelGenerator model = getModel(modelId);
 		return addEnabledBy(model, i, enabler);
 	}
 	
 	private OWLOperationResponse addEnabledBy(LegoModelGenerator model,
-			OWLIndividual i, 
+			OWLNamedIndividual i, 
 			OWLClassExpression enabler) {
 		OWLObjectProperty p = OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(model.getAboxOntology());
-		return addType(model, i, p, enabler);
+		addType(model, i, p, enabler, true);
+		return createResponse(true, model, i);
 	}
 
 
@@ -1549,93 +1729,146 @@ public class MolecularModelManager {
 	 * @param p
 	 * @param i
 	 * @param j
+	 * @param annotations
 	 * @return response info
 	 */
 	public OWLOperationResponse addFact(String modelId, OWLObjectPropertyExpression p,
-			OWLIndividual i, OWLIndividual j) {
+			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations) {
 		LegoModelGenerator model = getModel(modelId);
-		return addFact(model, p, i, j);
+		addFact(model, p, i, j, annotations, true);
+		return createResponse(true, model, i, j);
 	}
 	
 	/**
-	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLIndividual, OWLIndividual)}
+	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLNamedIndividual, OWLNamedIndividual, Set)}
 	 *	
 	 * @param modelId
 	 * @param vocabElement
 	 * @param i
 	 * @param j
+	 * @param annotations
 	 * @return response info
 	 */
 	public OWLOperationResponse addFact(String modelId, OBOUpperVocabulary vocabElement,
-			OWLIndividual i, OWLIndividual j) {
+			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations) {
 		LegoModelGenerator model = getModel(modelId);
 		OWLObjectProperty p = vocabElement.getObjectProperty(model.getAboxOntology());
-		return addFact(model, p, i, j);
+		addFact(model, p, i, j, annotations, true);
+		return createResponse(true, model, i, j);
 	}
 
 	/**
-	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLIndividual, OWLIndividual)}
+	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLNamedIndividual, OWLNamedIndividual, Set)}
 	 * 
 	 * @param modelId
 	 * @param pid
 	 * @param iid
 	 * @param jid
+	 * @param pairs 
 	 * @return response info
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse addFact(String modelId, String pid,
-			String iid, String jid) throws UnknownIdentifierException {
+	public OWLOperationResponse addFact(String modelId, String pid,	String iid, String jid,
+			Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
 		}
-		OWLIndividual individual1 = getIndividual(iid, model);
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
 		if (individual1 == null) {
 			throw new UnknownIdentifierException("Could not find a individual (1) for id: "+iid);
 		}
-		OWLIndividual individual2 = getIndividual(jid, model);
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
-		return addFact(model, property, individual1, individual2);
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		addFact(model, property, individual1, individual2, annotations, true);
+		return createResponse(true, model, individual1, individual2);
 	}
 
 	/**
-	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLIndividual, OWLIndividual)}
+	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLNamedIndividual, OWLNamedIndividual, Set)}
+	 * 
+	 * @param modelId
+	 * @param pid
+	 * @param iid
+	 * @param jid
+	 * @param pairs 
+	 * @return relevant individuals
+	 * @throws UnknownIdentifierException 
+	 */
+	public List<OWLNamedIndividual> addFactNonReasoning(String modelId, String pid,	String iid, String jid,
+			Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLObjectProperty property = getObjectProperty(pid, model);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
+		}
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (1) for id: "+iid);
+		}
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
+		}
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		addFact(model, property, individual1, individual2, annotations, false);
+		return Arrays.asList(individual1, individual2);
+	}
+	
+	/**
+	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLNamedIndividual, OWLNamedIndividual, Set)}
 	 * 
 	 * @param modelId
 	 * @param vocabElement
 	 * @param iid
 	 * @param jid
+	 * @param pairs
 	 * @return response info
 	 * @throws UnknownIdentifierException
 	 */
 	public OWLOperationResponse addFact(String modelId, OBOUpperVocabulary vocabElement,
-			String iid, String jid) throws UnknownIdentifierException {
+			String iid, String jid, Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
 		OWLObjectPropertyExpression property = getObjectProperty(vocabElement, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+vocabElement);
 		}
-		OWLIndividual individual1 = getIndividual(iid, model);
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
 		if (individual1 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		OWLIndividual individual2 = getIndividual(jid, model);
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
-		return addFact(model, property, individual1, individual2);
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		addFact(model, property, individual1, individual2, annotations, true);
+		return createResponse(true, model, individual1, individual2);
 	}
 	
-	private OWLOperationResponse addFact(LegoModelGenerator model, OWLObjectPropertyExpression p,
-			OWLIndividual i, OWLIndividual j) {
+	/**
+	 * @param model
+	 * @param p
+	 * @param i
+	 * @param j
+	 * @param annotations 
+	 * @param flushReasoner
+	 */
+	private void addFact(LegoModelGenerator model, OWLObjectPropertyExpression p,
+			OWLIndividual i, OWLIndividual j, Set<OWLAnnotation> annotations, boolean flushReasoner) {
 		OWLDataFactory f = model.getOWLDataFactory();
-		OWLObjectPropertyAssertionAxiom axiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j);
-		OWLOperationResponse response = addAxiom(model, axiom);
-		addIndividualsData(response, model, i, j);
-		return response;
+		final OWLObjectPropertyAssertionAxiom axiom;
+		if (annotations != null && !annotations.isEmpty()) {
+			axiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j, annotations);	
+		}
+		else {
+			axiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j);
+		}
+		addAxiom(model, axiom, flushReasoner);
 	}
 
 	/**
@@ -1646,9 +1879,10 @@ public class MolecularModelManager {
 	 * @return response info
 	 */
 	public OWLOperationResponse removeFact(String modelId, OWLObjectPropertyExpression p,
-			OWLIndividual i, OWLIndividual j) {
+			OWLNamedIndividual i, OWLNamedIndividual j) {
 		LegoModelGenerator model = getModel(modelId);
-		return removeFact(model, p, i, j);
+		removeFact(model, p, i, j, true);
+		return createResponse(true, model, i, j);
 	}
 
 	/**
@@ -1666,38 +1900,164 @@ public class MolecularModelManager {
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
 		}
-		OWLIndividual individual1 = getIndividual(iid, model);
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
 		if (individual1 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		OWLIndividual individual2 = getIndividual(jid, model);
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
-		return removeFact(model, property, individual1, individual2);
+		removeFact(model, property, individual1, individual2, true);
+		return createResponse(true, model, individual1, individual2);
+	}
+	
+	public List<OWLNamedIndividual> removeFactNonReasoning(String modelId, String pid,
+			String iid, String jid) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLObjectProperty property = getObjectProperty(pid, model);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
+		}
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
+		}
+		removeFact(model, property, individual1, individual2, false);
+		return Arrays.asList(individual1, individual2);
 	}
 
-	private OWLOperationResponse removeFact(LegoModelGenerator model, OWLObjectPropertyExpression p,
-			OWLIndividual i, OWLIndividual j) {
+	private void removeFact(LegoModelGenerator model, OWLObjectPropertyExpression p,
+			OWLIndividual i, OWLIndividual j, boolean flushReasoner) {
 		OWLDataFactory f = model.getOWLDataFactory();
-		// TODO deal with axiom annotations
-		OWLObjectPropertyAssertionAxiom axiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j);
-		OWLOperationResponse resp = removeAxiom(model, axiom);
-		addIndividualsData(resp, model, i, j);
-		return resp;
+		
+		OWLOntology ont = model.getAboxOntology();
+		OWLAxiom toRemove = null;
+		Set<OWLObjectPropertyAssertionAxiom> candidates = ont.getObjectPropertyAssertionAxioms(i);
+		for (OWLObjectPropertyAssertionAxiom axiom : candidates) {
+			if (p.equals(axiom.getProperty()) && j.equals(axiom.getObject())) {
+				toRemove = axiom;
+				break;
+			}
+		}
+		if (toRemove == null) {
+			// fall back solution
+			toRemove = f.getOWLObjectPropertyAssertionAxiom(p, i, j);
+		}
+		removeAxiom(model, toRemove, flushReasoner);
+	}
+	
+	public List<OWLNamedIndividual> addAnnotations(String modelId, String pid, 
+			String iid, String jid, Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLObjectProperty property = getObjectProperty(pid, model);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
+		}
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (1) for id: "+iid);
+		}
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
+		}
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+
+		addAnnotations(model, property, individual1, individual2, annotations, false);
+
+		return Arrays.asList(individual1, individual2);
+	}
+	
+	public OWLOperationResponse addAnnotations(String modelId, OWLObjectPropertyExpression p,
+			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations) {
+		LegoModelGenerator model = getModel(modelId);
+		addAnnotations(model, p, i, j, annotations, true);
+		return createResponse(true, model, i, j);
+	}
+	
+	private void addAnnotations(LegoModelGenerator model, OWLObjectPropertyExpression p,
+			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations,
+			boolean flushReasoner) {
+		OWLOntology ont = model.getAboxOntology();
+		Set<OWLObjectPropertyAssertionAxiom> axioms = ont.getObjectPropertyAssertionAxioms(i);
+		OWLObjectPropertyAssertionAxiom toModify = null;
+		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
+			if (p.equals(axiom.getProperty()) && j.equals(axiom.getObject())) {
+				toModify = axiom;
+				break;
+			}
+		}
+		if (toModify != null) {
+			OWLDataFactory f = model.getOWLDataFactory();
+			Set<OWLAnnotation> combindedAnnotations = new HashSet<OWLAnnotation>(annotations);
+			combindedAnnotations.addAll(toModify.getAnnotations());
+			removeAxiom(model, toModify, false);
+			OWLAxiom newAxiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j, combindedAnnotations);
+			addAxiom(model, newAxiom , flushReasoner);
+		}
+	}
+	
+	public List<OWLNamedIndividual> removeAnnotations(String modelId, String pid, 
+			String iid, String jid, Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		OWLObjectProperty property = getObjectProperty(pid, model);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
+		}
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (1) for id: "+iid);
+		}
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
+		}
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+
+		removeAnnotations(model, property, individual1, individual2, annotations, false);
+
+		return Arrays.asList(individual1, individual2);
+	}
+	
+	private void removeAnnotations(LegoModelGenerator model, OWLObjectPropertyExpression p,
+			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations,
+			boolean flushReasoner) {
+		OWLOntology ont = model.getAboxOntology();
+		Set<OWLObjectPropertyAssertionAxiom> axioms = ont.getObjectPropertyAssertionAxioms(i);
+		OWLObjectPropertyAssertionAxiom toModify = null;
+		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
+			if (p.equals(axiom.getProperty()) && j.equals(axiom.getObject())) {
+				toModify = axiom;
+				break;
+			}
+		}
+		if (toModify != null) {
+			OWLDataFactory f = model.getOWLDataFactory();
+			Set<OWLAnnotation> combindedAnnotations = new HashSet<OWLAnnotation>(toModify.getAnnotations());
+			combindedAnnotations.removeAll(annotations);
+			removeAxiom(model, toModify, false);
+			OWLAxiom newAxiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j, combindedAnnotations);
+			addAxiom(model, newAxiom , flushReasoner);
+		}
 	}
 	
 	/**
-	 * Convenience wrapper for {@link #addPartOf(String, OWLIndividual, OWLIndividual)}
+	 * Convenience wrapper for {@link #addPartOf(String, OWLNamedIndividual, OWLNamedIndividual, Set)}
 	 *
 	 * @param modelId
 	 * @param iid
 	 * @param jid
+	 * @param pairs 
 	 * @return response info
 	 * @throws UnknownIdentifierException
 	 */
-	public OWLOperationResponse addPartOf(String modelId, 
-			String iid, String jid) throws UnknownIdentifierException {
+	public OWLOperationResponse addPartOf(String modelId,  String iid,
+			String jid, Collection<Pair<String, String>> pairs) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
 		OWLNamedIndividual individual1 = getIndividual(iid, model);
 		if (individual1 == null) {
@@ -1707,7 +2067,8 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
-		return addPartOf(modelId, individual1, individual2);
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		return addPartOf(modelId, individual1, individual2, annotations);
 	}
 
 	/**
@@ -1718,17 +2079,19 @@ public class MolecularModelManager {
 	 * @param modelId
 	 * @param i
 	 * @param j
+	 * @param annotations
 	 * @return response info
 	 */
-	public OWLOperationResponse addPartOf(String modelId,
-			OWLIndividual i, OWLIndividual j) {
+	public OWLOperationResponse addPartOf(String modelId, OWLNamedIndividual i,
+			OWLNamedIndividual j, Set<OWLAnnotation> annotations) {
 		LegoModelGenerator model = getModel(modelId);
-		return addPartOf(model, i, j);
+		addPartOf(model, i, j, annotations, true);
+		return createResponse(true, model, i, j);
 	}
 	
-	private OWLOperationResponse addPartOf(LegoModelGenerator model,
-			OWLIndividual i, OWLIndividual j) {
-		return addFact(model, getObjectProperty(OBOUpperVocabulary.BFO_part_of, model), i, j);
+	private void addPartOf(LegoModelGenerator model, OWLNamedIndividual i, 
+			OWLNamedIndividual j, Set<OWLAnnotation> annotations, boolean flushReasoner) {
+		addFact(model, getObjectProperty(OBOUpperVocabulary.BFO_part_of, model), i, j, annotations, flushReasoner);
 	}
 
 
@@ -1738,26 +2101,29 @@ public class MolecularModelManager {
 	 * 
 	 * @param model
 	 * @param axiom
-	 * @return response info
+	 * @param flushReasoner
 	 */
-	OWLOperationResponse addAxiom(LegoModelGenerator model, OWLAxiom axiom) {
+	void addAxiom(LegoModelGenerator model, OWLAxiom axiom, boolean flushReasoner) {
 		OWLOntology ont = model.getAboxOntology();
-		boolean isConsistentAtStart = model.getReasoner().isConsistent();
-		AddAxiom change = new AddAxiom(ont, axiom);
-		ont.getOWLOntologyManager().applyChange(change);
-		// TODO - track axioms to allow redo
-		model.getReasoner().flush();
-		boolean isConsistentAtEnd = model.getReasoner().isConsistent();
-		if (isConsistentAtStart && !isConsistentAtEnd) {
-			// rollback
-			ont.getOWLOntologyManager().removeAxiom(ont, axiom);
-			return new OWLOperationResponse(change, false, true);
-
+		ont.getOWLOntologyManager().addAxiom(ont, axiom);
+		if (flushReasoner) {
+			model.getReasoner().flush();
 		}
-		else {
-			return new OWLOperationResponse(change, true, false);
+	}
+	
+	/**
+	 * In general, should not be called directly - use a wrapper method
+	 * 
+	 * @param model
+	 * @param axioms
+	 * @param flushReasoner
+	 */
+	void addAxioms(LegoModelGenerator model, Set<OWLAxiom> axioms, boolean flushReasoner) {
+		OWLOntology ont = model.getAboxOntology();
+		ont.getOWLOntologyManager().addAxioms(ont, axioms);
+		if (flushReasoner) {
+			model.getReasoner().flush();
 		}
-
 	}
 	
 	/**
@@ -1770,16 +2136,14 @@ public class MolecularModelManager {
 	 * 
 	 * @param model
 	 * @param axiom
-	 * @return response info
+	 * @param flushReasoner
 	 */
-	OWLOperationResponse removeAxiom(LegoModelGenerator model, OWLAxiom axiom) {
+	void removeAxiom(LegoModelGenerator model, OWLAxiom axiom, boolean flushReasoner) {
 		OWLOntology ont = model.getAboxOntology();
-		// TODO - check axiom exists
-		RemoveAxiom change = new RemoveAxiom(ont, axiom);
-		ont.getOWLOntologyManager().applyChange(change);
-		model.getReasoner().flush();
-		// TODO - track axioms to allow redo
-		return new OWLOperationResponse(true);
+		ont.getOWLOntologyManager().removeAxiom(ont, axiom);
+		if (flushReasoner) {
+			model.getReasoner().flush();
+		}
 	}
 
 	/**
@@ -1787,28 +2151,20 @@ public class MolecularModelManager {
 	 * 
 	 * @param modelId
 	 * @param axioms
-	 * @return response info
+	 * @param flushReasoner
 	 */
-	OWLOperationResponse removeAxioms(String modelId, Set<OWLAxiom> axioms) {
+	void removeAxioms(String modelId, Set<OWLAxiom> axioms, boolean flushReasoner) {
 		LegoModelGenerator model = getModel(modelId);
-		return removeAxioms(model, axioms);
+		removeAxioms(model, axioms, flushReasoner);
 	}
 	
-	private OWLOperationResponse removeAxioms(LegoModelGenerator model, Set<OWLAxiom> axioms) {
+	private void removeAxioms(LegoModelGenerator model, Set<OWLAxiom> axioms, boolean flushReasoner) {
 		OWLOntology ont = model.getAboxOntology();
+		ont.getOWLOntologyManager().removeAxioms(ont, axioms);
 		
-		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
-		for(OWLAxiom ax  : axioms) {
-			// TODO - check axiom exists
-			RemoveAxiom change = new RemoveAxiom(ont, ax);
-			changes.add(change);
+		if (flushReasoner) {
+			model.getReasoner().flush();
 		}
-		ont.getOWLOntologyManager().applyChanges(changes);
-		
-		OWLReasoner reasoner = model.getReasoner();
-		reasoner.flush();
-		boolean isConsistent = reasoner.isConsistent();
-		return new OWLOperationResponse(true, isConsistent);
 	}
 
 	public OWLOperationResponse undo(String modelId, String changeId) {

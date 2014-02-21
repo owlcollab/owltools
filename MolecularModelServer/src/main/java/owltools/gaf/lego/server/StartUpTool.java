@@ -13,6 +13,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import owltools.cli.Opts;
 import owltools.gaf.lego.MolecularModelManager;
+import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler;
 import owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
@@ -32,6 +33,7 @@ public class StartUpTool {
 		String modelFolder = null;
 		String gafFolder = null; // optional
 		List<String> additionalImports = new ArrayList<String>();
+		boolean allowBatch = true;
 		
 		// server configuration
 		int port = 6800; 
@@ -59,6 +61,12 @@ public class StartUpTool {
 			else if (opts.nextEq("-i|--import|--additional-import")) {
 				additionalImports.add(StringUtils.trim(opts.nextOpt()));
 			}
+			else if (opts.nextEq("--no-batch")) {
+				allowBatch = false;
+			}
+			else if (opts.nextEq("--allow-batch")) {
+				allowBatch = true;
+			}
 			else {
 				break;
 			}
@@ -77,10 +85,10 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, catalog, modelFolder, gafFolder, port, contextString, additionalImports);
+		startUp(ontology, catalog, modelFolder, gafFolder, port, contextString, additionalImports, allowBatch);
 	}
 
-	public static void startUp(String ontology, String catalog, String modelFolder, String gafFolder, int port, String contextString, List<String> additionalImports)
+	public static void startUp(String ontology, String catalog, String modelFolder, String gafFolder, int port, String contextString, List<String> additionalImports, boolean allowBatch)
 			throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
@@ -107,8 +115,14 @@ public class StartUpTool {
 		resourceConfig.register(GsonMessageBodyHandler.class);
 		resourceConfig.register(RequireJsonpFilter.class);
 		//resourceConfig.register(AuthorizationRequestFilter.class);
-		JsonOrJsonpModelHandler modelHandler = new JsonOrJsonpModelHandler(graph, models);
-		resourceConfig = resourceConfig.registerInstances(modelHandler);
+		if (allowBatch) {
+			JsonOrJsonpBatchHandler modelHandler = new JsonOrJsonpBatchHandler(graph, models);
+			resourceConfig = resourceConfig.registerInstances(modelHandler);
+		}
+		else {
+			JsonOrJsonpModelHandler modelHandler = new JsonOrJsonpModelHandler(graph, models);
+			resourceConfig = resourceConfig.registerInstances(modelHandler);
+		}
 
 		// setup jetty server port and context path
 		Server server = new Server(port);
