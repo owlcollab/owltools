@@ -322,7 +322,7 @@ public class SimJSONEngine {
 		Set<OWLClass> goodAtts = new HashSet<OWLClass>();
 		//filter to include only resolvable classes
 		for (OWLClass a : atts) {
-			if (!(sos.getAllAttributeClasses().contains(a))) {
+			if (g.getOWLClass(a.getIRI()) == null) {
 				badAttList.add(makeObj(a));
 				LOG.info("Class "+a.toString()+" does not exist.  Tossing from profile calculation.");
 			} else {
@@ -365,7 +365,7 @@ public class SimJSONEngine {
 		LOG.info("Attempting to compute subgraph scores with "+nodes.size()+" classes");
 		nodes.remove(null);
 		for (OWLClass n : nodes) {
-			if (!(sos.getAllAttributeClasses().contains(n))) {
+			if (!(sos.getSourceOntology().getClassesInSignature().contains(n))) {
 				badNodeList.add(makeObj(n));
 				LOG.info("Class "+n.toString()+" does not exist.  Tossing from subgraph calculation.");
 			} else {

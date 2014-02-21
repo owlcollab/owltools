@@ -758,7 +758,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts)  {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
 		for (OWLClass c : atts) {
-			if (this.getAllAttributeClasses().contains(c)) {
+			if (getSourceOntology().getClassesInSignature().contains(c)) {
 				Double ic;
 				try {
 					ic = this.getInformationContentForAttribute(c);
@@ -787,7 +787,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(Set<OWLClass> atts, OWLClass sub)  {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
 		for (OWLClass c : atts) {
-			if (this.getAllAttributeClasses().contains(c)) {				
+			if (getSourceOntology().getClassesInSignature().contains(c)) {				
 				Double ic;
 				try {
 				//check if sub is an inferred superclass of the current annotated class
