@@ -1,5 +1,7 @@
 package owltools.gaf.lego.server.handler;
 
+import static owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler.*;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -11,8 +13,10 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.lego.LegoModelGenerator;
@@ -20,10 +24,25 @@ import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.graph.OWLGraphWrapper;
 
-public class JsonOrJsonpBatchHandler extends JsonOrJsonpModelHandler implements M3BatchHandler {
+public class JsonOrJsonpBatchHandler implements M3BatchHandler {
+
+	private static Logger LOG = Logger.getLogger(JsonOrJsonpBatchHandler.class);
+	
+	private final OWLGraphWrapper graph;
+	private MolecularModelManager models = null;
 
 	public JsonOrJsonpBatchHandler(OWLGraphWrapper graph, MolecularModelManager models) {
-		super(graph, models);
+		super();
+		this.graph = graph;
+		this.models = models;
+	}
+
+	protected synchronized MolecularModelManager getMolecularModelManager() throws OWLOntologyCreationException {
+		if (models == null) {
+			LOG.info("Creating m3 object");
+			models = new MolecularModelManager(graph);
+		}
+		return models;
 	}
 
 	@Override

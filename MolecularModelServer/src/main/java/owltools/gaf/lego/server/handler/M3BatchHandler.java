@@ -7,7 +7,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
 
-public interface M3BatchHandler extends M3Handler {
+public interface M3BatchHandler {
 
 	public static class M3Request {
 		String entity;
