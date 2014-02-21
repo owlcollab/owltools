@@ -670,12 +670,13 @@ public abstract class AbstractOwlSim implements OwlSim {
 		myStats.n  = getSummaryStatisticsForCollection(aggregate,Stat.N);		
 		myStats.aggregate = AggregateSummaryStatistics.aggregate(aggregate);
 		this.overallSummaryStatsPerIndividual = myStats;
+		LOG.info("Finished computing overall statsPerIndividual:\n"+this.getSummaryStatistics().toString());
 	}
 	
 	public void computeSystemStatsForSubgraph(OWLClass c) throws UnknownOWLClassException {
 		Set<OWLNamedIndividual> insts = this.getAllElements();
 		LOG.info("Computing system stats for subgraph rooted at" + c.toString() +" with "+ insts.size() + " individuals");
-		LOG.info("Creating singular stat scores for all IDspaces");
+//		LOG.info("Creating singular stat scores for all IDspaces");
 				
 		Collection<SummaryStatistics> aggregate = new ArrayList<SummaryStatistics>();
 
@@ -748,6 +749,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 
 	
 	public SummaryStatistics computeIndividualStats(OWLNamedIndividual i) throws UnknownOWLClassException {
+		LOG.info("Computing individual stats for "+i.toString());
 		return this.computeAttributeSetSimilarityStats(this.getAttributesForElement(i));
 	}
 		
