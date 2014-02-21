@@ -228,11 +228,13 @@ public class JsonOrJsonpBatchHandler extends JsonOrJsonpModelHandler implements 
 			if (renderBulk) {
 				// render complete model
 				response.data = m3.getModelObject(modelId);
+				response.signal = "rebuild";
 			}
 			else {
 				// render individuals
 				MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
 				response.data = renderer.renderIndividuals(relevantIndividuals);
+				response.signal = "merge";
 			}
 			
 			// add other infos to data

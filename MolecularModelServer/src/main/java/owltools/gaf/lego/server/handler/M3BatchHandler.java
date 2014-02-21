@@ -43,7 +43,7 @@ public interface M3BatchHandler extends M3Handler {
 		final String intention; // pass-through
 		
 		/*
-		 * "merge", "full"
+		 * "merge", "rebuild"
 		 */
 		String signal;
 		String message_type;
