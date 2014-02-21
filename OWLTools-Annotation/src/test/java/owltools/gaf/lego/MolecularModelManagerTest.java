@@ -184,13 +184,13 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		mmm = new MolecularModelManager(g);
 
 		String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024");
+		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024", null);
 		OWLNamedIndividual i1 = resp.getIndividuals().get(0);
 
-		resp = mmm.createIndividual(modelId, "GO:0042803");
+		resp = mmm.createIndividual(modelId, "GO:0042803", null);
 		OWLNamedIndividual i2 = resp.getIndividuals().get(0);
 
-		mmm.addPartOf(modelId, i1, i2);
+		mmm.addPartOf(modelId, i1, i2, null);
 
 		//		String js = renderJSON(modelId);
 		//		System.out.println("-------------");
@@ -220,13 +220,13 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		mmm = new MolecularModelManager(g);
 
 		final String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024");
+		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024", null);
 		final OWLNamedIndividual i1 = resp.getIndividuals().get(0);
 
-		resp = mmm.createIndividual(modelId, "GO:0042803");
+		resp = mmm.createIndividual(modelId, "GO:0042803", null);
 		final OWLNamedIndividual i2 = resp.getIndividuals().get(0);
 
-		mmm.addPartOf(modelId, i1, i2);
+		mmm.addPartOf(modelId, i1, i2, null);
 		
 		// export
 		final String modelContent = mmm.exportModel(modelId);
@@ -235,7 +235,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		System.out.println("-------------------");
 		
 		// add an additional individual to model after export
-		resp = mmm.createIndividual(modelId, "GO:0008233");
+		resp = mmm.createIndividual(modelId, "GO:0008233", null);
 		final OWLNamedIndividual i3 = resp.getIndividuals().get(0);
 		assertEquals(3, mmm.getIndividuals(modelId).size());
 
@@ -268,19 +268,19 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		// GO:0008233 ! peptidase activity
 
 		final String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024");
+		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024", null);
 		final OWLNamedIndividual i1 = resp.getIndividuals().get(0);
 
-		resp = mmm.createIndividual(modelId, "GO:0042803");
+		resp = mmm.createIndividual(modelId, "GO:0042803", null);
 		final OWLNamedIndividual i2 = resp.getIndividuals().get(0);
 
-		mmm.addPartOf(modelId, i1, i2);
+		mmm.addPartOf(modelId, i1, i2, null);
 		
 		// save
 		mmm.saveModel(modelId);
 		
 		// add an additional individual to model after export
-		resp = mmm.createIndividual(modelId, "GO:0008233");
+		resp = mmm.createIndividual(modelId, "GO:0008233", null);
 		final OWLNamedIndividual i3 = resp.getIndividuals().get(0);
 		assertEquals(3, mmm.getIndividuals(modelId).size());
 
@@ -322,14 +322,14 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		mmm = new MolecularModelManager(g);
 
 		String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0004872"); // receptor activity
+		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0004872", null); // receptor activity
 		OWLNamedIndividual cc = resp.getIndividuals().get(0);
 
 		
-		resp = mmm.createIndividual(modelId, "GO:0007166"); // cell surface receptor signaling pathway
+		resp = mmm.createIndividual(modelId, "GO:0007166", null); // cell surface receptor signaling pathway
 		OWLNamedIndividual mit = resp.getIndividuals().get(0);
 
-		mmm.addPartOf(modelId, mit, cc);
+		mmm.addPartOf(modelId, mit, cc, null);
 
 		// we expect inference to be to: GO:0038023  signaling receptor activity
 		// See discussion here: https://github.com/kltm/go-mme/issues/3
