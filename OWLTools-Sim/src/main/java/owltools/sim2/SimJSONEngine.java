@@ -240,7 +240,12 @@ public class SimJSONEngine {
 		Map<String,Object> m = new HashMap<String,Object>();
 		m.put("id", g.getIdentifier(obj));
 		m.put("label", g.getLabel(obj));
-		m.put("IC",sos.getInformationContentForAttribute(g.getOWLClass(obj)));
+		Double ic = sos.getInformationContentForAttribute(g.getOWLClass(obj));
+		if (ic == null) {
+			LOG.info("Using max(maxIC) for "+g.getIdentifier(obj));
+			ic = sos.getSummaryStatistics().max.getMax();
+		}
+		m.put("IC",ic);
 		return m;
 	}
 

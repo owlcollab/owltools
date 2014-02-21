@@ -765,13 +765,19 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts)  {
 		
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
-//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
+		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
 		for (OWLClass c : atts) {
-//			if (allClasses.contains(c)) {
 				Double ic;
 				try {
 					ic = this.getInformationContentForAttribute(c);
-					if (ic == null) { throw new UnknownOWLClassException(c); }
+					if (ic == null) { 
+						//If a class hasn't been annotated in the loaded corpus, we will
+						//assume that it is very rare, and assign MaxIC
+						if (allClasses.contains(c)) {
+							ic = this.getSummaryStatistics().max.getMax();
+						} else {
+							throw new UnknownOWLClassException(c); }
+						}
 					if (ic.isInfinite() || ic.isNaN()) {
 						//If a class hasn't been annotated in the loaded corpus, we will
 						//assume that it is very rare, and assign MaxIC
@@ -787,25 +793,28 @@ public abstract class AbstractOwlSim implements OwlSim {
 					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
 					continue;
 				}
-//			}  else {
-//				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
-//			}
 		}
 		return statsPerAttSet;
 	}	
 	
 	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(Set<OWLClass> atts, OWLClass sub)  {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
-//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
+		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
 		for (OWLClass c : atts) {
-//			if (allClasses.contains(c)) {
 				Double ic;
 				try {
 				//check if sub is an inferred superclass of the current annotated class
 					if (getReasoner().getSuperClasses(c, false).containsEntity(sub)) { 
 						ic = this.getInformationContentForAttribute(c);
 						
-						if (ic == null) { throw new UnknownOWLClassException(c); }
+						if (ic == null) { 
+							//If a class hasn't been annotated in the loaded corpus, we will
+							//assume that it is very rare, and assign MaxIC
+							if (allClasses.contains(c)) {
+								ic = this.getSummaryStatistics().max.getMax();
+							} else {
+								throw new UnknownOWLClassException(c); }
+							}
 
 						if (ic.isInfinite() || ic.isNaN()) {
 							//If a class hasn't been annotated in the loaded corpus, we will
@@ -822,9 +831,6 @@ public abstract class AbstractOwlSim implements OwlSim {
 					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
 					continue;
 				}
-//			}  else {
-//				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
-//			}
 		}
 		return statsPerAttSet;
 	}	
