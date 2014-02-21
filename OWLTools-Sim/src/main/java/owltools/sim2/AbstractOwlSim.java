@@ -765,7 +765,9 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts)  {
 		
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
-		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
+//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
+		OWLDataFactory g = getSourceOntology().getOWLOntologyManager().getOWLDataFactory();
+
 		for (OWLClass c : atts) {
 				Double ic;
 				try {
@@ -773,7 +775,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 					if (ic == null) { 
 						//If a class hasn't been annotated in the loaded corpus, we will
 						//assume that it is very rare, and assign MaxIC
-						if (allClasses.contains(c)) {
+						if (g.getOWLClass(c.getIRI()) != null) {
 							ic = this.getSummaryStatistics().max.getMax();
 						} else {
 							throw new UnknownOWLClassException(c); }
@@ -799,7 +801,9 @@ public abstract class AbstractOwlSim implements OwlSim {
 	
 	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(Set<OWLClass> atts, OWLClass sub)  {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
-		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
+//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
+		OWLDataFactory g = getSourceOntology().getOWLOntologyManager().getOWLDataFactory();
+
 		for (OWLClass c : atts) {
 				Double ic;
 				try {
@@ -810,7 +814,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 						if (ic == null) { 
 							//If a class hasn't been annotated in the loaded corpus, we will
 							//assume that it is very rare, and assign MaxIC
-							if (allClasses.contains(c)) {
+							if (g.getOWLClass(c.getIRI()) != null) {
 								ic = this.getSummaryStatistics().max.getMax();
 							} else {
 								throw new UnknownOWLClassException(c); }
