@@ -385,12 +385,12 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response getRelations() {
 		/*
-		 * data: [{
+		 * data: {relations: [{
 		 * 	 id: {String}
 		 *   label: {String}
 		 *   ?color: {String} // TODO in the future
 		 *   ?glyph: {String} // TODO in the future
-		 * }]
+		 * }]}
 		 */
 		try {
 			final MolecularModelManager mmm = getMolecularModelManager();
@@ -413,7 +413,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			}
 			
 			// retrieve id and label for all properties
-			List<Map<String, String>> data = new ArrayList<Map<String,String>>();
+			List<Map<String, String>> relList = new ArrayList<Map<String,String>>();
 			for (OWLObjectProperty p : properties) {
 				if (p.isBuiltIn()) {
 					// skip owl:topObjectProperty
@@ -424,12 +424,14 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 				Map<String, String> entry = new HashMap<String, String>();
 				entry.put("id", identifier);
 				entry.put("label", label);
-				data.add(entry);
+				relList.add(entry);
 			}
 			
 			// create response
 			M3Response resp = new M3Response(M3Response.SUCCESS);
-			resp.data = data;
+			Map<Object, Object> relData = new HashMap<Object, Object>();
+			relData.put("relations", relList);
+			resp.data = relData;
 			return resp ;
 		} catch (OWLOntologyCreationException exception) {
 			return errorMsg("Could not retrieve relations on the server.", exception);

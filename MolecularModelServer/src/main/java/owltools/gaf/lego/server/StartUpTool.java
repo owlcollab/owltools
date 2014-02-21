@@ -34,6 +34,7 @@ public class StartUpTool {
 		String gafFolder = null; // optional
 		List<String> additionalImports = new ArrayList<String>();
 		boolean allowBatch = true;
+		//boolean allowBatch = false;
 		
 		// server configuration
 		int port = 6800; 
