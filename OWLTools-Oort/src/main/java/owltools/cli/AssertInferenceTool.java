@@ -168,6 +168,10 @@ public class AssertInferenceTool {
 			else if (opts.nextEq("--removeUnsupportedRegulationInferences")) {
 				removeUnsupportedRegulationInferences = true;
 			}
+			else if (opts.nextEq("--catalog-xml")) {
+				String catalog = opts.nextOpt();
+				pw.addIRIMapper(new CatalogXmlIRIMapper(catalog));
+			}
 			else {
 				inputs.add(opts.nextOpt());
 			}
