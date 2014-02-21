@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.OwlSim.Stat;
+import owltools.sim2.OwlSim.StatsPerIndividual;
 import owltools.sim2.scores.ElementPairScores;
 
 import com.google.gson.Gson;
@@ -249,20 +250,37 @@ public class SimJSONEngine {
 			subj.put(key, tobj);
 	}
 
-	public HashMap<String,String> makeSummaryStatistics() {
+	public HashMap<String,String> makeSummaryStatistics(StatsPerIndividual s) {
 		//		Gson gson = new Gson();
 		HashMap<String,String> stats = new HashMap<String,String>();
-		stats.put("individuals", String.format("%d",sos.getSummaryStatistics().max.getN()));		
-		stats.put("mean(meanIC)", String.format("%1$.5f",sos.getSummaryStatistics().mean.getMean()));		
-		stats.put("mean(maxIC)", String.format("%1$.5f",sos.getSummaryStatistics().max.getMean()));		
-		stats.put("max(maxIC)", String.format("%1$.5f",sos.getSummaryStatistics().max.getMax()));		
-		stats.put("max(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics().sum.getMax()));		
-		stats.put("mean(sumIC)", String.format("%1$.5f",sos.getSummaryStatistics().sum.getMean()));		
-		stats.put("mean(n)", String.format("%1$.5f",sos.getSummaryStatistics().n.getMean()));		
+		stats.put("individuals", String.format("%d", s.max.getN()));		
+		stats.put("mean(meanIC)", String.format("%1$.5f", s.mean.getMean()));		
+		stats.put("mean(maxIC)", String.format("%1$.5f", s.max.getMean()));		
+		stats.put("max(maxIC)", String.format("%1$.5f", s.max.getMax()));		
+		stats.put("max(sumIC)", String.format("%1$.5f", s.sum.getMax()));		
+		stats.put("mean(sumIC)", String.format("%1$.5f", s.sum.getMean()));		
+		stats.put("mean(n)", String.format("%1$.5f", s.n.getMean()));		
 
 		//		return gson.toJson(stats);
 		return stats;
 	}
+	
+	public HashMap<String,String> makeSummaryStatistics(OWLClass c) {
+		//		Gson gson = new Gson();
+		StatsPerIndividual s = sos.getSummaryStatistics(c);
+		HashMap<String,String> stats = new HashMap<String,String>();
+		stats = makeSummaryStatistics(s);	
+		return stats;
+	}
+	
+	public HashMap<String,String> makeSummaryStatistics() {
+		//		Gson gson = new Gson();
+		StatsPerIndividual s = sos.getSummaryStatistics();
+		HashMap<String,String> stats = new HashMap<String,String>();
+		stats = makeSummaryStatistics(s);	
+		return stats;
+	}
+	
 
 	public String getAnnotationSufficiencyScore(OWLNamedIndividual i) throws UnknownOWLClassException {
 		Gson gson = new Gson();
@@ -368,6 +386,7 @@ public class SimJSONEngine {
 			SummaryStatistics stats = sos.computeAttributeSetSimilarityStatsForSubgraph(atts,n);
 			//number of annotations in the query per category
 			score.put("n", stats.getN());
+			score.put("system_stats",this.makeSummaryStatistics(n));
 			subgraphScores.add(score);
 		}
 		results.put("categorical_scores", subgraphScores);

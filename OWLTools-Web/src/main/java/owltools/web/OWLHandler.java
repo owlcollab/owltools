@@ -556,6 +556,7 @@ public class OWLHandler {
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String jsonStr = sj.compareAttributeSetPair(objAs, objBs, true);
 		LOG.info("Finished comparison");
+		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
 	
@@ -573,6 +574,7 @@ public class OWLHandler {
 		Integer limit = getParamAsInteger(Param.limit, 1000);
 		String jsonStr = sj.search(atts, targetIdSpace, true, limit, true);
 		LOG.info("Finished comparison");
+		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
 	
@@ -590,6 +592,7 @@ public class OWLHandler {
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String jsonStr = sj.getAnnotationSufficiencyScore(atts);
 		LOG.info("Finished getAnnotationSufficiencyScore");
+		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
 	
@@ -606,6 +609,7 @@ public class OWLHandler {
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String jsonStr = sj.getAttributeInformationProfile(atts,roots);
 		LOG.info("Finished getAttributeInformationProfileCommand");
+		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
 	
