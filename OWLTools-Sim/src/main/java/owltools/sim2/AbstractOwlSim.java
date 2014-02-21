@@ -647,8 +647,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 		Collection<SummaryStatistics> aggregate = new ArrayList<SummaryStatistics>();
 
 		this.overallStats = new SummaryStatistics();
-		
+
+		int counter = 0;
 		for (OWLNamedIndividual i : insts) {			
+			counter++;
 			SummaryStatistics statsPerIndividual = computeIndividualStats(i);			
 			//put this individual into the aggregate
 			if (statsPerIndividual.getN() == 0) {
@@ -657,10 +659,13 @@ public abstract class AbstractOwlSim implements OwlSim {
 				aggregate.add(statsPerIndividual);
 			}
 			//TODO: put this individual into an idSpace aggregate
-			String idSpace = i.getIRI().getNamespace();
+			//			String idSpace = i.getIRI().getNamespace();
 			this.overallStats.addValue(statsPerIndividual.getMean());
-		}		
-//		this.aggregateStatsPerIndividual = AggregateSummaryStatistics.aggregate(aggregate);	
+			if (counter % 1000 == 0) {
+				LOG.info("Finished "+counter+" individuals");
+			}
+		}
+		//		this.aggregateStatsPerIndividual = AggregateSummaryStatistics.aggregate(aggregate);	
     StatsPerIndividual myStats = new StatsPerIndividual();
     
 		myStats.mean = getSummaryStatisticsForCollection(aggregate,Stat.MEAN);
@@ -749,7 +754,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 
 	
 	public SummaryStatistics computeIndividualStats(OWLNamedIndividual i) throws UnknownOWLClassException {
-		LOG.info("Computing individual stats for "+i.toString());
+		//LOG.info("Computing individual stats for "+i.toString());
 		return this.computeAttributeSetSimilarityStats(this.getAttributesForElement(i));
 	}
 		
@@ -758,12 +763,15 @@ public abstract class AbstractOwlSim implements OwlSim {
 	}
 	
 	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts)  {
+		
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
+//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
 		for (OWLClass c : atts) {
-			if (getSourceOntology().getClassesInSignature(true).contains(c)) {
+//			if (allClasses.contains(c)) {
 				Double ic;
 				try {
 					ic = this.getInformationContentForAttribute(c);
+					if (ic == null) { throw new UnknownOWLClassException(c); }
 					if (ic.isInfinite() || ic.isNaN()) {
 						//If a class hasn't been annotated in the loaded corpus, we will
 						//assume that it is very rare, and assign MaxIC
@@ -779,22 +787,26 @@ public abstract class AbstractOwlSim implements OwlSim {
 					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
 					continue;
 				}
-			}  else {
-				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
-			}
+//			}  else {
+//				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+//			}
 		}
 		return statsPerAttSet;
 	}	
 	
 	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(Set<OWLClass> atts, OWLClass sub)  {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
+//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
 		for (OWLClass c : atts) {
-			if (getSourceOntology().getClassesInSignature(true).contains(c)) {				
+//			if (allClasses.contains(c)) {
 				Double ic;
 				try {
 				//check if sub is an inferred superclass of the current annotated class
 					if (getReasoner().getSuperClasses(c, false).containsEntity(sub)) { 
 						ic = this.getInformationContentForAttribute(c);
+						
+						if (ic == null) { throw new UnknownOWLClassException(c); }
+
 						if (ic.isInfinite() || ic.isNaN()) {
 							//If a class hasn't been annotated in the loaded corpus, we will
 							//assume that it is very rare, and assign MaxIC
@@ -810,9 +822,9 @@ public abstract class AbstractOwlSim implements OwlSim {
 					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
 					continue;
 				}
-			}  else {
-				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
-			}
+//			}  else {
+//				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+//			}
 		}
 		return statsPerAttSet;
 	}	
