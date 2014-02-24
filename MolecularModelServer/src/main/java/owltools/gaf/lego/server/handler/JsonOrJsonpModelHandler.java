@@ -15,7 +15,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -42,26 +41,14 @@ import owltools.graph.OWLGraphWrapper;
 @Produces({MediaType.APPLICATION_JSON, "application/javascript"})
 public class JsonOrJsonpModelHandler implements M3Handler {
 
-	private static Logger LOG = Logger.getLogger(JsonOrJsonpModelHandler.class);
-
 	public static final String JSONP_DEFAULT_CALLBACK = "jsonp";
 	public static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
 	
-	private final OWLGraphWrapper graph;
-	private MolecularModelManager models = null;
+	private final MolecularModelManager mmm;
 
-	public JsonOrJsonpModelHandler(OWLGraphWrapper graph, MolecularModelManager models) {
+	public JsonOrJsonpModelHandler(MolecularModelManager models) {
 		super();
-		this.graph = graph;
-		this.models = models;
-	}
-
-	protected synchronized MolecularModelManager getMolecularModelManager() throws OWLOntologyCreationException {
-		if (models == null) {
-			LOG.info("Creating m3 object");
-			models = new MolecularModelManager(graph);
-		}
-		return models;
+		this.mmm = models;
 	}
 
 	/*
@@ -74,7 +61,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("fetches molecular model json");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			return bulk(modelId, mmm, M3Response.INSTANTIATE);
 		} catch (Exception exception) {
 			return errorMsg("Could not retrieve model", exception);
@@ -93,7 +79,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		try {
 			System.out.println("db: " + db);
 			System.out.println("cls: " + classId);
-			MolecularModelManager mmm = getMolecularModelManager();
 			String mid = mmm.generateModel(classId, db);
 			return bulk(mid, mmm, M3Response.INSTANTIATE);
 		} catch (Exception exception) {
@@ -112,7 +97,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 		try {
 			System.out.println("db: " + db);
-			MolecularModelManager mmm = getMolecularModelManager();
 			String mid = mmm.generateBlankModel(db);
 			return bulk(mid, mmm, M3Response.INSTANTIATE);
 		} catch (Exception exception) {
@@ -130,7 +114,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("loads a GAF into memory (saves parsing time later on)");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			mmm.loadGaf(db);
 			return success(Collections.singletonMap("db", db), mmm);
 		} catch (Exception exception) {
@@ -148,7 +131,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates a new individual");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.createIndividual(modelId, classId, null);
 			return response(resp, mmm, null);
 		} catch (Exception exception) {
@@ -163,7 +145,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("delete the given individual");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.deleteIndividual(modelId, individualId);
 			return bulk(modelId, mmm, M3Response.INCONSISTENT); // TODO for now return the whole thing
 		} catch (Exception exception) {
@@ -181,7 +162,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates ClassAssertion (named class)");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addType(modelId, individualId, classId);
 			return response(resp, mmm, M3Response.MERGE);
 		} catch (Exception exception) {
@@ -200,7 +180,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("generates ClassAssertion (anon class expression)");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addType(modelId, individualId, propertyId, classId);
 			return response(resp, mmm, M3Response.MERGE);
 		} catch (Exception exception) {
@@ -223,7 +202,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			//System.out.println("fil: " + fillerId);
 			//System.out.println("ind: " + individualId);
 			//System.out.println("rel: " + propertyId);
-			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addFact(modelId, propertyId, individualId, fillerId, null);
 			M3Response response = response(resp, mmm, M3Response.MERGE);
 			//printJsonResponse(response);
@@ -248,7 +226,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			System.out.println("rel: " + propertyId);
 			System.out.println("ind: " + individualId);
 			System.out.println("fil: " + fillerId);
-			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.removeFact(modelId, propertyId, individualId, fillerId);
 			return response(resp, mmm, M3Response.MERGE);
 		} catch (Exception exception) {
@@ -272,7 +249,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			System.out.println("occ: " + occursInId); // optional
 
 			// Create base instance, along with any simples optionals that are along for the ride.
-			MolecularModelManager mmm = getMolecularModelManager();
 			OWLOperationResponse resp = mmm.addCompositeIndividual(modelId, classId,
 																   StringUtils.stripToNull(enabledById),
 																   StringUtils.stripToNull(occursInId));
@@ -293,7 +269,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("Export the current content of the model");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			String model = mmm.exportModel(modelId);
 			return success(Collections.singletonMap("export", model), null);
 		} catch (Exception exception) {
@@ -311,7 +286,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("Import the model into the server.");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			String modelId = mmm.importModel(model);
 			return bulk(modelId, mmm, M3Response.INSTANTIATE);
 		} catch (Exception exception) {
@@ -332,7 +306,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		}
 		try {
 			// Get the different kinds of model IDs for the client.
-			MolecularModelManager mmm = getMolecularModelManager();
 
 			Set<String> allModelIds = mmm.getAvailableModelIds();
 			//Set<String> scratchModelIds = mmm.getScratchModelIds();
@@ -361,7 +334,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return helpMsg("Persist the given model on the server.");
 		}
 		try {
-			MolecularModelManager mmm = getMolecularModelManager();
 			mmm.saveModel(modelId);
 			M3Response response = new M3Response(M3Response.SUCCESS);
 			response.message = "The model has been saved on the server.";
@@ -395,8 +367,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		 * }
 		 */
 		try {
-			final MolecularModelManager mmm = getMolecularModelManager();
-			
 			// retrieve (or load) all ontologies
 			// put in a new wrapper
 			OWLGraphWrapper wrapper = new OWLGraphWrapper(mmm.getOntology());

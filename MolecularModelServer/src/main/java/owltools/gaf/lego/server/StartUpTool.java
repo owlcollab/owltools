@@ -117,10 +117,10 @@ public class StartUpTool {
 		resourceConfig.register(RequireJsonpFilter.class);
 		//resourceConfig.register(AuthorizationRequestFilter.class);
 		if (allowBatch) {
-			JsonOrJsonpBatchHandler batchHandler = new JsonOrJsonpBatchHandler(graph, models);
+			JsonOrJsonpBatchHandler batchHandler = new JsonOrJsonpBatchHandler(models);
 			resourceConfig = resourceConfig.registerInstances(batchHandler);
 		}
-		JsonOrJsonpModelHandler defaultModelHandler = new JsonOrJsonpModelHandler(graph, models);
+		JsonOrJsonpModelHandler defaultModelHandler = new JsonOrJsonpModelHandler(models);
 		resourceConfig = resourceConfig.registerInstances(defaultModelHandler);
 
 		// setup jetty server port and context path

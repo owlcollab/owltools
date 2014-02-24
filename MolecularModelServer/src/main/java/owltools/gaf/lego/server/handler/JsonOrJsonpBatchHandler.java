@@ -5,6 +5,7 @@ import static owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,299 +17,313 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelManager;
-import owltools.graph.OWLGraphWrapper;
 
 public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
-	private static Logger LOG = Logger.getLogger(JsonOrJsonpBatchHandler.class);
-	
-	private final OWLGraphWrapper graph;
-	private MolecularModelManager models = null;
+	private final MolecularModelManager m3;
 
-	public JsonOrJsonpBatchHandler(OWLGraphWrapper graph, MolecularModelManager models) {
+	public JsonOrJsonpBatchHandler(MolecularModelManager models) {
 		super();
-		this.graph = graph;
-		this.models = models;
+		this.m3 = models;
 	}
 
-	protected synchronized MolecularModelManager getMolecularModelManager() throws OWLOntologyCreationException {
-		if (models == null) {
-			LOG.info("Creating m3 object");
-			models = new MolecularModelManager(graph);
+	private final GsonBuilder gsonBuilder = new GsonBuilder();
+	private final Type type = new TypeToken<M3Request[]>(){
+
+		// generated
+		private static final long serialVersionUID = 5452629810143143422L;
+		
+	}.getType();
+	
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3BatchResponse m3BatchGet(String uid, String intention, String requestString) {
+		M3BatchResponse response = new M3BatchResponse(uid, intention);
+		try {
+			Gson gson = gsonBuilder.create();
+			M3Request[] requests = gson.fromJson(requestString, type);
+			return m3Batch(response, requests);
+		} catch (Exception e) {
+			return error(response, e, "Could not successfully handle batch request.");
 		}
-		return models;
 	}
 
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests) {
 		M3BatchResponse response = new M3BatchResponse(uid, intention);
-		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
-		boolean renderBulk = false;
-		String modelId = null;
 		try {
-			MolecularModelManager m3 = getMolecularModelManager();
-			for (M3Request request : requests) {
-				requireNotNull(request, "request");
-				final String entity = StringUtils.trimToNull(request.entity);
-				final String operation = StringUtils.trimToNull(request.operation);
-				requireNotNull(request.arguments, "request.arguments");
-				
-				// individual
-				if ("individual".equals(entity)) {
-					modelId = checkModelId(modelId, request);
-					
-					// get info, no modification
-					if ("get".equals(operation)) {
-						requireNotNull(request.arguments.individual, "request.arguments.individual");
-						OWLNamedIndividual i = m3.getNamedIndividual(modelId, request.arguments.individual);
-						relevantIndividuals.add(i);
-					}
-					// create from class
-					else if ("create".equals(operation)) {
-						// required: subject
-						// optional: expressions, values
-						
-						requireNotNull(request.arguments.subject, "request.arguments.subject");
-						Collection<Pair<String, String>> annotations = extract(request.arguments.values);
-						Pair<String, OWLNamedIndividual> individualPair = m3.createIndividualNonReasoning(modelId, request.arguments.subject, annotations);
-						relevantIndividuals.add(individualPair.getValue());
-						
-						for(M3Expression expression : request.arguments.expressions) {
-							requireNotNull(expression.type, "expression.type");
-							requireNotNull(expression.literal, "expression.literal");
-							if ("class".equals(expression.type)) {
-								m3.addTypeNonReasoning(modelId, individualPair.getKey(), expression.literal);
-							}
-							else if ("svf".equals(expression.type)) {
-								requireNotNull(expression.onProp, "expression.onProp");
-								m3.addTypeNonReasoning(modelId, individualPair.getKey(), expression.onProp, expression.literal);
-							}
-						}
-					}
-					// remove individual (and all axioms using it)
-					else if ("remove".equals(operation)){
-						// required: modelId, individual
-						
-						requireNotNull(request.arguments.individual, "request.arguments.individual");
-						m3.deleteIndividual(modelId, request.arguments.individual);
-						renderBulk = true;
-					}				
-					// add type / named class assertion
-					else if ("add-type".equals(operation)){
-						// required: individual, expressions
-						
-						requireNotNull(request.arguments.individual, "request.arguments.individual");
-						requireNotNull(request.arguments.expressions, "request.arguments.expressions");
-						for(M3Expression expression : request.arguments.expressions) {
-							requireNotNull(expression.type, "expression.type");
-							requireNotNull(expression.literal, "expression.literal");
-							if ("class".equals(expression.type)) {
-								OWLNamedIndividual i = m3.addTypeNonReasoning(modelId, 
-										request.arguments.individual, expression.literal);
-								relevantIndividuals.add(i);
-							}
-							else if ("svf".equals(expression.type)) {
-								requireNotNull(expression.onProp, "expression.onProp");
-								OWLNamedIndividual i = m3.addTypeNonReasoning(modelId,
-										request.arguments.individual, expression.onProp, expression.literal);
-								relevantIndividuals.add(i);
-							}
-						}
-					}
-					// remove type / named class assertion
-					else if ("remove-type".equals(operation)){
-						// required: individual, expressions
-						requireNotNull(request.arguments.individual, "request.arguments.individual");
-						requireNotNull(request.arguments.expressions, "request.arguments.expressions");
-						for(M3Expression expression : request.arguments.expressions) {
-							requireNotNull(expression.type, "expression.type");
-							requireNotNull(expression.literal, "expression.literal");
-							if ("class".equals(expression.type)) {
-								OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId,
-										request.arguments.individual, expression.literal);
-								relevantIndividuals.add(i);
-							}
-							else if ("svf".equals(expression.type)) {
-								requireNotNull(expression.onProp, "expression.onProp");
-								OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId,
-										request.arguments.individual, expression.onProp, expression.literal);
-								relevantIndividuals.add(i);
-							}
-						}
-					}
-					// add annotation
-					else if ("add-annotation".equals(operation)){
-						// required: individual, values
-						requireNotNull(request.arguments.individual, "request.arguments.individual");
-						requireNotNull(request.arguments.values, "request.arguments.values");
-						
-						OWLNamedIndividual i = m3.addAnnotations(modelId, request.arguments.individual,
-								extract(request.arguments.values));
-						relevantIndividuals.add(i);
-					}
-					// remove annotation
-					else if ("remove-annotation".equals(operation)){
-						// required: individual, values
-						requireNotNull(request.arguments.individual, "request.arguments.individual");
-						requireNotNull(request.arguments.values, "request.arguments.values");
-						
-						OWLNamedIndividual i = m3.removeAnnotations(modelId, request.arguments.individual,
-								extract(request.arguments.values));
-						relevantIndividuals.add(i);
-					}
-					else {
-						return error(response, null, "Unknown operation: "+operation);
-					}
-				}
-				// edge
-				else if ("edge".equals(entity)) {
-					modelId = checkModelId(modelId, request);
-					// required: subject, predicate, object
-					requireNotNull(request.arguments.subject, "request.arguments.subject");
-					requireNotNull(request.arguments.predicate, "request.arguments.predicate");
-					requireNotNull(request.arguments.object, "request.arguments.object");
-					
-					// add edge
-					if ("add".equals(operation)){
-						// optional: values
-						List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(modelId,
-								request.arguments.predicate, request.arguments.subject,
-								request.arguments.object, extract(request.arguments.values));
-						relevantIndividuals.addAll(individuals);
-					}
-					// remove edge
-					else if ("remove".equals(operation)){
-						List<OWLNamedIndividual> individuals = m3.removeFactNonReasoning(modelId,
-								request.arguments.predicate, request.arguments.subject,
-								request.arguments.object);
-						relevantIndividuals.addAll(individuals);
-					}
-					// add annotation
-					else if ("add-annotation".equals(operation)){
-						requireNotNull(request.arguments.values, "request.arguments.values");
-						
-						List<OWLNamedIndividual> individuals = m3.addAnnotations(modelId,
-								request.arguments.predicate, request.arguments.subject,
-								request.arguments.object, extract(request.arguments.values));
-						relevantIndividuals.addAll(individuals);
-					}
-					// remove annotation
-					else if ("remove-annotation".equals(operation)){
-						requireNotNull(request.arguments.values, "request.arguments.values");
-						
-						List<OWLNamedIndividual> individuals = m3.removeAnnotations(modelId,
-								request.arguments.predicate, request.arguments.subject,
-								request.arguments.object, extract(request.arguments.values));
-						relevantIndividuals.addAll(individuals);
-					}
-					else {
-						return error(response, null, "Unknown operation: "+operation);
-					}
-				}
-				//model
-				else if ("model".equals(entity)) {
-					// get model
-					if ("get".equals(operation)){
-						modelId = checkModelId(modelId, request);
-						renderBulk = true;
-					}
-					else if ("generate".equals(operation)) {
-						requireNotNull(request.arguments.db, "request.arguments.db");
-						requireNotNull(request.arguments.subject, "request.arguments.subject");
-						renderBulk = true;
-						modelId = m3.generateModel(request.arguments.subject, request.arguments.db);
-					}
-					else if ("generate-blank".equals(operation)) {
-						renderBulk = true;
-						requireNotNull(request.arguments.db, "request.arguments.db");
-						modelId = m3.generateBlankModel(request.arguments.db);
-					}
-					else if ("export".equals(operation)) {
-						if (requests.length > 1) {
-							// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
-							return error(response, null, "Export model cannot be combined with other operations.");
-						}
-						modelId = checkModelId(modelId, request);
-						return export(response, modelId, m3);
-					}
-					else if ("import".equals(operation)) {
-						requireNotNull(request.arguments.importModel, "request.arguments.importModel");
-						modelId = m3.importModel(request.arguments.importModel);
-						renderBulk = true;
-					}
-					else if ("all-modelIds".equals(operation)) {
-						if (requests.length > 1) {
-							// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
-							return error(response, null, operation+" cannot be combined with other operations.");
-						}
-						return allModelIds(response, m3);
-					}
-					else {
-						return error(response, null, "Unknown operation: "+operation);
-					}
-				}
-				// relations
-				else if ("relations".equals(entity)) {
-					if ("get".equals(operation)){
-						if (requests.length > 1) {
-							// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
-							return error(response, null, "Get Relations cannot be combined with other operations.");
-						}
-						return relations(response, m3);
-					}
-					else {
-						return error(response, null, "Unknown operation: "+operation);
-					}
-				}
-				else {
-					return error(response, null, "Unknown entity: "+entity);
-				}
-			}
-			if (modelId == null) {
-				return error(response, null, "Empty batch calls are not supported, at least one request is required.");
-			}
-			// get model
-			final LegoModelGenerator model = m3.getModel(modelId);
-			// update reasoner
-			// report state
-			final OWLReasoner reasoner = model.getReasoner();
-			reasoner.flush();
-			final boolean isConsistent = reasoner.isConsistent();
-			
-			// create response.data
-			if (renderBulk) {
-				// render complete model
-				response.data = m3.getModelObject(modelId);
-				response.signal = "rebuild";
-			}
-			else {
-				// render individuals
-				MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
-				response.data = renderer.renderIndividuals(relevantIndividuals);
-				response.signal = "merge";
-			}
-			
-			// add other infos to data
-			response.data.put("id", modelId);
-			if (!isConsistent) {
-				response.data.put("inconsistent_p", Boolean.TRUE);
-			}
-			response.message_type = "success";
-			return response;
+			return m3Batch(response, requests);
 		} catch (Exception e) {
 			return error(response, e, "Could not successfully complete batch request.");
 		}
+	}
+	
+	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests) throws Exception {
+		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
+		boolean renderBulk = false;
+		String modelId = null;
+		for (M3Request request : requests) {
+			requireNotNull(request, "request");
+			final String entity = StringUtils.trimToNull(request.entity);
+			final String operation = StringUtils.trimToNull(request.operation);
+			requireNotNull(request.arguments, "request.arguments");
+
+			// individual
+			if ("individual".equals(entity)) {
+				modelId = checkModelId(modelId, request);
+
+				// get info, no modification
+				if ("get".equals(operation)) {
+					requireNotNull(request.arguments.individual, "request.arguments.individual");
+					OWLNamedIndividual i = m3.getNamedIndividual(modelId, request.arguments.individual);
+					relevantIndividuals.add(i);
+				}
+				// create from class
+				else if ("create".equals(operation)) {
+					// required: subject
+					// optional: expressions, values
+
+					requireNotNull(request.arguments.subject, "request.arguments.subject");
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values);
+					Pair<String, OWLNamedIndividual> individualPair = m3.createIndividualNonReasoning(modelId, request.arguments.subject, annotations);
+					relevantIndividuals.add(individualPair.getValue());
+
+					for(M3Expression expression : request.arguments.expressions) {
+						requireNotNull(expression.type, "expression.type");
+						requireNotNull(expression.literal, "expression.literal");
+						if ("class".equals(expression.type)) {
+							m3.addTypeNonReasoning(modelId, individualPair.getKey(), expression.literal);
+						}
+						else if ("svf".equals(expression.type)) {
+							requireNotNull(expression.onProp, "expression.onProp");
+							m3.addTypeNonReasoning(modelId, individualPair.getKey(), expression.onProp, expression.literal);
+						}
+					}
+				}
+				// remove individual (and all axioms using it)
+				else if ("remove".equals(operation)){
+					// required: modelId, individual
+
+					requireNotNull(request.arguments.individual, "request.arguments.individual");
+					m3.deleteIndividual(modelId, request.arguments.individual);
+					renderBulk = true;
+				}				
+				// add type / named class assertion
+				else if ("add-type".equals(operation)){
+					// required: individual, expressions
+
+					requireNotNull(request.arguments.individual, "request.arguments.individual");
+					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+					for(M3Expression expression : request.arguments.expressions) {
+						requireNotNull(expression.type, "expression.type");
+						requireNotNull(expression.literal, "expression.literal");
+						if ("class".equals(expression.type)) {
+							OWLNamedIndividual i = m3.addTypeNonReasoning(modelId, 
+									request.arguments.individual, expression.literal);
+							relevantIndividuals.add(i);
+						}
+						else if ("svf".equals(expression.type)) {
+							requireNotNull(expression.onProp, "expression.onProp");
+							OWLNamedIndividual i = m3.addTypeNonReasoning(modelId,
+									request.arguments.individual, expression.onProp, expression.literal);
+							relevantIndividuals.add(i);
+						}
+					}
+				}
+				// remove type / named class assertion
+				else if ("remove-type".equals(operation)){
+					// required: individual, expressions
+					requireNotNull(request.arguments.individual, "request.arguments.individual");
+					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+					for(M3Expression expression : request.arguments.expressions) {
+						requireNotNull(expression.type, "expression.type");
+						requireNotNull(expression.literal, "expression.literal");
+						if ("class".equals(expression.type)) {
+							OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId,
+									request.arguments.individual, expression.literal);
+							relevantIndividuals.add(i);
+						}
+						else if ("svf".equals(expression.type)) {
+							requireNotNull(expression.onProp, "expression.onProp");
+							OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId,
+									request.arguments.individual, expression.onProp, expression.literal);
+							relevantIndividuals.add(i);
+						}
+					}
+				}
+				// add annotation
+				else if ("add-annotation".equals(operation)){
+					// required: individual, values
+					requireNotNull(request.arguments.individual, "request.arguments.individual");
+					requireNotNull(request.arguments.values, "request.arguments.values");
+
+					OWLNamedIndividual i = m3.addAnnotations(modelId, request.arguments.individual,
+							extract(request.arguments.values));
+					relevantIndividuals.add(i);
+				}
+				// remove annotation
+				else if ("remove-annotation".equals(operation)){
+					// required: individual, values
+					requireNotNull(request.arguments.individual, "request.arguments.individual");
+					requireNotNull(request.arguments.values, "request.arguments.values");
+
+					OWLNamedIndividual i = m3.removeAnnotations(modelId, request.arguments.individual,
+							extract(request.arguments.values));
+					relevantIndividuals.add(i);
+				}
+				else {
+					return error(response, null, "Unknown operation: "+operation);
+				}
+			}
+			// edge
+			else if ("edge".equals(entity)) {
+				modelId = checkModelId(modelId, request);
+				// required: subject, predicate, object
+				requireNotNull(request.arguments.subject, "request.arguments.subject");
+				requireNotNull(request.arguments.predicate, "request.arguments.predicate");
+				requireNotNull(request.arguments.object, "request.arguments.object");
+
+				// add edge
+				if ("add".equals(operation)){
+					// optional: values
+					List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(modelId,
+							request.arguments.predicate, request.arguments.subject,
+							request.arguments.object, extract(request.arguments.values));
+					relevantIndividuals.addAll(individuals);
+				}
+				// remove edge
+				else if ("remove".equals(operation)){
+					List<OWLNamedIndividual> individuals = m3.removeFactNonReasoning(modelId,
+							request.arguments.predicate, request.arguments.subject,
+							request.arguments.object);
+					relevantIndividuals.addAll(individuals);
+				}
+				// add annotation
+				else if ("add-annotation".equals(operation)){
+					requireNotNull(request.arguments.values, "request.arguments.values");
+
+					List<OWLNamedIndividual> individuals = m3.addAnnotations(modelId,
+							request.arguments.predicate, request.arguments.subject,
+							request.arguments.object, extract(request.arguments.values));
+					relevantIndividuals.addAll(individuals);
+				}
+				// remove annotation
+				else if ("remove-annotation".equals(operation)){
+					requireNotNull(request.arguments.values, "request.arguments.values");
+
+					List<OWLNamedIndividual> individuals = m3.removeAnnotations(modelId,
+							request.arguments.predicate, request.arguments.subject,
+							request.arguments.object, extract(request.arguments.values));
+					relevantIndividuals.addAll(individuals);
+				}
+				else {
+					return error(response, null, "Unknown operation: "+operation);
+				}
+			}
+			//model
+			else if ("model".equals(entity)) {
+				// get model
+				if ("get".equals(operation)){
+					modelId = checkModelId(modelId, request);
+					renderBulk = true;
+				}
+				else if ("generate".equals(operation)) {
+					requireNotNull(request.arguments.db, "request.arguments.db");
+					requireNotNull(request.arguments.subject, "request.arguments.subject");
+					renderBulk = true;
+					modelId = m3.generateModel(request.arguments.subject, request.arguments.db);
+				}
+				else if ("generate-blank".equals(operation)) {
+					renderBulk = true;
+					requireNotNull(request.arguments.db, "request.arguments.db");
+					modelId = m3.generateBlankModel(request.arguments.db);
+				}
+				else if ("export".equals(operation)) {
+					if (requests.length > 1) {
+						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
+						return error(response, null, "Export model cannot be combined with other operations.");
+					}
+					modelId = checkModelId(modelId, request);
+					return export(response, modelId, m3);
+				}
+				else if ("import".equals(operation)) {
+					requireNotNull(request.arguments.importModel, "request.arguments.importModel");
+					modelId = m3.importModel(request.arguments.importModel);
+					renderBulk = true;
+				}
+				else if ("all-modelIds".equals(operation)) {
+					if (requests.length > 1) {
+						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
+						return error(response, null, operation+" cannot be combined with other operations.");
+					}
+					return allModelIds(response, m3);
+				}
+				else {
+					return error(response, null, "Unknown operation: "+operation);
+				}
+			}
+			// relations
+			else if ("relations".equals(entity)) {
+				if ("get".equals(operation)){
+					if (requests.length > 1) {
+						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
+						return error(response, null, "Get Relations cannot be combined with other operations.");
+					}
+					return relations(response, m3);
+				}
+				else {
+					return error(response, null, "Unknown operation: "+operation);
+				}
+			}
+			else {
+				return error(response, null, "Unknown entity: "+entity);
+			}
+		}
+		if (modelId == null) {
+			return error(response, null, "Empty batch calls are not supported, at least one request is required.");
+		}
+		// get model
+		final LegoModelGenerator model = m3.getModel(modelId);
+		// update reasoner
+		// report state
+		final OWLReasoner reasoner = model.getReasoner();
+		reasoner.flush();
+		final boolean isConsistent = reasoner.isConsistent();
+
+		// create response.data
+		if (renderBulk) {
+			// render complete model
+			response.data = m3.getModelObject(modelId);
+			response.signal = "rebuild";
+		}
+		else {
+			// render individuals
+			MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
+			response.data = renderer.renderIndividuals(relevantIndividuals);
+			response.signal = "merge";
+		}
+
+		// add other infos to data
+		response.data.put("id", modelId);
+		if (!isConsistent) {
+			response.data.put("inconsistent_p", Boolean.TRUE);
+		}
+		response.message_type = "success";
+		return response;
 	}
 
 	private M3BatchResponse allModelIds(M3BatchResponse response, MolecularModelManager m3) throws IOException {
