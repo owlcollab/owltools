@@ -57,7 +57,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			M3Request[] requests = gson.fromJson(requestString, type);
 			return m3Batch(response, requests);
 		} catch (Exception e) {
-			return error(response, e, "Could not successfully handle batch request.");
+			return error(response, "Could not successfully handle batch request.", e);
 		}
 	}
 
@@ -67,7 +67,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		try {
 			return m3Batch(response, requests);
 		} catch (Exception e) {
-			return error(response, e, "Could not successfully complete batch request.");
+			return error(response, "Could not successfully complete batch request.", e);
 		}
 	}
 	
@@ -192,7 +192,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					relevantIndividuals.add(i);
 				}
 				else {
-					return error(response, null, "Unknown operation: "+operation);
+					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
 			// edge
@@ -238,7 +238,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					relevantIndividuals.addAll(individuals);
 				}
 				else {
-					return error(response, null, "Unknown operation: "+operation);
+					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
 			//model
@@ -263,7 +263,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				else if ("export".equals(operation)) {
 					if (requests.length > 1) {
 						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
-						return error(response, null, "Export model cannot be combined with other operations.");
+						return error(response, "Export model cannot be combined with other operations.", null);
 					}
 					modelId = checkModelId(modelId, request);
 					return export(response, modelId, m3);
@@ -276,12 +276,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				else if ("all-modelIds".equals(operation)) {
 					if (requests.length > 1) {
 						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
-						return error(response, null, operation+" cannot be combined with other operations.");
+						return error(response, operation+" cannot be combined with other operations.", null);
 					}
 					return allModelIds(response, m3);
 				}
 				else {
-					return error(response, null, "Unknown operation: "+operation);
+					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
 			// relations
@@ -289,20 +289,20 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				if ("get".equals(operation)){
 					if (requests.length > 1) {
 						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
-						return error(response, null, "Get Relations cannot be combined with other operations.");
+						return error(response, "Get Relations cannot be combined with other operations.", null);
 					}
 					return relations(response, m3);
 				}
 				else {
-					return error(response, null, "Unknown operation: "+operation);
+					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
 			else {
-				return error(response, null, "Unknown entity: "+entity);
+				return error(response, "Unknown entity: "+entity, null);
 			}
 		}
 		if (modelId == null) {
-			return error(response, null, "Empty batch calls are not supported, at least one request is required.");
+			return error(response, "Empty batch calls are not supported, at least one request is required.", null);
 		}
 		// get model
 		final LegoModelGenerator model = m3.getModel(modelId);
@@ -405,16 +405,30 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		return result;
 	}
 
-	private M3BatchResponse error(M3BatchResponse state, Exception e, String msg) {
+	/*
+	 * commentary is now to be a string, not an unknown multi-leveled object.
+	 */
+	private M3BatchResponse error(M3BatchResponse state, String msg, Exception e) {
 		state.message_type = "error";
 		state.message = msg;
 		if (e != null) {
-			state.commentary = new HashMap<String, Object>();
-			state.commentary.put("exception", e.getClass().getName());
-			state.commentary.put("exceptionMsg", e.getMessage());
+
+			// Add in the exception name if possible.
+			String ename = e.getClass().getName();
+			if( ename != null ){
+				state.message = state.message + " Exception: " + ename + ".";
+			}
+			
+			// And the exception message.
+			String emsg = e.getMessage();
+			if( emsg != null ){
+				state.message = state.message + " " + emsg;
+			}
+			
+			// Add the stack trace as commentary.
 			StringWriter stacktrace = new StringWriter();
 			e.printStackTrace(new PrintWriter(stacktrace));
-			state.commentary.put("exceptionTrace", stacktrace.toString());
+			state.commentary = stacktrace.toString();
 		}
 		return state;
 	}

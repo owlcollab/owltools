@@ -10,6 +10,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
 @Path("/")
+
 public interface M3BatchHandler {
 
 	public static class M3Request {
@@ -55,8 +56,15 @@ public interface M3BatchHandler {
 		 * "error", "success", //"warning"
 		 */
 		String message_type;
+		/*
+		 * "e.g.: server done borked"
+		 */
 		String message;
-		Map<String, Object> commentary = null;
+		/*
+		 * Now degraded to just a String, not an Object.
+		 */
+		//Map<String, Object> commentary = null;
+		String commentary;
 		
 		/*
 		 * {
