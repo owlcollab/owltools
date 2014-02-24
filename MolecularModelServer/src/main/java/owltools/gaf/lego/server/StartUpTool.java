@@ -109,6 +109,12 @@ public class StartUpTool {
 		}
 		models.addImports(additionalImports);
 
+		Server server = startUp(models, port, contextString, allowBatch);
+		server.join();
+	}
+	
+	public static Server startUp(MolecularModelManager models, int port, String contextString, boolean allowBatch)
+			throws Exception {
 		LOGGER.info("Setup Jetty config.");
 		// Configuration: Use an already existing handler instance
 		// Configuration: Use custom JSON renderer (GSON)
@@ -135,6 +141,6 @@ public class StartUpTool {
 		// start jetty server
 		LOGGER.info("Start server on port: "+port);
 		server.start();
-		server.join();
+		return server;
 	}
 }

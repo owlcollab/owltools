@@ -3,12 +3,13 @@ package owltools.gaf.lego.server.handler;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
-
+@Path("/")
 public interface M3BatchHandler {
 
 	public static class M3Request {
@@ -79,10 +80,16 @@ public interface M3BatchHandler {
 		
 	}
 	
+	
+	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests);
+	
 	@Path("m3Batch")
 	@POST
-	@Consumes({"application/json"})
-	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests);
+	@Consumes("application/x-www-form-urlencoded")
+	public M3BatchResponse m3BatchPost(
+			@FormParam("uid") String uid,
+			@FormParam("intention") String intention,
+			@FormParam("requests") String requests);
 	
 	
 	@Path("m3Batch")

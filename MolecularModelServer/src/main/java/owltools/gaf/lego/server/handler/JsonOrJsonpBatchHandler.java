@@ -23,13 +23,13 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelManager;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
@@ -62,7 +62,6 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	}
 
 	@Override
-	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests) {
 		M3BatchResponse response = new M3BatchResponse(uid, intention);
 		try {
@@ -72,6 +71,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 	}
 	
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3BatchResponse m3BatchPost(String uid, String intention, String requestString) {
+		return m3BatchGet(uid, intention, requestString);
+	}
+
 	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests) throws Exception {
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
 		boolean renderBulk = false;
@@ -80,10 +85,11 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request, "request");
 			final String entity = StringUtils.trimToNull(request.entity);
 			final String operation = StringUtils.trimToNull(request.operation);
-			requireNotNull(request.arguments, "request.arguments");
+			
 
 			// individual
 			if ("individual".equals(entity)) {
+				requireNotNull(request.arguments, "request.arguments");
 				modelId = checkModelId(modelId, request);
 
 				// get info, no modification
@@ -191,6 +197,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			}
 			// edge
 			else if ("edge".equals(entity)) {
+				requireNotNull(request.arguments, "request.arguments");
 				modelId = checkModelId(modelId, request);
 				// required: subject, predicate, object
 				requireNotNull(request.arguments.subject, "request.arguments.subject");
@@ -236,6 +243,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			}
 			//model
 			else if ("model".equals(entity)) {
+				requireNotNull(request.arguments, "request.arguments");
 				// get model
 				if ("get".equals(operation)){
 					modelId = checkModelId(modelId, request);
