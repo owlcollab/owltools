@@ -27,7 +27,6 @@ import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
-import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -570,7 +569,7 @@ public class MolecularModelManager {
 	 */
 	public Set<OWLNamedIndividual> getIndividualsByQuery(String modelId, String qs) {
 		LegoModelGenerator mod = getModel(modelId);
-		ManchesterSyntaxTool mst = new ManchesterSyntaxTool(mod.getAboxOntology(), null, true);
+		ManchesterSyntaxTool mst = new ManchesterSyntaxTool(new OWLGraphWrapper(mod.getAboxOntology()), false);
 		OWLClassExpression q = mst.parseManchesterExpression(qs);
 		return getIndividualsByQuery(modelId, q);
 	}
@@ -1736,10 +1735,9 @@ public class MolecularModelManager {
 		return addEnabledBy(model, individual, clsExpr);
 	}
 
-	private OWLClassExpression parseClassExpression(String expression, LegoModelGenerator model) throws OWLException {
-		ManchesterSyntaxTool syntaxTool = null;
+	OWLClassExpression parseClassExpression(String expression, LegoModelGenerator model) throws OWLException {
 		try {
-			syntaxTool = new ManchesterSyntaxTool(model.getAboxOntology());
+			ManchesterSyntaxTool syntaxTool = new ManchesterSyntaxTool(new OWLGraphWrapper(model.getAboxOntology()), true);
 			OWLClassExpression clsExpr = syntaxTool.parseManchesterExpression(expression);
 			return clsExpr;
 		}
@@ -1749,11 +1747,6 @@ public class MolecularModelManager {
 
 				private static final long serialVersionUID = -9158071212925724138L;
 			};
-		}
-		finally {
-			if (syntaxTool != null) {
-				syntaxTool.dispose();
-			}
 		}
 	}
 

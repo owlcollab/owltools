@@ -11,7 +11,10 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 
+import owltools.gaf.lego.LegoModelGenerator;
+import owltools.gaf.lego.ManchesterSyntaxTool;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
@@ -84,7 +87,7 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments.expressions[1] = new M3Expression();
 		batch2[0].arguments.expressions[1].type = "svf";
 		batch2[0].arguments.expressions[1].onProp = "RO:0002333"; // enabled_by
-		batch2[0].arguments.expressions[1].literal = "UniProtKB:P09411";
+		batch2[0].arguments.expressions[1].literal = "UniProtKB:P0001"; // fake
 		
 		batch2[0].arguments.values = new M3Pair[2];
 		batch2[0].arguments.values[0] = new M3Pair();
@@ -104,7 +107,7 @@ public class BatchModelHandlerTest {
 		batch2[1].arguments.expressions[0] = new M3Expression();
 		batch2[1].arguments.expressions[0].type = "svf";
 		batch2[1].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
-		batch2[1].arguments.expressions[0].literal = "UniProtKB:P09412";
+		batch2[1].arguments.expressions[0].literal = "GO:0043234 and ('has part' some UniProtKB:P0002) and ('has part' some UniProtKB:P0003)";
 		
 		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2);
 		assertEquals(resp2.message, "success", resp2.message_type);
@@ -135,6 +138,19 @@ public class BatchModelHandlerTest {
 		
 		M3BatchResponse resp3 = handler.m3Batch(uid, intention, batch3);
 		assertEquals(resp3.message, "success", resp3.message_type);
+	}
+	
+	@Test
+	public void testParseComplex() throws Exception {
+		String modelId = models.generateBlankModel(null);
+		LegoModelGenerator model = models.getModel(modelId);
+		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
+		ManchesterSyntaxTool tool = new ManchesterSyntaxTool(graph, true);
+		
+		String expr = "GO:0043234 and ('has part' some UniProtKB:P0002) and ('has part' some UniProtKB:P0003)";
+		
+		OWLClassExpression clsExpr = tool.parseManchesterExpression(expr);
+		assertNotNull(clsExpr);
 	}
 	
 	@Test
