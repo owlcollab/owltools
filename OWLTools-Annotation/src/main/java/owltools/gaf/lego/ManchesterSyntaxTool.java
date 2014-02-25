@@ -116,7 +116,7 @@ public class ManchesterSyntaxTool {
 				return null;
 			}
 			name = trimQuotes(name);
-			OWLObjectProperty p = graph.getOWLObjectProperty(name);
+			OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier(name);
 			if (p == null) {
 				p = graph.getOWLObjectProperty(name);
 			}
