@@ -721,7 +721,7 @@ public class MolecularModelManager {
 		return owlAnnotations;
 	}
 	
-	static enum LegoAnnotationType {
+	public static enum LegoAnnotationType {
 		
 		comment(OWLRDFVocabulary.RDFS_COMMENT.getIRI()), // arbitrary String
 		evidence(IRI.create("http://geneontology.org/lego/evidence")), // eco class iri
@@ -1473,7 +1473,7 @@ public class MolecularModelManager {
 	}
 	
 	public OWLNamedIndividual addTypeNonReasoning(String modelId,
-			String iid, String pid, String cid) throws UnknownIdentifierException {
+			String iid, String pid, String cid) throws UnknownIdentifierException, OWLException {
 		LegoModelGenerator model = getModel(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
@@ -1483,11 +1483,23 @@ public class MolecularModelManager {
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
 		}
-		OWLClass cls = getClass(cid, model);
-		if (cls == null) {
+		OWLClassExpression clsExp;
+		if (property.getIRI().equals(OBOUpperVocabulary.GOREL_enabled_by.getIRI())) {
+			// special handling for enabled_by
+			if (cid.contains(" ")) {
+				clsExp = parseClassExpression(cid, model);
+			}
+			else {
+				clsExp = getGeneClass(cid, model);
+			}
+		}
+		else {
+			clsExp = getClass(cid, model);
+		}
+		if (clsExp == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		addType(model, individual, property, cls, false);
+		addType(model, individual, property, clsExp, false);
 		return individual;
 	}
 

@@ -19,6 +19,48 @@ public interface M3BatchHandler {
 		M3Argument arguments;
 	}
 	
+	public static enum Entity {
+		individual,
+		edge,
+		model,
+		relations,
+		evidence;
+		
+		public static boolean match(Entity e, String s) {
+			return e.name().equals(s);
+		}
+	}
+	
+	public static enum Operation {
+		get("get"),
+		create("create"),
+		addType("add-type"),
+		removeType("remove-type"),
+		add("add"),
+		remove("remove"),
+		addAnnotation("add-annotation"),
+		removeAnnotation("remove-annotation"),
+		generate("generate"),
+		generateBlank("generate-blank"),
+		exportModel("export"),
+		importModel("import"),
+		allModelIds("all-model-ids");
+		
+		private final String lbl;
+		
+		private Operation(String lbl) {
+			this.lbl = lbl;
+		}
+		
+		public String getLbl() {
+			return lbl;
+		}
+		
+		public static boolean match(Operation op, String s) {
+			return op.lbl.equals(s);
+		}
+	}
+	
 	public static class M3Argument {
 		String modelId;
 		String subject;
