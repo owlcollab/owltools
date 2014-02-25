@@ -244,15 +244,16 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			}
 			//model
 			else if ("model".equals(entity)) {
-				requireNotNull(request.arguments, "request.arguments");
 				// get model
 				if ("get".equals(operation)){
 					nonMeta = true;
+					requireNotNull(request.arguments, "request.arguments");
 					modelId = checkModelId(modelId, request);
 					renderBulk = true;
 				}
 				else if ("generate".equals(operation)) {
 					nonMeta = true;
+					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.db, "request.arguments.db");
 					requireNotNull(request.arguments.subject, "request.arguments.subject");
 					renderBulk = true;
@@ -261,19 +262,25 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				else if ("generate-blank".equals(operation)) {
 					nonMeta = true;
 					renderBulk = true;
-					requireNotNull(request.arguments.db, "request.arguments.db");
-					modelId = m3.generateBlankModel(request.arguments.db);
+					// db is optional
+					String db = null;
+					if (request.arguments != null) {
+						db = request.arguments.db;
+					}
+					modelId = m3.generateBlankModel(db);
 				}
 				else if ("export".equals(operation)) {
 					if (nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Export model can only be combined with other meta operations.", null);
 					}
+					requireNotNull(request.arguments, "request.arguments");
 					modelId = checkModelId(modelId, request);
 					export(response, modelId, m3);
 				}
 				else if ("import".equals(operation)) {
 					nonMeta = true;
+					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.importModel, "request.arguments.importModel");
 					modelId = m3.importModel(request.arguments.importModel);
 					renderBulk = true;
