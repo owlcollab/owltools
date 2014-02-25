@@ -1,5 +1,6 @@
 package owltools.gaf.eco;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
@@ -55,4 +56,11 @@ public interface EcoMapper {
 	 * @return true if the code is a valid
 	 */
 	public boolean isGoEvidenceCode(String code);
+	
+	/**
+	 * Retrieve the mapping from ECO classes to GO evidence codes.
+	 * 
+	 * @return mapping
+	 */
+	public Map<OWLClass, String> getCodesForEcoClasses();
 }

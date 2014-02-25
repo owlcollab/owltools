@@ -1,5 +1,6 @@
 package owltools.gaf.eco;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
@@ -30,6 +31,11 @@ public class EcoMapperImpl implements EcoMapper {
 	@Override
 	public boolean isGoEvidenceCode(String code) {
 		return mappings.hasCode(code);
+	}
+
+	@Override
+	public Map<OWLClass, String> getCodesForEcoClasses() {
+		return mappings.getReverseMap();
 	}
 
 }

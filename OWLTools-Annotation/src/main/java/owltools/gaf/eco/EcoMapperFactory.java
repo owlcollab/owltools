@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
@@ -20,10 +21,10 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -80,6 +81,24 @@ public class EcoMapperFactory {
 	 */
 	public static OntologyMapperPair<EcoMapper> createEcoMapper() throws OWLException, IOException {
 		return createEcoMapper(new ParserWrapper());
+	}
+	
+	/**
+	 * Create an instance of a {@link EcoMapper}. Uses a the manager to load ECO via the
+	 * PURL. Load mappings using the PURL.
+	 * @param m 
+	 * 
+	 * @return mapper pair
+	 * @throws OWLException
+	 * @throws IOException
+	 * 
+	 * @see EcoMapper#ECO_PURL
+	 * @see EcoMapper#ECO_MAPPING_PURL
+	 */
+	public static OntologyMapperPair<EcoMapper> createEcoMapper(OWLOntologyManager m) throws OWLException, IOException {
+		ParserWrapper p = new ParserWrapper();
+		p.setManager(m);
+		return createEcoMapper(p);
 	}
 	
 	/**
@@ -377,6 +396,18 @@ public class EcoMapperFactory {
 		
 		boolean hasCode(String code) {
 			return allMappings.containsKey(code);
+		}
+		
+		Map<OWLClass, String> getReverseMap() {
+			Map<OWLClass, String> simpleMap = new HashMap<OWLClass, String>();
+			for(Entry<String, Map<String, OWLClass>> e : allMappings.entrySet()) {
+				Map<String, OWLClass> codeMap = e.getValue();
+				OWLClass defaultClass = codeMap.get(DEFAULT_REF);
+				if (defaultClass != null) {
+					simpleMap.put(defaultClass, e.getKey());
+				}
+			}
+			return simpleMap;
 		}
 	}
 }
