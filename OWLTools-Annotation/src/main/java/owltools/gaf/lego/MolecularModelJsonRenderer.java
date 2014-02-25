@@ -1,5 +1,6 @@
 package owltools.gaf.lego;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -34,6 +36,9 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import owltools.gaf.eco.EcoMapper;
+import owltools.gaf.eco.EcoMapperFactory;
+import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
@@ -443,6 +448,30 @@ public class MolecularModelJsonRenderer {
 			entry.put("label", label);
 			relList.add(entry);
 		}
+		return relList;
+	}
+	
+	public static List<Map<Object, Object>> renderEvidences(MolecularModelManager mmm) throws OWLException, IOException {
+		OntologyMapperPair<EcoMapper> pair = EcoMapperFactory.createEcoMapper(mmm.getGraph().getManager());
+		final OWLGraphWrapper graph = pair.getGraph();
+		final EcoMapper mapper = pair.getMapper();
+		Set<OWLClass> ecoClasses = graph.getAllOWLClasses();
+		Map<OWLClass, String> codesForEcoClasses = mapper.getCodesForEcoClasses();
+		for (OWLClass ecoClass : ecoClasses) {
+			if (ecoClass.isBuiltIn()) {
+				continue;
+			}
+			String identifier = MolecularModelJsonRenderer.getId(ecoClass, graph);
+			String label = graph.getLabel(ecoClass);
+			Map<Object, Object> entry = new HashMap<Object, Object>();
+			entry.put("id", identifier);
+			entry.put("label", label);
+			String code = codesForEcoClasses.get(ecoClass);
+			if (code != null) {
+				entry.put("code", code);
+			}
+		}
+		List<Map<Object, Object>> relList = new ArrayList<Map<Object,Object>>();
 		return relList;
 	}
 

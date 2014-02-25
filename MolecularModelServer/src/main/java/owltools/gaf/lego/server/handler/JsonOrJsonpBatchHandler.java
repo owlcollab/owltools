@@ -8,7 +8,6 @@ import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +17,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.glassfish.jersey.server.JSONP;
+import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -80,6 +80,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests) throws Exception {
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
 		boolean renderBulk = false;
+		boolean nonMeta = false;
 		String modelId = null;
 		for (M3Request request : requests) {
 			requireNotNull(request, "request");
@@ -89,6 +90,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 			// individual
 			if ("individual".equals(entity)) {
+				nonMeta = true;
 				requireNotNull(request.arguments, "request.arguments");
 				modelId = checkModelId(modelId, request);
 
@@ -97,12 +99,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					OWLNamedIndividual i = m3.getNamedIndividual(modelId, request.arguments.individual);
 					relevantIndividuals.add(i);
+					
 				}
 				// create from class
 				else if ("create".equals(operation)) {
 					// required: subject
 					// optional: expressions, values
-
 					requireNotNull(request.arguments.subject, "request.arguments.subject");
 					Collection<Pair<String, String>> annotations = extract(request.arguments.values);
 					Pair<String, OWLNamedIndividual> individualPair = m3.createIndividualNonReasoning(modelId, request.arguments.subject, annotations);
@@ -123,7 +125,6 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				// remove individual (and all axioms using it)
 				else if ("remove".equals(operation)){
 					// required: modelId, individual
-
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					m3.deleteIndividual(modelId, request.arguments.individual);
 					renderBulk = true;
@@ -131,7 +132,6 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				// add type / named class assertion
 				else if ("add-type".equals(operation)){
 					// required: individual, expressions
-
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
 					for(M3Expression expression : request.arguments.expressions) {
@@ -197,6 +197,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			}
 			// edge
 			else if ("edge".equals(entity)) {
+				nonMeta = true;
 				requireNotNull(request.arguments, "request.arguments");
 				modelId = checkModelId(modelId, request);
 				// required: subject, predicate, object
@@ -246,39 +247,43 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				requireNotNull(request.arguments, "request.arguments");
 				// get model
 				if ("get".equals(operation)){
+					nonMeta = true;
 					modelId = checkModelId(modelId, request);
 					renderBulk = true;
 				}
 				else if ("generate".equals(operation)) {
+					nonMeta = true;
 					requireNotNull(request.arguments.db, "request.arguments.db");
 					requireNotNull(request.arguments.subject, "request.arguments.subject");
 					renderBulk = true;
 					modelId = m3.generateModel(request.arguments.subject, request.arguments.db);
 				}
 				else if ("generate-blank".equals(operation)) {
+					nonMeta = true;
 					renderBulk = true;
 					requireNotNull(request.arguments.db, "request.arguments.db");
 					modelId = m3.generateBlankModel(request.arguments.db);
 				}
 				else if ("export".equals(operation)) {
-					if (requests.length > 1) {
-						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
-						return error(response, "Export model cannot be combined with other operations.", null);
+					if (nonMeta) {
+						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+						return error(response, "Export model can only be combined with other meta operations.", null);
 					}
 					modelId = checkModelId(modelId, request);
-					return export(response, modelId, m3);
+					export(response, modelId, m3);
 				}
 				else if ("import".equals(operation)) {
+					nonMeta = true;
 					requireNotNull(request.arguments.importModel, "request.arguments.importModel");
 					modelId = m3.importModel(request.arguments.importModel);
 					renderBulk = true;
 				}
 				else if ("all-modelIds".equals(operation)) {
-					if (requests.length > 1) {
-						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
+					if (nonMeta) {
+						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, operation+" cannot be combined with other operations.", null);
 					}
-					return allModelIds(response, m3);
+					getAllModelIds(response, m3);
 				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
@@ -287,11 +292,24 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			// relations
 			else if ("relations".equals(entity)) {
 				if ("get".equals(operation)){
-					if (requests.length > 1) {
-						// cannot be used with other requests in batch mode, would lead to conflicts in the returned signal
-						return error(response, "Get Relations cannot be combined with other operations.", null);
+					if (nonMeta) {
+						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+						return error(response, "Get Relations can only be combined with other meta operations.", null);
 					}
-					return relations(response, m3);
+					getRelations(response, m3);
+				}
+				else {
+					return error(response, "Unknown operation: "+operation, null);
+				}
+			}
+			// evidences
+			else if ("evidences".equals(entity)) {
+				if ("get".equals(operation)){
+					if (nonMeta) {
+						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+						return error(response, "Get Evidences can only be combined with other meta operations.", null);
+					}
+					getEvidences(response, m3);
 				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
@@ -300,6 +318,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			else {
 				return error(response, "Unknown entity: "+entity, null);
 			}
+		}
+		if ("meta".equals(response.signal)) {
+			return response;
 		}
 		if (modelId == null) {
 			return error(response, "Empty batch calls are not supported, at least one request is required.", null);
@@ -334,40 +355,52 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		return response;
 	}
 
-	private M3BatchResponse allModelIds(M3BatchResponse response, MolecularModelManager m3) throws IOException {
+	private void getAllModelIds(M3BatchResponse response, MolecularModelManager m3) throws IOException {
 		Set<String> allModelIds = m3.getAvailableModelIds();
 		//Set<String> scratchModelIds = mmm.getScratchModelIds();
 		//Set<String> storedModelIds = mmm.getStoredModelIds();
 		//Set<String> memoryModelIds = mmm.getCurrentModelIds();
 
-		Map<Object, Object> map = new HashMap<Object, Object>();
-		map.put("models_all", allModelIds);
-		//map.put("models_memory", memoryModelIds);
-		//map.put("models_stored", storedModelIds);
-		//map.put("models_scratch", scratchModelIds);
+		if (response.data == null) {
+			response.data = new HashMap<Object, Object>();
+			response.message_type = "success";
+			response.signal = "meta";
+		}
 		
-		response.message_type = "success";
-		response.signal = "meta";
-		response.data = map;
-		return response;
+		response.data.put("models_all", allModelIds);
+		//response.data.put("models_memory", memoryModelIds);
+		//response.data.put("models_stored", storedModelIds);
+		//response.data.put("models_scratch", scratchModelIds);
 	}
 
-	private M3BatchResponse relations(M3BatchResponse response, MolecularModelManager m3) throws OWLOntologyCreationException {
+	private void getRelations(M3BatchResponse response, MolecularModelManager m3) throws OWLOntologyCreationException {
 		List<Map<Object,Object>> relList = MolecularModelJsonRenderer.renderRelations(m3);
-		Map<Object, Object> relData = new HashMap<Object, Object>();
-		relData.put("relations", relList);
-		response.message_type = "success";
-		response.signal = "meta";
-		response.data = relData;
-		return response;
+		if (response.data == null) {
+			response.data = new HashMap<Object, Object>();
+			response.message_type = "success";
+			response.signal = "meta";
+		}
+		response.data.put("relations", relList);
 	}
 	
-	private M3BatchResponse export(M3BatchResponse response, String modelId, MolecularModelManager m3) throws OWLOntologyStorageException {
+	private void getEvidences(M3BatchResponse response, MolecularModelManager m3) throws OWLException, IOException {
+		List<Map<Object,Object>> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
+		if (response.data == null) {
+			response.data = new HashMap<Object, Object>();
+			response.message_type = "success";
+			response.signal = "meta";
+		}
+		response.data.put("evidences", evidencesList);
+	}
+	
+	private void export(M3BatchResponse response, String modelId, MolecularModelManager m3) throws OWLOntologyStorageException {
 		String exportModel = m3.exportModel(modelId);
-		response.message_type = "success";
-		response.signal = "meta";
-		response.data = Collections.<Object, Object>singletonMap("export", exportModel);
-		return response;
+		if (response.data == null) {
+			response.data = new HashMap<Object, Object>();
+			response.message_type = "success";
+			response.signal = "meta";
+		}
+		response.data.put("export", exportModel);
 	}
 
 	/**
