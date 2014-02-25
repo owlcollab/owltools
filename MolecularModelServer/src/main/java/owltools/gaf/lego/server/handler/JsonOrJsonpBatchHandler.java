@@ -303,7 +303,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 			}
 			// evidences
-			else if ("evidences".equals(entity)) {
+			else if ("evidence".equals(entity)) {
 				if ("get".equals(operation)){
 					if (nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
@@ -390,7 +390,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			response.message_type = "success";
 			response.signal = "meta";
 		}
-		response.data.put("evidences", evidencesList);
+		response.data.put("evidence", evidencesList);
 	}
 	
 	private void export(M3BatchResponse response, String modelId, MolecularModelManager m3) throws OWLOntologyStorageException {
