@@ -361,7 +361,11 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		if (!isConsistent) {
 			response.data.put("inconsistent_p", Boolean.TRUE);
 		}
+		// These are required for an "okay" response.
 		response.message_type = "success";
+		if( response.message == null ){
+			response.message = "success";
+		}
 		return response;
 	}
 
