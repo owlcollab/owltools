@@ -64,9 +64,11 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.eco.EcoMapper;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -271,6 +273,7 @@ public class MolecularModelManager {
 		additionalImports = new ArrayList<IRI>();
 		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/ro.owl"));
 		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
+		additionalImports.add(EcoMapper.ECO_PURL_IRI);
 	}
 
 
@@ -683,23 +686,77 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model.getOWLDataFactory());
+		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model);
 		OWLNamedIndividual individual = createIndividual(model, modelId, cls, owlAnnotations , true);
 		return createResponse(true, model, individual);
 	}
 	
-	private static Set<OWLAnnotation> createAnnotations(Collection<Pair<String, String>> pairs, OWLDataFactory f) {
+	private Set<OWLAnnotation> createAnnotations(Collection<Pair<String, String>> pairs, LegoModelGenerator model) throws UnknownIdentifierException {
+		OWLDataFactory f = model.getOWLDataFactory();
 		Set<OWLAnnotation> owlAnnotations = null;
 		if (pairs != null && !pairs.isEmpty()) {
 			owlAnnotations = new HashSet<OWLAnnotation>();
 			for(Pair<String, String> pair : pairs) {
-				OWLAnnotationValue value = f.getOWLLiteral(pair.getValue());
-				OWLAnnotationProperty property = f.getOWLAnnotationProperty(IRI.create(pair.getKey()));
+				final LegoAnnotationType type = LegoAnnotationType.getLegoType(pair.getKey());
+				if (type == null) {
+					throw new UnknownIdentifierException("Could not map: '"+pair.getKey()+"' to a know annotation property");
+				}
+				OWLAnnotationValue value;
+				if (type == LegoAnnotationType.evidence) {
+					String v = pair.getValue();
+					OWLClass eco = getClass(v, model);
+					if (eco == null) {
+						throw new UnknownIdentifierException("Could not find a class for id: "+v);
+					}
+					value = eco.getIRI();
+				}
+				else {
+					value = f.getOWLLiteral(pair.getValue());
+				}
+				OWLAnnotationProperty property = f.getOWLAnnotationProperty(type.getAnnotationProperty());
 				OWLAnnotation annotation = f.getOWLAnnotation(property, value);
 				owlAnnotations.add(annotation);
 			}
 		}
 		return owlAnnotations;
+	}
+	
+	static enum LegoAnnotationType {
+		
+		comment(OWLRDFVocabulary.RDFS_COMMENT.getIRI()), // arbitrary String
+		evidence(IRI.create("http://geneontology.org/lego/evidence")), // eco class iri
+		date(IRI.create("http://purl.org/dc/elements/1.1/date")), // arbitrary string at the moment, define data format?
+		source(IRI.create("http://purl.org/dc/elements/1.1/source")), // arbitrary string, such as PMID:000000
+		contributor(IRI.create("http://purl.org/dc/elements/1.1/contributor")); // who contributed to the annotation
+		
+		private final IRI annotationProperty;
+		
+		LegoAnnotationType(IRI annotationProperty) {
+			this.annotationProperty = annotationProperty;
+		}
+		
+		public IRI getAnnotationProperty() {
+			return annotationProperty;
+		}
+		
+		
+		static LegoAnnotationType getLegoType(IRI iri) {
+			for (LegoAnnotationType type : LegoAnnotationType.values()) {
+				if (type.annotationProperty.equals(iri)) {
+					return type;
+				}
+			}
+			return null;
+		}
+		
+		static LegoAnnotationType getLegoType(String name) {
+			for (LegoAnnotationType type : LegoAnnotationType.values()) {
+				if (type.name().equals(name)) {
+					return type;
+				}
+			}
+			return null;
+		}
 	}
 	
 	/**
@@ -717,7 +774,7 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model.getOWLDataFactory());
+		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model);
 		OWLNamedIndividual i = createIndividual(model, modelId, cls, owlAnnotations, false);
 		return Pair.of(MolecularModelJsonRenderer.getId(i.getIRI()), i);
 	}
@@ -825,7 +882,7 @@ public class MolecularModelManager {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
 		if (pairs != null) {
-			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
 			addAnnotations(model, i.getIRI(), annotations);
 		}
 		return i;
@@ -853,7 +910,7 @@ public class MolecularModelManager {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
 		if (pairs != null) {
-			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
 			removeAnnotations(model, i.getIRI(), annotations);
 		}
 		return i;
@@ -1783,7 +1840,7 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
-		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
 		addFact(model, property, individual1, individual2, annotations, true);
 		return createResponse(true, model, individual1, individual2);
 	}
@@ -1814,7 +1871,7 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
-		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
 		addFact(model, property, individual1, individual2, annotations, false);
 		return Arrays.asList(individual1, individual2);
 	}
@@ -1845,7 +1902,7 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
-		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
 		addFact(model, property, individual1, individual2, annotations, true);
 		return createResponse(true, model, individual1, individual2);
 	}
@@ -1966,7 +2023,7 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
-		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
 
 		addAnnotations(model, property, individual1, individual2, annotations, false);
 
@@ -2017,7 +2074,7 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
-		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
 
 		removeAnnotations(model, property, individual1, individual2, annotations, false);
 
@@ -2067,7 +2124,7 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
-		Set<OWLAnnotation> annotations = createAnnotations(pairs, model.getOWLDataFactory());
+		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
 		return addPartOf(modelId, individual1, individual2, annotations);
 	}
 

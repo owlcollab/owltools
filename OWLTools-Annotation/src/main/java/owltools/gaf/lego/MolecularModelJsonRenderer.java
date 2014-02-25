@@ -2,6 +2,7 @@ package owltools.gaf.lego;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,10 +13,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLIndividualAxiom;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -28,6 +34,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -76,7 +83,9 @@ public class MolecularModelJsonRenderer {
 		
 		subject,
 		property,
-		object
+		object,
+		
+		annotations // TODO final name?
 	}
 	
 	/**
@@ -199,6 +208,26 @@ public class MolecularModelJsonRenderer {
 			iObj.put(getId((OWLNamedObject) p, graph), valObjs);
 		}
 		iObj.put(KEY.type, typeObjs);
+		List<Object> anObjs = new ArrayList<Object>();
+		Set<OWLAnnotationAssertionAxiom> annotationAxioms = ont.getAnnotationAssertionAxioms(i.getIRI());
+		for (OWLAnnotationAssertionAxiom ax : annotationAxioms) {
+			OWLAnnotationProperty p = ax.getProperty();
+			LegoAnnotationType legoType = LegoAnnotationType.getLegoType(p.getIRI());
+			if (legoType != null) {
+				OWLAnnotationValue v = ax.getValue();
+				if (LegoAnnotationType.evidence.equals(legoType)) {
+					IRI iri = (IRI) v;
+					anObjs.add(Collections.singletonMap(legoType.name(), getId(iri)));
+				}
+				else {
+					OWLLiteral literal = (OWLLiteral) v;
+					anObjs.add(Collections.singletonMap(legoType.name(), literal.getLiteral()));
+				}
+			}
+		}
+		if (!anObjs.isEmpty()) {
+			iObj.put(KEY.annotations, anObjs);
+		}
 		return iObj;
 	}
 	
@@ -221,6 +250,25 @@ public class MolecularModelJsonRenderer {
 		aObj.put(KEY.property, getId(property, graph));
 		aObj.put(KEY.object, getId(object, graph));
 		
+		List<Object> anObjs = new ArrayList<Object>();
+		for (OWLAnnotation annotation : opa.getAnnotations()) {
+			OWLAnnotationProperty p = annotation.getProperty();
+			LegoAnnotationType legoType = LegoAnnotationType.getLegoType(p.getIRI());
+			if (legoType != null) {
+				OWLAnnotationValue v = annotation.getValue();
+				if (LegoAnnotationType.evidence.equals(legoType)) {
+					IRI iri = (IRI) v;
+					anObjs.add(Collections.singletonMap(legoType.name(), getId(iri)));
+				}
+				else {
+					OWLLiteral literal = (OWLLiteral) v;
+					anObjs.add(Collections.singletonMap(legoType.name(), literal.getLiteral()));
+				}
+			}
+		}
+		if (!anObjs.isEmpty()) {
+			aObj.put(KEY.annotations, anObjs);
+		}
 		return aObj;
 	}
 
