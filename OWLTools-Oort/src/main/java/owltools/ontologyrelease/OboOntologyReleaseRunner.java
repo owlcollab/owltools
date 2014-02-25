@@ -494,23 +494,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		return createRelease(oortConfig.getPaths());
 	}
 	
-	/**
-	 * Create a release.
-	 * 
-	 * @param allPaths
-	 * @return true if the release was successful
-	 * @throws IOException
-	 * @throws OWLOntologyCreationException
-	 * @throws FileNotFoundException
-	 * @throws OWLOntologyStorageException
-	 * @throws OboOntologyReleaseRunnerCheckException
-	 * @throws AnnotationCardinalityException
-	 * @throws OBOFormatParserException
-	 * 
-	 * @Deprecated use the {@link #createRelease()} instead. This method will be private in the next release.
-	 */
-	@Deprecated
-	public boolean createRelease(Vector<String> allPaths) throws IOException, 
+	private boolean createRelease(Vector<String> allPaths) throws IOException, 
 		OWLOntologyCreationException, FileNotFoundException, OWLOntologyStorageException,
 		OboOntologyReleaseRunnerCheckException, AnnotationCardinalityException,
 		OBOFormatParserException
