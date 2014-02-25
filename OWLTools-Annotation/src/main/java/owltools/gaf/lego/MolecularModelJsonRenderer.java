@@ -457,6 +457,7 @@ public class MolecularModelJsonRenderer {
 		final EcoMapper mapper = pair.getMapper();
 		Set<OWLClass> ecoClasses = graph.getAllOWLClasses();
 		Map<OWLClass, String> codesForEcoClasses = mapper.getCodesForEcoClasses();
+		List<Map<Object, Object>> relList = new ArrayList<Map<Object,Object>>();
 		for (OWLClass ecoClass : ecoClasses) {
 			if (ecoClass.isBuiltIn()) {
 				continue;
@@ -470,8 +471,8 @@ public class MolecularModelJsonRenderer {
 			if (code != null) {
 				entry.put("code", code);
 			}
+			relList.add(entry);
 		}
-		List<Map<Object, Object>> relList = new ArrayList<Map<Object,Object>>();
 		return relList;
 	}
 
