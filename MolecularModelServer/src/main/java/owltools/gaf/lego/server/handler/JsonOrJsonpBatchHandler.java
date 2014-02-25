@@ -86,7 +86,6 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request, "request");
 			final String entity = StringUtils.trimToNull(request.entity);
 			final String operation = StringUtils.trimToNull(request.operation);
-			
 
 			// individual
 			if ("individual".equals(entity)) {

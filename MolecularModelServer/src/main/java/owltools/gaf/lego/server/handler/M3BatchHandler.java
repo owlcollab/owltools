@@ -46,10 +46,14 @@ public interface M3BatchHandler {
 	
 	public static class M3BatchResponse {
 		final String uid; // pass-through
-		final String intention; // pass-through
+		/*
+		 * pass-through; model:
+		 * "information", "action" //, "location"
+		 */
+		final String intention;
 		
 		/*
-		 * "merge", "rebuild", "meta"
+		 * "merge", "rebuild", "meta" //, "location"?
 		 */
 		String signal;
 		/*
