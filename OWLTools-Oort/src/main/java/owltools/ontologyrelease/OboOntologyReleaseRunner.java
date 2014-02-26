@@ -1081,6 +1081,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException
 	{
 		Set<OWLEntity> signature = new HashSet<OWLEntity>();
+		for(OWLEquivalentClassesAxiom ax : equivalentNamedClassPairs) {
+			signature.addAll(ax.getClassesInSignature());
+		}
 		final String moduleName = "equivalent-classes";
 		createModule(ontologyId, moduleName, signature);
 	}
