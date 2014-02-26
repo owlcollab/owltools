@@ -154,6 +154,60 @@ public class BatchModelHandlerTest {
 	}
 	
 	@Test
+	public void testModelAnnotations() throws Exception {
+		final String modelId = models.generateBlankModel(null);
+		String uid = "1";
+		String intention = "foo";
+		
+		// create annotations
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.model.name();
+		batch1[0].operation = Operation.addAnnotation.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+
+		batch1[0].arguments.values = new M3Pair[2];
+		batch1[0].arguments.values[0] = new M3Pair();
+		batch1[0].arguments.values[0].key = LegoAnnotationType.comment.name();
+		batch1[0].arguments.values[0].value = "comment 1";
+		batch1[0].arguments.values[1] = new M3Pair();
+		batch1[0].arguments.values[1].key = LegoAnnotationType.comment.name();
+		batch1[0].arguments.values[1].value = "comment 2";
+		
+		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch1);
+		assertEquals(resp1.message, "success", resp1.message_type);
+		
+		
+		Map<Object, Object> data = models.getModelObject(modelId);
+		List annotations = (List) data.get("annotations");
+		assertNotNull(annotations);
+		assertEquals(2, annotations.size());
+		
+		
+		// remove one annotation
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.model.name();
+		batch2[0].operation = Operation.removeAnnotation.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.modelId = modelId;
+
+		batch2[0].arguments.values = new M3Pair[1];
+		batch2[0].arguments.values[0] = new M3Pair();
+		batch2[0].arguments.values[0].key = LegoAnnotationType.comment.name();
+		batch2[0].arguments.values[0].value = "comment 1";
+
+		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2);
+		assertEquals(resp2.message, "success", resp2.message_type);
+		
+		Map<Object, Object> data2 = models.getModelObject(modelId);
+		List annotations2 = (List) data2.get("annotations");
+		assertNotNull(annotations2);
+		assertEquals(1, annotations2.size());
+	}
+	
+	@Test
 	public void testMultipleMeta() throws Exception {
 		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
 		models.dispose();

@@ -261,16 +261,47 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.subject, "request.arguments.subject");
 					renderBulk = true;
 					modelId = m3.generateModel(request.arguments.subject, request.arguments.db);
+					
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values);
+					if (annotations != null) {
+						m3.addAnnotations(modelId, annotations);
+					}
 				}
 				else if (match(Operation.generateBlank, operation)) {
 					nonMeta = true;
 					renderBulk = true;
 					// db is optional
 					String db = null;
+					Collection<Pair<String, String>> annotations = null;
 					if (request.arguments != null) {
 						db = request.arguments.db;
+						annotations = extract(request.arguments.values);
 					}
 					modelId = m3.generateBlankModel(db);
+					
+					if (annotations != null) {
+						m3.addAnnotations(modelId, annotations);
+					}
+				}
+				else if (match(Operation.addAnnotation, operation)) {
+					nonMeta = true;
+					requireNotNull(request.arguments, "request.arguments");
+					requireNotNull(request.arguments.values, "request.arguments.values");
+					modelId = checkModelId(modelId, request);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values);
+					if (annotations != null) {
+						m3.addAnnotations(modelId, annotations);
+					}
+				}
+				else if (match(Operation.removeAnnotation, operation)) {
+					nonMeta = true;
+					requireNotNull(request.arguments, "request.arguments");
+					requireNotNull(request.arguments.values, "request.arguments.values");
+					modelId = checkModelId(modelId, request);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values);
+					if (annotations != null) {
+						m3.removeAnnotations(modelId, annotations);
+					}
 				}
 				else if (match(Operation.exportModel, operation)) {
 					if (nonMeta) {

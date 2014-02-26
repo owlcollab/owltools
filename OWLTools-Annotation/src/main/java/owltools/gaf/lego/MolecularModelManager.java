@@ -34,6 +34,7 @@ import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -61,6 +62,7 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -873,6 +875,15 @@ public class MolecularModelManager {
 		removeAxioms(model, toRemoveAxioms, flushReasoner);
 	}
 	
+	public void addAnnotations(String modelId, Collection<Pair<String, String>> pairs)
+			throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		if (pairs != null) {
+			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
+			addAnnotations(model, annotations);
+		}
+	}
+	
 	public OWLNamedIndividual addAnnotations(String modelId, String iid, 
 			Collection<Pair<String, String>> pairs) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
@@ -899,6 +910,15 @@ public class MolecularModelManager {
 			axioms.add(f.getOWLAnnotationAssertionAxiom(subject, annotation));
 		}
 		addAxioms(model, axioms, false);
+	}
+	
+	private void addAnnotations(LegoModelGenerator model, Collection<OWLAnnotation> annotations) {
+		OWLOntology aBox = model.getAboxOntology();
+		OWLOntologyManager manager = aBox.getOWLOntologyManager();
+		for (OWLAnnotation annotation : annotations) {
+			AddOntologyAnnotation change = new AddOntologyAnnotation(aBox, annotation);
+			manager.applyChange(change);
+		}
 	}
 
 	public OWLNamedIndividual removeAnnotations(String modelId, String iid,
@@ -933,6 +953,24 @@ public class MolecularModelManager {
 		removeAxioms(model, toRemove, false);
 	}
 
+	public void removeAnnotations(String modelId, Collection<Pair<String, String>> pairs)
+			throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		if (pairs != null) {
+			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
+			removeAnnotations(model, annotations);
+		}
+	}
+	
+	private void removeAnnotations(LegoModelGenerator model, Collection<OWLAnnotation> annotations) {
+		OWLOntology aBox = model.getAboxOntology();
+		OWLOntologyManager manager = aBox.getOWLOntologyManager();
+		for (OWLAnnotation annotation : annotations) {
+			RemoveOntologyAnnotation change = new RemoveOntologyAnnotation(aBox, annotation);
+			manager.applyChange(change);
+		}
+	}
+	
 	/**
 	 * Fetches a model by its Id
 	 * 

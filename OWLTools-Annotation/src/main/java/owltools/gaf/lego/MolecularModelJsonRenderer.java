@@ -153,6 +153,26 @@ public class MolecularModelJsonRenderer {
 		}
 		model.put("properties", pObjs);
 
+		List<Object> anObjs = new ArrayList<Object>();
+		for (OWLAnnotation annotation : ont.getAnnotations()) {
+			OWLAnnotationProperty p = annotation.getProperty();
+			LegoAnnotationType legoType = LegoAnnotationType.getLegoType(p.getIRI());
+			if (legoType != null) {
+				OWLAnnotationValue v = annotation.getValue();
+				if (LegoAnnotationType.evidence.equals(legoType)) {
+					IRI iri = (IRI) v;
+					anObjs.add(Collections.singletonMap(legoType.name(), getId(iri)));
+				}
+				else {
+					OWLLiteral literal = (OWLLiteral) v;
+					anObjs.add(Collections.singletonMap(legoType.name(), literal.getLiteral()));
+				}
+			}
+		}
+		if (!anObjs.isEmpty()) {
+			model.put(KEY.annotations.name(), anObjs);
+		}
+		
 		return model;
 		
 	}

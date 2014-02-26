@@ -116,11 +116,15 @@ public class ManchesterSyntaxTool {
 				return null;
 			}
 			name = trimQuotes(name);
-			OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier(name);
-			if (p == null) {
-				p = graph.getOWLObjectProperty(name);
+			OWLObjectProperty p = null;
+			if (StringUtils.contains(name, ' ') == false) {
+				p = graph.getOWLObjectPropertyByIdentifier(name);
+				if (p == null) {
+					p = graph.getOWLObjectProperty(name);
+				}
 			}
 			if (p == null) {
+				graph.getIRIByLabel(name);
 				OWLObject owlObject = graph.getOWLObjectByLabel(name);
 				if (owlObject != null && owlObject instanceof OWLObjectProperty) {
 					p = (OWLObjectProperty) owlObject;
