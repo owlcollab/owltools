@@ -90,7 +90,7 @@ public interface M3BatchHandler {
 		final String uid; // pass-through
 		/*
 		 * pass-through; model:
-		 * "information", "action" //, "location"
+		 * "query", "action" //, "location"
 		 */
 		final String intention;
 		
