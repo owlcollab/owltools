@@ -183,7 +183,7 @@ public class BatchModelHandlerTest {
 		final List<Map<String, Object>> evidences = (List)((Map) response.data).get("evidence");
 		assertTrue(evidences.size() > 100);
 		
-		final Set<String> modelIds = (Set)((Map) response.data).get("models_all");
+		final Set<String> modelIds = (Set)((Map) response.data).get("model_ids");
 		for (String string : modelIds) {
 			System.out.println(string);
 		}
