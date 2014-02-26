@@ -312,7 +312,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
-			// evidences
+			// evidence
 			else if (match(Entity.evidence, entity)) {
 				if (match(Operation.get, operation)){
 					if (nonMeta) {
@@ -381,7 +381,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			response.signal = "meta";
 		}
 		
-		response.data.put("models_all", allModelIds);
+		response.data.put("model_ids", allModelIds);
 		//response.data.put("models_memory", memoryModelIds);
 		//response.data.put("models_stored", storedModelIds);
 		//response.data.put("models_scratch", scratchModelIds);
