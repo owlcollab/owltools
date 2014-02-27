@@ -350,7 +350,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Get Evidences can only be combined with other meta operations.", null);
 					}
-					getEvidences(response, m3);
+					getEvidence(response, m3);
 				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
@@ -409,6 +409,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
 			response.message_type = "success";
+			response.message = "success: " + response.data.size();
 			response.signal = "meta";
 		}
 		
@@ -423,16 +424,18 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
 			response.message_type = "success";
+			response.message = "success: " + response.data.size();
 			response.signal = "meta";
 		}
 		response.data.put(Entity.relations.name(), relList);
 	}
 	
-	private void getEvidences(M3BatchResponse response, MolecularModelManager m3) throws OWLException, IOException {
+	private void getEvidence(M3BatchResponse response, MolecularModelManager m3) throws OWLException, IOException {
 		List<Map<Object,Object>> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
 			response.message_type = "success";
+			response.message = "success: " + response.data.size();
 			response.signal = "meta";
 		}
 		response.data.put(Entity.evidence.name(), evidencesList);
@@ -443,6 +446,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
 			response.message_type = "success";
+			response.message = "success";
 			response.signal = "meta";
 		}
 		response.data.put(Operation.exportModel.getLbl(), exportModel);
