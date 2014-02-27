@@ -319,12 +319,17 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					modelId = m3.importModel(request.arguments.importModel);
 					renderBulk = true;
 				}
+				else if (match(Operation.storeModel, operation)) {
+					requireNotNull(request.arguments, "request.arguments");
+				}
 				else if (match(Operation.allModelIds, operation)) {
 					if (nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, operation+" cannot be combined with other operations.", null);
 					}
 					getAllModelIds(response, m3);
+					modelId = checkModelId(modelId, request);
+					save(response, modelId, m3);
 				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
@@ -450,6 +455,16 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			response.signal = "meta";
 		}
 		response.data.put(Operation.exportModel.getLbl(), exportModel);
+	}
+	
+	private void save(M3BatchResponse response, String modelId, MolecularModelManager m3) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
+		m3.saveModel(modelId);
+		if (response.data == null) {
+			response.data = new HashMap<Object, Object>();
+			response.message_type = "success";
+			response.message = "success: " + response.data.size();
+			response.signal = "meta";
+		}
 	}
 
 	/**

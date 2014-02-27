@@ -44,6 +44,7 @@ public interface M3BatchHandler {
 		generateBlank("generate-blank"),
 		exportModel("export"),
 		importModel("import"),
+		storeModel("store"),
 		allModelIds("all-model-ids");
 		
 		private final String lbl;
