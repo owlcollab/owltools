@@ -808,7 +808,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 				Double ic;
 				try {
 				//check if sub is an inferred superclass of the current annotated class
-					if (getReasoner().getSuperClasses(c, false).containsEntity(sub)) { 
+					if (getReasoner().getSuperClasses(c, false).containsEntity(sub) ||
+							getReasoner().getEquivalentClasses(c).contains(sub)) { 
 						ic = this.getInformationContentForAttribute(c);
 						
 						if (ic == null) { 

@@ -255,23 +255,30 @@ public class SimJSONEngine {
 			subj.put(key, tobj);
 	}
 
+	public HashMap<String,String> makeIndividualSummaryStatistics(SummaryStatistics s) {
+		HashMap<String,String> stats = new HashMap<String,String>();
+		stats.put("n", String.format("%d", s.getN()));		
+		stats.put("meanIC", String.format("%1$.5f", s.getMean()));		
+		stats.put("maxIC", String.format("%1$.5f", s.getMax()));		
+		stats.put("sumIC", String.format("%1$.5f", s.getSum()));		
+		stats.put("stdevIC", String.format("%1$.5f", s.getStandardDeviation()));		
+		return stats;
+	}
+	
 	public HashMap<String,String> makeSummaryStatistics(StatsPerIndividual s) {
-		//		Gson gson = new Gson();
 		HashMap<String,String> stats = new HashMap<String,String>();
 		stats.put("individuals", String.format("%d", s.max.getN()));		
-		stats.put("mean(meanIC)", String.format("%1$.5f", s.mean.getMean()));		
-		stats.put("mean(maxIC)", String.format("%1$.5f", s.max.getMean()));		
-		stats.put("max(maxIC)", String.format("%1$.5f", s.max.getMax()));		
-		stats.put("max(sumIC)", String.format("%1$.5f", s.sum.getMax()));		
-		stats.put("mean(sumIC)", String.format("%1$.5f", s.sum.getMean()));		
-		stats.put("mean(n)", String.format("%1$.5f", s.n.getMean()));		
+		stats.put("meanMeanIC", String.format("%1$.5f", s.mean.getMean()));		
+		stats.put("meanMaxIC", String.format("%1$.5f", s.max.getMean()));		
+		stats.put("maxMaxIC", String.format("%1$.5f", s.max.getMax()));		
+		stats.put("maxSumIC", String.format("%1$.5f", s.sum.getMax()));		
+		stats.put("meanSumIC", String.format("%1$.5f", s.sum.getMean()));		
+		stats.put("meanN", String.format("%1$.5f", s.n.getMean()));		
 
-		//		return gson.toJson(stats);
 		return stats;
 	}
 	
 	public HashMap<String,String> makeSummaryStatistics(OWLClass c) {
-		//		Gson gson = new Gson();
 		StatsPerIndividual s = sos.getSummaryStatistics(c);
 		HashMap<String,String> stats = new HashMap<String,String>();
 		stats = makeSummaryStatistics(s);	
@@ -279,7 +286,6 @@ public class SimJSONEngine {
 	}
 	
 	public HashMap<String,String> makeSummaryStatistics() {
-		//		Gson gson = new Gson();
 		StatsPerIndividual s = sos.getSummaryStatistics();
 		HashMap<String,String> stats = new HashMap<String,String>();
 		stats = makeSummaryStatistics(s);	
@@ -303,22 +309,20 @@ public class SimJSONEngine {
 		return gson.toJson(this.makeAnnotationSufficiencySubgraphScore(atts,c));
 	}
 
-	private Map<String,Object> makeAnnotationSufficiencyScore(Set<OWLClass> atts) throws UnknownOWLClassException {
+	private Map<String,String> makeAnnotationSufficiencyScore(Set<OWLClass> atts) throws UnknownOWLClassException {
 		HashMap<String,String> s = new HashMap<String,String>();
 		double score = sos.calculateOverallAnnotationSufficiencyForAttributeSet(atts);
 		s.put("score",String.format("%1$.5f",score));
-		Map<String,Object> annotation_sufficiency = new HashMap<String,Object>();
-		annotation_sufficiency.put("annotation_sufficiency",s);
-		return annotation_sufficiency;
+		return s;
 	}
 	
-	private Map<String,Object> makeAnnotationSufficiencySubgraphScore(Set<OWLClass> atts, OWLClass c) throws UnknownOWLClassException {
+	private Map<String,String> makeAnnotationSufficiencySubgraphScore(Set<OWLClass> atts, OWLClass c) throws UnknownOWLClassException {
 		HashMap<String,String> s = new HashMap<String,String>();
 		double score = sos.calculateSubgraphAnnotationSufficiencyForAttributeSet(atts,c);
 		s.put("score",String.format("%1$.5f",score));
-		Map<String,Object> annotation_sufficiency = new HashMap<String,Object>();
-		annotation_sufficiency.put("annotation_sufficiency",s);
-		return annotation_sufficiency;
+		//Map<String,Object> annotation_sufficiency = new HashMap<String,Object>();
+		//annotation_sufficiency.put("annotation_sufficiency",s); 
+		return s;
 	}
 
 	private Map<String,Object> makeAttributeInformationProfile(Set<OWLClass> atts) throws UnknownOWLClassException {
@@ -338,7 +342,8 @@ public class SimJSONEngine {
 		
 		Map<String,Object> results = new HashMap<String,Object>();
 		results.put("input",alist);
-		results.put("annotation_sufficiency", makeAnnotationSufficiencyScore(goodAtts).get("annotation_sufficiency"));
+		results.put("score", makeAnnotationSufficiencyScore(goodAtts).get("score"));
+		results.put("stats", this.makeIndividualSummaryStatistics(sos.computeAttributeSetSimilarityStats(goodAtts)));
 		results.put("system_stats",this.makeSummaryStatistics());
 		results.put("unresolvable_classes",badAttList);
 		return results;
@@ -390,7 +395,7 @@ public class SimJSONEngine {
 			score.put("score", String.format("%1$.5f",sos.calculateSubgraphAnnotationSufficiencyForAttributeSet(atts,n)));
 			SummaryStatistics stats = sos.computeAttributeSetSimilarityStatsForSubgraph(atts,n);
 			//number of annotations in the query per category
-			score.put("n", stats.getN());
+			score.put("stats", this.makeIndividualSummaryStatistics(stats));
 			score.put("system_stats",this.makeSummaryStatistics(n));
 			subgraphScores.add(score);
 		}

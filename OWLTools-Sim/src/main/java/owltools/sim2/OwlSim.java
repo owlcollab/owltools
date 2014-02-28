@@ -1038,7 +1038,8 @@ public interface OwlSim {
 
 	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(
 			Set<OWLClass> atts, OWLClass n);
-	
+
+	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> goodAtts);
 
 }
 
