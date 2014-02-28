@@ -321,6 +321,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 				else if (match(Operation.storeModel, operation)) {
 					requireNotNull(request.arguments, "request.arguments");
+					modelId = checkModelId(modelId, request);
+					save(response, modelId, m3);
 				}
 				else if (match(Operation.allModelIds, operation)) {
 					if (nonMeta) {
@@ -328,8 +330,6 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 						return error(response, operation+" cannot be combined with other operations.", null);
 					}
 					getAllModelIds(response, m3);
-					modelId = checkModelId(modelId, request);
-					save(response, modelId, m3);
 				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
