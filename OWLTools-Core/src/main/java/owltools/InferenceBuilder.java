@@ -515,7 +515,12 @@ public class InferenceBuilder{
 					// nothing to see here, move along
 					continue;
 				}
-				errors.add ("unsatisfiable: " + graph.getIdentifier(cls) + " : " + graph.getLabel(cls));
+				StringBuilder sb = new StringBuilder();
+				sb.append("Unsatisfiable: ").append(graph.getIdentifier(cls));
+				String lbl = graph.getLabel(cls);
+				if (lbl != null) {
+					sb.append(" '").append(lbl).append("'");
+				}
 				unsatisfiable.add(cls);
 			}
 		}
@@ -656,7 +661,7 @@ public class InferenceBuilder{
 				}
 			}
 		}
-		if (result != null && !result.isEmpty()) {
+		if (!result.isEmpty()) {
 			return result;
 		}
 		return null;
@@ -705,7 +710,7 @@ public class InferenceBuilder{
 			}
 		}
 		
-		if (result != null && !result.isEmpty()) {
+		if (!result.isEmpty()) {
 			return result;
 		}
 		return null;
