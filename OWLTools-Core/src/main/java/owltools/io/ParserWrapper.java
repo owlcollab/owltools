@@ -13,6 +13,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -54,7 +55,7 @@ public class ParserWrapper {
 
 	private static Logger LOG = Logger.getLogger(ParserWrapper.class);
 	OWLOntologyManager manager;
-	List<OWLOntologyIRIMapper> mappers = new ArrayList<OWLOntologyIRIMapper>();
+	private final List<OWLOntologyIRIMapper> mappers = new ArrayList<OWLOntologyIRIMapper>();
 	OBODoc obodoc;
 	boolean isCheckOboDoc = true;
 	
@@ -103,6 +104,17 @@ public class ParserWrapper {
 		manager.removeIRIMapper(mapper);
 		mappers.remove(mapper);
 	}
+	public List<OWLOntologyIRIMapper> getIRIMappers() {
+		return Collections.unmodifiableList(mappers);
+	}
+	public void addIRIMappers(List<OWLOntologyIRIMapper> mappers) {
+		List<OWLOntologyIRIMapper> reverse = new ArrayList<OWLOntologyIRIMapper>(mappers);
+		Collections.reverse(reverse);
+		for (OWLOntologyIRIMapper mapper : reverse) {
+			addIRIMapper(mapper);
+		}
+	}
+	
 	public OWLGraphWrapper parseToOWLGraph(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		return new OWLGraphWrapper(parse(iriString));		
 	}
@@ -148,19 +160,23 @@ public class ParserWrapper {
 		
 	public OWLOntology parseOBO(String source) throws IOException, OWLOntologyCreationException, OBOFormatParserException {
 		OBOFormatParser p = new OBOFormatParser();
-		LOG.info("Parsing: "+source);
 		final String id;
 		if (isIRI(source)) {
 			IRI iri = IRI.create(source);
 			IRI mapped = checkIRIMappers(iri);
 			if (mapped != null) {
-				iri = mapped; 
+				iri = mapped;
+				LOG.info("Parsing: "+source+" from: "+mapped);
 			}
-			obodoc = p.parse(IRI.create(source).toURI().toURL());
+			else {
+				LOG.info("Parsing: "+source);
+			}
+			obodoc = p.parse(iri.toURI().toURL());
 			id = source;
 		}
 		else {
-			final File file = new File(source);
+			final File file = new File(source).getCanonicalFile();
+			LOG.info("Parsing from file: "+file.getAbsolutePath());
 			obodoc = p.parse(file);
 			String fileName = file.getName();
 			if (fileName.endsWith(".obo") || fileName.endsWith(".owl")) {
