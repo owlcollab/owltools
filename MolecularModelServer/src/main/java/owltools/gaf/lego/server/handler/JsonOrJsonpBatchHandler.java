@@ -28,6 +28,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelManager;
+import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -82,6 +83,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests) throws Exception {
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
 		boolean renderBulk = false;
+		boolean renderModelAnnotations = false;
 		boolean nonMeta = false;
 		String modelId = null;
 		for (M3Request request : requests) {
@@ -292,6 +294,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					if (annotations != null) {
 						m3.addAnnotations(modelId, annotations);
 					}
+					renderModelAnnotations = true;
 				}
 				else if (match(Operation.removeAnnotation, operation)) {
 					nonMeta = true;
@@ -302,6 +305,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					if (annotations != null) {
 						m3.removeAnnotations(modelId, annotations);
 					}
+					renderModelAnnotations = true;
 				}
 				else if (match(Operation.exportModel, operation)) {
 					if (nonMeta) {
@@ -390,6 +394,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
 			response.data = renderer.renderIndividuals(relevantIndividuals);
 			response.signal = "merge";
+		}
+		
+		// add model annotations
+		if (renderModelAnnotations) {
+			List<Object> anObjs = MolecularModelJsonRenderer.renderModelAnnotations(model.getAboxOntology());
+			response.data.put(KEY.annotations.name(), anObjs);
 		}
 
 		// add other infos to data

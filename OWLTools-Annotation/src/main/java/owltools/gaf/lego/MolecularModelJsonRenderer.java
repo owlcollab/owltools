@@ -153,8 +153,23 @@ public class MolecularModelJsonRenderer {
 		}
 		model.put("properties", pObjs);
 
+		List<Object> anObjs = renderAnnotations(ont.getAnnotations());
+		if (!anObjs.isEmpty()) {
+			model.put(KEY.annotations.name(), anObjs);
+		}
+		
+		return model;
+		
+	}
+	
+	public static List<Object> renderModelAnnotations(OWLOntology ont) {
+		List<Object> anObjs = renderAnnotations(ont.getAnnotations());
+		return anObjs;
+	}
+	
+	private static List<Object> renderAnnotations(Set<OWLAnnotation> annotations) {
 		List<Object> anObjs = new ArrayList<Object>();
-		for (OWLAnnotation annotation : ont.getAnnotations()) {
+		for (OWLAnnotation annotation : annotations) {
 			OWLAnnotationProperty p = annotation.getProperty();
 			LegoAnnotationType legoType = LegoAnnotationType.getLegoType(p.getIRI());
 			if (legoType != null) {
@@ -169,12 +184,7 @@ public class MolecularModelJsonRenderer {
 				}
 			}
 		}
-		if (!anObjs.isEmpty()) {
-			model.put(KEY.annotations.name(), anObjs);
-		}
-		
-		return model;
-		
+		return anObjs;
 	}
 	
 	public Map<Object, Object> renderIndividuals(Collection<OWLNamedIndividual> individuals) {
@@ -275,28 +285,18 @@ public class MolecularModelJsonRenderer {
 		aObj.put(KEY.property, getId(property, graph));
 		aObj.put(KEY.object, getId(object, graph));
 		
-		List<Object> anObjs = new ArrayList<Object>();
-		for (OWLAnnotation annotation : opa.getAnnotations()) {
-			OWLAnnotationProperty p = annotation.getProperty();
-			LegoAnnotationType legoType = LegoAnnotationType.getLegoType(p.getIRI());
-			if (legoType != null) {
-				OWLAnnotationValue v = annotation.getValue();
-				if (LegoAnnotationType.evidence.equals(legoType)) {
-					IRI iri = (IRI) v;
-					anObjs.add(Collections.singletonMap(legoType.name(), getId(iri)));
-				}
-				else {
-					OWLLiteral literal = (OWLLiteral) v;
-					anObjs.add(Collections.singletonMap(legoType.name(), literal.getLiteral()));
-				}
-			}
-		}
+		List<Object> anObjs = renderAnnotations(opa.getAnnotations());
 		if (!anObjs.isEmpty()) {
 			aObj.put(KEY.annotations, anObjs);
 		}
 		return aObj;
 	}
 
+	/**
+	 * @param ont
+	 * @param p
+	 * @return Map to be passed to Gson
+	 */
 	public Map<Object, Object> renderObject(OWLOntology ont, OWLObjectProperty p) {
 		Map<Object, Object> iObj = new HashMap<Object, Object>();
 		iObj.put(KEY.id, getId(p, graph));

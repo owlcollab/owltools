@@ -84,7 +84,7 @@ public interface M3BatchHandler {
 		String type;
 		String onProp;
 		String literal;
-//		Expression expression; // use in the future for recursive expression
+//		Expression[] expressions; // use in the future for recursive expression
 	}
 	
 	public static class M3BatchResponse {
