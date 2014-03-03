@@ -22,7 +22,8 @@ public class Mireot3Test extends OWLToolsTestBasics {
 		
 		// this test ontology has a class defined using a caro class, and imports caro_local
 		OWLGraphWrapper g =
-			pw.parseToOWLGraph(getResourceIRIString("caro_mireot_test.owl"), true);
+			pw.parseToOWLGraph(getResourceIRIString("caro_mireot_test.owl"));
+		g.mergeImportClosure();
 		g.getSourceOntology();
 		
 		Mooncat m = new Mooncat(g);
