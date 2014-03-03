@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -53,6 +54,7 @@ public class ParserWrapper {
 
 	private static Logger LOG = Logger.getLogger(ParserWrapper.class);
 	OWLOntologyManager manager;
+	List<OWLOntologyIRIMapper> mappers = new ArrayList<OWLOntologyIRIMapper>();
 	OBODoc obodoc;
 	boolean isCheckOboDoc = true;
 	
@@ -95,13 +97,17 @@ public class ParserWrapper {
 
 	public void addIRIMapper(OWLOntologyIRIMapper mapper) {
 		manager.addIRIMapper(mapper);
+		mappers.add(0, mapper);
 	}
 	public void removeIRIMapper(OWLOntologyIRIMapper mapper) {
 		manager.removeIRIMapper(mapper);
+		mappers.remove(mapper);
 	}
 	public OWLGraphWrapper parseToOWLGraph(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		return new OWLGraphWrapper(parse(iriString));		
 	}
+	
+	@SuppressWarnings("deprecation")
 	public OWLGraphWrapper parseToOWLGraph(String iriString, boolean isMergeImportClosure) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
 		return new OWLGraphWrapper(parse(iriString), isMergeImportClosure);		
 	}
@@ -116,6 +122,15 @@ public class ParserWrapper {
 		return parseOWL(iriString);
 	}
 	
+	/**
+	 * Check that the given source is an obo file. Assumes that IRIs are not OBO!
+	 * 
+	 * @param source
+	 * @return boolean
+	 * @throws IOException
+	 * @throws OWLOntologyCreationException
+	 * @throws OBOFormatParserException
+	 */
 	public boolean isOboFile(String source) throws IOException, OWLOntologyCreationException, OBOFormatParserException {
 		if (isIRI(source))
 			return false; // assume anything from web is owl by default
@@ -136,6 +151,11 @@ public class ParserWrapper {
 		LOG.info("Parsing: "+source);
 		final String id;
 		if (isIRI(source)) {
+			IRI iri = IRI.create(source);
+			IRI mapped = checkIRIMappers(iri);
+			if (mapped != null) {
+				iri = mapped; 
+			}
 			obodoc = p.parse(IRI.create(source).toURI().toURL());
 			id = source;
 		}
@@ -162,6 +182,16 @@ public class ParserWrapper {
 		OWLOntology ontology = bridge.convert(obodoc);
 		return ontology;
 	}
+	
+	private IRI checkIRIMappers(final IRI iri) {
+		for(OWLOntologyIRIMapper mapper : mappers) {
+			IRI mapped = mapper.getDocumentIRI(iri);
+			if (mapped != null) {
+				return mapped;
+			}
+		}
+		return null;
+	}
 
 	public OWLOntology parseOBOFiles(List<String> files) throws IOException, OWLOntologyCreationException, OBOFormatParserException, FrameMergeException {
 		OBOFormatParser p = new OBOFormatParser();
@@ -183,7 +213,9 @@ public class ParserWrapper {
 
 	public OWLOntology parseOWL(String iriString) throws OWLOntologyCreationException {
 		IRI iri;
-		LOG.info("parsing: "+iriString);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("parsing: "+iriString);
+		}
 		if (isIRI(iriString)) {
 			iri = IRI.create(iriString);
 		}
@@ -198,7 +230,9 @@ public class ParserWrapper {
 	}
 
 	public OWLOntology parseOWL(IRI iri) throws OWLOntologyCreationException {
-		LOG.info("parsing: "+iri.toString()+" using "+manager);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("parsing: "+iri.toString()+" using "+manager);
+		}
 		OWLOntology ont;
 		try {
 			ont = manager.loadOntology(iri);
@@ -211,9 +245,7 @@ public class ParserWrapper {
 				// never return null ontology
 				throw e;
 			}
-			else {
-				LOG.info("Skip already loaded ontology: "+iri);
-			}
+			LOG.info("Skip already loaded ontology: "+iri);
 		} catch (OWLOntologyDocumentAlreadyExistsException e) {
 			// Trying to recover from exception
 			IRI duplicate = e.getOntologyDocumentIRI();
@@ -374,6 +406,7 @@ public class ParserWrapper {
 			
 		}
 
+		@Override
 		public String getName(String id) {
 			String name = null;
 			OWLObject obj = graph.getOWLObjectByIdentifier(id);
@@ -383,6 +416,7 @@ public class ParserWrapper {
 			return name;
 		}
 
+		@Override
 		public String getDefaultOboNamespace() {
 			return defaultOboNamespace;
 		}
@@ -416,13 +450,4 @@ public class ParserWrapper {
 
 	}
 	
-	public static void main(String[] args) throws Exception {
-		ParserWrapper pw = new ParserWrapper();
-		OWLOntologyIRIMapper mapper = new CatalogXmlIRIMapper("/Users/cjm/cvs/uberon/phenoscape-vocab/homology/catalog-v001.xml");
-		pw.addIRIMapper(mapper);
-
-		OWLOntology o = pw.parse("/Users/cjm/cvs/uberon/phenoscape-vocab/homology/test2.owl");
-	}
-	
-
 }
