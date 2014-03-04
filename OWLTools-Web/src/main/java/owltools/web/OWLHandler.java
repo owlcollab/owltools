@@ -50,6 +50,9 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import owltools.frame.jsonld.ClassFrameLD;
+import owltools.frame.jsonld.FrameMakerLD;
+import owltools.frame.jsonld.OntologyFrameLD;
 import owltools.gaf.inference.TaxonConstraintsEngine;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
@@ -59,9 +62,11 @@ import owltools.io.OWLGsonRenderer;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
+import owltools.mooncat.ontologymetadata.OntologySetMetadata;
 import owltools.sim2.FastOwlSim;
 import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
+import owltools.sim2.OwlSimMetadata;
 import owltools.sim2.SimJSONEngine;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.Metric;
@@ -156,8 +161,8 @@ public class OWLHandler {
 			return "txt";
 		return format;
 	}
-	
-	
+
+
 
 
 	public void setOwlSim(OwlSim sos2) {
@@ -185,25 +190,11 @@ public class OWLHandler {
 			info("Basic metadata about current ontology"); // TODO - json
 			return;
 		}
-		headerHTML();
-		outputLine("<h1>OntologyID: "+this.getOWLOntology().getOntologyID()+"</h2>");
-		outputLine("<ul>");
-		for (OWLAnnotation ann : getOWLOntology().getAnnotations()) {
-			outputLine("<li>");
-			output(ann.getProperty());
-			outputLine("<b>"+ann.getValue().toString()+"</b>");
-			outputLine("</li>");
-		}
-		outputLine("</ul>");
-		// this will only return a value, if this is called from an owltools-jar
-		// otherwise it's null
+		OntologySetMetadata osmd = new OntologySetMetadata(this.getOWLOntology());
 		String manifestVersion = VersionInfo.getManifestVersion("owltools-build-timestamp");
-		if (manifestVersion != null) {
-			outputLine("Version: "+manifestVersion);
-		}
-		else {
-			outputLine("Version: not available");
-		}
+		osmd.serverManifestVersion = manifestVersion == null ? "unknown" : manifestVersion;
+		returnJSON(osmd);
+
 	}
 
 	public void helpCommand() throws IOException {
@@ -247,7 +238,7 @@ public class OWLHandler {
 		}
 		LOG.info("results: "+n);
 	}
-	
+
 	/**
 	 * Params: direct, (id | expression)
 	 * @throws OWLOntologyCreationException
@@ -271,7 +262,7 @@ public class OWLHandler {
 			}	
 		}
 	}
-	
+
 	/**
 	 * Params: id
 	 * @throws OWLOntologyCreationException
@@ -294,7 +285,7 @@ public class OWLHandler {
 		if (obj instanceof OWLObjectProperty) {
 			axioms.addAll(graph.getSourceOntology().getAxioms((OWLObjectProperty)obj));
 		}
-		
+
 		for (OWLAxiom ax : axioms) {
 			output(ax);
 		}
@@ -360,6 +351,35 @@ public class OWLHandler {
 		}
 	}
 
+	public void classCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		if (isHelp()) {
+			info("Returns json object describing a class");
+			return;
+		}
+		String id = this.getParam(Param.id);
+		OWLClass cls = graph.getOWLClassByIdentifier(id);
+		FrameMakerLD fm = new FrameMakerLD(graph);
+		ClassFrameLD f = fm.makeClassFrame(cls);
+		returnJSON(f);
+	}
+
+	public void classSetCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		if (isHelp()) {
+			info("Returns json object describing a set of classes");
+			return;
+		}
+		String[] ids = this.getParams(Param.id);
+		Set<OWLClass> cset = new HashSet<OWLClass>();
+		for (String id : ids) {
+			OWLClass cls = graph.getOWLClassByIdentifier(id);
+			cset.add(cls);
+		}
+
+		FrameMakerLD fm = new FrameMakerLD(graph);
+		OntologyFrameLD f = fm.makeOntologyFrame(cset);
+		returnJSON(f);
+	}
+
 	/**
 	 * visualize using QuickGO graphdraw. 
 	 * 
@@ -407,8 +427,8 @@ public class OWLHandler {
 		Mooncat mooncat;
 		mooncat = new Mooncat(graph);
 		OWLOntology subOnt = 
-			mooncat.makeMinimalSubsetOntology(tObjs,
-					IRI.create("http://purl.obolibrary.org/obo/temporary"));
+				mooncat.makeMinimalSubsetOntology(tObjs,
+						IRI.create("http://purl.obolibrary.org/obo/temporary"));
 		for (OWLAxiom axiom : subOnt.getAxioms()) {
 			output(axiom); // TODO
 		}
@@ -444,7 +464,7 @@ public class OWLHandler {
 	}
 
 	// sim2
-	
+
 	private OwlSim getOWLSim() throws UnknownOWLClassException {
 		if (owlserver.sos == null) {
 			LOG.info("Creating sim object"); // TODO - use factory
@@ -453,7 +473,17 @@ public class OWLHandler {
 		}
 		return owlserver.sos;
 	}
-	
+
+	public void getOwlSimMetadataCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("Basic metadata about current owlsim instance"); // TODO - json
+			return;
+		}
+		OwlSimMetadata osmd = getOWLSim().getMetadata();
+		returnJSON(osmd);
+	}
+
+
 	public void getSimilarClassesCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Returns semantically similar classes using OWLSim2");
@@ -469,7 +499,7 @@ public class OWLHandler {
 		}
 		Collections.sort(saps);
 		int limit = 100;
-		
+
 		int n=0;
 		for (ScoreAttributeSetPair sap : saps) {
 			output(sap.getArbitraryAttributeClass());
@@ -480,7 +510,7 @@ public class OWLHandler {
 			}
 		}
 	}
-	
+
 	public void getSimilarIndividualsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Returns matching individuals using OWLSim2");
@@ -503,7 +533,7 @@ public class OWLHandler {
 		}
 		Collections.sort(saps);
 		int limit = 100; // todo - configurable
-		
+
 		int n=0;
 		for (ScoreAttributeSetPair sap : saps) {
 			//output(sap.attributeClass); TODO
@@ -514,7 +544,7 @@ public class OWLHandler {
 			}
 		}
 	}
-	
+
 	public void getLowestCommonSubsumersCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Returns LCSs using sim2");
@@ -539,7 +569,7 @@ public class OWLHandler {
 			// TODO - throw
 		}
 	}
-	
+
 	public void compareAttributeSetsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Returns LCSs and their ICs for two sets of attributes (e.g. phenotypes for disease vs model) using sim2");
@@ -547,19 +577,19 @@ public class OWLHandler {
 		}
 		headerText();
 		OwlSim sos = getOWLSim();
-		
+
 		Set<OWLClass> objAs = this.resolveClassList(Param.a);
 		Set<OWLClass> objBs = this.resolveClassList(Param.b);
 		LOG.info("Comparison set A:"+objAs);
 		LOG.info("Comparison set B:"+objBs);
-		
+
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String jsonStr = sj.compareAttributeSetPair(objAs, objBs, true);
 		LOG.info("Finished comparison");
 		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
-	
+
 	public void searchByAttributeSetCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Entities that have a similar attribute profile to the specified one, using sim2");
@@ -568,7 +598,7 @@ public class OWLHandler {
 		headerText();
 		OwlSim sos = getOWLSim();
 		Set<OWLClass> atts = this.resolveClassList(Param.a);
-		
+
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String targetIdSpace = getParam(Param.target);
 		Integer limit = getParamAsInteger(Param.limit, 1000);
@@ -577,9 +607,9 @@ public class OWLHandler {
 		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
-	
-	
-	
+
+
+
 	public void getAnnotationSufficiencyScoreCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Specificity score for a set of annotations");
@@ -595,7 +625,7 @@ public class OWLHandler {
 		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
-	
+
 	public void getAttributeInformationProfileCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Attribute Profile Information");
@@ -605,18 +635,18 @@ public class OWLHandler {
 		OwlSim sos = getOWLSim();
 		Set<OWLClass> atts = this.resolveClassList(Param.a);
 		Set<OWLClass> roots = this.resolveClassList(Param.r);
-		
+
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
 		String jsonStr = sj.getAttributeInformationProfile(atts,roots);
 		LOG.info("Finished getAttributeInformationProfileCommand");
 		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
-	
+
 	// ----------------------------------------
 	// WRITE/UPDATE OPERATIONS
 	// ----------------------------------------
-	
+
 	@Deprecated
 	public void assertTypeCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
@@ -630,7 +660,7 @@ public class OWLHandler {
 		String jsonStr = "";
 		response.getWriter().write(jsonStr);
 	}
-	
+
 	@Deprecated
 	public void assertFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
@@ -645,7 +675,7 @@ public class OWLHandler {
 		String jsonStr = "";
 		response.getWriter().write(jsonStr);
 	}
-	
+
 	@Deprecated
 	public void deleteFactCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
@@ -668,7 +698,7 @@ public class OWLHandler {
 		String jsonStr = "";
 		response.getWriter().write(jsonStr);
 	}
-	
+
 	public void returnJSON(Object obj) throws IOException {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String js = gson.toJson(obj);
@@ -689,7 +719,7 @@ public class OWLHandler {
 		String jsonStr = "";
 		response.getWriter().write(jsonStr);
 	}
-	
+
 	public void assertOccursInCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("generates ClassAssertion");
@@ -704,8 +734,8 @@ public class OWLHandler {
 		String jsonStr = "";
 		response.getWriter().write(jsonStr);
 	}
-	
-	
+
+
 
 
 
@@ -757,17 +787,17 @@ public class OWLHandler {
 		return (OWLClass) graph.getOWLObjectByLabel(id);
 	}
 
-	
+
 	private OWLClassExpression resolveClassExpression() throws ParserException {
 		if (hasParam(Param.id)) { 
 			return resolveClass();
 		}
-		
+
 		String expr = getParam(Param.expression);
 		ManchesterSyntaxTool parser = new ManchesterSyntaxTool(graph.getSourceOntology(), graph.getSupportOntologySet());
 		return parser.parseManchesterExpression(expr);
 	}
-	
+
 	private OWLIndividual resolveIndividual(Param p) {
 		String id = getParam(p);
 		return graph.getOWLIndividualByIdentifier(id);
@@ -794,17 +824,17 @@ public class OWLHandler {
 	private Set<OWLClass> resolveClassList() {
 		return resolveClassList(Param.id);
 	}
-	
+
 	private OWLOntology resolveOntology(Param p) {
-		 String oid = getParam(p);
-		 for (OWLOntology ont : graph.getManager().getOntologies()) {
-			 String iri = ont.getOntologyID().getOntologyIRI().toString();
-			 // HACK
-			 if (iri.endsWith("/"+oid)) {
-				 return ont;
-			 }
-		 }
-		 return null;
+		String oid = getParam(p);
+		for (OWLOntology ont : graph.getManager().getOntologies()) {
+			String iri = ont.getOntologyID().getOntologyIRI().toString();
+			// HACK
+			if (iri.endsWith("/"+oid)) {
+				return ont;
+			}
+		}
+		return null;
 	}
 
 	private Set<OWLClass> resolveClassList(Param p) {
