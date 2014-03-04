@@ -1041,6 +1041,7 @@ public interface OwlSim {
 
 	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> goodAtts);
 
+	public OwlSimMetadata getMetadata();
 }
 
 

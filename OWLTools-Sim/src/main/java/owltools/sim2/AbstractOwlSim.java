@@ -37,6 +37,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.mooncat.ontologymetadata.OntologySetMetadata;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
@@ -936,4 +937,12 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return score;
 	}
 
+	
+	public OwlSimMetadata getMetadata() {
+		OwlSimMetadata md = new OwlSimMetadata();
+		md.ontologySet = new OntologySetMetadata(this.getSourceOntology());
+		md.individualCount = getAllElements().size();
+		
+		return md;
+	}
 }

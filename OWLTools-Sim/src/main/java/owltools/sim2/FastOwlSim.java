@@ -27,6 +27,7 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 
+import owltools.mooncat.ontologymetadata.OntologySetMetadata;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
@@ -1708,5 +1709,20 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			}
 		}
 
+	}
+	
+	@Override
+	public OwlSimMetadata getMetadata() {
+		OwlSimMetadata md = super.getMetadata();
+		md.classCount = this.getAllAttributeClasses().size();
+		md.classIndexSize = classArray.length;
+		md.individualCount = getAllElements().size();
+		md.lcsCacheWidth = ciPairLCS.length;
+		md.scaleFactor = scaleFactor;
+		md.reasonerClass = this.getReasoner().getClass().toString();
+		md.allTypesDirectCount = allTypesDirect.size();
+		md.allTypesInferredCount = allTypesInferred.size();
+
+		return md;
 	}
 }
