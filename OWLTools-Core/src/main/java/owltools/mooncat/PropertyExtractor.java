@@ -133,7 +133,7 @@ public class PropertyExtractor {
 			}
 			if (prop instanceof OWLAnnotationProperty) {
 				OWLAnnotationProperty ap = (OWLAnnotationProperty) prop;
-				axioms.addAll(propertyOntology.getAxioms(ap));
+				axioms.addAll(propertyOntology.getAxioms(ap)); // TODO - property chain
 			}
 			else {
 
@@ -174,6 +174,6 @@ public class PropertyExtractor {
 		return xo;
 	}
 
-
+	
 
 }
