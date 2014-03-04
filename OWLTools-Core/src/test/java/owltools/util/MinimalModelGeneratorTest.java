@@ -63,6 +63,8 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 	 * Addresses following challenges
 	 *  - autoclassification of digits into 'finger' or 'toe' (requires inverses)
 	 *  - heuristic collapse of 'limb' into forelimb and generation of a single 'organism'
+	 *  
+	 * This test is done using a DL reasoner, which is inverse-aware
 	 * 
 	 * @throws OWLOntologyCreationException
 	 * @throws OWLOntologyStorageException
@@ -121,8 +123,9 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 	}
 
 	/**
-	 * As DL test, but using Elk, with additional inverse assertion being provided by
-	 * MMG
+	 * As DL test {@see #testGenerateAnatomyDL()} ), 
+	 * but using Elk, with additional inverse assertion being provided by
+	 * MM
 	 * 
 	 * @throws OWLOntologyCreationException
 	 * @throws OWLOntologyStorageException
@@ -479,7 +482,41 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 		save("pathway-abox-merged");
 	}
 
-	
+	/**
+	 * 
+	 * @throws OWLOntologyCreationException
+	 * @throws OWLOntologyStorageException
+	 * @throws IOException
+	 */
+	@Test
+	public void testGeneratePathwayWithInclusionSets() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+		m = OWLManager.createOWLOntologyManager();
+		OWLOntology tbox = m.loadOntologyFromOntologyDocument(getResource("basic-tbox.omn"));
+		mmg = new MinimalModelGenerator(tbox, new org.semanticweb.HermiT.Reasoner.ReasonerFactory());
+
+		Set<OWLClass> occs = new HashSet<OWLClass>();
+		occs.add(getClass(OBOUpperVocabulary.GO_molecular_function));
+		occs.add(getClass(OBOUpperVocabulary.GO_biological_process));
+		
+		mmg.setInclusionSet(occs);
+		
+		//mmg.setPrecomputePropertyClassCombinations(false);
+		OWLClass c = getClass("bar_response_pathway");
+		mmg.generateNecessaryIndividuals(c, true);
+
+		mmg.normalizeDirections(partOf());
+		mmg.normalizeDirections(getObjectProperty(getIRI("activates")));
+		
+
+		this.expectFact("mapkkk_activity-proto", "activates", "mapkk_activity-proto");
+		this.expectFact("mapkk_activity-proto", "activates", "mapk_activity-proto");
+		this.expectedIndividiuals("cellular_process", 5);
+		
+		this.expectedOPAs("all", 20);
+		
+		mmg.extractModule();
+		save("pathway-abox-merged2");
+	}
 
 	/**
 	 * Tests {@link MinimalModelGenerator#getMostSpecificClassExpression(OWLNamedIndividual)}
