@@ -92,7 +92,7 @@ public class M3ExpressionParser {
 	private static OWLClassExpression parse(OWLGraphWrapper g, M3Expression[] expressions, boolean createClasses)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
 		if (expressions.length == 0) {
-			throw new MissingParameterException("Missing expressions: empty expression list are not allowed.");
+			throw new MissingParameterException("Missing expressions: empty expression list is not allowed.");
 		}
 		if (expressions.length == 1) {
 			return parse(g, expressions[0], createClasses);	
