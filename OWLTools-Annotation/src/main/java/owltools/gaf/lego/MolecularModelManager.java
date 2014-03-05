@@ -1427,21 +1427,17 @@ public class MolecularModelManager {
 	/**
 	 * @param modelId
 	 * @param iid
-	 * @param cid
+	 * @param clsExp
 	 * @return individual
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLNamedIndividual addTypeNonReasoning(String modelId, String iid, String cid) throws UnknownIdentifierException {
+	public OWLNamedIndividual addTypeNonReasoning(String modelId, String iid, OWLClassExpression clsExp) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		OWLClass cls = getClass(cid, model);
-		if (cls == null) {
-			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
-		}
-		addType(model, individual, cls, false);
+		addType(model, individual, clsExp, false);
 		return individual;
 	}
 	
@@ -1453,7 +1449,7 @@ public class MolecularModelManager {
 	 * @param c
 	 * @param flushReasoner
 	 */
-	private void addType(LegoModelGenerator model, OWLIndividual i, OWLClass c, boolean flushReasoner) {
+	private void addType(LegoModelGenerator model, OWLIndividual i, OWLClassExpression c, boolean flushReasoner) {
 		OWLClassAssertionAxiom axiom = model.getOWLDataFactory().getOWLClassAssertionAxiom(c,i);
 		addAxiom(model, axiom, flushReasoner);
 	}
@@ -1510,7 +1506,7 @@ public class MolecularModelManager {
 	}
 	
 	public OWLNamedIndividual addTypeNonReasoning(String modelId,
-			String iid, String pid, String cid) throws UnknownIdentifierException, OWLException {
+			String iid, String pid, OWLClassExpression ce) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
@@ -1520,26 +1516,10 @@ public class MolecularModelManager {
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
 		}
-		OWLClassExpression clsExp;
-		if (property.getIRI().equals(OBOUpperVocabulary.GOREL_enabled_by.getIRI())) {
-			// special handling for enabled_by
-			if (cid.contains(" ")) {
-				clsExp = parseClassExpression(cid, model);
-			}
-			else {
-				clsExp = getGeneClass(cid, model);
-			}
-		}
-		else {
-			clsExp = getClass(cid, model);
-		}
-		if (clsExp == null) {
-			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
-		}
-		addType(model, individual, property, clsExp, false);
+		addType(model, individual, property, ce, false);
 		return individual;
 	}
-
+	
 	/**
 	 * Adds a ClassAssertion, where the class expression instantiated is an
 	 * ObjectSomeValuesFrom expression
@@ -1601,35 +1581,13 @@ public class MolecularModelManager {
 		return createResponse(true, model, individual);
 	}
 	
-	public OWLNamedIndividual removeTypeNonReasoning(String modelId, String iid, String cid) throws UnknownIdentifierException {
+	public OWLNamedIndividual removeTypeNonReasoning(String modelId, String iid, OWLClassExpression clsExp) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		OWLClass cls = getClass(cid, model);
-		if (cls == null) {
-			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
-		}
-		removeType(model, individual, cls, false);
-		return individual;
-	}
-	
-	public OWLNamedIndividual removeTypeNonReasoning(String modelId, String iid, String pid, String cid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
-		OWLNamedIndividual individual = getIndividual(iid, model);
-		if (individual == null) {
-			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
-		}
-		OWLObjectProperty property = getObjectProperty(pid, model);
-		if (property == null) {
-			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
-		}
-		OWLClass cls = getClass(cid, model);
-		if (cls == null) {
-			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
-		}
-		removeType(model, individual, property, cls, false);
+		removeType(model, individual, clsExp, false);
 		return individual;
 	}
 	
@@ -1641,7 +1599,7 @@ public class MolecularModelManager {
 	 * @param c
 	 * @param flushReasoner
 	 */
-	private void removeType(LegoModelGenerator model, OWLIndividual i, OWLClass c, boolean flushReasoner) {
+	private void removeType(LegoModelGenerator model, OWLIndividual i, OWLClassExpression c, boolean flushReasoner) {
 		OWLDataFactory f = model.getOWLDataFactory();
 		OWLClassAssertionAxiom axiom = f.getOWLClassAssertionAxiom(c,i);
 		removeAxiom(model, axiom, flushReasoner);
@@ -1773,9 +1731,14 @@ public class MolecularModelManager {
 		return addEnabledBy(model, individual, clsExpr);
 	}
 
-	OWLClassExpression parseClassExpression(String expression, LegoModelGenerator model) throws OWLException {
+	private OWLClassExpression parseClassExpression(String expression, LegoModelGenerator model) throws OWLException {
+		OWLGraphWrapper g = new OWLGraphWrapper(model.getAboxOntology());
+		return parseClassExpression(expression, g);
+	}
+	
+	public static OWLClassExpression parseClassExpression(String expression, OWLGraphWrapper g) throws OWLException {
 		try {
-			ManchesterSyntaxTool syntaxTool = new ManchesterSyntaxTool(new OWLGraphWrapper(model.getAboxOntology()), true);
+			ManchesterSyntaxTool syntaxTool = new ManchesterSyntaxTool(g, true);
 			OWLClassExpression clsExpr = syntaxTool.parseManchesterExpression(expression);
 			return clsExpr;
 		}

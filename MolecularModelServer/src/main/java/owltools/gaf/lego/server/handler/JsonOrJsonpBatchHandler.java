@@ -1,8 +1,8 @@
 package owltools.gaf.lego.server.handler;
 
 import static owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler.*;
-import static owltools.gaf.lego.server.handler.M3BatchHandler.Entity.match;
-import static owltools.gaf.lego.server.handler.M3BatchHandler.Operation.match;
+import static owltools.gaf.lego.server.handler.M3BatchHandler.Entity.*;
+import static owltools.gaf.lego.server.handler.M3BatchHandler.Operation.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,6 +19,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.glassfish.jersey.server.JSONP;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -27,8 +28,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
-import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
+import owltools.gaf.lego.MolecularModelManager;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -115,15 +116,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 					if (request.arguments.expressions != null) {
 						for(M3Expression expression : request.arguments.expressions) {
-							requireNotNull(expression.type, "expression.type");
-							requireNotNull(expression.literal, "expression.literal");
-							if ("class".equals(expression.type)) {
-								m3.addTypeNonReasoning(modelId, individualPair.getKey(), expression.literal);
-							}
-							else if ("svf".equals(expression.type)) {
-								requireNotNull(expression.onProp, "expression.onProp");
-								m3.addTypeNonReasoning(modelId, individualPair.getKey(), expression.onProp, expression.literal);
-							}
+							OWLClassExpression cls = M3ExpressionParser.parse(modelId, expression, m3);
+							m3.addTypeNonReasoning(modelId, individualPair.getKey(), cls);
 						}
 					}
 				}
@@ -140,19 +134,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
 					for(M3Expression expression : request.arguments.expressions) {
-						requireNotNull(expression.type, "expression.type");
-						requireNotNull(expression.literal, "expression.literal");
-						if ("class".equals(expression.type)) {
-							OWLNamedIndividual i = m3.addTypeNonReasoning(modelId, 
-									request.arguments.individual, expression.literal);
-							relevantIndividuals.add(i);
-						}
-						else if ("svf".equals(expression.type)) {
-							requireNotNull(expression.onProp, "expression.onProp");
-							OWLNamedIndividual i = m3.addTypeNonReasoning(modelId,
-									request.arguments.individual, expression.onProp, expression.literal);
-							relevantIndividuals.add(i);
-						}
+						OWLClassExpression cls = M3ExpressionParser.parse(modelId, expression, m3);
+						OWLNamedIndividual i = m3.addTypeNonReasoning(modelId, request.arguments.individual, cls);
+						relevantIndividuals.add(i);
 					}
 				}
 				// remove type / named class assertion
@@ -161,19 +145,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
 					for(M3Expression expression : request.arguments.expressions) {
-						requireNotNull(expression.type, "expression.type");
-						requireNotNull(expression.literal, "expression.literal");
-						if ("class".equals(expression.type)) {
-							OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId,
-									request.arguments.individual, expression.literal);
-							relevantIndividuals.add(i);
-						}
-						else if ("svf".equals(expression.type)) {
-							requireNotNull(expression.onProp, "expression.onProp");
-							OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId,
-									request.arguments.individual, expression.onProp, expression.literal);
-							relevantIndividuals.add(i);
-						}
+						OWLClassExpression cls = M3ExpressionParser.parse(modelId, expression, m3);
+						OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId, request.arguments.individual, cls);
+						relevantIndividuals.add(i);
 					}
 				}
 				// add annotation
@@ -477,6 +451,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 	}
 
+
 	/**
 	 * @param modelId
 	 * @param request
@@ -546,14 +521,14 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 	}
 	
-	private static class MissingParameterException extends Exception {
+	static class MissingParameterException extends Exception {
 
 		private static final long serialVersionUID = 4362299465121954598L;
 
 		/**
 		 * @param message
 		 */
-		public MissingParameterException(String message) {
+		MissingParameterException(String message) {
 			super(message);
 		}
 		
@@ -566,7 +541,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		/**
 		 * @param message
 		 */
-		public MultipleModelIdsParameterException(String message) {
+		MultipleModelIdsParameterException(String message) {
 			super(message);
 		}
 		

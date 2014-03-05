@@ -138,6 +138,45 @@ public class BatchModelHandlerTest {
 		
 		M3BatchResponse resp3 = handler.m3Batch(uid, intention, batch3);
 		assertEquals(resp3.message, "success", resp3.message_type);
+		
+		// delete complex expression type
+		M3Request[] batch4 = new M3Request[1];
+		batch4[0] = new M3Request();
+		batch4[0].entity = Entity.individual.name();
+		batch4[0].operation = Operation.removeType.getLbl();
+		batch4[0].arguments = new M3Argument();
+		batch4[0].arguments.modelId = modelId;
+		batch4[0].arguments.individual = individual2;
+		batch4[0].arguments.expressions = new M3Expression[1];
+		batch4[0].arguments.expressions[0] = new M3Expression();
+		batch4[0].arguments.expressions[0].type = "svf";
+		batch4[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
+		// "GO:0043234 and ('has part' some UniProtKB:P0002) and ('has part' some UniProtKB:P0003)";
+		batch4[0].arguments.expressions[0].expressions = new M3Expression[3];
+
+		// GO:0043234
+		batch4[0].arguments.expressions[0].expressions[0] = new M3Expression();
+		batch4[0].arguments.expressions[0].expressions[0].type = "class";
+		batch4[0].arguments.expressions[0].expressions[0].literal = "GO:0043234";
+
+		//'has part' some UniProtKB:P0002
+		batch4[0].arguments.expressions[0].expressions[1] = new M3Expression();
+		batch4[0].arguments.expressions[0].expressions[1].type = "svf";
+		batch4[0].arguments.expressions[0].expressions[1].onProp = "BFO:0000051"; // has_part
+		batch4[0].arguments.expressions[0].expressions[1].literal = "UniProtKB:P0002";
+		
+		// 'has part' some UniProtKB:P0003
+		batch4[0].arguments.expressions[0].expressions[2] = new M3Expression();
+		batch4[0].arguments.expressions[0].expressions[2].type = "svf";
+		batch4[0].arguments.expressions[0].expressions[2].onProp = "BFO:0000051"; // has_part
+		batch4[0].arguments.expressions[0].expressions[2].literal = "UniProtKB:P0003";
+		
+		M3BatchResponse resp4 = handler.m3Batch(uid, intention, batch4);
+		assertEquals(resp4.message, "success", resp4.message_type);
+		List<Map<Object, Object>> iObjs4 = (List) resp4.data.get("individuals");
+		assertEquals(1, iObjs4.size());
+		List<Map> types = (List<Map>) iObjs4.get(0).get(KEY.type);
+		assertEquals(1, types.size());
 	}
 	
 	@Test
