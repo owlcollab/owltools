@@ -18,6 +18,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
@@ -37,6 +38,8 @@ import com.google.gson.GsonBuilder;
 
 public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
+	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
+	
 	private final MolecularModelManager m3;
 
 	public JsonOrJsonpBatchHandler(MolecularModelManager models) {
@@ -62,6 +65,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			return m3Batch(response, requests);
 		} catch (Exception e) {
 			return error(response, "Could not successfully handle batch request.", e);
+		} catch (Throwable t) {
+			logger.error("A critical error occured.", t);
+			return error(response, "An internal error occured at the server level.", t);
 		}
 	}
 
@@ -72,6 +78,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			return m3Batch(response, requests);
 		} catch (Exception e) {
 			return error(response, "Could not successfully complete batch request.", e);
+		} catch (Throwable t) {
+			logger.error("A critical error occured.", t);
+			return error(response, "An internal error occured at the server level.", t);
 		}
 	}
 	
@@ -490,7 +499,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	/*
 	 * commentary is now to be a string, not an unknown multi-leveled object.
 	 */
-	private M3BatchResponse error(M3BatchResponse state, String msg, Exception e) {
+	private M3BatchResponse error(M3BatchResponse state, String msg, Throwable e) {
 		state.message_type = "error";
 		state.message = msg;
 		if (e != null) {
