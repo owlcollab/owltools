@@ -378,7 +378,7 @@ public class CommandRunner {
 				Logger.getRootLogger().setLevel(Level.INFO);
 			}
 			else if (opts.nextEq("--log-debug")) {
-				Logger.getRootLogger().setLevel(Level.DEBUG);
+				Logger.getRootLogger().setLevel(Level.DEBUG);	
 			}
 			else if (opts.nextEq("--no-debug")) {
 				Logger.getRootLogger().setLevel(Level.OFF);
@@ -1228,6 +1228,7 @@ public class CommandRunner {
 				Set<OWLProperty> props = new HashSet<OWLProperty>();
 				boolean useProps = false;
 				boolean isCreateShorthand = true;
+				boolean isExpansive = false;
 
 				UUID uuid = UUID.randomUUID();
 				IRI newIRI = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
@@ -1436,7 +1437,8 @@ public class CommandRunner {
 
 			}
 			else if (opts.nextEq("--expand-macros")) {
-				opts.info("", "performs expansion on assertions and expressions. See OBO spec sec7");
+				opts.info("", "performs expansion on assertions and expressions. "+
+						"See http://oboformat.googlecode.com/svn/trunk/doc/obo-syntax.html#7");
 				MacroExpansionVisitor mev = 
 						new MacroExpansionVisitor(g.getSourceOntology());
 				mev.expandAll();
@@ -2766,6 +2768,7 @@ public class CommandRunner {
 				}
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-f")) {
+						opts.info("FORMAT", "omn OR ofn OR ttl OR owx OR ojs (experimental) OR obo (uses obooformat jar)");
 						String ofmtname = opts.nextOpt();
 						if (ofmtname.equals("manchester") || ofmtname.equals("omn")) {
 							ofmt = new ManchesterOWLSyntaxOntologyFormat();
