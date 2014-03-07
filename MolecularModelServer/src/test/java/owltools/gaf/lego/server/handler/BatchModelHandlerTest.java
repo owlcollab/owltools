@@ -198,6 +198,19 @@ public class BatchModelHandlerTest {
 	}
 	
 	@Test
+	public void testParseComplexOr() throws Exception {
+		final String modelId = models.generateBlankModel(null);
+		
+		M3Expression expression = new M3Expression();
+		expression.type = M3ExpressionType.svf.getLbl();
+		expression.onProp = "RO:0002333"; // enabled_by
+		expression.literal = "('has part' some UniProtKB:F1NGQ9) or ('has part' some UniProtKB:F1NJN0)";
+		
+		OWLClassExpression ce = M3ExpressionParser.parse(modelId, expression, models);
+		assertNotNull(ce);
+	}
+	
+	@Test
 	public void testModelAnnotations() throws Exception {
 		final String modelId = models.generateBlankModel(null);
 		String uid = "1";
