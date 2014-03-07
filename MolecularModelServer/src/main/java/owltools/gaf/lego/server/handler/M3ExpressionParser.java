@@ -28,7 +28,8 @@ public class M3ExpressionParser {
 			throw new UnknownIdentifierException("Could not find a model for id: "+modelId);
 		}
 		OWLGraphWrapper g = new OWLGraphWrapper(model.getAboxOntology());
-		return parse(g, expression, false);
+		return parse(g, expression, true);
+//		return parse(g, expression, false);
 	}
 	
 	private static OWLClassExpression parse(OWLGraphWrapper g, M3Expression expression, boolean createClasses)
@@ -57,10 +58,10 @@ public class M3ExpressionParser {
 			if (p == null) {
 				throw new UnknownIdentifierException("Could not find a property for: "+expression.onProp);
 			}
-			if (p.getIRI().equals(OBOUpperVocabulary.GOREL_enabled_by.getIRI())) {
-				// allow the creation of classes (i.e. Genes) for enabled_by
-				createClasses = true;
-			}
+//			if (p.getIRI().equals(OBOUpperVocabulary.GOREL_enabled_by.getIRI())) {
+//				// allow the creation of classes (i.e. Genes) for enabled_by
+//				createClasses = true;
+//			}
 			if (expression.expressions != null && expression.expressions.length > 0) {
 				OWLClassExpression ce = parse(g, expression.expressions, createClasses, M3ExpressionType.intersection);
 				return g.getDataFactory().getOWLObjectSomeValuesFrom(p, ce);
