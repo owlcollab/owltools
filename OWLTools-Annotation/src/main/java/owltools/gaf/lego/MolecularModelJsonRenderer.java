@@ -429,10 +429,11 @@ public class MolecularModelJsonRenderer {
 		return IRI.create(fullIRI);
 	}
 	
-	public static List<Map<Object, Object>> renderRelations(MolecularModelManager mmm) throws OWLOntologyCreationException {
+	public static List<Map<Object, Object>> renderRelations(MolecularModelManager mmm, Set<String> relevantRelations) throws OWLOntologyCreationException {
 		/* [{
 		 *   id: {String}
 		 *   label: {String}
+		 *   relevant: {boolean} // flag to indicate if this is a relation to be used in the model
 		 *   ?color: {String} // TODO in the future
 		 *   ?glyph: {String} // TODO in the future
 		 * }]
@@ -466,6 +467,9 @@ public class MolecularModelJsonRenderer {
 			Map<Object, Object> entry = new HashMap<Object, Object>();
 			entry.put("id", identifier);
 			entry.put("label", label);
+			if (relevantRelations != null && (relevantRelations.contains(label) || (relevantRelations.contains(identifier)))) {
+				entry.put("relevant", "true");
+			}
 			relList.add(entry);
 		}
 		return relList;

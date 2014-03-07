@@ -1,7 +1,10 @@
 package owltools.gaf.lego.server;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -33,8 +36,23 @@ public class StartUpTool {
 		String modelFolder = null;
 		String gafFolder = null; // optional
 		List<String> additionalImports = new ArrayList<String>();
+
+		// right now we are using the relation names to select as subset of relations
+		// later this might be done as an annotation property in OWL
+		Set<String> relevantRelations = new HashSet<String>();
+		// relations marked as important
+		relevantRelations.addAll(Arrays.asList(
+				"part_of",
+				"enabled_by",
+				"directly activates",
+				"directly provides input for", // weaker than 'directly activates'
+				"occurs in",
+				"has input",
+				"has output",
+				"starts with",
+				"ends with"));
+		
 		boolean allowBatch = true;
-		//boolean allowBatch = false;
 		
 		// server configuration
 		int port = 6800; 
@@ -68,6 +86,18 @@ public class StartUpTool {
 			else if (opts.nextEq("--allow-batch")) {
 				allowBatch = true;
 			}
+			else if (opts.nextEq("--set-relevant-relations")) {
+				relevantRelations.addAll(opts.nextList());
+			}
+			else if (opts.nextEq("--add-relevant-relations")) {
+				relevantRelations.addAll(opts.nextList());
+			}
+			else if (opts.nextEq("--add-relevant-relation")) {
+				relevantRelations.add(opts.nextOpt());
+			}
+			else if (opts.nextEq("--allow-batch")) {
+				allowBatch = true;
+			}
 			else {
 				break;
 			}
@@ -86,10 +116,10 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, catalog, modelFolder, gafFolder, port, contextString, additionalImports, allowBatch);
+		startUp(ontology, catalog, modelFolder, gafFolder, port, contextString, additionalImports, allowBatch, relevantRelations);
 	}
 
-	public static void startUp(String ontology, String catalog, String modelFolder, String gafFolder, int port, String contextString, List<String> additionalImports, boolean allowBatch)
+	public static void startUp(String ontology, String catalog, String modelFolder, String gafFolder, int port, String contextString, List<String> additionalImports, boolean allowBatch, Set<String> relevantRelations)
 			throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
@@ -109,11 +139,11 @@ public class StartUpTool {
 		}
 		models.addImports(additionalImports);
 
-		Server server = startUp(models, port, contextString, allowBatch);
+		Server server = startUp(models, port, contextString, allowBatch, relevantRelations);
 		server.join();
 	}
 	
-	public static Server startUp(MolecularModelManager models, int port, String contextString, boolean allowBatch)
+	public static Server startUp(MolecularModelManager models, int port, String contextString, boolean allowBatch, Set<String> relevantRelations)
 			throws Exception {
 		LOGGER.info("Setup Jetty config.");
 		// Configuration: Use an already existing handler instance
@@ -123,7 +153,7 @@ public class StartUpTool {
 		resourceConfig.register(RequireJsonpFilter.class);
 		//resourceConfig.register(AuthorizationRequestFilter.class);
 		if (allowBatch) {
-			JsonOrJsonpBatchHandler batchHandler = new JsonOrJsonpBatchHandler(models);
+			JsonOrJsonpBatchHandler batchHandler = new JsonOrJsonpBatchHandler(models, relevantRelations);
 			resourceConfig = resourceConfig.registerInstances(batchHandler);
 		}
 		JsonOrJsonpModelHandler defaultModelHandler = new JsonOrJsonpModelHandler(models);

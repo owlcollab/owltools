@@ -44,7 +44,7 @@ public class BatchModelHandlerTest {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go.owl");
 		models = new MolecularModelManager(graph);
-		handler = new JsonOrJsonpBatchHandler(models);
+		handler = new JsonOrJsonpBatchHandler(models, null);
 	}
 
 	@AfterClass

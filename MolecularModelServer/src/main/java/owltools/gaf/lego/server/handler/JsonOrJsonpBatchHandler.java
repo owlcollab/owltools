@@ -41,10 +41,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
 	private final MolecularModelManager m3;
+	private final Set<String> relevantRelations;
 
-	public JsonOrJsonpBatchHandler(MolecularModelManager models) {
+	public JsonOrJsonpBatchHandler(MolecularModelManager models, Set<String> relevantRelations) {
 		super();
 		this.m3 = models;
+		this.relevantRelations = relevantRelations;
 	}
 
 	private final GsonBuilder gsonBuilder = new GsonBuilder();
@@ -418,7 +420,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	}
 
 	private void getRelations(M3BatchResponse response, MolecularModelManager m3) throws OWLOntologyCreationException {
-		List<Map<Object,Object>> relList = MolecularModelJsonRenderer.renderRelations(m3);
+		List<Map<Object,Object>> relList = MolecularModelJsonRenderer.renderRelations(m3, relevantRelations);
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
 			response.message_type = "success";
