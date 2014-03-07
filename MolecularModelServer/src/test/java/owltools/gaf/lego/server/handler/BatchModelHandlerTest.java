@@ -22,6 +22,7 @@ import owltools.gaf.lego.server.handler.M3BatchHandler.Entity;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Argument;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Expression;
+import owltools.gaf.lego.server.handler.M3BatchHandler.M3ExpressionType;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Pair;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Request;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Operation;
@@ -105,9 +106,9 @@ public class BatchModelHandlerTest {
 		batch2[1].arguments.subject = "GO:0043276"; // anoikis
 		batch2[1].arguments.expressions = new M3Expression[1];
 		batch2[1].arguments.expressions[0] = new M3Expression();
-		batch2[1].arguments.expressions[0].type = "svf";
+		batch2[1].arguments.expressions[0].type = M3ExpressionType.svf.getLbl();
 		batch2[1].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
-		batch2[1].arguments.expressions[0].literal = "GO:0043234 and ('has part' some UniProtKB:P0002) and ('has part' some UniProtKB:P0003)";
+		batch2[1].arguments.expressions[0].literal = "GO:0043234 and (('has part' some UniProtKB:P0002) OR ('has part' some UniProtKB:P0003))";
 		
 		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2);
 		assertEquals(resp2.message, "success", resp2.message_type);
@@ -149,27 +150,31 @@ public class BatchModelHandlerTest {
 		batch4[0].arguments.individual = individual2;
 		batch4[0].arguments.expressions = new M3Expression[1];
 		batch4[0].arguments.expressions[0] = new M3Expression();
-		batch4[0].arguments.expressions[0].type = "svf";
+		batch4[0].arguments.expressions[0].type = M3ExpressionType.svf.getLbl();
 		batch4[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
-		// "GO:0043234 and ('has part' some UniProtKB:P0002) and ('has part' some UniProtKB:P0003)";
-		batch4[0].arguments.expressions[0].expressions = new M3Expression[3];
+		// "GO:0043234 and (('has part' some UniProtKB:P0002) OR ('has part' some UniProtKB:P0003))";
+		batch4[0].arguments.expressions[0].expressions = new M3Expression[2];
 
 		// GO:0043234
 		batch4[0].arguments.expressions[0].expressions[0] = new M3Expression();
-		batch4[0].arguments.expressions[0].expressions[0].type = "class";
+		batch4[0].arguments.expressions[0].expressions[0].type = M3ExpressionType.clazz.getLbl();
 		batch4[0].arguments.expressions[0].expressions[0].literal = "GO:0043234";
 
 		//'has part' some UniProtKB:P0002
 		batch4[0].arguments.expressions[0].expressions[1] = new M3Expression();
-		batch4[0].arguments.expressions[0].expressions[1].type = "svf";
-		batch4[0].arguments.expressions[0].expressions[1].onProp = "BFO:0000051"; // has_part
-		batch4[0].arguments.expressions[0].expressions[1].literal = "UniProtKB:P0002";
+		batch4[0].arguments.expressions[0].expressions[1].type = M3ExpressionType.union.getLbl();
+		batch4[0].arguments.expressions[0].expressions[1].expressions = new M3Expression[2];
+		
+		batch4[0].arguments.expressions[0].expressions[1].expressions[0] = new M3Expression();
+		batch4[0].arguments.expressions[0].expressions[1].expressions[0].type = M3ExpressionType.svf.getLbl();
+		batch4[0].arguments.expressions[0].expressions[1].expressions[0].onProp = "BFO:0000051"; // has_part
+		batch4[0].arguments.expressions[0].expressions[1].expressions[0].literal = "UniProtKB:P0002";
 		
 		// 'has part' some UniProtKB:P0003
-		batch4[0].arguments.expressions[0].expressions[2] = new M3Expression();
-		batch4[0].arguments.expressions[0].expressions[2].type = "svf";
-		batch4[0].arguments.expressions[0].expressions[2].onProp = "BFO:0000051"; // has_part
-		batch4[0].arguments.expressions[0].expressions[2].literal = "UniProtKB:P0003";
+		batch4[0].arguments.expressions[0].expressions[1].expressions[1] = new M3Expression();
+		batch4[0].arguments.expressions[0].expressions[1].expressions[1].type = M3ExpressionType.svf.getLbl();
+		batch4[0].arguments.expressions[0].expressions[1].expressions[1].onProp = "BFO:0000051"; // has_part
+		batch4[0].arguments.expressions[0].expressions[1].expressions[1].literal = "UniProtKB:P0003";
 		
 		M3BatchResponse resp4 = handler.m3Batch(uid, intention, batch4);
 		assertEquals(resp4.message, "success", resp4.message_type);

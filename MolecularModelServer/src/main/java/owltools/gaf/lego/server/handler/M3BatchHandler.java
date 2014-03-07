@@ -81,10 +81,28 @@ public interface M3BatchHandler {
 	}
 	
 	public static class M3Expression {
-		String type;
+		String type; // class, svf, intersection, union
 		String onProp;
 		String literal;
 		M3Expression[] expressions;
+	}
+	
+	public static enum M3ExpressionType {
+		
+		clazz("class"), 
+		svf("svf"),
+		intersection("intersection"),
+		union("union");
+		
+		private final String lbl;
+		
+		private M3ExpressionType(String lbl) {
+			this.lbl = lbl;
+		}
+		
+		public String getLbl() {
+			return lbl;
+		}
 	}
 	
 	public static class M3BatchResponse {

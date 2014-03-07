@@ -14,6 +14,7 @@ import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler.MissingParameterException;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Expression;
+import owltools.gaf.lego.server.handler.M3BatchHandler.M3ExpressionType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -35,7 +36,7 @@ public class M3ExpressionParser {
 		if (expression == null) {
 			throw new MissingParameterException("Missing expression: null is not a valid expression.");
 		}
-		if ("class".equals(expression.type)) {
+		if (M3ExpressionType.clazz.getLbl().equals(expression.type)) {
 			if (expression.literal == null) {
 				throw new MissingParameterException("Missing literal for expression of type 'class'");
 			}
@@ -48,7 +49,7 @@ public class M3ExpressionParser {
 			}
 			return cls;
 		}
-		else if ("svf".equals(expression.type)) {
+		else if (M3ExpressionType.svf.getLbl().equals(expression.type)) {
 			if (expression.onProp == null) {
 				throw new MissingParameterException("Missing onProp for expression of type 'svf'");
 			}
@@ -61,7 +62,7 @@ public class M3ExpressionParser {
 				createClasses = true;
 			}
 			if (expression.expressions != null && expression.expressions.length > 0) {
-				OWLClassExpression ce = parse(g, expression.expressions, createClasses);
+				OWLClassExpression ce = parse(g, expression.expressions, createClasses, M3ExpressionType.intersection);
 				return g.getDataFactory().getOWLObjectSomeValuesFrom(p, ce);
 			}
 			else if (expression.literal != null) {
@@ -84,12 +85,18 @@ public class M3ExpressionParser {
 				throw new MissingParameterException("Missing literal or expression for expression of type 'svf'.");
 			}
 		}
+		else if (M3ExpressionType.intersection.getLbl().equals(expression.type)) {
+			return parse(g, expression.expressions, createClasses, M3ExpressionType.intersection);
+		}
+		else if (M3ExpressionType.union.getLbl().equals(expression.type)) {
+			return parse(g, expression.expressions, createClasses, M3ExpressionType.union);
+		}
 		else {
 			throw new UnknownIdentifierException("Unknown expression type: "+expression.type);
 		}
 	}
 	
-	private static OWLClassExpression parse(OWLGraphWrapper g, M3Expression[] expressions, boolean createClasses)
+	private static OWLClassExpression parse(OWLGraphWrapper g, M3Expression[] expressions, boolean createClasses, M3ExpressionType type)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
 		if (expressions.length == 0) {
 			throw new MissingParameterException("Missing expressions: empty expression list is not allowed.");
@@ -101,6 +108,9 @@ public class M3ExpressionParser {
 		for (M3Expression m3Expression : expressions) {
 			OWLClassExpression ce = parse(g, m3Expression, createClasses);
 			clsExpressions.add(ce);
+		}
+		if (type == M3ExpressionType.union) {
+			return g.getDataFactory().getOWLObjectUnionOf(clsExpressions);
 		}
 		return g.getDataFactory().getOWLObjectIntersectionOf(clsExpressions);
 	}
