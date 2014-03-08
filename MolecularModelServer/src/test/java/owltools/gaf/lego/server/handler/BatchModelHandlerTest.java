@@ -2,6 +2,7 @@ package owltools.gaf.lego.server.handler;
 
 import static org.junit.Assert.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +45,7 @@ public class BatchModelHandlerTest {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go.owl");
 		models = new MolecularModelManager(graph);
-		handler = new JsonOrJsonpBatchHandler(models, null);
+		handler = new JsonOrJsonpBatchHandler(models, Collections.singleton("part_of"));
 	}
 
 	@AfterClass
@@ -289,7 +290,17 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response.intention);
 		assertEquals(M3Response.SUCCESS, response.message_type);
 		final List<Map<String, Object>> relations = (List)((Map) response.data).get("relations");
+		boolean hasPartOf = false;
+		for (Map<String, Object> map : relations) {
+			String id = (String)map.get("id");
+			assertNotNull(id);
+			if ("part_of".equals(id)) {
+				assertEquals("true", map.get("relevant"));
+				hasPartOf = true;
+			}
+		}
 		assertTrue(relations.size() > 100);
+		assertTrue(hasPartOf);
 
 		final List<Map<String, Object>> evidences = (List)((Map) response.data).get("evidence");
 		assertTrue(evidences.size() > 100);
