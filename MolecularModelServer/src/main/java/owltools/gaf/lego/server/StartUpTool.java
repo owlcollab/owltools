@@ -35,6 +35,7 @@ public class StartUpTool {
 		String catalog = null;
 		String modelFolder = null;
 		String gafFolder = null; // optional
+		String proteinOntologyFolder = null; // optional
 		List<String> additionalImports = new ArrayList<String>();
 
 		// right now we are using the relation names to select as subset of relations
@@ -67,6 +68,9 @@ public class StartUpTool {
 			}
 			else if (opts.nextEq("-f|--model-folder")) {
 				modelFolder = opts.nextOpt();
+			}
+			else if (opts.nextEq("-p|--protein-folder")) {
+				proteinOntologyFolder = opts.nextOpt();
 			}
 			else if (opts.nextEq("--gaf-folder")) {
 				gafFolder = opts.nextOpt();
@@ -116,10 +120,10 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, catalog, modelFolder, gafFolder, port, contextString, additionalImports, allowBatch, relevantRelations);
+		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, port, contextString, additionalImports, allowBatch, relevantRelations);
 	}
 
-	public static void startUp(String ontology, String catalog, String modelFolder, String gafFolder, int port, String contextString, List<String> additionalImports, boolean allowBatch, Set<String> relevantRelations)
+	public static void startUp(String ontology, String catalog, String modelFolder, String gafFolder, String proteinOntologyFolder, int port, String contextString, List<String> additionalImports, boolean allowBatch, Set<String> relevantRelations)
 			throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
@@ -138,6 +142,9 @@ public class StartUpTool {
 			models.setPathToGafs(gafFolder);
 		}
 		models.addImports(additionalImports);
+		if (proteinOntologyFolder != null) {
+			models.setPathToProteinFiles(proteinOntologyFolder);
+		}
 
 		Server server = startUp(models, port, contextString, allowBatch, relevantRelations);
 		server.join();

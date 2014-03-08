@@ -26,8 +26,8 @@ public class GenerateProteinOntologies {
 				outputFolder = opts.nextOpt();
 			}
 			else if (opts.nextEq("-m|--map")) {
-				String source = opts.nextOpt();
 				String name = opts.nextOpt();
+				String source = opts.nextOpt();
 				files.put(source, name);
 			}
 			else {

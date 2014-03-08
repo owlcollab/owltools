@@ -14,6 +14,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -30,6 +31,8 @@ import owltools.gaf.bioentities.QuestForOrthologsSeqXMLParser.ProteinListener;
 import owltools.vocab.OBOUpperVocabulary;
 
 public class ProteinTools {
+	
+	private static final Logger logger = Logger.getLogger(ProteinTools.class);
 
 	/**
 	 * Create protein ontologies from the qfo files.
@@ -60,12 +63,15 @@ public class ProteinTools {
 			if (inputFile.exists() == false) {
 				inputFile = new File(inputFolder, taxonId+".xml");
 			}
+			logger.info("Load from file: "+inputFile);
 
 			IRI ontologyId = createProteinOntologyIRI(taxonId);
 			OWLOntology ont = createProteinLabelOntology(m, ontologyId, inputFile);
 			File outputFile = new File(outputFolder, outputFileName);
 			
+			logger.info("Save to file: "+outputFile.getCanonicalPath());
 			m.saveOntology(ont, format, IRI.create(outputFile));
+			m.removeOntology(ont);
 			
 			catalogBuilder.append(" <uri name=\""+ontologyId.toString()+"\" uri=\""+outputFileName+"\"/>").append('\n');
 			if (outputName != null) {
