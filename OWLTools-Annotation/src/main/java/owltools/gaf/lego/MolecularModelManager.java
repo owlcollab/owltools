@@ -60,6 +60,7 @@ import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
@@ -69,8 +70,10 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.eco.EcoMapper;
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.CatalogXmlIRIMapper;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
@@ -97,6 +100,9 @@ public class MolecularModelManager {
 	Map<String, LegoModelGenerator> modelMap = new HashMap<String, LegoModelGenerator>();
 	String pathToGafs = "gene-associations";
 	String pathToOWLFiles = "owl-models";
+	String pathToProteinFiles = null;
+	OWLOntologyIRIMapper proteinMapper = null;
+	
 	GafObjectsBuilder builder = new GafObjectsBuilder();
 	// WARNING: Do *NOT* switch to functional syntax until the OWL-API has fixed a bug.
 	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
@@ -322,7 +328,33 @@ public class MolecularModelManager {
 	public void setPathToOWLFiles(String pathToOWLFiles) {
 		this.pathToOWLFiles = pathToOWLFiles;
 	}
-		
+	
+	/**
+	 * @param pathToProteinFiles
+	 * @throws IOException 
+	 */
+	public synchronized void setPathToProteinFiles(String pathToProteinFiles) throws IOException {
+		setPathToProteinFiles(pathToProteinFiles, "catalog-v001.xml");
+	}
+	
+	/**
+	 * @param pathToProteinFiles
+	 * @param catalogXML
+	 * @throws IOException 
+	 */
+	public synchronized void setPathToProteinFiles(String pathToProteinFiles, String catalogXML) throws IOException {
+		if (proteinMapper != null) {
+			graph.getManager().removeIRIMapper(proteinMapper);
+		}
+		this.pathToProteinFiles = pathToProteinFiles;
+		proteinMapper = new CatalogXmlIRIMapper(new File(pathToProteinFiles, catalogXML));
+		graph.getManager().addIRIMapper(proteinMapper);
+	}
+	
+	public String getPathToProteinFiles() {
+		return pathToProteinFiles;
+	}
+	
 	/**
 	 * loads/register a Gaf document
 	 * 
@@ -421,7 +453,7 @@ public class MolecularModelManager {
 		abox = m.createOntology(iri);
 		
 		// setup model ontology to import the source ontology and other imports
-		createImports(abox, tbox.getOntologyID());
+		createImports(abox, tbox.getOntologyID(), db);
 		
 		// create generator
 		LegoModelGenerator model = new LegoModelGenerator(tbox, abox);
@@ -442,7 +474,7 @@ public class MolecularModelManager {
 
 	}
 
-	private void createImports(OWLOntology ont, OWLOntologyID tboxId) throws OWLOntologyCreationException {
+	private void createImports(OWLOntology ont, OWLOntologyID tboxId, String db) throws OWLOntologyCreationException {
 		OWLOntologyManager m = ont.getOWLOntologyManager();
 		OWLDataFactory f = m.getOWLDataFactory();
 		
@@ -455,6 +487,17 @@ public class MolecularModelManager {
 			OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(importIRI);
 			m.loadOntology(importIRI);
 			m.applyChange(new AddImport(ont, importDeclaration));
+		}
+		
+		// check for protein ontology
+		if (db != null && pathToProteinFiles != null && proteinMapper != null) {
+			IRI proteinIRI = ProteinTools.createProteinOntologyIRI(db);
+			IRI mapped = proteinMapper.getDocumentIRI(proteinIRI);
+			if (mapped != null) {
+				OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(proteinIRI);
+				m.loadOntology(proteinIRI);
+				m.applyChange(new AddImport(ont, importDeclaration));
+			}
 		}
 	}
 	
@@ -511,7 +554,7 @@ public class MolecularModelManager {
 		final OWLOntology abox = m.createOntology(aBoxIRI);
 
 		// add imports to T-Box and additional ontologies via IRI
-		createImports(abox, tbox.getOntologyID());
+		createImports(abox, tbox.getOntologyID(), db);
 		
 		// generate model
 		LegoModelGenerator model = new LegoModelGenerator(tbox, abox);
