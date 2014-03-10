@@ -101,6 +101,7 @@ public class MolecularModelManager {
 	String pathToGafs = "gene-associations";
 	String pathToOWLFiles = "owl-models";
 	String pathToProteinFiles = null;
+	Map<String, String> dbToTaxon = null;
 	OWLOntologyIRIMapper proteinMapper = null;
 	
 	GafObjectsBuilder builder = new GafObjectsBuilder();
@@ -356,6 +357,18 @@ public class MolecularModelManager {
 	}
 	
 	/**
+	 * @return the dbToTaxon
+	 */
+	public Map<String, String> getDbToTaxon() {
+		return dbToTaxon;
+	}
+	/**
+	 * @param dbToTaxon the dbToTaxon to set
+	 */
+	public void setDbToTaxon(Map<String, String> dbToTaxon) {
+		this.dbToTaxon = dbToTaxon;
+	}
+	/**
 	 * loads/register a Gaf document
 	 * 
 	 * @param db
@@ -491,7 +504,15 @@ public class MolecularModelManager {
 		
 		// check for protein ontology
 		if (db != null && pathToProteinFiles != null && proteinMapper != null) {
-			IRI proteinIRI = ProteinTools.createProteinOntologyIRI(db);
+			String taxonId = null;
+			if (dbToTaxon != null) {
+				taxonId = dbToTaxon.get(db);
+			}
+			if (taxonId == null) {
+				// fallback
+				taxonId = db;
+			}
+			IRI proteinIRI = ProteinTools.createProteinOntologyIRI(taxonId);
 			IRI mapped = proteinMapper.getDocumentIRI(proteinIRI);
 			if (mapped != null) {
 				OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(proteinIRI);
@@ -631,7 +652,7 @@ public class MolecularModelManager {
 		OWLOntology ont = mod.getAboxOntology();
 		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
-			objs.add(renderer.renderObject(ont, i));
+			objs.add(renderer.renderObject(i));
 		}
 		return objs;
 	}
@@ -643,7 +664,7 @@ public class MolecularModelManager {
 	public Map<Object, Object> getModelObject(String modelId) {
 		LegoModelGenerator mod = getModel(modelId);
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
-		return renderer.renderObject(mod.getAboxOntology());
+		return renderer.renderModel();
 	}
 
 	/**
@@ -1408,16 +1429,6 @@ public class MolecularModelManager {
 		return model.getAboxOntology().getOWLOntologyManager();
 	}
 
-	/**
-	 * TODO better re-use of MolecularModelJsonRenderer.
-	 * At the moment this method is a partial copy of
-	 * {@link MolecularModelJsonRenderer#renderObject(OWLOntology)}
-	 * 
-	 * TODO rename to reflect extended task, i.e. facts
-	 * @param resp
-	 * @param mod
-	 * @param individuals
-	 */
 	private void addIndividualsData(OWLOperationResponse resp, LegoModelGenerator mod, OWLIndividual...individuals) {
 		List<OWLNamedIndividual> individualIds = new ArrayList<OWLNamedIndividual>();
 		for (OWLIndividual i : individuals) {

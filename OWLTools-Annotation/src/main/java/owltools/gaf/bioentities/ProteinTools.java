@@ -4,9 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
@@ -33,32 +34,54 @@ import owltools.vocab.OBOUpperVocabulary;
 public class ProteinTools {
 	
 	private static final Logger logger = Logger.getLogger(ProteinTools.class);
-
+	
+	/**
+	 * Retrieve the default mapping from db name to the numeric part of the NCBI
+	 * taxon id.
+	 * 
+	 * @return map
+	 */
+	public static Map<String, String> getDefaultDbToTaxon() {
+		Map<String, String> dbToTaxon = new HashMap<String, String>();
+		dbToTaxon.put("goa_human", "9606");
+		dbToTaxon.put("cgd", "237561");
+		dbToTaxon.put("dictyBase", "44689");
+		dbToTaxon.put("ecocyc", "83333");
+		dbToTaxon.put("fb", "7227");
+		dbToTaxon.put("goa_chicken", "9031");
+		dbToTaxon.put("goa_cow", "9913");
+		dbToTaxon.put("goa_dog", "9615");
+		dbToTaxon.put("goa_pig", "9823");
+		dbToTaxon.put("gramene_oryza", "39947");
+		dbToTaxon.put("mgi", "10090");
+		dbToTaxon.put("pombase", "284812");
+		dbToTaxon.put("pseudocap", "208964");
+		dbToTaxon.put("rgd", "10116");
+		dbToTaxon.put("sgd", "559292");
+		dbToTaxon.put("tair", "3702");
+		dbToTaxon.put("wb", "6239");
+		dbToTaxon.put("zfin", "7955");
+		dbToTaxon = Collections.unmodifiableMap(dbToTaxon);
+		return dbToTaxon;
+	}
+	
 	/**
 	 * Create protein ontologies from the qfo files.
 	 * 
-	 * @param ids map of taxon ids to output filenames
+	 * @param ids set of taxon ids
 	 * @param inputFolder the folder for the input qfo seq xml file
 	 * @param outputFolder folder for the owl files
 	 * @param catalogXML
 	 * @throws Exception
 	 */
-	public static void createProteinOntologies(Map<String, String> ids, String inputFolder, String outputFolder, String catalogXML) throws Exception {
+	public static void createProteinOntologies(Set<String> ids, String inputFolder, String outputFolder, String catalogXML) throws Exception {
 		final OWLOntologyFormat format = new ManchesterOWLSyntaxOntologyFormat();
 		final OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 		StringBuilder catalogBuilder = new StringBuilder();
 		catalogBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>").append('\n');
 		catalogBuilder.append("<catalog>").append('\n');
-		for(Entry<String, String> entry : ids.entrySet()) {
-			String taxonId = entry.getKey();
-			String outputFileName;
-			String outputName = entry.getValue();
-			if (outputName == null) {
-				outputFileName = taxonId+".owl";
-			}
-			else {
-				outputFileName = outputName+".owl";
-			}
+		for(String taxonId : ids) {
+			String outputName = taxonId+".owl";
 			File inputFile = new File(inputFolder, taxonId+".xml.gz");
 			if (inputFile.exists() == false) {
 				inputFile = new File(inputFolder, taxonId+".xml");
@@ -67,17 +90,13 @@ public class ProteinTools {
 
 			IRI ontologyId = createProteinOntologyIRI(taxonId);
 			OWLOntology ont = createProteinLabelOntology(m, ontologyId, inputFile);
-			File outputFile = new File(outputFolder, outputFileName);
+			File outputFile = new File(outputFolder, outputName);
 			
 			logger.info("Save to file: "+outputFile.getCanonicalPath());
 			m.saveOntology(ont, format, IRI.create(outputFile));
 			m.removeOntology(ont);
 			
-			catalogBuilder.append(" <uri name=\""+ontologyId.toString()+"\" uri=\""+outputFileName+"\"/>").append('\n');
-			if (outputName != null) {
-				IRI alternateOntologyId = createProteinOntologyIRI(outputName);
-				catalogBuilder.append(" <uri name=\""+alternateOntologyId.toString()+"\" uri=\""+outputFileName+"\"/>").append('\n');
-			}
+			catalogBuilder.append(" <uri name=\""+ontologyId.toString()+"\" uri=\""+outputName+"\"/>").append('\n');
 		}
 		catalogBuilder.append("</catalog>").append('\n');
 		if (catalogXML != null) {

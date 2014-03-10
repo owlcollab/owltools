@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +16,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import owltools.cli.Opts;
+import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler;
 import owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler;
@@ -54,6 +56,10 @@ public class StartUpTool {
 				"ends with"));
 		
 		boolean allowBatch = true;
+		
+		// provide a map from db name to taxonId
+		// used to resolve a protain ontology (if available)
+		Map<String, String> dbToTaxon = ProteinTools.getDefaultDbToTaxon();
 		
 		// server configuration
 		int port = 6800; 
@@ -120,11 +126,13 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, port, contextString, additionalImports, allowBatch, relevantRelations);
+		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, port, contextString, additionalImports, allowBatch, relevantRelations, dbToTaxon);
 	}
 
-	public static void startUp(String ontology, String catalog, String modelFolder, String gafFolder, String proteinOntologyFolder, int port, String contextString, List<String> additionalImports, boolean allowBatch, Set<String> relevantRelations)
-			throws Exception {
+	public static void startUp(String ontology, String catalog, String modelFolder, 
+			String gafFolder, String proteinOntologyFolder, int port, String contextString, 
+			List<String> additionalImports, boolean allowBatch, Set<String> relevantRelations, 
+			Map<String, String> dbToTaxon) throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
 		ParserWrapper pw = new ParserWrapper();
@@ -145,7 +153,8 @@ public class StartUpTool {
 		if (proteinOntologyFolder != null) {
 			models.setPathToProteinFiles(proteinOntologyFolder);
 		}
-
+		models.setDbToTaxon(dbToTaxon);
+		
 		Server server = startUp(models, port, contextString, allowBatch, relevantRelations);
 		server.join();
 	}

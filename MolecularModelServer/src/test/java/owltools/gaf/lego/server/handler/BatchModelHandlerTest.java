@@ -12,8 +12,13 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 
+import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.ManchesterSyntaxTool;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
@@ -27,7 +32,6 @@ import owltools.gaf.lego.server.handler.M3BatchHandler.M3ExpressionType;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Pair;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Request;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Operation;
-import owltools.gaf.lego.server.handler.M3Handler.M3Response;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -45,6 +49,9 @@ public class BatchModelHandlerTest {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go.owl");
 		models = new MolecularModelManager(graph);
+		models.setPathToGafs("src/test/resources/gaf");
+		models.setPathToProteinFiles("src/test/resources/ontology/protein/subset");
+		models.setDbToTaxon(ProteinTools.getDefaultDbToTaxon());
 		handler = new JsonOrJsonpBatchHandler(models, Collections.singleton("part_of"));
 	}
 
@@ -69,7 +76,7 @@ public class BatchModelHandlerTest {
 		batch1[0].entity = Entity.model.name();
 		batch1[0].operation = Operation.generateBlank.getLbl();
 		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch1);
-		assertEquals(resp1.message, "success", resp1.message_type);
+		assertEquals(resp1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp1.message_type);
 		final String modelId = (String) resp1.data.get("id");
 		
 		// create two individuals
@@ -112,7 +119,7 @@ public class BatchModelHandlerTest {
 		batch2[1].arguments.expressions[0].literal = "GO:0043234 and (('has part' some UniProtKB:P0002) OR ('has part' some UniProtKB:P0003))";
 		
 		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2);
-		assertEquals(resp2.message, "success", resp2.message_type);
+		assertEquals(resp2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp2.message_type);
 		String individual1 = null;
 		String individual2 = null;
 		List<Map<Object, Object>> iObjs = (List) resp2.data.get("individuals");
@@ -139,7 +146,7 @@ public class BatchModelHandlerTest {
 		batch3[0].arguments.predicate = "BFO:0000050"; // part_of
 		
 		M3BatchResponse resp3 = handler.m3Batch(uid, intention, batch3);
-		assertEquals(resp3.message, "success", resp3.message_type);
+		assertEquals(resp3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp3.message_type);
 		
 		// delete complex expression type
 		M3Request[] batch4 = new M3Request[1];
@@ -178,7 +185,7 @@ public class BatchModelHandlerTest {
 		batch4[0].arguments.expressions[0].expressions[1].expressions[1].literal = "UniProtKB:P0003";
 		
 		M3BatchResponse resp4 = handler.m3Batch(uid, intention, batch4);
-		assertEquals(resp4.message, "success", resp4.message_type);
+		assertEquals(resp4.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp4.message_type);
 		List<Map<Object, Object>> iObjs4 = (List) resp4.data.get("individuals");
 		assertEquals(1, iObjs4.size());
 		List<Map> types = (List<Map>) iObjs4.get(0).get(KEY.type);
@@ -234,7 +241,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.values[1].value = "comment 2";
 		
 		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch1);
-		assertEquals(resp1.message, "success", resp1.message_type);
+		assertEquals(resp1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp1.message_type);
 		
 		
 		Map<Object, Object> data = models.getModelObject(modelId);
@@ -257,7 +264,7 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments.values[0].value = "comment 1";
 
 		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2);
-		assertEquals(resp2.message, "success", resp2.message_type);
+		assertEquals(resp2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp2.message_type);
 		
 		Map<Object, Object> data2 = models.getModelObject(modelId);
 		List annotations2 = (List) data2.get("annotations");
@@ -288,7 +295,7 @@ public class BatchModelHandlerTest {
 		M3BatchResponse response = handler.m3Batch(uid, intention, requests);
 		assertEquals(uid, response.uid);
 		assertEquals(intention, response.intention);
-		assertEquals(M3Response.SUCCESS, response.message_type);
+		assertEquals(M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
 		final List<Map<String, Object>> relations = (List)((Map) response.data).get("relations");
 		boolean hasPartOf = false;
 		for (Map<String, Object> map : relations) {
@@ -312,4 +319,70 @@ public class BatchModelHandlerTest {
 		assertEquals(0, modelIds.size());
 	}
 
+	@Test
+	public void testProteinNames() throws Exception {
+		String uid = "1";
+		String intention = "foo";
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.model.name();
+		batch1[0].operation = Operation.generateBlank.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.db = "goa_chicken";
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		final String modelId = (String) response1.data.get("id");
+		
+		// check model for imports
+		LegoModelGenerator model = models.getModel(modelId);
+		assertNotNull(model);
+		OWLOntology aBox = model.getAboxOntology();
+		Set<OWLOntology> closure = aBox.getImportsClosure();
+		boolean found = false;
+		for (OWLOntology ont : closure) {
+			OWLOntologyID id = ont.getOntologyID();
+			IRI iri = id.getOntologyIRI();
+			if (iri.toString().endsWith("/9031.owl")) {
+				found = true;
+			}
+		}
+		assertTrue(found);
+		
+		// check that id resolves to a class and has the expected label
+		final String proteinId = "UniProtKB:F1NGQ9";
+		final String proteinLabel = "FZD1";
+		OWLGraphWrapper g = new OWLGraphWrapper(aBox);
+		OWLClass cls = g.getOWLClassByIdentifier(proteinId);
+		assertNotNull(cls);
+		assertEquals(proteinLabel, g.getLabel(cls));
+		
+		// try to generate a model with a protein and protein label
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.individual.name();
+		batch2[0].operation = Operation.create.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.modelId = modelId;
+		batch2[0].arguments.subject = "GO:0006915"; // apoptotic process
+		batch2[0].arguments.expressions = new M3Expression[1];
+		batch2[0].arguments.expressions[0] = new M3Expression();
+		batch2[0].arguments.expressions[0].type = "svf";
+		batch2[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
+		batch2[0].arguments.expressions[0].literal = proteinId;
+		
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		List<Map<Object, Object>> iObjs = (List) response2.data.get("individuals");
+		assertEquals(1, iObjs.size());
+		Map<Object, Object> individual = iObjs.get(0);
+		Map onProperty = (Map)((List) individual.get(KEY.type)).get(1);
+		Map svf = (Map) onProperty.get(KEY.someValuesFrom);
+		assertEquals(proteinId, svf.get(KEY.id));
+		assertEquals(proteinLabel, svf.get(KEY.label));
+	}
 }

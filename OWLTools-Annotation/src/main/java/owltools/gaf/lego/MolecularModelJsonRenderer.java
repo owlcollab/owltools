@@ -60,7 +60,8 @@ public class MolecularModelJsonRenderer {
 	
 	private static Logger LOG = Logger.getLogger(MolecularModelJsonRenderer.class);
 	
-	OWLGraphWrapper graph;
+	private final OWLOntology ont;
+	private final OWLGraphWrapper graph;
 
 	/**
 	 * JSON-LD keywords for elements of different vocabularies:
@@ -102,34 +103,36 @@ public class MolecularModelJsonRenderer {
 		someValueFrom
 	}
 	
-	Gson gson = new Gson();
-	
 	/**
 	 * @param ontology
 	 */
 	public MolecularModelJsonRenderer(OWLOntology ontology) {
-		this(new OWLGraphWrapper(ontology));
+		this(ontology, new OWLGraphWrapper(ontology));
 	}
 	
 	/**
 	 * @param graph
 	 */
 	public MolecularModelJsonRenderer(OWLGraphWrapper graph) {
-		super();
-		this.graph = graph;
+		this(graph.getSourceOntology(), graph);
 	}
 
+	private MolecularModelJsonRenderer(OWLOntology ont, OWLGraphWrapper graph) {
+		super();
+		this.ont = ont;
+		this.graph = graph;
+	}
+	
 	/**
-	 * @param ont
 	 * @return Map to be passed to Gson
 	 */
-	public Map<Object, Object> renderObject(OWLOntology ont) {
+	public Map<Object, Object> renderModel() {
 		Map<Object, Object> model = new HashMap<Object, Object>();
 		
 		// per-Individual
 		List<Map<Object, Object>> iObjs = new ArrayList<Map<Object, Object>>();
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
-			iObjs.add(renderObject(ont, i));
+			iObjs.add(renderObject(i));
 		}
 		model.put("individuals", iObjs);
 		
@@ -139,7 +142,7 @@ public class MolecularModelJsonRenderer {
 		List<Map<Object, Object>> aObjs = new ArrayList<Map<Object, Object>>();
 		for (OWLObjectPropertyAssertionAxiom opa : 
 			ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
-			aObjs.add(renderObject(ont, opa));
+			aObjs.add(renderObject(opa));
 			usedProps.addAll(opa.getObjectPropertiesInSignature());
 		}
 		model.put("facts", aObjs);
@@ -148,7 +151,7 @@ public class MolecularModelJsonRenderer {
 		List<Map<Object, Object>> pObjs = new ArrayList<Map<Object, Object>>();
 		for (OWLObjectProperty p : ont.getObjectPropertiesInSignature(true)) {
 			if (usedProps.contains(p)) {
-				pObjs.add(renderObject(ont, p));
+				pObjs.add(renderObject(p));
 			}
 		}
 		model.put("properties", pObjs);
@@ -196,7 +199,7 @@ public class MolecularModelJsonRenderer {
 		for (OWLIndividual i : individuals) {
 			if (i instanceof OWLNamedIndividual) {
 				OWLNamedIndividual named = (OWLNamedIndividual)i;
-				iObjs.add(renderObject(ont, named));
+				iObjs.add(renderObject(named));
 				individualIds.add(named);
 				
 				Set<OWLIndividualAxiom> iAxioms = ont.getAxioms(i);
@@ -211,7 +214,7 @@ public class MolecularModelJsonRenderer {
 		
 		List<Map<Object, Object>> aObjs = new ArrayList<Map<Object, Object>>();
 		for (OWLObjectPropertyAssertionAxiom opa : opAxioms) {
-			aObjs.add(renderObject(ont, opa));
+			aObjs.add(renderObject(opa));
 		}
 		map.put("facts", aObjs);
 		
@@ -221,18 +224,17 @@ public class MolecularModelJsonRenderer {
 	}
 	
 	/**
-	 * @param ont
 	 * @param i
 	 * @return Map to be passed to Gson
 	 */
-	public Map<Object, Object> renderObject(OWLOntology ont, OWLNamedIndividual i) {
+	public Map<Object, Object> renderObject(OWLNamedIndividual i) {
 		Map<Object, Object> iObj = new HashMap<Object, Object>();
 		iObj.put(KEY.id, getId(i, graph));
 		iObj.put(KEY.label, getLabel(i));
 		
 		List<Object> typeObjs = new ArrayList<Object>();		
 		for (OWLClassExpression x : i.getTypes(ont)) {
-			typeObjs.add(renderObject(ont, x));
+			typeObjs.add(renderObject(x));
 		}
 		Map<OWLObjectPropertyExpression, Set<OWLIndividual>> pvs = i.getObjectPropertyValues(ont);
 		for (OWLObjectPropertyExpression p : pvs.keySet()) {
@@ -267,11 +269,10 @@ public class MolecularModelJsonRenderer {
 	}
 	
 	/**
-	 * @param ont
 	 * @param opa
 	 * @return Map to be passed to Gson
 	 */
-	public Map<Object, Object> renderObject(OWLOntology ont, OWLObjectPropertyAssertionAxiom opa) {
+	public Map<Object, Object> renderObject(OWLObjectPropertyAssertionAxiom opa) {
 		Map<Object, Object> aObj = new HashMap<Object, Object>();
 		OWLNamedIndividual subject;
 		OWLObjectProperty property;
@@ -293,11 +294,10 @@ public class MolecularModelJsonRenderer {
 	}
 
 	/**
-	 * @param ont
 	 * @param p
 	 * @return Map to be passed to Gson
 	 */
-	public Map<Object, Object> renderObject(OWLOntology ont, OWLObjectProperty p) {
+	public Map<Object, Object> renderObject(OWLObjectProperty p) {
 		Map<Object, Object> iObj = new HashMap<Object, Object>();
 		iObj.put(KEY.id, getId(p, graph));
 		iObj.put(KEY.label, getLabel(p));
@@ -306,32 +306,31 @@ public class MolecularModelJsonRenderer {
 		return iObj;
 	}
 	/**
-	 * @param ont
 	 * @param x
 	 * @return  Object to be passed to Gson
 	 */
-	private Object renderObject(OWLOntology ont, OWLClassExpression x) {
+	private Object renderObject(OWLClassExpression x) {
 		Map<Object, Object> xObj = new HashMap<Object, Object>();
 		if (x.isAnonymous()) {
 			if (x instanceof OWLObjectIntersectionOf) {
 				List<Object> yObjs = new ArrayList<Object>();		
 				for (OWLClassExpression y : ((OWLObjectIntersectionOf)x).getOperands()) {
-					yObjs.add(renderObject(ont, y));
+					yObjs.add(renderObject(y));
 				}
 				xObj.put(KEY.intersectionOf, yObjs);
 			}
 			else if (x instanceof OWLObjectUnionOf) {
 				List<Object> yObjs = new ArrayList<Object>();		
 				for (OWLClassExpression y : ((OWLObjectUnionOf)x).getOperands()) {
-					yObjs.add(renderObject(ont, y));
+					yObjs.add(renderObject(y));
 				}
 				xObj.put(KEY.unionOf, yObjs);
 			}
 			else if (x instanceof OWLObjectSomeValuesFrom) {
 				OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)x;
 				xObj.put(KEY.type, VAL.Restriction);
-				xObj.put(KEY.onProperty, renderObject(ont, svf.getProperty()));
-				xObj.put(KEY.someValuesFrom, renderObject(ont, svf.getFiller()));				
+				xObj.put(KEY.onProperty, renderObject(svf.getProperty()));
+				xObj.put(KEY.someValuesFrom, renderObject(svf.getFiller()));				
 			}
 			else {
 				// TODO
@@ -343,8 +342,7 @@ public class MolecularModelJsonRenderer {
 		return xObj;
 	}
 
-	private Object renderObject(OWLOntology ont,
-			OWLObjectPropertyExpression px) {
+	private Object renderObject(OWLObjectPropertyExpression px) {
 		if (px.isAnonymous()) {
 			return null; // TODO
 		}
@@ -500,8 +498,11 @@ public class MolecularModelJsonRenderer {
 		return relList;
 	}
 
-	public String renderJson(OWLOntology ont) {
-		Map<Object, Object> obj = renderObject(ont);
+	private static final Gson gson = new Gson();
+	
+	public static String renderToJson(OWLOntology ont) {
+		MolecularModelJsonRenderer r = new MolecularModelJsonRenderer(ont);
+		Map<Object, Object> obj = r.renderModel();
 		return gson.toJson(obj);
 	}
 
