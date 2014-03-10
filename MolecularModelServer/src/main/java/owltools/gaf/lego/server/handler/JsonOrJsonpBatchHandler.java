@@ -1,6 +1,5 @@
 package owltools.gaf.lego.server.handler;
 
-import static owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler.*;
 import static owltools.gaf.lego.server.handler.M3BatchHandler.Entity.*;
 import static owltools.gaf.lego.server.handler.M3BatchHandler.Operation.*;
 
@@ -38,6 +37,9 @@ import com.google.gson.GsonBuilder;
 
 public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
+	public static final String JSONP_DEFAULT_CALLBACK = "jsonp";
+	public static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
+	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
 	private final MolecularModelManager m3;
@@ -354,7 +356,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				return error(response, "Unknown entity: "+entity, null);
 			}
 		}
-		if ("meta".equals(response.signal)) {
+		if (M3BatchResponse.SIGNAL_META.equals(response.signal)) {
 			return response;
 		}
 		if (modelId == null) {
@@ -372,13 +374,13 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		if (renderBulk) {
 			// render complete model
 			response.data = m3.getModelObject(modelId);
-			response.signal = "rebuild";
+			response.signal = M3BatchResponse.SIGNAL_REBUILD;
 		}
 		else {
 			// render individuals
 			MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
 			response.data = renderer.renderIndividuals(relevantIndividuals);
-			response.signal = "merge";
+			response.signal = M3BatchResponse.SIGNAL_MERGE;
 		}
 		
 		// add model annotations
@@ -393,7 +395,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			response.data.put("inconsistent_p", Boolean.TRUE);
 		}
 		// These are required for an "okay" response.
-		response.message_type = "success";
+		response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 		if( response.message == null ){
 			response.message = "success";
 		}
@@ -408,9 +410,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
-			response.message_type = "success";
+			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 			response.message = "success: " + response.data.size();
-			response.signal = "meta";
+			response.signal = M3BatchResponse.SIGNAL_META;
 		}
 		
 		response.data.put("model_ids", allModelIds);
@@ -423,9 +425,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		List<Map<Object,Object>> relList = MolecularModelJsonRenderer.renderRelations(m3, relevantRelations);
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
-			response.message_type = "success";
+			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 			response.message = "success: " + response.data.size();
-			response.signal = "meta";
+			response.signal = M3BatchResponse.SIGNAL_META;
 		}
 		response.data.put(Entity.relations.name(), relList);
 	}
@@ -434,9 +436,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		List<Map<Object,Object>> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
-			response.message_type = "success";
+			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 			response.message = "success: " + response.data.size();
-			response.signal = "meta";
+			response.signal = M3BatchResponse.SIGNAL_META;
 		}
 		response.data.put(Entity.evidence.name(), evidencesList);
 	}
@@ -445,9 +447,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		String exportModel = m3.exportModel(modelId);
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
-			response.message_type = "success";
+			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 			response.message = "success";
-			response.signal = "meta";
+			response.signal = M3BatchResponse.SIGNAL_META;
 		}
 		response.data.put(Operation.exportModel.getLbl(), exportModel);
 	}
@@ -456,9 +458,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		m3.saveModel(modelId);
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
-			response.message_type = "success";
+			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 			response.message = "success: " + response.data.size();
-			response.signal = "meta";
+			response.signal = M3BatchResponse.SIGNAL_META;
 		}
 	}
 

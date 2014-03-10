@@ -16,7 +16,7 @@ import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler.MissingParameter
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Expression;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3ExpressionType;
 import owltools.graph.OWLGraphWrapper;
-import owltools.vocab.OBOUpperVocabulary;
+//import owltools.vocab.OBOUpperVocabulary;
 
 
 public class M3ExpressionParser {

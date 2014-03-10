@@ -11,8 +11,11 @@ import owltools.gaf.lego.MolecularModelManager;
 
 /**
  * Define methods and paths for the REST api of the {@link MolecularModelManager}.
+ * 
+ * @deprecated use {@link M3BatchHandler} instead.
  */
 @Path("/")
+@Deprecated
 public interface M3Handler {
 
 	// General purpose arguments,

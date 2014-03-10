@@ -8,7 +8,7 @@ import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
-import owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler;
+import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler;
 
 /**
  * Replace the accepted request type, if there is a 'json.wrf' query parameter.<br>
@@ -24,7 +24,7 @@ public class RequireJsonpFilter implements ContainerRequestFilter {
 		UriInfo uriInfo = requestContext.getUriInfo();
 		MultivaluedMap<String,String> queryParameters = uriInfo.getQueryParameters();
 		for(String param : queryParameters.keySet()) {
-			if (JsonOrJsonpModelHandler.JSONP_DEFAULT_OVERWRITE.equals(param)) {
+			if (JsonOrJsonpBatchHandler.JSONP_DEFAULT_OVERWRITE.equals(param)) {
 				MultivaluedMap<String,String> headers = requestContext.getHeaders();
 				headers.putSingle("Accept", "application/javascript");
 			}

@@ -37,7 +37,10 @@ import owltools.graph.OWLGraphWrapper;
  * {@link Exception} are caught during the execution and reported in json
  * format. {@link Throwable} are not caught and will trigger a default error
  * page (and non standard status code for HTTP, i.e. 500).
+ * 
+ * @deprecated use {@link JsonOrJsonpBatchHandler} instead.
  */
+@Deprecated
 @Produces({MediaType.APPLICATION_JSON, "application/javascript"})
 public class JsonOrJsonpModelHandler implements M3Handler {
 

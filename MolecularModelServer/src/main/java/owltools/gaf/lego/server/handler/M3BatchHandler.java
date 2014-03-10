@@ -113,10 +113,16 @@ public interface M3BatchHandler {
 		 */
 		final String intention;
 		
+		public static final String SIGNAL_MERGE = "merge";
+		public static final String SIGNAL_REBUILD = "rebuild";
+		public static final String SIGNAL_META = "meta";
 		/*
 		 * "merge", "rebuild", "meta" //, "location"?
 		 */
 		String signal;
+		
+		public static final String MESSAGE_TYPE_SUCCESS = "success";
+		public static final String MESSAGE_TYPE_ERROR = "error";
 		/*
 		 * "error", "success", //"warning"
 		 */
