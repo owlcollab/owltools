@@ -1,26 +1,17 @@
 package owltools.graph;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 import java.util.Set;
 
 import org.junit.Test;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.OWLToolsTestBasics;
-import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapperEdges.Config;
-import owltools.graph.OWLQuantifiedProperty;
 
 public class GraphExclusionTest extends OWLToolsTestBasics {
 

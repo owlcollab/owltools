@@ -1,6 +1,6 @@
 package owltools.gaf;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -10,7 +10,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;

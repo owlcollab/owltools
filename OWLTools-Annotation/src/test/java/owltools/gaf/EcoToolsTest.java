@@ -1,6 +1,6 @@
 package owltools.gaf;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.HashSet;
