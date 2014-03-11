@@ -18,11 +18,10 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.log.Log;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 
@@ -40,6 +39,8 @@ import owltools.sim2.preprocessor.SimPreProcessor;
  * Simple test for the client server communication for the OWLTools web server.
  */
 public class OWLServerTest {
+	
+	private static final Logger LOG = Logger.getLogger(OWLServerTest.class);
 
 	OWLGraphWrapper g;
 	@Test
@@ -71,10 +72,10 @@ public class OWLServerTest {
 			HttpUriRequest httppost = createPostRequest(300);
 
 			// run request
-			Log.info("Executing="+httppost);
+			LOG.info("Executing="+httppost);
 			//HttpResponse response = httpclient.execute(httpUriRequest);
 			HttpResponse response = httpclient.execute(httppost);
-			Log.info("Executed="+httpclient);
+			LOG.info("Executed="+httpclient);
 			
 			// check response
 			HttpEntity entity = response.getEntity();
@@ -84,7 +85,7 @@ public class OWLServerTest {
 				handleResponse(responseContent);
 			}
 			else {
-				Log.info("Status="+statusLine.getStatusCode());
+				LOG.info("Status="+statusLine.getStatusCode());
 				EntityUtils.consumeQuietly(entity);
 			}
 
@@ -127,9 +128,9 @@ public class OWLServerTest {
 				break;
 		}
 		URI uri = uriBuilder.build();
-		Log.info("Getting URL="+uri);
+		LOG.info("Getting URL="+uri);
 		HttpUriRequest httpUriRequest = new HttpGet(uri);
-		Log.info("Got URL="+uri);
+		LOG.info("Got URL="+uri);
 		return httpUriRequest;
 	}
 
