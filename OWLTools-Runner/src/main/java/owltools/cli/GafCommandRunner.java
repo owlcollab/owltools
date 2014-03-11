@@ -11,7 +11,6 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1512,43 +1511,49 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 	
-	private AnnotationDocumentMetadata getMetaDataFromGAF(File gaf, String id) throws Exception {
+	private AnnotationDocumentMetadata getMetaDataFromGAF(File gaf, final String id) throws Exception {
 		LOG.info("Extracting metadata for "+id+" from file: "+gaf.getAbsolutePath());
 		final AnnotationDocumentMetadata metadata = new AnnotationDocumentMetadata();
 		metadata.dbname = id;
 		metadata.gafDocumentSizeInBytes = gaf.length();
-		final GafObjectsBuilder builder = new GafObjectsBuilder();
-		try {
-			GafDocument doc = builder.buildDocument(gaf.getAbsolutePath(), id, gaf.getAbsolutePath());
-			
-			// also read the comments, they contain the date information
-			builder.getParser().addCommentListener(new GAFCommentListener() {
-				
-				@Override
-				public void readingComment(String line, int lineNumber) {
-					line = StringUtils.trimToEmpty(line);
-					if (line.startsWith("!") && line.length() > 1) {
-						String comment = StringUtils.trimToEmpty(line.substring(1));
-						if (comment.startsWith("Submission Date:")) {
-							metadata.submissionDate = comment.substring("Submission Date:".length());
-						}
+		
+		final GAFParser parser = new GAFParser();
+		// also read the comments, they contain the date information
+		parser.addCommentListener(new GAFCommentListener() {
+
+			@Override
+			public void readingComment(String line, int lineNumber) {
+				line = StringUtils.trimToEmpty(line);
+				if (line.startsWith("!") && line.length() > 1) {
+					String comment = StringUtils.trimToEmpty(line.substring(1));
+					if (comment.startsWith("Submission Date:")) {
+						String dateString = comment.substring("Submission Date:".length());
+						metadata.submissionDate = StringUtils.trimToNull(dateString);
 					}
 				}
-			});
-			
-			Collection<Bioentity> bioentities = doc.getBioentities();
-			List<GeneAnnotation> annotations = doc.getGeneAnnotations();
-			for (GeneAnnotation annotation : annotations) {
-				String evidenceCls = annotation.getEvidenceCls();
-				if ("IEA".equals(evidenceCls) == false) {
-					metadata.annotationCountExcludingIEA += 1;
+			}
+		});
+		try {
+			Set<String> bioentities = new HashSet<String>();
+			parser.parse(gaf);
+			while (parser.next()) {
+				// log info every ten million line.
+				int lineNumber = parser.getLineNumber();
+				if (lineNumber > 0 && (lineNumber % 10000000) == 0) {
+					LOG.info("GAF "+id+", reading line number: "+lineNumber);
 				}
+				metadata.annotationCount += 1L;
+				String evidence = parser.getEvidence();
+				if ("IEA".equals(evidence) == false) {
+					metadata.annotationCountExcludingIEA += 1L;
+				}
+				String bioentity = parser.getDb() + ":" + parser.getDbObjectId();
+				bioentities.add(bioentity);
 			}
 			metadata.annotatedEntityCount = bioentities.size();
-			metadata.annotationCount = annotations.size();
 		}
 		finally {
-			builder.dispose();
+			parser.dispose();
 		}
 		return metadata;
 	}
