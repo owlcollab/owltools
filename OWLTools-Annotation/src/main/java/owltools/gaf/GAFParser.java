@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -67,6 +68,7 @@ public class GAFParser {
 	
 	private List<GafParserListener> parserListeners;
 	
+	private List<GAFCommentListener> commentListeners;
 	
 	public List<Object> getAnnotationRuleViolations(){
 		return this.voilations;
@@ -116,6 +118,8 @@ public class GAFParser {
 				LOG.warn("Blank Line");
 				return ReadState.next;
 			}else if (trimmedLine.startsWith(GAF_COMMENT)) {
+				
+				fireComment();
 				
 				if(gafVersion<1){
 				
@@ -192,6 +196,16 @@ public class GAFParser {
 		}
 	}
 	
+	public static interface GAFCommentListener {
+		
+		public void readingComment(String line, int lineNumber);
+	}
+	
+	private void fireComment() {
+		for(GAFCommentListener listener: commentListeners) {
+			listener.readingComment(this.currentRow, lineNumber);
+		}
+	}
 	
 	private void fireParsingError(String message){
 		for(GafParserListener listner: parserListeners){
@@ -225,6 +239,9 @@ public class GAFParser {
 		if(parserListeners == null){
 			parserListeners = new Vector<GafParserListener>();
 		}
+		if (commentListeners == null) {
+			commentListeners = new Vector<GAFCommentListener>();
+		}
 	}
 	
 	public void addParserListener(GafParserListener listener){
@@ -242,6 +259,17 @@ public class GAFParser {
 		parserListeners.remove(listener);
 	}
 
+	public void addCommentListener(GAFCommentListener listener) {
+		if (listener != null && !commentListeners.contains(listener)) {
+			commentListeners.add(listener);
+		}
+	}
+	
+	public void removeCommentListener(GAFCommentListener listener) {
+		if (listener != null) {
+			commentListeners.remove(listener);
+		}
+	}
 	
 	public void parse(Reader reader){
 		init();
@@ -472,4 +500,13 @@ public class GAFParser {
 		return lineNumber;
 	}
 	
+	public void dispose() {
+		IOUtils.closeQuietly(reader);
+		if (parserListeners != null) {
+			parserListeners.clear();
+		}
+		if (commentListeners != null) {
+			commentListeners.clear();
+		}
+	}
 }

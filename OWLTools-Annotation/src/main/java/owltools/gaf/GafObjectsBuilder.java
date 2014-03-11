@@ -198,6 +198,19 @@ public class GafObjectsBuilder {
 		
 	}
 
+	public synchronized void dispose() {
+		if (parser != null) {
+			parser.dispose();
+			parser = null;
+		}
+		if (filters != null) {
+			filters.clear();
+			filters = null;
+		}
+		if (gafDocument != null) {
+			gafDocument = null;
+		}
+	}
 	
 	/**
 	 * This method builds {@link Bioentity} object from the current position (row) of GafParser
