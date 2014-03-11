@@ -1,9 +1,6 @@
 package owltools.graph.shunt;
 
-import static junit.framework.Assert.*;
-
-import java.util.Iterator;
-import java.util.Set;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 

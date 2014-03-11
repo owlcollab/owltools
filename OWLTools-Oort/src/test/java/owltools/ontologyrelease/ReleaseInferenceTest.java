@@ -1,6 +1,6 @@
 package owltools.ontologyrelease;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;

@@ -1,7 +1,7 @@
 package owltools.panther;
 
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileFilter;

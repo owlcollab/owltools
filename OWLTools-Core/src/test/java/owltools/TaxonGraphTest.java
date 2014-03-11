@@ -1,6 +1,6 @@
 package owltools;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.List;
