@@ -7,6 +7,6 @@ public class AnnotationDocumentMetadata {
 	public int annotatedEntityCount; // aka Gene Products Annotated
 	public int annotationCount;
 	public int annotationCountExcludingIEA;
-	public int gafDocumentSizeInBytes;
+	public long gafDocumentSizeInBytes;
 
 }
