@@ -5,17 +5,19 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.FileUtils;
@@ -49,6 +51,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.Bioentity;
 import owltools.gaf.GAFParser;
+import owltools.gaf.GAFParser.GAFCommentListener;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafLineFilter;
 import owltools.gaf.GafObjectsBuilder;
@@ -66,9 +69,7 @@ import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.lego.GafToLegoTranslator;
 import owltools.gaf.lego.LegoModelGenerator;
-import owltools.gaf.lego.NetworkInferenceEngine;
-import owltools.gaf.lego.NetworkInferenceEngine.Activity;
-import owltools.gaf.lego.NetworkInferenceEngine.Edge;
+import owltools.gaf.metadata.AnnotationDocumentMetadata;
 import owltools.gaf.owl.AnnotationExtensionFolder;
 import owltools.gaf.owl.AnnotationExtensionUnfolder;
 import owltools.gaf.owl.GAFOWLBridge;
@@ -84,9 +85,14 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.Mooncat;
-import owltools.util.MinimalModelGenerator;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * GAF tools for command-line, includes validation of GAF files.
@@ -1406,5 +1412,183 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 
+	@CLIMethod("--gaf-statistics-json")
+	public void generateJsonGafStatistics(Opts opts) throws Exception {
+		String inputFileString = null;
+		String inputFolderString = null;
+		String outputFolderString = null;
+		String externalCacheFolderString = "external";
+		final Map<String, String> externalMap = new HashMap<String, String>();
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o")) {
+				outputFolderString = opts.nextOpt();
+			}
+			else if (opts.nextEq("-i|--input-file")) {
+				inputFileString = opts.nextOpt();
+			}
+			else if (opts.nextEq("--gaf-folder")) {
+				inputFolderString = opts.nextOpt();
+			}
+			else if (opts.nextEq("-e|--external-cache")) {
+				externalCacheFolderString = opts.nextOpt();
+			}
+			else if (opts.nextEq("-m|--external-map")) {
+				String external = opts.nextOpt();
+				String local = opts.nextOpt();
+				externalMap.put(external, local);
+			}
+			else {
+				break;
+			}
+		}
+		if (inputFileString == null) {
+			System.err.println("No input file defined.");
+			exit(-1);
+			return;
+		}
+		
+		final File inputFile = new File(inputFileString).getCanonicalFile();
+		final File inputFolder;
+		if (inputFolderString != null) {
+			inputFolder = new File(inputFolderString).getCanonicalFile();
+		}
+		else {
+			inputFolder = inputFile.getParentFile();
+		}
+		final File outputFolder;
+		if (outputFolderString != null) {
+			outputFolder = new File(outputFolderString).getCanonicalFile();
+		}
+		else {
+			outputFolder = inputFile.getParentFile();
+		}
+		final File externalCacheFolder = new File(externalCacheFolderString);
+		String jsonSource = FileUtils.readFileToString(inputFile, "UTF-8");
+		
+		JsonParser parser = new JsonParser();
+		JsonElement source = parser.parse(jsonSource);
+		if (source.isJsonObject()) {
+			JsonObject sourceObj = source.getAsJsonObject();
+			JsonElement resources = sourceObj.get("resources");
+			if (resources != null && resources.isJsonArray()) {
+				for(JsonElement listElem : resources.getAsJsonArray()) {
+					if (listElem.isJsonObject()) {
+						JsonObject dbObj = listElem.getAsJsonObject();
+						String id = getValue(dbObj, "id");
+						String gafFilename = getValue(dbObj, "gaf_filename");
+						String external = getValue(dbObj, "external");
+						try {
+							File gafFile;
+							if (external != null) {
+								String local = externalMap.get(id);
+								if (local != null) {
+									gafFile = new File(local).getCanonicalFile();
+								}
+								else {
+									gafFile = downloadExternal(external, gafFilename, externalCacheFolder);
+								}
+							}
+							else {
+								gafFile = new File(inputFolder, gafFilename);
+							}
+							AnnotationDocumentMetadata metadata = getMetaDataFromGAF(gafFile, id);
+							
+							String outputFileName;
+							if (gafFilename.endsWith(".gz")) {
+								outputFileName = gafFilename.substring(0, (gafFilename.length()-3)) + ".json";
+							}
+							else {
+								outputFileName = gafFilename + ".json";
+							}
+							File outputFile = new File(outputFolder, outputFileName);
+							writeJsonMetadata(metadata, id, outputFile);
+						}
+						catch (Exception e) {
+							LOG.warn("Error during the processing of: "+id+". Metedata might be in-complete.", e);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private AnnotationDocumentMetadata getMetaDataFromGAF(File gaf, String id) throws Exception {
+		LOG.info("Extracting metadata for "+id+" from file: "+gaf.getAbsolutePath());
+		final AnnotationDocumentMetadata metadata = new AnnotationDocumentMetadata();
+		metadata.dbname = id;
+		metadata.gafDocumentSizeInBytes = gaf.length();
+		final GafObjectsBuilder builder = new GafObjectsBuilder();
+		try {
+			GafDocument doc = builder.buildDocument(gaf.getAbsolutePath(), id, gaf.getAbsolutePath());
+			
+			// also read the comments, they contain the date information
+			builder.getParser().addCommentListener(new GAFCommentListener() {
+				
+				@Override
+				public void readingComment(String line, int lineNumber) {
+					line = StringUtils.trimToEmpty(line);
+					if (line.startsWith("!") && line.length() > 1) {
+						String comment = StringUtils.trimToEmpty(line.substring(1));
+						if (comment.startsWith("Submission Date:")) {
+							metadata.submissionDate = comment.substring("Submission Date:".length());
+						}
+					}
+				}
+			});
+			
+			Collection<Bioentity> bioentities = doc.getBioentities();
+			List<GeneAnnotation> annotations = doc.getGeneAnnotations();
+			for (GeneAnnotation annotation : annotations) {
+				String evidenceCls = annotation.getEvidenceCls();
+				if ("IEA".equals(evidenceCls) == false) {
+					metadata.annotationCountExcludingIEA += 1;
+				}
+			}
+			metadata.annotatedEntityCount = bioentities.size();
+			metadata.annotationCount = annotations.size();
+		}
+		finally {
+			builder.dispose();
+		}
+		return metadata;
+	}
+	
+	private File downloadExternal(String external, String name, File cache) throws Exception {
+		InputStream input = null;
+		OutputStream output = null;
+		try {
+			File cacheFile = new File(cache, name);
+			LOG.info("Start downloading "+name+" to cache: "+cacheFile.getAbsolutePath());
+			
+			// WARNING: This will fail for FTP file larger than 2GB
+			// This is a bug in Java 5 and 6, but is fixed in Java 7
+			input = new URL(external).openStream();
+			output = new FileOutputStream(cacheFile);
+			IOUtils.copyLarge(input, output);
+			LOG.info("Finished downloading "+name+" to cache: "+cacheFile.getAbsolutePath());
+			return cacheFile;
+		}
+		finally {
+			IOUtils.closeQuietly(input);
+			IOUtils.closeQuietly(output);
+		}
+	}
+	
+	private void writeJsonMetadata(AnnotationDocumentMetadata metadata, String id, File outputFile) throws Exception {
+		LOG.info("Writing metadata for "+id+" to JSON file: "+outputFile.getAbsolutePath());
+		final GsonBuilder gsonBuilder = new GsonBuilder();
+		final Gson gson = gsonBuilder.setPrettyPrinting().create();
+		String json = gson.toJson(metadata);
+		FileUtils.write(outputFile, json, "UTF-8");
+	}
+	
+	private String getValue(JsonObject obj, String name) {
+		String value = null;
+		JsonElement jsonElement = obj.get(name);
+		if (jsonElement != null && jsonElement.isJsonPrimitive()) {
+			value = jsonElement.getAsString();
+		}
+		return value;
+	}
 
 }
