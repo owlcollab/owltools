@@ -12,16 +12,12 @@ public class Bioentity{
 	protected List<String> synonyms; // Col. 11
 	protected String typeCls; // Col. 12
 	protected String ncbiTaxonId; // Col. 13(?)
-	protected String gafDocument;
 	
 	public Bioentity(){
 	}
 	
-	/*
-	 * This constructor assumes that there are no
-	 */
 	public Bioentity(String id, String symbol, String fullName, String typeCls,
-			String ncbiTaxonId, String db, String gafDocument) {
+			String ncbiTaxonId, String db) {
 		this();
 		this.id = id;
 		this.symbol = symbol;
@@ -29,7 +25,6 @@ public class Bioentity{
 		this.typeCls = typeCls;
 		this.ncbiTaxonId = ncbiTaxonId;
 		this.db = db;
-		this.gafDocument = gafDocument;
 		this.synonyms = new ArrayList<String>(); // start with something tolerable
 	}
 
@@ -102,14 +97,6 @@ public class Bioentity{
 
 	public void setDb(String db) {
 		this.db = db;
-	}
-
-	public String getGafDocument() {
-		return gafDocument;
-	}
-
-	public void setGafDocument(String gafDocument) {
-		this.gafDocument = gafDocument;
 	}
 
 	public void addSynonym(String syn) {

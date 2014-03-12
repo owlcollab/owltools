@@ -108,7 +108,7 @@ public abstract class AbstractAnnotationPredictor implements AnnotationPredictor
 
 	@Override
 	public List<Prediction> predict(String bioentity) {
-		Set<GeneAnnotation> anns = gafDocument.getGeneAnnotations(bioentity);
+		Collection<GeneAnnotation> anns = gafDocument.getGeneAnnotations(bioentity);
 		Bioentity e = gafDocument.getBioentity(bioentity);
 		return predictForBioEntity(e, anns);
 	}

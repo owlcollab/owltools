@@ -2,18 +2,15 @@ package owltools.gaf;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import java.util.Collections;
 
 /**
- * 
- * @author Shahid Manzoor
- *
+ * Representation of a gene annotation.
  */
 public class GeneAnnotation {
 
@@ -28,54 +25,61 @@ public class GeneAnnotation {
 		}
 		
 	};
+	private static final String DEFAULT_STRING_VALUE = "";
 	
-	protected String bioentity; // used for c1 and c2
-	protected Bioentity bioentityObject; // encompass columns 1-3, 10-12
-	protected boolean isContributesTo;
-	protected boolean isIntegralTo;
-	protected String compositeQualifier; // Col. 4
-	protected String relation; // implicit relation
-	protected String cls; // Col. 5
-	protected String referenceId;	// Col. 6
-	protected String evidenceCls; // Col. 7
-	protected String withExpression; // Col. 8
-	protected String aspect; // Col. 9
-	protected String actsOnTaxonId; // Col. 13
-	protected String lastUpdateDate; // Col. 14 //TODO: convert it to date
-	protected String assignedBy; // Col. 15
-	protected String extensionExpression; // Col. 16
-	protected String geneProductForm; // Col. 17
+	private String bioentity = DEFAULT_STRING_VALUE; 			// used for c1 and c2
+	private Bioentity bioentityObject = null;					// encompass columns 1-3, 10-12
+	private boolean isContributesTo = false;
+	private boolean isIntegralTo = false;
+	private String compositeQualifier = DEFAULT_STRING_VALUE; 	// Col. 4
+	private String relation = DEFAULT_STRING_VALUE; 			// implicit relation
+	private String cls = DEFAULT_STRING_VALUE; 					// Col. 5
+	private String referenceId = DEFAULT_STRING_VALUE;			// Col. 6
+	private String evidenceCls = DEFAULT_STRING_VALUE; 			// Col. 7
+	private String withExpression = DEFAULT_STRING_VALUE; 		// Col. 8
+	private String aspect = DEFAULT_STRING_VALUE; 				// Col. 9
+	private String actsOnTaxonId = DEFAULT_STRING_VALUE; 		// Col. 13
+	private String lastUpdateDate = DEFAULT_STRING_VALUE; 		// Col. 14 //TODO: convert it to date
+	private String assignedBy = DEFAULT_STRING_VALUE; 			// Col. 15
+	private String extensionExpression = DEFAULT_STRING_VALUE; 	// Col. 16
+	private String geneProductForm = DEFAULT_STRING_VALUE; 		// Col. 17
 	
-	protected String gafDocument; // parent document id
+	// derived from c8
+	private Collection<WithInfo> withInfoList = null; 
 	
-	protected Collection<WithInfo> withInfoList; // derived from c8
-	protected List<List<ExtensionExpression>> extensionExpressionList; // derived from c16
-	protected Collection<CompositeQualifier> compositeQualifierList; // derived from c4
+	// derived from c16
+	private List<List<ExtensionExpression>> extensionExpressionList = null;
+	
+	// derived from c4
+	private Collection<CompositeQualifier> compositeQualifierList = null; 
 
-	protected transient GafDocument gafDocumentObject; // parent document
-	protected transient AnnotationSource annotationSource;
+	// set by parser, optional 
+	private transient AnnotationSource annotationSource = null;
 	
-	/**
-	 * If value of this variable is true then toString is re-calculated
-	 */
-	protected boolean isChanged;
+	// If value of this variable is true then toString is re-calculated
+	private volatile boolean isChanged = false;
 	
-	protected String toString;
+	// cache String representation of this instance
+	private volatile String toString = DEFAULT_STRING_VALUE;
+	
+	private synchronized void setChanged() {
+		isChanged = true;
+	}
 	
 	/**
 	 * this method generates/updates the tab separated row of a gene annotation.
 	 */
-	protected void buildRow(){
+	private synchronized void buildRow(){
 		if(!isChanged)
 			return;
 		
 		StringBuilder s = new StringBuilder();
 
-		String taxon = "";
-		CharSequence dbObjectSynonym = "";
-		String dbObjectName = "";
-		String dbObjectType = "";
-		String symbol = "";
+		String taxon = DEFAULT_STRING_VALUE;
+		CharSequence dbObjectSynonym = DEFAULT_STRING_VALUE;
+		String dbObjectName = DEFAULT_STRING_VALUE;
+		String dbObjectType = DEFAULT_STRING_VALUE;
+		String symbol = DEFAULT_STRING_VALUE;
 		
 		if(this.bioentityObject!= null){
 			taxon = bioentityObject.getNcbiTaxonId();
@@ -87,7 +91,7 @@ public class GeneAnnotation {
 				else
 					i++;
 				
-				taxon ="taxon:" + bioentityObject.getNcbiTaxonId().substring(i);
+				taxon ="taxon:" + taxon.substring(i);
 			}
 
 			dbObjectName = this.bioentityObject.getFullName();
@@ -160,41 +164,35 @@ public class GeneAnnotation {
 		s.append(this.geneProductForm);
 		
 		this.isChanged = false;
-		
 		this.toString = s.toString();
-
 	}
 	
 	public String toString(){
 		buildRow();
-		
 		return toString;
 	}
 	
-	
 	public GeneAnnotation(){
-		this("", false, false, "", "", "", "", "", "", "", "", "", "", null, "", "");
-	}
-	
-	void setGafDocumetObject(GafDocument gafDocumentObject){
-		this.gafDocumentObject = gafDocumentObject;
+		// intentionally empty
 	}
 	
 	public GeneAnnotation(String bioentity, boolean isContributesTo,
-			boolean isIntegralTo, String compositeQualifier, String cls,
-			String referenceId, String evidenceCls, String withExpression,
+			boolean isIntegralTo, String compositeQualifier, Collection<CompositeQualifier> compositeQualifierList, String cls,
+			String referenceId, String evidenceCls, String withExpression, Collection<WithInfo> withInfoList,
 			String aspect, String actsOnTaxonId, String lastUpdateDate, String assignedBy,
 			String extensionExpression, List<List<ExtensionExpression>> extensionExpressionList,
-			String geneProductForm,	String gafDocument) {
+			String geneProductForm) {
 
 		this.bioentity = bioentity;
 		this.isContributesTo = isContributesTo;
 		this.isIntegralTo = isIntegralTo;
 		this.compositeQualifier = compositeQualifier;
+		this.compositeQualifierList = compositeQualifierList;
 		this.cls = cls;
 		this.referenceId = referenceId;
 		this.evidenceCls = evidenceCls;
 		this.withExpression = withExpression;
+		this.withInfoList = withInfoList;
 		this.aspect = aspect;
 		this.actsOnTaxonId = actsOnTaxonId;
 		this.lastUpdateDate = lastUpdateDate;
@@ -202,8 +200,7 @@ public class GeneAnnotation {
 		this.extensionExpression = extensionExpression;
 		this.extensionExpressionList = extensionExpressionList;
 		this.geneProductForm = geneProductForm;
-		this.gafDocument = gafDocument;
-		this.isChanged = true;
+		setChanged();
 	}
 
 
@@ -215,18 +212,20 @@ public class GeneAnnotation {
 		this.isContributesTo = ann.isContributesTo;
 		this.isIntegralTo = ann.isIntegralTo;
 		this.compositeQualifier = ann.compositeQualifier;
+		this.compositeQualifierList = GafObjectsBuilder.parseCompositeQualifier(ann.compositeQualifier);
 		this.cls = ann.cls;
 		this.referenceId = ann.referenceId;
 		this.evidenceCls = ann.evidenceCls;
 		this.withExpression = ann.withExpression;
+		this.withInfoList = GafObjectsBuilder.parseWithInfo(ann.withExpression);
 		this.aspect = ann.aspect;
 		this.actsOnTaxonId = ann.actsOnTaxonId;
 		this.lastUpdateDate = ann.lastUpdateDate;
 		this.assignedBy = ann.assignedBy;
 		this.extensionExpression = ann.extensionExpression;
+		this.extensionExpressionList = GafObjectsBuilder.parseExtensionExpression(ann.extensionExpression);
 		this.geneProductForm = ann.geneProductForm;
-		this.gafDocument = ann.gafDocument;
-		this.isChanged = true;
+		setChanged();
 	}
 
 	public String getBioentity() {
@@ -235,8 +234,7 @@ public class GeneAnnotation {
 
 	public void setBioentity(String bioentity) {
 		this.bioentity = bioentity;
-		
-		this.isChanged = true;
+		setChanged();
 	}
 
 	
@@ -246,6 +244,7 @@ public class GeneAnnotation {
 
 	public void setRelation(String relation) {
 		this.relation = relation;
+		setChanged();
 	}
 
 	public String getCls() {
@@ -254,8 +253,7 @@ public class GeneAnnotation {
 
 	public void setCls(String cls) {
 		this.cls = cls;
-		this.isChanged = true;
-	
+		setChanged();
 	}
 
 	public String getReferenceId() {
@@ -264,8 +262,7 @@ public class GeneAnnotation {
 
 	public void setReferenceId(String referenceId) {
 		this.referenceId = referenceId;
-		this.isChanged = true;
-
+		setChanged();
 	}
 
 	public String getEvidenceCls() {
@@ -274,26 +271,16 @@ public class GeneAnnotation {
 
 	public void setEvidenceCls(String evidenceCls) {
 		this.evidenceCls = evidenceCls;
-		this.isChanged = true;
-
+		setChanged();
 	}
 	
-	public String getWithExpression() {
-		return withExpression;
-	}
-
-	public void setWithExpression(String withExpression) {
-		this.withExpression = withExpression;
-		this.isChanged = true;
-
-	}
-
 	public String getActsOnTaxonId() {
 		return actsOnTaxonId;
 	}
 
 	public void setAspect(String inAspect){
 		this.aspect = inAspect;
+		setChanged();
 	}
 
 	public String getAspect(){
@@ -302,8 +289,7 @@ public class GeneAnnotation {
 
 	public void setActsOnTaxonId(String actsOnTaxonId) {
 		this.actsOnTaxonId = actsOnTaxonId;
-		this.isChanged = true;
-
+		setChanged();
 	}
 
 	public String getLastUpdateDate() {
@@ -322,8 +308,7 @@ public class GeneAnnotation {
 	
 	public void setLastUpdateDate(String lastUpdateDate) {
 		this.lastUpdateDate = lastUpdateDate;
-		this.isChanged = true;
-
+		setChanged();
 	}
 
 	public String getAssignedBy() {
@@ -332,8 +317,7 @@ public class GeneAnnotation {
 
 	public void setAssignedBy(String assignedBy) {
 		this.assignedBy = assignedBy;
-		this.isChanged = true;
-
+		setChanged();
 	}
 
 	public String getExtensionExpression() {
@@ -347,7 +331,7 @@ public class GeneAnnotation {
 	public void setExtensionExpressions(List<List<ExtensionExpression>> expressions) {
 		this.extensionExpressionList = expressions;
 		this.extensionExpression = GafObjectsBuilder.buildExtensionExpression(expressions);
-		this.isChanged = true;
+		setChanged();
 	}
 
 	public String getGeneProductForm() {
@@ -356,8 +340,7 @@ public class GeneAnnotation {
 
 	public void setGeneProductForm(String geneProductForm) {
 		this.geneProductForm = geneProductForm;
-		this.isChanged = true;
-
+		setChanged();
 	}
 
 	/**
@@ -367,52 +350,32 @@ public class GeneAnnotation {
 	 * @return list, never null
 	 */
 	public List<String> getQualifiers() {
-		if (compositeQualifier != null && compositeQualifier.isEmpty() == false) {
-			String[] split = StringUtils.split(compositeQualifier, '|');
-			if (split.length > 1) {
-				return Arrays.asList(split);
+		if (compositeQualifierList != null && compositeQualifierList.isEmpty() == false) {
+			List<String> stringQualifiers = new ArrayList<String>(compositeQualifierList.size());
+			for (CompositeQualifier qualifier : compositeQualifierList) {
+				stringQualifiers.add(qualifier.qualifierObj);
 			}
-			return Collections.singletonList(compositeQualifier);
+			return stringQualifiers;
 		}
 		return Collections.emptyList();
 	}
 
-	public String getCompositeQualifier() {
-		return compositeQualifier;
-	}
-
-	public void setCompositeQualifier(String compositeQualifier) {
-		this.compositeQualifier = compositeQualifier;
-		this.isChanged = true;
-
-	}
-
 	public Bioentity getBioentityObject() {
-		
 		return bioentityObject;
 	}
-
 	
 	public void setBioentityObject(Bioentity bioentityObject) {
 		this.bioentityObject = bioentityObject;
-		this.isChanged = true;
+		setChanged();
 	}
 	
-	
-	public String getGafDocument() {
-		return gafDocument;
-	}
-
-	public void setGafDocument(String gafDocument) {
-		this.gafDocument = gafDocument;
-	}
-
 	public boolean getIsContributesTo() {
 		return isContributesTo;
 	}
 
 	public void setIsContributesTo(boolean isContributesTo) {
 		this.isContributesTo = isContributesTo;
+		setChanged();
 	}
 
 	public boolean getIsIntegralTo() {
@@ -421,33 +384,35 @@ public class GeneAnnotation {
 
 	public void setIsIntegralTo(boolean isIntegralTo) {
 		this.isIntegralTo = isIntegralTo;
+		setChanged();
+	}
+	
+	public String getWithExpression() {
+		return withExpression;
+	}
+
+	public void setWithInfos(String withExpression, Collection<WithInfo> withInfoList) {
+		this.withExpression = withExpression;
+		this.withInfoList = withInfoList;
+		setChanged();
 	}
 	
 	public Collection<WithInfo> getWithInfos(){
-		if(withInfoList == null){
-			
-			if(gafDocumentObject != null)
-				withInfoList = gafDocumentObject.getWithInfos(getWithExpression());
-			
-			
-			if(withInfoList == null){
-				withInfoList = Collections.emptyList();
-			}
-		}
-		
 		return withInfoList;
 	}
 	
+	public void setCompositeQualifiers(String compositeQualifiers, Collection<CompositeQualifier> compositeQualifierList) {
+		this.compositeQualifier = compositeQualifiers;
+		this.compositeQualifierList = compositeQualifierList;
+		setChanged();
+	}
+	
 	public Collection<CompositeQualifier> getCompositeQualifiers(){
-		if(compositeQualifierList == null){
-			if(gafDocumentObject != null){
-				compositeQualifierList = gafDocumentObject.getCompositeQualifiers(getCompositeQualifier());
-			}
-
-			if(compositeQualifierList == null)
-				compositeQualifierList = Collections.emptyList();
-		}
 		return compositeQualifierList;
+	}
+
+	public String getCompositeQualifier() {
+		return compositeQualifier;
 	}
 
 	public AnnotationSource getSource() {
@@ -456,8 +421,7 @@ public class GeneAnnotation {
 
 	void setSource(AnnotationSource annotationSource) {
 		this.annotationSource = annotationSource;
-		this.toString = annotationSource.getRow();
-		isChanged = false;
+		setChanged();
 	}
 
 }

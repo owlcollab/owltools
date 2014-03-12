@@ -2,87 +2,100 @@ package owltools.gaf;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+/**
+ * Representation of a gene annotation file (GAF). It holds all relevant
+ * {@link GeneAnnotation} and {@link Bioentity} objects.
+ * 
+ * @see GafObjectsBuilder
+ */
 public class GafDocument{
 
-	protected String id;
-	protected String documentPath;
+	private final String id;
+	private final String documentPath;
 
-	protected transient Map<String, Bioentity> bioentities;
-	protected transient Map<String, Set<WithInfo>> withInfos;
-	protected transient Map<String, Set<CompositeQualifier>> compositeQualifiers; 
-	protected transient List<GeneAnnotation> annotations;
-	protected transient List<String> comments = new ArrayList<String>();
+	private final Map<String, Bioentity> bioentities;
+	private List<GeneAnnotation> annotations;
+	private final List<String> comments = new ArrayList<String>();
 	
-	private Map<String,Set<GeneAnnotation>> annotationMap = null;
+	private Map<String, List<GeneAnnotation>> annotationMap = null;
 
-
-	public GafDocument(){
-		bioentities = new Hashtable<String, Bioentity>();
-		withInfos = new HashMap<String, Set<WithInfo>>();
-		compositeQualifiers = new HashMap<String, Set<CompositeQualifier>>();
+	/**
+	 * Create a new document instance.
+	 * 
+	 * @param id
+	 * @param documentPath
+	 */
+	public GafDocument(String id, String documentPath){
+		this.id = id;
+		this.documentPath = documentPath;
+		bioentities = new HashMap<String, Bioentity>();
 		annotations = new ArrayList<GeneAnnotation>();
 	}
 
-	public void index() {
-		annotationMap = new HashMap<String,Set<GeneAnnotation>>();
-		for (GeneAnnotation a : getGeneAnnotations()) {
-			String eid = a.getBioentity();
-			if (!annotationMap.containsKey(eid))
-				annotationMap.put(eid, new HashSet<GeneAnnotation>());
-			annotationMap.get(eid).add(a);
-		}
-	}
-
-	public GafDocument(String id, String documentPath) {
-		this();
-		this.id = id;
-		this.documentPath = documentPath;
-	}
-
+	/**
+	 * @return documentId
+	 */
 	public String getId() {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
+	/**
+	 * Retrieve the source path for this document
+	 * 
+	 * @return path or null.
+	 */
 	public String getDocumentPath() {
 		return documentPath;
 	}
 
-	public void setDocumentPath(String documentPath) {
-		this.documentPath = documentPath;
-	}
-
+	/**
+	 * Retrieve the {@link Bioentity} object for the given id.
+	 * 
+	 * @param id
+	 * @return entity or null
+	 */
 	public Bioentity getBioentity(String id){
 		return bioentities.get(id);
 	}
 
+	/**
+	 * Get all registered {@link Bioentity} objects.
+	 * 
+	 * @return entities, never null
+	 */
 	public Collection<Bioentity> getBioentities(){
-
 		return bioentities.values();
 	}
 
-
+	/**
+	 * Get all annotations from this document.
+	 * 
+	 * @return annotations, never
+	 */
 	public List<GeneAnnotation> getGeneAnnotations(){
-
 		return annotations;
 	}
 
-	// TODO - improve efficiency, cache?
-	public Set<GeneAnnotation> getGeneAnnotations(String bioentity){
+	/**
+	 * Get all annotations for a given {@link Bioentity} id. If {@link #index()}
+	 * was called, this is a lookup operation, otherwise this is a linear scan
+	 * of all annotations.
+	 * 
+	 * @param bioentity
+	 * @return annotations, never null
+	 * 
+	 * @see #index()
+	 */
+	public Collection<GeneAnnotation> getGeneAnnotations(String bioentity){
 		if (annotationMap != null) {
 			return annotationMap.get(bioentity);
 		}
-		Set<GeneAnnotation> anns = new HashSet<GeneAnnotation>();
+		List<GeneAnnotation> anns = new ArrayList<GeneAnnotation>();
 		for (GeneAnnotation ann : this.getGeneAnnotations()) {
 			if (ann.getBioentity().equals(bioentity))
 				anns.add(ann);
@@ -90,10 +103,42 @@ public class GafDocument{
 		return anns;
 	}
 
+	/**
+	 * Index all current annotations of this document. Creates an internal cache
+	 * for mappings from bioentity-id to set of annotations.
+	 * 
+	 * @see #getGeneAnnotations(String)
+	 */
+	public void index() {
+		annotationMap = new HashMap<String, List<GeneAnnotation>>();
+		for (GeneAnnotation a : getGeneAnnotations()) {
+			String eid = a.getBioentity();
+			List<GeneAnnotation> entities = annotationMap.get(eid);
+			if (entities == null) {
+				annotationMap.put(eid, Collections.singletonList(a));
+			}
+			else if (entities.size() == 1) {
+				List<GeneAnnotation> longEntities = new ArrayList<GeneAnnotation>();
+				longEntities.add(entities.get(0));
+				longEntities.add(a);
+				annotationMap.put(eid, longEntities);
+			}
+			else {
+				entities.add(a);
+			}
+		}
+	}
+
+	/**
+	 * Search for all annotations with the given cls String.
+	 * 
+	 * @param cls
+	 * @return annotations, never null
+	 */
 	public List<GeneAnnotation> getGeneAnnotationsByDirectGoCls(String cls){
 		List<GeneAnnotation> result = new ArrayList<GeneAnnotation>();
 		for (GeneAnnotation annotation : annotations) {
-			if(cls.equals(annotation.cls)) {
+			if(cls.equals(annotation.getCls())) {
 				result.add(annotation);
 			}
 		}
@@ -119,69 +164,64 @@ public class GafDocument{
 		return null;
 	}
 	
-	public void addBioentity(Bioentity bioentity){
-		bioentity.setGafDocument(this.getId());
-		bioentities.put(bioentity.getId(), bioentity);
-	}
-
-	public void addCompositeQualifier(CompositeQualifier compositeQualifier){
-		Set<CompositeQualifier> set = compositeQualifiers.get(compositeQualifier.getId());
-		if(set == null){
-			set = new HashSet<CompositeQualifier>();
-			compositeQualifiers.put(compositeQualifier.getId(), set);
+	/**
+	 * Add a {@link Bioentity} object to the document. Will return the canonical
+	 * instance for the entity in this GAF.
+	 * 
+	 * @param bioentity
+	 * @return bioentity
+	 */
+	public Bioentity addBioentity(Bioentity bioentity){
+		Bioentity prev = bioentities.get(bioentity.getId());
+		if (prev == null) {
+			bioentities.put(bioentity.getId(), bioentity);
+			prev = bioentity;
 		}
-		set.add(compositeQualifier);
+		return prev;
 	}
 
-	public Set<String> getCompositeQualifiersIds(){
-		return compositeQualifiers.keySet();
-	}
-
-	public Collection<CompositeQualifier> getCompositeQualifiers(String id){
-		Set<CompositeQualifier> set = compositeQualifiers.get(id);
-		return set;
-	}
-
-	public void addWithInfo(WithInfo withInfo){
-
-		Set<WithInfo> list = withInfos.get(withInfo.getId());
-		if(list == null){
-			list = new HashSet<WithInfo>();
-			withInfos.put(withInfo.getId(), list);
-		}
-		list.add(withInfo);
-	}
-
-	public Set<String> getWithInfosIds(){
-		return withInfos.keySet();
-	}
-
-	public Collection<WithInfo> getWithInfos(String id){
-		Set<WithInfo> set = withInfos.get(id);
-		return set;
-	}
-
+	/**
+	 * Add a single annotation to the document.
+	 * 
+	 * @param ga
+	 */
 	public void addGeneAnnotation(GeneAnnotation ga){
-		ga.setGafDocumetObject(this);
-		ga.setGafDocument(this.getId());
 		annotations.add(ga);
 	}
-
-	public void setGeneAnnotations(List<GeneAnnotation> newAnns) {
-		annotations = newAnns;
+	
+	/**
+	 * Replace the current set of annotations with the given list.
+	 * Also register all the bioentities from the annotations.
+	 * 
+	 * @param annotations
+	 */
+	public void setGeneAnnotations(List<GeneAnnotation> annotations) {
+		this.annotations = annotations;
+		this.bioentities.clear();
+		for (GeneAnnotation annotation : annotations) {
+			Bioentity bioentity = annotation.getBioentityObject();
+			if (bioentity != null) {
+				addBioentity(bioentity);
+			}
+		}
 	}
 
+	/**
+	 * Get the current set of comments.
+	 * 
+	 * @return comments, never null
+	 */
 	public List<String> getComments() {
 		return comments;
 	}
 
-	public void setComments(List<String> comments) {
-		this.comments = comments;
-	}
-
+	/**
+	 * Add a comment line.
+	 * 
+	 * @param c
+	 */
 	public void addComment(String c) {
 		this.comments.add(c);
 		
 	}
-
 }

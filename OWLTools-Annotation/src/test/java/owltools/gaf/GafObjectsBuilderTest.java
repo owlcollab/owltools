@@ -5,14 +5,10 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Test;
 
 import owltools.OWLToolsTestBasics;
-import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
-import owltools.gaf.GeneAnnotation;
 
 public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 
@@ -28,7 +24,7 @@ public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 		
 		assertFalse(doc.getGeneAnnotations().isEmpty());
 		
-		Set<GeneAnnotation> anns = doc.getGeneAnnotations("MGI:MGI:1916529");
+		Collection<GeneAnnotation> anns = doc.getGeneAnnotations("MGI:MGI:1916529");
 		assertEquals(3, anns.size());
 	}
 	

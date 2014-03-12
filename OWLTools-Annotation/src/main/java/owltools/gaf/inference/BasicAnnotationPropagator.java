@@ -696,7 +696,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		
 		// c8 with expression
 		// because we propagate the evidence code, we also have to propagate the with column
-		annP.setWithExpression(source.getWithExpression());
+		annP.setWithInfos(source.getWithExpression(), source.getWithInfos());
 		
 		// c9 aspect
 		annP.setAspect(aspect);

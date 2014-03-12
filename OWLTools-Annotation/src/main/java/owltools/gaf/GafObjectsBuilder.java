@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,11 +38,8 @@ public class GafObjectsBuilder {
 
 	private final static Logger LOG = Logger.getLogger(GafObjectsBuilder.class);
 	
-	private GafDocument gafDocument;
-	
-	private GAFParser parser;
+	private final GAFParser parser;
 
-	
 	private String docId;
 	
 	private String documentPath;
@@ -60,7 +58,6 @@ public class GafObjectsBuilder {
 	
 	
 	public GafObjectsBuilder(){
-		gafDocument = new GafDocument();
 		parser = new GAFParser();
 		splitSize = -1;
 	}
@@ -74,16 +71,6 @@ public class GafObjectsBuilder {
 		return this.splitSize;
 	}
 	
-	public GafDocument getGafDocument(){
-		return gafDocument;
-	}
-	
-/*	public void startDocument(File gafFile) {
-		gafDocument.setDocumentPath(gafFile.getAbsolutePath());
-		gafDocument.setId(gafFile.getName());
-		
-	}
-*/
 	public GAFParser getParser(){
 		return parser;
 	}
@@ -144,7 +131,7 @@ public class GafObjectsBuilder {
 		}
 
 		counter = 0;
-		gafDocument = new GafDocument(docId, this.documentPath);
+		GafDocument gafDocument = new GafDocument(docId, this.documentPath);
 		
 		while(parser.next()){
 			if(splitSize != -1){
@@ -170,10 +157,10 @@ public class GafObjectsBuilder {
 				}
 			}
 			if (load) {
-				Bioentity entity= addBioEntity(parser);
-				addGeneAnnotation(parser, entity);
-				addWithInfo(parser);
-				addCompositeQualifier(parser);
+				Bioentity entity= parseBioEntity(parser);
+				entity = gafDocument.addBioentity(entity);
+				GeneAnnotation annotation = parseGeneAnnotation(parser, entity, docId);
+				gafDocument.addGeneAnnotation(annotation);
 			}
 		}
 		return gafDocument;
@@ -201,14 +188,10 @@ public class GafObjectsBuilder {
 	public synchronized void dispose() {
 		if (parser != null) {
 			parser.dispose();
-			parser = null;
 		}
 		if (filters != null) {
 			filters.clear();
 			filters = null;
-		}
-		if (gafDocument != null) {
-			gafDocument = null;
 		}
 	}
 	
@@ -217,7 +200,7 @@ public class GafObjectsBuilder {
 	 * @param parser
 	 * @return bioentity, never null
 	 */
-	private Bioentity addBioEntity(GAFParser parser){
+	static Bioentity parseBioEntity(GAFParser parser){
 		String id = parser.getDb() + ":" + parser.getDbObjectId();
 		String symbol = parser.getDbObjectSymbol();
 		String fullName = parser.getDbObjectName();
@@ -233,38 +216,57 @@ public class GafObjectsBuilder {
 		
 		String db = parser.getDb();
 		
-		Bioentity entity = new Bioentity(id, symbol, fullName, typeCls, "NCBITaxon:" + ncbiTaxonId, db, gafDocument.getId());
+		Bioentity entity = new Bioentity(id, symbol, fullName, typeCls, "NCBITaxon:" + ncbiTaxonId, db);
 		
 		// Handle parsing out the synonyms separately.
 		String syns[] = parser.getDbObjectSynonym().split("\\|");
 		for( String syn : syns ){
 			entity.addSynonym(syn);
 		}
-
-		gafDocument.addBioentity(entity);
-
 		return entity;
 	}
 	
-	
-	private void addWithInfo(GAFParser parser){
-		if(parser.getWith().length()>0){
-			String tokens[] = parser.getWith().split("[\\||,]");
+	/**
+	 * Parse the string into a collection of {@link WithInfo} objects
+	 * 
+	 * @param withInfoString
+	 * @return collection, never null
+	 */
+	static Collection<WithInfo> parseWithInfo(final String withInfoString){
+		Collection<WithInfo> infos = Collections.emptySet();
+		if(withInfoString.length()>0){
+			infos = new ArrayList<WithInfo>();
+			String tokens[] = withInfoString.split("[\\||,]");
 			for(String token: tokens){
-				gafDocument.addWithInfo(new WithInfo(parser.getWith(), token));
+				infos.add(new WithInfo(withInfoString, token));
 			}
 		}
+		return infos;
 	}
 	
-	private void addCompositeQualifier(GAFParser parser){
-		if(parser.getQualifier().length()>0){
-			String tokens[] = parser.getQualifier().split("[\\||,]");
+	/**
+	 * Parse the string into a collection of {@link CompositeQualifier} objects
+	 * 
+	 * @param qualifierString
+	 * @return collection, never null
+	 */
+	static Collection<CompositeQualifier> parseCompositeQualifier(String qualifierString){
+		Collection<CompositeQualifier> qualifiers = Collections.emptySet();
+		if(qualifierString.length()>0){
+			qualifiers = new ArrayList<CompositeQualifier>();
+			String tokens[] = qualifierString.split("[\\||,]");
 			for(String token: tokens){
-				gafDocument.addCompositeQualifier(new CompositeQualifier(parser.getQualifier(), token));
+				qualifiers.add(new CompositeQualifier(qualifierString, token));
 			}
 		}
+		return qualifiers;
 	}
+	
 
+	/**
+	 * @param extensionExpressionString
+	 * @return list, never null
+	 */
 	static List<List<ExtensionExpression>> parseExtensionExpression(String extensionExpressionString){
 		List<List<ExtensionExpression>> groupedExpressions = Collections.emptyList();
 		if(extensionExpressionString != null && extensionExpressionString.length() > 0){
@@ -319,19 +321,32 @@ public class GafObjectsBuilder {
 	 * 
 	 * @param parser
 	 * @param entity
+	 * @param documentId
+	 * @return gene annotation
 	 */
-	private void addGeneAnnotation(GAFParser parser, Bioentity entity){
-		String compositeQualifier = parser.getQualifier();
-	
+	private static GeneAnnotation parseGeneAnnotation(GAFParser parser, Bioentity entity, String documentId){
+		final GeneAnnotation ga = new GeneAnnotation();
+		ga.setCls(parser.getGOId());
+		ga.setReferenceId(parser.getReference());
+		ga.setBioentity(entity.getId());
+		ga.setBioentityObject(entity);
+		ga.setEvidenceCls(parser.getEvidence());
+		ga.setLastUpdateDate(parser.getDate());
+		ga.setAssignedBy(parser.getAssignedBy());
+		ga.setGeneProductForm(parser.getGeneProjectFormId());
 		
-		boolean isContributesTo = compositeQualifier.contains("contributes_to");
-		boolean isIntegeralTo = compositeQualifier.contains("integral_to");
-		boolean isNegated = compositeQualifier.contains("NOT");
+		// handle composite qualifiers
+		final String qualifierString = parser.getQualifier();
+		ga.setIsContributesTo(qualifierString.contains("contributes_to"));
+		ga.setIsIntegralTo(qualifierString.contains("integral_to"));
+		// boolean isNegated = qualifierString.contains("NOT");
 		
-		String clsId = parser.getGOId();
+		Collection<CompositeQualifier> qualifiers = parseCompositeQualifier(qualifierString);
+		ga.setCompositeQualifiers(qualifierString, qualifiers);
 
+		// handle relation and aspect
 		String relation = null;
-		String aspect = parser.getAspect();
+		final String aspect = parser.getAspect();
 		if (aspect.equals("F"))
 			relation = "enables";
 		else if (aspect.equals("P"))
@@ -341,16 +356,20 @@ public class GafObjectsBuilder {
 		else
 			relation = aspect;
 		
-		if (isContributesTo)
+		if (qualifierString.contains("contributes_to"))
 			relation = "contributes_to";
-		if (compositeQualifier.contains("colocalizes_with"))
+		if (qualifierString.contains("colocalizes_with"))
 			relation = "colocalizes_with";
 				
-		String referenceId = parser.getReference();
+		ga.setAspect(aspect);
+		ga.setRelation(relation);
 		
-		String evidenceCls = parser.getEvidence();
-		String withExpression = parser.getWith();
+		// handle with
+		final String withExpression = parser.getWith();
+		final Collection<WithInfo> withInfos = parseWithInfo(withExpression);
+		ga.setWithInfos(withExpression, withInfos);
 
+		// handle acts on taxon
 		String actsOnTaxonId ="";
 		
 		String taxons[] = parser.getTaxon().split("\\|");
@@ -358,25 +377,18 @@ public class GafObjectsBuilder {
 			taxons = taxons[1].split(":");
 			actsOnTaxonId = "NCBITaxon:" + taxons[1];
 		}
+		ga.setActsOnTaxonId(actsOnTaxonId);
 		
-		String lastUpdateDate = parser.getDate();
-		
-		String assignedBy = parser.getAssignedBy();
-
+		// handle extension expression
 		String extensionExpression = parser.getAnnotationExtension();
-		String geneProductForm = parser.getGeneProjectFormId();
-
 		List<List<ExtensionExpression>> extensionExpressionList = parseExtensionExpression(extensionExpression);
-		extensionExpression = buildExtensionExpression(extensionExpressionList);
+		ga.setExtensionExpressions(extensionExpressionList);
 		
-		GeneAnnotation ga = new GeneAnnotation(entity.getId(),
-				isContributesTo, isIntegeralTo, compositeQualifier, clsId, referenceId, evidenceCls, 
-				withExpression, aspect, actsOnTaxonId, lastUpdateDate, assignedBy,extensionExpression, extensionExpressionList, geneProductForm, gafDocument.getId());
-		ga.setBioentityObject(entity);
-		ga.setRelation(relation);
-		AnnotationSource source = new AnnotationSource(parser.getCurrentRow(), parser.getLineNumber(), gafDocument.getId());
+		// set source
+		AnnotationSource source = new AnnotationSource(parser.getCurrentRow(), parser.getLineNumber(), documentId);
 		ga.setSource(source);
-		gafDocument.addGeneAnnotation(ga);
+		
+		return ga;
 	}
 	
 	

@@ -140,14 +140,7 @@ public class AnnotationRuleViolation {
 	}
 
 	public String getGafDocument() {
-		if (this.sourceAnnotation != null)
-			return this.sourceAnnotation.getGafDocument();
-
 		return gafDocument;
-	}
-
-	public void setGafDoument(String gafDoument) {
-		this.gafDocument = gafDoument;
 	}
 
 	/**

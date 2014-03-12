@@ -2,6 +2,7 @@ package owltools.gaf.inference;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -140,7 +142,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidenceCls("IC");
-		annP.setWithExpression(with);
+		annP.setWithInfos(with, Collections.singleton(new WithInfo(with, with)));
 		// TODO - evidence
 		Prediction prediction = new Prediction(annP);
 		LOG.info("prediction="+prediction);
