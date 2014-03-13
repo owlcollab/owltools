@@ -5,7 +5,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import java.util.Collections;
 
@@ -45,6 +47,7 @@ public class GeneAnnotation {
 	private String assignedBy = DEFAULT_STRING_VALUE; 			// Col. 15
 	private String extensionExpression = DEFAULT_STRING_VALUE; 	// Col. 16
 	private String geneProductForm = DEFAULT_STRING_VALUE; 		// Col. 17
+	private Map<String, String> properties = null;				// GPAD only
 	
 	// derived from c8
 	private Collection<WithInfo> withInfoList = null; 
@@ -183,7 +186,7 @@ public class GeneAnnotation {
 			String referenceId, String evidenceCls, String withExpression, Collection<WithInfo> withInfoList,
 			String aspect, String actsOnTaxonId, String lastUpdateDate, String assignedBy,
 			String extensionExpression, List<List<ExtensionExpression>> extensionExpressionList,
-			String geneProductForm) {
+			String geneProductForm, Map<String, String> properties) {
 
 		this.bioentity = bioentity;
 		this.isContributesTo = isContributesTo;
@@ -202,6 +205,7 @@ public class GeneAnnotation {
 		this.extensionExpression = extensionExpression;
 		this.extensionExpressionList = extensionExpressionList;
 		this.geneProductForm = geneProductForm;
+		this.properties = properties;
 		setChanged();
 	}
 
@@ -227,7 +231,16 @@ public class GeneAnnotation {
 		this.extensionExpression = ann.extensionExpression;
 		this.extensionExpressionList = GafObjectsBuilder.parseExtensionExpression(ann.extensionExpression);
 		this.geneProductForm = ann.geneProductForm;
+		this.properties = copy(ann.properties);
 		setChanged();
+	}
+	
+	private static Map<String, String> copy(Map<String, String> source) {
+		Map<String, String> copy = null;
+		if (source != null) {
+			copy = new HashMap<String, String>(source);
+		}
+		return copy;
 	}
 
 	public String getBioentity() {
@@ -426,4 +439,14 @@ public class GeneAnnotation {
 		setChanged();
 	}
 
+	public void addProperty(String key, String value) {
+		if (properties == null) {
+			properties = new HashMap<String, String>();
+		}
+		properties.put(key, value);
+	}
+	
+	public Map<String, String> getProperties() {
+		return Collections.unmodifiableMap(properties);
+	}
 }

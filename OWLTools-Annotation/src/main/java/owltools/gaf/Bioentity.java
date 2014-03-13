@@ -1,17 +1,23 @@
 package owltools.gaf;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Bioentity{
 
-	protected String db; // Col. 1
-	protected String id; // Col. 2
-	protected String symbol; // Col. 3
-	protected String fullName; // Col. 10(?)
-	protected List<String> synonyms; // Col. 11
-	protected String typeCls; // Col. 12
-	protected String ncbiTaxonId; // Col. 13(?)
+	private String db; 					// GAF-Col  1	GPI namespace header?
+	private String id; 					// GAF-Col  2	GPI-Col 1
+	private String symbol; 				// GAF-Col  3	GPI-Col 2
+	private String fullName; 			// GAF-Col 10	GPI-Col 3
+	private List<String> synonyms; 		// GAF-Col 11	GPI-Col 4
+	private String typeCls; 			// GAF-Col 12	GPI-Col 5
+	private String ncbiTaxonId; 		// GAF-Col 13	GPI-Col 6
+	
+	private String parentObjectId = null; 			// GPI-Col 7
+	private List<String> dbXrefs = null;  			// GPI-Col 8
+	private Map<String, String> properties = null;	// GPI-Col 9
 	
 	public Bioentity(){
 	}
@@ -108,5 +114,35 @@ public class Bioentity{
 	 */
 	public List<String> getSynonyms() {
 		return new ArrayList<String>(this.synonyms);
+	}
+
+	public String getParentObjectId() {
+		return parentObjectId;
+	}
+
+	public void setParentObjectId(String parentObjectId) {
+		this.parentObjectId = parentObjectId;
+	}
+
+	public List<String> getDbXrefs() {
+		return dbXrefs;
+	}
+
+	public void addDbXref(String dbXref) {
+		if (dbXrefs == null) {
+			dbXrefs = new ArrayList<String>();
+		}
+		dbXrefs.add(dbXref);
+	}
+
+	public Map<String, String> getProperties() {
+		return properties;
+	}
+
+	public void addPropert(String key, String value) {
+		if (properties == null) {
+			properties = new HashMap<String, String>();
+		}
+		properties.put(key, value);
 	}
 }
