@@ -54,7 +54,7 @@ public class GafObjectsBuilder {
 	private String documentPath;
 
 	// list of filters
-	private List<LineFilter> filters = null;
+	private List<LineFilter<GAFParser>> filters = null;
 	
 	//this variable is used when a document is splitted
 	private int counter;
@@ -91,9 +91,9 @@ public class GafObjectsBuilder {
 	 * 
 	 * @param filter
 	 */
-	public void addFilter(LineFilter filter) {
+	public void addFilter(LineFilter<GAFParser> filter) {
 		if (filters == null) {
-			filters = new ArrayList<LineFilter>();
+			filters = new ArrayList<LineFilter<GAFParser>>();
 		}
 		filters.add(filter);
 	}
@@ -157,7 +157,7 @@ public class GafObjectsBuilder {
 			boolean load = true;
 			if (filters != null) {
 				// check each filter
-				for (LineFilter filter : filters) {
+				for (LineFilter<GAFParser> filter : filters) {
 					boolean accept = filter.accept(parser.getCurrentRow(), parser.getLineNumber(), parser);
 					if (accept == false) {
 						load = false;

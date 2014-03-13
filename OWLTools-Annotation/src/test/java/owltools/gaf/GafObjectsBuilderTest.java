@@ -64,7 +64,7 @@ public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 	@Test
 	public void testGafLineFilters() throws Exception {
 		GafObjectsBuilder builder = new GafObjectsBuilder();
-		builder.addFilter(new LineFilter() {
+		builder.addFilter(new LineFilter<GAFParser>() {
 			
 			@Override
 			public boolean accept(String line, int pos, GAFParser parser) {

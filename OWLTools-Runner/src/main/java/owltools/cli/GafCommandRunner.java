@@ -168,7 +168,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		if (noIEA) {
 			LOG.info("Using no-IEA filter on GAF.");
-			builder.addFilter(new LineFilter() {
+			builder.addFilter(new LineFilter<GAFParser>() {
 				
 				@Override
 				public boolean accept(String line, int pos, GAFParser parser) {
