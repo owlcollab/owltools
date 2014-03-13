@@ -9,8 +9,6 @@ public class SplitTest {
 
 	/**
 	 * Assert that the regex and the {@link StringUtils} produce the same result.
-	 * 
-	 * @see GAFParser
 	 */
 	@Test
 	public void testSplit() {

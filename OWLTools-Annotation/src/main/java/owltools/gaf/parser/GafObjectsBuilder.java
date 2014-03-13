@@ -1,4 +1,4 @@
-package owltools.gaf;
+package owltools.gaf.parser;
 
 import java.io.File;
 import java.io.FileReader;
@@ -12,6 +12,15 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+
+import owltools.gaf.AnnotationSource;
+import owltools.gaf.Bioentity;
+import owltools.gaf.CompositeQualifier;
+import owltools.gaf.ExtensionExpression;
+import owltools.gaf.GafDocument;
+import owltools.gaf.GafObjectsBuilderTest;
+import owltools.gaf.GeneAnnotation;
+import owltools.gaf.WithInfo;
 
 
 /**
@@ -45,7 +54,7 @@ public class GafObjectsBuilder {
 	private String documentPath;
 
 	// list of filters
-	private List<GafLineFilter> filters = null;
+	private List<LineFilter> filters = null;
 	
 	//this variable is used when a document is splitted
 	private int counter;
@@ -82,9 +91,9 @@ public class GafObjectsBuilder {
 	 * 
 	 * @param filter
 	 */
-	public void addFilter(GafLineFilter filter) {
+	public void addFilter(LineFilter filter) {
 		if (filters == null) {
-			filters = new ArrayList<GafLineFilter>();
+			filters = new ArrayList<LineFilter>();
 		}
 		filters.add(filter);
 	}
@@ -119,7 +128,7 @@ public class GafObjectsBuilder {
 
 	/**
 	 * When this variable reaches the splitSize count, the algorithm in the
-	 * {@link #getNextSplitDocument()} method stops calling next method of the GafParser
+	 * {@link #getNextSplitDocument()} method stops calling next method of the GAFParser
 	 * and returns the {@link GafDocument} object build with the number of rows
 	 * 
 	 * @return gafDocument
@@ -148,7 +157,7 @@ public class GafObjectsBuilder {
 			boolean load = true;
 			if (filters != null) {
 				// check each filter
-				for (GafLineFilter filter : filters) {
+				for (LineFilter filter : filters) {
 					boolean accept = filter.accept(parser.getCurrentRow(), parser.getLineNumber(), parser);
 					if (accept == false) {
 						load = false;
@@ -196,7 +205,7 @@ public class GafObjectsBuilder {
 	}
 	
 	/**
-	 * This method builds {@link Bioentity} object from the current position (row) of GafParser
+	 * This method builds {@link Bioentity} object from the current position (row) of GAFParser
 	 * @param parser
 	 * @return bioentity, never null
 	 */
@@ -232,7 +241,7 @@ public class GafObjectsBuilder {
 	 * @param withInfoString
 	 * @return collection, never null
 	 */
-	static Collection<WithInfo> parseWithInfo(final String withInfoString){
+	public static Collection<WithInfo> parseWithInfo(final String withInfoString){
 		Collection<WithInfo> infos = Collections.emptySet();
 		if(withInfoString.length()>0){
 			infos = new ArrayList<WithInfo>();
@@ -250,7 +259,7 @@ public class GafObjectsBuilder {
 	 * @param qualifierString
 	 * @return collection, never null
 	 */
-	static Collection<CompositeQualifier> parseCompositeQualifier(String qualifierString){
+	public static Collection<CompositeQualifier> parseCompositeQualifier(String qualifierString){
 		Collection<CompositeQualifier> qualifiers = Collections.emptySet();
 		if(qualifierString.length()>0){
 			qualifiers = new ArrayList<CompositeQualifier>();
@@ -267,7 +276,7 @@ public class GafObjectsBuilder {
 	 * @param extensionExpressionString
 	 * @return list, never null
 	 */
-	static List<List<ExtensionExpression>> parseExtensionExpression(String extensionExpressionString){
+	public static List<List<ExtensionExpression>> parseExtensionExpression(String extensionExpressionString){
 		List<List<ExtensionExpression>> groupedExpressions = Collections.emptyList();
 		if(extensionExpressionString != null && extensionExpressionString.length() > 0){
 			// first split by '|' to get groups
@@ -297,7 +306,7 @@ public class GafObjectsBuilder {
 		return groupedExpressions;
 	}
 	
-	static String buildExtensionExpression(List<List<ExtensionExpression>> groupedExpressions) {
+	public static String buildExtensionExpression(List<List<ExtensionExpression>> groupedExpressions) {
 		StringBuilder sb = new StringBuilder();
 		if (groupedExpressions != null && !groupedExpressions.isEmpty()) {
 			for (List<ExtensionExpression> group : groupedExpressions) {
@@ -309,7 +318,7 @@ public class GafObjectsBuilder {
 					if (i > 0) {
 						sb.append(',');
 					}
-					sb.append(expression.relation).append('(').append(expression.cls).append(')');
+					sb.append(expression.getRelation()).append('(').append(expression.getCls()).append(')');
 				}
 			}
 		}
@@ -317,7 +326,7 @@ public class GafObjectsBuilder {
 	}
 	
 	/**
-	 * Build GeneAnnotation object from current position/row of the GafParser.
+	 * Build GeneAnnotation object from current position/row of the GAFParser.
 	 * 
 	 * @param parser
 	 * @param entity

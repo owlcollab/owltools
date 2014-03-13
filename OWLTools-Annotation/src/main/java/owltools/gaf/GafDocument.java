@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import owltools.gaf.parser.GafObjectsBuilder;
+
 /**
  * Representation of a gene annotation file (GAF). It holds all relevant
  * {@link GeneAnnotation} and {@link Bioentity} objects.

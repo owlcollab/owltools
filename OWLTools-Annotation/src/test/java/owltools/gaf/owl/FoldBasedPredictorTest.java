@@ -16,9 +16,9 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.inference.FoldBasedPredictor;
 import owltools.gaf.inference.Prediction;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;

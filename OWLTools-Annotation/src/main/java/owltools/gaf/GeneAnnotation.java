@@ -9,6 +9,8 @@ import java.util.List;
 
 import java.util.Collections;
 
+import owltools.gaf.parser.GafObjectsBuilder;
+
 /**
  * Representation of a gene annotation.
  */
@@ -419,7 +421,7 @@ public class GeneAnnotation {
 		return annotationSource;
 	}
 
-	void setSource(AnnotationSource annotationSource) {
+	public void setSource(AnnotationSource annotationSource) {
 		this.annotationSource = annotationSource;
 		setChanged();
 	}

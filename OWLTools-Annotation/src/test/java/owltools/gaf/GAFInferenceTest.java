@@ -11,6 +11,7 @@ import owltools.OWLToolsTestBasics;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.Prediction;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 

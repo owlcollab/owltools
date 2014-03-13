@@ -17,9 +17,9 @@ import org.apache.commons.io.LineIterator;
 import org.apache.log4j.Logger;
 
 import owltools.gaf.ExtensionExpression;
-import owltools.gaf.GAFParser;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.eco.TraversingEcoMapper;
+import owltools.gaf.parser.GAFParser;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;

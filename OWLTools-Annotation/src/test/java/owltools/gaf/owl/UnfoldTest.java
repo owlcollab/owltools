@@ -12,8 +12,8 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.io.GafWriter;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 

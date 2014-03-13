@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.junit.Test;
 
 import owltools.OWLToolsTestBasics;
-import owltools.gaf.GAFParser;
+import owltools.gaf.parser.GAFParser;
 
 public class GAFParserTest extends OWLToolsTestBasics {
 

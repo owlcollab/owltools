@@ -69,9 +69,9 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.eco.EcoMapper;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.vocab.OBOUpperVocabulary;

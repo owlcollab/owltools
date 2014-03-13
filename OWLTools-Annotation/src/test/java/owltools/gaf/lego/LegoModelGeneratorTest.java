@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 import owltools.util.MinimalModelGeneratorTest;

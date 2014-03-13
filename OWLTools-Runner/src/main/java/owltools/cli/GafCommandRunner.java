@@ -49,12 +49,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.Bioentity;
-import owltools.gaf.GAFParser;
-import owltools.gaf.GAFParser.GAFCommentListener;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafLineFilter;
-import owltools.gaf.GafObjectsBuilder;
-import owltools.gaf.GafParserListener;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.TraversingEcoMapper;
@@ -74,6 +69,11 @@ import owltools.gaf.owl.AnnotationExtensionUnfolder;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.owl.mapping.BasicABox;
+import owltools.gaf.parser.GAFParser;
+import owltools.gaf.parser.CommentListener;
+import owltools.gaf.parser.LineFilter;
+import owltools.gaf.parser.GafObjectsBuilder;
+import owltools.gaf.parser.ParserListener;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
@@ -143,7 +143,7 @@ public class GafCommandRunner extends CommandRunner {
 		GafObjectsBuilder builder = new GafObjectsBuilder();
 		if (createReport) {
 			parserReport = new GafParserReport();
-			builder.getParser().addParserListener(new GafParserListener() {
+			builder.getParser().addParserListener(new ParserListener() {
 				
 				@Override
 				public boolean reportWarnings() {
@@ -168,7 +168,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		if (noIEA) {
 			LOG.info("Using no-IEA filter on GAF.");
-			builder.addFilter(new GafLineFilter() {
+			builder.addFilter(new LineFilter() {
 				
 				@Override
 				public boolean accept(String line, int pos, GAFParser parser) {
@@ -1519,7 +1519,7 @@ public class GafCommandRunner extends CommandRunner {
 		
 		final GAFParser parser = new GAFParser();
 		// also read the comments, they contain the date information
-		parser.addCommentListener(new GAFCommentListener() {
+		parser.addCommentListener(new CommentListener() {
 
 			@Override
 			public void readingComment(String line, int lineNumber) {

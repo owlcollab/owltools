@@ -1,4 +1,4 @@
-package owltools.gaf;
+package owltools.gaf.parser;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,6 +20,8 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+
+import owltools.gaf.parser.AbstractAnnotationFileParser.ReadState;
 
 /**
  * 
@@ -66,9 +68,9 @@ public class GAFParser {
 	
 	private List<Object> voilations;
 	
-	private List<GafParserListener> parserListeners;
+	private List<ParserListener> parserListeners;
 	
-	private List<GAFCommentListener> commentListeners;
+	private List<CommentListener> commentListeners;
 	
 	public List<Object> getAnnotationRuleViolations(){
 		return this.voilations;
@@ -184,37 +186,26 @@ public class GAFParser {
 			
 	}
 	
-	private enum ReadState {
-		success,
-		no,
-		next
-	}
-	
 	private void fireParsing(){
-		for(GafParserListener listner: parserListeners){
+		for(ParserListener listner: parserListeners){
 			listner.parsing(this.currentRow, lineNumber);
 		}
 	}
 	
-	public static interface GAFCommentListener {
-		
-		public void readingComment(String line, int lineNumber);
-	}
-	
 	private void fireComment() {
-		for(GAFCommentListener listener: commentListeners) {
+		for(CommentListener listener: commentListeners) {
 			listener.readingComment(this.currentRow, lineNumber);
 		}
 	}
 	
 	private void fireParsingError(String message){
-		for(GafParserListener listner: parserListeners){
+		for(ParserListener listner: parserListeners){
 			listner.parserError(message, this.currentRow, lineNumber);
 		}
 	}
 	
 	private void fireParsingWarning(String message){
-		for(GafParserListener listner: parserListeners){
+		for(ParserListener listner: parserListeners){
 			if (listner.reportWarnings()) {
 				listner.parserWarning(message, this.currentRow, lineNumber);
 			}
@@ -237,14 +228,14 @@ public class GAFParser {
 		voilations = new Vector<Object>();
 		lineNumber = 0;
 		if(parserListeners == null){
-			parserListeners = new Vector<GafParserListener>();
+			parserListeners = new Vector<ParserListener>();
 		}
 		if (commentListeners == null) {
-			commentListeners = new Vector<GAFCommentListener>();
+			commentListeners = new Vector<CommentListener>();
 		}
 	}
 	
-	public void addParserListener(GafParserListener listener){
+	public void addParserListener(ParserListener listener){
 		if(listener == null)
 			return;
 		
@@ -252,20 +243,20 @@ public class GAFParser {
 			parserListeners.add(listener);
 	}
 	
-	public void remoteParserListener(GafParserListener listener){
+	public void remoteParserListener(ParserListener listener){
 		if(listener == null)
 			return;
 		
 		parserListeners.remove(listener);
 	}
 
-	public void addCommentListener(GAFCommentListener listener) {
+	public void addCommentListener(CommentListener listener) {
 		if (listener != null && !commentListeners.contains(listener)) {
 			commentListeners.add(listener);
 		}
 	}
 	
-	public void removeCommentListener(GAFCommentListener listener) {
+	public void removeCommentListener(CommentListener listener) {
 		if (listener != null) {
 			commentListeners.remove(listener);
 		}

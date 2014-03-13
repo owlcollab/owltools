@@ -7,10 +7,10 @@ import org.junit.BeforeClass;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.gaf.eco.TraversingEcoMapper;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 
 public abstract class AbstractEcoRuleTestHelper extends OWLToolsTestBasics {

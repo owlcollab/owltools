@@ -1,6 +1,6 @@
-package owltools.gaf;
+package owltools.gaf.parser;
 
-public interface GafParserListener {
+public interface ParserListener {
 
 	/**
 	 * The current line is parsed. May trigger calls of 

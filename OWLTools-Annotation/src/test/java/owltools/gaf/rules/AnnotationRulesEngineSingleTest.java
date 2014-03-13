@@ -16,9 +16,9 @@ import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.TraversingEcoMapper;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;

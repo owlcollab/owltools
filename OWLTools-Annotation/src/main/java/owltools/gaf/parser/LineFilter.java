@@ -1,6 +1,6 @@
-package owltools.gaf;
+package owltools.gaf.parser;
 
-public interface GafLineFilter {
+public interface LineFilter {
 
 	/**
 	 * Given a line in a gene annotation file, decide whether to load the line.

@@ -9,6 +9,9 @@ import java.util.List;
 import org.junit.Test;
 
 import owltools.OWLToolsTestBasics;
+import owltools.gaf.parser.GAFParser;
+import owltools.gaf.parser.LineFilter;
+import owltools.gaf.parser.GafObjectsBuilder;
 
 public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 
@@ -61,7 +64,7 @@ public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 	@Test
 	public void testGafLineFilters() throws Exception {
 		GafObjectsBuilder builder = new GafObjectsBuilder();
-		builder.addFilter(new GafLineFilter() {
+		builder.addFilter(new LineFilter() {
 			
 			@Override
 			public boolean accept(String line, int pos, GAFParser parser) {

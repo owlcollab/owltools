@@ -19,9 +19,9 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.io.GafWriter;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;

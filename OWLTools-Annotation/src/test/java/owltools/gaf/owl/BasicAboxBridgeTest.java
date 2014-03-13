@@ -17,9 +17,9 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilder;
 import owltools.gaf.owl.GAFOWLBridge.Vocab;
 import owltools.gaf.owl.mapping.BasicABox;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
