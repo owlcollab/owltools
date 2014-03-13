@@ -3,6 +3,8 @@ package owltools.gaf.parser;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -226,8 +228,20 @@ abstract class AbstractAnnotationFileParser implements Closeable {
 	//
 	//----------------------------
 	
+	public void createReader(InputStream inputStream) {
+		reader = new BufferedReader(new InputStreamReader(inputStream));
+	}
+	
+	public void setReader(BufferedReader reader) {
+		this.reader = reader;
+	}
+	
 	public String getCurrentRow(){
 		return this.currentRow;
+	}
+	
+	public int getLineNumber() {
+		return lineNumber;
 	}
 	
 	//----------------------------

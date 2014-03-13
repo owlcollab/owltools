@@ -11,7 +11,9 @@ import java.util.Map;
 
 import java.util.Collections;
 
-import owltools.gaf.parser.GafObjectsBuilder;
+import org.apache.commons.lang3.StringUtils;
+
+import owltools.gaf.parser.BuilderTools;
 
 /**
  * Representation of a gene annotation.
@@ -38,7 +40,7 @@ public class GeneAnnotation {
 	private String compositeQualifier = DEFAULT_STRING_VALUE; 	// Col. 4
 	private String relation = DEFAULT_STRING_VALUE; 			// implicit relation
 	private String cls = DEFAULT_STRING_VALUE; 					// Col. 5
-	private String referenceId = DEFAULT_STRING_VALUE;			// Col. 6
+	private List<String> referenceIds = null;					// Col. 6
 	private String evidenceCls = DEFAULT_STRING_VALUE; 			// Col. 7
 	private String withExpression = DEFAULT_STRING_VALUE; 		// Col. 8
 	private String aspect = DEFAULT_STRING_VALUE; 				// Col. 9
@@ -134,7 +136,10 @@ public class GeneAnnotation {
 		
 		s.append(this.cls).append("\t");
 		
-		s.append(this.referenceId).append("\t");
+		if (referenceIds != null) {
+			s.append(StringUtils.join(referenceIds, '|')).append("\t");
+		}
+		s.append("\t");
 		
 		s.append(this.evidenceCls).append("\t");
 		
@@ -183,7 +188,7 @@ public class GeneAnnotation {
 	
 	public GeneAnnotation(String bioentity, boolean isContributesTo,
 			boolean isIntegralTo, String compositeQualifier, Collection<CompositeQualifier> compositeQualifierList, String cls,
-			String referenceId, String evidenceCls, String withExpression, Collection<WithInfo> withInfoList,
+			List<String> referenceIds, String evidenceCls, String withExpression, Collection<WithInfo> withInfoList,
 			String aspect, String actsOnTaxonId, String lastUpdateDate, String assignedBy,
 			String extensionExpression, List<List<ExtensionExpression>> extensionExpressionList,
 			String geneProductForm, Map<String, String> properties) {
@@ -194,7 +199,7 @@ public class GeneAnnotation {
 		this.compositeQualifier = compositeQualifier;
 		this.compositeQualifierList = compositeQualifierList;
 		this.cls = cls;
-		this.referenceId = referenceId;
+		this.referenceIds = referenceIds;
 		this.evidenceCls = evidenceCls;
 		this.withExpression = withExpression;
 		this.withInfoList = withInfoList;
@@ -218,18 +223,18 @@ public class GeneAnnotation {
 		this.isContributesTo = ann.isContributesTo;
 		this.isIntegralTo = ann.isIntegralTo;
 		this.compositeQualifier = ann.compositeQualifier;
-		this.compositeQualifierList = GafObjectsBuilder.parseCompositeQualifier(ann.compositeQualifier);
+		this.compositeQualifierList = BuilderTools.parseCompositeQualifier(ann.compositeQualifier);
 		this.cls = ann.cls;
-		this.referenceId = ann.referenceId;
+		this.referenceIds = copy(ann.referenceIds);
 		this.evidenceCls = ann.evidenceCls;
 		this.withExpression = ann.withExpression;
-		this.withInfoList = GafObjectsBuilder.parseWithInfo(ann.withExpression);
+		this.withInfoList = BuilderTools.parseWithInfo(ann.withExpression);
 		this.aspect = ann.aspect;
 		this.actsOnTaxonId = ann.actsOnTaxonId;
 		this.lastUpdateDate = ann.lastUpdateDate;
 		this.assignedBy = ann.assignedBy;
 		this.extensionExpression = ann.extensionExpression;
-		this.extensionExpressionList = GafObjectsBuilder.parseExtensionExpression(ann.extensionExpression);
+		this.extensionExpressionList = BuilderTools.parseExtensionExpression(ann.extensionExpression);
 		this.geneProductForm = ann.geneProductForm;
 		this.properties = copy(ann.properties);
 		setChanged();
@@ -239,6 +244,14 @@ public class GeneAnnotation {
 		Map<String, String> copy = null;
 		if (source != null) {
 			copy = new HashMap<String, String>(source);
+		}
+		return copy;
+	}
+	
+	private static <T> List<T> copy(List<T> source) {
+		List<T> copy = null;
+		if (source != null) {
+			copy = new ArrayList<T>(source);
 		}
 		return copy;
 	}
@@ -271,12 +284,25 @@ public class GeneAnnotation {
 		setChanged();
 	}
 
-	public String getReferenceId() {
-		return referenceId;
+	public List<String> getReferenceIds() {
+		return referenceIds;
 	}
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
+	public void addReferenceId(String referenceId) {
+		if (referenceIds == null) {
+			referenceIds = new ArrayList<String>();
+		}
+		referenceIds.add(referenceId);
+		setChanged();
+	}
+	
+	public void addReferenceIds(Collection<String> referenceIds) {
+		if (this.referenceIds == null) {
+			this.referenceIds = new ArrayList<String>(referenceIds);
+		}
+		else {
+			this.referenceIds.addAll(referenceIds);
+		}
 		setChanged();
 	}
 
@@ -345,7 +371,7 @@ public class GeneAnnotation {
 	
 	public void setExtensionExpressions(List<List<ExtensionExpression>> expressions) {
 		this.extensionExpressionList = expressions;
-		this.extensionExpression = GafObjectsBuilder.buildExtensionExpression(expressions);
+		this.extensionExpression = BuilderTools.buildExtensionExpression(expressions);
 		setChanged();
 	}
 

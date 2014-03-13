@@ -290,9 +290,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				}
 			}
 			
-			// Drag in the reference (col 6). It unfortunately might be multi-valued with a pipe separation.
-			String refIdStr = a.getReferenceId();
-			String[] refIds = StringUtils.split(refIdStr, "|");
+			// Drag in the reference (col 6)
+			List<String> refIds = a.getReferenceIds();
 			String refIdList = ""; // used to help make unique ID.
 			for( String refId : refIds ){
 				annotation_doc.addField("reference", refId);

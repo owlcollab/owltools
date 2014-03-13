@@ -3,6 +3,7 @@ package owltools.gaf.rules.go;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import owltools.gaf.GeneAnnotation;
@@ -65,8 +66,15 @@ public class GoNDAnnotationRule extends AbstractAnnotationRule {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), message+", but was: "+cls, a, violationType);
 				return Collections.singleton(violation);
 			}
-			String referenceId = a.getReferenceId();
-			if (ndXrefs.contains(referenceId) == false) {
+			List<String> referenceIds = a.getReferenceIds();
+			boolean hasRef = false;
+			for (String referenceId : referenceIds) {
+				if (ndXrefs.contains(referenceId)) {
+					hasRef = true;
+					break;
+				}
+			}
+			if (hasRef) {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "ND annotations to root require reference ID", a, ViolationType.Warning);
 				return Collections.singleton(violation);
 			}

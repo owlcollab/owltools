@@ -291,7 +291,7 @@ public class GafToLegoTranslator {
 				}
 				
 				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-				String source = annotation.getReferenceId();
+				List<String> sources = annotation.getReferenceIds();
 				// IF <C> SubClassOf MF THEN:
 				if ("F".equals(aspect)) {
 					//  NamedIndividual( <generateId>
@@ -308,7 +308,9 @@ public class GafToLegoTranslator {
 						
 						// facts
 						OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
-						axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						for(String source : sources) {
+							axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						}
 						
 						// types
 						axioms.add(f.getOWLClassAssertionAxiom(ce, individual));
@@ -330,7 +332,9 @@ public class GafToLegoTranslator {
 						
 						// facts
 						OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
-						axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						for(String source : sources) {
+							axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						}
 						
 						// types
 						axioms.add(f.getOWLClassAssertionAxiom(mf, individual));
@@ -354,7 +358,9 @@ public class GafToLegoTranslator {
 						
 						// facts
 						OWLAnnotationProperty dcsource = getDcSourceProperty(lego, f);
-						axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individualX.getIRI(), f.getOWLLiteral(source)));
+						for(String source : sources) {
+							axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individualX.getIRI(), f.getOWLLiteral(source)));
+						}
 						
 						// types
 						axioms.add(f.getOWLClassAssertionAxiom(ce, individualX));
@@ -371,7 +377,9 @@ public class GafToLegoTranslator {
 						axioms.add(f.getOWLDeclarationAxiom(individual));
 						
 						// facts
-						axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						for(String source : sources) {
+							axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
+						}
 						axioms.add(f.getOWLObjectPropertyAssertionAxiom(partOf, individual, individualX));
 						
 						// types

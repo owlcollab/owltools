@@ -32,10 +32,21 @@ public class GafDocument{
 	 * @param id
 	 * @param documentPath
 	 */
-	public GafDocument(String id, String documentPath){
+	public GafDocument(String id, String documentPath) {
+		this(id, documentPath, new HashMap<String, Bioentity>());
+	}
+	
+	/**
+	 * Create a new document instance.
+	 * 
+	 * @param id
+	 * @param documentPath
+	 * @param bioentities
+	 */
+	public GafDocument(String id, String documentPath, Map<String, Bioentity> bioentities) {
 		this.id = id;
 		this.documentPath = documentPath;
-		bioentities = new HashMap<String, Bioentity>();
+		this.bioentities = bioentities;
 		annotations = new ArrayList<GeneAnnotation>();
 	}
 

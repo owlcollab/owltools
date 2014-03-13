@@ -139,7 +139,7 @@ public class Bioentity{
 		return properties;
 	}
 
-	public void addPropert(String key, String value) {
+	public void addProperty(String key, String value) {
 		if (properties == null) {
 			properties = new HashMap<String, String>();
 		}

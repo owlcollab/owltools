@@ -9,9 +9,11 @@ public class GpiParser extends AbstractAnnotationFileParser {
 	
 	private static final String COMMENT_PREFIX = "!";
 	private static final String VERSION_PREFIX = "gpi-version:";
+	private static final String NAMESPACE_PREFIX = "namespace:";
 	private static final double DEFAULT_VERSION = 0.0d;
 	private static final int EXPECTED_COLUMNS = 9;
 
+	private String namespace = null;
 	
 	public GpiParser() {
 		super(DEFAULT_VERSION, COMMENT_PREFIX, "gpi");
@@ -80,9 +82,28 @@ public class GpiParser extends AbstractAnnotationFileParser {
 		return currentCols[GpiColumns.Gene_Product_Properties.index()];
 	}
 	
+	public String getNamespace() {
+		return namespace;
+	}
+	
 	//----------------------------
 	//
 	//----------------------------
+	
+	@Override
+	protected void handleComment(final String line) {
+		if(version < 1.0){
+			if (isFormatDeclaration(line)) {
+				version = parseVersion(line);
+			}
+		}
+		else if (namespace == null) {
+			if (line.startsWith(COMMENT_PREFIX+NAMESPACE_PREFIX)) {
+				namespace = line.substring(COMMENT_PREFIX.length()+VERSION_PREFIX.length());
+				namespace = StringUtils.trimToNull(namespace);
+			}
+		}
+	}
 	
 	@Override
 	protected boolean isFormatDeclaration(String line) {

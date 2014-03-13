@@ -2,6 +2,8 @@ package owltools.gaf.io;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -83,7 +85,10 @@ public abstract class AbstractGafWriter  {
 		sep();
 		
 		// c6
-		print(ann.getReferenceId());
+		List<String> referenceIds = ann.getReferenceIds();
+		if (referenceIds != null && !referenceIds.isEmpty()) {
+			print(StringUtils.join(referenceIds, '|'));
+		}
 		sep();
 		
 		// c7
@@ -103,17 +108,11 @@ public abstract class AbstractGafWriter  {
 		sep();
 		
 		// c11
-		StringBuilder synonymBuilder = new StringBuilder();
 		List<String> synonyms = e.getSynonyms();
 		if (synonyms != null && !synonyms.isEmpty()) {
-			for (int i = 0; i < synonyms.size(); i++) {
-				if (i > 0) {
-					synonymBuilder.append('|');
-				}
-				synonymBuilder.append(synonyms.get(i));
-			}
+			String combined = StringUtils.join(synonyms, '|'); 
+			print(combined);
 		}
-		print(synonymBuilder.toString());
 		sep();
 		
 		// c12
@@ -121,8 +120,7 @@ public abstract class AbstractGafWriter  {
 		sep();
 		
 		// c13
-		String taxon = e.getNcbiTaxonId().replaceAll("NCBITaxon", "taxon");
-		print(taxon);
+		print(createTaxonString(ann, e));
 		sep();
 		
 		// c14
@@ -140,6 +138,16 @@ public abstract class AbstractGafWriter  {
 		// c17
 		print(ann.getGeneProductForm());
 		nl();
+	}
+	
+	private String createTaxonString(GeneAnnotation ann, Bioentity e) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(StringUtils.replace(e.getNcbiTaxonId(), "NCBITaxon:", "taxon:"));
+		String actsOnTaxonId = StringUtils.trimToNull(ann.getActsOnTaxonId());
+		if (actsOnTaxonId != null) {
+			sb.append('|').append(StringUtils.replace(actsOnTaxonId, "NCBITaxon:", "taxon:"));
+		}
+		return sb.toString();
 	}
 
 	/**

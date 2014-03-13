@@ -427,7 +427,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 					// assumptions: bioentity, cls, evidence code, assigned-by and aspect are the same
 					GeneAnnotation a1 = existing.getGeneAnnotation();
 					GeneAnnotation a2 = prediction.getGeneAnnotation();
-					if (!StringUtils.equals(a1.getReferenceId(), a2.getReferenceId())) {
+					if (!equalsList(a1.getReferenceIds(), a2.getReferenceIds())) {
 						add = true;
 						break;
 					}
@@ -462,6 +462,27 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				predictions.add(prediction);
 			}
 			
+		}
+		
+		private boolean equalsList(List<String> l1, List<String> l2) {
+			if (l1 == null && l2 == null) {
+				return true;
+			}
+			if (l1 == null|| l2 == null) {
+				return false;
+			}
+			if (l1.size() != l2.size()) {
+				return false;
+			}
+			boolean matches = true;
+			for (int i = 0; i < l2.size(); i++) {
+				boolean eq = StringUtils.equals(l1.get(i), l2.get(i));
+				if (eq == false) {
+					 matches = false;
+					 break;
+				}
+			}
+			return matches;
 		}
 		
 		/**
@@ -688,8 +709,8 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		// c5 cls
 		annP.setCls(getGraph().getIdentifier(c));
 		
-		// c6 referenceId
-		annP.setReferenceId(source.getReferenceId());
+		// c6 referenceIds
+		annP.addReferenceIds(source.getReferenceIds());
 		
 		// c7 evidence
 		annP.setEvidenceCls(source.getEvidenceCls());
