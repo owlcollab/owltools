@@ -137,7 +137,7 @@ public class GeneAnnotation {
 		s.append(this.cls).append("\t");
 		
 		if (referenceIds != null) {
-			s.append(StringUtils.join(referenceIds, '|')).append("\t");
+			s.append(StringUtils.join(referenceIds, '|'));
 		}
 		s.append("\t");
 		
