@@ -74,7 +74,7 @@ public class GoNDAnnotationRule extends AbstractAnnotationRule {
 					break;
 				}
 			}
-			if (hasRef) {
+			if (hasRef == false) {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "ND annotations to root require reference ID", a, ViolationType.Warning);
 				return Collections.singleton(violation);
 			}
