@@ -423,7 +423,7 @@ public class CommandRunner {
 					OWLClassExpression child = ax.getSubClass();
 					if (parent.isAnonymous() || child.isAnonymous())
 						continue;
-					System.out.println(g.getIdentifier(parent) +
+					System.out.println(g.getIdentifier(child) +
 							"\t" +
 							g.getIdentifier(parent));
 								
