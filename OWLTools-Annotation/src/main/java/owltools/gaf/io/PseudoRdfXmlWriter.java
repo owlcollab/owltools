@@ -15,6 +15,7 @@ import java.util.TreeSet;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -337,7 +338,11 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 						evidenceCls = "NULL";
 					}
 				}
-				String xref = ann.getReferenceId();
+				String xref = "";
+				List<String> referenceIds = ann.getReferenceIds();
+				if (referenceIds != null && !referenceIds.isEmpty()) {
+					xref = StringUtils.join(referenceIds, '|');
+				}
 				
 				writer.writeStartElement(GO_NAMESPACE_URI, "evidence");
 				writer.writeAttribute("evidence_code", evidenceCls);
