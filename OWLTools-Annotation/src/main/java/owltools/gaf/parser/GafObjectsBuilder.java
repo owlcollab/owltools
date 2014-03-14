@@ -14,12 +14,10 @@ import org.apache.log4j.Logger;
 
 import owltools.gaf.AnnotationSource;
 import owltools.gaf.Bioentity;
-import owltools.gaf.CompositeQualifier;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GafObjectsBuilderTest;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.WithInfo;
 
 
 /**
@@ -252,9 +250,9 @@ public class GafObjectsBuilder {
 		final String qualifierString = parser.getQualifier();
 		ga.setIsContributesTo(qualifierString.contains("contributes_to"));
 		ga.setIsIntegralTo(qualifierString.contains("integral_to"));
-		// boolean isNegated = qualifierString.contains("NOT");
+		ga.setIsNegated(qualifierString.contains("NOT"));
 		
-		Collection<CompositeQualifier> qualifiers = BuilderTools.parseCompositeQualifier(qualifierString);
+		List<String> qualifiers = BuilderTools.parseCompositeQualifier(qualifierString);
 		ga.setCompositeQualifiers(qualifierString, qualifiers);
 
 		// handle relation and aspect
@@ -279,7 +277,7 @@ public class GafObjectsBuilder {
 		
 		// handle with
 		final String withExpression = parser.getWith();
-		final Collection<WithInfo> withInfos = BuilderTools.parseWithInfo(withExpression);
+		final Collection<String> withInfos = BuilderTools.parseWithInfo(withExpression);
 		ga.setWithInfos(withExpression, withInfos);
 
 		// handle acts on taxon

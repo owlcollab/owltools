@@ -3,8 +3,6 @@ package owltools.solrj;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,7 +16,6 @@ import org.apache.solr.common.SolrInputDocument;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.EcoTools;
@@ -26,15 +23,11 @@ import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.TaxonTools;
-import owltools.gaf.WithInfo;
-import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.RelationSets;
 import owltools.panther.PANTHERForest;
 import owltools.panther.PANTHERTree;
 
-import com.google.gson.*;
 
 /**
  * A very specific class for the specific use case of loading in a GAF-like document into a Solr index.
@@ -278,7 +271,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			addLabelFields(annotation_doc, "evidence_type_closure", ecoIDClosure);
 
 			// Col 4: qualifier generation.
-			List<String> aquals = a.getQualifiers();
+			List<String> aquals = a.getCompositeQualifiers();
 			String comb_aqual = "";
 			if( aquals != null ){
 				for( String aqual : aquals ){
@@ -301,10 +294,9 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// Drag in "with" (col 8).
 			//annotation_doc.addField("evidence_with", a.getWithExpression());
 			String withList = ""; // used to help make unique ID.
-			for (WithInfo wi : a.getWithInfos()) {
-				String wStr = wi.getWithXref();
-				annotation_doc.addField("evidence_with", wStr);
-				withList = withList + "_" + wStr;
+			for (String wi : a.getWithInfos()) {
+				annotation_doc.addField("evidence_with", wi);
+				withList = withList + "_" + wi;
 			}
 			
 			///
@@ -400,8 +392,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					}
 	
 					// Drag in "with" (col 8), this time for ev_agg.
-					for (WithInfo wi : a.getWithInfos()) {
-						aggEvWiths.add(wi.getWithXref());
+					for (String wi : a.getWithInfos()) {
+						aggEvWiths.add(wi);
 					}
 	
 					// Make note for the evidence type closure.

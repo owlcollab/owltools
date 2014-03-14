@@ -4,12 +4,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import java.util.Collections;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,7 +36,8 @@ public class GeneAnnotation {
 	private Bioentity bioentityObject = null;					// encompass columns 1-3, 10-12
 	private boolean isContributesTo = false;
 	private boolean isIntegralTo = false;
-	private String compositeQualifier = DEFAULT_STRING_VALUE; 	// Col. 4
+	private boolean isNegated = false;
+	private String qualifierString = DEFAULT_STRING_VALUE; 		// Col. 4
 	private String relation = DEFAULT_STRING_VALUE; 			// implicit relation
 	private String cls = DEFAULT_STRING_VALUE; 					// Col. 5
 	private List<String> referenceIds = null;					// Col. 6
@@ -52,13 +52,13 @@ public class GeneAnnotation {
 	private Map<String, String> properties = null;				// GPAD only
 	
 	// derived from c8
-	private Collection<WithInfo> withInfoList = null; 
+	private Collection<String> withInfoList = null; 
 	
 	// derived from c16
 	private List<List<ExtensionExpression>> extensionExpressionList = null;
 	
 	// derived from c4
-	private Collection<CompositeQualifier> compositeQualifierList = null; 
+	private List<String> compositeQualifiers = null; 
 
 	// set by parser, optional 
 	private transient AnnotationSource annotationSource = null;
@@ -132,7 +132,7 @@ public class GeneAnnotation {
 		
 		s.append(symbol).append("\t");
 		
-		s.append(compositeQualifier).append("\t");
+		s.append(qualifierString).append("\t");
 		
 		s.append(this.cls).append("\t");
 		
@@ -187,8 +187,8 @@ public class GeneAnnotation {
 	}
 	
 	public GeneAnnotation(String bioentity, boolean isContributesTo,
-			boolean isIntegralTo, String compositeQualifier, Collection<CompositeQualifier> compositeQualifierList, String cls,
-			List<String> referenceIds, String evidenceCls, String withExpression, Collection<WithInfo> withInfoList,
+			boolean isIntegralTo, String compositeQualifier, List<String> compositeQualifiers, String cls,
+			List<String> referenceIds, String evidenceCls, String withExpression, Collection<String> withInfoList,
 			String aspect, String actsOnTaxonId, String lastUpdateDate, String assignedBy,
 			String extensionExpression, List<List<ExtensionExpression>> extensionExpressionList,
 			String geneProductForm, Map<String, String> properties) {
@@ -196,8 +196,8 @@ public class GeneAnnotation {
 		this.bioentity = bioentity;
 		this.isContributesTo = isContributesTo;
 		this.isIntegralTo = isIntegralTo;
-		this.compositeQualifier = compositeQualifier;
-		this.compositeQualifierList = compositeQualifierList;
+		this.qualifierString = compositeQualifier;
+		this.compositeQualifiers = compositeQualifiers;
 		this.cls = cls;
 		this.referenceIds = referenceIds;
 		this.evidenceCls = evidenceCls;
@@ -222,8 +222,8 @@ public class GeneAnnotation {
 		this.bioentityObject = ann.bioentityObject;
 		this.isContributesTo = ann.isContributesTo;
 		this.isIntegralTo = ann.isIntegralTo;
-		this.compositeQualifier = ann.compositeQualifier;
-		this.compositeQualifierList = BuilderTools.parseCompositeQualifier(ann.compositeQualifier);
+		this.qualifierString = ann.qualifierString;
+		this.compositeQualifiers = BuilderTools.parseCompositeQualifier(ann.qualifierString);
 		this.cls = ann.cls;
 		this.referenceIds = copy(ann.referenceIds);
 		this.evidenceCls = ann.evidenceCls;
@@ -384,23 +384,6 @@ public class GeneAnnotation {
 		setChanged();
 	}
 
-	/**
-	 * Retrieve the list of qualifiers. Split the composite string, if
-	 * necessary.
-	 * 
-	 * @return list, never null
-	 */
-	public List<String> getQualifiers() {
-		if (compositeQualifierList != null && compositeQualifierList.isEmpty() == false) {
-			List<String> stringQualifiers = new ArrayList<String>(compositeQualifierList.size());
-			for (CompositeQualifier qualifier : compositeQualifierList) {
-				stringQualifiers.add(qualifier.qualifierObj);
-			}
-			return stringQualifiers;
-		}
-		return Collections.emptyList();
-	}
-
 	public Bioentity getBioentityObject() {
 		return bioentityObject;
 	}
@@ -428,32 +411,50 @@ public class GeneAnnotation {
 		setChanged();
 	}
 	
+	public void setIsNegated(boolean isNegated) {
+		this.isNegated = isNegated;
+		setChanged();
+	}
+	
+	public boolean isNegated() {
+		return isNegated;
+	}
+	
 	public String getWithExpression() {
 		return withExpression;
 	}
 
-	public void setWithInfos(String withExpression, Collection<WithInfo> withInfoList) {
+	public void setWithInfos(String withExpression, Collection<String> withInfoList) {
 		this.withExpression = withExpression;
 		this.withInfoList = withInfoList;
 		setChanged();
 	}
 	
-	public Collection<WithInfo> getWithInfos(){
+	public Collection<String> getWithInfos(){
 		return withInfoList;
 	}
 	
-	public void setCompositeQualifiers(String compositeQualifiers, Collection<CompositeQualifier> compositeQualifierList) {
-		this.compositeQualifier = compositeQualifiers;
-		this.compositeQualifierList = compositeQualifierList;
+	public void setCompositeQualifiers(String qualifierString, List<String> compositeQualifiers) {
+		this.qualifierString = qualifierString;
+		this.compositeQualifiers = compositeQualifiers;
 		setChanged();
 	}
 	
-	public Collection<CompositeQualifier> getCompositeQualifiers(){
-		return compositeQualifierList;
+	public String getQualifierString() {
+		return qualifierString;
 	}
 
-	public String getCompositeQualifier() {
-		return compositeQualifier;
+	/**
+	 * Retrieve the list of qualifiers. Split the composite string, if
+	 * necessary.
+	 * 
+	 * @return list, never null
+	 */
+	public List<String> getCompositeQualifiers() {
+		if (compositeQualifiers != null) {
+			return compositeQualifiers;
+		}
+		return Collections.emptyList();
 	}
 
 	public AnnotationSource getSource() {

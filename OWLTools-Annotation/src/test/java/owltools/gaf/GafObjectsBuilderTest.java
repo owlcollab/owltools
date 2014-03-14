@@ -57,7 +57,7 @@ public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 		GeneAnnotation ann = geneAnnotations.get(0);
 		String withExpression = ann.getWithExpression();
 		assertTrue(withExpression.contains("|"));
-		Collection<WithInfo> withInfos = ann.getWithInfos();
+		Collection<String> withInfos = ann.getWithInfos();
 		assertTrue(withInfos.size() > 1);
 	}
 	

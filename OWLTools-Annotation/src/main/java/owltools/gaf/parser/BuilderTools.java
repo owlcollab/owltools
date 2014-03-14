@@ -8,10 +8,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import owltools.gaf.Bioentity;
-import owltools.gaf.CompositeQualifier;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.WithInfo;
 
 public class BuilderTools {
 
@@ -96,36 +94,36 @@ public class BuilderTools {
 	}
 
 	/**
-	 * Parse the string into a collection of {@link WithInfo} objects
+	 * Parse the string into a collection of with strings
 	 * 
 	 * @param withInfoString
 	 * @return collection, never null
 	 */
-	public static Collection<WithInfo> parseWithInfo(final String withInfoString){
-		Collection<WithInfo> infos = Collections.emptySet();
+	public static Collection<String> parseWithInfo(final String withInfoString){
+		Collection<String> infos = Collections.emptySet();
 		if(withInfoString.length()>0){
-			infos = new ArrayList<WithInfo>();
+			infos = new ArrayList<String>();
 			String tokens[] = withInfoString.split("[\\||,]");
 			for(String token: tokens){
-				infos.add(new WithInfo(withInfoString, token));
+				infos.add(token);
 			}
 		}
 		return infos;
 	}
 
 	/**
-	 * Parse the string into a collection of {@link CompositeQualifier} objects
+	 * Parse the string into a list of qualifier strings
 	 * 
 	 * @param qualifierString
 	 * @return collection, never null
 	 */
-	public static Collection<CompositeQualifier> parseCompositeQualifier(String qualifierString){
-		Collection<CompositeQualifier> qualifiers = Collections.emptySet();
+	public static List<String> parseCompositeQualifier(String qualifierString){
+		List<String> qualifiers = Collections.emptyList();
 		if(qualifierString.length()>0){
-			qualifiers = new ArrayList<CompositeQualifier>();
+			qualifiers = new ArrayList<String>();
 			String tokens[] = qualifierString.split("[\\||,]");
 			for(String token: tokens){
-				qualifiers.add(new CompositeQualifier(qualifierString, token));
+				qualifiers.add(token);
 			}
 		}
 		return qualifiers;

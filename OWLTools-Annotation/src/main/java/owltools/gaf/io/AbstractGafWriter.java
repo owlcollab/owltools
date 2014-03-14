@@ -77,7 +77,7 @@ public abstract class AbstractGafWriter  {
 		sep();
 		
 		// c4
-		print(ann.getCompositeQualifier());
+		print(ann.getQualifierString());
 		sep();
 		
 		// c5

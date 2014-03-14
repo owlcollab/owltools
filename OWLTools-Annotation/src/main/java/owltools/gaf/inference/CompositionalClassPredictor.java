@@ -23,7 +23,6 @@ import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -142,7 +141,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidenceCls("IC");
-		annP.setWithInfos(with, Collections.singleton(new WithInfo(with, with)));
+		annP.setWithInfos(with, Collections.singleton(with));
 		// TODO - evidence
 		Prediction prediction = new Prediction(annP);
 		LOG.info("prediction="+prediction);

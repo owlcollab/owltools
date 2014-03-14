@@ -23,7 +23,6 @@ import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -205,8 +204,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidenceCls("IC");
-		Collection<WithInfo> infos = Collections.singleton(new WithInfo(with, with));
-		annP.setWithInfos(with, infos);
+		annP.setWithInfos(with, Collections.singleton(with));
 		Prediction prediction = new Prediction(annP);
 		return prediction;
 	}

@@ -16,7 +16,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.WithInfo;
 import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
@@ -108,12 +107,11 @@ public class GOReciprocalAnnotationRule extends AbstractAnnotationRule {
 				Bioentity bioentityObject = ann.getBioentityObject();
 				String bioEntityId = bioentityObject.getId();
 				// binds to withField
-				Collection<WithInfo> withInfos = ann.getWithInfos();
+				Collection<String> withInfos = ann.getWithInfos();
 				if (!withInfos.isEmpty()) {
-					for (WithInfo withInfo : withInfos) {
+					for (String with : withInfos) {
 						// assume its a bioEntity id
-						String withId = withInfo.getWithXref();
-						Pair p = new Pair(withId, bioEntityId);
+						Pair p = new Pair(with, bioEntityId);
 						reciprocals.put(p, ann);
 					}
 				}
@@ -126,12 +124,11 @@ public class GOReciprocalAnnotationRule extends AbstractAnnotationRule {
 			Bioentity bioentityObject = ann.getBioentityObject();
 			String bioEntityId = bioentityObject.getId();
 			// binds to withField
-			Collection<WithInfo> withInfos = ann.getWithInfos();
+			Collection<String> withInfos = ann.getWithInfos();
 			if (!withInfos.isEmpty()) {
-				for (WithInfo withInfo : withInfos) {
+				for (String with : withInfos) {
 					// assume its a bioEntity id
-					String withId = withInfo.getWithXref();
-					Pair p = new Pair(bioEntityId, withId);
+					Pair p = new Pair(bioEntityId, with);
 					reciprocals.remove(p);
 				}
 			}

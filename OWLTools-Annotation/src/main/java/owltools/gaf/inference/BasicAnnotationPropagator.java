@@ -559,7 +559,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 			group.add(ann);
 			
-			String compositeQualifier = StringUtils.trimToEmpty(ann.getCompositeQualifier());
+			String compositeQualifier = StringUtils.trimToEmpty(ann.getQualifierString());
 			if (compositeQualifier.isEmpty() == false) {
 				// ignore annotations with a qualifier.
 				// Do *not* propagate
