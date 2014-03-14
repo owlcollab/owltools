@@ -16,7 +16,6 @@ import owltools.gaf.AnnotationSource;
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
-import owltools.gaf.GafObjectsBuilderTest;
 import owltools.gaf.GeneAnnotation;
 
 
@@ -33,11 +32,6 @@ import owltools.gaf.GeneAnnotation;
  * this class through the constructor with int parameter (split size) enable the
  * split methodology of building the gaf document. <br>
  * <br>
- * 
- * See {@link GafObjectsBuilderTest} class for details how to build GafDocument
- * object from this class.
- * 
- * @author Shahid Manzoor
  * 
  */
 public class GafObjectsBuilder {
