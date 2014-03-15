@@ -81,7 +81,7 @@ public class GafObjectsBuilderTest extends OWLToolsTestBasics {
 		List<GeneAnnotation> annotations = doc.getGeneAnnotations();
 		assertEquals(818, annotations.size());
 		for (GeneAnnotation geneAnnotation : annotations) {
-			String cls = geneAnnotation.getEvidenceCls().trim();
+			String cls = geneAnnotation.getShortEvidence().trim();
 			assertNotSame("IEA", cls);
 		}
 	}

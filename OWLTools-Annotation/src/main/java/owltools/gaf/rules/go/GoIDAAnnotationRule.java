@@ -35,8 +35,8 @@ public class GoIDAAnnotationRule extends AbstractAnnotationRule {
 	
 	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
-		String evidenceCls = a.getEvidenceCls();
-		if (evidenceCls != null && evidences.contains(evidenceCls)) {
+		String evidence = a.getShortEvidence();
+		if (evidence != null && evidences.contains(evidence)) {
 			String expression = a.getWithExpression();
 			if (expression != null && !expression.isEmpty()) {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), message, a, violationType);

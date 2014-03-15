@@ -69,7 +69,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		Set<OWLClass> aClasses = new HashSet<OWLClass>();
 		//LOG.info("collecting from:"+bioentity);
 		for (GeneAnnotation ann : anns) {
-			if (ann.getEvidenceCls().equals("ND")) {
+			if (ann.getShortEvidence().equals("ND")) {
 				continue;
 			}
 			aClasses.add(getOWLClass(ann.getCls()));
@@ -140,7 +140,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		GeneAnnotation annP = new GeneAnnotation();
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
-		annP.setEvidenceCls("IC");
+		annP.setEvidence("IC", null);
 		annP.setWithInfos(with, Collections.singleton(with));
 		// TODO - evidence
 		Prediction prediction = new Prediction(annP);

@@ -41,7 +41,9 @@ public class GeneAnnotation {
 	private String relation = DEFAULT_STRING_VALUE; 			// implicit relation
 	private String cls = DEFAULT_STRING_VALUE; 					// Col. 5
 	private List<String> referenceIds = null;					// Col. 6
-	private String evidenceCls = DEFAULT_STRING_VALUE; 			// Col. 7
+	private String ecoEvidenceCls;
+	private String shortEvidence = DEFAULT_STRING_VALUE;		// Col. 7
+//	private String evidenceCls = DEFAULT_STRING_VALUE; 			// Col. 7
 	private String withExpression = DEFAULT_STRING_VALUE; 		// Col. 8
 	private String aspect = DEFAULT_STRING_VALUE; 				// Col. 9
 	private String actsOnTaxonId = DEFAULT_STRING_VALUE; 		// Col. 13
@@ -141,7 +143,7 @@ public class GeneAnnotation {
 		}
 		s.append("\t");
 		
-		s.append(this.evidenceCls).append("\t");
+		s.append(this.shortEvidence).append("\t");
 		
 		s.append(this.withExpression).append("\t");
 		
@@ -188,7 +190,7 @@ public class GeneAnnotation {
 	
 	public GeneAnnotation(String bioentity, boolean isContributesTo,
 			boolean isIntegralTo, String compositeQualifier, List<String> compositeQualifiers, String cls,
-			List<String> referenceIds, String evidenceCls, String withExpression, Collection<String> withInfoList,
+			List<String> referenceIds, String shortEvidence, String ecoEvidenceCls, String withExpression, Collection<String> withInfoList,
 			String aspect, String actsOnTaxonId, String lastUpdateDate, String assignedBy,
 			String extensionExpression, List<List<ExtensionExpression>> extensionExpressionList,
 			String geneProductForm, Map<String, String> properties) {
@@ -200,7 +202,8 @@ public class GeneAnnotation {
 		this.compositeQualifiers = compositeQualifiers;
 		this.cls = cls;
 		this.referenceIds = referenceIds;
-		this.evidenceCls = evidenceCls;
+		this.shortEvidence = shortEvidence;
+		this.ecoEvidenceCls = ecoEvidenceCls;
 		this.withExpression = withExpression;
 		this.withInfoList = withInfoList;
 		this.aspect = aspect;
@@ -226,7 +229,8 @@ public class GeneAnnotation {
 		this.compositeQualifiers = BuilderTools.parseCompositeQualifier(ann.qualifierString);
 		this.cls = ann.cls;
 		this.referenceIds = copy(ann.referenceIds);
-		this.evidenceCls = ann.evidenceCls;
+		this.shortEvidence = ann.shortEvidence;
+		this.ecoEvidenceCls = ann.ecoEvidenceCls;
 		this.withExpression = ann.withExpression;
 		this.withInfoList = BuilderTools.parseWithInfo(ann.withExpression);
 		this.aspect = ann.aspect;
@@ -306,12 +310,17 @@ public class GeneAnnotation {
 		setChanged();
 	}
 
-	public String getEvidenceCls() {
-		return evidenceCls;
+	public String getEcoEvidenceCls() {
+		return ecoEvidenceCls;
 	}
 
-	public void setEvidenceCls(String evidenceCls) {
-		this.evidenceCls = evidenceCls;
+	public String getShortEvidence() {
+		return shortEvidence;
+	}
+
+	public void setEvidence(String shortEvidence, String ecoEvidenceCls) {
+		this.shortEvidence = shortEvidence;
+		this.ecoEvidenceCls = ecoEvidenceCls;
 		setChanged();
 	}
 	

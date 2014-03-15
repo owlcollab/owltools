@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -66,6 +67,31 @@ public class EcoMapperFactory {
 		public MAPPER getMapper() {
 			return mapper;
 		}
+	}
+	
+	/**
+	 * Create a new {@link SimpleEcoMapper} with from the mapping loaded from
+	 * the PURL.
+	 * 
+	 * @return mapper
+	 * @throws IOException
+	 * 
+	 * @see EcoMapper#ECO_MAPPING_PURL
+	 */
+	public static SimpleEcoMapper createSimple() throws IOException {
+		return createSimple(EcoMapper.ECO_MAPPING_PURL);
+	}
+	
+	/**
+	 * Create a new {@link SimpleEcoMapper} with from the mapping loaded from
+	 * the given source.
+	 * 
+	 * @param source
+	 * @return mapper
+	 * @throws IOException
+	 */
+	public static SimpleEcoMapper createSimple(String source) throws IOException {
+		return createSimpleMapper(createReader(source));
 	}
 	
 	/**
@@ -153,7 +179,7 @@ public class EcoMapperFactory {
 		Reader reader = null;
 		try {
 			reader = createReader(EcoMapper.ECO_MAPPING_PURL);
-			EcoMappings mappings = loadEcoMappings(reader, graph);
+			EcoMappings<OWLClass> mappings = loadEcoMappings(reader, graph);
 			return createEcoMapper(mappings);
 		}
 		finally {
@@ -161,7 +187,7 @@ public class EcoMapperFactory {
 		}
 	}
 	
-	static EcoMapper createEcoMapper(EcoMappings mappings) {
+	static EcoMapper createEcoMapper(EcoMappings<OWLClass> mappings) {
 		return new EcoMapperImpl(mappings);
 	}
 	
@@ -293,7 +319,7 @@ public class EcoMapperFactory {
 		Reader reader = null;
 		try {
 			reader = createReader(EcoMapper.ECO_MAPPING_PURL);
-			EcoMappings mappings = loadEcoMappings(reader, ecoGraph);
+			EcoMappings<OWLClass> mappings = loadEcoMappings(reader, ecoGraph);
 			return new TraversingEcoMapperImpl(mappings, reasoner, disposeReasoner);
 		}
 		finally {
@@ -314,12 +340,12 @@ public class EcoMapperFactory {
 	}
 	
 	static TraversingEcoMapper createTraversingEcoMapper(Reader mappingsReader, OWLGraphWrapper eco, OWLReasoner reasoner, boolean disposeReasoner) throws IOException, OWLException {
-		EcoMappings mappings = loadEcoMappings(mappingsReader, eco);
+		EcoMappings<OWLClass> mappings = loadEcoMappings(mappingsReader, eco);
 		return new TraversingEcoMapperImpl(mappings, reasoner, disposeReasoner);
 	}
 	
-	private static EcoMappings loadEcoMappings(Reader mappingsReader, OWLGraphWrapper eco) throws IOException {
-		EcoMappings mappings = new EcoMappings();
+	private static EcoMappings<OWLClass> loadEcoMappings(Reader mappingsReader, OWLGraphWrapper eco) throws IOException {
+		EcoMappings<OWLClass> mappings = new EcoMappings<OWLClass>();
 		List<String> lines = IOUtils.readLines(mappingsReader);
 		for (String line : lines) {
 			line = StringUtils.trimToNull(line);
@@ -342,21 +368,49 @@ public class EcoMapperFactory {
 		return mappings;
 	}
 	
+	private static SimpleEcoMapper createSimpleMapper(Reader mappingsReader) throws IOException {
+		EcoMappings<String> mappings = loadEcoMappings(mappingsReader);
+		return new SimpleEcoMapperImpl(mappings); 
+	}
+	
+	private static EcoMappings<String> loadEcoMappings(Reader mappingsReader) throws IOException {
+		EcoMappings<String> mappings = new EcoMappings<String>();
+		List<String> lines = IOUtils.readLines(mappingsReader);
+		for (String line : lines) {
+			line = StringUtils.trimToNull(line);
+			if (line != null) {
+				char c = line.charAt(0);
+				if ('#' != c) {
+					String[] split = StringUtils.split(line, '\t');
+					if (split.length == 3) {
+						String code = split[0];
+						String ref = split[1];
+						String ecoId = split[2];
+						mappings.add(code, ref, ecoId);
+					}
+				}
+			}
+		}
+		return mappings;
+	}
+	
 	/**
 	 * Helper to access the mapping for ECO codes. ECO codes should always have
 	 * a 'Default' mapping. Optionally, they have additional mappings for
 	 * specific annotation references.
+	 * 
+	 * @param <T>
 	 */
-	static class EcoMappings {
+	static class EcoMappings<T> {
 		
 		static final String DEFAULT_REF = "Default";
 		
-		private final Map<String, Map<String, OWLClass>> allMappings = new HashMap<String, Map<String,OWLClass>>();
+		private final Map<String, Map<String, T>> allMappings = new HashMap<String, Map<String, T>>();
 		
-		void add(String code, String ref, OWLClass cls) {
-			Map<String, OWLClass> codeMap = allMappings.get(code);
+		void add(String code, String ref, T cls) {
+			Map<String, T> codeMap = allMappings.get(code);
 			if (codeMap == null) {
-				codeMap = new HashMap<String, OWLClass>();
+				codeMap = new HashMap<String, T>();
 				allMappings.put(code, codeMap);
 			}
 			if (ref == null) {
@@ -365,10 +419,10 @@ public class EcoMapperFactory {
 			codeMap.put(ref, cls);
 		}
 		
-		OWLClass get(String code, String ref) {
-			OWLClass result = null;
+		T get(String code, String ref) {
+			T result = null;
 			if (code != null) {
-				Map<String, OWLClass> codeMap = allMappings.get(code);
+				Map<String, T> codeMap = allMappings.get(code);
 				if (codeMap != null) {
 					if (ref == null) {
 						ref = DEFAULT_REF;
@@ -379,14 +433,14 @@ public class EcoMapperFactory {
 			return result;
 		}
 		
-		OWLClass get(String code) {
+		T get(String code) {
 			return get(code, DEFAULT_REF);
 		}
 		
-		Set<OWLClass> getAll(String code) {
-			Set<OWLClass> result = new HashSet<OWLClass>();
+		Set<T> getAll(String code) {
+			Set<T> result = new HashSet<T>();
 			if (code != null) {
-				Map<String, OWLClass> codeMap = allMappings.get(code);
+				Map<String, T> codeMap = allMappings.get(code);
 				if (codeMap != null) {
 					result.addAll(codeMap.values());
 				}
@@ -398,16 +452,20 @@ public class EcoMapperFactory {
 			return allMappings.containsKey(code);
 		}
 		
-		Map<OWLClass, String> getReverseMap() {
-			Map<OWLClass, String> simpleMap = new HashMap<OWLClass, String>();
-			for(Entry<String, Map<String, OWLClass>> e : allMappings.entrySet()) {
-				Map<String, OWLClass> codeMap = e.getValue();
-				OWLClass defaultClass = codeMap.get(DEFAULT_REF);
-				if (defaultClass != null) {
-					simpleMap.put(defaultClass, e.getKey());
+		Map<T, Pair<String, String>> getReverseMap() {
+			Map<T, Pair<String, String>> reverseMap = new HashMap<T, Pair<String, String>>();
+			for(Entry<String, Map<String, T>> e : allMappings.entrySet()) {
+				Map<String, T> codeMap = e.getValue();
+				for(Entry<String, T> codeEntry : codeMap.entrySet()) {
+					T eco = codeEntry.getValue();
+					String ref = codeEntry.getKey();
+					if (DEFAULT_REF.equals(ref)) {
+						ref = null;
+					}
+					reverseMap.put(eco, Pair.of(e.getKey(), ref));
 				}
 			}
-			return simpleMap;
+			return reverseMap;
 		}
 	}
 }

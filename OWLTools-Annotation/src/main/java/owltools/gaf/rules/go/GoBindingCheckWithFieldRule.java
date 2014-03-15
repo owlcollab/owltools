@@ -46,7 +46,7 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
 		String cls = a.getCls();
 		if (cls != null && entities.contains(cls)) {
-			String evidence = a.getEvidenceCls();
+			String evidence = a.getShortEvidence();
 			if (evidences.contains(evidence) == false) {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), MESSAGE, a, ViolationType.Warning);
 				return Collections.singleton(violation);

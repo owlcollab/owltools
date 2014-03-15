@@ -230,7 +230,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("annotation_class", clsId); // Col. 5
 			addLabelField(annotation_doc, "annotation_class_label", clsId); // n/a
 			// NOTE: Col. 6 generation is below...
-			String a_ev_type = a.getEvidenceCls();
+			String a_ev_type = a.getShortEvidence();
 			annotation_doc.addField("evidence_type", a_ev_type); // Col. 7
 			// NOTE: Col. 8 generation is below...
 			String a_aspect = a.getAspect();
@@ -397,7 +397,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					}
 	
 					// Make note for the evidence type closure.
-					aggEvIDClosure.add(a.getEvidenceCls());					
+					aggEvIDClosure.add(a.getShortEvidence());					
 				}
 
 				// If there was actually a doc created/there, add the cumulative fields to it.

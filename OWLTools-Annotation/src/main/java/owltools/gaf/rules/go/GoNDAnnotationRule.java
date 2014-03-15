@@ -59,8 +59,8 @@ public class GoNDAnnotationRule extends AbstractAnnotationRule {
 	
 	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
-		String evidenceCls = a.getEvidenceCls();
-		if (evidenceCls != null && evidences.contains(evidenceCls)) {
+		String evidence = a.getShortEvidence();
+		if (evidence != null && evidences.contains(evidence)) {
 			String cls = a.getCls();
 			if (rootIds.contains(cls) == false) {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), message+", but was: "+cls, a, violationType);
@@ -82,7 +82,7 @@ public class GoNDAnnotationRule extends AbstractAnnotationRule {
 		else {
 			String cls = a.getCls();
 			if (rootIds.contains(cls)) {
-				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), message+", but was root node: "+cls+" with evidence code: "+evidenceCls, a, violationType);
+				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), message+", but was root node: "+cls+" with evidence code: "+evidence, a, violationType);
 				return Collections.singleton(violation);
 			}
 		}

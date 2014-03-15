@@ -141,7 +141,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 			Date annotationDate = dtFormat.get().parse(dtString);
 			
 			// check that IEA annotations are not older than one year
-			if (ieaCodes.contains(a.getEvidenceCls())) {
+			if (ieaCodes.contains(a.getShortEvidence())) {
 				Calendar todayMinusOneYear = Calendar.getInstance();  
 				todayMinusOneYear.add(Calendar.YEAR, -1);
 				Date time = todayMinusOneYear.getTime();

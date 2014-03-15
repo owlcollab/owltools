@@ -235,7 +235,7 @@ public class GafObjectsBuilder {
 		BuilderTools.addXrefs(parser.getReference(), ga);
 		ga.setBioentity(entity.getId());
 		ga.setBioentityObject(entity);
-		ga.setEvidenceCls(parser.getEvidence());
+		ga.setEvidence(parser.getEvidence(), null);
 		ga.setLastUpdateDate(parser.getDate());
 		ga.setAssignedBy(parser.getAssignedBy());
 		ga.setGeneProductForm(parser.getGeneProjectFormId());

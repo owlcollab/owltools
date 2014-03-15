@@ -56,8 +56,8 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 							return createViolation(a, owlClass, subset);
 						}
 						else if (gocheck_do_not_manually_annotate.equals(subset)) {
-							String evidenceCode = a.getEvidenceCls();
-							if (evidenceCode != null && ieaEvidenceCodes.contains(evidenceCode) == false) {
+							String evidence = a.getShortEvidence();
+							if (evidence != null && ieaEvidenceCodes.contains(evidence) == false) {
 								return createViolation(a, owlClass, subset);
 							}
 						}

@@ -41,7 +41,7 @@ public class GoNoISSProteinBindingRule extends AbstractAnnotationRule {
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
 		String cls = a.getCls();
 		if (cls != null && "GO:0005515".equals(cls)) {
-			String evidence = a.getEvidenceCls();
+			String evidence = a.getShortEvidence();
 			if (evidences.contains(evidence)) {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), message, a, violationType);
 				return Collections.singleton(violation);

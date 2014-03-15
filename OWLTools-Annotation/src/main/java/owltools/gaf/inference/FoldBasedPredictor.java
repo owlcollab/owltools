@@ -83,7 +83,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		final OWLDataFactory f = g.getDataFactory();
 		
 		for (GeneAnnotation ann : anns) {
-			String evidenceString = ann.getEvidenceCls();
+			String evidenceString = ann.getShortEvidence();
 			if ("ND".equals(evidenceString)) {
 				continue;
 			}
@@ -203,7 +203,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		GeneAnnotation annP = new GeneAnnotation(ann);
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
-		annP.setEvidenceCls("IC");
+		annP.setEvidence("IC", null);
 		annP.setWithInfos(with, Collections.singleton(with));
 		Prediction prediction = new Prediction(annP);
 		return prediction;

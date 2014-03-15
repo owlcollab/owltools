@@ -1,15 +1,18 @@
 package owltools.gaf.eco;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.semanticweb.owlapi.model.OWLClass;
 
 public class EcoMapperImpl implements EcoMapper {
 	
-	private final EcoMapperFactory.EcoMappings mappings;
+	private final EcoMapperFactory.EcoMappings<OWLClass> mappings;
 	
-	EcoMapperImpl(EcoMapperFactory.EcoMappings mappings) {
+	EcoMapperImpl(EcoMapperFactory.EcoMappings<OWLClass> mappings) {
 		this.mappings = mappings;
 	}
 
@@ -35,7 +38,16 @@ public class EcoMapperImpl implements EcoMapper {
 
 	@Override
 	public Map<OWLClass, String> getCodesForEcoClasses() {
-		return mappings.getReverseMap();
+		Map<OWLClass, Pair<String, String>> fullReverseMap = mappings.getReverseMap();
+		Map<OWLClass, String> simpleReverseMap = new HashMap<OWLClass, String>();
+		for(Entry<OWLClass, Pair<String, String>> e : fullReverseMap.entrySet()) {
+			String ref = e.getValue().getRight();
+			if (ref == null) {
+				simpleReverseMap.put(e.getKey(), e.getValue().getLeft());
+			}
+			
+		}
+		return simpleReverseMap;
 	}
 
 }

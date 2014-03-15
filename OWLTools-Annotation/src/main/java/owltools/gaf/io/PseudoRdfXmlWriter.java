@@ -328,7 +328,7 @@ public class PseudoRdfXmlWriter extends AbstractXmlWriter {
 				writer.writeAttribute(RDF_NAMESPACE_URI, "parseType", "Resource");
 				
 				//go:evidence+
-				String evidenceCls = ann.getEvidenceCls();
+				String evidenceCls = ann.getShortEvidence();
 				if (evidenceCls == null) {
 					evidenceCls = "NULL";
 				}

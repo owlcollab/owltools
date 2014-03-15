@@ -12,11 +12,13 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.eco.SimpleEcoMapper;
 
 public class GpadGpiObjectsBuilder {
 
@@ -24,7 +26,12 @@ public class GpadGpiObjectsBuilder {
 	private List<LineFilter<GpadParser>> gpadFilters = null;
 	private List<LineFilter<GpiParser>> gpiFilters = null;
 	private AspectProvider aspectProvider = null;
+	private final SimpleEcoMapper ecoMapper;
 	
+	public GpadGpiObjectsBuilder(SimpleEcoMapper ecoMapper) {
+		this.ecoMapper = ecoMapper;
+	}
+
 	public void addGpadFilter(LineFilter<GpadParser> filter) {
 		if (gpadFilters == null) {
 			gpadFilters = new ArrayList<LineFilter<GpadParser>>();
@@ -137,7 +144,7 @@ public class GpadGpiObjectsBuilder {
 				}
 			}
 			if (load) {
-				parseAnnotation(parser, document, aspectProvider);
+				parseAnnotation(parser, document, aspectProvider, ecoMapper);
 			}
 		}
 	}
@@ -157,7 +164,7 @@ public class GpadGpiObjectsBuilder {
 		return entity;
 	}
 	
-	private static GeneAnnotation parseAnnotation(GpadParser parser, GafDocument document, AspectProvider aspectProvider) {
+	private static GeneAnnotation parseAnnotation(GpadParser parser, GafDocument document, AspectProvider aspectProvider, SimpleEcoMapper mapper) {
 		GeneAnnotation ga = new GeneAnnotation();
 		String cls = parser.getGO_ID();
 		
@@ -205,7 +212,7 @@ public class GpadGpiObjectsBuilder {
 		BuilderTools.addXrefs(parser.getDB_Reference(), ga);
 		
 		// col 6
-		// TODO evidence
+		addEvidenceCode(parser.getEvidence_Code(), ga, mapper);
 		
 		// col 7 with
 		final String withExpression = parser.getWith();
@@ -230,7 +237,29 @@ public class GpadGpiObjectsBuilder {
 		// col 12
 		BuilderTools.addProperties(parser.getAnnotation_Properties(), ga);
 		
-		
 		return ga;
+	}
+	
+	private static void addEvidenceCode(String eco, GeneAnnotation ga, SimpleEcoMapper mapper) {
+		Pair<String,String> pair = mapper.getGoCode(eco);
+		if (pair != null) {
+			String goCode = pair.getLeft();
+			if (goCode != null) {
+				ga.setEvidence(eco, goCode);
+				String goRef = pair.getRight();
+				if (goRef != null) {
+					List<String> referenceIds = ga.getReferenceIds();
+					if (referenceIds == null || referenceIds.isEmpty()) {
+						ga.addReferenceId(goRef);
+					}
+					else {
+						if (!referenceIds.contains(goRef)) {
+							ga.addReferenceId(goRef);
+						}
+					}
+				}
+			}
+			
+		}
 	}
 }

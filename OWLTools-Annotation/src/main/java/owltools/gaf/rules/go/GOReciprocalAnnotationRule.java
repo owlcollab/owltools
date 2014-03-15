@@ -147,8 +147,8 @@ public class GOReciprocalAnnotationRule extends AbstractAnnotationRule {
 	}
 
 	private boolean isIPI(GeneAnnotation a) {
-		String evidenceCls = a.getEvidenceCls();
-		return evidenceCls != null && evidences.contains(evidenceCls);
+		String evidence = a.getShortEvidence();
+		return evidence != null && evidences.contains(evidence);
 	}
 	
 	private boolean isProteinBinding(GeneAnnotation a) {

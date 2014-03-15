@@ -92,7 +92,7 @@ public abstract class AbstractGafWriter  {
 		sep();
 		
 		// c7
-		print(ann.getEvidenceCls());
+		print(ann.getShortEvidence());
 		sep();
 		
 		// c8

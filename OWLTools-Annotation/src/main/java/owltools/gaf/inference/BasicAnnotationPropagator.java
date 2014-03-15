@@ -409,7 +409,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		void add(OWLClass linked, Prediction prediction) {
 			
 			GeneAnnotation annotation = prediction.getGeneAnnotation();
-			String evidenceCls = annotation.getEvidenceCls();
+			String evidenceCls = annotation.getShortEvidence();
 			Map<OWLClass, List<Prediction>> evidenceGroup = allPredictions.get(evidenceCls);
 			if (evidenceGroup == null) {
 				evidenceGroup = new HashMap<OWLClass, List<Prediction>>();
@@ -536,7 +536,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		for (GeneAnnotation ann : annotations) {
 			
 			// TODO move the exclusion list to it's own function for better customization
-			final String evidenceCls = ann.getEvidenceCls();
+			final String evidenceCls = ann.getShortEvidence();
 			if (evidenceCls.equals("ND")) {
 				// ignore top level annotations
 				// Do *not* propagate
@@ -713,7 +713,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		annP.addReferenceIds(source.getReferenceIds());
 		
 		// c7 evidence
-		annP.setEvidenceCls(source.getEvidenceCls());
+		annP.setEvidence(source.getShortEvidence(), source.getEcoEvidenceCls());
 		
 		// c8 with expression
 		// because we propagate the evidence code, we also have to propagate the with column

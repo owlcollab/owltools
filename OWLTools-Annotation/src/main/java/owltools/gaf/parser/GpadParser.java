@@ -8,7 +8,7 @@ public class GpadParser extends AbstractAnnotationFileParser {
 	private static final Logger LOG = Logger.getLogger(GpadParser.class);
 
 	private static final String COMMENT_PREFIX = "!";
-	private static final String VERSION_PREFIX = "!gpad-version:";
+	private static final String VERSION_PREFIX = "gpad-version:";
 	private static final double DEFAULT_VERSION = 0.0d;
 	private static final int EXPECTED_COLUMNS = 12;
 	
