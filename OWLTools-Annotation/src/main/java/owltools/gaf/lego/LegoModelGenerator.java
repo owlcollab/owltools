@@ -643,7 +643,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 					for (OWLNamedIndividual a1 : aset) {
 						for (OWLNamedIndividual a2 : aset2) {
 							LOG.info(" PPI-based edge: "+a1+" => "+a2);
-							addEdge(a1, getObjectProperty(OBOUpperVocabulary.GOREL_provides_input_for), a2); // TODO
+							addEdge(a1, getObjectProperty(OBOUpperVocabulary.GOREL_directly_provides_input_for), a2); // TODO
 						}
 					}
 				}
@@ -717,6 +717,9 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		normalizeDirections(getObjectProperty(OBOUpperVocabulary.BFO_occurs_in));
 		normalizeDirections(getObjectProperty(OBOUpperVocabulary.RO_starts));
 		normalizeDirections(getObjectProperty(OBOUpperVocabulary.RO_ends));
+		normalizeDirections(getObjectProperty(OBOUpperVocabulary.RO_regulates));
+		normalizeDirections(getObjectProperty(OBOUpperVocabulary.RO_negatively_regulates));
+		normalizeDirections(getObjectProperty(OBOUpperVocabulary.RO_positively_regulates));
 	}
 
 	///////////////////
