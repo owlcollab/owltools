@@ -457,31 +457,53 @@ public class MolecularModelManager {
 			throw new OWLOntologyCreationException("A model already exists for this process and db: "+modelId);
 		}
 		OWLOntology tbox = graph.getSourceOntology();
-		OWLOntology abox;
+		OWLOntology abox = null;
+		LegoModelGenerator model = null;
 		
 		// create empty ontology
 		// use model id as ontology IRI
 		OWLOntologyManager m = graph.getManager();
 		IRI iri = MolecularModelJsonRenderer.getIRI(modelId, graph);
-		abox = m.createOntology(iri);
-		
-		// setup model ontology to import the source ontology and other imports
-		createImports(abox, tbox.getOntologyID(), db);
-		
-		// create generator
-		LegoModelGenerator model = new LegoModelGenerator(tbox, abox);
-		
-		model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-		Set<String> seedGenes = new HashSet<String>();
-		// only look for genes if a GAF is available
-		if (db != null) {
-			GafDocument gafdoc = getGaf(db);
-			model.initialize(gafdoc, graph);
-			seedGenes.addAll(model.getGenes(processCls));
+		try {
+			abox = m.createOntology(iri);
+			
+			// setup model ontology to import the source ontology and other imports
+			createImports(abox, tbox.getOntologyID(), db);
+			
+			// create generator
+			model = new LegoModelGenerator(tbox, abox);
+			
+			model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
+			Set<String> seedGenes = new HashSet<String>();
+			// only look for genes if a GAF is available
+			if (db != null) {
+				GafDocument gafdoc = getGaf(db);
+				model.initialize(gafdoc, graph);
+				seedGenes.addAll(model.getGenes(processCls));
+			}
+			model.setContextualizingSuffix(db);
+			model.buildNetwork(p, seedGenes);
 		}
-		model.setContextualizingSuffix(db);
-		model.buildNetwork(p, seedGenes);
-
+		catch (OWLOntologyCreationException exception) {
+			if (model != null) {
+				model.dispose();
+			} else if (abox != null) {
+				m.removeOntology(abox);
+			}
+			throw exception;
+		}
+		catch (IOException exception) {
+			if (model != null) {
+				model.dispose();
+			}
+			throw exception;
+		}
+		catch (URISyntaxException exception) {
+			if (model != null) {
+				model.dispose();
+			}
+			throw exception;
+		}
 		modelMap.put(modelId, model);
 		return modelId;
 
@@ -572,19 +594,41 @@ public class MolecularModelManager {
 		final OWLOntologyManager m = graph.getManager();
 		IRI aBoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
 		final OWLOntology tbox = graph.getSourceOntology();
-		final OWLOntology abox = m.createOntology(aBoxIRI);
-
-		// add imports to T-Box and additional ontologies via IRI
-		createImports(abox, tbox.getOntologyID(), db);
-		
-		// generate model
-		LegoModelGenerator model = new LegoModelGenerator(tbox, abox);
-		
-		model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-		if (db != null) {
-			GafDocument gafdoc = getGaf(db);
-			model.initialize(gafdoc, graph);
-			model.setContextualizingSuffix(db);
+		OWLOntology abox = null;
+		LegoModelGenerator model = null;
+		try {
+			abox = m.createOntology(aBoxIRI);
+	
+			// add imports to T-Box and additional ontologies via IRI
+			createImports(abox, tbox.getOntologyID(), db);
+			
+			// generate model
+			model = new LegoModelGenerator(tbox, abox);
+			
+			model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
+			if (db != null) {
+				GafDocument gafdoc = getGaf(db);
+				model.initialize(gafdoc, graph);
+				model.setContextualizingSuffix(db);
+			}
+		}
+		catch (OWLOntologyCreationException exception) {
+			if (abox != null) {
+				m.removeOntology(abox);
+			}
+			throw exception;
+		}
+		catch (IOException exception) {
+			if (model != null) {
+				model.dispose();
+			}
+			throw exception;
+		}
+		catch (URISyntaxException exception) {
+			if (model != null) {
+				model.dispose();
+			}
+			throw exception;
 		}
 		
 		// add to internal map
