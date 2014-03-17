@@ -688,7 +688,7 @@ public class NetworkInferenceEngine {
 
 			// special case : protein binding
 			if (c.equals("GO:0005515")) {
-				for (String b : ann.getWithExpression().split("\\|")) {
+				for (String b : ann.getWithInfos()) {
 					addPPI(gene, b);
 				}
 				continue;

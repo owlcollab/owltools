@@ -9,7 +9,7 @@ public class GpadParser extends AbstractAnnotationFileParser {
 
 	private static final String COMMENT_PREFIX = "!";
 	private static final String VERSION_PREFIX = "gpad-version:";
-	private static final double DEFAULT_VERSION = 0.0d;
+	private static final double DEFAULT_VERSION = 1.1d;
 	private static final int EXPECTED_COLUMNS = 12;
 	
 	
@@ -38,61 +38,61 @@ public class GpadParser extends AbstractAnnotationFileParser {
 			this.pos = pos;
 		}
 		
-		private int index() {
+		private int index(double version) {
 			return pos - 1;
 		}
 	}
 	
 	public String getColumn(GpadColumns col) {
-		return currentCols[col.index()];
+		return currentCols[col.index(version)];
 	}
 	
 	public String getDB() {
-		return currentCols[GpadColumns.DB.index()];
+		return currentCols[GpadColumns.DB.index(version)];
 	}
 
 	public String getDB_Object_ID() {
-		return currentCols[GpadColumns.DB_Object_ID.index()];
+		return currentCols[GpadColumns.DB_Object_ID.index(version)];
 	}
 
 	public String getQualifier() {
-		return currentCols[GpadColumns.Qualifier.index()];
+		return currentCols[GpadColumns.Qualifier.index(version)];
 	}
 
 	public String getGO_ID() {
-		return currentCols[GpadColumns.GO_ID.index()];
+		return currentCols[GpadColumns.GO_ID.index(version)];
 	}
 
 	public String getDB_Reference() {
-		return currentCols[GpadColumns.DB_Reference.index()];
+		return currentCols[GpadColumns.DB_Reference.index(version)];
 	}
 
 	public String getEvidence_Code() {
-		return currentCols[GpadColumns.Evidence_Code.index()];
+		return currentCols[GpadColumns.Evidence_Code.index(version)];
 	}
 
 	public String getWith() {
-		return currentCols[GpadColumns.With.index()];
+		return currentCols[GpadColumns.With.index(version)];
 	}
 
 	public String getInteracting_Taxon_ID() {
-		return currentCols[GpadColumns.Interacting_Taxon_ID.index()];
+		return currentCols[GpadColumns.Interacting_Taxon_ID.index(version)];
 	}
 
 	public String getDate() {
-		return currentCols[GpadColumns.Date.index()];
+		return currentCols[GpadColumns.Date.index(version)];
 	}
 
 	public String getAssigned_by() {
-		return currentCols[GpadColumns.Assigned_by.index()];
+		return currentCols[GpadColumns.Assigned_by.index(version)];
 	}
 
 	public String getAnnotation_Extension() {
-		return currentCols[GpadColumns.Annotation_Extension.index()];
+		return currentCols[GpadColumns.Annotation_Extension.index(version)];
 	}
 
 	public String getAnnotation_Properties() {
-		return currentCols[GpadColumns.Annotation_Properties.index()];
+		return currentCols[GpadColumns.Annotation_Properties.index(version)];
 	}
 	
 	//----------------------------

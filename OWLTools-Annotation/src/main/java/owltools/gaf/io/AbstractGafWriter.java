@@ -1,12 +1,15 @@
 package owltools.gaf.io;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.parser.BuilderTools;
 
 /**
  * General utility to write a {@link GafDocument} or {@link GeneAnnotation}.
@@ -65,91 +68,98 @@ public abstract class AbstractGafWriter  {
 		}
 		Bioentity e = ann.getBioentityObject();
 		// c1
-		print(e.getDb());
+		printSingle(e.getDb());
 		sep();
 		
 		// c2
-		print(e.getLocalId());
+		printSingle(e.getLocalId());
 		sep();
 		
 		// c3
-		print(e.getSymbol());
+		printSingle(e.getSymbol());
 		sep();
 		
 		// c4
-		print(ann.getQualifierString());
+		print(ann.getCompositeQualifiers(), '|');
 		sep();
 		
 		// c5
-		print(ann.getCls());
+		printSingle(ann.getCls());
 		sep();
 		
 		// c6
-		List<String> referenceIds = ann.getReferenceIds();
-		if (referenceIds != null && !referenceIds.isEmpty()) {
-			print(StringUtils.join(referenceIds, '|'));
-		}
+		print(ann.getReferenceIds(), '|');
 		sep();
 		
 		// c7
-		print(ann.getShortEvidence());
+		printSingle(ann.getShortEvidence());
 		sep();
 		
 		// c8
-		print(ann.getWithExpression());
+		print(ann.getWithInfos(), '|');
 		sep();
 		
 		// c9
-		print(ann.getAspect());
+		printSingle(ann.getAspect());
 		sep();
 		
 		// c10
-		print(e.getFullName());
+		printSingle(e.getFullName());
 		sep();
 		
 		// c11
-		List<String> synonyms = e.getSynonyms();
-		if (synonyms != null && !synonyms.isEmpty()) {
-			String combined = StringUtils.join(synonyms, '|'); 
-			print(combined);
-		}
+		print(e.getSynonyms(), '|'); 
 		sep();
 		
 		// c12
-		print(e.getTypeCls());
+		printSingle(e.getTypeCls());
 		sep();
 		
 		// c13
-		print(createTaxonString(ann, e));
+		printSingle(createTaxonString(ann, e));
 		sep();
 		
 		// c14
-		print(ann.getLastUpdateDate());
+		printSingle(ann.getLastUpdateDate());
 		sep();
 		
 		// c15
-		print(ann.getAssignedBy());
+		printSingle(ann.getAssignedBy());
 		sep();
 		
 		// c16
-		print(ann.getExtensionExpression());
+		printSingle(BuilderTools.buildExtensionExpression(ann.getExtensionExpressions()));
 		sep();
 		
 		// c17
-		print(ann.getGeneProductForm());
+		printSingle(ann.getGeneProductForm());
 		nl();
 	}
 	
 	private String createTaxonString(GeneAnnotation ann, Bioentity e) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(StringUtils.replace(e.getNcbiTaxonId(), "NCBITaxon:", "taxon:"));
-		String actsOnTaxonId = StringUtils.trimToNull(ann.getActsOnTaxonId());
-		if (actsOnTaxonId != null) {
-			sb.append('|').append(StringUtils.replace(actsOnTaxonId, "NCBITaxon:", "taxon:"));
+		Pair<String, String> actsOnTaxonId = ann.getActsOnTaxonId();
+		if (actsOnTaxonId != null && actsOnTaxonId.getLeft() != null) {
+			String taxId = BuilderTools.removePrefix(actsOnTaxonId.getLeft(), ':');
+			sb.append('|').append("taxon:").append(taxId);
 		}
 		return sb.toString();
 	}
 
+	private void print(Collection<String> list, char separator) {
+		if (list != null && !list.isEmpty()) {
+			print(StringUtils.join(list, separator));
+		}
+	}
+	
+	private void printSingle(String s) {
+		s = StringUtils.trimToNull(s);
+		if (s != null) {
+			print(s);
+		}
+	}
+	
 	/**
 	 * Append an arbitrary string.
 	 * 

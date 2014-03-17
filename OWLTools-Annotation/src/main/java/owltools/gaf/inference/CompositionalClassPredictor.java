@@ -141,7 +141,7 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidence("IC", null);
-		annP.setWithInfos(with, Collections.singleton(with));
+		annP.setWithInfos(Collections.singleton(with));
 		// TODO - evidence
 		Prediction prediction = new Prediction(annP);
 		LOG.info("prediction="+prediction);

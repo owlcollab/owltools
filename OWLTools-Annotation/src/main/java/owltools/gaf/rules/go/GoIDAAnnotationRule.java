@@ -1,5 +1,6 @@
 package owltools.gaf.rules.go;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -37,8 +38,8 @@ public class GoIDAAnnotationRule extends AbstractAnnotationRule {
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
 		String evidence = a.getShortEvidence();
 		if (evidence != null && evidences.contains(evidence)) {
-			String expression = a.getWithExpression();
-			if (expression != null && !expression.isEmpty()) {
+			Collection<String> withInfos = a.getWithInfos();
+			if (withInfos != null && !withInfos.isEmpty()) {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), message, a, violationType);
 				return Collections.singleton(violation);
 			}

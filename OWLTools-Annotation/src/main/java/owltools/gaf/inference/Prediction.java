@@ -1,6 +1,7 @@
 package owltools.gaf.inference;
 
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.parser.BuilderTools;
 import owltools.io.OWLPrettyPrinter;
 
 public class Prediction {
@@ -65,7 +66,7 @@ public class Prediction {
 		if (geneAnnotation != null) {
 			final String bioentity = geneAnnotation.getBioentity();
 			final String cls = geneAnnotation.getCls();
-			final String c16 = geneAnnotation.getExtensionExpression();
+			final String c16 = BuilderTools.buildExtensionExpression(geneAnnotation.getExtensionExpressions());
 			result = prime * result	+
 					((bioentity == null) ? 0 : bioentity.hashCode());
 			result = prime * result + 
@@ -93,10 +94,10 @@ public class Prediction {
 		}
 		final String bioentity = geneAnnotation.getBioentity();
 		final String cls = geneAnnotation.getCls();
-		final String c16 = geneAnnotation.getExtensionExpression();
+		final String c16 = BuilderTools.buildExtensionExpression(geneAnnotation.getExtensionExpressions());
 		final String otherBioentity = other.geneAnnotation.getBioentity();
 		final String otherCls = other.geneAnnotation.getCls();
-		final String otherC16 = other.geneAnnotation.getExtensionExpression();
+		final String otherC16 = BuilderTools.buildExtensionExpression(other.geneAnnotation.getExtensionExpressions());
 		
 		if (bioentity == null) {
 			if (otherBioentity != null)

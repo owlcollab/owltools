@@ -204,7 +204,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		annP.setBioentity(bioentity);
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidence("IC", null);
-		annP.setWithInfos(with, Collections.singleton(with));
+		annP.setWithInfos(Collections.singleton(with));
 		Prediction prediction = new Prediction(annP);
 		return prediction;
 	}

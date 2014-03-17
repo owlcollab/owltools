@@ -247,7 +247,7 @@ public class GafObjectsBuilder {
 		ga.setIsNegated(qualifierString.contains("NOT"));
 		
 		List<String> qualifiers = BuilderTools.parseCompositeQualifier(qualifierString);
-		ga.setCompositeQualifiers(qualifierString, qualifiers);
+		ga.setCompositeQualifiers(qualifiers);
 
 		// handle relation and aspect
 		String relation = null;
@@ -272,7 +272,7 @@ public class GafObjectsBuilder {
 		// handle with
 		final String withExpression = parser.getWith();
 		final Collection<String> withInfos = BuilderTools.parseWithInfo(withExpression);
-		ga.setWithInfos(withExpression, withInfos);
+		ga.setWithInfos(withInfos);
 
 		// handle acts on taxon
 		String taxons[] = StringUtils.split(parser.getTaxon(), '|');

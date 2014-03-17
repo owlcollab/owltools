@@ -223,7 +223,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			// special case : protein binding - we build a PPI
 			// using the WITH/FROM column
 			if (c.equals("GO:0005515")) {
-				for (String b : ann.getWithExpression().split("\\|")) {
+				for (String b : ann.getWithInfos()) {
 					//LOG.info("Adding PPI based on WITH col");
 					addPPI(gene, b);
 				}

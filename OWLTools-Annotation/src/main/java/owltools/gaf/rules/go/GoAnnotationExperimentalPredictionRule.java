@@ -12,6 +12,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import owltools.gaf.Bioentity;
+import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
@@ -58,8 +59,8 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 		boolean hasC16Annotations = false;
 		
 		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
-			String c16String = annotation.getExtensionExpression();
-			if (c16String != null && c16String.isEmpty() == false) {
+			List<List<ExtensionExpression>> expressions = annotation.getExtensionExpressions();
+			if (expressions != null && expressions.isEmpty() == false) {
 				hasC16Annotations = true;
 			}
 			Bioentity e = annotation.getBioentityObject();

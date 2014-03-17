@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -62,7 +63,11 @@ public class GoMultipleTaxonRule extends AbstractAnnotationRule {
 	
 	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
-		String actsOnTaxonId = a.getActsOnTaxonId();
+		String actsOnTaxonId = null;
+		Pair<String, String> pair = a.getActsOnTaxonId();
+		if (pair != null) {
+			actsOnTaxonId = pair.getLeft();
+		}
 		if (actsOnTaxonId == null || actsOnTaxonId.isEmpty()) {
 			return Collections.emptySet();
 		}

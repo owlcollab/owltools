@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -26,6 +27,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.Bioentity;
+import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
@@ -435,7 +437,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 						add = true;
 						break;
 					}
-					if (!StringUtils.equals(a1.getActsOnTaxonId(), a2.getActsOnTaxonId())) {
+					if (!equals(a1.getActsOnTaxonId(), a2.getActsOnTaxonId())) {
 						add = true;
 						break;
 					}
@@ -443,7 +445,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 						add = true;
 						break;
 					}
-					if (!StringUtils.equals(a1.getExtensionExpression(), a2.getExtensionExpression())) {
+					if (!equalsExprs(a1.getExtensionExpressions(), a2.getExtensionExpressions())) {
 						add = true;
 						break;
 					}
@@ -464,6 +466,13 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			
 		}
 		
+		private <T1,T2> boolean equals(Pair<T1,T2> p1, Pair<T1,T2> p2) {
+			if (p1 == null) {
+				return p1 == p2;
+			}
+			return p1.equals(p2);
+		}
+		
 		private boolean equalsList(List<String> l1, List<String> l2) {
 			if (l1 == null && l2 == null) {
 				return true;
@@ -477,6 +486,56 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			boolean matches = true;
 			for (int i = 0; i < l2.size(); i++) {
 				boolean eq = StringUtils.equals(l1.get(i), l2.get(i));
+				if (eq == false) {
+					 matches = false;
+					 break;
+				}
+			}
+			return matches;
+		}
+		
+		private boolean equalsExprs(List<List<ExtensionExpression>> l1, List<List<ExtensionExpression>> l2) {
+			if (l1 == null && l2 == null) {
+				return true;
+			}
+			if (l1 == null|| l2 == null) {
+				return false;
+			}
+			if (l1.size() != l2.size()) {
+				return false;
+			}
+			boolean matches = true;
+			for (int i = 0; i < l2.size(); i++) {
+				boolean eq = equalsExpr(l1.get(i), l2.get(i));
+				if (eq == false) {
+					 matches = false;
+					 break;
+				}
+			}
+			return matches;
+		}
+		
+		private boolean equalsExpr(List<ExtensionExpression> l1, List<ExtensionExpression> l2) {
+			if (l1 == null && l2 == null) {
+				return true;
+			}
+			if (l1 == null|| l2 == null) {
+				return false;
+			}
+			if (l1.size() != l2.size()) {
+				return false;
+			}
+			boolean matches = true;
+			for (int i = 0; i < l2.size(); i++) {
+				ExtensionExpression expr1 = l1.get(i);
+				ExtensionExpression expr2 = l2.get(i);
+				if (expr1 == null) {
+					if (expr1 != expr2) {
+						matches = false;
+						break;
+					}
+				}
+				boolean eq = expr1.equals(expr2);
 				if (eq == false) {
 					 matches = false;
 					 break;
@@ -559,8 +618,8 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 			group.add(ann);
 			
-			String compositeQualifier = StringUtils.trimToEmpty(ann.getQualifierString());
-			if (compositeQualifier.isEmpty() == false) {
+			List<String> compositeQualifiers = ann.getCompositeQualifiers();
+			if (compositeQualifiers != null && compositeQualifiers.isEmpty() == false) {
 				// ignore annotations with a qualifier.
 				// Do *not* propagate
 				continue;
@@ -717,7 +776,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		
 		// c8 with expression
 		// because we propagate the evidence code, we also have to propagate the with column
-		annP.setWithInfos(source.getWithExpression(), source.getWithInfos());
+		annP.setWithInfos(source.getWithInfos());
 		
 		// c9 aspect
 		annP.setAspect(aspect);

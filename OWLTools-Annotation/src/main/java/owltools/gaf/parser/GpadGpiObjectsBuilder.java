@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -215,13 +214,10 @@ public class GpadGpiObjectsBuilder {
 		addEvidenceCode(parser.getEvidence_Code(), ga, mapper);
 		
 		// col 7 with
-		final String withExpression = parser.getWith();
-		final Collection<String> withInfos = BuilderTools.parseWithInfo(withExpression);
-		ga.setWithInfos(withExpression, withInfos);
+		ga.setWithInfos(BuilderTools.parseWithInfo(parser.getWith()));
 		
 		// col8
-		String interactingTaxon = BuilderTools.handleTaxonPrefix(parser.getInteracting_Taxon_ID());
-		ga.setActsOnTaxonId(interactingTaxon);
+		ga.setActsOnTaxonId(BuilderTools.parseTaxonRelationshipPair(parser.getInteracting_Taxon_ID()));
 		
 		// col 9
 		ga.setLastUpdateDate(parser.getDate());

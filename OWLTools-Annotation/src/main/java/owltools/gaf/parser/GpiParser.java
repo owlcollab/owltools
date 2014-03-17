@@ -10,8 +10,9 @@ public class GpiParser extends AbstractAnnotationFileParser {
 	private static final String COMMENT_PREFIX = "!";
 	private static final String VERSION_PREFIX = "gpi-version:";
 	private static final String NAMESPACE_PREFIX = "namespace:";
-	private static final double DEFAULT_VERSION = 0.0d;
-	private static final int EXPECTED_COLUMNS = 9;
+	private static final double DEFAULT_VERSION = 1.1d;
+	private static final int EXPECTED_COLUMNS_V11 = 9;
+	private static final int EXPECTED_COLUMNS_V12 = 10;
 
 	private String namespace = null;
 	
@@ -21,68 +22,77 @@ public class GpiParser extends AbstractAnnotationFileParser {
 
 	static enum GpiColumns {
 		
-		DB_Object_ID(1, "DB_Object_ID", true),
-		DB_Object_Symbol(2, "DB_Object_Symbol", true),
-		DB_Object_Name(3, "DB_Object_Name", false),
-		DB_Object_Synonym(4, "DB_Object_Synonym", false),
-		DB_Object_Type(5, "DB_Object_Type", true),
-		Taxon(6, "Taxon", true),
-		Parent_Object_ID(7, "Parent_Object_ID", false),
-		DB_Xref(8, "DB_Xref", false),
-		Gene_Product_Properties(9, "Gene_Product_Properties", false);
+		DB(1, "DB", true, 1.2),
+		DB_Object_ID(2, "DB_Object_ID", true, 1.1),
+		DB_Object_Symbol(3, "DB_Object_Symbol", true, 1.1),
+		DB_Object_Name(4, "DB_Object_Name", false, 1.1),
+		DB_Object_Synonym(5, "DB_Object_Synonym", false, 1.1),
+		DB_Object_Type(6, "DB_Object_Type", true, 1.1),
+		Taxon(7, "Taxon", true, 1.1),
+		Parent_Object_ID(8, "Parent_Object_ID", false, 1.1),
+		DB_Xref(9, "DB_Xref", false, 1.1),
+		Gene_Product_Properties(10, "Gene_Product_Properties", false, 1.1);
 		
 		private final int pos;
 		
-		private GpiColumns(int pos, String name, boolean required) {
+		private GpiColumns(int pos, String name, boolean required, double since) {
 			this.pos = pos;
 		}
 		
-		private int index() {
-			return pos - 1;
+		private int index(double version) {
+			if (version < 1.2d) {
+				return pos - 2;
+			}
+			else {
+				return pos - 1;
+			}
 		}
 	}
 	
 	public String getColumn(GpiColumns col) {
-		return currentCols[col.index()];
+		return currentCols[col.index(version)];
 	}
 	
 	public String getDB_Object_ID() {
-		return currentCols[GpiColumns.DB_Object_ID.index()];
+		return currentCols[GpiColumns.DB_Object_ID.index(version)];
 	}
 	
 	public String getDB_Object_Symbol() {
-		return currentCols[GpiColumns.DB_Object_Symbol.index()];
+		return currentCols[GpiColumns.DB_Object_Symbol.index(version)];
 	}
 	
 	public String getDB_Object_Name() {
-		return currentCols[GpiColumns.DB_Object_Name.index()];
+		return currentCols[GpiColumns.DB_Object_Name.index(version)];
 	}
 	
 	public String getDB_Object_Synonym() {
-		return currentCols[GpiColumns.DB_Object_Synonym.index()];
+		return currentCols[GpiColumns.DB_Object_Synonym.index(version)];
 	}
 	
 	public String getDB_Object_Type() {
-		return currentCols[GpiColumns.DB_Object_Type.index()];
+		return currentCols[GpiColumns.DB_Object_Type.index(version)];
 	}
 	
 	public String getTaxon() {
-		return currentCols[GpiColumns.Taxon.index()];
+		return currentCols[GpiColumns.Taxon.index(version)];
 	}
 	
 	public String getParent_Object_ID() {
-		return currentCols[GpiColumns.Parent_Object_ID.index()];
+		return currentCols[GpiColumns.Parent_Object_ID.index(version)];
 	}
 	
 	public String getDB_Xref() {
-		return currentCols[GpiColumns.DB_Xref.index()];
+		return currentCols[GpiColumns.DB_Xref.index(version)];
 	}
 	
 	public String getGene_Product_Properties() {
-		return currentCols[GpiColumns.Gene_Product_Properties.index()];
+		return currentCols[GpiColumns.Gene_Product_Properties.index(version)];
 	}
 	
 	public String getNamespace() {
+		if (version >= 1.2d) {
+			return currentCols[GpiColumns.DB.index(version)];
+		}
 		return namespace;
 	}
 	
@@ -127,7 +137,10 @@ public class GpiParser extends AbstractAnnotationFileParser {
 
 	@Override
 	protected int getExpectedColumnCount() {
-		return EXPECTED_COLUMNS;
+		if (version < 1.2) {
+			return EXPECTED_COLUMNS_V11;
+		}
+		return EXPECTED_COLUMNS_V12;
 	}
 	
 }

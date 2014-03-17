@@ -1,6 +1,7 @@
 package owltools.gaf.rules.go;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -52,8 +53,8 @@ public class GoBindingCheckWithFieldRule extends AbstractAnnotationRule {
 				return Collections.singleton(violation);
 			}
 			// check with field
-			String withExpression = a.getWithExpression();
-			if (withExpression == null || withExpression.isEmpty()) {
+			Collection<String> withInfos = a.getWithInfos();
+			if (withInfos == null || withInfos.isEmpty()) {
 				AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), MESSAGE, a, ViolationType.Warning);
 				return Collections.singleton(violation);
 			}

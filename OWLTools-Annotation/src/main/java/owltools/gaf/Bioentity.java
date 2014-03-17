@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 public class Bioentity{
 
 	private String db; 					// GAF-Col  1	GPI namespace header?
@@ -15,9 +17,9 @@ public class Bioentity{
 	private String typeCls; 			// GAF-Col 12	GPI-Col 5
 	private String ncbiTaxonId; 		// GAF-Col 13	GPI-Col 6
 	
-	private String parentObjectId = null; 			// GPI-Col 7
-	private List<String> dbXrefs = null;  			// GPI-Col 8
-	private Map<String, String> properties = null;	// GPI-Col 9
+	private String parentObjectId = null; 					// GPI-Col 7
+	private List<String> dbXrefs = null;  					// GPI-Col 8
+	private List<Pair<String, String>> properties = null;	// GPI-Col 9
 	
 	public Bioentity(){
 	}
@@ -135,14 +137,14 @@ public class Bioentity{
 		dbXrefs.add(dbXref);
 	}
 
-	public Map<String, String> getProperties() {
+	public List<Pair<String, String>> getProperties() {
 		return properties;
 	}
 
 	public void addProperty(String key, String value) {
 		if (properties == null) {
-			properties = new HashMap<String, String>();
+			properties = new ArrayList<Pair<String,String>>();
 		}
-		properties.put(key, value);
+		properties.add(Pair.of(key, value));
 	}
 }

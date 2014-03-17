@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
@@ -24,6 +25,17 @@ public class BuilderTools {
 				sb.append(s);
 			}
 			return sb.toString();
+		}
+		return s;
+	}
+	
+	public static String removePrefix(String s, char marker) {
+		int pos = s.indexOf(marker);
+		if (pos > 0) {
+			if ((pos + 1) < s.length()) {
+				pos += 1;
+			}
+			return s.substring(pos);
 		}
 		return s;
 	}
@@ -129,6 +141,28 @@ public class BuilderTools {
 		return qualifiers;
 	}
 
+	public static Pair<String, String> parseTaxonRelationshipPair(String source) {
+		source = StringUtils.trimToNull(source);
+		if (source != null) {
+			int open = source.indexOf('(');
+			if (open > 0) {
+				int close = source .indexOf(')', open);
+				if (close > 0) {
+					String rel = StringUtils.trimToNull(source.substring(0, open));
+					String tax = StringUtils.trimToNull(source.substring(open+1, close));
+					if (tax != null && rel != null) {
+						return Pair.of(tax, rel);
+					}
+				}
+			}
+			else {
+				return Pair.<String, String>of(source, null);
+			}
+			
+		}
+		return null;
+	}
+	
 	/**
 	 * @param extensionExpressionString
 	 * @return list, never null
@@ -180,5 +214,68 @@ public class BuilderTools {
 			}
 		}
 		return sb.toString();
+	}
+	
+	public static String buildPropertyExpression(List<Pair<String, String>> properties) {
+		if (properties != null) {
+			StringBuilder sb = new StringBuilder();
+			for (Pair<String, String> pair : properties) {
+				if (sb.length() > 0) {
+					sb.append('|');
+				}
+				sb.append(pair.getLeft()).append('=').append(pair.getRight());
+			}
+			return sb.toString();
+		}
+		return null;
+	}
+	
+	public static String buildTaxonString(String bioEntityTaxon, Pair<String, String> actsOnTaxonRelPair) {
+		StringBuilder sb = new StringBuilder();
+		if (bioEntityTaxon != null) {
+			sb.append("taxon:").append(removePrefix(bioEntityTaxon, ':'));
+		}
+		if (actsOnTaxonRelPair != null) {
+			if (sb.length() > 0) {
+				sb.append('|');
+			}
+			String taxId = "taxon:"+removePrefix(actsOnTaxonRelPair.getLeft(), ':');
+			String rel = actsOnTaxonRelPair.getRight();
+			sb.append(rel).append("(").append(taxId).append(")");
+		}
+		if (sb.length() > 0) {
+			return sb.toString();
+		}
+		return null;
+	}
+	
+	public static String buildTaxonString(Pair<String, String> taxonRelPair) {
+		if (taxonRelPair != null) {
+			String taxId = "taxon:"+removePrefix(taxonRelPair.getLeft(), ':');
+			String rel = taxonRelPair.getRight();
+			return rel+"("+taxId+")";
+		}
+		return null;
+	}
+	
+	public static String buildWithString(Collection<String> withInfos) {
+		if (withInfos != null && !withInfos.isEmpty()) {
+			return StringUtils.join(withInfos, '|');
+		}
+		return null;
+	}
+	
+	public static String buildQualifierString(List<String> qualifierList) {
+		if (qualifierList != null && !qualifierList.isEmpty()) {
+			return StringUtils.join(qualifierList, '|');
+		}
+		return null;
+	}
+	
+	public static String buildReferenceIdsString(List<String> referenceIds) {
+		if (referenceIds != null && !referenceIds.isEmpty()) {
+			return StringUtils.join(referenceIds, '|');
+		}
+		return null;
 	}
 }

@@ -6,11 +6,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import owltools.gaf.parser.BuilderTools;
 
@@ -37,30 +36,26 @@ public class GeneAnnotation {
 	private boolean isContributesTo = false;
 	private boolean isIntegralTo = false;
 	private boolean isNegated = false;
-	private String qualifierString = DEFAULT_STRING_VALUE; 		// Col. 4
 	private String relation = DEFAULT_STRING_VALUE; 			// implicit relation
 	private String cls = DEFAULT_STRING_VALUE; 					// Col. 5
 	private List<String> referenceIds = null;					// Col. 6
-	private String ecoEvidenceCls;
+	private String ecoEvidenceCls;								// GPAD only
 	private String shortEvidence = DEFAULT_STRING_VALUE;		// Col. 7
-//	private String evidenceCls = DEFAULT_STRING_VALUE; 			// Col. 7
-	private String withExpression = DEFAULT_STRING_VALUE; 		// Col. 8
 	private String aspect = DEFAULT_STRING_VALUE; 				// Col. 9
-	private String actsOnTaxonId = DEFAULT_STRING_VALUE; 		// Col. 13
+	private Pair<String, String> actsOnTaxonId = null;	 		// Col. 13
 	private String lastUpdateDate = DEFAULT_STRING_VALUE; 		// Col. 14 //TODO: convert it to date
 	private String assignedBy = DEFAULT_STRING_VALUE; 			// Col. 15
-	private String extensionExpression = DEFAULT_STRING_VALUE; 	// Col. 16
 	private String geneProductForm = DEFAULT_STRING_VALUE; 		// Col. 17
-	private Map<String, String> properties = null;				// GPAD only
+	private List<Pair<String, String>> properties = null;		// GPAD only
 	
 	// derived from c8
-	private Collection<String> withInfoList = null; 
+	private Collection<String> withInfoList = null; // col 8
 	
 	// derived from c16
-	private List<List<ExtensionExpression>> extensionExpressionList = null;
+	private List<List<ExtensionExpression>> extensionExpressionList = null; // col 16
 	
 	// derived from c4
-	private List<String> compositeQualifiers = null; 
+	private List<String> compositeQualifiers = null;  // col 4
 
 	// set by parser, optional 
 	private transient AnnotationSource annotationSource = null;
@@ -84,39 +79,22 @@ public class GeneAnnotation {
 		
 		StringBuilder s = new StringBuilder();
 
-		String taxon = DEFAULT_STRING_VALUE;
-		CharSequence dbObjectSynonym = DEFAULT_STRING_VALUE;
-		String dbObjectName = DEFAULT_STRING_VALUE;
-		String dbObjectType = DEFAULT_STRING_VALUE;
-		String symbol = DEFAULT_STRING_VALUE;
+		String taxon = null;
+		String dbObjectSynonym = null;
+		String dbObjectName = null;
+		String dbObjectType = null;
+		String symbol = null;
 		
 		if(this.bioentityObject!= null){
 			taxon = bioentityObject.getNcbiTaxonId();
-			if(taxon != null){
-				int i = taxon.indexOf(":");
-				
-				if(i<0)
-					i = 0;
-				else
-					i++;
-				
-				taxon ="taxon:" + taxon.substring(i);
-			}
+			taxon = "taxon:" + BuilderTools.removePrefix(taxon, ':');
 
 			dbObjectName = this.bioentityObject.getFullName();
 			dbObjectType = this.bioentityObject.getTypeCls();
 			List<String> synonyms = this.bioentityObject.getSynonyms();
 			if (synonyms != null && !synonyms.isEmpty()) {
-				StringBuilder synonymBuilder = new StringBuilder();
-				for (int i = 0; i < synonyms.size(); i++) {
-					if (i > 0) {
-						synonymBuilder.append('|');
-					}
-					synonymBuilder.append(synonyms.get(i));
-				}
-				dbObjectSynonym = synonymBuilder;
+				dbObjectSynonym = StringUtils.join(synonyms, '|');
 			}
-			
 			symbol = this.bioentityObject.getSymbol();
 		}
 		
@@ -131,52 +109,32 @@ public class GeneAnnotation {
 			s.append("\t\t");
 		}
 			
+		append(symbol, s);
+		append(BuilderTools.buildQualifierString(compositeQualifiers), s);
+		append(cls, s);
+		append(BuilderTools.buildReferenceIdsString(referenceIds), s);
+		append(shortEvidence, s);
+		append(BuilderTools.buildWithString(withInfoList), s);
+		append(aspect, s);
+		append(dbObjectName, s);
+		append(dbObjectSynonym, s);
+		append(dbObjectType, s);
+		append(BuilderTools.buildTaxonString(taxon, actsOnTaxonId), s);
+		append(lastUpdateDate, s);
+		append(assignedBy, s);
 		
-		s.append(symbol).append("\t");
-		
-		s.append(qualifierString).append("\t");
-		
-		s.append(this.cls).append("\t");
-		
-		if (referenceIds != null) {
-			s.append(StringUtils.join(referenceIds, '|'));
-		}
-		s.append("\t");
-		
-		s.append(this.shortEvidence).append("\t");
-		
-		s.append(this.withExpression).append("\t");
-		
-		s.append(this.aspect).append("\t");
-		
-		s.append(dbObjectName).append("\t");
-		
-		s.append(dbObjectSynonym).append("\t");
-		
-		s.append(dbObjectType).append("\t");
-		
-		if(this.actsOnTaxonId != null && this.actsOnTaxonId.length()>0){
-			int i = actsOnTaxonId.indexOf(":");
-			if(i<0)
-				i = 0;
-			else 
-				i++;
-			
-			taxon += "|taxon:" + actsOnTaxonId.substring(i);
-		}
-		
-		s.append(taxon).append("\t");
-		
-		s.append(this.lastUpdateDate).append("\t");
-		
-		s.append(this.assignedBy).append("\t");
-		
-		s.append(this.extensionExpression).append("\t");
-		
-		s.append(this.geneProductForm);
+		append(BuilderTools.buildExtensionExpression(extensionExpressionList), s);
+		append(geneProductForm, s);
 		
 		this.isChanged = false;
 		this.toString = s.toString();
+	}
+	
+	private static void append(CharSequence s, StringBuilder builder) {
+		if (s != null) {
+			builder.append(s);
+		}
+		builder.append('\t');
 	}
 	
 	public String toString(){
@@ -188,74 +146,43 @@ public class GeneAnnotation {
 		// intentionally empty
 	}
 	
-	public GeneAnnotation(String bioentity, boolean isContributesTo,
-			boolean isIntegralTo, String compositeQualifier, List<String> compositeQualifiers, String cls,
-			List<String> referenceIds, String shortEvidence, String ecoEvidenceCls, String withExpression, Collection<String> withInfoList,
-			String aspect, String actsOnTaxonId, String lastUpdateDate, String assignedBy,
-			String extensionExpression, List<List<ExtensionExpression>> extensionExpressionList,
-			String geneProductForm, Map<String, String> properties) {
-
-		this.bioentity = bioentity;
-		this.isContributesTo = isContributesTo;
-		this.isIntegralTo = isIntegralTo;
-		this.qualifierString = compositeQualifier;
-		this.compositeQualifiers = compositeQualifiers;
-		this.cls = cls;
-		this.referenceIds = referenceIds;
-		this.shortEvidence = shortEvidence;
-		this.ecoEvidenceCls = ecoEvidenceCls;
-		this.withExpression = withExpression;
-		this.withInfoList = withInfoList;
-		this.aspect = aspect;
-		this.actsOnTaxonId = actsOnTaxonId;
-		this.lastUpdateDate = lastUpdateDate;
-		this.assignedBy = assignedBy;
-		this.extensionExpression = extensionExpression;
-		this.extensionExpressionList = extensionExpressionList;
-		this.geneProductForm = geneProductForm;
-		this.properties = properties;
-		setChanged();
-	}
-
-
-
 	public GeneAnnotation(GeneAnnotation ann) {
 		super();
 		this.bioentity = ann.bioentity;
 		this.bioentityObject = ann.bioentityObject;
 		this.isContributesTo = ann.isContributesTo;
 		this.isIntegralTo = ann.isIntegralTo;
-		this.qualifierString = ann.qualifierString;
-		this.compositeQualifiers = BuilderTools.parseCompositeQualifier(ann.qualifierString);
+		this.compositeQualifiers = copy(ann.compositeQualifiers);
 		this.cls = ann.cls;
 		this.referenceIds = copy(ann.referenceIds);
 		this.shortEvidence = ann.shortEvidence;
 		this.ecoEvidenceCls = ann.ecoEvidenceCls;
-		this.withExpression = ann.withExpression;
-		this.withInfoList = BuilderTools.parseWithInfo(ann.withExpression);
+		this.withInfoList = copy(ann.withInfoList);
 		this.aspect = ann.aspect;
 		this.actsOnTaxonId = ann.actsOnTaxonId;
 		this.lastUpdateDate = ann.lastUpdateDate;
 		this.assignedBy = ann.assignedBy;
-		this.extensionExpression = ann.extensionExpression;
-		this.extensionExpressionList = BuilderTools.parseExtensionExpression(ann.extensionExpression);
+		this.extensionExpressionList = copyExpr(ann.extensionExpressionList);
 		this.geneProductForm = ann.geneProductForm;
 		this.properties = copy(ann.properties);
 		setChanged();
 	}
 	
-	private static Map<String, String> copy(Map<String, String> source) {
-		Map<String, String> copy = null;
+	private static <T> List<T> copy(Collection<T> source) {
+		List<T> copy = null;
 		if (source != null) {
-			copy = new HashMap<String, String>(source);
+			copy = new ArrayList<T>(source);
 		}
 		return copy;
 	}
 	
-	private static <T> List<T> copy(List<T> source) {
-		List<T> copy = null;
+	private static List<List<ExtensionExpression>> copyExpr(List<List<ExtensionExpression>> source) {
+		List<List<ExtensionExpression>> copy = null;
 		if (source != null) {
-			copy = new ArrayList<T>(source);
+			copy = new ArrayList<List<ExtensionExpression>>(source.size());
+			for(List<ExtensionExpression> exprList : source) {
+				copy.add(new ArrayList<ExtensionExpression>(exprList));
+			}
 		}
 		return copy;
 	}
@@ -324,7 +251,7 @@ public class GeneAnnotation {
 		setChanged();
 	}
 	
-	public String getActsOnTaxonId() {
+	public Pair<String, String> getActsOnTaxonId() {
 		return actsOnTaxonId;
 	}
 
@@ -338,7 +265,11 @@ public class GeneAnnotation {
 	}
 
 	public void setActsOnTaxonId(String actsOnTaxonId) {
-		this.actsOnTaxonId = actsOnTaxonId;
+		setActsOnTaxonId(Pair.of(actsOnTaxonId, relation));
+	}
+	
+	public void setActsOnTaxonId(Pair<String, String> taxonRelPair) {
+		this.actsOnTaxonId = taxonRelPair;
 		setChanged();
 	}
 
@@ -370,17 +301,12 @@ public class GeneAnnotation {
 		setChanged();
 	}
 
-	public String getExtensionExpression() {
-		return extensionExpression;
-	}
-
 	public List<List<ExtensionExpression>> getExtensionExpressions(){
 		return extensionExpressionList;
 	}
 	
 	public void setExtensionExpressions(List<List<ExtensionExpression>> expressions) {
 		this.extensionExpressionList = expressions;
-		this.extensionExpression = BuilderTools.buildExtensionExpression(expressions);
 		setChanged();
 	}
 
@@ -429,12 +355,7 @@ public class GeneAnnotation {
 		return isNegated;
 	}
 	
-	public String getWithExpression() {
-		return withExpression;
-	}
-
-	public void setWithInfos(String withExpression, Collection<String> withInfoList) {
-		this.withExpression = withExpression;
+	public void setWithInfos(Collection<String> withInfoList) {
 		this.withInfoList = withInfoList;
 		setChanged();
 	}
@@ -443,16 +364,11 @@ public class GeneAnnotation {
 		return withInfoList;
 	}
 	
-	public void setCompositeQualifiers(String qualifierString, List<String> compositeQualifiers) {
-		this.qualifierString = qualifierString;
+	public void setCompositeQualifiers(List<String> compositeQualifiers) {
 		this.compositeQualifiers = compositeQualifiers;
 		setChanged();
 	}
 	
-	public String getQualifierString() {
-		return qualifierString;
-	}
-
 	/**
 	 * Retrieve the list of qualifiers. Split the composite string, if
 	 * necessary.
@@ -477,12 +393,12 @@ public class GeneAnnotation {
 
 	public void addProperty(String key, String value) {
 		if (properties == null) {
-			properties = new HashMap<String, String>();
+			properties = new ArrayList<Pair<String,String>>();
 		}
-		properties.put(key, value);
+		properties.add(Pair.of(key, value));
 	}
 	
-	public Map<String, String> getProperties() {
-		return Collections.unmodifiableMap(properties);
+	public List<Pair<String, String>> getProperties() {
+		return Collections.unmodifiableList(properties);
 	}
 }

@@ -23,6 +23,7 @@ import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.TaxonTools;
+import owltools.gaf.parser.BuilderTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.RelationSets;
 import owltools.panther.PANTHERForest;
@@ -581,7 +582,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			id_items.add(etaxid); // 13 (technically dupe info)
 			id_items.add(adate); // 14
 			id_items.add(assgnb); // 15
-			id_items.add(a.getExtensionExpression()); // 16
+			id_items.add(BuilderTools.buildExtensionExpression(a.getExtensionExpressions())); // 16
 			String unique_ann_id = StringUtils.join(id_items, "_:_");
 			annotation_doc.addField("id", unique_ann_id);
 			
