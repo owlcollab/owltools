@@ -30,11 +30,13 @@ public class GpiWriter {
 	 * 
 	 * @param bioentities
 	 */
-	public void write(List<Bioentity> bioentities) {
+	public void write(Iterable<Bioentity> bioentities) {
 		try {
 			writeHeader();
-			for (Bioentity entity: bioentities) {
-				write(entity);
+			if (bioentities != null) {
+				for (Bioentity entity: bioentities) {
+					write(entity);
+				}
 			}
 		}
 		finally {
@@ -108,7 +110,7 @@ public class GpiWriter {
 		sep();
 		
 		// c7 Taxon
-		// TODO print(bioentity.getNcbiTaxonId());
+		printBioentityTaxon(bioentity.getNcbiTaxonId());
 		sep();
 		
 		// c8 Parent_Object_ID
@@ -127,6 +129,13 @@ public class GpiWriter {
 	private void print(Collection<String> list, char separator) {
 		if (list != null && !list.isEmpty()) {
 			print(StringUtils.join(list, separator));
+		}
+	}
+	
+	private void printBioentityTaxon(String taxon) {
+		taxon = StringUtils.trimToNull(taxon);
+		if (taxon != null) {
+			print("taxon:"+BuilderTools.removePrefix(taxon, ':'));
 		}
 	}
 	

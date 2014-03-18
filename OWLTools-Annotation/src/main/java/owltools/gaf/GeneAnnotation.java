@@ -399,6 +399,6 @@ public class GeneAnnotation {
 	}
 	
 	public List<Pair<String, String>> getProperties() {
-		return Collections.unmodifiableList(properties);
+		return properties;
 	}
 }

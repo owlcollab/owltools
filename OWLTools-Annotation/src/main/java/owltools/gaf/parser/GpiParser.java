@@ -109,7 +109,7 @@ public class GpiParser extends AbstractAnnotationFileParser {
 		}
 		else if (namespace == null) {
 			if (line.startsWith(COMMENT_PREFIX+NAMESPACE_PREFIX)) {
-				namespace = line.substring(COMMENT_PREFIX.length()+VERSION_PREFIX.length());
+				namespace = line.substring(COMMENT_PREFIX.length()+NAMESPACE_PREFIX.length());
 				namespace = StringUtils.trimToNull(namespace);
 			}
 		}

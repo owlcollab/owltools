@@ -12,6 +12,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
@@ -20,6 +21,8 @@ import owltools.gaf.GeneAnnotation;
 import owltools.gaf.eco.SimpleEcoMapper;
 
 public class GpadGpiObjectsBuilder {
+	
+	private static final Logger logger = Logger.getLogger(GpadGpiObjectsBuilder.class);
 
 	// list of filters
 	private List<LineFilter<GpadParser>> gpadFilters = null;
@@ -143,12 +146,15 @@ public class GpadGpiObjectsBuilder {
 				}
 			}
 			if (load) {
-				parseAnnotation(parser, document, aspectProvider, ecoMapper);
+				GeneAnnotation annotation = parseAnnotation(parser, document, aspectProvider, ecoMapper);
+				if (annotation != null) {
+					document.addGeneAnnotation(annotation);
+				}
 			}
 		}
 	}
 
-	private static Bioentity parseBioentity(GpiParser parser) {
+	private Bioentity parseBioentity(GpiParser parser) {
 		String db = parser.getNamespace();
 		String bioentityId = db + ":" + parser.getDB_Object_ID();
 		Bioentity entity = new Bioentity(bioentityId,
@@ -163,13 +169,21 @@ public class GpadGpiObjectsBuilder {
 		return entity;
 	}
 	
-	private static GeneAnnotation parseAnnotation(GpadParser parser, GafDocument document, AspectProvider aspectProvider, SimpleEcoMapper mapper) {
+	protected void reportUnknowBioentityId(String db, String objectId, String fullId) {
+		logger.warn("No Bioentity found for id: "+fullId);
+	}
+	
+	private GeneAnnotation parseAnnotation(GpadParser parser, GafDocument document, AspectProvider aspectProvider, SimpleEcoMapper mapper) {
 		GeneAnnotation ga = new GeneAnnotation();
 		String cls = parser.getGO_ID();
 		
 		// col 1-2
 		String bioentityId = parser.getDB() + ":" + parser.getDB_Object_ID();
 		Bioentity entity = document.getBioentity(bioentityId);
+		if (entity == null) {
+			reportUnknowBioentityId(parser.getDB(), parser.getDB_Object_ID(), bioentityId);
+			return null;
+		}
 		ga.setBioentity(entity.getId());
 		ga.setBioentityObject(entity);
 
@@ -236,7 +250,7 @@ public class GpadGpiObjectsBuilder {
 		return ga;
 	}
 	
-	private static void addEvidenceCode(String eco, GeneAnnotation ga, SimpleEcoMapper mapper) {
+	private void addEvidenceCode(String eco, GeneAnnotation ga, SimpleEcoMapper mapper) {
 		Pair<String,String> pair = mapper.getGoCode(eco);
 		if (pair != null) {
 			String goCode = pair.getLeft();
