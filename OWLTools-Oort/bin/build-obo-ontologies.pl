@@ -1006,7 +1006,11 @@ sub get_ont_info {
          },
          ddanat => {
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/microbial_gross_anatomy/dictyostelium/dictyostelium_anatomy.obo',
+             source_url => 'http://dictybase.org/db/cgi-bin/dictyBase/download/download.pl?area=pheno_ontology&ID=dicty_anatomy.obo',
+         },
+         ddpheno => {
+             method => 'obo2owl',
+             source_url => 'http://dictybase.org/db/cgi-bin/dictyBase/download/download.pl?area=pheno_ontology&ID=dicty_phenotypes.obo',
          },
          ero => {
              method => 'owl2obo',
