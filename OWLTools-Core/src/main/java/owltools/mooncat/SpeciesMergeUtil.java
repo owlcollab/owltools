@@ -133,6 +133,12 @@ public class SpeciesMergeUtil {
 		graph = g;
 	}
 
+	/**
+	 * 
+	 * builds ecmap, a map between species-classes to generic-classes
+	 * also populates ssClasses
+	 * 
+	 */
 	public void createMap() {
 
 		// create a root class for a species - e.g. "Drosophila part" -
@@ -207,7 +213,7 @@ public class SpeciesMergeUtil {
 		mgr = ont.getOWLOntologyManager();
 		fac = mgr.getOWLDataFactory();
 
-		createMap();
+		createMap(); // build ecmap
 
 		// assume that all classes under consideration are in the direct
 		// ontology (which imports generic)
