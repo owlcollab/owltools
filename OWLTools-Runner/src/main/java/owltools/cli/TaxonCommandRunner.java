@@ -36,19 +36,19 @@ import owltools.io.OWLPrettyPrinter;
  * Command-line module for taxon constraints.
  */
 public class TaxonCommandRunner extends GafCommandRunner {
-	
+
 	private static final Logger LOG = Logger.getLogger(TaxonCommandRunner.class);
 
 	@CLIMethod("--make-class-taxon-matrix")
 	public void makeClassTaxonMatrix(Opts opts) throws Exception {
 		opts.info("[-o|--output OUTPUT-FILE] [--query-taxa QUERY_TAXA_ONTOLOGY_IRI] [TAXON ...]", 
 				"Specifiy relevant taxa either as list or as separate taxon ontology (Load via an IRI)" +
-				"\nOptional parameter: OUTPUT-FILE (if not specified system out is used)" +
+						"\nOptional parameter: OUTPUT-FILE (if not specified system out is used)" +
 				"\nHINT: To create a class taxon load first the ontology with merged taxa.");
-		
+
 		Set<OWLClass> taxa = new HashSet<OWLClass>();
 		File outputFile = null;
-		
+
 		while (opts.hasArgs()) {
 			if (opts.nextEq("-o") || opts.nextEq("--output")) {
 				outputFile = new File(opts.nextOpt());
@@ -64,12 +64,12 @@ public class TaxonCommandRunner extends GafCommandRunner {
 				taxa.add((OWLClass)resolveEntity(opts));
 			}
 		}
-		
+
 		if (taxa.isEmpty()) {
 			LOG.warn("No taxa for matrix selected");
 			return;
 		}
-		
+
 		// set output writer
 		final BufferedWriter writer;
 		if (outputFile == null) {
@@ -78,16 +78,16 @@ public class TaxonCommandRunner extends GafCommandRunner {
 		else {
 			writer = new BufferedWriter(new FileWriter(outputFile));
 		}
-		
+
 		// create matrix
 		ClassTaxonMatrix matrix = ClassTaxonMatrix.create(g, g.getSourceOntology().getClassesInSignature(), taxa);
-		
+
 		// write matrix
 		ClassTaxonMatrix.write(matrix, g, writer);
-		
+
 		writer.close();
 	}
-	
+
 	@CLIMethod("--make-taxon-set")
 	public void makeTaxonSet(Opts opts) throws Exception {
 		opts.info("[-s] TAXON","Lists all classes that are applicable for a specified taxon");
@@ -144,16 +144,17 @@ public class TaxonCommandRunner extends GafCommandRunner {
 			}
 		}
 	}
-	
+
 	@CLIMethod("--create-taxon-disjoint-over-in-taxon")
 	public void createTaxonDisjointOverInTaxon(Opts opts) throws Exception {
-		
+
 		String outputFile = "taxslim-disjoint-over-in-taxon.owl";
 		String ontologyIRI = "http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim-disjoint-over-in-taxon.owl";
 		List<String> imports = Arrays.asList("http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl");
-		
-		
-		
+		boolean isCopy = false;
+		boolean isMerge = false;
+
+
 		OWLClass root = null;
 		boolean compact = false;
 		while (opts.hasArgs()) {
@@ -163,6 +164,20 @@ public class TaxonCommandRunner extends GafCommandRunner {
 				if (root == null) {
 					throw new RuntimeException("No class was found for the specified identifier: "+s);
 				}
+			}
+			else if (opts.nextEq("-o")) {
+				outputFile = opts.nextOpt();
+			}
+			else if (opts.nextEq("-c|--copy")) {
+				opts.info("", "set if the disjoint ontology is to be copied to the source ontology."+
+						"output file will not be saved");
+				isCopy = true;
+			}
+			else if (opts.nextEq("-m|--merge")) {
+				opts.info("", "set if the disjoint ontology is to be merged into source ontology."+
+						"output file will not be saved");
+				isMerge = true;
+				isCopy = true;
 			}
 			else if (opts.nextEq("--compact")) {
 				compact = true;
@@ -174,32 +189,39 @@ public class TaxonCommandRunner extends GafCommandRunner {
 		if (root == null) {
 			throw new RuntimeException("No root identifier specified.");
 		}
-		
+
 		// Task: create disjoint axioms for all siblings in the slim
 		// avoid functional recursion
-		
+
 		// create new disjoint ontology
 		OWLOntologyManager m = g.getManager();
 		OWLDataFactory f = m.getOWLDataFactory();
-		OWLOntology disjointOntology = m.createOntology(IRI.create(ontologyIRI));
-		
-		// setup imports
-		for(String importIRI : imports) {
-			OWLImportsDeclaration decl = f.getOWLImportsDeclaration(IRI.create(importIRI));
-			m.applyChange(new AddImport(disjointOntology, decl));
+		OWLOntology disjointOntology;
+
+		if (isMerge) {
+			disjointOntology = g.getSourceOntology();
 		}
-		
+		else {
+			disjointOntology = m.createOntology(IRI.create(ontologyIRI));
+
+			// setup imports
+			for(String importIRI : imports) {
+				OWLImportsDeclaration decl = f.getOWLImportsDeclaration(IRI.create(importIRI));
+				m.applyChange(new AddImport(disjointOntology, decl));
+			}
+		}
+
 		// create one property 'in taxon' to remove the dependency on ro.owl 
 		final OWLObjectProperty inTaxon = f.getOWLObjectProperty(IRI.create("http://purl.obolibrary.org/obo/RO_0002162"));
 		m.addAxiom(disjointOntology, f.getOWLDeclarationAxiom(inTaxon));
 		OWLAxiom lblAxiom = f.getOWLAnnotationAssertionAxiom(inTaxon.getIRI(), f.getOWLAnnotation(f.getRDFSLabel(), f.getOWLLiteral("in taxon")));
 		m.addAxiom(disjointOntology, lblAxiom);
-		
+
 		// add disjoints
 		Queue<OWLClass> queue = new LinkedList<OWLClass>();
 		queue.add(root);
 		Set<OWLClass> done = new HashSet<OWLClass>();
-		
+
 		final OWLOntology ont = g.getSourceOntology();
 		int axiomCount = 0;
 		while (queue.isEmpty() == false) {
@@ -239,10 +261,14 @@ public class TaxonCommandRunner extends GafCommandRunner {
 			}
 		}
 		LOG.info("Created "+axiomCount+" disjoint axioms.");
-		
-		
-		// save to file
-		m.saveOntology(disjointOntology, new FileOutputStream(outputFile));
+
+		if (isCopy) {
+			g.setSourceOntology(disjointOntology);
+		}
+		else {
+			// save to file
+			m.saveOntology(disjointOntology, new FileOutputStream(outputFile));
+		}
 	}
 
 	/**
@@ -271,7 +297,7 @@ public class TaxonCommandRunner extends GafCommandRunner {
 		OWLClassExpression ce2 = f.getOWLObjectSomeValuesFrom(property, sibling2);
 		return f.getOWLDisjointClassesAxiom(ce1, ce2);
 	}
-	
+
 	/**
 	 * @param f
 	 * @param sibling1
