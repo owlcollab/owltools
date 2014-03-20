@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -25,6 +24,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.parser.BuilderTools;
 //import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -534,7 +534,7 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 					a.getEcoEvidenceCls(), // TODO - gaf code
 					id,
 					getId(GOMySQLTable.dbxref, refs.get(0)),
-					a.getWithExpression()
+					BuilderTools.buildWithString(a.getWithInfos(), "")
 					);
 
 			PrintStream sedx = getPrintStream(GOMySQLTable.evidence_dbxref.toString());

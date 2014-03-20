@@ -259,10 +259,14 @@ public class BuilderTools {
 	}
 	
 	public static String buildWithString(Collection<String> withInfos) {
+		return buildWithString(withInfos, null);
+	}
+	
+	public static String buildWithString(Collection<String> withInfos, String defaultString) {
 		if (withInfos != null && !withInfos.isEmpty()) {
 			return StringUtils.join(withInfos, '|');
 		}
-		return null;
+		return defaultString;
 	}
 	
 	public static String buildQualifierString(List<String> qualifierList) {
