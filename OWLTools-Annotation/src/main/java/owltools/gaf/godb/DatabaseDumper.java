@@ -31,49 +31,21 @@ import owltools.graph.OWLGraphWrapper;
  * @author cjm
  *
  */
-public abstract class DatabaseDumper {
+public abstract class DatabaseDumper extends Dumper {
 
 	private static Logger LOG = Logger.getLogger(DatabaseDumper.class);
 
-	protected OWLGraphWrapper graph;
-	protected Map<Object,Integer> objIdMap = new HashMap<Object,Integer>();
+	protected Map<String, Map<Object,Integer>> tableObjIdMap = 
+			new HashMap<String, Map<Object,Integer>>();
+	//protected Map<Object,Integer> objIdMap = new HashMap<Object,Integer>();
 	protected Map<String,Integer> objLastIdMap = new HashMap<String,Integer>();
 	protected Set<String> incrementallyLoadedTables = new HashSet<String>(); 
-	protected String targetDirectory = "target";
-	
-	Set<GafDocument> gafdocs = new HashSet<GafDocument>();
+	protected boolean isStrict = false;
+	int numInvalidAnnotions = 0;
 
-
-	public String getTargetDirectory() {
-		return targetDirectory;
+	protected void cleanup() {
+		closeAllPrintStreams();
 	}
-
-
-	public void setTargetDirectory(String targetDirectory) {
-		this.targetDirectory = targetDirectory;
-	}
-
-	public void addGafDocument(GafDocument gd) {
-		gafdocs.add(gd);
-	}
-	
-	
-
-	public Set<GafDocument> getGafdocs() {
-		return gafdocs;
-	}
-
-	public void setGafdocs(Set<GafDocument> gafdocs) {
-		this.gafdocs = gafdocs;
-	}
-	/**
-	 * dumps all tables
-	 * @throws IOException 
-	 * @throws ReferentialIntegrityException 
-	 * 
-	 */
-	public abstract void dump() throws IOException, ReferentialIntegrityException;
-	
 
 	protected void dumpRow(PrintStream termStream, Object... vals) {
 		int n = 0;
@@ -91,6 +63,10 @@ public abstract class DatabaseDumper {
 		return getId(table, obj, false);
 	}
 	protected Integer getId(String table, Object obj, boolean isForceExists) throws ReferentialIntegrityException {
+		obj = normalizeObject(obj);
+		if (!tableObjIdMap.containsKey(table))
+			tableObjIdMap.put(table, new HashMap<Object,Integer>());
+		Map<Object, Integer> objIdMap = tableObjIdMap.get(table);
 		if (objIdMap.containsKey(obj)) {
 			return objIdMap.get(obj);
 		}
@@ -107,22 +83,49 @@ public abstract class DatabaseDumper {
 		return id;
 
 	}
-	
-	protected PrintStream getPrintStream(String t) throws IOException {
-		LOG.info("Opening table for output: "+t);
-		FileOutputStream fos;
-		FileUtils.forceMkdir(new File(targetDirectory));
-		String path = targetDirectory + "/" + t.toString() + ".txt";
-		if (this.incrementallyLoadedTables.contains(t)) {
-			// TODO - allow option to introspect file for lastId
-			fos = new FileOutputStream(path, true);
-			
-		}
-		else {
-			fos = new FileOutputStream(path);
-		}
-		return new PrintStream(new BufferedOutputStream(fos));
 
+	private Object normalizeObject(Object obj) {
+		if (obj instanceof OWLObject) {
+			return graph.getIdentifier((OWLObject)obj);
+		}
+		return obj;
+	}
+
+	Map<String, PrintStream> printStreamMap = new HashMap<String, PrintStream>();
+	protected PrintStream getPrintStream(String t) throws IOException {
+		return getPrintStream(t, false);
+	}
+	protected PrintStream getPrintStream(String t, boolean isAppend) throws IOException {
+		if (!printStreamMap.containsKey(t)) {
+			LOG.info("Opening table for output: "+t);
+			FileOutputStream fos;
+			FileUtils.forceMkdir(new File(targetDirectory));
+			String path = targetDirectory + "/" + t.toString() + ".txt";
+			if (isAppend || this.incrementallyLoadedTables.contains(t)) {
+				// TODO - allow option to introspect file for lastId
+				fos = new FileOutputStream(path, true);
+
+			}
+			else {
+				fos = new FileOutputStream(path);
+			}
+			printStreamMap.put(t, new PrintStream(new BufferedOutputStream(fos)));
+		}
+		return printStreamMap.get(t);
+	}
+	protected void closeAllPrintStreams() {
+		for (PrintStream s : printStreamMap.values()) {
+			LOG.info("Closing stream: "+s);
+			s.close();
+		}
+	}
+	protected void closePrintStream(String t) {
+		printStreamMap.get(t).close();
+		printStreamMap.remove(t);
+	}
+
+	protected void showStats() {
+		LOG.info("#invalid anns = " + this.numInvalidAnnotions);
 	}
 
 }

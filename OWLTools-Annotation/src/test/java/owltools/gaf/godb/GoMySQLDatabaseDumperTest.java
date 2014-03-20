@@ -36,26 +36,42 @@ public class GoMySQLDatabaseDumperTest extends OWLToolsTestBasics {
 		dumper.setGafdocs(gafdocs);
 		dumper.setTargetDirectory("target/godb");
 		dumper.dump();
+		dumper.reportProblems();
 	}
-
 	@Test
-	public void testReferentialIntegrity() throws OWLOntologyCreationException, OBOFormatParserException, IOException, URISyntaxException {
+	public void testDumpLarge() throws OWLOntologyCreationException, OBOFormatParserException, IOException, ReferentialIntegrityException, URISyntaxException {
 		ParserWrapper pw = new ParserWrapper();
-		g = pw.parseToOWLGraph(getResourceIRIString("lmajor_f2p_test_go_subset_nd.obo"));
-		GoMySQLDatabaseDumper dumper = new GoMySQLDatabaseDumper(g);
+		g = pw.parseToOWLGraph(getResourceIRIString("mgi-go.obo"));
+		g.addSupportOntology(pw.parseOBO(getResourceIRIString("taxon.obo")));
 		GafObjectsBuilder b = new GafObjectsBuilder();
 		GafDocument gafdoc = 
 				b.buildDocument("src/test/resources/gene-associations/gene_association.mgi.gz");
 		gafdocs.add( gafdoc );
+		GoMySQLDatabaseDumper dumper = new GoMySQLDatabaseDumper(g);
 		dumper.setGafdocs(gafdocs);
-		dumper.setTargetDirectory("target/godb2");
-		boolean caughtExpectedError = false;
-		try {
-			dumper.dump();
-		} catch (ReferentialIntegrityException e) {
-			caughtExpectedError = true;
-
-		}
-		assertTrue(caughtExpectedError);
+		dumper.setTargetDirectory("target/godb3");
+		dumper.dump();
+		
 	}
+
+//	@Test
+//	public void testReferentialIntegrity() throws OWLOntologyCreationException, OBOFormatParserException, IOException, URISyntaxException {
+//		ParserWrapper pw = new ParserWrapper();
+//		g = pw.parseToOWLGraph(getResourceIRIString("lmajor_f2p_test_go_subset_nd.obo"));
+//		GoMySQLDatabaseDumper dumper = new GoMySQLDatabaseDumper(g);
+//		GafObjectsBuilder b = new GafObjectsBuilder();
+//		GafDocument gafdoc = 
+//				b.buildDocument("src/test/resources/gene-associations/gene_association.mgi.gz");
+//		gafdocs.add( gafdoc );
+//		dumper.setGafdocs(gafdocs);
+//		dumper.setTargetDirectory("target/godb2");
+//		boolean caughtExpectedError = false;
+//		try {
+//			dumper.dump();
+//		} catch (ReferentialIntegrityException e) {
+//			caughtExpectedError = true;
+//
+//		}
+//		assertTrue(caughtExpectedError);
+//	}
 }
