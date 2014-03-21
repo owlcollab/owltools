@@ -1,0 +1,766 @@
+format-version: 1.2
+synonymtypedef: acronym "acronym" broad
+synonymtypedef: anamorph "anamorph" related
+synonymtypedef: blast_name "blast name" related
+synonymtypedef: common_name "common name" exact
+synonymtypedef: equivalent_name "equivalent name" exact
+synonymtypedef: genbank_acronym "genbank acronym" broad
+synonymtypedef: genbank_anamorph "genbank anamorph" related
+synonymtypedef: genbank_common_name "genbank common name" exact
+synonymtypedef: genbank_synonym "genbank synonym" related
+synonymtypedef: in_part "in-part" related
+synonymtypedef: misnomer "misnomer" related
+synonymtypedef: misspelling "misspelling" related
+synonymtypedef: scientific_name "scientific name" exact
+synonymtypedef: synonym "synonym" related
+synonymtypedef: teleomorph "teleomorph" related
+
+[Term]
+id: NCBITaxon:1
+name: root
+synonym: "all" RELATED synonym []
+
+[Term]
+id: NCBITaxon:100383
+name: Mus poschiavinus
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10066
+name: Muridae
+is_a: NCBITaxon:337687  ! Muroidea
+property_value: has_rank NCBITaxon:family
+
+[Term]
+id: NCBITaxon:10088
+name: Mus
+synonym: "Nannomys" RELATED synonym []
+synonym: "mice" EXACT common_name []
+is_a: NCBITaxon:39107  ! Murinae
+property_value: has_rank NCBITaxon:genus
+
+[Term]
+id: NCBITaxon:10089
+name: Mus caroli
+synonym: "Ryukyu mouse" EXACT genbank_common_name []
+synonym: "ricefield mouse" EXACT common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10090
+name: Mus musculus
+synonym: "Mus muscaris" RELATED misnomer []
+synonym: "house mouse" EXACT genbank_common_name []
+synonym: "mice C57BL/6xCBA/CaJ hybrid" RELATED misspelling []
+synonym: "mouse" EXACT common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10093
+name: Mus pahari
+synonym: "Coelomys parahi" RELATED synonym []
+synonym: "Gairdner's shrew-mouse" EXACT common_name []
+synonym: "Gairdner's shrewmouse" EXACT common_name []
+synonym: "shrew mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10094
+name: Mus saxicola
+synonym: "rock-loving mouse" EXACT common_name []
+synonym: "spiny mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10095
+name: Mus sp.
+synonym: "mice" EXACT common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10096
+name: Mus spretus
+synonym: "Algerian mouse" EXACT common_name []
+synonym: "Mus musculus spretus" RELATED synonym []
+synonym: "western wild mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10097
+name: Mus cervicolor
+synonym: "fawn-colored mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10098
+name: Mus cookii
+synonym: "Cook's mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10100
+name: Mus macedonicus
+synonym: "Macedonian mouse" EXACT genbank_common_name []
+synonym: "Mus spretoides" RELATED synonym []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10101
+name: Mus platythrix
+synonym: "Pyromys platythrix" RELATED synonym []
+synonym: "flat-haired mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10102
+name: Mus setulosus
+synonym: "Nannomys setulosus" RELATED synonym []
+synonym: "Peter's mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10103
+name: Mus spicilegus
+synonym: "Mus hortulanus" RELATED synonym []
+synonym: "mound-building mouse" EXACT common_name []
+synonym: "steppe mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10105
+name: Mus minutoides
+synonym: "pygmy mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:10108
+name: Mus abbotti
+synonym: "Abbott's mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:117570
+name: Teleostomi
+is_a: NCBITaxon:7776  ! Gnathostomata
+
+[Term]
+id: NCBITaxon:117571
+name: Euteleostomi
+synonym: "bony vertebrates" EXACT genbank_common_name []
+is_a: NCBITaxon:117570  ! Teleostomi
+
+[Term]
+id: NCBITaxon:131567
+name: cellular organisms
+synonym: "biota" RELATED synonym []
+is_a: NCBITaxon:1  ! root
+
+[Term]
+id: NCBITaxon:186193
+name: Mus fragilicauda
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:186285
+name: Drosophiliti
+is_a: NCBITaxon:46879  ! Drosophilina
+
+[Term]
+id: NCBITaxon:186842
+name: Mus musculus x Mus spretus
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:188274
+name: Siphlodora
+is_a: NCBITaxon:7215  ! Drosophila
+property_value: has_rank NCBITaxon:subgenus
+
+[Term]
+id: NCBITaxon:197562
+name: Pancrustacea
+is_a: NCBITaxon:197563  ! Mandibulata
+
+[Term]
+id: NCBITaxon:197563
+name: Mandibulata
+synonym: "mandibulates" EXACT common_name []
+is_a: NCBITaxon:6656  ! Arthropoda
+
+[Term]
+id: NCBITaxon:207598
+name: Homininae
+synonym: "Homo/Pan/Gorilla group" RELATED synonym []
+is_a: NCBITaxon:9604  ! Hominidae
+property_value: has_rank NCBITaxon:subfamily
+
+[Term]
+id: NCBITaxon:210726
+name: Mus shortridgei
+synonym: "Shortridge's mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:229288
+name: Mus gratus
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:254704
+name: Mus terricolor
+synonym: "Earth-colored mouse" EXACT genbank_common_name []
+synonym: "Mus dunni" RELATED synonym []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:270354
+name: Mus sp. Chypre
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:273920
+name: Mus cf. saxicola
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:273921
+name: Mus indutus
+synonym: "desert pygmy mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:273922
+name: Mus haussa
+synonym: "Hausa mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:2759
+name: Eukaryota
+synonym: "Eucarya" RELATED synonym []
+synonym: "Eucaryotae" RELATED synonym []
+synonym: "Eukarya" RELATED synonym []
+synonym: "Eukaryotae" RELATED synonym []
+synonym: "eucaryotes" EXACT genbank_common_name []
+synonym: "eukaryotes" EXACT common_name []
+is_a: NCBITaxon:131567  ! cellular organisms
+property_value: has_rank NCBITaxon:superkingdom
+
+[Term]
+id: NCBITaxon:27681
+name: Mus booduga
+synonym: "little Indian field mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:310402
+name: Mus sp. 2000082
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:314146
+name: Euarchontoglires
+is_a: NCBITaxon:9347  ! Eutheria
+property_value: has_rank NCBITaxon:superorder
+
+[Term]
+id: NCBITaxon:314147
+name: Glires
+synonym: "Rodents and rabbits" EXACT genbank_common_name []
+is_a: NCBITaxon:314146  ! Euarchontoglires
+
+[Term]
+id: NCBITaxon:314293
+name: Simiiformes
+synonym: "Anthropoidea" RELATED synonym []
+is_a: NCBITaxon:376913  ! Haplorrhini
+property_value: has_rank NCBITaxon:infraorder
+
+[Term]
+id: NCBITaxon:314295
+name: Hominoidea
+synonym: "ape" EXACT common_name []
+synonym: "apes" EXACT common_name []
+is_a: NCBITaxon:9526  ! Catarrhini
+property_value: has_rank NCBITaxon:superfamily
+
+[Term]
+id: NCBITaxon:32280
+name: Dorsilopha
+synonym: "(Dorsilopha)" RELATED synonym []
+is_a: NCBITaxon:7215  ! Drosophila
+property_value: has_rank NCBITaxon:subgenus
+
+[Term]
+id: NCBITaxon:32281
+name: Drosophila [NCBITaxon:32281]
+is_a: NCBITaxon:7215  ! Drosophila
+property_value: has_rank NCBITaxon:subgenus
+
+[Term]
+id: NCBITaxon:32341
+name: Sophophora
+is_a: NCBITaxon:7215  ! Drosophila
+property_value: has_rank NCBITaxon:subgenus
+
+[Term]
+id: NCBITaxon:32523
+name: Tetrapoda
+synonym: "tetrapods" EXACT genbank_common_name []
+is_a: NCBITaxon:8287  ! Sarcopterygii
+
+[Term]
+id: NCBITaxon:32524
+name: Amniota
+synonym: "amniotes" EXACT genbank_common_name []
+is_a: NCBITaxon:32523  ! Tetrapoda
+
+[Term]
+id: NCBITaxon:32525
+name: Theria
+is_a: NCBITaxon:40674  ! Mammalia
+
+[Term]
+id: NCBITaxon:33154
+name: Fungi/Metazoa group
+synonym: "Opisthokonta" RELATED synonym []
+synonym: "opisthokonts" RELATED synonym []
+is_a: NCBITaxon:2759  ! Eukaryota
+
+[Term]
+id: NCBITaxon:33208
+name: Metazoa
+synonym: "Animalia" RELATED synonym []
+synonym: "animals" RELATED blast_name []
+synonym: "metazoans" EXACT genbank_common_name []
+synonym: "multicellular animals" EXACT common_name []
+is_a: NCBITaxon:33154  ! Fungi/Metazoa group
+property_value: has_rank NCBITaxon:kingdom
+
+[Term]
+id: NCBITaxon:33213
+name: Bilateria
+is_a: NCBITaxon:6072  ! Eumetazoa
+
+[Term]
+id: NCBITaxon:33316
+name: Coelomata
+is_a: NCBITaxon:33213  ! Bilateria
+
+[Term]
+id: NCBITaxon:33317
+name: Protostomia
+is_a: NCBITaxon:33316  ! Coelomata
+
+[Term]
+id: NCBITaxon:33340
+name: Neoptera
+is_a: NCBITaxon:7496  ! Pterygota
+property_value: has_rank NCBITaxon:subclass
+
+[Term]
+id: NCBITaxon:33392
+name: Endopterygota
+synonym: "Holometabola" RELATED synonym []
+is_a: NCBITaxon:33340  ! Neoptera
+property_value: has_rank NCBITaxon:infraclass
+
+[Term]
+id: NCBITaxon:33511
+name: Deuterostomia
+is_a: NCBITaxon:33316  ! Coelomata
+
+[Term]
+id: NCBITaxon:33553
+name: Sciurognathi
+is_a: NCBITaxon:9989  ! Rodentia
+property_value: has_rank NCBITaxon:suborder
+
+[Term]
+id: NCBITaxon:337687
+name: Muroidea
+is_a: NCBITaxon:33553  ! Sciurognathi
+
+[Term]
+id: NCBITaxon:376913
+name: Haplorrhini
+is_a: NCBITaxon:9443  ! Primates
+property_value: has_rank NCBITaxon:suborder
+
+[Term]
+id: NCBITaxon:390847
+name: Mus lepidoides
+synonym: "Mus lepidoides Fry 1931" RELATED synonym []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:390848
+name: Mus nitidulus
+synonym: "Mus nitidulus Blyth 1859" RELATED synonym []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:39107
+name: Murinae
+is_a: NCBITaxon:10066  ! Muridae
+property_value: has_rank NCBITaxon:subfamily
+
+[Term]
+id: NCBITaxon:397330
+name: Mus tenellus
+synonym: "delicate mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:397331
+name: Mus sorella
+synonym: "Thomas's pygmy mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:397332
+name: Mus bufo
+synonym: "toad mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:397333
+name: Mus cf. musculoides
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:40674
+name: Mammalia
+synonym: "mammals" RELATED blast_name []
+is_a: NCBITaxon:32524  ! Amniota
+property_value: has_rank NCBITaxon:class
+
+[Term]
+id: NCBITaxon:41269
+name: Mus crociduroides
+synonym: "Sumatran shrewlike mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:41270
+name: Mus mattheyi
+synonym: "Matthey's mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:43733
+name: Muscomorpha
+synonym: "Asilomorpha" RELATED synonym []
+is_a: NCBITaxon:7203  ! Brachycera
+property_value: has_rank NCBITaxon:infraorder
+
+[Term]
+id: NCBITaxon:43738
+name: Schizophora
+is_a: NCBITaxon:480117  ! Cyclorrhapha
+
+[Term]
+id: NCBITaxon:43741
+name: Acalyptratae
+is_a: NCBITaxon:43738  ! Schizophora
+
+[Term]
+id: NCBITaxon:43746
+name: Ephydroidea
+is_a: NCBITaxon:43741  ! Acalyptratae
+property_value: has_rank NCBITaxon:superfamily
+
+[Term]
+id: NCBITaxon:43845
+name: Drosophilinae
+is_a: NCBITaxon:7214  ! Drosophilidae
+property_value: has_rank NCBITaxon:subfamily
+
+[Term]
+id: NCBITaxon:468371
+name: Mus cypriacus
+synonym: "Cypriot mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:46877
+name: Drosophilini
+is_a: NCBITaxon:43845  ! Drosophilinae
+property_value: has_rank NCBITaxon:tribe
+
+[Term]
+id: NCBITaxon:46879
+name: Drosophilina
+is_a: NCBITaxon:46877  ! Drosophilini
+property_value: has_rank NCBITaxon:subtribe
+
+[Term]
+id: NCBITaxon:473865
+name: Mus triton
+synonym: "Gray-bellied mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:480117
+name: Cyclorrhapha
+is_a: NCBITaxon:480118  ! Eremoneura
+
+[Term]
+id: NCBITaxon:480118
+name: Eremoneura
+is_a: NCBITaxon:43733  ! Muscomorpha
+
+[Term]
+id: NCBITaxon:481680
+name: Mus musculus x Mus caroli
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:504493
+name: Hawaiian Drosophila
+is_a: NCBITaxon:7215  ! Drosophila
+
+[Term]
+id: NCBITaxon:50557
+name: Insecta
+synonym: "true insects" EXACT genbank_common_name []
+is_a: NCBITaxon:6960  ! Hexapoda
+property_value: has_rank NCBITaxon:class
+
+[Term]
+id: NCBITaxon:544437
+name: Mus baoulei
+synonym: "Baoule's mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:58312
+name: unclassified Drosophila
+is_a: NCBITaxon:7215  ! Drosophila
+
+[Term]
+id: NCBITaxon:592722
+name: Mus sp. YC-2009
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:6072
+name: Eumetazoa
+is_a: NCBITaxon:33208  ! Metazoa
+
+[Term]
+id: NCBITaxon:60742
+name: Mus musculoides
+synonym: "Mus bella" RELATED synonym []
+synonym: "Mus bellus enclavae" RELATED synonym []
+synonym: "Mus enclavae" RELATED synonym []
+synonym: "Mus enclavae Heller, 1911" RELATED synonym []
+synonym: "Mus musculoides enclavae" RELATED synonym []
+synonym: "Nannomys musculoides" RELATED synonym []
+synonym: "Temminck's mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:6656
+name: Arthropoda
+synonym: "arthropods" RELATED blast_name []
+is_a: NCBITaxon:88770  ! Panarthropoda
+property_value: has_rank NCBITaxon:phylum
+
+[Term]
+id: NCBITaxon:6960
+name: Hexapoda
+synonym: "Atelocerata" RELATED in_part []
+synonym: "Tracheata" RELATED in_part []
+synonym: "Uniramia" RELATED in_part []
+synonym: "insects" RELATED blast_name []
+is_a: NCBITaxon:197562  ! Pancrustacea
+property_value: has_rank NCBITaxon:superclass
+
+[Term]
+id: NCBITaxon:696115
+name: environmental samples [NCBITaxon:696115]
+is_a: NCBITaxon:7215  ! Drosophila
+
+[Term]
+id: NCBITaxon:7147
+name: Diptera
+synonym: "flies" RELATED blast_name []
+is_a: NCBITaxon:33392  ! Endopterygota
+property_value: has_rank NCBITaxon:order
+
+[Term]
+id: NCBITaxon:7203
+name: Brachycera
+is_a: NCBITaxon:7147  ! Diptera
+property_value: has_rank NCBITaxon:suborder
+
+[Term]
+id: NCBITaxon:7214
+name: Drosophilidae
+synonym: "pomace flies" EXACT genbank_common_name []
+is_a: NCBITaxon:43746  ! Ephydroidea
+property_value: has_rank NCBITaxon:family
+
+[Term]
+id: NCBITaxon:7215
+name: Drosophila
+synonym: "Drosophila Fallen, 1823" RELATED synonym []
+synonym: "fruit flies" EXACT genbank_common_name []
+is_a: NCBITaxon:186285  ! Drosophiliti
+property_value: has_rank NCBITaxon:genus
+
+[Term]
+id: NCBITaxon:741158
+name: Homo sp. Altai
+synonym: "Denisova hominin" EXACT genbank_common_name []
+is_a: NCBITaxon:9605  ! Homo
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:7496
+name: Pterygota
+synonym: "winged insects" EXACT genbank_common_name []
+is_a: NCBITaxon:85512  ! Dicondylia
+
+[Term]
+id: NCBITaxon:7711
+name: Chordata
+synonym: "chordates" RELATED blast_name []
+is_a: NCBITaxon:33511  ! Deuterostomia
+property_value: has_rank NCBITaxon:phylum
+
+[Term]
+id: NCBITaxon:7742
+name: Vertebrata
+synonym: "vertebrates" RELATED blast_name []
+is_a: NCBITaxon:89593  ! Craniata
+
+[Term]
+id: NCBITaxon:7776
+name: Gnathostomata
+synonym: "jawed vertebrates" EXACT genbank_common_name []
+is_a: NCBITaxon:7742  ! Vertebrata
+property_value: has_rank NCBITaxon:superclass
+
+[Term]
+id: NCBITaxon:8287
+name: Sarcopterygii
+is_a: NCBITaxon:117571  ! Euteleostomi
+
+[Term]
+id: NCBITaxon:83773
+name: Mus famulus
+synonym: "servant mouse" EXACT genbank_common_name []
+is_a: NCBITaxon:10088  ! Mus
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:85512
+name: Dicondylia
+is_a: NCBITaxon:50557  ! Insecta
+
+[Term]
+id: NCBITaxon:88770
+name: Panarthropoda
+is_a: NCBITaxon:33317  ! Protostomia
+
+[Term]
+id: NCBITaxon:89593
+name: Craniata
+is_a: NCBITaxon:7711  ! Chordata
+property_value: has_rank NCBITaxon:subphylum
+
+[Term]
+id: NCBITaxon:9347
+name: Eutheria
+synonym: "Placentalia" RELATED synonym []
+synonym: "eutherian mammals" EXACT common_name []
+synonym: "placental mammals" EXACT common_name []
+synonym: "placentals" RELATED blast_name []
+is_a: NCBITaxon:32525  ! Theria
+
+[Term]
+id: NCBITaxon:9443
+name: Primates
+synonym: "Primata" RELATED synonym []
+synonym: "primate" EXACT equivalent_name []
+synonym: "primates" RELATED blast_name []
+is_a: NCBITaxon:314146  ! Euarchontoglires
+property_value: has_rank NCBITaxon:order
+
+[Term]
+id: NCBITaxon:9526
+name: Catarrhini
+is_a: NCBITaxon:314293  ! Simiiformes
+property_value: has_rank NCBITaxon:parvorder
+
+[Term]
+id: NCBITaxon:9604
+name: Hominidae
+synonym: "Pongidae" RELATED synonym []
+synonym: "great apes" EXACT common_name []
+is_a: NCBITaxon:314295  ! Hominoidea
+property_value: has_rank NCBITaxon:family
+
+[Term]
+id: NCBITaxon:9605
+name: Homo
+is_a: NCBITaxon:207598  ! Homininae
+property_value: has_rank NCBITaxon:genus
+
+[Term]
+id: NCBITaxon:9606
+name: Homo sapiens
+synonym: "human" EXACT genbank_common_name []
+synonym: "man" EXACT common_name []
+is_a: NCBITaxon:9605  ! Homo
+property_value: has_rank NCBITaxon:species
+
+[Term]
+id: NCBITaxon:9989
+name: Rodentia
+synonym: "rodents" RELATED blast_name []
+is_a: NCBITaxon:314147  ! Glires
+property_value: has_rank NCBITaxon:order
+
