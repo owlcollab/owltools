@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
@@ -298,7 +299,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	
 
 	@Override
-	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException, CutoffException {
 		ElementPairScores ijscores = new ElementPairScores(i,j);
 		//populateSimilarityMatrix(i, j, s);
 		ijscores.simGIC = getElementGraphInformationContentSimilarity(i, j);
@@ -308,8 +309,19 @@ public abstract class AbstractOwlSim implements OwlSim {
 		ijscores.inverseAsymmetricSimjScore =
 				getAsymmetricElementJaccardSimilarity(j, i);
 		
-		ScoreAttributeSetPair bma = this.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
-		ijscores.bmaSymIC = bma.score;
+		// WAS this deprecated function:
+		// ScoreAttributeSetPair bma = this.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
+		ScoreAttributeSetPair bmaI = this.getSimilarityBestMatchAverageAsym(i, j, Metric.IC_MCS);
+		ijscores.bmaAsymIC = bmaI.score;
+		if (i!=j) {
+			//we were skipping the inverse calculation before -- intentional?
+			ScoreAttributeSetPair bmaJ = this.getSimilarityBestMatchAverageAsym(j, i, Metric.IC_MCS);
+			ijscores.bmaInverseAsymIC = bmaJ.score;
+			ijscores.bmaSymIC = (bmaI.score + bmaJ.score) / 2;
+		} else {
+			ijscores.bmaInverseAsymIC = bmaI.score;
+			ijscores.bmaSymIC = bmaI.score;
+		} 
 		return ijscores;
 	}
 
@@ -327,8 +339,6 @@ public abstract class AbstractOwlSim implements OwlSim {
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getEntropy()
 	 */
-
-
 	@Override
 	public Double getEntropy() throws UnknownOWLClassException {
 		return getEntropy(getAllAttributeClasses());
@@ -337,7 +347,6 @@ public abstract class AbstractOwlSim implements OwlSim {
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getEntropy(java.util.Set)
 	 */
-
 	@Override
 	public Double getEntropy(Set<OWLClass> cset) throws UnknownOWLClassException {
 		double e = 0.0;
@@ -935,6 +944,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		LOG.info(getShortId(c)+" n: "+stats.getN()+" mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+score);
 		return score;
+	}
+	
+	public void calculateCombinedScore(ElementPairScores s, double maxMaxIC, double maxBMA) {
+		int maxMaxIC100 = (int)(maxMaxIC * 100);
+		int maxBMA100 = (int)(maxBMA * 100);
+		int pctMaxScore = ((int) (s.maxIC * 10000)) / maxMaxIC100;
+
+		//TODO should this be using maxBMA100?
+		int pctAvgScore = ((int) (s.bmaSymIC * 10000)) / maxMaxIC100;
+		s.combinedScore = (pctMaxScore + pctAvgScore)/2;
 	}
 
 	

@@ -55,6 +55,12 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 	public void testMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
 		t("mp", 2000);
 	}
+
+	@Test
+	public void testMouse10Individuals() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+		testIndividuals("mp", 10);
+	}
+
 	@Test
 	public void testMouseIndividuals() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
 		testIndividuals("mp", 100);
@@ -265,13 +271,18 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 				Set<OWLClass> ds = owlsim.getAttributesForElement(j);
 				double s = owlsim.getElementJaccardSimilarity(i,j);			
 				total += s;
-				ElementPairScores gwsim = owlsim.getGroupwiseSimilarity(i, j);
+				ElementPairScores gwsim;
+				try {
+					gwsim = owlsim.getGroupwiseSimilarity(i, j);
+					n++;
+					stat.addValue(gwsim.bmaAsymIC);
+				} catch (CutoffException e) {
+					e.printMessage();
+				}
 				//Set<Node<OWLClass>> lcs = getNamedCommonSubsumers(c, d);
 				//msg(" "+gwsim);
 				//msg("  simj="+s);
 				//msg("  atts="+cs+" "+ds);
-				n++;
-				stat.addValue(gwsim.bmaAsymIC);
 			}
 			msg("Mean bmaAsymIC for "+i.getIRI()+": "+overallStat.getMean());
 			overallStat.addValue(stat.getMean());

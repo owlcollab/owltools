@@ -1265,6 +1265,43 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		return null;
 	}
 
+	@Override
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i)
+			throws UnknownOWLClassException, CutoffException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i,
+			OWLNamedIndividual j, double minSimJPct, double minMaxIC)
+			throws UnknownOWLClassException, CutoffException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j)
+			throws UnknownOWLClassException, CutoffException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts,
+			OWLNamedIndividual j, double minSimJPct, double minMaxIC)
+			throws UnknownOWLClassException, CutoffException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void calculateCombinedScore(ElementPairScores eps, double maxIC,
+			double bmaAsymIC) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 
 
