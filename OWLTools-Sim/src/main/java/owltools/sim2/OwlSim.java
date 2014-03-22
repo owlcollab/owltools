@@ -443,18 +443,6 @@ public interface OwlSim {
 	@Deprecated
 	public AttributePairScores getPairwiseSimilarity(OWLClass c, OWLClass d) throws UnknownOWLClassException;
 
-	/**
-	 * Perform multiple groupwise similarity measures on (i,j) 
-	 * 
-	 * @param i
-	 * @param j
-	 * @return scores
-	 * @throws UnknownOWLClassException
-	 * @throws CutoffException 
-	 */
-	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i,
-			OWLNamedIndividual j) throws UnknownOWLClassException, CutoffException;
-
 
 	/**
 	 * See: Pesquita et al
@@ -645,6 +633,11 @@ public interface OwlSim {
 	public List<AttributesSimScores> compareAllAttributes(OWLClass c, Set<OWLClass> ds) throws UnknownOWLClassException;
 
 	/**
+	 * <p>Find all similar matches to a pseudo-individual with a set of attributes
+	 * when compared to loaded individuals using {@link getGroupwiseSimilarity} 
+	 * with default cutoffs.</p>
+	 * {@code minSimJPct = getPropertyAsDouble({@link SimConfigurationProperty.minimumSimJ}, 0.05) * 100) } <br />
+	 * {@code minMaxIC = getPropertyAsDouble({@link SimConfigurationProperty.minimumMaxIC}, 2.5); }
 	 * @param atts
 	 * @param targetIdSpace
 	 * @return sorted scores
@@ -652,14 +645,26 @@ public interface OwlSim {
 	 */
 	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws UnknownOWLClassException;
 
+
+	/**
+	 * Find all similar matches to a pseudo-individual with a set of attributes
+	 * when compared to loaded individuals using {@link getGroupwiseSimilarity} 
+	 * with {@code minSimJPct} and {@code minMaxIC} cutoffs.
+	 * @param atts
+	 * @param targetIdSpace
+	 * @param minSimJPct
+	 * @param minMaxIC
+	 * @return
+	 * @throws UnknownOWLClassException
+	 */
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace, double minSimJPct, double minMaxIC) throws UnknownOWLClassException;
+
+	
 	/**
 	 * <p>Compare a named individual {@code i} to itself.
 	 * For efficiency, the phenoDigm score should be calculated in the calling
 	 * function.</p>
-	 * <p>This will default to using the following cutoffs: <br />
-	 * {@code minSimJPct = getPropertyAsDouble({@link SimConfigurationProperty.minimumSimJ}, 0.05) * 100) } <br />
-	 * {@code minMaxIC = getPropertyAsDouble({@link SimConfigurationProperty.minimumMaxIC}, 2.5); }
-   * </p>
+	 * <p>This will use no cutoff (-1,-1).</p>
 	 * @param atts
 	 * @param targetIdSpace
 	 * @return sorted scores
@@ -668,12 +673,31 @@ public interface OwlSim {
 	 */
 	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i) throws UnknownOWLClassException, CutoffException;
 
+	/**
+	 * Compare two named individuals {@code (i,j)}. 
+	 * <p>This will default to using the following cutoffs: <br />
+	 * {@code minSimJPct = getPropertyAsDouble({@link SimConfigurationProperty.minimumSimJ}, 0.05) * 100) } <br />
+	 * {@code minMaxIC = getPropertyAsDouble({@link SimConfigurationProperty.minimumMaxIC}, 2.5); }
+   * </p>
+	 * 
+	 * @param i
+	 * @param j
+	 * @return scores
+	 * @throws UnknownOWLClassException
+	 * @throws CutoffException 
+	 */
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i,
+			OWLNamedIndividual j) throws UnknownOWLClassException, CutoffException;
+
+	
 	
 	/**
-	 * <p>Compare two named individuals {@code i}.
-	 * For efficiency, the phenoDigm score should be calculated in the calling
-	 * function.</p>
-	 * <p>This will use no cutoff (-1,-1).</p>
+	 * <p>Compare two named individuals {@code i}, filtering on 
+	 * {@code minSimJ} and {@code minMaxIC} </p>
+	 * <p>While an initial {@code combinedScore} is populated in the returned
+	 * {@link ElementPairScores} object, it should be properly set in 
+	 * the calling function with {@link calculateCombinedScore} and
+	 * {@code i.maxIC and i.bmaAsymIC}</p>
 	 * @param atts
 	 * @param targetIdSpace
 	 * @return sorted scores

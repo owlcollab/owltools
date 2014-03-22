@@ -1302,6 +1302,14 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		
 	}
 
+	@Override
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts,
+			String targetIdSpace, double minSimJPct, double minMaxIC)
+			throws UnknownOWLClassException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 
