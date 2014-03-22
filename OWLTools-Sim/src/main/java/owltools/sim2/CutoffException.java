@@ -22,11 +22,12 @@ public class CutoffException extends Exception {
 		this.valueType = Integer.class;
 	}
 
-	public void printMessage() {
+	public String getMessage() {
 		if (valueType == Integer.class) {
-			System.out.println("CutoffException for "+this.measure+": "+this.value.intValue()+"<"+this.cutoff.intValue());
+			return "CutoffException for "+this.measure+": "+this.value.intValue()+"<"+this.cutoff.intValue();
 		} else {
-			System.out.println("CutoffException for "+this.measure+": "+this.value+"<"+this.cutoff);
+			return "CutoffException for "+this.measure+": "+this.value+"<"+this.cutoff;
 		}
 	}
+	
 }

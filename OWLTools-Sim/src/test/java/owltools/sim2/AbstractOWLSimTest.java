@@ -100,7 +100,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 				scores = owlsim.getGroupwiseSimilarity(i,j);
 				renderer.printPairScores(scores);
 			} catch (CutoffException e) {
-				e.printMessage();
+				LOG.info(e.getMessage());
 			}
 		}
 

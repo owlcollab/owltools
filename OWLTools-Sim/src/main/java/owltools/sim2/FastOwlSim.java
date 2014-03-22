@@ -1262,9 +1262,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			}
 			try {
 				ElementPairScores s = getGroupwiseSimilarity(atts, j, minSimJPct, minMaxIC);
+				maxMaxIC = Math.max(maxMaxIC, s.maxIC);
+				maxBMA = Math.max(maxBMA, s.bmaAsymIC);
 				scoreSets.add(s);
 			} catch (CutoffException e) {
-				e.printMessage();
+//				e.printMessage();
 				continue;
 			}
 		}

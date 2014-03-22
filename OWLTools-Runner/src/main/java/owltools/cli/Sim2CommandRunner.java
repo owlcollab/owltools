@@ -614,7 +614,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 						try {
 							scores = owlsim.getGroupwiseSimilarity(i, j, minSimJ, minMaxIC);
 						} catch (CutoffException e) {
-							e.printMessage();
+							LOG.info(e.getMessage());
 							continue;
 						}
 						//sos.getSimStats().incrementIndividualPairCount();

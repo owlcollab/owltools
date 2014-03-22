@@ -277,7 +277,8 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 					n++;
 					stat.addValue(gwsim.bmaAsymIC);
 				} catch (CutoffException e) {
-					e.printMessage();
+
+					//	LOG.info(e.getMessage());
 				}
 				//Set<Node<OWLClass>> lcs = getNamedCommonSubsumers(c, d);
 				//msg(" "+gwsim);

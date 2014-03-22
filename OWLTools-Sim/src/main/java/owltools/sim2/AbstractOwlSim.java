@@ -949,10 +949,13 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public void calculateCombinedScore(ElementPairScores s, double maxMaxIC, double maxBMA) {
 		int maxMaxIC100 = (int)(maxMaxIC * 100);
 		int maxBMA100 = (int)(maxBMA * 100);
+		if (maxMaxIC == 0 || maxBMA == 0) {
+			return;
+		}
 		int pctMaxScore = ((int) (s.maxIC * 10000)) / maxMaxIC100;
-
 		//TODO should this be using maxBMA100?
 		int pctAvgScore = ((int) (s.bmaSymIC * 10000)) / maxMaxIC100;
+			
 		s.combinedScore = (pctMaxScore + pctAvgScore)/2;
 	}
 
