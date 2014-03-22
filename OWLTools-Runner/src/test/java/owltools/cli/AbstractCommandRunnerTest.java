@@ -68,6 +68,10 @@ public class AbstractCommandRunnerTest extends OWLToolsTestBasics {
 		//Do nothing, overwrite this method.
 	}
 	
+	protected void loadLocal(String file) throws Exception {
+		run(file);
+	}
+	
 	protected void load(String file) throws Exception {
 		String path = getResource(file).getAbsolutePath();
 		run(path);		
