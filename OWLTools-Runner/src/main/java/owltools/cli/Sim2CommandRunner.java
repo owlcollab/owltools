@@ -613,13 +613,13 @@ public class Sim2CommandRunner extends SimCommandRunner {
 						ElementPairScores scores;
 						try {
 							scores = owlsim.getGroupwiseSimilarity(i, j, minSimJ, minMaxIC);
-						} catch (CutoffException e) {
+							renderer.printPairScores(scores);
+						} catch (Exception e) {
 							LOG.info(e.getMessage());
 							continue;
 						}
 						//sos.getSimStats().incrementIndividualPairCount();
 						//sos.getSimStats().incrementClassPairCount(scores.numberOfElementsI * scores.numberOfElementsJ);
-						renderer.printPairScores(scores);
 					} else {
 						LOG.info("skipping " + i + " + " + j);
 					}

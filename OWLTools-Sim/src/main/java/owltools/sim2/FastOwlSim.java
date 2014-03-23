@@ -998,7 +998,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	protected void populateSimilarityMatrix(
 			OWLNamedIndividual i, OWLNamedIndividual j,
-			ElementPairScores ijscores) throws UnknownOWLClassException {
+			ElementPairScores ijscores) throws UnknownOWLClassException, NoElementAttributeMapException {
 
 		/*
 		EWAHCompressedBitmap bmc = ancsBitmapCachedModifiable(i);
@@ -1017,8 +1017,16 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		ijscores.asymmetricSimGIC = getAsymmetricElementGraphInformationContentSimilarity(i, j);
 		ijscores.inverseAsymmetricSimGIC = getAsymmetricElementGraphInformationContentSimilarity(j, i);
 		 */
-
+		
 		ijscores.simjScore = getElementJaccardSimilarity(i, j);
+
+		if (ijscores.simjScore == null || ijscores.simjScore.isNaN()) {
+			//the elementattributemap probably hasn't been populated.
+			//log an error and exit.
+			throw new NoElementAttributeMapException();
+		}
+
+		
 		ijscores.asymmetricSimjScore = 
 				getAsymmetricElementJaccardSimilarity(i, j);
 		ijscores.inverseAsymmetricSimjScore =
@@ -1240,7 +1248,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return new ScoreAttributeSetPair(maxScore, lcsClasses);
 	}
 
-	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws UnknownOWLClassException {
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws Exception {
 
 		double minSimJPct = getPropertyAsDouble(SimConfigurationProperty.minimumSimJ, 0.05) * 100;
 		double minMaxIC = getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC, 2.5);
@@ -1248,7 +1256,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return findMatches(atts, targetIdSpace, minSimJPct, minMaxIC);
 	}
 	
-	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace, double minSimJPct, double minMaxIC) throws UnknownOWLClassException {
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace, double minSimJPct, double minMaxIC) throws Exception {
 
 		List<ElementPairScores> scoreSets = new ArrayList<ElementPairScores>();
 
@@ -1376,11 +1384,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return s;
 	}
 	
-	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i) throws UnknownOWLClassException, CutoffException {
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i) throws Exception {
 		return getGroupwiseSimilarity(i,i,-1,-1);
 	}
 	
-	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> attsI, Set<OWLClass> attsJ) throws UnknownOWLClassException, CutoffException {
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> attsI, Set<OWLClass> attsJ) throws Exception {
 		double minSimJPct = 
 				getPropertyAsDouble(SimConfigurationProperty.minimumSimJ, 0.05) * 100;
 		double minMaxIC = getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC, 2.5);
@@ -1389,7 +1397,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 
 
-	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException, CutoffException {
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws Exception {
 		double minSimJPct = 
 				getPropertyAsDouble(SimConfigurationProperty.minimumSimJ, 0.05) * 100;
 		double minMaxIC = getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC, 2.5);
@@ -1398,7 +1406,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	
 	
-	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j, double minSimJPct, double minMaxIC) throws UnknownOWLClassException, CutoffException {
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j, double minSimJPct, double minMaxIC) throws Exception {
 		ElementPairScores s = new ElementPairScores(i,j);
 
 //		EWAHCompressedBitmap iAttsBM = ancsBitmapCachedModifiable(i);
@@ -1415,7 +1423,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	
 	
-	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j) throws UnknownOWLClassException, CutoffException {
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j) throws Exception {
 		double minSimJPct = 
 				getPropertyAsDouble(SimConfigurationProperty.minimumSimJ, 0.05) * 100;
 		double minMaxIC = getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC, 2.5);
@@ -1424,7 +1432,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j, double minSimJPct, double minMaxIC) throws UnknownOWLClassException, CutoffException {
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j, double minSimJPct, double minMaxIC) throws Exception {
 		ElementPairScores s = new ElementPairScores(null, j);
 		
 		s = getGroupwiseSimilarity(atts, this.getAttributesForElement(j), minSimJPct,minMaxIC);
@@ -1434,7 +1442,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> attsI, Set<OWLClass> attsJ, double minSimJPct, double minMaxIC) throws UnknownOWLClassException, CutoffException {
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> attsI, Set<OWLClass> attsJ, double minSimJPct, double minMaxIC) throws Exception {
 		ElementPairScores s = new ElementPairScores(null, null);
 
 		Set<OWLClass> csetFilteredDirect = new HashSet<OWLClass>(); // direct
@@ -1778,7 +1786,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	
 	@Override
-	public void calculateMetricStats(Set<OWLNamedIndividual> iset, Set<OWLNamedIndividual> jset) throws UnknownOWLClassException {
+	public void calculateMetricStats(Set<OWLNamedIndividual> iset, Set<OWLNamedIndividual> jset) throws Exception {
 		LOG.info("Calculating all-by-all summary statistics for all metrics");
 		
 		for (String m : metrics) {

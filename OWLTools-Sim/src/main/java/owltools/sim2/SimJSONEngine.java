@@ -45,13 +45,13 @@ public class SimJSONEngine {
 
 	public String search(Set<OWLClass> objAs,
 			String targetIdSpace,
-			boolean isIgnoreUnknownClasses) throws UnknownOWLClassException {
+			boolean isIgnoreUnknownClasses) throws Exception {
 		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, 3000, false);
 	}
 	
 	public String search(Set<OWLClass> objAs,
 			String targetIdSpace,
-			boolean isIgnoreUnknownClasses, boolean includeFullMatchingTriples) throws UnknownOWLClassException {
+			boolean isIgnoreUnknownClasses, boolean includeFullMatchingTriples) throws Exception {
 		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, 3000, includeFullMatchingTriples);
 	}
 
@@ -61,12 +61,12 @@ public class SimJSONEngine {
 	 * @param isIgnoreUnknownClasses
 	 * @param limit
 	 * @return json string
-	 * @throws UnknownOWLClassException
+	 * @throws Exception 
 	 */
 	public String search(Set<OWLClass> objAs,
 			String targetIdSpace,
 			boolean isIgnoreUnknownClasses,
-			Integer limit) throws UnknownOWLClassException {
+			Integer limit) throws Exception {
 		return search(objAs, targetIdSpace, isIgnoreUnknownClasses, limit, false);
 	}
 
@@ -74,7 +74,7 @@ public class SimJSONEngine {
 	public String search(Set<OWLClass> objAs,
 			String targetIdSpace,
 			boolean isIgnoreUnknownClasses,
-			Integer limit, boolean includeFullMatchingTriples) throws UnknownOWLClassException {
+			Integer limit, boolean includeFullMatchingTriples) throws Exception {
 		Set<OWLClass> known = sos.getAllAttributeClasses();
 		Set<OWLClass> filteredClasses = new HashSet<OWLClass>();
 

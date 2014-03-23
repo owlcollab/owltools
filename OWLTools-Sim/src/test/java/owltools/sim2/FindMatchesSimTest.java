@@ -34,7 +34,7 @@ public class FindMatchesSimTest extends AbstractOWLSimTest {
 	private Logger LOG = Logger.getLogger(FindMatchesSimTest.class);
 
 	@Test
-	public void testBasicSim() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
+	public void testBasicSim() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
 		g =  new OWLGraphWrapper(sourceOntol);

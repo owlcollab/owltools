@@ -590,7 +590,7 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 
-	public void searchByAttributeSetCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+	public void searchByAttributeSetCommand() throws Exception {
 		if (isHelp()) {
 			info("Entities that have a similar attribute profile to the specified one, using sim2");
 			return;

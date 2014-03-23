@@ -84,7 +84,7 @@ public class AbstractOWLSimTest extends OWLToolsTestBasics {
 
 	}
 
-	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException {
+	protected void showSim(OWLNamedIndividual i, OWLNamedIndividual j) throws Exception {
 		if (i==j) return;
 		double s = owlsim.getElementJaccardSimilarity(i, j);
 		if (s > 0.1) {

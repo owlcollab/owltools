@@ -57,34 +57,34 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 	}
 
 	@Test
-	public void testMouse10Individuals() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testMouse10Individuals() throws Exception {
 		testIndividuals("mp", 10);
 	}
 
 	@Test
-	public void testMouseIndividuals() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testMouseIndividuals() throws Exception {
 		testIndividuals("mp", 100);
 	}
 	@Test
-	public void testMouseRandomIndividuals() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testMouseRandomIndividuals() throws Exception {
 		testIndividualsRandom("mp", 1000);
 	}
 	@Test
-	public void testMammalRandomIndividuals() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testMammalRandomIndividuals() throws Exception {
 		testIndividualsRandom("mammal-merged", 1000);
 	}
 	
 	// benchmarking old vs new
 	@Test
-	public void testWormRandomIndividuals() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testWormRandomIndividuals() throws Exception {
 		testIndividualsRandom("wbphenotype", 1000);
 	}
 	@Test
-	public void testWormRandomIndividualsSOS() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testWormRandomIndividualsSOS() throws Exception {
 		testIndividualsRandom("wbphenotype", 1000, new SimpleOwlSimFactory());
 	}
 	@Test
-	public void testMouseRandomIndividualsSOS() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testMouseRandomIndividualsSOS() throws Exception {
 		testIndividualsRandom("mp", 1000, new SimpleOwlSimFactory());
 	}
 
@@ -148,7 +148,7 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 		}
 	}
 	
-	public void testIndividuals(String idspace, int size) throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testIndividuals(String idspace, int size) throws Exception {
 		Runtime rt = Runtime.getRuntime();
 		load(idspace);
 		ABoxUtils.makeDefaultIndividuals(getOntology(), "-proto");
@@ -175,11 +175,11 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 		}
 	}
 
-	public void testIndividualsRandom(String idspace, int size) throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testIndividualsRandom(String idspace, int size) throws Exception {
 		testIndividualsRandom(idspace, size, new FastOwlSimFactory());
 	}
 	
-	public void testIndividualsRandom(String idspace, int size, OwlSimFactory simFactory) throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
+	public void testIndividualsRandom(String idspace, int size, OwlSimFactory simFactory) throws Exception {
 		Runtime rt = Runtime.getRuntime();
 		load(idspace, simFactory);
 		//ABoxUtils.makeDefaultIndividuals(getOntology(), "-proto");
@@ -246,7 +246,7 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 				getOWLClass(IRI.create("http://purl.obolibrary.org/obo/"+id));
 	}
 	
-	private void ixi(int size) throws UnknownOWLClassException {
+	private void ixi(int size) throws Exception {
 		Set<OWLNamedIndividual> all = owlsim.getAllElements();
 		Set<OWLNamedIndividual> iset = new HashSet<OWLNamedIndividual>();
 		int i=0;
@@ -259,7 +259,7 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 		ixi(iset, iset);
 	}
 	
-	public void ixi(Set<OWLNamedIndividual> iset, Set<OWLNamedIndividual> jset) throws UnknownOWLClassException {
+	public void ixi(Set<OWLNamedIndividual> iset, Set<OWLNamedIndividual> jset) throws Exception {
 		double total = 0;
 		int n = 0;
 		SummaryStatistics overallStat = new SummaryStatistics();

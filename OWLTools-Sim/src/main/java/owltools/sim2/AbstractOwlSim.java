@@ -299,7 +299,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	
 
 	@Override
-	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws UnknownOWLClassException, CutoffException {
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws Exception {
 		ElementPairScores ijscores = new ElementPairScores(i,j);
 		//populateSimilarityMatrix(i, j, s);
 		ijscores.simGIC = getElementGraphInformationContentSimilarity(i, j);
@@ -326,7 +326,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	}
 
 	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace)
-			throws UnknownOWLClassException {
+			throws Exception {
 		Set<OWLClass> atts = getAttributesForElement(i);
 		List<ElementPairScores> matches = findMatches(atts, targetIdSpace);
 		for (ElementPairScores m : matches) {

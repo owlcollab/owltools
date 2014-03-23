@@ -3681,7 +3681,12 @@ public class CommandRunner {
 					// Default is to treat argument as an ontology
 					String f  = opts.nextOpt();
 					try {
-						OWLOntology ont = pw.parse(f);
+						OWLOntology ont = null;
+						if (f.endsWith("obo")) {
+							ont = pw.parseOBO(f);
+						} else {
+							ont = pw.parse(f);
+						}
 						if (g == null) {
 							g =	new OWLGraphWrapper(ont);
 						}

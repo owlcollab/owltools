@@ -100,7 +100,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 	}
 
 	@Test
-	public void testSearch() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException, OBOFormatParserException {
+	public void testSearch() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
 		g =  new OWLGraphWrapper(sourceOntol);
@@ -141,7 +141,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 	}
 	
 	@Test
-	public void testSearchWithFullMatches() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException, OBOFormatParserException {
+	public void testSearchWithFullMatches() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
 		g =  new OWLGraphWrapper(sourceOntol);

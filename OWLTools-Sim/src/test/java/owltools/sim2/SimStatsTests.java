@@ -109,7 +109,7 @@ public class SimStatsTests extends AbstractOWLSimTest {
 	}
 	
 	@Test
-	public void testIxI() throws IOException, OWLOntologyCreationException, MathException, UnknownOWLClassException, OBOFormatParserException {
+	public void testIxI() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResource("sim/mp-subset-1.obo").getAbsolutePath());
 		g =  new OWLGraphWrapper(sourceOntol);

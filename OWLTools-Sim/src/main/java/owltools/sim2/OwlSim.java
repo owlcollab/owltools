@@ -641,9 +641,9 @@ public interface OwlSim {
 	 * @param atts
 	 * @param targetIdSpace
 	 * @return sorted scores
-	 * @throws UnknownOWLClassException
+	 * @throws Exception 
 	 */
-	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws UnknownOWLClassException;
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws UnknownOWLClassException, Exception;
 
 
 	/**
@@ -655,9 +655,9 @@ public interface OwlSim {
 	 * @param minSimJPct
 	 * @param minMaxIC
 	 * @return
-	 * @throws UnknownOWLClassException
+	 * @throws Exception 
 	 */
-	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace, double minSimJPct, double minMaxIC) throws UnknownOWLClassException;
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace, double minSimJPct, double minMaxIC) throws Exception;
 
 	
 	/**
@@ -668,10 +668,9 @@ public interface OwlSim {
 	 * @param atts
 	 * @param targetIdSpace
 	 * @return sorted scores
-	 * @throws UnknownOWLClassException
-	 * @throws CutoffException 
+	 * @throws Exception 
 	 */
-	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i) throws UnknownOWLClassException, CutoffException;
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i) throws Exception;
 
 	/**
 	 * Compare two named individuals {@code (i,j)}. 
@@ -683,11 +682,10 @@ public interface OwlSim {
 	 * @param i
 	 * @param j
 	 * @return scores
-	 * @throws UnknownOWLClassException
-	 * @throws CutoffException 
+	 * @throws Exception 
 	 */
 	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i,
-			OWLNamedIndividual j) throws UnknownOWLClassException, CutoffException;
+			OWLNamedIndividual j) throws Exception;
 
 	
 	
@@ -701,10 +699,9 @@ public interface OwlSim {
 	 * @param atts
 	 * @param targetIdSpace
 	 * @return sorted scores
-	 * @throws UnknownOWLClassException
-	 * @throws CutoffException 
+	 * @throws Exception 
 	 */
-	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j, double minSimJ, double minMaxIC) throws UnknownOWLClassException, CutoffException;
+	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j, double minSimJ, double minMaxIC) throws Exception;
 
 	
 	/**
@@ -718,10 +715,9 @@ public interface OwlSim {
 	 * @param atts
 	 * @param targetIdSpace
 	 * @return sorted scores
-	 * @throws UnknownOWLClassException
-	 * @throws CutoffException 
+	 * @throws Exception 
 	 */
-	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j) throws UnknownOWLClassException, CutoffException;
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j) throws Exception;
 
 	/**
 	 * Compare a set of attributes against the named individual {@code i}.
@@ -732,19 +728,18 @@ public interface OwlSim {
 	 * @param atts
 	 * @param targetIdSpace
 	 * @return sorted scores
-	 * @throws UnknownOWLClassException
-	 * @throws CutoffException 
+	 * @throws Exception 
 	 */
-	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j, double minSimJPct, double minMaxIC) throws UnknownOWLClassException, CutoffException;
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j, double minSimJPct, double minMaxIC) throws Exception;
 
 	
 	/**
 	 * @param i
 	 * @param targetIdSpace
 	 * @return sorted scores
-	 * @throws UnknownOWLClassException
+	 * @throws Exception 
 	 */
-	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace) throws UnknownOWLClassException;
+	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace) throws Exception;
 
 	/**
 	 * Resnick similarity measure, together with all LCSs (MICAs) that
@@ -1073,7 +1068,7 @@ public interface OwlSim {
 	public SummaryStatistics getSimStatistics(String stat);
 	
 	void calculateMetricStats(Set<OWLNamedIndividual> iset,
-			Set<OWLNamedIndividual> jset) throws UnknownOWLClassException;
+			Set<OWLNamedIndividual> jset) throws Exception;
 	
 	public HashMap<String,SummaryStatistics> getMetricStats(Stat stat);
 
