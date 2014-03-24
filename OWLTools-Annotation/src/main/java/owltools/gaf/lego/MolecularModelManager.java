@@ -636,6 +636,18 @@ public class MolecularModelManager {
 		return modelId;
 	}
 	
+	public String generateDerivedModel(String sourceModelId) throws OWLOntologyCreationException, IOException, URISyntaxException {
+		LegoModelGenerator sourceModel = this.getModel(sourceModelId); 
+		String modelId = this.generateBlankModel(null);
+		LegoModelGenerator model = this.getModel(modelId);
+		// TODO - populate, adding metadata
+		Set<OWLNamedIndividual> sourceInds = this.getIndividuals(sourceModelId);
+		for (OWLNamedIndividual sourceInd : sourceInds) {
+			// clone sourceInd
+		}
+		return modelId;
+	}
+	
 	/**
 	 * Adds a process individual (and inferred individuals) to a model
 	 * 
