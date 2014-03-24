@@ -45,5 +45,32 @@ public class MgiGAFOWLBridgeTest extends OWLToolsTestBasics{
 		}
 
 	}
+	
+	@Test
+	public void testConversionToIndividuals() throws Exception{
+		ParserWrapper pw = new ParserWrapper();
+		OWLOntology ont = pw.parse(getResourceIRIString("go_xp_predictor_test_subset.obo"));
+		OWLGraphWrapper g = new OWLGraphWrapper(ont);
+		g.addSupportOntology(pw.parse(getResourceIRIString("gorel.owl")));
+
+		GafObjectsBuilder builder = new GafObjectsBuilder();
+
+		GafDocument gafdoc = builder.buildDocument(getResource("mgi-exttest.gaf"));
+
+		GAFOWLBridge bridge = new GAFOWLBridge(g);
+		bridge.setGenerateIndividuals(false);
+		OWLOntology gafOnt = g.getManager().createOntology();
+		bridge.setTargetOntology(gafOnt);
+		bridge.setBasicAboxMapping(true);
+		bridge.translate(gafdoc);
+		
+		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
+		g.getManager().saveOntology(gafOnt, owlFormat, IRI.create(new File("target/gaf-abox.owl")));
+		
+		for (OWLAxiom ax : gafOnt.getAxioms()) {
+			//LOG.info("AX:"+ax);
+		}
+
+	}
 
 }
