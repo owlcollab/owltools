@@ -129,8 +129,8 @@ public class GAFOWLBridge {
 	public void setGenerateIndividuals(boolean isGenerateIndividuals) {
 		this.isGenerateIndividuals = isGenerateIndividuals;
 	}
-	
-	
+
+
 
 	public boolean isBasicAboxMapping() {
 		return isBasicAboxMapping;
@@ -186,7 +186,7 @@ public class GAFOWLBridge {
 		}
 		return "annotation of "+a.getBioentityObject().getSymbol() + " to " + clsDesc;
 	}
-	
+
 	public class GAFDescription {
 		public GAFDescription(OWLObjectSomeValuesFrom e, String s) {
 			classExpression = e;
@@ -195,15 +195,15 @@ public class GAFOWLBridge {
 		public OWLClassExpression classExpression;
 		String label;
 	}
-	
-	
+
+
 	protected List<GAFDescription> getDescription(GeneAnnotation a) {
 		OWLDataFactory fac = graph.getDataFactory();
 		OWLClassExpression annotatedToClass = getOWLClass(a.getCls());
 		StringBuilder labelBuilder = new StringBuilder();
 		String clsId = a.getCls();
 		appendCls(labelBuilder, graph.getOWLObjectByIdentifier(clsId), clsId);
-		
+
 		OWLObjectProperty geneAnnotationRelation = getGeneAnnotationRelation(a);
 		List<List<ExtensionExpression>> groups = a.getExtensionExpressions();
 		if (groups.isEmpty()) {
@@ -250,14 +250,15 @@ public class GAFOWLBridge {
 
 		return results;
 	}
-	
+
 
 
 	public void translateGeneAnnotation(GeneAnnotation a) {
 		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 		OWLDataFactory fac = graph.getDataFactory();
 		OWLClass e = getOWLClass(a.getBioentity());
-		
+		OWLAnnotationProperty labelProperty = fac.getRDFSLabel();
+
 		List<GAFDescription> gdescs = getDescription(a);
 		for(GAFDescription gdesc : gdescs) {
 			OWLClassExpression r = gdesc.classExpression;
@@ -280,53 +281,63 @@ public class GAFOWLBridge {
 				OWLObjectSomeValuesFrom dx =
 						fac.getOWLObjectSomeValuesFrom(pDescribes, x);		
 				axioms.add(fac.getOWLClassAssertionAxiom(dx, iAnn));
-				OWLAnnotationProperty labelProperty = fac.getRDFSLabel();
+
 				String desc = this.getAnnotationDescription(a);
 				OWLAnnotation labelAnnotation = fac.getOWLAnnotation(labelProperty, fac.getOWLLiteral(desc));
 				axioms.add(fac.getOWLAnnotationAssertionAxiom(iAnn.getIRI(), labelAnnotation));
 				// TODO - annotations on iAnn; evidence etc
 			}
 
-			if (bioentityMapping != BioentityMapping.NONE) {
-				// PROTOTYPE RELATIONSHIP
-				OWLObjectProperty pProto = getGeneAnnotationObjectProperty(Vocab.PROTOTYPICALLY);
-				if (bioentityMapping == BioentityMapping.INDIVIDUAL) {
-					//  E.g. Shh[cls] SubClassOf has_proto VALUE _:x, where _:x Type act_ptpt_in SOME 'heart dev'
-					OWLAnonymousIndividual anonInd = fac.getOWLAnonymousIndividual();
-					axioms.add(fac.getOWLClassAssertionAxiom(r, anonInd));
-					OWLClassExpression ce = fac.getOWLObjectHasValue(pProto, anonInd);
-					axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
+			if (this.isBasicAboxMapping) {
+				OWLNamedIndividual iGene = 
+						fac.getOWLNamedIndividual(graph.getIRIByIdentifier(a.getBioentity()));
+				OWLAnnotation labelAnnotation = 
+						fac.getOWLAnnotation(labelProperty, fac.getOWLLiteral(a.getBioentityObject().getSymbol()));
+				axioms.add(fac.getOWLAnnotationAssertionAxiom(iGene.getIRI(), labelAnnotation));
+				axioms.add(fac.getOWLClassAssertionAxiom(r, iGene));
+			}
+			else {
+
+				if (bioentityMapping != BioentityMapping.NONE) {
+					// PROTOTYPE RELATIONSHIP
+					OWLObjectProperty pProto = getGeneAnnotationObjectProperty(Vocab.PROTOTYPICALLY);
+					if (bioentityMapping == BioentityMapping.INDIVIDUAL) {
+						//  E.g. Shh[cls] SubClassOf has_proto VALUE _:x, where _:x Type act_ptpt_in SOME 'heart dev'
+						OWLAnonymousIndividual anonInd = fac.getOWLAnonymousIndividual();
+						axioms.add(fac.getOWLClassAssertionAxiom(r, anonInd));
+						OWLClassExpression ce = fac.getOWLObjectHasValue(pProto, anonInd);
+						axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
+					}
+					else if (bioentityMapping == BioentityMapping.NAMED_CLASS) {
+						IRI iri = graph.getIRIByIdentifier(geneAnnotationId);
+						OWLClass owlClass = fac.getOWLClass(iri);
+						axioms.add(fac.getOWLDeclarationAxiom(owlClass));
+
+						// line number
+						int lineNumber = a.getSource().getLineNumber();
+						OWLAnnotationProperty property = fac.getOWLAnnotationProperty(GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI);
+						OWLAnnotation annotation = fac.getOWLAnnotation(property, fac.getOWLLiteral(lineNumber));
+						axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
+
+						// label
+						Bioentity bioentity = a.getBioentityObject();
+						StringBuilder labelBuilder = new StringBuilder();
+						labelBuilder.append("'");
+						appendBioEntity(labelBuilder, bioentity);
+						labelBuilder.append(" - ");
+						labelBuilder.append(gdesc.label);
+
+						annotation = fac.getOWLAnnotation(fac.getRDFSLabel(), fac.getOWLLiteral(labelBuilder.toString()));
+						axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
+
+						// logical definition
+						axioms.add(fac.getOWLEquivalentClassesAxiom(owlClass, x));
+					}
+					else {
+						OWLClassExpression ce = fac.getOWLObjectSomeValuesFrom(pProto, r);
+						axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
+					}
 				}
-				else if (bioentityMapping == BioentityMapping.NAMED_CLASS) {
-					IRI iri = graph.getIRIByIdentifier(geneAnnotationId);
-					OWLClass owlClass = fac.getOWLClass(iri);
-					axioms.add(fac.getOWLDeclarationAxiom(owlClass));
-
-					// line number
-					int lineNumber = a.getSource().getLineNumber();
-					OWLAnnotationProperty property = fac.getOWLAnnotationProperty(GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI);
-					OWLAnnotation annotation = fac.getOWLAnnotation(property, fac.getOWLLiteral(lineNumber));
-					axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
-
-					// label
-					Bioentity bioentity = a.getBioentityObject();
-					StringBuilder labelBuilder = new StringBuilder();
-					labelBuilder.append("'");
-					appendBioEntity(labelBuilder, bioentity);
-					labelBuilder.append(" - ");
-					labelBuilder.append(gdesc.label);
-
-					annotation = fac.getOWLAnnotation(fac.getRDFSLabel(), fac.getOWLLiteral(labelBuilder.toString()));
-					axioms.add(fac.getOWLAnnotationAssertionAxiom(owlClass.getIRI(), annotation));
-
-					// logical definition
-					axioms.add(fac.getOWLEquivalentClassesAxiom(owlClass, x));
-				}
-				else {
-					OWLClassExpression ce = fac.getOWLObjectSomeValuesFrom(pProto, r);
-					axioms.add(fac.getOWLSubClassOfAxiom(e, ce));
-				}
-
 			}
 
 			// experimental: annotation assertions
@@ -337,7 +348,7 @@ public class GAFOWLBridge {
 		}
 		addAxioms(axioms);
 	}
-	
+
 	private void appendRel(StringBuilder sb, OWLObjectProperty p, String fallback) {
 		if (p != null) {
 			String label = graph.getLabelOrDisplayId(p);
@@ -352,7 +363,7 @@ public class GAFOWLBridge {
 			sb.append(fallback);
 		}
 	}
-	
+
 	private void appendCls(StringBuilder sb, OWLObject obj, String fallback) {
 		if (obj != null) {
 			String id = graph.getIdentifier(obj);
@@ -368,7 +379,7 @@ public class GAFOWLBridge {
 			sb.append(fallback);
 		}
 	}
-	
+
 	private void appendBioEntity(StringBuilder sb, Bioentity bioentity) {
 		String symbol = bioentity.getSymbol();
 		if (symbol != null) {
@@ -386,7 +397,7 @@ public class GAFOWLBridge {
 
 	private void makeShorthandMap() {
 		OWLAnnotationProperty shp = 
-			graph.getDataFactory().getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#shorthand"));
+				graph.getDataFactory().getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#shorthand"));
 		for (OWLOntology o : graph.getAllOntologies()) {
 			for (OWLObjectProperty q : o.getObjectPropertiesInSignature(true)) {
 				String v = graph.getAnnotationValue(q, shp);
@@ -451,15 +462,15 @@ public class GAFOWLBridge {
 		axioms.add(fac.getOWLAnnotationAssertionAxiom(fac.getRDFSLabel(),
 				cls.getIRI(),
 				fac.getOWLLiteral(e.getSymbol())));
-		
+
 		// --taxon--
 		OWLClass taxCls = getOWLClass(e.getNcbiTaxonId()); // todo - cache
 		axioms.add(fac.getOWLSubClassOfAxiom(cls, 
 				fac.getOWLObjectSomeValuesFrom(getGeneAnnotationObjectProperty(Vocab.IN_TAXON), 
 						taxCls)));
-		
+
 		// TODO - other properties
-		
+
 		addAxioms(axioms);
 
 
