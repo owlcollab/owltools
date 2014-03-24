@@ -26,12 +26,14 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
+import owltools.vocab.OBOUpperVocabulary;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
@@ -136,6 +138,7 @@ public class GafToLegoTranslator {
 	private OWLObjectProperty occursIn;
 	private OWLClass mf;
 	private OWLObjectProperty enabledBy;
+	private OWLObjectProperty geneProductOf;
 
 	private Map<String, OWLObject> allOWLObjectsByAltId;
 
@@ -143,27 +146,13 @@ public class GafToLegoTranslator {
 		this.graph = graph;
 		allOWLObjectsByAltId = graph.getAllOWLObjectsByAltId();
 		this.gp2protein = gp2protein;
-		partOf = graph.getOWLObjectPropertyByIdentifier("part_of");
-		if (partOf == null) {
-			throw new RuntimeException("Could not find part_of relation.");
-		}
-		occursIn = graph.getOWLObjectPropertyByIdentifier("occurs_in");
-		if (occursIn == null) {
-			throw new RuntimeException("Could not find occurs_in relation.");
-		}
-		mf = graph.getOWLClassByIdentifier("GO:0003674"); // molecular_function
-		if (mf == null) {
-			throw new RuntimeException("Could not find molecular_function class.");
-		}
-		// the graph wrapper has a problem retrieving the property.
-//		enabledBy = graph.getOWLObjectPropertyByIdentifier("enabled_by");
+		OWLDataFactory df = graph.getDataFactory();
+		partOf = OBOUpperVocabulary.BFO_part_of.getObjectProperty(df);
+		occursIn = OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(df);
 		
-		// do it via the IRI instead!
-		IRI enabledByIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"enabled_by");
-		enabledBy = graph.getOWLObjectProperty(enabledByIRI);
-		if (enabledBy == null) {
-			throw new RuntimeException("Could not find enabled_by relation.");
-		}
+		mf = OBOUpperVocabulary.GO_molecular_function.getOWLClass(df);
+		enabledBy = OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(df);
+		geneProductOf = OBOUpperVocabulary.RO_gene_product_of.getObjectProperty(df);
 	}
 	
 	protected void reportError(String error, GeneAnnotation annotation) {
@@ -215,6 +204,7 @@ public class GafToLegoTranslator {
 				*/
 				final String annotationClsString = annotation.getCls();
 				final OWLClass c = getOwlClass(annotationClsString);
+				String classLabel = graph.getLabel(c);
 				if (c == null) {
 					reportError("Could not find a class for the given identifier: "+annotationClsString, annotation);
 					continue;
@@ -266,19 +256,25 @@ public class GafToLegoTranslator {
 				// # STEP 2 - map to protein ID
 				Bioentity bioentity = annotation.getBioentityObject();
 				String dbprefix = bioentity.getDb();
+				String annLabel = bioentity.getSymbol() + " " + classLabel;
 				
 				// TODO use ISO form information
 				// IF <G>.IRI startsWith "uniProtKB"
 				//  THEN let <Pr> = <G>
-				OWLClass pr;
+				OWLClassExpression enabler;
 				if (dbprefix.equalsIgnoreCase("uniProtKB")) {
-					 pr = f.getOWLClass(IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"pr/"+bioentity.getDBID()));
+					 OWLClass pr = f.getOWLClass(IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"pr/"+bioentity.getDBID()));
 					 addBioEntity(pr, lego, bioentity);
+					 enabler = pr;
 				}
 				else {
 					// TODO use gp2protein
-					reportWarn("Skipping non-uniProtKB bioentity: "+bioentity.getId(), annotation);
-					continue;
+					OWLClass gene = f.getOWLClass(graph.getIRIByIdentifier(bioentity.getId()));
+					OWLClassExpression pr = f.getOWLObjectSomeValuesFrom(geneProductOf, gene);
+					addBioEntity(gene, lego, bioentity);
+					enabler = pr;
+					//reportWarn("Skipping non-uniProtKB bioentity: "+bioentity.getId(), annotation);
+					//continue;
 				}
 				
 				// # STEP 3 - create instance:
@@ -292,6 +288,7 @@ public class GafToLegoTranslator {
 				
 				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 				List<String> sources = annotation.getReferenceIds();
+				OWLNamedIndividual annIndividual = null;
 				// IF <C> SubClassOf MF THEN:
 				if ("F".equals(aspect)) {
 					//  NamedIndividual( <generateId>
@@ -314,7 +311,9 @@ public class GafToLegoTranslator {
 						
 						// types
 						axioms.add(f.getOWLClassAssertionAxiom(ce, individual));
-						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
+						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, enabler), individual));
+						
+						axioms.add(labelAxiom(f, individual, annLabel));
 					}
 				}				
 				// ELSE IF <C> SubClassOf CC THEN:
@@ -339,7 +338,10 @@ public class GafToLegoTranslator {
 						// types
 						axioms.add(f.getOWLClassAssertionAxiom(mf, individual));
 						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(occursIn, ce), individual));
-						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
+						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, enabler), individual));
+						
+						axioms.add(labelAxiom(f, individual, annLabel));
+
 					}
 				}
 				//ELSE IF <C> SubClassOf BP THEN:
@@ -364,6 +366,7 @@ public class GafToLegoTranslator {
 						
 						// types
 						axioms.add(f.getOWLClassAssertionAxiom(ce, individualX));
+						axioms.add(labelAxiom(f, individualX, classLabel+" "+individualX.getIRI().getFragment()));
 						
 		
 						// NamedIndividual( <generateId>
@@ -376,6 +379,8 @@ public class GafToLegoTranslator {
 						OWLNamedIndividual individual = f.getOWLNamedIndividual(generateNewIRI(lego, "bp"));
 						axioms.add(f.getOWLDeclarationAxiom(individual));
 						
+						axioms.add(labelAxiom(f, individual, annLabel));
+						
 						// facts
 						for(String source : sources) {
 							axioms.add(f.getOWLAnnotationAssertionAxiom(dcsource, individual.getIRI(), f.getOWLLiteral(source)));
@@ -384,13 +389,14 @@ public class GafToLegoTranslator {
 						
 						// types
 						axioms.add(f.getOWLClassAssertionAxiom(mf, individual));
-						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, pr), individual));
+						axioms.add(f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(enabledBy, enabler), individual));
 					}
 				}
 				else {
 					reportError("Error, unknown aspect: "+aspect, annotation);
 					continue;
 				}
+				
 				m.addAxioms(lego, axioms);
 			}
 			
@@ -399,6 +405,14 @@ public class GafToLegoTranslator {
 		catch (OWLException e) {
 			throw new RuntimeException("Could not create lego model.", e);
 		}
+	}
+	
+	private OWLAxiom labelAxiom(OWLDataFactory f, OWLNamedIndividual individual, String annLabel) {
+		return 
+				f.getOWLAnnotationAssertionAxiom(
+						f.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
+						individual.getIRI(),
+						f.getOWLLiteral(annLabel));
 	}
 
 	/**
