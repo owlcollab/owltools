@@ -1,6 +1,7 @@
 package owltools.vocab;
 
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -23,6 +24,8 @@ public enum OBOUpperVocabulary {
 	RO_positively_regulates(OBONamespaces.RO, "0002213"),
 	RO_starts(OBONamespaces.RO, "0002223"),
 	RO_ends(OBONamespaces.RO, "0002229"),
+	RO_gene_product_of(OBONamespaces.RO, "0002204"),
+	RO_involved_in(OBONamespaces.RO, "0002331"),
 	GOREL_enabled_by(OBONamespaces.RO, "0002333"),
 	GOREL_directly_provides_input_for(OBONamespaces.RO, "0002413");
 	
@@ -46,6 +49,14 @@ public enum OBOUpperVocabulary {
 	public IRI getIRI() {
 		return iri;
 	}
+	
+
+	public OWLClass getOWLClass(OWLDataFactory f) {
+		return f.getOWLClass(iri);	
+	}
+	public OWLClass getOWLClass(OWLOntology o) {
+		return getOWLClass(o.getOWLOntologyManager().getOWLDataFactory());	
+	}
 
 	public OWLObjectProperty getObjectProperty(OWLDataFactory f) {
 		return f.getOWLObjectProperty(iri);
@@ -58,4 +69,7 @@ public enum OBOUpperVocabulary {
 	public String toString() {
 		return iri.toString();
 	}
+
+
+
 }
