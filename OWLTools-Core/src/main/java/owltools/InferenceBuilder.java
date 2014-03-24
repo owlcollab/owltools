@@ -521,6 +521,7 @@ public class InferenceBuilder{
 				if (lbl != null) {
 					sb.append(" '").append(lbl).append("'");
 				}
+				errors.add(sb.toString());
 				unsatisfiable.add(cls);
 			}
 		}
