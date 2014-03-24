@@ -289,6 +289,8 @@ public class GafCommandRunner extends CommandRunner {
 		boolean isBasic = false;
 		BioentityMapping bioentityMapping = null;
 		boolean makeMinimalModel = false;
+		boolean isAddAsSupport = false;
+		boolean isAddAsMain = false;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-n"))
 				iri = opts.nextOpt();
@@ -314,6 +316,12 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			else if (opts.nextEq("--basic")) {
 				isBasic = true;
+			}
+			else if (opts.nextEq("-a|--add-as-support")) {
+				isAddAsSupport = true;
+			}
+			else if (opts.nextEq("-m|--add-as-main")) {
+				isAddAsMain = true;
 			}
 			else if (opts.nextEq("--make-minimal-model")) {
 				makeMinimalModel = true;
@@ -397,6 +405,12 @@ public class GafCommandRunner extends CommandRunner {
 		
 		if (out != null) {
 			pw.saveOWL(ontology,out,g);
+		}
+		if (isAddAsSupport) {
+			g.addSupportOntology(ontology);
+		}
+		if (isAddAsMain) {
+			g.setSourceOntology(ontology);
 		}
 	}
 	
@@ -1094,6 +1108,7 @@ public class GafCommandRunner extends CommandRunner {
 		OWLOntologyFormat format = new RDFXMLOntologyFormat();
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-m|--minimize")) {
+				opts.info("", "If set, combine into one model");
 				minimize = true;
 			}
 			else if (opts.nextEq("-o|--output")) {
