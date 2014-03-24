@@ -426,7 +426,7 @@ public class CommandRunner {
 					System.out.println(g.getIdentifier(child) +
 							"\t" +
 							g.getIdentifier(parent));
-								
+
 				}
 			}
 			else if (opts.nextEq("--query-ontology")) {
@@ -1215,7 +1215,7 @@ public class CommandRunner {
 										df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasDbXref")),
 										prop.getIRI(), 
 										df.getOWLLiteral(pid))
-						);
+								);
 					}
 					else {
 						LOG.error("No label: "+prop);
@@ -1294,7 +1294,7 @@ public class CommandRunner {
 				if (isPreserveOntologyAnnotations) {
 					anns = src.getAnnotations();
 				}
-				
+
 				axioms.addAll(src.getAxioms(AxiomType.SUBCLASS_OF));
 				axioms.addAll(src.getAxioms(AxiomType.EQUIVALENT_CLASSES));
 				for (OWLAnnotationAssertionAxiom aaa : src.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
@@ -1367,7 +1367,7 @@ public class CommandRunner {
 				}
 				newOnt.getOWLOntologyManager().addAxioms(newOnt, axioms);
 				g.setSourceOntology(newOnt);	
-				
+
 				for (OWLAnnotation ann : anns ) {
 					AddOntologyAnnotation addAnn = new AddOntologyAnnotation(g.getSourceOntology(), ann);
 					g.getManager().applyChange(addAnn);
@@ -2105,6 +2105,44 @@ public class CommandRunner {
 				if (c != null) {
 					OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(c, ce);
 					g.getManager().addAxiom(g.getSourceOntology(), ax);
+				}
+			}
+			else if (opts.nextEq("--modalize")) {
+				opts.info("CLASS", "Take all instances of CLASS and make a generalized statement about them");
+				mmg = getMinimalModelGenerator(false);
+				OWLClass qc = null;
+				OWLObjectProperty p = null;
+				OWLDataFactory df = g.getDataFactory();
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p|--modal-property")) {
+						 p = resolveObjectProperty(opts.nextOpt());
+						opts.info("CLASS", "if set will add equivalence axioms to CLASS");
+						//c = this.resolveClass(opts.nextOpt());
+					}
+					else {
+						break;
+					}
+				}
+				qc = this.resolveClass(opts.nextOpt());
+				Set<OWLNamedIndividual> inds = mmg.getReasoner().getInstances(qc, false).getFlattened();
+				for (OWLNamedIndividual ind : inds) {
+					OWLClassExpression ce = mmg.getMostSpecificClassExpression(ind);
+					if (ce instanceof OWLObjectIntersectionOf) {
+						for (OWLClassExpression x : ((OWLObjectIntersectionOf)ce).getOperands()) {
+							if (x instanceof OWLObjectSomeValuesFrom) {
+								OWLObjectSomeValuesFrom svf = ((OWLObjectSomeValuesFrom)x);
+								
+							}
+						}
+					}
+					owlpp = new OWLPrettyPrinter(g);
+					Set<OWLClass> types = mmg.getReasoner().getTypes(ind, true).getFlattened();
+
+					System.out.println(owlpp.render(ce));
+					System.out.println(ce);
+					for (OWLClass c : types) {
+						df.getOWLSubClassOfAxiom(c, df.getOWLObjectSomeValuesFrom(p, ce));
+					}
 				}
 			}
 			else if (opts.nextEq("--tbox-to-abox")) {
@@ -3241,7 +3279,7 @@ public class CommandRunner {
 				boolean isMerge = false;
 				OWLOntology baseOnt = g.getSourceOntology();
 				IRI dcSource = null;
-				
+
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-n")) {
 						modIRI = opts.nextOpt();
@@ -3613,6 +3651,19 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--no-cache")) {
 				g.getConfig().isCacheClosure = false;
+			}
+			else if (opts.nextEq("--repeat")) {
+				List<String> ops = new ArrayList<String>();
+				while (opts.hasArgs()) {
+					if (opts.nextEq("--end")) {
+						break;
+					}
+					else {
+						String op = opts.nextOpt();
+						ops.add(op);
+					}
+				}
+				// TODO
 			}
 			else if (opts.nextEq("--start-server")) {
 				int port = 9000;
@@ -4264,7 +4315,7 @@ public class CommandRunner {
 		if (ontologyIRI == null) {
 			throw new RuntimeException("An ontology IRI is required.");
 		}
-		
+
 		final OWLOntologyID newID;
 		final IRI newOntologyIRI = IRI.create(ontologyIRI);
 		if (versionIRI != null) {
@@ -4276,14 +4327,14 @@ public class CommandRunner {
 		}
 		final OWLOntologyManager m = g.getManager();
 		final OWLOntology work = m.createOntology(newID);
-		
+
 
 		// filter axioms
 		final Set<OWLObjectProperty> usedProperties = new HashSet<OWLObjectProperty>();
 		final Set<OWLAxiom> filtered = new HashSet<OWLAxiom>();
-		
+
 		final OWLOntology source = g.getSourceOntology();
-		
+
 		// get relevant equivalent class axioms
 		for(OWLClass cls : source.getClassesInSignature()) {
 			Set<OWLEquivalentClassesAxiom> eqAxioms = source.getEquivalentClassesAxioms(cls);
@@ -4332,7 +4383,7 @@ public class CommandRunner {
 			}
 		}
 	}
-	
+
 	/**
 	 * Retain only subclass of axioms and intersection of axioms if they contain
 	 * a class in it's signature of a given set of parent terms.
@@ -4496,7 +4547,7 @@ public class CommandRunner {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Check that there is an axiom, which use a class (in its signature) that
 	 * has a ancestor in the root term set.
