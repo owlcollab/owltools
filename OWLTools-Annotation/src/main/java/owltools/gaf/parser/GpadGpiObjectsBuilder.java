@@ -15,6 +15,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import owltools.gaf.Bioentity;
+import owltools.gaf.BioentityDocument;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -29,6 +30,8 @@ public class GpadGpiObjectsBuilder {
 	private List<LineFilter<GpiParser>> gpiFilters = null;
 	private AspectProvider aspectProvider = null;
 	private final SimpleEcoMapper ecoMapper;
+	
+	private boolean gpadIncludeUnknowBioentities = false;
 	
 	public GpadGpiObjectsBuilder(SimpleEcoMapper ecoMapper) {
 		this.ecoMapper = ecoMapper;
@@ -48,18 +51,26 @@ public class GpadGpiObjectsBuilder {
 		gpiFilters.add(filter);
 	}
 	
-	public GafDocument loadGpadGpi(File gpad, File gpi) throws IOException {
+	public boolean isGpadIncludeUnknowBioentities() {
+		return gpadIncludeUnknowBioentities;
+	}
+
+	public void setGpadIncludeUnknowBioentities(boolean gpadIncludeUnknowBioentities) {
+		this.gpadIncludeUnknowBioentities = gpadIncludeUnknowBioentities;
+	}
+
+	public Pair<BioentityDocument, GafDocument> loadGpadGpi(File gpad, File gpi) throws IOException {
 		// 1. load GPI
-		Map<String, Bioentity> bioentities = loadGPI(getInputStream(gpi));
+		BioentityDocument entities = new BioentityDocument(gpi.getName(), gpi.getCanonicalPath());
+		Map<String,Bioentity> mappings = loadGPI(getInputStream(gpi), entities);
 		
 		// create annotation document with bioentities
-		String id = gpad.getName()+"+"+gpi.getName();
-		GafDocument document = new GafDocument(id, null, bioentities);
+		GafDocument document = new GafDocument(gpad.getName(), gpad.getCanonicalPath(), mappings);
 		
 		// 2. load GPAD
 		loadGPAD(getInputStream(gpad), document);
 		
-		return document;
+		return Pair.of(entities, document);
 	}
 	
 	public void setAspectProvider(AspectProvider aspectProvider) {
@@ -80,19 +91,26 @@ public class GpadGpiObjectsBuilder {
 		return inputStream;
 	}
 	
-	private Map<String, Bioentity> loadGPI(InputStream inputStream) throws IOException {
+	private Map<String, Bioentity> loadGPI(InputStream inputStream, final BioentityDocument document) throws IOException {
 		GpiParser parser = null;
 		try {
 			parser = new GpiParser();
+			parser.addCommentListener(new CommentListener() {
+				
+				@Override
+				public void readingComment(String comment, String line, int lineNumber) {
+					document.addComment(comment);
+				}
+			});
 			parser.createReader(inputStream);
-			return loadBioentities(parser);
+			return loadBioentities(parser, document);
 		}
 		finally {
 			IOUtils.closeQuietly(parser);
 		}
 	}
 	
-	private Map<String, Bioentity> loadBioentities(GpiParser parser) throws IOException {
+	private Map<String, Bioentity> loadBioentities(GpiParser parser, BioentityDocument document) throws IOException {
 		Map<String, Bioentity> entities = new HashMap<String, Bioentity>();
 		
 		while(parser.next()) {
@@ -113,6 +131,7 @@ public class GpadGpiObjectsBuilder {
 				if (namespace != null) {
 					Bioentity bioentity = parseBioentity(parser);
 					entities.put(bioentity.getId(), bioentity);
+					document.addBioentity(bioentity);
 				}
 			}
 		}
@@ -131,7 +150,14 @@ public class GpadGpiObjectsBuilder {
 		}
 	}
 	
-	private void loadGeneAnnotations(GpadParser parser, GafDocument document) throws IOException {
+	private void loadGeneAnnotations(GpadParser parser, final GafDocument document) throws IOException {
+		parser.addCommentListener(new CommentListener() {
+			
+			@Override
+			public void readingComment(String comment, String line, int lineNumber) {
+				document.addComment(comment);
+			}
+		});
 		while(parser.next()) {
 			// by default load everything
 			boolean load = true;
@@ -182,10 +208,15 @@ public class GpadGpiObjectsBuilder {
 		Bioentity entity = document.getBioentity(bioentityId);
 		if (entity == null) {
 			reportUnknowBioentityId(parser.getDB(), parser.getDB_Object_ID(), bioentityId);
-			return null;
+			if (gpadIncludeUnknowBioentities == false) {
+				return null;
+			}
+			ga.setBioentity(bioentityId);
 		}
-		ga.setBioentity(entity.getId());
-		ga.setBioentityObject(entity);
+		else {
+			ga.setBioentity(entity.getId());
+			ga.setBioentityObject(entity);
+		}
 
 		// col 3
 		final String qualifierString = parser.getQualifier();
@@ -203,6 +234,7 @@ public class GpadGpiObjectsBuilder {
 			}
 			relation = qualifier;
 		}
+		ga.setCompositeQualifiers(qualifiers);
 		
 		String aspect = "";
 		if (aspectProvider != null) {
@@ -255,21 +287,8 @@ public class GpadGpiObjectsBuilder {
 		if (pair != null) {
 			String goCode = pair.getLeft();
 			if (goCode != null) {
-				ga.setEvidence(eco, goCode);
-				String goRef = pair.getRight();
-				if (goRef != null) {
-					List<String> referenceIds = ga.getReferenceIds();
-					if (referenceIds == null || referenceIds.isEmpty()) {
-						ga.addReferenceId(goRef);
-					}
-					else {
-						if (!referenceIds.contains(goRef)) {
-							ga.addReferenceId(goRef);
-						}
-					}
-				}
+				ga.setEvidence(goCode, eco);
 			}
-			
 		}
 	}
 }

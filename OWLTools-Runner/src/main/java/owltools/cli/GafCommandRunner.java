@@ -1522,14 +1522,11 @@ public class GafCommandRunner extends CommandRunner {
 		parser.addCommentListener(new CommentListener() {
 
 			@Override
-			public void readingComment(String line, int lineNumber) {
-				line = StringUtils.trimToEmpty(line);
-				if (line.startsWith("!") && line.length() > 1) {
-					String comment = StringUtils.trimToEmpty(line.substring(1));
-					if (comment.startsWith("Submission Date:")) {
-						String dateString = comment.substring("Submission Date:".length());
-						metadata.submissionDate = StringUtils.trimToNull(dateString);
-					}
+			public void readingComment(String comment, String line, int lineNumber) {
+				comment = StringUtils.trimToNull(comment);
+				if (comment != null && comment.startsWith("Submission Date:")) {
+					String dateString = comment.substring("Submission Date:".length());
+					metadata.submissionDate = StringUtils.trimToNull(dateString);
 				}
 			}
 		});

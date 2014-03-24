@@ -193,8 +193,11 @@ public class GAFParser {
 	}
 	
 	private void fireComment() {
-		for(CommentListener listener: commentListeners) {
-			listener.readingComment(this.currentRow, lineNumber);
+		if (!commentListeners.isEmpty()) {
+			String comment = StringUtils.substringAfter(this.currentRow, GAF_COMMENT);
+			for(CommentListener listener: commentListeners) {
+				listener.readingComment(comment, this.currentRow, lineNumber);
+			}
 		}
 	}
 	

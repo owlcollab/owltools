@@ -8,8 +8,8 @@ public class GpiParser extends AbstractAnnotationFileParser {
 	private static final Logger LOG = Logger.getLogger(GpiParser.class);
 	
 	private static final String COMMENT_PREFIX = "!";
-	private static final String VERSION_PREFIX = "gpi-version:";
-	private static final String NAMESPACE_PREFIX = "namespace:";
+	private static final String VERSION_PREFIX = COMMENT_PREFIX+"gpi-version:";
+	private static final String NAMESPACE_PREFIX = COMMENT_PREFIX+"namespace:";
 	private static final double DEFAULT_VERSION = 1.1d;
 	private static final int EXPECTED_COLUMNS_V11 = 9;
 	private static final int EXPECTED_COLUMNS_V12 = 10;
@@ -101,28 +101,36 @@ public class GpiParser extends AbstractAnnotationFileParser {
 	//----------------------------
 	
 	@Override
-	protected void handleComment(final String line) {
+	protected void handleHeaderMetaData(String line) {
 		if(version < 1.0){
 			if (isFormatDeclaration(line)) {
 				version = parseVersion(line);
 			}
 		}
 		else if (namespace == null) {
-			if (line.startsWith(COMMENT_PREFIX+NAMESPACE_PREFIX)) {
-				namespace = line.substring(COMMENT_PREFIX.length()+NAMESPACE_PREFIX.length());
+			if (line.startsWith(NAMESPACE_PREFIX)) {
+				namespace = line.substring(NAMESPACE_PREFIX.length());
 				namespace = StringUtils.trimToNull(namespace);
 			}
 		}
 	}
 	
 	@Override
+	protected boolean isHeaderMetaData(String line) {
+		if (line.startsWith(VERSION_PREFIX) || line.startsWith(NAMESPACE_PREFIX)) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
 	protected boolean isFormatDeclaration(String line) {
-		return line.startsWith(COMMENT_PREFIX+VERSION_PREFIX);
+		return line.startsWith(VERSION_PREFIX);
 	}
 	
 	@Override
 	protected double parseVersion(String line) {
-		String versionString = line.substring(COMMENT_PREFIX.length()+VERSION_PREFIX.length());
+		String versionString = line.substring(VERSION_PREFIX.length());
 		versionString = StringUtils.trimToNull(versionString);
 		if (versionString != null) {
 			try {

@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import owltools.gaf.Bioentity;
+import owltools.gaf.BioentityDocument;
 import owltools.gaf.GafDocument;
 import owltools.gaf.parser.BuilderTools;
 
@@ -25,14 +26,29 @@ public class GpiWriter {
 	}
 
 
+	public void write(BioentityDocument document) {
+		try {
+			List<Bioentity> bioentities = document.getBioentities();
+			writeHeader(document.getComments(), bioentities);
+			if (bioentities != null) {
+				for (Bioentity entity: bioentities) {
+					write(entity);
+				}
+			}
+		}
+		finally {
+			end();
+		}
+	}
+	
 	/**
 	 * Write a full GAF.
 	 * 
 	 * @param bioentities
 	 */
-	public void write(Iterable<Bioentity> bioentities) {
+	public void write(Collection<Bioentity> bioentities) {
 		try {
-			writeHeader();
+			writeHeader(bioentities);
 			if (bioentities != null) {
 				for (Bioentity entity: bioentities) {
 					write(entity);
@@ -47,27 +63,38 @@ public class GpiWriter {
 
 	/**
 	 * Write a header of a GPI.
+	 * @param bioentities
 	 */
-	public void writeHeader() {
-		writeHeader(null);
+	public void writeHeader(Collection<Bioentity> bioentities) {
+		writeHeader(null, bioentities);
 	}
 	
 	/**
 	 * Write a header for a GAF, header comments are optional.
 	 * 
 	 * @param comments
+	 * @param bioentities
 	 */
-	public void writeHeader(List<String> comments) {
+	public void writeHeader(List<String> comments, Collection<Bioentity> bioentities) {
 		if (version < 1.2) {
-			print("!gpad-version: 1.1");
+			print("!gpi-version: 1.1");
+			if (bioentities != null && !bioentities.isEmpty()) {
+				Bioentity bioentity = bioentities.iterator().next();
+				if (bioentity != null) {
+					String namespace = bioentity.getDb();
+					nl();
+					print("!namespace: "+namespace);
+					
+				}
+			}
 		}
 		else {
-			print("!gpad-version: 1.2"); //TODO use a number format to write the actual format version
+			print("!gpi-version: 1.2"); //TODO use a number format to write the actual format version
 		}
 		nl();
 		if (comments != null && !comments.isEmpty()) {
 			for (String comment : comments) {
-				print("! "+comment);
+				print("!"+comment);
 				nl();
 			}
 		}

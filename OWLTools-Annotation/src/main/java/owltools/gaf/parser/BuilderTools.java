@@ -253,7 +253,10 @@ public class BuilderTools {
 		if (taxonRelPair != null) {
 			String taxId = "taxon:"+removePrefix(taxonRelPair.getLeft(), ':');
 			String rel = taxonRelPair.getRight();
-			return rel+"("+taxId+")";
+			if (rel != null) {
+				return rel+"("+taxId+")";
+			}
+			return taxId;
 		}
 		return null;
 	}

@@ -59,15 +59,15 @@ public class GpadWriter {
 	 */
 	public void writeHeader(List<String> comments) {
 		if (version < 1.2) {
-			print("!gpad-version: 1.1");
+			print("!gpa-version: 1.1");
 		}
 		else {
-			print("!gpad-version: 1.2"); //TODO use a number format to write the actual format version
+			print("!gpa-version: 1.2"); //TODO use a number format to write the actual format version
 		}
 		nl();
 		if (comments != null && !comments.isEmpty()) {
 			for (String comment : comments) {
-				print("! "+comment);
+				print("!"+comment);
 				nl();
 			}
 		}
@@ -82,17 +82,32 @@ public class GpadWriter {
 		if (ann == null) {
 			return;
 		}
+		String db;
+		String localId;
 		final Bioentity bioentity = ann.getBioentityObject();
 		if (bioentity == null) {
-			return;
+			String bioentityId = ann.getBioentity();
+			if(bioentityId == null) {
+				return;
+			}
+			String[] tokens = StringUtils.split(bioentityId, ":", 2);
+			if (tokens.length != 2) {
+				return;
+			}
+			db = tokens[0];
+			localId = tokens[1];
+		}
+		else {
+			db = bioentity.getDb();
+			localId = bioentity.getLocalId();
 		}
 		
 		// c1 DB required
-		print(bioentity.getDb());
+		print(db);
 		sep();
 		
 		// c2 DB_Object_ID required
-		print(bioentity.getLocalId());
+		print(localId);
 		sep();
 		
 		// c3 Qualifier required

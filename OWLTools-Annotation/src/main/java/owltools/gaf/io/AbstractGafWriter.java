@@ -67,6 +67,9 @@ public abstract class AbstractGafWriter  {
 			return;
 		}
 		Bioentity e = ann.getBioentityObject();
+		if (e == null) {
+			return;
+		}
 		// c1
 		printSingle(e.getDb());
 		sep();

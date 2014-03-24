@@ -8,7 +8,7 @@ public class GpadParser extends AbstractAnnotationFileParser {
 	private static final Logger LOG = Logger.getLogger(GpadParser.class);
 
 	private static final String COMMENT_PREFIX = "!";
-	private static final String VERSION_PREFIX = "gpad-version:";
+	private static final String VERSION_PREFIX = COMMENT_PREFIX+"gpa-version:";
 	private static final double DEFAULT_VERSION = 1.1d;
 	private static final int EXPECTED_COLUMNS = 12;
 	
@@ -101,12 +101,17 @@ public class GpadParser extends AbstractAnnotationFileParser {
 
 	@Override
 	protected boolean isFormatDeclaration(String line) {
-		return line.startsWith(COMMENT_PREFIX+VERSION_PREFIX);
+		return line.startsWith(VERSION_PREFIX);
 	}
 	
 	@Override
+	protected boolean isHeaderMetaData(String line) {
+		return isFormatDeclaration(line);
+	}
+
+	@Override
 	protected double parseVersion(String line) {
-		String versionString = line.substring(COMMENT_PREFIX.length()+VERSION_PREFIX.length());
+		String versionString = line.substring(VERSION_PREFIX.length());
 		versionString = StringUtils.trimToNull(versionString);
 		if (versionString != null) {
 			try {

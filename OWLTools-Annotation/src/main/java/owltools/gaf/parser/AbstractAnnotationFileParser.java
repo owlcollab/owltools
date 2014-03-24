@@ -32,7 +32,7 @@ abstract class AbstractAnnotationFileParser implements Closeable {
 	
 	private final List<CommentListener> commentListeners;
 
-	private final String commentPrefix;
+	protected final String commentPrefix;
 	private final String formatName;
 	
 	public AbstractAnnotationFileParser(double defaultVersion, String commentPrefix, String formatName) {
@@ -139,8 +139,12 @@ abstract class AbstractAnnotationFileParser implements Closeable {
 				return ReadState.next;
 			}
 			else if (trimmedLine.startsWith(commentPrefix)) {
-				fireComment();
-				handleComment(trimmedLine);
+				if (isHeaderMetaData(trimmedLine)) {
+					handleHeaderMetaData(trimmedLine);
+				}
+				else {
+					fireComment();
+				}
 				return ReadState.next;
 			}
 			else{
@@ -184,13 +188,13 @@ abstract class AbstractAnnotationFileParser implements Closeable {
 	/**
 	 * @param line
 	 */
-	protected void handleComment(final String line) {
-		if(version < 1.0){
-			if (isFormatDeclaration(line)) {
-				version = parseVersion(line);
-			}
+	protected void handleHeaderMetaData(final String line) {
+		if (isFormatDeclaration(line)) {
+			version = parseVersion(line);
 		}
 	}
+	
+	protected abstract boolean isHeaderMetaData(String line);
 	
 	protected abstract int getExpectedColumnCount();
 	
@@ -205,8 +209,11 @@ abstract class AbstractAnnotationFileParser implements Closeable {
 	}
 	
 	private void fireComment() {
-		for(CommentListener listener: commentListeners) {
-			listener.readingComment(this.currentRow, lineNumber);
+		if (!commentListeners.isEmpty()) {
+			String comment = StringUtils.substringAfter(this.currentRow, commentPrefix);
+			for(CommentListener listener: commentListeners) {
+				listener.readingComment(comment, this.currentRow, lineNumber);
+			}
 		}
 	}
 	
