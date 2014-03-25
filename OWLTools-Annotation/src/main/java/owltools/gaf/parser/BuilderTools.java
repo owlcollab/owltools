@@ -3,6 +3,7 @@ package owltools.gaf.parser;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -272,11 +273,52 @@ public class BuilderTools {
 		return defaultString;
 	}
 	
-	public static String buildQualifierString(List<String> qualifierList) {
-		if (qualifierList != null && !qualifierList.isEmpty()) {
-			return StringUtils.join(qualifierList, '|');
+//	public static String buildQualifierString(List<String> qualifierList) {
+//		if (qualifierList != null && !qualifierList.isEmpty()) {
+//			return StringUtils.join(qualifierList, '|');
+//		}
+//		return null;
+//	}
+	
+	public static String buildGafQualifierString(GeneAnnotation ann) {
+		StringBuilder sb = new StringBuilder();
+		if (ann.isNegated()) {
+			sb.append("NOT");
 		}
-		return null;
+		if (ann.isContributesTo()) {
+			if (sb.length() > 0) {
+				sb.append('|');
+			}
+			sb.append("contributes_to");
+		}
+		if (ann.isIntegralTo()) {
+			if (sb.length() > 0) {
+				sb.append('|');
+			}
+			sb.append("integral_to");
+		}
+		return sb.toString();
+	}
+	
+	public static String buildGpadQualifierString(GeneAnnotation ann) {
+		LinkedHashSet<String> qualifiers = new LinkedHashSet<String>();
+		if (ann.isNegated()) {
+			qualifiers.add("NOT");
+		}
+		String rel = ann.getRelation();
+		if (ann.getRelation() != null) {
+			qualifiers.add(rel);
+		}
+		if (ann.isContributesTo()) {
+			qualifiers.add("contributes_to");
+		}
+		if (ann.isIntegralTo()) {
+			qualifiers.add("integral_to");
+		}
+		if (qualifiers.isEmpty()) {
+			return null;	
+		}
+		return StringUtils.join(qualifiers, '|');
 	}
 	
 	public static String buildReferenceIdsString(List<String> referenceIds) {

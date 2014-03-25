@@ -246,9 +246,6 @@ public class GafObjectsBuilder {
 		ga.setIsIntegralTo(qualifierString.contains("integral_to"));
 		ga.setIsNegated(qualifierString.contains("NOT"));
 		
-		List<String> qualifiers = BuilderTools.parseCompositeQualifier(qualifierString);
-		ga.setCompositeQualifiers(qualifiers);
-
 		// handle relation and aspect
 		String relation = null;
 		final String aspect = parser.getAspect();

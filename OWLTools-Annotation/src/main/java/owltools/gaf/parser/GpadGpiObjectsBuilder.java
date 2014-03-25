@@ -220,21 +220,24 @@ public class GpadGpiObjectsBuilder {
 
 		// col 3
 		final String qualifierString = parser.getQualifier();
-		List<String> qualifiers = BuilderTools.parseCompositeQualifier(qualifierString);
+		List<String> allQualifiers = BuilderTools.parseCompositeQualifier(qualifierString);
 		String relation = null;
-		for (String qualifier : qualifiers) {
+		for (String qualifier : allQualifiers) {
 			if (qualifier.equals("NOT")) {
+				// modifier
 				ga.setIsNegated(true);
 			}
 			else if (qualifier.equals("contributes_to")) {
+				// relationship
 				ga.setIsContributesTo(true);
+				relation = qualifier;
 			}
 			else if (qualifier.equals("integral_to")) {
+				// modifier
 				ga.setIsIntegralTo(true);
 			}
 			relation = qualifier;
 		}
-		ga.setCompositeQualifiers(qualifiers);
 		
 		String aspect = "";
 		if (aspectProvider != null) {
@@ -249,6 +252,8 @@ public class GpadGpiObjectsBuilder {
 				}
 			}
 		}
+		ga.setRelation(relation);
+		ga.setAspect(aspect);
 		
 		// col 4
 		ga.setCls(cls);

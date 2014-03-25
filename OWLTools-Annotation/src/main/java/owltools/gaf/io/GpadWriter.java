@@ -85,8 +85,9 @@ public class GpadWriter {
 		String db;
 		String localId;
 		final Bioentity bioentity = ann.getBioentityObject();
-		if (bioentity == null) {
-			String bioentityId = ann.getBioentity();
+		final String isoForm = StringUtils.trimToNull(ann.getGeneProductForm());
+		if (bioentity == null && isoForm == null) {
+			String bioentityId = StringUtils.trimToNull(ann.getBioentity());
 			if(bioentityId == null) {
 				return;
 			}
@@ -98,8 +99,18 @@ public class GpadWriter {
 			localId = tokens[1];
 		}
 		else {
-			db = bioentity.getDb();
-			localId = bioentity.getLocalId();
+			if (isoForm != null) {
+				String[] tokens = StringUtils.split(isoForm, ":", 2);
+				if (tokens.length != 2) {
+					return;
+				}
+				db = tokens[0];
+				localId = tokens[1];
+			}
+			else {
+				db = bioentity.getDb();
+				localId = bioentity.getLocalId();
+			}
 		}
 		
 		// c1 DB required
@@ -111,7 +122,7 @@ public class GpadWriter {
 		sep();
 		
 		// c3 Qualifier required
-		print(BuilderTools.buildQualifierString(ann.getCompositeQualifiers()));
+		print(BuilderTools.buildGpadQualifierString(ann));
 		sep();
 		
 		// c4 GO ID required

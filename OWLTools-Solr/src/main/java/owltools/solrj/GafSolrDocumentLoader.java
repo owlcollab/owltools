@@ -272,15 +272,19 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			addLabelFields(annotation_doc, "evidence_type_closure", ecoIDClosure);
 
 			// Col 4: qualifier generation.
-			List<String> aquals = a.getCompositeQualifiers();
 			String comb_aqual = "";
-			if( aquals != null ){
-				for( String aqual : aquals ){
-					if( aqual != null ){
-						aqual = StringUtils.lowerCase(aqual);
-						annotation_doc.addField("qualifier", aqual);
-						comb_aqual = comb_aqual + aqual;
-					}
+			if( a.hasQualifiers() ){
+				if (a.isNegated()) {
+					comb_aqual = comb_aqual + "not";
+					annotation_doc.addField("qualifier", "not");
+				}
+				if (a.isContributesTo()) {
+					comb_aqual = comb_aqual + "contributes_to";
+					annotation_doc.addField("qualifier", "contributes_to");
+				}
+				if (a.isIntegralTo()) {
+					comb_aqual = comb_aqual + "integral_to";
+					annotation_doc.addField("qualifier", "integral_to");
 				}
 			}
 			

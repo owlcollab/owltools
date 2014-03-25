@@ -4,7 +4,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -33,9 +32,9 @@ public class GeneAnnotation {
 	
 	private String bioentity = DEFAULT_STRING_VALUE; 			// used for c1 and c2
 	private Bioentity bioentityObject = null;					// encompass columns 1-3, 10-12
-	private boolean isContributesTo = false;
-	private boolean isIntegralTo = false;
-	private boolean isNegated = false;
+	private boolean isContributesTo = false;					// derived from c4
+	private boolean isIntegralTo = false;						// derived from c4
+	private boolean isNegated = false;							// derived from c4
 	private String relation = DEFAULT_STRING_VALUE; 			// implicit relation
 	private String cls = DEFAULT_STRING_VALUE; 					// Col. 5
 	private List<String> referenceIds = null;					// Col. 6
@@ -54,9 +53,6 @@ public class GeneAnnotation {
 	// derived from c16
 	private List<List<ExtensionExpression>> extensionExpressionList = null; // col 16
 	
-	// derived from c4
-	private List<String> compositeQualifiers = null;  // col 4
-
 	// set by parser, optional 
 	private transient AnnotationSource annotationSource = null;
 	
@@ -110,7 +106,7 @@ public class GeneAnnotation {
 		}
 			
 		append(symbol, s);
-		append(BuilderTools.buildQualifierString(compositeQualifiers), s);
+		append(BuilderTools.buildGafQualifierString(this), s);
 		append(cls, s);
 		append(BuilderTools.buildReferenceIdsString(referenceIds), s);
 		append(shortEvidence, s);
@@ -152,7 +148,7 @@ public class GeneAnnotation {
 		this.bioentityObject = ann.bioentityObject;
 		this.isContributesTo = ann.isContributesTo;
 		this.isIntegralTo = ann.isIntegralTo;
-		this.compositeQualifiers = copy(ann.compositeQualifiers);
+		this.isNegated = ann.isNegated;
 		this.cls = ann.cls;
 		this.referenceIds = copy(ann.referenceIds);
 		this.shortEvidence = ann.shortEvidence;
@@ -165,6 +161,7 @@ public class GeneAnnotation {
 		this.extensionExpressionList = copyExpr(ann.extensionExpressionList);
 		this.geneProductForm = ann.geneProductForm;
 		this.properties = copy(ann.properties);
+		this.relation = ann.relation;
 		setChanged();
 	}
 	
@@ -328,7 +325,7 @@ public class GeneAnnotation {
 		setChanged();
 	}
 	
-	public boolean getIsContributesTo() {
+	public boolean isContributesTo() {
 		return isContributesTo;
 	}
 
@@ -337,7 +334,7 @@ public class GeneAnnotation {
 		setChanged();
 	}
 
-	public boolean getIsIntegralTo() {
+	public boolean isIntegralTo() {
 		return isIntegralTo;
 	}
 
@@ -364,24 +361,6 @@ public class GeneAnnotation {
 		return withInfoList;
 	}
 	
-	public void setCompositeQualifiers(List<String> compositeQualifiers) {
-		this.compositeQualifiers = compositeQualifiers;
-		setChanged();
-	}
-	
-	/**
-	 * Retrieve the list of qualifiers. Split the composite string, if
-	 * necessary.
-	 * 
-	 * @return list, never null
-	 */
-	public List<String> getCompositeQualifiers() {
-		if (compositeQualifiers != null) {
-			return compositeQualifiers;
-		}
-		return Collections.emptyList();
-	}
-
 	public AnnotationSource getSource() {
 		return annotationSource;
 	}
@@ -401,4 +380,9 @@ public class GeneAnnotation {
 	public List<Pair<String, String>> getProperties() {
 		return properties;
 	}
+	
+	public boolean hasQualifiers() {
+		return isContributesTo || isIntegralTo || isNegated;
+	}
+	
 }

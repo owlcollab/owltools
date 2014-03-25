@@ -83,7 +83,7 @@ public abstract class AbstractGafWriter  {
 		sep();
 		
 		// c4
-		print(ann.getCompositeQualifiers(), '|');
+		printSingle(BuilderTools.buildGafQualifierString(ann));
 		sep();
 		
 		// c5

@@ -468,7 +468,7 @@ public class GafCommandRunner extends CommandRunner {
 		int nG = 0;
 		int sumG = 0;
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
-			if (a.getCompositeQualifiers().size() > 0) {
+			if (a.hasQualifiers()) {
 				continue;
 			}
 			nA++;
@@ -490,7 +490,7 @@ public class GafCommandRunner extends CommandRunner {
 			int maxDist = 0;
 			nG++;
 			for ( GeneAnnotation a : gafdoc.getGeneAnnotations(e.getId())) {
-				if (a.getCompositeQualifiers().size() > 0) {
+				if (a.hasQualifiers()) {
 					continue;
 				}
 				OWLObject c = g.getOWLObjectByIdentifier(a.getCls());

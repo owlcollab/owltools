@@ -515,14 +515,30 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 					source_db_id
 					);
 
-			if (a.getCompositeQualifiers().size() > 0) {
+			if (a.hasQualifiers()) {
 				PrintStream s2 = getPrintStream(GOMySQLTable.association_qualifier.toString());
-				for (String q : a.getCompositeQualifiers()) {
-					dumpRow(s2,
-							id,
-							this.getTermInternalId(q),
-							null
-							);
+				if (a.hasQualifiers()) {
+					if (a.isNegated()) {
+						dumpRow(s2,
+								id,
+								this.getTermInternalId("NOT"),
+								null
+								);
+					}
+					if (a.isContributesTo()) {
+						dumpRow(s2,
+								id,
+								this.getTermInternalId("contributes_to"),
+								null
+								);
+					}
+					if (a.isIntegralTo()) {
+						dumpRow(s2,
+								id,
+								this.getTermInternalId("integral_to"),
+								null
+								);
+					}
 				}
 			}
 
