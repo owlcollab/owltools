@@ -462,6 +462,12 @@ public abstract class AbstractOwlSim implements OwlSim {
 		LOG.info(result);
 		results.add(result);
 	}
+	
+	public List<EnrichmentResult> calculateAllByAllEnrichment() throws MathException, UnknownOWLClassException {
+		OWLClass thing = this.getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLThing();
+		return calculateAllByAllEnrichment(thing, thing, thing);
+	}
+
 
 	/**
 	 * @param populationClass
@@ -510,9 +516,51 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		LOG.info("enrichment completed");
 		// Collections.sort(results);
+		results = filterEnrichmentResults(results);
 		return results;
 	}
 	
+	public List<EnrichmentResult> filterEnrichmentResults(List<EnrichmentResult> resultsIn) {
+		// assume sorted by p-value
+		LOG.info("Sorting: "+resultsIn.size()+" results");
+		List<EnrichmentResult> resultsOut = new ArrayList<EnrichmentResult>();
+		
+		// map from all sample set classes to all better enriched classes
+		Map<OWLClass,Set<OWLClass>> betters = new HashMap<OWLClass,Set<OWLClass>>();
+		for (int i=0; i<resultsIn.size(); i++) {
+			EnrichmentResult r = resultsIn.get(i);
+			OWLClass sc = r.sampleSetClass;
+			OWLClass ec = r.enrichedClass;
+			//LOG.info(" R: "+r);
+			if (!betters.containsKey(sc)) {
+				betters.put(sc, new HashSet<OWLClass>());
+			}
+			boolean isRedundant = false;
+			
+			// everything that came before will have a higher score;
+			// for the given sample class, find the enriched classes
+			// that are better; if any of these  is more specific than the
+			// current ec under consideration, skip it
+			for (OWLClass bc : betters.get(sc)) {
+				for (Node<OWLClass> bca : getNamedSubsumers(bc)) {
+					//LOG.info("T: "+bca+" of "+bc+" SC="+sc);
+					if (bca.contains(ec)) {
+						isRedundant = true;
+						LOG.info("  Redundant: "+sc+" "+ec+" with:"+bc);
+						break;
+					}
+				}
+				if (isRedundant)
+					break;
+			}
+			if (!isRedundant) {
+				resultsOut.add(r);
+			}
+			betters.get(sc).add(ec);
+		}
+		return resultsOut;
+		
+	}
 	
 	/**
 	 * @param populationClass
