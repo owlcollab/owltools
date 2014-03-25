@@ -12459,3 +12459,9 @@ id: has_attribute
 name: has_attribute
 xref: GOTESTREL:0000001
 
+[Typedef]
+id: involved_in
+name: involved in
+xref: RO:0002331
+holds_over_chain: involved_in part_of
+
