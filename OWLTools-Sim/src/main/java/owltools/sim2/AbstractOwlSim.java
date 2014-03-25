@@ -1002,7 +1002,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		int pctMaxScore = ((int) (s.maxIC * 10000)) / maxMaxIC100;
 		//TODO should this be using maxBMA100?
-		int pctAvgScore = ((int) (s.bmaSymIC * 10000)) / maxMaxIC100;
+		int pctAvgScore = ((int) (s.bmaSymIC * 10000)) / maxBMA100;
 			
 		s.combinedScore = (pctMaxScore + pctAvgScore)/2;
 	}
