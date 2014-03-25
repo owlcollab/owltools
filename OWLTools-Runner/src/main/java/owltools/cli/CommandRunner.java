@@ -4625,6 +4625,9 @@ public class CommandRunner {
 		LineIterator lineIterator = FileUtils.lineIterator(new File(idResource));
 		while (lineIterator.hasNext()) {
 			String line = lineIterator.next();
+			if (line.startsWith("#")) {
+				continue;
+			}
 			addId(line, seeds, objectsByAltId);
 		}
 
