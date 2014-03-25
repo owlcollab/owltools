@@ -1,9 +1,11 @@
 package owltools.gaf.io;
 
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,7 @@ import owltools.gaf.GeneAnnotation;
 /**
  * Write a Gene Annotation File to a given stream or file.
  */
-public class GafWriter extends AbstractGafWriter {
+public class GafWriter extends AbstractGafWriter implements Closeable {
 
 	protected PrintStream stream;
 
@@ -36,7 +38,7 @@ public class GafWriter extends AbstractGafWriter {
 	}
 	
 	public void setStream(File file) {
-		FileOutputStream fos;
+		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(file);
 			this.stream = new PrintStream(new BufferedOutputStream(fos));
@@ -54,7 +56,12 @@ public class GafWriter extends AbstractGafWriter {
 		IOUtils.closeQuietly(stream);
 	}
 
-	
+	@Override
+	public void close() throws IOException {
+		end();
+	}
+
+
 	/**
 	 * Helper class to create a list of all {@link GeneAnnotation} lines,
 	 * excluding any headers.<br>

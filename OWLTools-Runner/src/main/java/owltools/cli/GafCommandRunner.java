@@ -205,11 +205,16 @@ public class GafCommandRunner extends CommandRunner {
 	}
 	
 	@CLIMethod("--write-gaf")
-	public void writeGaf(Opts opts) throws OWLException {
+	public void writeGaf(Opts opts) throws Exception {
 		String ofn = opts.nextOpt();
 		GafWriter gw = new GafWriter();
-		gw.setStream(ofn);
-		gw.write(gafdoc);
+		try {
+			gw.setStream(ofn);
+			gw.write(gafdoc);
+		}
+		finally {
+			IOUtils.closeQuietly(gw);
+		}
 	}
 	
 	@CLIMethod("--gaf-fold-extensions")
