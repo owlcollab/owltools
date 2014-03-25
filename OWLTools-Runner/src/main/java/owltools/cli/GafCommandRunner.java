@@ -22,6 +22,7 @@ import java.util.zip.GZIPOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
@@ -49,15 +50,19 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.Bioentity;
+import owltools.gaf.BioentityDocument;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.eco.EcoMapperFactory;
+import owltools.gaf.eco.SimpleEcoMapper;
 import owltools.gaf.eco.TraversingEcoMapper;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.CompositionalClassPredictor;
 import owltools.gaf.inference.FoldBasedPredictor;
 import owltools.gaf.inference.Prediction;
 import owltools.gaf.io.GafWriter;
+import owltools.gaf.io.GpadWriter;
+import owltools.gaf.io.GpiWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
@@ -71,6 +76,8 @@ import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.owl.mapping.BasicABox;
 import owltools.gaf.parser.GAFParser;
 import owltools.gaf.parser.CommentListener;
+import owltools.gaf.parser.GpadGpiObjectsBuilder;
+import owltools.gaf.parser.GpadGpiObjectsBuilder.AspectProvider;
 import owltools.gaf.parser.LineFilter;
 import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.gaf.parser.ParserListener;
@@ -103,6 +110,7 @@ public class GafCommandRunner extends CommandRunner {
 	private static final Logger LOG = Logger.getLogger(GafCommandRunner.class);
 	
 	public GafDocument gafdoc = null;
+	public BioentityDocument bioentityDocument = null;
 	private GafParserReport parserReport = null;
 	
 	private String gafReportSummaryFile = null;
@@ -1608,4 +1616,124 @@ public class GafCommandRunner extends CommandRunner {
 		return value;
 	}
 
+	@CLIMethod("--gpad-gpi")
+	public void loadGpadGpi(Opts opts) throws Exception {
+		String gpadFileName = null;
+		String gpiFileName = null;
+		String ecoMappingFile = null;
+		
+		AspectProvider aspectProvider = null; // TODO
+		
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-a|--gpad|--gpa"))
+				gpadFileName = opts.nextOpt();
+			else if (opts.nextEq("-i|--gpi")) {
+				gpiFileName = opts.nextOpt();
+			}
+			else if (opts.nextEq("--eco")) {
+				ecoMappingFile = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		if (gpadFileName == null) {
+			System.err.println("ERROR: No gpad file specified.");
+			exit(-1);
+			return;
+		}
+		if (gpiFileName == null) {
+			System.err.println("ERROR: No gpi file specified.");
+			exit(-1);
+			return;
+		}
+		SimpleEcoMapper ecoMapper;
+		if (ecoMappingFile == null) {
+			ecoMapper = EcoMapperFactory.createSimple();
+		}
+		else {
+			ecoMapper = EcoMapperFactory.createSimple(ecoMappingFile);
+		}
+		GpadGpiObjectsBuilder builder = new GpadGpiObjectsBuilder(ecoMapper);
+		builder.setAspectProvider(aspectProvider);
+		
+		File gpad = new File(gpadFileName).getCanonicalFile();
+		File gpi = new File(gpiFileName).getCanonicalFile();
+		Pair<BioentityDocument,GafDocument> pair = builder.loadGpadGpi(gpad, gpi);
+		gafdoc = pair.getRight();
+		bioentityDocument = pair.getLeft();
+	}
+	
+	@CLIMethod("--write-gpad")
+	public void writeGpad(Opts opts) throws Exception {
+		String outputFileName = null;
+		double version = 1.2;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o|--output")) {
+				outputFileName = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		if (outputFileName == null) {
+			System.err.println("ERROR: No output file specified.");
+			exit(-1);
+			return;
+		}
+		if (gafdoc == null) {
+			System.err.println("ERROR: No annotations loaded.");
+			exit(-1);
+			return;
+		}
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(new File(outputFileName));
+			GpadWriter writer = new GpadWriter(pw, version);
+			writer.write(gafdoc);
+		}
+		finally {
+			IOUtils.closeQuietly(pw);
+		}
+	}
+	
+	@CLIMethod("--write-gpi")
+	public void writeGpi(Opts opts) throws Exception {
+		String outputFileName = null;
+		double version = 1.2;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o|--output")) {
+				outputFileName = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		if (outputFileName == null) {
+			System.err.println("ERROR: No output file specified.");
+			exit(-1);
+			return;
+		}
+		if (bioentityDocument == null && gafdoc == null) {
+			System.err.println("ERROR: No bioentities loaded.");
+			exit(-1);
+			return;
+		}
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(new File(outputFileName));
+			GpiWriter writer = new GpiWriter(pw, version);
+			if (bioentityDocument != null) {
+				writer.write(bioentityDocument);
+			}
+			else {
+				// TODO create proper document with all isoforms used in the annotations
+				writer.write(gafdoc.getBioentities());
+			}
+			
+		}
+		finally {
+			IOUtils.closeQuietly(pw);
+		}
+	}
 }
