@@ -142,6 +142,23 @@ public class OWLHandler {
 		 */
 		r
 	}
+	
+	public class ServerMetadata {
+		OntologySetMetadata ontologySetMetadata;
+		OwlSimMetadata owlSimMetadata;
+		String serverManifest;
+		long totalMemoryInKB;
+		long freeMemoryInKB;
+		long memoryUsedInKB;
+		
+		public void setMemoryUsage() {
+			Runtime rt = Runtime.getRuntime();
+			totalMemoryInKB = rt.totalMemory() / 1024;
+			freeMemoryInKB = rt.freeMemory() / 1024;
+			memoryUsedInKB = (rt.totalMemory() - rt.freeMemory()) / 1024;
+		}
+		
+	}
 
 	public OWLHandler(OWLServer owlserver, OWLGraphWrapper graph,  HttpServletRequest request, HttpServletResponse response) throws IOException {
 		super();
@@ -185,7 +202,7 @@ public class OWLHandler {
 	// COMMANDS
 	// ----------------------------------------
 
-	public void topCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException {
+	public void topCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, UnknownOWLClassException {
 		if (isHelp()) {
 			info("Basic metadata about current ontology"); // TODO - json
 			return;
@@ -193,7 +210,14 @@ public class OWLHandler {
 		OntologySetMetadata osmd = new OntologySetMetadata(this.getOWLOntology());
 		String manifestVersion = VersionInfo.getManifestVersion("owltools-build-timestamp");
 		osmd.serverManifestVersion = manifestVersion == null ? "unknown" : manifestVersion;
-		returnJSON(osmd);
+		ServerMetadata smd = new ServerMetadata();
+		smd.ontologySetMetadata = osmd;
+		smd.setMemoryUsage();
+		smd.serverManifest = osmd.serverManifestVersion;
+//		if (this.getOWLSim() != null) {
+//			smd.owlSimMetadata = this.getOWLSim().getMetadata();
+//		}
+		returnJSON(smd);
 
 	}
 
