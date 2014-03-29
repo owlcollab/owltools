@@ -17,6 +17,7 @@ public class OntologyMetadata {
 	Set<OntologyAnnotation> annotations;
 	
 	int classCount;
+	int namedIndividualCount;
 	int axiomCount;
 	
 	boolean isRoot = false;
@@ -35,6 +36,7 @@ public class OntologyMetadata {
 			importDirectives.add(oid.getIRI().toString());
 		}
 		classCount = ont.getClassesInSignature().size();
+		namedIndividualCount = ont.getIndividualsInSignature().size();
 		axiomCount = ont.getAxiomCount();
 		annotations = new HashSet<OntologyAnnotation>();
 		for (OWLAnnotation ann : ont.getAnnotations()) {
