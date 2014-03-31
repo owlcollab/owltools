@@ -38,6 +38,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.graph.OWLGraphWrapper;
 import owltools.mooncat.ontologymetadata.OntologySetMetadata;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.Direction;
@@ -329,6 +330,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 			throws Exception {
 		Set<OWLClass> atts = getAttributesForElement(i);
 		List<ElementPairScores> matches = findMatches(atts, targetIdSpace);
+		for (ElementPairScores m : matches) {
+			m.i = i;
+		}
+		return matches;
+	}
+	
+	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace, double minSimJPct, double minMaxIC)
+			throws Exception {
+		Set<OWLClass> atts = getAttributesForElement(i);
+		List<ElementPairScores> matches = findMatches(atts, targetIdSpace, minSimJPct, minMaxIC);
 		for (ElementPairScores m : matches) {
 			m.i = i;
 		}
@@ -861,13 +872,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
 //		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
 		OWLDataFactory g = getSourceOntology().getOWLOntologyManager().getOWLDataFactory();
+		OWLGraphWrapper gwrap = new OWLGraphWrapper(getSourceOntology());
 
 		for (OWLClass c : atts) {
 				Double ic;
 				try {
 				//check if sub is an inferred superclass of the current annotated class
-					if (getReasoner().getSuperClasses(c, false).containsEntity(sub) ||
-							getReasoner().getEquivalentClasses(c).contains(sub)) { 
+					//TODO check if i need all of these; this might be expensive and unnecessary
+					if (gwrap.getAncestorsReflexive(c).contains(sub) || 
+					    getReasoner().getSuperClasses(c, false).containsEntity(sub) ||
+							getReasoner().getEquivalentClasses(c).contains(sub))  { 
 						ic = this.getInformationContentForAttribute(c);
 						
 						if (ic == null) { 
