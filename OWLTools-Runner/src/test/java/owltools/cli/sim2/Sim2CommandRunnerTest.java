@@ -42,6 +42,15 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		run("--fsim-find-matches -p "+path("test-sim.properties") + " --set outputFormat TXT -o target/fsim-search.out -q MGI:101757 -t MGI");
 
 	}
+	
+	@Test
+	public void testSearchAll() throws Exception {
+		load("mp.obo");
+		run("--load-instances "+path("mgi-g2p-1000.txt"));
+		run("--load-labels "+path("mgi-labels.txt"));
+		run("--fsim-search-all -p "+path("test-sim.properties") + " --set outputFormat TXT -o target/fsim-search-all.out");
+	}
+
 
 	@Test
 	public void testSimRunnerMouse100WithCache() throws Exception {
@@ -51,8 +60,9 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		//load("Mus_musculus-label.owl");
 		//load("Mus_musculus-label.obo");
 		//run("--fsim-compare-atts");
-		run("--sim-save-lcs-cache -m 3.0 target/lcs-cache"); 
+		run("--sim-save-lcs-cache -m 3.0 --debug-class MP:0000001 target/lcs-cache"); 
 		run("--sim-save-ic-cache target/ic-cache.ttl");
+		run("--sim-save-state target/state.txt");
 
 		//create a variety of sim property files and test here
 		//this one tests that it runs with the default properties
