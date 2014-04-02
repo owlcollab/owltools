@@ -76,16 +76,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public HashMap<OWLClass,StatsPerIndividual> subgraphSummaryStatsPerIndividual = new HashMap<OWLClass,StatsPerIndividual>();
 
 	public SummaryStatistics simStatsPerIndividual = new SummaryStatistics();
-	
+
 	public HashMap<String,SummaryStatistics> metricStatMeans = new HashMap<String,SummaryStatistics>(); 
 	public HashMap<String,SummaryStatistics> metricStatMaxes = new HashMap<String,SummaryStatistics>(); 
 	public HashMap<String,SummaryStatistics> metricStatMins = new HashMap<String,SummaryStatistics>(); 
-	
-	
 
-	
-		
-	
+
+
+
+
+
 	@Override
 	public OWLOntology getSourceOntology() {
 		return getReasoner().getRootOntology();
@@ -96,7 +96,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return reasoner;
 	}
 
-	
+
 	public boolean isNoLookupForLCSCache() {
 		return isNoLookupForLCSCache;
 	}
@@ -104,8 +104,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public void setNoLookupForLCSCache(boolean isNoLookupForLCSCache) {
 		this.isNoLookupForLCSCache = isNoLookupForLCSCache;
 	}
-	
-	
+
+
 
 	public boolean isDisableLCSCache() {
 		return isDisableLCSCache;
@@ -125,7 +125,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		this.simProperties = simProperties;
 	}
 
-	
+
 	public SimStats getSimStats() {
 		return simStats;
 	}
@@ -206,7 +206,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public void setCorpusSize(int size) {
 		corpusSize = size;
 	}
-	
+
 	// Note: inefficient for graphs with multiple parentage, due to
 	// use of unmemoized recursion
 	protected Set<List<OWLClass>> getPaths(OWLClass c, OWLClass d) {
@@ -235,7 +235,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		return paths;
 	}
-	
+
 	protected int getMinimumDistanceToAncestor(OWLClass c, OWLClass d) {
 		int minDist = 0;
 		for (List<OWLClass> path : getPaths(c,d)) {
@@ -245,7 +245,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		return minDist;
 	}
-	
+
 	protected int getMinimumDistanceViaMICA(OWLClass c, OWLClass d) throws UnknownOWLClassException {
 		int minDist = 0;
 		for (OWLClass a : getLowestCommonSubsumerWithIC(c, d).attributeClassSet) {
@@ -255,11 +255,11 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		return minDist;
 	}
-	
+
 	public void getICSimDisj(OWLClass c, OWLClass d) {
-		
+
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getLowestCommonSubsumerWithLinScore(org.semanticweb.owlapi.model.OWLClass, org.semanticweb.owlapi.model.OWLClass)
 	 * 
@@ -274,7 +274,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return sap;
 	}
 
-	
+
 	// may be less performant than direct computation
 	public int getAttributeJaccardSimilarityAsPercent(OWLClass a,
 			OWLClass b) throws UnknownOWLClassException {
@@ -285,7 +285,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 			OWLNamedIndividual j) throws UnknownOWLClassException {
 		return (int) (getElementJaccardSimilarity(i, j) * 100);
 	}
-	
+
 	// may be less performant than direct computation
 	public int getAsymmetricAttributeJaccardSimilarityAsPercent(OWLClass a,
 			OWLClass b) throws UnknownOWLClassException {
@@ -297,7 +297,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 			OWLNamedIndividual j) throws UnknownOWLClassException {
 		return (int) (getAsymmetricElementJaccardSimilarity(i, j) * 100);
 	}
-	
+
 
 	@Override
 	public ElementPairScores getGroupwiseSimilarity(OWLNamedIndividual i, OWLNamedIndividual j) throws Exception {
@@ -309,7 +309,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 				getAsymmetricElementJaccardSimilarity(i, j);
 		ijscores.inverseAsymmetricSimjScore =
 				getAsymmetricElementJaccardSimilarity(j, i);
-		
+
 		// WAS this deprecated function:
 		// ScoreAttributeSetPair bma = this.getSimilarityBestMatchAverage(i, j, Metric.IC_MCS, Direction.A_TO_B);
 		ScoreAttributeSetPair bmaI = this.getSimilarityBestMatchAverageAsym(i, j, Metric.IC_MCS);
@@ -335,7 +335,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		return matches;
 	}
-	
+
 	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace, double minSimJPct, double minMaxIC)
 			throws Exception {
 		Set<OWLClass> atts = getAttributesForElement(i);
@@ -400,7 +400,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 
 	protected abstract void setInformtionContectForAttribute(OWLClass c, Double v);
 	protected abstract void clearInformationContentCache();
-	
+
 	@Override
 	public void setInformationContentFromOntology(OWLOntology o) {
 		OWLOntologyManager mgr = getSourceOntology().getOWLOntologyManager();
@@ -416,15 +416,15 @@ public abstract class AbstractOwlSim implements OwlSim {
 			}
 		}
 	}
-	
+
 	public void saveState(String fileName) throws IOException {
 		LOG.warn("not implemented");
 	}
-	
+
 	public void saveLCSCache(String fileName) throws IOException {
 		saveLCSCache(fileName, null);
 	}
-	
+
 	protected final String prefix = "http://purl.obolibrary.org/obo/";
 	protected String getShortId(OWLClass c) {
 		IRI x = ((OWLClass) c).getIRI();
@@ -439,8 +439,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		return getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClass(IRI.create(prefix + id));
 	}
-	
-	
+
+
 	//
 	// ENRICHMENT
 	//
@@ -473,7 +473,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		LOG.info(result);
 		results.add(result);
 	}
-	
+
 	public List<EnrichmentResult> calculateAllByAllEnrichment() throws MathException, UnknownOWLClassException {
 		OWLClass thing = this.getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLThing();
 		return calculateAllByAllEnrichment(thing, thing, thing);
@@ -530,12 +530,12 @@ public abstract class AbstractOwlSim implements OwlSim {
 		results = filterEnrichmentResults(results);
 		return results;
 	}
-	
+
 	public List<EnrichmentResult> filterEnrichmentResults(List<EnrichmentResult> resultsIn) {
 		// assume sorted by p-value
 		LOG.info("Sorting: "+resultsIn.size()+" results");
 		List<EnrichmentResult> resultsOut = new ArrayList<EnrichmentResult>();
-		
+
 		// map from all sample set classes to all better enriched classes
 		Map<OWLClass,Set<OWLClass>> betters = new HashMap<OWLClass,Set<OWLClass>>();
 		for (int i=0; i<resultsIn.size(); i++) {
@@ -547,7 +547,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 				betters.put(sc, new HashSet<OWLClass>());
 			}
 			boolean isRedundant = false;
-			
+
 			// everything that came before will have a higher score;
 			// for the given sample class, find the enriched classes
 			// that are better; if any of these  is more specific than the
@@ -570,9 +570,9 @@ public abstract class AbstractOwlSim implements OwlSim {
 			betters.get(sc).add(ec);
 		}
 		return resultsOut;
-		
+
 	}
-	
+
 	/**
 	 * @param populationClass
 	 * @param sampleSetClass
@@ -661,7 +661,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		return correctionFactor;
 	}
-	
+
 	/**
 	 * @param c
 	 * @param d
@@ -677,7 +677,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	}
 
 	// PROPS
-	
+
 	protected String getProperty(SimConfigurationProperty p) {
 		if (simProperties == null) {
 			return null;
@@ -707,12 +707,12 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		return Boolean.valueOf(v);
 	}
-	
+
 	public void computeSystemStats() throws UnknownOWLClassException {
 		Set<OWLNamedIndividual> insts = this.getAllElements();
 		LOG.info("Computing system stats for " + insts.size() + " individuals");
 		LOG.info("Creating singular stat scores for all IDspaces");
-				
+
 		Collection<SummaryStatistics> aggregate = new ArrayList<SummaryStatistics>();
 
 		this.overallStats = new SummaryStatistics();
@@ -735,8 +735,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 			}
 		}
 		//		this.aggregateStatsPerIndividual = AggregateSummaryStatistics.aggregate(aggregate);	
-    StatsPerIndividual myStats = new StatsPerIndividual();
-    
+		StatsPerIndividual myStats = new StatsPerIndividual();
+
 		myStats.mean = getSummaryStatisticsForCollection(aggregate,Stat.MEAN);
 		myStats.sum  = getSummaryStatisticsForCollection(aggregate,Stat.SUM);
 		myStats.min  = getSummaryStatisticsForCollection(aggregate,Stat.MIN);
@@ -746,16 +746,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 		this.overallSummaryStatsPerIndividual = myStats;
 		LOG.info("Finished computing overall statsPerIndividual:\n"+this.getSummaryStatistics().toString());
 	}
-	
+
 	public void computeSystemStatsForSubgraph(OWLClass c) throws UnknownOWLClassException {
 		Set<OWLNamedIndividual> insts = this.getAllElements();
 		LOG.info("Computing system stats for subgraph rooted at" + c.toString() +" with "+ insts.size() + " individuals");
-//		LOG.info("Creating singular stat scores for all IDspaces");
-				
+		//		LOG.info("Creating singular stat scores for all IDspaces");
+
 		Collection<SummaryStatistics> aggregate = new ArrayList<SummaryStatistics>();
 
 		SummaryStatistics subgraphStats = new SummaryStatistics();
-		
+
 		for (OWLNamedIndividual i : insts) {			
 			SummaryStatistics statsPerIndividual = computeIndividualStatsForSubgraph(i,c);			
 			//put this individual into the aggregate
@@ -769,7 +769,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 			//String idSpace = i.getIRI().getNamespace();
 			subgraphStats.addValue(statsPerIndividual.getMean());
 		}		
-    StatsPerIndividual myStats = new StatsPerIndividual();
+		StatsPerIndividual myStats = new StatsPerIndividual();
 		myStats.mean = getSummaryStatisticsForCollection(aggregate,Stat.MEAN);
 		myStats.sum  = getSummaryStatisticsForCollection(aggregate,Stat.SUM);
 		myStats.min  = getSummaryStatisticsForCollection(aggregate,Stat.MIN);
@@ -777,7 +777,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		myStats.n  = getSummaryStatisticsForCollection(aggregate,Stat.N);		
 		this.subgraphSummaryStatsPerIndividual.put(c, myStats);
 	}
-	
+
 
 	/**
 	 * This function will take an aggregated collection of Summary Statistics
@@ -809,11 +809,11 @@ public abstract class AbstractOwlSim implements OwlSim {
 		ArrayList<String> vals = new ArrayList();
 		for (SummaryStatistics s : aggregate) {
 			switch (stat) {
-				case MEAN : v= s.getMean(); stats.addValue(s.getMean()); break;
-				case SUM : v=s.getSum(); stats.addValue(s.getSum()); break;
-				case MIN : v=s.getMin(); stats.addValue(s.getMin()); break;
-				case MAX : v=s.getMax(); stats.addValue(s.getMax()); break;
-				case N : v= ((int)s.getN())*1.0; stats.addValue(s.getN()); break;
+			case MEAN : v= s.getMean(); stats.addValue(s.getMean()); break;
+			case SUM : v=s.getSum(); stats.addValue(s.getSum()); break;
+			case MIN : v=s.getMin(); stats.addValue(s.getMin()); break;
+			case MAX : v=s.getMax(); stats.addValue(s.getMax()); break;
+			case N : v= ((int)s.getN())*1.0; stats.addValue(s.getN()); break;
 			};
 			//vals.add(v.toString());
 		};
@@ -821,26 +821,69 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return stats;
 	}
 
-	
+
 	public SummaryStatistics computeIndividualStats(OWLNamedIndividual i) throws UnknownOWLClassException {
 		//LOG.info("Computing individual stats for "+i.toString());
 		return this.computeAttributeSetSimilarityStats(this.getAttributesForElement(i));
 	}
-		
+
 	public SummaryStatistics computeIndividualStatsForSubgraph(OWLNamedIndividual i,OWLClass c) throws UnknownOWLClassException {
 		return this.computeAttributeSetSimilarityStatsForSubgraph(this.getAttributesForElement(i),c);
 	}
-	
+
 	public SummaryStatistics computeAttributeSetSimilarityStats(Set<OWLClass> atts)  {
-		
+
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
-//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
+		//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
 		OWLDataFactory g = getSourceOntology().getOWLOntologyManager().getOWLDataFactory();
 
 		for (OWLClass c : atts) {
-				Double ic;
-				try {
+			Double ic;
+			try {
+				ic = this.getInformationContentForAttribute(c);
+				if (ic == null) { 
+					//If a class hasn't been annotated in the loaded corpus, we will
+					//assume that it is very rare, and assign MaxIC
+					if (g.getOWLClass(c.getIRI()) != null) {
+						ic = this.getSummaryStatistics().max.getMax();
+					} else {
+						throw new UnknownOWLClassException(c); }
+				}
+				if (ic.isInfinite() || ic.isNaN()) {
+					//If a class hasn't been annotated in the loaded corpus, we will
+					//assume that it is very rare, and assign MaxIC
+					//a different option would be to skip adding this value, 
+					//but i'm not sure that's wise
+					ic = this.getSummaryStatistics().max.getMax();
+				}
+				//LOG.info("IC for "+c.toString()+"is: "+ic);
+				statsPerAttSet.addValue(ic);	
+
+			} catch (UnknownOWLClassException e) {
+				//This is an extra catch here, but really it should be caught upstream.
+				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+				continue;
+			}
+		}
+		return statsPerAttSet;
+	}	
+
+	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(Set<OWLClass> atts, OWLClass sub)  {
+		SummaryStatistics statsPerAttSet = new SummaryStatistics();
+		//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
+		OWLDataFactory g = getSourceOntology().getOWLOntologyManager().getOWLDataFactory();
+		OWLGraphWrapper gwrap = new OWLGraphWrapper(getSourceOntology());
+
+		for (OWLClass c : atts) {
+			Double ic;
+			try {
+				//check if sub is an inferred superclass of the current annotated class
+				//TODO check if i need all of these; this might be expensive and unnecessary
+				if (gwrap.getAncestorsReflexive(c).contains(sub) || 
+						getReasoner().getSuperClasses(c, false).containsEntity(sub) ||
+						getReasoner().getEquivalentClasses(c).contains(sub))  { 
 					ic = this.getInformationContentForAttribute(c);
+
 					if (ic == null) { 
 						//If a class hasn't been annotated in the loaded corpus, we will
 						//assume that it is very rare, and assign MaxIC
@@ -848,97 +891,54 @@ public abstract class AbstractOwlSim implements OwlSim {
 							ic = this.getSummaryStatistics().max.getMax();
 						} else {
 							throw new UnknownOWLClassException(c); }
-						}
+					}
+
 					if (ic.isInfinite() || ic.isNaN()) {
 						//If a class hasn't been annotated in the loaded corpus, we will
 						//assume that it is very rare, and assign MaxIC
-						//a different option would be to skip adding this value, 
-						//but i'm not sure that's wise
 						ic = this.getSummaryStatistics().max.getMax();
 					}
 					//LOG.info("IC for "+c.toString()+"is: "+ic);
 					statsPerAttSet.addValue(ic);	
-
-				} catch (UnknownOWLClassException e) {
-					//This is an extra catch here, but really it should be caught upstream.
-					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
-					continue;
+				} else {
+					//LOG.info("tossing "+c.toString()+"; not a subclass of "+sub.toString());
 				}
+			} catch (UnknownOWLClassException e) {
+				//This is an extra catch here, but really it should be caught upstream.
+				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+				continue;
+			}
 		}
 		return statsPerAttSet;
 	}	
-	
-	public SummaryStatistics computeAttributeSetSimilarityStatsForSubgraph(Set<OWLClass> atts, OWLClass sub)  {
-		SummaryStatistics statsPerAttSet = new SummaryStatistics();
-//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
-		OWLDataFactory g = getSourceOntology().getOWLOntologyManager().getOWLDataFactory();
-		OWLGraphWrapper gwrap = new OWLGraphWrapper(getSourceOntology());
 
-		for (OWLClass c : atts) {
-				Double ic;
-				try {
-				//check if sub is an inferred superclass of the current annotated class
-					//TODO check if i need all of these; this might be expensive and unnecessary
-					if (gwrap.getAncestorsReflexive(c).contains(sub) || 
-					    getReasoner().getSuperClasses(c, false).containsEntity(sub) ||
-							getReasoner().getEquivalentClasses(c).contains(sub))  { 
-						ic = this.getInformationContentForAttribute(c);
-						
-						if (ic == null) { 
-							//If a class hasn't been annotated in the loaded corpus, we will
-							//assume that it is very rare, and assign MaxIC
-							if (g.getOWLClass(c.getIRI()) != null) {
-								ic = this.getSummaryStatistics().max.getMax();
-							} else {
-								throw new UnknownOWLClassException(c); }
-							}
 
-						if (ic.isInfinite() || ic.isNaN()) {
-							//If a class hasn't been annotated in the loaded corpus, we will
-							//assume that it is very rare, and assign MaxIC
-							ic = this.getSummaryStatistics().max.getMax();
-						}
-						//LOG.info("IC for "+c.toString()+"is: "+ic);
-						statsPerAttSet.addValue(ic);	
-					} else {
-						//LOG.info("tossing "+c.toString()+"; not a subclass of "+sub.toString());
-					}
-				} catch (UnknownOWLClassException e) {
-					//This is an extra catch here, but really it should be caught upstream.
-					LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
-					continue;
-				}
-		}
-		return statsPerAttSet;
-	}	
-	
-	
 	public StatisticalSummaryValues getSystemStats() {
-//		return this.aggregateStatsPerIndividual;
+		//		return this.aggregateStatsPerIndividual;
 		return this.overallSummaryStatsPerIndividual.aggregate;
 	}
-	
+
 	public StatsPerIndividual getSummaryStatistics() {
 		return this.overallSummaryStatsPerIndividual;
 	}
-	
+
 	public StatsPerIndividual getSummaryStatistics(OWLClass c) {
 		return this.subgraphSummaryStatsPerIndividual.get(c);
 	}
-	
+
 	public SummaryStatistics getSimStatistics() {
 		SummaryStatistics s = new SummaryStatistics();
 		//for each metric, we need the min/max/average
-				
+
 		return s;
 	}
-	
+
 	public SummaryStatistics computeIndividualSimilarityStats(OWLNamedIndividual i) throws UnknownOWLClassException {
 		SummaryStatistics s = new SummaryStatistics();
 
 		return s;
 	}
-	
+
 	public HashMap<String,SummaryStatistics> getMetricStats(Stat stat) {
 		HashMap<String,SummaryStatistics> s = new HashMap<String,SummaryStatistics>();
 		switch(stat) {
@@ -952,11 +952,11 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public double calculateOverallAnnotationSufficiencyForIndividual(OWLNamedIndividual i) throws UnknownOWLClassException {
 		return calculateOverallAnnotationSufficiencyForAttributeSet(this.getAttributesForElement(i));
 	}	
-	
+
 	public double calculateSubgraphAnnotationSufficiencyForIndividual(OWLNamedIndividual i, OWLClass c) throws UnknownOWLClassException {
 		return calculateSubgraphAnnotationSufficiencyForAttributeSet(this.getAttributesForElement(i), c);
 	}	
-	
+
 	public double calculateOverallAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts) throws UnknownOWLClassException {
 		SummaryStatistics stats = computeAttributeSetSimilarityStats(atts);
 		if ((this.getSummaryStatistics() == null) || Double.isNaN(this.getSummaryStatistics().mean.getMean())) {
@@ -977,8 +977,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 		LOG.info("Overall mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+overall_score);
 		return overall_score;
 	}
-	
-	
+
+
 	public double calculateSubgraphAnnotationSufficiencyForAttributeSet(Set<OWLClass> atts, OWLClass c) throws UnknownOWLClassException {
 		SummaryStatistics stats = computeAttributeSetSimilarityStatsForSubgraph(atts,c);
 		//TODO: compute statsPerIndividual for this subgraph
@@ -1007,7 +1007,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		LOG.info(getShortId(c)+" n: "+stats.getN()+" mean: "+mean_score + " max: "+max_score + " sum:"+sum_score + " combined:"+score);
 		return score;
 	}
-	
+
 	public void calculateCombinedScore(ElementPairScores s, double maxMaxIC, double maxBMA) {
 		int maxMaxIC100 = (int)(maxMaxIC * 100);
 		int maxBMA100 = (int)(maxBMA * 100);
@@ -1017,16 +1017,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 		int pctMaxScore = ((int) (s.maxIC * 10000)) / maxMaxIC100;
 		//TODO should this be using maxBMA100?
 		int pctAvgScore = ((int) (s.bmaSymIC * 10000)) / maxBMA100;
-			
+
 		s.combinedScore = (pctMaxScore + pctAvgScore)/2;
 	}
 
-	
+
 	public OwlSimMetadata getMetadata() {
 		OwlSimMetadata md = new OwlSimMetadata();
 		md.ontologySet = new OntologySetMetadata(this.getSourceOntology());
 		md.individualCount = getAllElements().size();
-		
+
 		return md;
 	}
 }
