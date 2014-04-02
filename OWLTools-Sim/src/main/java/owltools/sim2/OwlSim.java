@@ -993,7 +993,8 @@ public interface OwlSim {
 	 * @param enrichmentConfig
 	 */
 	public void setEnrichmentConfig(EnrichmentConfig enrichmentConfig);
-
+	
+	
 	/**
 	 * For every c &in; sample set, test c against all classes &in; enriched class set.
 	 * 
@@ -1012,6 +1013,13 @@ public interface OwlSim {
 			OWLClass populationClass, OWLClass pc1, OWLClass pc2)
 					throws MathException, UnknownOWLClassException;
 
+	/**
+	 * @return
+	 * @throws MathException
+	 * @throws UnknownOWLClassException
+	 */
+	public List<EnrichmentResult> calculateAllByAllEnrichment()
+	throws MathException, UnknownOWLClassException;
 
 	/**
 	 * 
@@ -1137,6 +1145,8 @@ public interface OwlSim {
 			double bmaAsymIC);
 
 	public OwlSimMetadata getMetadata();
+
+	
 }
 
 
