@@ -7,11 +7,15 @@ import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -19,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
  * Basic methods for handling multiple {@link OWLOntology} objects as one graph.
@@ -45,6 +50,16 @@ public class OWLGraphWrapperBasic {
 		sourceOntology = manager.createOntology(IRI.create(iri));
 	}
 
+	private void addCommentToOntology(OWLOntology ont, String cmt) {
+		OWLDataFactory df = getDataFactory();
+		OWLAnnotationProperty p = 
+				df.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_COMMENT.getIRI());
+		OWLLiteral v = df.getOWLLiteral(cmt);
+		OWLAnnotation ann = df.getOWLAnnotation(p, v);
+		AddOntologyAnnotation addAnn = 
+				new AddOntologyAnnotation(ont, ann);
+		getManager().applyChange(addAnn);
+	}
 	/**
 	 * adds an imports declaration between the source ontology and extOnt
 	 * 
@@ -69,6 +84,7 @@ public class OWLGraphWrapperBasic {
 		for (OWLImportsDeclaration oid: extOnt.getImportsDeclarations()) {
 			manager.applyChange(new AddImport(sourceOntology, oid));
 		}
+		addCommentToOntology(sourceOntology, "Includes "+extOnt);
 	}
 
 	public void mergeOntology(OWLOntology extOnt, boolean isRemoveFromSupportList) throws OWLOntologyCreationException {
@@ -204,7 +220,11 @@ public class OWLGraphWrapperBasic {
 		for (OWLOntology o : imports) {
 			if (o.equals(sourceOntology))
 				continue;
-			LOG.info("Adding "+o.getAxioms().size()+" from "+o);
+			
+			String comment = "Includes "+o;
+			LOG.info(comment);
+			addCommentToOntology(sourceOntology, comment);
+			
 			manager.addAxioms(sourceOntology, o.getAxioms());
 		}
 		Set<OWLImportsDeclaration> oids = sourceOntology.getImportsDeclarations();
@@ -213,6 +233,8 @@ public class OWLGraphWrapperBasic {
 			getManager().applyChange(ri);
 		}
 	}
+	
+
 
 
 	/**
