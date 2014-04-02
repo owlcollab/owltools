@@ -776,6 +776,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		myStats.max  = getSummaryStatisticsForCollection(aggregate,Stat.MAX);
 		myStats.n  = getSummaryStatisticsForCollection(aggregate,Stat.N);		
 		this.subgraphSummaryStatsPerIndividual.put(c, myStats);
+		LOG.info("Finished omputing system stats for subgraph rooted at" + c.toString());
 	}
 
 
