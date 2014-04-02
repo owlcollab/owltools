@@ -1,8 +1,10 @@
 package owltools.mooncat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -15,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -102,15 +105,23 @@ public class TransformationUtils {
 			qmap = new HashMap<OWLClass, OWLClass>();
 		OWLOntologyManager mgr = srcOntology.getOWLOntologyManager();
 		OWLDataFactory df = mgr.getOWLDataFactory();
+		
+		String plabel = "";
+		for (OWLAnnotation ann : p.getAnnotations(srcOntology, df.getRDFSLabel())) {
+			plabel = ((OWLLiteral) ann.getValue()).getLiteral();
+		}
 		for (OWLClass filler : srcOntology.getClassesInSignature(true)) {
 			IRI iri = getSkolemIRI(filler, p);
 			OWLClass c = df.getOWLClass(iri);
 			OWLObjectSomeValuesFrom svf = df.getOWLObjectSomeValuesFrom(p, filler);
 			mgr.addAxiom(tgtOntology, df.getOWLEquivalentClassesAxiom(c, svf));
 			qmap.put(filler, c);
-			if (isAddLabels) {// TODO - rewrite
+			if (isAddLabels) {
 				for (OWLAnnotation ann : filler.getAnnotations(srcOntology, df.getRDFSLabel())) {
-					mgr.addAxiom(tgtOntology, df.getOWLAnnotationAssertionAxiom(c.getIRI(), ann));
+					String label = ((OWLLiteral) ann.getValue()).getLiteral();
+					mgr.addAxiom(tgtOntology, df.getOWLAnnotationAssertionAxiom(ann.getProperty(),
+							c.getIRI(), 
+							df.getOWLLiteral(plabel +" "+label)));
 				}
 
 			}
@@ -128,9 +139,9 @@ public class TransformationUtils {
 	//	}
 
 	protected static IRI getSkolemIRI(OWLEntity... objsArr) {
-		return getSkolemIRI(new HashSet<OWLEntity>(Arrays.asList(objsArr)));
+		return getSkolemIRI(new ArrayList<OWLEntity>(Arrays.asList(objsArr)));
 	}
-	protected static IRI getSkolemIRI(Set<OWLEntity> objs) {
+	protected static IRI getSkolemIRI(List<OWLEntity> objs) {
 		// 
 		IRI iri;
 		StringBuffer sb = new StringBuffer();
