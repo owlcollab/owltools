@@ -1,7 +1,5 @@
 package owltools.sim2;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,16 +12,13 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
-import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummaryValues;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
-import org.semanticweb.elk.reasoner.saturation.conclusions.ForwardLink.ThisBackwardLinkRule;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -38,15 +33,10 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.graph.OWLGraphWrapper;
 import owltools.mooncat.ontologymetadata.OntologySetMetadata;
-import owltools.sim2.OwlSim.ScoreAttributeSetPair;
-import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
-import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.scores.ElementPairScores;
-import owltools.util.ClassExpressionPair;
 
 
 public abstract class AbstractOwlSim implements OwlSim {
@@ -873,15 +863,13 @@ public abstract class AbstractOwlSim implements OwlSim {
 		SummaryStatistics statsPerAttSet = new SummaryStatistics();
 		//		Set<OWLClass> allClasses = getSourceOntology().getClassesInSignature(true);
 		OWLDataFactory g = getSourceOntology().getOWLOntologyManager().getOWLDataFactory();
-		OWLGraphWrapper gwrap = new OWLGraphWrapper(getSourceOntology());
 
 		for (OWLClass c : atts) {
 			Double ic;
 			try {
 				//check if sub is an inferred superclass of the current annotated class
 				//TODO check if i need all of these; this might be expensive and unnecessary
-				if (gwrap.getAncestorsReflexive(c).contains(sub) || 
-						getReasoner().getSuperClasses(c, false).containsEntity(sub) ||
+				if (getReasoner().getSuperClasses(c, false).containsEntity(sub) ||
 						getReasoner().getEquivalentClasses(c).contains(sub))  { 
 					ic = this.getInformationContentForAttribute(c);
 
