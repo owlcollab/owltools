@@ -602,6 +602,7 @@ public class GafCommandRunner extends CommandRunner {
 		opts.info("[-s SUBSET-NAME] [--idfile FILE] [-w GAF-OUTPUT]", "Maps annotations in a GAF to an ontology subset, e.g. goslim_pombe");
 		String subsetId = null;
 		String ofn = null;
+		String uofn = null;
 		Set<OWLObject> subsetObjs = new HashSet<OWLObject>();
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-s|--subset")) {
@@ -633,6 +634,10 @@ public class GafCommandRunner extends CommandRunner {
 				opts.info("FILENAME", "writes mapped GAF here");
 				ofn = opts.nextOpt();
 			}
+			else if (opts.nextEq("-u|--write-unmapped-gaf")) {
+				opts.info("FILENAME", "writes unmapped associations as GAF to this file");
+				uofn = opts.nextOpt();
+			}
 			else {
 				break;
 			}
@@ -656,12 +661,18 @@ public class GafCommandRunner extends CommandRunner {
 		LOG.info("Annotations: "+gafdoc.getGeneAnnotations().size());
 		Set<String> unmatchedIds = new HashSet<String>();
 		List<GeneAnnotation> mappedAnns = new ArrayList<GeneAnnotation>();
-		int n = 0;
+		int nmapped = 0;
 		gafdoc.addComment("Number of annotation in input set: "+gafdoc.getGeneAnnotations().size());
+		
+		LOG.info("iterating through all annotations");
+		List<GeneAnnotation> unmappedAnns = new ArrayList<GeneAnnotation>();
+		int tp = 0;
+		int num = 0;
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
+			num++;
 			OWLClass c = g.getOWLClassByIdentifier(a.getCls());
-			if (ssm.containsKey(c)) {
-				n++;
+			if (ssm.containsKey(c) && ssm.get(c).size() > 0) {
+				nmapped++;
 				Set<OWLObject> mapped = ssm.get(c);
 				LOG.debug("Mapping : "+c+" ---> "+mapped);
 				for (OWLObject mc : mapped) {
@@ -669,15 +680,33 @@ public class GafCommandRunner extends CommandRunner {
 					a2.setCls(g.getIdentifier(mc));
 					mappedAnns.add(a2);
 				}
+				tp += mapped.size(); 
+			}
+			else {
+				System.out.println("UNMAPPED: "+a);
+				unmappedAnns.add(a);
 			}
 		}
-		gafdoc.addComment("Number of annotations rewritten: "+n);
+		LOG.info("# annotations mapped: "+nmapped);
+		LOG.info("# annotations in new set: "+mappedAnns.size());
+		LOG.info("avg mappings / ann: "+tp / (float)num);
+		LOG.info("avg mappings / mapped ann: "+tp / (float)nmapped);
+		LOG.info("# annotations unmapped: "+unmappedAnns.size());
+		gafdoc.addComment("Number of annotations rewritten: "+nmapped);
 		gafdoc.setGeneAnnotations(mappedAnns);
 		if (ofn != null) {
 			GafWriter gw = new GafWriter();
 			gw.setStream(ofn);
 			gw.write(gafdoc);
 		}
+		if (uofn != null) {
+			GafWriter gw = new GafWriter();
+			gw.setStream(uofn);
+			GafDocument ugd = new GafDocument(null, null);
+			ugd.setGeneAnnotations(unmappedAnns);
+			gw.write(ugd);
+		}
+
 	}
 	
 	private static class GafParserReport {
