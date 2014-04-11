@@ -66,20 +66,33 @@ public abstract class AbstractGafWriter  {
 		if (ann == null) {
 			return;
 		}
+		
+		String db = null;
+		String typeCls = null;
+		String localId = null;
+		String symbol = null;
+		String fullName = null;
+		List<String> synonyms = null;
+		
 		Bioentity e = ann.getBioentityObject();
-		if (e == null) {
-			return;
+		if (e != null) {
+			db = e.getDb();
+			typeCls = e.getTypeCls();
+			localId = e.getLocalId();
+			symbol = e.getSymbol();
+			fullName = e.getFullName();
+			synonyms = e.getSynonyms();
 		}
 		// c1
-		printSingle(e.getDb());
+		printSingle(db);
 		sep();
 		
 		// c2
-		printSingle(e.getLocalId());
+		printSingle(localId);
 		sep();
 		
 		// c3
-		printSingle(e.getSymbol());
+		printSingle(symbol);
 		sep();
 		
 		// c4
@@ -107,15 +120,15 @@ public abstract class AbstractGafWriter  {
 		sep();
 		
 		// c10
-		printSingle(e.getFullName());
+		printSingle(fullName);
 		sep();
 		
 		// c11
-		print(e.getSynonyms(), '|'); 
+		print(synonyms, '|'); 
 		sep();
 		
 		// c12
-		printSingle(e.getTypeCls());
+		printSingle(typeCls);
 		sep();
 		
 		// c13
@@ -141,11 +154,13 @@ public abstract class AbstractGafWriter  {
 	
 	private String createTaxonString(GeneAnnotation ann, Bioentity e) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(StringUtils.replace(e.getNcbiTaxonId(), "NCBITaxon:", "taxon:"));
-		Pair<String, String> actsOnTaxonId = ann.getActsOnTaxonId();
-		if (actsOnTaxonId != null && actsOnTaxonId.getLeft() != null) {
-			String taxId = BuilderTools.removePrefix(actsOnTaxonId.getLeft(), ':');
-			sb.append('|').append("taxon:").append(taxId);
+		if (e != null) {
+			sb.append(StringUtils.replace(e.getNcbiTaxonId(), "NCBITaxon:", "taxon:"));
+			Pair<String, String> actsOnTaxonId = ann.getActsOnTaxonId();
+			if (actsOnTaxonId != null && actsOnTaxonId.getLeft() != null) {
+				String taxId = BuilderTools.removePrefix(actsOnTaxonId.getLeft(), ':');
+				sb.append('|').append("taxon:").append(taxId);
+			}
 		}
 		return sb.toString();
 	}

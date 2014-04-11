@@ -14,12 +14,12 @@ import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.eco.TraversingEcoMapper;
+import owltools.gaf.io.GafWriter.BufferedGafWriter;
 import owltools.gaf.parser.GAFParser;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
@@ -104,11 +104,22 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
 
-		HashSet<AnnotationRuleViolation> set = new HashSet<AnnotationRuleViolation>();
+		Set<AnnotationRuleViolation> set = new HashSet<AnnotationRuleViolation>();
 		
-		String row = a.toString(); // TODO this is bad. Never rely on a toString for validation !!!
+		// for many reasons, we do not store the original line in the annotation.
+		// re-create a GAF like line using a GAF writer.
+		// Do *NOT* use the toString of a GeneAnnotation
+		BufferedGafWriter gafWriter = new BufferedGafWriter();
+		gafWriter.write(a);
+		List<String> lines = gafWriter.getLines();
+		if (lines.size() != 1) {
+			AnnotationRuleViolation v = new AnnotationRuleViolation(PERMANENT_JAVA_ID, "Could not run basic check for annotation.", a);
+			set.add(v);
+			return set;
+		}
+		final String row = lines.get(0);
 		
-		String cols[] = row.split("\\t", -1);
+		final String cols[] = row.split("\\t", -1);
 		//cardinality checks
 		checkCardinality(cols[0],0, "Column 1: DB", row,1,1, set,a);
 		checkCardinality(cols[1], 1,"Column 2: DB Object ID", row,1,1, set,a);
@@ -160,14 +171,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		String[] taxons  = cols[GAFParser.TAXON].split("\\|");
 		checkTaxon(taxons[0], row, set,a);
 		if(taxons.length>1){
-			Pair<String,String> actsOnTaxonId = a.getActsOnTaxonId();
-			if (actsOnTaxonId != null) {
-				checkNcbiTaxon(actsOnTaxonId.getLeft(), row, set,a);
-			}
-			else {
-				AnnotationRuleViolation v= new AnnotationRuleViolation(getRuleId(), "The taxon '" + taxons[1] + "'  could not be parsed into a taxon id in the row: " , a);
-				set.add(v);
-			}
+			checkTaxon(taxons[1], row, set,a);
 		}
 		
 		//check db abbreviations
@@ -198,7 +202,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 
 	
 	
-	private void checkCardinality(String value,int col, String columnName, String row, int min, int max, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
+	private void checkCardinality(String value,int col, String columnName, String row, int min, int max, Set<AnnotationRuleViolation> voilations, GeneAnnotation a){
 
 		//TODO: check white spaces
 		/*if(value != null && value.length() != value.trim().length()){
@@ -237,7 +241,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		}
 	}
 	
-	private void checkWhiteSpaces(String value,int col, String columnName, String row, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
+	private void checkWhiteSpaces(String value,int col, String columnName, String row, Set<AnnotationRuleViolation> voilations, GeneAnnotation a){
 
 		if(col == GAFParser.DB_OBJECT_NAME || col == GAFParser.DB_OBJECT_SYNONYM || col == GAFParser.DB_OBJECT_SYMBOL)
 			return;
@@ -248,15 +252,11 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		}
 	}
 	
-	private void checkTaxon(String value, String row, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
+	private void checkTaxon(String value, String row, Set<AnnotationRuleViolation> voilations, GeneAnnotation a){
 		checkTaxon(value, "taxon", row, voilations, a);
 	}
 	
-	private void checkNcbiTaxon(String value, String row, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
-		checkTaxon(value, "NCBITaxon", row, voilations, a);
-	}
-	
-	private void checkTaxon(String value, String prefix, String row, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
+	private void checkTaxon(String value, String prefix, String row, Set<AnnotationRuleViolation> voilations, GeneAnnotation a){
 		if(!value.startsWith(prefix)){
 			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "The taxon id in the column 13 is of in correct format in the row :" ,a);
 			voilations.add(v);
@@ -273,7 +273,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 	
 	
 	/*
-	private void checkWhiteSpaces(String value, String columnName, HashSet<AnnotationRuleViolation> set, GeneAnnotation a){
+	private void checkWhiteSpaces(String value, String columnName, Set<AnnotationRuleViolation> set, GeneAnnotation a){
 
 		if(value.length() != value.trim().length()){
 			set.add(new AnnotationRuleViolation(getRuleId(), "Spaces are not allowed in the " + columnName+ " column", a));
@@ -281,7 +281,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		
 	}
 	
-	private void checkCardinality(String value, String columnName, HashSet<AnnotationRuleViolation> set, GeneAnnotation a, int min, int max){
+	private void checkCardinality(String value, String columnName, Set<AnnotationRuleViolation> set, GeneAnnotation a, int min, int max){
 
 		if(min>0 && value.length() != value.trim().length()){
 			set.add(new AnnotationRuleViolation(getRuleId(), "Spaces are not allowed in the " + columnName+ " column", a));
