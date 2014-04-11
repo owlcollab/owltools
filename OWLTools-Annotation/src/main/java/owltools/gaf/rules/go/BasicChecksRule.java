@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import owltools.gaf.ExtensionExpression;
@@ -105,7 +106,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 
 		HashSet<AnnotationRuleViolation> set = new HashSet<AnnotationRuleViolation>();
 		
-		String row = a.toString();
+		String row = a.toString(); // TODO this is bad. Never rely on a toString for validation !!!
 		
 		String cols[] = row.split("\\t", -1);
 		//cardinality checks
@@ -159,7 +160,14 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		String[] taxons  = cols[GAFParser.TAXON].split("\\|");
 		checkTaxon(taxons[0], row, set,a);
 		if(taxons.length>1){
-			checkTaxon(taxons[1], row, set,a);
+			Pair<String,String> actsOnTaxonId = a.getActsOnTaxonId();
+			if (actsOnTaxonId != null) {
+				checkNcbiTaxon(actsOnTaxonId.getLeft(), row, set,a);
+			}
+			else {
+				AnnotationRuleViolation v= new AnnotationRuleViolation(getRuleId(), "The taxon '" + taxons[1] + "'  could not be parsed into a taxon id in the row: " , a);
+				set.add(v);
+			}
 		}
 		
 		//check db abbreviations
@@ -241,13 +249,21 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 	}
 	
 	private void checkTaxon(String value, String row, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
-		if(!value.startsWith("taxon")){
+		checkTaxon(value, "taxon", row, voilations, a);
+	}
+	
+	private void checkNcbiTaxon(String value, String row, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
+		checkTaxon(value, "NCBITaxon", row, voilations, a);
+	}
+	
+	private void checkTaxon(String value, String prefix, String row, HashSet<AnnotationRuleViolation> voilations, GeneAnnotation a){
+		if(!value.startsWith(prefix)){
 			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "The taxon id in the column 13 is of in correct format in the row :" ,a);
 			voilations.add(v);
 		}
 		
 		try{
-			String taxon = value.substring("taxon:".length());
+			String taxon = value.substring(prefix.length()+1);
 			Integer.parseInt(taxon);
 		}catch(Exception ex){
 			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "The taxon id in the column 13 is not an integer value :" ,a);

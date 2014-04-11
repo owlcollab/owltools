@@ -62,4 +62,14 @@ public class BasicChecksRuleTest extends AbstractEcoRuleTestHelper {
 		final String message = violation.getMessage();
 		assertTrue(message.contains("The id 'SPCC1682.02c' has no prefix."));
 	}
+	
+	@Test
+	public void testMultipleTaxon() throws Exception {
+		GafDocument gafdoc = loadGaf("rgd_multiple_taxon.gaf");
+		List<GeneAnnotation> validAnnotations = gafdoc.getGeneAnnotations();
+		assertEquals(1, validAnnotations.size());
+		
+		Set<AnnotationRuleViolation> ruleViolations = rule.getRuleViolations(validAnnotations.get(0));
+		assertTrue(ruleViolations.isEmpty());
+	}
 }
