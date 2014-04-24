@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
+import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
@@ -64,6 +65,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import owltools.io.ParserWrapper.OboAndOwlNameProvider;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
@@ -268,7 +270,7 @@ public class AssertInferenceTool {
 		
 		if (dryRun == false) {
 			// write ontology
-			writeOntology(graph.getSourceOntology(), outputFileName, outputFileFormat, useTemp);
+			writeOntology(graph.getSourceOntology(), graph, outputFileName, outputFileFormat, useTemp);
 		}
 		
 	}
@@ -285,7 +287,7 @@ public class AssertInferenceTool {
 				"            Allows multiple supports and catalog xml files");
 	}
 
-	static void writeOntology(OWLOntology ontology, String outputFileName, 
+	static void writeOntology(OWLOntology ontology, OWLGraphWrapper graph, String outputFileName, 
 			String outputFileFormat, boolean useTemp)
 			throws Exception 
 	{
@@ -298,7 +300,7 @@ public class AssertInferenceTool {
 			outputFile = new File(outputFileName);
 		}
 		try {
-			writeOntologyFile(ontology, outputFileFormat, outputFile);
+			writeOntologyFile(ontology, graph, outputFileFormat, outputFile);
 			if (useTemp) {
 				File target = new File(outputFileName);
 				FileUtils.copyFile(outputFile, target);
@@ -312,7 +314,7 @@ public class AssertInferenceTool {
 		}
 	}
 
-	static void writeOntologyFile(OWLOntology ontology, String outputFileFormat, File outputFile) throws Exception {
+	static void writeOntologyFile(OWLOntology ontology, OWLGraphWrapper graph, String outputFileFormat, File outputFile) throws Exception {
 		if ("obo".equals(outputFileFormat)) {
 			BufferedWriter bufferedWriter = null;
 			try {
@@ -320,7 +322,8 @@ public class AssertInferenceTool {
 				OBODoc oboDoc = owl2Obo.convert(ontology);
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
 				bufferedWriter = new BufferedWriter(new FileWriter(outputFile));
-				oboWriter.write(oboDoc, bufferedWriter);
+				NameProvider nameprovider = new OboAndOwlNameProvider(oboDoc, graph);
+				oboWriter.write(oboDoc, bufferedWriter, nameprovider );
 			}
 			finally {
 				IOUtils.closeQuietly(bufferedWriter);
