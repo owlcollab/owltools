@@ -125,6 +125,7 @@ import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import owltools.InferenceBuilder.OWLClassFilter;
 import owltools.cli.tools.CLIMethod;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
@@ -4055,8 +4056,9 @@ public class CommandRunner {
 		if (reportFile != null) {
 			reportWriter = new BufferedWriter(new FileWriter(reportFile));
 		}
+		OWLClassFilter filter = null;
 		try {
-			AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies, checkForPotentialRedundant, reportWriter);
+			AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies, checkForPotentialRedundant, filter, reportWriter);
 		}
 		finally {
 			IOUtils.closeQuietly(reportWriter);

@@ -62,9 +62,10 @@ public class InferenceBuilder{
 	private final OWLReasonerFactory reasonerFactory;
 	private volatile OWLReasoner reasoner = null;
 	private OWLGraphWrapper graph;
+	private final List<OWLClassFilter> filters = new ArrayList<OWLClassFilter>();
 	Set<OWLAxiom> redundantAxioms = new HashSet<OWLAxiom>();
 	List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = new ArrayList<OWLEquivalentClassesAxiom>();
-
+	
 	public InferenceBuilder(OWLGraphWrapper graph){
 		this(graph, new Reasoner.ReasonerFactory(), false);
 	}
@@ -171,6 +172,38 @@ public class InferenceBuilder{
 		}
 	}
 
+	/**
+	 * Filter for relevant OWLClasses during the inference Building process.
+	 */
+	public static interface OWLClassFilter {
+		
+		/**
+		 * Return true, if the inferences are to made for the given
+		 * {@link OWLClass} and {@link OWLOntology}; otherwise false.
+		 * 
+		 * @param cls
+		 * @param ont
+		 * @return boolean
+		 */
+		public boolean useOWLClass(OWLClass cls, OWLOntology ont);
+	}
+	
+	public void addFilter(OWLClassFilter filter) {
+		if (filter != null) {
+			filters.add(filter);
+		}
+	}
+	
+	public void removeFilter(OWLClassFilter filter) {
+		if (filter != null) {
+			filters.remove(filter);
+		}
+	}
+	
+	public void clearFilters() {
+		filters.clear();
+	}
+	
 	public OWLGraphWrapper getOWLGraphWrapper(){
 		return this.graph;
 	}
@@ -258,6 +291,25 @@ public class InferenceBuilder{
 	}
 	
 	/**
+	 * Only create inferences for an {@link OWLClass}, if this method returns true.
+	 * 
+	 * @param cls 
+	 * @param ont
+	 * @return boolean
+	 */
+	protected boolean doInferencesForClass(OWLClass cls, OWLOntology ont) {
+		if (!filters.isEmpty()) {
+			for (OWLClassFilter filter : filters) {
+				boolean use = filter.useOWLClass(cls, ont);
+				if (!use) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	/**
 	 * Thread safe and state-less function to generate the inferences for the given ontology and reasoner.
 	 * 
 	 * @param ontology
@@ -272,7 +324,9 @@ public class InferenceBuilder{
 				
 		logInfo("Finding asserted equivalencies...");
 		for (OWLClass cls : ontology.getClassesInSignature()) {
-
+			if (!doInferencesForClass(cls, ontology)) {
+				continue;
+			}
 			for (OWLClassExpression ec : cls.getEquivalentClasses(ontology)) {
 				//System.out.println(cls+"=EC="+ec);
 				if (alwaysAssertSuperClasses) {
@@ -296,6 +350,9 @@ public class InferenceBuilder{
 		for (OWLClass cls : ontology.getClassesInSignature()) {
 			if (cls.isOWLNothing() || cls.isBottomEntity() || cls.isOWLThing()) {
 				continue; // do not report these
+			}
+			if (!doInferencesForClass(cls, ontology)) {
+				continue;
 			}
 
 			// REPORT INFERRED EQUIVALENCE BETWEEN NAMED CLASSES
@@ -417,6 +474,9 @@ public class InferenceBuilder{
 	{
 		Set<OWLAxiom> redundantAxioms = new HashSet<OWLAxiom>();
 		for (OWLClass cls : ontology.getClassesInSignature()) {
+			if (!doInferencesForClass(cls, ontology)) {
+				continue;
+			}
 			updateRedundant(cls, ontology, redundantAxioms, reasoner, dataFactory);
 		}
 		return redundantAxioms;

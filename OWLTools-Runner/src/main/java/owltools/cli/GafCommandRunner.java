@@ -222,7 +222,7 @@ public class GafCommandRunner extends CommandRunner {
 		opts.info("", "takes a set of pre-loaded annotations and transforms this set such that any annotation with c16 extensions is replaced by a new term. See http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
 		AnnotationExtensionFolder aef = new AnnotationExtensionFolder(g);
 		aef.fold(gafdoc);
-		AssertInferenceTool.assertInferences(g, false, false, false, false, false, false, null);
+		AssertInferenceTool.assertInferences(g, false, false, false, false, false, false, null, null);
 	}
 	
 	@CLIMethod("--gaf-unfold-extensions")

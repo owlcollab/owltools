@@ -57,6 +57,7 @@ import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.InferenceBuilder;
 import owltools.InferenceBuilder.ConsistencyReport;
+import owltools.InferenceBuilder.OWLClassFilter;
 import owltools.InferenceBuilder.PotentialRedundant;
 import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphWrapper;
@@ -91,6 +92,7 @@ public class AssertInferenceTool {
 		String outputFileName = null;
 		String outputFileFormat = null;
 		String reportFile = null;
+		String idFilterPrefix = null;
 		
 		boolean all = false;
 		String idsInputFile = null;
@@ -133,6 +135,9 @@ public class AssertInferenceTool {
 			else if (opts.nextEq("--useIsInferred")) {
 				useIsInferred = true;
 				ignoreNonInferredForRemove = true;
+			}
+			else if (opts.nextEq("--idFilterPrefix")) {
+				idFilterPrefix = opts.nextOpt();
 			}
 			else if (opts.nextEq("--ignoreNonInferredForRemove")) {
 				ignoreNonInferredForRemove = true;
@@ -228,8 +233,21 @@ public class AssertInferenceTool {
 					assertAllInferences(graph, idsInputFile);
 				}else {
 					if (runInferences) {
+						OWLClassFilter filter = null;
+						if (idFilterPrefix != null) {
+							final String prefix = idFilterPrefix;
+							filter = new OWLClassFilter() {
+								
+								@Override
+								public boolean useOWLClass(OWLClass cls, OWLOntology ont) {
+									String id = Owl2Obo.getIdentifierFromObject(cls, ont, null);
+									boolean use = id != null && id.startsWith(prefix);
+									return use;
+								}
+							};
+						}
 						// assert inferences
-						assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant, reportWriter);
+						assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant, filter, reportWriter);
 					}
 					
 					if (verifyExistingInferences) {
@@ -468,6 +486,7 @@ public class AssertInferenceTool {
 	 * @param checkConsistency
 	 * @param useIsInferred 
 	 * @param ignoreNonInferredForRemove
+	 * @param filter
 	 * @param reportWriter (optional)
 	 * @throws InconsistentOntologyException 
 	 * @throws IOException 
@@ -476,16 +495,16 @@ public class AssertInferenceTool {
 	 */
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
 			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove, 
-			BufferedWriter reportWriter) 
+			OWLClassFilter filter, BufferedWriter reportWriter) 
 			throws InconsistentOntologyException, IOException, OWLOntologyCreationException, OWLOntologyStorageException
 	{
-		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true, true, reportWriter);
+		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true, true, filter, reportWriter);
 	}
 	
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
 			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove,
 			boolean checkForNamedClassEquivalencies, boolean checkForPotentialRedundant,
-			BufferedWriter reportWriter) 
+			OWLClassFilter filter, BufferedWriter reportWriter) 
 			throws InconsistentOntologyException, IOException, OWLOntologyCreationException, OWLOntologyStorageException
 	{
 		OWLOntology ontology = graph.getSourceOntology();
@@ -498,6 +517,7 @@ public class AssertInferenceTool {
 		
 		// Inference builder
 		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
+		builder.addFilter(filter);
 		try {
 			logger.info("Start building inferences");
 			// assert inferences
