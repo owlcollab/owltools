@@ -385,4 +385,111 @@ public class BatchModelHandlerTest {
 		assertEquals(proteinId, svf.get(KEY.id));
 		assertEquals(proteinLabel, svf.get(KEY.label));
 	}
+	
+	@Test
+	public void testCreateBlankModelFromGAF() throws Exception {
+		String uid = "1";
+		String intention = "foo";
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.model.name();
+		batch1[0].operation = Operation.generateBlank.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.db = "goa_chicken";
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		final String modelId1 = (String) response1.data.get("id");
+		System.out.println(modelId1);
+		
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.model.name();
+		batch2[0].operation = Operation.generateBlank.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.db = "goa_chicken";
+		
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		final String modelId2 = (String) response2.data.get("id");
+		System.out.println(modelId2);
+		
+		assertNotEquals(modelId1, modelId2);
+		
+		M3Request[] batch3 = new M3Request[1];
+		batch3[0] = new M3Request();
+		batch3[0].entity = Entity.model.name();
+		batch3[0].operation = Operation.generateBlank.getLbl();
+		batch3[0].arguments = new M3Argument();
+		batch3[0].arguments.db = "jcvi";
+		
+		M3BatchResponse response3 = handler.m3Batch(uid, intention, batch3);
+		assertEquals(uid, response3.uid);
+		assertEquals(intention, response3.intention);
+		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
+		final String modelId3 = (String) response3.data.get("id");
+		System.out.println(modelId3);
+		
+		assertNotEquals(modelId1, modelId3);
+		assertNotEquals(modelId2, modelId3);
+	}
+	
+	@Test
+	public void testCreateModelFromGAF() throws Exception {
+		String uid = "1";
+		String intention = "foo";
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.model.name();
+		batch1[0].operation = Operation.generate.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.db = "goa_chicken";
+		batch1[0].arguments.subject = "GO:0004637";
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		final String modelId1 = (String) response1.data.get("id");
+		System.out.println(modelId1);
+		
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.model.name();
+		batch2[0].operation = Operation.generate.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.db = "goa_chicken";
+		batch2[0].arguments.subject = "GO:0005509";
+		
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		final String modelId2 = (String) response2.data.get("id");
+		System.out.println(modelId2);
+		
+		assertNotEquals(modelId1, modelId2);
+		
+		M3Request[] batch3 = new M3Request[1];
+		batch3[0] = new M3Request();
+		batch3[0].entity = Entity.model.name();
+		batch3[0].operation = Operation.generate.getLbl();
+		batch3[0].arguments = new M3Argument();
+		batch3[0].arguments.db = "jcvi";
+		batch3[0].arguments.subject = "GO:0003887";
+		
+		M3BatchResponse response3 = handler.m3Batch(uid, intention, batch3);
+		assertEquals(uid, response3.uid);
+		assertEquals(intention, response3.intention);
+		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
+		final String modelId3 = (String) response3.data.get("id");
+		System.out.println(modelId3);
+		
+		assertNotEquals(modelId1, modelId3);
+		assertNotEquals(modelId2, modelId3);
+	}
 }
