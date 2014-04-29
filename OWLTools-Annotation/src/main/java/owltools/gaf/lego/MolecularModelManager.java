@@ -58,6 +58,7 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
@@ -520,7 +521,18 @@ public class MolecularModelManager {
 		// import additional ontologies via IRI
 		for (IRI importIRI : additionalImports) {
 			OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(importIRI);
-			m.loadOntology(importIRI);
+			// check that the import ontology is available
+			OWLOntology importOntology = m.getOntology(importIRI);
+			if (importOntology == null) {
+				// only try to load it, if it isn't already loaded
+				try {
+					m.loadOntology(importIRI);
+				} catch (OWLOntologyDocumentAlreadyExistsException e) {
+					// ignore
+				} catch (OWLOntologyAlreadyExistsException e) {
+					// ignore
+				}
+			}
 			m.applyChange(new AddImport(ont, importDeclaration));
 		}
 		
