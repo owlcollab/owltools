@@ -9,7 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 public class Bioentity{
 
 	private String db; 					// GAF-Col  1	GPI namespace header?
-	private String id; 					// GAF-Col  2	GPI-Col 1
+	private String id; 					// GAF-Col  1+2	GPI-Col 1
 	private String symbol; 				// GAF-Col  3	GPI-Col 2
 	private String fullName; 			// GAF-Col 10	GPI-Col 3
 	private List<String> synonyms; 		// GAF-Col 11	GPI-Col 4
