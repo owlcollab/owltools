@@ -83,7 +83,9 @@ public class GeneAnnotation {
 		
 		if(this.bioentityObject!= null){
 			taxon = bioentityObject.getNcbiTaxonId();
-			taxon = "taxon:" + BuilderTools.removePrefix(taxon, ':');
+			if (taxon != null) {
+				taxon = "taxon:" + BuilderTools.removePrefix(taxon, ':');
+			}
 
 			dbObjectName = this.bioentityObject.getFullName();
 			dbObjectType = this.bioentityObject.getTypeCls();

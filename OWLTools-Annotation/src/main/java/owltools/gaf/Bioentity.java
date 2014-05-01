@@ -1,6 +1,7 @@
 package owltools.gaf;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -113,6 +114,9 @@ public class Bioentity{
 	 * Copy out all of our collected synonyms as an List of Strings.
 	 */
 	public List<String> getSynonyms() {
+		if (this.synonyms == null) {
+			return Collections.emptyList();
+		}
 		return new ArrayList<String>(this.synonyms);
 	}
 
