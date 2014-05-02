@@ -385,15 +385,44 @@ public class OWLGraphEdge {
 	
 	@Override
 	public boolean equals(Object e) {
-		if(e == null || !(e instanceof OWLGraphEdge))
-			return false;
-		
-		OWLGraphEdge other = (OWLGraphEdge) e;
-		
-		return isEq(other.getSource(),getSource()) &&
-				isEq(other.getTarget(),getTarget()) &&
-				isEq(quantifiedPropertyList,other.getQuantifiedPropertyList()) &&
-                isEq(ontology,other.getOntology());
+		return this.equals(e, false);
+	}
+	
+	/**
+	 * Equals method ignoring the {@code OWLOntology} the {@code OWLGraphEdge}s compared 
+	 * belong to, as opposed to the {@link #equals()} method, that takes into account 
+	 * the ontologies for comparison.
+	 * 
+	 * @param e    the reference object with which to compare.
+	 * @return     {@code true} if this edge is structurally equivalent to {@code e}, 
+	 *             without taking into account the {@code OWLOntology} they belong to.
+	 */
+	public boolean equalsIgnoreOntology(Object e) {
+	    return this.equals(e, true);
 	}
 
+	/**
+	 * Equals method allowing to define whether the {@link #ontology} attribute 
+	 * should be taken into account for comparison. Other attributes used in any case 
+	 * are {@link #source}, {@link #target}, and {@link #quantifiedPropertyList}.
+	 * 
+	 * @param e                the reference object with which to compare.
+	 * @param ignoreOntology   A {@code boolean} defining whether the ontologies 
+	 *                         of the edges should be used for comparison. If {@code true}, 
+	 *                         they will not be taken into account. 
+	 * @return                 {@code true} if this edge is structurally equivalent 
+	 *                         to {@code e}, with or without taking into account 
+	 *                         the {@code OWLOntology} they belong to.
+	 */
+	private boolean equals(Object e, boolean ignoreOntology) {
+	    if(e == null || !(e instanceof OWLGraphEdge))
+            return false;
+        
+        OWLGraphEdge other = (OWLGraphEdge) e;
+        
+        return isEq(other.getSource(),getSource()) &&
+                isEq(other.getTarget(),getTarget()) &&
+                isEq(quantifiedPropertyList,other.getQuantifiedPropertyList()) &&
+                (ignoreOntology || isEq(ontology,other.getOntology()));
+	}
 }

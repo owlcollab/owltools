@@ -251,11 +251,11 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	}
 
 	/**
-	 * Returns the {@code OWLGraphEdge}s representing {@code OWLObjectUnionOf} 
-	 * {@code OWLClassExpression}s obtained from {@code OWLEquivalentClassesAxiom}s. 
-	 * The source of all {@code OWLGraphEdge}s returned will be {@code child}, 
-	 * and the target the {@code OWLObject} which the {@code OWLEquivalentClassesAxiom} 
-	 * was associated to.
+	 * Returns the {@code OWLGraphEdge}s representing the reversed {@code OWLObjectUnionOf} 
+	 * from a {@code OWLEquivalentClassesAxiom}s (see {@link #cacheReverseUnionMap()}). 
+	 * The source of the {@code OWLGraphEdge}s returned will be {@code child} (that 
+	 * is actually a class expression part of the {@code OWLObjectUnionOf}), and the target
+	 * the class expression which the {@code OWLEquivalentClassesAxiom} was associated to.
 	 * <p>
 	 * Note that you should not exposed these internal {@code OWLGraphEdge}s directly, 
 	 * but copy then using the {@link OWLGraphEdge#OWLGraphEdge(OWLGraphEdge) copy-constructor} 
