@@ -700,7 +700,6 @@ public class CommandRunner {
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-t|--taxon")) {
 						taxClass = this.resolveClass(opts.nextOpt());
-
 					}
 					else if (opts.nextEq("-p|--property")) {
 						viewProperty = this.resolveObjectProperty(opts.nextOpt());
@@ -920,14 +919,50 @@ public class CommandRunner {
 
 			}
 			else if (opts.nextEq("--translate-xrefs-to-equivs")) {
-				for (OWLClass c : g.getAllOWLClasses()) {
-					for (String x : g.getXref(c)) {
-						IRI iri = g.getIRIByIdentifier(x);
-						g.getManager().addAxiom(g.getSourceOntology(), 
-								g.getDataFactory().getOWLEquivalentClassesAxiom(c,
-										g.getDataFactory().getOWLClass(iri)));
+				Map<String,String> prefixMap = new HashMap<String,String>();
+				Set<String> prefixes = new HashSet<String>();
+				boolean isNew = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-m")) {
+						opts.info("PREFIX URI", "maps prefixs/DBs to URI prefixes");
+						prefixMap.put(opts.nextOpt(), opts.nextOpt());
+					}
+					else if (opts.nextEq("-p")) {
+						opts.info("PREFIX", "prefix to filter on");
+						prefixes.add(opts.nextOpt());
+					}
+					else if (opts.nextEq("-n")) {
+						opts.info("", "if set, will generate a new ontology containing only equiv axioms");
+						isNew = true;
+					}
+					else {
+						break;
 					}
 				}
+				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+				for (OWLClass c : g.getAllOWLClasses()) {
+					for (String x : g.getXref(c)) {
+						IRI iri = null;
+						if (x.contains(":")) {
+							String[] parts = x.split(":",2);
+							if (prefixes.size() > 0 && !prefixes.contains(parts[0])) {
+								continue;
+							}
+							if (prefixMap.containsKey(parts[0])) {
+								iri = IRI.create(prefixMap.get(parts[0]) + parts[1]);
+							}
+						}
+						if (iri == null) {
+							iri = g.getIRIByIdentifier(x);
+						}
+						axioms.add(g.getDataFactory().getOWLEquivalentClassesAxiom(c,
+								g.getDataFactory().getOWLClass(iri)));
+					}
+				}
+				if (isNew) {
+					g.setSourceOntology(g.getManager().createOntology());
+				}
+				g.getManager().addAxioms(g.getSourceOntology(), axioms);
 			}
 			else if (opts.nextEq("--repair-relations")) {
 				opts.info("", "replaces un-xrefed relations with correct IRIs");
@@ -1230,6 +1265,7 @@ public class CommandRunner {
 				boolean useProps = false;
 				boolean isCreateShorthand = true;
 				boolean isExpansive = false;
+				boolean isUseSubProperties = false;
 
 				UUID uuid = UUID.randomUUID();
 				IRI newIRI = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
@@ -1238,6 +1274,10 @@ public class CommandRunner {
 						opts.info("PROP", "Add this property to the set of interest");
 						props.add(this.resolveObjectProperty(opts.nextOpt()));
 						useProps = true;
+					}
+					else if (opts.nextEq("-s|--subproperties")) {
+						opts.info("", "If set, subproperties are used");
+						isUseSubProperties = true;
 					}
 					else if (opts.nextEq("--list")) {
 						opts.info("PROPLIST", 
@@ -1258,6 +1298,7 @@ public class CommandRunner {
 				PropertyExtractor pe;
 				pe = new PropertyExtractor(g.getSourceOntology());
 				pe.isCreateShorthand = isCreateShorthand;
+				pe.isUseSubProperties = isUseSubProperties;
 				OWLOntology pont;
 				if (useProps) {
 					// use user-specified proeprty list
@@ -1700,7 +1741,7 @@ public class CommandRunner {
 					}
 					else if (opts.nextEq("-m")) {
 						opts.info("", 
-								"manifests the class exression as a class equivalent to query CE and uses this as a query; required for Elk");
+								"manifests the class exression as a class equivalent to query CE and uses this as a query; required for older versions of Elk");
 						isManifest = true;
 					}
 					else if (opts.nextEq("-d")) {
@@ -2801,9 +2842,9 @@ public class CommandRunner {
 				opts.info("FILE", "writes source ontology.");
 				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
 
+				String ontURIStr = "";
 				if ( g.getSourceOntology().getOntologyID() != null && g.getSourceOntology().getOntologyID().getOntologyIRI() != null) {
-					String ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
-					System.out.println("saving:"+ontURIStr);
+					ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
 				}
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-f")) {
@@ -2839,6 +2880,7 @@ public class CommandRunner {
 					}
 				}
 
+				LOG.info("saving:"+ontURIStr+" using "+ofmt);
 
 				if (opts.hasArgs()) {
 					String outputFile = opts.nextOpt();
@@ -3037,6 +3079,25 @@ public class CommandRunner {
 				OWLClass c = (OWLClass) resolveEntity( opts);
 
 				g.getConfig().excludeMetaClass = c;	
+			}
+			else if (opts.nextEq("--create-abox-subset")) {
+				opts.info("CLASS",
+						"Remove all ClassAssertions where the CE is not a subclass of the specified class");
+				OWLClass c = this.resolveClass(opts.nextOpt());
+				LOG.info("SUBSET: "+c);
+				//Set<OWLNamedIndividual> inds = g.getSourceOntology().getIndividualsInSignature(true);
+				Set<OWLClassAssertionAxiom> caas =
+						g.getSourceOntology().getAxioms(AxiomType.CLASS_ASSERTION);
+				Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+				for (OWLClassAssertionAxiom a : caas) {
+					Set<OWLClass> sups = reasoner.getSuperClasses(a.getClassExpression(), false).getFlattened();
+					if (!sups.contains(c)) {
+						rmAxioms.add(a);
+					}
+				}
+				LOG.info("Removing: "+rmAxioms.size() + " / "+caas.size());
+				g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
+				reasoner.flush();
 			}
 			else if (opts.nextEq("--load-instances")) {
 				TableToAxiomConverter ttac = new TableToAxiomConverter(g);
