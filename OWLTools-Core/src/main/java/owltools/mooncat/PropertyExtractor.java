@@ -38,6 +38,7 @@ public class PropertyExtractor {
 	OWLOntology mainOntology;
 	boolean isExpansive = true;
 	public boolean isCreateShorthand = true;
+	public boolean isUseSubProperties = false;
 
 	/**
 	 * Creates a new PE object
@@ -58,7 +59,7 @@ public class PropertyExtractor {
 		this.propertyOntology = propertyOntology;
 		this.mainOntology = mainOntology;
 	}
-	
+
 	public OWLOntology extractPropertyOntology() throws OWLOntologyCreationException {
 		UUID uuid = UUID.randomUUID();
 		IRI iri = IRI.create("http://purl.obolibrary.org/obo/temporary/"+uuid.toString());
@@ -79,12 +80,12 @@ public class PropertyExtractor {
 		}
 		return extractPropertyOntology(newIRI, props);
 	}
-	
+
 	public OWLOntology extractPropertyOntology(IRI newIRI, OWLOntology ont) throws OWLOntologyCreationException {
 		mainOntology = ont;
 		return extractPropertyOntology(newIRI);
 	}
-	
+
 	/**
 	 * Returns a new ontology containing declarations for each prop in props,
 	 * its closure,
@@ -117,6 +118,11 @@ public class PropertyExtractor {
 				OWLObjectProperty op = (OWLObjectProperty) prop;
 				Set<OWLObjectPropertyAxiom> refAxioms = propertyOntology.getAxioms(op);
 				axioms.addAll(refAxioms);
+				if (this.isUseSubProperties) {
+					for (OWLObjectPropertyExpression sp : op.getSubProperties(propertyOntology)) {
+						props.add((OWLObjectProperty) sp);
+					}
+				}
 				for (OWLObjectPropertyExpression sp : op.getSuperProperties(propertyOntology)) {
 					if (sp instanceof OWLObjectProperty) {
 						props.add((OWLObjectProperty) sp);
@@ -156,7 +162,7 @@ public class PropertyExtractor {
 									df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasDbXref")),
 									prop.getIRI(), 
 									df.getOWLLiteral(pid))
-					);
+							);
 				}
 				else {
 					LOG.error("No label: "+prop);
@@ -174,6 +180,6 @@ public class PropertyExtractor {
 		return xo;
 	}
 
-	
+
 
 }
