@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -68,6 +69,7 @@ import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.lego.GafToLegoTranslator;
 import owltools.gaf.lego.LegoModelGenerator;
+import owltools.gaf.lego.LegoToGeneAnnotationTranslator;
 import owltools.gaf.metadata.AnnotationDocumentMetadata;
 import owltools.gaf.owl.AnnotationExtensionFolder;
 import owltools.gaf.owl.AnnotationExtensionUnfolder;
@@ -1769,5 +1771,92 @@ public class GafCommandRunner extends CommandRunner {
 		finally {
 			IOUtils.closeQuietly(pw);
 		}
+	}
+	
+	@CLIMethod("--lego-to-gpad")
+	public void legoToAnnotations(Opts opts) throws Exception {
+		String inputName = null;
+		String outputFileName = null;
+		List<String> defaultRefs = null;
+		boolean addLegoModelId = true;
+		OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-i|--input")) {
+				inputName = opts.nextOpt();
+			}
+			else if (opts.nextEq("-o|--output")) {
+				outputFileName = opts.nextOpt();
+			}
+			else if (opts.nextEq("--add-default-ref")) {
+				if (defaultRefs == null) {
+					defaultRefs = new ArrayList<String>();
+				}
+				defaultRefs.add(opts.nextOpt());
+			}
+			else if (opts.nextEq("--remove-lego-model-ids")) {
+				addLegoModelId = false;
+			}
+			else {
+				break;
+			}
+		}
+		
+		SimpleEcoMapper mapper = EcoMapperFactory.createSimple();
+		LegoToGeneAnnotationTranslator translator = new LegoToGeneAnnotationTranslator(g, reasonerFactory, mapper);
+		GafDocument annotations = new GafDocument(null, null);
+		BioentityDocument entities = new BioentityDocument(null, null);
+		
+		File inputFile = new File(inputName).getCanonicalFile();
+		OWLOntologyManager m = g.getManager();
+		if (inputFile.isFile()) {
+			OWLOntology model = m.loadOntology(IRI.create(inputFile));
+			String modelId = StringUtils.stripEnd(inputFile.getName(), ".owl");
+			List<String> addtitionalRefs = handleRefs(defaultRefs, addLegoModelId, modelId);
+			translator.translate(model, annotations, entities, addtitionalRefs);	
+		}
+		else if (inputFile.isDirectory()) {
+			File[] files = inputFile.listFiles(new FilenameFilter() {
+				
+				@Override
+				public boolean accept(File dir, String name) {
+					return StringUtils.trimToEmpty(name).toLowerCase().endsWith(".owl");
+				}
+			});
+			for (File file : files) {
+				String modelId = StringUtils.stripEnd(file.getName(), ".owl");
+				List<String> addtitionalRefs = handleRefs(defaultRefs, addLegoModelId, modelId);
+				OWLOntology model = m.loadOntology(IRI.create(file));
+				translator.translate(model, annotations, entities, addtitionalRefs);	
+			}
+		}
+		
+		// write GPAD to avoid bioentity data issues
+		PrintWriter fileWriter = null;
+		try {
+			fileWriter = new PrintWriter(new File(outputFileName));
+			GpadWriter writer = new GpadWriter(fileWriter, 1.2d);
+			writer.write(annotations);
+		}
+		finally {
+			IOUtils.closeQuietly(fileWriter);	
+		}
+	}
+
+	List<String> handleRefs(List<String> defaultRefs, boolean addLegoModelId, String modelId) {
+		List<String> addtitionalRefs;
+		if (addLegoModelId) {
+			if (defaultRefs == null) {
+				addtitionalRefs = Collections.singletonList(modelId);
+			}
+			else {
+				addtitionalRefs = new ArrayList<String>(defaultRefs.size() + 1);
+				addtitionalRefs.addAll(defaultRefs);
+				addtitionalRefs.add(modelId);
+			}
+		}
+		else {
+			addtitionalRefs = defaultRefs;
+		}
+		return addtitionalRefs;
 	}
 }
