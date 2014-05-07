@@ -1260,6 +1260,7 @@ public class CommandRunner {
 				g.getManager().addAxioms(g.getSourceOntology(), axioms);
 			}
 			else if (opts.nextEq("--extract-properties")) {
+				LOG.warn("Deprecated - use --extract-module");
 				opts.info("[-p PROP]* [--list PLIST] [--no-shorthand]", "extracts properties from source ontology. If properties not specified, then support ontologies will be used");
 				Set<OWLProperty> props = new HashSet<OWLProperty>();
 				boolean useProps = false;
