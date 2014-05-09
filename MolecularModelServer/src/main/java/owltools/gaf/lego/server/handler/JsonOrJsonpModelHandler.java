@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.gaf.lego.MolecularModelJsonRenderer;
@@ -384,12 +385,16 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 					try {
 						ontology = manager.loadOntology(iri);
 					} catch (OWLOntologyDocumentAlreadyExistsException e) {
-						// ignore
+						IRI existing = e.getOntologyDocumentIRI();
+						ontology = manager.getOntology(existing);
 					} catch (OWLOntologyAlreadyExistsException e) {
-						// ignore
+						OWLOntologyID id = e.getOntologyID();
+						ontology = manager.getOntology(id);
 					}
 				}
-				wrapper.addSupportOntology(ontology);
+				if (ontology != null) {
+					wrapper.addSupportOntology(ontology);
+				}
 			}
 			
 			// get all properties from all loaded ontologies
