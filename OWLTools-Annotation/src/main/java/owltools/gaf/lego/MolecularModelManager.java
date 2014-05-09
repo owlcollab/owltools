@@ -57,6 +57,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -1718,13 +1719,18 @@ public class MolecularModelManager {
 	 * 
 	 * @param model
 	 * @param i
-	 * @param c
+	 * @param ce
 	 * @param flushReasoner
 	 */
-	private void removeType(LegoModelGenerator model, OWLIndividual i, OWLClassExpression c, boolean flushReasoner) {
-		OWLDataFactory f = model.getOWLDataFactory();
-		OWLClassAssertionAxiom axiom = f.getOWLClassAssertionAxiom(c,i);
-		removeAxiom(model, axiom, flushReasoner);
+	private void removeType(LegoModelGenerator model, OWLIndividual i, OWLClassExpression ce, boolean flushReasoner) {
+		Set<OWLClassAssertionAxiom> allAxioms = model.getAboxOntology().getClassAssertionAxioms(i);
+		// use search to remove also axioms with annotations
+		for (OWLClassAssertionAxiom ax : allAxioms) {
+			if (ce.equals(ax.getClassExpression())) {
+				removeAxiom(model, ax, flushReasoner);
+			}
+		}
+		
 	}
 	
 	/**
@@ -2325,7 +2331,10 @@ public class MolecularModelManager {
 	 */
 	void removeAxiom(LegoModelGenerator model, OWLAxiom axiom, boolean flushReasoner) {
 		OWLOntology ont = model.getAboxOntology();
-		ont.getOWLOntologyManager().removeAxiom(ont, axiom);
+		List<OWLOntologyChange> changes = ont.getOWLOntologyManager().removeAxiom(ont, axiom);
+		if (changes.isEmpty()) {
+			System.out.println();
+		}
 		if (flushReasoner) {
 			model.getReasoner().flush();
 		}

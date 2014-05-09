@@ -405,8 +405,14 @@ public class MolecularModelJsonRenderer {
 		String iriString = iri.toString();
 		// remove obo prefix from IRI
 		String full = StringUtils.removeStart(iriString, OBOUpperVocabulary.OBO);
-		// replace first '_' char with ':' char
-		String replaced = StringUtils.replaceOnce(full, "_", ":");
+		String replaced;
+		if (full.startsWith("#")) {
+			replaced = StringUtils.removeStart(full, "#");
+		}
+		else {
+			// replace first '_' char with ':' char
+			replaced = StringUtils.replaceOnce(full, "_", ":");
+		}
 		return replaced;
 	}
 	
