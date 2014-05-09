@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -403,10 +404,13 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			for(OWLOntology o : allOntologies) {
 				properties.addAll(o.getObjectPropertiesInSignature());
 			}
+			// sort properties
+			List<OWLObjectProperty> propertyList = new ArrayList<OWLObjectProperty>(properties);
+			Collections.sort(propertyList);
 			
 			// retrieve id and label for all properties
 			List<Map<String, String>> relList = new ArrayList<Map<String,String>>();
-			for (OWLObjectProperty p : properties) {
+			for (OWLObjectProperty p : propertyList) {
 				if (p.isBuiltIn()) {
 					// skip owl:topObjectProperty
 					continue;
@@ -422,6 +426,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			// create response
 			M3Response resp = new M3Response(M3Response.SUCCESS);
 			Map<Object, Object> relData = new HashMap<Object, Object>();
+			relData.put("relationsCount", relList.size());
 			relData.put("relations", relList);
 			resp.data = relData;
 			return resp ;

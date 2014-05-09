@@ -472,10 +472,15 @@ public class MolecularModelJsonRenderer {
 		for(OWLOntology o : allOntologies) {
 			properties.addAll(o.getObjectPropertiesInSignature());
 		}
-	
+		
+		// sort properties
+		List<OWLObjectProperty> propertyList = new ArrayList<OWLObjectProperty>(properties);
+		Collections.sort(propertyList);
+
+
 		// retrieve id and label for all properties
 		List<Map<Object, Object>> relList = new ArrayList<Map<Object,Object>>();
-		for (OWLObjectProperty p : properties) {
+		for (OWLObjectProperty p : propertyList) {
 			if (p.isBuiltIn()) {
 				// skip owl:topObjectProperty
 				continue;
