@@ -19,16 +19,18 @@ import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.graph.OWLGraphWrapper;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Implementation of the {@link M3Handler}. Uses the build in function to render
@@ -376,7 +378,17 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			Collection<IRI> imports = mmm.getImports();
 			OWLOntologyManager manager = wrapper.getManager();
 			for (IRI iri : imports) {
-				OWLOntology ontology = manager.loadOntology(iri);
+				OWLOntology ontology = manager.getOntology(iri);
+				if (ontology == null) {
+					// only try to load it, if it isn't already loaded
+					try {
+						ontology = manager.loadOntology(iri);
+					} catch (OWLOntologyDocumentAlreadyExistsException e) {
+						// ignore
+					} catch (OWLOntologyAlreadyExistsException e) {
+						// ignore
+					}
+				}
 				wrapper.addSupportOntology(ontology);
 			}
 			

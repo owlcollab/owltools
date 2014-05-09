@@ -33,7 +33,9 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.gaf.eco.EcoMapper;
@@ -442,7 +444,17 @@ public class MolecularModelJsonRenderer {
 		Collection<IRI> imports = mmm.getImports();
 		OWLOntologyManager manager = wrapper.getManager();
 		for (IRI iri : imports) {
-			OWLOntology ontology = manager.loadOntology(iri);
+			OWLOntology ontology = manager.getOntology(iri);
+			if (ontology == null) {
+				// only try to load it, if it isn't already loaded
+				try {
+					ontology = manager.loadOntology(iri);
+				} catch (OWLOntologyDocumentAlreadyExistsException e) {
+					// ignore
+				} catch (OWLOntologyAlreadyExistsException e) {
+					// ignore
+				}
+			}
 			wrapper.addSupportOntology(ontology);
 		}
 	
