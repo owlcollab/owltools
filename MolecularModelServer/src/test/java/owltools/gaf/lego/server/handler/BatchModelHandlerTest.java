@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.ManchesterSyntaxTool;
+import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
@@ -44,6 +45,9 @@ public class BatchModelHandlerTest {
 	private static JsonOrJsonpBatchHandler handler = null;
 	private static MolecularModelManager models = null;
 
+	private static final String uid = "1";
+	private static final String intention = "foo";
+	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
@@ -67,17 +71,7 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	public void test() throws Exception {
-		String uid = "1";
-		String intention = "foo";
-		
-		// create blank model
-		M3Request[] batch1 = new M3Request[1];
-		batch1[0] = new M3Request();
-		batch1[0].entity = Entity.model.name();
-		batch1[0].operation = Operation.generateBlank.getLbl();
-		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch1);
-		assertEquals(resp1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp1.message_type);
-		final String modelId = (String) resp1.data.get("id");
+		final String modelId = generateBlankModel();
 		
 		// create two individuals
 		M3Request[] batch2 = new M3Request[2];
@@ -220,9 +214,7 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	public void testModelAnnotations() throws Exception {
-		final String modelId = models.generateBlankModel(null);
-		String uid = "1";
-		String intention = "foo";
+		final String modelId = generateBlankModel();
 		
 		// create annotations
 		M3Request[] batch1 = new M3Request[1];
@@ -276,8 +268,7 @@ public class BatchModelHandlerTest {
 	public void testMultipleMeta() throws Exception {
 		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
 		models.dispose();
-		String uid = "1";
-		String intention = "foo";
+		
 		M3Request[] requests = new M3Request[3];
 		// get relations
 		requests[0] = new M3Request();
@@ -321,8 +312,7 @@ public class BatchModelHandlerTest {
 
 	@Test
 	public void testProteinNames() throws Exception {
-		String uid = "1";
-		String intention = "foo";
+		
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
 		batch1[0].entity = Entity.model.name();
@@ -388,8 +378,8 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	public void testCreateBlankModelFromGAF() throws Exception {
-		String uid = "1";
-		String intention = "foo";
+		models.dispose();
+		
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
 		batch1[0].entity = Entity.model.name();
@@ -440,8 +430,8 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	public void testCreateModelFromGAF() throws Exception {
-		String uid = "1";
-		String intention = "foo";
+		models.dispose();
+		
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
 		batch1[0].entity = Entity.model.name();
@@ -491,5 +481,104 @@ public class BatchModelHandlerTest {
 		
 		assertNotEquals(modelId1, modelId3);
 		assertNotEquals(modelId2, modelId3);
+	}
+	
+	@Test
+	public void testDelete() throws Exception {
+		models.dispose();
+		
+		final String modelId = generateBlankModel();
+		
+		// create
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.individual.name();
+		batch1[0].operation = Operation.create.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+		batch1[0].arguments.subject = "GO:0008104"; // protein localization
+		batch1[0].arguments.expressions = new M3Expression[2];
+		batch1[0].arguments.expressions[0] = new M3Expression();
+		batch1[0].arguments.expressions[0].type = "svf";
+		batch1[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
+		batch1[0].arguments.expressions[0].literal = "MGI:MGI:00000";
+		
+		batch1[0].arguments.expressions[1] = new M3Expression();
+		batch1[0].arguments.expressions[1].type = "svf";
+		batch1[0].arguments.expressions[1].onProp = "BFO:0000050"; // part_of
+		batch1[0].arguments.expressions[1].literal = "happiness";
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		
+		
+		List<Map<Object, Object>> iObjs1 = (List) response1.data.get("individuals");
+		assertEquals(1, iObjs1.size());
+		Map<Object, Object> individual1 = iObjs1.get(0);
+		assertNotNull(individual1);
+		final String individualId = (String) individual1.get(MolecularModelJsonRenderer.KEY.id);
+		assertNotNull(individualId);
+		
+		List<Map<Object, Object>> types1 = (List) individual1.get(MolecularModelJsonRenderer.KEY.type);
+		assertEquals(3, types1.size());
+		String happinessId = null;
+		for(Map<Object, Object> e : types1) {
+			Object cType = e.get(MolecularModelJsonRenderer.KEY.type);
+			if (MolecularModelJsonRenderer.VAL.Restriction.equals(cType)) {
+				Map<Object, Object> svf = (Map<Object, Object>) e.get(MolecularModelJsonRenderer.KEY.someValuesFrom);
+				String id = (String) svf.get(MolecularModelJsonRenderer.KEY.id);
+				if (id.contains("happ")) {
+					happinessId = id;
+					break;
+				}
+			}
+		}
+		assertNotNull(happinessId);
+		
+		// delete
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.individual.name();
+		batch2[0].operation = Operation.removeType.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.modelId = modelId;
+		batch2[0].arguments.individual = individualId;
+		
+		batch2[0].arguments.expressions = new M3Expression[1];
+		batch2[0].arguments.expressions[0] = new M3Expression();
+		batch2[0].arguments.expressions[0].type = "svf";
+		batch2[0].arguments.expressions[0].onProp = "BFO:0000050"; // part_of
+		batch2[0].arguments.expressions[0].literal = happinessId;
+		
+		
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		
+		List<Map<Object, Object>> iObjs2 = (List) response2.data.get("individuals");
+		assertEquals(1, iObjs2.size());
+		Map<Object, Object> individual2 = iObjs2.get(0);
+		assertNotNull(individual2);
+		List<Map<Object, Object>> types2 = (List) individual2.get(MolecularModelJsonRenderer.KEY.type);
+		assertEquals(2, types2.size());
+	}
+
+	/**
+	 * @return modelId
+	 */
+	private String generateBlankModel() {
+		// create blank model
+		M3Request[] batch = new M3Request[1];
+		batch[0] = new M3Request();
+		batch[0].entity = Entity.model.name();
+		batch[0].operation = Operation.generateBlank.getLbl();
+		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch);
+		assertEquals(resp1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp1.message_type);
+		String modelId = (String) resp1.data.get("id");
+		assertNotNull(modelId);
+		return modelId;
 	}
 }
