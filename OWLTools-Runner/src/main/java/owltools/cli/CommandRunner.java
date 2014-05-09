@@ -381,6 +381,9 @@ public class CommandRunner {
 			else if (opts.nextEq("--log-debug")) {
 				Logger.getRootLogger().setLevel(Level.DEBUG);	
 			}
+			else if (opts.nextEq("--log-error")) {
+				Logger.getRootLogger().setLevel(Level.ERROR);	
+			}
 			else if (opts.nextEq("--no-debug")) {
 				Logger.getRootLogger().setLevel(Level.OFF);
 			}
