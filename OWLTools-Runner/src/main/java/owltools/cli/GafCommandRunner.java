@@ -76,6 +76,7 @@ import owltools.gaf.owl.AnnotationExtensionUnfolder;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.owl.mapping.BasicABox;
+import owltools.gaf.parser.DefaultAspectProvider;
 import owltools.gaf.parser.GAFParser;
 import owltools.gaf.parser.CommentListener;
 import owltools.gaf.parser.GpadGpiObjectsBuilder;
@@ -1669,6 +1670,13 @@ public class GafCommandRunner extends CommandRunner {
 			else if (opts.nextEq("--eco")) {
 				ecoMappingFile = opts.nextOpt();
 			}
+			else if (opts.nextEq("--go-aspects")) {
+				Map<String, String> mappings = new HashMap<String, String>();
+				mappings.put("GO:0008150", "P");
+				mappings.put("GO:0003674", "F");
+				mappings.put("GO:0005575", "C");
+				aspectProvider = DefaultAspectProvider.createAspectProvider(g, mappings , reasoner);
+			}
 			else {
 				break;
 			}
@@ -1703,10 +1711,16 @@ public class GafCommandRunner extends CommandRunner {
 	@CLIMethod("--write-gpad")
 	public void writeGpad(Opts opts) throws Exception {
 		String outputFileName = null;
-		double version = 1.2;
+		double version = 1.2d;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-o|--output")) {
 				outputFileName = opts.nextOpt();
+			}
+			else if (opts.nextEq("--v-11")) {
+				version = 1.1d;
+			}
+			else if (opts.nextEq("--v-12")) {
+				version = 1.2d;
 			}
 			else {
 				break;
@@ -1736,10 +1750,16 @@ public class GafCommandRunner extends CommandRunner {
 	@CLIMethod("--write-gpi")
 	public void writeGpi(Opts opts) throws Exception {
 		String outputFileName = null;
-		double version = 1.2;
+		double version = 1.2d;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-o|--output")) {
 				outputFileName = opts.nextOpt();
+			}
+			else if (opts.nextEq("--v-11")) {
+				version = 1.1d;
+			}
+			else if (opts.nextEq("--v-12")) {
+				version = 1.2d;
 			}
 			else {
 				break;
