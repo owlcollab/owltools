@@ -10,24 +10,18 @@ import org.apache.log4j.Logger;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.reasoner.IndividualNodeSetPolicy;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
@@ -59,7 +53,7 @@ public class EquivalenceSetMergeUtil {
 		ont = graph.getSourceOntology();
 		reasoner = r;
 	}
-	
+
 	public void setPropertyPrefixScore(OWLAnnotationProperty p, String prefix, Double score) {
 		LOG.info("Setting "+p+" priority: "+prefix+" = "+score);
 		if (!propertyPrefixScoreMap.containsKey(p))
@@ -81,9 +75,9 @@ public class EquivalenceSetMergeUtil {
 	 */
 	public void merge() {
 
-		Set<Node<OWLClass>> nodes = new HashSet<Node<OWLClass>>();
-		Map<OWLClass, Node<OWLClass>> nodeByRep = 
-				new HashMap<OWLClass, Node<OWLClass>>();
+		Set<Node<? extends OWLEntity>> nodes = new HashSet<Node<? extends OWLEntity>>();
+		Map<OWLEntity, Node<? extends OWLEntity>> nodeByRep = 
+				new HashMap<OWLEntity, Node<? extends OWLEntity>>();
 		for (OWLClass c : ont.getClassesInSignature()) {
 			Node<OWLClass> n = reasoner.getEquivalentClasses(c);
 			if (n.getSize() > 1) {
@@ -91,16 +85,26 @@ public class EquivalenceSetMergeUtil {
 				nodeByRep.put(c, n);
 			}			
 		}
+		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
+			IndividualNodeSetPolicy policy = reasoner.getIndividualNodeSetPolicy();
+			Node<OWLNamedIndividual> n = reasoner.getSameIndividuals(i);
+			// warning - elk doesn't do this
+			LOG.info("SAME INDS: "+n.getEntities());
+			if (n.getSize() > 1) {
+				nodes.add(n);
+				nodeByRep.put(i, n);
+			}			
+		}
 		LOG.info("TOTAL SETS-OF-SETS (redundant): "+nodeByRep.keySet().size());
 
 		Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
 
-		Set<OWLClass> seenClasses = new HashSet<OWLClass>();
+		Set<OWLEntity> seenClasses = new HashSet<OWLEntity>();
 		Set <OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
-		
-		for (Node<OWLClass> n : nodes) {
+
+		for (Node<? extends OWLEntity> n : nodes) {
 			boolean isSeen = false;
-			for (OWLClass c : n.getEntities()) {
+			for (OWLEntity c : n.getEntities()) {
 				if (seenClasses.contains(c)) {
 					isSeen = true;
 					break;
@@ -111,16 +115,18 @@ public class EquivalenceSetMergeUtil {
 				continue;
 			}
 			if (true) {
-				OWLClass rep = null;
+				OWLEntity rep = null;
 				Double best = null;
-				for (OWLClass c : n.getEntities()) {
+				for (OWLEntity c : n.getEntities()) {
 					Double score = getScore(c, prefixScoreMap);
+					LOG.info(c +" SC: "+score);
 					if (best == null || (score != null && score > best)) {
 						rep = c;
 						best = score;
 					}
 				}
-				for (OWLClass c : n.getEntities()) {
+				LOG.info("BEST: "+best+" FOR: "+n.getEntities());
+				for (OWLEntity c : n.getEntities()) {
 					if (c.equals(rep))
 						continue;
 					LOG.info(c + " --> "+rep);
@@ -131,7 +137,8 @@ public class EquivalenceSetMergeUtil {
 						// (assuming B is the representative), all axioms referencing A
 						// will be gone, so we re-add the original equivalence,
 						// possibly translating to an obo-style xref
-						OWLAxiom eca = graph.getDataFactory().getOWLEquivalentClassesAxiom(c, rep);
+						OWLAxiom eca;
+
 						if (true) {
 							// TODO - allow other options - for now make an xref
 							OWLAnnotationProperty lap = graph.getAnnotationProperty(OboFormatTag.TAG_XREF.getTag());
@@ -141,9 +148,15 @@ public class EquivalenceSetMergeUtil {
 									graph.getDataFactory().getOWLAnnotationAssertionAxiom(lap, rep.getIRI(), value);
 						}
 						else {
+							if (c instanceof OWLClass) {
+								graph.getDataFactory().getOWLEquivalentClassesAxiom((OWLClass)c, (OWLClass)rep);
+							}
+							else {
+								graph.getDataFactory().getOWLSameIndividualAxiom((OWLNamedIndividual)c, (OWLNamedIndividual)rep);
+							}
 							// note: this creates a dangler
 							// note: if  |equivalence set| = n>2, creates n-1 axioms 
-							
+
 						}
 						LOG.info("Preserving ECA to represetative: "+eca);
 						newAxioms.add(eca);
@@ -154,9 +167,9 @@ public class EquivalenceSetMergeUtil {
 			// some properties may be desired to have cardinality = 1
 			for (OWLAnnotationProperty p : propertyPrefixScoreMap.keySet()) {
 				Map<String, Double> pmap = propertyPrefixScoreMap.get(p);
-				OWLClass rep = null;
+				OWLEntity rep = null;
 				Double best = null;
-				for (OWLClass c : n.getEntities()) {
+				for (OWLEntity c : n.getEntities()) {
 					String v = graph.getAnnotationValue(c, p);
 					if (v == null || v.equals(""))
 						continue;
@@ -167,7 +180,7 @@ public class EquivalenceSetMergeUtil {
 						best = score;
 					}
 				}
-				for (OWLClass c : n.getEntities()) {
+				for (OWLEntity c : n.getEntities()) {
 					if (c.equals(rep))
 						continue;
 					Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
@@ -187,7 +200,7 @@ public class EquivalenceSetMergeUtil {
 		List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
 		graph.getManager().applyChanges(changes);
 		LOG.info("Mapped "+e2iri.size()+" entities!");
-		
+
 		graph.getManager().addAxioms(ont, newAxioms);
 
 		// remove any reflexive assertions remaining
@@ -212,7 +225,7 @@ public class EquivalenceSetMergeUtil {
 
 	}
 
-	private Double getScore(OWLClass c, Map<String, Double> pmap) {
+	private Double getScore(OWLEntity c, Map<String, Double> pmap) {
 		for (String p : pmap.keySet()) {
 			if (hasPrefix(c,p)) {
 				return pmap.get(p);
@@ -221,7 +234,7 @@ public class EquivalenceSetMergeUtil {
 		return null;
 	}
 
-	private boolean hasPrefix(OWLClass c, String p) {
+	private boolean hasPrefix(OWLEntity c, String p) {
 		if (p.startsWith("http")) {
 			return c.getIRI().toString().startsWith(p);
 		}

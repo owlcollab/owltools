@@ -1095,6 +1095,13 @@ public class Mooncat {
 		return createSubsetMap(graph.getOWLObjectsInSubset(ss));
 	}
 	
+	/**
+	 * Note: this assumes you have already filtered any relations not to be
+	 * propagated over from the graph
+	 * 
+	 * @param subset
+	 * @return
+	 */
 	public Map<OWLObject,Set<OWLObject>> createSubsetMap(Set<OWLObject> subset) {
 		Map<OWLObject, Set<OWLObject>> ssm = new HashMap<OWLObject,Set<OWLObject>>();
 		for (OWLObject s : graph.getAllOWLObjects()) {

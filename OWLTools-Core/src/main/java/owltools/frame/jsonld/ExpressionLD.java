@@ -11,10 +11,6 @@ public abstract class ExpressionLD extends BaseLD implements Expression {
 	String iri;
 	String label;
 
-	// Restrictions
-	StubLD onProperty;
-	BaseLD someValuesFrom;
-	BaseLD allValuesFrom;
 	
 	// N-ary
 	Set<ExpressionLD> intersectionOf;
