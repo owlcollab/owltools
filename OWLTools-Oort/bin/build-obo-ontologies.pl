@@ -754,17 +754,17 @@ sub get_ont_info {
              method => 'obo2owl',
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/yeast_phenotype.obo',
          },
-         doid => {
+         doiddev => {
              infallible => 1,
              method => 'archive',
              path => 'archive/src/ontology',
              source_url => 'http://build.berkeleybop.org/job/build-doid/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
-         #doid => {
-         #infallible => 1,
-         #method => 'obo2owl',
-         #source_url => 'http://sourceforge.net/p/diseaseontology/code/HEAD/tree/trunk/HumanDO.obo?format=raw',
-         #},
+         doid => {
+             infallible => 1,
+             method => 'obo2owl',
+             source_url => 'http://sourceforge.net/p/diseaseontology/code/HEAD/tree/trunk/HumanDO.obo?format=raw',
+         },
          ncbitaxon => {
              infallible => 1,
              method => 'archive',
