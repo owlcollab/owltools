@@ -1,5 +1,7 @@
 package owltools.sim2;
 
+import static org.junit.Assert.*;
+
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -113,13 +115,17 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 	public void testLCS() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
 		String idspace="mp";
 		load(idspace);
+		ABoxUtils.makeDefaultIndividuals(getOntology());
 		precompute();
 		OWLClass c1 = getCls("MP_0003737"); // ossification of pinnae
 		OWLClass c2 = getCls("MP_0002895"); // abnormal otolithic membrane morphology
 		Set<Node<OWLClass>> cs = owlsim.getNamedCommonSubsumers(c1, c2);
 		msg("CS="+cs);
+		// note: this test is inherently fragile, if MP changes drastically the test may need recofnigured
+		assertTrue(cs.size() > 2);
 		Set<Node<OWLClass>> lcs = owlsim.getNamedLowestCommonSubsumers(c1, c2);
 		msg("LCS="+lcs);
+		assertTrue(cs.size() > lcs.size());
 	}
 	
 	public void t(String idspace, int size) throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {

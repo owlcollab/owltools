@@ -44,87 +44,14 @@ public class EnrichmentTest extends AbstractOWLSimTest {
 	private Logger LOG = Logger.getLogger(EnrichmentTest.class);
 
 
-
-	@Test
-	public void enrichmentTestGOUsingSOS() throws Exception, MathException {
-		ParserWrapper pw = new ParserWrapper();
-		sourceOntol = pw.parseOBO(getResourceIRIString("go-subset-t1.obo"));
-		g = new OWLGraphWrapper(sourceOntol);
-		IRI vpIRI = g.getOWLObjectPropertyByIdentifier("GOTESTREL:0000001").getIRI();
-		TableToAxiomConverter ttac = new TableToAxiomConverter(g);
-		ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
-		ttac.config.property = vpIRI;
-		ttac.config.isSwitchSubjectObject = true;
-		ttac.parse("src/test/resources/simplegaf-t1.txt");
-		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
-		SimpleOwlSim sos;
-
-		try {
-			OWLPrettyPrinter pp = new OWLPrettyPrinter(g);
-
-			sos = new SimpleOwlSim(sourceOntol);
-
-			AutomaticSimPreProcessor pproc = new AutomaticSimPreProcessor();
-			pproc.setInputOntology(sourceOntol);
-			pproc.setOutputOntology(sourceOntol);
-			pproc.setReasoner(reasoner); // TODO - share
-
-			sos.setSimPreProcessor(pproc);
-			//sos.preprocess();
-			pproc.preprocess();
-
-			sos.createElementAttributeMapFromOntology();
-
-			for (OWLNamedIndividual ind : sourceOntol.getIndividualsInSignature()) {
-				System.out.println(ind);
-				for (OWLClass c : reasoner.getTypes(ind, true).getFlattened()) {
-					System.out.println("  T:"+c);
-				}
-			}
-			//System.exit(0);
-
-			//sos.addViewProperty(vpIRI);
-			//sos.generatePropertyViews();
-			//sos.saveOntology("/tmp/foo.owl");
-
-
-			OWLClass rc1 = get("biological_process");
-			OWLClass rc2 = get("cellular_component");
-			OWLClass pc = g.getDataFactory().getOWLThing();
-
-			EnrichmentConfig ec = new EnrichmentConfig();
-			ec.pValueCorrectedCutoff = 0.05;
-			ec.attributeInformationContentCutoff = 3.0;
-			sos.setEnrichmentConfig(ec);
-
-			int n = 0;
-			for (OWLClass vrc1 : pproc.getViewClasses(rc1)) {
-				for (OWLClass vrc2 : pproc.getViewClasses(rc2)) {
-					List<EnrichmentResult> results = sos.calculateAllByAllEnrichment(pc, vrc1, vrc2);
-					System.out.println("Results: "+vrc1+" "+vrc2);
-					for (EnrichmentResult result : results) {
-						System.out.println(render(result,pp));
-						n++;
-					}
-				}
-			}
-			assertTrue(n > 0);
-		}
-		finally {
-			reasoner.dispose();
-		}
-
-	}
-
 	@Test
 	public void enrichmentTestGO() throws Exception, MathException {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOBO(getResourceIRIString("go-subset-t1.obo"));
-		OWLObjectProperty PART_OF = OBOUpperVocabulary.BFO_part_of.getObjectProperty(sourceOntol);
+		OWLObjectProperty INVOLVED_IN = OBOUpperVocabulary.RO_involved_in.getObjectProperty(sourceOntol);
 		Map<OWLClass, OWLClass> qmap =
 				TransformationUtils.createObjectPropertyView(sourceOntol, sourceOntol,
-						PART_OF, null, false);
+						INVOLVED_IN, null, true);
 		LOG.info("VIEW SIZE"+qmap.size());
 		sourceOntol.getOWLOntologyManager().saveOntology(sourceOntol, IRI.create(new File("target/foo.owl")));
 
@@ -134,12 +61,11 @@ public class EnrichmentTest extends AbstractOWLSimTest {
 		TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 		ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
 		//ttac.config.property = vpIRI; //TODO
-		ttac.config.property = PART_OF.getIRI();
+		ttac.config.property = INVOLVED_IN.getIRI();
 		ttac.config.isSwitchSubjectObject = true;
 		ttac.parse("src/test/resources/simplegaf-t1.txt");
 		// assume buffering
 		//OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
-
 
 		g.getManager().removeAxioms(sourceOntol,
 				sourceOntol.getAxioms(AxiomType.DISJOINT_CLASSES));
@@ -180,20 +106,15 @@ public class EnrichmentTest extends AbstractOWLSimTest {
 			owlsim.setEnrichmentConfig(ec);
 			OWLClass vc1 = qmap.get(rc1);
 			OWLClass vc2 = qmap.get(rc2);
-			//Set<OWLClass> cset = owlsim.getReasoner().getSubClasses(qmap.get(rc1), false).getFlattened();
-			//Set<OWLClass> dset = owlsim.getReasoner().getSubClasses(qmap.get(rc2), false).getFlattened();
 			int n = 0;
-			//			for (OWLClass vrc1 : cset) {
-			//for (OWLClass vrc2 : dset) {
 			List<EnrichmentResult> results = owlsim.calculateAllByAllEnrichment(pc, vc1, vc2);
 			System.out.println("Results: "+rc1+" "+rc2);
 			for (EnrichmentResult result : results) {
 				System.out.println("R="+render(result,pp));
 				n++;
 			}
-			//				}
-			//			}
 			assertTrue(n > 0);
+			owlsim.showTimings();
 		}
 		finally {
 			owlsim.getReasoner().dispose();
