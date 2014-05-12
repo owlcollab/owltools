@@ -1014,7 +1014,7 @@ sub get_ont_info {
          },
          fbbi => {
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/experimental_conditions/imaging_methods/image.obo',
+             source_url => 'https://raw.githubusercontent.com/dosumis/fbbi/master/src/ontology/fbbi.obo'
          },
          ddanat => {
              method => 'obo2owl',
