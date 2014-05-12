@@ -633,7 +633,7 @@ sub get_ont_info {
              source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/hsapdv/hsapdv.obo',
          },
          mmusdv => {
-             infallible => 1,
+             #infallible => 1,
              method => 'obo2owl',
              source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/mmusdv/mmusdv.obo',
          },
