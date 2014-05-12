@@ -49,6 +49,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 	long totalCallsLCSIC = 0;
 	long totalTimeGIC = 0;
 	long totalCallsGIC = 0;
+	long totalTimeEnrichPrep = 0;
+	long totalTimeEnrichCalc = 0;
 	public SimStats simStats = new SimStats(); 
 	protected boolean isDisableLCSCache = false;
 
@@ -141,6 +143,12 @@ public abstract class AbstractOwlSim implements OwlSim {
 		}
 		if (totalCallsGIC > 0) {
 			LOG.info("t(GIC) ms = "+totalTimeGIC + " / "+totalCallsGIC + " = " + totalTimeGIC / (double) totalCallsGIC);
+		}
+		if (totalTimeEnrichPrep > 0) {
+			LOG.info("t(enrichPrep) ms = "+totalTimeEnrichPrep);
+		}
+		if (totalTimeEnrichCalc > 0) {
+			LOG.info("t(enrichCalc) ms = "+totalTimeEnrichCalc);
 		}
 	}
 
@@ -286,6 +294,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public int getAsymmetricElementJaccardSimilarityAsPercent(OWLNamedIndividual i,
 			OWLNamedIndividual j) throws UnknownOWLClassException {
 		return (int) (getAsymmetricElementJaccardSimilarity(i, j) * 100);
+	}
+	
+	public Set<OWLNamedIndividual> getSharedElements(OWLClass c, OWLClass d) throws UnknownOWLClassException {
+		 Set<OWLNamedIndividual> elts = getElementsForAttribute(c);
+		 elts.retainAll(getElementsForAttribute(d));
+		 return elts;
+	}
+
+	public int getNumSharedElements(OWLClass c, OWLClass d) throws UnknownOWLClassException {
+		return getSharedElements(c,d).size();
 	}
 
 
@@ -490,10 +508,14 @@ public abstract class AbstractOwlSim implements OwlSim {
 			if (sampleSetClass.equals(nothing)) {
 				continue;
 			}
-			int sampleSetSize = getNumElementsForAttribute(sampleSetClass);
+			int sampleSetSize = getNumElementsForAttribute(sampleSetClass); // todo - optimize
 			LOG.info("sample set class:" + sampleSetClass + " size="+sampleSetSize);
 			if (sampleSetSize < 2)
 				continue;
+			if (sampleSetSize > enrichmentConfig.maximumClassSize) {
+				LOG.info("  skipping sample set, larger than max size");
+				continue;
+			}
 			List<EnrichmentResult> resultsInner = new Vector<EnrichmentResult>();
 			for (OWLClass enrichedClass : this.getReasoner()
 					.getSubClasses(pc2, false).getFlattened()) {
@@ -501,6 +523,10 @@ public abstract class AbstractOwlSim implements OwlSim {
 				//LOG.info(" population class:" + enrichedClass + " size="+getNumElementsForAttribute(enrichedClass));
 				if (getNumElementsForAttribute(enrichedClass) < 2)
 					continue;
+				if (getNumElementsForAttribute(enrichedClass) > enrichmentConfig.maximumClassSize) {
+					//LOG.info("  skipping test set, larger than max size");
+					continue;
+				}
 				if (sampleSetClass.equals(enrichedClass)
 						|| this.getNamedSubsumers(enrichedClass).contains(sampleSetClass)
 						|| this.getNamedSubsumers(sampleSetClass).contains(enrichedClass)) {
@@ -595,6 +621,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 	public EnrichmentResult calculatePairwiseEnrichment(OWLClass populationClass,
 			OWLClass sampleSetClass, OWLClass enrichedClass) throws MathException, UnknownOWLClassException {
 
+		long t = System.currentTimeMillis();
 		// LOG.info("Hyper :"+populationClass
 		// +" "+sampleSetClass+" "+enrichedClass);
 		int populationClassSize;
@@ -610,12 +637,15 @@ public abstract class AbstractOwlSim implements OwlSim {
 		int enrichedClassSize = getNumElementsForAttribute(enrichedClass);
 		// LOG.info("Hyper :"+populationClassSize
 		// +" "+sampleSetClassSize+" "+enrichedClassSize);
-		Set<OWLNamedIndividual> eiSet = getElementsForAttribute(sampleSetClass);
-		eiSet.retainAll(this.getElementsForAttribute(enrichedClass));
-		int eiSetSize = eiSet.size();
+		//Set<OWLNamedIndividual> eiSet = getSharedElements(sampleSetClass, enrichedClass);
+		//eiSet.retainAll(this.getElementsForAttribute(enrichedClass));
+		//int eiSetSize = eiSet.size();
+		int eiSetSize = getNumSharedElements(sampleSetClass, enrichedClass);
 		if (eiSetSize == 0) {
 			return null;
 		}
+		long t1 = System.currentTimeMillis();
+
 		//LOG.info(" shared elements: "+eiSet.size()+" for "+enrichedClass);
 		HypergeometricDistributionImpl hg = new HypergeometricDistributionImpl(
 				populationClassSize, sampleSetClassSize, enrichedClassSize);
@@ -625,9 +655,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 		 * LOG.info("enrichedClass="+getNumElementsForAttribute(enrichedClass));
 		 */
 		// LOG.info("both="+eiSet.size());
-		double p = hg.cumulativeProbability(eiSet.size(),
+		double p = hg.cumulativeProbability(eiSetSize,
 				Math.min(sampleSetClassSize, enrichedClassSize));
+		long t2 = System.currentTimeMillis();
 		double pCorrected = p * getCorrectionFactor(populationClass);
+		
+		long tPrep = t1 - t;
+		long tCalc = t2 - t1;
+		totalTimeEnrichPrep += tPrep;
+		totalTimeEnrichCalc += tCalc;
+		//LOG.info("Enrich "+hg.toString()+" p="+p+" pCorr="+p+" tPrep="+tPrep+" tCalc="+tCalc);
 		return new EnrichmentResult(sampleSetClass, enrichedClass, p, pCorrected, 
 				populationClassSize, sampleSetClassSize, enrichedClassSize, eiSetSize);
 	}

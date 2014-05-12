@@ -242,7 +242,7 @@ public class SimJSONEngine {
 		m.put("label", g.getLabel(obj));
 		Double ic = sos.getInformationContentForAttribute(g.getOWLClass(obj));
 		if (ic == null) {
-			LOG.info("Using max(maxIC) for "+g.getIdentifier(obj));
+			//LOG.info("Using max(maxIC) for "+g.getIdentifier(obj));
 			ic = sos.getSummaryStatistics().max.getMax();
 		}
 		m.put("IC",ic);
