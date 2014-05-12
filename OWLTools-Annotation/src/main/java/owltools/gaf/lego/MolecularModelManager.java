@@ -2296,7 +2296,9 @@ public class MolecularModelManager {
 	 */
 	void addAxiom(LegoModelGenerator model, OWLAxiom axiom, boolean flushReasoner) {
 		OWLOntology ont = model.getAboxOntology();
-		ont.getOWLOntologyManager().addAxiom(ont, axiom);
+		synchronized (ont) {
+			ont.getOWLOntologyManager().addAxiom(ont, axiom);	
+		}
 		if (flushReasoner) {
 			model.getReasoner().flush();
 		}
@@ -2311,7 +2313,9 @@ public class MolecularModelManager {
 	 */
 	void addAxioms(LegoModelGenerator model, Set<OWLAxiom> axioms, boolean flushReasoner) {
 		OWLOntology ont = model.getAboxOntology();
-		ont.getOWLOntologyManager().addAxioms(ont, axioms);
+		synchronized (ont) {
+			ont.getOWLOntologyManager().addAxioms(ont, axioms);
+		}
 		if (flushReasoner) {
 			model.getReasoner().flush();
 		}
@@ -2331,9 +2335,8 @@ public class MolecularModelManager {
 	 */
 	void removeAxiom(LegoModelGenerator model, OWLAxiom axiom, boolean flushReasoner) {
 		OWLOntology ont = model.getAboxOntology();
-		List<OWLOntologyChange> changes = ont.getOWLOntologyManager().removeAxiom(ont, axiom);
-		if (changes.isEmpty()) {
-			System.out.println();
+		synchronized (ont) {
+			ont.getOWLOntologyManager().removeAxiom(ont, axiom);
 		}
 		if (flushReasoner) {
 			model.getReasoner().flush();
@@ -2354,8 +2357,9 @@ public class MolecularModelManager {
 	
 	private void removeAxioms(LegoModelGenerator model, Set<OWLAxiom> axioms, boolean flushReasoner) {
 		OWLOntology ont = model.getAboxOntology();
-		ont.getOWLOntologyManager().removeAxioms(ont, axioms);
-		
+		synchronized (ont) {
+			ont.getOWLOntologyManager().removeAxioms(ont, axioms);
+		}
 		if (flushReasoner) {
 			model.getReasoner().flush();
 		}
