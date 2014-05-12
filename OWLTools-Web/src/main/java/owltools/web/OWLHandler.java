@@ -156,6 +156,7 @@ public class OWLHandler {
 			totalMemoryInKB = rt.totalMemory() / 1024;
 			freeMemoryInKB = rt.freeMemory() / 1024;
 			memoryUsedInKB = (rt.totalMemory() - rt.freeMemory()) / 1024;
+			LOG.info("mem used = "+memoryUsedInKB);
 		}
 		
 	}
@@ -219,6 +220,17 @@ public class OWLHandler {
 //		}
 		returnJSON(smd);
 
+	}
+	
+	// for testing only
+	public void memCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, UnknownOWLClassException {
+		if (isHelp()) {
+			info("Basic metadata about current ontology"); // TODO - json
+			return;
+		}
+		ServerMetadata smd = new ServerMetadata();
+		smd.setMemoryUsage();
+		response.getWriter().write("Used: "+smd.memoryUsedInKB);
 	}
 
 	public void helpCommand() throws IOException {
