@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
@@ -214,8 +215,20 @@ public class GpadGpiObjectsBuilder {
 			ga.setBioentity(bioentityId);
 		}
 		else {
-			ga.setBioentity(entity.getId());
-			ga.setBioentityObject(entity);
+			// check for iso form
+			final String parentObjectId = StringUtils.trimToNull(entity.getParentObjectId());
+			if (parentObjectId != null) {
+				ga.setBioentity(parentObjectId);
+				ga.setGeneProductForm(bioentityId);
+				final Bioentity parentBioentity = document.getBioentity(parentObjectId);
+				if (parentBioentity != null) {
+					ga.setBioentityObject(parentBioentity);
+				}
+			}
+			else {
+				ga.setBioentity(entity.getId());
+				ga.setBioentityObject(entity);
+			}
 		}
 
 		// col 3
