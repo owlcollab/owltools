@@ -33,6 +33,7 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -57,6 +58,8 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
+import org.semanticweb.owlapi.model.OWLOntologyChangeVisitor;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -64,6 +67,8 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -665,9 +670,12 @@ public class MolecularModelManager {
 	 * 
 	 * @param modelId
 	 * @param processCls
-	 * @return null TODO
+	 * @return null
 	 * @throws OWLOntologyCreationException
+	 * 
+	 * @Deprecated problematic return type
 	 */
+	@Deprecated
 	public String addProcess(String modelId, OWLClass processCls) throws OWLOntologyCreationException {
 		LegoModelGenerator mod = getModel(modelId);
 		Set<String> genes = new HashSet<String>();
@@ -1155,17 +1163,41 @@ public class MolecularModelManager {
 	}
 
 	/**
-	 * TODO - locking
+	 * Save a model to disk.
 	 * 
 	 * @param modelId 
 	 * @throws OWLOntologyStorageException 
 	 * @throws OWLOntologyCreationException 
 	 * @throws IOException
+	 * @throws UnknownIdentifierException
+	 * 
+	 * @Deprecated use {@link #saveModel(String, Collection)} instead.
 	 */
-	public void saveModel(String modelId) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
+	@Deprecated
+	public void saveModel(String modelId) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
+		saveModel(modelId, null);
+	}
+	
+	/**
+	 * Save a model to disk.
+	 * 
+	 * @param modelId 
+	 * @param annotations 
+	 *
+	 * @throws OWLOntologyStorageException 
+	 * @throws OWLOntologyCreationException 
+	 * @throws IOException
+	 * @throws UnknownIdentifierException
+	 */
+	public void saveModel(String modelId, Collection<Pair<String, String>> annotations) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
 		// TODO - delegate to a bridge object, allow different impls (triplestore, filesystem, etc)
-		LegoModelGenerator m = getModel(modelId);
-		OWLOntology ont = m.getAboxOntology();
+		final LegoModelGenerator m = getModel(modelId);
+		if (m == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+modelId);
+		}
+		final OWLOntology ont = m.getAboxOntology();
+		final OWLOntologyManager manager = ont.getOWLOntologyManager();
+		
 		String file = getPathToModelOWL(modelId);
 		// prelimiary checks for the target file
 		File finalFile = new File(file).getCanonicalFile();
@@ -1187,7 +1219,9 @@ public class MolecularModelManager {
 			tempFile = File.createTempFile(modelId, ".owl");
 		
 			// write to a temp file
-			getOWLOntologyManager(modelId).saveOntology(ont, ontologyFormat, IRI.create(tempFile));
+			synchronized (ont) {
+				saveToFile(ont, manager, tempFile, annotations);	
+			}
 			
 			// copy temp file to the finalFile
 			FileUtils.copyFile(tempFile, finalFile);
@@ -1197,15 +1231,118 @@ public class MolecularModelManager {
 			FileUtils.deleteQuietly(tempFile);
 		}
 	}
+	/**
+	 * @param ont
+	 * @param manager
+	 * @param outfile
+	 * @param annotations 
+	 * @throws OWLOntologyStorageException
+	 */
+	private void saveToFile(final OWLOntology ont, final OWLOntologyManager manager,
+			final File outfile, final Collection<Pair<String,String>> annotations)
+			throws OWLOntologyStorageException {
+		// check that the annotations contain relevant meta data
+		final Set<OWLAxiom> metadataAxioms = new HashSet<OWLAxiom>();
+		if (annotations != null) {
+//			for (Pair<String,String> pair : annotations) {
+				// TODO saved by
+//			}
+		}
+		// TODO save date?
+		
+		List<OWLOntologyChange> changes = null;
+		final IRI outfileIRI = IRI.create(outfile);
+		try {
+			if (metadataAxioms.isEmpty() == false) {
+				changes = manager.addAxioms(ont, metadataAxioms);
+			}
+			manager.saveOntology(ont, ontologyFormat, outfileIRI);
+		}
+		finally {
+			if (changes != null) {
+				List<OWLOntologyChange> invertedChanges = invertChanges(changes);
+				if (invertedChanges != null && !invertedChanges.isEmpty()) {
+					manager.applyChanges(invertedChanges);
+				}
+			}
+		}
+	}
+	
+	private List<OWLOntologyChange> invertChanges(List<OWLOntologyChange> changes) {
+		if (changes == null || changes.isEmpty()) {
+			return Collections.emptyList();
+		}
+		final List<OWLOntologyChange> invertedChanges = new ArrayList<OWLOntologyChange>(changes.size());
+		for (OWLOntologyChange change : changes) {
+			change.accept(new OWLOntologyChangeVisitor() {
+
+				@Override
+				public void visit(RemoveOntologyAnnotation change) {
+					invertedChanges.add(new AddOntologyAnnotation(change.getOntology(), change.getAnnotation()));
+
+				}
+
+				@Override
+				public void visit(AddOntologyAnnotation change) {
+					invertedChanges.add(new RemoveOntologyAnnotation(change.getOntology(), change.getAnnotation()));
+				}
+
+				@Override
+				public void visit(RemoveImport change) {
+					invertedChanges.add(new AddImport(change.getOntology(), change.getImportDeclaration()));
+				}
+
+				@Override
+				public void visit(AddImport change) {
+					invertedChanges.add(new RemoveImport(change.getOntology(), change.getImportDeclaration()));
+				}
+
+				@Override
+				public void visit(SetOntologyID change) {
+					// do nothing, it's not an invertible action
+				}
+
+				@Override
+				public void visit(RemoveAxiom change) {
+					invertedChanges.add(new AddAxiom(change.getOntology(), change.getAxiom()));
+				}
+
+				@Override
+				public void visit(AddAxiom change) {
+					invertedChanges.add(new RemoveAxiom(change.getOntology(), change.getAxiom()));
+				}
+			});
+		}
+		return invertedChanges;
+	}
 	
 	/**
+	 * Save all models to disk.
+	 * 
 	 * @throws OWLOntologyStorageException
 	 * @throws OWLOntologyCreationException
 	 * @throws IOException 
+	 * @throws UnknownIdentifierException
+	 * 
+	 * @see #saveAllModels(Collection)
 	 */
-	public void saveAllModels() throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
+	public void saveAllModels() throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
+		saveAllModels(null);
+	}
+	
+	/**
+	 * Save all models to disk. The optional annotations may be used to set saved_by and other meta data. 
+	 * 
+	 * @param annotations
+	 * 
+	 * @throws OWLOntologyStorageException
+	 * @throws OWLOntologyCreationException
+	 * @throws IOException 
+	 * @throws UnknownIdentifierException
+	 */
+	public void saveAllModels(Collection<Pair<String, String>> annotations) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
 		for (String modelId : modelMap.keySet()) {
-			saveModel(modelId);
+			saveModel(modelId, annotations);
 		}
 	}
 	

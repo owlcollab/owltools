@@ -30,6 +30,7 @@ import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager;
+import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -308,12 +309,18 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.importModel, "request.arguments.importModel");
 					modelId = m3.importModel(request.arguments.importModel);
+					
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values);
+					if (annotations != null) {
+						m3.addAnnotations(modelId, annotations);
+					}
 					renderBulk = true;
 				}
 				else if (match(Operation.storeModel, operation)) {
 					requireNotNull(request.arguments, "request.arguments");
 					modelId = checkModelId(modelId, request);
-					save(response, modelId, m3);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values);
+					save(response, modelId, annotations, m3);
 				}
 				else if (match(Operation.allModelIds, operation)) {
 					if (nonMeta) {
@@ -454,8 +461,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		response.data.put(Operation.exportModel.getLbl(), exportModel);
 	}
 	
-	private void save(M3BatchResponse response, String modelId, MolecularModelManager m3) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
-		m3.saveModel(modelId);
+	private void save(M3BatchResponse response, String modelId, Collection<Pair<String,String>> annotations, MolecularModelManager m3) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
+		m3.saveModel(modelId, annotations);
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
 			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
