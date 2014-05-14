@@ -57,7 +57,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -859,7 +858,8 @@ public class MolecularModelManager {
 		
 		comment(OWLRDFVocabulary.RDFS_COMMENT.getIRI()), // arbitrary String
 		evidence(IRI.create("http://geneontology.org/lego/evidence")), // eco class iri
-		date(IRI.create("http://purl.org/dc/elements/1.1/date")), // arbitrary string at the moment, define data format?
+		date(IRI.create("http://purl.org/dc/elements/1.1/date")), // arbitrary string at the moment, define date format?
+		// DC recommends http://www.w3.org/TR/NOTE-datetime, one example format is YYYY-MM-DD
 		source(IRI.create("http://purl.org/dc/elements/1.1/source")), // arbitrary string, such as PMID:000000
 		contributor(IRI.create("http://purl.org/dc/elements/1.1/contributor")); // who contributed to the annotation
 		
