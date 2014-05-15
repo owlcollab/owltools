@@ -160,8 +160,24 @@ public interface M3BatchHandler {
 	}
 	
 	
+	/**
+	 * Process a batch request. The parameters uid and intention are round-tripped for the JSONP.
+	 * 
+	 * @param uid JSONP relevant
+	 * @param intention JSONP relevant
+	 * @param requests batch request
+	 * @return response object, never null
+	 */
 	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests);
 	
+	/**
+	 * Jersey REST method for POST with three form parameters.
+	 * 
+	 * @param uid JSONP relevant
+	 * @param intention JSONP relevant
+	 * @param requests JSON string of the batch request
+	 * @return response convertible to JSON(P)
+	 */
 	@Path("m3Batch")
 	@POST
 	@Consumes("application/x-www-form-urlencoded")
@@ -171,6 +187,14 @@ public interface M3BatchHandler {
 			@FormParam("requests") String requests);
 	
 	
+	/**
+	 * Jersey REST method for GET with three query parameters.
+	 * 
+	 * @param uid JSONP relevant
+	 * @param intention JSONP relevant
+	 * @param requests JSON string of the batch request
+	 * @return response convertible to JSON(P)
+	 */
 	@Path("m3Batch")
 	@GET
 	public M3BatchResponse m3BatchGet(
