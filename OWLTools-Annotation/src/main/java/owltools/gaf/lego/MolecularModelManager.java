@@ -48,6 +48,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -384,7 +385,7 @@ public class MolecularModelManager {
 	 */
 	public GafDocument loadGaf(String db) throws IOException, URISyntaxException {
 		if (!dbToGafdoc.containsKey(db)) {
-
+			LOG.info("Loading GAF for db: "+db);
 			GafDocument gafdoc = builder.buildDocument(pathToGafs + "/gene_association." + db + ".gz");
 			dbToGafdoc.put(db, gafdoc);
 		}
@@ -462,6 +463,7 @@ public class MolecularModelManager {
 		if (modelMap.containsKey(modelId)) {
 			throw new OWLOntologyCreationException("A model already exists for this process and db: "+modelId);
 		}
+		LOG.info("Generating model for Class: "+p+" and db: "+db);
 		OWLOntology tbox = graph.getSourceOntology();
 		OWLOntology abox = null;
 		LegoModelGenerator model = null;
@@ -606,6 +608,7 @@ public class MolecularModelManager {
 		if (modelMap.containsKey(modelId)) {
 			throw new OWLOntologyCreationException("A model already exists for this db: "+modelId);
 		}
+		LOG.info("Generating blank model for new modelId: "+modelId);
 
 		// create empty ontology, use model id as ontology IRI
 		final OWLOntologyManager m = graph.getManager();
@@ -654,6 +657,7 @@ public class MolecularModelManager {
 	}
 	
 	public String generateDerivedModel(String sourceModelId) throws OWLOntologyCreationException, IOException, URISyntaxException {
+		LOG.info("Generating derived model from "+sourceModelId);
 		LegoModelGenerator sourceModel = this.getModel(sourceModelId); 
 		String modelId = this.generateBlankModel(null);
 		LegoModelGenerator model = this.getModel(modelId);
@@ -1152,6 +1156,33 @@ public class MolecularModelManager {
 		return modelMap.keySet();
 	}
 	
+	public Set<String> searchModels(Collection<String> ids) throws IOException {
+		final Set<String> resultSet = new HashSet<String>();
+		// create IRIs
+		Set<IRI> searchIRIs = new HashSet<IRI>();
+		for(String id : ids) {
+			searchIRIs.add(graph.getIRIByIdentifier(id));
+		}
+		
+		if (!searchIRIs.isEmpty()) {
+			// search for IRI usage in models
+			final Set<String> allModelIds = getAvailableModelIds();
+			for (final String modelId : allModelIds) {
+				final LegoModelGenerator model = getModel(modelId);
+				final OWLOntology aboxOntology = model.getAboxOntology();
+				Set<OWLEntity> signature = aboxOntology.getSignature();
+				for (OWLEntity entity : signature) {
+					if (searchIRIs.contains(entity.getIRI())) {
+						resultSet.add(modelId);
+						break;
+					}
+				}
+			}
+		}
+		// return results
+		return resultSet;
+	}
+	
 	/**
 	 * internal method to cleanup this instance
 	 */
@@ -1556,6 +1587,7 @@ public class MolecularModelManager {
 	
 	// TODO - ensure load/save are synchronized
 	protected void loadModel(String modelId, boolean isOverride) throws OWLOntologyCreationException {
+		LOG.info("Load model: "+modelId+" from file");
 		if (modelMap.containsKey(modelId)) {
 			if (!isOverride) {
 				throw new OWLOntologyCreationException("Model already exists: "+modelId);

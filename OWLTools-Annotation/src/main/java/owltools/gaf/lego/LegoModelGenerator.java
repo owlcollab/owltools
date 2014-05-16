@@ -224,7 +224,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			// using the WITH/FROM column
 			if (c.equals("GO:0005515")) {
 				for (String b : ann.getWithInfos()) {
-					//LOG.info("Adding PPI based on WITH col");
+					//LOG.debug("Adding PPI based on WITH col");
 					addPPI(gene, b);
 				}
 				continue;
@@ -247,12 +247,12 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 				clsByGeneMap.put(gene, new HashSet<OWLClass>());
 			clsByGeneMap.get(gene).add(cls);
 
-			//LOG.info("Finding ancestors of "+cls+" over "+rels);
+			//LOG.debug("Finding ancestors of "+cls+" over "+rels);
 			for (OWLObject ancCls : g.getAncestorsReflexive(cls, rels)) { // TODO-use reasoner
 				if (ancCls instanceof OWLClass) {
 					OWLClass anc = (OWLClass) ancCls;
 					if (!isQueryClass(anc)) {
-						//LOG.info("   "+gene + " => "+c+" => "+anc + " // "+ancCls);
+						//LOG.debug("   "+gene + " => "+c+" => "+anc + " // "+ancCls);
 						if (!geneByInferredClsMap.containsKey(anc))
 							geneByInferredClsMap.put(anc, new HashSet<String>());
 						geneByInferredClsMap.get(anc).add(gene);
@@ -265,9 +265,9 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		OWLClass BP = getOWLClass(OBOUpperVocabulary.GO_biological_process);
 
 		activityClassSet = getReasoner().getSubClasses(MF, false).getFlattened();
-		LOG.info("# subclasses of "+MF+" = "+activityClassSet.size());
+		LOG.debug("# subclasses of "+MF+" = "+activityClassSet.size());
 		processClassSet = getReasoner().getSubClasses(BP, false).getFlattened();
-		LOG.info("# subclasses of "+BP+" "+processClassSet.size());
+		LOG.debug("# subclasses of "+BP+" "+processClassSet.size());
 
 		for (OWLClass cls : this.getTboxOntology().getClassesInSignature(true)) {
 			String label = g.getLabel(cls);
@@ -353,7 +353,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	 */
 	public void addGenes(OWLClass processCls, Collection<String> seedGenes) throws OWLOntologyCreationException {
 
-		LOG.info("Adding seed genes, #=" + seedGenes.size());
+		LOG.debug("Adding seed genes, #=" + seedGenes.size());
 		// TODO - use only instance-level parts and regulators
 
 		// Set of all individuals that necessarily exists given P exist;
@@ -397,9 +397,9 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 					}
 				}
 			}
-			LOG.info(" PPATH "+getIdLabelPair(i)+" "+path);
+			LOG.debug(" PPATH "+getIdLabelPair(i)+" "+path);
 			if (isInValidPath) {
-				LOG.info(" **VALID: "+getIdLabelPair(i));
+				LOG.debug(" **VALID: "+getIdLabelPair(i));
 				leafNodes.add(i);
 			}
 
@@ -411,13 +411,13 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		//		generatedIndividuals = new HashSet<OWLNamedIndividual>();
 		//		// note: here ancestors may be sub-parts
 		//		for (OWLObject obj : ogw.getAncestorsReflexive(prototypeIndividualMap.get(processCls))) {
-		//			LOG.info(" ANCI="+getIdLabelPair(obj));
+		//			LOG.debug(" ANCI="+getIdLabelPair(obj));
 		//			generatedIndividuals.add((OWLNamedIndividual) obj);
 		//		}
 
 		for (String g : seedGenes) {
 
-			LOG.info("  Seed gene="+getIdLabelPair(g));
+			LOG.debug("  Seed gene="+getIdLabelPair(g));
 
 			// each gene, find it's most likely function F and most direct process class P.
 			// Note each gene can have multiple functions, but here we select one.
@@ -427,8 +427,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			Set<OWLClass> geneActivityTypes = getMostSpecificActivityTypes(g); // candidate functions
 			Set<OWLClass> geneInferredTypes = getInferredTypes(g); // all annotations
 
-			LOG.info(" num activity types = "+geneActivityTypes.size());
-			LOG.info(" num inferred types = "+geneInferredTypes.size());
+			LOG.debug(" num activity types = "+geneActivityTypes.size());
+			LOG.debug(" num inferred types = "+geneInferredTypes.size());
 
 
 			// TODO - first find all other annotations for each gene
@@ -440,7 +440,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 			// g is also annotated to multiple other processes; find the more specific ones
 			Set<OWLClass> alternateProcesses = getMostSpecificProcessTypes(g);
-			LOG.info(" alt processes = "+alternateProcesses.size());
+			LOG.debug(" alt processes = "+alternateProcesses.size());
 			boolean isReset = false;
 			for (OWLClass alternateProcessCls : alternateProcesses) {
 				boolean isCandidate = false;
@@ -466,19 +466,19 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 						// experimenting with aggressive approach
 						OWLNamedIndividual newp = generateNecessaryIndividuals(alternateProcessCls);
 						if (!isReset) {
-							LOG.info("Resetting join points");
+							LOG.debug("Resetting join points");
 							isReset = true;
 							joinPoints = new HashSet<OWLNamedIndividual>();
 							//generatedIndividuals = new HashSet<OWLNamedIndividual>();
 						}
-						LOG.info(" Using more specific annotation: "+getIdLabelPair(alternateProcessCls));
+						LOG.debug(" Using more specific annotation: "+getIdLabelPair(alternateProcessCls));
 						joinPoints.add(newp);
 					}
 				}
 			}
 			if (joinPoints.size() == 0) {
 				// TODO - use process instance
-				LOG.info("No more specific process annotations found; using leafNodes, #="+leafNodes.size());
+				LOG.debug("No more specific process annotations found; using leafNodes, #="+leafNodes.size());
 				joinPoints.addAll(leafNodes);
 			}
 
@@ -493,17 +493,17 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 				//this seemed to be producing redundant types:
 				Set<OWLClass> jpcs = getReasoner().getTypes(joinPoint, true).getFlattened();
-				LOG.info(" candidate join point="+getIdLabelPair(joinPoint)+" directTypes: "+jpcs);
+				LOG.debug(" candidate join point="+getIdLabelPair(joinPoint)+" directTypes: "+jpcs);
 				Set<OWLClass> rd = new HashSet<OWLClass>(); // redundant
 				for (OWLClass jpc : jpcs) {
 					rd.addAll(getReasoner().getSuperClasses(jpc, false).getFlattened());
 				}
 				jpcs.removeAll(rd);
-				LOG.info("   Post redundancy filter: "+getIdLabelPair(joinPoint)+" directTypes: "+jpcs);
+				LOG.debug("   Post redundancy filter: "+getIdLabelPair(joinPoint)+" directTypes: "+jpcs);
 
 				for (OWLClass joinPointClass : jpcs) {
 
-					LOG.info("    Testing JPC: "+getIdLabelPair(joinPointClass));
+					LOG.debug("    Testing JPC: "+getIdLabelPair(joinPointClass));
 							
 					// a gene must have been annotated to some descendant of generatedCls to be considered.
 					if (true || geneInferredTypes.contains(joinPointClass)) {
@@ -513,7 +513,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 							Double pval;
 							try {
 								pval = calculatePairwiseEnrichment(activityCls, joinPointClass);
-								LOG.info("    enrichment of "+getIdLabelPair(activityCls)+" IN: "+getIdLabelPair(joinPointClass)+
+								LOG.debug("    enrichment of "+getIdLabelPair(activityCls)+" IN: "+getIdLabelPair(joinPointClass)+
 										" = "+pval);
 								// temp hack - e.g. frp1 ferric-chelate reductase in iron assimilation by reduction and transport
 								if (activityCls.equals(joinPointClass)) {
@@ -534,22 +534,22 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 						}
 					}
 					else {
-						LOG.info("    Skpping: "+getIdLabelPair(joinPointClass)+" -- not in geneInferredTypes");
+						LOG.debug("    Skpping: "+getIdLabelPair(joinPointClass)+" -- not in geneInferredTypes");
 					}
 				}
-				//LOG.info(" DONE testIndivid="+getIdLabelPair(gi));
+				//LOG.debug(" DONE testIndivid="+getIdLabelPair(gi));
 			}
 
 			OWLNamedIndividual ai = addActivity(bestActivityClass, g, best, cp);
 			ccp *= cp;
 			OWLObjectPropertyExpression relation = getObjectProperty(OBOUpperVocabulary.BFO_part_of);
-			LOG.info("Testing if "+getIdLabelPair(bestActivityClass) + 
+			LOG.debug("Testing if "+getIdLabelPair(bestActivityClass) + 
 					" is under/equiv to "+getIdLabelPair(bestParentClass) +
 					" for gene: "+g);
 			if (bestActivityClass != null) {
 				if (getReasoner().getSubClasses(bestActivityClass, false).getFlattened().contains(bestParentClass) ||
 						getReasoner().getEquivalentClasses(bestActivityClass).getEntities().contains(bestParentClass)) {
-					LOG.info("Merging "+bestParent+" --> "+ai);
+					LOG.debug("Merging "+bestParent+" --> "+ai);
 					mergeInto(bestParent, ai);
 				}
 				else {
@@ -564,7 +564,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 	private void addEdge(OWLNamedIndividual p, OWLObjectPropertyExpression rel, OWLNamedIndividual w) {
 		if (ogw.getAncestorsReflexive(p).contains(w)) {
-			LOG.info("ALREADY CONNECTED TO "+w);
+			LOG.debug("ALREADY CONNECTED TO "+w);
 			return;
 		}
 		if (w != null) {
@@ -634,15 +634,15 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			Set<OWLNamedIndividual> aset = lookupActivityByGene(p1);
 			if (aset == null || aset.size() == 0)
 				continue;
-			//LOG.info("P1="+getIdLabelPair(p1));
+			//LOG.debug("P1="+getIdLabelPair(p1));
 			for (String p2 : proteinInteractionMap.get(p1)) {
-				//LOG.info(" P2="+getIdLabelPair(p2));
+				//LOG.debug(" P2="+getIdLabelPair(p2));
 				Set<OWLNamedIndividual> aset2 = lookupActivityByGene(p2);
 				if (aset2 != null) {
 					// assumption: if P1 and P2 interact then their activities also interact
 					for (OWLNamedIndividual a1 : aset) {
 						for (OWLNamedIndividual a2 : aset2) {
-							LOG.info(" PPI-based edge: "+a1+" => "+a2);
+							LOG.debug(" PPI-based edge: "+a1+" => "+a2);
 							addEdge(a1, getObjectProperty(OBOUpperVocabulary.GOREL_directly_provides_input_for), a2); // TODO
 						}
 					}
@@ -678,7 +678,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			for (OWLAxiom ax : getAboxOntology().getAxioms(i)) {
 
 				if (ax instanceof OWLClassAssertionAxiom) {
-					//LOG.info("TESTING:"+ax);
+					//LOG.debug("TESTING:"+ax);
 					OWLClassAssertionAxiom caa = (OWLClassAssertionAxiom)ax;
 					if (caa.getClassExpression().getObjectPropertiesInSignature().contains(enabledBy)) {
 						rmAxioms.add(ax);
@@ -693,7 +693,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 				}
 			}
 			if (xs.size() > 1) {
-				LOG.info("Concatenating enables for "+getIdLabelPair(i));
+				LOG.debug("Concatenating enables for "+getIdLabelPair(i));
 				getOWLOntologyManager().removeAxioms(this.getAboxOntology(), rmAxioms);
 				addAxiom(
 						getOWLDataFactory().getOWLClassAssertionAxiom(
@@ -743,7 +743,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 				try {
 					Double pval = calculatePairwiseEnrichment(pc, gc, populationClassSize);
 					double logScore = -Math.log(pval)/Math.log(2);
-					//LOG.info("  PSCORE: "+getIdLabelPair(gc)+ " = "+logScore+" for: "+getIdLabelPair(pc)+ " pval="+pval);
+					//LOG.debug("  PSCORE: "+getIdLabelPair(gc)+ " = "+logScore+" for: "+getIdLabelPair(pc)+ " pval="+pval);
 					if (pval >= 0.0) {
 						cumLogScore += logScore;
 						n++;
@@ -756,7 +756,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			}
 			if (n>0) {
 				smap.put(gc, cumLogScore);
-				LOG.info("SCORE: "+getIdLabelPair(gc)+ " = "+cumLogScore);
+				LOG.debug("SCORE: "+getIdLabelPair(gc)+ " = "+cumLogScore);
 			}
 			else {
 				//smap.remove(key)
@@ -799,22 +799,22 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	public Double calculatePairwiseEnrichment(
 			OWLClass sampleSetClass, OWLClass enrichedClass, int populationClassSize) throws MathException {
 
-		// LOG.info("Hyper :"+populationClass
+		// LOG.debug("Hyper :"+populationClass
 		// +" "+sampleSetClass+" "+enrichedClass);
 		int sampleSetClassSize = getGenes(sampleSetClass).size();
 		int enrichedClassSize = getGenes(enrichedClass).size();
-		// LOG.info("Hyper :"+populationClassSize
+		// LOG.debug("Hyper :"+populationClassSize
 		// +" "+sampleSetClassSize+" "+enrichedClassSize);
 		HypergeometricDistributionImpl hg = new HypergeometricDistributionImpl(
 				populationClassSize, sampleSetClassSize, enrichedClassSize);
 		/*
-		 * LOG.info("popsize="+getNumElementsForAttribute(populationClass));
-		 * LOG.info("sampleSetSize="+getNumElementsForAttribute(sampleSetClass));
-		 * LOG.info("enrichedClass="+getNumElementsForAttribute(enrichedClass));
+		 * LOG.debug("popsize="+getNumElementsForAttribute(populationClass));
+		 * LOG.debug("sampleSetSize="+getNumElementsForAttribute(sampleSetClass));
+		 * LOG.debug("enrichedClass="+getNumElementsForAttribute(enrichedClass));
 		 */
 		Set<String> eiSet = getGenes(sampleSetClass);
 		eiSet.retainAll(getGenes(enrichedClass));
-		// LOG.info("both="+eiSet.size());
+		// LOG.debug("both="+eiSet.size());
 		double p = hg.cumulativeProbability(eiSet.size(),
 				Math.min(sampleSetClassSize, enrichedClassSize));
 		//double pCorrected = p * getCorrectionFactor(populationClass);
@@ -858,9 +858,9 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	 */
 	public Set<OWLClass>  getMostSpecificActivityTypes(String g) {
 		Set<OWLClass> cset = getActivityTypes(g);
-		LOG.info("# activity types for "+g+" = "+cset.size());
+		LOG.debug("# activity types for "+g+" = "+cset.size());
 		removeRedundantOrHelper(cset, getInvolvedInRelationsAsPEs());
-		LOG.info("# post-NR activity types for "+g+" = "+cset.size());
+		LOG.debug("# post-NR activity types for "+g+" = "+cset.size());
 		return cset;
 	}
 
@@ -925,7 +925,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	 */
 	public Set<String> getGenes(OWLClass wholeCls) {
 		if (!geneByInferredClsMap.containsKey(wholeCls)) {
-			//LOG.info("Nothing known about "+wholeCls);
+			//LOG.debug("Nothing known about "+wholeCls);
 			return new HashSet<String>();
 		}
 		return new HashSet<String>(geneByInferredClsMap.get(wholeCls));
