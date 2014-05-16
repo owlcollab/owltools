@@ -304,9 +304,6 @@ public class BatchModelHandlerTest {
 		assertTrue(evidences.size() > 100);
 		
 		final Set<String> modelIds = (Set)((Map) response.data).get("model_ids");
-		for (String string : modelIds) {
-			System.out.println(string);
-		}
 		assertEquals(0, modelIds.size());
 	}
 
@@ -392,7 +389,6 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response1.intention);
 		assertEquals(M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
 		final String modelId1 = (String) response1.data.get("id");
-		System.out.println(modelId1);
 		
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
@@ -406,7 +402,6 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
 		final String modelId2 = (String) response2.data.get("id");
-		System.out.println(modelId2);
 		
 		assertNotEquals(modelId1, modelId2);
 		
@@ -422,7 +417,6 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response3.intention);
 		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
 		final String modelId3 = (String) response3.data.get("id");
-		System.out.println(modelId3);
 		
 		assertNotEquals(modelId1, modelId3);
 		assertNotEquals(modelId2, modelId3);
@@ -445,7 +439,6 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response1.intention);
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
 		final String modelId1 = (String) response1.data.get("id");
-		System.out.println(modelId1);
 		
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
@@ -460,7 +453,6 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
 		final String modelId2 = (String) response2.data.get("id");
-		System.out.println(modelId2);
 		
 		assertNotEquals(modelId1, modelId2);
 		
@@ -477,7 +469,6 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response3.intention);
 		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
 		final String modelId3 = (String) response3.data.get("id");
-		System.out.println(modelId3);
 		
 		assertNotEquals(modelId1, modelId3);
 		assertNotEquals(modelId2, modelId3);
@@ -564,6 +555,58 @@ public class BatchModelHandlerTest {
 		assertNotNull(individual2);
 		List<Map<Object, Object>> types2 = (List) individual2.get(MolecularModelJsonRenderer.KEY.type);
 		assertEquals(2, types2.size());
+	}
+	
+	@Test
+	public void testModelSearch() throws Exception {
+		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
+		models.dispose();
+
+		final String modelId = generateBlankModel();
+		
+		// create
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.individual.name();
+		batch1[0].operation = Operation.create.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+		batch1[0].arguments.subject = "GO:0008104"; // protein localization
+		batch1[0].arguments.expressions = new M3Expression[2];
+		batch1[0].arguments.expressions[0] = new M3Expression();
+		batch1[0].arguments.expressions[0].type = "svf";
+		batch1[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
+		batch1[0].arguments.expressions[0].literal = "MGI:MGI:00000";
+		
+		batch1[0].arguments.expressions[1] = new M3Expression();
+		batch1[0].arguments.expressions[1].type = "svf";
+		batch1[0].arguments.expressions[1].onProp = "BFO:0000050"; // part_of
+		batch1[0].arguments.expressions[1].literal = "happiness";
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+	
+		// search
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.model.name();
+		batch2[0].operation = Operation.search.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.values = new M3Pair[1];
+		batch2[0].arguments.values[0] = new M3Pair();
+		batch2[0].arguments.values[0].key = "id";
+		batch2[0].arguments.values[0].value = "GO:0008104";
+		
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		
+		Set<String> foundIds = (Set<String>) response2.data.get("model_ids");
+		assertEquals(1, foundIds.size());
+		assertTrue(foundIds.contains(modelId));
 	}
 
 	/**

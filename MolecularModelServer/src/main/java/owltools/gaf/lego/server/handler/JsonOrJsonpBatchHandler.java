@@ -329,6 +329,31 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					}
 					getAllModelIds(response, m3);
 				}
+				else if (match(Operation.search, operation)) {
+					if (nonMeta) {
+						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+						return error(response, operation+" cannot be combined with other operations.", null);
+					}
+					requireNotNull(request.arguments, "request.arguments");
+					requireNotNull(request.arguments.values, "request.arguments.values");
+					Collection<Pair<String, String>> values = extract(request.arguments.values);
+					List<String> searchIds = new ArrayList<String>();
+					if (values != null) {
+						for (Pair<String, String> pair : values) {
+							String key = pair.getKey();
+							String val = pair.getValue();
+							if ("id".equals(key) && val != null) {
+								searchIds.add(val);
+							}
+						}
+					}
+					if (!searchIds.isEmpty()) {
+						searchModels(response, searchIds, m3);
+					}
+					else {
+						return error(response, "No query identifiers found in the request.", null);
+					}
+				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
 				}
@@ -426,6 +451,17 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		//response.data.put("models_memory", memoryModelIds);
 		//response.data.put("models_stored", storedModelIds);
 		//response.data.put("models_scratch", scratchModelIds);
+	}
+	
+	private void searchModels(M3BatchResponse response, List<String> ids, MolecularModelManager m3) throws IOException {
+		Set<String> allModelIds = m3.searchModels(ids);
+		if (response.data == null) {
+			response.data = new HashMap<Object, Object>();
+			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
+			response.message = "success: " + response.data.size();
+			response.signal = M3BatchResponse.SIGNAL_META;
+		}
+		response.data.put("model_ids", allModelIds);
 	}
 
 	private void getRelations(M3BatchResponse response, MolecularModelManager m3) throws OWLOntologyCreationException {

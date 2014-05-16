@@ -45,7 +45,8 @@ public interface M3BatchHandler {
 		exportModel("export"),
 		importModel("import"),
 		storeModel("store"),
-		allModelIds("all-model-ids");
+		allModelIds("all-model-ids"),
+		search("search");
 		
 		private final String lbl;
 		
