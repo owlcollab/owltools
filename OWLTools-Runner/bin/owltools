@@ -49,6 +49,7 @@ fi
 
 ## Walk through all the command line arguments and add them to
 ## the CMDARGS depending.
+
 for ARG in "$@"
 do
     CMDARGS="${CMDARGS} '${ARG}'"
@@ -101,7 +102,7 @@ then
 fi
 
 ## Assemble and run the final command.
-CMD="$JAVAPATH -Xms2048M -DentityExpansionLimit=2048000 -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
+CMD="$JAVAPATH -Xms2048M -DentityExpansionLimit=2048000 -Djava.awt.headless=true -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
 
 ## DEBUG
 ## Let's see a little of the environment if we declare DEBUG=1.
