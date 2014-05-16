@@ -67,7 +67,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		try {
 			Gson gson = gsonBuilder.create();
 			M3Request[] requests = gson.fromJson(requestString, type);
-			return m3Batch(response, requests);
+			return m3Batch(response, requests, uid);
 		} catch (Exception e) {
 			return error(response, "Could not successfully handle batch request.", e);
 		} catch (Throwable t) {
@@ -80,7 +80,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests) {
 		M3BatchResponse response = new M3BatchResponse(uid, intention);
 		try {
-			return m3Batch(response, requests);
+			return m3Batch(response, requests, uid);
 		} catch (Exception e) {
 			return error(response, "Could not successfully complete batch request.", e);
 		} catch (Throwable t) {
@@ -95,7 +95,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		return m3BatchGet(uid, intention, requestString);
 	}
 
-	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests) throws Exception {
+	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests, String userId) throws Exception {
+		// TODO add userId to relevant requests (i.e. contributor)
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
 		boolean renderBulk = false;
 		boolean renderModelAnnotations = false;
