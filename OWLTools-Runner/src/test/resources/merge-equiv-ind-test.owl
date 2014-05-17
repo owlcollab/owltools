@@ -1,0 +1,26 @@
+Prefix: obo: <http://purl.obolibrary.org/obo/>
+Prefix: : <http://purl.obolibrary.org/obo/>
+Ontology: <http://purl.obolibrary.org/obo/test>
+
+Class: :T_1
+
+Individual: :I_1
+  Annotations: rdfs:label "i1"
+  SameAs: :J_1
+
+Individual: :J_1
+  Annotations: rdfs:label "j1"
+  SameAs: :H_1
+
+Individual: :H_1
+  Annotations: rdfs:label "h1"
+
+Individual: :I_2
+  Annotations: rdfs:label "i2"
+  SameAs: :J_2
+
+Individual: :J_2
+  Annotations: rdfs:label "j2"
+
+Individual: :I_3
+  Annotations: rdfs:label "i3"
