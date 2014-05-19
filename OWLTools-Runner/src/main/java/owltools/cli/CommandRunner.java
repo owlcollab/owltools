@@ -2345,6 +2345,7 @@ public class CommandRunner {
 				boolean isAssertImplied = false;
 				boolean isDirect = true;
 				boolean isShowUnsatisfiable = false;
+				String unsatisfiableModule = null;
 
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
@@ -2362,6 +2363,10 @@ public class CommandRunner {
 						opts.info("", "list all unsatisfiable classes");
 						isShowUnsatisfiable = true;
 					}
+					else if (opts.nextEq("-m|--unsatisfiable-module")) {
+						opts.info("", "create a module for the unsatisfiable classes.");
+						unsatisfiableModule = opts.nextOpt();
+					}
 					else {
 						break;
 					}
@@ -2375,15 +2380,28 @@ public class CommandRunner {
 				if (isShowUnsatisfiable) {
 					int n = 0;
 					// NOTE: 
-					for (OWLClass c : reasoner.getEquivalentClasses(g.getDataFactory().getOWLNothing())) {
+					Set<OWLClass> unsatisfiableClasses = reasoner.getEquivalentClasses(g.getDataFactory().getOWLNothing()).getEntitiesMinusBottom();
+					for (OWLClass c : unsatisfiableClasses) {
 						if (g.getDataFactory().getOWLNothing().equals(c))
 							continue;
 						System.out.println("UNSAT: "+owlpp.render(c));
 						n++;
 					}
 					System.out.println("NUMBER_OF_UNSATISFIABLE_CLASSES: "+n);
+					if (unsatisfiableModule != null) {
+						LOG.info("Creating module for unsatisfiable classes in file: "+unsatisfiableModule);
+						ModuleType mtype = ModuleType.BOT;
+						OWLOntologyManager m = g.getManager();
+						SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, g.getSourceOntology(), mtype );
+						Set<OWLEntity> seeds = new HashSet<OWLEntity>(unsatisfiableClasses);
+						Set<OWLAxiom> axioms = sme.extract(seeds);
+						OWLOntology module = m.createOntology();
+						m.addAxioms(module, axioms);
+						File moduleFile = new File(unsatisfiableModule).getCanonicalFile();
+						m.saveOntology(module, IRI.create(moduleFile));
+					}
 					if (n > 0) {
-						System.exit(1);
+						exit(1);
 					}
 				}
 
