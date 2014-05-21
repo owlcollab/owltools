@@ -13,6 +13,7 @@ import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.AxiomNotInProfileException;
@@ -410,6 +411,16 @@ public class GraphReasoner extends OWLReasonerBase implements OWLExtendedReasone
 	}
 
 	public Node<OWLClass> getBottomClassNode() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Set<OWLClass> getSuperClassesOver(OWLClassExpression ce,
+			OWLObjectProperty p, boolean direct)
+			throws InconsistentOntologyException,
+			ClassExpressionNotInProfileException, FreshEntitiesException,
+			ReasonerInterruptedException, TimeOutException {
 		// TODO Auto-generated method stub
 		return null;
 	}

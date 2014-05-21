@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -71,8 +72,9 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	private OWLOntology ontology;
 	OWLOntologyManager manager;
 	private Map<OWLObjectProperty,OWLClass> pxMap;
-	private Map<OWLClass,OWLObjectProperty> xpMap;
-	private Map<OWLClass,OWLClassExpression> cxMap;
+	Set<OWLObjectProperty> cachedProperties;
+	//private Map<OWLClass,OWLObjectProperty> xpMap;
+	private Map<OWLClass,OWLObjectSomeValuesFrom> cxMap;
 
 
 	protected ExpressionMaterializingReasoner(OWLOntology rootOntology,
@@ -80,12 +82,14 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 		super(rootOntology, configuration, bufferingMode);
 		try {
 			this.ontology = rootOntology;
-			manager = OWLManager.createOWLOntologyManager();
+			manager = ontology.getOWLOntologyManager();
 			dataFactory = manager.getOWLDataFactory();
 		} catch (UnknownOWLOntologyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		cachedProperties = new HashSet<OWLObjectProperty>();
+		cxMap = new HashMap<OWLClass, OWLObjectSomeValuesFrom>();
 	}
 
 	public ExpressionMaterializingReasoner(OWLOntology ont) {
@@ -99,6 +103,10 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 
 
 	public void setWrappedReasoner(OWLReasoner wrappedReasoner) {
+		if (wrappedReasoner == null) {
+			ElkReasonerFactory reasonerFactory = new ElkReasonerFactory();	
+			wrappedReasoner = reasonerFactory.createReasoner(ontology);
+		}
 		this.wrappedReasoner = wrappedReasoner;
 	}
 
@@ -109,21 +117,35 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public void materializeExpressions() {
-		pxMap = new HashMap<OWLObjectProperty,OWLClass>();
-		cxMap = new HashMap<OWLClass, OWLClassExpression>();
-		for (OWLClass baseClass : ontology.getClassesInSignature()) {
-			for (OWLObjectProperty p : ontology.getObjectPropertiesInSignature()) {
-				OWLObjectSomeValuesFrom x = dataFactory.getOWLObjectSomeValuesFrom(p, baseClass);
-				IRI xciri = IRI.create(baseClass.getIRI().toString()+"--"+p.getIRI().toString());
-				OWLClass xc = dataFactory.getOWLClass(xciri);
-				OWLEquivalentClassesAxiom eca = dataFactory.getOWLEquivalentClassesAxiom(xc, x);
-				pxMap.put(p, xc);
-				cxMap.put(xc, x);
-				//LOG.info("Materializing: "+eca);
-				manager.addAxiom(ontology, eca);
-				manager.addAxiom(ontology, dataFactory.getOWLDeclarationAxiom(xc));
-			}
+		for (OWLObjectProperty p : ontology.getObjectPropertiesInSignature()) {
+			materializeExpressions(p);
 		}
+	}
+	public void materializeExpressions(OWLObjectProperty p) {
+		if (cachedProperties.contains(p))
+			return;
+		LOG.info("Materializing "+p+" SOME ?x");
+		//pxMap = new HashMap<OWLObjectProperty,OWLClass>();
+		int n=0;
+		for (OWLClass baseClass : ontology.getClassesInSignature()) {
+			// only materialize for non-helper classes
+			if (cxMap.containsKey(baseClass))
+				continue;
+			OWLObjectSomeValuesFrom x = dataFactory.getOWLObjectSomeValuesFrom(p, baseClass);
+			IRI xciri = IRI.create(baseClass.getIRI().toString()+"--"+p.getIRI().toString());
+			OWLClass xc = dataFactory.getOWLClass(xciri);
+			OWLEquivalentClassesAxiom eca = dataFactory.getOWLEquivalentClassesAxiom(xc, x);
+			//pxMap.put(p, xc);
+			cxMap.put(xc, x);
+			//LOG.info("Materializing: "+eca);
+			manager.addAxiom(ontology, eca);
+			//LOG.info("  ADDED:"+eca);
+			manager.addAxiom(ontology, dataFactory.getOWLDeclarationAxiom(xc));
+			n++;
+		}
+		flush();
+		LOG.info("Cached = "+n);
+		cachedProperties.add(p);
 	}
 
 	/**
@@ -144,6 +166,7 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 			ReasonerInterruptedException, TimeOutException {
 
 		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
+		wrappedReasoner.flush();
 		for (OWLClass c : wrappedReasoner.getSuperClasses(ce, direct).getFlattened()) {
 			LOG.info("SC:"+c);
 			if (cxMap.containsKey(c)) {
@@ -155,6 +178,48 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 		}
 		return ces;
 	}
+
+	public Set<OWLClass> getSuperClassesOver(OWLClassExpression ce,
+			OWLObjectProperty p,
+			boolean direct) throws InconsistentOntologyException,
+			ClassExpressionNotInProfileException, FreshEntitiesException,
+			ReasonerInterruptedException, TimeOutException {
+
+		materializeExpressions(p);
+		//wrappedReasoner.flush();
+		Set<OWLClass> nxs = new HashSet<OWLClass>(); // named expressions
+		//LOG.info("Q:"+ce);
+		for (OWLClass c : wrappedReasoner.getSuperClasses(ce, false).getFlattened()) {
+			//LOG.info("  SC:"+c);
+			if (cxMap.containsKey(c)) {
+				OWLObjectSomeValuesFrom x = cxMap.get(c);
+				if (x.getProperty().equals(p)) {
+					//OWLClass v = (OWLClass) x.getFiller();
+					nxs.add(c);
+				}
+			}
+		}
+		if (direct) {
+			//LOG.info("Removing indirect");
+			Set<OWLClass> ics = new HashSet<OWLClass>();
+			for (OWLClass c : nxs) {
+				for (OWLClass sc : wrappedReasoner.getSuperClasses(c, false).getFlattened()) {
+					if (nxs.contains(sc)) {
+						ics.add(sc);
+					}
+				}				
+			}
+			nxs.removeAll(ics);
+		}
+		Set<OWLClass> rcs = new HashSet<OWLClass>();
+		for (OWLClass c : nxs) {
+			OWLObjectSomeValuesFrom x = cxMap.get(c);
+			OWLClass v = (OWLClass) x.getFiller();
+			rcs.add(v);
+		}
+		return rcs;
+	}
+
 
 	public String getReasonerName() {
 		return "Expression Materializing Reasoner";
@@ -193,8 +258,8 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public void precomputeInferences(InferenceType... inferenceTypes)
-	throws ReasonerInterruptedException, TimeOutException,
-	InconsistentOntologyException {
+			throws ReasonerInterruptedException, TimeOutException,
+			InconsistentOntologyException {
 		wrappedReasoner.precomputeInferences(inferenceTypes);
 	}
 
@@ -212,31 +277,31 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public boolean isSatisfiable(OWLClassExpression classExpression)
-	throws ReasonerInterruptedException, TimeOutException,
-	ClassExpressionNotInProfileException, FreshEntitiesException,
-	InconsistentOntologyException {
+			throws ReasonerInterruptedException, TimeOutException,
+			ClassExpressionNotInProfileException, FreshEntitiesException,
+			InconsistentOntologyException {
 		return wrappedReasoner.isSatisfiable(classExpression);
 	}
 
 	public Node<OWLClass> getUnsatisfiableClasses()
-	throws ReasonerInterruptedException, TimeOutException,
-	InconsistentOntologyException {
+			throws ReasonerInterruptedException, TimeOutException,
+			InconsistentOntologyException {
 		return wrappedReasoner.getUnsatisfiableClasses();
 	}
 
 	public boolean isEntailed(OWLAxiom axiom)
-	throws ReasonerInterruptedException,
-	UnsupportedEntailmentTypeException, TimeOutException,
-	AxiomNotInProfileException, FreshEntitiesException,
-	InconsistentOntologyException {
+			throws ReasonerInterruptedException,
+			UnsupportedEntailmentTypeException, TimeOutException,
+			AxiomNotInProfileException, FreshEntitiesException,
+			InconsistentOntologyException {
 		return wrappedReasoner.isEntailed(axiom);
 	}
 
 	public boolean isEntailed(Set<? extends OWLAxiom> axioms)
-	throws ReasonerInterruptedException,
-	UnsupportedEntailmentTypeException, TimeOutException,
-	AxiomNotInProfileException, FreshEntitiesException,
-	InconsistentOntologyException {
+			throws ReasonerInterruptedException,
+			UnsupportedEntailmentTypeException, TimeOutException,
+			AxiomNotInProfileException, FreshEntitiesException,
+			InconsistentOntologyException {
 		return wrappedReasoner.isEntailed(axioms);
 	}
 
@@ -253,9 +318,9 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public NodeSet<OWLClass> getSubClasses(OWLClassExpression ce, boolean direct)
-	throws ReasonerInterruptedException, TimeOutException,
-	FreshEntitiesException, InconsistentOntologyException,
-	ClassExpressionNotInProfileException {
+			throws ReasonerInterruptedException, TimeOutException,
+			FreshEntitiesException, InconsistentOntologyException,
+			ClassExpressionNotInProfileException {
 		return wrappedReasoner.getSubClasses(ce, direct);
 	}
 
@@ -267,15 +332,15 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public Node<OWLClass> getEquivalentClasses(OWLClassExpression ce)
-	throws InconsistentOntologyException,
-	ClassExpressionNotInProfileException, FreshEntitiesException,
-	ReasonerInterruptedException, TimeOutException {
+			throws InconsistentOntologyException,
+			ClassExpressionNotInProfileException, FreshEntitiesException,
+			ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getEquivalentClasses(ce);
 	}
 
 	public NodeSet<OWLClass> getDisjointClasses(OWLClassExpression ce)
-	throws ReasonerInterruptedException, TimeOutException,
-	FreshEntitiesException, InconsistentOntologyException {
+			throws ReasonerInterruptedException, TimeOutException,
+			FreshEntitiesException, InconsistentOntologyException {
 		return wrappedReasoner.getDisjointClasses(ce);
 	}
 
@@ -289,50 +354,50 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 
 	public NodeSet<OWLObjectPropertyExpression> getSubObjectProperties(
 			OWLObjectPropertyExpression pe, boolean direct)
-			throws InconsistentOntologyException, FreshEntitiesException,
-			ReasonerInterruptedException, TimeOutException {
+					throws InconsistentOntologyException, FreshEntitiesException,
+					ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getSubObjectProperties(pe, direct);
 	}
 
 	public NodeSet<OWLObjectPropertyExpression> getSuperObjectProperties(
 			OWLObjectPropertyExpression pe, boolean direct)
-			throws InconsistentOntologyException, FreshEntitiesException,
-			ReasonerInterruptedException, TimeOutException {
+					throws InconsistentOntologyException, FreshEntitiesException,
+					ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getSuperObjectProperties(pe, direct);
 	}
 
 	public Node<OWLObjectPropertyExpression> getEquivalentObjectProperties(
 			OWLObjectPropertyExpression pe)
-			throws InconsistentOntologyException, FreshEntitiesException,
-			ReasonerInterruptedException, TimeOutException {
+					throws InconsistentOntologyException, FreshEntitiesException,
+					ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getEquivalentObjectProperties(pe);
 	}
 
 	public NodeSet<OWLObjectPropertyExpression> getDisjointObjectProperties(
 			OWLObjectPropertyExpression pe)
-			throws InconsistentOntologyException, FreshEntitiesException,
-			ReasonerInterruptedException, TimeOutException {
+					throws InconsistentOntologyException, FreshEntitiesException,
+					ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getDisjointObjectProperties(pe);
 	}
 
 	public Node<OWLObjectPropertyExpression> getInverseObjectProperties(
 			OWLObjectPropertyExpression pe)
-			throws InconsistentOntologyException, FreshEntitiesException,
-			ReasonerInterruptedException, TimeOutException {
+					throws InconsistentOntologyException, FreshEntitiesException,
+					ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getInverseObjectProperties(pe);
 	}
 
 	public NodeSet<OWLClass> getObjectPropertyDomains(
 			OWLObjectPropertyExpression pe, boolean direct)
-			throws InconsistentOntologyException, FreshEntitiesException,
-			ReasonerInterruptedException, TimeOutException {
+					throws InconsistentOntologyException, FreshEntitiesException,
+					ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getObjectPropertyDomains(pe, direct);
 	}
 
 	public NodeSet<OWLClass> getObjectPropertyRanges(
 			OWLObjectPropertyExpression pe, boolean direct)
-			throws InconsistentOntologyException, FreshEntitiesException,
-			ReasonerInterruptedException, TimeOutException {
+					throws InconsistentOntologyException, FreshEntitiesException,
+					ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getObjectPropertyRanges(pe, direct);
 	}
 
@@ -359,8 +424,8 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public Node<OWLDataProperty> getEquivalentDataProperties(OWLDataProperty pe)
-	throws InconsistentOntologyException, FreshEntitiesException,
-	ReasonerInterruptedException, TimeOutException {
+			throws InconsistentOntologyException, FreshEntitiesException,
+			ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getEquivalentDataProperties(pe);
 	}
 
@@ -379,8 +444,8 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public NodeSet<OWLClass> getTypes(OWLNamedIndividual ind, boolean direct)
-	throws InconsistentOntologyException, FreshEntitiesException,
-	ReasonerInterruptedException, TimeOutException {
+			throws InconsistentOntologyException, FreshEntitiesException,
+			ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getTypes(ind, direct);
 	}
 
@@ -393,8 +458,8 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 
 	public NodeSet<OWLNamedIndividual> getObjectPropertyValues(
 			OWLNamedIndividual ind, OWLObjectPropertyExpression pe)
-			throws InconsistentOntologyException, FreshEntitiesException,
-			ReasonerInterruptedException, TimeOutException {
+					throws InconsistentOntologyException, FreshEntitiesException,
+					ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getObjectPropertyValues(ind, pe);
 	}
 
@@ -406,8 +471,8 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public Node<OWLNamedIndividual> getSameIndividuals(OWLNamedIndividual ind)
-	throws InconsistentOntologyException, FreshEntitiesException,
-	ReasonerInterruptedException, TimeOutException {
+			throws InconsistentOntologyException, FreshEntitiesException,
+			ReasonerInterruptedException, TimeOutException {
 		return wrappedReasoner.getSameIndividuals(ind);
 	}
 
