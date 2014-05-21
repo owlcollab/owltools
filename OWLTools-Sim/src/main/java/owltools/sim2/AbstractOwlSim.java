@@ -37,6 +37,7 @@ import owltools.mooncat.ontologymetadata.OntologySetMetadata;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.scores.ElementPairScores;
+import owltools.vocab.OBOUpperVocabulary;
 
 
 public abstract class AbstractOwlSim implements OwlSim {
@@ -433,10 +434,16 @@ public abstract class AbstractOwlSim implements OwlSim {
 		saveLCSCache(fileName, null);
 	}
 
-	protected final String prefix = "http://purl.obolibrary.org/obo/";
 	protected String getShortId(OWLClass c) {
 		IRI x = ((OWLClass) c).getIRI();
-		return x.toString().replace(prefix, ""); // todo - do not hardcode
+		String id = x.toString().replace(OBOUpperVocabulary.OBO, ""); 
+		if (id.equals(x.toString())) {
+			// note: we assume here that in the majority of cases this is unintended,
+			// but we do not force ontologies to use OBO prefixes.
+			// in future it may be desirable to explicitly declare prefixes
+			LOG.warn("Could not contract: "+x);
+		}
+		return id;
 	}
 	protected OWLClass getOWLClassFromShortId(String id) {
 		// todo - standardize this
@@ -445,7 +452,15 @@ public abstract class AbstractOwlSim implements OwlSim {
 				id.equals("owl:Thing")) {
 			return getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLThing();
 		}
-		return getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClass(IRI.create(prefix + id));
+		String iri;
+		// see notes in getShortId()
+		if (id.startsWith("http")) {
+			iri = id; 
+		}
+		else {
+			iri = OBOUpperVocabulary.OBO + id;
+		}
+		return getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLClass(IRI.create(iri));
 	}
 
 
