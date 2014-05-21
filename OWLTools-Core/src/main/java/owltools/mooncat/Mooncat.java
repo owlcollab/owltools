@@ -695,6 +695,13 @@ public class Mooncat {
 			removeDanglingAxioms(o);
 		}
 	}
+	
+	/**
+	 * Remove a set of classes from the ontology
+	 * 
+	 * @param rmSet
+	 * @param removeDangling
+	 */
 	public void removeSubsetClasses(Set<OWLClass> rmSet, boolean removeDangling) {
 		OWLOntology o = getOntology();
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
