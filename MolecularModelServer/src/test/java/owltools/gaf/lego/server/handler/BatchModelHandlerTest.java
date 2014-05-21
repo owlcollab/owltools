@@ -620,14 +620,16 @@ public class BatchModelHandlerTest {
 		batch[0].operation = Operation.generateBlank.getLbl();
 		batch[1] = new M3Request();
 		batch[1].entity = Entity.individual.name();
-		batch[1].operation = Operation.create.getLbl();
+		batch[1].operation = Operation.createComposite.getLbl();
 		batch[1].arguments = new M3Argument();
-		batch[1].arguments.subject = "GO:0008104"; // protein localization
+		batch[1].arguments.subject = "GO:0003674"; // molecular function
+		batch[1].arguments.predicate = "BFO:0000050"; // part of
+		batch[1].arguments.object = "GO:0008150"; // biological process
 		batch[1].arguments.expressions = new M3Expression[1];
 		batch[1].arguments.expressions[0] = new M3Expression();
 		batch[1].arguments.expressions[0].type = "svf";
 		batch[1].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
-		batch[1].arguments.expressions[0].literal = "MGI:MGI:00000";
+		batch[1].arguments.expressions[0].literal = "UniProtKB:P00000";
 		
 		M3BatchResponse response = handler.m3Batch(uid, intention, batch);
 		assertEquals(uid, response.uid);

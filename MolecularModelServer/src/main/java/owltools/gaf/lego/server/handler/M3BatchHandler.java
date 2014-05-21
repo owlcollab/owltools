@@ -34,6 +34,7 @@ public interface M3BatchHandler {
 	public static enum Operation {
 		get("get"),
 		create("create"),
+		createComposite("create-composite"), // aka create annaton
 		addType("add-type"),
 		removeType("remove-type"),
 		add("add"),

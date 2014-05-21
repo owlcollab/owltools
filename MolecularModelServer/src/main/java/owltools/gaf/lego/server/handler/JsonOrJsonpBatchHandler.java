@@ -141,6 +141,29 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 						}
 					}
 				}
+				// create individuals for subject and object,
+				// add object as fact to subject with given property
+				else if (match(Operation.createComposite, operation)) {
+					// required: subject, predicate, object
+					// optional: expressions, values
+					requireNotNull(request.arguments.subject, "request.arguments.subject");
+					requireNotNull(request.arguments.predicate, "request.arguments.predicate");
+					requireNotNull(request.arguments.object, "request.arguments.object");
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId);
+					Pair<String, OWLNamedIndividual> individual1Pair = m3.createIndividualNonReasoning(modelId, request.arguments.subject, annotations);
+					relevantIndividuals.add(individual1Pair.getValue());
+
+					if (request.arguments.expressions != null) {
+						for(M3Expression expression : request.arguments.expressions) {
+							OWLClassExpression cls = M3ExpressionParser.parse(modelId, expression, m3);
+							m3.addTypeNonReasoning(modelId, individual1Pair.getKey(), cls);
+						}
+					}
+					Pair<String, OWLNamedIndividual> individual2Pair = m3.createIndividualNonReasoning(modelId, request.arguments.object, annotations);
+					relevantIndividuals.add(individual2Pair.getValue());
+					
+					m3.addFact(modelId, request.arguments.predicate, individual1Pair.getLeft(), individual2Pair.getLeft(), annotations);
+				}
 				// remove individual (and all axioms using it)
 				else if (match(Operation.remove, operation)){
 					// required: modelId, individual
