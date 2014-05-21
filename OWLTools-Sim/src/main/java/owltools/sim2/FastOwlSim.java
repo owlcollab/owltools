@@ -1354,6 +1354,8 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		EWAHCompressedBitmap searchProfileBM = ancsBitmapCached(cset);
 		for (OWLNamedIndividual j : getAllElements()) {
+			// todo - provide other ways of filtering the set of candidates
+			// for now we limit this to the ID space
 			if (targetIdSpace != null && !j.getIRI().toString().contains("/"+targetIdSpace+"_")) {
 				continue;
 			}
@@ -1445,7 +1447,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			scoreSets.add(s);
 		}
 		// calculate combined/phenodigm score
-		// TODO - 
 		calculateCombinedScores(scoreSets, maxMaxIC, maxBMA);
 		LOG.info("tSimJ = "+tSimJ +" / "+nSimJ);
 		LOG.info("tSearch = "+tdelta(startTime) +" / "+nSimJ);
