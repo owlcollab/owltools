@@ -18,6 +18,9 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.ManchesterSyntaxTool;
@@ -45,8 +48,8 @@ public class BatchModelHandlerTest {
 	private static JsonOrJsonpBatchHandler handler = null;
 	private static MolecularModelManager models = null;
 
-	private static final String uid = "1";
-	private static final String intention = "foo";
+	private static final String uid = "test-user";
+	private static final String intention = "test-intention";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -608,6 +611,29 @@ public class BatchModelHandlerTest {
 		assertEquals(1, foundIds.size());
 		assertTrue(foundIds.contains(modelId));
 	}
+	
+	@Test
+	public void testCreateModelAndIndividualBatch() throws Exception {
+		M3Request[] batch = new M3Request[2];
+		batch[0] = new M3Request();
+		batch[0].entity = Entity.model.name();
+		batch[0].operation = Operation.generateBlank.getLbl();
+		batch[1] = new M3Request();
+		batch[1].entity = Entity.individual.name();
+		batch[1].operation = Operation.create.getLbl();
+		batch[1].arguments = new M3Argument();
+		batch[1].arguments.subject = "GO:0008104"; // protein localization
+		batch[1].arguments.expressions = new M3Expression[1];
+		batch[1].arguments.expressions[0] = new M3Expression();
+		batch[1].arguments.expressions[0].type = "svf";
+		batch[1].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
+		batch[1].arguments.expressions[0].literal = "MGI:MGI:00000";
+		
+		M3BatchResponse response = handler.m3Batch(uid, intention, batch);
+		assertEquals(uid, response.uid);
+		assertEquals(intention, response.intention);
+		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+	}
 
 	/**
 	 * @return modelId
@@ -623,5 +649,15 @@ public class BatchModelHandlerTest {
 		String modelId = (String) resp1.data.get("id");
 		assertNotNull(modelId);
 		return modelId;
+	}
+	
+	static void printJson(M3BatchResponse resp) {
+		GsonBuilder builder = new GsonBuilder();
+		builder.setPrettyPrinting();
+		Gson gson = builder.create();
+		String json = gson.toJson(resp);
+		System.out.println("---------");
+		System.out.println(json);
+		System.out.println("---------");
 	}
 }
