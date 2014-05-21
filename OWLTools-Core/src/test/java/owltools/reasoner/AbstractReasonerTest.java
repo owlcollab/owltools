@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.ClassExpressionNotInProfileException;
 import org.semanticweb.owlapi.reasoner.FreshEntitiesException;
@@ -71,6 +72,9 @@ public abstract class AbstractReasonerTest extends OWLToolsTestBasics {
 		}
 		return clzs;
 	}
+	
+
+
 	
 	protected Set<OWLNamedIndividual> findIndividuals(OWLReasoner r, String expr, Integer numExpected) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, ParserException {
 		System.out.println("Query: "+expr);

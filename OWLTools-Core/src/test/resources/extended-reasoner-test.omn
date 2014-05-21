@@ -1,0 +1,66 @@
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: : <http://x.org/>
+
+Ontology: <http://example.org>
+
+ObjectProperty: :part_of
+  Characteristics: Transitive
+
+ObjectProperty: :has_part
+  Characteristics: Transitive
+
+Class: :limb
+Class: :segment
+
+Class: :forelimb
+ SubClassOf: :limb
+
+Class: :hindlimb
+ SubClassOf: :limb
+
+Class: :autopod
+ SubClassOf: :part_of some :limb
+
+Class: :hand
+ EquivalentTo: :autopod and :part_of some :forelimb
+
+Class: :foot
+ EquivalentTo: :autopod and :part_of some :hindlimb
+
+Class: :digit
+  SubClassOf: :segment, :part_of some :autopod
+
+Class: :finger
+ EquivalentTo: :digit and :part_of some :hand
+Class: :toe
+ EquivalentTo: :digit and :part_of some :foot
+
+Class: :phalanx
+  SubClassOf: :part_of some :digit
+
+Class: :distal_phalanx
+  SubClassOf: :phalanx
+
+Class: :finger_phalanx
+ EquivalentTo: :phalanx and :part_of some :hand
+Class: :toe_phalanx
+ EquivalentTo: :phalanx and :part_of some :foot
+
+Class: :mouse_phalanx
+  SubClassOf: :phalanx, :part_of some :mouse
+
+Class: :mouse
+
+Class: :muscle
+
+Class: :forelimb_muscle
+  EquivalentTo: :muscle and :part_of some :forelimb
+
+Class: :brachialis
+  SubClassOf: :forelimb_muscle
+
+
