@@ -157,6 +157,7 @@ public class TaxonCommandRunner extends GafCommandRunner {
 
 		OWLClass root = null;
 		boolean compact = false;
+		boolean isSelf = false;
 		while (opts.hasArgs()) {
 			if (opts.nextEq("-r|--root")) {
 				String s = opts.nextOpt();
@@ -167,6 +168,10 @@ public class TaxonCommandRunner extends GafCommandRunner {
 			}
 			else if (opts.nextEq("-o")) {
 				outputFile = opts.nextOpt();
+			}
+			else if (opts.nextEq("-s")) {
+				opts.info("", "set if self-axioms of the form TaxN SubClassOf in_taxon some TaxN to be made");
+				isSelf =true;
 			}
 			else if (opts.nextEq("-c|--copy")) {
 				opts.info("", "set if the disjoint ontology is to be copied to the source ontology."+
@@ -257,6 +262,10 @@ public class TaxonCommandRunner extends GafCommandRunner {
 					}
 					m.addAxioms(disjointOntology, disjointAxioms);
 					axiomCount += disjointAxioms.size();
+				}
+				if (isSelf) {
+					OWLSubClassOfAxiom ax = f.getOWLSubClassOfAxiom(current, f.getOWLObjectSomeValuesFrom(inTaxon, current));
+					m.addAxiom(disjointOntology, ax);
 				}
 			}
 		}

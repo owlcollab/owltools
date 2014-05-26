@@ -146,6 +146,7 @@ import owltools.io.GraphClosureRenderer;
 import owltools.io.GraphReader;
 import owltools.io.GraphRenderer;
 import owltools.io.ImportClosureSlurper;
+import owltools.io.InferredParentRenderer;
 import owltools.io.OWLJSONFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
@@ -168,6 +169,7 @@ import owltools.mooncat.ontologymetadata.OntologyMetadataMarkdownWriter;
 import owltools.ontologyrelease.OboBasicDagCheck;
 import owltools.ontologyrelease.OntologyMetadata;
 import owltools.reasoner.ExpressionMaterializingReasoner;
+import owltools.reasoner.ExpressionMaterializingReasonerFactory;
 import owltools.reasoner.GraphReasonerFactory;
 import owltools.reasoner.OWLExtendedReasoner;
 import owltools.reasoner.PrecomputingMoreReasonerFactory;
@@ -790,6 +792,40 @@ public class CommandRunner {
 				TableRenderer tr = new TableRenderer(out);
 				tr.render(g);				
 			}
+			else if (opts.nextEq("--export-parents")) {
+				opts.info("[-p LIST] [-o OUTPUTFILENAME]",
+						"saves a table of all direct inferred parents by property");
+				String out = null;
+				List<OWLObjectProperty> props = null;
+				OWLObjectProperty gciProperty = null;
+				List<OWLClass> gciFillers = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p|--plist")) {
+						props = this.resolveObjectPropertyListAsList(opts);
+					}
+					else if (opts.nextEq("-o|--output")) {
+						out = opts.nextOpt();
+					}
+					else if (opts.nextEq("-gp|--gci-property")) {
+						gciProperty = this.resolveObjectProperty(opts.nextOpt());
+					}
+					else if (opts.nextEq("-gf|--gci-fillers")) {
+						gciFillers = resolveClassList(opts);
+					}
+					else {
+						break;
+					}
+				}
+				InferredParentRenderer tr = 
+						new InferredParentRenderer(out);
+				tr.setProperties(props);
+				if (gciFillers != null)
+					tr.setGciFillers(gciFillers);
+				if (gciProperty != null)
+					tr.setGciProperty(gciProperty);
+				tr.setReasoner((OWLExtendedReasoner) reasoner);
+				tr.render(g);				
+			}
 			else if (opts.nextEq("--remove-annotation-assertions")) {
 				opts.info("[-l][-d][-s][-r][-p IRI]*", 
 						"removes annotation assertions to make a pure logic subset. Select acioms can be preserved");
@@ -925,6 +961,7 @@ public class CommandRunner {
 				Map<String,String> prefixMap = new HashMap<String,String>();
 				Set<String> prefixes = new HashSet<String>();
 				boolean isNew = false;
+				boolean isUseAltIds = false;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-m")) {
 						opts.info("PREFIX URI", "maps prefixs/DBs to URI prefixes");
@@ -933,6 +970,10 @@ public class CommandRunner {
 					else if (opts.nextEq("-p")) {
 						opts.info("PREFIX", "prefix to filter on");
 						prefixes.add(opts.nextOpt());
+					}
+					else if (opts.nextEq("-a")) {
+						opts.info("", "if true, use obo alt_ids");
+						isUseAltIds = true;
 					}
 					else if (opts.nextEq("-n")) {
 						opts.info("", "if set, will generate a new ontology containing only equiv axioms");
@@ -944,7 +985,12 @@ public class CommandRunner {
 				}
 				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 				for (OWLClass c : g.getAllOWLClasses()) {
-					for (String x : g.getXref(c)) {
+					List<String> xrefs = g.getXref(c);
+					if (isUseAltIds) {
+						xrefs = g.getAltIds(c);
+						LOG.info("Class "+c+" altIds: "+xrefs.size());
+					}
+					for (String x : xrefs) {
 						IRI iri = null;
 						if (x.contains(":")) {
 							String[] parts = x.split(":",2);
@@ -2345,6 +2391,7 @@ public class CommandRunner {
 				boolean isAssertImplied = false;
 				boolean isDirect = true;
 				boolean isShowUnsatisfiable = false;
+				boolean isRemoveUnsatisfiable = false;
 				String unsatisfiableModule = null;
 
 				while (opts.hasOpts()) {
@@ -2363,6 +2410,11 @@ public class CommandRunner {
 						opts.info("", "list all unsatisfiable classes");
 						isShowUnsatisfiable = true;
 					}
+					else if (opts.nextEq("-x|--remove-unsatisfiable")) {
+						opts.info("", "remove all unsatisfiable classes");
+						isRemoveUnsatisfiable = true;
+						isShowUnsatisfiable = true;
+					}
 					else if (opts.nextEq("-m|--unsatisfiable-module")) {
 						opts.info("", "create a module for the unsatisfiable classes.");
 						unsatisfiableModule = opts.nextOpt();
@@ -2377,13 +2429,15 @@ public class CommandRunner {
 				if (reasoner == null) {
 					reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
 				}
-				if (isShowUnsatisfiable) {
+				if (isShowUnsatisfiable || isRemoveUnsatisfiable) {
 					int n = 0;
-					// NOTE: 
+					Set<OWLClass> unsats = new HashSet<OWLClass>();
+					LOG.info("Finding unsatisfiable classes");
 					Set<OWLClass> unsatisfiableClasses = reasoner.getEquivalentClasses(g.getDataFactory().getOWLNothing()).getEntitiesMinusBottom();
 					for (OWLClass c : unsatisfiableClasses) {
 						if (g.getDataFactory().getOWLNothing().equals(c))
 							continue;
+						unsats.add(c);
 						System.out.println("UNSAT: "+owlpp.render(c));
 						n++;
 					}
@@ -2401,7 +2455,15 @@ public class CommandRunner {
 						m.saveOntology(module, IRI.create(moduleFile));
 					}
 					if (n > 0) {
-						exit(1);
+						if (isRemoveUnsatisfiable) {
+							Mooncat m = new Mooncat(g);
+							m.removeSubsetClasses(unsats, true);
+							isQueryProcessed = true;
+						}
+						else {
+							LOG.error("Ontology has unsat classes - will not proceed");
+							exit(1);
+						}
 					}
 				}
 
@@ -2460,12 +2522,14 @@ public class CommandRunner {
 						}
 					}
 					System.out.println("all inferences");
+					LOG.info("Checking for consistency...");
 					System.out.println("Consistent? "+reasoner.isConsistent());
 					if (!reasoner.isConsistent()) {
 						for (OWLClass c : reasoner.getUnsatisfiableClasses()) {
 							System.out.println("UNSAT: "+owlpp.render(c));
 						}
 					}
+					LOG.info("Iterating through all classes...");
 					for (OWLObject obj : g.getAllOWLObjects()) {
 						if (obj instanceof OWLClass) {
 							OWLClass c = ((OWLClass) obj);
@@ -4817,7 +4881,7 @@ public class CommandRunner {
 	private OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 
 			OWLOntologyManager manager) {
 		OWLReasonerFactory reasonerFactory = null;
-		OWLReasoner reasoner;
+		//OWLReasoner reasoner = null;
 		LOG.info("Creating reasoner:"+reasonerName);
 		if (reasonerName == null || reasonerName.equals("factpp"))
 			reasonerFactory = new FaCTPlusPlusReasonerFactory();
@@ -4826,6 +4890,9 @@ public class CommandRunner {
 		}
 		else if (reasonerName.equals("ogr")) {
 			reasonerFactory = new GraphReasonerFactory();			
+		}
+		else if (reasonerName.equals("mexr")) {
+			reasonerFactory = new ExpressionMaterializingReasonerFactory(reasoner);
 		}
 		else if (reasonerName.equals("jfact")) {
 			reasonerFactory = new JFactFactory();
@@ -4869,6 +4936,7 @@ public class CommandRunner {
 			System.out.println("no such reasoner: "+reasonerName);
 
 		reasoner = reasonerFactory.createReasoner(ont);
+		LOG.info("Created reasoner: "+reasoner);
 		return reasoner;
 	}
 
@@ -4996,12 +5064,36 @@ public class CommandRunner {
 		return objs;
 	}
 
+	public List<OWLClass> resolveClassList(Opts opts) {
+		List<String> ids = opts.nextList();
+		List<OWLClass> objs = new ArrayList<OWLClass>();
+		for (String id: ids) {
+			objs.add( (OWLClass) resolveEntity(id) );
+		}
+		return objs;
+	}
+
 	public Set<OWLObjectProperty> resolveObjectPropertyList(Opts opts) {
 		List<String> ids = opts.nextList();
 		Set<OWLObjectProperty> objs = new HashSet<OWLObjectProperty>();
 		for (String id: ids) {
 			if (id.equals("ALL-PROPERTIES"))
 				return g.getSourceOntology().getObjectPropertiesInSignature();
+			final OWLObjectProperty prop = this.resolveObjectProperty(id);
+			if (prop != null) {
+				objs.add(prop);
+			}
+		}
+		return objs;
+	}
+
+	public List<OWLObjectProperty> resolveObjectPropertyListAsList(Opts opts) {
+		List<String> ids = opts.nextList();
+		List<OWLObjectProperty> objs = new ArrayList<OWLObjectProperty>();
+		for (String id: ids) {
+			if (id.equals("ALL-PROPERTIES"))
+				return new ArrayList<OWLObjectProperty>(
+						g.getSourceOntology().getObjectPropertiesInSignature());
 			final OWLObjectProperty prop = this.resolveObjectProperty(id);
 			if (prop != null) {
 				objs.add(prop);

@@ -1546,6 +1546,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 		OWLClass pc = g.getDataFactory().getOWLThing();
 		List<EnrichmentResult> results = owlsim.calculateAllByAllEnrichment(pc, rc1,
 				rc2);
+		owlsim.showTimings();
 		LOG.info("# Results = "+results.size());
 		for (EnrichmentResult result : results) {
 			System.out.println(render(result, owlpp));

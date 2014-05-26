@@ -602,7 +602,7 @@ public class GafCommandRunner extends CommandRunner {
 
 	@CLIMethod("--map2slim")
 	public void mapToSlim(Opts opts) throws OWLOntologyCreationException, IOException {
-		opts.info("[-s SUBSET-NAME] [--idfile FILE] [-w GAF-OUTPUT]", "Maps annotations in a GAF to an ontology subset, e.g. goslim_pombe");
+		opts.info("[-s SUBSET-NAME] [--idfile FILE] [-u UNMAPPED-FILE] [-w GAF-OUTPUT]", "Maps annotations in a GAF to an ontology subset, e.g. goslim_pombe");
 		String subsetId = null;
 		String ofn = null;
 		String uofn = null;
