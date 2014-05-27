@@ -87,6 +87,7 @@ public class GafCommandRunnerTest extends AbstractCommandRunnerTest {
 		
 		
 	}
+
 	
 	@Test
 	public void testMap2SlimIds() throws Exception {
@@ -102,7 +103,22 @@ public class GafCommandRunnerTest extends AbstractCommandRunnerTest {
 		
 		
 	}
-	
+
+	@Test
+	public void testMap2SlimFallThrough() throws Exception {
+		init();
+		load("gaf/mgi-exttest-go-subset.obo");
+		String gafpath = getResource("gaf/mgi-exttest.gaf").getAbsolutePath();
+		run("--gaf "+gafpath);
+		
+		String slimpath = getResource("gaf/test.ids").getAbsolutePath();
+		String ugaf = "target/unmapped.gaf";
+		run("--map2slim --idfile "+slimpath+" -u "+ugaf);
+		String opath = "target/map2slim-output-ids.gaf";
+		run("--write-gaf "+opath);
+		
+		
+	}
 	@Test
 	public void testAddLabels() throws Exception {
 		init();
