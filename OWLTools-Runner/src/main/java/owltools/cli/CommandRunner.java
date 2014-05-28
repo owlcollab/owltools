@@ -4379,15 +4379,17 @@ public class CommandRunner {
 					missingIds.add(previousId);
 					hasErrors = true;
 				}
-				else if (checkMissingLabels) {
-					// optional: check that all primary labels are also in the current ontology (as label or synonym)
-					String currentLbl = currentIdLabels.get(previousId);
-					String previousLbl = previousIdLabels.get(previousId);
+				else if (checkMissingLabels && currentAltIds.contains(previousId)) {
+					// this id has been merged into another class
+					// optional: check that all primary labels of merged terms are still in the merged term
+					
+					final OWLObject currentObject = g.getOWLObjectByAltId(previousId);
+					final String currentLbl = g.getLabel(currentObject);
+					final String previousLbl = previousIdLabels.get(previousId);
 					if (currentLbl != null && previousLbl != null) {
 						if (currentLbl.equals(previousLbl) == false) {
-							// also check synonyms
-							OWLClass currentClass = g.getOWLClassByIdentifier(previousId);
-							List<ISynonym> synonyms = g.getOBOSynonyms(currentClass);
+							// check synonyms
+							List<ISynonym> synonyms = g.getOBOSynonyms(currentObject);
 							boolean found = false;
 							if (synonyms != null) {
 								for (ISynonym synonym : synonyms) {
@@ -4454,7 +4456,7 @@ public class CommandRunner {
 						}
 					}
 					for (Entry<String, String> missingEntry : missingLabels.entrySet()) {
-						LOG.error("Missing primary label: '"+missingEntry.getValue()+"' "+missingEntry.getKey());
+						LOG.error("Missing primary label for merged term: '"+missingEntry.getValue()+"' "+missingEntry.getKey());
 						if (writer != null) {
 							writer.append("MISSING-LABEL").append('\t').append(missingEntry.getValue()).append('\t').append(missingEntry.getKey()).println();
 						}
