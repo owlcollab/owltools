@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
@@ -133,6 +135,7 @@ import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
+import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.idmap.IDMapPairWriter;
@@ -192,6 +195,9 @@ import com.github.jsonldjava.core.Options;
 import com.github.jsonldjava.impl.JenaRDFParser;
 import com.github.jsonldjava.impl.JenaTripleCallback;
 import com.github.jsonldjava.utils.JSONUtils;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
@@ -4297,7 +4303,204 @@ public class CommandRunner {
 			manager.saveOntology(outputOntology, targetFileIRI);
 		}
 	}
+	
+	@CLIMethod("--verify-changes")
+	public void verifyChanges(Opts opts) throws Exception {
+		String previousInput = null;
+		String idFilterPrefix = null;
+		boolean checkMissingLabels = false;
+		String reportFile = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-p|--previous")) {
+				previousInput = opts.nextOpt();
+			}
+			else if (opts.nextEq("--id-prefix-filter")) {
+				idFilterPrefix = opts.nextOpt();
+			}
+			else if (opts.nextEq("--check-missing-labels")) {
+				checkMissingLabels = true;
+			}
+			else if (opts.nextEq("-o|--report-file")) {
+				reportFile = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		if (g == null) {
+			LOG.error("No current ontology loaded for comparison");
+			exit(-1);
+		}
+		else if (previousInput == null) {
+			LOG.error("No previous ontology configured for comparison");
+			exit(-1);
+		}
+		else {
+			// create new parser & manager for clean load of previous ontology
+			final ParserWrapper pw = new ParserWrapper();
+			// use same IRI mappers as main parser
+			List<OWLOntologyIRIMapper> mappers = this.pw.getIRIMappers();
+			if (mappers != null) {
+				for (OWLOntologyIRIMapper mapper : mappers) {
+					pw.addIRIMapper(mapper);
+				}
+			}
+			
+			// load previous
+			IRI previousIRI = IRI.create(new File(previousInput).getCanonicalFile());
+			final OWLGraphWrapper previous = pw.parseToOWLGraph(previousIRI.toString());
+			
+			LOG.info("Start verifying changes.");
+			
+			// create (filtered) class ids and labels, obsolete, alt_ids
+			// prev
+			final Map<String, String> previousIdLabels = Maps.newHashMap();
+			final Set<String> previousObsoletes = Sets.newHashSet();
+			final Set<String> previousAltIds = Sets.newHashSet();
+			extractClassInfo(previous, previousIdLabels, previousObsoletes,
+					previousAltIds, idFilterPrefix);
+			
+			// current
+			final Map<String, String> currentIdLabels = Maps.newHashMap();
+			final Set<String> currentObsoletes = Sets.newHashSet();
+			final Set<String> currentAltIds = Sets.newHashSet();
+			extractClassInfo(g, currentIdLabels, currentObsoletes,
+					currentAltIds, idFilterPrefix);
+			
+			// check that all ids are also in the current ontology
+			boolean hasErrors = false;
+			// normal ids
+			final List<String> missingIds = Lists.newArrayList();
+			final Map<String, String> missingLabels = Maps.newHashMap();
+			for(String previousId : previousIdLabels.keySet()) {
+				if (!(currentIdLabels.containsKey(previousId)
+						|| currentAltIds.contains(previousId)
+						|| currentObsoletes.contains(previousId))) {
+					missingIds.add(previousId);
+					hasErrors = true;
+				}
+				else if (checkMissingLabels) {
+					// optional: check that all primary labels are also in the current ontology (as label or synonym)
+					String currentLbl = currentIdLabels.get(previousId);
+					String previousLbl = previousIdLabels.get(previousId);
+					if (currentLbl != null && previousLbl != null) {
+						if (currentLbl.equals(previousLbl) == false) {
+							// also check synonyms
+							OWLClass currentClass = g.getOWLClassByIdentifier(previousId);
+							List<ISynonym> synonyms = g.getOBOSynonyms(currentClass);
+							boolean found = false;
+							if (synonyms != null) {
+								for (ISynonym synonym : synonyms) {
+									if (previousLbl.equals(synonym.getLabel())) {
+										found = true;
+										break;
+									}
+								}
+							}
+							if (found == false) {
+								hasErrors = true;
+								missingLabels.put(previousId, previousLbl);
+							}
+						}
+					}
+				}
+			}
+			if (!missingIds.isEmpty()) {
+				Collections.sort(missingIds);
+			}
+			
+			// alt_ids
+			final List<String> missingAltIds = Lists.newArrayList(Sets.difference(previousAltIds, currentAltIds));
+			if (!missingAltIds.isEmpty()) {
+				Collections.sort(missingAltIds);
+				hasErrors = true;
+			}
+			
+			// obsolete
+			final List<String> missingObsoletes = Lists.newArrayList(Sets.difference(previousObsoletes, currentObsoletes));
+			if (!missingObsoletes.isEmpty()) {
+				Collections.sort(missingObsoletes);
+				hasErrors = true;
+			}
+			LOG.info("Verification finished.");
 
+			// clean up old file in case of no errors
+			if (!hasErrors && reportFile != null) {
+				FileUtils.deleteQuietly(new File(reportFile));
+			}
+			if (hasErrors) {
+				LOG.error("The verification failed with the following errors.");
+				PrintWriter writer = null;
+				try {
+					if (reportFile != null) {
+						writer = new PrintWriter(new FileWriter(reportFile));
+					}
+					for(String missingId : missingIds) {
+						LOG.error("Missing ID: "+missingId);
+						if (writer != null) {
+							writer.append("MISSING-ID").append('\t').append(missingId).println();
+						}
+					}
+					for (String missingId : missingAltIds) {
+						LOG.error("Missing alternate ID: "+missingId);
+						if (writer != null) {
+							writer.append("MISSING-ALT_ID").append('\t').append(missingId).println();
+						}
+					}
+					for (String missingId : missingObsoletes) {
+						LOG.error("Missing obsolete ID: "+missingId);
+						if (writer != null) {
+							writer.append("MISSING-OBSOLETE_ID").append('\t').append(missingId).println();
+						}
+					}
+					for (Entry<String, String> missingEntry : missingLabels.entrySet()) {
+						LOG.error("Missing primary label: '"+missingEntry.getValue()+"' "+missingEntry.getKey());
+						if (writer != null) {
+							writer.append("MISSING-LABEL").append('\t').append(missingEntry.getValue()).append('\t').append(missingEntry.getKey()).println();
+						}
+					}
+				}
+				finally {
+					IOUtils.closeQuietly(writer);
+				}
+				
+				exit(-1);
+			}
+		}
+	}
+
+
+	/**
+	 * @param graph
+	 * @param idLabels
+	 * @param obsoletes
+	 * @param allAltIds
+	 * @param idFilterPrefix
+	 */
+	private void extractClassInfo(OWLGraphWrapper graph, Map<String, String> idLabels,
+			Set<String> obsoletes, Set<String> allAltIds, String idFilterPrefix) {
+		for(OWLObject obj : graph.getAllOWLObjects()) {
+			if (obj instanceof OWLClass) {
+				String id = graph.getIdentifier(obj);
+				if (idFilterPrefix != null && !id.startsWith(idFilterPrefix)) {
+					continue;
+				}
+				List<String> altIds = graph.getAltIds(obj);
+				if (altIds != null) {
+					allAltIds.addAll(altIds);
+				}
+				boolean isObsolete = graph.isObsolete(obj);
+				if (isObsolete) {
+					obsoletes.add(id);
+				}
+				else {
+					String lbl = graph.getLabel(obj);
+					idLabels.put(id, lbl);
+				}
+			}
+		}
+	}
+	
 	@CLIMethod("--create-biochebi")
 	public void createBioChebi(Opts opts) throws Exception {
 		final String chebiPURL = "http://purl.obolibrary.org/obo/chebi.owl";
