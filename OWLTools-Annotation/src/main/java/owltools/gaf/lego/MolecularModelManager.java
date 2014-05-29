@@ -8,6 +8,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -865,6 +867,15 @@ public class MolecularModelManager {
 		}
 		return owlAnnotations;
 	}
+	
+	public static final ThreadLocal<DateFormat> LegoAnnotationTypeDateFormat = new ThreadLocal<DateFormat>(){
+
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("yyyy-MM-dd");
+		}
+		
+	};
 	
 	public static enum LegoAnnotationType {
 		

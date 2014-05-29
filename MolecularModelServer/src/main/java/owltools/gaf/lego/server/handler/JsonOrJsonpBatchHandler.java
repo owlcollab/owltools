@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	
 	
 	public static boolean USE_USER_ID = false;
+	public static boolean USE_CREATION_DATE = true;
 	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
@@ -130,7 +132,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					// required: subject
 					// optional: expressions, values
 					requireNotNull(request.arguments.subject, "request.arguments.subject");
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
 					Pair<String, OWLNamedIndividual> individualPair = m3.createIndividualNonReasoning(modelId, request.arguments.subject, annotations);
 					relevantIndividuals.add(individualPair.getValue());
 
@@ -149,7 +151,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.subject, "request.arguments.subject");
 					requireNotNull(request.arguments.predicate, "request.arguments.predicate");
 					requireNotNull(request.arguments.object, "request.arguments.object");
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
 					Pair<String, OWLNamedIndividual> individual1Pair = m3.createIndividualNonReasoning(modelId, request.arguments.subject, annotations);
 					relevantIndividuals.add(individual1Pair.getValue());
 
@@ -201,7 +203,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.values, "request.arguments.values");
 
 					OWLNamedIndividual i = m3.addAnnotations(modelId, request.arguments.individual,
-							extract(request.arguments.values, userId));
+							extract(request.arguments.values, userId, true));
 					relevantIndividuals.add(i);
 				}
 				// remove annotation
@@ -211,7 +213,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.values, "request.arguments.values");
 
 					OWLNamedIndividual i = m3.removeAnnotations(modelId, request.arguments.individual,
-							extract(request.arguments.values, null));
+							extract(request.arguments.values, null, false));
 					relevantIndividuals.add(i);
 				}
 				else {
@@ -233,7 +235,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					// optional: values
 					List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(modelId,
 							request.arguments.predicate, request.arguments.subject,
-							request.arguments.object, extract(request.arguments.values, userId));
+							request.arguments.object, extract(request.arguments.values, userId, true));
 					relevantIndividuals.addAll(individuals);
 				}
 				// remove edge
@@ -249,7 +251,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 					List<OWLNamedIndividual> individuals = m3.addAnnotations(modelId,
 							request.arguments.predicate, request.arguments.subject,
-							request.arguments.object, extract(request.arguments.values, userId));
+							request.arguments.object, extract(request.arguments.values, userId, true));
 					relevantIndividuals.addAll(individuals);
 				}
 				// remove annotation
@@ -258,7 +260,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 					List<OWLNamedIndividual> individuals = m3.removeAnnotations(modelId,
 							request.arguments.predicate, request.arguments.subject,
-							request.arguments.object, extract(request.arguments.values, null));
+							request.arguments.object, extract(request.arguments.values, null, false));
 					relevantIndividuals.addAll(individuals);
 				}
 				else {
@@ -282,7 +284,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					renderBulk = true;
 					modelId = m3.generateModel(request.arguments.subject, request.arguments.db);
 					
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
 					if (annotations != null) {
 						m3.addAnnotations(modelId, annotations);
 					}
@@ -295,7 +297,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					Collection<Pair<String, String>> annotations = null;
 					if (request.arguments != null) {
 						db = request.arguments.db;
-						annotations = extract(request.arguments.values, userId);
+						annotations = extract(request.arguments.values, userId, true);
 					}
 					modelId = m3.generateBlankModel(db);
 					
@@ -308,7 +310,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.values, "request.arguments.values");
 					modelId = checkModelId(modelId, request);
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
 					if (annotations != null) {
 						m3.addAnnotations(modelId, annotations);
 					}
@@ -319,7 +321,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.values, "request.arguments.values");
 					modelId = checkModelId(modelId, request);
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, null);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, null, false);
 					if (annotations != null) {
 						m3.removeAnnotations(modelId, annotations);
 					}
@@ -340,7 +342,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.importModel, "request.arguments.importModel");
 					modelId = m3.importModel(request.arguments.importModel);
 					
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
 					if (annotations != null) {
 						m3.addAnnotations(modelId, annotations);
 					}
@@ -349,7 +351,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				else if (match(Operation.storeModel, operation)) {
 					requireNotNull(request.arguments, "request.arguments");
 					modelId = checkModelId(modelId, request);
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
 					save(response, modelId, annotations, m3);
 				}
 				else if (match(Operation.allModelIds, operation)) {
@@ -366,7 +368,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					}
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.values, "request.arguments.values");
-					Collection<Pair<String, String>> values = extract(request.arguments.values, null);
+					Collection<Pair<String, String>> values = extract(request.arguments.values, null, false);
 					List<String> searchIds = new ArrayList<String>();
 					if (values != null) {
 						for (Pair<String, String> pair : values) {
@@ -562,7 +564,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		return modelId;
 	}
 	
-	private Collection<Pair<String, String>> extract(M3Pair[] values, String userId) {
+	private Collection<Pair<String, String>> extract(M3Pair[] values, String userId, boolean addDate) {
 		Collection<Pair<String, String>> result = null;
 		if (values != null && values.length > 0) {
 			result = new ArrayList<Pair<String,String>>();
@@ -574,9 +576,16 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 		if (USE_USER_ID && userId != null) {
 			if (result == null) {
-				result = new ArrayList<Pair<String,String>>(1);
-				result.add(Pair.of(LegoAnnotationType.contributor.name(), userId));
+				result = new ArrayList<Pair<String,String>>(2);
 			}
+			result.add(Pair.of(LegoAnnotationType.contributor.name(), userId));
+		}
+		if (USE_CREATION_DATE && addDate) {
+			if (result == null) {
+				result = new ArrayList<Pair<String,String>>(1);
+			}
+			String dateString = MolecularModelManager.LegoAnnotationTypeDateFormat.get().format(new Date());
+			result.add(Pair.of(LegoAnnotationType.date.name(), dateString));
 		}
 		return result;
 	}
