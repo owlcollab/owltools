@@ -19,8 +19,10 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
@@ -224,10 +226,28 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return ix;
 	}
 	private int getClassIndex(Node<OWLClass> n) throws UnknownOWLClassException {
-		OWLClass c = n.getRepresentativeElement();
+		OWLClass c = getDeterministicRepresentative(n);
 		return getClassIndex(c);
 	}
-
+	private <T extends OWLNamedObject> T getDeterministicRepresentative(Node<T> n) {
+		T rep = null;
+		// find lexical maximal entry as representative node
+		for (T entry : n) {
+			if (rep == null) {
+				rep = entry;
+			}
+			else {
+				// use IRI for comparison
+				IRI repIRI = rep.getIRI();
+				IRI entryIRI = entry.getIRI();
+				if (entryIRI.compareTo(repIRI) > 0) {
+					rep = entry;
+				}
+			}
+		}
+		return rep;
+	}
+	
 	// not yet implemented: guaranteed to yield and indexed class
 	private OWLClass getIndexedClass(Node<OWLClass> n) throws UnknownOWLClassException {
 		if (representativeClassMap == null)
@@ -240,7 +260,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				return c;				
 			}
 		}
-		throw new UnknownOWLClassException(n.getRepresentativeElement());
+		throw new UnknownOWLClassException(getDeterministicRepresentative(n));
 	}
 
 	/* (non-Javadoc)
@@ -294,7 +314,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		representativeClassMap = new HashMap<Node<OWLClass>, OWLClass>();
 		classTorepresentativeClassMap = new HashMap<OWLClass, OWLClass>();
 		for (Node<OWLClass> n : nodes) {
-			OWLClass c = n.getRepresentativeElement();
+			OWLClass c = getDeterministicRepresentative(n);
 			representativeClassMap.put(n, c);
 			for (OWLClass c2 : n.getEntities()) {
 				classTorepresentativeClassMap.put(c2, c);
@@ -367,7 +387,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		Set<Integer> ancsInts = new HashSet<Integer>();
 		for (Node<OWLClass> anc : reasoner.getSuperClasses(c, false)) {
 			// TODO - verify robust for non-Rep elements
-			OWLClass ac = anc.getRepresentativeElement();
+			OWLClass ac = getDeterministicRepresentative(anc);
 			if (ac.equals(thing))
 				continue;
 			ancsInts.add(classIndex.get(ac));
@@ -460,7 +480,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		OWLClass thing = owlThing();
 		for (Node<OWLClass> anc : ancs) {
 			// TODO - verify robust for non-Rep elements
-			OWLClass ac = anc.getRepresentativeElement();
+			OWLClass ac = getDeterministicRepresentative(anc);
 			if (ac.equals(thing))
 				continue;
 			Integer ix = classIndex.get(ac);
@@ -478,7 +498,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		OWLClass thing = owlThing();
 		for (Node<OWLClass> anc : ancs) {
 			// TODO - verify robust for non-Rep elements
-			OWLClass ac = anc.getRepresentativeElement();
+			OWLClass ac = getDeterministicRepresentative(anc);
 			if (ac.equals(thing))
 				continue;
 			Integer ix = classIndex.get(ac);
@@ -798,7 +818,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		// remove redundant
 		for (Node<OWLClass> node : commonSubsumerNodes) {
 			rNodes.addAll(getReasoner().getSuperClasses(
-					node.getRepresentativeElement(), false).getNodes());
+					getDeterministicRepresentative(node), false).getNodes());
 		}
 		commonSubsumerNodes.removeAll(rNodes);
 		return commonSubsumerNodes;
@@ -989,11 +1009,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		double sumICunion = 0;
 		for (Node<OWLClass> c : cu) {
 			// TODO - we can avoid doing this twice by using xor in the bitmap
-			sumICunion += getInformationContentForAttribute(c
-					.getRepresentativeElement());
+			OWLClass rep = getDeterministicRepresentative(c);
+			sumICunion += getInformationContentForAttribute(rep);
 			if (ci.contains(c)) {
-				sumICboth += getInformationContentForAttribute(c
-						.getRepresentativeElement());
+				sumICboth += getInformationContentForAttribute(rep);
 			}
 
 		}
@@ -1010,7 +1029,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		ScoreAttributeSetPair best = new ScoreAttributeSetPair(0.0);
 		for (Node<OWLClass> n : atts) {
-			OWLClass c = n.getRepresentativeElement();
+			OWLClass c = getDeterministicRepresentative(n);
 			Double ic = getInformationContentForAttribute(c);
 			if (Math.abs(ic - best.score) < 0.000001) {
 				// tie for best attribute
@@ -1174,7 +1193,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	private ScoreAttributeSetPair getLowestCommonSubsumerWithIC(int cix, int dix, Double thresh)
 			throws UnknownOWLClassException {
-
+		
 		// if cache is disabled altogether, head straight for the implementation
 		if (isDisableLCSCache) {
 			return getLowestCommonSubsumerWithICNoCache(cix, dix);
@@ -1324,7 +1343,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			}
 			csetFilteredDirect.add(c);
 			for (Node<OWLClass> n : getNamedReflexiveSubsumers(c)) {
-				cset.add(n.getRepresentativeElement());
+				cset.add(getDeterministicRepresentative(n));
 			}
 			for (Node<OWLClass> n :getNamedSubsumers(c)) {
 				redundant.addAll(n.getEntities());
@@ -1672,7 +1691,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			}
 			csetFilteredDirect.add(c);
 			for (Node<OWLClass> n : getNamedReflexiveSubsumers(c)) {
-				cset.add(n.getRepresentativeElement());
+				cset.add(getDeterministicRepresentative(n));
 			}
 			for (Node<OWLClass> n :getNamedSubsumers(c)) {
 				credundant.addAll(n.getEntities());
@@ -1696,7 +1715,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			}
 			dsetFilteredDirect.add(c);
 			for (Node<OWLClass> n : getNamedReflexiveSubsumers(c)) {
-				dset.add(n.getRepresentativeElement());
+				dset.add(getDeterministicRepresentative(n));
 			}
 			for (Node<OWLClass> n :getNamedSubsumers(c)) {
 				dredundant.addAll(n.getEntities());
