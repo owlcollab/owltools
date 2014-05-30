@@ -1,7 +1,6 @@
 package owltools.sim2;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -29,7 +28,6 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 
-import owltools.mooncat.ontologymetadata.OntologySetMetadata;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
@@ -1115,7 +1113,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		ijscores.cs = cs;
 		ijscores.ds = ds;
 		double total = 0.0;
-		double[][] scoreMatrix = new double[csize][dsize];
 		ScoreAttributeSetPair[][] sapMatrix = new ScoreAttributeSetPair[csize][dsize];
 		ScoreAttributeSetPair[] bestSapForC = new ScoreAttributeSetPair[csize];
 		ScoreAttributeSetPair[] bestSapForD = new ScoreAttributeSetPair[dsize];
@@ -1361,7 +1358,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		}
 
 		csetFilteredDirect.removeAll(redundant);
-		Vector csetV = new Vector<OWLClass>(atts.size());
+		Vector<OWLClass> csetV = new Vector<OWLClass>(atts.size());
 		for (OWLClass c : csetFilteredDirect) {
 			csetV.add(c);
 		}
@@ -1424,7 +1421,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			// MaxIC falls out of BMA calculation, but it may be useful
 			// to calculate here to test if more expensive AxA is required
 			t = System.currentTimeMillis();
-			ScoreAttributeSetPair best = new ScoreAttributeSetPair(0.0);
 			double icBest = 0;
 			double icSumCAD = 0;
 			for (int ix : cad.toArray()) {
@@ -1462,7 +1458,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 			// BEST MATCHES
 			t = System.currentTimeMillis();
-			Vector dsetV = new Vector<OWLClass>(atts.size());
+			Vector<OWLClass> dsetV = new Vector<OWLClass>(atts.size());
 			for (OWLClass d : this.getAttributesForElement(j)) {
 				dsetV.add(d);
 			}
@@ -1667,7 +1663,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return getGroupwiseSimilarity(atts, j, minSimJPct, minMaxIC);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j, double minSimJPct, double minMaxIC) throws Exception {
 		ElementPairScores s = new ElementPairScores(null, j);
 
@@ -1677,7 +1672,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return s;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> attsI, Set<OWLClass> attsJ, double minSimJPct, double minMaxIC) throws Exception {
 		ElementPairScores s = new ElementPairScores(null, null);
 
@@ -1709,7 +1703,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		}
 
 		csetFilteredDirect.removeAll(credundant);
-		Vector csetV = new Vector<OWLClass>(attsI.size());
+		Vector<OWLClass> csetV = new Vector<OWLClass>(attsI.size());
 		for (OWLClass c : csetFilteredDirect) {
 			csetV.add(c);
 		}
@@ -1733,7 +1727,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		}
 
 		dsetFilteredDirect.removeAll(dredundant);
-		Vector dsetV = new Vector<OWLClass>(attsJ.size());
+		Vector<OWLClass> dsetV = new Vector<OWLClass>(attsJ.size());
 		for (OWLClass c : dsetFilteredDirect) {
 			dsetV.add(c);
 		}
@@ -1774,7 +1768,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		List<AttributesSimScores> scoresets = new ArrayList<AttributesSimScores>();
 
 		EWAHCompressedBitmap bmc = this.ancsBitmapCachedModifiable(c);
-		int cSize = bmc.cardinality();
 
 		Set<AttributesSimScores> best = new HashSet<AttributesSimScores>();
 		Double bestScore = null;
@@ -1884,7 +1877,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		// iterate through all classes fetching their ICs, using the class index.
 		// this has the side effect of ensuring that icClassArray is populated.
-		int n=0;
 		for (OWLClass c : this.getAllAttributeClasses()) {
 			try {
 				int cix = classIndex.get(c);
@@ -1894,7 +1886,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				LOG.info("Class "+c+" has ix="+cix+" IC="+ic+
 						" IC(check)="+icCheck+" IC(base)="+icBase+
 						" C(check)="+getShortId(classArray[cix]));
-				n++;
 			} catch (UnknownOWLClassException e) {
 				LOG.error("cannot find IC values for class "+c, e);
 				throw new IOException("unknown: "+c);
