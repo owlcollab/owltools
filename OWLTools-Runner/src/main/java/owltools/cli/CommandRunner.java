@@ -79,6 +79,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -4619,6 +4620,127 @@ public class CommandRunner {
 
 		FileOutputStream out = new FileOutputStream(ofn);
 		IOUtils.write(w.toString(), out);
+	}
+	
+	@CLIMethod("--extract-annotation-value")
+	public void extractAnnotationValue(Opts opts) throws Exception {
+		String delimiter = "\t";
+		String idPrefix = null;
+		boolean addLabel = true;
+		OWLAnnotationProperty valueProperty = null;
+		String output = null;
+		
+		final OWLDataFactory f = g.getDataFactory();
+		final OWLAnnotationProperty rdfsLabel = f.getRDFSLabel();
+
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-p|--property")) {
+				String propString = opts.nextOpt();
+				valueProperty  = f.getOWLAnnotationProperty(IRI.create(propString));
+			}
+			else if (opts.nextEq("-o|--output")) {
+				output = opts.nextOpt();
+			}
+			else if (opts.nextEq("-d|--delimiter")) {
+				delimiter = opts.nextOpt();
+			}
+			else if (opts.nextEq("--id-prefix")) {
+				idPrefix = opts.nextOpt();
+			}
+			else if (opts.nextEq("--excludeLabel")) {
+				addLabel = false;
+			}
+			else {
+				break;
+			}
+		}
+		if (output == null) {
+			LOG.error("No outfile specified.");
+			exit(-1);
+		}
+		else if (valueProperty == null) {
+			LOG.error("No property specified.");
+			exit(-1);
+		}
+		else {
+			List<String> lines = new ArrayList<String>();
+			final Set<OWLOntology> allOntologies = g.getAllOntologies();
+			LOG.info("Extracting values for property: "+valueProperty.getIRI());
+			for(OWLClass cls : g.getAllOWLClasses()) {
+				final String id = g.getIdentifier(cls);
+				if (idPrefix != null && !id.startsWith(idPrefix)) {
+						continue;
+				}
+				String label = null;
+				String propertyValue = null;
+				
+				Set<OWLAnnotationAssertionAxiom> allAnnotationAxioms = new HashSet<OWLAnnotationAssertionAxiom>();
+				for(OWLOntology ont : allOntologies) {
+					allAnnotationAxioms.addAll(ont.getAnnotationAssertionAxioms(cls.getIRI()));
+				}
+				for (OWLAnnotationAssertionAxiom axiom : allAnnotationAxioms) {
+					OWLAnnotationProperty currentProp = axiom.getProperty();
+					if (valueProperty.equals(currentProp)) {
+						OWLAnnotationValue av = axiom.getValue();
+						if (av instanceof OWLLiteral) {
+							propertyValue = ((OWLLiteral)av).getLiteral();
+						}
+					}
+					else if (addLabel && rdfsLabel.equals(currentProp)) {
+						OWLAnnotationValue av = axiom.getValue();
+						if (av instanceof OWLLiteral) {
+							label = ((OWLLiteral)av).getLiteral();
+						}
+					}
+					// stop search once the values are available
+					if (propertyValue != null) {
+						if(addLabel) {
+							if (label != null) {
+								break;
+							}
+						}
+						else {
+							break;
+						}
+					}
+				}
+				
+				// write the information
+				StringBuilder sb = new StringBuilder();
+				if (addLabel) {
+					if (label != null && propertyValue != null) {
+						sb.append(id);
+						sb.append(delimiter);
+						sb.append(label);
+						sb.append(delimiter);
+						sb.append(propertyValue);
+					}
+				} else {
+					if (label != null && propertyValue != null) {
+						sb.append(id);
+						sb.append(delimiter);
+						sb.append(propertyValue);
+					}
+				}
+				lines.add(sb.toString());
+			}
+			LOG.info("Finished extraction, sorting output.");
+			Collections.sort(lines);
+			
+			File outputFile = new File(output).getCanonicalFile();
+			LOG.info("Write extracted properties to file: "+outputFile.getPath());
+			BufferedWriter writer = null;
+			try {
+				writer = new BufferedWriter(new FileWriter(outputFile));
+				for (String line : lines) {
+					writer.append(line).append('\n');
+				}
+			}
+			finally {
+				IOUtils.closeQuietly(writer);
+			}
+		}
+		
 	}
 
 	/**
