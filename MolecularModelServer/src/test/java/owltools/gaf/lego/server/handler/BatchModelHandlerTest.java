@@ -37,6 +37,7 @@ import owltools.gaf.lego.server.handler.M3BatchHandler.M3Pair;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Request;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Operation;
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -54,6 +55,7 @@ public class BatchModelHandlerTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
+		pw.addIRIMapper(new CatalogXmlIRIMapper("/Users/hdietze/svn/committer/go-trunk/ontology/extensions/catalog-v001.xml"));
 		OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go.owl");
 		models = new MolecularModelManager(graph);
 		models.setPathToGafs("src/test/resources/gaf");
@@ -242,7 +244,7 @@ public class BatchModelHandlerTest {
 		Map<Object, Object> data = models.getModelObject(modelId);
 		List annotations = (List) data.get("annotations");
 		assertNotNull(annotations);
-		assertEquals(2, annotations.size());
+		assertEquals(3, annotations.size());
 		
 		
 		// remove one annotation
@@ -264,7 +266,7 @@ public class BatchModelHandlerTest {
 		Map<Object, Object> data2 = models.getModelObject(modelId);
 		List annotations2 = (List) data2.get("annotations");
 		assertNotNull(annotations2);
-		assertEquals(1, annotations2.size());
+		assertEquals(2, annotations2.size());
 	}
 	
 	@Test
