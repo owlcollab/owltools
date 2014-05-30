@@ -37,7 +37,6 @@ import owltools.gaf.lego.server.handler.M3BatchHandler.M3Pair;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Request;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Operation;
 import owltools.graph.OWLGraphWrapper;
-import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -55,7 +54,6 @@ public class BatchModelHandlerTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
-		pw.addIRIMapper(new CatalogXmlIRIMapper("/Users/hdietze/svn/committer/go-trunk/ontology/extensions/catalog-v001.xml"));
 		OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go.owl");
 		models = new MolecularModelManager(graph);
 		models.setPathToGafs("src/test/resources/gaf");
