@@ -1194,6 +1194,16 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	private ScoreAttributeSetPair getLowestCommonSubsumerWithIC(int cix, int dix, Double thresh)
 			throws UnknownOWLClassException {
 		
+		// optimization: normalize pair order
+		// underlying assumption score is symmetric, reduce 2D cache to a triangle 
+		int temp;
+		if (cix > dix) {
+			// swap
+			temp = cix;
+			cix = dix;
+			dix = temp;
+		}
+
 		// if cache is disabled altogether, head straight for the implementation
 		if (isDisableLCSCache) {
 			return getLowestCommonSubsumerWithICNoCache(cix, dix);
