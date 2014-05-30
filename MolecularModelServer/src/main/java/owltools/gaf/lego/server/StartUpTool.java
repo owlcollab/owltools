@@ -84,7 +84,7 @@ public class StartUpTool {
 			else if (opts.nextEq("--context-prefix")) {
 				contextPrefix = opts.nextOpt();
 			}
-			else if (opts.nextEq("-p|--port")) {
+			else if (opts.nextEq("--port")) {
 				port = Integer.parseInt(opts.nextOpt());
 			}
 			else if (opts.nextEq("-i|--import|--additional-import")) {
