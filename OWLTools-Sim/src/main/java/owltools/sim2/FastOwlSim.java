@@ -146,8 +146,12 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	final int scaleFactor = 1000;
 	//short[][] ciPairScaledScore;
 	ScoreAttributeSetPair[][] testCache = null;
-	boolean[][] ciPairIsCached = null;
-	int[][] ciPairLCS = null;
+
+	//
+	// Symmetric 2D arrays
+	//  - for a lookup [cix][dix], ensure cix <= dix
+	boolean[][] ciPairIsCached = null;   // determins if there is an entry is ciPairLCS
+	int[][] ciPairLCS = null; // LCS ix for a (cix,dix) pair
 
 	// maps an individual to a unique integer
 	Map<OWLNamedIndividual,Integer> individualIndex;
@@ -304,7 +308,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		for (OWLClass c : cset) {
 			nodes.add(getReasoner().getEquivalentClasses(c));
 		}
-		LOG.info("|N|="+nodes.size()); // TODO - use thisg
+		LOG.info("|N|="+nodes.size()); // TODO - use this
 
 		// classes are collapsed into nodes. Create a map from node to
 		// class, and a map of every class
@@ -330,7 +334,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		n++;
 
 		// TODO - investigate if ordering elements makes a difference;
-		// e.g. if more frequent classes recieve lower bit indices this
+		// e.g. if more frequent classes receive lower bit indices this
 		// may speed certain BitMap operations?
 		for (OWLClass c : cset) {
 			if (c.equals(owlThing()))
@@ -1897,8 +1901,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			boolean[] arr = ciPairIsCached[cix];
 			OWLClass c = classArray[cix];
 			for ( int dix = 0; dix< arr.length; dix++) {
+				// cix is always <= dix
+				if (cix > dix)
+					continue;
 				if (arr[dix]) {
-					//double s = ciPairScaledScore[cix][dix] / (double) scaleFactor;
 					int lcsix = ciPairLCS[cix][dix];
 					Double s = icClassArray[lcsix];
 					if (s == null || s.isNaN() || s.isInfinite()) {
@@ -1940,7 +1946,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		//List<String> lines = IOUtils.readLines(s);
 		LineIterator itr = IOUtils.lineIterator(s, null);
 		while (itr.hasNext()) {
-			//for (String line : lines) {
 			String line = itr.nextLine();
 			String[] vals = line.split("\t");
 			OWLClass c1 = getOWLClassFromShortId(vals[0]);
@@ -1957,6 +1962,16 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			}
 			if (aix == null) {
 				LOG.error("Unknown ancestor class: "+a);
+			}
+
+			// Note that we only populate half the cache
+			// Ensure cix < dix
+			int temp;
+			if (cix > dix) {
+				// swap
+				temp = cix;
+				cix = dix;
+				dix = temp;
 			}
 
 			ciPairIsCached[cix][dix] = true;
