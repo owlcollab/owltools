@@ -299,6 +299,7 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 		OWLNamedIndividual i = scores.i;
 		OWLNamedIndividual j = scores.j;
 
+		
 		List<String> vals = new ArrayList<String>();
 		List<String> cols = new ArrayList<String>();
 
@@ -317,7 +318,15 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 
 		cols.add("NumAnnots B");
 		vals.add(scores.ds.size()+"");
-		
+
+		cols.add("Combined");
+		if (scores.combinedScore != null) {
+			vals.add(doubleRenderer.format(scores.combinedScore));
+		}
+		else {
+			vals.add("");
+		}
+
 		cols.add("SimJ");
 		if (scores.simjScore != null) {
 			vals.add(doubleRenderer.format(scores.simjScore));
