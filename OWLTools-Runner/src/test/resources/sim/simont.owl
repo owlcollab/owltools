@@ -1,0 +1,75 @@
+Ontology: <http://x.org/simont.owl>
+Prefix: obo: <http://purl.obolibrary.org/obo/>
+Prefix: occurs_in: <http://purl.obolibrary.org/obo/BFO_0000066>
+Prefix: enabled_by: <http://purl.obolibrary.org/obo/enabled_by>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+Prefix: : <http://purl.obolibrary.org/obo/SIM_>
+
+## ONTOLOGY
+Class: BigEars
+  SubClassOf: EarAbnormality
+
+Class: LargenessOfEars
+  EquivalentTo: BigEars
+  SubClassOf: AbnormalEarMorphology
+
+Class: EarAbnormality
+  SubClassOf: HeadAbnormality
+
+Class: AbnormalEarMorphology
+  SubClassOf: EarAbnormality, AbnormalHeadMorphology
+
+Class: AbnormalHeadMorphology
+  SubClassOf: HeadAbnormality
+
+Class: HeadAbnormality
+  SubClassOf: Abnormality
+
+Class: LargeHippocampus
+  SubClassOf: HippocampusAbnormality
+
+Class: SmallHippocampus
+  SubClassOf: HippocampusAbnormality
+
+Class: HypoplasticHippocampus
+  EquivalentTo: SmallHippocampus
+  SubClassOf: HippocampusAbnormality
+
+Class: HippocampusAbnormality
+ SubClassOf: BrainAbnormality
+
+Class: BrainAbnormality
+  SubClassOf: Abnormality
+
+Class: Abnormality
+
+## DATA
+
+Individual: x0
+  Types: Abnormality
+
+Individual: x1
+  Types: LargenessOfEars
+
+Individual: x2
+  Annotations: rdfs:comment "same as x1"
+  Types: BigEars
+
+Individual: x3
+  Annotations: rdfs:comment "subsumes x2 and x3"
+  Types: BigEars, SmallHippocampus
+
+Individual: x4
+  Annotations: rdfs:comment "same as x3"
+  Types: LargenessOfEars, HypoplasticHippocampus
+
+Individual: x4b
+  Annotations: rdfs:comment "same as x3 and x4"
+  Types: LargenessOfEars, HypoplasticHippocampus, BrainAbnormality, EarAbnormality
+
+Individual: x5
+  Types: HeadAbnormality, BrainAbnormality
+
+Individual: x5
+  Annotations: rdfs:comment "same as x5"
+  Types: HeadAbnormality, BrainAbnormality, Abnormality
