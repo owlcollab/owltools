@@ -965,6 +965,7 @@ public class CommandRunner {
 
 			}
 			else if (opts.nextEq("--translate-xrefs-to-equivs")) {
+				opts.info("[-m PREFIX URI]* [-p PREFIX] [-a] [-n]", "Translates the OBO xref property (or alt_id property, if -a set) into equivalence axioms");
 				Map<String,String> prefixMap = new HashMap<String,String>();
 				Set<String> prefixes = new HashSet<String>();
 				boolean isNew = false;
