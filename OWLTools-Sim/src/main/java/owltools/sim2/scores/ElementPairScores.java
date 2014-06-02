@@ -23,6 +23,7 @@ public class ElementPairScores implements PairScores<OWLNamedIndividual>, Compar
 	public Vector<OWLClass> ds;
 	
 	public Integer combinedScore;
+	public Integer rank;
 	
 	public Double avgIC = null;
 	public Double maxIC = null;
