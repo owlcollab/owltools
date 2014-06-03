@@ -1441,7 +1441,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			if (icBest > maxMaxIC) {
 				maxMaxIC = icBest;
 			}
-			if (icBest < minMaxIC) {
+			if (icBest <= minMaxIC) {
 				//LOG.info("maxIC too low : "+icBest);
 				continue;
 			}
@@ -1476,11 +1476,17 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			scoreSets.add(s);
 		}
 		// calculate combined/phenodigm score
-		calculateCombinedScores(scoreSets, maxMaxIC, maxBMA);
+		LOG.info("tBMA = "+tBMA + " / " +nBMA);
 		LOG.info("tSimJ = "+tSimJ +" / "+nSimJ);
+		LOG.info("tMaxIC = "+tMaxIC +" / "+nMaxIC);
+		LOG.info("|Scored|=" + scoreSets.size());
+		calculateCombinedScores(scoreSets, maxMaxIC, maxBMA);
 		LOG.info("tSearch = "+tdelta(startTime) +" / "+nSimJ);
 		LOG.info("Sorting "+scoreSets.size()+" matches");
 		Collections.sort(scoreSets);
+		for (int i = 0; i < scoreSets.size(); i++) {
+			scoreSets.get(i).rank = i;
+		}
 		return scoreSets;
 	}
 
@@ -1747,13 +1753,13 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	public void calculateCombinedScores(List<ElementPairScores> scoreSets,
 			double maxMaxIC, double maxBMA) {
-		int maxMaxIC100 = (int)(maxMaxIC * 100);
-		int maxBMA100 = (int)(maxBMA * 100);
+		int maxMaxIC100 = (int)(maxMaxIC * 10000);
+		int maxBMA100 = (int)(maxBMA * 10000);
 		LOG.info("Calculating combinedScores - upper bounds = "+maxMaxIC100+ " " + maxBMA100);
 		// TODO - optimize this by using % scores as inputs
 		for (ElementPairScores s : scoreSets) {
-			int pctMaxScore = ((int) (s.maxIC * 10000)) / maxMaxIC100;
-			int pctAvgScore = ((int) (s.bmaSymIC * 10000)) / maxBMA100;
+			int pctMaxScore = ((int) (s.maxIC * 1000000)) / maxMaxIC100;
+			int pctAvgScore = ((int) (s.bmaSymIC * 1000000)) / maxBMA100;
 			s.combinedScore = (pctMaxScore + pctAvgScore)/2;
 			//calculateCombinedScore(s,maxMaxIC,maxBMA);
 		}		
