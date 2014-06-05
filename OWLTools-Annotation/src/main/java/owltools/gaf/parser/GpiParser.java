@@ -102,10 +102,8 @@ public class GpiParser extends AbstractAnnotationFileParser {
 	
 	@Override
 	protected void handleHeaderMetaData(String line) {
-		if(version < 1.0){
-			if (isFormatDeclaration(line)) {
-				version = parseVersion(line);
-			}
+		if (isFormatDeclaration(line)) {
+			version = parseVersion(line);
 		}
 		else if (namespace == null) {
 			if (line.startsWith(NAMESPACE_PREFIX)) {
