@@ -47,12 +47,12 @@ public class DefaultAspectProvider implements AspectProvider {
 			}
 			String aspect = entry.getValue();
 			if (reasoner != null) {
-				mappings.put(superClassId, aspect);
+				aspectMap.put(superClassId, aspect);
 				Set<OWLClass> subClasses = reasoner.getSubClasses(superClass, false).getFlattened();
 				for (OWLClass subClass : subClasses) {
 					String id = graph.getIdentifier(subClass);
 					if (id != null) {
-						mappings.put(id, aspect);
+						aspectMap.put(id, aspect);
 					}
 				}
 			}
@@ -61,7 +61,7 @@ public class DefaultAspectProvider implements AspectProvider {
 				for (OWLObject descendant : descendants) {
 					String id = graph.getIdentifier(descendant);
 					if (id != null) {
-						mappings.put(id, aspect);
+						aspectMap.put(id, aspect);
 					}
 				}
 			}
