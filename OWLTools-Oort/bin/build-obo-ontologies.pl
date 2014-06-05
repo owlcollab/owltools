@@ -459,8 +459,8 @@ sub get_ont_info {
          },
          fbbt => {
              infallible => 1,
-             method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fly/fly_anatomy_XP.obo',
+             method => 'owl2obo',
+             source_url => 'http://svn.code.sf.net/p/fbbtdv/code/fbbt/releases/fbbt.owl'
          },
          dpo => {
              infallible => 0,
@@ -755,7 +755,7 @@ sub get_ont_info {
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/yeast_phenotype.obo',
          },
          doiddev => {
-             infallible => 1,
+             infallible => 0,
              method => 'archive',
              path => 'archive/src/ontology',
              source_url => 'http://build.berkeleybop.org/job/build-doid/lastSuccessfulBuild/artifact/*zip*/archive.zip',
@@ -789,7 +789,7 @@ sub get_ont_info {
          },
          epo => {
              method => 'owl2obo',
-             source_url => ' http://purl.obolibrary.org/obo/epo.owl',
+             source_url => 'http://purl.obolibrary.org/obo/epo.owl',
          },
          to => {
              comment => 'switch to jenkins/archive',
