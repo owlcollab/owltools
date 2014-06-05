@@ -39,6 +39,7 @@ public class StartUpTool {
 		String gafFolder = null; // optional
 		String proteinOntologyFolder = null; // optional
 		List<String> additionalImports = new ArrayList<String>();
+		List<String> obsoleteImports = new ArrayList<String>();
 
 		// right now we are using the relation names to select as subset of relations
 		// later this might be done as an annotation property in OWL
@@ -90,6 +91,9 @@ public class StartUpTool {
 			else if (opts.nextEq("-i|--import|--additional-import")) {
 				additionalImports.add(StringUtils.trim(opts.nextOpt()));
 			}
+			else if (opts.nextEq("--obsolete-import")) {
+				obsoleteImports.add(StringUtils.trim(opts.nextOpt()));
+			}
 			else if (opts.nextEq("--no-batch")) {
 				allowBatch = false;
 			}
@@ -126,12 +130,12 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, port, contextString, additionalImports, allowBatch, relevantRelations, dbToTaxon);
+		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, port, contextString, additionalImports, obsoleteImports, allowBatch, relevantRelations, dbToTaxon);
 	}
 
 	public static void startUp(String ontology, String catalog, String modelFolder, 
 			String gafFolder, String proteinOntologyFolder, int port, String contextString, 
-			List<String> additionalImports, boolean allowBatch, Set<String> relevantRelations, 
+			List<String> additionalImports, List<String> obsoleteImports, boolean allowBatch, Set<String> relevantRelations, 
 			Map<String, String> dbToTaxon) throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
@@ -150,6 +154,7 @@ public class StartUpTool {
 			models.setPathToGafs(gafFolder);
 		}
 		models.addImports(additionalImports);
+		models.addObsoleteImports(obsoleteImports);
 		if (proteinOntologyFolder != null) {
 			models.setPathToProteinFiles(proteinOntologyFolder);
 		}
