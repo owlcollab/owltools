@@ -81,6 +81,7 @@ import owltools.gaf.parser.GAFParser;
 import owltools.gaf.parser.CommentListener;
 import owltools.gaf.parser.GpadGpiObjectsBuilder;
 import owltools.gaf.parser.GpadGpiObjectsBuilder.AspectProvider;
+import owltools.gaf.parser.IssueListener;
 import owltools.gaf.parser.LineFilter;
 import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.gaf.parser.ParserListener;
@@ -97,6 +98,7 @@ import owltools.mooncat.Mooncat;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
+import com.google.common.collect.Ordering;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -1657,9 +1659,13 @@ public class GafCommandRunner extends CommandRunner {
 	public void loadGpadGpi(Opts opts) throws Exception {
 		String gpadFileName = null;
 		String gpiFileName = null;
-		String ecoMappingFile = null;
+		String ecoMappingSource = null;
+		String reportFileName = null;
+		boolean includeUnknownBioentities = false;
+		boolean includeUnmappedECO = true;
+		boolean clearComments = false;
 		
-		AspectProvider aspectProvider = null; // TODO
+		AspectProvider aspectProvider = null;
 		
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-a|--gpad|--gpa"))
@@ -1668,7 +1674,22 @@ public class GafCommandRunner extends CommandRunner {
 				gpiFileName = opts.nextOpt();
 			}
 			else if (opts.nextEq("--eco")) {
-				ecoMappingFile = opts.nextOpt();
+				ecoMappingSource = opts.nextOpt();
+			}
+			else if (opts.nextEq("--include-unknown-bioentities")) {
+				includeUnknownBioentities = true;
+			}
+			else if (opts.nextEq("--exclude-unknown-bioentities")) {
+				includeUnknownBioentities = false;
+			}
+			else if (opts.nextEq("--exclude-unmapped-eco")) {
+				includeUnmappedECO = false;
+			}
+			else if (opts.nextEq("--include-unmapped-eco")) {
+				includeUnmappedECO = true;
+			}
+			else if (opts.nextEq("-r|--report-file")) {
+				reportFileName = opts.nextOpt();
 			}
 			else if (opts.nextEq("--go-aspects")) {
 				Map<String, String> mappings = new HashMap<String, String>();
@@ -1676,6 +1697,9 @@ public class GafCommandRunner extends CommandRunner {
 				mappings.put("GO:0003674", "F");
 				mappings.put("GO:0005575", "C");
 				aspectProvider = DefaultAspectProvider.createAspectProvider(g, mappings , reasoner);
+			}
+			else if (opts.nextEq("-c|--clear-comments")) {
+				clearComments = true;
 			}
 			else {
 				break;
@@ -1691,21 +1715,95 @@ public class GafCommandRunner extends CommandRunner {
 			exit(-1);
 			return;
 		}
+		File reportFile = null;
+		if (reportFileName != null) {
+			reportFile = new File(reportFileName).getCanonicalFile();
+			// delete previous report
+			FileUtils.deleteQuietly(reportFile);
+		}
+		
 		SimpleEcoMapper ecoMapper;
-		if (ecoMappingFile == null) {
+		if (ecoMappingSource == null) {
 			ecoMapper = EcoMapperFactory.createSimple();
 		}
 		else {
-			ecoMapper = EcoMapperFactory.createSimple(ecoMappingFile);
+			ecoMapper = EcoMapperFactory.createSimple(ecoMappingSource);
 		}
 		GpadGpiObjectsBuilder builder = new GpadGpiObjectsBuilder(ecoMapper);
 		builder.setAspectProvider(aspectProvider);
+		builder.setGpadIncludeUnknowBioentities(includeUnknownBioentities);
+		builder.setGpadIncludeUnmappedECO(includeUnmappedECO);
+		IssueListener.DefaultIssueListener listener = null;
+		if (reportFile != null) {
+			listener = new IssueListener.DefaultIssueListener();
+			builder.addIssueListener(listener);
+		}
 		
 		File gpad = new File(gpadFileName).getCanonicalFile();
 		File gpi = new File(gpiFileName).getCanonicalFile();
 		Pair<BioentityDocument,GafDocument> pair = builder.loadGpadGpi(gpad, gpi);
 		gafdoc = pair.getRight();
 		bioentityDocument = pair.getLeft();
+		
+		if (clearComments) {
+			gafdoc.getComments().clear();
+			bioentityDocument.getComments().clear();
+		}
+		
+		if (reportFile != null) {
+			BufferedWriter writer = null;
+			try {
+				writer = new BufferedWriter(new FileWriter(reportFile));
+				// report statistics
+				
+				// Write mapped errors
+				Map<String, String> mappedErrors = listener.getMappedErrors();
+				if (mappedErrors != null) {
+					List<String> keys = Ordering.natural().sortedCopy(mappedErrors.keySet());
+					for (String key : keys) {
+						writer.append("ERROR").append('\t');
+						writer.append(key).append('\t');
+						writer.append(mappedErrors.get(key));
+						writer.append('\n');
+					}
+				}
+				
+				// write other errors
+				List<String> errors = listener.getErrors();
+				if (errors != null) {
+					for (String error : errors) {
+						writer.append("ERROR").append('\t').append('\t');
+						writer.append(error);
+						writer.append('\n');
+					}
+				}
+				
+				// write mapped warnings
+				Map<String, String> mappedWarnings = listener.getMappedWarnings();
+				if (mappedWarnings != null) {
+					List<String> keys = Ordering.natural().sortedCopy(mappedWarnings.keySet());
+					for (String key : keys) {
+						writer.append("WARNING").append('\t');
+						writer.append(key).append('\t');
+						writer.append(mappedWarnings.get(key));
+						writer.append('\n');
+					}
+				}
+				
+				// write other warnings
+				List<String> warnings = listener.getWarnings();
+				if (warnings != null) {
+					for (String error : warnings) {
+						writer.append("WARNING").append('\t').append('\t');
+						writer.append(error);
+						writer.append('\n');
+					}
+				}
+			}
+			finally {
+				IOUtils.closeQuietly(writer);
+			}
+		}
 	}
 	
 	@CLIMethod("--write-gpad")

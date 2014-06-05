@@ -29,27 +29,36 @@ public class GpadGpiObjectsBuilder {
 	// list of filters
 	private List<LineFilter<GpadParser>> gpadFilters = null;
 	private List<LineFilter<GpiParser>> gpiFilters = null;
+	private List<IssueListener> issueListeners = null;
 	private AspectProvider aspectProvider = null;
 	private final SimpleEcoMapper ecoMapper;
 	
 	private boolean gpadIncludeUnknowBioentities = false;
+	private boolean gpadIncludeUnmappedECO = true;
 	
 	public GpadGpiObjectsBuilder(SimpleEcoMapper ecoMapper) {
 		this.ecoMapper = ecoMapper;
 	}
 
-	public void addGpadFilter(LineFilter<GpadParser> filter) {
+	public synchronized void addGpadFilter(LineFilter<GpadParser> filter) {
 		if (gpadFilters == null) {
 			gpadFilters = new ArrayList<LineFilter<GpadParser>>();
 		}
 		gpadFilters.add(filter);
 	}
 	
-	public void addGpiFilter(LineFilter<GpiParser> filter) {
+	public synchronized void addGpiFilter(LineFilter<GpiParser> filter) {
 		if (gpiFilters == null) {
 			gpiFilters = new ArrayList<LineFilter<GpiParser>>();
 		}
 		gpiFilters.add(filter);
+	}
+	
+	public synchronized void addIssueListener(IssueListener listener) {
+		if (issueListeners == null) {
+			issueListeners = new ArrayList<IssueListener>();
+		}
+		issueListeners.add(listener);
 	}
 	
 	public boolean isGpadIncludeUnknowBioentities() {
@@ -58,6 +67,14 @@ public class GpadGpiObjectsBuilder {
 
 	public void setGpadIncludeUnknowBioentities(boolean gpadIncludeUnknowBioentities) {
 		this.gpadIncludeUnknowBioentities = gpadIncludeUnknowBioentities;
+	}
+
+	public boolean isGpadIncludeUnmappedECO() {
+		return gpadIncludeUnmappedECO;
+	}
+
+	public void setGpadIncludeUnmappedECO(boolean gpadIncludeUnmappedECO) {
+		this.gpadIncludeUnmappedECO = gpadIncludeUnmappedECO;
 	}
 
 	public Pair<BioentityDocument, GafDocument> loadGpadGpi(File gpad, File gpi) throws IOException {
@@ -196,8 +213,33 @@ public class GpadGpiObjectsBuilder {
 		return entity;
 	}
 	
-	protected void reportUnknowBioentityId(String db, String objectId, String fullId) {
-		logger.warn("No Bioentity found for id: "+fullId);
+	protected void reportUnknowBioentityId(String fullId, boolean fatal) {
+		final String msg = "No Bioentity found for id.";
+		if (issueListeners != null) {
+			for (IssueListener listener : issueListeners) {
+				listener.reportIssue(fullId, msg, fatal);
+			}
+		}
+		if (fatal) {
+			logger.error("Skipping annotation using unknown Bioentity: "+fullId);
+		}
+		else {
+			logger.warn("No Bioentity found for id: "+fullId);
+		}
+	}
+	
+	protected void reportEvidenceIssue(String eco, String msg, boolean fatal) {
+		if (issueListeners != null) {
+			for (IssueListener listener : issueListeners) {
+				listener.reportIssue(eco, msg, fatal);
+			}
+		}
+		if (fatal) {
+			logger.error(msg+" "+eco);
+		}
+		else {
+			logger.warn(msg+" "+eco);
+		}
 	}
 	
 	private GeneAnnotation parseAnnotation(GpadParser parser, GafDocument document, AspectProvider aspectProvider, SimpleEcoMapper mapper) {
@@ -208,8 +250,9 @@ public class GpadGpiObjectsBuilder {
 		String bioentityId = parser.getDB() + ":" + parser.getDB_Object_ID();
 		Bioentity entity = document.getBioentity(bioentityId);
 		if (entity == null) {
-			reportUnknowBioentityId(parser.getDB(), parser.getDB_Object_ID(), bioentityId);
-			if (gpadIncludeUnknowBioentities == false) {
+			boolean fatal = gpadIncludeUnknowBioentities == false;
+			reportUnknowBioentityId(bioentityId, fatal);
+			if (fatal) {
 				return null;
 			}
 			ga.setBioentity(bioentityId);
@@ -223,6 +266,13 @@ public class GpadGpiObjectsBuilder {
 				final Bioentity parentBioentity = document.getBioentity(parentObjectId);
 				if (parentBioentity != null) {
 					ga.setBioentityObject(parentBioentity);
+				}
+				else {
+					boolean fatal = gpadIncludeUnknowBioentities == false;
+					reportUnknowBioentityId(parentObjectId, fatal);
+					if (fatal) {
+						return null;
+					}
 				}
 			}
 			else {
@@ -275,7 +325,10 @@ public class GpadGpiObjectsBuilder {
 		BuilderTools.addXrefs(parser.getDB_Reference(), ga);
 		
 		// col 6
-		addEvidenceCode(parser.getEvidence_Code(), ga, mapper);
+		boolean added = addEvidenceCode(parser.getEvidence_Code(), ga, mapper);
+		if (!added) {
+			return null;
+		}
 		
 		// col 7 with
 		ga.setWithInfos(BuilderTools.parseWithInfo(parser.getWith()));
@@ -300,13 +353,25 @@ public class GpadGpiObjectsBuilder {
 		return ga;
 	}
 	
-	private void addEvidenceCode(String eco, GeneAnnotation ga, SimpleEcoMapper mapper) {
+	private boolean addEvidenceCode(String eco, GeneAnnotation ga, SimpleEcoMapper mapper) {
 		Pair<String,String> pair = mapper.getGoCode(eco);
+		boolean added = false;
 		if (pair != null) {
 			String goCode = pair.getLeft();
 			if (goCode != null) {
 				ga.setEvidence(goCode, eco);
+				added = true;
 			}
 		}
+		if (added == false) {
+			boolean fatal = gpadIncludeUnmappedECO == false;
+			reportEvidenceIssue(eco, "No corresponding GO evidence code found", fatal);
+			if (fatal) {
+				return false;
+			}
+			// fallback always add the ECO class at least
+			ga.setEvidence(null, eco);
+		}
+		return true;
 	}
 }
