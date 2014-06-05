@@ -27,15 +27,26 @@ retrieving ontologies from the web.
 
 Start the MolecularModelManager server
 * Build the code, will result in a jar
+* Check memory settings in start-m3-server.sh, changes as needed.
 * The start script is in the bin folder: start-m3-server.sh
-  The script expects parameters for:
+  The Minerva server expects parameters for:
   -g path-to/go.owl
   -f path-to/owl-models
   --gaf-folder path-to/gaf-folder
   [--port 6800]
   --p path-to/protein/subset
   [-c path-to/catalog.xml]
+  -i path-to/extensions/x-disjoint.owl
 For more details and options, please check the source code of owltools.gaf.lego.server.StartUpTool
+
+Full example using a catalog.xml, IRIs and assumes a full GO-SVN trunk checkout:
+start-m3-server.sh -c go-trunk/ontology/extensions/catalog-v001.xml \
+-g http://purl.obolibrary.org/obo/go.owl \
+-i http://purl.obolibrary.org/obo/go/extensions/x-disjoint.owl \
+-f go-trunk/experimental/lego/server/owl-models \
+--gaf-folder go-trunk/gene-associations \
+-p go-trunk/experimental/lego/server/protein/subset \
+--port 6800
 
 #Alternative for developers:
 * Requires all the data (go, GAFs, and models)
