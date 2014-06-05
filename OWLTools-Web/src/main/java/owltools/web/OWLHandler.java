@@ -2,15 +2,18 @@ package owltools.web;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.management.LockInfo;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MonitorInfo;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
@@ -27,10 +30,8 @@ import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -46,9 +47,6 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import owltools.frame.jsonld.ClassFrameLD;
 import owltools.frame.jsonld.FrameMakerLD;
@@ -68,12 +66,12 @@ import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.OwlSimMetadata;
 import owltools.sim2.SimJSONEngine;
-import owltools.sim2.SimpleOwlSim;
-import owltools.sim2.SimpleOwlSim.Metric;
-import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.UnknownOWLClassException;
 import owltools.version.VersionInfo;
 import owltools.vocab.OBOUpperVocabulary;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * See http://code.google.com/p/owltools/wiki/WebServices
@@ -232,6 +230,84 @@ public class OWLHandler {
 		smd.setMemoryUsage();
 		response.getWriter().write("Used: "+smd.memoryUsedInKB);
 	}
+	
+	// for testing only
+	public void threadDumpCommand() throws Exception {
+		if (isHelp()) {
+			info("WARNING: Will create a thread dump of the system.");
+			return;
+		}
+		LOG.info("Start creating ThreadDump");
+		ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+        ThreadInfo[] threadInfos = threadMXBean.dumpAllThreads(true, true);
+        PrintWriter writer = response.getWriter();
+        for (ThreadInfo threadInfo : threadInfos) {
+        	writer.append(toString(threadInfo));
+        }
+        LOG.info("Finished creating ThreadDump");
+	}
+	
+
+	private static CharSequence toString(ThreadInfo threadInfo) {
+		StringBuilder sb = new StringBuilder("\"" + threadInfo.getThreadName() + "\"" + " Id=" + threadInfo.getThreadId() + " " + threadInfo.getThreadState());
+		if (threadInfo.getLockName() != null) {
+			sb.append(" on " + threadInfo.getLockName());
+		}
+		if (threadInfo.getLockOwnerName() != null) {
+			sb.append(" owned by \"" + threadInfo.getLockOwnerName() + "\" Id=" + threadInfo.getLockOwnerId());
+		}
+		if (threadInfo.isSuspended()) {
+			sb.append(" (suspended)");
+		}
+		if (threadInfo.isInNative()) {
+			sb.append(" (in native)");
+		}
+		sb.append('\n');
+		StackTraceElement[] stackTrace = threadInfo.getStackTrace();
+		int i = 0;
+		for (; i < stackTrace.length; i++) {
+			StackTraceElement ste = stackTrace[i];
+			sb.append("\tat " + ste.toString());
+			sb.append('\n');
+			if (i == 0 && threadInfo.getLockInfo() != null) {
+				Thread.State ts = threadInfo.getThreadState();
+				switch (ts) {
+				case BLOCKED:
+					sb.append("\t-  blocked on " + threadInfo.getLockInfo());
+					sb.append('\n');
+					break;
+				case WAITING:
+					sb.append("\t-  waiting on " + threadInfo.getLockInfo());
+					sb.append('\n');
+					break;
+				case TIMED_WAITING:
+					sb.append("\t-  waiting on " + threadInfo.getLockInfo());
+					sb.append('\n');
+					break;
+				default:
+				}
+			}
+
+			for (MonitorInfo mi : threadInfo.getLockedMonitors()) {
+				if (mi.getLockedStackDepth() == i) {
+					sb.append("\t-  locked " + mi);
+					sb.append('\n');
+				}
+			}
+		}
+		LockInfo[] locks = threadInfo.getLockedSynchronizers();
+		if (locks.length > 0) {
+			sb.append("\n\tNumber of locked synchronizers = " + locks.length);
+			sb.append('\n');
+			for (LockInfo li : locks) {
+				sb.append("\t- " + li);
+				sb.append('\n');
+			}
+		}
+		sb.append('\n');
+		return sb;
+	}
+
 
 	public void helpCommand() throws IOException {
 		headerHTML();
