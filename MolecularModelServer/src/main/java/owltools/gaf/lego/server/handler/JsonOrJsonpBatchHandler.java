@@ -276,6 +276,13 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					modelId = checkModelId(modelId, request);
 					renderBulk = true;
 				}
+				else if (match(Operation.updateImports, operation)){
+					nonMeta = true;
+					requireNotNull(request.arguments, "request.arguments");
+					modelId = checkModelId(modelId, request);
+					m3.updateImports(modelId);
+					renderBulk = true;
+				}
 				else if (match(Operation.generate, operation)) {
 					nonMeta = true;
 					requireNotNull(request.arguments, "request.arguments");

@@ -2,6 +2,7 @@ package owltools.gaf.lego.server.handler;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,7 @@ public class BatchModelHandlerTest {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go.owl");
 		models = new MolecularModelManager(graph);
+		models.addImports(Arrays.asList("http://purl.obolibrary.org/obo/go/extensions/x-disjoint.owl"));
 		models.setPathToGafs("src/test/resources/gaf");
 		models.setPathToProteinFiles("src/test/resources/ontology/protein/subset");
 		models.setDbToTaxon(ProteinTools.getDefaultDbToTaxon());
@@ -635,6 +637,34 @@ public class BatchModelHandlerTest {
 		assertEquals(uid, response.uid);
 		assertEquals(intention, response.intention);
 		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+	}
+	
+	@Test
+	public void testInconsistentModel() throws Exception {
+		models.dispose();
+		
+		final String modelId = generateBlankModel();
+		
+		// create
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.individual.name();
+		batch1[0].operation = Operation.create.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+		batch1[0].arguments.subject = "GO:0009653"; // anatomical structure morphogenesis
+		batch1[0].arguments.expressions = new M3Expression[1];
+		batch1[0].arguments.expressions[0] = new M3Expression();
+		batch1[0].arguments.expressions[0].type = "class";
+		batch1[0].arguments.expressions[0].literal = "GO:0048856"; // anatomical structure development
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		Map<Object, Object> data = response1.data;
+		Object inconsistentFlag = data.get("inconsistent_p");
+		assertEquals(Boolean.TRUE, inconsistentFlag);
 	}
 
 	/**

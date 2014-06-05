@@ -116,7 +116,8 @@ public class MolecularModelManager {
 	GafObjectsBuilder builder = new GafObjectsBuilder();
 	// WARNING: Do *NOT* switch to functional syntax until the OWL-API has fixed a bug.
 	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
-	List<IRI> additionalImports;
+	Set<IRI> additionalImports;
+	final Set<IRI> obsoleteImports = new HashSet<IRI>();
 
 	// TODO: Temporarily for keeping instances unique (search for "unique" below).
 	static String uniqueTop = Long.toHexString((System.currentTimeMillis()/1000));
@@ -287,7 +288,7 @@ public class MolecularModelManager {
 	 */
 	protected void init() throws OWLOntologyCreationException {
 		// set default imports
-		additionalImports = new ArrayList<IRI>();
+		additionalImports = new HashSet<IRI>();
 		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/ro.owl"));
 		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
 		additionalImports.add(EcoMapper.ECO_PURL_IRI);
@@ -432,6 +433,19 @@ public class MolecularModelManager {
 		if (imports != null) {
 			for (String importIRIString : imports) {
 				additionalImports.add(IRI.create(importIRIString));
+			}
+		}
+	}
+	
+	/**
+	 * Mark the given imports as obsolete.
+	 * 
+	 * @param obsoletes
+	 */
+	public void addObsoleteImports(Iterable<String> obsoletes) {
+		if (obsoletes != null) {
+			for (String obsolete : obsoletes) {
+				obsoleteImports.add(IRI.create(obsolete));
 			}
 		}
 	}
@@ -1530,7 +1544,11 @@ public class MolecularModelManager {
 		}
 		
 		// add to internal model
-		addModel(modelId, modelOntology);
+		LegoModelGenerator newModel = addModel(modelId, modelOntology);
+		
+		// update imports
+		updateImports(newModel);
+		
 		return modelId;
 	}
 	
@@ -1608,13 +1626,15 @@ public class MolecularModelManager {
 		String file = getPathToModelOWL(modelId);
 		IRI sourceIRI = IRI.create(new File(file));
 		OWLOntology abox = graph.getManager().loadOntologyFromOntologyDocument(sourceIRI);
-		addModel(modelId, abox);
+		LegoModelGenerator model = addModel(modelId, abox);
+		updateImports(model);
 	}
 
-	private void addModel(String modelId, OWLOntology abox) throws OWLOntologyCreationException {
+	private LegoModelGenerator addModel(String modelId, OWLOntology abox) throws OWLOntologyCreationException {
 		OWLOntology tbox = graph.getSourceOntology();
 		LegoModelGenerator m = new LegoModelGenerator(tbox, abox);
 		modelMap.put(modelId, m);
+		return m;
 	}
 
 	
@@ -2561,6 +2581,54 @@ public class MolecularModelManager {
 		return "gomodel:" + db + "-"+ p.replaceAll(":", "-");
 	}
 	
+	
+	/**
+	 * This method will check the given model and update the import declarations.
+	 * It will add missing IRIs and remove obsolete ones.
+	 * 
+	 * @param modelId 
+	 * @throws UnknownIdentifierException
+	 * @see #additionalImports
+	 * @see #addImports(Iterable)
+	 * @see #obsoleteImports
+	 * @see #addObsoleteImports(Iterable)
+	 */
+	public void updateImports(String modelId) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		if (model == null) {
+			throw new UnknownIdentifierException("Unknown model id: "+modelId);
+		}
+		updateImports(model);
+	}
+	
+	private void updateImports(final LegoModelGenerator model) {
+		final OWLOntology aboxOntology = model.getAboxOntology();
+		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
+		
+		Set<IRI> missingImports = new HashSet<IRI>(additionalImports);
+		Set<OWLImportsDeclaration> importsDeclarations = aboxOntology.getImportsDeclarations();
+		for (OWLImportsDeclaration decl : importsDeclarations) {
+			IRI iri = decl.getIRI();
+			if (obsoleteImports.contains(iri)) {
+				changes.add(new RemoveImport(aboxOntology, decl));
+			}
+			else {
+				missingImports.remove(iri);
+			}
+		}
+		final OWLOntologyManager m = aboxOntology.getOWLOntologyManager();
+		if (!missingImports.isEmpty()) {
+			OWLDataFactory f = m.getOWLDataFactory();
+			for(IRI missingImport : missingImports) {
+				OWLImportsDeclaration decl = f.getOWLImportsDeclaration(missingImport);
+				changes.add(new AddImport(aboxOntology, decl));
+			}
+		}
+		
+		if (!changes.isEmpty()) {
+			m.applyChanges(changes);
+		}
+	}
 	
 	@Deprecated
 	protected abstract class LegoStringDotRenderer extends LegoDotWriter {
