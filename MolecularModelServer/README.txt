@@ -48,6 +48,9 @@ start-m3-server.sh -c go-trunk/ontology/extensions/catalog-v001.xml \
 -p go-trunk/experimental/lego/server/protein/subset \
 --port 6800
 
+UPDATE: Now available a GeneOntology specific startup script: start-go-minerva.sh
+It requires only one parameter: The location of a SVN checkout of the GO-SVN (trunk).
+
 #Alternative for developers:
 * Requires all the data (go, GAFs, and models)
 * Build in eclipse, start as main with appropriate parameters.
