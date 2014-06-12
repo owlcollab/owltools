@@ -5,7 +5,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -48,6 +48,8 @@ import com.google.gson.GsonBuilder;
 @Produces({MediaType.APPLICATION_JSON, "application/javascript"})
 public class JsonOrJsonpModelHandler implements M3Handler {
 
+	private static final Logger logger = Logger.getLogger(JsonOrJsonpModelHandler.class);
+	
 	public static final String JSONP_DEFAULT_CALLBACK = "jsonp";
 	public static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
 	
@@ -64,6 +66,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GetModel(String modelId, boolean help) {
+		logger.error("Using deprecated m3 method: m3GetModel");
 		if (help) {
 			return helpMsg("fetches molecular model json");
 		}
@@ -80,6 +83,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GenerateMolecularModel(String classId, String db, boolean help) {
+		logger.error("Using deprecated m3 method: m3GenerateMolecularModel");
 		if (help) {
 			return helpMsg("generates Minimal Model augmented with GO associations");
 		}
@@ -99,6 +103,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GenerateBlankMolecularModel(String db, boolean help) {
+		logger.error("Using deprecated m3 method: m3GenerateBlankMolecularModel");
 		if (help) {
 			return helpMsg("generates Minimal Model augmented with GO associations");
 		}
@@ -117,6 +122,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3preloadGaf(String db, boolean help) {
+		logger.error("Using deprecated m3 method: m3preloadGaf");
 		if (help) {
 			return helpMsg("loads a GAF into memory (saves parsing time later on)");
 		}
@@ -134,6 +140,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3CreateIndividual(String modelId, String classId, boolean help) {
+		logger.error("Using deprecated m3 method: m3CreateIndividual");
 		if (help) {
 			return helpMsg("generates a new individual");
 		}
@@ -148,6 +155,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3DeleteIndividual(String modelId, String individualId, boolean help) {
+		logger.error("Using deprecated m3 method: m3DeleteIndividual");
 		if (help) {
 			return helpMsg("delete the given individual");
 		}
@@ -165,6 +173,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3AddType(String modelId, String individualId, String classId, boolean help) {
+		logger.error("Using deprecated m3 method: m3AddType");
 		if (help) {
 			return helpMsg("generates ClassAssertion (named class)");
 		}
@@ -183,6 +192,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3AddTypeExpression(String modelId, String individualId, String propertyId,
 					String classId, boolean help) {
+		logger.error("Using deprecated m3 method: m3AddTypeExpression");
 		if (help) {
 			return helpMsg("generates ClassAssertion (anon class expression)");
 		}
@@ -201,6 +211,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3AddFact(String modelId, String propertyId, String individualId,
 					String fillerId, boolean help) {
+		logger.error("Using deprecated m3 method: m3AddFact");
 		if (help) {
 			return helpMsg("generates ObjectPropertyAssertion");
 		}
@@ -225,6 +236,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3RemoveFact(String propertyId, String modelId, String individualId,
 					String fillerId, boolean help) {
+		logger.error("Using deprecated m3 method: m3RemoveFact");
 		if (help) {
 			return helpMsg("generates ObjectPropertyAssertion");
 		}
@@ -246,6 +258,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3CreateSimpleCompositeIndividual(String modelId, String classId, String enabledById, String occursInId, boolean help) {
+		logger.error("Using deprecated m3 method: m3CreateSimpleCompositeIndividual");
 		if (help) {
 			return helpMsg("generates a new simple composite individual");
 		}
@@ -272,6 +285,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3ExportModel(String modelId, boolean help) {
+		logger.error("Using deprecated m3 method: m3ExportModel");
 		if (help) {
 			return helpMsg("Export the current content of the model");
 		}
@@ -289,6 +303,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3ImportModel(String model, boolean help) {
+		logger.error("Using deprecated m3 method: m3ImportModel");
 		if (help) {
 			return helpMsg("Import the model into the server.");
 		}
@@ -308,6 +323,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GetAllModelIds(boolean help) {
+		logger.error("Using deprecated m3 method: m3GetAllModelIds");
 		if (help) {
 			return helpMsg("Get the current available model ids.");
 		}
@@ -337,6 +353,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3StoreModel(String modelId, boolean help) {
+		logger.error("Using deprecated m3 method: m3StoreModel");
 		if (help) {
 			return helpMsg("Persist the given model on the server.");
 		}
@@ -363,6 +380,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response getRelations() {
+		logger.error("Using deprecated m3 method: getRelations");
 		/*
 		 * data: {
 		 *   relations: [{
