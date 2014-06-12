@@ -46,6 +46,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	
 	public static boolean USE_USER_ID = false;
 	public static boolean USE_CREATION_DATE = true;
+	public static boolean ADD_INFERENCES = false;
 	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
@@ -446,12 +447,19 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			// render complete model
 			response.data = m3.getModelObject(modelId);
 			response.signal = M3BatchResponse.SIGNAL_REBUILD;
+			if (ADD_INFERENCES) {
+				MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
+				renderer.renderModelInferences(response.data, reasoner);
+			}
 		}
 		else {
 			// render individuals
 			MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
 			response.data = renderer.renderIndividuals(relevantIndividuals);
 			response.signal = M3BatchResponse.SIGNAL_MERGE;
+			if (ADD_INFERENCES) {
+				renderer.renderInferences(relevantIndividuals, response.data, reasoner);
+			}
 		}
 		
 		// add model annotations

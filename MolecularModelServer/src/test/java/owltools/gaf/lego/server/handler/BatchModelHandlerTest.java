@@ -1,6 +1,7 @@
 package owltools.gaf.lego.server.handler;
 
 import static org.junit.Assert.*;
+import static owltools.gaf.lego.MolecularModelJsonRenderer.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,7 +27,6 @@ import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.ManchesterSyntaxTool;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
-import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Entity;
@@ -62,6 +62,7 @@ public class BatchModelHandlerTest {
 		models.setPathToProteinFiles("src/test/resources/ontology/protein/subset");
 		models.setDbToTaxon(ProteinTools.getDefaultDbToTaxon());
 		handler = new JsonOrJsonpBatchHandler(models, Collections.singleton("part_of"));
+		JsonOrJsonpBatchHandler.ADD_INFERENCES = true;
 	}
 
 	@AfterClass
@@ -121,7 +122,7 @@ public class BatchModelHandlerTest {
 		assertEquals(resp2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp2.message_type);
 		String individual1 = null;
 		String individual2 = null;
-		List<Map<Object, Object>> iObjs = (List) resp2.data.get("individuals");
+		List<Map<Object, Object>> iObjs = (List) resp2.data.get(KEY_INDIVIDUALS);
 		assertEquals(2, iObjs.size());
 		for(Map<Object, Object> iObj : iObjs) {
 			String id = (String) iObj.get(KEY.id);
@@ -185,7 +186,7 @@ public class BatchModelHandlerTest {
 		
 		M3BatchResponse resp4 = handler.m3Batch(uid, intention, batch4);
 		assertEquals(resp4.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp4.message_type);
-		List<Map<Object, Object>> iObjs4 = (List) resp4.data.get("individuals");
+		List<Map<Object, Object>> iObjs4 = (List) resp4.data.get(KEY_INDIVIDUALS);
 		assertEquals(1, iObjs4.size());
 		List<Map> types = (List<Map>) iObjs4.get(0).get(KEY.type);
 		assertEquals(1, types.size());
@@ -369,7 +370,7 @@ public class BatchModelHandlerTest {
 		assertEquals(uid, response2.uid);
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
-		List<Map<Object, Object>> iObjs = (List) response2.data.get("individuals");
+		List<Map<Object, Object>> iObjs = (List) response2.data.get(KEY_INDIVIDUALS);
 		assertEquals(1, iObjs.size());
 		Map<Object, Object> individual = iObjs.get(0);
 		Map onProperty = (Map)((List) individual.get(KEY.type)).get(1);
@@ -510,7 +511,7 @@ public class BatchModelHandlerTest {
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
 		
 		
-		List<Map<Object, Object>> iObjs1 = (List) response1.data.get("individuals");
+		List<Map<Object, Object>> iObjs1 = (List) response1.data.get(KEY_INDIVIDUALS);
 		assertEquals(1, iObjs1.size());
 		Map<Object, Object> individual1 = iObjs1.get(0);
 		assertNotNull(individual1);
@@ -554,7 +555,7 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
 		
-		List<Map<Object, Object>> iObjs2 = (List) response2.data.get("individuals");
+		List<Map<Object, Object>> iObjs2 = (List) response2.data.get(KEY_INDIVIDUALS);
 		assertEquals(1, iObjs2.size());
 		Map<Object, Object> individual2 = iObjs2.get(0);
 		assertNotNull(individual2);
@@ -667,6 +668,46 @@ public class BatchModelHandlerTest {
 		assertEquals(Boolean.TRUE, inconsistentFlag);
 	}
 
+	@Test
+	public void testInferences() throws Exception {
+		models.dispose();
+		
+		final String modelId = generateBlankModel();
+		
+		// GO:0009826 ! unidimensional cell growth
+		// GO:0000902 ! cell morphogenesis
+		// should infer only one type: 'unidimensional cell growth'
+		// 'cell morphogenesis' is a super-class and redundant
+		
+		// create
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.individual.name();
+		batch1[0].operation = Operation.create.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+		batch1[0].arguments.subject = "GO:0000902"; // cell morphogenesis
+		batch1[0].arguments.expressions = new M3Expression[1];
+		batch1[0].arguments.expressions[0] = new M3Expression();
+		batch1[0].arguments.expressions[0].type = "class";
+		batch1[0].arguments.expressions[0].literal = "GO:0009826"; // unidimensional cell growth
+
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		Map<Object, Object> data = response1.data;
+		assertNull("Model should not be inconsistent", data.get("inconsistent_p"));
+		List inferred = (List) data.get(KEY_INDIVIDUALS_INFERENCES);
+		assertNotNull(inferred);
+		assertEquals(1, inferred.size());
+		Map inferredData = (Map) inferred.get(0);
+		List types = (List) inferredData.get(KEY.type);
+		assertEquals(1, types.size());
+		Map type = (Map) types.get(0);
+		assertEquals("GO:0009826", type.get(KEY.id));
+	}
+	
 	/**
 	 * @return modelId
 	 */
@@ -683,7 +724,7 @@ public class BatchModelHandlerTest {
 		return modelId;
 	}
 	
-	static void printJson(M3BatchResponse resp) {
+	static void printJson(Object resp) {
 		GsonBuilder builder = new GsonBuilder();
 		builder.setPrettyPrinting();
 		Gson gson = builder.create();

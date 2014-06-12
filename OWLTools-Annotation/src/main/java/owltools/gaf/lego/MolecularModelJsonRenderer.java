@@ -38,6 +38,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.eco.EcoMapper;
 import owltools.gaf.eco.EcoMapperFactory;
@@ -62,7 +63,12 @@ import com.google.gson.Gson;
 public class MolecularModelJsonRenderer {
 	
 	private static Logger LOG = Logger.getLogger(MolecularModelJsonRenderer.class);
-	
+
+	public static final String KEY_FACTS = "facts";
+	public static final String KEY_INDIVIDUALS = "individuals";
+	public static final String KEY_INDIVIDUALS_INFERENCES = "individuals_i";
+	public static final String KEY_PROPERTIES = "properties";
+
 	private final OWLOntology ont;
 	private final OWLGraphWrapper graph;
 
@@ -137,7 +143,7 @@ public class MolecularModelJsonRenderer {
 		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
 			iObjs.add(renderObject(i));
 		}
-		model.put("individuals", iObjs);
+		model.put(KEY_INDIVIDUALS, iObjs);
 		
 		// per-Assertion
 		Set<OWLObjectProperty> usedProps = new HashSet<OWLObjectProperty>();
@@ -148,7 +154,7 @@ public class MolecularModelJsonRenderer {
 			aObjs.add(renderObject(opa));
 			usedProps.addAll(opa.getObjectPropertiesInSignature());
 		}
-		model.put("facts", aObjs);
+		model.put(KEY_FACTS, aObjs);
 
 		// per-Property
 		List<Map<Object, Object>> pObjs = new ArrayList<Map<Object, Object>>();
@@ -157,7 +163,7 @@ public class MolecularModelJsonRenderer {
 				pObjs.add(renderObject(p));
 			}
 		}
-		model.put("properties", pObjs);
+		model.put(KEY_PROPERTIES, pObjs);
 
 		List<Object> anObjs = renderAnnotations(ont.getAnnotations());
 		if (!anObjs.isEmpty()) {
@@ -166,6 +172,22 @@ public class MolecularModelJsonRenderer {
 		
 		return model;
 		
+	}
+	
+	/**
+	 * Add the available inferences to the given JSON map.
+	 * 
+	 * @param map model info
+	 * @param reasoner
+	 */
+	public void renderModelInferences(Map<Object,Object> map, OWLReasoner reasoner) {
+		if (reasoner.isConsistent() == false) {
+			return;
+		}
+		if (map != null) {
+			Set<OWLNamedIndividual> individuals = ont.getIndividualsInSignature();
+			renderInferences(individuals, map, reasoner);
+		}
 	}
 	
 	public static List<Object> renderModelAnnotations(OWLOntology ont) {
@@ -213,17 +235,45 @@ public class MolecularModelJsonRenderer {
 				}
 			}
 		}
-		map.put("individuals", iObjs);
+		map.put(KEY_INDIVIDUALS, iObjs);
 		
 		List<Map<Object, Object>> aObjs = new ArrayList<Map<Object, Object>>();
 		for (OWLObjectPropertyAssertionAxiom opa : opAxioms) {
 			aObjs.add(renderObject(opa));
 		}
-		map.put("facts", aObjs);
+		map.put(KEY_FACTS, aObjs);
 		
 		// TODO decide on properties
 		
 		return map;
+	}
+	
+	/**
+	 * Add the inferences for the given individuals to the JSON map.
+	 * 
+	 * @param individuals
+	 * @param map
+	 * @param reasoner
+	 */
+	public void renderInferences(Collection<OWLNamedIndividual> individuals, Map<Object, Object> map, OWLReasoner reasoner) {
+		if (reasoner.isConsistent() == false) {
+			return;
+		}
+		if (individuals != null && map != null) {
+			List<Map<Object,Object>> iObjs = new ArrayList<Map<Object,Object>>(individuals.size());
+			for (OWLNamedIndividual i : individuals) {
+				Map<Object, Object> iObj = new HashMap<Object, Object>();
+				iObj.put(KEY.id, getId(i, graph));
+				Set<OWLClass> types = reasoner.getTypes(i, true).getFlattened();
+				List<Object> typeObjs = new ArrayList<Object>(types.size());
+				for (OWLClass x : types) {
+					typeObjs.add(renderObject(x));
+				}
+				iObj.put(KEY.type, typeObjs);
+				iObjs.add(iObj);
+			}
+			map.put(KEY_INDIVIDUALS_INFERENCES, iObjs);
+		}
 	}
 	
 	/**
