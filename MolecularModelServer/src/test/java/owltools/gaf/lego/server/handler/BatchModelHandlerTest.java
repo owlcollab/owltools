@@ -669,7 +669,7 @@ public class BatchModelHandlerTest {
 	}
 
 	@Test
-	public void testInferences() throws Exception {
+	public void testInferencesRedundant() throws Exception {
 		models.dispose();
 		
 		final String modelId = generateBlankModel();
@@ -706,6 +706,47 @@ public class BatchModelHandlerTest {
 		assertEquals(1, types.size());
 		Map type = (Map) types.get(0);
 		assertEquals("GO:0009826", type.get(KEY.id));
+	}
+	
+	@Test
+	public void testInferencesAdditional() throws Exception {
+		models.dispose();
+		
+		final String modelId = generateBlankModel();
+		
+		// GO:0051231 ! spindle elongation
+		// part_of GO:0000278 ! mitotic cell cycle
+		// should infer one new type: GO:0000022 ! mitotic spindle elongation
+		
+		// create
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.individual.name();
+		batch1[0].operation = Operation.create.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+		batch1[0].arguments.subject = "GO:0051231"; // spindle elongation
+		batch1[0].arguments.expressions = new M3Expression[1];
+		batch1[0].arguments.expressions[0] = new M3Expression();
+		batch1[0].arguments.expressions[0].type = "svf";
+		batch1[0].arguments.expressions[0].onProp = "BFO:0000050"; // part_of
+		batch1[0].arguments.expressions[0].literal = "GO:0000278"; // mitotic cell cycle
+
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		printJson(response1);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		Map<Object, Object> data = response1.data;
+		assertNull("Model should not be inconsistent", data.get("inconsistent_p"));
+		List inferred = (List) data.get(KEY_INDIVIDUALS_INFERENCES);
+		assertNotNull(inferred);
+		assertEquals(1, inferred.size());
+		Map inferredData = (Map) inferred.get(0);
+		List types = (List) inferredData.get(KEY.type);
+		assertEquals(1, types.size());
+		Map type = (Map) types.get(0);
+		assertEquals("GO:0000022", type.get(KEY.id));
 	}
 	
 	/**
