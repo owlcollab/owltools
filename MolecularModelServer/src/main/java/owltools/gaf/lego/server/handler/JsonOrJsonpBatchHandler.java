@@ -46,7 +46,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	
 	public static boolean USE_USER_ID = false;
 	public static boolean USE_CREATION_DATE = true;
-	public static boolean ADD_INFERENCES = false;
+	public static boolean ADD_INFERENCES = true;
 	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
