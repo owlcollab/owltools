@@ -396,6 +396,12 @@ public class CommandRunner {
 			else if (opts.nextEq("--no-debug")) {
 				Logger.getRootLogger().setLevel(Level.OFF);
 			}
+			else if (opts.nextEq("--no-logging")) {
+				Logger.getRootLogger().setLevel(Level.OFF);
+			}
+			else if (opts.nextEq("--silence-elk")) {
+				Logger.getLogger("org.semanticweb.elk").setLevel(Level.OFF);
+			}
 			else if (opts.nextEq("--monitor-memory")) {
 				g.getConfig().isMonitorMemory = true;
 			}
