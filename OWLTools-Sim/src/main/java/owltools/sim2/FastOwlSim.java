@@ -298,9 +298,12 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		LOG.info("|TypesUsedDirectly|="+allTypesDirect.size());
 		LOG.info("|TypesUsedInferred|="+allTypesInferred.size());
 
-		Set<OWLClass> cset;
-		//cset = getSourceOntology().getClassesInSignature(true);
-		cset = allTypesInferred;
+		if (this.getPropertyAsBoolean(SimConfigurationProperty.useAllClasses)) {
+			allTypesInferred = getSourceOntology().getClassesInSignature(true);
+		}
+
+		Set<OWLClass> cset = allTypesInferred;
+		
 		LOG.info("|C|="+cset.size());
 		LOG.info("|I|="+inds.size());
 
@@ -569,6 +572,12 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		EWAHCompressedBitmap debm = getElementsForAttributeAsBitmao(d);
 		return cebm.andCardinality(debm);
 	}
+	public int getNumSharedElements(OWLClass c, OWLClass d, OWLClass e) throws UnknownOWLClassException {
+		EWAHCompressedBitmap cebm = getElementsForAttributeAsBitmao(c);
+		EWAHCompressedBitmap debm = getElementsForAttributeAsBitmao(d);
+		EWAHCompressedBitmap eebm = getElementsForAttributeAsBitmao(e);
+		return cebm.andCardinality(debm, eebm);
+	}
 
 	Map<OWLClass,EWAHCompressedBitmap> classToElementBitmapMap;
 	private EWAHCompressedBitmap getElementsForAttributeAsBitmao(OWLClass c) throws UnknownOWLClassException {
@@ -628,6 +637,13 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	public Double getInformationContentForAttribute(OWLClass c) throws UnknownOWLClassException {
 		if (icCache.containsKey(c)) return icCache.get(c);
 		int freq = getNumElementsForAttribute(c);
+		if (freq == 0) {
+			LOG.warn("Frequency of 0 for " + c);
+			if (this.getPropertyAsBoolean(SimConfigurationProperty.useAllClasses)) {
+				LOG.warn("Setting default freq of 1 for " + c);
+				freq = 1;
+			}
+		}
 		Double ic = null ;
 		if (freq > 0) {
 			ic = -Math.log(((double) (freq) / getCorpusSize())) / Math.log(2);
@@ -1230,6 +1246,8 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			// TODO null vs 0
 			int lcsix = ciPairLCS[cix][dix];
 
+			// we lookup the IC on-the-fly
+			// TODO: hook in here to getAttributeTriadScore to produce other scores
 			return new ScoreAttributeSetPair(icClassArray[lcsix],
 					classArray[lcsix]);
 		}
@@ -1296,6 +1314,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		Set<OWLClass> lcsClasses = new HashSet<OWLClass>();
 		double maxScore = 0.0;
 		for (int ix : cad.toArray()) {
+			// TODO: use getAttributeTriadScore here
 			double score = 
 					getInformationContentForAttribute(ix);
 			double sdiff = score - maxScore;
@@ -1326,6 +1345,16 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		this.totalCallsLCSIC++;
 
 		return new ScoreAttributeSetPair(maxScore, lcsClasses);
+	}
+	
+	// given class indices for two classes (a,b), plus an IC score for their LCS,
+	// generate a weighted score that penalizes distance from the LCS
+	private double getAttributeTriadScore(int cix, int dix, double score) throws UnknownOWLClassException {
+		Double cIC = getInformationContentForAttribute(cix);
+		Double dIC = getInformationContentForAttribute(dix);
+		// TODO - allow a variety of scoring methods here
+		double m = Math.min(cIC, dIC);
+		return score - m / 2;
 	}
 
 	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws Exception {

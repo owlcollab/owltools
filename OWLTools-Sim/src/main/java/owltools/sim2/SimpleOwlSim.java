@@ -247,6 +247,10 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		 */
 		bestOnly(""),
 		/**
+		 * true if all classes are to be used (not just those with instances)
+		 */
+		useAllClasses(""),
+		/**
 		 * a comma delimited list, and values can be drawn from the {@link Metric}.
 		 * Default is SIMJ.
 		 */

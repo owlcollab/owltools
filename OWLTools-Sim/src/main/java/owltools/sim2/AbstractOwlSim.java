@@ -434,7 +434,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		saveLCSCache(fileName, null);
 	}
 
-	protected String getShortId(OWLClass c) {
+	public String getShortId(OWLClass c) {
 		IRI x = ((OWLClass) c).getIRI();
 		String id = x.toString().replace(OBOUpperVocabulary.OBO, ""); 
 		if (id.equals(x.toString())) {
@@ -640,18 +640,26 @@ public abstract class AbstractOwlSim implements OwlSim {
 		// LOG.info("Hyper :"+populationClass
 		// +" "+sampleSetClass+" "+enrichedClass);
 		int populationClassSize;
+		int enrichedClassSize ;
+		if (getNumElementsForAttribute(enrichedClass) == 0)
+			return null;
 		if (populationClass != null) {
 			populationClassSize = getNumElementsForAttribute(populationClass);
+			enrichedClassSize = getNumSharedElements(enrichedClass, populationClass);
 		}
 		else {
 			populationClassSize = getCorpusSize();
 			populationClass =  
 					getSourceOntology().getOWLOntologyManager().getOWLDataFactory().getOWLThing();
+			enrichedClassSize = getNumElementsForAttribute(enrichedClass);
 		}
 		int sampleSetClassSize = getNumElementsForAttribute(sampleSetClass);
-		int enrichedClassSize = getNumElementsForAttribute(enrichedClass);
-		// LOG.info("Hyper :"+populationClassSize
-		// +" "+sampleSetClassSize+" "+enrichedClassSize);
+		if (sampleSetClassSize == 0)
+			return null;
+		if (enrichedClassSize == 0)
+			return null;
+		 //LOG.info("Hyper :"+populationClassSize
+		//		 +" "+sampleSetClassSize+" "+enrichedClassSize);
 		//Set<OWLNamedIndividual> eiSet = getSharedElements(sampleSetClass, enrichedClass);
 		//eiSet.retainAll(this.getElementsForAttribute(enrichedClass));
 		//int eiSetSize = eiSet.size();
@@ -672,6 +680,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 		// LOG.info("both="+eiSet.size());
 		double p = hg.cumulativeProbability(eiSetSize,
 				Math.min(sampleSetClassSize, enrichedClassSize));
+		//LOG.info("  p="+p);
 		long t2 = System.currentTimeMillis();
 		double pCorrected = p * getCorrectionFactor(populationClass);
 		

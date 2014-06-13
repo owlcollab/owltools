@@ -1146,6 +1146,8 @@ public interface OwlSim {
 
 	public OwlSimMetadata getMetadata();
 
+	public String getShortId(OWLClass c);
+
 	
 }
 

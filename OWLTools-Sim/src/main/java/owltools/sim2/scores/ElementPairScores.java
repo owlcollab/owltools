@@ -56,7 +56,7 @@ public class ElementPairScores implements PairScores<OWLNamedIndividual>, Compar
 
 	// note: a renderer should be used here
 	public String toString() {
-		return i+" "+j+" maxIC:" + maxIC + " maxIC(term): "+ maxICwitness + " simJ: " + simjScore + " bma(IC):" + bmaSymIC;
+		return i+" "+j+" Combined:"+combinedScore+" maxIC:" + maxIC + " maxIC(term): "+ maxICwitness + " simJ: " + simjScore + " bma(IC):" + bmaSymIC;
 	}
 
 	@Override

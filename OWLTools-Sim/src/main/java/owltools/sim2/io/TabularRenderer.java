@@ -319,9 +319,17 @@ public class TabularRenderer extends AbstractRenderer implements SimResultRender
 		cols.add("NumAnnots B");
 		vals.add(scores.ds.size()+"");
 
+		cols.add("Rank_of_B");
+		if (scores.rank != null) {
+			vals.add(""+scores.rank);
+		}
+		else {
+			vals.add("");
+		}
+
 		cols.add("Combined");
 		if (scores.combinedScore != null) {
-			vals.add(doubleRenderer.format(scores.combinedScore));
+			vals.add(""+scores.combinedScore);
 		}
 		else {
 			vals.add("");
