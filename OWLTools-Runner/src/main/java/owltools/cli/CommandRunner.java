@@ -3059,7 +3059,7 @@ public class CommandRunner {
 					String[] idparts = id.split(":");
 					String idspace = idparts[0];
 					if (idspaces.contains(idspace)) {
-						LOG.info("adding ancs = "+c);
+						
 						cs.addAll(reasoner.getEquivalentClasses(c).getEntities());
 						cs.addAll(reasoner.getSuperClasses(c, false).getFlattened());
 					}
