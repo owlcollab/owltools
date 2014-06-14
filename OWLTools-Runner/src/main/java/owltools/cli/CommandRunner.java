@@ -3043,6 +3043,11 @@ public class CommandRunner {
 				opts.info("IDSPACES", 
 						"removes all classes not in the superclass closure of any ontology in one of the idspaces." +
 						" also assers superclasses");
+				boolean isTempReasoner = false;
+				if (reasoner == null) {
+					reasoner = this.createReasoner(g.getSourceOntology(), "elk", g.getManager());
+					isTempReasoner = true;
+				}
 				String idspacesStr = opts.nextOpt();
 				LOG.info("idsps = "+idspacesStr);
 				String[] idarr = idspacesStr.split(",");
@@ -3062,6 +3067,9 @@ public class CommandRunner {
 				AssertInferenceTool.assertInferences(g, false, false, false, true, false, false, null, null);
 				Mooncat m = new Mooncat(g);
 				m.removeSubsetComplementClasses(cs, true);
+				if (isTempReasoner) {
+					reasoner.dispose();
+				}
 			}
 			else if (opts.nextEq("--split-ontology")) {
 				opts.info("[-p IRI-PREFIX] [-s IRI-SUFFIX] [-d OUTDIR] [-l IDSPACE1 ... IDPSPACEn]", 
