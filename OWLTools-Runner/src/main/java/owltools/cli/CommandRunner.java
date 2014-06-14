@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
@@ -3037,6 +3038,30 @@ public class CommandRunner {
 						AxiomAnnotationTools.changeAxiomAnnotations(a, new HashSet<OWLAnnotation>(), g.getSourceOntology());						
 					}
 				}
+			}
+			else if (opts.nextEq("--make-super-slim")) {
+				opts.info("IDSPACES", 
+						"removes all classes not in the superclass closure of any ontology in one of the idspaces." +
+						" also assers superclasses");
+				String idspacesStr = opts.nextOpt();
+				LOG.info("idsps = "+idspacesStr);
+				String[] idarr = idspacesStr.split(",");
+				Set<String> idspaces = new HashSet<String>(Arrays.asList(idarr));
+				LOG.info("idsps = "+idspaces);
+				Set<OWLClass> cs = new HashSet<OWLClass>();
+				for (OWLClass c : g.getAllOWLClasses()) {	
+					String id = g.getIdentifier(c);
+					String[] idparts = id.split(":");
+					String idspace = idparts[0];
+					if (idspaces.contains(idspace)) {
+						LOG.info("adding ancs = "+c);
+						cs.addAll(reasoner.getEquivalentClasses(c).getEntities());
+						cs.addAll(reasoner.getSuperClasses(c, false).getFlattened());
+					}
+				}
+				AssertInferenceTool.assertInferences(g, false, false, false, true, false, false, null, null);
+				Mooncat m = new Mooncat(g);
+				m.removeSubsetComplementClasses(cs, true);
 			}
 			else if (opts.nextEq("--split-ontology")) {
 				opts.info("[-p IRI-PREFIX] [-s IRI-SUFFIX] [-d OUTDIR] [-l IDSPACE1 ... IDPSPACEn]", 
