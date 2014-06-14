@@ -267,6 +267,9 @@ public class MolecularModelJsonRenderer {
 				Set<OWLClass> types = reasoner.getTypes(i, true).getFlattened();
 				List<Object> typeObjs = new ArrayList<Object>(types.size());
 				for (OWLClass x : types) {
+					if (x.isBuiltIn()) {
+						continue;
+					}
 					typeObjs.add(renderObject(x));
 				}
 				iObj.put(KEY.type, typeObjs);
