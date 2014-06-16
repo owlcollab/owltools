@@ -6,16 +6,19 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+import org.apache.commons.math3.util.MultidimensionalCounter.Iterator;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
@@ -156,6 +159,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	// maps an individual to a unique integer
 	Map<OWLNamedIndividual,Integer> individualIndex;
 
+	int[][] coaMatrix = null;
 
 	@Override
 	public void dispose() {
@@ -2122,4 +2126,294 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		return md;
 	}
+		
+	public class ClassCount {
+		public OWLClass c;
+		public Double score;
+		public Integer count;
+		
+		public ClassCount (OWLClass c, Double i) {
+			this.c = c;
+			this.score = i;
+		}
+
+		public ClassCount (OWLClass c, Integer i) {
+			this.c = c;
+			this.score = i.doubleValue();
+		}		
+	}
+	
+	public static Comparator<ClassCount> ClassCountComparator = new Comparator<ClassCount>() {
+		public int compare(ClassCount c1, ClassCount c2) {
+			if (c1.score < c2.score) return -1;
+			if (c1.score > c2.score) return 1;
+			return 0;
+		}  
+	};
+	
+	//http://en.wikipedia.org/wiki/Tf-idf
+	public Double[][] computeTFIDFMatrix(int[][] subsetMatrix, int numIndividualsInSubset, int[][] backgroundMatrix, int numIndividualsInBackground ) throws UnknownOWLClassException {
+		//figure out how often the terms are in the subset
+		Double[][] tfidf = new Double[classArray.length][classArray.length];
+		for (int i=0; i<subsetMatrix.length; i++) {
+			if (classArray[i] == null) {
+				continue;
+			}
+			for (int j=0; j<subsetMatrix[i].length; j++) {
+				Double tf = Math.log(subsetMatrix[i][j]/(numIndividualsInSubset + 1));
+				int n = getElementsForAttribute(classArray[i]).size();
+				Double idf = Math.log(numIndividualsInBackground / (1+n));
+				tfidf[i][j] = tf*idf;
+			}
+		}				
+		return tfidf;
+	}
+	
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c, int numIndividualsInBackground) throws Exception {
+	  return getCoannotatedClassesForAttribute(c, 0.0, numIndividualsInBackground);
+	}
+	
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c, Double cutoff, int numIndividualsInBackground) throws Exception {
+		//make a co-annotation matrix for all classes
+		Integer cid = classIndex.get(c);
+		int[] annotCocounts = coaMatrix[cid];
+		List<ClassCount> classToCount = new ArrayList<ClassCount>();
+		
+		for (int i=0; i<annotCocounts.length; i++) {
+			if (classArray[i] == null) {
+				continue;
+			}
+			Double tf = Math.log(annotCocounts[i]);
+			int n = getElementsForAttribute(classArray[i]).size();
+			Double idf = Math.log(numIndividualsInBackground / 1+n);
+			Double tfidf = tf*idf;
+			if (tfidf > cutoff) {
+				ClassCount cc = new ClassCount(classArray[i],tfidf);
+				classToCount.add(cc);			
+			}
+		}
+		Collections.sort(classToCount,ClassCountComparator);
+		Collections.reverse(classToCount);
+		return classToCount;
+		
+	}
+
+	public List<ClassCount> getCoAnnotatedClassesForIndividual(OWLNamedIndividual i) throws Exception {
+		int matchCutoff = 2;
+		return getCoAnnotatedClassesForIndividual(i,matchCutoff);
+	}
+	
+	public List<ClassCount> getCoAnnotatedClassesForIndividual(OWLNamedIndividual i, int matchCutoff) throws Exception {
+
+		//findMatches
+		List<ElementPairScores> matches = this.findMatches(i,null);
+		//remove exact match
+		
+		int exactMatchIndex = -1;
+		for (int m=0; m<matches.size(); m++) { 
+			ElementPairScores eps = matches.get(m);
+			if (eps.j.equals(i)) {
+				exactMatchIndex = m;
+			}
+		}
+		if (exactMatchIndex > -1) {
+			LOG.info("Removed exact match of individual "+matches.get(exactMatchIndex).j.toStringID());
+			matches.remove(exactMatchIndex);
+		}
+		
+		List<ClassCount> coannotationSet = getCoAnnotatedClassesForMatches(matches, getAttributesForElement(i));
+
+		return coannotationSet;
+	}
+
+	public List<ClassCount> getCoAnnotatedClassesForAttributes(Set<OWLClass> atts) throws Exception {
+		int matchCutoff = 2; //default
+		return getCoAnnotatedClassesForAttributes(atts,matchCutoff);
+	}
+	
+	public List<ClassCount> getCoAnnotatedClassesForAttributes(Set<OWLClass> atts, int matchCutoff) throws Exception {
+		if (atts == null) {
+			return null;
+		}
+		List<ElementPairScores> matches = this.findMatches(atts, null,0.1,0.1);
+		List<ClassCount> coannotationSet = getCoAnnotatedClassesForMatches(matches, atts);
+		return coannotationSet;
+	}
+	
+	public List<ClassCount> getCoAnnotatedClassesForMatches(List<ElementPairScores> matches, Set<OWLClass> atts) throws Exception {
+		int matchCutoff = 2; //default
+		return getCoAnnotatedClassesForMatches(matches,atts,matchCutoff);
+	}
+	
+	//http://textanddatamining.blogspot.co.uk/2012/01/extract-meta-concepts-through-co.html
+	public List<ClassCount> getCoAnnotatedClassesForMatches(List<ElementPairScores> matches, Set<OWLClass> atts, int matchCutoff) throws Exception {
+		List<ClassCount> classToCount = new ArrayList<ClassCount>();
+		Set<OWLNamedIndividual> indSubset = new HashSet<OWLNamedIndividual>();
+		if (matches == null || matches.size() == 0) {
+			return classToCount;
+		}
+		int i=0;
+		for (ElementPairScores eps : matches) {
+			i++;
+			indSubset.add(eps.j);
+			//only add the first 10
+			if (i > matchCutoff) {
+				break;
+			}
+		}
+		
+		//initialize the full coannotation matrix
+		if (this.coaMatrix == null) {
+			this.coaMatrix = this.initCoannotationMatrix(this.coaMatrix);
+		}
+		//compute the subset coannotation matrix for the top similar individuals
+		int[][] subsetMatrix = getSubsetCoannotationMatrix(indSubset);
+
+//		logCountMatrix(subsetMatrix);
+		
+		Double[][] tfidfmatrix = this.computeTFIDFMatrix(subsetMatrix, indSubset.size(), this.coaMatrix, this.getAllElements().size());
+		
+		double cutoff = 0.0;
+				
+		//rather than object, flatten it here
+		Double[] usedArray = new Double[classArray.length];
+		//initialize
+		for (int a=0; a<usedArray.length; a++) {
+			usedArray[a] = 0.0;
+		}
+
+		//use supers?
+		//weighting by IC?
+		for (OWLClass c : atts) {
+			Integer cid = classIndex.get(c);
+			for (i=0; i<cid-1; i++) {
+				if (tfidfmatrix[i][cid] > cutoff) {
+					ClassCount cc = new ClassCount(classArray[i],tfidfmatrix[i][cid]);
+					classToCount.add(cc);			
+					usedArray[i] += tfidfmatrix[i][cid];
+				}
+			}
+			for (int j=cid; j<classArray.length; j++) {
+				if (tfidfmatrix[cid][j] > cutoff) {
+					ClassCount cc = new ClassCount(classArray[j],tfidfmatrix[cid][j]);
+					classToCount.add(cc);			
+					usedArray[j] += tfidfmatrix[cid][j];
+				}
+			}
+		}
+		classToCount = new ArrayList<ClassCount>(); 
+		for (OWLClass c : atts) {
+			Integer cid = classIndex.get(c);
+			Double score = usedArray[cid];
+			ClassCount cc = new ClassCount(c,score);
+			if (score > cutoff) {
+			classToCount.add(cc);
+			}
+		}
+		Collections.sort(classToCount,ClassCountComparator);
+		Collections.reverse(classToCount);
+		
+		return classToCount;
+	}
+	
+
+
+	
+	public int[][] getSubsetCoannotationMatrix(Set<OWLNamedIndividual> individualSubset) throws Exception {
+		int[][] subsetCoaMatrix = new int[classArray.length][classArray.length];
+		//initialize matrix to 0
+		subsetCoaMatrix = this.initCoannotationMatrix(subsetCoaMatrix);
+		for (int i=0; i<classArray.length; i++) {
+			int cix = i;
+			if (classArray[i] == null) {
+				continue;
+			}
+			Set<OWLNamedIndividual> inds = getElementsForAttribute(classArray[i]);
+			//only keep those individuals that are in our desired subset of individuals
+			inds.retainAll(individualSubset);
+			for (OWLNamedIndividual e : inds) {
+				Set<OWLClass> jcs = this.getAttributesForElement(e);
+				for (OWLClass c : jcs) {
+					Integer dix = classIndex.get(c);
+					//only populate half of the cache
+					int temp;
+					if (i > dix) {
+						// swap
+						temp = cix;
+						cix = dix;
+						dix = temp;
+					}
+					subsetCoaMatrix[cix][dix] += 1;
+				}
+			}
+		}
+		LOG.info("Finished populating the coannotation matrix for a subset of "+individualSubset.size());
+
+		return subsetCoaMatrix;
+	}
+	
+	public void populateFullCoannotationMatrix() throws Exception {
+		//TODO use ICs to scale?
+		coaMatrix = new int[classArray.length][classArray.length];
+		coaMatrix = this.initCoannotationMatrix(coaMatrix);
+
+		//initialize matrix to 0
+		for (int i=0; i<classArray.length; i++) {
+			int cix = i;
+			if (classArray[i] == null) {
+				continue;
+			}
+			LOG.info("i="+i+" class="+classArray[i].toStringID());
+			Set<OWLNamedIndividual> inds = this.getElementsForAttribute(classArray[i]);
+			for (OWLNamedIndividual e : inds) {
+				Set<OWLClass> jcs = this.getAttributesForElement(e);
+				
+				for (OWLClass c : jcs) {
+					Integer dix = classIndex.get(c);
+					//only populate half of the cache
+					int temp;
+					if (i > dix) {
+						// swap
+						temp = cix;
+						cix = dix;
+						dix = temp;
+					}
+					coaMatrix[cix][dix] = coaMatrix[cix][dix] + 1;
+				}
+			}
+		}
+		LOG.info("Finished populating the coannotation matrix");
+
+		return;
+	}
+	
+	public int[][] convertCountMatrixToFrequency(int[][] matrix, int normalizationFactor) {
+		for (int i=0; i<matrix.length; i++) {
+			for (int j=0; j<matrix[i].length; j++) {
+				matrix[i][j] = matrix[i][j] / normalizationFactor;
+			}
+		}
+		return matrix;
+	}
+	
+	public int[][] initCoannotationMatrix(int[][] coaMatrix) {
+		for (int i=0; i<coaMatrix.length; i++) {
+			for (int j=0; j<coaMatrix[i].length; j++) {
+				coaMatrix[i][j] = 0;
+			}
+		}
+		return coaMatrix;
+	}
+	
+	public void logCountMatrix(int[][] matrix) {
+		
+		for (int i=0; i<matrix.length; i++) {
+			System.out.print(i+" ");
+			for (int j=0; j<matrix[i].length; j++) {
+				System.out.print(" "+matrix[i][j]+" ");
+			}
+			System.out.println();
+		}
+	}
+	
 }

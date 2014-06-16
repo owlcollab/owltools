@@ -37,6 +37,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.sim2.FastOwlSim.ClassCount;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
@@ -1310,6 +1311,89 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	public List<ElementPairScores> findMatches(Set<OWLClass> atts,
 			String targetIdSpace, double minSimJPct, double minMaxIC)
 			throws UnknownOWLClassException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Double[][] computeTFIDFMatrix(int[][] subsetMatrix,
+			int numIndividualsInSubset, int[][] backgroundMatrix,
+			int numIndividualsInBackground) throws UnknownOWLClassException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c,
+			int numIndividualsInBackground) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c,
+			Double cutoff, int numIndividualsInBackground) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ClassCount> getCoAnnotatedClassesForIndividual(
+			OWLNamedIndividual i) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ClassCount> getCoAnnotatedClassesForIndividual(
+			OWLNamedIndividual i, int matchCutoff) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ClassCount> getCoAnnotatedClassesForAttributes(Set<OWLClass> atts)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ClassCount> getCoAnnotatedClassesForAttributes(
+			Set<OWLClass> atts, int matchCutoff) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ClassCount> getCoAnnotatedClassesForMatches(
+			List<ElementPairScores> matches, Set<OWLClass> atts) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int[][] getSubsetCoannotationMatrix(
+			Set<OWLNamedIndividual> individualSubset) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void populateFullCoannotationMatrix() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int[][] convertCountMatrixToFrequency(int[][] matrix,
+			int normalizationFactor) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int[][] initCoannotationMatrix(int[][] coaMatrix) {
 		// TODO Auto-generated method stub
 		return null;
 	}

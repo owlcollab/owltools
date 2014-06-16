@@ -1,12 +1,15 @@
 package owltools.sim2;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.commons.math.MathException;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummaryValues;
@@ -19,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.sim2.FastOwlSim.ClassCount;
 import owltools.sim2.SimpleOwlSim.Direction;
 import owltools.sim2.SimpleOwlSim.Metric;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
@@ -1147,6 +1151,29 @@ public interface OwlSim {
 	public OwlSimMetadata getMetadata();
 
 	public String getShortId(OWLClass c);
+	
+	public Double[][] computeTFIDFMatrix(int[][] subsetMatrix, int numIndividualsInSubset, int[][] backgroundMatrix, int numIndividualsInBackground ) throws UnknownOWLClassException ;
+	
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c, int numIndividualsInBackground) throws Exception ;
+	
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c, Double cutoff, int numIndividualsInBackground) throws Exception ;
+	
+	public List<ClassCount> getCoAnnotatedClassesForIndividual(OWLNamedIndividual i) throws Exception ;
+	public List<ClassCount> getCoAnnotatedClassesForIndividual(OWLNamedIndividual i, int matchCutoff) throws Exception ;
+	
+	public List<ClassCount> getCoAnnotatedClassesForAttributes(Set<OWLClass> atts) throws Exception ;
+	public List<ClassCount> getCoAnnotatedClassesForAttributes(Set<OWLClass> atts, int matchCutoff) throws Exception ;
+	
+	public List<ClassCount> getCoAnnotatedClassesForMatches(List<ElementPairScores> matches, Set<OWLClass> atts) throws Exception ;
+	
+	public int[][] getSubsetCoannotationMatrix(Set<OWLNamedIndividual> individualSubset) throws Exception ;
+	
+	public void populateFullCoannotationMatrix() throws Exception ;
+	
+	public int[][] convertCountMatrixToFrequency(int[][] matrix, int normalizationFactor) ;
+	
+	public int[][] initCoannotationMatrix(int[][] coaMatrix) ;
+
 
 	
 }
