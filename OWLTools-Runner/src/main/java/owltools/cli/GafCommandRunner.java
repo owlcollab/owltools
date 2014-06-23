@@ -255,10 +255,16 @@ public class GafCommandRunner extends CommandRunner {
 	@CLIMethod("--gaf-fold-inferences")
 	public void gafFoldInferences(Opts opts) throws Exception {
 		opts.info("", "inferences. See: http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
-		FoldBasedPredictor fbp = new FoldBasedPredictor(gafdoc, g);
-		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
-		for (Prediction pred : fbp.getAllPredictions()) {
-			System.out.println(pred.render(owlpp));
+		FoldBasedPredictor fbp = new FoldBasedPredictor(gafdoc, g, false);
+		if (fbp.isInitialized()) {
+			OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
+			for (Prediction pred : fbp.getAllPredictions()) {
+				System.out.println(pred.render(owlpp));
+			}
+		}
+		else {
+			LOG.error("Could not create fold based predictions, due to problems with the initialization");
+			exit(2);
 		}
 		fbp.dispose();
 	}

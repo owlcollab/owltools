@@ -39,18 +39,31 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	private Set<OWLClass> relevantClasses;
 	private Map<OWLClassExpression, Set<OWLClass>> reasonerCache = new HashMap<OWLClassExpression, Set<OWLClass>>();
 
-	public FoldBasedPredictor(GafDocument gafDocument, OWLGraphWrapper graph) {
+	private boolean isInitialized = false;
+	private final boolean throwExceptions;
+	
+	public FoldBasedPredictor(GafDocument gafDocument, OWLGraphWrapper graph, boolean throwExceptions) {
 		super(gafDocument, graph);
-		init();
+		this.throwExceptions = throwExceptions;
+		isInitialized = init();
 		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
 	}
 
-	public void init() {
+	@Override
+	public boolean isInitialized() {
+		return isInitialized;
+	}
+
+	public boolean init() {
 		OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
 		reasoner = reasonerFactory.createReasoner(getGraph().getSourceOntology());
 		boolean consistent = reasoner.isConsistent();
 		if (!consistent) {
-			throw new RuntimeException("The ontology is not consistent. Impossible to make proper predictions.");
+			LOG.error("The ontology is not consistent. Impossible to make proper predictions.");
+			if (throwExceptions) {
+				throw new RuntimeException("The ontology is not consistent. Impossible to make proper predictions.");	
+			}
+			return false;
 		}
 		relevantClasses = new HashSet<OWLClass>();
 		// add GO
@@ -72,8 +85,13 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		}
 		
 		if (relevantClasses.isEmpty()) {
-			throw new RuntimeException("No valid classes found for fold based prediction folding.");
+			LOG.error("No valid classes found for fold based prediction folding.");
+			if (throwExceptions) {
+				throw new RuntimeException("No valid classes found for fold based prediction folding.");
+			}
+			return false;
 		}
+		return true;
 	}
 
 	@Override

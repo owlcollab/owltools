@@ -15,6 +15,8 @@ import owltools.gaf.GeneAnnotation;
  */
 public interface AnnotationPredictor {
 	
+	public boolean isInitialized();
+	
 	public List<Prediction> predict(String bioentity);
 
 	public List<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> annotations);

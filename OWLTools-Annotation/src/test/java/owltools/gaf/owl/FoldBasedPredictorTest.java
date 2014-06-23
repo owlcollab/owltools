@@ -40,7 +40,7 @@ public class FoldBasedPredictorTest extends OWLToolsTestBasics{
 		GafDocument gafdoc = builder.buildDocument(getResource("mgi-exttest.gaf"));
 		//GafDocument gafdoc = builder.buildDocument(getResource("foo.gaf"));
 
-		FoldBasedPredictor fbp = new FoldBasedPredictor(gafdoc, g);
+		FoldBasedPredictor fbp = new FoldBasedPredictor(gafdoc, g, true);
 		OWLClass ecp = (OWLClass) g.getOWLObjectByLabel("epithelial cell proliferation");
 		for (OWLClassExpression ex : ecp.getEquivalentClasses(g.getSourceOntology())) {
 			LOG.info("ECA="+ex);

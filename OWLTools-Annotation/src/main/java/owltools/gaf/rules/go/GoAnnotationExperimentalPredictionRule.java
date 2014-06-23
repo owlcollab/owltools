@@ -77,10 +77,15 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 		if (hasC16Annotations) {
 		LOG.info("Use c16 extension for fold based prediction");
 			try {
-				predictor = new FoldBasedPredictor(gafDoc, source);
-				Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
-				if (foldBasedPredictions != null) {
-					predictions.addAll(foldBasedPredictions);
+				predictor = new FoldBasedPredictor(gafDoc, source, false);
+				if (predictor.isInitialized()) {
+					Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
+					if (foldBasedPredictions != null) {
+						predictions.addAll(foldBasedPredictions);
+					}
+				}
+				else {
+					LOG.error("Could not create predictions.");
 				}
 			}
 			finally {

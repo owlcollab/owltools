@@ -73,10 +73,15 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		if (USE_BASIC_PROPAGATION_RULE) {
 			LOG.info("Start creating predictions using basic propagation");
 			try {
-				predictor = new BasicAnnotationPropagator(gafDoc, source);
-				Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
-				if (basicPredictions != null) {
-					predictions.addAll(basicPredictions);
+				predictor = new BasicAnnotationPropagator(gafDoc, source, false);
+				if (predictor.isInitialized()) {
+					Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
+					if (basicPredictions != null) {
+						predictions.addAll(basicPredictions);
+					}
+				}
+				else {
+					LOG.error("Could not create predictions.");
 				}
 			} finally {
 				if (predictor != null) {

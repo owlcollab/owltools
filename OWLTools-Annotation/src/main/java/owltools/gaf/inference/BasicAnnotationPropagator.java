@@ -63,28 +63,46 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	private Map<String, Set<OWLClass>> propagationRules = null;
 	private Map<String, String> aspectMap = null;
 
+	private boolean isInitialized = false;
+	private final boolean throwExceptions;
+
 	/**
 	 * Create instance.
 	 * 
 	 * @param gafDocument
 	 * @param graph
+	 * @param throwExceptions
 	 */
-	public BasicAnnotationPropagator(GafDocument gafDocument, OWLGraphWrapper graph) {
+	public BasicAnnotationPropagator(GafDocument gafDocument, OWLGraphWrapper graph, boolean throwExceptions) {
 		super(gafDocument, graph);
-		init();
+		this.throwExceptions = throwExceptions;
+		isInitialized = init();
 	}
 	
-	private void init() {
+	private boolean init() {
 		LOG.info("Start preparing propagation rules");
 		OWLGraphWrapper graph = getGraph();
 		ElkReasonerFactory factory = new ElkReasonerFactory();
 		// assumes that all support ontologies have either been merged into or added as import
 		reasoner = factory.createReasoner(graph.getSourceOntology());
+		if (reasoner.isConsistent() == false) {
+			LOG.error("The converted annotations and ontology have produced an inconsistent model.");
+			if (throwExceptions) {
+				throw new RuntimeException("The converted annotations and ontology have produced an inconsistent model.");
+			}
+			return false;
+		}
 		propagationRules = createPropagationRules(graph, reasoner);
 		aspectMap = createDefaultAspectMap(graph);
 		LOG.info("Finished preparing propagation rules");
+		return true;
 	}
 	
+	@Override
+	public boolean isInitialized() {
+		return isInitialized;
+	}
+
 	/**
 	 * Create the default propagation rule set tailored for the GeneOntology.
 	 * 

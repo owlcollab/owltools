@@ -53,16 +53,22 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 
 	protected static Logger LOG = Logger.getLogger(CompositionalClassPredictor.class);
 	Map<OWLClass,Set<OWLClassExpression>> simpleDefMap = new HashMap<OWLClass,Set<OWLClassExpression>>();
+	private boolean isInitialized = false;
 
 	public CompositionalClassPredictor(GafDocument gafDocument,
 			OWLGraphWrapper graph) {
 		super(gafDocument, graph);
 		buildSimpleDefMap();
+		isInitialized = true;
 	}
 	protected OWLClass getOWLClass(String id) {
 		return getGraph().getOWLClassByIdentifier(id);
 	}
 
+	@Override
+	public boolean isInitialized() {
+		return isInitialized;
+	}
 	@Override
 	public List<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
 		Set<Prediction> predictions = new HashSet<Prediction>();

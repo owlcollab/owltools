@@ -127,7 +127,7 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 	private List<Prediction> predictAnnotations(OWLGraphWrapper g, GafDocument gafDocument) {
 		AnnotationPredictor propagator = null;
 		try {
-			propagator = new BasicAnnotationPropagator(gafDocument, g);
+			propagator = new BasicAnnotationPropagator(gafDocument, g, true);
 			List<Prediction> allPredictions = propagator.getAllPredictions();
 			return allPredictions;
 		}
