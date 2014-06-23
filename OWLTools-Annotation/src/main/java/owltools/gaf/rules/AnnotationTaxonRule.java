@@ -3,15 +3,18 @@ package owltools.gaf.rules;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.Configuration;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -21,6 +24,9 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
+
+import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
+import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -97,7 +103,9 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		
 //		OWLReasoner reasoner = createHermit(ontology);
 //		OWLReasoner reasoner = createMore(ontology);
-		OWLReasoner reasoner = createElk(ontology);
+		Pair<OWLReasoner, OWLReasonerFactory> reasonerPair = createElk(ontology);
+		OWLReasoner reasoner = reasonerPair.getLeft();
+		OWLReasonerFactory reasonerFactory = reasonerPair.getRight();
 		try {
 			boolean consistent = reasoner.isConsistent();
 			if (!consistent) {
@@ -112,11 +120,13 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 				OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
 				Set<OWLClass> entities = unsatisfiableClasses.getEntities();
 				Set<OWLClass> unsatisfiable = new HashSet<OWLClass>();
+				ExplanationGenerator explanationGen = new DefaultExplanationGenerator(ontology.getOWLOntologyManager(), reasonerFactory, ontology, reasoner, null);
 				for (OWLClass c : entities) {
 					if (c.isBottomEntity() || c.isTopEntity()) {
 						continue;
 					}
 					unsatisfiable.add(c);
+					
 					Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(c.getIRI());
 					Set<Integer> lineNumbers = new HashSet<Integer>();
 					for (OWLAnnotationAssertionAxiom axiom : axioms) {
@@ -135,10 +145,24 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 						}
 					}
 					if (lineNumbers.isEmpty() == false) {
+						Set<OWLAxiom> explanation = explanationGen.getExplanation(c);
 						for (Integer lineNumber : lineNumbers) {
 							int line = lineNumber.intValue();
 							GeneAnnotation annotation = gafDoc.getGeneAnnotationByLineNumber(line);
-							AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), "unsatisfiable class: "+pp.render(c), annotation, ViolationType.Error);
+							StringBuilder msgBuilder = new StringBuilder();
+							msgBuilder.append("unsatisfiable class: ").append(pp.render(c));
+							if (explanation.isEmpty() == false) {
+								msgBuilder.append(" explanation: [");
+								for (Iterator<OWLAxiom> it = explanation.iterator(); it.hasNext();) {
+									OWLAxiom axiom = it.next();
+									msgBuilder.append(pp.render(axiom));
+									if (it.hasNext()) {
+										msgBuilder.append("; ");
+									}
+								}
+								msgBuilder.append("]");
+							}
+							AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), msgBuilder.toString(), annotation, ViolationType.Error);
 							violation.setLineNumber(line);
 							result.add(violation);
 						}
@@ -161,17 +185,19 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		// do nothing
 	}
 
-	private OWLReasoner createElk(OWLOntology ontology) {
-		ElkReasonerFactory factory = new ElkReasonerFactory();
-		return factory.createReasoner(ontology);
+	private Pair<OWLReasoner, OWLReasonerFactory> createElk(OWLOntology ontology) {
+		OWLReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasoner reasoner = factory.createReasoner(ontology);
+		return Pair.of(reasoner, factory);
 	}
 	
-	private OWLReasoner createMore(OWLOntology ontology) {
-		PrecomputingMoreReasonerFactory factory = PrecomputingMoreReasonerFactory.getMoreHermitFactory();
-		return factory.createReasoner(ontology);
+	private Pair<OWLReasoner, OWLReasonerFactory> createMore(OWLOntology ontology) {
+		OWLReasonerFactory factory = PrecomputingMoreReasonerFactory.getMoreHermitFactory();
+		OWLReasoner reasoner = factory.createReasoner(ontology);
+		return Pair.of(reasoner, factory);
 	}
 	
-	private OWLReasoner createHermit(final OWLOntology ontology) {
+	private Pair<OWLReasoner, OWLReasonerFactory> createHermit(final OWLOntology ontology) {
 		// use Hermit, as GO has inverse_of relations between part_of and has_part
 		OWLReasonerFactory factory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();
 		
@@ -209,7 +235,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 			}
 		};
 		OWLReasoner reasoner = factory.createReasoner(ontology, configuration);
-		return reasoner;
+		return Pair.of(reasoner, factory);
 	}
 
 }

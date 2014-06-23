@@ -2,15 +2,20 @@ package owltools.gaf.rules;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+
+import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
+import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -76,6 +81,7 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 				logger.debug("Finished - Check for unsatisfiable classes");
 			}
 			if (unsatisfiableClasses != null) {
+				ExplanationGenerator explanationGen = new DefaultExplanationGenerator(graph.getManager(), factory, graph.getSourceOntology(), reasoner, null);
 				OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
 				Set<OWLClass> entities = unsatisfiableClasses.getEntities();
 				Set<AnnotationRuleViolation> violations = new HashSet<AnnotationRuleViolation>();
@@ -83,7 +89,21 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 					if (c.isBottomEntity() || c.isTopEntity()) {
 						continue;
 					}
-					violations.add(new AnnotationRuleViolation(getRuleId(), "unsatisfiable class: "+pp.render(c), (GeneAnnotation) null, ViolationType.Warning));
+					StringBuilder msgBuilder = new StringBuilder();
+					msgBuilder.append("unsatisfiable class: ").append(pp.render(c));
+					Set<OWLAxiom> explanation = explanationGen.getExplanation(c);
+					if (explanation.isEmpty() == false) {
+						msgBuilder.append(" explanation: [");
+						for (Iterator<OWLAxiom> it = explanation.iterator(); it.hasNext();) {
+							OWLAxiom axiom = it.next();
+							msgBuilder.append(pp.render(axiom));
+							if (it.hasNext()) {
+								msgBuilder.append("; ");
+							}
+						}
+						msgBuilder.append("]");
+					}
+					violations.add(new AnnotationRuleViolation(getRuleId(), msgBuilder.toString(), (GeneAnnotation) null, ViolationType.Warning));
 				}
 				if (!violations.isEmpty()) {
 					return violations;

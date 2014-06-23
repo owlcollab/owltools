@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -191,6 +192,8 @@ import uk.ac.manchester.cs.jfact.JFactFactory;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
+import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
+import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
 import com.github.jsonldjava.core.JSONLD;
 import com.github.jsonldjava.core.JSONLDTripleCallback;
 import com.github.jsonldjava.core.Options;
@@ -2407,6 +2410,7 @@ public class CommandRunner {
 				boolean isDirect = true;
 				boolean isShowUnsatisfiable = false;
 				boolean isRemoveUnsatisfiable = false;
+				boolean showExplanation = false;
 				String unsatisfiableModule = null;
 
 				while (opts.hasOpts()) {
@@ -2424,6 +2428,10 @@ public class CommandRunner {
 					else if (opts.nextEq("-u|--list-unsatisfiable")) {
 						opts.info("", "list all unsatisfiable classes");
 						isShowUnsatisfiable = true;
+					}
+					else if (opts.nextEq("-e|--show-explanation")) {
+						opts.info("", "add a single explanation for each unsatisfiable class");
+						showExplanation = true;
 					}
 					else if (opts.nextEq("-x|--remove-unsatisfiable")) {
 						opts.info("", "remove all unsatisfiable classes");
@@ -2449,11 +2457,30 @@ public class CommandRunner {
 					Set<OWLClass> unsats = new HashSet<OWLClass>();
 					LOG.info("Finding unsatisfiable classes");
 					Set<OWLClass> unsatisfiableClasses = reasoner.getEquivalentClasses(g.getDataFactory().getOWLNothing()).getEntitiesMinusBottom();
+					ExplanationGenerator explanationGenerator = null;
+					if (showExplanation) {
+						OWLReasonerFactory factory = createReasonerFactory(reasonerName);
+						explanationGenerator = new DefaultExplanationGenerator(g.getManager(), factory, g.getSourceOntology(), reasoner, null);
+					}
 					for (OWLClass c : unsatisfiableClasses) {
-						if (g.getDataFactory().getOWLNothing().equals(c))
+						if (c.isBuiltIn()) {
 							continue;
+						}
 						unsats.add(c);
-						System.out.println("UNSAT: "+owlpp.render(c));
+						StringBuilder msgBuilder = new StringBuilder();
+						msgBuilder.append("UNSAT: ").append(owlpp.render(c));
+						if (explanationGenerator != null) {
+							Set<OWLAxiom> explanation = explanationGenerator.getExplanation(c);
+							if (explanation.isEmpty() == false) {
+								msgBuilder.append('\t');
+								msgBuilder.append("explanation:");
+								for (OWLAxiom axiom : explanation) {
+									msgBuilder.append('\t');
+									msgBuilder.append(owlpp.render(axiom));
+								}
+							}
+						}
+						System.out.println(msgBuilder);
 						n++;
 					}
 					System.out.println("NUMBER_OF_UNSATISFIABLE_CLASSES: "+n);
@@ -5247,9 +5274,27 @@ public class CommandRunner {
 
 	private OWLReasoner createReasoner(OWLOntology ont, String reasonerName, 
 			OWLOntologyManager manager) {
+		OWLReasonerFactory reasonerFactory = createReasonerFactory(reasonerName);
+		if (reasonerFactory == null) {
+			if (reasonerName.equals("jcel")) {
+				System.out.println("making jcel reasoner with:"+ont);
+				reasoner = new JcelReasoner(ont);
+				reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+				return reasoner;
+			}
+			else {
+				System.out.println("no such reasoner: "+reasonerName);
+			}
+		}
+		else {
+			reasoner = reasonerFactory.createReasoner(ont);
+			LOG.info("Created reasoner: "+reasoner);
+		}
+		return reasoner;
+	}
+	
+	private OWLReasonerFactory createReasonerFactory(String reasonerName) {
 		OWLReasonerFactory reasonerFactory = null;
-		//OWLReasoner reasoner = null;
-		LOG.info("Creating reasoner:"+reasonerName);
 		if (reasonerName == null || reasonerName.equals("factpp"))
 			reasonerFactory = new FaCTPlusPlusReasonerFactory();
 		else if (reasonerName.equals("hermit")) {
@@ -5287,24 +5332,13 @@ public class CommandRunner {
 				e.printStackTrace();
 			}
 		}
-		else if (reasonerName.equals("jcel")) {
-			System.out.println("making jcel reasoner with:"+ont);
-			reasoner = new JcelReasoner(ont);
-			reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-			return reasoner;
-		}
 		else if (reasonerName.equals("more") || reasonerName.equals("more-hermit")) {
 			reasonerFactory = PrecomputingMoreReasonerFactory.getMoreHermitFactory();
 		}
 		else if (reasonerName.equals("more-jfact")) {
 			reasonerFactory = PrecomputingMoreReasonerFactory.getMoreJFactFactory();
 		}
-		else
-			System.out.println("no such reasoner: "+reasonerName);
-
-		reasoner = reasonerFactory.createReasoner(ont);
-		LOG.info("Created reasoner: "+reasoner);
-		return reasoner;
+		return reasonerFactory;
 	}
 
 	private void removeDangling() {
