@@ -22,6 +22,7 @@
 						<exclude>sim1/PhenologSimTest.java</exclude>
                                                 <exclude>owltools/sim2/SimSpeedTest.java</exclude>
                                                 <exclude>owltools/sim2/BigFastOwlSimTest.java</exclude>
+                                                <exclude>owltools/sim2/CoannotatedTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
