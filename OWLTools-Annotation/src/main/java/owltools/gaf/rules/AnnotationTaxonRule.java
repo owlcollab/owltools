@@ -3,7 +3,6 @@ package owltools.gaf.rules;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,7 +13,6 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -24,9 +22,6 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
-
-import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
-import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -105,7 +100,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 //		OWLReasoner reasoner = createMore(ontology);
 		Pair<OWLReasoner, OWLReasonerFactory> reasonerPair = createElk(ontology);
 		OWLReasoner reasoner = reasonerPair.getLeft();
-		OWLReasonerFactory reasonerFactory = reasonerPair.getRight();
+//		OWLReasonerFactory reasonerFactory = reasonerPair.getRight();
 		try {
 			boolean consistent = reasoner.isConsistent();
 			if (!consistent) {
@@ -120,7 +115,6 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 				OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
 				Set<OWLClass> entities = unsatisfiableClasses.getEntities();
 				Set<OWLClass> unsatisfiable = new HashSet<OWLClass>();
-				ExplanationGenerator explanationGen = new DefaultExplanationGenerator(ontology.getOWLOntologyManager(), reasonerFactory, ontology, reasoner, null);
 				for (OWLClass c : entities) {
 					if (c.isBottomEntity() || c.isTopEntity()) {
 						continue;
@@ -145,23 +139,11 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 						}
 					}
 					if (lineNumbers.isEmpty() == false) {
-						Set<OWLAxiom> explanation = explanationGen.getExplanation(c);
 						for (Integer lineNumber : lineNumbers) {
 							int line = lineNumber.intValue();
 							GeneAnnotation annotation = gafDoc.getGeneAnnotationByLineNumber(line);
 							StringBuilder msgBuilder = new StringBuilder();
 							msgBuilder.append("unsatisfiable class: ").append(pp.render(c));
-							if (explanation.isEmpty() == false) {
-								msgBuilder.append(" explanation: [");
-								for (Iterator<OWLAxiom> it = explanation.iterator(); it.hasNext();) {
-									OWLAxiom axiom = it.next();
-									msgBuilder.append(pp.render(axiom));
-									if (it.hasNext()) {
-										msgBuilder.append("; ");
-									}
-								}
-								msgBuilder.append("]");
-							}
 							AnnotationRuleViolation violation = new AnnotationRuleViolation(getRuleId(), msgBuilder.toString(), annotation, ViolationType.Error);
 							violation.setLineNumber(line);
 							result.add(violation);

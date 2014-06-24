@@ -163,6 +163,7 @@ public class AnnotationRulesEngine {
 				LOG.info("Creating OWL represenation of annotations.");
 				GAFOWLBridge bridge = new GAFOWLBridge(graph);
 				bridge.setGenerateIndividuals(false);
+				bridge.setBasicAboxMapping(false);
 				bridge.setBioentityMapping(BioentityMapping.NAMED_CLASS);
 				bridge.setSkipNotAnnotations(true);
 				OWLOntology translated = bridge.translate(doc);

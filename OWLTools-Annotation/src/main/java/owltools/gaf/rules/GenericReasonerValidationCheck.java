@@ -14,14 +14,14 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
-import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
-
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
+
+import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
+import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
 
 /**
  * This check using the {@link ElkReasoner} will not detect unsatisfiable
@@ -35,6 +35,8 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 	 * This is not supposed to be changed. 
 	 */
 	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.GenericReasonerValidationCheck";
+	
+	public static boolean CREATE_EXPLANATIONS = false;
 	
 	private static final Logger logger = Logger.getLogger(GenericReasonerValidationCheck.class);
 
@@ -70,7 +72,21 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 			}
 			boolean consistent = reasoner.isConsistent();
 			if (!consistent) {
-				return Collections.singleton(new AnnotationRuleViolation(getRuleId(), "Logic inconsistency in combined annotations and ontology detected."));
+				StringBuilder msgBuilder = new StringBuilder();
+				msgBuilder.append("Logic inconsistency in combined annotations and ontology detected.");
+				
+				/*
+				
+				// try to find an explanation
+				ExplanationGenerator explanationGen = new DefaultExplanationGenerator(graph.getManager(), factory, graph.getSourceOntology(), null);
+				// inconsistent === OWLThing is unsatisfiable
+				final OWLClass owlThing = graph.getDataFactory().getOWLThing();
+				Set<OWLAxiom> explanation = explanationGen.getExplanation(owlThing);
+				OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
+				appendExplanation(explanation, msgBuilder, pp);
+				
+				*/
+				return Collections.singleton(new AnnotationRuleViolation(getRuleId(), msgBuilder.toString()));
 			}
 
 			if (logger.isDebugEnabled()) {
@@ -81,29 +97,27 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 				logger.debug("Finished - Check for unsatisfiable classes");
 			}
 			if (unsatisfiableClasses != null) {
-				ExplanationGenerator explanationGen = new DefaultExplanationGenerator(graph.getManager(), factory, graph.getSourceOntology(), reasoner, null);
+				ExplanationGenerator explanationGen = null;
+				if (CREATE_EXPLANATIONS) {
+					explanationGen = new DefaultExplanationGenerator(graph.getManager(), factory, graph.getSourceOntology(), reasoner, null);
+				}
 				OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
-				Set<OWLClass> entities = unsatisfiableClasses.getEntities();
+				Set<OWLClass> entities = unsatisfiableClasses.getEntitiesMinusBottom();
+				logger.info("Found unsatisfiable classes, count: "+entities.size()+" list: "+entities);
 				Set<AnnotationRuleViolation> violations = new HashSet<AnnotationRuleViolation>();
 				for (OWLClass c : entities) {
-					if (c.isBottomEntity() || c.isTopEntity()) {
+					if (c.isBuiltIn()) {
 						continue;
 					}
 					StringBuilder msgBuilder = new StringBuilder();
 					msgBuilder.append("unsatisfiable class: ").append(pp.render(c));
-					Set<OWLAxiom> explanation = explanationGen.getExplanation(c);
-					if (explanation.isEmpty() == false) {
-						msgBuilder.append(" explanation: [");
-						for (Iterator<OWLAxiom> it = explanation.iterator(); it.hasNext();) {
-							OWLAxiom axiom = it.next();
-							msgBuilder.append(pp.render(axiom));
-							if (it.hasNext()) {
-								msgBuilder.append("; ");
-							}
-						}
-						msgBuilder.append("]");
+					if (CREATE_EXPLANATIONS) {
+						logger.info("Finding explanations for unsatisfiable class: "+pp.render(c));
+						Set<OWLAxiom> explanation = explanationGen.getExplanation(c);
+						appendExplanation(explanation, msgBuilder, pp);
 					}
 					violations.add(new AnnotationRuleViolation(getRuleId(), msgBuilder.toString(), (GeneAnnotation) null, ViolationType.Warning));
+					logger.info("Finished finding explanation");
 				}
 				if (!violations.isEmpty()) {
 					return violations;
@@ -113,6 +127,25 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 		}
 		finally {
 			reasoner.dispose();
+		}
+	}
+
+	/**
+	 * @param explanation
+	 * @param msgBuilder
+	 * @param pp
+	 */
+	private void appendExplanation(Set<OWLAxiom> explanation, StringBuilder msgBuilder, OWLPrettyPrinter pp) {
+		if (explanation.isEmpty() == false) {
+			msgBuilder.append(" Explanation: [");
+			for (Iterator<OWLAxiom> it = explanation.iterator(); it.hasNext();) {
+				OWLAxiom axiom = it.next();
+				msgBuilder.append(pp.render(axiom));
+				if (it.hasNext()) {
+					msgBuilder.append("; ");
+				}
+			}
+			msgBuilder.append("]");
 		}
 	}
 
