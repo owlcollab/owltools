@@ -47,6 +47,7 @@ public class GAFOWLBridge {
 	private BioentityMapping bioentityMapping = BioentityMapping.CLASS_EXPRESSION;
 	private boolean isGenerateIndividuals = true;
 	private boolean isBasicAboxMapping = true;
+	private boolean isSkipNotAnnotations = true;
 
 	public static IRI GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI = IRI.create("http://gaf/line_number");
 
@@ -146,6 +147,14 @@ public class GAFOWLBridge {
 
 	public void setTargetOntology(OWLOntology targetOntology) {
 		this.targetOntology = targetOntology;
+	}
+
+	public boolean isSkipNotAnnotations() {
+		return isSkipNotAnnotations;
+	}
+
+	public void setSkipNotAnnotations(boolean isSkipNotAnnotations) {
+		this.isSkipNotAnnotations = isSkipNotAnnotations;
 	}
 
 	/**
@@ -254,6 +263,11 @@ public class GAFOWLBridge {
 
 
 	public void translateGeneAnnotation(GeneAnnotation a) {
+		if (isSkipNotAnnotations && a.isNegated()) {
+			// We do not have a safe way to express NOT annotations in OWL at the moment.
+			LOG.warn("Skipping NOT annotation for translation to owl: "+a.getBioentity()+" NOT "+a.getCls()+" "+a.getShortEvidence());
+			return;
+		}
 		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 		OWLDataFactory fac = graph.getDataFactory();
 		OWLClass e = getOWLClass(a.getBioentity());
