@@ -1428,6 +1428,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			EWAHCompressedBitmap jAttsBM = ancsBitmapCachedModifiable(j);
 			int cadSize = searchProfileBM.andCardinality(jAttsBM);
 			int cudSize = searchProfileBM.orCardinality(jAttsBM);
+			if (cudSize == 0) {
+				return scoreSets;
+			}
 			int simJPct = (cadSize * 100) / cudSize;
 			nSimJ++;
 			tSimJ += tdelta(t);
