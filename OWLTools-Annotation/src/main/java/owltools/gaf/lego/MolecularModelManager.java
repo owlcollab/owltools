@@ -898,7 +898,8 @@ public class MolecularModelManager {
 		date(IRI.create("http://purl.org/dc/elements/1.1/date")), // arbitrary string at the moment, define date format?
 		// DC recommends http://www.w3.org/TR/NOTE-datetime, one example format is YYYY-MM-DD
 		source(IRI.create("http://purl.org/dc/elements/1.1/source")), // arbitrary string, such as PMID:000000
-		contributor(IRI.create("http://purl.org/dc/elements/1.1/contributor")); // who contributed to the annotation
+		contributor(IRI.create("http://purl.org/dc/elements/1.1/contributor")), // who contributed to the annotation
+		title(IRI.create("http://purl.org/dc/elements/1.1/title")); // title (of the model)
 		
 		private final IRI annotationProperty;
 		
