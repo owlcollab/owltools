@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -56,6 +57,12 @@ public class BeforeSaveModelValidator {
 		OWLReasoner reasoner = model.getReasoner();
 		if (reasoner.isConsistent() == false) {
 			errors.add("The model is inconsistent. A Model must be consistent to be saved.");
+		}
+		
+		// require at least one declared instance
+		Set<OWLNamedIndividual> individuals = aboxOntology.getIndividualsInSignature();
+		if (individuals.isEmpty()) {
+			errors.add("The model has no individuals/annotations. Empty models should not be saved.");
 		}
 		
 		// avoid returning empty list
