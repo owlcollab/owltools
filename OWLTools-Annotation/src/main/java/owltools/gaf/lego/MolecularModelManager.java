@@ -912,7 +912,7 @@ public class MolecularModelManager {
 		}
 		
 		
-		static LegoAnnotationType getLegoType(IRI iri) {
+		public static LegoAnnotationType getLegoType(IRI iri) {
 			for (LegoAnnotationType type : LegoAnnotationType.values()) {
 				if (type.annotationProperty.equals(iri)) {
 					return type;
@@ -921,7 +921,7 @@ public class MolecularModelManager {
 			return null;
 		}
 		
-		static LegoAnnotationType getLegoType(String name) {
+		public static LegoAnnotationType getLegoType(String name) {
 			for (LegoAnnotationType type : LegoAnnotationType.values()) {
 				if (type.name().equals(name)) {
 					return type;
