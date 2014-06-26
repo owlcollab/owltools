@@ -33,6 +33,7 @@ public interface M3Handler {
 	static final String PARAM_SIMPLE_ENABLED_BY = "enabledById";
 	static final String PARAM_SIMPLE_OCCURS_IN = "occursInId";
 	
+	@Deprecated
 	public static class M3Response {
 		public static final String ERROR = "error"; // non-update response (informational)
 		public static final String WARNING = "warning"; // non-update response (informational)
@@ -59,92 +60,92 @@ public interface M3Handler {
 		}
 	}
 	
-	@Path("m3GenerateMolecularModel")
-	@GET
-	public M3Response m3GenerateMolecularModel(
-			@QueryParam(PARAM_CLASSID) String classId,
-			@QueryParam(PARAM_DB) String db,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//	@Path("m3GenerateMolecularModel")
+//	@GET
+//	public M3Response m3GenerateMolecularModel(
+//			@QueryParam(PARAM_CLASSID) String classId,
+//			@QueryParam(PARAM_DB) String db,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//
+//	@Path("m3GenerateBlankMolecularModel")
+//	@GET
+//	public M3Response m3GenerateBlankMolecularModel(
+//						@QueryParam(PARAM_DB) String db,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//
+//	@Path("m3preloadGaf")
+//	@GET
+//	public M3Response m3preloadGaf(
+//			@QueryParam(PARAM_DB) String db,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//
+//	@Path("m3CreateIndividual")
+//	@GET
+//	public M3Response m3CreateIndividual(
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@QueryParam(PARAM_CLASSID) String classId,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//	
+//	@Path("m3DeleteIndividual")
+//	@GET
+//	public M3Response m3DeleteIndividual(
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@QueryParam(PARAM_INDIVIDIALID) String individualId,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//
+//	@Path("m3AddType")
+//	@GET
+//	public M3Response m3AddType(
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@QueryParam(PARAM_INDIVIDIALID) String individualId,
+//			@QueryParam(PARAM_CLASSID) String classId, // typically MF or BP
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//
+//	/**
+//	 * Always generates a restriction.
+//	 * 
+//	 * @param modelId
+//	 * @param individualId
+//	 * @param propertyId
+//	 * @param classId
+//	 * @param help
+//	 * @return response
+//	 */
+//	@Path("m3AddTypeExpression")
+//	@GET
+//	public M3Response m3AddTypeExpression(
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@QueryParam(PARAM_INDIVIDIALID) String individualId,
+//			@QueryParam(PARAM_PROPERTYID) String propertyId, // occurs_in, enabled_by
+//			@QueryParam(PARAM_CLASSID) String classId,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
-	@Path("m3GenerateBlankMolecularModel")
-	@GET
-	public M3Response m3GenerateBlankMolecularModel(
-						@QueryParam(PARAM_DB) String db,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//	@Path("m3AddFact")
+//	@GET
+//	public M3Response m3AddFact(
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@QueryParam(PARAM_PROPERTYID) String propertyId, // Relation
+//			@QueryParam(PARAM_INDIVIDIALID) String individualId, // Subject
+//			@QueryParam(PARAM_FILLERID) String fillerId, // Object
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
-	@Path("m3preloadGaf")
-	@GET
-	public M3Response m3preloadGaf(
-			@QueryParam(PARAM_DB) String db,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//	@Path("m3RemoveFact")
+//	@GET
+//	public M3Response m3RemoveFact(
+//			@QueryParam(PARAM_PROPERTYID) String propertyId,
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@QueryParam(PARAM_INDIVIDIALID) String individualId,
+//			@QueryParam(PARAM_FILLERID) String fillerId,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
-	@Path("m3CreateIndividual")
-	@GET
-	public M3Response m3CreateIndividual(
-			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_CLASSID) String classId,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
-	
-	@Path("m3DeleteIndividual")
-	@GET
-	public M3Response m3DeleteIndividual(
-			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_INDIVIDIALID) String individualId,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
-
-	@Path("m3AddType")
-	@GET
-	public M3Response m3AddType(
-			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_INDIVIDIALID) String individualId,
-			@QueryParam(PARAM_CLASSID) String classId, // typically MF or BP
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
-
-	/**
-	 * Always generates a restriction.
-	 * 
-	 * @param modelId
-	 * @param individualId
-	 * @param propertyId
-	 * @param classId
-	 * @param help
-	 * @return response
-	 */
-	@Path("m3AddTypeExpression")
-	@GET
-	public M3Response m3AddTypeExpression(
-			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_INDIVIDIALID) String individualId,
-			@QueryParam(PARAM_PROPERTYID) String propertyId, // occurs_in, enabled_by
-			@QueryParam(PARAM_CLASSID) String classId,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
-
-	@Path("m3AddFact")
-	@GET
-	public M3Response m3AddFact(
-			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_PROPERTYID) String propertyId, // Relation
-			@QueryParam(PARAM_INDIVIDIALID) String individualId, // Subject
-			@QueryParam(PARAM_FILLERID) String fillerId, // Object
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
-
-	@Path("m3RemoveFact")
-	@GET
-	public M3Response m3RemoveFact(
-			@QueryParam(PARAM_PROPERTYID) String propertyId,
-			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_INDIVIDIALID) String individualId,
-			@QueryParam(PARAM_FILLERID) String fillerId,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
-
-	@Path("m3CreateSimpleCompositeIndividual")
-	@GET
-	public M3Response m3CreateSimpleCompositeIndividual(
-			@QueryParam(PARAM_MODELID) String modelId,
-			@QueryParam(PARAM_CLASSID) String classId,
-			@QueryParam(PARAM_SIMPLE_ENABLED_BY) String enabledById,
-			@QueryParam(PARAM_SIMPLE_OCCURS_IN) String occursInId,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//	@Path("m3CreateSimpleCompositeIndividual")
+//	@GET
+//	public M3Response m3CreateSimpleCompositeIndividual(
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@QueryParam(PARAM_CLASSID) String classId,
+//			@QueryParam(PARAM_SIMPLE_ENABLED_BY) String enabledById,
+//			@QueryParam(PARAM_SIMPLE_OCCURS_IN) String occursInId,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 	
 	@Path("m3GetModel")
 	@GET
@@ -152,27 +153,27 @@ public interface M3Handler {
 			@QueryParam(PARAM_MODELID) String modelId,
 			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
-	@Path("m3ExportModel")
-	@GET
-	public M3Response m3ExportModel(
-			@QueryParam(PARAM_MODELID) String modelId,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
-	
-	@Path("m3ImportModel")
-	@GET
-	public M3Response m3ImportModel(
-			@QueryParam(PARAM_MODEL_STRING) String model,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//	@Path("m3ExportModel")
+//	@GET
+//	public M3Response m3ExportModel(
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//	
+//	@Path("m3ImportModel")
+//	@GET
+//	public M3Response m3ImportModel(
+//			@QueryParam(PARAM_MODEL_STRING) String model,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 
 	@Path("m3GetAllModelIds")
 	@GET
 	public M3Response m3GetAllModelIds(@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 	
-	@Path("m3StoreModel")
-	@GET
-	public M3Response m3StoreModel(
-			@QueryParam(PARAM_MODELID) String modelId,
-			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
+//	@Path("m3StoreModel")
+//	@GET
+//	public M3Response m3StoreModel(
+//			@QueryParam(PARAM_MODELID) String modelId,
+//			@DefaultValue("false") @QueryParam(PARAM_HELP) boolean help);
 	
 	@Path("getRelations")
 	@GET
