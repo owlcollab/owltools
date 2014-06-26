@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +34,7 @@ import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
+import owltools.gaf.lego.server.validation.BeforeSaveModelValidator;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -47,16 +49,19 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	public static boolean USE_USER_ID = false;
 	public static boolean USE_CREATION_DATE = true;
 	public static boolean ADD_INFERENCES = true;
+	public static boolean VALIDATE_BEFORE_SAVE = false;
 	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
 	private final MolecularModelManager m3;
 	private final Set<String> relevantRelations;
+	private final BeforeSaveModelValidator beforeSaveValidator;
 
 	public JsonOrJsonpBatchHandler(MolecularModelManager models, Set<String> relevantRelations) {
 		super();
 		this.m3 = models;
 		this.relevantRelations = relevantRelations;
+		this.beforeSaveValidator = new BeforeSaveModelValidator();
 	}
 
 	private final GsonBuilder gsonBuilder = new GsonBuilder();
@@ -104,7 +109,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests, String userId) throws Exception {
 		// TODO add userId to relevant requests (i.e. contributor)
-		userId = StringUtils.trimToNull(userId);
+		userId = normalizeUserId(userId);
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
 		boolean renderBulk = false;
 		boolean renderModelAnnotations = false;
@@ -143,6 +148,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 							m3.addTypeNonReasoning(modelId, individualPair.getKey(), cls);
 						}
 					}
+					addContributor(modelId, userId, m3);
 				}
 				// create individuals for subject and object,
 				// add object as fact to subject with given property
@@ -166,12 +172,14 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					relevantIndividuals.add(individual2Pair.getValue());
 					
 					m3.addFact(modelId, request.arguments.predicate, individual1Pair.getLeft(), individual2Pair.getLeft(), annotations);
+					addContributor(modelId, userId, m3);
 				}
 				// remove individual (and all axioms using it)
 				else if (match(Operation.remove, operation)){
 					// required: modelId, individual
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					m3.deleteIndividual(modelId, request.arguments.individual);
+					addContributor(modelId, userId, m3);
 					renderBulk = true;
 				}				
 				// add type / named class assertion
@@ -185,6 +193,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 						OWLNamedIndividual i = m3.addTypeNonReasoning(modelId, request.arguments.individual, cls);
 						relevantIndividuals.add(i);
 					}
+					addContributor(modelId, userId, m3);
 				}
 				// remove type / named class assertion
 				else if (match(Operation.removeType, operation)){
@@ -196,6 +205,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 						OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId, request.arguments.individual, cls);
 						relevantIndividuals.add(i);
 					}
+					addContributor(modelId, userId, m3);
 				}
 				// add annotation
 				else if (match(Operation.addAnnotation, operation)){
@@ -204,8 +214,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.values, "request.arguments.values");
 
 					OWLNamedIndividual i = m3.addAnnotations(modelId, request.arguments.individual,
-							extract(request.arguments.values, userId, true));
+							extract(request.arguments.values, userId, false));
 					relevantIndividuals.add(i);
+					addContributor(modelId, userId, m3);
 				}
 				// remove annotation
 				else if (match(Operation.removeAnnotation, operation)){
@@ -216,6 +227,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					OWLNamedIndividual i = m3.removeAnnotations(modelId, request.arguments.individual,
 							extract(request.arguments.values, null, false));
 					relevantIndividuals.add(i);
+					addContributor(modelId, userId, m3);
 				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
@@ -238,6 +250,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 							request.arguments.predicate, request.arguments.subject,
 							request.arguments.object, extract(request.arguments.values, userId, true));
 					relevantIndividuals.addAll(individuals);
+					addContributor(modelId, userId, m3);
 				}
 				// remove edge
 				else if (match(Operation.remove, operation)){
@@ -245,6 +258,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 							request.arguments.predicate, request.arguments.subject,
 							request.arguments.object);
 					relevantIndividuals.addAll(individuals);
+					addContributor(modelId, userId, m3);
 				}
 				// add annotation
 				else if (match(Operation.addAnnotation, operation)){
@@ -252,7 +266,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 					List<OWLNamedIndividual> individuals = m3.addAnnotations(modelId,
 							request.arguments.predicate, request.arguments.subject,
-							request.arguments.object, extract(request.arguments.values, userId, true));
+							request.arguments.object, extract(request.arguments.values, userId, false));
 					relevantIndividuals.addAll(individuals);
 				}
 				// remove annotation
@@ -296,6 +310,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					if (annotations != null) {
 						m3.addAnnotations(modelId, annotations);
 					}
+					addContributor(modelId, userId, m3);
 				}
 				else if (match(Operation.generateBlank, operation)) {
 					nonMeta = true;
@@ -307,18 +322,22 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 						db = request.arguments.db;
 						annotations = extract(request.arguments.values, userId, true);
 					}
+					else {
+						annotations = extract(null, userId, true);
+					}
 					modelId = m3.generateBlankModel(db);
 					
 					if (annotations != null) {
 						m3.addAnnotations(modelId, annotations);
 					}
+					addContributor(modelId, userId, m3);
 				}
 				else if (match(Operation.addAnnotation, operation)) {
 					nonMeta = true;
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.values, "request.arguments.values");
 					modelId = checkModelId(modelId, request);
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
 					if (annotations != null) {
 						m3.addAnnotations(modelId, annotations);
 					}
@@ -350,16 +369,32 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					requireNotNull(request.arguments.importModel, "request.arguments.importModel");
 					modelId = m3.importModel(request.arguments.importModel);
 					
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
 					if (annotations != null) {
 						m3.addAnnotations(modelId, annotations);
 					}
+					addContributor(modelId, userId, m3);
 					renderBulk = true;
 				}
 				else if (match(Operation.storeModel, operation)) {
 					requireNotNull(request.arguments, "request.arguments");
 					modelId = checkModelId(modelId, request);
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+					if (VALIDATE_BEFORE_SAVE) {
+						List<String> issues = beforeSaveValidator.validateBeforeSave(modelId, m3);
+						if (issues != null && !issues.isEmpty()) {
+							StringBuilder commentary = new StringBuilder();
+							for (Iterator<String> it = issues.iterator(); it.hasNext();) {
+								String issue = it.next();
+								commentary.append(issue);
+								if (it.hasNext()) {
+									commentary.append('\n');
+								}
+							}
+							response.commentary = commentary.toString();
+							return error(response, "Save model failed due to a failed validation of the model", null);			
+						}
+					}
 					save(response, modelId, annotations, m3);
 				}
 				else if (match(Operation.allModelIds, operation)) {
@@ -481,6 +516,21 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		return response;
 	}
 
+	/**
+	 * Normalize the userId.
+	 * 
+	 * @param userId
+	 * @return normalized id or null
+	 */
+	private String normalizeUserId(String userId) {
+		userId = StringUtils.trimToNull(userId);
+		// quick hack, may be removed once all users are required to have a user id.
+		if ("anonymous".equalsIgnoreCase(userId)) {
+			return null;
+		}
+		return userId;
+	}
+
 	private void getAllModelIds(M3BatchResponse response, MolecularModelManager m3) throws IOException {
 		Set<String> allModelIds = m3.getAvailableModelIds();
 		//Set<String> scratchModelIds = mmm.getScratchModelIds();
@@ -551,6 +601,14 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 			response.message = "success: " + response.data.size();
 			response.signal = M3BatchResponse.SIGNAL_META;
+		}
+	}
+	
+	private void addContributor(String modelId, String userId, MolecularModelManager m3) throws UnknownIdentifierException {
+		if (USE_USER_ID && userId != null) {
+			Collection<Pair<String, String>> pairs = new ArrayList<Pair<String,String>>(1);
+			pairs.add(Pair.of(LegoAnnotationType.contributor.name(), userId));
+			m3.addAnnotations(modelId, pairs);
 		}
 	}
 

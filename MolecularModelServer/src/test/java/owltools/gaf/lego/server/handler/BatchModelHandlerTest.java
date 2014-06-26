@@ -63,6 +63,9 @@ public class BatchModelHandlerTest {
 		models.setDbToTaxon(ProteinTools.getDefaultDbToTaxon());
 		handler = new JsonOrJsonpBatchHandler(models, Collections.singleton("part_of"));
 		JsonOrJsonpBatchHandler.ADD_INFERENCES = true;
+		JsonOrJsonpBatchHandler.USE_CREATION_DATE = true;
+		JsonOrJsonpBatchHandler.USE_USER_ID = true;
+		JsonOrJsonpBatchHandler.VALIDATE_BEFORE_SAVE = true;
 	}
 
 	@AfterClass
@@ -222,6 +225,13 @@ public class BatchModelHandlerTest {
 	public void testModelAnnotations() throws Exception {
 		final String modelId = generateBlankModel();
 		
+		Map<Object, Object> data1 = models.getModelObject(modelId);
+		List annotations1 = (List) data1.get("annotations");
+		assertNotNull(annotations1);
+		// creation date
+		// user id
+		assertEquals(2, annotations1.size());
+		
 		// create annotations
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
@@ -242,10 +252,10 @@ public class BatchModelHandlerTest {
 		assertEquals(resp1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp1.message_type);
 		
 		
-		Map<Object, Object> data = models.getModelObject(modelId);
-		List annotations = (List) data.get("annotations");
-		assertNotNull(annotations);
-		assertEquals(3, annotations.size());
+		Map<Object, Object> data2 = models.getModelObject(modelId);
+		List annotations2 = (List) data2.get("annotations");
+		assertNotNull(annotations2);
+		assertEquals(4, annotations2.size());
 		
 		
 		// remove one annotation
@@ -264,10 +274,10 @@ public class BatchModelHandlerTest {
 		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2);
 		assertEquals(resp2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp2.message_type);
 		
-		Map<Object, Object> data2 = models.getModelObject(modelId);
-		List annotations2 = (List) data2.get("annotations");
-		assertNotNull(annotations2);
-		assertEquals(2, annotations2.size());
+		Map<Object, Object> data3 = models.getModelObject(modelId);
+		List annotations3 = (List) data3.get("annotations");
+		assertNotNull(annotations3);
+		assertEquals(3, annotations3.size());
 	}
 	
 	@Test
@@ -733,7 +743,6 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.expressions[0].literal = "GO:0000278"; // mitotic cell cycle
 
 		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
-		printJson(response1);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -747,6 +756,26 @@ public class BatchModelHandlerTest {
 		assertEquals(1, types.size());
 		Map type = (Map) types.get(0);
 		assertEquals("GO:0000022", type.get(KEY.id));
+	}
+	
+	@Test
+	public void testValidationBeforeSave() throws Exception {
+		assertTrue(JsonOrJsonpBatchHandler.VALIDATE_BEFORE_SAVE);
+		models.dispose();
+		
+		final String modelId = generateBlankModel();
+		
+		// try to save
+		M3Request[] batch = new M3Request[1];
+		batch[0] = new M3Request();
+		batch[0].entity = Entity.model.name();
+		batch[0].operation = Operation.storeModel.getLbl();
+		batch[0].arguments = new M3Argument();
+		batch[0].arguments.modelId = modelId;
+		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch);
+		assertEquals("This operation must fail as the model has no title", M3BatchResponse.MESSAGE_TYPE_ERROR, resp1.message_type);
+		assertNotNull(resp1.commentary);
+		assertTrue(resp1.commentary.contains("title"));
 	}
 	
 	/**
