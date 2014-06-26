@@ -223,6 +223,9 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	public void testModelAnnotations() throws Exception {
+		assertTrue(JsonOrJsonpBatchHandler.USE_CREATION_DATE);
+		assertTrue(JsonOrJsonpBatchHandler.USE_USER_ID);
+		
 		final String modelId = generateBlankModel();
 		
 		Map<Object, Object> data1 = models.getModelObject(modelId);
@@ -681,6 +684,7 @@ public class BatchModelHandlerTest {
 	@Test
 	public void testInferencesRedundant() throws Exception {
 		models.dispose();
+		assertTrue(JsonOrJsonpBatchHandler.ADD_INFERENCES);
 		
 		final String modelId = generateBlankModel();
 		
@@ -773,7 +777,7 @@ public class BatchModelHandlerTest {
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
 		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch);
-		assertEquals("This operation must fail as the model has no title", M3BatchResponse.MESSAGE_TYPE_ERROR, resp1.message_type);
+		assertEquals("This operation must fail as the model has no title or individuals", M3BatchResponse.MESSAGE_TYPE_ERROR, resp1.message_type);
 		assertNotNull(resp1.commentary);
 		assertTrue(resp1.commentary.contains("title"));
 	}
