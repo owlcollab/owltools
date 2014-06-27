@@ -547,7 +547,7 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 			List<String> refs = a.getReferenceIds();
 			dumpRow(se,
 					eid,
-					a.getEcoEvidenceCls(), // TODO - gaf code
+					a.getShortEvidence(),
 					id,
 					getId(GOMySQLTable.dbxref, refs.get(0)),
 					BuilderTools.buildWithString(a.getWithInfos(), "")
