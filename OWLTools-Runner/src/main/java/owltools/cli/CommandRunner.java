@@ -478,11 +478,11 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--use-catalog") || opts.nextEq("--use-catalog-xml")) {
 				opts.info("", "uses default catalog-v001.xml");
-				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper("catalog-v001.xml"));
+				pw.addIRIMapper(new CatalogXmlIRIMapper("catalog-v001.xml"));
 			}
 			else if (opts.nextEq("--catalog-xml")) {
 				opts.info("CATALOG-FILE", "uses the specified file as a catalog");
-				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
+				pw.addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
 			}
 			else if (opts.nextEq("--map-ontology-iri")) {
 				opts.info("OntologyIRI FILEPATH", "maps an ontology IRI to a file in your filesystem");
@@ -490,7 +490,7 @@ public class CommandRunner {
 						new SimpleIRIMapper(IRI.create(opts.nextOpt()),
 								IRI.create(new File(opts.nextOpt())));
 				LOG.info("Adding "+iriMapper+" to "+pw.getManager());
-				pw.getManager().addIRIMapper(iriMapper);
+				pw.addIRIMapper(iriMapper);
 			}
 			else if (opts.nextEq("--auto-ontology-iri")) {
 				opts.info("[-r] ROOTDIR", "uses an AutoIRI mapper [EXPERIMENTAL]");
@@ -506,7 +506,7 @@ public class CommandRunner {
 				File file = new File(opts.nextOpt());
 				OWLOntologyIRIMapper iriMapper = new AutoIRIMapper(file, isRecursive);
 				LOG.info("Adding "+iriMapper+" to "+pw.getManager()+" dir:"+file+" isRecursive="+isRecursive);
-				pw.getManager().addIRIMapper(iriMapper);
+				pw.addIRIMapper(iriMapper);
 			}
 			else if (opts.nextEq("--remove-imports-declarations")) {
 				Set<OWLImportsDeclaration> oids = g.getSourceOntology().getImportsDeclarations();
