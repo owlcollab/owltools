@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.Test;
@@ -23,10 +24,12 @@ public class TestTarjan {
 		Adjacency<IRI> graph = new TestIRIAdjacency();
 		
 		List<List<IRI>> scc = t.executeTarjan(graph);
+		sortList(scc);
 
 		assertEquals(2, scc.size());
-		assertEquals(1, scc.get(0).size());
-		assertEquals(3, scc.get(1).size());
+		assertEquals(3, scc.get(0).size());
+		assertEquals(1, scc.get(1).size());
+		
 	}
 	
 	@Test
@@ -41,6 +44,19 @@ public class TestTarjan {
 		assertEquals(3, scc.get(0).size());
 	}
 
+	private static <T> void sortList(List<List<T>> list) {
+		// sort the list by element count of the sublist, largest first
+		Collections.sort(list, new Comparator<List<T>>() {
+
+			@Override
+			public int compare(List<T> l1, List<T> l2) {
+				final int s1 = l1 != null ? l1.size() : 0;
+				final int s2 = l2 != null ? l2.size() : 0;
+				return (s1 < s2) ? 1 : ((s1 == s2) ? 0 : -1);
+			}
+		});
+	}
+	
 	static class TestIRIAdjacency implements Adjacency<IRI> {
 
 		final IRI a = IRI.create("a");
@@ -76,10 +92,12 @@ public class TestTarjan {
 		Adjacency<Node> graph = new TestAdjacency();
 		
 		List<List<Node>> scc = t.executeTarjan(graph);
+		sortList(scc);
 
 		assertEquals(2, scc.size());
-		assertEquals(1, scc.get(0).size());
-		assertEquals(3, scc.get(1).size());
+		assertEquals(3, scc.get(0).size());
+		assertEquals(1, scc.get(1).size());
+		
 	}
 
 	static class NodeTarjan extends AbstractTarjan<Node> {
