@@ -1181,8 +1181,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 						isAddMe = true;
 					}
 				}
-				else {
-					// no add
+				else if (!isStrict) {
+				    isAddMe = true;
 				}
 			}
 			else {
@@ -1570,7 +1570,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				y.isSomeValuesFrom() &&
 				x.getProperty() != null && 
 				x.getProperty().equals(y.getProperty()) && 
-				x.getProperty().isTransitive(sourceOntology)) { // todo
+				x.getProperty().isTransitive(this.getAllOntologies())) {//RO is often imported, 
+		                                                                //doesn't make sense to check only the source ontology
 			return new OWLQuantifiedProperty(x.getProperty(),Quantifier.SOME);
 		}
 		else if (x.isSomeValuesFrom() &&
