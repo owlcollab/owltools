@@ -29,6 +29,17 @@ public interface M3BatchHandler {
 		public static boolean match(Entity e, String s) {
 			return e.name().equals(s);
 		}
+		
+		public static Entity get(String s) {
+			if (s != null) {
+				for(Entity e : Entity.values()) {
+					if (e.name().equals(s)) {
+						return e;
+					}
+				}
+			}
+			return null;
+		}
 	}
 	
 	public static enum Operation {
@@ -62,6 +73,17 @@ public interface M3BatchHandler {
 		
 		public static boolean match(Operation op, String s) {
 			return op.lbl.equals(s);
+		}
+		
+		public static Operation get(String s) {
+			if (s != null) {
+				for(Operation op : Operation.values()) {
+					if (op.lbl.equals(s)) {
+						return op;
+					}
+				}
+			}
+			return null;
 		}
 	}
 	
@@ -169,14 +191,14 @@ public interface M3BatchHandler {
 	 * @param uid user id, JSONP relevant
 	 * @param intention JSONP relevant
 	 * @param requests batch request
+	 * @param isPrivileged true, if the access is privileged
 	 * @return response object, never null
 	 */
-	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests);
+	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests, boolean isPrivileged);
 	
 	/**
 	 * Jersey REST method for POST with three form parameters.
 	 * 
-	 * @param uid user id, JSONP relevant
 	 * @param intention JSONP relevant
 	 * @param requests JSON string of the batch request
 	 * @return response convertible to JSON(P)
@@ -185,6 +207,21 @@ public interface M3BatchHandler {
 	@POST
 	@Consumes("application/x-www-form-urlencoded")
 	public M3BatchResponse m3BatchPost(
+			@FormParam("intention") String intention,
+			@FormParam("requests") String requests);
+	
+	/**
+	 * Jersey REST method for POST with three form parameters with privileged rights.
+	 * 
+	 * @param uid user id, JSONP relevant
+	 * @param intention JSONP relevant
+	 * @param requests JSON string of the batch request
+	 * @return response convertible to JSON(P)
+	 */
+	@Path("m3BatchPrivileged")
+	@POST
+	@Consumes("application/x-www-form-urlencoded")
+	public M3BatchResponse m3BatchPostPrivileged(
 			@FormParam("uid") String uid,
 			@FormParam("intention") String intention,
 			@FormParam("requests") String requests);
@@ -193,7 +230,6 @@ public interface M3BatchHandler {
 	/**
 	 * Jersey REST method for GET with three query parameters.
 	 * 
-	 * @param uid user id, JSONP relevant
 	 * @param intention JSONP relevant
 	 * @param requests JSON string of the batch request
 	 * @return response convertible to JSON(P)
@@ -201,6 +237,20 @@ public interface M3BatchHandler {
 	@Path("m3Batch")
 	@GET
 	public M3BatchResponse m3BatchGet(
+			@QueryParam("intention") String intention,
+			@QueryParam("requests") String requests);
+	
+	/**
+	 * Jersey REST method for GET with three query parameters with privileged rights.
+	 * 
+	 * @param uid user id, JSONP relevant
+	 * @param intention JSONP relevant
+	 * @param requests JSON string of the batch request
+	 * @return response convertible to JSON(P)
+	 */
+	@Path("m3BatchPrivileged")
+	@GET
+	public M3BatchResponse m3BatchGetPrivileged(
 			@QueryParam("uid") String uid,
 			@QueryParam("intention") String intention,
 			@QueryParam("requests") String requests);

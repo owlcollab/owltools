@@ -1,8 +1,5 @@
 package owltools.gaf.lego.server.handler;
 
-import static owltools.gaf.lego.server.handler.M3BatchHandler.Entity.*;
-import static owltools.gaf.lego.server.handler.M3BatchHandler.Operation.*;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -74,25 +71,35 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3BatchResponse m3BatchGet(String uid, String intention, String requestString) {
-		M3BatchResponse response = new M3BatchResponse(uid, intention);
-		try {
-			Gson gson = gsonBuilder.create();
-			M3Request[] requests = gson.fromJson(requestString, type);
-			return m3Batch(response, requests, uid);
-		} catch (Exception e) {
-			return error(response, "Could not successfully handle batch request.", e);
-		} catch (Throwable t) {
-			logger.error("A critical error occured.", t);
-			return error(response, "An internal error occured at the server level.", t);
-		}
+	public M3BatchResponse m3BatchGet(String intention, String requestString) {
+		return m3Batch(null, intention, requestString, false);
+	}
+	
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3BatchResponse m3BatchGetPrivileged(String uid, String intention, String requestString) {
+		return m3Batch(uid, intention, requestString, true);
 	}
 
 	@Override
-	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests) {
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3BatchResponse m3BatchPost(String intention, String requestString) {
+		return m3Batch(null, intention, requestString, false);
+	}
+	
+	@Override
+	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
+	public M3BatchResponse m3BatchPostPrivileged(String uid, String intention, String requestString) {
+		return m3Batch(uid, intention, requestString, true);
+	}
+
+	@Override
+	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests, boolean isPrivileged) {
 		M3BatchResponse response = new M3BatchResponse(uid, intention);
 		try {
-			return m3Batch(response, requests, uid);
+			return m3Batch(response, requests, uid, isPrivileged);
+		} catch (InsufficientPermissionsException e) {
+			return error(response, e.getMessage(), null);
 		} catch (Exception e) {
 			return error(response, "Could not successfully complete batch request.", e);
 		} catch (Throwable t) {
@@ -101,13 +108,21 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 	}
 	
-	@Override
-	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3BatchResponse m3BatchPost(String uid, String intention, String requestString) {
-		return m3BatchGet(uid, intention, requestString);
+	private M3BatchResponse m3Batch(String uid, String intention, String requestString, boolean isPrivileged) {
+		M3BatchResponse response = new M3BatchResponse(uid, intention);
+		try {
+			Gson gson = gsonBuilder.create();
+			M3Request[] requests = gson.fromJson(requestString, type);
+			return m3Batch(response, requests, uid, isPrivileged);
+		} catch (Exception e) {
+			return error(response, "Could not successfully handle batch request.", e);
+		} catch (Throwable t) {
+			logger.error("A critical error occured.", t);
+			return error(response, "An internal error occured at the server level.", t);
+		}
 	}
-
-	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests, String userId) throws Exception {
+	
+	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests, String userId, boolean isPrivileged) throws InsufficientPermissionsException, Exception {
 		// TODO add userId to relevant requests (i.e. contributor)
 		userId = normalizeUserId(userId);
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
@@ -117,24 +132,31 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		String modelId = null;
 		for (M3Request request : requests) {
 			requireNotNull(request, "request");
-			final String entity = StringUtils.trimToNull(request.entity);
-			final String operation = StringUtils.trimToNull(request.operation);
+			final Entity entity = Entity.get(StringUtils.trimToNull(request.entity));
+			if (entity == null) {
+				throw new MissingParameterException("No valid value for entity type: "+request.entity);
+			}
+			final Operation operation = Operation.get(StringUtils.trimToNull(request.operation));
+			if (operation == null) {
+				throw new MissingParameterException("No valid value for operation type: "+request.operation);
+			}
+			checkPermissions(entity, operation, isPrivileged);
 
 			// individual
-			if (match(Entity.individual, entity)) {
+			if (Entity.individual == entity) {
 				nonMeta = true;
 				requireNotNull(request.arguments, "request.arguments");
 				modelId = checkModelId(modelId, request);
 
 				// get info, no modification
-				if (match(Operation.get, operation)) {
+				if (Operation.get == operation) {
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					OWLNamedIndividual i = m3.getNamedIndividual(modelId, request.arguments.individual);
 					relevantIndividuals.add(i);
 					
 				}
 				// create from class
-				else if (match(Operation.create, operation)) {
+				else if (Operation.create == operation) {
 					// required: subject
 					// optional: expressions, values
 					requireNotNull(request.arguments.subject, "request.arguments.subject");
@@ -152,7 +174,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 				// create individuals for subject and object,
 				// add object as fact to subject with given property
-				else if (match(Operation.createComposite, operation)) {
+				else if (Operation.createComposite == operation) {
 					// required: subject, predicate, object
 					// optional: expressions, values
 					requireNotNull(request.arguments.subject, "request.arguments.subject");
@@ -175,7 +197,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					addContributor(modelId, userId, m3);
 				}
 				// remove individual (and all axioms using it)
-				else if (match(Operation.remove, operation)){
+				else if (Operation.remove == operation){
 					// required: modelId, individual
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					m3.deleteIndividual(modelId, request.arguments.individual);
@@ -183,7 +205,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					renderBulk = true;
 				}				
 				// add type / named class assertion
-				else if (match(Operation.addType, operation)){
+				else if (Operation.addType == operation){
 					// required: individual, expressions
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
@@ -196,7 +218,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					addContributor(modelId, userId, m3);
 				}
 				// remove type / named class assertion
-				else if (match(Operation.removeType, operation)){
+				else if (Operation.removeType == operation){
 					// required: individual, expressions
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
@@ -208,7 +230,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					addContributor(modelId, userId, m3);
 				}
 				// add annotation
-				else if (match(Operation.addAnnotation, operation)){
+				else if (Operation.addAnnotation == operation){
 					// required: individual, values
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					requireNotNull(request.arguments.values, "request.arguments.values");
@@ -219,7 +241,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					addContributor(modelId, userId, m3);
 				}
 				// remove annotation
-				else if (match(Operation.removeAnnotation, operation)){
+				else if (Operation.removeAnnotation == operation){
 					// required: individual, values
 					requireNotNull(request.arguments.individual, "request.arguments.individual");
 					requireNotNull(request.arguments.values, "request.arguments.values");
@@ -234,7 +256,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 			}
 			// edge
-			else if (match(Entity.edge, entity)) {
+			else if (Entity.edge == entity) {
 				nonMeta = true;
 				requireNotNull(request.arguments, "request.arguments");
 				modelId = checkModelId(modelId, request);
@@ -244,7 +266,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				requireNotNull(request.arguments.object, "request.arguments.object");
 
 				// add edge
-				if (match(Operation.add, operation)){
+				if (Operation.add == operation){
 					// optional: values
 					List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(modelId,
 							request.arguments.predicate, request.arguments.subject,
@@ -253,7 +275,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					addContributor(modelId, userId, m3);
 				}
 				// remove edge
-				else if (match(Operation.remove, operation)){
+				else if (Operation.remove == operation){
 					List<OWLNamedIndividual> individuals = m3.removeFactNonReasoning(modelId,
 							request.arguments.predicate, request.arguments.subject,
 							request.arguments.object);
@@ -261,7 +283,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					addContributor(modelId, userId, m3);
 				}
 				// add annotation
-				else if (match(Operation.addAnnotation, operation)){
+				else if (Operation.addAnnotation == operation){
 					requireNotNull(request.arguments.values, "request.arguments.values");
 
 					List<OWLNamedIndividual> individuals = m3.addAnnotations(modelId,
@@ -270,7 +292,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					relevantIndividuals.addAll(individuals);
 				}
 				// remove annotation
-				else if (match(Operation.removeAnnotation, operation)){
+				else if (Operation.removeAnnotation == operation){
 					requireNotNull(request.arguments.values, "request.arguments.values");
 
 					List<OWLNamedIndividual> individuals = m3.removeAnnotations(modelId,
@@ -283,22 +305,22 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 			}
 			//model
-			else if (match(Entity.model, entity)) {
+			else if (Entity.model == entity) {
 				// get model
-				if (match(Operation.get, operation)){
+				if (Operation.get == operation){
 					nonMeta = true;
 					requireNotNull(request.arguments, "request.arguments");
 					modelId = checkModelId(modelId, request);
 					renderBulk = true;
 				}
-				else if (match(Operation.updateImports, operation)){
+				else if (Operation.updateImports == operation){
 					nonMeta = true;
 					requireNotNull(request.arguments, "request.arguments");
 					modelId = checkModelId(modelId, request);
 					m3.updateImports(modelId);
 					renderBulk = true;
 				}
-				else if (match(Operation.generate, operation)) {
+				else if (Operation.generate == operation) {
 					nonMeta = true;
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.db, "request.arguments.db");
@@ -312,7 +334,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					}
 					addContributor(modelId, userId, m3);
 				}
-				else if (match(Operation.generateBlank, operation)) {
+				else if (Operation.generateBlank == operation) {
 					nonMeta = true;
 					renderBulk = true;
 					// db is optional
@@ -332,7 +354,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					}
 					addContributor(modelId, userId, m3);
 				}
-				else if (match(Operation.addAnnotation, operation)) {
+				else if (Operation.addAnnotation == operation) {
 					nonMeta = true;
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.values, "request.arguments.values");
@@ -343,7 +365,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					}
 					renderModelAnnotations = true;
 				}
-				else if (match(Operation.removeAnnotation, operation)) {
+				else if (Operation.removeAnnotation == operation) {
 					nonMeta = true;
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.values, "request.arguments.values");
@@ -354,7 +376,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					}
 					renderModelAnnotations = true;
 				}
-				else if (match(Operation.exportModel, operation)) {
+				else if (Operation.exportModel == operation) {
 					if (nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Export model can only be combined with other meta operations.", null);
@@ -363,7 +385,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					modelId = checkModelId(modelId, request);
 					export(response, modelId, m3);
 				}
-				else if (match(Operation.importModel, operation)) {
+				else if (Operation.importModel == operation) {
 					nonMeta = true;
 					requireNotNull(request.arguments, "request.arguments");
 					requireNotNull(request.arguments.importModel, "request.arguments.importModel");
@@ -376,7 +398,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					addContributor(modelId, userId, m3);
 					renderBulk = true;
 				}
-				else if (match(Operation.storeModel, operation)) {
+				else if (Operation.storeModel == operation) {
 					requireNotNull(request.arguments, "request.arguments");
 					modelId = checkModelId(modelId, request);
 					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
@@ -397,14 +419,14 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					}
 					save(response, modelId, annotations, m3);
 				}
-				else if (match(Operation.allModelIds, operation)) {
+				else if (Operation.allModelIds == operation) {
 					if (nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, operation+" cannot be combined with other operations.", null);
 					}
 					getAllModelIds(response, m3);
 				}
-				else if (match(Operation.search, operation)) {
+				else if (Operation.search == operation) {
 					if (nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, operation+" cannot be combined with other operations.", null);
@@ -434,8 +456,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 			}
 			// relations
-			else if (match(Entity.relations, entity)) {
-				if (match(Operation.get, operation)){
+			else if (Entity.relations == entity) {
+				if (Operation.get == operation){
 					if (nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Get Relations can only be combined with other meta operations.", null);
@@ -447,8 +469,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 			}
 			// evidence
-			else if (match(Entity.evidence, entity)) {
-				if (match(Operation.get, operation)){
+			else if (Entity.evidence == entity) {
+				if (Operation.get == operation){
 					if (nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Get Evidences can only be combined with other meta operations.", null);
@@ -523,10 +545,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	 * @return normalized id or null
 	 */
 	private String normalizeUserId(String userId) {
-		userId = StringUtils.trimToNull(userId);
-		// quick hack, may be removed once all users are required to have a user id.
-		if ("anonymous".equalsIgnoreCase(userId)) {
-			return null;
+		if (userId != null) {
+			userId = StringUtils.trimToNull(userId);
+			// quick hack, may be removed once all users are required to have a user id.
+			if ("anonymous".equalsIgnoreCase(userId)) {
+				return null;
+			}
 		}
 		return userId;
 	}
@@ -694,6 +718,31 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	private void requireNotNull(Object value, String msg) throws MissingParameterException {
 		if (value == null) {
 			throw new MissingParameterException("Expected non-null value for: "+msg);
+		}
+	}
+	
+	protected void checkPermissions(Entity entity, Operation operation, boolean isPrivileged) throws InsufficientPermissionsException {
+		// TODO make this configurable
+		if (isPrivileged == false) {
+			switch (operation) {
+			case get:
+			case exportModel:
+			case allModelIds:
+			case search:
+				// positive list, all other operation require a privileged call
+				break;
+			default :
+				throw new InsufficientPermissionsException("Insufficient permissions for the operation "+operation.getLbl()+" on entity: "+entity);
+			}
+		}
+	}
+	
+	static class InsufficientPermissionsException extends Exception {
+		
+		private static final long serialVersionUID = -3751573576960618428L;
+
+		InsufficientPermissionsException(String msg) {
+			super(msg);
 		}
 	}
 	

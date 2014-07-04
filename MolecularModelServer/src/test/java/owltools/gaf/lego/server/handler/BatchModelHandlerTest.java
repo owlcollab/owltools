@@ -121,7 +121,7 @@ public class BatchModelHandlerTest {
 		batch2[1].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
 		batch2[1].arguments.expressions[0].literal = "GO:0043234 and (('has part' some UniProtKB:P0002) OR ('has part' some UniProtKB:P0003))";
 		
-		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2);
+		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2, true);
 		assertEquals(resp2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp2.message_type);
 		String individual1 = null;
 		String individual2 = null;
@@ -148,7 +148,7 @@ public class BatchModelHandlerTest {
 		batch3[0].arguments.object = individual2;
 		batch3[0].arguments.predicate = "BFO:0000050"; // part_of
 		
-		M3BatchResponse resp3 = handler.m3Batch(uid, intention, batch3);
+		M3BatchResponse resp3 = handler.m3Batch(uid, intention, batch3, true);
 		assertEquals(resp3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp3.message_type);
 		
 		// delete complex expression type
@@ -187,7 +187,7 @@ public class BatchModelHandlerTest {
 		batch4[0].arguments.expressions[0].expressions[1].expressions[1].onProp = "BFO:0000051"; // has_part
 		batch4[0].arguments.expressions[0].expressions[1].expressions[1].literal = "UniProtKB:P0003";
 		
-		M3BatchResponse resp4 = handler.m3Batch(uid, intention, batch4);
+		M3BatchResponse resp4 = handler.m3Batch(uid, intention, batch4, true);
 		assertEquals(resp4.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp4.message_type);
 		List<Map<Object, Object>> iObjs4 = (List) resp4.data.get(KEY_INDIVIDUALS);
 		assertEquals(1, iObjs4.size());
@@ -251,7 +251,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.values[1].key = LegoAnnotationType.comment.name();
 		batch1[0].arguments.values[1].value = "comment 2";
 		
-		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(resp1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp1.message_type);
 		
 		
@@ -274,7 +274,7 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments.values[0].key = LegoAnnotationType.comment.name();
 		batch2[0].arguments.values[0].value = "comment 1";
 
-		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2);
+		M3BatchResponse resp2 = handler.m3Batch(uid, intention, batch2, true);
 		assertEquals(resp2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp2.message_type);
 		
 		Map<Object, Object> data3 = models.getModelObject(modelId);
@@ -302,7 +302,7 @@ public class BatchModelHandlerTest {
 		requests[2].entity = Entity.model.name();
 		requests[2].operation = Operation.allModelIds.getLbl();
 		
-		M3BatchResponse response = handler.m3Batch(uid, intention, requests);
+		M3BatchResponse response = handler.m3Batch(uid, intention, requests, true);
 		assertEquals(uid, response.uid);
 		assertEquals(intention, response.intention);
 		assertEquals(M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
@@ -336,7 +336,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments = new M3Argument();
 		batch1[0].arguments.db = "goa_chicken";
 		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -379,7 +379,7 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
 		batch2[0].arguments.expressions[0].literal = proteinId;
 		
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2, true);
 		assertEquals(uid, response2.uid);
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
@@ -403,7 +403,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments = new M3Argument();
 		batch1[0].arguments.db = "goa_chicken";
 		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -416,7 +416,7 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments = new M3Argument();
 		batch2[0].arguments.db = "goa_chicken";
 		
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2, true);
 		assertEquals(uid, response2.uid);
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
@@ -431,7 +431,7 @@ public class BatchModelHandlerTest {
 		batch3[0].arguments = new M3Argument();
 		batch3[0].arguments.db = "jcvi";
 		
-		M3BatchResponse response3 = handler.m3Batch(uid, intention, batch3);
+		M3BatchResponse response3 = handler.m3Batch(uid, intention, batch3, true);
 		assertEquals(uid, response3.uid);
 		assertEquals(intention, response3.intention);
 		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
@@ -453,7 +453,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.db = "goa_chicken";
 		batch1[0].arguments.subject = "GO:0004637";
 		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -467,7 +467,7 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments.db = "goa_chicken";
 		batch2[0].arguments.subject = "GO:0005509";
 		
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2, true);
 		assertEquals(uid, response2.uid);
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
@@ -483,7 +483,7 @@ public class BatchModelHandlerTest {
 		batch3[0].arguments.db = "jcvi";
 		batch3[0].arguments.subject = "GO:0003887";
 		
-		M3BatchResponse response3 = handler.m3Batch(uid, intention, batch3);
+		M3BatchResponse response3 = handler.m3Batch(uid, intention, batch3, true);
 		assertEquals(uid, response3.uid);
 		assertEquals(intention, response3.intention);
 		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
@@ -518,7 +518,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.expressions[1].onProp = "BFO:0000050"; // part_of
 		batch1[0].arguments.expressions[1].literal = "happiness";
 		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -563,7 +563,7 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments.expressions[0].literal = happinessId;
 		
 		
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2, true);
 		assertEquals(uid, response2.uid);
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
@@ -602,7 +602,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.expressions[1].onProp = "BFO:0000050"; // part_of
 		batch1[0].arguments.expressions[1].literal = "happiness";
 		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -618,7 +618,7 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments.values[0].key = "id";
 		batch2[0].arguments.values[0].value = "GO:0008104";
 		
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2);
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2, true);
 		assertEquals(uid, response2.uid);
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
@@ -647,7 +647,7 @@ public class BatchModelHandlerTest {
 		batch[1].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
 		batch[1].arguments.expressions[0].literal = "UniProtKB:P00000";
 		
-		M3BatchResponse response = handler.m3Batch(uid, intention, batch);
+		M3BatchResponse response = handler.m3Batch(uid, intention, batch, true);
 		assertEquals(uid, response.uid);
 		assertEquals(intention, response.intention);
 		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
@@ -672,7 +672,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.expressions[0].type = "class";
 		batch1[0].arguments.expressions[0].literal = "GO:0048856"; // anatomical structure development
 		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -706,7 +706,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.expressions[0].type = "class";
 		batch1[0].arguments.expressions[0].literal = "GO:0009826"; // unidimensional cell growth
 
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -746,7 +746,7 @@ public class BatchModelHandlerTest {
 		batch1[0].arguments.expressions[0].onProp = "BFO:0000050"; // part_of
 		batch1[0].arguments.expressions[0].literal = "GO:0000278"; // mitotic cell cycle
 
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1);
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
 		assertEquals(uid, response1.uid);
 		assertEquals(intention, response1.intention);
 		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
@@ -776,10 +776,21 @@ public class BatchModelHandlerTest {
 		batch[0].operation = Operation.storeModel.getLbl();
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
-		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch);
+		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch, true);
 		assertEquals("This operation must fail as the model has no title or individuals", M3BatchResponse.MESSAGE_TYPE_ERROR, resp1.message_type);
 		assertNotNull(resp1.commentary);
 		assertTrue(resp1.commentary.contains("title"));
+	}
+	
+	@Test
+	public void testPrivileged() throws Exception {
+		M3Request[] batch = new M3Request[1];
+		batch[0] = new M3Request();
+		batch[0].entity = Entity.model.name();
+		batch[0].operation = Operation.generateBlank.getLbl();
+		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch, false);
+		assertEquals(M3BatchResponse.MESSAGE_TYPE_ERROR, resp1.message_type);
+		assertTrue(resp1.message.contains("Insufficient"));
 	}
 	
 	/**
@@ -791,7 +802,7 @@ public class BatchModelHandlerTest {
 		batch[0] = new M3Request();
 		batch[0].entity = Entity.model.name();
 		batch[0].operation = Operation.generateBlank.getLbl();
-		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch);
+		M3BatchResponse resp1 = handler.m3Batch(uid, intention, batch, true);
 		assertEquals(resp1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp1.message_type);
 		String modelId = (String) resp1.data.get("id");
 		assertNotNull(modelId);
