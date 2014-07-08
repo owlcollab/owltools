@@ -46,6 +46,7 @@ public class RetrieveGolrAnnotations {
 				entity.setTypeCls(golrDocument.type);
 				entity.setDb(golrDocument.source); // TODO check is that the correct mapping
 				entities.put(bioentityId, entity);
+				document.addBioentity(entity);
 			}
 			GeneAnnotation annotation = new GeneAnnotation();
 			annotation.setAspect(golrDocument.aspect);

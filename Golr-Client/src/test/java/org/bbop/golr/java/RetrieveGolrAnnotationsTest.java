@@ -2,16 +2,20 @@ package org.bbop.golr.java;
 
 import static org.junit.Assert.*;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.bbop.golr.java.RetrieveGolrAnnotations.GolrDocument;
 import org.junit.Test;
 
+import owltools.gaf.Bioentity;
+import owltools.gaf.GafDocument;
+import owltools.gaf.GeneAnnotation;
+
 public class RetrieveGolrAnnotationsTest {
 
 	@Test
-	public void testGetAnnotationsForGene() throws Exception {
-		RetrieveGolrAnnotations.JSON_INDENT_FLAG = true;
+	public void testGetGolrAnnotationsForGene() throws Exception {
 		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org");
 		List<GolrDocument> annotations = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
 		assertNotNull(annotations);
@@ -20,6 +24,21 @@ public class RetrieveGolrAnnotationsTest {
 		}
 		System.out.println(annotations.size());
 		assertTrue(annotations.size() > 10);
+	}
+	
+	@Test
+	public void testGetAnnotationsForGene() throws Exception {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org");
+		List<GolrDocument> golrDocuments = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
+		assertNotNull(golrDocuments);
+		GafDocument gafDocument = retriever.convert(golrDocuments);
+		Collection<Bioentity> bioentities = gafDocument.getBioentities();
+		List<GeneAnnotation> annotations = gafDocument.getGeneAnnotations();
+		for (GeneAnnotation annotation : annotations) {
+			System.out.println(annotation);
+		}
+		assertTrue(golrDocuments.size() > 10);
+		assertEquals(1, bioentities.size());
 	}
 
 }
