@@ -1,0 +1,35 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>OWLTools-Parent</artifactId>
+		<groupId>org.bbop</groupId>
+		<version>0.2.1-SNAPSHOT</version>
+		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>golr-client</artifactId>
+	<name>Golr-Client</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>org/bbop/golr/java/RetrieveGolrAnnotationsTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.bbop</groupId>
+			<artifactId>OWLTools-Annotation</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+	</dependencies>
+</project>
