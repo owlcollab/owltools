@@ -3,6 +3,7 @@ package owltools.sim2;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import owltools.sim2.FastOwlSim.ClassCount;
 import owltools.sim2.scores.ElementPairScores;
 
 /**
@@ -308,4 +310,48 @@ public class SimJSONTest extends AbstractOWLSimTest {
 			reasoner.dispose();
 		}
 	}
+	
+	
+	@Test
+	public void testFindCoAnnotationList() throws Exception {
+		ParserWrapper pw = new ParserWrapper();
+		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
+		g =  new OWLGraphWrapper(sourceOntol);
+		parseAssociations(getResource("sim/mgi-gene2mp-subset-1.tbl"), g);
+
+		owlpp = new OWLPrettyPrinter(g);
+		
+		// assume buffering
+		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		try {
+
+			createOwlSim();
+				//sos.setReasoner(reasoner);
+			LOG.info("Reasoner="+owlsim.getReasoner());
+			reasoner.flush();
+			owlsim.createElementAttributeMapFromOntology();
+
+			owlsim.populateFullCoannotationMatrix();
+
+
+			SimJSONEngine sj = new SimJSONEngine(g, owlsim);
+
+
+			List<OWLClass> allClasses = new ArrayList<OWLClass>();
+			allClasses.addAll(g.getAllOWLClasses());
+			Collections.shuffle(allClasses);
+
+			int limit = 5;
+			String jsonStr = sj.getCoAnnotationListForAttribute(g.getOWLClassByIdentifier("MP:0002082"),limit);
+			LOG.info("Dumping coannotations and scores for all annotated classes");
+			
+			LOG.info("EXAMPLE:"+jsonStr);
+		
+		}
+		finally {
+			reasoner.dispose();
+		}
+	}
+	
+	
 }

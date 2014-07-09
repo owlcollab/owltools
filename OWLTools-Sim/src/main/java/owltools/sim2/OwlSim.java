@@ -1155,7 +1155,7 @@ public interface OwlSim {
 	public Double[][] computeTFIDFMatrix(int[][] subsetMatrix, int numIndividualsInSubset, int[][] backgroundMatrix, int numIndividualsInBackground ) throws UnknownOWLClassException ;
 	
 	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c, int numIndividualsInBackground) throws Exception ;
-	
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c) throws Exception;
 	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c, Double cutoff, int numIndividualsInBackground) throws Exception ;
 	
 	public List<ClassCount> getCoAnnotatedClassesForIndividual(OWLNamedIndividual i) throws Exception ;

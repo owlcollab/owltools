@@ -16,6 +16,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.sim2.FastOwlSim.ClassCount;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.OwlSim.Stat;
 import owltools.sim2.OwlSim.StatsPerIndividual;
@@ -421,4 +422,48 @@ public class SimJSONEngine {
 		return gson.toJson(this.makeAttributeInformationProfileWithSubgraphScores(atts, nodes));
 		}
 	}
+	
+	private ArrayList<HashMap<String,String>> makeCoAnnotationList(List<ClassCount> classCounts, int limit) {
+		ArrayList<HashMap<String,String>> l = new ArrayList<HashMap<String,String>>();
+		if (classCounts.size() < limit) {
+			limit = classCounts.size();
+		}
+		for (int i=0; i<limit; i++) {
+			HashMap<String,String> s = new HashMap<String,String>();
+			s.put("id", g.getIdentifier(classCounts.get(i).c, true));
+			s.put("label", g.getLabel(classCounts.get(i).c));
+			s.put("score",String.format("%1$.5f",classCounts.get(i).score));
+			l.add(s);
+		}
+		return l;
+	}
+	
+	public String getCoAnnotationListForAttribute(OWLClass c, int limit) throws Exception {
+		Gson gson = new Gson();
+		List<ClassCount> classCounts = sos.getCoannotatedClassesForAttribute(c);
+		return gson.toJson(makeCoAnnotationList(classCounts, limit));
+	}
+
+
+
+	//These are not ready for prime-time yet
+	/*
+	public String getCoAnnotationListForListAndAtts(List<ElementPairScores> matches, Set<OWLClass> atts) throws Exception {
+		Gson gson = new Gson();
+		return gson.toJson(sos.getCoAnnotatedClassesForMatches(matches, atts));
+	}
+	
+	public String getCoAnnotationListForIndividual(OWLNamedIndividual i, int matchCutoff) throws Exception {
+		Gson gson = new Gson();
+		List<ClassCount> classCounts = sos.getCoAnnotatedClassesForIndividual(i, matchCutoff);		
+		return gson.toJson(makeCoAnnotationList(classCounts));
+	}
+	
+	public String getCoAnnotationListForAttributes(Set<OWLClass> atts, int matchCutoff) throws Exception {
+		Gson gson = new Gson();
+		List<ClassCount> classCounts = sos.getCoAnnotatedClassesForAttributes(atts, matchCutoff);
+		return gson.toJson(makeCoAnnotationList(classCounts));
+	} */
+	
+	
 }

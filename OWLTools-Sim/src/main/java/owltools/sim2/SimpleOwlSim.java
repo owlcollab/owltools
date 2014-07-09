@@ -1398,6 +1398,13 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		return null;
 	}
 
+	@Override
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 

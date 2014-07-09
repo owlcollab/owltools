@@ -754,6 +754,56 @@ public class OWLHandler {
 		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
+	
+	public void getCoAnnotatedClassesCommand() throws Exception {
+		if (isHelp()) {
+			info("Fetch commonly co-annotated classes based on one or more attributes");
+			return;
+		}
+		headerText();
+		OwlSim sos = getOWLSim();
+		Set<OWLClass> atts = this.resolveClassList(Param.a);
+
+		SimJSONEngine sj = new SimJSONEngine(graph,sos);
+		Integer limit = getParamAsInteger(Param.limit, 10);
+		String jsonStr = "{}";
+
+		//TODO allow user to specify a delimited list and get back multiple sets of coannotations
+		//for now,just use the first one
+		if (atts.size() > 0) {
+			jsonStr = sj.getCoAnnotationListForAttribute(atts.iterator().next(),limit);
+			LOG.info("Finished getting co-annotation list");
+		} else {
+			LOG.error("No classes specified to fetch co-annotation classes");
+		}
+		response.setContentType("application/json");
+		response.getWriter().write(jsonStr);
+		
+	}
+	
+	//TODO the getCoAnnotationListForAttributes when >1 supplied is not working yet
+/*	public void getCoAnnotationListForAttributeCommand() throws Exception {
+		if (isHelp()) {
+			info("Fetch commonly co-annotated classes based on one or more attributes");
+			return;
+		}
+		headerText();
+		OwlSim sos = getOWLSim();
+		Set<OWLClass> atts = this.resolveClassList(Param.a);
+
+		SimJSONEngine sj = new SimJSONEngine(graph,sos);
+		Integer limit = getParamAsInteger(Param.limit, 10);
+		String jsonStr = "{}";
+		if (atts.size()>1) {
+			jsonStr = sj.getCoAnnotationListForAttributes(atts, limit);
+		} else if (atts.size() == 1) {
+			jsonStr = sj.getCoAnnotationListForAttribute(atts.iterator().next());
+		} 
+		LOG.info("Finished getting co-annotation list, going to write json:");
+		response.setContentType("application/json");
+		response.getWriter().write(jsonStr);
+	}
+	*/
 
 	// ----------------------------------------
 	// WRITE/UPDATE OPERATIONS

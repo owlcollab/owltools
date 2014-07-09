@@ -22,13 +22,17 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
 import org.junit.Test;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
+import owltools.io.TableToAxiomConverter;
 import owltools.sim2.FastOwlSimFactory;
 import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSimFactory;
+import owltools.sim2.FastOwlSim.ClassCount;
 import owltools.sim2.preprocessor.ABoxUtils;
 
 /**
@@ -176,6 +180,33 @@ public class OWLServerSimSearchTest {
 		runServerCommunication(httppost,sos);
 
 	}
+	
+	
+	@Test
+	public void testServerGetCoAnnotationSuggestions() throws Exception {
+		g = loadOntology("../OWLTools-Sim/src/test/resources/sim/mp-subset-1.obo");
+		String file="../OWLTools-Sim/src/test/resources/sim/mgi-gene2mp-subset-1.tbl";
+//		g = loadOntology("/Users/Nicole/work/MONARCH/phenotype-ontologies/src/ontology/hp.obo");
+//		String file="/Users/Nicole/work/MONARCH/phenotype-ontologies/data/Homo_sapiens/Hs-disease-to-phenotype-O.txt";
+
+		TableToAxiomConverter ttac = new TableToAxiomConverter(g);
+		ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
+		ttac.config.isSwitchSubjectObject = true;
+		ttac.parse(file);			
+
+		OwlSimFactory owlSimFactory = new FastOwlSimFactory();
+		OwlSim sos = owlSimFactory.createOwlSim(g.getSourceOntology());
+
+		sos.createElementAttributeMapFromOntology();
+//		sos.populateFullCoannotationMatrix();
+		LOG.info("Finished populating the big matrix");
+		
+		HttpUriRequest httppost = createGoodCoAnnotationRequest(1);
+
+		runServerCommunication(httppost,sos);
+
+	}
+	
 	
 	/**
 	 * @param httppost A well-formed {@link HttpUriRequest}
@@ -464,6 +495,37 @@ public class OWLServerSimSearchTest {
 		}
 		
 		
+		uriBuilder.addParameter("limit","5");
+		URI uri = uriBuilder.build();
+		LOG.info("Getting URL="+uri);
+		HttpUriRequest httpUriRequest = new HttpGet(uri);
+		LOG.info("Got URL="+uri);
+		return httpUriRequest;
+	}
+	
+	protected HttpUriRequest createGoodCoAnnotationRequest(int n) throws URISyntaxException {
+		URIBuilder uriBuilder = new URIBuilder()
+			.setScheme("http")
+			.setHost("localhost").setPort(9031)
+//			.setPath("/owlsim/getCoAnnotationListForAttribute/");
+			.setPath("/owlsim/getCoAnnotatedClasses/");
+		List<OWLClass> allClasses = new ArrayList<OWLClass>();
+		allClasses.addAll(g.getAllOWLClasses());
+		Collections.shuffle(allClasses);
+		int i=0;
+/*
+		for (OWLClass c : allClasses) {
+			String id = g.getIdentifier(c);
+			uriBuilder.addParameter("a", id);
+
+			i++;
+			if (i >= n)
+				break;
+		} */
+//		uriBuilder.addParameter("a","HP:0001252");
+//		uriBuilder.addParameter("a","HP:0001250");
+//		uriBuilder.addParameter("a","HP:0000252");
+		uriBuilder.addParameter("a","MP:0002082");
 		uriBuilder.addParameter("limit","5");
 		URI uri = uriBuilder.build();
 		LOG.info("Getting URL="+uri);

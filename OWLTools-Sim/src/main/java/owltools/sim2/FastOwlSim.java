@@ -2172,6 +2172,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return tfidf;
 	}
 	
+	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c) throws Exception {
+		int numIndividualsInBackground = getAllElements().size();
+		return getCoannotatedClassesForAttribute(c, 0.0, numIndividualsInBackground);
+	}
+	
 	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c, int numIndividualsInBackground) throws Exception {
 	  return getCoannotatedClassesForAttribute(c, 0.0, numIndividualsInBackground);
 	}
@@ -2179,6 +2184,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	public List<ClassCount> getCoannotatedClassesForAttribute(OWLClass c, Double cutoff, int numIndividualsInBackground) throws Exception {
 		//make a co-annotation matrix for all classes
 		Integer cid = classIndex.get(c);
+		
+		if (this.coaMatrix == null) {
+			this.populateFullCoannotationMatrix();
+		}
+		
 		int[] annotCocounts = coaMatrix[cid];
 		List<ClassCount> classToCount = new ArrayList<ClassCount>();
 		
@@ -2239,7 +2249,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			return null;
 		}
 		List<ElementPairScores> matches = this.findMatches(atts, null,0.1,0.1);
-		List<ClassCount> coannotationSet = getCoAnnotatedClassesForMatches(matches, atts);
+		List<ClassCount> coannotationSet = getCoAnnotatedClassesForMatches(matches, atts, matchCutoff);
 		return coannotationSet;
 	}
 	
@@ -2264,7 +2274,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				break;
 			}
 		}
-		
+		LOG.info("added "+indSubset.size()+" matching individuals to the subset");
 		//initialize the full coannotation matrix
 		if (this.coaMatrix == null) {
 			this.coaMatrix = this.initCoannotationMatrix(this.coaMatrix);
@@ -2273,9 +2283,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		int[][] subsetMatrix = getSubsetCoannotationMatrix(indSubset);
 
 //		logCountMatrix(subsetMatrix);
-		
+		LOG.info("Computing TFIDFMatrix for the subset");
 		Double[][] tfidfmatrix = this.computeTFIDFMatrix(subsetMatrix, indSubset.size(), this.coaMatrix, this.getAllElements().size());
-		
+		LOG.info("Done");
 		double cutoff = 0.0;
 				
 		//rather than object, flatten it here
@@ -2357,6 +2367,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	
 	public void populateFullCoannotationMatrix() throws Exception {
 		//TODO use ICs to scale?
+		LOG.info("About to populate the full Co-annotation matrix");
 		coaMatrix = new int[classArray.length][classArray.length];
 		coaMatrix = this.initCoannotationMatrix(coaMatrix);
 
@@ -2366,7 +2377,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			if (classArray[i] == null) {
 				continue;
 			}
-			LOG.info("i="+i+" class="+classArray[i].toStringID());
+			//LOG.info("i="+i+" class="+classArray[i].toStringID());
 			Set<OWLNamedIndividual> inds = this.getElementsForAttribute(classArray[i]);
 			for (OWLNamedIndividual e : inds) {
 				Set<OWLClass> jcs = this.getAttributesForElement(e);
@@ -2384,8 +2395,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 					coaMatrix[cix][dix] = coaMatrix[cix][dix] + 1;
 				}
 			}
+			if (i % 100 == 0) {
+				LOG.info("Finished "+i);
+			}
 		}
-		LOG.info("Finished populating the coannotation matrix");
+		LOG.info("Finished populating the full coannotation matrix");
 
 		return;
 	}
@@ -2400,6 +2414,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	}
 	
 	public int[][] initCoannotationMatrix(int[][] coaMatrix) {
+		LOG.info("Initialized CoannotationMatrix");
 		for (int i=0; i<coaMatrix.length; i++) {
 			for (int j=0; j<coaMatrix[i].length; j++) {
 				coaMatrix[i][j] = 0;
