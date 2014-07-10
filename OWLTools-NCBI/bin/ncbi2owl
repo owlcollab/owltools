@@ -1,0 +1,19 @@
+#!/bin/sh
+DIRNAME=`dirname $0`
+
+JAVAARGS="-Xmx2524M"
+
+# check memory setting or re-use memory settings for owltools or oort, if available
+if [ $NCBI_MEMORY ]
+then
+  JAVAARGS="-Xmx$NCBI_MEMORY"
+elif [ $OWLTOOLS_MEMORY ]
+then
+  JAVAARGS="-Xmx$OWLTOOLS_MEMORY"
+elif [ $OORT_MEMORY ]
+then
+  JAVAARGS="-Xmx$OORT_MEMORY"
+fi
+
+java $JAVAARGS -jar $DIRNAME/ncbi2owl.jar  "$@"
+
