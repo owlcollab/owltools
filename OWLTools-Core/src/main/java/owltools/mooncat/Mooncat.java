@@ -686,6 +686,7 @@ public class Mooncat {
 		Set<OWLClass> rmSet = o.getClassesInSignature();
 		rmSet.removeAll(subset); // remove all classes not in subset
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
+		LOG.info("Num of classes to be removed = "+rmSet.size());
 		for (OWLClass c : rmSet) {
 			rmAxioms.addAll(c.getAnnotationAssertionAxioms(o));
 			rmAxioms.addAll(o.getAxioms(c));

@@ -164,6 +164,7 @@ public class EquivalenceSetMergeUtil {
 				}
 			}
 
+			// Merge all properties together
 			// some properties may be desired to have cardinality = 1
 			for (OWLAnnotationProperty p : propertyPrefixScoreMap.keySet()) {
 				Map<String, Double> pmap = propertyPrefixScoreMap.get(p);

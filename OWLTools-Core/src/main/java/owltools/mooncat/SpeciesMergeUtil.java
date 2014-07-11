@@ -119,6 +119,7 @@ public class SpeciesMergeUtil {
 	// map from species-class to generic-class
 	Map<OWLClass, OWLClass> ecmap = new HashMap<OWLClass, OWLClass>();
 	Map<OWLClass, OWLClassExpression> exmap = new HashMap<OWLClass, OWLClassExpression>();
+	public Set<OWLObjectProperty> includedProperties = null;
 	OWLOntology ont;
 	OWLOntologyManager mgr;
 	OWLDataFactory fac;
@@ -128,6 +129,7 @@ public class SpeciesMergeUtil {
 	public OWLClass taxClass;
 	Set<OWLClass> ssClasses;
 	OWLClass rootSpeciesSpecificClass;
+
 
 	public SpeciesMergeUtil(OWLGraphWrapper g) {
 		graph = g;
@@ -155,7 +157,7 @@ public class SpeciesMergeUtil {
 				+ " == " + rx);
 
 		ssClasses = reasoner.getSubClasses(rootSpeciesSpecificClass, false)
-		.getFlattened();
+				.getFlattened();
 		LOG.info("num ss Classes = " + ssClasses.size());
 		mgr.removeAxiom(ont, qax);
 		mgr.removeAxiom(ont,
@@ -227,12 +229,12 @@ public class SpeciesMergeUtil {
 
 			// Do not preserve GCIs for upper-level classes
 			// TODO - make this configurable
-//			if (ecmap.containsKey(c)) {
-//				if (isSkippable(ecmap.get(c))) {
-//					LOG.info("Skipping: "+c);
-//					continue;
-//				}
-//			}
+			//			if (ecmap.containsKey(c)) {
+			//				if (isSkippable(ecmap.get(c))) {
+			//					LOG.info("Skipping: "+c);
+			//					continue;
+			//				}
+			//			}
 
 			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 			Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
@@ -254,7 +256,7 @@ public class SpeciesMergeUtil {
 					newAxiom = tr(c, (OWLAnnotationAssertionAxiom) axiom);
 				else
 					newAxiom = null;
-				
+
 				if (newAxiom != null && ecmap.containsKey(c)) {
 					// avoid axioms like: (ubr:brain and part_of some fly) SubClassOf multi-tissue-structure
 					//  only keep rewritten axioms if they refer exclusively to high-value classes.
@@ -266,9 +268,11 @@ public class SpeciesMergeUtil {
 						}
 					}
 				}
+				if (newAxiom == null)
+					continue;
 
 				if (newAxiom != null) {
-					
+					// ignore if axiom contains root class (e.g. fly anatomical structure)
 					if (!newAxiom.getClassesInSignature().contains(
 							rootSpeciesSpecificClass))
 						newAxioms.add(newAxiom);
@@ -314,7 +318,7 @@ public class SpeciesMergeUtil {
 		if (trSuper instanceof OWLClass && isSkippable((OWLClass) trSuper)) {
 			return null;
 		}
-		*/
+		 */
 		if (trSub == null)
 			return null;
 		if (trSuper == null)
@@ -344,6 +348,21 @@ public class SpeciesMergeUtil {
 					}
 				}
 			}
+			if (includedProperties != null && includedProperties.size() > 0) {
+
+				boolean ok = false;
+				for (OWLObjectProperty p : ax.getObjectPropertiesInSignature()) {
+					if (includedProperties.contains(p)) {
+						LOG.info("Including "+ax+" due to "+p);
+						ok = true;
+						break;
+					}
+				}
+				if (!ok) {
+					return null;
+				}
+			}
+
 		}
 		return fac.getOWLSubClassOfAxiom(trSub, trSuper);
 	}
@@ -398,7 +417,7 @@ public class SpeciesMergeUtil {
 		}
 
 	}
-	
+
 	public boolean isSkippable(OWLClass c) {
 		Set<OWLAnnotation> anns = c.getAnnotations(ont);
 		boolean isSkip = false;
