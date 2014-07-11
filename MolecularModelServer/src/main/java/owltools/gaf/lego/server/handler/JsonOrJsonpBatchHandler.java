@@ -122,14 +122,20 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 	}
 	
-	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests, String userId, boolean isPrivileged) throws InsufficientPermissionsException, Exception {
-		// TODO add userId to relevant requests (i.e. contributor)
-		userId = normalizeUserId(userId);
+	private static class BatchHandlerValues {
+		
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
 		boolean renderBulk = false;
 		boolean renderModelAnnotations = false;
 		boolean nonMeta = false;
 		String modelId = null;
+	}
+	
+	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests, String userId, boolean isPrivileged) throws InsufficientPermissionsException, Exception {
+		// TODO add userId to relevant requests (i.e. contributor)
+		userId = normalizeUserId(userId);
+		
+		final BatchHandlerValues values = new BatchHandlerValues();
 		for (M3Request request : requests) {
 			requireNotNull(request, "request");
 			final Entity entity = Entity.get(StringUtils.trimToNull(request.entity));
@@ -144,321 +150,29 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 			// individual
 			if (Entity.individual == entity) {
-				nonMeta = true;
-				requireNotNull(request.arguments, "request.arguments");
-				modelId = checkModelId(modelId, request);
-
-				// get info, no modification
-				if (Operation.get == operation) {
-					requireNotNull(request.arguments.individual, "request.arguments.individual");
-					OWLNamedIndividual i = m3.getNamedIndividual(modelId, request.arguments.individual);
-					relevantIndividuals.add(i);
-					
-				}
-				// create from class
-				else if (Operation.create == operation) {
-					// required: subject
-					// optional: expressions, values
-					requireNotNull(request.arguments.subject, "request.arguments.subject");
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
-					Pair<String, OWLNamedIndividual> individualPair = m3.createIndividualNonReasoning(modelId, request.arguments.subject, annotations);
-					relevantIndividuals.add(individualPair.getValue());
-
-					if (request.arguments.expressions != null) {
-						for(M3Expression expression : request.arguments.expressions) {
-							OWLClassExpression cls = M3ExpressionParser.parse(modelId, expression, m3);
-							m3.addTypeNonReasoning(modelId, individualPair.getKey(), cls);
-						}
-					}
-					addContributor(modelId, userId, m3);
-				}
-				// create individuals for subject and object,
-				// add object as fact to subject with given property
-				else if (Operation.createComposite == operation) {
-					// required: subject, predicate, object
-					// optional: expressions, values
-					requireNotNull(request.arguments.subject, "request.arguments.subject");
-					requireNotNull(request.arguments.predicate, "request.arguments.predicate");
-					requireNotNull(request.arguments.object, "request.arguments.object");
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
-					Pair<String, OWLNamedIndividual> individual1Pair = m3.createIndividualNonReasoning(modelId, request.arguments.subject, annotations);
-					relevantIndividuals.add(individual1Pair.getValue());
-
-					if (request.arguments.expressions != null) {
-						for(M3Expression expression : request.arguments.expressions) {
-							OWLClassExpression cls = M3ExpressionParser.parse(modelId, expression, m3);
-							m3.addTypeNonReasoning(modelId, individual1Pair.getKey(), cls);
-						}
-					}
-					Pair<String, OWLNamedIndividual> individual2Pair = m3.createIndividualNonReasoning(modelId, request.arguments.object, annotations);
-					relevantIndividuals.add(individual2Pair.getValue());
-					
-					m3.addFact(modelId, request.arguments.predicate, individual1Pair.getLeft(), individual2Pair.getLeft(), annotations);
-					addContributor(modelId, userId, m3);
-				}
-				// remove individual (and all axioms using it)
-				else if (Operation.remove == operation){
-					// required: modelId, individual
-					requireNotNull(request.arguments.individual, "request.arguments.individual");
-					m3.deleteIndividual(modelId, request.arguments.individual);
-					addContributor(modelId, userId, m3);
-					renderBulk = true;
-				}				
-				// add type / named class assertion
-				else if (Operation.addType == operation){
-					// required: individual, expressions
-					requireNotNull(request.arguments.individual, "request.arguments.individual");
-					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
-					for(M3Expression expression : request.arguments.expressions) {
-						OWLClassExpression cls = M3ExpressionParser.parse(modelId, expression, m3);
-						// TODO evidence and contributor information for types
-						OWLNamedIndividual i = m3.addTypeNonReasoning(modelId, request.arguments.individual, cls);
-						relevantIndividuals.add(i);
-					}
-					addContributor(modelId, userId, m3);
-				}
-				// remove type / named class assertion
-				else if (Operation.removeType == operation){
-					// required: individual, expressions
-					requireNotNull(request.arguments.individual, "request.arguments.individual");
-					requireNotNull(request.arguments.expressions, "request.arguments.expressions");
-					for(M3Expression expression : request.arguments.expressions) {
-						OWLClassExpression cls = M3ExpressionParser.parse(modelId, expression, m3);
-						OWLNamedIndividual i = m3.removeTypeNonReasoning(modelId, request.arguments.individual, cls);
-						relevantIndividuals.add(i);
-					}
-					addContributor(modelId, userId, m3);
-				}
-				// add annotation
-				else if (Operation.addAnnotation == operation){
-					// required: individual, values
-					requireNotNull(request.arguments.individual, "request.arguments.individual");
-					requireNotNull(request.arguments.values, "request.arguments.values");
-
-					OWLNamedIndividual i = m3.addAnnotations(modelId, request.arguments.individual,
-							extract(request.arguments.values, userId, false));
-					relevantIndividuals.add(i);
-					addContributor(modelId, userId, m3);
-				}
-				// remove annotation
-				else if (Operation.removeAnnotation == operation){
-					// required: individual, values
-					requireNotNull(request.arguments.individual, "request.arguments.individual");
-					requireNotNull(request.arguments.values, "request.arguments.values");
-
-					OWLNamedIndividual i = m3.removeAnnotations(modelId, request.arguments.individual,
-							extract(request.arguments.values, null, false));
-					relevantIndividuals.add(i);
-					addContributor(modelId, userId, m3);
-				}
-				else {
+				String error = handleRequestForIndividual(request, operation, userId, values);
+				if (error != null) {
 					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
 			// edge
 			else if (Entity.edge == entity) {
-				nonMeta = true;
-				requireNotNull(request.arguments, "request.arguments");
-				modelId = checkModelId(modelId, request);
-				// required: subject, predicate, object
-				requireNotNull(request.arguments.subject, "request.arguments.subject");
-				requireNotNull(request.arguments.predicate, "request.arguments.predicate");
-				requireNotNull(request.arguments.object, "request.arguments.object");
-
-				// add edge
-				if (Operation.add == operation){
-					// optional: values
-					List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(modelId,
-							request.arguments.predicate, request.arguments.subject,
-							request.arguments.object, extract(request.arguments.values, userId, true));
-					relevantIndividuals.addAll(individuals);
-					addContributor(modelId, userId, m3);
-				}
-				// remove edge
-				else if (Operation.remove == operation){
-					List<OWLNamedIndividual> individuals = m3.removeFactNonReasoning(modelId,
-							request.arguments.predicate, request.arguments.subject,
-							request.arguments.object);
-					relevantIndividuals.addAll(individuals);
-					addContributor(modelId, userId, m3);
-				}
-				// add annotation
-				else if (Operation.addAnnotation == operation){
-					requireNotNull(request.arguments.values, "request.arguments.values");
-
-					List<OWLNamedIndividual> individuals = m3.addAnnotations(modelId,
-							request.arguments.predicate, request.arguments.subject,
-							request.arguments.object, extract(request.arguments.values, userId, false));
-					relevantIndividuals.addAll(individuals);
-				}
-				// remove annotation
-				else if (Operation.removeAnnotation == operation){
-					requireNotNull(request.arguments.values, "request.arguments.values");
-
-					List<OWLNamedIndividual> individuals = m3.removeAnnotations(modelId,
-							request.arguments.predicate, request.arguments.subject,
-							request.arguments.object, extract(request.arguments.values, null, false));
-					relevantIndividuals.addAll(individuals);
-				}
-				else {
-					return error(response, "Unknown operation: "+operation, null);
+				String error = handleRequestForEdge(request, operation, userId, values);
+				if (error != null) {
+					return error(response, error, null);
 				}
 			}
 			//model
 			else if (Entity.model == entity) {
-				// get model
-				if (Operation.get == operation){
-					nonMeta = true;
-					requireNotNull(request.arguments, "request.arguments");
-					modelId = checkModelId(modelId, request);
-					renderBulk = true;
-				}
-				else if (Operation.updateImports == operation){
-					nonMeta = true;
-					requireNotNull(request.arguments, "request.arguments");
-					modelId = checkModelId(modelId, request);
-					m3.updateImports(modelId);
-					renderBulk = true;
-				}
-				else if (Operation.generate == operation) {
-					nonMeta = true;
-					requireNotNull(request.arguments, "request.arguments");
-					requireNotNull(request.arguments.db, "request.arguments.db");
-					requireNotNull(request.arguments.subject, "request.arguments.subject");
-					renderBulk = true;
-					modelId = m3.generateModel(request.arguments.subject, request.arguments.db);
-					
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
-					if (annotations != null) {
-						m3.addAnnotations(modelId, annotations);
-					}
-					addContributor(modelId, userId, m3);
-				}
-				else if (Operation.generateBlank == operation) {
-					nonMeta = true;
-					renderBulk = true;
-					// db is optional
-					String db = null;
-					Collection<Pair<String, String>> annotations = null;
-					if (request.arguments != null) {
-						db = request.arguments.db;
-						annotations = extract(request.arguments.values, userId, true);
-					}
-					else {
-						annotations = extract(null, userId, true);
-					}
-					modelId = m3.generateBlankModel(db);
-					
-					if (annotations != null) {
-						m3.addAnnotations(modelId, annotations);
-					}
-					addContributor(modelId, userId, m3);
-				}
-				else if (Operation.addAnnotation == operation) {
-					nonMeta = true;
-					requireNotNull(request.arguments, "request.arguments");
-					requireNotNull(request.arguments.values, "request.arguments.values");
-					modelId = checkModelId(modelId, request);
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
-					if (annotations != null) {
-						m3.addAnnotations(modelId, annotations);
-					}
-					renderModelAnnotations = true;
-				}
-				else if (Operation.removeAnnotation == operation) {
-					nonMeta = true;
-					requireNotNull(request.arguments, "request.arguments");
-					requireNotNull(request.arguments.values, "request.arguments.values");
-					modelId = checkModelId(modelId, request);
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, null, false);
-					if (annotations != null) {
-						m3.removeAnnotations(modelId, annotations);
-					}
-					renderModelAnnotations = true;
-				}
-				else if (Operation.exportModel == operation) {
-					if (nonMeta) {
-						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-						return error(response, "Export model can only be combined with other meta operations.", null);
-					}
-					requireNotNull(request.arguments, "request.arguments");
-					modelId = checkModelId(modelId, request);
-					export(response, modelId, m3);
-				}
-				else if (Operation.importModel == operation) {
-					nonMeta = true;
-					requireNotNull(request.arguments, "request.arguments");
-					requireNotNull(request.arguments.importModel, "request.arguments.importModel");
-					modelId = m3.importModel(request.arguments.importModel);
-					
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
-					if (annotations != null) {
-						m3.addAnnotations(modelId, annotations);
-					}
-					addContributor(modelId, userId, m3);
-					renderBulk = true;
-				}
-				else if (Operation.storeModel == operation) {
-					requireNotNull(request.arguments, "request.arguments");
-					modelId = checkModelId(modelId, request);
-					Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
-					if (VALIDATE_BEFORE_SAVE) {
-						List<String> issues = beforeSaveValidator.validateBeforeSave(modelId, m3);
-						if (issues != null && !issues.isEmpty()) {
-							StringBuilder commentary = new StringBuilder();
-							for (Iterator<String> it = issues.iterator(); it.hasNext();) {
-								String issue = it.next();
-								commentary.append(issue);
-								if (it.hasNext()) {
-									commentary.append('\n');
-								}
-							}
-							response.commentary = commentary.toString();
-							return error(response, "Save model failed due to a failed validation of the model", null);			
-						}
-					}
-					save(response, modelId, annotations, m3);
-				}
-				else if (Operation.allModelIds == operation) {
-					if (nonMeta) {
-						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-						return error(response, operation+" cannot be combined with other operations.", null);
-					}
-					getAllModelIds(response, m3);
-				}
-				else if (Operation.search == operation) {
-					if (nonMeta) {
-						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-						return error(response, operation+" cannot be combined with other operations.", null);
-					}
-					requireNotNull(request.arguments, "request.arguments");
-					requireNotNull(request.arguments.values, "request.arguments.values");
-					Collection<Pair<String, String>> values = extract(request.arguments.values, null, false);
-					List<String> searchIds = new ArrayList<String>();
-					if (values != null) {
-						for (Pair<String, String> pair : values) {
-							String key = pair.getKey();
-							String val = pair.getValue();
-							if ("id".equals(key) && val != null) {
-								searchIds.add(val);
-							}
-						}
-					}
-					if (!searchIds.isEmpty()) {
-						searchModels(response, searchIds, m3);
-					}
-					else {
-						return error(response, "No query identifiers found in the request.", null);
-					}
-				}
-				else {
+				String error = handleRequestForModel(request, response, operation, userId, values);
+				if (error != null) {
 					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
 			// relations
 			else if (Entity.relations == entity) {
 				if (Operation.get == operation){
-					if (nonMeta) {
+					if (values.nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Get Relations can only be combined with other meta operations.", null);
 					}
@@ -471,7 +185,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			// evidence
 			else if (Entity.evidence == entity) {
 				if (Operation.get == operation){
-					if (nonMeta) {
+					if (values.nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Get Evidences can only be combined with other meta operations.", null);
 					}
@@ -488,11 +202,11 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		if (M3BatchResponse.SIGNAL_META.equals(response.signal)) {
 			return response;
 		}
-		if (modelId == null) {
+		if (values.modelId == null) {
 			return error(response, "Empty batch calls are not supported, at least one request is required.", null);
 		}
 		// get model
-		final LegoModelGenerator model = m3.getModel(modelId);
+		final LegoModelGenerator model = m3.getModel(values.modelId);
 		// update reasoner
 		// report state
 		final OWLReasoner reasoner = model.getReasoner();
@@ -500,9 +214,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		final boolean isConsistent = reasoner.isConsistent();
 
 		// create response.data
-		if (renderBulk) {
+		if (values.renderBulk) {
 			// render complete model
-			response.data = m3.getModelObject(modelId);
+			response.data = m3.getModelObject(values.modelId);
 			response.signal = M3BatchResponse.SIGNAL_REBUILD;
 			if (ADD_INFERENCES) {
 				MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
@@ -512,21 +226,21 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		else {
 			// render individuals
 			MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
-			response.data = renderer.renderIndividuals(relevantIndividuals);
+			response.data = renderer.renderIndividuals(values.relevantIndividuals);
 			response.signal = M3BatchResponse.SIGNAL_MERGE;
 			if (ADD_INFERENCES) {
-				renderer.renderInferences(relevantIndividuals, response.data, reasoner);
+				renderer.renderInferences(values.relevantIndividuals, response.data, reasoner);
 			}
 		}
 		
 		// add model annotations
-		if (renderModelAnnotations) {
+		if (values.renderModelAnnotations) {
 			List<Object> anObjs = MolecularModelJsonRenderer.renderModelAnnotations(model.getAboxOntology());
 			response.data.put(KEY.annotations.name(), anObjs);
 		}
 
 		// add other infos to data
-		response.data.put("id", modelId);
+		response.data.put("id", values.modelId);
 		if (!isConsistent) {
 			response.data.put("inconsistent_p", Boolean.TRUE);
 		}
@@ -553,6 +267,322 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			}
 		}
 		return userId;
+	}
+	
+	private String handleRequestForIndividual(M3Request request, Operation operation, String userId, BatchHandlerValues values) throws Exception {
+		values.nonMeta = true;
+		requireNotNull(request.arguments, "request.arguments");
+		values.modelId = checkModelId(values.modelId, request);
+
+		// get info, no modification
+		if (Operation.get == operation) {
+			requireNotNull(request.arguments.individual, "request.arguments.individual");
+			OWLNamedIndividual i = m3.getNamedIndividual(values.modelId, request.arguments.individual);
+			values.relevantIndividuals.add(i);
+			
+		}
+		// create from class
+		else if (Operation.create == operation) {
+			// required: subject
+			// optional: expressions, values
+			requireNotNull(request.arguments.subject, "request.arguments.subject");
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+			Pair<String, OWLNamedIndividual> individualPair = m3.createIndividualNonReasoning(values.modelId, request.arguments.subject, annotations);
+			values.relevantIndividuals.add(individualPair.getValue());
+
+			if (request.arguments.expressions != null) {
+				for(M3Expression expression : request.arguments.expressions) {
+					OWLClassExpression cls = M3ExpressionParser.parse(values.modelId, expression, m3);
+					m3.addTypeNonReasoning(values.modelId, individualPair.getKey(), cls);
+				}
+			}
+			addContributor(values.modelId, userId, m3);
+		}
+		// create individuals for subject and object,
+		// add object as fact to subject with given property
+		else if (Operation.createComposite == operation) {
+			// required: subject, predicate, object
+			// optional: expressions, values
+			requireNotNull(request.arguments.subject, "request.arguments.subject");
+			requireNotNull(request.arguments.predicate, "request.arguments.predicate");
+			requireNotNull(request.arguments.object, "request.arguments.object");
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+			Pair<String, OWLNamedIndividual> individual1Pair = m3.createIndividualNonReasoning(values.modelId, request.arguments.subject, annotations);
+			values.relevantIndividuals.add(individual1Pair.getValue());
+
+			if (request.arguments.expressions != null) {
+				for(M3Expression expression : request.arguments.expressions) {
+					OWLClassExpression cls = M3ExpressionParser.parse(values.modelId, expression, m3);
+					m3.addTypeNonReasoning(values.modelId, individual1Pair.getKey(), cls);
+				}
+			}
+			Pair<String, OWLNamedIndividual> individual2Pair = m3.createIndividualNonReasoning(values.modelId, request.arguments.object, annotations);
+			values.relevantIndividuals.add(individual2Pair.getValue());
+			
+			m3.addFact(values.modelId, request.arguments.predicate, individual1Pair.getLeft(), individual2Pair.getLeft(), annotations);
+			addContributor(values.modelId, userId, m3);
+		}
+		// remove individual (and all axioms using it)
+		else if (Operation.remove == operation){
+			// required: modelId, individual
+			requireNotNull(request.arguments.individual, "request.arguments.individual");
+			m3.deleteIndividual(values.modelId, request.arguments.individual);
+			addContributor(values.modelId, userId, m3);
+			values.renderBulk = true;
+		}				
+		// add type / named class assertion
+		else if (Operation.addType == operation){
+			// required: individual, expressions
+			requireNotNull(request.arguments.individual, "request.arguments.individual");
+			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+			for(M3Expression expression : request.arguments.expressions) {
+				OWLClassExpression cls = M3ExpressionParser.parse(values.modelId, expression, m3);
+				// TODO evidence and contributor information for types
+				OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, request.arguments.individual, cls);
+				values.relevantIndividuals.add(i);
+			}
+			addContributor(values.modelId, userId, m3);
+		}
+		// remove type / named class assertion
+		else if (Operation.removeType == operation){
+			// required: individual, expressions
+			requireNotNull(request.arguments.individual, "request.arguments.individual");
+			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+			for(M3Expression expression : request.arguments.expressions) {
+				OWLClassExpression cls = M3ExpressionParser.parse(values.modelId, expression, m3);
+				OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, request.arguments.individual, cls);
+				values.relevantIndividuals.add(i);
+			}
+			addContributor(values.modelId, userId, m3);
+		}
+		// add annotation
+		else if (Operation.addAnnotation == operation){
+			// required: individual, values
+			requireNotNull(request.arguments.individual, "request.arguments.individual");
+			requireNotNull(request.arguments.values, "request.arguments.values");
+
+			OWLNamedIndividual i = m3.addAnnotations(values.modelId, request.arguments.individual,
+					extract(request.arguments.values, userId, false));
+			values.relevantIndividuals.add(i);
+			addContributor(values.modelId, userId, m3);
+		}
+		// remove annotation
+		else if (Operation.removeAnnotation == operation){
+			// required: individual, values
+			requireNotNull(request.arguments.individual, "request.arguments.individual");
+			requireNotNull(request.arguments.values, "request.arguments.values");
+
+			OWLNamedIndividual i = m3.removeAnnotations(values.modelId, request.arguments.individual,
+					extract(request.arguments.values, null, false));
+			values.relevantIndividuals.add(i);
+			addContributor(values.modelId, userId, m3);
+		}
+		else {
+			return "Unknown operation: "+operation;
+		}
+		return null;
+	}
+	
+	private String handleRequestForEdge(M3Request request, Operation operation, String userId, BatchHandlerValues values) throws Exception {
+		values.nonMeta = true;
+		requireNotNull(request.arguments, "request.arguments");
+		values.modelId = checkModelId(values.modelId, request);
+		// required: subject, predicate, object
+		requireNotNull(request.arguments.subject, "request.arguments.subject");
+		requireNotNull(request.arguments.predicate, "request.arguments.predicate");
+		requireNotNull(request.arguments.object, "request.arguments.object");
+
+		// add edge
+		if (Operation.add == operation){
+			// optional: values
+			List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(values.modelId,
+					request.arguments.predicate, request.arguments.subject,
+					request.arguments.object, extract(request.arguments.values, userId, true));
+			values.relevantIndividuals.addAll(individuals);
+			addContributor(values.modelId, userId, m3);
+		}
+		// remove edge
+		else if (Operation.remove == operation){
+			List<OWLNamedIndividual> individuals = m3.removeFactNonReasoning(values.modelId,
+					request.arguments.predicate, request.arguments.subject,
+					request.arguments.object);
+			values.relevantIndividuals.addAll(individuals);
+			addContributor(values.modelId, userId, m3);
+		}
+		// add annotation
+		else if (Operation.addAnnotation == operation){
+			requireNotNull(request.arguments.values, "request.arguments.values");
+
+			List<OWLNamedIndividual> individuals = m3.addAnnotations(values.modelId,
+					request.arguments.predicate, request.arguments.subject,
+					request.arguments.object, extract(request.arguments.values, userId, false));
+			values.relevantIndividuals.addAll(individuals);
+		}
+		// remove annotation
+		else if (Operation.removeAnnotation == operation){
+			requireNotNull(request.arguments.values, "request.arguments.values");
+
+			List<OWLNamedIndividual> individuals = m3.removeAnnotations(values.modelId,
+					request.arguments.predicate, request.arguments.subject,
+					request.arguments.object, extract(request.arguments.values, null, false));
+			values.relevantIndividuals.addAll(individuals);
+		}
+		else {
+			return "Unknown operation: "+operation;
+		}
+		return null;
+	}
+	
+	private String handleRequestForModel(M3Request request, M3BatchResponse response, Operation operation, String userId, BatchHandlerValues values) throws Exception {
+		// get model
+		if (Operation.get == operation){
+			values.nonMeta = true;
+			requireNotNull(request.arguments, "request.arguments");
+			values.modelId = checkModelId(values.modelId, request);
+			values.renderBulk = true;
+		}
+		else if (Operation.updateImports == operation){
+			values.nonMeta = true;
+			requireNotNull(request.arguments, "request.arguments");
+			values.modelId = checkModelId(values.modelId, request);
+			m3.updateImports(values.modelId);
+			values.renderBulk = true;
+		}
+		else if (Operation.generate == operation) {
+			values.nonMeta = true;
+			requireNotNull(request.arguments, "request.arguments");
+			requireNotNull(request.arguments.db, "request.arguments.db");
+			requireNotNull(request.arguments.subject, "request.arguments.subject");
+			values.renderBulk = true;
+			values.modelId = m3.generateModel(request.arguments.subject, request.arguments.db);
+			
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+			if (annotations != null) {
+				m3.addAnnotations(values.modelId, annotations);
+			}
+			addContributor(values.modelId, userId, m3);
+		}
+		else if (Operation.generateBlank == operation) {
+			values.nonMeta = true;
+			values.renderBulk = true;
+			// db is optional
+			String db = null;
+			Collection<Pair<String, String>> annotations = null;
+			if (request.arguments != null) {
+				db = request.arguments.db;
+				annotations = extract(request.arguments.values, userId, true);
+			}
+			else {
+				annotations = extract(null, userId, true);
+			}
+			values.modelId = m3.generateBlankModel(db);
+			
+			if (annotations != null) {
+				m3.addAnnotations(values.modelId, annotations);
+			}
+			addContributor(values.modelId, userId, m3);
+		}
+		else if (Operation.addAnnotation == operation) {
+			values.nonMeta = true;
+			requireNotNull(request.arguments, "request.arguments");
+			requireNotNull(request.arguments.values, "request.arguments.values");
+			values.modelId = checkModelId(values.modelId, request);
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+			if (annotations != null) {
+				m3.addAnnotations(values.modelId, annotations);
+			}
+			values.renderModelAnnotations = true;
+		}
+		else if (Operation.removeAnnotation == operation) {
+			values.nonMeta = true;
+			requireNotNull(request.arguments, "request.arguments");
+			requireNotNull(request.arguments.values, "request.arguments.values");
+			values.modelId = checkModelId(values.modelId, request);
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, null, false);
+			if (annotations != null) {
+				m3.removeAnnotations(values.modelId, annotations);
+			}
+			values.renderModelAnnotations = true;
+		}
+		else if (Operation.exportModel == operation) {
+			if (values.nonMeta) {
+				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+				return "Export model can only be combined with other meta operations.";
+			}
+			requireNotNull(request.arguments, "request.arguments");
+			values.modelId = checkModelId(values.modelId, request);
+			export(response, values.modelId, m3);
+		}
+		else if (Operation.importModel == operation) {
+			values.nonMeta = true;
+			requireNotNull(request.arguments, "request.arguments");
+			requireNotNull(request.arguments.importModel, "request.arguments.importModel");
+			values.modelId = m3.importModel(request.arguments.importModel);
+			
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+			if (annotations != null) {
+				m3.addAnnotations(values.modelId, annotations);
+			}
+			addContributor(values.modelId, userId, m3);
+			values.renderBulk = true;
+		}
+		else if (Operation.storeModel == operation) {
+			requireNotNull(request.arguments, "request.arguments");
+			values.modelId = checkModelId(values.modelId, request);
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+			if (VALIDATE_BEFORE_SAVE) {
+				List<String> issues = beforeSaveValidator.validateBeforeSave(values.modelId, m3);
+				if (issues != null && !issues.isEmpty()) {
+					StringBuilder commentary = new StringBuilder();
+					for (Iterator<String> it = issues.iterator(); it.hasNext();) {
+						String issue = it.next();
+						commentary.append(issue);
+						if (it.hasNext()) {
+							commentary.append('\n');
+						}
+					}
+					response.commentary = commentary.toString();
+					return "Save model failed due to a failed validation of the model";			
+				}
+			}
+			save(response, values.modelId, annotations, m3);
+		}
+		else if (Operation.allModelIds == operation) {
+			if (values.nonMeta) {
+				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+				return operation+" cannot be combined with other operations.";
+			}
+			getAllModelIds(response, m3);
+		}
+		else if (Operation.search == operation) {
+			if (values.nonMeta) {
+				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+				return operation+" cannot be combined with other operations.";
+			}
+			requireNotNull(request.arguments, "request.arguments");
+			requireNotNull(request.arguments.values, "request.arguments.values");
+			Collection<Pair<String, String>> extractedValues = extract(request.arguments.values, null, false);
+			List<String> searchIds = new ArrayList<String>();
+			if (extractedValues != null) {
+				for (Pair<String, String> pair : extractedValues) {
+					String key = pair.getKey();
+					String val = pair.getValue();
+					if ("id".equals(key) && val != null) {
+						searchIds.add(val);
+					}
+				}
+			}
+			if (!searchIds.isEmpty()) {
+				searchModels(response, searchIds, m3);
+			}
+			else {
+				return "No query identifiers found in the request.";
+			}
+		}
+		else {
+			return "Unknown operation: "+operation;
+		}
+		return null;
 	}
 
 	private void getAllModelIds(M3BatchResponse response, MolecularModelManager m3) throws IOException {
