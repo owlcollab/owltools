@@ -148,6 +148,7 @@ import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ChadoGraphClosureRenderer;
 import owltools.io.CompactGraphClosureReader;
 import owltools.io.CompactGraphClosureRenderer;
+import owltools.io.EdgeTableRenderer;
 import owltools.io.GraphClosureRenderer;
 import owltools.io.GraphReader;
 import owltools.io.GraphRenderer;
@@ -719,12 +720,18 @@ public class CommandRunner {
 				OWLObjectProperty viewProperty = g.getOWLObjectPropertyByIdentifier("BFO:0000050");
 				OWLClass taxClass = null;
 				String suffix = null;
+				Set<OWLObjectProperty> includeProps = null;
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-t|--taxon")) {
 						taxClass = this.resolveClass(opts.nextOpt());
 					}
 					else if (opts.nextEq("-p|--property")) {
 						viewProperty = this.resolveObjectProperty(opts.nextOpt());
+					}
+					else if (opts.nextEq("-q|--include-property")) {
+						includeProps = this.resolveObjectPropertyList(opts);
+						LOG.info("|IP|"+includeProps.size());
+						LOG.info("IP"+includeProps);
 					}
 					else if (opts.nextEq("-s|--suffix")) {
 						suffix = opts.nextOpt();
@@ -736,6 +743,7 @@ public class CommandRunner {
 				smu.viewProperty = viewProperty;
 				smu.taxClass = taxClass;
 				smu.reasoner = reasoner;
+				smu.includedProperties = includeProps;
 				if (suffix != null)
 					smu.suffix = suffix;
 				smu.merge();
@@ -809,6 +817,13 @@ public class CommandRunner {
 				TableRenderer tr = new TableRenderer(out);
 				tr.render(g);				
 			}
+			else if (opts.nextEq("--export-edge-table")) {
+				opts.info("OUTPUTFILENAME",
+						"saves the ontology edges in tabular format");
+				String out = opts.nextOpt();
+				EdgeTableRenderer tr = new EdgeTableRenderer(out);
+				tr.render(g);				
+			}
 			else if (opts.nextEq("--export-parents")) {
 				opts.info("[-p LIST] [-o OUTPUTFILENAME]",
 						"saves a table of all direct inferred parents by property");
@@ -845,7 +860,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--remove-annotation-assertions")) {
 				opts.info("[-l][-d][-s][-r][-p IRI]*", 
-						"removes annotation assertions to make a pure logic subset. Select acioms can be preserved");
+						"removes annotation assertions to make a pure logic subset. Select axioms can be preserved");
 				boolean isPreserveLabels = false;
 				boolean isPreserveDefinitions = false;
 				boolean isPreserveSynonyms = false;
@@ -1010,6 +1025,10 @@ public class CommandRunner {
 					}
 					for (String x : xrefs) {
 						IRI iri = null;
+						if (x.contains(" ")) {
+							LOG.warn("Ignore xref with space: "+x);
+							continue;
+						}
 						if (x.contains(":")) {
 							String[] parts = x.split(":",2);
 							if (prefixes.size() > 0 && !prefixes.contains(parts[0])) {
@@ -5216,7 +5235,7 @@ public class CommandRunner {
 
 		// create the slim
 		Mooncat mooncat = new Mooncat(g);
-		OWLOntology slim = mooncat.makeMinimalSubsetOntology(seeds, ontologyIRI);
+		OWLOntology slim = mooncat.makeMinimalSubsetOntology(seeds, ontologyIRI, true, false);
 		mooncat = null;
 
 		// write the output
