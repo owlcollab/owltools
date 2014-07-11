@@ -71,7 +71,7 @@ public class OboOntologyReleaseRunnerGui {
 				@Override
 				public void run() {
 					try {
-						File base = parameters.getBase();
+						File base = parameters.getBase().getCanonicalFile();
 						OboOntologyReleaseRunner oorr = new OboOntologyReleaseRunner(parameters, base, handlers) {
 
 							@Override

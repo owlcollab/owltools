@@ -177,7 +177,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			final List<LogHandler> handlers = new ArrayList<LogHandler>();
 			handlers.add(log4jHandler);
 	
-			final File base = oortConfig.getBase();
+			final File base = oortConfig.getBase().getCanonicalFile();
 			log4jHandler.logInfo("Base directory path " + base.getAbsolutePath());
 			
 			// setup additional log handlers

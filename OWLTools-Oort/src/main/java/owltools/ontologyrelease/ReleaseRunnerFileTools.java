@@ -48,17 +48,17 @@ public abstract class ReleaseRunnerFileTools {
 		this.useReleasesFolder = useReleasesFolder;
 		
 		// base
-		this.base = base;
+		this.base = base.getCanonicalFile();
 		
 		
-		checkFolder(base);
+		checkFolder(this.base);
 		
 		// staging directory
-		staging = new File(base, STAGING_DIRECTORY_NAME);
+		staging = new File(this.base, STAGING_DIRECTORY_NAME).getCanonicalFile();
 		checkFolder(staging);
 		
 		// lock file
-		lockFile = new File(staging, STAGING_DIRECTORY_LOCK_FILE_NAME);
+		lockFile = new File(staging, STAGING_DIRECTORY_LOCK_FILE_NAME).getCanonicalFile();
 		boolean success = lockFile.createNewFile();
 		if (!success && !ignoreLock) {
 			if (!forceLock(lockFile)) {
@@ -72,10 +72,10 @@ public abstract class ReleaseRunnerFileTools {
 		cleanDirectory(staging, STAGING_DIRECTORY_LOCK_FILE_NAME);
 		
 		// sub directories
-		File subsets = new File(staging, SUBSETS_DIRECTORY_NAME);
+		File subsets = new File(staging, SUBSETS_DIRECTORY_NAME).getCanonicalFile();
 		checkFolder(subsets);
 
-		File extensions = new File(staging, EXTENSIONS_DIRECTORY_NAME);
+		File extensions = new File(staging, EXTENSIONS_DIRECTORY_NAME).getCanonicalFile();
 		checkFolder(extensions);
 	}
 	
@@ -171,7 +171,7 @@ public abstract class ReleaseRunnerFileTools {
 	boolean commit(String version) throws IOException {
 		try {
 			if (useReleasesFolder) {
-				File releasesFolder = new File(base, RELEASE_DIRECTORY_NAME);
+				File releasesFolder = new File(base, RELEASE_DIRECTORY_NAME).getCanonicalFile();
 				checkFolder(releasesFolder);
 				// make version specific releases sub folder
 				File versionFolder = new File(releasesFolder, version);
