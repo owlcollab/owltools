@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 import java.util.List;
 
-import org.bbop.golr.java.RetrieveGolrAnnotations.GolrDocument;
+import org.bbop.golr.java.RetrieveGolrAnnotations.GolrAnnotationDocument;
 import org.junit.Test;
 
 import owltools.gaf.Bioentity;
@@ -17,9 +17,9 @@ public class RetrieveGolrAnnotationsTest {
 	@Test
 	public void testGetGolrAnnotationsForGene() throws Exception {
 		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org");
-		List<GolrDocument> annotations = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
 		assertNotNull(annotations);
-		for (GolrDocument document : annotations) {
+		for (GolrAnnotationDocument document : annotations) {
 			System.out.println(document.bioentity+"  "+document.annotation_class);
 		}
 		System.out.println(annotations.size());
@@ -29,7 +29,7 @@ public class RetrieveGolrAnnotationsTest {
 	@Test
 	public void testGetAnnotationsForGene() throws Exception {
 		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org");
-		List<GolrDocument> golrDocuments = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
+		List<GolrAnnotationDocument> golrDocuments = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
 		assertNotNull(golrDocuments);
 		GafDocument gafDocument = retriever.convert(golrDocuments);
 		Collection<Bioentity> bioentities = gafDocument.getBioentities();

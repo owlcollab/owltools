@@ -32,10 +32,10 @@ public class RetrieveGolrAnnotations {
 		this.server = server;
 	}
 	
-	public GafDocument convert(List<GolrDocument> golrDocuments) {
+	public GafDocument convert(List<GolrAnnotationDocument> golrAnnotationDocuments) {
 		Map<String, Bioentity> entities = new HashMap<String, Bioentity>();
 		GafDocument document = new GafDocument(null, null);
-		for (GolrDocument golrDocument : golrDocuments) {
+		for (GolrAnnotationDocument golrDocument : golrAnnotationDocuments) {
 			String bioentityId = golrDocument.bioentity;
 			Bioentity entity = entities.get(bioentityId);
 			if (entity == null) {
@@ -63,15 +63,16 @@ public class RetrieveGolrAnnotations {
 			if (golrDocument.evidence_with != null) {
 				annotation.setWithInfos(golrDocument.evidence_with);
 			}
+			document.addGeneAnnotation(annotation);
 		}
 		return document;
 	}
 
-	public List<GolrDocument> getGolrAnnotationsForGene(String id) throws IOException {
+	public List<GolrAnnotationDocument> getGolrAnnotationsForGene(String id) throws IOException {
 		final String url = createGolrString(id, "bioentity", "annotation", 0, PAGINATION_CHUNK_SIZE);
 		final String jsonString = getJsonStringFromUrl(url);
 		final GolrResponse response = parseGolrResponse(jsonString);
-		final List<GolrDocument> documents = new ArrayList<GolrDocument>(response.numFound);
+		final List<GolrAnnotationDocument> documents = new ArrayList<GolrAnnotationDocument>(response.numFound);
 		documents.addAll(Arrays.asList(response.docs));
 		if (response.numFound > PAGINATION_CHUNK_SIZE) {
 			// fetch remaining documents
@@ -135,10 +136,10 @@ public class RetrieveGolrAnnotations {
 	static class GolrResponse {
 		int numFound;
 		int start;
-		GolrDocument[] docs;
+		GolrAnnotationDocument[] docs;
 	}
 	
-	public static class GolrDocument {
+	public static class GolrAnnotationDocument {
 		String source;
 		String bioentity;
 		String bioentity_internal_id;
