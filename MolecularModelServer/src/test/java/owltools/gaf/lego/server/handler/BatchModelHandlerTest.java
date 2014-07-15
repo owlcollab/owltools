@@ -46,8 +46,8 @@ public class BatchModelHandlerTest {
 	@Rule
     public TemporaryFolder folder = new TemporaryFolder();
 	
-	private static JsonOrJsonpBatchHandler handler = null;
-	private static UndoAwareMolecularModelManager models = null;
+	static JsonOrJsonpBatchHandler handler = null;
+	static UndoAwareMolecularModelManager models = null;
 
 	private static final String uid = "test-user";
 	private static final String intention = "test-intention";
