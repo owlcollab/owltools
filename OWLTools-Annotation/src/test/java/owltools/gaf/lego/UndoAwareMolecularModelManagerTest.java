@@ -16,6 +16,8 @@ import com.google.gson.GsonBuilder;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
+import owltools.gaf.lego.UndoAwareMolecularModelManager.ChangeEvent;
+import owltools.gaf.lego.UndoAwareMolecularModelManager.UndoMetadata;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -44,15 +46,22 @@ public class UndoAwareMolecularModelManagerTest extends OWLToolsTestBasics {
 		String userId = "test-user-id";
 		String modelId = m3.generateBlankModel(null, null);
 		// GO:0001158 ! enhancer sequence-specific DNA binding
-		Pair<String, OWLNamedIndividual> bindingId = m3.createIndividual(modelId, "GO:0001158", null, userId);
+		Pair<String, OWLNamedIndividual> bindingId = m3.createIndividual(modelId, "GO:0001158", null, new UndoMetadata(userId));
 		// BFO:0000066 GO:0005654 ! occurs_in nucleoplasm
-		m3.addType(modelId, bindingId.getKey(), "BFO:0000066", "GO:0005654", userId);
+		m3.addType(modelId, bindingId.getKey(), "BFO:0000066", "GO:0005654", new UndoMetadata(userId));
 		
 		LegoModelGenerator model = m3.getModel(modelId);
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model);
 		Map<Object, Object> render1 = renderer.renderObject(bindingId.getRight());
 		List<Map<Object,Object>> types1 = (List<Map<Object,Object>>) render1.get(KEY.type);
 		assertEquals(2, types1.size());
+		
+		// check event count
+		Pair<List<ChangeEvent>,List<ChangeEvent>> undoRedoEvents = m3.getUndoRedoEvents(modelId);
+		List<ChangeEvent> undoEvents = undoRedoEvents.getLeft();
+		List<ChangeEvent> redoEvents = undoRedoEvents.getRight();
+		assertEquals(0, redoEvents.size());
+		assertEquals(2, undoEvents.size());
 		
 		// undo
 		assertTrue(m3.undo(modelId, userId));
@@ -75,7 +84,7 @@ public class UndoAwareMolecularModelManagerTest extends OWLToolsTestBasics {
 		
 		// add new type
 		// GO:0001664 ! G-protein coupled receptor binding
-		m3.addType(modelId, bindingId.getKey(), "GO:0001664", userId);
+		m3.addType(modelId, bindingId.getKey(), "GO:0001664", new UndoMetadata(userId));
 		
 		// redo again, should fail
 		assertFalse(m3.redo(modelId, userId));

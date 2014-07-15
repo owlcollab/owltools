@@ -14,25 +14,46 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
+import owltools.gaf.lego.UndoAwareMolecularModelManager.UndoMetadata;
 import owltools.graph.OWLGraphWrapper;
 
 /**
  * Provide undo and redo operations for the {@link MolecularModelManager}.
  */
-public class UndoAwareMolecularModelManager extends MolecularModelManager<String> {
+public class UndoAwareMolecularModelManager extends MolecularModelManager<UndoMetadata> {
 	
 	private final Map<String, UndoRedo> allChanges = new HashMap<String, UndoRedo>();
 	
 	private static class UndoRedo {
 		final Deque<ChangeEvent> undoBuffer = new LinkedList<ChangeEvent>();
 		final Deque<ChangeEvent> redoBuffer = new LinkedList<ChangeEvent>();
+		private UndoMetadata token  = null;
 		
-		void addUndo(List<OWLOntologyChange> changes, String userId) {
-			addUndo(new ChangeEvent(userId, changes, System.currentTimeMillis()));
+		void addUndo(List<OWLOntologyChange> changes, UndoMetadata metadata) {
+			addUndo(new ChangeEvent(metadata.userId, changes, System.currentTimeMillis()), metadata);
 		}
 		
-		void addUndo(ChangeEvent changes) {
-			undoBuffer.push(changes);
+		void addUndo(List<OWLOntologyChange> changes, String userId) {
+			token = null;
+			undoBuffer.push(new ChangeEvent(userId, changes, System.currentTimeMillis()));
+		}
+		
+		void addUndo(ChangeEvent changes, UndoMetadata token) {
+			if (this.token == null || this.token.equals(token) == false) {
+				// new event or different event
+				undoBuffer.push(changes);
+				this.token = token;
+			}
+			else {
+				// append to last event
+				ChangeEvent current = undoBuffer.peek();
+				if (current != null) {
+					current.getChanges().addAll(changes.getChanges());
+				}
+				else {
+					undoBuffer.push(changes);
+				}
+			}
 		}
 		
 		ChangeEvent getUndo() {
@@ -48,6 +69,7 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<String
 		
 		void addRedo(ChangeEvent changes) {
 			redoBuffer.push(changes);
+			this.token = null;
 		}
 		
 		ChangeEvent getRedo() {
@@ -59,6 +81,55 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<String
 		
 		void clearRedo() {
 			redoBuffer.clear();
+		}
+	}
+	
+	public static class UndoMetadata {
+		public final String userId;
+		public final long requestToken;
+		
+		/**
+		 * @param userId
+		 */
+		public UndoMetadata(String userId) {
+			this.userId = userId;
+			this.requestToken = System.currentTimeMillis();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ (int) (requestToken ^ (requestToken >>> 32));
+			result = prime * result
+					+ ((userId == null) ? 0 : userId.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			UndoMetadata other = (UndoMetadata) obj;
+			if (requestToken != other.requestToken) {
+				return false;
+			}
+			if (userId == null) {
+				if (other.userId != null) {
+					return false;
+				}
+			} else if (!userId.equals(other.userId)) {
+				return false;
+			}
+			return true;
 		}
 	}
 	
@@ -77,7 +148,7 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<String
 		 */
 		public ChangeEvent(String userId, List<OWLOntologyChange> changes, long time) {
 			this.userId = userId;
-			this.changes = changes;
+			this.changes = new ArrayList<OWLOntologyChange>(changes);
 			this.time = time;
 		}
 
@@ -99,7 +170,7 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<String
 	}
 
 	@Override
-	protected void addToHistory(String modelId, LegoModelGenerator model, List<OWLOntologyChange> appliedChanges, String metadata) {
+	protected void addToHistory(String modelId, LegoModelGenerator model, List<OWLOntologyChange> appliedChanges, UndoMetadata metadata) {
 		UndoRedo undoRedo;
 		synchronized (allChanges) {
 			undoRedo = allChanges.get(modelId);
