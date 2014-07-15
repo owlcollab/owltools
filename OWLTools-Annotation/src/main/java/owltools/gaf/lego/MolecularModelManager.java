@@ -1,247 +1,62 @@
 package owltools.gaf.lego;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
-import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.owlapi.expression.ParserException;
-import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
-import org.semanticweb.owlapi.io.StringDocumentSource;
-import org.semanticweb.owlapi.model.AddAxiom;
-import org.semanticweb.owlapi.model.AddImport;
-import org.semanticweb.owlapi.model.AddOntologyAnnotation;
-import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
-import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyChangeVisitor;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.model.RemoveAxiom;
-import org.semanticweb.owlapi.model.RemoveImport;
-import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
-import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-import owltools.gaf.GafDocument;
-import owltools.gaf.bioentities.ProteinTools;
-import owltools.gaf.eco.EcoMapper;
-import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
-import owltools.io.CatalogXmlIRIMapper;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
- * Manager object for operations on collections of MolecularModels (aka lego diagrams)
+ * Convenience layer for operations on collections of MolecularModels (aka lego diagrams)
  * 
- * any number of models can be loaded at any time (todo - impose some limit to avoid
- * using too much memory)
- * 
- * each model has a generator, an OWLOntology (containing the set of class assertions)
- * and a reasoner associated with it (todo - test memory requirements)
- * 
- * This manager is designed to be used within a web server. Multiple clients can
+ * This manager is intended to be used within a web server. Multiple clients can
  * contact the same manager instance through services
- *
+ * 
+ * @param <METADATA> 
+ * @see CoreMolecularModelManager
+ * @see FileBasedMolecularModelManager
  */
-public class MolecularModelManager {
+public class MolecularModelManager<METADATA> extends FileBasedMolecularModelManager<METADATA> {
 	
-	private static Logger LOG = Logger.getLogger(MolecularModelManager.class);
-
-
-	OWLGraphWrapper graph;
-	boolean isPrecomputePropertyClassCombinations = false;
-	Map<String, GafDocument> dbToGafdoc = new HashMap<String, GafDocument>();
-	Map<String, LegoModelGenerator> modelMap = new HashMap<String, LegoModelGenerator>();
-	String pathToGafs = "gene-associations";
-	String pathToOWLFiles = "owl-models";
-	String pathToProteinFiles = null;
-	Map<String, String> dbToTaxon = null;
-	OWLOntologyIRIMapper proteinMapper = null;
-	
-	GafObjectsBuilder builder = new GafObjectsBuilder();
-	// WARNING: Do *NOT* switch to functional syntax until the OWL-API has fixed a bug.
-	OWLOntologyFormat ontologyFormat = new ManchesterOWLSyntaxOntologyFormat();
-	Set<IRI> additionalImports;
-	final Set<IRI> obsoleteImports = new HashSet<IRI>();
-
-	// TODO: Temporarily for keeping instances unique (search for "unique" below).
-	static String uniqueTop = Long.toHexString((System.currentTimeMillis()/1000));
-	static long instanceCounter = 0;
-	private static String localUnique(){
-		instanceCounter++;
-		String unique = uniqueTop + String.format("%07d", instanceCounter);
-		return unique;		
-	}
-
-	/**
-	 * Represents the reponse to a requested translation on an
-	 * ontology/model
-	 * 
-	 */
-	public class OWLOperationResponse {
-		OWLAxiomChange change;
-		int changeId;
-		boolean isSuccess = true;
-		boolean isResultsInInconsistency = false;
-		Object modelData = null;
-		List<OWLNamedIndividual> individuals = null;
-		
-		/**
-		 * @param isSuccess
-		 */
-		public OWLOperationResponse(boolean isSuccess) {
-			super();
-			this.isSuccess = isSuccess;
-		}
-		
-		/**
-		 * @param isSuccess
-		 * @param isResultsInInconsistency
-		 */
-		public OWLOperationResponse(boolean isSuccess,
-				boolean isResultsInInconsistency) {
-			super();
-			this.isSuccess = isSuccess;
-			this.isResultsInInconsistency = isResultsInInconsistency;
-		}
-		
-		public OWLOperationResponse(OWLAxiomChange change, boolean isSuccess,
-				boolean isResultsInInconsistency) {
-			super();
-			this.isSuccess = isSuccess;
-			this.isResultsInInconsistency = isResultsInInconsistency;
-			this.change = change;
-		}
-		
-		/**
-		 * @return the isSuccess
-		 */
-		public boolean isSuccess() {
-			return isSuccess;
-		}
-		
-		/**
-		 * @return the isResultsInInconsistency
-		 */
-		public boolean isResultsInInconsistency() {
-			return isResultsInInconsistency;
-		}
-		
-		/**
-		 * @return the modelData
-		 */
-		public Object getModelData() {
-			return modelData;
-		}
-		
-		/**
-		 * @param modelData the modelData to set
-		 */
-		public void setModelData(Object modelData) {
-			this.modelData = modelData;
-		}
-		
-		/**
-		 * @return the individuals
-		 */
-		public List<OWLNamedIndividual> getIndividuals() {
-			return individuals;
-		}
-
-		/**
-		 * @param individuals the individuals to set
-		 */
-		public void setIndividuals(List<OWLNamedIndividual> individuals) {
-			this.individuals = individuals;
-		}
-		
-		
-//		/**
-//		 * Combine two responses together.
-//		 * 
-//		 * @param response
-//		 */
-//		public void mergeIn(OWLOperationResponse toMerge) {
-//
-//			// success and inconsistency dominate false and true respectively.
-//			if( ! toMerge.isSuccess ) this.isSuccess = false;
-//			if( ! toMerge.isResultsInInconsistency() ) this.isResultsInInconsistency = true;
-//			
-//			// Merge model data.
-//			Map<Object, Object> newMap = new HashMap<Object,Object>();
-//			List<Map<Object, Object>> toLoop = this.getModelData(); // add this response
-//			toLoop.addAll(toMerge.getModelData()); // add merging response
-//			for( Map<Object, Object>mergable : toLoop){
-//				// If new, add to new.
-//				if( mergable.containsKey("id") ){
-//					
-//				}
-//			}
-//			
-//			// Merge ID list via Set (no dupes).
-//		    Set<String> set = new HashSet<String>();
-//		    set.addAll(this.getIndividualIds());
-//		    set.addAll(toMerge.getIndividualIds());
-//			this.individualIds = new ArrayList<String>(set);
-//		}
-		
-	}
-
 	public static class UnknownIdentifierException extends Exception {
 
 		// generated
@@ -269,422 +84,49 @@ public class MolecularModelManager {
 	 * @throws OWLOntologyCreationException
 	 */
 	public MolecularModelManager(OWLGraphWrapper graph) throws OWLOntologyCreationException {
-		super();
-		this.graph = graph;
-		init();
-	}
-	/**
-	 * @param ont
-	 * @throws OWLOntologyCreationException
-	 */
-	public MolecularModelManager(OWLOntology ont) throws OWLOntologyCreationException {
-		super();
-		this.graph = new OWLGraphWrapper(ont);
-		init();
+		super(graph);
 	}
 
 	/**
-	 * @throws OWLOntologyCreationException
-	 */
-	protected void init() throws OWLOntologyCreationException {
-		// set default imports
-		additionalImports = new HashSet<IRI>();
-		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/ro.owl"));
-		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
-		additionalImports.add(EcoMapper.ECO_PURL_IRI);
-	}
-
-
-	/**
-	 * @return graph wrapper for core/source ontology
-	 */
-	public OWLGraphWrapper getGraph() {
-		return graph;
-	}
-
-	/**
-	 * @return core/source ontology
-	 */
-	public OWLOntology getOntology() {
-		return graph.getSourceOntology();
-	}
-
-
-	/**
-	 * @return path to gafs direcory
-	 */
-	public String getPathToGafs() {
-		return pathToGafs;
-	}
-	/**
-	 * Can either be an HTTP prefix, or an absolute file path
-	 * 
-	 * @param pathToGafs
-	 */
-	public void setPathToGafs(String pathToGafs) {
-		this.pathToGafs = pathToGafs;
-	}
-	
-	/**
-	 * Note this may move to an implementation-specific subclass in future
-	 * 
-	 * @return path to owl on server
-	 */
-	public String getPathToOWLFiles() {
-		return pathToOWLFiles;
-	}
-	/**
-	 * @param pathToOWLFiles
-	 */
-	public void setPathToOWLFiles(String pathToOWLFiles) {
-		this.pathToOWLFiles = pathToOWLFiles;
-	}
-	
-	/**
-	 * @param pathToProteinFiles
-	 * @throws IOException 
-	 */
-	public synchronized void setPathToProteinFiles(String pathToProteinFiles) throws IOException {
-		setPathToProteinFiles(pathToProteinFiles, "catalog-v001.xml");
-	}
-	
-	/**
-	 * @param pathToProteinFiles
-	 * @param catalogXML
-	 * @throws IOException 
-	 */
-	public synchronized void setPathToProteinFiles(String pathToProteinFiles, String catalogXML) throws IOException {
-		if (proteinMapper != null) {
-			graph.getManager().removeIRIMapper(proteinMapper);
-		}
-		this.pathToProteinFiles = pathToProteinFiles;
-		proteinMapper = new CatalogXmlIRIMapper(new File(pathToProteinFiles, catalogXML));
-		graph.getManager().addIRIMapper(proteinMapper);
-	}
-	
-	public String getPathToProteinFiles() {
-		return pathToProteinFiles;
-	}
-	
-	/**
-	 * @return the dbToTaxon
-	 */
-	public Map<String, String> getDbToTaxon() {
-		return dbToTaxon;
-	}
-	/**
-	 * @param dbToTaxon the dbToTaxon to set
-	 */
-	public void setDbToTaxon(Map<String, String> dbToTaxon) {
-		this.dbToTaxon = dbToTaxon;
-	}
-	/**
-	 * loads/register a Gaf document
-	 * 
-	 * @param db
-	 * @return Gaf document
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
-	public GafDocument loadGaf(String db) throws IOException, URISyntaxException {
-		if (!dbToGafdoc.containsKey(db)) {
-			LOG.info("Loading GAF for db: "+db);
-			GafDocument gafdoc = builder.buildDocument(pathToGafs + "/gene_association." + db + ".gz");
-			dbToGafdoc.put(db, gafdoc);
-		}
-		return dbToGafdoc.get(db);
-	}
-
-	/**
-	 * Loads and caches a GAF document from a specified location
-	 * 
-	 * @param db
-	 * @param gafFile
-	 * @return Gaf document
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
-	public GafDocument loadGaf(String db, File gafFile) throws IOException, URISyntaxException {
-		if (!dbToGafdoc.containsKey(db)) {
-
-			GafDocument gafdoc = builder.buildDocument(gafFile);
-			dbToGafdoc.put(db, gafdoc);
-		}
-		return dbToGafdoc.get(db);
-	}
-
-
-	/**
-	 * @param db
-	 * @return Gaf document for db
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
-	public GafDocument getGaf(String db) throws IOException, URISyntaxException {
-		return loadGaf(db);
-	}
-
-	/**
-	 * Add additional import declarations for any newly generated model.
-	 * 
-	 * @param imports
-	 */
-	public void addImports(Iterable<String> imports) {
-		if (imports != null) {
-			for (String importIRIString : imports) {
-				additionalImports.add(IRI.create(importIRIString));
-			}
-		}
-	}
-	
-	/**
-	 * Mark the given imports as obsolete.
-	 * 
-	 * @param obsoletes
-	 */
-	public void addObsoleteImports(Iterable<String> obsoletes) {
-		if (obsoletes != null) {
-			for (String obsolete : obsoletes) {
-				obsoleteImports.add(IRI.create(obsolete));
-			}
-		}
-	}
-	
-	public Collection<IRI> getImports() {
-		return Collections.unmodifiableCollection(additionalImports);
-	}
-
-	/**
-	 * Generates a new model taking as input a biological process P and a database D.
-	 * The axioms from P and annotations to P from D are used to seed a new model
-	 * 
-	 * See {@link LegoModelGenerator#buildNetwork(OWLClass, java.util.Collection)}
-	 * And also https://docs.google.com/document/d/1TV8Eb9sSvFY-weVZaIfzCxF1qbnmkUaiUhTm9Bs3gRE/edit
-	 * 
-	 * Note the resulting model is uniquely identified by the modeId, which is currently constructed
-	 * as a concatenation of the db and the P id. This means that if there is an existing model by
-	 * this ID it will be overwritten
-	 * 
-	 * @param processCls
-	 * @param db
-	 * @return modelId
-	 * @throws OWLOntologyCreationException
-	 * @throws URISyntaxException 
-	 * @throws IOException 
-	 */
-	public String generateModel(OWLClass processCls, String db) throws OWLOntologyCreationException, IOException, URISyntaxException {
-		// quick check, only generate a model if it does not already exists.
-		final String p = graph.getIdentifier(processCls);
-		String modelId = getModelId(p, db);
-		if (modelMap.containsKey(modelId)) {
-			throw new OWLOntologyCreationException("A model already exists for this process and db: "+modelId);
-		}
-		LOG.info("Generating model for Class: "+p+" and db: "+db);
-		OWLOntology tbox = graph.getSourceOntology();
-		OWLOntology abox = null;
-		LegoModelGenerator model = null;
-		
-		// create empty ontology
-		// use model id as ontology IRI
-		OWLOntologyManager m = graph.getManager();
-		IRI iri = MolecularModelJsonRenderer.getIRI(modelId, graph);
-		try {
-			abox = m.createOntology(iri);
-			
-			// setup model ontology to import the source ontology and other imports
-			createImports(abox, tbox.getOntologyID(), db);
-			
-			// create generator
-			model = new LegoModelGenerator(tbox, abox);
-			
-			model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-			Set<String> seedGenes = new HashSet<String>();
-			// only look for genes if a GAF is available
-			if (db != null) {
-				GafDocument gafdoc = getGaf(db);
-				model.initialize(gafdoc, graph);
-				seedGenes.addAll(model.getGenes(processCls));
-			}
-			model.setContextualizingSuffix(db);
-			model.buildNetwork(p, seedGenes);
-		}
-		catch (OWLOntologyCreationException exception) {
-			if (model != null) {
-				model.dispose();
-			} else if (abox != null) {
-				m.removeOntology(abox);
-			}
-			throw exception;
-		}
-		catch (IOException exception) {
-			if (model != null) {
-				model.dispose();
-			}
-			throw exception;
-		}
-		catch (URISyntaxException exception) {
-			if (model != null) {
-				model.dispose();
-			}
-			throw exception;
-		}
-		modelMap.put(modelId, model);
-		return modelId;
-
-	}
-
-	private void createImports(OWLOntology ont, OWLOntologyID tboxId, String db) throws OWLOntologyCreationException {
-		OWLOntologyManager m = ont.getOWLOntologyManager();
-		OWLDataFactory f = m.getOWLDataFactory();
-		
-		// import T-Box
-		OWLImportsDeclaration tBoxImportDeclaration = f.getOWLImportsDeclaration(tboxId.getOntologyIRI());
-		m.applyChange(new AddImport(ont, tBoxImportDeclaration));
-		
-		// import additional ontologies via IRI
-		for (IRI importIRI : additionalImports) {
-			OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(importIRI);
-			// check that the import ontology is available
-			OWLOntology importOntology = m.getOntology(importIRI);
-			if (importOntology == null) {
-				// only try to load it, if it isn't already loaded
-				try {
-					m.loadOntology(importIRI);
-				} catch (OWLOntologyDocumentAlreadyExistsException e) {
-					// ignore
-				} catch (OWLOntologyAlreadyExistsException e) {
-					// ignore
-				}
-			}
-			m.applyChange(new AddImport(ont, importDeclaration));
-		}
-		
-		// check for protein ontology
-		if (db != null && pathToProteinFiles != null && proteinMapper != null) {
-			String taxonId = null;
-			if (dbToTaxon != null) {
-				taxonId = dbToTaxon.get(db);
-			}
-			if (taxonId == null) {
-				// fallback
-				taxonId = db;
-			}
-			IRI proteinIRI = ProteinTools.createProteinOntologyIRI(taxonId);
-			IRI mapped = proteinMapper.getDocumentIRI(proteinIRI);
-			if (mapped != null) {
-				OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(proteinIRI);
-				m.loadOntology(proteinIRI);
-				m.applyChange(new AddImport(ont, importDeclaration));
-			}
-		}
-	}
-	
-	/**
-	 * wrapper for {@link #generateModel(OWLClass, String)}
+	 * wrapper for {@link #generateModel(OWLClass, String, Object)}
 	 * 
 	 * @param pid
 	 * @param db
+	 * @param metadata 
 	 * @return modelId
 	 * @throws OWLOntologyCreationException
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 * @throws UnknownIdentifierException
 	 */
-	public String generateModel(String pid, String db) throws OWLOntologyCreationException, IOException, URISyntaxException, UnknownIdentifierException {
+	public String generateModel(String pid, String db, METADATA metadata) throws OWLOntologyCreationException, IOException, URISyntaxException, UnknownIdentifierException {
 		OWLClass cls = getClass(pid, graph);
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+pid);
 		}
-		return generateModel(cls, db);
+		return generateModel(cls, db, metadata);
 	}
 
 	/**
-	 * Generates a new model taking as input a database D.
+	 * Given an instance, generate the most specific class instance that classifies
+	 * this instance, and add this as a class to the model ontology
 	 * 
-	 * Note that the resulting model is uniquely identified by the modeId, which is currently constructed
-	 * as a concatenation of the db and a hidden UUID state. This means that in the unlikely case that
-	 * there is an existing model by this ID, it will be overwritten,
-	 * 
-	 * @param db
-	 * @return modelId
-	 * @throws OWLOntologyCreationException
-	 * @throws URISyntaxException 
-	 * @throws IOException 
+	 * @param modelId
+	 * @param individualId
+	 * @param newClassId
+	 * @param metadata
+	 * @return newClassId
+	 * @throws UnknownIdentifierException 
 	 */
-	public String generateBlankModel(String db) throws OWLOntologyCreationException, IOException, URISyntaxException {
-
-		// Create an arbitrary unique ID and add it to the system.
-		String modelId;
-		if (db != null) {
-			modelId = "gomodel:" + db +"-"+ localUnique(); // TODO: another case of our temporary identifiers.
-		}
-		else{
-			modelId = "gomodel:" + localUnique(); // TODO: another case of our temporary identifiers.
-		}
-		if (modelMap.containsKey(modelId)) {
-			throw new OWLOntologyCreationException("A model already exists for this db: "+modelId);
-		}
-		LOG.info("Generating blank model for new modelId: "+modelId);
-
-		// create empty ontology, use model id as ontology IRI
-		final OWLOntologyManager m = graph.getManager();
-		IRI aBoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
-		final OWLOntology tbox = graph.getSourceOntology();
-		OWLOntology abox = null;
-		LegoModelGenerator model = null;
-		try {
-			abox = m.createOntology(aBoxIRI);
-	
-			// add imports to T-Box and additional ontologies via IRI
-			createImports(abox, tbox.getOntologyID(), db);
-			
-			// generate model
-			model = new LegoModelGenerator(tbox, abox);
-			
-			model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-			if (db != null) {
-				GafDocument gafdoc = getGaf(db);
-				model.initialize(gafdoc, graph);
-				model.setContextualizingSuffix(db);
-			}
-		}
-		catch (OWLOntologyCreationException exception) {
-			if (abox != null) {
-				m.removeOntology(abox);
-			}
-			throw exception;
-		}
-		catch (IOException exception) {
-			if (model != null) {
-				model.dispose();
-			}
-			throw exception;
-		}
-		catch (URISyntaxException exception) {
-			if (model != null) {
-				model.dispose();
-			}
-			throw exception;
-		}
-		
-		// add to internal map
-		modelMap.put(modelId, model);
-		return modelId;
+	public String createMostSpecificClass(String modelId, String individualId, String newClassId, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator mod = checkModelId(modelId);
+		OWLIndividual ind = getIndividual(individualId, mod);
+		OWLClassExpression msce = mod.getMostSpecificClassExpression((OWLNamedIndividual) ind);
+		OWLClass c = getClass(newClassId, mod);
+		addAxiom(modelId, mod, mod.getOWLDataFactory().getOWLEquivalentClassesAxiom(msce, c), true, metadata);
+		return newClassId;
 	}
-	
-	public String generateDerivedModel(String sourceModelId) throws OWLOntologyCreationException, IOException, URISyntaxException {
-		LOG.info("Generating derived model from "+sourceModelId);
-		LegoModelGenerator sourceModel = this.getModel(sourceModelId); 
-		String modelId = this.generateBlankModel(null);
-		LegoModelGenerator model = this.getModel(modelId);
-		// TODO - populate, adding metadata
-		Set<OWLNamedIndividual> sourceInds = this.getIndividuals(sourceModelId);
-		for (OWLNamedIndividual sourceInd : sourceInds) {
-			// clone sourceInd
-		}
-		return modelId;
-	}
-	
+
 	/**
 	 * Adds a process individual (and inferred individuals) to a model
 	 * 
@@ -704,27 +146,6 @@ public class MolecularModelManager {
 	}
 
 	/**
-	 * 
-	 * @param modelId
-	 * @return all individuals in the model
-	 */
-	public Set<OWLNamedIndividual> getIndividuals(String modelId) {
-		LegoModelGenerator mod = getModel(modelId);
-		return mod.getAboxOntology().getIndividualsInSignature();
-	}
-
-	
-	/**
-	 * @param modelId
-	 * @param q
-	 * @return all individuals in the model that satisfy q
-	 */
-	public Set<OWLNamedIndividual> getIndividualsByQuery(String modelId, OWLClassExpression q) {
-		LegoModelGenerator mod = getModel(modelId);
-		return mod.getReasoner().getInstances(q, false).getFlattened();
-	}
-
-	/**
 	 * @param modelId
 	 * @param qs
 	 * @return all individuals in the model that satisfy q
@@ -737,119 +158,24 @@ public class MolecularModelManager {
 	}
 
 	/**
-	 * Only use for testing.
-	 * 
-	 * @param modelId
-	 * @return List of key-val pairs ready for Gson
-	 */
-	List<Map<Object, Object>> getIndividualObjects(String modelId) {
-		LegoModelGenerator mod = getModel(modelId);
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
-		OWLOntology ont = mod.getAboxOntology();
-		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
-		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
-			objs.add(renderer.renderObject(i));
-		}
-		return objs;
-	}
-	
-	/**
-	 * @param modelId
-	 * @return Map object ready for Gson
-	 */
-	public Map<Object, Object> getModelObject(String modelId) {
-		LegoModelGenerator mod = getModel(modelId);
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
-		return renderer.renderModel();
-	}
-
-	/**
-	 * Given an instance, generate the most specific class instance that classifies
-	 * this instance, and add this as a class to the model ontology
-	 * 
-	 * @param modelId
-	 * @param individualId
-	 * @param newClassId
-	 * @return newClassId
-	 */
-	public String createMostSpecificClass(String modelId, String individualId, String newClassId) {
-		LegoModelGenerator mod = getModel(modelId);
-		OWLIndividual ind = getIndividual(individualId, mod);
-		OWLClassExpression msce = mod.getMostSpecificClassExpression((OWLNamedIndividual) ind);
-		OWLClass c = getClass(newClassId, mod);
-		addAxiom(mod, mod.getOWLDataFactory().getOWLEquivalentClassesAxiom(msce, c), true);
-		return newClassId;
-	}
-
-	/**
-	 * @param modelId
-	 * @param c
-	 * @return id of created individual
-	 */
-	public OWLOperationResponse createIndividual(String modelId, OWLClass c) {
-		LegoModelGenerator model = getModel(modelId);
-		OWLNamedIndividual individual = createIndividual(model, modelId, c, null, true);
-		
-		return createResponse(true, model, individual);
-	}
-	
-	private OWLOperationResponse createResponse(boolean success, LegoModelGenerator model, OWLNamedIndividual...individuals) {
-		OWLOperationResponse resp = new OWLOperationResponse(true, model.getReasoner().isConsistent());
-		resp.setIndividuals(Arrays.asList(individuals));
-		return resp;
-	}
-	
-	/*
-	 * TODO - finalize identifier policy. Currently concatenates model and class IDs
-	 */
-	private OWLNamedIndividual createIndividual(LegoModelGenerator model, String modelId, OWLClass c, Set<OWLAnnotation> annotations, boolean flushReasoner) {
-		LOG.info("Creating individual of type: "+c);
-		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
-		String cid = graph.getIdentifier(c).replaceAll(":","-"); // e.g. GO-0123456
-
-		// Make something unique to tag onto the generated IDs.
-		String unique = localUnique();
-		String iid = modelId +"-"+ cid +"-"+ unique; // TODO - unique-ify in a way that makes Chris happy
-		LOG.info("  new OD: "+iid);
-
-		IRI iri = MolecularModelJsonRenderer.getIRI(iid, graph);
-		OWLDataFactory f = model.getOWLDataFactory();
-		OWLNamedIndividual i = f.getOWLNamedIndividual(iri);
-		
-		// create axioms
-		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-		// declaration
-		axioms.add(f.getOWLDeclarationAxiom(i));
-		// annotation assertions
-		if(annotations != null) {
-			for(OWLAnnotation annotation : annotations) {
-				axioms.add(f.getOWLAnnotationAssertionAxiom(iri, annotation));
-			}
-		}
-		
-		addAxioms(model, axioms, flushReasoner);
-		addType(model, i, c, flushReasoner);
-		return i;
-	}
-	
-	/**
-	 * Shortcut for {@link #createIndividual(String, OWLClass)}
+	 * Shortcut for {@link CoreMolecularModelManager#createIndividual}
 	 * 
 	 * @param modelId
 	 * @param cid
 	 * @param annotations
-	 * @return id of created individual
+	 * @param metadata
+	 * @return id and individual
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse createIndividual(String modelId, String cid, Collection<Pair<String, String>> annotations) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public Pair<String, OWLNamedIndividual> createIndividual(String modelId, String cid, Collection<Pair<String, String>> annotations, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLClass cls = getClass(cid, model);
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
 		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model);
-		OWLNamedIndividual individual = createIndividual(model, modelId, cls, owlAnnotations , true);
-		return createResponse(true, model, individual);
+		OWLNamedIndividual individual = createIndividual(modelId, model, cls, owlAnnotations , true, metadata);
+		return Pair.of(MolecularModelJsonRenderer.getId(individual.getIRI()), individual);
 	}
 	
 	private Set<OWLAnnotation> createAnnotations(Collection<Pair<String, String>> pairs, LegoModelGenerator model) throws UnknownIdentifierException {
@@ -932,46 +258,28 @@ public class MolecularModelManager {
 	}
 	
 	/**
-	 * Shortcut for {@link #createIndividual(String, OWLClass)}
+	 * Shortcut for {@link CoreMolecularModelManager#createIndividual}.
 	 * 
 	 * @param modelId
 	 * @param cid
 	 * @param annotations
-	 * @return id of created individual
+	 * @param metadata
+	 * @return id and created individual
 	 * @throws UnknownIdentifierException 
 	 */
-	public Pair<String, OWLNamedIndividual> createIndividualNonReasoning(String modelId, String cid, Collection<Pair<String, String>> annotations) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public Pair<String, OWLNamedIndividual> createIndividualNonReasoning(String modelId, String cid, Collection<Pair<String, String>> annotations, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLClass cls = getClass(cid, model);
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
 		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model);
-		OWLNamedIndividual i = createIndividual(model, modelId, cls, owlAnnotations, false);
+		OWLNamedIndividual i = createIndividual(modelId, model, cls, owlAnnotations, false, metadata);
 		return Pair.of(MolecularModelJsonRenderer.getId(i.getIRI()), i);
 	}
 
-	/**
-	 * Get the individual information for return.
-	 * 
-	 * @param modelId
-	 * @param iid
-	 * @return response concerning individual data
-	 * @throws UnknownIdentifierException
-	 */
-	public OWLOperationResponse getIndividualById(String modelId, String iid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
-		OWLNamedIndividual i = getIndividual(iid, model);
-		if (i == null) {
-			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
-		}
-		OWLOperationResponse resp = new OWLOperationResponse(true, false); // no op, so this
-		addIndividualsData(resp, model, i);
-		return resp;
-	}
-	
 	public OWLNamedIndividual getNamedIndividual(String modelId, String iid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -984,202 +292,70 @@ public class MolecularModelManager {
 	 * 
 	 * @param modelId
 	 * @param iid
-	 * @return response into
+	 * @param metadata
 	 * @throws UnknownIdentifierException
 	 */
-	public OWLOperationResponse deleteIndividual(String modelId, String iid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public void deleteIndividual(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		deleteIndividual(model, i, true);
-		return createResponse(true, model);
+		deleteIndividual(modelId, model, i, true, metadata);
 	}
 	
-	/**
-	 * Deletes an individual
-	 * 
-	 * @param modelId
-	 * @param i
-	 * @return response into
-	 */
-	public OWLOperationResponse deleteIndividual(String modelId, OWLNamedIndividual i) {
-		LegoModelGenerator model = getModel(modelId);
-		deleteIndividual(model, i, true);
-		return createResponse(true, model);
-	}
-	
-	/**
-	 * Deletes an individual
-	 * 
-	 * @param model
-	 * @param i
-	 * @param flushReasoner
-	 */
-	private void deleteIndividual(LegoModelGenerator model, OWLNamedIndividual i, boolean flushReasoner) {
-		Set<OWLAxiom> toRemoveAxioms = new HashSet<OWLAxiom>();
-		
-		OWLOntology ont = model.getAboxOntology();
-		
-		// Declaration axiom
-		toRemoveAxioms.add(model.getOWLDataFactory().getOWLDeclarationAxiom(i));
-		
-		// Logic axiom
-		for (OWLAxiom ax : ont.getAxioms(i)) {
-			toRemoveAxioms.add(ax);
-		}
-		
-		// OWLObjectPropertyAssertionAxiom
-		Set<OWLObjectPropertyAssertionAxiom> allAssertions = ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
-		for (OWLObjectPropertyAssertionAxiom ax : allAssertions) {
-			if (toRemoveAxioms.contains(ax) == false) {
-				Set<OWLNamedIndividual> currentIndividuals = ax.getIndividualsInSignature();
-				if (currentIndividuals.contains(i)) {
-					toRemoveAxioms.add(ax);
-				}
-			}
-		}
-		// OWLAnnotationAssertionAxiom
-		toRemoveAxioms.addAll(ont.getAnnotationAssertionAxioms(i.getIRI()));
-		
-		removeAxioms(model, toRemoveAxioms, flushReasoner);
-	}
-	
-	public void addAnnotations(String modelId, Collection<Pair<String, String>> pairs)
+	public void addAnnotations(String modelId, Collection<Pair<String, String>> pairs, METADATA metadata)
 			throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+		LegoModelGenerator model = checkModelId(modelId);
 		if (pairs != null) {
 			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
-			addAnnotations(model, annotations);
+			addAnnotations(modelId, model, annotations, metadata);
 		}
 	}
 	
 	public OWLNamedIndividual addAnnotations(String modelId, String iid, 
-			Collection<Pair<String, String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+			Collection<Pair<String, String>> pairs, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
 		if (pairs != null) {
 			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
-			addAnnotations(model, i.getIRI(), annotations);
+			addAnnotations(modelId, model, i.getIRI(), annotations, metadata);
 		}
 		return i;
 	}
 	
-	public void addAnnotations(String modelId, OWLNamedIndividual i, Collection<OWLAnnotation> annotations) {
-		LegoModelGenerator model = getModel(modelId);
-		addAnnotations(model, i.getIRI(), annotations);
-	}
-	
-	private void addAnnotations(LegoModelGenerator model, IRI subject, Collection<OWLAnnotation> annotations) {
-		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-		OWLDataFactory f = model.getOWLDataFactory();
-		for (OWLAnnotation annotation : annotations) {
-			axioms.add(f.getOWLAnnotationAssertionAxiom(subject, annotation));
-		}
-		addAxioms(model, axioms, false);
-	}
-	
-	private void addAnnotations(LegoModelGenerator model, Collection<OWLAnnotation> annotations) {
-		OWLOntology aBox = model.getAboxOntology();
-		OWLOntologyManager manager = aBox.getOWLOntologyManager();
-		for (OWLAnnotation annotation : annotations) {
-			AddOntologyAnnotation change = new AddOntologyAnnotation(aBox, annotation);
-			manager.applyChange(change);
-		}
-	}
-
 	public OWLNamedIndividual removeAnnotations(String modelId, String iid,
-			Collection<Pair<String, String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+			Collection<Pair<String, String>> pairs, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
 		if (pairs != null) {
 			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
-			removeAnnotations(model, i.getIRI(), annotations);
+			removeAnnotations(modelId, model, i.getIRI(), annotations, metadata);
 		}
 		return i;
 	}
 	
-	public void removeAnnotations(String modelId, OWLNamedIndividual i, Collection<OWLAnnotation> annotations) {
-		LegoModelGenerator model = getModel(modelId);
-		removeAnnotations(model, i.getIRI(), annotations);
-	}
-	
-	private void removeAnnotations(LegoModelGenerator model, IRI subject, Collection<OWLAnnotation> annotations) {
-		OWLOntology ont = model.getAboxOntology();
-		Set<OWLAxiom> toRemove = new HashSet<OWLAxiom>();
-		Set<OWLAnnotationAssertionAxiom> candidates = ont.getAnnotationAssertionAxioms(subject);
-		for (OWLAnnotationAssertionAxiom axiom : candidates) {
-			OWLAnnotation annotation = axiom.getAnnotation();
-			if (annotations.contains(annotation)) {
-				toRemove.add(axiom);
-			}
-		}
-		removeAxioms(model, toRemove, false);
-	}
-
-	public void removeAnnotations(String modelId, Collection<Pair<String, String>> pairs)
+	public void removeAnnotations(String modelId, Collection<Pair<String, String>> pairs, METADATA metadata)
 			throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+		LegoModelGenerator model = checkModelId(modelId);
 		if (pairs != null) {
 			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
-			removeAnnotations(model, annotations);
+			removeAnnotations(modelId, model, annotations, metadata);
 		}
 	}
 	
-	private void removeAnnotations(LegoModelGenerator model, Collection<OWLAnnotation> annotations) {
-		OWLOntology aBox = model.getAboxOntology();
-		OWLOntologyManager manager = aBox.getOWLOntologyManager();
-		for (OWLAnnotation annotation : annotations) {
-			RemoveOntologyAnnotation change = new RemoveOntologyAnnotation(aBox, annotation);
-			manager.applyChange(change);
-		}
-	}
-	
-	/**
-	 * Fetches a model by its Id
-	 * 
-	 * @param id
-	 * @return wrapped model
-	 */
-	public LegoModelGenerator getModel(String id)  {
-		if (!modelMap.containsKey(id)) {
-			try {
-				loadModel(id, false);
-			} catch (OWLOntologyCreationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return modelMap.get(id);
-	}
-	/**
-	 * @param id
-	 */
-	public void unlinkModel(String id) {
-		LegoModelGenerator model = modelMap.get(id);
-		model.dispose();
-		modelMap.remove(id);
-	}
 	/**
 	 * @param id
 	 */
 	public void deleteModel(String id) {
 		// TODO - retrieve from persistent store
 		modelMap.remove(id);
-	}
-	
-	/**
-	 * @return ids for all loaded models
-	 */
-	public Set<String> getModelIds() {
-		return modelMap.keySet();
 	}
 	
 	public Set<String> searchModels(Collection<String> ids) throws IOException {
@@ -1210,197 +386,20 @@ public class MolecularModelManager {
 	}
 	
 	/**
-	 * internal method to cleanup this instance
-	 */
-	public void dispose() {
-		Set<String> ids = new HashSet<String>(getModelIds());
-		for (String id : ids) {
-			unlinkModel(id);
-		}
-	}
-
-	/**
-	 * Save a model to disk.
-	 * 
-	 * @param modelId 
-	 * @throws OWLOntologyStorageException 
-	 * @throws OWLOntologyCreationException 
-	 * @throws IOException
-	 * @throws UnknownIdentifierException
-	 * 
-	 * @Deprecated use {@link #saveModel(String, Collection)} instead.
-	 */
-	@Deprecated
-	public void saveModel(String modelId) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
-		saveModel(modelId, null);
-	}
-	
-	/**
 	 * Save a model to disk.
 	 * 
 	 * @param modelId 
 	 * @param annotations 
+	 * @param metadata
 	 *
 	 * @throws OWLOntologyStorageException 
 	 * @throws OWLOntologyCreationException 
 	 * @throws IOException
 	 * @throws UnknownIdentifierException
 	 */
-	public void saveModel(String modelId, Collection<Pair<String, String>> annotations) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
-		// TODO - delegate to a bridge object, allow different impls (triplestore, filesystem, etc)
-		final LegoModelGenerator m = getModel(modelId);
-		if (m == null) {
-			throw new UnknownIdentifierException("Could not find a individual for id: "+modelId);
-		}
-		final OWLOntology ont = m.getAboxOntology();
-		final OWLOntologyManager manager = ont.getOWLOntologyManager();
-		
-		String file = getPathToModelOWL(modelId);
-		// prelimiary checks for the target file
-		File finalFile = new File(file).getCanonicalFile();
-		if (finalFile.exists()) {
-			if (finalFile.isFile() == false) {
-				throw new IOException("For modelId: '"+modelId+"', the resulting path is not a file: "+finalFile.getAbsolutePath());
-			}
-			if (finalFile.canWrite() == false) {
-				throw new IOException("For modelId: '"+modelId+"', Cannot write to the file: "+finalFile.getAbsolutePath());
-			}
-		}
-		else {
-			File targetFolder = finalFile.getParentFile();
-			FileUtils.forceMkdir(targetFolder);
-		}
-		File tempFile = null;
-		try {
-			// create tempFile
-			tempFile = File.createTempFile(modelId, ".owl");
-		
-			// write to a temp file
-			synchronized (ont) {
-				saveToFile(ont, manager, tempFile, annotations);	
-			}
-			
-			// copy temp file to the finalFile
-			FileUtils.copyFile(tempFile, finalFile);
-		}
-		finally {
-			// delete temp file
-			FileUtils.deleteQuietly(tempFile);
-		}
-	}
-	/**
-	 * @param ont
-	 * @param manager
-	 * @param outfile
-	 * @param annotations 
-	 * @throws OWLOntologyStorageException
-	 */
-	private void saveToFile(final OWLOntology ont, final OWLOntologyManager manager,
-			final File outfile, final Collection<Pair<String,String>> annotations)
-			throws OWLOntologyStorageException {
-		// check that the annotations contain relevant meta data
-		final Set<OWLAxiom> metadataAxioms = new HashSet<OWLAxiom>();
-		if (annotations != null) {
-//			for (Pair<String,String> pair : annotations) {
-				// TODO saved by
-//			}
-		}
-		// TODO save date?
-		
-		List<OWLOntologyChange> changes = null;
-		final IRI outfileIRI = IRI.create(outfile);
-		try {
-			if (metadataAxioms.isEmpty() == false) {
-				changes = manager.addAxioms(ont, metadataAxioms);
-			}
-			manager.saveOntology(ont, ontologyFormat, outfileIRI);
-		}
-		finally {
-			if (changes != null) {
-				List<OWLOntologyChange> invertedChanges = invertChanges(changes);
-				if (invertedChanges != null && !invertedChanges.isEmpty()) {
-					manager.applyChanges(invertedChanges);
-				}
-			}
-		}
-	}
-	
-	private List<OWLOntologyChange> invertChanges(List<OWLOntologyChange> changes) {
-		if (changes == null || changes.isEmpty()) {
-			return Collections.emptyList();
-		}
-		final List<OWLOntologyChange> invertedChanges = new ArrayList<OWLOntologyChange>(changes.size());
-		for (OWLOntologyChange change : changes) {
-			change.accept(new OWLOntologyChangeVisitor() {
-
-				@Override
-				public void visit(RemoveOntologyAnnotation change) {
-					invertedChanges.add(new AddOntologyAnnotation(change.getOntology(), change.getAnnotation()));
-
-				}
-
-				@Override
-				public void visit(AddOntologyAnnotation change) {
-					invertedChanges.add(new RemoveOntologyAnnotation(change.getOntology(), change.getAnnotation()));
-				}
-
-				@Override
-				public void visit(RemoveImport change) {
-					invertedChanges.add(new AddImport(change.getOntology(), change.getImportDeclaration()));
-				}
-
-				@Override
-				public void visit(AddImport change) {
-					invertedChanges.add(new RemoveImport(change.getOntology(), change.getImportDeclaration()));
-				}
-
-				@Override
-				public void visit(SetOntologyID change) {
-					// do nothing, it's not an invertible action
-				}
-
-				@Override
-				public void visit(RemoveAxiom change) {
-					invertedChanges.add(new AddAxiom(change.getOntology(), change.getAxiom()));
-				}
-
-				@Override
-				public void visit(AddAxiom change) {
-					invertedChanges.add(new RemoveAxiom(change.getOntology(), change.getAxiom()));
-				}
-			});
-		}
-		return invertedChanges;
-	}
-	
-	/**
-	 * Save all models to disk.
-	 * 
-	 * @throws OWLOntologyStorageException
-	 * @throws OWLOntologyCreationException
-	 * @throws IOException 
-	 * @throws UnknownIdentifierException
-	 * 
-	 * @see #saveAllModels(Collection)
-	 */
-	public void saveAllModels() throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
-		saveAllModels(null);
-	}
-	
-	/**
-	 * Save all models to disk. The optional annotations may be used to set saved_by and other meta data. 
-	 * 
-	 * @param annotations
-	 * 
-	 * @throws OWLOntologyStorageException
-	 * @throws OWLOntologyCreationException
-	 * @throws IOException 
-	 * @throws UnknownIdentifierException
-	 */
-	public void saveAllModels(Collection<Pair<String, String>> annotations) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
-		for (String modelId : modelMap.keySet()) {
-			saveModel(modelId, annotations);
-		}
+	public void saveModel(String modelId, Collection<Pair<String, String>> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
+		LegoModelGenerator m = checkModelId(modelId);
+		saveModel(modelId, m , annotations, metadata);
 	}
 	
 	/**
@@ -1409,239 +408,25 @@ public class MolecularModelManager {
 	 * @param modelId
 	 * @return modelContent
 	 * @throws OWLOntologyStorageException
+	 * @throws UnknownIdentifierException 
 	 */
-	public String exportModel(String modelId) throws OWLOntologyStorageException {
-		return exportModel(modelId, ontologyFormat);
+	public String exportModel(String modelId) throws OWLOntologyStorageException, UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
+		return exportModel(modelId, model);
 	}
 	
 	/**
-	 * Export the ABox for the given modelId in the given ontology format.<br>
-	 * Warning: The mapping from String to {@link OWLOntologyFormat} does not map every format!
-	 * 
 	 * @param modelId
-	 * @param format
-	 * @return modelContent
-	 * @throws OWLOntologyStorageException
+	 * @return Map object ready for Gson
+	 * @throws UnknownIdentifierException
 	 */
-	public String exportModel(String modelId, String format) throws OWLOntologyStorageException {
-		OWLOntologyFormat ontologyFormat = getOWLOntologyFormat(format);
-		if (ontologyFormat == null) {
-			ontologyFormat = this.ontologyFormat;
-		}
-		return exportModel(modelId, ontologyFormat);
-	}
-	
-	/**
-	 * Export the ABox, will try to set the ontologyID to the given modelId (to
-	 * ensure import assumptions are met)
-	 * 
-	 * @param modelId
-	 * @param ontologyFormat
-	 * @return modelContent
-	 * @throws OWLOntologyStorageException
-	 */
-	public String exportModel(String modelId, OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException {
-		final LegoModelGenerator model = getModel(modelId);
-		final OWLOntology aBox = model.getAboxOntology();
-		final OWLOntologyManager manager = aBox.getOWLOntologyManager();
-		
-		// make sure the exported ontology has an ontologyId and that it maps to the modelId
-		final IRI expectedABoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
-		OWLOntologyID ontologyID = aBox.getOntologyID();
-		if (ontologyID == null) {
-			manager.applyChange(new SetOntologyID(aBox, expectedABoxIRI));
-		}
-		else {
-			IRI currentABoxIRI = ontologyID.getOntologyIRI();
-			if (expectedABoxIRI.equals(currentABoxIRI) == false) {
-				ontologyID = new OWLOntologyID(expectedABoxIRI, ontologyID.getVersionIRI());
-				manager.applyChange(new SetOntologyID(aBox, ontologyID));
-			}
-		}
-
-		// write the model into a buffer
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		if (ontologyFormat != null) {
-			manager.saveOntology(aBox, ontologyFormat, outputStream);
-		}
-		else {
-			manager.saveOntology(aBox, outputStream);
-		}
-		
-		// extract the string from the buffer
-		String modelString = outputStream.toString();
-		return modelString;
-	}
-	
-	private OWLOntologyFormat getOWLOntologyFormat(String fmt) {
-		OWLOntologyFormat ofmt = null;
-		if (fmt != null) {
-			fmt = fmt.toLowerCase();
-			if (fmt.equals("rdfxml"))
-				ofmt = new RDFXMLOntologyFormat();
-			else if (fmt.equals("owl"))
-				ofmt = new RDFXMLOntologyFormat();
-			else if (fmt.equals("rdf"))
-				ofmt = new RDFXMLOntologyFormat();
-			else if (fmt.equals("owx"))
-				ofmt = new OWLXMLOntologyFormat();
-			else if (fmt.equals("owf"))
-				ofmt = new OWLFunctionalSyntaxOntologyFormat();
-			else if (fmt.equals("owm"))
-				ofmt = new ManchesterOWLSyntaxOntologyFormat();
-		}
-		return ofmt;
-	}
-	
-	/**
-	 *  Try to load (or replace) a model with the given ontology. It is expected
-	 * that the content is an A-Box ontology, which imports the T-BOX. Also the
-	 * ontology ID is used to extract the modelId.<br>
-	 * <br>
-	 * This method will currently <b>NOT<b> work due to a bug in the OWL-API.
-	 * The functional syntax parser does not properly report the exceptions and
-	 * will return an ontology with an wrong ontology ID!
-	 * 
-	 * @param modelData
-	 * @return modelId
-	 * @throws OWLOntologyCreationException
-	 */
-	public String importModel(String modelData) throws OWLOntologyCreationException {
-		// load data from String
-		final OWLOntologyManager manager = graph.getManager();
-		final OWLOntologyDocumentSource documentSource = new StringDocumentSource(modelData);
-		OWLOntology modelOntology;
-		try {
-			modelOntology = manager.loadOntologyFromOntologyDocument(documentSource);
-		}
-		catch (OWLOntologyAlreadyExistsException e) {
-			// exception is thrown if there is an ontology with the same ID already in memory 
-			OWLOntologyID id = e.getOntologyID();
-			String existingModelId = MolecularModelJsonRenderer.getId(id.getOntologyIRI());
-
-			// remove the existing memory model
-			unlinkModel(existingModelId);
-
-			// try loading the import version (again)
-			modelOntology = manager.loadOntologyFromOntologyDocument(documentSource);
-		}
-		
-		// try to extract modelId
-		String modelId = null;
-		OWLOntologyID ontologyId = modelOntology.getOntologyID();
-		if (ontologyId != null) {
-			IRI iri = ontologyId.getOntologyIRI();
-			if (iri != null) {
-				modelId = MolecularModelJsonRenderer.getId(iri);
-			}
-		}
-		if (modelId == null) {
-			throw new OWLOntologyCreationException("Could not extract the modelId from the given model");
-		}
-		// paranoia check
-		LegoModelGenerator existingModel = modelMap.get(modelId);
-		if (existingModel != null) {
-			unlinkModel(modelId);
-		}
-		
-		// add to internal model
-		LegoModelGenerator newModel = addModel(modelId, modelOntology);
-		
-		// update imports
-		updateImports(newModel);
-		
-		return modelId;
-	}
-	
-	/*
-	 * look for all owl files in the give model folder.
-	 */
-	private Set<String> getOWLFilesFromPath(String pathTo) {
-		Set<String> allModelIds = new HashSet<String>();
-		File modelFolder = new File(pathTo);
-		File[] modelFiles = modelFolder.listFiles(new FilenameFilter() {
-			
-			@Override
-			public boolean accept(File dir, String name) {
-				if (name.endsWith(".owl")) {
-					return true;
-				}
-				return false;
-			}
-		});
-		for (File modelFile : modelFiles) {
-			String modelFileName = modelFile.getName();
-			String modelId = FilenameUtils.removeExtension(modelFileName);
-			allModelIds.add(modelId);
-		}
-		return allModelIds;
-	}
-		
-	/**
-	 * Retrieve a collection of all file/stored model ids found in the repo.<br>
-	 * Note: Models may not be loaded at this point.
-	 * 
-	 * @return set of modelids.
-	 * @throws IOException
-	 */
-	public Set<String> getStoredModelIds() throws IOException {
-		return getOWLFilesFromPath(this.pathToOWLFiles);
-	}
-	
-	/**
-	 * Retrieve a collection of all model ids currently in memory.<br>
-	 * 
-	 * @return set of modelids.
-	 * @throws IOException
-	 */
-	public Set<String> getCurrentModelIds() throws IOException {
-		Set<String> allModelIds = new HashSet<String>();
-		// add all model ids currently in memory
-		allModelIds.addAll(modelMap.keySet());
-		return allModelIds;
-	}
-
-	/**
-	 * Retrieve a collection of all available model ids.<br>
-	 * Note: Models may not be loaded at this point.
-	 * 
-	 * @return set of modelids.
-	 * @throws IOException
-	 */
-	public Set<String> getAvailableModelIds() throws IOException {
-		Set<String> allModelIds = new HashSet<String>();
-		allModelIds.addAll(this.getStoredModelIds());
-		allModelIds.addAll(this.getCurrentModelIds());
-		return allModelIds;
-	}
-	
-	// TODO - ensure load/save are synchronized
-	protected void loadModel(String modelId, boolean isOverride) throws OWLOntologyCreationException {
-		LOG.info("Load model: "+modelId+" from file");
-		if (modelMap.containsKey(modelId)) {
-			if (!isOverride) {
-				throw new OWLOntologyCreationException("Model already exists: "+modelId);
-			}
-			unlinkModel(modelId);
-		}
-		String file = getPathToModelOWL(modelId);
-		IRI sourceIRI = IRI.create(new File(file));
-		OWLOntology abox = graph.getManager().loadOntologyFromOntologyDocument(sourceIRI);
-		LegoModelGenerator model = addModel(modelId, abox);
-		updateImports(model);
-	}
-
-	private LegoModelGenerator addModel(String modelId, OWLOntology abox) throws OWLOntologyCreationException {
-		OWLOntology tbox = graph.getSourceOntology();
-		LegoModelGenerator m = new LegoModelGenerator(tbox, abox);
-		modelMap.put(modelId, m);
-		return m;
+	public Map<Object, Object> getModelObject(String modelId) throws UnknownIdentifierException {
+		LegoModelGenerator mod = checkModelId(modelId);
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
+		return renderer.renderModel();
 	}
 
 	
-	private String getPathToModelOWL(String modelId) {
-		return pathToOWLFiles + "/" + modelId + ".owl";
-	}
 	private OWLNamedIndividual getIndividual(String indId, LegoModelGenerator model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(indId, graph);
@@ -1655,6 +440,7 @@ public class MolecularModelManager {
 		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
 		return graph.getOWLClass(iri);
 	}
+	@Deprecated
 	private OWLClass getGeneClass(String cid, LegoModelGenerator model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
@@ -1665,6 +451,14 @@ public class MolecularModelManager {
 		IRI iri = MolecularModelJsonRenderer.getIRI(pid, graph);
 		return graph.getOWLObjectProperty(iri);
 	}
+	
+	LegoModelGenerator checkModelId(String modelId) throws UnknownIdentifierException {
+		LegoModelGenerator model = getModel(modelId);
+		if (model == null) {
+			throw new UnknownIdentifierException("Could not find a model for id: "+modelId);
+		}
+		return model;
+	}
 
 	private OWLObjectPropertyExpression getObjectProperty(OBOUpperVocabulary vocabElement,
 			LegoModelGenerator model) {
@@ -1672,70 +466,16 @@ public class MolecularModelManager {
 	}
 
 	/**
-	 * 
-	 * @param modelId
-	 * @return true if the ontology formed by the specified model is inconsistent
-	 */
-	public boolean isConsistent(String modelId) {
-		LegoModelGenerator model = getModel(modelId);
-		// TODO - is it scalable to have each model have its own reasoner?
-		// may make more sense to have a single reasoner instance operating over entire kb;
-		// this would mean the entire kb should be kept consistent - an inconsistency in one
-		// model would mean the entire kb is inconsistent
-		return model.getReasoner().isConsistent();
-	}
-
-	/**
-	 * @param modelId
-	 * @return data factory for the specified model
-	 */
-	public OWLDataFactory getOWLDataFactory(String modelId) {
-		LegoModelGenerator model = getModel(modelId);
-		return model.getOWLDataFactory();
-	}
-
-	protected OWLOntologyManager getOWLOntologyManager(String modelId) {
-		LegoModelGenerator model = getModel(modelId);
-		return model.getAboxOntology().getOWLOntologyManager();
-	}
-
-	private void addIndividualsData(OWLOperationResponse resp, LegoModelGenerator mod, OWLIndividual...individuals) {
-		List<OWLNamedIndividual> individualIds = new ArrayList<OWLNamedIndividual>();
-		for (OWLIndividual i : individuals) {
-			if (i instanceof OWLNamedIndividual) {
-				individualIds.add((OWLNamedIndividual)i);
-			}
-		}
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
-		Map<Object, Object> map = renderer.renderIndividuals(individualIds);
-		resp.setModelData(map);
-		resp.setIndividuals(individualIds);
-	}
-	
-	/**
-	 * Adds ClassAssertion(c,i) to specified model
-	 * 
-	 * @param modelId
-	 * @param i
-	 * @param c
-	 * @return response info
-	 */
-	public OWLOperationResponse addType(String modelId, OWLNamedIndividual i, OWLClass c) {
-		LegoModelGenerator model = getModel(modelId);
-		addType(model, i, c, true);
-		return createResponse(true, model, i);
-	}
-	/**
-	 * Convenience wrapper for {@link #addType(String, OWLNamedIndividual, OWLClass)}
+	 * Convenience wrapper for {@link CoreMolecularModelManager#addType}
 	 * 
 	 * @param modelId
 	 * @param iid
 	 * @param cid
-	 * @return response info
+	 * @param metadata
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse addType(String modelId, String iid, String cid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public void addType(String modelId, String iid, String cid, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -1744,75 +484,40 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		addType(model, individual, cls, true);
-		return createResponse(true, model, individual);
+		addType(modelId, model, individual, cls, true, metadata);
 	}
 	
 	/**
 	 * @param modelId
 	 * @param iid
 	 * @param clsExp
+	 * @param metadata
 	 * @return individual
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLNamedIndividual addTypeNonReasoning(String modelId, String iid, OWLClassExpression clsExp) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public OWLNamedIndividual addTypeNonReasoning(String modelId, String iid, OWLClassExpression clsExp, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		addType(model, individual, clsExp, false);
+		addType(modelId, model, individual, clsExp, false, metadata);
 		return individual;
 	}
 	
 	/**
-	 * Adds ClassAssertion(c,i) to specified model
-	 * 
-	 * @param model
-	 * @param i
-	 * @param c
-	 * @param flushReasoner
-	 */
-	private void addType(LegoModelGenerator model, OWLIndividual i, OWLClassExpression c, boolean flushReasoner) {
-		OWLClassAssertionAxiom axiom = model.getOWLDataFactory().getOWLClassAssertionAxiom(c,i);
-		addAxiom(model, axiom, flushReasoner);
-	}
-
-	/**
-	 * Adds a ClassAssertion, where the class expression instantiated is an
-	 * ObjectSomeValuesFrom expression
-	 * 
-	 * Example: Individual: i Type: enabledBy some PRO_123 
-	 * 
-	 * @param modelId
-	 * @param i
-	 * @param p
-	 * @param filler
-	 * @return response info
-	 */
-	public OWLOperationResponse addType(String modelId,
-			OWLNamedIndividual i, 
-			OWLObjectPropertyExpression p,
-			OWLClassExpression filler) {
-		LegoModelGenerator model = getModel(modelId);
-		addType(model, i, p, filler, true);
-		return createResponse(true, model, i);
-	}
-	
-	/**
-	 * Convenience wrapper for
-	 *  {@link #addType(String, OWLNamedIndividual, OWLObjectPropertyExpression, OWLClassExpression)}
+	 * Convenience wrapper for {@link CoreMolecularModelManager#addType}.
 	 * 
 	 * @param modelId
 	 * @param iid
 	 * @param pid
 	 * @param cid
-	 * @return response info
+	 * @param metadata
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse addType(String modelId,
-			String iid, String pid, String cid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public void addType(String modelId,
+			String iid, String pid, String cid, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -1825,13 +530,12 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		addType(model, individual, property, cls, true);
-		return createResponse(true, model, individual);
+		addType(modelId, model, individual, property, cls, true, metadata);
 	}
 	
 	public OWLNamedIndividual addTypeNonReasoning(String modelId,
-			String iid, String pid, OWLClassExpression ce) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+			String iid, String pid, OWLClassExpression ce, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -1840,59 +544,21 @@ public class MolecularModelManager {
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
 		}
-		addType(model, individual, property, ce, false);
+		addType(modelId, model, individual, property, ce, false, metadata);
 		return individual;
 	}
 	
 	/**
-	 * Adds a ClassAssertion, where the class expression instantiated is an
-	 * ObjectSomeValuesFrom expression
-	 * 
-	 * Example: Individual: i Type: enabledBy some PRO_123 
-	 * 
-	 * @param model
-	 * @param i
-	 * @param p
-	 * @param filler
-	 * @param flushReasoner
-	 */
-	private void addType(LegoModelGenerator model,
-			OWLIndividual i, 
-			OWLObjectPropertyExpression p,
-			OWLClassExpression filler,
-			boolean flushReasoner) {
-		LOG.info("Adding "+i+ " type "+p+" some "+filler);
-		OWLDataFactory f = model.getOWLDataFactory();
-		OWLObjectSomeValuesFrom c = f.getOWLObjectSomeValuesFrom(p, filler);
-		OWLClassAssertionAxiom axiom = f.getOWLClassAssertionAxiom(c, i);
-		addAxiom(model, axiom, flushReasoner);
-	}
-	
-	/**
-	 * remove ClassAssertion(c,i) to specified model
-	 * 
-	 * @param modelId
-	 * @param i
-	 * @param c
-	 * @return response info
-	 */
-	public OWLOperationResponse removeType(String modelId, OWLNamedIndividual i, OWLClass c) {
-		LegoModelGenerator model = getModel(modelId);
-		removeType(model, i, c, true);
-		return createResponse(true, model, i);
-	}
-
-	/**
-	 * Convenience wrapper for {@link #removeType(String, OWLNamedIndividual, OWLClass)}
+	 * Convenience wrapper for {@link CoreMolecularModelManager#removeType}
 	 * 
 	 * @param modelId
 	 * @param iid
 	 * @param cid
-	 * @return response info
+	 * @param metadata
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse removeType(String modelId, String iid, String cid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public void removeType(String modelId, String iid, String cid, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -1901,91 +567,31 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
-		removeType(model, individual, cls, true);
-		return createResponse(true, model, individual);
+		removeType(modelId, model, individual, cls, true, metadata);
 	}
 	
-	public OWLNamedIndividual removeTypeNonReasoning(String modelId, String iid, OWLClassExpression clsExp) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public OWLNamedIndividual removeTypeNonReasoning(String modelId, String iid, OWLClassExpression clsExp, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		removeType(model, individual, clsExp, false);
+		removeType(modelId, model, individual, clsExp, false, metadata);
 		return individual;
 	}
 	
-	/**
-	 * remove ClassAssertion(c,i) from the model
-	 * 
-	 * @param model
-	 * @param i
-	 * @param ce
-	 * @param flushReasoner
-	 */
-	private void removeType(LegoModelGenerator model, OWLIndividual i, OWLClassExpression ce, boolean flushReasoner) {
-		Set<OWLClassAssertionAxiom> allAxioms = model.getAboxOntology().getClassAssertionAxioms(i);
-		// use search to remove also axioms with annotations
-		for (OWLClassAssertionAxiom ax : allAxioms) {
-			if (ce.equals(ax.getClassExpression())) {
-				removeAxiom(model, ax, flushReasoner);
-			}
-		}
-		
-	}
-	
-	/**
-	 * Removes a ClassAssertion, where the class expression instantiated is an
-	 * ObjectSomeValuesFrom expression
-	 * 
-	 * TODO - in future it should be possible to remove multiple assertions by leaving some fields null
-	 * 
-	 * @param modelId
-	 * @param i
-	 * @param p
-	 * @param filler
-	 * @return response info
-	 */
-	public OWLOperationResponse removeType(String modelId,
-			OWLNamedIndividual i, 
-			OWLObjectPropertyExpression p,
-			OWLClassExpression filler) {
-		LegoModelGenerator model = getModel(modelId);
-		removeType(model, i, p, filler, true);
-		return createResponse(true, model, i);
-	}
-	
-	
-	// TODO
-//	public OWLOperationResponse removeTypes(String modelId,
-//			OWLIndividual i, 
-//			OWLObjectPropertyExpression p) {
-//		return removeType(modelId, i, p, null);
-//	}
-
-	private void removeType(LegoModelGenerator model,
-			OWLIndividual i, 
-			OWLObjectPropertyExpression p,
-			OWLClassExpression filler,
-			boolean flushReasoner) {
-		OWLDataFactory f = model.getOWLDataFactory();
-		OWLClassAssertionAxiom axiom = f.getOWLClassAssertionAxiom(f.getOWLObjectSomeValuesFrom(p, filler), i);
-		removeAxiom(model, axiom, flushReasoner);
-	}
-	
-
 	/**
 	 * Convenience wrapper for {@link #addOccursIn(String, OWLNamedIndividual, OWLClassExpression)}
 	 * 
 	 * @param modelId
 	 * @param iid
 	 * @param eid - e.g. PR:P12345
-	 * @return response info
 	 * @throws UnknownIdentifierException
 	 */
-	public OWLOperationResponse addOccursIn(String modelId,
+	@Deprecated
+	public void addOccursIn(String modelId,
 			String iid, String eid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -1994,7 +600,7 @@ public class MolecularModelManager {
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+eid);
 		}
-		return addOccursIn(model, individual, cls);
+		addOccursIn(modelId, model, individual, cls);
 	}
 
 	/**
@@ -2013,20 +619,21 @@ public class MolecularModelManager {
 	 * @param modelId
 	 * @param i
 	 * @param enabler
-	 * @return response info
+	 * @throws UnknownIdentifierException
 	 */
-	public OWLOperationResponse addOccursIn(String modelId,
+	@Deprecated
+	public void addOccursIn(String modelId,
 			OWLNamedIndividual i, 
-			OWLClassExpression enabler) {
-		LegoModelGenerator model = getModel(modelId);
-		return addOccursIn(model, i, enabler);
+			OWLClassExpression enabler) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
+		addOccursIn(modelId, model, i, enabler);
 	}
 	
-	private OWLOperationResponse addOccursIn(LegoModelGenerator model,
+	@Deprecated
+	private void addOccursIn(String modelId, LegoModelGenerator model,
 			OWLNamedIndividual i, 
 			OWLClassExpression enabler) {
-		addType(model, i, OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(getOntology()), enabler, true);
-		return createResponse(true, model, i);
+		addType(modelId, model, i, OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(getOntology()), enabler, true, null);
 	} 
 
 	/**
@@ -2035,14 +642,14 @@ public class MolecularModelManager {
 	 * @param modelId
 	 * @param iid
 	 * @param eid - e.g. PR:P12345
-	 * @return response info
 	 * @throws UnknownIdentifierException 
 	 * @throws OWLException
 	 */
-	public OWLOperationResponse addEnabledBy(String modelId,
+	@Deprecated
+	public void addEnabledBy(String modelId,
 			String iid, String eid) throws UnknownIdentifierException,
 			OWLException {
-		LegoModelGenerator model = getModel(modelId);
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -2057,7 +664,7 @@ public class MolecularModelManager {
 				throw new UnknownIdentifierException("Could not find a class for id: "+eid);
 			}
 		}
-		return addEnabledBy(model, individual, clsExpr);
+		addEnabledBy(modelId, model, individual, clsExpr);
 	}
 
 	private OWLClassExpression parseClassExpression(String expression, LegoModelGenerator model) throws OWLException {
@@ -2096,73 +703,39 @@ public class MolecularModelManager {
 	 * @param modelId
 	 * @param i
 	 * @param enabler
-	 * @return response info
+	 * @throws UnknownIdentifierException
 	 */
-	public OWLOperationResponse addEnabledBy(String modelId,
+	@Deprecated
+	public void addEnabledBy(String modelId,
 			OWLNamedIndividual i, 
-			OWLClassExpression enabler) {
-		LegoModelGenerator model = getModel(modelId);
-		return addEnabledBy(model, i, enabler);
+			OWLClassExpression enabler) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
+		addEnabledBy(modelId, model, i, enabler);
 	}
 	
-	private OWLOperationResponse addEnabledBy(LegoModelGenerator model,
+	@Deprecated
+	private void addEnabledBy(String modelId, LegoModelGenerator model,
 			OWLNamedIndividual i, 
 			OWLClassExpression enabler) {
 		OWLObjectProperty p = OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(model.getAboxOntology());
-		addType(model, i, p, enabler, true);
-		return createResponse(true, model, i);
-	}
-
-
-	/**
-	 * Adds triple (i,p,j) to specified model
-	 * 
-	 * @param modelId
-	 * @param p
-	 * @param i
-	 * @param j
-	 * @param annotations
-	 * @return response info
-	 */
-	public OWLOperationResponse addFact(String modelId, OWLObjectPropertyExpression p,
-			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations) {
-		LegoModelGenerator model = getModel(modelId);
-		addFact(model, p, i, j, annotations, true);
-		return createResponse(true, model, i, j);
-	}
-	
-	/**
-	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLNamedIndividual, OWLNamedIndividual, Set)}
-	 *	
-	 * @param modelId
-	 * @param vocabElement
-	 * @param i
-	 * @param j
-	 * @param annotations
-	 * @return response info
-	 */
-	public OWLOperationResponse addFact(String modelId, OBOUpperVocabulary vocabElement,
-			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations) {
-		LegoModelGenerator model = getModel(modelId);
-		OWLObjectProperty p = vocabElement.getObjectProperty(model.getAboxOntology());
-		addFact(model, p, i, j, annotations, true);
-		return createResponse(true, model, i, j);
+		addType(modelId, model, i, p, enabler, true, null);
 	}
 
 	/**
-	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLNamedIndividual, OWLNamedIndividual, Set)}
+	 * Convenience wrapper for {@link CoreMolecularModelManager#addFact}
 	 * 
 	 * @param modelId
 	 * @param pid
 	 * @param iid
 	 * @param jid
 	 * @param pairs 
-	 * @return response info
+	 * @param metadata
+	 * @return relevant individuals
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse addFact(String modelId, String pid,	String iid, String jid,
-			Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public List<OWLNamedIndividual> addFact(String modelId, String pid,	String iid, String jid,
+			Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
@@ -2176,24 +749,25 @@ public class MolecularModelManager {
 			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
 		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
-		addFact(model, property, individual1, individual2, annotations, true);
-		return createResponse(true, model, individual1, individual2);
+		addFact(modelId, model, property, individual1, individual2, annotations, true, metadata);
+		return Arrays.asList(individual1, individual2);
 	}
 
 	/**
-	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLNamedIndividual, OWLNamedIndividual, Set)}
+	 * Convenience wrapper for {@link CoreMolecularModelManager#addFact}
 	 * 
 	 * @param modelId
 	 * @param pid
 	 * @param iid
 	 * @param jid
 	 * @param pairs 
+	 * @param metadata
 	 * @return relevant individuals
 	 * @throws UnknownIdentifierException 
 	 */
 	public List<OWLNamedIndividual> addFactNonReasoning(String modelId, String pid,	String iid, String jid,
-			Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+			Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
@@ -2207,24 +781,25 @@ public class MolecularModelManager {
 			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
 		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
-		addFact(model, property, individual1, individual2, annotations, false);
+		addFact(modelId, model, property, individual1, individual2, annotations, false, metadata);
 		return Arrays.asList(individual1, individual2);
 	}
 	
 	/**
-	 * Convenience wrapper for {@link #addFact(String, OWLObjectPropertyExpression, OWLNamedIndividual, OWLNamedIndividual, Set)}
+	 * Convenience wrapper for {@link CoreMolecularModelManager#addFact}
 	 * 
 	 * @param modelId
 	 * @param vocabElement
 	 * @param iid
 	 * @param jid
 	 * @param pairs
-	 * @return response info
+	 * @param metadata
+	 * @return relevant individuals
 	 * @throws UnknownIdentifierException
 	 */
-	public OWLOperationResponse addFact(String modelId, OBOUpperVocabulary vocabElement,
-			String iid, String jid, Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public List<OWLNamedIndividual> addFact(String modelId, OBOUpperVocabulary vocabElement,
+			String iid, String jid, Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLObjectPropertyExpression property = getObjectProperty(vocabElement, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+vocabElement);
@@ -2238,56 +813,22 @@ public class MolecularModelManager {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
 		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
-		addFact(model, property, individual1, individual2, annotations, true);
-		return createResponse(true, model, individual1, individual2);
+		addFact(modelId, model, property, individual1, individual2, annotations, true, metadata);
+		return Arrays.asList(individual1, individual2);
 	}
 	
-	/**
-	 * @param model
-	 * @param p
-	 * @param i
-	 * @param j
-	 * @param annotations 
-	 * @param flushReasoner
-	 */
-	private void addFact(LegoModelGenerator model, OWLObjectPropertyExpression p,
-			OWLIndividual i, OWLIndividual j, Set<OWLAnnotation> annotations, boolean flushReasoner) {
-		OWLDataFactory f = model.getOWLDataFactory();
-		final OWLObjectPropertyAssertionAxiom axiom;
-		if (annotations != null && !annotations.isEmpty()) {
-			axiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j, annotations);	
-		}
-		else {
-			axiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j);
-		}
-		addAxiom(model, axiom, flushReasoner);
-	}
-
-	/**
-	 * @param modelId
-	 * @param p
-	 * @param i
-	 * @param j
-	 * @return response info
-	 */
-	public OWLOperationResponse removeFact(String modelId, OWLObjectPropertyExpression p,
-			OWLNamedIndividual i, OWLNamedIndividual j) {
-		LegoModelGenerator model = getModel(modelId);
-		removeFact(model, p, i, j, true);
-		return createResponse(true, model, i, j);
-	}
-
 	/**
 	 * @param modelId
 	 * @param pid
 	 * @param iid
 	 * @param jid
+	 * @param metadata
 	 * @return response info
 	 * @throws UnknownIdentifierException 
 	 */
-	public OWLOperationResponse removeFact(String modelId, String pid,
-			String iid, String jid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public List<OWLNamedIndividual> removeFact(String modelId, String pid,
+			String iid, String jid, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
@@ -2300,13 +841,13 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
-		removeFact(model, property, individual1, individual2, true);
-		return createResponse(true, model, individual1, individual2);
+		removeFact(modelId, model, property, individual1, individual2, true, metadata);
+		return Arrays.asList(individual1, individual2);
 	}
 	
 	public List<OWLNamedIndividual> removeFactNonReasoning(String modelId, String pid,
-			String iid, String jid) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+			String iid, String jid, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
@@ -2319,33 +860,13 @@ public class MolecularModelManager {
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
-		removeFact(model, property, individual1, individual2, false);
+		removeFact(modelId, model, property, individual1, individual2, false, metadata);
 		return Arrays.asList(individual1, individual2);
 	}
 
-	private void removeFact(LegoModelGenerator model, OWLObjectPropertyExpression p,
-			OWLIndividual i, OWLIndividual j, boolean flushReasoner) {
-		OWLDataFactory f = model.getOWLDataFactory();
-		
-		OWLOntology ont = model.getAboxOntology();
-		OWLAxiom toRemove = null;
-		Set<OWLObjectPropertyAssertionAxiom> candidates = ont.getObjectPropertyAssertionAxioms(i);
-		for (OWLObjectPropertyAssertionAxiom axiom : candidates) {
-			if (p.equals(axiom.getProperty()) && j.equals(axiom.getObject())) {
-				toRemove = axiom;
-				break;
-			}
-		}
-		if (toRemove == null) {
-			// fall back solution
-			toRemove = f.getOWLObjectPropertyAssertionAxiom(p, i, j);
-		}
-		removeAxiom(model, toRemove, flushReasoner);
-	}
-	
 	public List<OWLNamedIndividual> addAnnotations(String modelId, String pid, 
-			String iid, String jid, Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+			String iid, String jid, Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
@@ -2360,43 +881,14 @@ public class MolecularModelManager {
 		}
 		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
 
-		addAnnotations(model, property, individual1, individual2, annotations, false);
+		addAnnotations(modelId, model, property, individual1, individual2, annotations, false, metadata);
 
 		return Arrays.asList(individual1, individual2);
-	}
-	
-	public OWLOperationResponse addAnnotations(String modelId, OWLObjectPropertyExpression p,
-			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations) {
-		LegoModelGenerator model = getModel(modelId);
-		addAnnotations(model, p, i, j, annotations, true);
-		return createResponse(true, model, i, j);
-	}
-	
-	private void addAnnotations(LegoModelGenerator model, OWLObjectPropertyExpression p,
-			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations,
-			boolean flushReasoner) {
-		OWLOntology ont = model.getAboxOntology();
-		Set<OWLObjectPropertyAssertionAxiom> axioms = ont.getObjectPropertyAssertionAxioms(i);
-		OWLObjectPropertyAssertionAxiom toModify = null;
-		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
-			if (p.equals(axiom.getProperty()) && j.equals(axiom.getObject())) {
-				toModify = axiom;
-				break;
-			}
-		}
-		if (toModify != null) {
-			OWLDataFactory f = model.getOWLDataFactory();
-			Set<OWLAnnotation> combindedAnnotations = new HashSet<OWLAnnotation>(annotations);
-			combindedAnnotations.addAll(toModify.getAnnotations());
-			removeAxiom(model, toModify, false);
-			OWLAxiom newAxiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j, combindedAnnotations);
-			addAxiom(model, newAxiom , flushReasoner);
-		}
 	}
 	
 	public List<OWLNamedIndividual> removeAnnotations(String modelId, String pid, 
-			String iid, String jid, Collection<Pair<String,String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+			String iid, String jid, Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
@@ -2411,31 +903,9 @@ public class MolecularModelManager {
 		}
 		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
 
-		removeAnnotations(model, property, individual1, individual2, annotations, false);
+		removeAnnotations(modelId, model, property, individual1, individual2, annotations, false, metadata);
 
 		return Arrays.asList(individual1, individual2);
-	}
-	
-	private void removeAnnotations(LegoModelGenerator model, OWLObjectPropertyExpression p,
-			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations,
-			boolean flushReasoner) {
-		OWLOntology ont = model.getAboxOntology();
-		Set<OWLObjectPropertyAssertionAxiom> axioms = ont.getObjectPropertyAssertionAxioms(i);
-		OWLObjectPropertyAssertionAxiom toModify = null;
-		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
-			if (p.equals(axiom.getProperty()) && j.equals(axiom.getObject())) {
-				toModify = axiom;
-				break;
-			}
-		}
-		if (toModify != null) {
-			OWLDataFactory f = model.getOWLDataFactory();
-			Set<OWLAnnotation> combindedAnnotations = new HashSet<OWLAnnotation>(toModify.getAnnotations());
-			combindedAnnotations.removeAll(annotations);
-			removeAxiom(model, toModify, false);
-			OWLAxiom newAxiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j, combindedAnnotations);
-			addAxiom(model, newAxiom , flushReasoner);
-		}
 	}
 	
 	/**
@@ -2445,12 +915,12 @@ public class MolecularModelManager {
 	 * @param iid
 	 * @param jid
 	 * @param pairs 
-	 * @return response info
 	 * @throws UnknownIdentifierException
 	 */
-	public OWLOperationResponse addPartOf(String modelId,  String iid,
+	@Deprecated
+	public void addPartOf(String modelId,  String iid,
 			String jid, Collection<Pair<String, String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+		LegoModelGenerator model = checkModelId(modelId);
 		OWLNamedIndividual individual1 = getIndividual(iid, model);
 		if (individual1 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -2460,7 +930,7 @@ public class MolecularModelManager {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
 		Set<OWLAnnotation> annotations = createAnnotations(pairs, model);
-		return addPartOf(modelId, individual1, individual2, annotations);
+		addPartOf(modelId, individual1, individual2, annotations);
 	}
 
 	/**
@@ -2472,117 +942,21 @@ public class MolecularModelManager {
 	 * @param i
 	 * @param j
 	 * @param annotations
-	 * @return response info
+	 * @throws UnknownIdentifierException
 	 */
-	public OWLOperationResponse addPartOf(String modelId, OWLNamedIndividual i,
-			OWLNamedIndividual j, Set<OWLAnnotation> annotations) {
-		LegoModelGenerator model = getModel(modelId);
-		addPartOf(model, i, j, annotations, true);
-		return createResponse(true, model, i, j);
+	@Deprecated
+	public void addPartOf(String modelId, OWLNamedIndividual i,
+			OWLNamedIndividual j, Set<OWLAnnotation> annotations) throws UnknownIdentifierException {
+		LegoModelGenerator model = checkModelId(modelId);
+		addPartOf(modelId, model, i, j, annotations, true);
 	}
 	
-	private void addPartOf(LegoModelGenerator model, OWLNamedIndividual i, 
+	@Deprecated
+	private void addPartOf(String modelId, LegoModelGenerator model, OWLNamedIndividual i, 
 			OWLNamedIndividual j, Set<OWLAnnotation> annotations, boolean flushReasoner) {
-		addFact(model, getObjectProperty(OBOUpperVocabulary.BFO_part_of, model), i, j, annotations, flushReasoner);
+		addFact(modelId, model, getObjectProperty(OBOUpperVocabulary.BFO_part_of, model), i, j, annotations, flushReasoner, null);
 	}
 
-
-
-	/**
-	 * In general, should not be called directly - use a wrapper method
-	 * 
-	 * @param model
-	 * @param axiom
-	 * @param flushReasoner
-	 */
-	void addAxiom(LegoModelGenerator model, OWLAxiom axiom, boolean flushReasoner) {
-		OWLOntology ont = model.getAboxOntology();
-		synchronized (ont) {
-			ont.getOWLOntologyManager().addAxiom(ont, axiom);	
-		}
-		if (flushReasoner) {
-			model.getReasoner().flush();
-		}
-	}
-	
-	/**
-	 * In general, should not be called directly - use a wrapper method
-	 * 
-	 * @param model
-	 * @param axioms
-	 * @param flushReasoner
-	 */
-	void addAxioms(LegoModelGenerator model, Set<OWLAxiom> axioms, boolean flushReasoner) {
-		OWLOntology ont = model.getAboxOntology();
-		synchronized (ont) {
-			ont.getOWLOntologyManager().addAxioms(ont, axioms);
-		}
-		if (flushReasoner) {
-			model.getReasoner().flush();
-		}
-	}
-	
-	/**
-	 * In general, should not be called directly - use a wrapper method
-	 * 
-	 * TODO: an error should be returned if the user attempts to remove
-	 * any inferred axiom. For example, if f1 part_of p1, and p1 Type occurs_in some cytosol,
-	 * and the user attempts to delete "located in cytosol", the axiom will "come back"
-	 * as it is inferred. 
-	 * 
-	 * @param model
-	 * @param axiom
-	 * @param flushReasoner
-	 */
-	void removeAxiom(LegoModelGenerator model, OWLAxiom axiom, boolean flushReasoner) {
-		OWLOntology ont = model.getAboxOntology();
-		synchronized (ont) {
-			ont.getOWLOntologyManager().removeAxiom(ont, axiom);
-		}
-		if (flushReasoner) {
-			model.getReasoner().flush();
-		}
-	}
-
-	/**
-	 * In general, should not be called directly - use a wrapper method
-	 * 
-	 * @param modelId
-	 * @param axioms
-	 * @param flushReasoner
-	 */
-	void removeAxioms(String modelId, Set<OWLAxiom> axioms, boolean flushReasoner) {
-		LegoModelGenerator model = getModel(modelId);
-		removeAxioms(model, axioms, flushReasoner);
-	}
-	
-	private void removeAxioms(LegoModelGenerator model, Set<OWLAxiom> axioms, boolean flushReasoner) {
-		OWLOntology ont = model.getAboxOntology();
-		synchronized (ont) {
-			ont.getOWLOntologyManager().removeAxioms(ont, axioms);
-		}
-		if (flushReasoner) {
-			model.getReasoner().flush();
-		}
-	}
-
-	public OWLOperationResponse undo(String modelId, String changeId) {
-		LOG.error("Not implemented");
-		return null;
-	}
-	
-	/**
-	 * TODO: decide identifier policy for models
-	 * 
-	 * @param p
-	 * @param db
-	 * @return identifier
-	 */
-	private String getModelId(String p, String db) {
-		return "gomodel:" + db + "-"+ p.replaceAll(":", "-");
-	}
-	
-	
 	/**
 	 * This method will check the given model and update the import declarations.
 	 * It will add missing IRIs and remove obsolete ones.
@@ -2595,40 +969,8 @@ public class MolecularModelManager {
 	 * @see #addObsoleteImports(Iterable)
 	 */
 	public void updateImports(String modelId) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
-		if (model == null) {
-			throw new UnknownIdentifierException("Unknown model id: "+modelId);
-		}
-		updateImports(model);
-	}
-	
-	private void updateImports(final LegoModelGenerator model) {
-		final OWLOntology aboxOntology = model.getAboxOntology();
-		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
-		
-		Set<IRI> missingImports = new HashSet<IRI>(additionalImports);
-		Set<OWLImportsDeclaration> importsDeclarations = aboxOntology.getImportsDeclarations();
-		for (OWLImportsDeclaration decl : importsDeclarations) {
-			IRI iri = decl.getIRI();
-			if (obsoleteImports.contains(iri)) {
-				changes.add(new RemoveImport(aboxOntology, decl));
-			}
-			else {
-				missingImports.remove(iri);
-			}
-		}
-		final OWLOntologyManager m = aboxOntology.getOWLOntologyManager();
-		if (!missingImports.isEmpty()) {
-			OWLDataFactory f = m.getOWLDataFactory();
-			for(IRI missingImport : missingImports) {
-				OWLImportsDeclaration decl = f.getOWLImportsDeclaration(missingImport);
-				changes.add(new AddImport(aboxOntology, decl));
-			}
-		}
-		
-		if (!changes.isEmpty()) {
-			m.applyChanges(changes);
-		}
+		LegoModelGenerator model = checkModelId(modelId);
+		updateImports(modelId, model);
 	}
 	
 	@Deprecated
@@ -2649,10 +991,11 @@ public class MolecularModelManager {
 	 * @return dot string
 	 * @throws IOException
 	 * @throws UnExpectedStructureException
+	 * @throws UnknownIdentifierException
 	 */
 	@Deprecated
-	public String generateDot(String modelId) throws IOException, UnExpectedStructureException {
-		LegoModelGenerator m = getModel(modelId);
+	public String generateDot(String modelId) throws IOException, UnExpectedStructureException, UnknownIdentifierException {
+		LegoModelGenerator m = checkModelId(modelId);
 		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
 	
 		LegoStringDotRenderer renderer = 
@@ -2685,13 +1028,14 @@ public class MolecularModelManager {
 	 * @throws IOException 
 	 * @throws UnExpectedStructureException 
 	 * @throws InterruptedException 
+	 * @throws UnknownIdentifierException 
 	 */
 	@Deprecated
-	public File generateImage(String modelId) throws IOException, UnExpectedStructureException, InterruptedException {
+	public File generateImage(String modelId) throws IOException, UnExpectedStructureException, InterruptedException, UnknownIdentifierException {
 		final File dotFile = File.createTempFile("LegoAnnotations", ".dot");
 		final File pngFile = File.createTempFile("LegoAnnotations", ".png");
 
-		LegoModelGenerator m = getModel(modelId);
+		LegoModelGenerator m = checkModelId(modelId);
 		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
 		OWLReasoner reasoner = m.getReasoner();
 		String dotPath = "/opt/local/bin/dot"; // TODO
@@ -2741,17 +1085,17 @@ public class MolecularModelManager {
 	/**
 	 * @param ontology
 	 * @param output
-	 * @param name
+	 * @param modelId
 	 * @throws Exception
 	 */
 	@Deprecated
-	public void writeLego(OWLOntology ontology, final String output, String name) throws Exception {
+	public void writeLego(OWLOntology ontology, final String output, String modelId) throws Exception {
 
 		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
 
 
 		LegoRenderer renderer = 
-				new LegoDotWriter(graph, getModel(name).getReasoner()) {
+				new LegoDotWriter(graph, checkModelId(modelId).getReasoner()) {
 
 			BufferedWriter fileWriter = null;
 
@@ -2771,66 +1115,8 @@ public class MolecularModelManager {
 				fileWriter.append(line).append('\n');
 			}
 		};
-		renderer.render(individuals, name, true);
+		renderer.render(individuals, modelId, true);
 
 	}
 	
-	/**
-	 * A simple wrapping function that captures the most basic type of editing.
-	 * 
-	 * @param modelId
-	 * @param classId
-	 * @param enabledById
-	 * @param occursInId
-	 * @return response
-	 * @throws UnknownIdentifierException
-	 */
-	public OWLOperationResponse addCompositeIndividual(String modelId, String classId,
-			String enabledById, String occursInId) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
-		// Create the base individual.
-		OWLClass cls = getClass(classId, model);
-		if (cls == null) {
-			throw new UnknownIdentifierException("Could not find a class for id: "+classId);
-		}
-		// Bail out early if it looks like there are any problems.
-		OWLOperationResponse resp = createIndividual(modelId, cls);
-		if( resp.isSuccess == false || resp.isResultsInInconsistency() ){
-			return resp;
-		}
-		
-		// Should just be the one--extract the individual that we created.
-		List<OWLNamedIndividual> individuals = resp.getIndividuals();
-		if( individuals == null || individuals.isEmpty() ){
-			return resp;
-		}
-		OWLNamedIndividual i = individuals.get(0);
-		
-		// Optionally, add occurs_in.
-		if( occursInId != null ){
-			OWLClass occCls = getClass(occursInId, model);
-			if (occCls == null) {
-				throw new UnknownIdentifierException("Could not find a class for id: "+occursInId);
-			}
-			resp = addOccursIn(modelId, i, occCls);
-			// Bail out early if it looks like there are any problems.
-			if( resp.isSuccess == false || resp.isResultsInInconsistency() ){
-				return resp;
-			}
-		}
-		
-		// Optionally, add enabled_by.
-		if( enabledById != null ){
-			OWLClass enbCls = getGeneClass(enabledById, model);
-			resp = addEnabledBy(modelId, i, enbCls);
-			// Bail out early if it looks like there are any problems.
-			if( resp.isSuccess == false || resp.isResultsInInconsistency() ){
-				return resp;
-			}
-		}
-		
-		return resp;
-	}
-	
-
 }

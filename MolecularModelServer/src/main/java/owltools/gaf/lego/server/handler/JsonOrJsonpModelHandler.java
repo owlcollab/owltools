@@ -14,7 +14,6 @@ import java.util.Set;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.IRI;
@@ -28,7 +27,6 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelManager;
-import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
 import owltools.graph.OWLGraphWrapper;
 
 import com.google.gson.Gson;
@@ -46,6 +44,7 @@ import com.google.gson.GsonBuilder;
  */
 @Deprecated
 @Produces({MediaType.APPLICATION_JSON, "application/javascript"})
+@SuppressWarnings("rawtypes")
 public class JsonOrJsonpModelHandler implements M3Handler {
 
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpModelHandler.class);
@@ -60,260 +59,12 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		this.mmm = models;
 	}
 
-	/*
-	 * Builder: {"id": <id>, "instances": [...]}
-	 */
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
 	public M3Response m3GetModel(String modelId, boolean help) {
-		logger.error("Using deprecated m3 method: m3GetModel");
-		if (help) {
-			return helpMsg("fetches molecular model json");
-		}
-		try {
-			return bulk(modelId, mmm, M3Response.INSTANTIATE);
-		} catch (Exception exception) {
-			return errorMsg("Could not retrieve model", exception);
-		}
+		return errorMsg("Using deactivated m3 method: m3GetModel", null);
 	}
 
-//	/*
-//	 * Builder: {"id": <id>, "instances": [...]}
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3GenerateMolecularModel(String classId, String db, boolean help) {
-//		logger.error("Using deprecated m3 method: m3GenerateMolecularModel");
-//		if (help) {
-//			return helpMsg("generates Minimal Model augmented with GO associations");
-//		}
-//		try {
-//			System.out.println("db: " + db);
-//			System.out.println("cls: " + classId);
-//			String mid = mmm.generateModel(classId, db);
-//			return bulk(mid, mmm, M3Response.INSTANTIATE);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not generate model", exception);
-//		}
-//	}
-	
-//	/*
-//	 * Builder: {"id": <id>, "instances": [...]}
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3GenerateBlankMolecularModel(String db, boolean help) {
-//		logger.error("Using deprecated m3 method: m3GenerateBlankMolecularModel");
-//		if (help) {
-//			return helpMsg("generates Minimal Model augmented with GO associations");
-//		}
-//		try {
-//			System.out.println("db: " + db);
-//			String mid = mmm.generateBlankModel(db);
-//			return bulk(mid, mmm, M3Response.INSTANTIATE);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not generate model", exception);
-//		}
-//	}
-	
-//	/*
-//	 * Info: {"message_type": "success", ..., "data: {"db": <db>}}
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3preloadGaf(String db, boolean help) {
-//		logger.error("Using deprecated m3 method: m3preloadGaf");
-//		if (help) {
-//			return helpMsg("loads a GAF into memory (saves parsing time later on)");
-//		}
-//		try {
-//			mmm.loadGaf(db);
-//			return success(Collections.singletonMap("db", db), mmm);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not preload gaf", exception);
-//		}
-//	}
-	
-//	/*
-//	 * Individiuals: [...]
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3CreateIndividual(String modelId, String classId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3CreateIndividual");
-//		if (help) {
-//			return helpMsg("generates a new individual");
-//		}
-//		try {
-//			OWLOperationResponse resp = mmm.createIndividual(modelId, classId, null);
-//			return response(resp, mmm, null);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not create individual in model", exception);
-//		}
-//	}
-	
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3DeleteIndividual(String modelId, String individualId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3DeleteIndividual");
-//		if (help) {
-//			return helpMsg("delete the given individual");
-//		}
-//		try {
-//			OWLOperationResponse resp = mmm.deleteIndividual(modelId, individualId);
-//			return bulk(modelId, mmm, M3Response.INCONSISTENT); // TODO for now return the whole thing
-//		} catch (Exception exception) {
-//			return errorMsg("Could not create individual in model", exception);
-//		}
-//	}
-	
-//	/*
-//	 * Individiuals: [...]
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3AddType(String modelId, String individualId, String classId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3AddType");
-//		if (help) {
-//			return helpMsg("generates ClassAssertion (named class)");
-//		}
-//		try {
-//			OWLOperationResponse resp = mmm.addType(modelId, individualId, classId);
-//			return response(resp, mmm, M3Response.MERGE);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not add type to model", exception);
-//		}
-//	}
-	
-//	/*
-//	 * Individiuals: [...]
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3AddTypeExpression(String modelId, String individualId, String propertyId,
-//					String classId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3AddTypeExpression");
-//		if (help) {
-//			return helpMsg("generates ClassAssertion (anon class expression)");
-//		}
-//		try {
-//			OWLOperationResponse resp = mmm.addType(modelId, individualId, propertyId, classId);
-//			return response(resp, mmm, M3Response.MERGE);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not add type expression to model", exception);
-//		}
-//	}
-
-//	/*
-//	 * Individiuals: [...]
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3AddFact(String modelId, String propertyId, String individualId,
-//					String fillerId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3AddFact");
-//		if (help) {
-//			return helpMsg("generates ObjectPropertyAssertion");
-//		}
-//		try {
-//			//System.out.println("mod: " + modelId);
-//			//System.out.println("fil: " + fillerId);
-//			//System.out.println("ind: " + individualId);
-//			//System.out.println("rel: " + propertyId);
-//			OWLOperationResponse resp = mmm.addFact(modelId, propertyId, individualId, fillerId, null);
-//			M3Response response = response(resp, mmm, M3Response.MERGE);
-//			//printJsonResponse(response);
-//			return response;
-//		} catch (Exception exception) {
-//			return errorMsg("Could not add fact to model", exception);
-//		}
-//	}
-	
-//	/*
-//	 * Individiuals: [...]
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3RemoveFact(String propertyId, String modelId, String individualId,
-//					String fillerId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3RemoveFact");
-//		if (help) {
-//			return helpMsg("generates ObjectPropertyAssertion");
-//		}
-//		try {
-//			System.out.println("mod: " + modelId);
-//			System.out.println("rel: " + propertyId);
-//			System.out.println("ind: " + individualId);
-//			System.out.println("fil: " + fillerId);
-//			OWLOperationResponse resp = mmm.removeFact(modelId, propertyId, individualId, fillerId);
-//			return response(resp, mmm, M3Response.MERGE);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not remove fact from model", exception);
-//		}
-//	}
-
-//	/*
-//	 * Individiuals: [...]
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3CreateSimpleCompositeIndividual(String modelId, String classId, String enabledById, String occursInId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3CreateSimpleCompositeIndividual");
-//		if (help) {
-//			return helpMsg("generates a new simple composite individual");
-//		}
-//		try {
-//			System.out.println("mod: " + modelId); // necessatry
-//			System.out.println("act: " + classId); // necessatry
-//			System.out.println("enb: " + enabledById); // optional
-//			System.out.println("occ: " + occursInId); // optional
-//
-//			// Create base instance, along with any simples optionals that are along for the ride.
-//			OWLOperationResponse resp = mmm.addCompositeIndividual(modelId, classId,
-//																   StringUtils.stripToNull(enabledById),
-//																   StringUtils.stripToNull(occursInId));
-//			
-//			return response(resp, mmm, M3Response.MERGE);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not create individual in model", exception);
-//		}
-//	}
-	
-//	/*
-//	 * Other.
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3ExportModel(String modelId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3ExportModel");
-//		if (help) {
-//			return helpMsg("Export the current content of the model");
-//		}
-//		try {
-//			String model = mmm.exportModel(modelId);
-//			return success(Collections.singletonMap("export", model), null);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not export model", exception);
-//		}
-//	}
-	
-//	/*
-//	 * @see owltools.gaf.lego.server.handler.M3Handler#m3ImportModel
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3ImportModel(String model, boolean help) {
-//		logger.error("Using deprecated m3 method: m3ImportModel");
-//		if (help) {
-//			return helpMsg("Import the model into the server.");
-//		}
-//		try {
-//			String modelId = mmm.importModel(model);
-//			return bulk(modelId, mmm, M3Response.INSTANTIATE);
-//		} catch (Exception exception) {
-//			return errorMsg("Could not import model", exception);
-//		}
-//	}
 
 	/*
 	 * Return all meta-infomation about models in a format that the client can pick apart to help build an interface.
@@ -346,26 +97,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 			return errorMsg("Could not retrieve all available model ids", exception);
 		}
 	}
-	
-//	/*
-//	 * @see owltools.gaf.lego.server.handler.M3Handler#m3SaveModel
-//	 */
-//	@Override
-//	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-//	public M3Response m3StoreModel(String modelId, boolean help) {
-//		logger.error("Using deprecated m3 method: m3StoreModel");
-//		if (help) {
-//			return helpMsg("Persist the given model on the server.");
-//		}
-//		try {
-//			mmm.saveModel(modelId);
-//			M3Response response = new M3Response(M3Response.SUCCESS);
-//			response.message = "The model has been saved on the server.";
-//			return response;
-//		} catch (Exception exception) {
-//			return errorMsg("Could not save the model on the server.", exception);
-//		}
-//	}
 	
 	// ----------------------------------------
 	// END OF COMMANDS
@@ -465,12 +196,6 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 		return response;
 	}
 	
-	private M3Response warningMsg(String msg) {
-		M3Response response = new M3Response(M3Response.WARNING);
-		response.message = msg;
- 		return response;
-	}
-	
 	private M3Response errorMsg(String msg, Exception e) {
 		M3Response response = new M3Response(M3Response.ERROR);
 		response.message = msg;
@@ -491,67 +216,11 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	 * @param mmm
 	 * @return REST response, never null
 	 */
-	private M3Response success(Object data, MolecularModelManager mmm) {
-		M3Response response = new M3Response(M3Response.SUCCESS);
-		response.data = data;
-		if (mmm != null) {
-			// TODO add consistent m3 model to result ?
-		}
-		return response;
-	}
-	
-	/**
-	 * @param data
-	 * @param mmm
-	 * @return REST response, never null
-	 */
 	private M3Response information(Object data, MolecularModelManager mmm) {
 		M3Response response = new M3Response(M3Response.INFORMATION);
 		response.data = data;
 		if (mmm != null) {
 			// TODO add consistent m3 model to result ?
-		}
-		return response;
-	}
-	
-	/**
-	 * @param modelId
-	 * @param mmm 
-	 * @param respCat
-	 * @return REST response, never null
-	 */
-	private M3Response bulk(String modelId, MolecularModelManager mmm, String respCat) {
-		M3Response response = new M3Response(respCat);
-		if (mmm != null) {
-			// TODO add consistent m3 model to result ?
-			Map<Object, Object> obj = mmm.getModelObject(modelId);
-			obj.put("id", modelId);
-			response.data = obj;
-		}
-		return response;
-	}
-	
-	/**
-	 * @param resp
-	 * @param mmm
-	 * @param intention
-	 * @return REST response, never null
-	 */
-	private M3Response response(OWLOperationResponse resp, MolecularModelManager mmm, String intention) {
-		M3Response response;
-		if (resp.isResultsInInconsistency()) {
-			response = new M3Response(M3Response.INCONSISTENT);
-			response.message = "unintentional inconsistency";
-		}
-		else if ( ! resp.isSuccess()) {
-			response = new M3Response(M3Response.ERROR);
-		}
-		else {
-			//response = new M3Response(M3Response.SUCCESS);
-			response = new M3Response(intention);
-		}
-		if (resp.getModelData() != null) {
-			response.data = resp.getModelData();
 		}
 		return response;
 	}

@@ -36,7 +36,7 @@ public class MolecularModelManagerGeneratorTest extends AbstractLegoModelGenerat
 		mmm.loadGaf("mgi", gafPath);
 
 		OWLClass p = g.getOWLClassByIdentifier("GO:0014029"); // neural crest formation
-		String modelId = mmm.generateModel(p, "mgi");
+		String modelId = mmm.generateModel(p, "mgi", null);
 		LOG.info("Model: "+modelId);
 		LegoModelGenerator model = mmm.getModel(modelId);
 

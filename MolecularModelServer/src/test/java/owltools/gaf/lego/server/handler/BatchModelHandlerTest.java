@@ -27,7 +27,7 @@ import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.ManchesterSyntaxTool;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
-import owltools.gaf.lego.MolecularModelManager;
+import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Entity;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Argument;
@@ -47,7 +47,7 @@ public class BatchModelHandlerTest {
     public TemporaryFolder folder = new TemporaryFolder();
 	
 	private static JsonOrJsonpBatchHandler handler = null;
-	private static MolecularModelManager models = null;
+	private static UndoAwareMolecularModelManager models = null;
 
 	private static final String uid = "test-user";
 	private static final String intention = "test-intention";
@@ -56,7 +56,7 @@ public class BatchModelHandlerTest {
 	public static void setUpBeforeClass() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go.owl");
-		models = new MolecularModelManager(graph);
+		models = new UndoAwareMolecularModelManager(graph);
 		models.addImports(Arrays.asList("http://purl.obolibrary.org/obo/go/extensions/x-disjoint.owl"));
 		models.setPathToGafs("src/test/resources/gaf");
 		models.setPathToProteinFiles("src/test/resources/ontology/protein/subset");
@@ -197,7 +197,7 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	public void testParseComplex() throws Exception {
-		String modelId = models.generateBlankModel(null);
+		String modelId = models.generateBlankModel(null, null);
 		LegoModelGenerator model = models.getModel(modelId);
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		ManchesterSyntaxTool tool = new ManchesterSyntaxTool(graph, true);
@@ -210,7 +210,7 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	public void testParseComplexOr() throws Exception {
-		final String modelId = models.generateBlankModel(null);
+		final String modelId = models.generateBlankModel(null, null);
 		
 		M3Expression expression = new M3Expression();
 		expression.type = M3ExpressionType.svf.getLbl();

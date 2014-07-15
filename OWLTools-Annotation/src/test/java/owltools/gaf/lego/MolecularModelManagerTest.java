@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Rule;
@@ -17,12 +18,13 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
-import owltools.gaf.lego.MolecularModelManager.OWLOperationResponse;
+import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.io.ParserWrapper;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+@SuppressWarnings("deprecation")
 public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 	private static Logger LOG = Logger.getLogger(MolecularModelManagerTest.class);
 
@@ -31,14 +33,14 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 	@Rule
     public TemporaryFolder folder = new TemporaryFolder();
 	
-	MolecularModelManager mmm;
+	MolecularModelManager<Void> mmm;
 
 	static{
 		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
 		//Logger.getLogger(MinimalModelGenerator.class).setLevel(Level.ERROR);
 		//Logger.getLogger(LegoModelGenerator.class).setLevel(Level.ERROR);
 	}
-
+	
 	@Test
 	public void testM3() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
@@ -48,14 +50,15 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		g.mergeOntology(pw.parseOBO(getResourceIRIString("disease.obo")));
 		//g.m
 
-		mmm = new MolecularModelManager(g);
+		mmm = new MolecularModelManager<Void>(g);
 		File gafPath = getResource("mgi-signaling.gaf");
 		mmm.loadGaf("mgi", gafPath);
 
 		OWLClass p = g.getOWLClassByIdentifier("GO:0014029"); // neural crest formation
-		String modelId = mmm.generateModel(p, "mgi");
+		String modelId = mmm.generateModel(p, "mgi", null);
 		LOG.info("Model: "+modelId);
 		LegoModelGenerator model = mmm.getModel(modelId);
+		assertNotNull(model);
 
 		Set<OWLNamedIndividual> inds = mmm.getIndividuals(modelId);
 		LOG.info("Individuals: "+inds.size());
@@ -65,8 +68,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		assertEquals(17, inds.size()); // TODO checkme
 
 		// GO:0001158 ! enhancer sequence-specific DNA binding
-		OWLOperationResponse response = mmm.createIndividual(modelId, g.getOWLClassByIdentifier("GO:0001158"));
-		String bindingId = MolecularModelJsonRenderer.getId(response.getIndividuals().get(0), g);
+		final String bindingId = mmm.createIndividual(modelId, "GO:0001158", null, null).getKey();
 		LOG.info("New: "+bindingId);
 		// GO:0005654 ! nucleoplasm
 		mmm.addOccursIn(modelId, bindingId, "GO:0005654");
@@ -108,7 +110,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 		g = pw.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
 
-		mmm = new MolecularModelManager(g);
+		mmm = new MolecularModelManager<Void>(g);
 		//File gafPath = getResource("mgi-signaling.gaf");
 		///mmm.loadGaf("mgi", gafPath);
 		mmm.setPathToGafs(getResource("gene-associations").toString());
@@ -116,7 +118,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		OWLClass p = g.getOWLClassByIdentifier("GO:0014029"); // neural crest formation
 
 
-		String model1Id = mmm.generateModel(p, "mgi");
+		String model1Id = mmm.generateModel(p, "mgi", null);
 		LOG.info("Model: "+model1Id);
 		LegoModelGenerator model1 = mmm.getModel(model1Id);
 		assertNotNull(model1);
@@ -128,7 +130,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		}
 		assertEquals(17, inds.size());
 
-		String model2Id = mmm.generateModel(p, "fake");
+		String model2Id = mmm.generateModel(p, "fake", null);
 		LOG.info("Model: "+model2Id);
 		LegoModelGenerator model2 = mmm.getModel(model2Id);
 		assertNotNull(model2);
@@ -164,7 +166,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 	}
 
-	private String renderJSON(String modelId) {
+	private String renderJSON(String modelId) throws UnknownIdentifierException {
 
 		Map<Object, Object> obj = mmm.getModelObject(modelId);
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -181,14 +183,12 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		// GO:0038024 ! cargo receptor activity
 		// GO:0042803 ! protein homodimerization activity
 
-		mmm = new MolecularModelManager(g);
+		mmm = new MolecularModelManager<Void>(g);
 
-		String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024", null);
-		OWLNamedIndividual i1 = resp.getIndividuals().get(0);
+		String modelId = mmm.generateBlankModel(null, null);
+		String i1 = mmm.createIndividual(modelId, "GO:0038024", null, null).getKey();
 
-		resp = mmm.createIndividual(modelId, "GO:0042803", null);
-		OWLNamedIndividual i2 = resp.getIndividuals().get(0);
+		String i2 = mmm.createIndividual(modelId, "GO:0042803", null, null).getKey();
 
 		mmm.addPartOf(modelId, i1, i2, null);
 
@@ -198,7 +198,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		//		
 		//		System.out.println("-------------");
 
-		mmm.deleteIndividual(modelId, i2);
+		mmm.deleteIndividual(modelId, i2, null);
 
 		//		js = renderJSON(modelId);
 		//		System.out.println("INDS:" + js);
@@ -217,16 +217,14 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		// GO:0042803 ! protein homodimerization activity
 		// GO:0008233 ! peptidase activity
 
-		mmm = new MolecularModelManager(g);
+		mmm = new MolecularModelManager<Void>(g);
 
-		final String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024", null);
-		final OWLNamedIndividual i1 = resp.getIndividuals().get(0);
+		final String modelId = mmm.generateBlankModel(null, null);
+		final Pair<String,OWLNamedIndividual> i1 = mmm.createIndividual(modelId, "GO:0038024", null, null);
 
-		resp = mmm.createIndividual(modelId, "GO:0042803", null);
-		final OWLNamedIndividual i2 = resp.getIndividuals().get(0);
+		final Pair<String,OWLNamedIndividual> i2 = mmm.createIndividual(modelId, "GO:0042803", null, null);
 
-		mmm.addPartOf(modelId, i1, i2, null);
+		mmm.addPartOf(modelId, i1.getKey(), i2.getKey(), null);
 		
 		// export
 		final String modelContent = mmm.exportModel(modelId);
@@ -235,8 +233,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		System.out.println("-------------------");
 		
 		// add an additional individual to model after export
-		resp = mmm.createIndividual(modelId, "GO:0008233", null);
-		final OWLNamedIndividual i3 = resp.getIndividuals().get(0);
+		final Pair<String,OWLNamedIndividual> i3 = mmm.createIndividual(modelId, "GO:0008233", null, null);
 		assertEquals(3, mmm.getIndividuals(modelId).size());
 
 		
@@ -249,8 +246,8 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		for (OWLNamedIndividual i : loaded) {
 			IRI iri = i.getIRI();
 			// check that the model only contains the individuals created before the export
-			assertTrue(iri.equals(i1.getIRI()) || iri.equals(i2.getIRI()));
-			assertFalse(iri.equals(i3.getIRI()));
+			assertTrue(iri.equals(i1.getRight().getIRI()) || iri.equals(i2.getRight().getIRI()));
+			assertFalse(iri.equals(i3.getRight().getIRI()));
 		}
 	}
 	
@@ -260,28 +257,25 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		final ParserWrapper pw1 = new ParserWrapper();
 		g = pw1.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
 
-		mmm = new MolecularModelManager(g);
+		mmm = new MolecularModelManager<Void>(g);
 		mmm.setPathToOWLFiles(saveFolder.getCanonicalPath());
 		
 		// GO:0038024 ! cargo receptor activity
 		// GO:0042803 ! protein homodimerization activity
 		// GO:0008233 ! peptidase activity
 
-		final String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0038024", null);
-		final OWLNamedIndividual i1 = resp.getIndividuals().get(0);
+		final String modelId = mmm.generateBlankModel(null, null);
+		final Pair<String,OWLNamedIndividual> i1 = mmm.createIndividual(modelId, "GO:0038024", null, null);
 
-		resp = mmm.createIndividual(modelId, "GO:0042803", null);
-		final OWLNamedIndividual i2 = resp.getIndividuals().get(0);
+		final Pair<String,OWLNamedIndividual> i2 = mmm.createIndividual(modelId, "GO:0042803", null, null);
 
-		mmm.addPartOf(modelId, i1, i2, null);
+		mmm.addPartOf(modelId, i1.getKey(), i2.getKey(), null);
 		
 		// save
-		mmm.saveModel(modelId);
+		mmm.saveModel(modelId, null, null);
 		
 		// add an additional individual to model after export
-		resp = mmm.createIndividual(modelId, "GO:0008233", null);
-		final OWLNamedIndividual i3 = resp.getIndividuals().get(0);
+		final Pair<String,OWLNamedIndividual> i3 = mmm.createIndividual(modelId, "GO:0008233", null, null);
 		assertEquals(3, mmm.getIndividuals(modelId).size());
 
 		// discard mmm
@@ -292,7 +286,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		g = pw2.parseToOWLGraph(getResourceIRIString("go-mgi-signaling-test.obo"));
 		
 		
-		mmm = new MolecularModelManager(g);
+		mmm = new MolecularModelManager<Void>(g);
 		mmm.setPathToOWLFiles(saveFolder.getCanonicalPath());
 		
 		Set<String> availableModelIds = mmm.getAvailableModelIds();
@@ -306,8 +300,8 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		for (OWLNamedIndividual i : loaded) {
 			IRI iri = i.getIRI();
 			// check that the model only contains the individuals created before the save
-			assertTrue(iri.equals(i1.getIRI()) || iri.equals(i2.getIRI()));
-			assertFalse(iri.equals(i3.getIRI()));
+			assertTrue(iri.equals(i1.getRight().getIRI()) || iri.equals(i2.getRight().getIRI()));
+			assertFalse(iri.equals(i3.getRight().getIRI()));
 		}
 	}
 
@@ -319,15 +313,13 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		// GO:0038024 ! cargo receptor activity
 		// GO:0042803 ! protein homodimerization activity
 
-		mmm = new MolecularModelManager(g);
+		mmm = new MolecularModelManager<Void>(g);
 
-		String modelId = mmm.generateBlankModel(null);
-		OWLOperationResponse resp = mmm.createIndividual(modelId, "GO:0004872", null); // receptor activity
-		OWLNamedIndividual cc = resp.getIndividuals().get(0);
+		String modelId = mmm.generateBlankModel(null, null);
+		String cc = mmm.createIndividual(modelId, "GO:0004872", null, null).getKey(); // receptor activity
 
 		
-		resp = mmm.createIndividual(modelId, "GO:0007166", null); // cell surface receptor signaling pathway
-		OWLNamedIndividual mit = resp.getIndividuals().get(0);
+		String mit = mmm.createIndividual(modelId, "GO:0007166", null, null).getKey(); // cell surface receptor signaling pathway
 
 		mmm.addPartOf(modelId, mit, cc, null);
 

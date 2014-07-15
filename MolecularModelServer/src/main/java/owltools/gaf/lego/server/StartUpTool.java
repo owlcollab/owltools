@@ -17,7 +17,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import owltools.cli.Opts;
 import owltools.gaf.bioentities.ProteinTools;
-import owltools.gaf.lego.MolecularModelManager;
+import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler;
 import owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler;
 import owltools.graph.OWLGraphWrapper;
@@ -148,7 +148,7 @@ public class StartUpTool {
 
 		// create model manager
 		LOGGER.info("Start initializing MMM");
-		MolecularModelManager models = new MolecularModelManager(graph);
+		UndoAwareMolecularModelManager models = new UndoAwareMolecularModelManager(graph);
 		models.setPathToOWLFiles(modelFolder);
 		if (gafFolder != null) {
 			models.setPathToGafs(gafFolder);
@@ -164,7 +164,7 @@ public class StartUpTool {
 		server.join();
 	}
 	
-	public static Server startUp(MolecularModelManager models, int port, String contextString, boolean allowBatch, Set<String> relevantRelations)
+	public static Server startUp(UndoAwareMolecularModelManager models, int port, String contextString, boolean allowBatch, Set<String> relevantRelations)
 			throws Exception {
 		LOGGER.info("Setup Jetty config.");
 		// Configuration: Use an already existing handler instance

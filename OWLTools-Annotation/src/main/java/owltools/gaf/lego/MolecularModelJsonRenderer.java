@@ -113,6 +113,13 @@ public class MolecularModelJsonRenderer {
 	}
 	
 	/**
+	 * @param model
+	 */
+	public MolecularModelJsonRenderer(LegoModelGenerator model) {
+		this(model.getAboxOntology(), new OWLGraphWrapper(model.getAboxOntology()));
+	}
+	
+	/**
 	 * @param ontology
 	 */
 	public MolecularModelJsonRenderer(OWLOntology ontology) {
@@ -489,7 +496,7 @@ public class MolecularModelJsonRenderer {
 		return IRI.create(fullIRI);
 	}
 	
-	public static List<Map<Object, Object>> renderRelations(MolecularModelManager mmm, Set<String> relevantRelations) throws OWLOntologyCreationException {
+	public static List<Map<Object, Object>> renderRelations(MolecularModelManager<?> mmm, Set<String> relevantRelations) throws OWLOntologyCreationException {
 		/* [{
 		 *   id: {String}
 		 *   label: {String}
@@ -557,8 +564,12 @@ public class MolecularModelJsonRenderer {
 		return relList;
 	}
 	
-	public static List<Map<Object, Object>> renderEvidences(MolecularModelManager mmm) throws OWLException, IOException {
-		OntologyMapperPair<EcoMapper> pair = EcoMapperFactory.createEcoMapper(mmm.getGraph().getManager());
+	public static List<Map<Object, Object>> renderEvidences(MolecularModelManager<?> mmm) throws OWLException, IOException {
+		return renderEvidences(mmm.getGraph().getManager());
+	}
+	
+	public static List<Map<Object, Object>> renderEvidences(OWLOntologyManager manager) throws OWLException, IOException {
+		OntologyMapperPair<EcoMapper> pair = EcoMapperFactory.createEcoMapper(manager);
 		final OWLGraphWrapper graph = pair.getGraph();
 		final EcoMapper mapper = pair.getMapper();
 		Set<OWLClass> ecoClasses = graph.getAllOWLClasses();
