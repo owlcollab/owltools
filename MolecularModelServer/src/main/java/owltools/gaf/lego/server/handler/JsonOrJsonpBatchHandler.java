@@ -31,6 +31,7 @@ import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
+import owltools.gaf.lego.UndoAwareMolecularModelManager.ChangeEvent;
 import owltools.gaf.lego.UndoAwareMolecularModelManager.UndoMetadata;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.server.validation.BeforeSaveModelValidator;
@@ -581,24 +582,60 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				return "No query identifiers found in the request.";
 			}
 		}
+		else if (Operation.undo == operation) {
+			values.nonMeta = true;
+			m3.undo(values.modelId, userId);
+			values.renderBulk = true;
+		}
+		else if (Operation.redo == operation) {
+			values.nonMeta = true;
+			m3.redo(values.modelId, userId);
+			values.renderBulk = true;
+		}
+		else if (Operation.getUndoRedo == operation) {
+			if (values.nonMeta) {
+				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+				return operation+" cannot be combined with other operations.";
+			}
+			getCurrentUndoRedoForModel(response, values.modelId, userId);
+		}
 		else {
 			return "Unknown operation: "+operation;
 		}
 		return null;
 	}
 
+	private void getCurrentUndoRedoForModel(M3BatchResponse response, String modelId, String userId) {
+		Pair<List<ChangeEvent>,List<ChangeEvent>> undoRedoEvents = m3.getUndoRedoEvents(modelId);
+		initMetaResponse(response);
+		List<Map<Object, Object>> undos = new ArrayList<Map<Object,Object>>();
+		List<Map<Object, Object>> redos = new ArrayList<Map<Object,Object>>();
+		final long currentTime = System.currentTimeMillis();
+		for(ChangeEvent undo : undoRedoEvents.getLeft()) {
+			Map<Object, Object> data = new HashMap<Object, Object>(3);
+			data.put("user-id", undo.getUserId());
+			data.put("time", Long.valueOf(currentTime-undo.getTime()));
+			// TODO add a summary of the change? axiom count?
+			undos.add(data);
+		}
+		for(ChangeEvent redo : undoRedoEvents.getRight()) {
+			Map<Object, Object> data = new HashMap<Object, Object>(3);
+			data.put("user-id", redo.getUserId());
+			data.put("time", Long.valueOf(currentTime-redo.getTime()));
+			// TODO add a summary of the change? axiom count?
+			redos.add(data);
+		}
+		response.data.put("undo", undos);
+		response.data.put("redo", redos);
+	}
+	
 	private void getAllModelIds(M3BatchResponse response, String userId) throws IOException {
 		Set<String> allModelIds = m3.getAvailableModelIds();
 		//Set<String> scratchModelIds = mmm.getScratchModelIds();
 		//Set<String> storedModelIds = mmm.getStoredModelIds();
 		//Set<String> memoryModelIds = mmm.getCurrentModelIds();
 
-		if (response.data == null) {
-			response.data = new HashMap<Object, Object>();
-			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
-			response.message = "success: " + response.data.size();
-			response.signal = M3BatchResponse.SIGNAL_META;
-		}
+		initMetaResponse(response);
 		
 		response.data.put("model_ids", allModelIds);
 		//response.data.put("models_memory", memoryModelIds);
@@ -606,58 +643,42 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		//response.data.put("models_scratch", scratchModelIds);
 	}
 	
-	private void searchModels(M3BatchResponse response, List<String> ids, String userId) throws IOException {
-		Set<String> allModelIds = m3.searchModels(ids);
+	private void initMetaResponse(M3BatchResponse response) {
 		if (response.data == null) {
 			response.data = new HashMap<Object, Object>();
 			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 			response.message = "success: " + response.data.size();
 			response.signal = M3BatchResponse.SIGNAL_META;
 		}
+	}
+	
+	private void searchModels(M3BatchResponse response, List<String> ids, String userId) throws IOException {
+		Set<String> allModelIds = m3.searchModels(ids);
+		initMetaResponse(response);
 		response.data.put("model_ids", allModelIds);
 	}
 
 	private void getRelations(M3BatchResponse response, String userId) throws OWLOntologyCreationException {
 		List<Map<Object,Object>> relList = MolecularModelJsonRenderer.renderRelations(m3, relevantRelations);
-		if (response.data == null) {
-			response.data = new HashMap<Object, Object>();
-			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
-			response.message = "success: " + response.data.size();
-			response.signal = M3BatchResponse.SIGNAL_META;
-		}
+		initMetaResponse(response);
 		response.data.put(Entity.relations.name(), relList);
 	}
 	
 	private void getEvidence(M3BatchResponse response, String userId) throws OWLException, IOException {
 		List<Map<Object,Object>> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
-		if (response.data == null) {
-			response.data = new HashMap<Object, Object>();
-			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
-			response.message = "success: " + response.data.size();
-			response.signal = M3BatchResponse.SIGNAL_META;
-		}
+		initMetaResponse(response);
 		response.data.put(Entity.evidence.name(), evidencesList);
 	}
 	
 	private void export(M3BatchResponse response, String modelId, String userId) throws OWLOntologyStorageException, UnknownIdentifierException {
 		String exportModel = m3.exportModel(modelId);
-		if (response.data == null) {
-			response.data = new HashMap<Object, Object>();
-			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
-			response.message = "success";
-			response.signal = M3BatchResponse.SIGNAL_META;
-		}
+		initMetaResponse(response);
 		response.data.put(Operation.exportModel.getLbl(), exportModel);
 	}
 	
 	private void save(M3BatchResponse response, String modelId, Collection<Pair<String,String>> annotations, String userId, UndoMetadata token) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
 		m3.saveModel(modelId, annotations, token);
-		if (response.data == null) {
-			response.data = new HashMap<Object, Object>();
-			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
-			response.message = "success: " + response.data.size();
-			response.signal = M3BatchResponse.SIGNAL_META;
-		}
+		initMetaResponse(response);
 	}
 	
 	private void addContributor(String modelId, String userId, UndoMetadata token, MolecularModelManager<UndoMetadata> m3) throws UnknownIdentifierException {

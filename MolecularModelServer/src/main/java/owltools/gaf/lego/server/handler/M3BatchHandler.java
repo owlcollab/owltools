@@ -59,7 +59,12 @@ public interface M3BatchHandler {
 		storeModel("store"),
 		allModelIds("all-model-ids"),
 		search("search"),
-		updateImports("update-imports");
+		updateImports("update-imports"),
+		
+		// undo operations for models
+		undo("undo"), // undo the latest op
+		redo("redo"), // redo the latest undo
+		getUndoRedo("get-undo-redo"); // get a list of all currently available undo and redo for a model
 		
 		private final String lbl;
 		
