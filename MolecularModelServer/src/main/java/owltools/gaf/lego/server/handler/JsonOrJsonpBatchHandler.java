@@ -46,7 +46,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	public static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
 	
 	
-	public static boolean USE_USER_ID = false;
+	public static boolean USE_USER_ID = true;
 	public static boolean USE_CREATION_DATE = true;
 	public static boolean ADD_INFERENCES = true;
 	public static boolean VALIDATE_BEFORE_SAVE = false;
