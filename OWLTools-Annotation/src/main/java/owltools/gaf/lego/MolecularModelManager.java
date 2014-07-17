@@ -134,12 +134,13 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @param processCls
 	 * @return null
 	 * @throws OWLOntologyCreationException
+	 * @throws UnknownIdentifierException
 	 * 
 	 * @Deprecated problematic return type
 	 */
 	@Deprecated
-	public String addProcess(String modelId, OWLClass processCls) throws OWLOntologyCreationException {
-		LegoModelGenerator mod = getModel(modelId);
+	public String addProcess(String modelId, OWLClass processCls) throws OWLOntologyCreationException, UnknownIdentifierException {
+		LegoModelGenerator mod = checkModelId(modelId);
 		Set<String> genes = new HashSet<String>();
 		mod.buildNetwork(processCls, genes);
 		return null;
@@ -149,9 +150,10 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @param modelId
 	 * @param qs
 	 * @return all individuals in the model that satisfy q
+	 * @throws UnknownIdentifierException
 	 */
-	public Set<OWLNamedIndividual> getIndividualsByQuery(String modelId, String qs) {
-		LegoModelGenerator mod = getModel(modelId);
+	public Set<OWLNamedIndividual> getIndividualsByQuery(String modelId, String qs) throws UnknownIdentifierException {
+		LegoModelGenerator mod = checkModelId(modelId);
 		ManchesterSyntaxTool mst = new ManchesterSyntaxTool(new OWLGraphWrapper(mod.getAboxOntology()), false);
 		OWLClassExpression q = mst.parseManchesterExpression(qs);
 		return getIndividualsByQuery(modelId, q);
@@ -452,7 +454,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return graph.getOWLObjectProperty(iri);
 	}
 	
-	LegoModelGenerator checkModelId(String modelId) throws UnknownIdentifierException {
+	public LegoModelGenerator checkModelId(String modelId) throws UnknownIdentifierException {
 		LegoModelGenerator model = getModel(modelId);
 		if (model == null) {
 			throw new UnknownIdentifierException("Could not find a model for id: "+modelId);

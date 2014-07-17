@@ -210,6 +210,9 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 		// get model
 		final LegoModelGenerator model = m3.getModel(values.modelId);
+		if (model == null) {
+			throw new UnknownIdentifierException("Could not retrieve a model for id: "+values.modelId);
+		}
 		// update reasoner
 		// report state
 		final OWLReasoner reasoner = model.getReasoner();

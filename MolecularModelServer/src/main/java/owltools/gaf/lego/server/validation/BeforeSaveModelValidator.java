@@ -21,10 +21,7 @@ public class BeforeSaveModelValidator {
 
 	public List<String> validateBeforeSave(String modelId, MolecularModelManager<?> modelManager) throws UnknownIdentifierException {
 		// get model
-		LegoModelGenerator model = modelManager.getModel(modelId);
-		if (model == null) {
-			throw new UnknownIdentifierException("Could not find a model for id: "+modelId);
-		}
+		LegoModelGenerator model = modelManager.checkModelId(modelId);
 		List<String> errors = new ArrayList<String>(3);
 		// check that model has required meta data
 		OWLOntology aboxOntology = model.getAboxOntology();

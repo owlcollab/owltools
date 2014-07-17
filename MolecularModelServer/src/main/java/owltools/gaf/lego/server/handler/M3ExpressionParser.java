@@ -21,12 +21,9 @@ import owltools.graph.OWLGraphWrapper;
 
 public class M3ExpressionParser {
 
-	static OWLClassExpression parse(String modelId, M3Expression expression, MolecularModelManager m3)
+	static OWLClassExpression parse(String modelId, M3Expression expression, MolecularModelManager<?> m3)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
-		LegoModelGenerator model = m3.getModel(modelId);
-		if (model == null) {
-			throw new UnknownIdentifierException("Could not find a model for id: "+modelId);
-		}
+		LegoModelGenerator model = m3.checkModelId(modelId);
 		OWLGraphWrapper g = new OWLGraphWrapper(model.getAboxOntology());
 		return parse(g, expression, true);
 //		return parse(g, expression, false);
