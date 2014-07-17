@@ -44,7 +44,6 @@ import com.google.gson.GsonBuilder;
  */
 @Deprecated
 @Produces({MediaType.APPLICATION_JSON, "application/javascript"})
-@SuppressWarnings("rawtypes")
 public class JsonOrJsonpModelHandler implements M3Handler {
 
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpModelHandler.class);
@@ -52,9 +51,9 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	public static final String JSONP_DEFAULT_CALLBACK = "jsonp";
 	public static final String JSONP_DEFAULT_OVERWRITE = "json.wrf";
 	
-	private final MolecularModelManager mmm;
+	private final MolecularModelManager<?> mmm;
 
-	public JsonOrJsonpModelHandler(MolecularModelManager models) {
+	public JsonOrJsonpModelHandler(MolecularModelManager<?> models) {
 		super();
 		this.mmm = models;
 	}
@@ -216,7 +215,7 @@ public class JsonOrJsonpModelHandler implements M3Handler {
 	 * @param mmm
 	 * @return REST response, never null
 	 */
-	private M3Response information(Object data, MolecularModelManager mmm) {
+	private M3Response information(Object data, MolecularModelManager<?> mmm) {
 		M3Response response = new M3Response(M3Response.INFORMATION);
 		response.data = data;
 		if (mmm != null) {
