@@ -49,7 +49,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	public static boolean USE_USER_ID = true;
 	public static boolean USE_CREATION_DATE = true;
 	public static boolean ADD_INFERENCES = true;
-	public static boolean VALIDATE_BEFORE_SAVE = false;
+	public static boolean VALIDATE_BEFORE_SAVE = true;
 	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	

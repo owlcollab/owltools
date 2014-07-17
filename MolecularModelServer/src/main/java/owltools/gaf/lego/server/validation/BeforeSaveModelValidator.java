@@ -16,8 +16,10 @@ import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 
 public class BeforeSaveModelValidator {
+	
+	static boolean USE_CONSISTENCY_CHECKS = false;
 
-	public List<String> validateBeforeSave(String modelId, MolecularModelManager modelManager) throws UnknownIdentifierException {
+	public List<String> validateBeforeSave(String modelId, MolecularModelManager<?> modelManager) throws UnknownIdentifierException {
 		// get model
 		LegoModelGenerator model = modelManager.getModel(modelId);
 		if (model == null) {
@@ -54,9 +56,11 @@ public class BeforeSaveModelValidator {
 		}
 		
 		// check that model is consistent
-		OWLReasoner reasoner = model.getReasoner();
-		if (reasoner.isConsistent() == false) {
-			errors.add("The model is inconsistent. A Model must be consistent to be saved.");
+		if (USE_CONSISTENCY_CHECKS) {
+			OWLReasoner reasoner = model.getReasoner();
+			if (reasoner.isConsistent() == false) {
+				errors.add("The model is inconsistent. A Model must be consistent to be saved.");
+			}
 		}
 		
 		// require at least one declared instance
