@@ -172,7 +172,7 @@ abstract class AbstractAnnotationFileParser implements Closeable {
 				+ formatName;
 
 			if (currentCols.length < expectedColumnCount) {
-				violations.add(error);
+				addViolation(error);
 				fireParsingError(error);
 				LOG.error(error + "  The row is ignored: " + this.currentRow);
 				return ReadState.next;
@@ -287,6 +287,9 @@ abstract class AbstractAnnotationFileParser implements Closeable {
 	//----------------------------
 	
 	protected void addViolation(Object violation) {
+		if (violations == null) {
+			violations = new ArrayList<Object>();
+		}
 		violations.add(violation);
 	}
 	
