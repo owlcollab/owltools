@@ -8,7 +8,8 @@ public class GpadParser extends AbstractAnnotationFileParser {
 	private static final Logger LOG = Logger.getLogger(GpadParser.class);
 
 	private static final String COMMENT_PREFIX = "!";
-	private static final String VERSION_PREFIX = COMMENT_PREFIX+"gpa-version:";
+	private static final String VERSION_STRING_SHORT = "gpa-version";
+	private static final String VERSION_STRING_LONG = "gpad-version";
 	private static final double DEFAULT_VERSION = 1.1d;
 	private static final int EXPECTED_COLUMNS = 12;
 	
@@ -101,7 +102,28 @@ public class GpadParser extends AbstractAnnotationFileParser {
 
 	@Override
 	protected boolean isFormatDeclaration(String line) {
-		return line.startsWith(VERSION_PREFIX);
+		if (line.startsWith(COMMENT_PREFIX)) {
+			line = line.substring(1);
+			line = StringUtils.trimToEmpty(line);
+			if (line.startsWith(VERSION_STRING_LONG)) {
+				line = line.substring(VERSION_STRING_LONG.length());
+			}
+			else if (line.startsWith(VERSION_STRING_SHORT)) {
+				line = line.substring(VERSION_STRING_SHORT.length());
+			}
+			else {
+				return false;
+			}
+			line = StringUtils.trimToEmpty(line);
+			if (line.startsWith(":")) {
+				line = line.substring(1);
+				line = StringUtils.trimToEmpty(line);
+				if (line.length() > 0) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	@Override
@@ -111,13 +133,17 @@ public class GpadParser extends AbstractAnnotationFileParser {
 
 	@Override
 	protected double parseVersion(String line) {
-		String versionString = line.substring(VERSION_PREFIX.length());
-		versionString = StringUtils.trimToNull(versionString);
-		if (versionString != null) {
-			try {
-				return Double.parseDouble(versionString);
-			} catch (NumberFormatException e) {
-				LOG.info("Could not parse version from line: "+line);
+		String versionString = null;
+		int pos = line.indexOf(':');
+		if (pos > 0) {
+			versionString = line.substring(pos + 1);
+			versionString = StringUtils.trimToNull(versionString);
+			if (versionString != null) {
+				try {
+					return Double.parseDouble(versionString);
+				} catch (NumberFormatException e) {
+					LOG.info("Could not parse version from line: "+line);
+				}
 			}
 		}
 		// fallback: return defaultVersion
