@@ -3,24 +3,40 @@ package owltools.gaf.io;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.vocabulary.RDF;
-
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.parser.BuilderTools;
 
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.vocabulary.RDF;
+
+/**
+ * Generates and writes RDF Models conforming to http://www.openannotation.org/spec/core/core.html
+ * from {@link GeneAnnotation} objects.
+ * 
+ * TODOs:
+ *  - use subProperties of hasBody and hasTarget?
+ *  - use subClass of oa:Annotation
+ *  - use own vocabulary for evidence
+ *  - fix evidence
+ *  - decide on policy for isoforms
+ *  - vocabulary for GPAD relation
+ *  - decide on model for annotation extensions
+ *  - add all GPAD fields
+ *  - include option to have labels and other data from bioentities (tho expected to come from elsewhere)
+ *  - decide on URI policy for bioentities, entities in WITH column
+ *  - many more things...
+ * 
+ * @author cjm
+ *
+ */
 public class OpenAnnotationRDFWriter {
 	
 	Model model;
@@ -119,6 +135,7 @@ public class OpenAnnotationRDFWriter {
 	
 	private Property getAnnotationToEvidenceProperty() {
 		return model.getProperty(oa + "motivatedBy"); // <-- this is pretty wacky...
+		// may be better to use motivatedBy for WITH column
 	}
 
 
