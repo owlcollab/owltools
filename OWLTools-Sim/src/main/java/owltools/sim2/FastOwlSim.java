@@ -2118,9 +2118,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		if (icClassArray == null)
 			icClassArray = new Double[classArray.length];
 		if (!classIndex.containsKey(c)) {
-			LOG.warn("Non-indexed class: "+c);
+			LOG.warn("Non-indexed class (this is OK assuming it has no data): "+c);
 		}
-		icClassArray[classIndex.get(c)] = v;
+		else {
+			icClassArray[classIndex.get(c)] = v;
+		}
 	}
 
 	@Override
