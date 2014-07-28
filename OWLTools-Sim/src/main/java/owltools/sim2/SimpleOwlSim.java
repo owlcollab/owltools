@@ -1316,6 +1316,13 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	}
 
 	@Override
+	public List<ElementPairScores> findMatchesWithin(OWLNamedIndividual i,
+			Set<OWLNamedIndividual> candidateTargets) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public Double[][] computeTFIDFMatrix(int[][] subsetMatrix,
 			int numIndividualsInSubset, int[][] backgroundMatrix,
 			int numIndividualsInBackground) throws UnknownOWLClassException {

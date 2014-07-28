@@ -753,6 +753,7 @@ public interface OwlSim {
 	 */
 	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace, double minSimJPct, double minMaxIC) throws Exception;
 
+	public List<ElementPairScores> findMatchesWithin(OWLNamedIndividual i, Set<OWLNamedIndividual> candidateTargets) throws Exception;
 	
 	/**
 	 * Resnick similarity measure, together with all LCSs (MICAs) that

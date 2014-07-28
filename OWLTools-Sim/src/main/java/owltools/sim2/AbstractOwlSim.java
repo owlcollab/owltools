@@ -335,6 +335,14 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return ijscores;
 	}
 
+	public List<ElementPairScores> findMatches(Set<OWLClass> atts, String targetIdSpace) throws Exception {
+
+		double minSimJPct = getPropertyAsDouble(SimConfigurationProperty.minimumSimJ, 0.05) * 100;
+		double minMaxIC = getPropertyAsDouble(SimConfigurationProperty.minimumMaxIC, 2.5);
+
+		return findMatches(atts, targetIdSpace, minSimJPct, minMaxIC);
+	}
+
 	public List<ElementPairScores> findMatches(OWLNamedIndividual i, String targetIdSpace)
 			throws Exception {
 		Set<OWLClass> atts = getAttributesForElement(i);
@@ -355,6 +363,8 @@ public abstract class AbstractOwlSim implements OwlSim {
 		return matches;
 	}
 
+
+	//		
 
 	/* (non-Javadoc)
 	 * @see owltools.sim2.OwlSim#getEntropy()
@@ -415,7 +425,6 @@ public abstract class AbstractOwlSim implements OwlSim {
 		OWLOntologyManager mgr = getSourceOntology().getOWLOntologyManager();
 		OWLDataFactory df = mgr.getOWLDataFactory();
 		clearInformationContentCache();
-		//icCache = new HashMap<OWLClass, Double>();
 		for (OWLAnnotationAssertionAxiom ax : o.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
 			if (ax.getProperty().getIRI().toString().equals(icIRIString)) {
 				OWLLiteral lit = (OWLLiteral) ax.getValue();
@@ -424,7 +433,13 @@ public abstract class AbstractOwlSim implements OwlSim {
 				setInformtionContectForAttribute(c, v);
 			}
 		}
+		assignDefaultInformationContentForAllClasses();
 	}
+	
+	public void assignDefaultInformationContentForAllClasses() {
+		LOG.warn("Implementing class does not provide method, no defaults set");
+	}
+	
 
 	public void saveState(String fileName) throws IOException {
 		LOG.warn("not implemented");
@@ -1079,6 +1094,7 @@ public abstract class AbstractOwlSim implements OwlSim {
 
 		return md;
 	}
-	
+
+
 	
 }
