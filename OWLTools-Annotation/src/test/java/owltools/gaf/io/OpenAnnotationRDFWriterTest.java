@@ -30,7 +30,6 @@ public class OpenAnnotationRDFWriterTest extends OWLToolsTestBasics {
 	
 
 	
-//	@Ignore
 	@Test
 	public void testWriter() throws Exception {
 		
@@ -38,7 +37,7 @@ public class OpenAnnotationRDFWriterTest extends OWLToolsTestBasics {
 		GafDocument gaf = builder.buildDocument(getResource("test_gene_association_mgi.gaf"));
 		
 		OpenAnnotationRDFWriter w = new OpenAnnotationRDFWriter();
-		
+		w.setGafMode();
 		w.write(gaf, "target/mgi-oa.ttl");
 	}
 	

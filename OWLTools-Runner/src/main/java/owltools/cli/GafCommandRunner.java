@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,6 +65,7 @@ import owltools.gaf.inference.Prediction;
 import owltools.gaf.io.GafWriter;
 import owltools.gaf.io.GpadWriter;
 import owltools.gaf.io.GpiWriter;
+import owltools.gaf.io.OpenAnnotationRDFWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
@@ -113,20 +115,20 @@ import com.google.gson.JsonParser;
 public class GafCommandRunner extends CommandRunner {
 
 	private static final Logger LOG = Logger.getLogger(GafCommandRunner.class);
-	
+
 	public GafDocument gafdoc = null;
 	public BioentityDocument bioentityDocument = null;
 	private GafParserReport parserReport = null;
-	
+
 	private String gafReportSummaryFile = null;
 	private String gafReportFile = null;
 	private String gafPredictionFile = null;
 	private String gafPredictionReportFile = null;
 	private String experimentalGafPredictionFile = null;
 	private String experimentalGafPredictionReportFile = null;
-	
+
 	public TraversingEcoMapper eco = null;
-	
+
 	/**
 	 * Used for loading GAFs into memory
 	 * 
@@ -152,27 +154,27 @@ public class GafCommandRunner extends CommandRunner {
 		if (opts.hasOpts() && opts.nextEq("--createReport")) {
 			createReport = true;
 		}
-		
+
 		GafObjectsBuilder builder = new GafObjectsBuilder();
 		if (createReport) {
 			parserReport = new GafParserReport();
 			builder.getParser().addParserListener(new ParserListener() {
-				
+
 				@Override
 				public boolean reportWarnings() {
 					return true;
 				}
-				
+
 				@Override
 				public void parsing(String line, int lineNumber) {
 					// intentionally empty
 				}
-				
+
 				@Override
 				public void parserWarning(String message, String line, int lineNumber) {
 					parserReport.warnings.add(new GafParserMessages(message, line, lineNumber));
 				}
-				
+
 				@Override
 				public void parserError(String errorMessage, String line, int lineNumber) {
 					parserReport.errors.add(new GafParserMessages(errorMessage, line, lineNumber));
@@ -182,7 +184,7 @@ public class GafCommandRunner extends CommandRunner {
 		if (noIEA) {
 			LOG.info("Using no-IEA filter on GAF.");
 			builder.addFilter(new LineFilter<GAFParser>() {
-				
+
 				@Override
 				public boolean accept(String line, int pos, GAFParser parser) {
 					String evidence = parser.getEvidence();
@@ -208,7 +210,7 @@ public class GafCommandRunner extends CommandRunner {
 			LOG.info("Finished loading GAF.");
 		}
 	}
-	
+
 	@CLIMethod("--write-gaf")
 	public void writeGaf(Opts opts) throws Exception {
 		String ofn = opts.nextOpt();
@@ -221,7 +223,7 @@ public class GafCommandRunner extends CommandRunner {
 			IOUtils.closeQuietly(gw);
 		}
 	}
-	
+
 	@CLIMethod("--gaf-fold-extensions")
 	public void foldGafExtensions(Opts opts) throws Exception {
 		opts.info("", "takes a set of pre-loaded annotations and transforms this set such that any annotation with c16 extensions is replaced by a new term. See http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
@@ -229,7 +231,7 @@ public class GafCommandRunner extends CommandRunner {
 		aef.fold(gafdoc);
 		AssertInferenceTool.assertInferences(g, false, false, false, false, false, false, null, null);
 	}
-	
+
 	@CLIMethod("--gaf-unfold-extensions")
 	public void unfoldGafExtensions(Opts opts) throws Exception {
 		opts.info("", "takes a set of pre-loaded annotations and transforms this set adding info to c16 extensions. See http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
@@ -251,7 +253,7 @@ public class GafCommandRunner extends CommandRunner {
 		aef.isThrowOnMultipleExpressions = isThrowOnMultipleExpressions;
 		aef.unfold(gafdoc);
 	}
-	
+
 	@CLIMethod("--gaf-fold-inferences")
 	public void gafFoldInferences(Opts opts) throws Exception {
 		opts.info("", "inferences. See: http://code.google.com/p/owltools/wiki/AnnotationExtensionFolding");
@@ -268,7 +270,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		fbp.dispose();
 	}
-	
+
 	@CLIMethod("--gaf-remove-redundant")
 	public void gafRemoveRedundant(Opts opts) throws Exception {
 		opts.info("", "Removes any annotation (G,T) if exists (G,T') and T' descendant-of T. ");
@@ -299,10 +301,91 @@ public class GafCommandRunner extends CommandRunner {
 			}
 		}
 		gafdoc.setGeneAnnotations(filteredAnns);
-	
+
 	}
 
-	
+	@CLIMethod("--gaf-compare-basic")
+	public void gafCompareBasic(Opts opts) throws Exception {
+		opts.info("TARGET-GAF", 
+					"Compares annotations between any loaded annotations and the specified GAF\n"+
+				"Ignores all metadata and only attempts to see for each G-T in source if G-T' can be found\n"+
+				"in target, where T' is identical, anctesor or descendant of T");
+		// TODO
+		File gafFile = opts.nextFile();
+		GafObjectsBuilder builder = new GafObjectsBuilder();
+		GafDocument gafdoc2 = builder.buildDocument(gafFile);
+		Map<String,Set<String>> rmap = new HashMap<String,Set<String>>();
+		List<GeneAnnotation> anns = gafdoc.getGeneAnnotations();
+		Collection<Bioentity> bioentities = gafdoc.getBioentities();
+
+		for (Bioentity e : bioentities) {
+			String  eid = e.getId();
+			Bioentity e2 = gafdoc2.getBioentity(eid);
+			Collection<GeneAnnotation> anns2 = null;
+			if (e2 != null) {
+				anns2 = gafdoc2.getGeneAnnotations(e2.getId());
+			}
+			for (GeneAnnotation ann : gafdoc.getGeneAnnotations(eid)) {
+				String outcome = null;
+				String outcomeInfo = "";
+				if (e2 == null) {
+					outcome = "ENTITY_NOT_FOUND";
+					outcomeInfo = eid;
+					break;
+				}
+				String clsId = ann.getCls();
+				OWLClass cls = g.getOWLClassByIdentifier(clsId);
+				if (cls == null) {
+					LOG.warn(clsId+" not found");
+					outcome = "CLASS_NOT_FOUND";
+					outcomeInfo = clsId;
+				}
+				else if (g.isObsolete(cls)) {
+					outcome = "CLASS_OBSOLETED";
+					outcomeInfo = clsId;
+				}
+				else {
+					for (GeneAnnotation ann2 : anns2) {
+						String clsId2 = ann2.getCls();
+						if (clsId.equals(clsId2)) {
+							// match
+							outcome = "EXACT_MATCH";
+							outcomeInfo = clsId;
+							break;
+						}
+						else {
+							OWLClass cls2 = g.getOWLClassByIdentifier(clsId2);
+							Set<OWLObject> ancs2 = g.getAncestors(cls2);
+							if (ancs2.contains(cls)) {
+								outcome = "MATCHES_MORE_SPECIFIC";
+								outcomeInfo = clsId2;
+							}
+							else {
+								Set<OWLObject> ancs = g.getAncestors(cls);
+								if (ancs.contains(cls2)) {
+									if (outcome == null) {
+										outcome = "MATCHES_MORE_GENERAL";
+										outcomeInfo = clsId2;
+									}
+								}
+							}
+							
+							// todo - altIds, etc
+
+						}
+					}
+				}
+				if (outcome == null) {
+					outcome = "NO_MATCH";
+				}
+				System.out.println(outcome+"\t"+outcomeInfo+"\t"+ann.toString());
+			}
+		}
+
+
+	}
+
+
 	@CLIMethod("--gaf2owl")
 	public void gaf2Owl(Opts opts) throws OWLException {
 		opts.info("[-n TARGET-IRI] [-o FILE]", "translates previously loaded GAF document into OWL");
@@ -378,7 +461,7 @@ public class GafCommandRunner extends CommandRunner {
 		LOG.info("Start converting GAF to OWL");
 		bridge.translate(gafdoc);
 		LOG.info("Finished converting GAF to OWL");
-		
+
 		OWLOntology ontology = bridge.getTargetOntology();
 		if (makeMinimalModel) {
 			OWLOntologyManager manager = ontology.getOWLOntologyManager();
@@ -386,7 +469,7 @@ public class GafCommandRunner extends CommandRunner {
 			Set<OWLEntity> entities = new HashSet<OWLEntity>();
 			if (bridge.isGenerateIndividuals()) {
 				LOG.info("Generating minimal model based on individuals");
-				
+
 				Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
 				if (individuals.isEmpty()) {
 					LOG.info("No individuals found skipping minimization step.");
@@ -419,14 +502,14 @@ public class GafCommandRunner extends CommandRunner {
 				LOG.info("Start module extraction");
 				SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(manager, ontology, ModuleType.BOT);
 				Set<OWLAxiom> moduleAxioms = sme.extract(entities);
-				
+
 				OWLOntology modOnt = manager.createOntology();
 				manager.addAxioms(modOnt, moduleAxioms);
 				ontology = modOnt;
 				LOG.info("Finished module extraction");
 			}
 		}
-		
+
 		if (out != null) {
 			pw.saveOWL(ontology,out,g);
 		}
@@ -437,7 +520,7 @@ public class GafCommandRunner extends CommandRunner {
 			g.setSourceOntology(ontology);
 		}
 	}
-	
+
 	@CLIMethod("--gaf-xp-predict")
 	public void gafXpPredict(Opts opts) {
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
@@ -453,7 +536,7 @@ public class GafCommandRunner extends CommandRunner {
 			System.out.println(p.render(owlpp));
 		}
 	}
-	
+
 	@CLIMethod("--gaf-term-IC-values")
 	public void gafTermICValues(Opts opts) {
 		opts.info("", "Calculate IC for every term based on an input GAF. Ensure relations are filtered accordingly first");
@@ -480,7 +563,7 @@ public class GafCommandRunner extends CommandRunner {
 			}
 		}
 	}
-	
+
 	@CLIMethod("--gaf-calculate-specificity")
 	public void gaCalculateSpecificity(Opts opts) {
 		opts.info("", "Calculate IC for every term based on an input GAF. Ensure relations are filtered accordingly first");
@@ -531,7 +614,7 @@ public class GafCommandRunner extends CommandRunner {
 		System.out.println("Avg dist per annotation: "+ sumA / (float) nA);
 		System.out.println("Avg dist per gene: "+ sumG / (float) nG);
 	}
-	
+
 	@CLIMethod("--gaf-term-counts")
 	public void gafTermCounts(Opts opts) {
 		// TODO - ensure has_part and other relations are excluded
@@ -553,7 +636,7 @@ public class GafCommandRunner extends CommandRunner {
 			}
 		}
 	}
-	
+
 	@CLIMethod("--gaf-query")
 	public void gafQuery(Opts opts) {
 		opts.info("LABEL", "extracts lines from a GAF file where the ontology term is a reflexive descendant of the query");
@@ -571,7 +654,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		gafdoc.setGeneAnnotations(filtered);
 	}
-	
+
 	@CLIMethod("--extract-ontology-subset-by-gaf")
 	public void extractOntologySubsetByGaf(Opts opts) throws OWLOntologyCreationException {
 		opts.info("", "makes an ontology subset using closure of all terms used in GAF");
@@ -674,7 +757,7 @@ public class GafCommandRunner extends CommandRunner {
 		List<GeneAnnotation> mappedAnns = new ArrayList<GeneAnnotation>();
 		int nmapped = 0;
 		gafdoc.addComment("Number of annotation in input set: "+gafdoc.getGeneAnnotations().size());
-		
+
 		LOG.info("iterating through all annotations");
 		List<GeneAnnotation> unmappedAnns = new ArrayList<GeneAnnotation>();
 		int tp = 0;
@@ -719,44 +802,44 @@ public class GafCommandRunner extends CommandRunner {
 		}
 
 	}
-	
+
 	private static class GafParserReport {
-		
+
 		int lineCount = 0;
-		
+
 		final List<GafParserMessages> errors = new ArrayList<GafParserMessages>();
 		final List<GafParserMessages> warnings = new ArrayList<GafParserMessages>();
-		
+
 		boolean hasWarningsOrErrors() {
 			return !warnings.isEmpty() || !errors.isEmpty();
 		}
-		
+
 		boolean hasWarnings() {
 			return !warnings.isEmpty();
 		}
-		
+
 		boolean hasErrors() {
 			return !errors.isEmpty();
 		}
-		
+
 		boolean hasNothingToReport() {
 			return warnings.isEmpty() && errors.isEmpty();
 		}
 	}
-	
+
 	private static class GafParserMessages {
-		
+
 		String errorMessage;
 		String line;
 		int lineNumber;
-		
+
 		GafParserMessages(String errorMessage, String line, int lineNumber) {
 			this.errorMessage = errorMessage;
 			this.line = line;
 			this.lineNumber = lineNumber;
 		}
 	}
-	
+
 	@CLIMethod("--gaf-run-checks")
 	public void runGAFChecks(Opts opts) throws Exception {
 		boolean predictAnnotations = gafPredictionFile != null;
@@ -771,18 +854,18 @@ public class GafCommandRunner extends CommandRunner {
 				elkLogger = Logger.getLogger("org.semanticweb.elk");
 				elkLogLevel = elkLogger.getLevel();
 				elkLogger.setLevel(Level.ERROR);
-				
+
 				if (eco == null) {
 					eco = EcoMapperFactory.createTraversingEcoMapper(pw).getMapper();
 				}
 				LOG.info("Start validating GAF");
-			
+
 				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco, true);
 				ruleEngine = new AnnotationRulesEngine(rulesFactory, predictAnnotations, experimentalPredictAnnotations);
-			
+
 				result = ruleEngine.validateAnnotations(gafdoc);
 				LOG.info("Finished validating GAF");
-				
+
 				reportWriter = createReportWriter();
 				reportWriter.renderEngineResult(parserReport, result, ruleEngine);
 			}
@@ -801,20 +884,20 @@ public class GafCommandRunner extends CommandRunner {
 					elkLogLevel = null;
 				}
 			}
-			
+
 			// no violations found, delete previous error file (if it exists)
 			if ((parserReport == null || parserReport.hasNothingToReport()) && result.isEmpty()) {
 				System.out.println("No violations found for gaf.");
 				return;
 			}
-			
+
 			if (parserReport != null && parserReport.hasWarningsOrErrors()) {
 				System.err.print("Parser summary Error count: ");
 				System.err.print(parserReport.errors.size());
 				System.err.print(" Warning count: ");
 				System.err.println(parserReport.warnings.size());
 			}
-			
+
 			System.err.print("Rule summary:");
 			for(ViolationType type : result.getTypes()) {
 				System.err.print(" ");
@@ -824,8 +907,8 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			System.err.print(" GAF violations found, reportfile: "+gafReportFile);
 			System.err.println();
-			
-			
+
+
 			// handle error vs warnings
 			if (parserReport != null && parserReport.hasErrors()) {
 				System.out.println("GAF Validation NOT successful. There is at least one PARSER ERROR.");
@@ -858,13 +941,13 @@ public class GafCommandRunner extends CommandRunner {
 			return;
 		}
 	}
-	
+
 	private ExtendAnnotationRulesReportWriter createReportWriter() throws IOException {
 		return new ExtendAnnotationRulesReportWriter(gafReportFile, gafReportSummaryFile, gafPredictionFile, gafPredictionReportFile, experimentalGafPredictionFile, experimentalGafPredictionReportFile);
 	}
-	
+
 	private static class ExtendAnnotationRulesReportWriter extends AnnotationRulesReportWriter {
-		
+
 		/**
 		 * @param reportFile
 		 * @param summaryFile
@@ -878,10 +961,10 @@ public class GafCommandRunner extends CommandRunner {
 				String summaryFile, String predictionFile,
 				String predictionReportFile, String experimentalPredictionFile,
 				String experimentalPredictionReportFile) throws IOException
-		{
+				{
 			super(reportFile, summaryFile, predictionFile, predictionReportFile,
 					experimentalPredictionFile, experimentalPredictionReportFile);
-		}
+				}
 
 		public void renderEngineResult(GafParserReport parserReport, AnnotationRulesEngineResult result, AnnotationRulesEngine engine) {
 			if (writer != null) {
@@ -920,7 +1003,7 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			renderEngineResult(result, engine);
 		}
-		
+
 		private void writeParseErrorsOrWarnings(GafParserReport report, PrintWriter writer, PrintWriter summaryWriter) {
 			if (report == null || report.hasWarningsOrErrors() == false) {
 				return;
@@ -957,7 +1040,7 @@ public class GafCommandRunner extends CommandRunner {
 					writer.print(gafParserError.line);
 					writer.println();
 				}
-				
+
 				writer.println("#------------");
 				writer.print("# ");
 				writer.print('\t');
@@ -982,49 +1065,49 @@ public class GafCommandRunner extends CommandRunner {
 			}
 		}
 	}
-	
+
 	@CLIMethod("--gaf-report-file")
 	public void setGAFReportFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafReportFile = opts.nextOpt();
 		}
 	}
-	
+
 	@CLIMethod("--gaf-report-summary-file")
 	public void setGAFReportSummaryFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafReportSummaryFile = opts.nextOpt();
 		}
 	}
-	
+
 	@CLIMethod("--gaf-prediction-file")
 	public void setGAFPredictionFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafPredictionFile = opts.nextOpt();
 		}
 	}
-	
+
 	@CLIMethod("--gaf-prediction-report-file")
 	public void setGAFPredictionReportFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafPredictionReportFile = opts.nextOpt();
 		}
 	}
-	
+
 	@CLIMethod("--experimental-gaf-prediction-file")
 	public void setExperimentalGAFPredictionFile(Opts opts) {
 		if (opts.hasArgs()) {
 			experimentalGafPredictionFile = opts.nextOpt();
 		}
 	}
-	
+
 	@CLIMethod("--experimental-gaf-prediction-report-file")
 	public void setExperimentalGAFPredictionReportFile(Opts opts) {
 		if (opts.hasArgs()) {
 			experimentalGafPredictionReportFile = opts.nextOpt();
 		}
 	}
-	
+
 	@CLIMethod("--pseudo-rdf-xml")
 	public void createRdfXml(Opts opts) throws Exception {
 		opts.info("-o OUTPUTFILE", "create an RDF XML file in legacy format.");
@@ -1062,7 +1145,7 @@ public class GafCommandRunner extends CommandRunner {
 			exit(-1);
 			return;
 		}
-		
+
 		List<GafDocument> gafDocs;
 		if (gafSources == null || gafSources.isEmpty()) {
 			gafDocs = Collections.singletonList(gafdoc);
@@ -1085,7 +1168,7 @@ public class GafCommandRunner extends CommandRunner {
 				printMemory();
 			}
 		}
-		
+
 		OutputStream stream = null;
 		try {
 			LOG.info("Start writing Pseudo RDF XML to file: "+outputFileName);
@@ -1093,7 +1176,7 @@ public class GafCommandRunner extends CommandRunner {
 			PseudoRdfXmlWriter w = new PseudoRdfXmlWriter();
 			final long startTime = System.currentTimeMillis();
 			w.setProgressReporter(new ProgressReporter() {
-				
+
 				@Override
 				public void report(int count, int total) {
 					if (count == total) {
@@ -1125,15 +1208,15 @@ public class GafCommandRunner extends CommandRunner {
 			IOUtils.closeQuietly(stream);
 		}
 	}
-	
+
 	private void printMemory() {
 		// run a gc to get a proper memory consumption profile
 		System.gc();
 		Runtime runtime = Runtime.getRuntime();
-	    long used = runtime.totalMemory() - runtime.freeMemory();
-	    LOG.info("Memory "+(used / (1024*1024))+"MB");
+		long used = runtime.totalMemory() - runtime.freeMemory();
+		LOG.info("Memory "+(used / (1024*1024))+"MB");
 	}
-	
+
 	@CLIMethod("--write-xgmml")
 	public void writeXgmml(Opts opts) throws IOException {
 		opts.info("OUTPUTFILE", "create an XGMML file in legacy format.");
@@ -1152,6 +1235,49 @@ public class GafCommandRunner extends CommandRunner {
 		OutputStream stream = new FileOutputStream(new File(outputFileName));
 		w.write(stream, g, Arrays.asList(gafdoc));
 		stream.close();
+	}
+	
+	@CLIMethod("--gaf2oa")
+	public void gaf2oa(Opts opts) throws Exception {
+		opts.info("[-o OUTFILE][-f JENA-FORMAT]", 
+				"generates RDF (default turtle) following Open Annotation schema");
+		String output = null;
+		boolean minimize = false;
+		String jenaFmt = "TURTLE";
+		String mode = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o|--output")) {
+				output = opts.nextOpt();
+			}
+			else if (opts.nextEq("-f|--format")) {
+				jenaFmt = opts.nextOpt();
+			}
+			else if (opts.nextEq("-m|--mode")) {
+				mode = opts.nextOpt().toLowerCase();
+			}
+			else {
+				break;
+			}
+		}
+		OpenAnnotationRDFWriter w = new OpenAnnotationRDFWriter(jenaFmt);
+		if (mode != null) {
+			if (mode.equals("gpi"))
+				w.setGpifMode();
+			else if (mode.equals("gpad"))
+				w.setGpadfMode();
+			else if (mode.equals("gaf"))
+				w.setGafMode();
+			else {
+				LOG.error("No such mode:" +mode);
+			}
+		}
+		if (output == null) {
+			w.write(gafdoc, System.out);
+		}
+		else {
+			w.write(gafdoc, output);
+		}
+
 	}
 
 	@CLIMethod("--gaf2lego")
@@ -1186,7 +1312,7 @@ public class GafCommandRunner extends CommandRunner {
 			else {
 				lego = translator.translate(gafdoc);
 			}
-			
+
 			OWLOntologyManager manager = lego.getOWLOntologyManager();
 			OutputStream outputStream = null;
 			try {
@@ -1211,7 +1337,7 @@ public class GafCommandRunner extends CommandRunner {
 			return;
 		}
 	}
-	
+
 	@CLIMethod("--generate-molecular-model")
 	public void generateMolecularModel(Opts opts) throws Exception {
 		opts.info("[--dot FILE] [--owl FILE] [-s SEED-GENE-LIST] [-a] [-r] -p PROCESS", "Generates an activity network (aka lego) from existing GAF and ontology");
@@ -1259,13 +1385,13 @@ public class GafCommandRunner extends CommandRunner {
 		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
 		ni.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
 		ni.initialize(gafdoc, g);
-		
+
 		String p = g.getIdentifier(processCls);
 		seedGenes.addAll(ni.getGenes(processCls));
 
 		ni.buildNetwork(p, seedGenes);
 
-		
+
 		OWLOntology ont = ni.getAboxOntology();
 		if (isExtractModule) {
 			ni.extractModule();
@@ -1281,7 +1407,7 @@ public class GafCommandRunner extends CommandRunner {
 			g.setSourceOntology(ni.getAboxOntology());
 		}
 	}
-	
+
 	@CLIMethod("--fetch-candidate-process")
 	public void fetchCandidateProcess(Opts opts) throws Exception {
 		Double pvalThresh = 0.05;
@@ -1315,7 +1441,7 @@ public class GafCommandRunner extends CommandRunner {
 		LOG.info("DISEASE: "+owlpp.render(disease));
 		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
 		ni.setPrecomputePropertyClassCombinations(false);
-		
+
 		ni.initialize(gafdoc, g);
 		OWLClass nothing = g.getDataFactory().getOWLNothing();
 		Map<OWLClass, Double> smap = ni.fetchScoredCandidateProcesses(disease, popSize);
@@ -1331,7 +1457,7 @@ public class GafCommandRunner extends CommandRunner {
 			System.out.println("PROC\t"+owlpp.render(c)+"\t"+score);
 		}
 	}
-	
+
 	@CLIMethod("--go-multi-enrichment")
 	public void goMultiEnrichment(Opts opts) throws Exception {
 		opts.info("P1 P2", "Generates an activity network (aka lego) from existing GAF and ontology");
@@ -1363,7 +1489,7 @@ public class GafCommandRunner extends CommandRunner {
 		OWLClass rc1 = this.resolveClass(opts.nextOpt());
 		OWLClass rc2 = this.resolveClass(opts.nextOpt());
 		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
-		
+
 		ni.initialize(gafdoc, g);
 		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
 		OWLClass nothing = g.getDataFactory().getOWLNothing();
@@ -1375,7 +1501,7 @@ public class GafCommandRunner extends CommandRunner {
 		if (isReflexive) {
 			sampleSet.add(rc2);
 		}
-		
+
 		// calc correction factor
 		int numHypotheses = 0;
 		for (OWLClass c1 : ni.getReasoner().getSubClasses(rc1, false).getFlattened()) {
@@ -1391,8 +1517,8 @@ public class GafCommandRunner extends CommandRunner {
 				numHypotheses++;
 			}
 		}
-		
-		
+
+
 		for (OWLClass c1 : ni.getReasoner().getSubClasses(rc1, false).getFlattened()) {
 			if (c1.equals(nothing))
 				continue;
@@ -1410,8 +1536,8 @@ public class GafCommandRunner extends CommandRunner {
 			}
 		}
 	}
-	
-	
+
+
 	@CLIMethod("--visualize-lego")
 	public void visualizeLego(Opts opts) throws Exception {
 		opts.info("[--owl OWLFILE] [-o OUTFOTFILE]", "");
@@ -1442,30 +1568,30 @@ public class GafCommandRunner extends CommandRunner {
 			writeLego(ont, dotOutputFile, name);
 		}
 	}
-	
+
 	public void writeLego(OWLOntology ontology, final String output, String name) throws Exception {
 		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
 
 		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
 
 		OWLReasonerFactory factory = new ElkReasonerFactory();
-		
+
 		final OWLReasoner reasoner = factory.createReasoner(ontology);
 		try {
 			LegoRenderer renderer = new LegoDotWriter(g, reasoner) {
-	
+
 				BufferedWriter fileWriter = null;
-				
+
 				@Override
 				protected void open() throws IOException {
 					fileWriter = new BufferedWriter(new FileWriter(new File(output)));
 				}
-	
+
 				@Override
 				protected void close() {
 					IOUtils.closeQuietly(fileWriter);
 				}
-	
+
 				@Override
 				protected void appendLine(CharSequence line) throws IOException {
 					//System.out.println(line);
@@ -1513,7 +1639,7 @@ public class GafCommandRunner extends CommandRunner {
 			exit(-1);
 			return;
 		}
-		
+
 		final File inputFile = new File(inputFileString).getCanonicalFile();
 		final File inputFolder;
 		if (inputFolderString != null) {
@@ -1531,7 +1657,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		final File externalCacheFolder = new File(externalCacheFolderString);
 		String jsonSource = FileUtils.readFileToString(inputFile, "UTF-8");
-		
+
 		JsonParser parser = new JsonParser();
 		JsonElement source = parser.parse(jsonSource);
 		if (source.isJsonObject()) {
@@ -1559,7 +1685,7 @@ public class GafCommandRunner extends CommandRunner {
 								gafFile = new File(inputFolder, gafFilename);
 							}
 							AnnotationDocumentMetadata metadata = getMetaDataFromGAF(gafFile, id);
-							
+
 							String outputFileName;
 							if (gafFilename.endsWith(".gz")) {
 								outputFileName = gafFilename.substring(0, (gafFilename.length()-3)) + ".json";
@@ -1578,13 +1704,13 @@ public class GafCommandRunner extends CommandRunner {
 			}
 		}
 	}
-	
+
 	private AnnotationDocumentMetadata getMetaDataFromGAF(File gaf, final String id) throws Exception {
 		LOG.info("Extracting metadata for "+id+" from file: "+gaf.getAbsolutePath());
 		final AnnotationDocumentMetadata metadata = new AnnotationDocumentMetadata();
 		metadata.dbname = id;
 		metadata.gafDocumentSizeInBytes = gaf.length();
-		
+
 		final GAFParser parser = new GAFParser();
 		// also read the comments, they contain the date information
 		parser.addCommentListener(new CommentListener() {
@@ -1622,14 +1748,14 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		return metadata;
 	}
-	
+
 	private File downloadExternal(String external, String name, File cache) throws Exception {
 		InputStream input = null;
 		OutputStream output = null;
 		try {
 			File cacheFile = new File(cache, name);
 			LOG.info("Start downloading "+name+" to cache: "+cacheFile.getAbsolutePath());
-			
+
 			// WARNING: This will fail for FTP file larger than 2GB
 			// This is a bug in Java 5 and 6, but is fixed in Java 7
 			input = new URL(external).openStream();
@@ -1643,7 +1769,7 @@ public class GafCommandRunner extends CommandRunner {
 			IOUtils.closeQuietly(output);
 		}
 	}
-	
+
 	private void writeJsonMetadata(AnnotationDocumentMetadata metadata, String id, File outputFile) throws Exception {
 		LOG.info("Writing metadata for "+id+" to JSON file: "+outputFile.getAbsolutePath());
 		final GsonBuilder gsonBuilder = new GsonBuilder();
@@ -1651,7 +1777,7 @@ public class GafCommandRunner extends CommandRunner {
 		String json = gson.toJson(metadata);
 		FileUtils.write(outputFile, json, "UTF-8");
 	}
-	
+
 	private String getValue(JsonObject obj, String name) {
 		String value = null;
 		JsonElement jsonElement = obj.get(name);
@@ -1670,9 +1796,9 @@ public class GafCommandRunner extends CommandRunner {
 		boolean includeUnknownBioentities = false;
 		boolean includeUnmappedECO = true;
 		boolean clearComments = false;
-		
+
 		AspectProvider aspectProvider = null;
-		
+
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-a|--gpad|--gpa"))
 				gpadFileName = opts.nextOpt();
@@ -1727,7 +1853,7 @@ public class GafCommandRunner extends CommandRunner {
 			// delete previous report
 			FileUtils.deleteQuietly(reportFile);
 		}
-		
+
 		SimpleEcoMapper ecoMapper;
 		if (ecoMappingSource == null) {
 			ecoMapper = EcoMapperFactory.createSimple();
@@ -1744,24 +1870,24 @@ public class GafCommandRunner extends CommandRunner {
 			listener = new IssueListener.DefaultIssueListener();
 			builder.addIssueListener(listener);
 		}
-		
+
 		File gpad = new File(gpadFileName).getCanonicalFile();
 		File gpi = new File(gpiFileName).getCanonicalFile();
 		Pair<BioentityDocument,GafDocument> pair = builder.loadGpadGpi(gpad, gpi);
 		gafdoc = pair.getRight();
 		bioentityDocument = pair.getLeft();
-		
+
 		if (clearComments) {
 			gafdoc.getComments().clear();
 			bioentityDocument.getComments().clear();
 		}
-		
+
 		if (reportFile != null) {
 			BufferedWriter writer = null;
 			try {
 				writer = new BufferedWriter(new FileWriter(reportFile));
 				// report statistics
-				
+
 				// Write mapped errors
 				Map<String, String> mappedErrors = listener.getMappedErrors();
 				if (mappedErrors != null) {
@@ -1773,7 +1899,7 @@ public class GafCommandRunner extends CommandRunner {
 						writer.append('\n');
 					}
 				}
-				
+
 				// write other errors
 				List<String> errors = listener.getErrors();
 				if (errors != null) {
@@ -1783,7 +1909,7 @@ public class GafCommandRunner extends CommandRunner {
 						writer.append('\n');
 					}
 				}
-				
+
 				// write mapped warnings
 				Map<String, String> mappedWarnings = listener.getMappedWarnings();
 				if (mappedWarnings != null) {
@@ -1795,7 +1921,7 @@ public class GafCommandRunner extends CommandRunner {
 						writer.append('\n');
 					}
 				}
-				
+
 				// write other warnings
 				List<String> warnings = listener.getWarnings();
 				if (warnings != null) {
@@ -1811,7 +1937,7 @@ public class GafCommandRunner extends CommandRunner {
 			}
 		}
 	}
-	
+
 	@CLIMethod("--write-gpad")
 	public void writeGpad(Opts opts) throws Exception {
 		String outputFileName = null;
@@ -1850,7 +1976,7 @@ public class GafCommandRunner extends CommandRunner {
 			IOUtils.closeQuietly(pw);
 		}
 	}
-	
+
 	@CLIMethod("--write-gpi")
 	public void writeGpi(Opts opts) throws Exception {
 		String outputFileName = null;
@@ -1890,13 +2016,13 @@ public class GafCommandRunner extends CommandRunner {
 				// TODO create proper document with all isoforms used in the annotations
 				writer.write(gafdoc.getBioentities());
 			}
-			
+
 		}
 		finally {
 			IOUtils.closeQuietly(pw);
 		}
 	}
-	
+
 	@CLIMethod("--lego-to-gpad")
 	public void legoToAnnotations(Opts opts) throws Exception {
 		String inputName = null;
@@ -1924,12 +2050,12 @@ public class GafCommandRunner extends CommandRunner {
 				break;
 			}
 		}
-		
+
 		SimpleEcoMapper mapper = EcoMapperFactory.createSimple();
 		LegoToGeneAnnotationTranslator translator = new LegoToGeneAnnotationTranslator(g, reasonerFactory, mapper);
 		GafDocument annotations = new GafDocument(null, null);
 		BioentityDocument entities = new BioentityDocument(null, null);
-		
+
 		File inputFile = new File(inputName).getCanonicalFile();
 		OWLOntologyManager m = g.getManager();
 		if (inputFile.isFile()) {
@@ -1940,7 +2066,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		else if (inputFile.isDirectory()) {
 			File[] files = inputFile.listFiles(new FilenameFilter() {
-				
+
 				@Override
 				public boolean accept(File dir, String name) {
 					return StringUtils.trimToEmpty(name).toLowerCase().endsWith(".owl");
@@ -1953,7 +2079,7 @@ public class GafCommandRunner extends CommandRunner {
 				translator.translate(model, annotations, entities, addtitionalRefs);	
 			}
 		}
-		
+
 		// write GPAD to avoid bioentity data issues
 		PrintWriter fileWriter = null;
 		try {
