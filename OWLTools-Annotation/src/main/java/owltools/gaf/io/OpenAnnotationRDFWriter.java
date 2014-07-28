@@ -200,9 +200,10 @@ public class OpenAnnotationRDFWriter {
 		model.add(rAnn, getAnnotationToBioentityProperty(), rBioentity);
 		model.add(rAnn, getAnnotationToDescriptorProperty(), rDescriptor);
 
+		// TODO
 		if (isoForm != null) {
-			Resource x = createResourceFromId(isoForm);
-			model.add(rAnn, getAnnotationToIsoformProperty(), x);
+			//Resource x = createResourceFromId(isoForm);
+			//model.add(rAnn, getAnnotationToIsoformProperty(), x);
 
 		}
 
