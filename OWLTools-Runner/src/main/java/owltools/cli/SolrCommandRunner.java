@@ -80,6 +80,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	private PANTHERForest pSet = null;
 	private List<File> legoCatalogs = null;
 	private List<File> legoFiles = null;
+	private List<String> caFiles = null;
 
 	/**
 	 * Output (STDOUT) a XML segment to put into the Solr schema file after reading the YAML file.
@@ -355,6 +356,29 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	}
 
 	/**
+	 * Used for reading the lego files to be used for loading complex annotations.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--read-ca-list")
+	public void processCAFiles(Opts opts) throws Exception {
+		caFiles = new ArrayList<String>();
+		List<String> files = opts.nextList();
+		for (String fstr : files) {
+			LOG.info("Using file for LEGO/CA: " + fstr);
+			// Read file line by line, getting the model locations out.
+			File file = new File(fstr);
+			List<String> lines = FileUtils.readLines(file, "UTF-8");
+			for (String line : lines) {
+				String caloc = StringUtils.chomp(line);
+				LOG.info("\tAdd file: " + caloc);
+				caFiles.add(caloc);
+			}
+		}
+	}
+
+	/**
 	 * Experimental method for trying out the loading of complex_annotation doc type
 	 * 
 	 * @param opts
@@ -393,6 +417,80 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 
 				try {
 					ontology = pw.parseOWL(IRI.create(legoFile));
+					currentReasoner = reasonerFactory.createReasoner(ontology);
+						
+					// Some sanity checks--some of the genereated ones are problematic.
+					boolean consistent = currentReasoner.isConsistent();
+					if( consistent == false ){
+						LOG.info("Skip since inconsistent: " + fname);
+						continue;
+					}
+					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
+					if (unsatisfiable.isEmpty() == false) {
+						LOG.info("Skip since unsatisfiable: " + fname);
+						continue;
+					}
+					
+					Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature();
+					OWLGraphWrapper currentGraph = new OWLGraphWrapper(ontology);						
+					try {
+						LOG.info("Trying complex annotation load of: " + fname);
+						ComplexAnnotationSolrDocumentLoader loader =
+								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, agID, agLabel);
+						loader.load();
+					} catch (SolrServerException e) {
+						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
+						e.printStackTrace();
+					}
+				} finally {
+					// Cleanup reasoner and ontology.
+					if (reasoner != null) {
+						reasoner.dispose();
+					}
+					if (ontology != null) {
+						manager.removeOntology(ontology);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Experimental method for trying out the loading of complex_annotation doc type.
+	 * Works with --read-ca-list <file>.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--solr-load-complex-exp")
+	public void loadComplexAnnotationSolr(Opts opts) throws Exception {
+
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);				
+
+		// Only proceed if our environment was well-defined.
+		if( caFiles == null || caFiles.isEmpty() ){
+			LOG.warn("LEGO environment not well defined--will skip loading LEGO/CA.");
+		}else{
+
+			// NOTE: These two lines are remainders from old code, and I'm not sure of their place in this world of ours.
+			// I wish there was an arcitecture diagram somehwere...
+			OWLOntologyManager manager = pw.getManager();
+			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+				
+			// Actual loading--iterate over our list and load individually.
+			for( String fname : caFiles ){
+				;
+				OWLReasoner currentReasoner = null;
+				OWLOntology ontology = null;
+
+				// TODO: Temp cover for missing group labels and IDs.
+				//String agID = legoFile.getCanonicalPath();
+				String agLabel = StringUtils.removeEnd(fname, ".owl");
+				String agID = new String(agLabel);
+
+				try {
+					ontology = pw.parseOWL(IRI.create(fname));
 					currentReasoner = reasonerFactory.createReasoner(ontology);
 						
 					// Some sanity checks--some of the genereated ones are problematic.

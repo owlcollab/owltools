@@ -139,20 +139,28 @@ public abstract class AbstractSolrLoader {
 	}
 
 	protected void addAllAndCommit() throws SolrServerException, IOException {
-		LOG.info("adding all docs...");
-		server.add(docs);
-		LOG.info("committing docs...");
-		server.commit();
-		LOG.info("docs committed");
+		if( docs.isEmpty() ){
+			LOG.warn("Odd: apparently no documents to add?");
+		}else{
+			LOG.info("adding all docs...");
+			server.add(docs);
+			LOG.info("committing docs...");
+			server.commit();
+			LOG.info("docs committed");
+		}
 	}
 
 	protected void incrementalAddAndCommit() throws SolrServerException, IOException {
-		//LOG.info("adding some docs...");
-		server.add(docs);
-		//LOG.info("committing some docs...");
-		server.commit();
-		//LOG.info("some docs committed");
-	    docs.clear();
+		if( docs.isEmpty() ){
+			LOG.warn("Odd: apparently no documents to add?");
+		}else{
+			//LOG.info("adding some docs...");
+			server.add(docs);
+			//LOG.info("committing some docs...");
+			server.commit();
+			//LOG.info("some docs committed");
+		}
+		docs.clear();
 		//LOG.info("added, committed, and purged some docs");
 	}
 }
