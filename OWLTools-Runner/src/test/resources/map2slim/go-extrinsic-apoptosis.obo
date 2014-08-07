@@ -1,0 +1,513 @@
+format-version: 1.2
+ontology: go
+subsetdef: Cross_product_review "Involved_in"
+subsetdef: goantislim_grouping "Grouping classes that can be excluded"
+subsetdef: gocheck_do_not_annotate "Term not to be used for direct annotation"
+subsetdef: gocheck_do_not_manually_annotate "Term not to be used for direct manual annotation"
+subsetdef: goslim_aspergillus "Aspergillus GO slim"
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_goa "GOA and proteome slim"
+subsetdef: goslim_metagenomics "Metagenomics GO slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_virus "Viral GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+subsetdef: mf_needs_review "Catalytic activity terms in need of attention"
+subsetdef: termgenie_unvetted "Terms created by TermGenie that do not follow a template and require additional vetting by editors"
+subsetdef: virus_checked "Viral overhaul terms"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+
+[Term]
+id: GO:0006915
+name: apoptotic process
+namespace: biological_process
+alt_id: GO:0006917
+alt_id: GO:0008632
+def: "A programmed cell death process which begins when a cell receives an internal (e.g. DNA damage) or external signal (e.g. an extracellular death ligand), and proceeds through a series of biochemical events (signaling pathway phase) which trigger an execution phase. The execution phase is the last step of an apoptotic process, and is typically characterized by rounding-up of the cell, retraction of pseudopodes, reduction of cellular volume (pyknosis), chromatin condensation, nuclear fragmentation (karyorrhexis), plasma membrane blebbing and fragmentation of the cell into apoptotic bodies. When the execution phase is completed, the cell has died." [GOC:dhl, GOC:ecd, GOC:go_curators, GOC:mtg_apoptosis, GOC:tb, ISBN:0198506732, PMID:18846107, PMID:21494263]
+synonym: "activation of apoptosis" NARROW []
+synonym: "apoptosis" NARROW []
+synonym: "apoptosis activator activity" RELATED []
+synonym: "apoptosis signaling" NARROW []
+synonym: "apoptotic cell death" EXACT [GOC:sl]
+synonym: "apoptotic program" NARROW [GOC:add]
+synonym: "apoptotic programmed cell death" EXACT []
+synonym: "cell suicide" BROAD []
+synonym: "cellular suicide" BROAD []
+synonym: "commitment to apoptosis" RELATED []
+synonym: "induction of apoptosis" RELATED []
+synonym: "induction of apoptosis by p53" RELATED []
+synonym: "programmed cell death by apoptosis" EXACT []
+synonym: "signaling (initiator) caspase activity" RELATED []
+synonym: "type I programmed cell death" NARROW []
+xref: Reactome:REACT_100045
+xref: Reactome:REACT_100962
+xref: Reactome:REACT_101249
+xref: Reactome:REACT_104187
+xref: Reactome:REACT_105149
+xref: Reactome:REACT_106405
+xref: Reactome:REACT_106672
+xref: Reactome:REACT_107264
+xref: Reactome:REACT_108651
+xref: Reactome:REACT_109165
+xref: Reactome:REACT_110081
+xref: Reactome:REACT_111964
+xref: Reactome:REACT_13526
+xref: Reactome:REACT_13638
+xref: Reactome:REACT_13643
+xref: Reactome:REACT_28087
+xref: Reactome:REACT_28795
+xref: Reactome:REACT_28816
+xref: Reactome:REACT_30266
+xref: Reactome:REACT_30361
+xref: Reactome:REACT_30371
+xref: Reactome:REACT_30548
+xref: Reactome:REACT_30763
+xref: Reactome:REACT_31349
+xref: Reactome:REACT_34139
+xref: Reactome:REACT_578
+xref: Reactome:REACT_77132
+xref: Reactome:REACT_77313
+xref: Reactome:REACT_77415
+xref: Reactome:REACT_78287
+xref: Reactome:REACT_78802
+xref: Reactome:REACT_79809
+xref: Reactome:REACT_82724
+xref: Reactome:REACT_83328
+xref: Reactome:REACT_85877
+xref: Reactome:REACT_86749
+xref: Reactome:REACT_86873
+xref: Reactome:REACT_87570
+xref: Reactome:REACT_88740
+xref: Reactome:REACT_88784
+xref: Reactome:REACT_89196
+xref: Reactome:REACT_90267
+xref: Reactome:REACT_91011
+xref: Reactome:REACT_91243
+xref: Reactome:REACT_93937
+xref: Reactome:REACT_94099
+xref: Reactome:REACT_95069
+xref: Reactome:REACT_95675
+xref: Reactome:REACT_97627
+xref: Reactome:REACT_99784
+xref: Reactome:REACT_99799
+xref: Wikipedia:Apoptosis
+is_a: GO:0012501  ! programmed cell death
+relationship: ends_with GO:0097194 ! execution phase of apoptosis
+relationship: never_in_taxon NCBITaxon:33090 {id="GOTAX:0000490"}
+relationship: starts_with GO:0097190 ! apoptotic signaling pathway
+
+[Term]
+id: GO:0007154
+name: cell communication
+namespace: biological_process
+def: "Any process that mediates interactions between a cell and its surroundings. Encompasses interactions such as signaling or attachment between one cell and another cell, between a cell and an extracellular matrix, or between a cell and any other aspect of its environment." [GOC:mah]
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+xref: Wikipedia:Cell_signaling
+is_a: GO:0044763  ! single-organism cellular process
+
+[Term]
+id: GO:0007165
+name: signal transduction
+namespace: biological_process
+alt_id: GO:0023033
+def: "The cellular process in which a signal is conveyed to trigger a change in the activity or state of a cell. Signal transduction begins with reception of a signal (e.g. a ligand binding to a receptor or receptor activation by a stimulus such as light), or for signal transduction in the absence of ligand, signal-withdrawal or the activity of a constitutively active receptor. Signal transduction ends with regulation of a downstream cellular process, e.g. regulation of transcription or regulation of a metabolic process. Signal transduction covers signaling from receptors located on the surface of the cell and signaling via molecules located within the cell. For signaling between cells, signal transduction is restricted to events at and within the receiving cell." [GOC:go_curators, GOC:mtg_signaling_feb11]
+comment: Note that signal transduction is defined broadly to include a ligand interacting with a receptor, downstream signaling steps and a response being triggered. A change in form of the signal in every step is not necessary. Note that in many cases the end of this process is regulation of the initiation of transcription. Note that specific transcription factors may be annotated to this term, but core/general transcription machinery such as RNA polymerase should not.
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "signaling cascade" NARROW []
+synonym: "signaling pathway" RELATED []
+synonym: "signalling cascade" NARROW []
+synonym: "signalling pathway" RELATED [GOC:mah]
+xref: Reactome:REACT_100624
+xref: Reactome:REACT_102354
+xref: Reactome:REACT_112130
+xref: Reactome:REACT_112549
+xref: Reactome:REACT_113151
+xref: Reactome:REACT_113601
+xref: Reactome:REACT_113964
+xref: Reactome:REACT_114657
+xref: Reactome:REACT_114690
+xref: Reactome:REACT_114820
+xref: Reactome:REACT_114910
+xref: Reactome:REACT_115037
+xref: Reactome:REACT_115147
+xref: Reactome:REACT_12478
+xref: Reactome:REACT_31232
+xref: Reactome:REACT_78535
+xref: Reactome:REACT_89740
+xref: Reactome:REACT_93680
+xref: Reactome:REACT_98872
+xref: Wikipedia:Signal_transduction
+is_a: GO:0050794  ! regulation of cellular process
+is_a: GO:0051716  ! cellular response to stimulus
+relationship: part_of GO:0007154 ! cell communication
+relationship: part_of GO:0044700 ! single organism signaling
+
+[Term]
+id: GO:0007166
+name: cell surface receptor signaling pathway
+namespace: biological_process
+def: "A series of molecular signals initiated by activation of a receptor on the surface of a cell. The pathway begins with binding of an extracellular ligand to a cell surface receptor, or for receptors that signal in the absence of a ligand, by ligand-withdrawal or the activity of a constitutively active receptor. The pathway ends with regulation of a downstream cellular process, e.g. transcription." [GOC:bf, GOC:mah, GOC:pr, GOC:signaling]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell surface receptor linked signal transduction" EXACT []
+synonym: "cell surface receptor linked signaling pathway" EXACT [GOC:bf]
+synonym: "cell surface receptor linked signalling pathway" EXACT [GOC:mah]
+xref: Reactome:REACT_6290
+is_a: GO:0007165  ! signal transduction
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "biological process" EXACT []
+synonym: "biological process unknown" NARROW []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+
+[Term]
+id: GO:0008219
+name: cell death
+namespace: biological_process
+def: "Any biological process that results in permanent cessation of all vital functions of a cell. A cell should be considered dead when any one of the following molecular or morphological criteria is met: (1) the cell has lost the integrity of its plasma membrane; (2) the cell, including its nucleus, has undergone complete fragmentation into discrete bodies (frequently referred to as \"apoptotic bodies\"); and/or (3) its corpse (or its fragments) have been engulfed by an adjacent cell in vivo." [GOC:mah, GOC:mtg_apoptosis]
+comment: This term should not be used for direct annotation. The only exception should be when experimental data (e.g., staining with trypan blue or propidium iodide) show that cell death has occurred, but fail to provide details on death modality (accidental versus programmed). When information is provided on the cell death mechanism, annotations should be made to the appropriate descendant of 'cell death' (such as, but not limited to, GO:0097300 'programmed necrotic cell death' or GO:0006915 'apoptotic process'). Also, if experimental data suggest that a gene product influences cell death indirectly, rather than being involved in the death process directly, consider annotating to a 'regulation' term.
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "accidental cell death" RELATED []
+synonym: "necrosis" RELATED []
+is_a: GO:0016265  ! death
+is_a: GO:0044763  ! single-organism cellular process
+
+[Term]
+id: GO:0009987
+name: cellular process
+namespace: biological_process
+alt_id: GO:0008151
+alt_id: GO:0050875
+def: "Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators, GOC:isa_complete]
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell growth and/or maintenance" NARROW []
+synonym: "cell physiology" EXACT []
+synonym: "cellular physiological process" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0012501
+name: programmed cell death
+namespace: biological_process
+alt_id: GO:0016244
+def: "A process which begins when a cell receives an internal or external signal and activates a series of biochemical events (signaling pathway). The process ends with the death of the cell." [GOC:lr, GOC:mtg_apoptosis]
+comment: Note that this term should be used to annotate gene products in the organism undergoing the programmed cell death. To annotate genes in another organism whose products modulate programmed cell death in a host organism, consider the term 'modulation by symbiont of host programmed cell death ; GO:0052040'. Also, note that 'programmed cell death ; GO:0012501' should be used to refer to instances of caspase-independent cell death mechanisms, in the absence of further indications on the process taking place. At present, caspase-independent cell death is not yet represented in GO due to the lack of consensus and in-depth research on the topic. 'programmed cell death ; GO:0012501' may also be used to annotate gene products in taxa where apoptosis as defined in GO:0006915 does not occur, such as plants. You may also consider these specific children: GO:0097468 'programmed cell death in response to reactive oxygen species' (with descendants GO:0010421 'hydrogen peroxide-mediated programmed cell death' and GO:0010343 'singlet oxygen-mediated programmed cell death'), and GO:0009626 'plant-type hypersensitive response' and its children, which are descendants of GO:0034050 'host programmed cell death induced by symbiont'.
+synonym: "PCD" EXACT []
+synonym: "caspase-independent apoptosis" RELATED []
+synonym: "caspase-independent cell death" NARROW []
+synonym: "non-apoptotic programmed cell death" NARROW []
+synonym: "nonapoptotic programmed cell death" NARROW []
+synonym: "regulated cell death" RELATED []
+xref: Wikipedia:Programmed_cell_death
+is_a: GO:0008219  ! cell death
+
+[Term]
+id: GO:0016265
+name: death
+namespace: biological_process
+def: "A permanent cessation of all vital functions: the end of life; can be applied to a whole organism or to a part of an organism." [GOC:mah, ISBN:0877797099]
+comment: See also the biological process term 'apoptosis ; GO:0006915'.
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+xref: Wikipedia:Death
+is_a: GO:0044699  ! single-organism process
+
+[Term]
+id: GO:0023052
+name: signaling
+namespace: biological_process
+alt_id: GO:0023046
+def: "The entirety of a process in which information is transmitted within a biological system. This process begins with an active signal and ends when a cellular response has been triggered." [GOC:mtg_signal, GOC:mtg_signaling_feb11, GOC:signaling]
+comment: Note that a signal is any variable property or parameter that serves to convey information, and may be a physical entity such as a gene product or small molecule, a photon, or a change in state such as movement or voltage change.
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: goslim_yeast  ! Yeast GO slim
+synonym: "biological signaling" EXACT []
+synonym: "signaling process" EXACT []
+synonym: "signalling" EXACT []
+synonym: "signalling process" RELATED [GOC:mah]
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0044699
+name: single-organism process
+namespace: biological_process
+def: "A biological process that involves only one organism." [GOC:jl]
+synonym: "single organism process" EXACT []
+is_a: GO:0008150  ! biological_process
+intersection_of: GO:0008150  ! biological_process
+intersection_of: bearer_of PATO:0002487
+
+[Term]
+id: GO:0044700
+name: single organism signaling
+namespace: biological_process
+def: "A signaling process occurring within a single organism." [GOC:jl]
+is_a: GO:0023052  ! signaling
+is_a: GO:0044699  ! single-organism process
+intersection_of: GO:0023052  ! signaling
+intersection_of: bearer_of PATO:0002487
+
+[Term]
+id: GO:0044763
+name: single-organism cellular process
+namespace: biological_process
+def: "Any process that is carried out at the cellular level, occurring within a single organism." [GOC:jl]
+is_a: GO:0009987  ! cellular process
+is_a: GO:0044699  ! single-organism process
+intersection_of: GO:0009987  ! cellular process
+intersection_of: bearer_of PATO:0002487
+
+[Term]
+id: GO:0050789
+name: regulation of biological process
+namespace: biological_process
+alt_id: GO:0050791
+def: "Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule." [GOC:ai, GOC:go_curators]
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation of physiological process" EXACT []
+is_a: GO:0065007  ! biological regulation
+relationship: regulates GO:0008150 ! biological_process
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0050794
+name: regulation of cellular process
+namespace: biological_process
+alt_id: GO:0051244
+def: "Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation of cellular physiological process" EXACT []
+is_a: GO:0050789  ! regulation of biological process
+relationship: regulates GO:0009987 ! cellular process
+intersection_of: GO:0065007  ! biological regulation
+intersection_of: regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0050896
+name: response to stimulus
+namespace: biological_process
+alt_id: GO:0051869
+def: "Any process that results in a change in state or activity of a cell or an organism (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus and ends with a change in state or activity or the cell or organism." [GOC:ai, GOC:bf]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate  ! Term not to be used for direct manual annotation
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "physiological response to stimulus" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0051716
+name: cellular response to stimulus
+namespace: biological_process
+def: "Any process that results in a change in state or activity of a cell (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus by a cell and ends with a change in state or activity or the cell." [GOC:bf, GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate  ! Term not to be used for direct manual annotation
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0009987  ! cellular process
+is_a: GO:0050896  ! response to stimulus
+
+[Term]
+id: GO:0065007
+name: biological regulation
+namespace: biological_process
+def: "Any process that modulates a measurable attribute of any biological process, quality or function." [GOC:dph, GOC:isa_complete, GOC:mah, GOC:pr, GOC:vw]
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation" BROAD []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0097190
+name: apoptotic signaling pathway
+namespace: biological_process
+alt_id: GO:0008624
+def: "A series of molecular signals which triggers the apoptotic death of a cell. The pathway starts with reception of a signal, and ends when the execution phase of apoptosis is triggered." [GOC:mtg_apoptosis]
+comment: This term can be used to annotate gene products involved in apoptotic events happening downstream of the cross-talk point between the extrinsic and intrinsic apoptotic pathways. The cross-talk starts when caspase-8 cleaves Bid and truncated Bid interacts with mitochondria. From this point on it is not possible to distinguish between extrinsic and intrinsic pathways.
+synonym: "apoptotic signalling pathway" EXACT [GOC:mah]
+synonym: "induction of apoptosis by extracellular signals" EXACT []
+xref: Reactome:REACT_101039
+xref: Reactome:REACT_101287
+xref: Reactome:REACT_101722
+xref: Reactome:REACT_102105
+xref: Reactome:REACT_102682
+xref: Reactome:REACT_103565
+xref: Reactome:REACT_104430
+xref: Reactome:REACT_104446
+xref: Reactome:REACT_104880
+xref: Reactome:REACT_105789
+xref: Reactome:REACT_1059
+xref: Reactome:REACT_106019
+xref: Reactome:REACT_106417
+xref: Reactome:REACT_107145
+xref: Reactome:REACT_107277
+xref: Reactome:REACT_108226
+xref: Reactome:REACT_108738
+xref: Reactome:REACT_108954
+xref: Reactome:REACT_110327
+xref: Reactome:REACT_110777
+xref: Reactome:REACT_113012
+xref: Reactome:REACT_113720
+xref: Reactome:REACT_114928
+xref: Reactome:REACT_115331
+xref: Reactome:REACT_13720
+xref: Reactome:REACT_13806
+xref: Reactome:REACT_1426
+xref: Reactome:REACT_1619
+xref: Reactome:REACT_28136
+xref: Reactome:REACT_30777
+xref: Reactome:REACT_32035
+xref: Reactome:REACT_33023
+xref: Reactome:REACT_33363
+xref: Reactome:REACT_47012
+xref: Reactome:REACT_78512
+xref: Reactome:REACT_78709
+xref: Reactome:REACT_79738
+xref: Reactome:REACT_81353
+xref: Reactome:REACT_81381
+xref: Reactome:REACT_82611
+xref: Reactome:REACT_83750
+xref: Reactome:REACT_84151
+xref: Reactome:REACT_85830
+xref: Reactome:REACT_86320
+xref: Reactome:REACT_86807
+xref: Reactome:REACT_88410
+xref: Reactome:REACT_88562
+xref: Reactome:REACT_89305
+xref: Reactome:REACT_89421
+xref: Reactome:REACT_900
+xref: Reactome:REACT_90409
+xref: Reactome:REACT_90414
+xref: Reactome:REACT_90980
+xref: Reactome:REACT_91488
+xref: Reactome:REACT_92659
+xref: Reactome:REACT_92947
+xref: Reactome:REACT_93354
+xref: Reactome:REACT_93927
+xref: Reactome:REACT_94832
+xref: Reactome:REACT_94837
+xref: Reactome:REACT_95750
+xref: Reactome:REACT_95777
+xref: Reactome:REACT_96066
+xref: Reactome:REACT_96229
+xref: Reactome:REACT_96867
+xref: Reactome:REACT_97301
+xref: Reactome:REACT_98119
+xref: Reactome:REACT_98804
+xref: Reactome:REACT_99367
+xref: Reactome:REACT_99865
+is_a: GO:0007165  ! signal transduction
+relationship: part_of GO:0006915 ! apoptotic process
+
+[Term]
+id: GO:0097191
+name: extrinsic apoptotic signaling pathway
+namespace: biological_process
+def: "A series of molecular signals in which a signal is conveyed from the cell surface to trigger the apoptotic death of a cell. The pathway starts with either a ligand binding to a cell surface receptor, or a ligand being withdrawn from a cell surface receptor (e.g. in the case of signaling by dependence receptors), and ends when the execution phase of apoptosis is triggered." [GOC:mtg_apoptosis, GOC:yaf, PMID:17340152]
+comment: Fas acts as a death receptor with a role in apoptosis, but can also act as a non-apoptotic signal transducer.
+synonym: "death receptor-mediated apoptosis" NARROW []
+synonym: "extrinsic apoptosis" NARROW []
+synonym: "extrinsic apoptotic pathway" EXACT []
+synonym: "extrinsic apoptotic signaling pathway in presence of ligand" NARROW []
+synonym: "extrinsic apoptotic signalling pathway" EXACT [GOC:mah]
+is_a: GO:0007166  ! cell surface receptor signaling pathway
+is_a: GO:0097190  ! apoptotic signaling pathway
+
+[Term]
+id: GO:0097194
+name: execution phase of apoptosis
+namespace: biological_process
+def: "A stage of the apoptotic process that starts with the controlled breakdown of the cell through the action of effector caspases or other effector molecules (e.g. cathepsins, calpains etc.). Key steps of the execution phase are rounding-up of the cell, retraction of pseudopodes, reduction of cellular volume (pyknosis), chromatin condensation, nuclear fragmentation (karyorrhexis), plasma membrane blebbing and fragmentation of the cell into apoptotic bodies. When the execution phase is completed, the cell has died." [GOC:mtg_apoptosis, PMID:21760595]
+synonym: "apoptosis" NARROW []
+synonym: "execution phase of apoptotic process" EXACT []
+is_a: GO:0044763  ! single-organism cellular process
+relationship: part_of GO:0006915 ! apoptotic process
+
+[Typedef]
+id: bearer_of
+name: bearer of
+namespace: external
+inverse_of: inheres_in  ! inheres in
+xref: RO:0000053
+
+[Typedef]
+id: ends_with
+name: ends with
+namespace: external
+is_transitive: true
+xref: RO:0002230
+is_a: has_part  ! has_part
+is_a: temporally_related_to  ! temporally related to
+
+[Typedef]
+id: never_in_taxon
+name: never_in_taxon
+namespace: external
+is_metadata_tag: true
+is_class_level: true
+xref: RO:0002161
+expand_assertion_to: "Class: ?X DisjointWith: RO_0002162 some ?Y" []
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: external
+is_transitive: true
+inverse_of: has_part  ! has_part
+xref: BFO:0000050
+is_a: overlaps  ! overlaps
+
+[Typedef]
+id: regulates
+name: regulates
+namespace: external
+xref: RO:0002211
+is_a: causally_related_to  ! causally related to
+is_a: causally_upstream_of_or_within  ! causally upstream of or within
+is_a: functionally_related_to  ! functionally related to
+transitive_over: part_of  ! part_of
+holds_over_chain: ends_with regulates  ! regulates
+
+[Typedef]
+id: starts_with
+name: starts with
+namespace: external
+is_transitive: true
+inverse_of: starts  ! starts
+xref: RO:0002224
+is_a: has_part  ! has_part
+is_a: temporally_related_to  ! temporally related to
+
