@@ -59,9 +59,10 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 	private OWLReasoner currentReasoner = null;
 	private String currentGroupID = null;
 	private String currentGroupLabel = null;
+	private String currentGroupURL = null;
 	private Set<OWLNamedIndividual> legoIndividuals = null;
 	
-	public ComplexAnnotationSolrDocumentLoader(String url, OWLGraphWrapper g, OWLReasoner r, Set<OWLNamedIndividual> individuals, String agID, String agLabel) throws MalformedURLException {
+	public ComplexAnnotationSolrDocumentLoader(String url, OWLGraphWrapper g, OWLReasoner r, Set<OWLNamedIndividual> individuals, String agID, String agLabel, String agURL) throws MalformedURLException {
 		super(url);
 		//setGraph(g);
 		current_doc_number = 0;
@@ -70,6 +71,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		legoIndividuals = individuals;
 		currentGroupID = agID;
 		currentGroupLabel = agLabel;
+		currentGroupURL = agURL;
 	}
 	
 	@Override
@@ -160,11 +162,12 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 				// TODO: This next bit is all temporary until we get real labels in somehow.
 				String groupID = currentGroupID;
 				String groupLabel = currentGroupLabel;
+				String groupURL = currentGroupURL;
 				
 				// Iterate over the participant nodes and collect the unit information.
 				for( LegoUnit u : units ){
 
-					SolrInputDocument doc = collect_unit_info(u, groupID, groupLabel, shuntGraph);
+					SolrInputDocument doc = collect_unit_info(u, groupID, groupLabel, groupURL, shuntGraph);
 
 					if( doc != null ){
 						add(doc);
@@ -342,7 +345,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 	 *
 	 * @return an input doc for add()
 	 */
-	public SolrInputDocument collect_unit_info(LegoUnit u, String groupID, String groupLabel, OWLShuntGraph shuntGraph) {
+	public SolrInputDocument collect_unit_info(LegoUnit u, String groupID, String groupLabel, String groupURL, OWLShuntGraph shuntGraph) {
 
 		SolrInputDocument ca_doc = new SolrInputDocument();
 
@@ -370,6 +373,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		// annotation_group(_label)
 		ca_doc.addField("annotation_group", groupID);
 		ca_doc.addField("annotation_group_label", groupLabel);
+		ca_doc.addField("annotation_group_url", groupURL);
 		
 		// enabled_by(_label)
 		OWLClass oc = u.getEnabledBy();

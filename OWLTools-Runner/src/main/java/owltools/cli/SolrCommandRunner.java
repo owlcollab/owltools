@@ -436,7 +436,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);
 						ComplexAnnotationSolrDocumentLoader loader =
-								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, agID, agLabel);
+								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, agID, agLabel, fname);
 						loader.load();
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
@@ -512,7 +512,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);
 						ComplexAnnotationSolrDocumentLoader loader =
-								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, agID, agLabel);
+								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, agID, agLabel, fname);
 						loader.load();
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
