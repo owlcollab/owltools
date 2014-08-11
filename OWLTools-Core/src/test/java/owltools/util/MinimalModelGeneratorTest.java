@@ -2,48 +2,28 @@ package owltools.util;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
-import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.reasoner.NodeSet;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
-import owltools.OWLToolsTestBasics;
-import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
-import owltools.io.ParserWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
@@ -466,11 +446,11 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 		occs.add(getClass(OBOUpperVocabulary.GO_biological_process));
 		mmg.anonymizeIndividualsNotIn(occs);
 
-		this.expectFact("mapkkk_activity-proto", "activates", "mapkk_activity-proto");
-		this.expectFact("mapkk_activity-proto", "activates", "mapk_activity-proto");
+		this.expectFact("mapkkk_activity-proto", "directly_activates", "mapkk_activity-proto");
+		this.expectFact("mapkk_activity-proto", "directly_activates", "mapk_activity-proto");
 		this.expectedIndividiuals("cellular_process", 5);
 		
-		this.expectedOPAs("all", 20);
+		this.expectedOPAs("all", 18);
 		
 		mmg.extractModule();
 		// futzing
@@ -507,12 +487,11 @@ public class MinimalModelGeneratorTest extends AbstractMinimalModelGeneratorTest
 		mmg.normalizeDirections(partOf());
 		mmg.normalizeDirections(getObjectProperty(getIRI("activates")));
 		
-
-		this.expectFact("mapkkk_activity-proto", "activates", "mapkk_activity-proto");
-		this.expectFact("mapkk_activity-proto", "activates", "mapk_activity-proto");
+		this.expectFact("mapkkk_activity-proto", "directly_activates", "mapkk_activity-proto");
+		this.expectFact("mapkk_activity-proto", "directly_activates", "mapk_activity-proto");
 		this.expectedIndividiuals("cellular_process", 5);
 		
-		this.expectedOPAs("all", 20);
+		this.expectedOPAs("all", 18);
 		
 		mmg.extractModule();
 		save("pathway-abox-merged2");

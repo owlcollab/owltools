@@ -480,7 +480,11 @@ public class MinimalModelGenerator {
 
 
 		rels.addAll(getExistentialRelationships(generatedIndividual));
-		for (OWLObjectSomeValuesFrom rel : rels) {
+		// The sorting makes the traversal of the graph deterministic
+		// Handles the different sort order of sets in Java 8
+		List<OWLObjectSomeValuesFrom> sortedRels = new ArrayList<OWLObjectSomeValuesFrom>(rels);
+		Collections.sort(sortedRels);
+		for (OWLObjectSomeValuesFrom rel : sortedRels) {
 
 			OWLClassExpression jType = deepen(rel.getFiller(), rel.getProperty(), c);
 
