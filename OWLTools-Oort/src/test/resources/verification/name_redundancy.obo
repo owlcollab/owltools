@@ -28,6 +28,6 @@ name: left-2
 synonym: "left-2" EXACT []
 
 [Term]
-id: FOO:0006
+id: FOO:0007
 name: left
 is_obsolete: true
