@@ -246,8 +246,14 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 		stack.add(prop);
 		while (!stack.isEmpty()) {
 			OWLObjectPropertyExpression nextProp = stack.pop();
-			Set<OWLObjectPropertyExpression> directSubs = this.getSubPropertiesOf(nextProp);
+			Collection<OWLObjectPropertyExpression> directSubs = this.getSubPropertiesOf(nextProp);
 			directSubs.removeAll(subProps);
+			if (directSubs.size() > 1) {
+				// sort for deterministic behavior
+				List<OWLObjectPropertyExpression> sorter = new ArrayList<OWLObjectPropertyExpression>(directSubs);
+				Collections.sort(sorter);
+				directSubs = sorter;
+			}
 			stack.addAll(directSubs);
 			subProps.addAll(directSubs);
 		}
