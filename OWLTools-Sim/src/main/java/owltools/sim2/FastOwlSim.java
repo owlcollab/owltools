@@ -1873,6 +1873,34 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		return s;
 	}
 
+	/**
+	 * Given a set of scorings between an individual i, and a set of individuals j1 ..jn &in; J,
+	 * calculate the combined score for each i,j pair where j &in; J
+	 * 
+	 * <pre>
+	 * CombinedScore(i,j) = ( maxPecrentScore(i,j) / avgPercentScore(i,j) ) / 2
+	 * </pre>
+	 * 
+	 * given 
+	 * 
+	 * <pre>
+	 * maxPecrentScore(i,j) = (maxScore(i,j) / maxScore(i, k)) * 100
+	 * avgPecrentScore(i,j) = (avgScore(i,j) / avgScore(i, k)) * 100
+	 * </pre>
+	 *
+	 * where k is the optimal match for i. We assume k has been calculated in advance,
+	 * and maxScore(i, k) and avgScore(i, k) are provided as inputs
+	 * 
+	 * Currently, we hardcode:
+	 * <ul>
+	 * <li> maxScore(i,k) = maxIC(i,k), i.e. the highest IC of any common subsumer of i and j
+	 * <li> avgScore(i,k) = bmaSymIC(i,k), i.e. the average of best matches between each class in one and all in the other
+	 * </ul>
+	 * 
+	 * @param scoreSets - set of all i,j scores for a constant i
+	 * @param maxMaxIC - maxScore(i, k)
+	 * @param maxBMA - avgScore(i, k)
+	 */
 	public void calculateCombinedScores(List<ElementPairScores> scoreSets,
 			double maxMaxIC, double maxBMA) {
 		int maxMaxIC100 = (int)(maxMaxIC * 10000);
@@ -1883,7 +1911,6 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			int pctMaxScore = ((int) (s.maxIC * 1000000)) / maxMaxIC100;
 			int pctAvgScore = ((int) (s.bmaSymIC * 1000000)) / maxBMA100;
 			s.combinedScore = (pctMaxScore + pctAvgScore)/2;
-			//calculateCombinedScore(s,maxMaxIC,maxBMA);
 		}		
 	}
 
