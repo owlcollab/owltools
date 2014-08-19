@@ -265,10 +265,34 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		}
 		modelMap.put(modelId, model);
 		return modelId;
-
 	}
 
 	private void createImports(OWLOntology ont, OWLOntologyID tboxId, String db, METADATA metadata) throws OWLOntologyCreationException {
+		String taxonId = mapDbToTaxonId(db);
+		createImportsWithTaxon(ont, tboxId, taxonId, metadata);
+	}
+
+	/**
+	 * @param db
+	 * @return taxon id or null
+	 */
+	private String mapDbToTaxonId(String db) {
+		String taxonId = null;
+		// check for protein ontology
+		if (db != null && pathToProteinFiles != null && proteinMapper != null) {
+			taxonId = null;
+			if (dbToTaxon != null) {
+				taxonId = dbToTaxon.get(db);
+			}
+			if (taxonId == null) {
+				// fallback
+				taxonId = db;
+			}
+		}
+		return taxonId;
+	}
+	
+	private void createImportsWithTaxon(OWLOntology ont, OWLOntologyID tboxId, String taxonId, METADATA metadata) throws OWLOntologyCreationException {
 		OWLOntologyManager m = ont.getOWLOntologyManager();
 		OWLDataFactory f = m.getOWLDataFactory();
 		
@@ -295,15 +319,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		}
 		
 		// check for protein ontology
-		if (db != null && pathToProteinFiles != null && proteinMapper != null) {
-			String taxonId = null;
-			if (dbToTaxon != null) {
-				taxonId = dbToTaxon.get(db);
-			}
-			if (taxonId == null) {
-				// fallback
-				taxonId = db;
-			}
+		if (taxonId != null && pathToProteinFiles != null && proteinMapper != null) {
 			IRI proteinIRI = ProteinTools.createProteinOntologyIRI(taxonId);
 			IRI mapped = proteinMapper.getDocumentIRI(proteinIRI);
 			if (mapped != null) {
@@ -357,13 +373,6 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 			
 			// generate model
 			model = new LegoModelGenerator(tbox, abox);
-			
-			model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-			if (db != null) {
-				GafDocument gafdoc = getGaf(db);
-				model.initialize(gafdoc, graph);
-				model.setContextualizingSuffix(db);
-			}
 		}
 		catch (OWLOntologyCreationException exception) {
 			if (abox != null) {
@@ -371,24 +380,74 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 			}
 			throw exception;
 		}
-		catch (IOException exception) {
-			if (model != null) {
-				model.dispose();
-			}
-			throw exception;
-		}
-		catch (URISyntaxException exception) {
-			if (model != null) {
-				model.dispose();
-			}
-			throw exception;
-		}
-		
 		// add to internal map
 		modelMap.put(modelId, model);
 		return modelId;
 	}
 	
+	/**
+	 * Generates a new blank model, add protein label for the given as import.
+	 * 
+	 * @param taxonId
+	 * @param metadata
+	 * @return modelId
+	 * @throws OWLOntologyCreationException
+	 * @throws URISyntaxException 
+	 * @throws IOException 
+	 */
+	public String generateBlankModelWithTaxon(String taxonId, METADATA metadata) throws OWLOntologyCreationException, IOException, URISyntaxException {
+
+		// Create an arbitrary unique ID and add it to the system.
+		String modelId;
+		if (taxonId != null) {
+			modelId = generateId("gomodel:", escapeTaxonId(taxonId), "-");
+		}
+		else{
+			modelId = generateId("gomodel:");
+		}
+		if (modelMap.containsKey(modelId)) {
+			throw new OWLOntologyCreationException("A model already exists for this db: "+modelId);
+		}
+		LOG.info("Generating blank model for new modelId: "+modelId);
+
+		// create empty ontology, use model id as ontology IRI
+		final OWLOntologyManager m = graph.getManager();
+		IRI aBoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		final OWLOntology tbox = graph.getSourceOntology();
+		OWLOntology abox = null;
+		LegoModelGenerator model = null;
+		try {
+			abox = m.createOntology(aBoxIRI);
+	
+			// add imports to T-Box and additional ontologies via IRI
+			createImportsWithTaxon(abox, tbox.getOntologyID(), taxonId, metadata);
+			
+			// generate model
+			model = new LegoModelGenerator(tbox, abox);
+		}
+		catch (OWLOntologyCreationException exception) {
+			if (abox != null) {
+				m.removeOntology(abox);
+			}
+			throw exception;
+		}
+		// add to internal map
+		modelMap.put(modelId, model);
+		return modelId;
+	}
+	
+	private CharSequence escapeTaxonId(String taxonId) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < taxonId.length(); i++) {
+			char c = taxonId.charAt(i);
+			if (c == ':') {
+				c = '_';
+			}
+			sb.append(c);
+		}
+		return sb;
+	}
+
 	public String generateDerivedModel(String sourceModelId, METADATA metadata) throws OWLOntologyCreationException, IOException, URISyntaxException {
 		LOG.info("Generating derived model from "+sourceModelId);
 		LegoModelGenerator sourceModel = this.getModel(sourceModelId); 

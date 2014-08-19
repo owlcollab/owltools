@@ -81,9 +81,9 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		return unique;		
 	}
 	
-	static String generateId(String...prefixes) {
+	static String generateId(CharSequence...prefixes) {
 		StringBuilder sb = new StringBuilder();
-		for (String prefix : prefixes) {
+		for (CharSequence prefix : prefixes) {
 			sb.append(prefix);
 		}
 		/*
