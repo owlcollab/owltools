@@ -69,9 +69,24 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
  */
 public class SpeciesSubsetterUtil {
 
-	private Logger LOG = Logger.getLogger(SpeciesSubsetterUtil.class);
+	private static final Logger LOG = Logger.getLogger(SpeciesSubsetterUtil.class);
 
-	OWLGraphWrapper graph;
+	/**
+     * A {@code String} that is the OBO-like ID of the "in_taxon" object property.
+     */
+    private final String IN_TAXON_ID = "RO:0002162";
+
+    /**
+     * A {@code String} that is the OBO-like ID of the "only_in_taxon" object property.
+     */
+    private final String ONLY_IN_TAXON_ID = "RO:0002160";
+
+    /**
+     * A {@code String} that is the OBO-like ID of the "never_in_taxon" annotation property.
+     */
+    private final String NEVER_IN_TAXON_ID = "RO:0002161";
+
+    OWLGraphWrapper graph;
 
 	OWLOntology ont;
 	OWLOntologyManager mgr;
@@ -88,19 +103,16 @@ public class SpeciesSubsetterUtil {
 		//"shares ancestor with"
 		"RO:0002158"
 	};
-
-    /**
-     * A {@code String} that is the OBO-like ID of the "in_taxon" object property.
-     */
-    private final String IN_TAXON_ID = "RO:0002162";
 	/**
-	 * A {@code String} that is the OBO-like ID of the "only_in_taxon" object property.
+	 * The {@code OWLObjectProperty} "only_in_taxon".
+	 * @see #ONLY_IN_TAXON_ID
 	 */
-	private final String ONLY_IN_TAXON_ID = "RO:0002160";
+	private final OWLObjectProperty onlyInTaxon;
     /**
-     * A {@code String} that is the OBO-like ID of the "never_in_taxon" annotation property.
+     * The {@code OWLObjectProperty} "in_taxon".
+     * @see #IN_TAXON_ID
      */
-    private final String NEVER_IN_TAXON_ID = "RO:0002161";
+    private final OWLObjectProperty inTaxon;
 
     /**
      * Constructor providing the {@code OWLGraphWrapper} wrapping the {@code OWLOntology} 
@@ -115,6 +127,8 @@ public class SpeciesSubsetterUtil {
         ont = graph.getSourceOntology();
         mgr = ont.getOWLOntologyManager();
         fac = mgr.getOWLDataFactory();
+        onlyInTaxon = graph.getOWLObjectPropertyByIdentifier(ONLY_IN_TAXON_ID);
+        inTaxon = graph.getOWLObjectPropertyByIdentifier(IN_TAXON_ID);
         
         //remove relations generating incorrect taxon constraints
         this.removeDefaultAxioms();
@@ -263,7 +277,6 @@ public class SpeciesSubsetterUtil {
         
         //get object property only_in_taxon (to obtain taxon restrictions), 
         //and annotation property never_in_taxon (only to return convenient explanations).
-        OWLObjectProperty onlyInTaxon = graph.getOWLObjectPropertyByIdentifier(ONLY_IN_TAXON_ID);
         OWLAnnotationProperty neverInTaxon = fac.getOWLAnnotationProperty(
                 graph.getIRIByIdentifier(NEVER_IN_TAXON_ID));
 
@@ -322,9 +335,7 @@ public class SpeciesSubsetterUtil {
                 //***************only_in_taxon check***************
                 //check whether there is "only_in_taxon" restrictions for this OWLClass.
                 for (OWLGraphEdge edge: graph.getOutgoingEdges(clsToWalk)) {
-                    if (edge.getFinalQuantifiedProperty().getProperty() != null && 
-                        edge.getFinalQuantifiedProperty().isSomeValuesFrom() && 
-                        edge.getFinalQuantifiedProperty().getProperty().equals(onlyInTaxon) && 
+                    if (this.isInTaxonEdge(edge) && 
                         edge.getTarget() instanceof OWLClass) {
                         //we need to know whether the taxon targeted by 
                         //the "only_in_taxon" restriction is disjoint from one 
@@ -395,9 +406,11 @@ public class SpeciesSubsetterUtil {
                 //we continue the walk even if we found an explanation, maybe 
                 //there is a contradictory taxon constraint further
                 for (OWLGraphEdge edge: graph.getOutgoingEdges(clsToWalk)) {
-                    List<OWLObject> walkContinue = new ArrayList<OWLObject>(aWalk);
-                    walkContinue.add(graph.edgeToTargetExpression(edge));
-                    walks.offerLast(walkContinue);
+                    if (!this.isInTaxonEdge(edge)) {
+                        List<OWLObject> walkContinue = new ArrayList<OWLObject>(aWalk);
+                        walkContinue.add(graph.edgeToTargetExpression(edge));
+                        walks.offerLast(walkContinue);
+                    }
                 }
             }
         }
@@ -433,7 +446,6 @@ public class SpeciesSubsetterUtil {
         
         fac = graph.getManager().getOWLDataFactory();
         ont = graph.getSourceOntology();
-        OWLObjectProperty inTaxon = graph.getOWLObjectPropertyByIdentifier(IN_TAXON_ID);
         OWLClass nothing = fac.getOWLNothing();
         
         //we want the classes equivalent to owl:nothing over "in taxon" object property, 
@@ -469,9 +481,7 @@ public class SpeciesSubsetterUtil {
                         
                     } 
                     //edge "in taxon" to the targeted taxon
-                    else if (edge.getFinalQuantifiedProperty().getProperty() != null && 
-                            edge.getFinalQuantifiedProperty().isSomeValuesFrom() && 
-                            edge.getFinalQuantifiedProperty().getProperty().equals(inTaxon) && 
+                    else if (this.isInTaxonEdge(edge) && 
                             edge.getTarget() instanceof OWLClass) {
                         if (taxon != null) {
                             throw new AssertionError("Error, several taxon restrictions " +
@@ -494,5 +504,18 @@ public class SpeciesSubsetterUtil {
             LOG.trace("Done getting \"never in taxon\" information: " + notInTaxa);
         }
         return notInTaxa;
+    }
+    
+    /**
+     * Determines whether {@code edge} represents an "only_in_taxon" or "in_taxon" relation.
+     * @param edge  An {@code OWLGraphEdge} whose type is to determine.
+     * @return      {@code true} if {@code edge} has an {@code OWLObjectProperty} 
+     *              {@link #onlyInTaxon} or {@link #inTaxon}.
+     */
+    private boolean isInTaxonEdge(OWLGraphEdge edge) {
+        return (edge.getFinalQuantifiedProperty().getProperty() != null && 
+                edge.getFinalQuantifiedProperty().isSomeValuesFrom() && 
+                (edge.getFinalQuantifiedProperty().getProperty().equals(onlyInTaxon) || 
+                    edge.getFinalQuantifiedProperty().getProperty().equals(inTaxon)));
     }
 }
