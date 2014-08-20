@@ -471,17 +471,24 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		else if (Operation.generateBlank == operation) {
 			values.nonMeta = true;
 			values.renderBulk = true;
-			// db is optional
+			// db and taxonId are both optional
 			String db = null;
+			String taxonId = null;
 			Collection<Pair<String, String>> annotations = null;
 			if (request.arguments != null) {
 				db = request.arguments.db;
+				taxonId = request.arguments.taxonId;
 				annotations = extract(request.arguments.values, userId, true);
 			}
 			else {
 				annotations = extract(null, userId, true);
 			}
-			values.modelId = m3.generateBlankModel(db, token);
+			if (taxonId != null) {
+				values.modelId = m3.generateBlankModelWithTaxon(taxonId, token);
+			}
+			else {
+				values.modelId = m3.generateBlankModel(db, token);
+			}
 			
 			if (annotations != null) {
 				m3.addAnnotations(values.modelId, annotations, token);

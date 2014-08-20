@@ -98,7 +98,8 @@ public interface M3BatchHandler {
 		String object;
 		String predicate;
 		String individual;
-		String db;
+		String db; // TODO deprecate db, should use taxonId instead
+		String taxonId;
 		String importModel;
 		
 		M3Expression[] expressions;
