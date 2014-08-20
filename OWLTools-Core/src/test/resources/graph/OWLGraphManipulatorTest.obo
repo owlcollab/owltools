@@ -1,7 +1,8 @@
-format-version: 1.2
+format-version: 1.4
 ontology: foo
-subsetdef: test_subset1 "used to test method delPartOfSubClassOfRelsToSubsetsIfNonOrphan"
-subsetdef: test_subset2 "used to test method delPartOfSubClassOfRelsToSubsetsIfNonOrphan"
+subsetdef: test_subset1 "used to test method removeRelsToSubsets"
+subsetdef: test_subset2 "used to test method removeRelsToSubsets"
+import: OWLGraphManipulatorTest_2.obo ! to test the merge of imported ontologies
 
 [Term]
 id: FOO:0001
@@ -83,14 +84,7 @@ is_a: FOO:0002 ! A
 id: FOO:0012
 name: subgraph2_E
 comment: term part of the subgraph to remove, should be removed
-relationship: transformation_of FOO:0008 ! subgraph2_B
-
-[Term]
-id: FOO:0013
-name: subgraph3_root
-comment: term root of a subgraph not to be removed. Also, relation is_a to the root should be removed by reducePartOfAndSubClassOfRelations()
-is_a: FOO:0001 ! root
-relationship: part_of FOO:0001 ! root
+relationship: immediate_transformation_of FOO:0008 ! subgraph2_B
 
 [Term]
 id: FOO:0014
@@ -99,13 +93,6 @@ comment: term part of both the subgraph to remove, and a subgraph to keep, shoul
 is_a: FOO:0001 ! root
 is_a: FOO:0006 ! subgraph2_root
 is_a: FOO:0002 ! A
-
-[Term]
-id: FOO:0015
-name: E
-comment: test of propagation when using removeClassAndPropagateEdges(String) on FOO:0004. Also, the relation part_of FOO:0001 is redundant and should be removed by reduceRelations()
-is_a: FOO:0004 ! C
-relationship: part_of FOO:0001 ! root
 
 [Term]
 id: FOO:0016
@@ -171,6 +158,14 @@ synonym: "transforms from" EXACT [SIO:000657]
 xref: http://semanticscience.org/resource/SIO_000657
 is_transitive: true
 is_a: develops_from ! develops_from
+
+[Typedef]
+id: immediate_transformation_of
+name: immediate_transformation_of
+synonym: "direct_transformation_of" EXACT [SIO:000658]
+xref: http://semanticscience.org/resource/SIO_000658
+is_transitive: true
+is_a: transformation_of ! transformation_of
 
 [Typedef]
 id: fake_rel1

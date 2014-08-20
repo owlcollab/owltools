@@ -1,0 +1,99 @@
+format-version: 1.4
+ontology: foo2
+
+[Term]
+id: FOO:0015
+name: E
+comment: test of propagation when using removeClassAndPropagateEdges(String) on FOO:0004. Also, the relation part_of FOO:0001 is redundant and should be removed by reduceRelations()
+is_a: FOO:0004 ! C
+relationship: part_of FOO:0001 ! root
+
+[Typedef]
+id: overlaps
+name: overlaps
+def: "A overlaps B if they share some part in common." []
+xref: RO:0002131
+transitive_over: part_of ! part of
+holds_over_chain: has_part overlaps ! overlaps
+holds_over_chain: has_part part_of ! part of
+expand_expression_to: "BFO_0000051 some (BFO_0000050 some ?Y)" []
+
+[Typedef]
+id: has_part
+name: has_part
+namespace: anatomical_entity_ontology
+is_transitive: true
+inverse_of: part_of  ! part of
+xref: BFO:0000051
+is_a: overlaps  ! overlaps
+
+[Typedef]
+id: part_of
+name: part of
+is_transitive: true
+xref: BFO:0000050
+is_a: overlaps ! overlaps
+
+[Typedef]
+id: in_deep_part_of
+name: in_deep_part_of
+namespace: uberon
+is_a: part_of ! part of
+
+[Typedef]
+id: has_developmental_contribution_from
+name: has developmental contribution from
+namespace: uberon
+is_transitive: true
+xref: RO:0002254
+holds_over_chain: has_part develops_from  ! develops from
+
+[Typedef]
+id: develops_from
+name: develops from
+namespace: zebrafish_anatomical_ontology
+is_transitive: true
+xref: RO:0002202
+is_a: has_developmental_contribution_from  ! has developmental contribution from
+transitive_over: part_of  ! part of
+holds_over_chain: part_of develops_from  ! develops from
+
+[Typedef]
+id: transformation_of
+name: transformation_of
+synonym: "transforms from" EXACT [SIO:000657]
+xref: http://semanticscience.org/resource/SIO_000657
+is_transitive: true
+is_a: develops_from ! develops_from
+
+[Typedef]
+id: fake_rel1
+name: fake_rel1
+namespace: fake_rel
+is_transitive: true
+
+[Typedef]
+id: fake_rel2
+name: fake_rel2
+namespace: fake_rel
+is_a: fake_rel1 ! fake_rel1
+
+[Typedef]
+id: fake_rel3
+name: fake_rel3
+namespace: fake_rel
+is_transitive: true
+is_a: fake_rel2 ! fake_rel2
+
+[Typedef]
+id: fake_rel4
+name: fake_rel4
+namespace: fake_rel
+is_transitive: true
+is_a: fake_rel2 ! fake_rel2
+
+[Typedef]
+id: fake_rel5
+name: fake_rel5
+namespace: fake_rel
+is_a: develops_from ! develops from

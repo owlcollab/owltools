@@ -431,7 +431,7 @@ public class OWLGraphWrapperEdgesExtendedTest
 	@Test
 	public void shouldGetAllOWLClasses()
 	{
-		assertEquals("Incorrect Set of OWLClasses returned", 16, 
+		assertEquals("Incorrect Set of OWLClasses returned", 15, 
 				wrapper.getAllOWLClasses().size());
 	}
     
@@ -441,7 +441,7 @@ public class OWLGraphWrapperEdgesExtendedTest
     @Test
     public void shouldGetAllOWLClassesFromSource()
     {
-        assertEquals("Incorrect Set of OWLClasses returned", 16, 
+        assertEquals("Incorrect Set of OWLClasses returned", 14, 
                 wrapper.getAllOWLClassesFromSource().size());
     }
 	
@@ -469,14 +469,13 @@ public class OWLGraphWrapperEdgesExtendedTest
         //FOO:0012, FOO:0013, FOO:0014 and FOO:0015
         Set<OWLClass> leaves = wrapper.getOntologyLeaves();
         assertTrue("Incorrect leaves returned: " + leaves, 
-                leaves.size() == 9 && 
+                leaves.size() == 8 && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0100")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0003")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0005")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) && 
-                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0012")) && 
-                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0013")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0012")) &&  
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0015")));
     }

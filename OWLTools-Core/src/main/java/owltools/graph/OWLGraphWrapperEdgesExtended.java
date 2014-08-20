@@ -867,7 +867,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      *                  owl:thing, nor owl:nothing, and is not deprecated.
      */
     private boolean isRealClass(OWLObject object) {
-        return (object instanceof OWLClass) && !isObsolete(object) && 
+        return (object instanceof OWLClass) && 
+                !isObsolete(object) && !getIsObsolete(object) && 
                 !object.isTopEntity() && !object.isBottomEntity();
     }
 }

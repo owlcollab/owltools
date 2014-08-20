@@ -1,0 +1,101 @@
+format-version: 1.4
+ontology: foo
+import: OWLGraphManipulatorTest_2.obo ! to test the merge of imported ontologies
+
+[Term]
+id: FOO:0001
+name: root
+
+[Term]
+id: FOO:0002
+name: A
+relationship: part_of FOO:0001 ! root
+
+[Term]
+id: FOO:0003
+name: B
+comment: to test that the split of the intersection_of will not fail, despite the fact that the individual subClassOf axioms already exist
+relationship: part_of FOO:0002 ! A
+is_a: FOO:0001 ! root
+intersection_of: part_of FOO:0002 ! A
+intersection_of: FOO:0001 ! root
+
+[Term]
+id: FOO:0004
+name: C
+comment: to test that the intersection_of will be correctly split 
+intersection_of: part_of FOO:0002 ! A
+intersection_of: part_of FOO:0001 ! root
+
+[Term]
+id: FOO:0005
+name: D
+comment: to test the reversion of the union_of. union_of: FOO:0006 should generate subClassOf(FOO:0006, FOO:0005). union_of: part_of FOO:0007 should not generate any SubClassOfAxiom (anonymous class expression)
+union_of: FOO:0006 ! E
+union_of: FOO:0007 ! F
+
+[Term]
+id: FOO:0006
+name: E
+comment: test reversion of union_of in FOO:0005
+
+[Term]
+id: FOO:0007
+name: F
+comment: test reversion of union_of in FOO:0005
+
+[Term]
+id: FOO:0008
+name: G
+comment: to test the reversion of the union_of. 
+union_of: FOO:0009 ! H
+union_of: FOO:0010 ! I
+
+[Term]
+id: FOO:0009
+name: H
+comment: test reversion of union_of in FOO:0008, when the corresponding subClassOf axiom already exists
+is_a: FOO:0008 ! G
+
+[Term]
+id: FOO:0010
+name: I
+comment: test reversion of union_of in FOO:0008, when the corresponding subClassOf axiom already exists
+is_a: FOO:0008 ! G
+
+[Term]
+id: FOO:0011
+name: J
+comment: tests OWLEquivalentClassesAxiom split.
+equivalent_to: FOO:0008 ! G
+
+[Term]
+id: FOO:0012
+name: K
+comment: test removal of obsolete classes
+is_obsolete: true
+is_a: FOO:0001 ! root
+
+[Term]
+id: FOO:0013
+name: L
+comment: test removal of obsolete classes
+is_obsolete: true
+
+[Typedef]
+id: overlaps
+name: overlaps
+def: "A overlaps B if they share some part in common." []
+xref: RO:0002131
+transitive_over: part_of ! part of
+holds_over_chain: has_part overlaps ! overlaps
+holds_over_chain: has_part part_of ! part of
+expand_expression_to: "BFO_0000051 some (BFO_0000050 some ?Y)" []
+
+[Typedef]
+id: part_of
+name: part of
+is_transitive: true
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_a: overlaps ! overlaps
