@@ -400,7 +400,8 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		// Create an arbitrary unique ID and add it to the system.
 		String modelId;
 		if (taxonId != null) {
-			modelId = generateId("gomodel:", escapeTaxonId(taxonId), "-");
+			taxonId = normalizeTaxonId(taxonId);
+			modelId = generateId("gomodel:taxon_", taxonId, "-");
 		}
 		else{
 			modelId = generateId("gomodel:");
@@ -436,16 +437,16 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		return modelId;
 	}
 	
-	private CharSequence escapeTaxonId(String taxonId) {
+	private String normalizeTaxonId(String taxonId) {
+		// only take the numeric part
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < taxonId.length(); i++) {
 			char c = taxonId.charAt(i);
-			if (c == ':') {
-				c = '_';
+			if (Character.isDigit(c)) {
+				sb.append(c);
 			}
-			sb.append(c);
 		}
-		return sb;
+		return sb.toString();
 	}
 
 	public String generateDerivedModel(String sourceModelId, METADATA metadata) throws OWLOntologyCreationException, IOException, URISyntaxException {
