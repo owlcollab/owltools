@@ -1,13 +1,12 @@
 package org.geneontology.lego.model;
 
 import java.util.Collection;
-
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
-public class LegoNode {
+public class LegoNode extends LegoMetadata {
 
 	private final OWLNamedIndividual individual;
 	private final OWLClassExpression type;

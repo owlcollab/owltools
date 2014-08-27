@@ -3,7 +3,7 @@ package org.geneontology.lego.model;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
-public class LegoLink {
+public class LegoLink extends LegoMetadata {
 
 	private final OWLNamedIndividual source;
 	private final OWLNamedIndividual namedTarget;
