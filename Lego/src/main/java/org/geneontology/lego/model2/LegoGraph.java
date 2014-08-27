@@ -13,14 +13,18 @@ public class LegoGraph {
 	private final List<LegoUnit> units;
 	
 	private final List<LegoNode> nodes;
+	
+	private final String title;
 
 	/**
 	 * @param units
 	 * @param nodes
+	 * @param title
 	 */
-	public LegoGraph(List<LegoUnit> units, List<LegoNode> nodes) {
+	public LegoGraph(List<LegoUnit> units, List<LegoNode> nodes, String title) {
 		this.units = units;
 		this.nodes = nodes;
+		this.title = title;
 	}
 
 	/**
@@ -38,6 +42,13 @@ public class LegoGraph {
 	 */
 	public List<LegoNode> getNodes() {
 		return nodes;
+	}
+
+	/**
+	 * @return the title
+	 */
+	public String getTitle() {
+		return title;
 	}
 
 	/**

@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.geneontology.lego.model.CellularLocationTools;
+import org.geneontology.lego.model.LegoMetadata;
 import org.geneontology.lego.model.LegoNode;
 import org.geneontology.lego.model.LegoTools;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -30,7 +32,7 @@ public class LegoUnitTools extends LegoTools {
 	}
 
 	
-	public LegoGraph createLegoGraph(Collection<OWLNamedIndividual> individuals) throws UnExpectedStructureException {
+	public LegoGraph createLegoGraph(Collection<OWLNamedIndividual> individuals, Set<OWLAnnotation> modelAnnotations) throws UnExpectedStructureException {
 		List<LegoUnit> units = new ArrayList<LegoUnit>();
 		for (OWLNamedIndividual individual : individuals) {
 			final LegoUnit unit = createUnit(individual);
@@ -40,7 +42,8 @@ public class LegoUnitTools extends LegoTools {
 		}
 		List<LegoNode> nodes = createLegoNodes(individuals);
 		
-		LegoGraph legoGraph = new LegoGraph(units, nodes);
+		String title = LegoMetadata.getTitle(modelAnnotations);
+		LegoGraph legoGraph = new LegoGraph(units, nodes, title);
 		return legoGraph;
 	}
 	
@@ -113,6 +116,7 @@ public class LegoUnitTools extends LegoTools {
 		}
 		
 		LegoUnit unit = new LegoUnit(individual.getIRI(), enabledBy, activity , process, locations);
+		LegoMetadata.extractMetadata(unit, axioms);
 		return unit;
 	}
 

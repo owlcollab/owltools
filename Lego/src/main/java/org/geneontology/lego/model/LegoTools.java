@@ -8,17 +8,11 @@ import java.util.Set;
 
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -155,7 +149,7 @@ public class LegoTools {
 					OWLNamedIndividual namedTarget = (OWLNamedIndividual) object;
 					OWLObjectPropertyExpression property = propertyAxiom.getProperty();
 					LegoLink link = new LegoLink(individual, namedTarget, property);
-					extractMetadata(link, propertyAxiom);
+					LegoMetadata.extractMetadata(link, propertyAxiom);
 					links.add(link);
 				}
 				if (!links.isEmpty()) {
@@ -236,7 +230,7 @@ public class LegoTools {
 		List<OWLClassExpression> unknowns = new ArrayList<OWLClassExpression>();
 		
 		for (OWLClassAssertionAxiom axiom : axioms) {
-			extractMetadata(node, axiom);
+			LegoMetadata.extractMetadata(node, axiom);
 			
 			OWLClassExpression expression = axiom.getClassExpression();
 			if (expression.isClassExpressionLiteral()) {
@@ -278,70 +272,6 @@ public class LegoTools {
 		node.setUnknowns(unknowns);
 		
 		return node;
-	}
-
-	/**
-	 * @param node
-	 * @param axiom
-	 */
-	private void extractMetadata(LegoMetadata node, OWLAxiom axiom) {
-		// extract meta data from annotations
-		Set<OWLAnnotation> annotations = axiom.getAnnotations();
-		for (OWLAnnotation annotation : annotations) {
-			String propertyId = annotation.getProperty().getIRI().toString();
-			OWLAnnotationValue annValue = annotation.getValue();
-			String value = annValue.accept(new OWLAnnotationValueVisitorEx<String>() {
-
-				@Override
-				public String visit(IRI iri) {
-					return null;
-				}
-
-				@Override
-				public String visit(OWLAnonymousIndividual individual) {
-					return null;
-				}
-
-				@Override
-				public String visit(OWLLiteral literal) {
-					return literal.getLiteral();
-				}
-			});
-			if (value != null) {
-				if ("http://geneontology.org/lego/evidence".equals(propertyId)) {
-					Set<String> evidence = node.getEvidence();
-					if (evidence == null) {
-						evidence = new HashSet<String>();
-						node.setEvidence(evidence);
-					}
-					evidence.add(value);
-				}
-				else if ("http://purl.org/dc/elements/1.1/date".equals(propertyId)) {
-					Set<String> dates = node.getDates();
-					if (dates == null) {
-						dates = new HashSet<String>();
-						node.setDates(dates);
-					}
-					dates.add(value);
-				}
-				else if ("http://purl.org/dc/elements/1.1/source".equals(propertyId)) {
-					Set<String> sources = node.getSources();
-					if (sources == null) {
-						sources = new HashSet<String>();
-						node.setSources(sources);
-					}
-					sources.add(value);
-				}
-				else if ("http://purl.org/dc/elements/1.1/contributor".equals(propertyId)) {
-						Set<String> contributors = node.getContributors();
-						if (contributors == null) {
-							contributors = new HashSet<String>();
-							node.setContributors(contributors);
-						}
-						contributors.add(value);
-				}
-			}
-		}
 	}
 
 	private Set<OWLObjectPropertyAssertionAxiom> getAllPropertyAssertionAxioms(Set<OWLOntology> ontologies) {

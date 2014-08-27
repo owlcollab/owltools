@@ -2,10 +2,11 @@ package org.geneontology.lego.model2;
 
 import java.util.List;
 
+import org.geneontology.lego.model.LegoMetadata;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 
-public class LegoUnit {
+public class LegoUnit extends LegoMetadata {
 
 	private final IRI id;
 	

@@ -29,6 +29,7 @@ import org.apache.solr.common.SolrException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -432,11 +433,12 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					}
 					
 					Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature();
+					Set<OWLAnnotation> modelAnnotations = ontology.getAnnotations();
 					OWLGraphWrapper currentGraph = new OWLGraphWrapper(ontology);						
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);
 						ComplexAnnotationSolrDocumentLoader loader =
-								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, agID, agLabel, fname);
+								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, modelAnnotations, agID, agLabel, fname);
 						loader.load();
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
@@ -508,11 +510,12 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					}
 					
 					Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature();
+					Set<OWLAnnotation> modelAnnotations = ontology.getAnnotations();
 					OWLGraphWrapper currentGraph = new OWLGraphWrapper(ontology);						
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);
 						ComplexAnnotationSolrDocumentLoader loader =
-								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, agID, agLabel, fname);
+								new ComplexAnnotationSolrDocumentLoader(url, currentGraph, currentReasoner, individuals, modelAnnotations, agID, agLabel, fname);
 						loader.load();
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");

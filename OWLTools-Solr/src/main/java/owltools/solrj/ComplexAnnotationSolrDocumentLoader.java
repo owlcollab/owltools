@@ -23,6 +23,7 @@ import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.geneontology.lego.model2.LegoGraph;
 import org.geneontology.lego.model2.LegoUnitTools;
 import org.geneontology.lego.model2.LegoUnit;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -60,15 +61,17 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 	private String currentGroupID = null;
 	private String currentGroupLabel = null;
 	private String currentGroupURL = null;
-	private Set<OWLNamedIndividual> legoIndividuals = null;
+	private final Set<OWLNamedIndividual> legoIndividuals;
+	private final Set<OWLAnnotation> modelAnnotations;
 	
-	public ComplexAnnotationSolrDocumentLoader(String url, OWLGraphWrapper g, OWLReasoner r, Set<OWLNamedIndividual> individuals, String agID, String agLabel, String agURL) throws MalformedURLException {
+	public ComplexAnnotationSolrDocumentLoader(String url, OWLGraphWrapper g, OWLReasoner r, Set<OWLNamedIndividual> individuals, Set<OWLAnnotation> modelAnnotations, String agID, String agLabel, String agURL) throws MalformedURLException {
 		super(url);
 		//setGraph(g);
 		current_doc_number = 0;
 		currentGraph = g;
 		currentReasoner  = r;
 		legoIndividuals = individuals;
+		this.modelAnnotations = modelAnnotations;
 		currentGroupID = agID;
 		currentGroupLabel = agLabel;
 		currentGroupURL = agURL;
@@ -89,7 +92,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 				LegoGraph lUnitTools = null;
 				try {
 					//lUnitTools = lTools.createLegoGraph(individuals);
-					lUnitTools = lTools.createLegoGraph(legoIndividuals);
+					lUnitTools = lTools.createLegoGraph(legoIndividuals, modelAnnotations);
 				} catch (UnExpectedStructureException e) {
 					LOG.error("LegoUnitTools did not initialize.");
 					return;
@@ -97,6 +100,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 				List<LegoLink> links = lUnitTools.getLinks();
 				List<LegoNode> nodes = lUnitTools.getNodes();
 				List<LegoUnit> units = lUnitTools.getUnits();
+				String title = lUnitTools.getTitle(); // lego model title or null
 				
 				OWLShuntGraph shuntGraph = createShuntGraph(links, nodes);
 
