@@ -58,6 +58,7 @@ public interface M3BatchHandler {
 		importModel("import"),
 		storeModel("store"),
 		allModelIds("all-model-ids"),
+		allModelMeta("all-model-meta"),
 		search("search"),
 		updateImports("update-imports"),
 		

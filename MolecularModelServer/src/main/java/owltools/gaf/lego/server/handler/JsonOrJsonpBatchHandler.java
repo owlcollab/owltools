@@ -18,9 +18,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -567,6 +572,13 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			}
 			getAllModelIds(response, userId);
 		}
+		else if (Operation.allModelMeta == operation) {
+			if (values.nonMeta) {
+				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+				return operation+" cannot be combined with other operations.";
+			}
+			getAllModelMeta(response, userId);
+		}
 		else if (Operation.search == operation) {
 			if (values.nonMeta) {
 				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
@@ -651,6 +663,46 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		//response.data.put("models_memory", memoryModelIds);
 		//response.data.put("models_stored", storedModelIds);
 		//response.data.put("models_scratch", scratchModelIds);
+	}
+	
+	/*
+	 * A newer version of getAllModelIds that tries to supply additional meta information like labels.
+	 * Meant to eventually completely replace it.
+	 * 
+	 * TODO/BUG: Will obviously clobber top-level properties with more than one entry.
+	 */
+	private void getAllModelMeta(M3BatchResponse response, String userId) throws IOException {
+
+		Map<String,Map<String,String>> retMap = new HashMap<String, Map<String,String>>();
+			
+		// Jimmy out what information we can cycling directly through all the models.
+		Set<String> allModelIds = m3.getAvailableModelIds();
+		for( String mid : allModelIds ){
+
+			retMap.put(mid, new HashMap<String,String>());
+			Map<String, String> modelMap = retMap.get(mid);
+			
+			// Iterate through the model's a.
+			LegoModelGenerator m = m3.getModel(mid);
+			OWLOntology o = m.getAboxOntology();
+			Set<OWLAnnotation> annotations = o.getAnnotations();
+			for( OWLAnnotation an : annotations ){
+				
+				// See if we can match them up.
+				for( LegoAnnotationType anntype : LegoAnnotationType.values() ){
+					IRI foo = anntype.getAnnotationProperty();
+					IRI bar = an.getProperty().getIRI();
+					if( foo.equals(bar) ){
+						OWLAnnotationValue v = an.getValue();
+						modelMap.put(anntype.toString(), v.toString());
+					}
+				}				
+			}
+		}
+
+		// Sending the actual response.
+		initMetaResponse(response);
+		response.data.put("models_meta", retMap);
 	}
 	
 	private void initMetaResponse(M3BatchResponse response) {
@@ -791,6 +843,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			case get:
 			case exportModel:
 			case allModelIds:
+			case allModelMeta:
 			case search:
 				// positive list, all other operation require a privileged call
 				break;
