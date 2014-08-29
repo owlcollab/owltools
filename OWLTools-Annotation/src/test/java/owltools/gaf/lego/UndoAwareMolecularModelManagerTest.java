@@ -20,6 +20,7 @@ import owltools.gaf.lego.UndoAwareMolecularModelManager.ChangeEvent;
 import owltools.gaf.lego.UndoAwareMolecularModelManager.UndoMetadata;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
+import owltools.util.ModelContainer;
 
 public class UndoAwareMolecularModelManagerTest extends OWLToolsTestBasics {
 
@@ -50,7 +51,7 @@ public class UndoAwareMolecularModelManagerTest extends OWLToolsTestBasics {
 		// BFO:0000066 GO:0005654 ! occurs_in nucleoplasm
 		m3.addType(modelId, bindingId.getKey(), "BFO:0000066", "GO:0005654", new UndoMetadata(userId));
 		
-		LegoModelGenerator model = m3.getModel(modelId);
+		ModelContainer model = m3.getModel(modelId);
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model);
 		Map<Object, Object> render1 = renderer.renderObject(bindingId.getRight());
 		List<Map<Object,Object>> types1 = (List<Map<Object,Object>>) render1.get(KEY.type);

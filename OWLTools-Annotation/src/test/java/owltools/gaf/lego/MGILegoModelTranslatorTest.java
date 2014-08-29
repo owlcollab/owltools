@@ -4,33 +4,19 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import owltools.OWLToolsTestBasics;
-import owltools.gaf.GafDocument;
-import owltools.gaf.parser.GafObjectsBuilder;
-import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.PropertyViewOntologyBuilder;
-import owltools.util.MinimalModelGeneratorTest;
 import owltools.vocab.OBOUpperVocabulary;
 
 public class MGILegoModelTranslatorTest extends AbstractLegoModelGeneratorTest {

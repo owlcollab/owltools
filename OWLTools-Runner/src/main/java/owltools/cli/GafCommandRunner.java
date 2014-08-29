@@ -97,6 +97,7 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.Mooncat;
+import owltools.util.ModelContainer;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
@@ -1382,7 +1383,8 @@ public class GafCommandRunner extends CommandRunner {
 				break;
 			}
 		}
-		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
+		ModelContainer model = new ModelContainer(g.getSourceOntology(), new ElkReasonerFactory());
+		LegoModelGenerator ni = new LegoModelGenerator(model);
 		ni.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
 		ni.initialize(gafdoc, g);
 
@@ -1392,7 +1394,7 @@ public class GafCommandRunner extends CommandRunner {
 		ni.buildNetwork(p, seedGenes);
 
 
-		OWLOntology ont = ni.getAboxOntology();
+		OWLOntology ont = model.getAboxOntology();
 		if (isExtractModule) {
 			ni.extractModule();
 		}
@@ -1404,7 +1406,7 @@ public class GafCommandRunner extends CommandRunner {
 			writeLego(ont, dotOutputFile, p);
 		}
 		if (isReplaceSourceOntology) {
-			g.setSourceOntology(ni.getAboxOntology());
+			g.setSourceOntology(model.getAboxOntology());
 		}
 	}
 
@@ -1439,7 +1441,8 @@ public class GafCommandRunner extends CommandRunner {
 
 		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
 		LOG.info("DISEASE: "+owlpp.render(disease));
-		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
+		ModelContainer model = new ModelContainer(g.getSourceOntology(), new ElkReasonerFactory());
+		LegoModelGenerator ni = new LegoModelGenerator(model);
 		ni.setPrecomputePropertyClassCombinations(false);
 
 		ni.initialize(gafdoc, g);
@@ -1488,12 +1491,13 @@ public class GafCommandRunner extends CommandRunner {
 		}
 		OWLClass rc1 = this.resolveClass(opts.nextOpt());
 		OWLClass rc2 = this.resolveClass(opts.nextOpt());
-		LegoModelGenerator ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
+		ModelContainer model = new ModelContainer(g.getSourceOntology(), new ElkReasonerFactory());
+		LegoModelGenerator ni = new LegoModelGenerator(model);
 
 		ni.initialize(gafdoc, g);
 		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
 		OWLClass nothing = g.getDataFactory().getOWLNothing();
-		Set<OWLClass> sampleSet = ni.getReasoner().getSubClasses(rc2, false).getFlattened();
+		Set<OWLClass> sampleSet = model.getReasoner().getSubClasses(rc2, false).getFlattened();
 		sampleSet.remove(nothing);
 		if (isDirect) {
 			sampleSet = Collections.singleton(rc2);
@@ -1504,7 +1508,7 @@ public class GafCommandRunner extends CommandRunner {
 
 		// calc correction factor
 		int numHypotheses = 0;
-		for (OWLClass c1 : ni.getReasoner().getSubClasses(rc1, false).getFlattened()) {
+		for (OWLClass c1 : model.getReasoner().getSubClasses(rc1, false).getFlattened()) {
 			if (c1.equals(nothing))
 				continue;
 			if (ni.getGenes(c1).size() < 2) {
@@ -1519,7 +1523,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 
 
-		for (OWLClass c1 : ni.getReasoner().getSubClasses(rc1, false).getFlattened()) {
+		for (OWLClass c1 : model.getReasoner().getSubClasses(rc1, false).getFlattened()) {
 			if (c1.equals(nothing))
 				continue;
 			System.out.println("Sample: "+c1);

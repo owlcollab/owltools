@@ -43,6 +43,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
@@ -107,44 +108,44 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return generateModel(cls, db, metadata);
 	}
 
-	/**
-	 * Given an instance, generate the most specific class instance that classifies
-	 * this instance, and add this as a class to the model ontology
-	 * 
-	 * @param modelId
-	 * @param individualId
-	 * @param newClassId
-	 * @param metadata
-	 * @return newClassId
-	 * @throws UnknownIdentifierException 
-	 */
-	public String createMostSpecificClass(String modelId, String individualId, String newClassId, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator mod = checkModelId(modelId);
-		OWLIndividual ind = getIndividual(individualId, mod);
-		OWLClassExpression msce = mod.getMostSpecificClassExpression((OWLNamedIndividual) ind);
-		OWLClass c = getClass(newClassId, mod);
-		addAxiom(modelId, mod, mod.getOWLDataFactory().getOWLEquivalentClassesAxiom(msce, c), true, metadata);
-		return newClassId;
-	}
+//	/**
+//	 * Given an instance, generate the most specific class instance that classifies
+//	 * this instance, and add this as a class to the model ontology
+//	 * 
+//	 * @param modelId
+//	 * @param individualId
+//	 * @param newClassId
+//	 * @param metadata
+//	 * @return newClassId
+//	 * @throws UnknownIdentifierException 
+//	 */
+//	public String createMostSpecificClass(String modelId, String individualId, String newClassId, METADATA metadata) throws UnknownIdentifierException {
+//		ModelContainer mod = checkModelId(modelId);
+//		OWLIndividual ind = getIndividual(individualId, mod);
+//		OWLClassExpression msce = mod.getMostSpecificClassExpression((OWLNamedIndividual) ind);
+//		OWLClass c = getClass(newClassId, mod);
+//		addAxiom(modelId, mod, mod.getOWLDataFactory().getOWLEquivalentClassesAxiom(msce, c), true, metadata);
+//		return newClassId;
+//	}
 
-	/**
-	 * Adds a process individual (and inferred individuals) to a model
-	 * 
-	 * @param modelId
-	 * @param processCls
-	 * @return null
-	 * @throws OWLOntologyCreationException
-	 * @throws UnknownIdentifierException
-	 * 
-	 * @Deprecated problematic return type
-	 */
-	@Deprecated
-	public String addProcess(String modelId, OWLClass processCls) throws OWLOntologyCreationException, UnknownIdentifierException {
-		LegoModelGenerator mod = checkModelId(modelId);
-		Set<String> genes = new HashSet<String>();
-		mod.buildNetwork(processCls, genes);
-		return null;
-	}
+//	/**
+//	 * Adds a process individual (and inferred individuals) to a model
+//	 * 
+//	 * @param modelId
+//	 * @param processCls
+//	 * @return null
+//	 * @throws OWLOntologyCreationException
+//	 * @throws UnknownIdentifierException
+//	 * 
+//	 * @Deprecated problematic return type
+//	 */
+//	@Deprecated
+//	public String addProcess(String modelId, OWLClass processCls) throws OWLOntologyCreationException, UnknownIdentifierException {
+//		ModelContainer mod = checkModelId(modelId);
+//		Set<String> genes = new HashSet<String>();
+//		mod.buildNetwork(processCls, genes);
+//		return null;
+//	}
 
 	/**
 	 * @param modelId
@@ -153,7 +154,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException
 	 */
 	public Set<OWLNamedIndividual> getIndividualsByQuery(String modelId, String qs) throws UnknownIdentifierException {
-		LegoModelGenerator mod = checkModelId(modelId);
+		ModelContainer mod = checkModelId(modelId);
 		ManchesterSyntaxTool mst = new ManchesterSyntaxTool(new OWLGraphWrapper(mod.getAboxOntology()), false);
 		OWLClassExpression q = mst.parseManchesterExpression(qs);
 		return getIndividualsByQuery(modelId, q);
@@ -170,7 +171,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException 
 	 */
 	public Pair<String, OWLNamedIndividual> createIndividual(String modelId, String cid, Collection<Pair<String, String>> annotations, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLClass cls = getClass(cid, model);
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
@@ -180,7 +181,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return Pair.of(MolecularModelJsonRenderer.getId(individual.getIRI()), individual);
 	}
 	
-	private Set<OWLAnnotation> createAnnotations(Collection<Pair<String, String>> pairs, LegoModelGenerator model) throws UnknownIdentifierException {
+	private Set<OWLAnnotation> createAnnotations(Collection<Pair<String, String>> pairs, ModelContainer model) throws UnknownIdentifierException {
 		OWLDataFactory f = model.getOWLDataFactory();
 		Set<OWLAnnotation> owlAnnotations = null;
 		if (pairs != null && !pairs.isEmpty()) {
@@ -270,7 +271,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException 
 	 */
 	public Pair<String, OWLNamedIndividual> createIndividualNonReasoning(String modelId, String cid, Collection<Pair<String, String>> annotations, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLClass cls = getClass(cid, model);
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
@@ -281,7 +282,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	}
 
 	public OWLNamedIndividual getNamedIndividual(String modelId, String iid) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -298,7 +299,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException
 	 */
 	public void deleteIndividual(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -308,7 +309,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	
 	public void addAnnotations(String modelId, Collection<Pair<String, String>> pairs, METADATA metadata)
 			throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		if (pairs != null) {
 			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
 			addAnnotations(modelId, model, annotations, metadata);
@@ -317,7 +318,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	
 	public OWLNamedIndividual addAnnotations(String modelId, String iid, 
 			Collection<Pair<String, String>> pairs, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -331,7 +332,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	
 	public OWLNamedIndividual removeAnnotations(String modelId, String iid,
 			Collection<Pair<String, String>> pairs, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -345,7 +346,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	
 	public void removeAnnotations(String modelId, Collection<Pair<String, String>> pairs, METADATA metadata)
 			throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		if (pairs != null) {
 			Collection<OWLAnnotation> annotations = createAnnotations(pairs, model);
 			removeAnnotations(modelId, model, annotations, metadata);
@@ -372,7 +373,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 			// search for IRI usage in models
 			final Set<String> allModelIds = getAvailableModelIds();
 			for (final String modelId : allModelIds) {
-				final LegoModelGenerator model = getModel(modelId);
+				final ModelContainer model = getModel(modelId);
 				final OWLOntology aboxOntology = model.getAboxOntology();
 				Set<OWLEntity> signature = aboxOntology.getSignature();
 				for (OWLEntity entity : signature) {
@@ -400,7 +401,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException
 	 */
 	public void saveModel(String modelId, Collection<Pair<String, String>> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
-		LegoModelGenerator m = checkModelId(modelId);
+		ModelContainer m = checkModelId(modelId);
 		saveModel(modelId, m , annotations, metadata);
 	}
 	
@@ -413,7 +414,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException 
 	 */
 	public String exportModel(String modelId) throws OWLOntologyStorageException, UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		return exportModel(modelId, model);
 	}
 	
@@ -423,18 +424,18 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException
 	 */
 	public Map<Object, Object> getModelObject(String modelId) throws UnknownIdentifierException {
-		LegoModelGenerator mod = checkModelId(modelId);
+		ModelContainer mod = checkModelId(modelId);
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
 		return renderer.renderModel();
 	}
 
 	
-	private OWLNamedIndividual getIndividual(String indId, LegoModelGenerator model) {
+	private OWLNamedIndividual getIndividual(String indId, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(indId, graph);
 		return model.getOWLDataFactory().getOWLNamedIndividual(iri);
 	}
-	private OWLClass getClass(String cid, LegoModelGenerator model) {
+	private OWLClass getClass(String cid, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		return getClass(cid, graph);
 	}
@@ -443,19 +444,19 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return graph.getOWLClass(iri);
 	}
 	@Deprecated
-	private OWLClass getGeneClass(String cid, LegoModelGenerator model) {
+	private OWLClass getGeneClass(String cid, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
 		return model.getOWLDataFactory().getOWLClass(iri);
 	}
-	private OWLObjectProperty getObjectProperty(String pid, LegoModelGenerator model) {
+	private OWLObjectProperty getObjectProperty(String pid, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(pid, graph);
 		return graph.getOWLObjectProperty(iri);
 	}
 	
-	public LegoModelGenerator checkModelId(String modelId) throws UnknownIdentifierException {
-		LegoModelGenerator model = getModel(modelId);
+	public ModelContainer checkModelId(String modelId) throws UnknownIdentifierException {
+		ModelContainer model = getModel(modelId);
 		if (model == null) {
 			throw new UnknownIdentifierException("Could not find a model for id: "+modelId);
 		}
@@ -463,7 +464,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	}
 
 	private OWLObjectPropertyExpression getObjectProperty(OBOUpperVocabulary vocabElement,
-			LegoModelGenerator model) {
+			ModelContainer model) {
 		return vocabElement.getObjectProperty(model.getAboxOntology());
 	}
 
@@ -477,7 +478,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException 
 	 */
 	public void addType(String modelId, String iid, String cid, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -498,7 +499,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException 
 	 */
 	public OWLNamedIndividual addTypeNonReasoning(String modelId, String iid, OWLClassExpression clsExp, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -519,7 +520,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 */
 	public void addType(String modelId,
 			String iid, String pid, String cid, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -537,7 +538,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	
 	public OWLNamedIndividual addTypeNonReasoning(String modelId,
 			String iid, String pid, OWLClassExpression ce, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -560,7 +561,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @throws UnknownIdentifierException 
 	 */
 	public void removeType(String modelId, String iid, String cid, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -573,7 +574,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	}
 	
 	public OWLNamedIndividual removeTypeNonReasoning(String modelId, String iid, OWLClassExpression clsExp, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -593,7 +594,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	@Deprecated
 	public void addOccursIn(String modelId,
 			String iid, String eid) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -627,12 +628,12 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	public void addOccursIn(String modelId,
 			OWLNamedIndividual i, 
 			OWLClassExpression enabler) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		addOccursIn(modelId, model, i, enabler);
 	}
 	
 	@Deprecated
-	private void addOccursIn(String modelId, LegoModelGenerator model,
+	private void addOccursIn(String modelId, ModelContainer model,
 			OWLNamedIndividual i, 
 			OWLClassExpression enabler) {
 		addType(modelId, model, i, OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(getOntology()), enabler, true, null);
@@ -651,7 +652,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	public void addEnabledBy(String modelId,
 			String iid, String eid) throws UnknownIdentifierException,
 			OWLException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual = getIndividual(iid, model);
 		if (individual == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -669,7 +670,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		addEnabledBy(modelId, model, individual, clsExpr);
 	}
 
-	private OWLClassExpression parseClassExpression(String expression, LegoModelGenerator model) throws OWLException {
+	private OWLClassExpression parseClassExpression(String expression, ModelContainer model) throws OWLException {
 		OWLGraphWrapper g = new OWLGraphWrapper(model.getAboxOntology());
 		return parseClassExpression(expression, g);
 	}
@@ -711,12 +712,12 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	public void addEnabledBy(String modelId,
 			OWLNamedIndividual i, 
 			OWLClassExpression enabler) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		addEnabledBy(modelId, model, i, enabler);
 	}
 	
 	@Deprecated
-	private void addEnabledBy(String modelId, LegoModelGenerator model,
+	private void addEnabledBy(String modelId, ModelContainer model,
 			OWLNamedIndividual i, 
 			OWLClassExpression enabler) {
 		OWLObjectProperty p = OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(model.getAboxOntology());
@@ -737,7 +738,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 */
 	public List<OWLNamedIndividual> addFact(String modelId, String pid,	String iid, String jid,
 			Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
@@ -769,7 +770,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 */
 	public List<OWLNamedIndividual> addFactNonReasoning(String modelId, String pid,	String iid, String jid,
 			Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
@@ -801,7 +802,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 */
 	public List<OWLNamedIndividual> addFact(String modelId, OBOUpperVocabulary vocabElement,
 			String iid, String jid, Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLObjectPropertyExpression property = getObjectProperty(vocabElement, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+vocabElement);
@@ -830,7 +831,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 */
 	public List<OWLNamedIndividual> removeFact(String modelId, String pid,
 			String iid, String jid, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
@@ -849,7 +850,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	
 	public List<OWLNamedIndividual> removeFactNonReasoning(String modelId, String pid,
 			String iid, String jid, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+pid);
@@ -868,7 +869,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 
 	public List<OWLNamedIndividual> addAnnotations(String modelId, String pid, 
 			String iid, String jid, Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
@@ -890,7 +891,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	
 	public List<OWLNamedIndividual> removeAnnotations(String modelId, String pid, 
 			String iid, String jid, Collection<Pair<String,String>> pairs, METADATA metadata) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
 		if (property == null) {
 			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
@@ -922,7 +923,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	@Deprecated
 	public void addPartOf(String modelId,  String iid,
 			String jid, Collection<Pair<String, String>> pairs) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual individual1 = getIndividual(iid, model);
 		if (individual1 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
@@ -949,12 +950,12 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	@Deprecated
 	public void addPartOf(String modelId, OWLNamedIndividual i,
 			OWLNamedIndividual j, Set<OWLAnnotation> annotations) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		addPartOf(modelId, model, i, j, annotations, true);
 	}
 	
 	@Deprecated
-	private void addPartOf(String modelId, LegoModelGenerator model, OWLNamedIndividual i, 
+	private void addPartOf(String modelId, ModelContainer model, OWLNamedIndividual i, 
 			OWLNamedIndividual j, Set<OWLAnnotation> annotations, boolean flushReasoner) {
 		addFact(modelId, model, getObjectProperty(OBOUpperVocabulary.BFO_part_of, model), i, j, annotations, flushReasoner, null);
 	}
@@ -971,7 +972,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @see #addObsoleteImports(Iterable)
 	 */
 	public void updateImports(String modelId) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		updateImports(modelId, model);
 	}
 	
@@ -997,7 +998,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 */
 	@Deprecated
 	public String generateDot(String modelId) throws IOException, UnExpectedStructureException, UnknownIdentifierException {
-		LegoModelGenerator m = checkModelId(modelId);
+		ModelContainer m = checkModelId(modelId);
 		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
 	
 		LegoStringDotRenderer renderer = 
@@ -1037,7 +1038,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		final File dotFile = File.createTempFile("LegoAnnotations", ".dot");
 		final File pngFile = File.createTempFile("LegoAnnotations", ".png");
 
-		LegoModelGenerator m = checkModelId(modelId);
+		ModelContainer m = checkModelId(modelId);
 		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
 		OWLReasoner reasoner = m.getReasoner();
 		String dotPath = "/opt/local/bin/dot"; // TODO

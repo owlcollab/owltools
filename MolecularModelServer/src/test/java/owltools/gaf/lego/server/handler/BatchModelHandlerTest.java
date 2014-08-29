@@ -20,15 +20,12 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import owltools.gaf.bioentities.ProteinTools;
-import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.ManchesterSyntaxTool;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
-import owltools.gaf.lego.UndoAwareMolecularModelManager;
+import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
+import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Entity;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Argument;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse;
@@ -39,6 +36,10 @@ import owltools.gaf.lego.server.handler.M3BatchHandler.M3Request;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Operation;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
+import owltools.util.ModelContainer;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class BatchModelHandlerTest {
@@ -198,7 +199,7 @@ public class BatchModelHandlerTest {
 	@Test
 	public void testParseComplex() throws Exception {
 		String modelId = models.generateBlankModel(null, null);
-		LegoModelGenerator model = models.getModel(modelId);
+		ModelContainer model = models.getModel(modelId);
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		ManchesterSyntaxTool tool = new ManchesterSyntaxTool(graph, true);
 		
@@ -343,7 +344,7 @@ public class BatchModelHandlerTest {
 		final String modelId = (String) response1.data.get("id");
 		
 		// check model for imports
-		LegoModelGenerator model = models.getModel(modelId);
+		ModelContainer model = models.getModel(modelId);
 		assertNotNull(model);
 		OWLOntology aBox = model.getAboxOntology();
 		Set<OWLOntology> closure = aBox.getImportsClosure();

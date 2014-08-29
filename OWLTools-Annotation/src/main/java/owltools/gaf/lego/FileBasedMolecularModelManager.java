@@ -43,6 +43,7 @@ import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
+import owltools.util.ModelContainer;
 
 /**
  * Layer for retrieving and storing models as OWL files.
@@ -217,7 +218,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		LOG.info("Generating model for Class: "+p+" and db: "+db);
 		OWLOntology tbox = graph.getSourceOntology();
 		OWLOntology abox = null;
-		LegoModelGenerator model = null;
+		ModelContainer model = null;
 		
 		// create empty ontology
 		// use model id as ontology IRI
@@ -230,18 +231,19 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 			createImports(abox, tbox.getOntologyID(), db, metadata);
 			
 			// create generator
-			model = new LegoModelGenerator(tbox, abox);
+			model = new ModelContainer(tbox, abox);
+			LegoModelGenerator generator = new LegoModelGenerator(model);
 			
-			model.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
+			generator.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
 			Set<String> seedGenes = new HashSet<String>();
 			// only look for genes if a GAF is available
 			if (db != null) {
 				GafDocument gafdoc = getGaf(db);
-				model.initialize(gafdoc, graph);
-				seedGenes.addAll(model.getGenes(processCls));
+				generator.initialize(gafdoc, graph);
+				seedGenes.addAll(generator.getGenes(processCls));
 			}
-			model.setContextualizingSuffix(db);
-			model.buildNetwork(p, seedGenes);
+			generator.setContextualizingSuffix(db);
+			generator.buildNetwork(p, seedGenes);
 		}
 		catch (OWLOntologyCreationException exception) {
 			if (model != null) {
@@ -364,7 +366,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		IRI aBoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
 		final OWLOntology tbox = graph.getSourceOntology();
 		OWLOntology abox = null;
-		LegoModelGenerator model = null;
+		ModelContainer model = null;
 		try {
 			abox = m.createOntology(aBoxIRI);
 	
@@ -372,7 +374,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 			createImports(abox, tbox.getOntologyID(), db, metadata);
 			
 			// generate model
-			model = new LegoModelGenerator(tbox, abox);
+			model = new ModelContainer(tbox, abox);
 		}
 		catch (OWLOntologyCreationException exception) {
 			if (abox != null) {
@@ -416,7 +418,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		IRI aBoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
 		final OWLOntology tbox = graph.getSourceOntology();
 		OWLOntology abox = null;
-		LegoModelGenerator model = null;
+		ModelContainer model = null;
 		try {
 			abox = m.createOntology(aBoxIRI);
 	
@@ -424,7 +426,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 			createImportsWithTaxon(abox, tbox.getOntologyID(), taxonId, metadata);
 			
 			// generate model
-			model = new LegoModelGenerator(tbox, abox);
+			model = new ModelContainer(tbox, abox);
 		}
 		catch (OWLOntologyCreationException exception) {
 			if (abox != null) {
@@ -451,9 +453,9 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 
 	public String generateDerivedModel(String sourceModelId, METADATA metadata) throws OWLOntologyCreationException, IOException, URISyntaxException {
 		LOG.info("Generating derived model from "+sourceModelId);
-		LegoModelGenerator sourceModel = this.getModel(sourceModelId); 
+		ModelContainer sourceModel = this.getModel(sourceModelId); 
 		String modelId = this.generateBlankModel(null, metadata);
-		LegoModelGenerator model = this.getModel(modelId);
+		ModelContainer model = this.getModel(modelId);
 		// TODO - populate, adding metadata
 		Set<OWLNamedIndividual> sourceInds = this.getIndividuals(sourceModelId);
 		for (OWLNamedIndividual sourceInd : sourceInds) {
@@ -473,7 +475,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 	 * @throws IOException 
 	 */
 	public void saveAllModels(Collection<Pair<String, String>> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
-		for (Entry<String, LegoModelGenerator> entry : modelMap.entrySet()) {
+		for (Entry<String, ModelContainer> entry : modelMap.entrySet()) {
 			saveModel(entry.getKey(), entry.getValue(), annotations, metadata);
 		}
 	}
@@ -490,7 +492,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 	 * @throws OWLOntologyCreationException 
 	 * @throws IOException
 	 */
-	public void saveModel(String modelId, LegoModelGenerator m, Collection<Pair<String, String>> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
+	public void saveModel(String modelId, ModelContainer m, Collection<Pair<String, String>> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
 		final OWLOntology ont = m.getAboxOntology();
 		final OWLOntologyManager manager = ont.getOWLOntologyManager();
 		
@@ -565,7 +567,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 	 * @return modelContent
 	 * @throws OWLOntologyStorageException
 	 */
-	public String exportModel(String modelId, LegoModelGenerator model) throws OWLOntologyStorageException {
+	public String exportModel(String modelId, ModelContainer model) throws OWLOntologyStorageException {
 		return exportModel(modelId, model, ontologyFormat);
 	}
 	
@@ -579,7 +581,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 	 * @return modelContent
 	 * @throws OWLOntologyStorageException
 	 */
-	public String exportModel(String modelId, LegoModelGenerator model, String format) throws OWLOntologyStorageException {
+	public String exportModel(String modelId, ModelContainer model, String format) throws OWLOntologyStorageException {
 		OWLOntologyFormat ontologyFormat = getOWLOntologyFormat(format);
 		if (ontologyFormat == null) {
 			ontologyFormat = this.ontologyFormat;
@@ -681,7 +683,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		File modelFile = getOwlModelFile(modelId);
 		IRI sourceIRI = IRI.create(modelFile);
 		OWLOntology abox = graph.getManager().loadOntologyFromOntologyDocument(sourceIRI);
-		LegoModelGenerator model = addModel(modelId, abox);
+		ModelContainer model = addModel(modelId, abox);
 		updateImports(modelId, model);
 	}
 

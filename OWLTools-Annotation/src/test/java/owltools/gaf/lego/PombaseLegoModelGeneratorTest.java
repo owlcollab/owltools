@@ -33,6 +33,7 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
+import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
 
 public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
@@ -59,7 +60,8 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 		OWLClass p = g.getOWLClassByIdentifier("GO:0033215"); // iron
 		assertNotNull(p);
 		
-		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(tbox, abox);
+		ModelContainer model = new ModelContainer(tbox, abox);
+		LegoModelGenerator molecularModelGenerator = new LegoModelGenerator(model);
 		
 		molecularModelGenerator.setPrecomputePropertyClassCombinations(false);
 		Set<String> seedGenes = new HashSet<String>();
@@ -82,7 +84,7 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 			System.out.println(i.getIRI().toString());
 		}
 		FileOutputStream os = new FileOutputStream(new File("target/aonti-imports.owl"));
-		m.saveOntology(molecularModelGenerator.getAboxOntology(), os);
+		m.saveOntology(model.getAboxOntology(), os);
 
 		assertEquals(7, individuals.size());
 	}
@@ -118,13 +120,13 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 
 		//System.out.println("gMGR = "+pw.getManager());
 
-		ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
+		mc = model = new ModelContainer(g.getSourceOntology(), new ElkReasonerFactory());
+		mmg = ni = new LegoModelGenerator(model);
 		ni.initialize(gafdoc, g);
 		//ni.getOWLOntologyManager().removeOntology(ni.getAboxOntology());
 
-		mmg = ni;
-		int aboxImportsSize = mmg.getAboxOntology().getImportsClosure().size();
-		int qboxImportsSize = mmg.getQueryOntology().getImportsClosure().size();
+		int aboxImportsSize = model.getAboxOntology().getImportsClosure().size();
+		int qboxImportsSize = model.getQueryOntology().getImportsClosure().size();
 
 		LOG.info("Abox ontology imports: "+aboxImportsSize);
 		LOG.info("Q ontology imports: "+qboxImportsSize);
@@ -134,7 +136,7 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 
 		OWLClass p = g.getOWLClassByIdentifier("GO:0033215"); // iron
 
-		int nSups = ni.getReasoner().getSuperClasses(p, false).getFlattened().size();
+		int nSups = model.getReasoner().getSuperClasses(p, false).getFlattened().size();
 		LOG.info("supers(p) = "+nSups);
 		assertEquals(22, nSups);
 
@@ -170,11 +172,11 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 				OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(m.getOWLDataFactory());
 		
 		Set<OWLNamedIndividual> mfinds =
-				mmg.getReasoner().getInstances(getClass(OBOUpperVocabulary.GO_molecular_function), 
+				model.getReasoner().getInstances(getClass(OBOUpperVocabulary.GO_molecular_function), 
 						false).getFlattened();
 		int nGPs = 0;
 		for (OWLNamedIndividual i : mfinds) {
-			for (OWLClassExpression cx : i.getTypes(ni.getAboxOntology())) {
+			for (OWLClassExpression cx : i.getTypes(model.getAboxOntology())) {
 				if (cx instanceof OWLObjectSomeValuesFrom) {
 					OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)cx;
 					if (svf.getProperty().equals(ENABLED_BY)) {
@@ -195,11 +197,11 @@ public class PombaseLegoModelGeneratorTest extends AbstractLegoModelGeneratorTes
 		//			ont.getOWLOntologyManager().removeOntology(ont);
 
 		FileOutputStream os = new FileOutputStream(new File("target/qont.owl"));
-		m.saveOntology(ni.getQueryOntology(), os);
+		m.saveOntology(model.getQueryOntology(), os);
 		os.close();
 		
 		os = new FileOutputStream(new File("target/aont.owl"));
-		ni.getQueryOntology().getOWLOntologyManager().saveOntology(ni.getAboxOntology(), os);
+		model.getQueryOntology().getOWLOntologyManager().saveOntology(model.getAboxOntology(), os);
 
 		w.close();
 

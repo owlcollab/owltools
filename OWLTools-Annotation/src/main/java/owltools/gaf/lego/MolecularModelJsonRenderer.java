@@ -45,6 +45,7 @@ import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
 
 import com.google.gson.Gson;
@@ -115,7 +116,7 @@ public class MolecularModelJsonRenderer {
 	/**
 	 * @param model
 	 */
-	public MolecularModelJsonRenderer(LegoModelGenerator model) {
+	public MolecularModelJsonRenderer(ModelContainer model) {
 		this(model.getAboxOntology(), new OWLGraphWrapper(model.getAboxOntology()));
 	}
 	

@@ -48,6 +48,7 @@ import org.semanticweb.owlapi.model.SetOntologyID;
 
 import owltools.gaf.eco.EcoMapper;
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
@@ -67,7 +68,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	private static Logger LOG = Logger.getLogger(CoreMolecularModelManager.class);
 
 	final OWLGraphWrapper graph;
-	final Map<String, LegoModelGenerator> modelMap = new HashMap<String, LegoModelGenerator>();
+	final Map<String, ModelContainer> modelMap = new HashMap<String, ModelContainer>();
 	Set<IRI> additionalImports;
 	final Set<IRI> obsoleteImports = new HashSet<IRI>();
 
@@ -166,7 +167,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @return all individuals in the model
 	 */
 	public Set<OWLNamedIndividual> getIndividuals(String modelId) {
-		LegoModelGenerator mod = getModel(modelId);
+		ModelContainer mod = getModel(modelId);
 		return mod.getAboxOntology().getIndividualsInSignature();
 	}
 
@@ -177,7 +178,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @return all individuals in the model that satisfy q
 	 */
 	public Set<OWLNamedIndividual> getIndividualsByQuery(String modelId, OWLClassExpression q) {
-		LegoModelGenerator mod = getModel(modelId);
+		ModelContainer mod = getModel(modelId);
 		return mod.getReasoner().getInstances(q, false).getFlattened();
 	}
 
@@ -188,7 +189,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @return List of key-val pairs ready for Gson
 	 */
 	List<Map<Object, Object>> getIndividualObjects(String modelId) {
-		LegoModelGenerator mod = getModel(modelId);
+		ModelContainer mod = getModel(modelId);
 		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
 		OWLOntology ont = mod.getAboxOntology();
 		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
@@ -205,12 +206,12 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param metadata
 	 * @return individual
 	 */
-	public OWLNamedIndividual createIndividual(String modelId, LegoModelGenerator model, OWLClass c, METADATA metadata) {
+	public OWLNamedIndividual createIndividual(String modelId, ModelContainer model, OWLClass c, METADATA metadata) {
 		OWLNamedIndividual individual = createIndividual(modelId, model, c, null, true, metadata);
 		return individual;
 	}
 	
-	OWLNamedIndividual createIndividual(String modelId, LegoModelGenerator model, OWLClass c, Set<OWLAnnotation> annotations, boolean flushReasoner, METADATA metadata) {
+	OWLNamedIndividual createIndividual(String modelId, ModelContainer model, OWLClass c, Set<OWLAnnotation> annotations, boolean flushReasoner, METADATA metadata) {
 		LOG.info("Creating individual of type: "+c);
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		String cid = graph.getIdentifier(c).replaceAll(":","-"); // e.g. GO-0123456
@@ -247,7 +248,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param i
 	 * @param metadata
 	 */
-	public void deleteIndividual(String modelId, LegoModelGenerator model, OWLNamedIndividual i, METADATA metadata) {
+	public void deleteIndividual(String modelId, ModelContainer model, OWLNamedIndividual i, METADATA metadata) {
 		deleteIndividual(modelId, model, i, true, metadata);
 	}
 	
@@ -260,7 +261,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param flushReasoner
 	 * @param metadata
 	 */
-	void deleteIndividual(String modelId, LegoModelGenerator model, OWLNamedIndividual i, boolean flushReasoner, METADATA metadata) {
+	void deleteIndividual(String modelId, ModelContainer model, OWLNamedIndividual i, boolean flushReasoner, METADATA metadata) {
 		Set<OWLAxiom> toRemoveAxioms = new HashSet<OWLAxiom>();
 		
 		OWLOntology ont = model.getAboxOntology();
@@ -289,11 +290,11 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		removeAxioms(modelId, model, toRemoveAxioms, flushReasoner, metadata);
 	}
 	
-	public void addAnnotations(String modelId, LegoModelGenerator model, OWLNamedIndividual i, Collection<OWLAnnotation> annotations, METADATA metadata) {
+	public void addAnnotations(String modelId, ModelContainer model, OWLNamedIndividual i, Collection<OWLAnnotation> annotations, METADATA metadata) {
 		addAnnotations(modelId, model, i.getIRI(), annotations, metadata);
 	}
 	
-	void addAnnotations(String modelId, LegoModelGenerator model, IRI subject, Collection<OWLAnnotation> annotations, METADATA metadata) {
+	void addAnnotations(String modelId, ModelContainer model, IRI subject, Collection<OWLAnnotation> annotations, METADATA metadata) {
 		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 		OWLDataFactory f = model.getOWLDataFactory();
 		for (OWLAnnotation annotation : annotations) {
@@ -302,7 +303,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		addAxioms(modelId, model, axioms, false, metadata);
 	}
 	
-	void addAnnotations(String modelId, LegoModelGenerator model, Collection<OWLAnnotation> annotations, METADATA metadata) {
+	void addAnnotations(String modelId, ModelContainer model, Collection<OWLAnnotation> annotations, METADATA metadata) {
 		OWLOntology aBox = model.getAboxOntology();
 		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		for (OWLAnnotation annotation : annotations) {
@@ -311,11 +312,11 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		applyChanges(modelId, model, changes, false, metadata);
 	}
 
-	public void removeAnnotations(String modelId, LegoModelGenerator model, OWLNamedIndividual i, Collection<OWLAnnotation> annotations, METADATA metadata) {
+	public void removeAnnotations(String modelId, ModelContainer model, OWLNamedIndividual i, Collection<OWLAnnotation> annotations, METADATA metadata) {
 		removeAnnotations(modelId, model, i.getIRI(), annotations, metadata);
 	}
 	
-	void removeAnnotations(String modelId, LegoModelGenerator model, IRI subject, Collection<OWLAnnotation> annotations, METADATA metadata) {
+	void removeAnnotations(String modelId, ModelContainer model, IRI subject, Collection<OWLAnnotation> annotations, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
 		Set<OWLAxiom> toRemove = new HashSet<OWLAxiom>();
 		Set<OWLAnnotationAssertionAxiom> candidates = ont.getAnnotationAssertionAxioms(subject);
@@ -328,7 +329,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		removeAxioms(modelId, model, toRemove, false, metadata);
 	}
 
-	void removeAnnotations(String modelId, LegoModelGenerator model, Collection<OWLAnnotation> annotations, METADATA metadata) {
+	void removeAnnotations(String modelId, ModelContainer model, Collection<OWLAnnotation> annotations, METADATA metadata) {
 		OWLOntology aBox = model.getAboxOntology();
 		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		for (OWLAnnotation annotation : annotations) {
@@ -343,7 +344,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param id
 	 * @return wrapped model
 	 */
-	public LegoModelGenerator getModel(String id)  {
+	public ModelContainer getModel(String id)  {
 		if (!modelMap.containsKey(id)) {
 			try {
 				loadModel(id, false);
@@ -357,7 +358,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param id
 	 */
 	public void unlinkModel(String id) {
-		LegoModelGenerator model = modelMap.get(id);
+		ModelContainer model = modelMap.get(id);
 		model.dispose();
 		modelMap.remove(id);
 	}
@@ -389,7 +390,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @return modelContent
 	 * @throws OWLOntologyStorageException
 	 */
-	public String exportModel(String modelId, LegoModelGenerator model, OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException {
+	public String exportModel(String modelId, ModelContainer model, OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException {
 		final OWLOntology aBox = model.getAboxOntology();
 		final OWLOntologyManager manager = aBox.getOWLOntologyManager();
 		
@@ -467,13 +468,13 @@ public abstract class CoreMolecularModelManager<METADATA> {
 			throw new OWLOntologyCreationException("Could not extract the modelId from the given model");
 		}
 		// paranoia check
-		LegoModelGenerator existingModel = modelMap.get(modelId);
+		ModelContainer existingModel = modelMap.get(modelId);
 		if (existingModel != null) {
 			unlinkModel(modelId);
 		}
 		
 		// add to internal model
-		LegoModelGenerator newModel = addModel(modelId, modelOntology);
+		ModelContainer newModel = addModel(modelId, modelOntology);
 		
 		// update imports
 		updateImports(newModel);
@@ -496,9 +497,9 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	
 	protected abstract void loadModel(String modelId, boolean isOverride) throws OWLOntologyCreationException;
 
-	LegoModelGenerator addModel(String modelId, OWLOntology abox) throws OWLOntologyCreationException {
+	ModelContainer addModel(String modelId, OWLOntology abox) throws OWLOntologyCreationException {
 		OWLOntology tbox = graph.getSourceOntology();
-		LegoModelGenerator m = new LegoModelGenerator(tbox, abox);
+		ModelContainer m = new ModelContainer(tbox, abox);
 		modelMap.put(modelId, m);
 		return m;
 	}
@@ -510,7 +511,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @return true if the ontology formed by the specified model is inconsistent
 	 */
 	public boolean isConsistent(String modelId) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		// TODO - is it scalable to have each model have its own reasoner?
 		// may make more sense to have a single reasoner instance operating over entire kb;
 		// this would mean the entire kb should be kept consistent - an inconsistency in one
@@ -523,12 +524,12 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @return data factory for the specified model
 	 */
 	public OWLDataFactory getOWLDataFactory(String modelId) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		return model.getOWLDataFactory();
 	}
 
 	protected OWLOntologyManager getOWLOntologyManager(String modelId) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		return model.getAboxOntology().getOWLOntologyManager();
 	}
 
@@ -541,7 +542,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param metadata
 	 */
 	public void addType(String modelId, OWLNamedIndividual i, OWLClass c, METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		addType(modelId, model, i, c, true, metadata);
 	}
 	
@@ -555,7 +556,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param flushReasoner
 	 * @param metadata
 	 */
-	void addType(String modelId, LegoModelGenerator model, OWLIndividual i, 
+	void addType(String modelId, ModelContainer model, OWLIndividual i, 
 			OWLClassExpression c, boolean flushReasoner, METADATA metadata) {
 		OWLClassAssertionAxiom axiom = model.getOWLDataFactory().getOWLClassAssertionAxiom(c,i);
 		addAxiom(modelId, model, axiom, flushReasoner, metadata);
@@ -578,7 +579,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 			OWLObjectPropertyExpression p,
 			OWLClassExpression filler,
 			METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		addType(modelId, model, i, p, filler, true, metadata);
 	}
 	
@@ -597,7 +598,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param metadata
 	 */
 	void addType(String modelId,
-			LegoModelGenerator model,
+			ModelContainer model,
 			OWLIndividual i, 
 			OWLObjectPropertyExpression p,
 			OWLClassExpression filler,
@@ -621,7 +622,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param metadata
 	 */
 	public void removeType(String modelId, OWLNamedIndividual i, OWLClass c, METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		removeType(modelId, model, i, c, true, metadata);
 	}
 
@@ -635,7 +636,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param flushReasoner
 	 * @param metadata
 	 */
-	void removeType(String modelId, LegoModelGenerator model, OWLIndividual i, 
+	void removeType(String modelId, ModelContainer model, OWLIndividual i, 
 			OWLClassExpression ce, boolean flushReasoner, METADATA metadata) {
 		Set<OWLClassAssertionAxiom> allAxioms = model.getAboxOntology().getClassAssertionAxioms(i);
 		// use search to remove also axioms with annotations
@@ -662,13 +663,13 @@ public abstract class CoreMolecularModelManager<METADATA> {
 			OWLObjectPropertyExpression p,
 			OWLClassExpression filler,
 			METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		removeType(modelId, model, i, p, filler, true, metadata);
 	}
 	
 	
 	void removeType(String modelId,
-			LegoModelGenerator model,
+			ModelContainer model,
 			OWLIndividual i, 
 			OWLObjectPropertyExpression p,
 			OWLClassExpression filler,
@@ -691,7 +692,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 */
 	public void addFact(String modelId, OWLObjectPropertyExpression p,
 			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations, METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		addFact(modelId, model, p, i, j, annotations, true, metadata);
 	}
 	
@@ -707,12 +708,12 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 */
 	public void addFact(String modelId, OBOUpperVocabulary vocabElement,
 			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations, METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		OWLObjectProperty p = vocabElement.getObjectProperty(model.getAboxOntology());
 		addFact(modelId, model, p, i, j, annotations, true, metadata);
 	}
 
-	void addFact(String modelId, LegoModelGenerator model, OWLObjectPropertyExpression p,
+	void addFact(String modelId, ModelContainer model, OWLObjectPropertyExpression p,
 			OWLIndividual i, OWLIndividual j, Set<OWLAnnotation> annotations, boolean flushReasoner, METADATA metadata) {
 		OWLDataFactory f = model.getOWLDataFactory();
 		final OWLObjectPropertyAssertionAxiom axiom;
@@ -727,11 +728,11 @@ public abstract class CoreMolecularModelManager<METADATA> {
 
 	public void removeFact(String modelId, OWLObjectPropertyExpression p,
 			OWLNamedIndividual i, OWLNamedIndividual j, METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		removeFact(modelId, model, p, i, j, true, metadata);
 	}
 
-	void removeFact(String modelId, LegoModelGenerator model, OWLObjectPropertyExpression p,
+	void removeFact(String modelId, ModelContainer model, OWLObjectPropertyExpression p,
 			OWLIndividual i, OWLIndividual j, boolean flushReasoner, METADATA metadata) {
 		OWLDataFactory f = model.getOWLDataFactory();
 		
@@ -753,11 +754,11 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	
 	public void addAnnotations(String modelId, OWLObjectPropertyExpression p,
 			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations, METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		addAnnotations(modelId, model, p, i, j, annotations, true, metadata);
 	}
 	
-	void addAnnotations(String modelId, LegoModelGenerator model, OWLObjectPropertyExpression p,
+	void addAnnotations(String modelId, ModelContainer model, OWLObjectPropertyExpression p,
 			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations,
 			boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
@@ -781,7 +782,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		}
 	}
 	
-	void removeAnnotations(String modelId, LegoModelGenerator model, OWLObjectPropertyExpression p,
+	void removeAnnotations(String modelId, ModelContainer model, OWLObjectPropertyExpression p,
 			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations,
 			boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
@@ -805,7 +806,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		}
 	}
 	
-	void addAxiom(String modelId, LegoModelGenerator model, OWLAxiom axiom, 
+	void addAxiom(String modelId, ModelContainer model, OWLAxiom axiom, 
 			boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
 		List<OWLOntologyChange> changes = Collections.<OWLOntologyChange>singletonList(new AddAxiom(ont, axiom));
@@ -820,7 +821,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		}
 	}
 	
-	void addAxioms(String modelId, LegoModelGenerator model, Set<OWLAxiom> axioms, 
+	void addAxioms(String modelId, ModelContainer model, Set<OWLAxiom> axioms, 
 			boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
 		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>(axioms.size());
@@ -838,7 +839,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		}
 	}
 	
-	void removeAxiom(String modelId, LegoModelGenerator model, OWLAxiom axiom, 
+	void removeAxiom(String modelId, ModelContainer model, OWLAxiom axiom, 
 			boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
 		List<OWLOntologyChange> changes = Collections.<OWLOntologyChange>singletonList(new RemoveAxiom(ont, axiom));
@@ -854,11 +855,11 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	}
 
 	void removeAxioms(String modelId, Set<OWLAxiom> axioms, boolean flushReasoner, METADATA metadata) {
-		LegoModelGenerator model = getModel(modelId);
+		ModelContainer model = getModel(modelId);
 		removeAxioms(modelId, model, axioms, flushReasoner, metadata);
 	}
 	
-	void removeAxioms(String modelId, LegoModelGenerator model, Set<OWLAxiom> axioms, 
+	void removeAxioms(String modelId, ModelContainer model, Set<OWLAxiom> axioms, 
 			boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
 		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>(axioms.size());
@@ -876,7 +877,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		}
 	}
 
-	private void applyChanges(String modelId, LegoModelGenerator model, 
+	private void applyChanges(String modelId, ModelContainer model, 
 			List<OWLOntologyChange> changes, boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
 		synchronized (ont) {
@@ -890,7 +891,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		}
 	}
 	
-	private void applyChanges(String modelId, LegoModelGenerator model, OWLOntologyManager m, 
+	private void applyChanges(String modelId, ModelContainer model, OWLOntologyManager m, 
 			List<? extends OWLOntologyChange> changes, METADATA metadata) {
 		List<OWLOntologyChange> appliedChanges = m.applyChanges(changes);
 		addToHistory(modelId, model, appliedChanges, metadata);
@@ -904,7 +905,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param appliedChanges
 	 * @param metadata
 	 */
-	protected void addToHistory(String modelId, LegoModelGenerator model, 
+	protected void addToHistory(String modelId, ModelContainer model, 
 			List<OWLOntologyChange> appliedChanges, METADATA metadata) {
 		// do nothing, for now
 	}
@@ -920,11 +921,11 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @see #obsoleteImports
 	 * @see #addObsoleteImports(Iterable)
 	 */
-	public void updateImports(String modelId, LegoModelGenerator model) {
+	public void updateImports(String modelId, ModelContainer model) {
 		updateImports(model);
 	}
 	
-	private void updateImports(final LegoModelGenerator model) {
+	private void updateImports(final ModelContainer model) {
 		final OWLOntology aboxOntology = model.getAboxOntology();
 		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		

@@ -16,6 +16,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.gaf.lego.UndoAwareMolecularModelManager.UndoMetadata;
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.ModelContainer;
 
 /**
  * Provide undo and redo operations for the {@link MolecularModelManager}.
@@ -170,7 +171,7 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<UndoMe
 	}
 
 	@Override
-	protected void addToHistory(String modelId, LegoModelGenerator model, List<OWLOntologyChange> appliedChanges, UndoMetadata metadata) {
+	protected void addToHistory(String modelId, ModelContainer model, List<OWLOntologyChange> appliedChanges, UndoMetadata metadata) {
 		UndoRedo undoRedo;
 		synchronized (allChanges) {
 			undoRedo = allChanges.get(modelId);
@@ -196,7 +197,7 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<UndoMe
 	 * @throws UnknownIdentifierException
 	 */
 	public boolean undo(String modelId, String userId) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		return undo(modelId, model, userId);
 	}
 
@@ -208,7 +209,7 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<UndoMe
 	 * @param userId
 	 * @return true if the undo was successful
 	 */
-	public boolean undo(String modelId, LegoModelGenerator model, String userId) {
+	public boolean undo(String modelId, ModelContainer model, String userId) {
 		UndoRedo undoRedo;
 		synchronized (allChanges) {
 			undoRedo = allChanges.get(modelId);
@@ -249,7 +250,7 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<UndoMe
 	 * @throws UnknownIdentifierException
 	 */
 	public boolean redo(String modelId, String userId) throws UnknownIdentifierException {
-		LegoModelGenerator model = checkModelId(modelId);
+		ModelContainer model = checkModelId(modelId);
 		return redo(modelId, model, userId);
 	}
 	
@@ -261,7 +262,7 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<UndoMe
 	 * @param userId
 	 * @return true if the redo was successful
 	 */
-	public boolean redo(String modelId, LegoModelGenerator model, String userId) {
+	public boolean redo(String modelId, ModelContainer model, String userId) {
 		UndoRedo undoRedo;
 		synchronized (allChanges) {
 			undoRedo = allChanges.get(modelId);

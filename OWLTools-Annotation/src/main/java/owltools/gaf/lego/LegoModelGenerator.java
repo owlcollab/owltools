@@ -40,6 +40,7 @@ import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.MinimalModelGenerator;
+import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
@@ -140,56 +141,11 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 
 	/**
-	 * @param tbox
+	 * @param model
 	 * @throws OWLOntologyCreationException
 	 */
-	public LegoModelGenerator(OWLOntology tbox) throws OWLOntologyCreationException {
-		super(tbox);
-	}
-
-	/**
-	 * @param tbox
-	 * @param abox
-	 * @param rf
-	 * @throws OWLOntologyCreationException
-	 */
-	@Deprecated
-	public LegoModelGenerator(OWLOntology tbox, OWLOntology abox, OWLReasonerFactory rf)
-			throws OWLOntologyCreationException {
-		super(tbox, abox, rf);
-		// TODO Auto-generated constructor stub
-	}
-
-
-	/**
-	 * @param tbox
-	 * @param abox
-	 * @throws OWLOntologyCreationException
-	 */
-	public LegoModelGenerator(OWLOntology tbox, OWLOntology abox)
-			throws OWLOntologyCreationException {
-		super(tbox, abox);
-		// TODO Auto-generated constructor stub
-	}
-
-
-	/**
-	 * @param tbox
-	 * @param reasonerFactory
-	 * @throws OWLOntologyCreationException
-	 */
-	public LegoModelGenerator(OWLOntology tbox, OWLReasonerFactory reasonerFactory)
-			throws OWLOntologyCreationException {
-		super(tbox, reasonerFactory);
-		// TODO Auto-generated constructor stub
-	}
-	
-	/**
-	 * Unregisters abox ontology
-	 */
-	public void dispose() {
-//		getOWLOntologyManager().removeOntology(getAboxOntology());
-		super.dispose();
+	public LegoModelGenerator(ModelContainer model) throws OWLOntologyCreationException {
+		super(model);
 	}
 
 	/**
@@ -251,7 +207,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			for (OWLObject ancCls : g.getAncestorsReflexive(cls, rels)) { // TODO-use reasoner
 				if (ancCls instanceof OWLClass) {
 					OWLClass anc = (OWLClass) ancCls;
-					if (!isQueryClass(anc)) {
+					if (!model.isQueryClass(anc)) {
 						//LOG.debug("   "+gene + " => "+c+" => "+anc + " // "+ancCls);
 						if (!geneByInferredClsMap.containsKey(anc))
 							geneByInferredClsMap.put(anc, new HashSet<String>());
@@ -264,12 +220,12 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		OWLClass MF = getOWLClass(OBOUpperVocabulary.GO_molecular_function);
 		OWLClass BP = getOWLClass(OBOUpperVocabulary.GO_biological_process);
 
-		activityClassSet = getReasoner().getSubClasses(MF, false).getFlattened();
+		activityClassSet = model.getReasoner().getSubClasses(MF, false).getFlattened();
 		LOG.debug("# subclasses of "+MF+" = "+activityClassSet.size());
-		processClassSet = getReasoner().getSubClasses(BP, false).getFlattened();
+		processClassSet = model.getReasoner().getSubClasses(BP, false).getFlattened();
 		LOG.debug("# subclasses of "+BP+" "+processClassSet.size());
 
-		for (OWLClass cls : this.getTboxOntology().getClassesInSignature(true)) {
+		for (OWLClass cls : model.getTboxOntology().getClassesInSignature(true)) {
 			String label = g.getLabel(cls);
 			if (label != "" && label != null)
 				labelMap.put(cls, label);
@@ -368,7 +324,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		// then a prototypical instance of is also included
 		for (OWLNamedIndividual i : getGeneratedIndividuals()) {
 			boolean isOccurrent = false;
-			for (OWLClass c : getReasoner().getTypes(i, false).getFlattened()) {
+			for (OWLClass c : model.getReasoner().getTypes(i, false).getFlattened()) {
 				if (c.getIRI().equals(OBOUpperVocabulary.GO_biological_process.getIRI())) {
 					isOccurrent = true;
 					break;
@@ -449,7 +405,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 						// alternateProcessCls is more specific
 						isCandidate = true;
 						for (OWLObjectSomeValuesFrom r : getExistentialRelationships(alternateProcessCls)) {
-							if (getReasoner().getSuperClasses(r.getFiller(), false).getFlattened().contains(processCls)) {
+							if (model.getReasoner().getSuperClasses(r.getFiller(), false).getFlattened().contains(processCls)) {
 								// should not cause a deepening
 								isCandidate = false;
 							}
@@ -457,7 +413,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 					}
 				}
 				if (isCandidate) {
-					if (getReasoner().getSuperClasses(alternateProcessCls, false).getFlattened().contains(processCls)) {
+					if (model.getReasoner().getSuperClasses(alternateProcessCls, false).getFlattened().contains(processCls)) {
 						// skip
 						// todo - keep the information somehow that g is annotated to specific
 						// subtypes of c
@@ -492,11 +448,11 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 				//OWLClass joinPointClass = getPrototypeClass(joinPoint);
 
 				//this seemed to be producing redundant types:
-				Set<OWLClass> jpcs = getReasoner().getTypes(joinPoint, true).getFlattened();
+				Set<OWLClass> jpcs = model.getReasoner().getTypes(joinPoint, true).getFlattened();
 				LOG.debug(" candidate join point="+getIdLabelPair(joinPoint)+" directTypes: "+jpcs);
 				Set<OWLClass> rd = new HashSet<OWLClass>(); // redundant
 				for (OWLClass jpc : jpcs) {
-					rd.addAll(getReasoner().getSuperClasses(jpc, false).getFlattened());
+					rd.addAll(model.getReasoner().getSuperClasses(jpc, false).getFlattened());
 				}
 				jpcs.removeAll(rd);
 				LOG.debug("   Post redundancy filter: "+getIdLabelPair(joinPoint)+" directTypes: "+jpcs);
@@ -547,8 +503,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 					" is under/equiv to "+getIdLabelPair(bestParentClass) +
 					" for gene: "+g);
 			if (bestActivityClass != null) {
-				if (getReasoner().getSubClasses(bestActivityClass, false).getFlattened().contains(bestParentClass) ||
-						getReasoner().getEquivalentClasses(bestActivityClass).getEntities().contains(bestParentClass)) {
+				if (model.getReasoner().getSubClasses(bestActivityClass, false).getFlattened().contains(bestParentClass) ||
+						model.getReasoner().getEquivalentClasses(bestActivityClass).getEntities().contains(bestParentClass)) {
 					LOG.debug("Merging "+bestParent+" --> "+ai);
 					mergeInto(bestParent, ai);
 				}
@@ -570,11 +526,11 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		if (w != null) {
 
 			OWLAxiom owlObject = 
-					getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(
+					model.getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(
 							rel,
 							p,
 							w);
-			addAxiom(owlObject);
+			model.addAxiom(owlObject);
 		}
 		else {
 			LOG.warn("Parent of "+p+" is null");
@@ -583,7 +539,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 	private OWLNamedIndividual addActivity(OWLClass bestActivityClass, String gene, Double pval, Double cp) {
 		if (bestActivityClass == null) {
-			bestActivityClass =  getOWLDataFactory().getOWLClass(OBOUpperVocabulary.GO_molecular_function.getIRI());
+			bestActivityClass = model.getOWLDataFactory().getOWLClass(OBOUpperVocabulary.GO_molecular_function.getIRI());
 		}
 		OWLNamedIndividual ai = this.generateNecessaryIndividuals(bestActivityClass);
 		//this.collapseIndividuals();
@@ -597,10 +553,10 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			//geneProductClass = getOWLClass("PR:00000001");
 		}
 		if (geneProductClass != null) {
-			OWLClassExpression x = getOWLDataFactory().getOWLObjectSomeValuesFrom(
+			OWLClassExpression x = model.getOWLDataFactory().getOWLObjectSomeValuesFrom(
 					getObjectProperty(OBOUpperVocabulary.GOREL_enabled_by),
 					geneProductClass); // TODO <-- protein IRI should be here
-			addAxiom(getOWLDataFactory().getOWLClassAssertionAxiom(
+			model.addAxiom(model.getOWLDataFactory().getOWLClassAssertionAxiom(
 					x,
 					ai));
 			String geneLabel = getLabel(gene);
@@ -672,10 +628,10 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	private void combineMultipleEnablers() {
 
 		OWLObjectPropertyExpression enabledBy = this.getObjectProperty(OBOUpperVocabulary.GOREL_enabled_by);
-		for (OWLNamedIndividual i : getAboxOntology().getIndividualsInSignature(false)) {
+		for (OWLNamedIndividual i : model.getAboxOntology().getIndividualsInSignature(false)) {
 			Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 			Set<OWLClassExpression> xs = new HashSet<OWLClassExpression>();
-			for (OWLAxiom ax : getAboxOntology().getAxioms(i)) {
+			for (OWLAxiom ax : model.getAboxOntology().getAxioms(i)) {
 
 				if (ax instanceof OWLClassAssertionAxiom) {
 					//LOG.debug("TESTING:"+ax);
@@ -694,12 +650,12 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 			}
 			if (xs.size() > 1) {
 				LOG.debug("Concatenating enables for "+getIdLabelPair(i));
-				getOWLOntologyManager().removeAxioms(this.getAboxOntology(), rmAxioms);
-				addAxiom(
-						getOWLDataFactory().getOWLClassAssertionAxiom(
-								getOWLDataFactory().getOWLObjectSomeValuesFrom(
+				model.getOWLOntologyManager().removeAxioms(model.getAboxOntology(), rmAxioms);
+				model.addAxiom(
+						model.getOWLDataFactory().getOWLClassAssertionAxiom(
+								model.getOWLDataFactory().getOWLObjectSomeValuesFrom(
 										enabledBy,
-										getOWLDataFactory().getOWLObjectUnionOf(xs)
+										model.getOWLDataFactory().getOWLObjectUnionOf(xs)
 										),
 										i));
 			}
@@ -730,12 +686,12 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 		OWLNamedIndividual ind = this.generateNecessaryIndividuals(disease);
 		Set<OWLClass> phenotypes = new HashSet<OWLClass>();
 		for (OWLNamedIndividual j : getGeneratedIndividuals()) {
-			phenotypes.addAll(getReasoner().getTypes(j, true).getFlattened());
+			phenotypes.addAll(model.getReasoner().getTypes(j, true).getFlattened());
 		}
-		OWLClass CELLULAR_PROCESS = getOWLDataFactory().getOWLClass(OBOUpperVocabulary.GO_cellular_process.getIRI());
+		OWLClass CELLULAR_PROCESS = model.getOWLDataFactory().getOWLClass(OBOUpperVocabulary.GO_cellular_process.getIRI());
 
 		Map<OWLClass, Double> smap = new HashMap<OWLClass, Double>();
-		for (OWLClass gc : getReasoner().getSubClasses(CELLULAR_PROCESS, false).getFlattened()) {
+		for (OWLClass gc : model.getReasoner().getSubClasses(CELLULAR_PROCESS, false).getFlattened()) {
 			double cumLogScore = 0.0; 
 
 			int n=0;
@@ -882,7 +838,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 				new HashSet<OWLPropertyExpression>(getInvolvedInRelations());
 		for (OWLClass c : clsByGeneMap.get(g)) {
 			for (OWLObject a : ogw.getAncestorsReflexive(c, rels)) { // TODO-rel
-				if (a instanceof OWLClass && !isQueryClass((OWLClass) a)) {
+				if (a instanceof OWLClass && !model.isQueryClass((OWLClass) a)) {
 					cset.add((OWLClass) a);
 				}
 			}
@@ -902,7 +858,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	private void removeRedundantOrHelper(Set<OWLClass> cset, Set<OWLPropertyExpression> props) {
 		Set<OWLClass> allAncs = new HashSet<OWLClass>();
 		for (OWLClass c : cset) {
-			if (isQueryClass(c)) {
+			if (model.isQueryClass(c)) {
 				allAncs.add(c);
 				continue;
 			}
@@ -982,16 +938,16 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	}
 
 	private OWLNamedIndividual getIndividual(String id) {
-		return getOWLDataFactory().getOWLNamedIndividual(getIRI(id));
+		return model.getOWLDataFactory().getOWLNamedIndividual(getIRI(id));
 	}
 
 
 
 	private OWLClass getOWLClassByIdentifier(String id) {
-		return getOWLDataFactory().getOWLClass(ogw.getIRIByIdentifier(id));
+		return model.getOWLDataFactory().getOWLClass(ogw.getIRIByIdentifier(id));
 	}
 	private OWLClass getOWLClass(OBOUpperVocabulary v) {
-		return getOWLDataFactory().getOWLClass(v.getIRI());
+		return model.getOWLDataFactory().getOWLClass(v.getIRI());
 	}
 
 
@@ -1022,7 +978,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 	private OWLObjectPropertyExpression getObjectProperty(
 			IRI iri) {
 		// TODO Auto-generated method stub
-		return getOWLDataFactory().getOWLObjectProperty(iri);
+		return model.getOWLDataFactory().getOWLObjectProperty(iri);
 	}
 
 
@@ -1030,8 +986,8 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 
 	private void addOwlData(OWLObject subj, OWLAnnotationProperty p, String val) {
-		OWLLiteral lit = getOWLDataFactory().getOWLLiteral(val);
-		addAxiom(getOWLDataFactory().getOWLAnnotationAssertionAxiom(
+		OWLLiteral lit = model.getOWLDataFactory().getOWLLiteral(val);
+		model.addAxiom(model.getOWLDataFactory().getOWLAnnotationAssertionAxiom(
 				p,
 				((OWLNamedObject) subj).getIRI(), 
 				lit));
@@ -1039,7 +995,7 @@ public class LegoModelGenerator extends MinimalModelGenerator {
 
 	private void addOwlLabel(OWLObject owlObject, String val) {
 		addOwlData(owlObject, 
-				getOWLDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
+				model.getOWLDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
 				val);
 		labelMap.put(owlObject, val);
 	}

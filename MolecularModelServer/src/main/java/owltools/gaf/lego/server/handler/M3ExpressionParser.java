@@ -9,13 +9,13 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler.MissingParameterException;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Expression;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3ExpressionType;
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.ModelContainer;
 //import owltools.vocab.OBOUpperVocabulary;
 
 
@@ -23,7 +23,7 @@ public class M3ExpressionParser {
 
 	static OWLClassExpression parse(String modelId, M3Expression expression, MolecularModelManager<?> m3)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
-		LegoModelGenerator model = m3.checkModelId(modelId);
+		ModelContainer model = m3.checkModelId(modelId);
 		OWLGraphWrapper g = new OWLGraphWrapper(model.getAboxOntology());
 		return parse(g, expression, true);
 //		return parse(g, expression, false);

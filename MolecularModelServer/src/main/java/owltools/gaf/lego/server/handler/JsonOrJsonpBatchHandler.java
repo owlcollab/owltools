@@ -20,7 +20,6 @@ import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
@@ -30,16 +29,16 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
+import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.UndoAwareMolecularModelManager.ChangeEvent;
 import owltools.gaf.lego.UndoAwareMolecularModelManager.UndoMetadata;
-import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.server.validation.BeforeSaveModelValidator;
+import owltools.util.ModelContainer;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -214,7 +213,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			return error(response, "Empty batch calls are not supported, at least one request is required.", null);
 		}
 		// get model
-		final LegoModelGenerator model = m3.getModel(values.modelId);
+		final ModelContainer model = m3.getModel(values.modelId);
 		if (model == null) {
 			throw new UnknownIdentifierException("Could not retrieve a model for id: "+values.modelId);
 		}
@@ -683,7 +682,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			Map<String, String> modelMap = retMap.get(mid);
 			
 			// Iterate through the model's a.
-			LegoModelGenerator m = m3.getModel(mid);
+			ModelContainer m = m3.getModel(mid);
 			OWLOntology o = m.getAboxOntology();
 			Set<OWLAnnotation> annotations = o.getAnnotations();
 			for( OWLAnnotation an : annotations ){

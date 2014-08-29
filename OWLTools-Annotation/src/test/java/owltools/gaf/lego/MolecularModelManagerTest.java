@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.io.ParserWrapper;
+import owltools.util.ModelContainer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -57,7 +58,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		OWLClass p = g.getOWLClassByIdentifier("GO:0014029"); // neural crest formation
 		String modelId = mmm.generateModel(p, "mgi", null);
 		LOG.info("Model: "+modelId);
-		LegoModelGenerator model = mmm.getModel(modelId);
+		ModelContainer model = mmm.getModel(modelId);
 		assertNotNull(model);
 
 		Set<OWLNamedIndividual> inds = mmm.getIndividuals(modelId);
@@ -120,7 +121,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 		String model1Id = mmm.generateModel(p, "mgi", null);
 		LOG.info("Model: "+model1Id);
-		LegoModelGenerator model1 = mmm.getModel(model1Id);
+		ModelContainer model1 = mmm.getModel(model1Id);
 		assertNotNull(model1);
 
 		Set<OWLNamedIndividual> inds = mmm.getIndividuals(model1Id);
@@ -132,7 +133,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 		String model2Id = mmm.generateModel(p, "fake", null);
 		LOG.info("Model: "+model2Id);
-		LegoModelGenerator model2 = mmm.getModel(model2Id);
+		ModelContainer model2 = mmm.getModel(model2Id);
 		assertNotNull(model2);
 
 		Set<OWLNamedIndividual> inds2 = mmm.getIndividuals(model2Id);
@@ -292,7 +293,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 		Set<String> availableModelIds = mmm.getAvailableModelIds();
 		assertTrue(availableModelIds.contains(modelId));
 		
-		final LegoModelGenerator model = mmm.getModel(modelId);
+		final ModelContainer model = mmm.getModel(modelId);
 		assertNotNull(model);
 		
 		Collection<OWLNamedIndividual> loaded = mmm.getIndividuals(modelId);

@@ -5,28 +5,18 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
-import owltools.OWLToolsTestBasics;
-import owltools.gaf.GafDocument;
-import owltools.gaf.parser.GafObjectsBuilder;
-import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
-import owltools.util.MinimalModelGeneratorTest;
+import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
 
 public class MGILegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
@@ -51,13 +41,14 @@ public class MGILegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
 		parseGAF("mgi-signaling.gaf");
 
 		System.out.println("gMGR = "+pw.getManager());
-		ni = new LegoModelGenerator(g.getSourceOntology(), new ElkReasonerFactory());
+		model = new ModelContainer(g.getSourceOntology(), new ElkReasonerFactory());
+		ni = new LegoModelGenerator(model);
 		ni.initialize(gafdoc, g);
 
 		mmg = ni;
 
-		int aboxImportsSize = mmg.getAboxOntology().getImportsClosure().size();
-		int qboxImportsSize = mmg.getQueryOntology().getImportsClosure().size();
+		int aboxImportsSize = model.getAboxOntology().getImportsClosure().size();
+		int qboxImportsSize = model.getQueryOntology().getImportsClosure().size();
 
 		LOG.info("Abox ontology imports: "+aboxImportsSize);
 		LOG.info("Q ontology imports: "+qboxImportsSize);
@@ -67,7 +58,7 @@ public class MGILegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
 		LOG.info("#process classes in test = "+ni.processClassSet.size());
 
 		OWLClass p = g.getOWLClassByIdentifier("GO:0014029"); // neural crest formation
-		int nSups = ni.getReasoner().getSuperClasses(p, false).getFlattened().size();
+		int nSups = model.getReasoner().getSuperClasses(p, false).getFlattened().size();
 		LOG.info("supers(p) = "+nSups);
 		//assertEquals(22, nSups);
 
@@ -97,7 +88,7 @@ public class MGILegoModelGeneratorTest extends AbstractLegoModelGeneratorTest {
 		saveByClass(p);
 
 		FileOutputStream os = new FileOutputStream(new File("target/qont.owl"));
-		ni.getQueryOntology().getOWLOntologyManager().saveOntology(ni.getQueryOntology(), os);
+		model.getQueryOntology().getOWLOntologyManager().saveOntology(model.getQueryOntology(), os);
 
 		w.close();
 

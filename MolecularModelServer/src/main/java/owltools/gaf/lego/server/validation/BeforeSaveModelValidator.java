@@ -10,10 +10,10 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
+import owltools.util.ModelContainer;
 
 public class BeforeSaveModelValidator {
 	
@@ -21,7 +21,7 @@ public class BeforeSaveModelValidator {
 
 	public List<String> validateBeforeSave(String modelId, MolecularModelManager<?> modelManager) throws UnknownIdentifierException {
 		// get model
-		LegoModelGenerator model = modelManager.checkModelId(modelId);
+		ModelContainer model = modelManager.checkModelId(modelId);
 		List<String> errors = new ArrayList<String>(3);
 		// check that model has required meta data
 		OWLOntology aboxOntology = model.getAboxOntology();

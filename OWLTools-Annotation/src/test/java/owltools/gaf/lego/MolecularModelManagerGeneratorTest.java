@@ -12,6 +12,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import owltools.io.ParserWrapper;
+import owltools.util.ModelContainer;
 
 public class MolecularModelManagerGeneratorTest extends AbstractLegoModelGeneratorTest {
 	private static Logger LOG = Logger.getLogger(MolecularModelManagerGeneratorTest.class);
@@ -38,7 +39,7 @@ public class MolecularModelManagerGeneratorTest extends AbstractLegoModelGenerat
 		OWLClass p = g.getOWLClassByIdentifier("GO:0014029"); // neural crest formation
 		String modelId = mmm.generateModel(p, "mgi", null);
 		LOG.info("Model: "+modelId);
-		LegoModelGenerator model = mmm.getModel(modelId);
+		ModelContainer model = mmm.getModel(modelId);
 
 		Set<OWLNamedIndividual> inds = mmm.getIndividuals(modelId);
 		LOG.info("Individuals: "+inds.size());

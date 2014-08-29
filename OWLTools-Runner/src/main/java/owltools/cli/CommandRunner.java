@@ -186,6 +186,7 @@ import owltools.tr.LinkMaker;
 import owltools.tr.LinkMaker.LinkMakerResult;
 import owltools.tr.LinkMaker.LinkPattern;
 import owltools.util.MinimalModelGenerator;
+import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
@@ -2208,7 +2209,7 @@ public class CommandRunner {
 					LOG.info("Extracting module");
 					mmg.extractModule();
 				}
-				g.setSourceOntology(mmg.getAboxOntology());
+				g.setSourceOntology(mmg.getModel().getAboxOntology());
 			}
 			else if (opts.nextEq("--most-specific-class-expression|--msce")) {
 				opts.info("[-c CLASS] INDIVIDUAL", "Generates MSCE for an individual using MinimalModelGenerator");
@@ -2253,7 +2254,7 @@ public class CommandRunner {
 					}
 				}
 				qc = this.resolveClass(opts.nextOpt());
-				Set<OWLNamedIndividual> inds = mmg.getReasoner().getInstances(qc, false).getFlattened();
+				Set<OWLNamedIndividual> inds = mmg.getModel().getReasoner().getInstances(qc, false).getFlattened();
 				for (OWLNamedIndividual ind : inds) {
 					OWLClassExpression ce = mmg.getMostSpecificClassExpression(ind);
 					if (ce instanceof OWLObjectIntersectionOf) {
@@ -2265,7 +2266,7 @@ public class CommandRunner {
 						}
 					}
 					owlpp = new OWLPrettyPrinter(g);
-					Set<OWLClass> types = mmg.getReasoner().getTypes(ind, true).getFlattened();
+					Set<OWLClass> types = mmg.getModel().getReasoner().getTypes(ind, true).getFlattened();
 
 					System.out.println(owlpp.render(ce));
 					System.out.println(ce);
@@ -4014,10 +4015,12 @@ public class CommandRunner {
 		if (mmg == null) {
 			OWLReasonerFactory rf = new ElkReasonerFactory();
 			if (isCreateNewAbox) {
-				mmg = new MinimalModelGenerator(g.getSourceOntology(), rf);
+				ModelContainer model = new ModelContainer(g.getSourceOntology(), rf);
+				mmg = new MinimalModelGenerator(model);
 			}
 			else {
-				mmg = new MinimalModelGenerator(g.getSourceOntology(), g.getSourceOntology(), rf);				
+				ModelContainer model = new ModelContainer(g.getSourceOntology(), g.getSourceOntology(), rf);
+				mmg = new MinimalModelGenerator(model);				
 			}
 		}
 		return mmg;
