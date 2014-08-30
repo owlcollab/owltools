@@ -343,7 +343,7 @@ public class ModelContainer {
 		// all expressions used in ontology
 		for (OWLOntology ont : tboxOntology.getImportsClosure()) {
 			LOG.debug("Finding all nested anonymous expressions");
-			for (OWLAxiom ax : tboxOntology.getAxioms()) {
+			for (OWLAxiom ax : ont.getAxioms()) {
 				// TODO - check if this is the nest closure. ie (r some (r2 some (r3 some ...))) 
 				for (OWLClassExpression x : ax.getNestedClassExpressions()) {
 					if (x.isAnonymous()) {
