@@ -16,27 +16,27 @@ name: root2
 [Term]
 id: FOO:0002
 name: A
-relationship: part_of FOO:0001 ! root
+relationship: part_of FOO:0001 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! root
 
 [Term]
 id: FOO:0003
 name: B
 comment: the is_a relation to the root should be removed when testing filterSubgraphs(Collection), not the term itself. Also, part_of relation to the root is redundant and should be removed when calling reduceRelations(). It is also use for a propagation test when using removeClassAndPropagateEdges(String) on FOO:0004.
-relationship: in_deep_part_of FOO:0004 ! C
-relationship: part_of FOO:0001 ! root
+relationship: in_deep_part_of FOO:0004 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! C
+relationship: part_of FOO:0001 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! root
 
 [Term]
 id: FOO:0004
 name: C
 comment: overlaps relation to root is redundant and should be removed by reduceRelations(). 
-relationship: part_of FOO:0002 ! A
-relationship: overlaps FOO:0001 ! root
+relationship: part_of FOO:0002 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! A
+relationship: overlaps FOO:0001 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! root
 
 [Term]
 id: FOO:0005
 name: D
 comment: is_a relation to root should be removed by reducePartOfAndSubClassOfRelations(). 
-relationship: part_of FOO:0002 ! A
+relationship: part_of FOO:0002 {gci_filler="NCBITaxon:10090", gci_relation="part_of"} ! A
 is_a: FOO:0001 ! root
 
 [Term]
@@ -57,7 +57,7 @@ relationship: has_developmental_contribution_from FOO:0006 ! subgraph2_root
 id: FOO:0008
 name: subgraph2_B
 comment: term part of the subgraph to remove, should be removed
-relationship: develops_from FOO:0007 ! subgraph2_A
+relationship: develops_from FOO:0007 {gci_filler="NCBITaxon:10090", gci_relation="part_of"} ! subgraph2_A
 
 [Term]
 id: FOO:0009
@@ -90,9 +90,10 @@ relationship: immediate_transformation_of FOO:0008 ! subgraph2_B
 id: FOO:0014
 name: subgraph4_root_subgraph2
 comment: term part of both the subgraph to remove, and a subgraph to keep, should NOT be removed. It is a sibling of the root of the subgraph to be removed, and also one of its descendant. Also, relation is_a to the root is redundant and should be removed by reduceRelations(). It should also be removed by reducePartOfAndSubClassOfRelations(). 
-is_a: FOO:0001 ! root
+is_a: FOO:0001 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! root
 is_a: FOO:0006 ! subgraph2_root
-is_a: FOO:0002 ! A
+is_a: FOO:0012
+is_a: FOO:0002 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! A
 
 [Term]
 id: FOO:0016
