@@ -736,7 +736,7 @@ public class OWLGraphWrapperEdgesExtendedTest
 	@Test
 	public void shouldGetAllOWLClasses()
 	{
-		assertEquals("Incorrect Set of OWLClasses returned", 15, 
+		assertEquals("Incorrect Set of OWLClasses returned", 17, 
 				wrapper.getAllOWLClasses().size());
 	}
     
@@ -746,7 +746,7 @@ public class OWLGraphWrapperEdgesExtendedTest
     @Test
     public void shouldGetAllOWLClassesFromSource()
     {
-        assertEquals("Incorrect Set of OWLClasses returned", 14, 
+        assertEquals("Incorrect Set of OWLClasses returned", 16, 
                 wrapper.getAllOWLClassesFromSource().size());
     }
 	
@@ -757,11 +757,14 @@ public class OWLGraphWrapperEdgesExtendedTest
 	public void shouldGetOntologyRoots()
 	{
 		//the ontology has 2 roots, FOO:0001 and FOO:0100
+	    //NCBITaxon are due to GCI relations
 		Set<OWLClass> roots = wrapper.getOntologyRoots();
 		assertTrue("Incorrect roots returned: " + roots, 
-				roots.size() == 2 && 
+				roots.size() == 4 && 
 				roots.contains(wrapper.getOWLClassByIdentifier("FOO:0001")) && 
-				roots.contains(wrapper.getOWLClassByIdentifier("FOO:0100")));
+				roots.contains(wrapper.getOWLClassByIdentifier("FOO:0100")) && 
+                roots.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:9606")) && 
+                roots.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:10090")));
 	}
     
     /**
@@ -770,19 +773,20 @@ public class OWLGraphWrapperEdgesExtendedTest
     @Test
     public void shouldGetOntologyLeaves()
     {
-        //the ontology has 8 leaves, FOO:0100, FOO:0003, FOO:0005, FOO:0010, FOO:0011, 
-        //FOO:0012, FOO:0013, FOO:0014 and FOO:0015
+        //the ontology has 9 leaves, FOO:0100, FOO:0003, FOO:0005, FOO:0010, FOO:0011, 
+        //FOO:0012, FOO:0013, FOO:0014 and FOO:0015, an the taxon due to GCIs
         Set<OWLClass> leaves = wrapper.getOntologyLeaves();
         assertTrue("Incorrect leaves returned: " + leaves, 
-                leaves.size() == 8 && 
+                leaves.size() == 9 && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0100")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0003")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0005")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) && 
-                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) && 
-                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0012")) &&  
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) &&  
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) && 
-                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0015")));
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0015")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:9606")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:10090")));
     }
 	
 	/**
@@ -792,17 +796,12 @@ public class OWLGraphWrapperEdgesExtendedTest
 	public void shouldGetOWLClassDescendants()
 	{
 		Set<OWLClass> descendants = wrapper.getOWLClassDescendants(
-				wrapper.getOWLClassByIdentifier("FOO:0002"));
-		//FOO:0002 has 4 direct descendant, FOO:0004, FOO:0005, FOO:0011, and FOO:0014
-		//FOO:0004 has two direct descendants, FOO:0003 and FOO:0015
+				wrapper.getOWLClassByIdentifier("FOO:0007"));
 		assertTrue("Incorrect descendants returned: " + descendants, 
-				descendants.size() == 6 && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0004")) && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0005")) && 
+				descendants.size() == 3 && 
+				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) && 
 				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0003"))  && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0015")) );
+				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0009")) );
 	}
 	
 	/**
@@ -812,14 +811,11 @@ public class OWLGraphWrapperEdgesExtendedTest
 	public void shouldGetOWLClassDirectDescendants()
 	{
 		Set<OWLClass> descendants = wrapper.getOWLClassDirectDescendants(
-				wrapper.getOWLClassByIdentifier("FOO:0002"));
-		//FOO:0002 has 4 direct descendant, FOO:0004, FOO:0005, FOO:0011, and FOO:0014
+				wrapper.getOWLClassByIdentifier("FOO:0009"));
 		assertTrue("Incorrect descendants returned: " + descendants, 
-				descendants.size() == 4 && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0004")) && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0005")) && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) );
+				descendants.size() == 2 && 
+				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) && 
+				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0011")));
 	}
     
     /**
@@ -844,8 +840,8 @@ public class OWLGraphWrapperEdgesExtendedTest
 	public void shouldGetOWLClassAncestors()
 	{
 		Set<OWLClass> ancestors = wrapper.getOWLClassAncestors(
-				wrapper.getOWLClassByIdentifier("FOO:0008"));
-		//FOO:0008 has one parent, FOO:0007, which has one parent, FOO:0006, 
+				wrapper.getOWLClassByIdentifier("FOO:0009"));
+		//FOO:0009 has one parent, FOO:0007, which has one parent, FOO:0006, 
 		//which has one parent, FOO:0001
 		assertTrue("Incorrect ancestors returned: " + ancestors, 
 				ancestors.size() == 3 && 
