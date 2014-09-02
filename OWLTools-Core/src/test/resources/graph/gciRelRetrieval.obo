@@ -1,0 +1,97 @@
+format-version: 1.4
+ontology: foo
+
+[Term]
+id: ID:1
+
+[Term]
+id: ID:2
+relationship: part_of ID:1 {gci_filler="NCBITaxon:9606", gci_relation="part_of"}
+relationship: develops_from ID:1 {gci_filler="NCBITaxon:10090", gci_relation="part_of"}
+is_a: ID:1
+
+[Term]
+id: ID:3
+is_a: ID:2
+
+[Term]
+id: ID:4
+
+[Term]
+id: ID:5
+
+[Term]
+id: ID:6
+relationship: part_of ID:4
+
+[Term]
+id: ID:7
+relationship: part_of ID:5
+
+[Term]
+id: ID:10
+relationship: develops_from ID:6 {gci_filler="NCBITaxon:10090", gci_relation="part_of"}
+
+[Term]
+id: ID:8
+relationship: develops_from ID:7
+relationship: part_of ID:6
+
+[Term]
+id: ID:9
+relationship: develops_from ID:10 {gci_filler="NCBITaxon:9606", gci_relation="part_of"}
+relationship: part_of ID:7
+
+
+
+[Typedef]
+id: overlaps
+name: overlaps
+def: "A overlaps B if they share some part in common." []
+xref: RO:0002131
+transitive_over: part_of ! part of
+holds_over_chain: has_part overlaps ! overlaps
+holds_over_chain: has_part part_of ! part of
+expand_expression_to: "BFO_0000051 some (BFO_0000050 some ?Y)" []
+
+[Typedef]
+id: has_part
+name: has_part
+namespace: anatomical_entity_ontology
+is_transitive: true
+inverse_of: part_of  ! part of
+xref: BFO:0000051
+xref: OBO_REL:has_part
+is_a: overlaps  ! overlaps
+
+[Typedef]
+id: part_of
+name: part of
+is_transitive: true
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_a: overlaps ! overlaps
+
+[Typedef]
+id: in_deep_part_of
+name: in_deep_part_of
+namespace: uberon
+is_a: part_of ! part of
+
+[Typedef]
+id: has_developmental_contribution_from
+name: has developmental contribution from
+namespace: uberon
+is_transitive: true
+xref: RO:0002254
+holds_over_chain: has_part develops_from  ! develops from
+
+[Typedef]
+id: develops_from
+name: develops from
+namespace: zebrafish_anatomical_ontology
+is_transitive: true
+xref: RO:0002202
+is_a: has_developmental_contribution_from  ! has developmental contribution from
+transitive_over: part_of  ! part of
+holds_over_chain: part_of develops_from  ! develops from

@@ -1,8 +1,10 @@
 package owltools.graph;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -12,25 +14,34 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
 import owltools.graph.OWLGraphEdge.OWLGraphEdgeSet;
+import owltools.graph.OWLQuantifiedProperty.Quantifier;
 
 /**
  * This class groups methods that could be modified, or added 
  * to <code>OWLGraphWrapper</code> and parent classes.
  * 
  * @author Frederic Bastian
- * @version January 2014
+ * @version September 2014
  * @since November 2013
  *
  */
@@ -67,6 +78,28 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      */
     private Map<OWLAnnotationProperty, LinkedHashSet<OWLAnnotationProperty>>
         subAnnotationPropertyCache;
+    
+    /**
+     * A {@code Map} storing OBO GCI relations, where keys are {@code OWLClass}es 
+     * that are sources of a GCI relation, the associated value being 
+     * a {@code Set} of {@code OWLGraphEdge}s representing the GCI relations, 
+     * expanded to reach a named target. 
+     * {@link OWLGraphEdge#isGCI()} will always return {@code true} for 
+     * the {@code OWLGraphEdge}s stored in this {@code Map}.
+     * @see #lazyLoadGCIRelCache()
+     * @see #gciRelationByTarget
+     */
+    private Map<OWLClass, Set<OWLGraphEdge>> gciRelationBySource;
+    /**
+     * A {@code Map} storing OBO GCI relations, where keys are {@code OWLClass}es 
+     * that are named targets of a GCI relation, the associated value being 
+     * a {@code Set} of {@code OWLGraphEdge}s representing the GCI relations. 
+     * {@link OWLGraphEdge#isGCI()} will always return {@code true} for 
+     * the {@code OWLGraphEdge}s stored in this {@code Map}.
+     * @see #lazyLoadGCIRelCache()
+     * @see #gciRelationBySource
+     */
+    private Map<OWLClass, Set<OWLGraphEdge>> gciRelationByTarget;
 
 	/**
 	 * Default constructor. 
@@ -80,6 +113,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                 LinkedHashSet<OWLAnnotationProperty>>();
     	this.superPropertyCache = new HashMap<OWLObjectPropertyExpression, 
     			LinkedHashSet<OWLObjectPropertyExpression>>();
+    	this.gciRelationBySource = null;
+        this.gciRelationByTarget = null;
 	}
 	
 	protected OWLGraphWrapperEdgesExtended(String iri)
@@ -89,6 +124,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     			LinkedHashSet<OWLObjectPropertyExpression>>();
     	this.superPropertyCache = new HashMap<OWLObjectPropertyExpression, 
     			LinkedHashSet<OWLObjectPropertyExpression>>();
+        this.gciRelationBySource = null;
+        this.gciRelationByTarget = null;
 	}
    	
     /**
@@ -391,7 +428,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 		if (propIndex >= edge.getQuantifiedPropertyList().size()) {
 		    subRels.add(new OWLGraphEdge(edge.getSource(), edge.getTarget(), 
 		            new Vector<OWLQuantifiedProperty>(), edge.getOntology(), 
-		            edge.getAxioms()));
+		            edge.getAxioms(), edge.getGCIFiller(), edge.getGCIRelation()));
 		    return subRels;
 		}
 		OWLQuantifiedProperty quantProp = edge.getQuantifiedPropertyList().get(propIndex);
@@ -422,7 +459,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 		        quantProps.addAll(nextPropEdge.getQuantifiedPropertyList());
 
 		        subRels.add(new OWLGraphEdge(edge.getSource(),edge.getTarget(),
-		                quantProps, edge.getOntology(), edge.getAxioms()));
+		                quantProps, edge.getOntology(), edge.getAxioms(), 
+		                edge.getGCIFiller(), edge.getGCIRelation()));
 		    }
 		}
 
@@ -473,7 +511,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 					List<OWLQuantifiedProperty>  qps = new ArrayList<OWLQuantifiedProperty>();
 					qps.add(combinedQp);
 					combine = this.createMergedEdge(firstEdge.getSource(), firstEdge, secondEdge);
-					combine.setQuantifiedPropertyList(qps);
+					if (combine != null) {
+					    combine.setQuantifiedPropertyList(qps);
+					}
 				}
 			}
 		}
@@ -641,7 +681,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                     }
                     
                     newEdge = new OWLGraphEdge(e.getSource(), e.getTarget(), combinedQps, 
-                            e.getOntology(), e.getAxioms());
+                            e.getOntology(), e.getAxioms(), 
+                            e.getGCIFiller(), e.getGCIRelation());
                     newEdge.setDistance(e.getDistance());
                 }
             }
@@ -669,6 +710,366 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
         }
         
         return filteredEdgesCombined;
+    }
+    
+    /**
+     * Lazy loads the cache for OBO gci_relations, stored as {@code OWLGraphEdge}s. 
+     * Will store any GCI axiom where the sub-class is an {@code OWLObjectIntersectionOf}, 
+     * with one operand being an {@code OWLClass}, and the other operand being 
+     * an {@code ObjectSomeValuesFrom(OWLObjectPropertyExpression OWLClass)}. 
+     * The {@code OWLGraphEdge}s are stored into {@link #gciRelationBySource}, associated 
+     * to the "real" source of the edge (the {@code OWLClass} in the 
+     * {@code OWLObjectIntersectionOf}), and into {@link #gciRelationByTarget}, associated 
+     * to the named targets of the expanded {@code OWLGraphEdge}s. So, the current 
+     * implementation assumes that {@code OWLGraphEge}s representing OBO GCI relations 
+     * always have {@code OWLClass}es as source and target. 
+     * <p>
+     * See <a href='http://oboformat.googlecode.com/svn/trunk/doc/obo-syntax.html'>
+     * Treatment of gci_relation qualifier</a> for more details.
+     * 
+     * @see #gciRelationBySource
+     * @see #gciRelationByTarget
+     */
+    private void lazyLoadGCIRelCache() {
+        if (this.gciRelationBySource == null) {
+            
+            profiler.startTaskNotify("lazyLoadGCIRelCache");
+            this.gciRelationBySource = new HashMap<OWLClass, Set<OWLGraphEdge>>();
+            this.gciRelationByTarget = new HashMap<OWLClass, Set<OWLGraphEdge>>();
+            
+            for (OWLOntology o : this.getAllOntologies()) {
+                for (OWLSubClassOfAxiom ax: o.getAxioms(AxiomType.SUBCLASS_OF)) {
+                    //OBO GCI axiom using ObjectIntersectionOf
+                    if (ax.getSubClass() instanceof OWLObjectIntersectionOf) {
+                        OWLObjectIntersectionOf subClass = 
+                                (OWLObjectIntersectionOf) ax.getSubClass();
+                        //check that subclass corresponds to OWLObjectIntersectionOf(OWLClass, 
+                        //ObjectSomeValuesFrom(OWLObjectPropertyExpression OWLClass))
+                        if (subClass.getOperands().size() != 2) {
+                            continue;
+                        }
+                        OWLClass source = null;
+                        OWLObjectPropertyExpression gciRel = null;
+                        OWLClass filler = null;
+                        for (OWLClassExpression operand: subClass.getOperands()) {
+                            if (operand instanceof OWLClass) {
+                                source = (OWLClass) operand;
+                            } else if (operand instanceof OWLObjectSomeValuesFrom && 
+                                    ((OWLObjectSomeValuesFrom)operand).getFiller() 
+                                        instanceof OWLClass) {
+                                filler = (OWLClass) ((OWLObjectSomeValuesFrom)operand).getFiller();
+                                gciRel = ((OWLObjectSomeValuesFrom)operand).getProperty();
+                            }
+                        }
+                        if (source == null || gciRel == null || filler == null) {
+                            continue;
+                        }
+                        
+                        //valid axiom, generate OWLGraphEdges
+                        OWLGraphEdge primitiveEdge = new OWLGraphEdge(source, 
+                                ax.getSuperClass(), null, Quantifier.SUBCLASS_OF, o, ax, 
+                                filler, gciRel);
+                        //will expand ax.getSuperClass() until we reach a named object
+                        Set<OWLGraphEdge> edges = primitiveEdgeToFullEdges(primitiveEdge);
+                        
+                        //store the edges associated to the "real" source (the OWLClass 
+                        //in the OWLObjectIntersectionOf).
+                        Set<OWLGraphEdge> edgesBySource = this.gciRelationBySource.get(source);
+                        if (edgesBySource == null) {
+                            edgesBySource = new OWLGraphEdgeSet();
+                            this.gciRelationBySource.put(source, edgesBySource);
+                        }
+                        edgesBySource.addAll(edges);
+                        //and also store the edges associated to the named targets
+                        for (OWLGraphEdge edge: edges) {
+                            OWLClass target = (OWLClass) edge.getTarget();
+                            Set<OWLGraphEdge> edgesByTarget = 
+                                    this.gciRelationByTarget.get(target);
+                            if (edgesByTarget == null) {
+                                edgesByTarget = new OWLGraphEdgeSet();
+                                this.gciRelationByTarget.put(target, edgesByTarget);
+                            }
+                            edgesByTarget.add(edge);
+                        }
+                    }
+                }
+            }
+            profiler.endTaskNotify("lazyLoadGCIRelCache");
+        }
+    }
+
+    /**
+     * Retrieve OBO GCI relations outgoing from {@code s} as a {@code Set} of {@code OWLGraphEdge}s.
+     * This is similar to the method {@link OWLGraphWrapperEdges#getOutgoingEdges(OWLObject)}, 
+     * but returning GCI relations only. The OBO "gci_filler" and "gci_relation" 
+     * could be retrieved by calling {@link OWLGraphEdge#getGCIFiller()} and 
+     * {@link OWLGraphEdge#getGCIRelation()}, respectively. 
+     * <p>
+     * More formally: OBO GCI relations are represented as {@code SubClassOf} axioms, 
+     * where the sub-class is an {@code ObjectIntersectionOf}, with one operand 
+     * being an {@code OWLClass}, and the other operand being 
+     * an {@code ObjectSomeValuesFrom(ObjectPropertyExpression OWLClass)}. 
+     * The {@code ObjectPropertyExpression} will be retrieved by calling 
+     * {@link OWLGraphEdge#getGCIRelation()}, the associated {@code OWLClass} in the 
+     * {@code ObjectSomeValuesFrom} will be retrieved by calling 
+     * {@link OWLGraphEdge#getGCIFiller()}. The {@code OWLClass} operand in 
+     * the {@code ObjectIntersectionOf} will be considered as the source 
+     * of the {@code OWLGraphEdge}. The target will be the super-class 
+     * of the {@code SubClassOf} axiom, expanded to reach a named target 
+     * (as usually with methods in {@code OWLGraphWrapper}). The current 
+     * implementation assumes that {@code OWLGraphEge}s representing OBO GCI relations 
+     * always have {@code OWLClass}es as source and target. 
+     * 
+     * @param s An {@code OWLClass} for which we want to retrieve outgoing OBO GCI 
+     *          relations.
+     * @return  A {@code Set} of {@code OWLGraphEdge}s corresponding to GCI relations 
+     *          outgoing from {@code s}.
+     */
+    public Set<OWLGraphEdge> getGCIOutgoingEdges(OWLClass s) {
+        return this.getGCIEdges(s, true, null);
+    }
+    /**
+     * Retrieve OBO GCI relations incoming to {@code t} as a {@code Set} of {@code OWLGraphEdge}s.
+     * See {@link #getGCIOutgoingEdges(OWLObject)} for details about OBO GCI relations, 
+     * and about retrieving the associated "gci_filler" and "gci_relation".
+     * 
+     * @param t An {@code OWLClass} for which we want to retrieve incoming OBO GCI 
+     *          relations.
+     * @return  A {@code Set} of {@code OWLGraphEdge}s corresponding to GCI relations 
+     *          incoming to {@code t}.
+     */
+    public Set<OWLGraphEdge> getGCIIncomingEdges(OWLClass t) {
+        return this.getGCIEdges(t, false, null);
+    }
+    /**
+     * Retrieve OBO GCI relations for {@code obj} as a {@code Set} of {@code OWLGraphEdge}s.
+     * See {@link #getGCIOutgoingEdges(OWLObject)} for details about OBO GCI relations, 
+     * and about retrieving the associated "gci_filler" and "gci_relation".
+     * <p>
+     * If {@code bySource} is {@code true}, edges outgoing from {@code obj} are retrieved, 
+     * otherwise, edges incoming to {@code obj} are retrieved. If {@code overProperties} 
+     * is not {@code null}, only the specified set of properties will be considered. Note 
+     * that this does not filter for the "gci_relation" (as returned by 
+     * {@link OWLGraphEdge#getGCIRelation()}), but for the actual property 
+     * of the {@code OWLGraphEdge}s (as returned by 
+     * {@link OWLGraphEdge#getQuantifiedPropertyList()}). 
+     * <p>
+     * Advanced usage notice: note that if the desired set of properties is {P},
+     * and there exists a property chain Q o R --> P, then be sure to include Q and R in
+     * the specified set.
+     * 
+     * @param obj               The {@code OWLObject} for which we want to retrieve 
+     *                          OBO GCI relations
+     * @param bySource          A {@code boolean} defining whether outgoing edges 
+     *                          (when {@code true}) or incoming edges (when {@code false}) 
+     *                          should be retrieved.
+     * @param overProperties    A {@code Set} of {@code OWLPropertyExpression} allowing 
+     *                          to filter the {@code OWLGraphEdge}s returned.
+     * @return                  A {@code Set} of {@code OWLGraphEdge}s corresponding to 
+     *                          GCI relations for {@code obj}.
+     */
+    private Set<OWLGraphEdge> getGCIEdges(OWLClass obj, boolean bySource, 
+            Set<OWLPropertyExpression> overProperties) {
+        lazyLoadGCIRelCache();
+        
+        Set<OWLGraphEdge> cachedEdges = null;
+        if (bySource) {
+            cachedEdges = this.gciRelationBySource.get(obj);
+        } else {
+            cachedEdges = this.gciRelationByTarget.get(obj);
+        }
+        if (cachedEdges != null) {
+            //defensive copying
+            Set<OWLGraphEdge> edges = new OWLGraphEdgeSet(cachedEdges);
+            filterEdges(edges, overProperties);
+            return edges;
+        } 
+
+        return new OWLGraphEdgeSet();
+    }
+    
+    /**
+     * Similar to {@link OWLGraphWrapperEdges#getOutgoingEdges(OWLObject)}, but the returned 
+     * {@code Set} also includes OBO GCI outgoing edges (see 
+     * {@link #getGCIOutgoingEdges(OWLClass)}).
+     * 
+     * @param s     An {@code OWLObject} for which we want to retrieve outgoing edges, 
+     *              including OBO GCI relations.
+     * @return      A {@code Set} of {@code OWLGraphEdge}s outgoing from {@code s}, 
+     *              including OBO GCI relations.
+     * @see #getGCIOutgoingEdges(OWLClass)
+     */
+    public Set<OWLGraphEdge> getOutgoingEdgesWithGCI(OWLObject s) {
+        Set<OWLGraphEdge> edges = super.getOutgoingEdges(s);
+        if (s instanceof OWLClass) {
+            edges.addAll(getGCIOutgoingEdges((OWLClass) s));
+        }
+        return edges;
+    }
+    
+    /**
+     * Similar to {@link OWLGraphWrapperEdges#getIncomingEdges(OWLObject)}, but the returned 
+     * {@code Set} also includes OBO GCI incoming edges (see 
+     * {@link #getGCIIncomingEdges(OWLClass)}).
+     * 
+     * @param t     An {@code OWLObject} for which we want to retrieve incoming edges, 
+     *              including OBO GCI relations.
+     * @return      A {@code Set} of {@code OWLGraphEdge}s incoming to {@code t}, 
+     *              including OBO GCI relations.
+     * @see #getGCIIncomingEdges(OWLClass)
+     */
+    public Set<OWLGraphEdge> getIncomingEdgesWithGCI(OWLObject t) {
+        Set<OWLGraphEdge> edges = super.getIncomingEdges(t);
+        if (t instanceof OWLClass) {
+            edges.addAll(getGCIIncomingEdges((OWLClass) t));
+        }
+        return edges;
+    }
+    
+    /**
+     * Returns either the ancestors or the descendants of an {@code OWLObject} 
+     * through both classical relations an OBO GCI relations. Ancestors will be returned 
+     * if {@code ancestors} is {@code true}, otherwise, descendants will be returned. 
+     * Only {@code OWLNamedObject} ancestors or descendants are returned.
+     * 
+     * @param x         An {@code OWLObject} for which we want to retrieve either the ancestors, 
+     *                  or the descendants.
+     * @param ancestors A {@code boolean} defining whether ancestors should be retrieved 
+     *                  (if {@code true}), or descendants (if {@code false}).
+     * @return  A {@code Set} of {@code OWLNamedObject}es that are either the named ancestors 
+     *          (if {@code ancestors} is {@code true}) or the named descendants 
+     *          (if {@code ancestors} is {@code false}) of {@code x} through 
+     *          both classical and OBO GCI relations.
+     */
+    private Set<OWLNamedObject> getNamedGCIRelatives(OWLObject x, boolean ancestors) {
+        Set<OWLNamedObject> relatives = new HashSet<OWLNamedObject>();
+        Deque<OWLObject> walkRelatives = new ArrayDeque<OWLObject>();
+        //seed the Deque with the starting OWLClass
+        walkRelatives.addFirst(x);
+        OWLObject iteratedRelative;
+        while ((iteratedRelative = walkRelatives.pollFirst()) != null) {
+            Set<OWLGraphEdge> edges = null;
+            if (ancestors) {
+                edges = this.getOutgoingEdgesWithGCI(iteratedRelative);
+            } else {
+                edges = this.getIncomingEdgesWithGCI(iteratedRelative);
+            }
+            for (OWLGraphEdge edge: edges) {
+                OWLObject relative = null;
+                if (ancestors) {
+                    relative = edge.getTarget();
+                } else {
+                    relative = edge.getSource();
+                }
+                //protect against cycles
+                if (relatives.contains(relative)) {
+                    continue;
+                }
+                //we only want OWLNamedObjects
+                if (relative instanceof OWLNamedObject) {
+                    relatives.add((OWLNamedObject) relative);
+                }
+                walkRelatives.addLast(relative);
+            }
+        }
+        
+        return relatives;
+    }
+    
+    /**
+     * Similar to {@link OWLGraphWrapperEdges#getNamedAncestors(OWLObject)} but also 
+     * considering GCI relations.
+     * @param sourceObject  An {@code OWLObject} for which we want to retrieve ancestors 
+     *                      through classical relations and through OBO GCI relations.
+     * @return  A {@code Set} of {@code OWLNamedObject}s that are ancestors of 
+     *          {@code sourceObject} through classical relations and through OBO GCI relations.
+     */
+    public Set<OWLNamedObject> getNamedAncestorsWithGCI(OWLObject sourceObject) {
+        return this.getNamedGCIRelatives(sourceObject, true);
+    }
+    
+    /**
+     * Similar to {@link #getNamedAncestorsWithGCI(OWLObject)} but returning only 
+     * {@code OWLClass}es.
+     * @param sourceObject  An {@code OWLObject} for which we want to retrieve ancestors 
+     *                      through classical relations and through OBO GCI relations.
+     * @return  A {@code Set} of {@code OWLClass}s that are ancestors of 
+     *          {@code sourceObject} through classical relations and through OBO GCI relations.
+     */
+    public Set<OWLClass> getOWLClassAncestorsWithGCI(OWLObject sourceObject) {
+        Set<OWLClass> ancestors = new HashSet<OWLClass>();
+        for (OWLNamedObject anc: this.getNamedAncestorsWithGCI(sourceObject)) {
+            if (anc instanceof OWLClass) {
+                ancestors.add((OWLClass) anc);
+            }
+        }
+        return ancestors;
+    }
+
+    /**
+     * Similar to {@link #getOWLClassDirectDescendants(OWLClass)} but also considering GCI relations.
+     * @param parentClass   An {@code OWLClass} for which we want to retrieve direct descendants 
+     *                      through classical relations and through OBO GCI relations.
+     * @return  A {@code Set} of {@code OWLClass}s that are direct descendants of {@code parentClass} 
+     *          through classical relations and through OBO GCI relations.
+     */
+    public Set<OWLClass> getOWLClassDirectDescendantsWithGCI(OWLClass parentClass) {
+        Set<OWLClass> directDescendants = new HashSet<OWLClass>();
+        for (OWLGraphEdge e: this.getIncomingEdgesWithGCI(parentClass)) {
+            if (e.getSource() instanceof OWLClass) {
+                directDescendants.add((OWLClass) e.getSource());
+            }
+        }
+        return directDescendants;
+    }
+    
+    /**
+     * Similar to {@link #getOWLClassDescendants(OWLClass)} but also considering GCI relations.
+     * @param parentClass   An {@code OWLClass} for which we want to retrieve descendants 
+     *                      through classical relations and through OBO GCI relations.
+     * @return  A {@code Set} of {@code OWLClass}s that are descendants of {@code parentClass} 
+     *          through classical relations and through OBO GCI relations.
+     */
+    public Set<OWLClass> getOWLClassDescendantsWithGCI(OWLClass parentClass) {
+        Set<OWLClass> descendants = new HashSet<OWLClass>();
+        for (OWLNamedObject desc: this.getNamedGCIRelatives(parentClass, false)) {
+            if (desc instanceof OWLClass) {
+                descendants.add((OWLClass) desc);
+            }
+        }
+        return descendants;
+    }
+    
+    @Override
+    public void clearCachedEdges() {
+        super.clearCachedEdges();
+        this.gciRelationBySource = null;
+        this.gciRelationByTarget = null;
+    }
+    
+    /**
+     * Translates the source of an {@code OWLGraphEdge} into an {@code OWLClassExpression} 
+     * (but, as the method {@link OWLGraphEdge#getSource()} returns an {@code OWLObject}, 
+     * this method also returns an {@code OWLObject}). This is the equivalent method 
+     * to {@link OWLGraphWrapperEdges#edgeToTargetExpression(OWLGraphEdge)}, 
+     * but for the source.
+     * <p>
+     * This is useful when an {@code OWLGraphEdge} corresponds to an OBO gci_relation 
+     * ({@link OWLGraphEdge#isGCI()} returns {@code true}). In that case, the returned value 
+     * is an {@code OWLObjectIntersectionOf}. If it is not a GCI, the returned value 
+     * is equal to {@link OWLGraphEdge#getSource()}.
+     * 
+     * @param e The {@code OWLGraphEdge} for which we want to translate the source 
+     *          into an {@code OWLClassExpression}.
+     * @return  An {@code OWLObject} corresponding to the source of {@code e}.
+     */
+    public OWLObject edgeToSourceExpression(OWLGraphEdge e) {
+        if (!e.isGCI()) {
+            return e.getSource();
+        }
+        OWLDataFactory factory = e.getOntology().getOWLOntologyManager().getOWLDataFactory();
+        return factory.getOWLObjectIntersectionOf((OWLClassExpression) e.getSource(), 
+                factory.getOWLObjectSomeValuesFrom(e.getGCIRelation(), e.getGCIFiller()));
     }
 
     
