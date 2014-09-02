@@ -90,7 +90,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	private final Object edgeCacheMutex = new Object();
 	
-	private Profiler profiler = new Profiler();
+	protected Profiler profiler = new Profiler();
 
 
 	/**
@@ -427,7 +427,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		 filterEdges(edges, null);
 		
 	}
-	private void filterEdges(Set<OWLGraphEdge> edges, Set<OWLPropertyExpression> overProperties) {
+	protected void filterEdges(Set<OWLGraphEdge> edges, Set<OWLPropertyExpression> overProperties) {
 		Set<OWLGraphEdge> rmEdges = new OWLGraphEdgeSet();
 		for (OWLGraphEdge e : edges) {
 			if (overProperties != null) {
@@ -532,7 +532,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	// this could involve multiple extensions and "forks", e.g.
 	// <A sub B^C> ==> <A sub B>, <A sub C>
 	// NOTE: may be renamed to 'unfoldEdgeTarget'
-	private Set<OWLGraphEdge> primitiveEdgeToFullEdges(OWLGraphEdge e) {
+	protected Set<OWLGraphEdge> primitiveEdgeToFullEdges(OWLGraphEdge e) {
 		Set<OWLGraphEdge> edges = new OWLGraphEdgeSet();
 		if (e.isTargetNamedObject()) {
 			edges.add(e); // do nothing
@@ -1448,6 +1448,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		//System.out.println("combing edges: "+s+" // "+ne+ " * "+extEdge);
 		// Create an edge with no edge labels; we will fill the label in later.
 		OWLGraphEdge nu = this.createMergedEdge(s, ne, extEdge);
+		if (nu == null)
+		    return null;
 		List<OWLQuantifiedProperty> qpl1 = new Vector<OWLQuantifiedProperty>(ne.getQuantifiedPropertyList());
 		List<OWLQuantifiedProperty> qpl2 = new Vector<OWLQuantifiedProperty>(extEdge.getQuantifiedPropertyList());
 
@@ -1484,6 +1486,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		// fill in edge label later
 		// todo
 	    OWLGraphEdge nu = this.createMergedEdge(srcEdge.getSource(), srcEdge, tgtEdge);
+	    if (nu == null)
+	        return null;
 		nu.setDistance(nextDist);
 		Vector<OWLQuantifiedProperty> qps = new Vector<OWLQuantifiedProperty>();
 
@@ -1519,23 +1523,35 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * {@code targetEdge}, by merging the underling {@code OWLAxiom}s of {@code sourceEdge} 
 	 * and {@code targetEdge} (as returned by {@link OWLGraphEdge#getAxioms()}), 
 	 * and setting the {@code OWLOntology} of this new edge with the one of either 
-	 * {@code sourceEdge} or {@code targetEdge}.
+	 * {@code sourceEdge} or {@code targetEdge}, as well as their gci_filler and gi_relation.
+	 * {@code OWLQuantifiedProperty}s are not set.
 	 * 
 	 * @param source       The {@code OWLObject} which this new edge will originate from.
 	 * @param sourceEdge   The {@code OWLGraphEdge} to merge with {@code targetEdge}.
 	 * @param targetEdge   The {@code OWLGraphEdge} going to the target of the new edge 
 	 *                     created, and to be merged with {@code sourceEdge}.
-	 * @return             A newly created {@code OWLGraphEdge}.
+	 * @return             A newly created {@code OWLGraphEdge}, 
+	 *                     with no {@code OWLQuantifiedProperty} set.
 	 */
 	protected OWLGraphEdge createMergedEdge(OWLObject source, OWLGraphEdge sourceEdge, 
 	        OWLGraphEdge targetEdge) {
+	    //if sourceEdge and targetEdge are both GCIs, but with different gci_filler 
+	    //or gci_relation, cannot be combined
+	    //TODO: combine fillers and relations using least common ancestor
+	    if (sourceEdge.isGCI() && targetEdge.isGCI() && !sourceEdge.equalsGCI(targetEdge)) {
+	        return null;
+	    }
 	    //merges the underlying axioms of these edges
         Set<OWLAxiom> axioms = new HashSet<OWLAxiom>(sourceEdge.getAxioms());
         axioms.addAll(targetEdge.getAxioms());
         return new OWLGraphEdge(source, targetEdge.getTarget(), 
                 (sourceEdge.getOntology() != null ? 
                         sourceEdge.getOntology() : targetEdge.getOntology()), 
-                axioms);
+                axioms, 
+                (sourceEdge.isGCI() ? 
+                        sourceEdge.getGCIFiller() : targetEdge.getGCIFiller()), 
+                (sourceEdge.isGCI() ? 
+                        sourceEdge.getGCIRelation() : targetEdge.getGCIRelation()));
 	}
 
 	/**
@@ -1762,7 +1778,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		Set<OWLGraphEdge> subsumers = new OWLGraphEdgeSet();
 		if (i >= e.getQuantifiedPropertyList().size()) {
 			subsumers.add(new OWLGraphEdge(e.getSource(), e.getTarget(), 
-			        new Vector<OWLQuantifiedProperty>(), e.getOntology(), e.getAxioms()));
+			        new Vector<OWLQuantifiedProperty>(), e.getOntology(), e.getAxioms(), 
+			        e.getGCIFiller(), e.getGCIRelation()));
 			return subsumers;
 		}
 		OWLQuantifiedProperty qp = e.getQuantifiedPropertyList().get(i);
@@ -1788,7 +1805,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				qpl.addAll(se.getQuantifiedPropertyList());
 
 				subsumers.add(new OWLGraphEdge(e.getSource(),e.getTarget(),
-						qpl, e.getOntology(), e.getAxioms()));
+						qpl, e.getOntology(), e.getAxioms(), 
+						e.getGCIFiller(), e.getGCIRelation()));
 			}
 		}
 

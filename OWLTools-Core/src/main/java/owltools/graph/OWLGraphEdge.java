@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -113,6 +114,15 @@ public class OWLGraphEdge {
 	 * {@code OWLAnnotation}s.
 	 */
 	private Set<OWLAxiom> underlyingAxioms = new HashSet<OWLAxiom>();
+
+	/**
+	 * See {@link #getGCIFiller()}.
+	 */
+    private OWLClass gciFiller = null;
+    /**
+     * See {@link #getGCIRelation()}.
+     */
+	private OWLObjectPropertyExpression gciRelation = null;
 	
 	public OWLGraphEdge(OWLObject source, OWLObject target,
 			OWLOntology ontology, OWLQuantifiedProperty qp) {
@@ -141,9 +151,14 @@ public class OWLGraphEdge {
 	}
 
     public OWLGraphEdge(OWLObject source, OWLObject target, List<OWLQuantifiedProperty> qpl, 
-            OWLOntology ontology, Set<OWLAxiom> axioms) {
+            OWLOntology ontology, Set<OWLAxiom> axioms, 
+            OWLClass gciFiller, OWLObjectPropertyExpression gciRelation) {
         this(source, target, qpl, ontology);
-        this.underlyingAxioms.addAll(axioms);
+        if (axioms != null) {
+            this.underlyingAxioms.addAll(axioms);
+        }
+        this.gciFiller = gciFiller;
+        this.gciRelation = gciRelation;
     }
 
 	
@@ -154,11 +169,16 @@ public class OWLGraphEdge {
 		this.ontology = ontology;
 		setSingleQuantifiedProperty(new OWLQuantifiedProperty(Quantifier.SUBCLASS_OF)); // defaults to subclass
 	}
-	
+    
     public OWLGraphEdge(OWLObject source, OWLObject target, OWLOntology ontology, 
-            Set<OWLAxiom> underlyingAxioms) {
+            Set<OWLAxiom> underlyingAxioms, 
+            OWLClass gciFiller, OWLObjectPropertyExpression gciRelation) {
         this(source, target, ontology);
-        this.underlyingAxioms.addAll(underlyingAxioms);
+        if (underlyingAxioms != null) {
+            this.underlyingAxioms.addAll(underlyingAxioms);
+        }
+        this.gciFiller = gciFiller;
+        this.gciRelation = gciRelation;
     }
 
 
@@ -178,11 +198,21 @@ public class OWLGraphEdge {
 		this.ontology = o;
 		setSingleQuantifiedProperty(el);
 	}
-	
-	public OWLGraphEdge(OWLObject s, OWLObject t, OWLObjectPropertyExpression p,
+    
+    public OWLGraphEdge(OWLObject s, OWLObject t, OWLObjectPropertyExpression p,
             Quantifier q, OWLOntology o, OWLAxiom ax) {
         this(s, t, p, q, o);
-        this.underlyingAxioms.add(ax);
+        if (ax != null) {
+            this.underlyingAxioms.add(ax);
+        }
+    }
+	
+	public OWLGraphEdge(OWLObject s, OWLObject t, OWLObjectPropertyExpression p,
+            Quantifier q, OWLOntology o, OWLAxiom ax, 
+            OWLClass gciFiller, OWLObjectPropertyExpression gciRelation) {
+        this(s, t, p, q, o, ax);
+        this.gciFiller = gciFiller;
+        this.gciRelation = gciRelation;
     }
 
 
@@ -207,6 +237,8 @@ public class OWLGraphEdge {
         this.distance = edge.getDistance();
         this.quantifiedPropertyList = edge.getQuantifiedPropertyList();
         this.underlyingAxioms = edge.getAxioms();
+        this.gciFiller = edge.gciFiller;
+        this.gciRelation = edge.gciRelation;
     }
 
 	public OWLObject getSource() {
@@ -283,6 +315,49 @@ public class OWLGraphEdge {
 	public boolean isTargetNamedObject() {
 		return (target instanceof OWLNamedObject);
 	}
+	
+	/**
+	 * Returns the {@code OWLClass} that is the OBO {@code gci_filler} 
+	 * of this {@code OWLGraphEdge}. If this {@code OWLGraphEdge} was not generated 
+	 * from an OBO-like GCI axiom, this method always return {@code null}. 
+	 * See <a href='http://oboformat.googlecode.com/svn/trunk/doc/obo-syntax.html'>
+	 * Treatment of gci_relation qualifier</a> for more details.
+	 * 
+	 * @return The {@code OWLClass} that is the {@code gci_filler} of this edge, 
+	 *         {@code null} if it was not generated from an OBO-like GCI axiom.
+	 */
+	public OWLClass getGCIFiller() {
+	    return gciFiller;
+	}
+	/**
+     * Returns the {@code OWLObjectPropertyExpression} that is the OBO {@code gci_relation} 
+     * of this {@code OWLGraphEdge}. If this {@code OWLGraphEdge} was not generated 
+     * from an OBO-like GCI axiom, this method always return {@code null}. 
+     * See <a href='http://oboformat.googlecode.com/svn/trunk/doc/obo-syntax.html'>
+     * Treatment of gci_relation qualifier</a> for more details.
+     * 
+     * @return  The {@code OWLObjectPropertyExpression} that is the {@code gci_relation} 
+     *          of this edge, {@code null} if it was not generated from an OBO-like GCI axiom.
+     */
+    public OWLObjectPropertyExpression getGCIRelation() {
+        return gciRelation;
+    }
+    
+    /**
+     * Determines whether this {@code OWLGraphEdge} corresponds to an OBO gci_relation.
+     * See <a href='http://oboformat.googlecode.com/svn/trunk/doc/obo-syntax.html'>
+     * Treatment of gci_relation qualifier</a> for more details.
+     * 
+     * @return  {@code true} if this {@code OWLGraphEdge} corresponds to an OBO gci_relation, 
+     *          {@code false} otherwise.
+     * @see #getGCIFiller()
+     * @see #getGCIRelation()
+     */
+    public boolean isGCI() {
+        return getGCIFiller() != null && 
+                getGCIRelation() != null && 
+                isSourceNamedObject();
+    }
 
     /**
      * Returns A {@code Set} containing the underlying {@code OWLAxiom}s that allowed 
@@ -356,6 +431,14 @@ public class OWLGraphEdge {
 		sb.append(getQuantifiedPropertyList());
 		sb.append(" ");
 		sb.append(target);
+		if (getGCIFiller() != null) {
+		    sb.append(" gci_filler:");
+	        sb.append(getGCIFiller());
+		}
+        if (getGCIRelation() != null) {
+            sb.append(" gci_relation:");
+            sb.append(getGCIRelation());
+        }
         sb.append(" ");
         sb.append(underlyingAxioms);
 		sb.append("]");
@@ -371,6 +454,8 @@ public class OWLGraphEdge {
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((target == null) ? 0 : target.hashCode());
         result = prime * result + ((ontology == null) ? 0 : ontology.hashCode());
+        result = prime * result + ((gciFiller == null) ? 0 : gciFiller.hashCode());
+        result = prime * result + ((gciRelation == null) ? 0 : gciRelation.hashCode());
 		return result;
 	}
 	
@@ -400,6 +485,21 @@ public class OWLGraphEdge {
 	public boolean equalsIgnoreOntology(Object e) {
 	    return this.equals(e, true);
 	}
+	
+	/**
+	 * Checks that the {@code gciFiller} and {@code gciRelation} of this {@code OWLGraphEdge} 
+	 * an of {@code e} are equals.
+	 * 
+	 * @return {@code true} if {@code gciFiller} and {@code gciRelation} are equals.
+	 * @see #getGCIFiller()
+	 * @see #getGCIRelation()
+	 */
+	public boolean equalsGCI(OWLGraphEdge e) {
+	    if (e == null)
+	        return false;
+	    return isEq(getGCIFiller(),e.getGCIFiller()) && 
+	            isEq(getGCIRelation(),e.getGCIRelation());
+	}
 
 	/**
 	 * Equals method allowing to define whether the {@link #ontology} attribute 
@@ -407,7 +507,7 @@ public class OWLGraphEdge {
 	 * are {@link #source}, {@link #target}, and {@link #quantifiedPropertyList}.
 	 * 
 	 * @param e                the reference object with which to compare.
-	 * @param ignoreOntology   A {@code boolean} defining whether the ontologies 
+	 * @param ignoreOntology   A {@code boolean} defining whether the ontology 
 	 *                         of the edges should be used for comparison. If {@code true}, 
 	 *                         they will not be taken into account. 
 	 * @return                 {@code true} if this edge is structurally equivalent 
@@ -423,6 +523,7 @@ public class OWLGraphEdge {
         return isEq(other.getSource(),getSource()) &&
                 isEq(other.getTarget(),getTarget()) &&
                 isEq(quantifiedPropertyList,other.getQuantifiedPropertyList()) &&
+                equalsGCI(other) && 
                 (ignoreOntology || isEq(ontology,other.getOntology()));
 	}
 }
