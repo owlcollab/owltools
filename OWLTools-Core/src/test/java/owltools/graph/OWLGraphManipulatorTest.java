@@ -42,7 +42,7 @@ import owltools.io.ParserWrapper;
  * Test the functionalities of {@link OWLGraphManipulator}.
  * 
  * @author Frederic Bastian
- * @version June 2014
+ * @version September 2014
  * @since June 2013
  *
  */
