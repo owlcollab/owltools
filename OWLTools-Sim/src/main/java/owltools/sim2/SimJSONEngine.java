@@ -81,6 +81,8 @@ public class SimJSONEngine {
 
 		Set<String> ids = new HashSet<String>();
 		Set<String> idsUnresolved = new HashSet<String>();
+
+		//clean up the query id list
 		for (OWLClass objA : objAs) {
 			String objAId = objA.getIRI().toString();
 			if (!known.contains(objA)) {
@@ -98,7 +100,6 @@ public class SimJSONEngine {
 		LOG.info("OwlSim = "+sos);
 		List<ElementPairScores> matches = sos.findMatches(filteredClasses, targetIdSpace);
 
-		// todo use a gson writer
 		Gson gson = new Gson();
 		List<Map> matchObjs = new ArrayList<Map>();
 		int n=0;
@@ -106,55 +107,9 @@ public class SimJSONEngine {
 			n++;
 			if (limit != null && n > limit)
 				break;
-			Map mObj = new HashMap();
-			mObj.put("i", "_query");
-			makeObjAndSet(mObj, "j", m.j);
-			mObj.put("combinedScore", m.combinedScore);
-			mObj.put("maxIC", m.maxIC);
-			mObj.put("bmaSymIC", m.bmaSymIC);
-			mObj.put("bmaAsymIC", m.bmaAsymIC);
-			mObj.put("bmaInverseAsymIC", m.bmaInverseAsymIC);
-			if (m.maxICwitness != null) {
-				mObj.put("maxIC_class",makeObj(m.maxICwitness.iterator().next()));
-			}
-			mObj.put("simJ", m.simjScore);
-			mObj.put("simGIC", m.simGIC);
-			//use a hashmap so that we eliminate duplicate values
-			//that come from C and D having identical terms
-			HashMap<String,Map> matchingAtts = new HashMap<String,Map>();
-			
-			for (int ci = 0; ci < m.cs.size(); ci++) {
-				for (int di = 0; di < m.ds.size(); di++) {
-					ScoreAttributeSetPair cv = m.iclcsMatrix.bestForC[ci];
-					ScoreAttributeSetPair dv = m.iclcsMatrix.bestForD[di];
-					if ((cv != null) && (dv != null)) {
-						OWLClass c = ((FastOwlSim)sos).classTorepresentativeClassMap.get(m.cs.get(ci));
-						if (cv.equals(dv)) {
-							Map<String,Object> o;
-							String objID;
-							if (includeFullMatchingTriples) {
-								OWLClass d = ((FastOwlSim)sos).classTorepresentativeClassMap.get(m.ds.get(di));
-								OWLClass lcs = ((FastOwlSim)sos).classTorepresentativeClassMap.get(cv.getArbitraryAttributeClass());
-								objID = g.getIdentifier(c);
-								objID.concat(g.getIdentifier(d));
-								objID.concat(g.getIdentifier(lcs));								
-								o = makeLCSTriple(m.cs.get(ci),m.ds.get(di),cv.getArbitraryAttributeClass());
-								//LOG.info("added triple: "+gson.toJson(o));
-							} else {
-								objID = g.getIdentifier(c);
-								o = makeObj(cv.getArbitraryAttributeClass());
-							}
-							matchingAtts.put(objID,o);
-						}
-					}
-				}
-			}
-//			mObj.put("matches", matchingAtts);
-			mObj.put("matches", matchingAtts.values());
-			mObj.put("system_stats", makeSummaryStatistics());
-
-			matchObjs.add(mObj);
+			matchObjs.add(makeComparisonResult(m,includeFullMatchingTriples));
 		}
+		
 		Map payload = new HashMap();
 		payload.put("query_IRIs", ids);
 		payload.put("unresolved", idsUnresolved);
@@ -162,6 +117,56 @@ public class SimJSONEngine {
 		return gson.toJson(payload);
 	}
 
+	private Map makeComparisonResult(ElementPairScores m, Boolean includeFullMatchingTriples) throws UnknownOWLClassException {
+		Map mObj = new HashMap();
+		mObj.put("i", "_query");
+		makeObjAndSet(mObj, "j", m.j);
+		mObj.put("combinedScore", m.combinedScore);
+		mObj.put("maxIC", m.maxIC);
+		mObj.put("bmaSymIC", m.bmaSymIC);
+		mObj.put("bmaAsymIC", m.bmaAsymIC);
+		mObj.put("bmaInverseAsymIC", m.bmaInverseAsymIC);
+		if (m.maxICwitness != null) {
+			mObj.put("maxIC_class",makeObj(m.maxICwitness.iterator().next()));
+		}
+		mObj.put("simJ", m.simjScore);
+		mObj.put("simGIC", m.simGIC);
+		
+		//use a hashmap so that we eliminate duplicate values
+		//that come from C and D having identical terms
+		HashMap<String,Map> matchingAtts = new HashMap<String,Map>();
+		
+		for (int ci = 0; ci < m.cs.size(); ci++) {
+			for (int di = 0; di < m.ds.size(); di++) {
+				ScoreAttributeSetPair cv = m.iclcsMatrix.bestForC[ci];
+				ScoreAttributeSetPair dv = m.iclcsMatrix.bestForD[di];
+				if ((cv != null) && (dv != null)) {
+					OWLClass c = ((FastOwlSim)sos).classTorepresentativeClassMap.get(m.cs.get(ci));
+					if (cv.equals(dv)) {
+						Map<String,Object> o;
+						String objID;
+						if (includeFullMatchingTriples) {
+							OWLClass d = ((FastOwlSim)sos).classTorepresentativeClassMap.get(m.ds.get(di));
+							OWLClass lcs = ((FastOwlSim)sos).classTorepresentativeClassMap.get(cv.getArbitraryAttributeClass());
+							objID = g.getIdentifier(c);
+							objID.concat(g.getIdentifier(d));
+							objID.concat(g.getIdentifier(lcs));								
+							o = makeLCSTriple(m.cs.get(ci),m.ds.get(di),cv.getArbitraryAttributeClass());
+						} else {
+							objID = g.getIdentifier(c);
+							o = makeObj(cv.getArbitraryAttributeClass());
+						}
+						matchingAtts.put(objID,o);
+					}
+				}
+			}
+		}
+		mObj.put("matches", matchingAtts.values());
+		mObj.put("system_stats", makeSummaryStatistics());
+		
+		return mObj;
+	}
+	
 	public List<Map> makeUniqAttSet(List<Map> list) {
 
 		return list;
@@ -171,9 +176,9 @@ public class SimJSONEngine {
 	 * @param objAs
 	 * @param objBs
 	 * @return json
-	 * @throws UnknownOWLClassException
+	 * @throws Exception 
 	 */
-	public String compareAttributeSetPair(Set<OWLClass> objAs, Set<OWLClass> objBs) throws UnknownOWLClassException {
+	public String compareAttributeSetPair(Set<OWLClass> objAs, Set<OWLClass> objBs) throws Exception {
 		Gson gson = new Gson();
 		return compareAttributeSetPair(objAs, objBs, false);
 	}
@@ -186,47 +191,75 @@ public class SimJSONEngine {
 	 * @throws UnknownOWLClassException
 	 */
 	public String compareAttributeSetPair(Set<OWLClass> objAs, Set<OWLClass> objBs, 
-			boolean isIgnoreUnknownClasses) throws UnknownOWLClassException {
+			boolean isIgnoreUnknownClasses) throws Exception {
 		Gson gson = new Gson();
 
+		ElementPairScores s = null;
+		Map payload = new HashMap();
+
+		//go ahead and check class lists - make sure these are robust before continuing
 		Set<OWLClass> known = sos.getAllAttributeClasses();
-		List<Map> pairs = new ArrayList<Map>();
+		Set<OWLClass> okAs = new HashSet<OWLClass>(objAs);
+		Set<OWLClass> okBs = new HashSet<OWLClass>(objBs);
+		
+		Set<String> idsA = new HashSet<String>();
+		Set<String> idsB = new HashSet<String>();
+		Set<String> idsUnresolved = new HashSet<String>();
+
+		//clean up the query id list
 		for (OWLClass objA : objAs) {
+			String objId = objA.getIRI().toString();
+			idsA.add(objId);
 			if (!known.contains(objA)) {
-				LOG.info("Unknown class: "+objA);
-				if (isIgnoreUnknownClasses)
+				LOG.info("Skipping Unknown class: "+objId);
+				idsUnresolved.add(objId);
+				if (isIgnoreUnknownClasses) {
+					okAs.remove(objA);
 					continue;
+				}
 				throw new UnknownOWLClassException(objA);
 			}
-			for (OWLClass objB : objBs) {
-				if (!known.contains(objB)) {
-					LOG.info("Unknown class: "+objB);
-					if (isIgnoreUnknownClasses)
-						continue;
-					throw new UnknownOWLClassException(objB);
+		}
+		//clean up the target id list
+		for (OWLClass objB : objBs) {
+			String objId = objB.getIRI().toString();
+			idsB.add(objId);
+			if (!known.contains(objB)) {
+				LOG.info("Skipping Unknown class: "+objId);
+				idsUnresolved.add(objId);
+				if (isIgnoreUnknownClasses) {
+					okBs.remove(objB);
+					continue;
 				}
-				Map<String,Object> attPairMap = new HashMap<String,Object>();
-				attPairMap.put("A", makeObj(objA));
-				attPairMap.put("B", makeObj(objB));
-
-				ScoreAttributeSetPair sap = sos.getLowestCommonSubsumerWithIC(objA, objB);
-				if (sap == null) {
-					//alternatively, could put the pair there, and add a note that
-					//says it's below the threshold.. that would require a new pair
-					//or return null for class/score
-					LOG.info("PAIR NOT ADDED:"+attPairMap);
-				} else {
-					attPairMap.put("LCS", makeObj(sap.getArbitraryAttributeClass()));
-					attPairMap.put("LCS_Score", sap.score);
-
-					pairs.add(attPairMap);
-					//LOG.info("ADDED PAIR:"+attPairMap);
-				}
-
+				throw new UnknownOWLClassException(objB);
 			}
 		}
+		
+		//generate payload of comparison results, including sim scores
+		//to keep things consistent with search, make it a list of one
+		List<Map> matchObjs = new ArrayList<Map>();
 
-		return gson.toJson(pairs);
+		try {
+				s = sos.getGroupwiseSimilarity(okAs,okBs,0.01,0.01);
+				matchObjs.add(makeComparisonResult(s,true));
+		} catch (UnknownOWLClassException e) {
+			//we should never get here, as we clean up the lists before trying
+			if (isIgnoreUnknownClasses) {
+				LOG.info("Skipping unknown classes: "+e);
+			} else {
+				payload.put("UnknownOWLClassException",e);
+			}
+		} catch (CutoffException e) {
+			//the minimal maxIC is smaller than the cutoff - we really don't care
+			LOG.info(e);
+		}
+
+		payload.put("results",matchObjs);
+		payload.put("query_IRIs", idsA);
+		payload.put("target_IRIs", idsB);
+		payload.put("unresolved", idsUnresolved);
+
+		return gson.toJson(payload);		
 	}
 
 	protected Map<String,Object> makeLCSTriple(OWLObject a, OWLObject b, OWLObject lcs) throws UnknownOWLClassException {
@@ -241,12 +274,14 @@ public class SimJSONEngine {
 		Map<String,Object> m = new HashMap<String,Object>();
 		m.put("id", g.getIdentifier(obj));
 		m.put("label", g.getLabel(obj));
-		Double ic = sos.getInformationContentForAttribute(g.getOWLClass(obj));
-		if (ic == null) {
-			//LOG.info("Using max(maxIC) for "+g.getIdentifier(obj));
-			ic = sos.getSummaryStatistics().max.getMax();
+		if (obj != null && obj.getClass() == OWLClass.class) {
+			Double ic = sos.getInformationContentForAttribute(g.getOWLClass(obj));
+			if (ic == null) {
+				//LOG.info("Using max(maxIC) for "+g.getIdentifier(obj));
+				ic = sos.getSummaryStatistics().max.getMax();
+			}
+			m.put("IC",ic);
 		}
-		m.put("IC",ic);
 		return m;
 	}
 

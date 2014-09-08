@@ -46,6 +46,23 @@ public class OWLServerSimSearchTest {
 	
 	OWLGraphWrapper g;
 	
+	
+	@Test
+	public void testServerCompareByAttributeSetsCommand() throws Exception {
+		g = loadOntology("../OWLTools-Sim/src/test/resources/sim/mp-subset-1.obo");
+		
+		ABoxUtils.createRandomClassAssertions(g.getSourceOntology(), 200, 20);
+
+		OwlSimFactory owlSimFactory = new FastOwlSimFactory();
+		OwlSim sos = owlSimFactory.createOwlSim(g.getSourceOntology());
+
+		sos.createElementAttributeMapFromOntology();
+		
+		final HttpUriRequest httppost = createCompareByAttributeSetsRequest(4,6);
+		runServerCommunication(httppost,sos);
+
+	}
+	
 	@Test
 	public void testServerSearchByAttributeSetCommand() throws Exception {
 		g = loadOntology("../OWLTools-Sim/src/test/resources/sim/mp-subset-1.obo");
@@ -277,6 +294,48 @@ public class OWLServerSimSearchTest {
 				break;
 		}
 		uriBuilder.addParameter("limit","5");
+		URI uri = uriBuilder.build();
+		LOG.info("Getting URL="+uri);
+		HttpUriRequest httpUriRequest = new HttpGet(uri);
+		LOG.info("Got URL="+uri);
+		return httpUriRequest;
+	}
+	
+	
+	protected HttpUriRequest createCompareByAttributeSetsRequest(int nA, int nB) throws URISyntaxException {
+		URIBuilder uriBuilder = new URIBuilder()
+			.setScheme("http")
+			.setHost("localhost").setPort(9031)
+			.setPath("/owlsim/compareAttributeSets/");
+			
+		List<OWLClass> allClasses = new ArrayList<OWLClass>();
+		allClasses.addAll(g.getAllOWLClasses());
+		Collections.shuffle(allClasses);
+		int i=0;
+
+		for (OWLClass c : allClasses) {
+			String id = g.getIdentifier(c);
+			uriBuilder.addParameter("a", id);
+
+			//get at least one ancestor of each class
+			i++;
+			if (i >= nA)
+				break;
+		}
+		
+		Collections.shuffle(allClasses);
+		i=0;
+
+		for (OWLClass c : allClasses) {
+			String id = g.getIdentifier(c);
+			uriBuilder.addParameter("b", id);
+
+			//get at least one ancestor of each class
+			i++;
+			if (i >= nB)
+				break;
+		}
+
 		URI uri = uriBuilder.build();
 		LOG.info("Getting URL="+uri);
 		HttpUriRequest httpUriRequest = new HttpGet(uri);

@@ -1412,6 +1412,20 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		return null;
 	}
 
+	@Override
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> objAs,
+			Set<OWLClass> objBs) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> objAs,
+			Set<OWLClass> objBs, double minSimJPct, double minMaxIC) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 

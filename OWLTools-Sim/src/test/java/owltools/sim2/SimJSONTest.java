@@ -38,7 +38,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 	private Logger LOG = Logger.getLogger(SimJSONTest.class);
 
 	@Test
-	public void testCompareIndividuals() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, MathException, UnknownOWLClassException {
+	public void testCompareIndividuals() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		sourceOntol = pw.parseOWL(getResourceIRIString("sim/mp-subset-1.obo"));
 		g =  new OWLGraphWrapper(sourceOntol);

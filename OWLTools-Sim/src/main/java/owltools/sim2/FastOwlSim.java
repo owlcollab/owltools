@@ -1653,8 +1653,10 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	private double computeSimJwithBM(EWAHCompressedBitmap iAttsBM, EWAHCompressedBitmap jAttsBM) {
 		int cadSize = iAttsBM.andCardinality(jAttsBM);
 		int cudSize = iAttsBM.orCardinality(jAttsBM);
-		double simJPct = (cadSize * 100) / cudSize;
-
+		double simJPct = 0;
+		if (cudSize != 0) {
+			simJPct = (cadSize * 100) / cudSize;
+		}
 		return simJPct;
 	}
 
@@ -2271,6 +2273,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	};
 	
 	//http://en.wikipedia.org/wiki/Tf-idf
+	//TODO might consider using a different array type, like sparseMatrix
+	//http://acs.lbl.gov/ACSSoftware/colt/
+	//http://www.ujmp.org/
+	//also keep track of http://www.cs.waikato.ac.nz/ml/weka/
+	//http://java-ml.sourceforge.net
 	public Double[][] computeTFIDFMatrix(int[][] subsetMatrix, int numIndividualsInSubset, int[][] backgroundMatrix, int numIndividualsInBackground ) throws UnknownOWLClassException {
 		//figure out how often the terms are in the subset
 		Double[][] tfidf = new Double[classArray.length][classArray.length];
@@ -2278,9 +2285,13 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			if (classArray[i] == null) {
 				continue;
 			}
+			LOG.info("i="+i);
 			for (int j=0; j<subsetMatrix[i].length; j++) {
+				if (classArray[j] == null) {
+					continue;
+				}
 				Double tf = Math.log(subsetMatrix[i][j]/(numIndividualsInSubset + 1));
-				int n = getElementsForAttribute(classArray[i]).size();
+				int n = this.getNumElementsForAttribute(classArray[i]);
 				Double idf = Math.log(numIndividualsInBackground / (1+n));
 				tfidf[i][j] = tf*idf;
 			}
@@ -2393,8 +2404,11 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		LOG.info("added "+indSubset.size()+" matching individuals to the subset");
 		//initialize the full coannotation matrix
 		if (this.coaMatrix == null) {
-			this.coaMatrix = this.initCoannotationMatrix(this.coaMatrix);
+			this.populateFullCoannotationMatrix();
 		}
+//		if (this.coaMatrix == null) {
+//			this.coaMatrix = this.initCoannotationMatrix(this.coaMatrix);
+//		}
 		//compute the subset coannotation matrix for the top similar individuals
 		int[][] subsetMatrix = getSubsetCoannotationMatrix(indSubset);
 
@@ -2416,6 +2430,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		for (OWLClass c : atts) {
 			Integer cid = classIndex.get(c);
 			for (i=0; i<cid-1; i++) {
+				if (classArray[i] == null) {
+					continue;
+				}
 				if (tfidfmatrix[i][cid] > cutoff) {
 					ClassCount cc = new ClassCount(classArray[i],tfidfmatrix[i][cid]);
 					classToCount.add(cc);			
@@ -2423,6 +2440,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 				}
 			}
 			for (int j=cid; j<classArray.length; j++) {
+				if (classArray[j] == null) {
+					continue;
+				}
 				if (tfidfmatrix[cid][j] > cutoff) {
 					ClassCount cc = new ClassCount(classArray[j],tfidfmatrix[cid][j]);
 					classToCount.add(cc);			
@@ -2462,6 +2482,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			inds.retainAll(individualSubset);
 			for (OWLNamedIndividual e : inds) {
 				Set<OWLClass> jcs = this.getAttributesForElement(e);
+
 				for (OWLClass c : jcs) {
 					Integer dix = classIndex.get(c);
 					//only populate half of the cache

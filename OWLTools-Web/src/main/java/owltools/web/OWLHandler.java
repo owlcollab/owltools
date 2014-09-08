@@ -682,9 +682,9 @@ public class OWLHandler {
 		}
 	}
 
-	public void compareAttributeSetsCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+	public void compareAttributeSetsCommand() throws Exception {
 		if (isHelp()) {
-			info("Returns LCSs and their ICs for two sets of attributes (e.g. phenotypes for disease vs model) using sim2");
+			info("Returns LCSs, their ICs, and sim scores, for two sets of attributes (e.g. phenotypes for disease vs model) using sim2");
 			return;
 		}
 		headerText();

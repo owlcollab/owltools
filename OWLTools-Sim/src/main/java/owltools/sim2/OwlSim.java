@@ -737,6 +737,11 @@ public interface OwlSim {
 	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> atts, OWLNamedIndividual j, double minSimJPct, double minMaxIC) throws Exception;
 
 	
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> objAs, Set<OWLClass> objBs) throws Exception;
+
+	public ElementPairScores getGroupwiseSimilarity(Set<OWLClass> objAs, Set<OWLClass> objBs, double minSimJPct, double minMaxIC) throws Exception;
+
+	
 	/**
 	 * @param i
 	 * @param targetIdSpace
