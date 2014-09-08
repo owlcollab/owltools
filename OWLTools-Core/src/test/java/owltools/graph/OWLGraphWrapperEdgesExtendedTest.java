@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.io.ParserWrapper;
@@ -589,6 +590,42 @@ public class OWLGraphWrapperEdgesExtendedTest
                 expectedAncestors, wrapper.getNamedAncestorsWithGCI(cls9));
         assertEquals("Incorrect ancestors through GCI and classical relations", 
                 expectedAncestors, wrapper.getOWLClassAncestorsWithGCI(cls9));
+    }
+    
+    /**
+     * Test {@link OWLGraphWrapperEdgesExtended#getNamedAncestorsWithGCI(OWLClass, Set)}.
+     */
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void shouldGetGCIAncestorsOverProps() throws OWLOntologyCreationException, 
+    OBOFormatParserException, IOException {
+        ParserWrapper parserWrapper = new ParserWrapper();
+        OWLOntology ont = parserWrapper.parse(this.getClass().getResource(
+                "/graph/gciRelRetrieval.obo").getFile());
+        OWLGraphWrapper wrapper = new OWLGraphWrapper(ont);
+        
+        OWLClass cls8 = wrapper.getOWLClassByIdentifier("ID:8");
+        OWLClass cls6 = wrapper.getOWLClassByIdentifier("ID:6");
+        OWLClass cls4 = wrapper.getOWLClassByIdentifier("ID:4");
+        OWLClass cls9 = wrapper.getOWLClassByIdentifier("ID:9");
+        OWLClass cls10 = wrapper.getOWLClassByIdentifier("ID:10");
+        
+        Set<OWLClass> expectedAncestors = new HashSet<OWLClass>();
+        Set<OWLPropertyExpression> overProps = new HashSet<OWLPropertyExpression>();
+        overProps.add(wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050"));
+        //no ancestors through GCI
+        expectedAncestors.add(cls4);
+        expectedAncestors.add(cls6);
+        assertEquals("Incorrect ancestors with GCI over props", expectedAncestors, 
+                wrapper.getNamedAncestorsWithGCI(cls8, overProps));
+        //ancestors with GCI
+        expectedAncestors = new HashSet<OWLClass>();
+        overProps = new HashSet<OWLPropertyExpression>();
+        overProps.add(wrapper.getOWLObjectPropertyByIdentifier("RO:0002202"));
+        expectedAncestors.add(cls10);
+        expectedAncestors.add(cls6);
+        assertEquals("Incorrect ancestors through GCI and classical relations", 
+                expectedAncestors, wrapper.getNamedAncestorsWithGCI(cls9, overProps));
     }
     
     /**

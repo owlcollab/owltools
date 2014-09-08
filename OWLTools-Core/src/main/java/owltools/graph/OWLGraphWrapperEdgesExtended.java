@@ -936,12 +936,15 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      *                  or the descendants.
      * @param ancestors A {@code boolean} defining whether ancestors should be retrieved 
      *                  (if {@code true}), or descendants (if {@code false}).
+     * @param overProps A {@code Set} of {@code OWLPropertyExpression} allowing to filter 
+     *                  the relations considered to retrieve ancestors.
      * @return  A {@code Set} of {@code OWLNamedObject}es that are either the named ancestors 
      *          (if {@code ancestors} is {@code true}) or the named descendants 
      *          (if {@code ancestors} is {@code false}) of {@code x} through 
      *          both classical and OBO GCI relations.
      */
-    private Set<OWLNamedObject> getNamedGCIRelatives(OWLObject x, boolean ancestors) {
+    private Set<OWLNamedObject> getNamedGCIRelatives(OWLObject x, boolean ancestors, 
+            @SuppressWarnings("rawtypes") Set<OWLPropertyExpression> overProps) {
         Set<OWLNamedObject> relatives = new HashSet<OWLNamedObject>();
         Deque<OWLObject> walkRelatives = new ArrayDeque<OWLObject>();
         //seed the Deque with the starting OWLClass
@@ -954,6 +957,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             } else {
                 edges = this.getIncomingEdgesWithGCI(iteratedRelative);
             }
+            filterEdges(edges, overProps);
             for (OWLGraphEdge edge: edges) {
                 OWLObject relative = null;
                 if (ancestors) {
@@ -985,7 +989,22 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      *          {@code sourceObject} through classical relations and through OBO GCI relations.
      */
     public Set<OWLNamedObject> getNamedAncestorsWithGCI(OWLObject sourceObject) {
-        return this.getNamedGCIRelatives(sourceObject, true);
+        return this.getNamedGCIRelatives(sourceObject, true, null);
+    }
+    /**
+     * Similar to {@link #getNamedAncestorsWithGCI(OWLObject, Set)} but allowing to filter 
+     * the relations considered. 
+     * @param sourceObject  An {@code OWLObject} for which we want to retrieve ancestors 
+     *                      through classical relations and through OBO GCI relations.
+     * @param overProps     A {@code Set} of {@code OWLPropertyExpression} allowing to filter 
+     *                      the relations considered to retrieve ancestors.
+     * @return  A {@code Set} of {@code OWLObject}s that are ancestors of 
+     *          {@code sourceObject} through classical relations and through OBO GCI relations, 
+     *          filtered using {@code overProps}.
+     */
+    public Set<OWLNamedObject> getNamedAncestorsWithGCI(OWLObject sourceObject, 
+            @SuppressWarnings("rawtypes") Set<OWLPropertyExpression> overProps) {
+        return this.getNamedGCIRelatives(sourceObject, true, overProps);
     }
     
     /**
@@ -1032,7 +1051,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      */
     public Set<OWLClass> getOWLClassDescendantsWithGCI(OWLClass parentClass) {
         Set<OWLClass> descendants = new HashSet<OWLClass>();
-        for (OWLNamedObject desc: this.getNamedGCIRelatives(parentClass, false)) {
+        for (OWLNamedObject desc: this.getNamedGCIRelatives(parentClass, false, null)) {
             if (desc instanceof OWLClass) {
                 descendants.add((OWLClass) desc);
             }
