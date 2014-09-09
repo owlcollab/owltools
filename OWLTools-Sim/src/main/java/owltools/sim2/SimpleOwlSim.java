@@ -1426,6 +1426,13 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		return null;
 	}
 
+	@Override
+	public void calculateCombinedScores(List<ElementPairScores> scoreSets,
+			double maxIC, double bmaAsymIC) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 
 

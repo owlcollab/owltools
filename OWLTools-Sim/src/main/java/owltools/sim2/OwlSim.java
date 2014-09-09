@@ -1180,6 +1180,8 @@ public interface OwlSim {
 	
 	public int[][] initCoannotationMatrix(int[][] coaMatrix) ;
 
+	public void calculateCombinedScores(List<ElementPairScores> scoreSets, double maxIC, double bmaAsymIC);
+
 
 	
 }

@@ -241,8 +241,21 @@ public class SimJSONEngine {
 		//to keep things consistent with search, make it a list of one
 		List<Map> matchObjs = new ArrayList<Map>();
 
+		//need to compare the thing to itself to get the best possible scores		
+		LOG.info("Comparing query to itself for max values");
+		ElementPairScores selfScore = sos.getGroupwiseSimilarity(okAs,okAs,0.01,0.01);
+		
 		try {
+			  LOG.info("Comparing query to target");
 				s = sos.getGroupwiseSimilarity(okAs,okBs,0.01,0.01);
+
+				//add the combinedScore values, since they are not added in the calling fxn
+				List<ElementPairScores> scoreSets = new ArrayList<ElementPairScores>();
+				scoreSets.add(s);
+				//here, i want to generate the score based on the max possible of the query
+			  LOG.info("Calculating combined score based on queryXquery max values");
+				sos.calculateCombinedScores(scoreSets, selfScore.maxIC, selfScore.bmaSymIC);
+				
 				matchObjs.add(makeComparisonResult(s,true));
 		} catch (UnknownOWLClassException e) {
 			//we should never get here, as we clean up the lists before trying

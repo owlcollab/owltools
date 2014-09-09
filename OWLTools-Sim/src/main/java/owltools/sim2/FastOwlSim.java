@@ -1869,7 +1869,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		EWAHCompressedBitmap jAttsBM = ancsBitmapCached(dset);
 
 		s = computeMatchWithBM(iAttsBM,jAttsBM, minSimJPct, minMaxIC);
-
+		
 		populateSimilarityMatrix(csetV, dsetV, s);
 
 		return s;
