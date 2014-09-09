@@ -47,6 +47,7 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
  *
  */
 public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
+    private static final Logger LOG = Logger.getLogger(OWLGraphWrapperEdgesExtended.class);
 	/**
 	 * A cache for super property relations. Each <code>OWLObjectPropertyExpression</code> 
 	 * is associated in the <code>Map</code> to a <code>LinkedHashSet</code> of 
@@ -682,6 +683,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             if (!e.isTargetNamedObject()) {
                 continue;
             }
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Trying to combine properties for edge: " + e);
+            }
             OWLGraphEdge newEdge = e;
             
             if (e.getQuantifiedPropertyList().size() > 1) {
@@ -730,13 +734,20 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                 }
             }
             
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Resulting edge: " + newEdge);
+            }
             edgesCombined.add(newEdge);
         }
         
         //now, we make sure that there is no redundant combined edges, 
         //where one is a sub-property of the other, with the same target
         Set<OWLGraphEdge> filteredEdgesCombined = new OWLGraphEdgeSet();
+        LOG.trace("Checking for redundancy over super-properties...");
         edge1: for (OWLGraphEdge edge1: edgesCombined) {
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Checking edge for redundancy: " + edge1);
+            }
             edge2: for (OWLGraphEdge edge2: edgesCombined) {
                 if (edge1.equals(edge2) || !edge1.getTarget().equals(edge2.getTarget())) {
                     continue edge2;
@@ -745,12 +756,15 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                 //(the reciprocal test will be done during another iteration)
                 if (this.getOWLGraphEdgeSubsumers(edge1).contains(edge2)) {
                     //invalidate edge1
+                    LOG.trace("Edge redundant");
                     continue edge1;
                 }
             }
             //OK, edge1 is not a sub-relation of any other edge, validated
+            LOG.trace("Edge not redundant");
             filteredEdgesCombined.add(edge1);
         }
+        LOG.trace("Done checking for redundancy.");
         
         return filteredEdgesCombined;
     }
@@ -766,7 +780,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * @return  See {@link #getOutgoingEdgesClosure(OWLObject)}
      */
     public Set<OWLGraphEdge> getOutgoingEdgesClosureWithGCI(OWLObject s) {
-        
+        LOG.debug("Retrieving graph closure with GCIs for " + s);
         //try to retrieve edges from cache
         if (this.outgoingEdgesClosureWithGCIBySource == null) {
             this.outgoingEdgesClosureWithGCIBySource = 
@@ -774,23 +788,50 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
         }
         Set<OWLGraphEdge> cachedEdges = this.outgoingEdgesClosureWithGCIBySource.get(s);
         if (cachedEdges != null) {
+            LOG.debug("Retrieved from cache");
             //defensive copying
             return new OWLGraphEdgeSet(cachedEdges);
         }
         
         Set<OWLGraphEdge> edges = new OWLGraphEdgeSet();
-        Set<OWLGraphEdge> visitedEdges = new OWLGraphEdgeSet();
+        Map<OWLObject,Set<OWLGraphEdge>> visitedMap = new HashMap<OWLObject,Set<OWLGraphEdge>>();
+        visitedMap.put(s, new OWLGraphEdgeSet());
         Deque<OWLGraphEdge> walkAncestors = new ArrayDeque<OWLGraphEdge>();
         
         //seed the Deque with the starting edges
         walkAncestors.addAll(this.getOutgoingEdgesWithGCI(s));
         OWLGraphEdge iteratedEdge;
         while ((iteratedEdge = walkAncestors.pollFirst()) != null) {
-            //protect against cycles
-            if (visitedEdges.contains(iteratedEdge)) {
+            OWLObject nuTarget = iteratedEdge.getTarget();
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Walking edge: " + iteratedEdge);
+            }
+            //check for cycles
+            boolean isEdgeVisited = false;
+            if (visitedMap.containsKey(nuTarget)) {
+                // we have potentially visited this edge before
+                for (OWLGraphEdge ve : visitedMap.get(nuTarget)) {
+                    //the original OWLGraphWrapperEdge code checks only the final 
+                    //QuantifiedProperty, which seems to potentially discard 
+                    //edges with different paths. Checking equality of visited 
+                    //edges is too slow. So here, we make the QuantifiedProperties unique, 
+                    //but we use each of them
+                    if (new HashSet<OWLQuantifiedProperty>(
+                            ve.getQuantifiedPropertyList()).equals(
+                                    new HashSet<OWLQuantifiedProperty>(
+                                            iteratedEdge.getQuantifiedPropertyList()))) {
+                        isEdgeVisited = true;
+                    }
+                }
+            } else {
+                visitedMap.put(nuTarget, new OWLGraphEdgeSet());
+                visitedMap.get(nuTarget).add(iteratedEdge);
+            }
+            if (isEdgeVisited) {
                 continue;
             }
-            visitedEdges.add(iteratedEdge);
+            visitedMap.get(nuTarget).add(iteratedEdge);
+
             //we only want OWLNamedObjects
             if (iteratedEdge.getTarget() instanceof OWLNamedObject) {
                 edges.add(iteratedEdge);
@@ -798,14 +839,17 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             
             int nextDist = iteratedEdge.getDistance() + 1;
             for (OWLGraphEdge nextEdge: this.getOutgoingEdgesWithGCI(iteratedEdge.getTarget())) {
-                OWLGraphEdge combine = this.combineEdgePair(iteratedEdge.getSource(), 
-                        iteratedEdge, nextEdge, nextDist);
+                OWLGraphEdge combine = this.combineEdgePair(s, iteratedEdge, nextEdge, nextDist);
                 if (combine == null) {
                     continue;
                 }
                 walkAncestors.addLast(combine);
             }
         }
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Graph closure with GCIs for " + s + " retrieved: " + edges);
+        }
+        LOG.debug("Graph closure with GCIs retrieved.");
         this.outgoingEdgesClosureWithGCIBySource.put(s, edges);
         return edges;
     }
@@ -832,6 +876,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
         if (this.gciRelationBySource == null) {
             
             profiler.startTaskNotify("lazyLoadGCIRelCache");
+            LOG.debug("Loading GCI rel cache...");
             this.gciRelationBySource = new HashMap<OWLClass, Set<OWLGraphEdge>>();
             this.gciRelationByTarget = new HashMap<OWLClass, Set<OWLGraphEdge>>();
             
@@ -892,6 +937,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                     }
                 }
             }
+            LOG.debug("Done loading GCI rel cache.");
             profiler.endTaskNotify("lazyLoadGCIRelCache");
         }
     }
