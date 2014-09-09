@@ -243,7 +243,7 @@ public class SimJSONEngine {
 
 		//need to compare the thing to itself to get the best possible scores		
 		LOG.info("Comparing query to itself for max values");
-		ElementPairScores selfScore = sos.getGroupwiseSimilarity(okAs,okAs,0.01,0.01);
+		ElementPairScores selfScore = sos.getGroupwiseSimilarity(okAs,okAs,0.0,0.0);
 		
 		try {
 			  LOG.info("Comparing query to target");
