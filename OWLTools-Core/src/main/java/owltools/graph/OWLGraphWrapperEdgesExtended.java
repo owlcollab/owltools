@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -46,7 +47,8 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
  *
  */
 public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
-	
+
+    private static final Logger LOG = Logger.getLogger(OWLGraphWrapperEdgesExtended.class);
 	/**
 	 * A cache for super property relations. Each <code>OWLObjectPropertyExpression</code> 
 	 * is associated in the <code>Map</code> to a <code>LinkedHashSet</code> of 
@@ -100,6 +102,12 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * @see #gciRelationBySource
      */
     private Map<OWLClass, Set<OWLGraphEdge>> gciRelationByTarget;
+    /**
+     * A {@code Map} caching graph closures retrieved from 
+     * {@link #getOutgoingEdgesClosureWithGCI(OWLObject)}. Keys are the source 
+     * of the associated {@code OWLGraphEdges}.
+     */
+    private Map<OWLObject, Set<OWLGraphEdge>>  outgoingEdgesClosureWithGCIBySource;
 
 	/**
 	 * Default constructor. 
@@ -115,6 +123,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     			LinkedHashSet<OWLObjectPropertyExpression>>();
     	this.gciRelationBySource = null;
         this.gciRelationByTarget = null;
+        this.outgoingEdgesClosureWithGCIBySource = null;
 	}
 	
 	protected OWLGraphWrapperEdgesExtended(String iri)
@@ -126,6 +135,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     			LinkedHashSet<OWLObjectPropertyExpression>>();
         this.gciRelationBySource = null;
         this.gciRelationByTarget = null;
+        this.outgoingEdgesClosureWithGCIBySource = null;
 	}
    	
     /**
@@ -616,7 +626,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     
     /**
      * Same method as {@link OWLGraphWrapperEdges.getOutgoingEdgesClosure(OWLObject)}, 
-     * except that only the {@code OWLGraphEdge}s going to a **named** target are returned, 
+     * except that only the {@code OWLGraphEdge}s going to a named target are returned, 
      * and that the list of connecting edge properties are not only combined using the 
      * composition rules as usual, but also over super properties (see for instance 
      * {@link #combineEdgePairWithSuperProps(OWLGraphEdge, OWLGraphEdge}).
@@ -631,7 +641,42 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      *              standard composition rules, but also over super-properties.
      */
     public Set<OWLGraphEdge> getOutgoingEdgesNamedClosureOverSupProps(OWLObject s) {
-        Set<OWLGraphEdge> edges = this.getOutgoingEdgesClosure(s);
+        return this.getOutgoingEdgesNamedClosureOverSupProps(s, false);
+    }
+    /**
+     * Similar to {@link #getOutgoingEdgesNamedClosureOverSupProps(OWLObject)} but with 
+     * the OBO GCI relations also taken into account.
+     * <p>
+     * Note that GCI relations are not combined when their gci_filler or gci_relation 
+     * are different. To retrieve all ancestors of an object, using also GCI relations, 
+     * you should rather use {@link #getNamedAncestorsWithGCI(OWLObject)}.
+     * 
+     * @param s         See {@link #getOutgoingEdgesNamedClosureOverSupProps(OWLObject)}
+     * @return          See {@link #getOutgoingEdgesNamedClosureOverSupProps(OWLObject)}
+     */
+    public Set<OWLGraphEdge> getOutgoingEdgesNamedClosureOverSupPropsWithGCI(OWLObject s) {
+        return this.getOutgoingEdgesNamedClosureOverSupProps(s, true);
+    }
+    
+    /**
+     * Similar to {@link #getOutgoingEdgesNamedClosureOverSupProps(OWLObject)} with 
+     * the capability of taking into account GCI relations, if {@code withGCI} 
+     * is {@code true}.
+     * 
+     * @param s         See {@link #getOutgoingEdgesNamedClosureOverSupProps(OWLObject)}
+     * @param withGCI   A {@code boolean} defining whether OBO GCI relations should also 
+     *                  be taken into account. If {@code true}, they will be.
+     * @return          See {@link #getOutgoingEdgesNamedClosureOverSupProps(OWLObject)}
+     */
+    private Set<OWLGraphEdge> getOutgoingEdgesNamedClosureOverSupProps(OWLObject s, 
+            boolean withGCI) {
+        
+        Set<OWLGraphEdge> edges = null;
+        if (withGCI) {
+            edges = this.getOutgoingEdgesClosureWithGCI(s);
+        } else {
+            edges = this.getOutgoingEdgesClosure(s);
+        }
         Set<OWLGraphEdge> edgesCombined = new OWLGraphEdgeSet();
         
         for (OWLGraphEdge e: edges) {
@@ -710,6 +755,67 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
         }
         
         return filteredEdgesCombined;
+    }
+    
+    /**
+     * Similar to {@link #getOutgoingEdgesClosure(OWLObject)}, but also considering 
+     * OBO GCI relations.
+     * <p>
+     * Note that GCI relations are not combined when their gci_filler or gci_relation 
+     * are different. The closure might then be incomplete.
+     * 
+     * @param s See {@link #getOutgoingEdgesClosure(OWLObject)}
+     * @return  See {@link #getOutgoingEdgesClosure(OWLObject)}
+     */
+    public Set<OWLGraphEdge> getOutgoingEdgesClosureWithGCI(OWLObject s) {
+        LOG.debug("getOutgoingEdgesClosureWithGCI for " + s);
+        
+        //try to retrieve edges from cache
+        if (this.outgoingEdgesClosureWithGCIBySource == null) {
+            this.outgoingEdgesClosureWithGCIBySource = 
+                    new HashMap<OWLObject, Set<OWLGraphEdge>>();
+        }
+        Set<OWLGraphEdge> cachedEdges = this.outgoingEdgesClosureWithGCIBySource.get(s);
+        if (cachedEdges != null) {
+            LOG.trace("Edges retrieved from cache");
+            //defensive copying
+            return new OWLGraphEdgeSet(cachedEdges);
+        }
+        
+        Set<OWLGraphEdge> edges = new OWLGraphEdgeSet();
+        Set<OWLGraphEdge> visitedEdges = new OWLGraphEdgeSet();
+        Deque<OWLGraphEdge> walkAncestors = new ArrayDeque<OWLGraphEdge>();
+        
+        //seed the Deque with the starting edges
+        walkAncestors.addAll(this.getOutgoingEdgesWithGCI(s));
+        OWLGraphEdge iteratedEdge;
+        while ((iteratedEdge = walkAncestors.pollFirst()) != null) {
+            LOG.trace("Examining " + iteratedEdge);
+            //protect against cycles
+            if (visitedEdges.contains(iteratedEdge)) {
+                continue;
+            }
+            visitedEdges.add(iteratedEdge);
+            //we only want OWLNamedObjects
+            if (iteratedEdge.getTarget() instanceof OWLNamedObject) {
+                edges.add(iteratedEdge);
+            }
+            
+            int nextDist = iteratedEdge.getDistance() + 1;
+            for (OWLGraphEdge nextEdge: this.getOutgoingEdgesWithGCI(iteratedEdge.getTarget())) {
+                OWLGraphEdge combine = this.combineEdgePair(iteratedEdge.getSource(), 
+                        iteratedEdge, nextEdge, nextDist);
+                LOG.trace("Combine with " + nextEdge);
+                LOG.trace("Resulting edge: " + combine);
+                if (combine == null) {
+                    continue;
+                }
+                walkAncestors.addLast(combine);
+            }
+        }
+        LOG.debug("getOutgoingEdgesClosureWithGCI retrieved: " + edges);
+        this.outgoingEdgesClosureWithGCIBySource.put(s, edges);
+        return edges;
     }
     
     /**
@@ -827,6 +933,19 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      */
     public Set<OWLGraphEdge> getGCIOutgoingEdges(OWLClass s) {
         return this.getGCIEdges(s, true, null);
+    }
+    /**
+     * Same as {@link #getGCIOutgoingEdges(OWLClass)}, but with a {@code Set} of 
+     * {@code OWLPropertyExpression} allowing to filter the relations retrieved.
+     * @param s             See {@link #getGCIOutgoingEdges(OWLClass)}.
+     * @param overProps     A {@code Set} of {@code OWLPropertyExpression} allowing 
+     *                      to filter the {@code OWLGraphEdge}s returned.
+     * @return              See {@link #getGCIOutgoingEdges(OWLClass)}.
+     * @see #getGCIOutgoingEdges(OWLClass)
+     */
+    public Set<OWLGraphEdge> getGCIOutgoingEdges(OWLClass s, 
+            Set<OWLPropertyExpression> overProps) {
+        return this.getGCIEdges(s, true, overProps);
     }
     /**
      * Retrieve OBO GCI relations incoming to {@code t} as a {@code Set} of {@code OWLGraphEdge}s.
@@ -987,6 +1106,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      *                      through classical relations and through OBO GCI relations.
      * @return  A {@code Set} of {@code OWLNamedObject}s that are ancestors of 
      *          {@code sourceObject} through classical relations and through OBO GCI relations.
+     * @see #getNamedAncestorsWithGCI(OWLObject, Set)
+     * @see #getOWLClassAncestorsWithGCI(OWLObject, Set)
      */
     public Set<OWLNamedObject> getNamedAncestorsWithGCI(OWLObject sourceObject) {
         return this.getNamedGCIRelatives(sourceObject, true, null);
@@ -1001,6 +1122,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * @return  A {@code Set} of {@code OWLObject}s that are ancestors of 
      *          {@code sourceObject} through classical relations and through OBO GCI relations, 
      *          filtered using {@code overProps}.
+     * @see #getNamedAncestorsWithGCI(OWLObject)
+     * @see #getOWLClassAncestorsWithGCI(OWLObject)
      */
     public Set<OWLNamedObject> getNamedAncestorsWithGCI(OWLObject sourceObject, 
             @SuppressWarnings("rawtypes") Set<OWLPropertyExpression> overProps) {
@@ -1050,8 +1173,23 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      *          through classical relations and through OBO GCI relations.
      */
     public Set<OWLClass> getOWLClassDescendantsWithGCI(OWLClass parentClass) {
+        return this.getOWLClassDescendantsWithGCI(parentClass, null);
+    }
+    /**
+     * Similar to {@link #getOWLClassDescendantsWithGCI(OWLObject)} but allowing to filter 
+     * the relations considered. 
+     * @param parentClass   An {@code OWLClass} for which we want to retrieve descendants 
+     *                      through classical relations and through OBO GCI relations.
+     * @param overProps     A {@code Set} of {@code OWLPropertyExpression} allowing to filter 
+     *                      the relations considered to retrieve descendants.
+     * @return  A {@code Set} of {@code OWLClass}s that are descendants of {@code parentClass} 
+     *          through classical relations and through OBO GCI relations, 
+     *          filtered using {@code overProps}.
+     */
+    public Set<OWLClass> getOWLClassDescendantsWithGCI(OWLClass parentClass, 
+            @SuppressWarnings("rawtypes") Set<OWLPropertyExpression> overProps) {
         Set<OWLClass> descendants = new HashSet<OWLClass>();
-        for (OWLNamedObject desc: this.getNamedGCIRelatives(parentClass, false, null)) {
+        for (OWLNamedObject desc: this.getNamedGCIRelatives(parentClass, false, overProps)) {
             if (desc instanceof OWLClass) {
                 descendants.add((OWLClass) desc);
             }
@@ -1064,6 +1202,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
         super.clearCachedEdges();
         this.gciRelationBySource = null;
         this.gciRelationByTarget = null;
+        this.outgoingEdgesClosureWithGCIBySource = null;
     }
     
     /**
@@ -1140,7 +1279,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     /**
      * Return the <code>OWLClass</code>es root of any ontology 
      * (<code>OWLClass</code>es with no outgoing edges as returned by 
-     * {OWLGraphWrapperEdges#getOutgoingEdges(OWLObject)}), and not deprecated 
+     * {OWLGraphWrapperEdges#getOutgoingEdgesWithGCI(OWLObject)}), and not deprecated 
      * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false})).
      * 
      * @return	A <code>Set</code> of <code>OWLClass</code>es that are 
@@ -1163,7 +1302,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     /**
      * Return the <code>OWLClass</code>es leaves of any ontology 
      * (<code>OWLClass</code>es with no incoming edges as returned by 
-     * {OWLGraphWrapperEdges#getIncomingEdges(OWLObject)}), and not deprecated 
+     * {OWLGraphWrapperEdges#getIncomingEdgesWithGCI(OWLObject)}), and not deprecated 
      * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false})
      * 
      * @return  A <code>Set</code> of <code>OWLClass</code>es that are 

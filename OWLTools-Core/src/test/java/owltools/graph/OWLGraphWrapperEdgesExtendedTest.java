@@ -430,7 +430,58 @@ public class OWLGraphWrapperEdgesExtendedTest
 	}
 	
 	/**
-	 * Test {@link OWLGraphWrapperEdgesExtended#getGCIOutgoingEdges(OWLObject)} and 
+     * Test {@link OWLGraphWrapperEdgesExtended#getOutgoingEdgesNamedClosureOverSupPropsWithGCI(OWLObject)}
+     * @throws OWLOntologyCreationException
+     * @throws OBOFormatParserException
+     * @throws IOException
+     */
+    @Test
+    public void shouldGetOutgoingEdgesNamedClosureOverSupPropsWithGCI() throws OWLOntologyCreationException, 
+        OBOFormatParserException, IOException {
+        ParserWrapper parserWrapper = new ParserWrapper();
+        OWLOntology ont = parserWrapper.parse(this.getClass().getResource(
+                "/graph/gciRelRetrieval.obo").getFile());
+        OWLGraphWrapper wrapper = new OWLGraphWrapper(ont);
+        
+        OWLObjectProperty partOf = wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050");
+        OWLObjectProperty developsFrom = wrapper.getOWLObjectPropertyByIdentifier("RO:0002202");
+        OWLClass cls4 = wrapper.getOWLClassByIdentifier("ID:4");
+        OWLClass cls5 = wrapper.getOWLClassByIdentifier("ID:5");
+        OWLClass cls6 = wrapper.getOWLClassByIdentifier("ID:6");
+        OWLClass cls7 = wrapper.getOWLClassByIdentifier("ID:7");
+        OWLClass cls8 = wrapper.getOWLClassByIdentifier("ID:8");
+        OWLClass cls9 = wrapper.getOWLClassByIdentifier("ID:9");
+        OWLClass cls10 = wrapper.getOWLClassByIdentifier("ID:10");
+        OWLClass taxon1 = wrapper.getOWLClassByIdentifier("NCBITaxon:9606");
+        
+        Set<OWLGraphEdge> expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls9, cls10, developsFrom, Quantifier.SOME, 
+                ont, null, taxon1, partOf));
+        expectedEdges.add(new OWLGraphEdge(cls9, cls5, developsFrom, Quantifier.SOME, 
+                ont, null, taxon1, partOf));
+        expectedEdges.add(new OWLGraphEdge(cls9, cls7, partOf, Quantifier.SOME, 
+                ont, null));
+        expectedEdges.add(new OWLGraphEdge(cls9, cls5, partOf, Quantifier.SOME, 
+                ont, null));
+        assertEquals("Incorrect relation closure with GCIs retrieved", expectedEdges, 
+                wrapper.getOutgoingEdgesNamedClosureOverSupPropsWithGCI(cls9));
+        
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls8, cls7, developsFrom, Quantifier.SOME, 
+                ont, null));
+        expectedEdges.add(new OWLGraphEdge(cls8, cls5, developsFrom, Quantifier.SOME, 
+                ont, null));
+        expectedEdges.add(new OWLGraphEdge(cls8, cls6, partOf, Quantifier.SOME, 
+                ont, null));
+        expectedEdges.add(new OWLGraphEdge(cls8, cls4, partOf, Quantifier.SOME, 
+                ont, null));
+        assertEquals("Incorrect relation closure with GCIs retrieved", expectedEdges, 
+                wrapper.getOutgoingEdgesNamedClosureOverSupPropsWithGCI(cls8));
+    }
+	
+	/**
+	 * Test {@link OWLGraphWrapperEdgesExtended#getGCIOutgoingEdges(OWLObject)},  
+	 * {@link OWLGraphWrapperEdgesExtended#getGCIOutgoingEdges(OWLObject, Set)} and 
 	 * {@link OWLGraphWrapperEdgesExtended#getGCIIncomingEdges(OWLObject)}
 	 * @throws OWLOntologyCreationException
 	 * @throws OBOFormatParserException
@@ -460,6 +511,13 @@ public class OWLGraphWrapperEdgesExtendedTest
                 wrapper.getGCIOutgoingEdges(cls2));
         assertEquals("Incorrect gci_relations retrieved", expectedEdges, 
                 wrapper.getGCIIncomingEdges(cls1));
+        
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls2, cls1, developsFrom, Quantifier.SOME, 
+                ont, null, taxon2, partOf));
+        assertEquals("Incorrect gci_relations retrieved", expectedEdges, 
+                wrapper.getGCIOutgoingEdges(cls2, 
+                        new HashSet<OWLPropertyExpression>(Arrays.asList(developsFrom))));
         
         //check empty GCIs
         expectedEdges = new HashSet<OWLGraphEdge>();
@@ -529,18 +587,17 @@ public class OWLGraphWrapperEdgesExtendedTest
         OWLObjectProperty partOf = wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050");
         OWLObjectProperty developsFrom = wrapper.getOWLObjectPropertyByIdentifier("RO:0002202");
         OWLClass cls8 = wrapper.getOWLClassByIdentifier("ID:8");
-        OWLClass cls5 = wrapper.getOWLClassByIdentifier("ID:5");
+        OWLClass cls4 = wrapper.getOWLClassByIdentifier("ID:4");
         OWLClass cls10 = wrapper.getOWLClassByIdentifier("ID:10");
-        OWLClass cls7 = wrapper.getOWLClassByIdentifier("ID:7");
         OWLClass cls6 = wrapper.getOWLClassByIdentifier("ID:6");
         OWLClass taxon1 = wrapper.getOWLClassByIdentifier("NCBITaxon:10090");
         
         Set<OWLGraphEdge> expectedEdges = new HashSet<OWLGraphEdge>();
         //class with no incoming GCI relations
-        expectedEdges.add(new OWLGraphEdge(cls7, cls5, partOf, Quantifier.SOME, 
+        expectedEdges.add(new OWLGraphEdge(cls6, cls4, partOf, Quantifier.SOME, 
                 ont, null));
         assertEquals("Incorrect incoming edges with GCI retrieved", expectedEdges, 
-                wrapper.getIncomingEdgesWithGCI(cls5));
+                wrapper.getIncomingEdgesWithGCI(cls4));
         //class with both a classical relation and a GCI relation incoming
         expectedEdges = new HashSet<OWLGraphEdge>();
         expectedEdges.add(new OWLGraphEdge(cls8, cls6, partOf, Quantifier.SOME, 
@@ -607,6 +664,7 @@ public class OWLGraphWrapperEdgesExtendedTest
         OWLClass cls8 = wrapper.getOWLClassByIdentifier("ID:8");
         OWLClass cls6 = wrapper.getOWLClassByIdentifier("ID:6");
         OWLClass cls4 = wrapper.getOWLClassByIdentifier("ID:4");
+        OWLClass cls5 = wrapper.getOWLClassByIdentifier("ID:5");
         OWLClass cls9 = wrapper.getOWLClassByIdentifier("ID:9");
         OWLClass cls10 = wrapper.getOWLClassByIdentifier("ID:10");
         
@@ -624,6 +682,7 @@ public class OWLGraphWrapperEdgesExtendedTest
         overProps.add(wrapper.getOWLObjectPropertyByIdentifier("RO:0002202"));
         expectedAncestors.add(cls10);
         expectedAncestors.add(cls6);
+        expectedAncestors.add(cls5);
         assertEquals("Incorrect ancestors through GCI and classical relations", 
                 expectedAncestors, wrapper.getNamedAncestorsWithGCI(cls9, overProps));
     }
@@ -653,6 +712,7 @@ public class OWLGraphWrapperEdgesExtendedTest
         expecteDescendants.add(cls7);
         expecteDescendants.add(cls8);
         expecteDescendants.add(cls9);
+        expecteDescendants.add(cls10);
         assertEquals("Incorrect ancestors through GCI", expecteDescendants, 
                 wrapper.getOWLClassDescendantsWithGCI(cls5));
         //descendants with GCI

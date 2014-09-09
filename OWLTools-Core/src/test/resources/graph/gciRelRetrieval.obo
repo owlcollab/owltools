@@ -31,6 +31,7 @@ relationship: part_of ID:5
 [Term]
 id: ID:10
 relationship: develops_from ID:6 {gci_filler="NCBITaxon:10090", gci_relation="part_of"}
+relationship: develops_from ID:5 {gci_filler="NCBITaxon:9606", gci_relation="part_of"}
 
 [Term]
 id: ID:8
