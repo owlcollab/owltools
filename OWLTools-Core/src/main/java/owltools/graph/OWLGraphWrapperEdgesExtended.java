@@ -47,8 +47,6 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
  *
  */
 public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
-
-    private static final Logger LOG = Logger.getLogger(OWLGraphWrapperEdgesExtended.class);
 	/**
 	 * A cache for super property relations. Each <code>OWLObjectPropertyExpression</code> 
 	 * is associated in the <code>Map</code> to a <code>LinkedHashSet</code> of 
@@ -768,7 +766,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * @return  See {@link #getOutgoingEdgesClosure(OWLObject)}
      */
     public Set<OWLGraphEdge> getOutgoingEdgesClosureWithGCI(OWLObject s) {
-        LOG.debug("getOutgoingEdgesClosureWithGCI for " + s);
         
         //try to retrieve edges from cache
         if (this.outgoingEdgesClosureWithGCIBySource == null) {
@@ -777,7 +774,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
         }
         Set<OWLGraphEdge> cachedEdges = this.outgoingEdgesClosureWithGCIBySource.get(s);
         if (cachedEdges != null) {
-            LOG.trace("Edges retrieved from cache");
             //defensive copying
             return new OWLGraphEdgeSet(cachedEdges);
         }
@@ -790,7 +786,6 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
         walkAncestors.addAll(this.getOutgoingEdgesWithGCI(s));
         OWLGraphEdge iteratedEdge;
         while ((iteratedEdge = walkAncestors.pollFirst()) != null) {
-            LOG.trace("Examining " + iteratedEdge);
             //protect against cycles
             if (visitedEdges.contains(iteratedEdge)) {
                 continue;
@@ -805,15 +800,12 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             for (OWLGraphEdge nextEdge: this.getOutgoingEdgesWithGCI(iteratedEdge.getTarget())) {
                 OWLGraphEdge combine = this.combineEdgePair(iteratedEdge.getSource(), 
                         iteratedEdge, nextEdge, nextDist);
-                LOG.trace("Combine with " + nextEdge);
-                LOG.trace("Resulting edge: " + combine);
                 if (combine == null) {
                     continue;
                 }
                 walkAncestors.addLast(combine);
             }
         }
-        LOG.debug("getOutgoingEdgesClosureWithGCI retrieved: " + edges);
         this.outgoingEdgesClosureWithGCIBySource.put(s, edges);
         return edges;
     }
