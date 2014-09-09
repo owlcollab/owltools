@@ -24,6 +24,8 @@ import owltools.sim2.scores.ElementPairScores;
 
 import com.google.gson.Gson;
 
+import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
+
 /**
  * @author cjm
  *
@@ -274,7 +276,7 @@ public class SimJSONEngine {
 		Map<String,Object> m = new HashMap<String,Object>();
 		m.put("id", g.getIdentifier(obj));
 		m.put("label", g.getLabel(obj));
-		if (obj != null && obj.getClass() == OWLClass.class) {
+		if (obj != null && obj.getClass() == OWLClassImpl.class) {
 			Double ic = sos.getInformationContentForAttribute(g.getOWLClass(obj));
 			if (ic == null) {
 				//LOG.info("Using max(maxIC) for "+g.getIdentifier(obj));
