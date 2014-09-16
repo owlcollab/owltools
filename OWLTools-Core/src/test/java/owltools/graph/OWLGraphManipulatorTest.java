@@ -208,12 +208,6 @@ public class OWLGraphManipulatorTest
                 0, ont.getAxioms(clsJ).size());
         assertEquals("Incorrect axioms generated: " + ont.getAxioms(clsG), 
                 0, ont.getAxioms(clsG).size());
-        
-        //obsolete classes removed
-        assertNull("An obsolete class was not removed", 
-            this.graphManipulator.getOwlGraphWrapper().getOWLClassByIdentifier("FOO:0012"));
-        assertNull("An obsolete class was not removed", 
-            this.graphManipulator.getOwlGraphWrapper().getOWLClassByIdentifier("FOO:0013"));
 	}
 	
     /**
@@ -1134,7 +1128,7 @@ public class OWLGraphManipulatorTest
 		toKeep.add("FOO:0014");
 		
 		Set<String> expectedClassesRemoved = new HashSet<String>(Arrays.asList("FOO:0100", 
-		        "FOO:0009", "FOO:0010", "NCBITaxon:10090", "NCBITaxon:9606"));
+		        "FOO:0016", "FOO:0009", "FOO:0010", "NCBITaxon:10090", "NCBITaxon:9606"));
 		Set<String> classesRemoved = this.graphManipulator.filterSubgraphs(toKeep);
 		
 		//The test ontology is designed so that 7 classes should have been removed

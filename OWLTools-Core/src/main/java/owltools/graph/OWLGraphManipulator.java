@@ -204,8 +204,6 @@ public class OWLGraphManipulator {
      * Also, all imported ontologies are merged into the source ontology, then removed 
      * from the import closure, to be able to modify any relation or any class. 
      * <p>
-     * All obsoleted {@code OWLClass}es are removed.
-     * <p>
      * Methods called are, in order: 
      * <ol>
      *   <li>{@link #mergeImportClosure()}</li>
@@ -213,7 +211,6 @@ public class OWLGraphManipulator {
      *   <li>{@link #convertEquivalentClassesToSuperClasses()}
      *   <li>{@link #splitSubClassAxioms()}
      *   <li>{@link #removeOWLObjectUnionOfs()}
-     *   <li>{@link #removeObsoleteClasses()}
      * </ol>
      * 
      * @throws OWLOntologyCreationException     If an error occurred while merging 
@@ -233,7 +230,6 @@ public class OWLGraphManipulator {
         this.convertEquivalentClassesToSuperClasses();
         this.splitSubClassAxioms();
         this.removeOWLObjectUnionOfs();
-        this.removeObsoleteClasses();
         
         //check that all operations worked properly
         if (log.isEnabledFor(Level.WARN)) {
@@ -565,24 +561,6 @@ public class OWLGraphManipulator {
 
         this.triggerWrapperUpdate();
         log.info("Done removing OWLObjectUnionOfs");
-    }
-    
-    /**
-     * Removes all obsolete {@code OWLClass} from the ontologies.
-     * @return  A {@code Set} containing the {@code OWLClass}es that were removed 
-     *          as a result.
-     */
-    private Set<OWLClass> removeObsoleteClasses() {
-        Set<OWLClass> classesToRemove = new HashSet<OWLClass>();
-        for (OWLOntology ont : this.getOwlGraphWrapper().getAllOntologies()) {
-            for (OWLClass cls: ont.getClassesInSignature()) {
-                if (this.getOwlGraphWrapper().isObsolete(cls) || 
-                        this.getOwlGraphWrapper().getIsObsolete(cls)) {
-                    classesToRemove.add(cls);
-                }
-            }
-        }
-        return this.removeClasses(classesToRemove);
     }
 
 	//*********************************
