@@ -8,11 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.math3.stat.descriptive.moment.Variance;
+import org.apache.commons.math3.stat.inference.TestUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -40,7 +43,7 @@ public class OwlSimVariance {
 	private OWLOntology sourceOntology;
 	private OWLGraphWrapper ontologyGraph;
 	
-	private Map<IRI, Double> referenceMeans;
+	private Map<IRI, DescriptiveStatistics> referenceStats;
 
 	/**
 	 * Assuming owlsim, ontologyGraph and sourceOntology objects already initialized
@@ -51,23 +54,51 @@ public class OwlSimVariance {
 		this.sourceOntology = sourceOntology;
 		this.ontologyGraph = ontologyGraph;
 		
-		referenceMeans = new HashMap<IRI, Double>();
-		computeReferenceMeans();
+		referenceStats = new HashMap<IRI, DescriptiveStatistics>();
+		computeReferenceStats();
 	}
 	
-	private void computeReferenceMeans() throws UnknownOWLClassException {
+	private void computeReferenceStats() throws UnknownOWLClassException {
 		LOG.info("Computing variance for reference entities ...");
 
-		// Compute and cache variance for all possible reference entities / disorders
+		// Compute and cache raw stats for all possible reference entities / disorders
 		for (OWLNamedIndividual reference : sourceOntology.getIndividualsInSignature()) {
-			SummaryStatistics stats = owlsim.computeIndividualStats(reference);
-			referenceMeans.put(reference.getIRI(), stats.getMean());
+			DescriptiveStatistics stats = this.computeDescriptiveStatistics(reference);
+			referenceStats.put(reference.getIRI(), stats);
 		}
 	}
+	
+	private DescriptiveStatistics computeDescriptiveStatistics(OWLNamedIndividual referenceEntity) throws UnknownOWLClassException  {
+		DescriptiveStatistics statsPerAttSet = new DescriptiveStatistics();
+		OWLDataFactory g = sourceOntology.getOWLOntologyManager().getOWLDataFactory();
+		Set<OWLClass> atts = owlsim.getAttributesForElement(referenceEntity);
+
+		for (OWLClass c : atts) {
+			Double ic;
+			try {
+				ic = owlsim.getInformationContentForAttribute(c);
+				if (ic == null) { 
+					if (g.getOWLClass(c.getIRI()) != null) {
+						ic = owlsim.getSummaryStatistics().max.getMax();
+					} else {
+						throw new UnknownOWLClassException(c); }
+				}
+				if (ic.isInfinite() || ic.isNaN()) {
+					ic = owlsim.getSummaryStatistics().max.getMax();
+				}
+				statsPerAttSet.addValue(ic);	
+
+			} catch (UnknownOWLClassException e) {
+				LOG.info("Unknown class "+c.toStringID()+" submitted for summary stats. Removed from calculation.");
+				continue;
+			}
+		}
+		return statsPerAttSet;
+	}	
 
 	public double getVariance(Set<OWLClass> candidates, IRI referenceEntity) throws OwlSimVarianceEntityReferenceNotFoundException {
 		// Reference entity does not exist - this should probably not happen.
-		if (!referenceMeans.containsKey(referenceEntity)) {
+		if (!referenceStats.containsKey(referenceEntity)) {
 			throw new OwlSimVarianceEntityReferenceNotFoundException(referenceEntity);
 		}
 		
@@ -78,14 +109,14 @@ public class OwlSimVariance {
 			icData[i] = icList.get(i).doubleValue();
 		}
 		// Return variance against the given reference concept
-		return new Variance().evaluate(icData, referenceMeans.get(referenceEntity).doubleValue());
+		return new Variance().evaluate(icData, referenceStats.get(referenceEntity).getMean());
 	}
 
 	/**
 	 * This implementation can be heavily optimized
 	 */
 	
-	public Map<String, Double> getTopNVariances(Set<OWLClass> candidates, int topn) {
+	public Map<String, Double> getTopNVariances(Set<OWLClass> candidates, int n) {
 		List<Double> icList = retrieveCandidatesIC(candidates);
 	
 		double[] icData = new double[icList.size()];
@@ -96,8 +127,8 @@ public class OwlSimVariance {
 		// Compute variance against all cached reference entities
 		Map<IRI, Double> iResult = new LinkedHashMap<IRI, Double>();
 		List<Double> list = new ArrayList<Double>();
-		for (IRI reference : referenceMeans.keySet()) {
-			double variance = new Variance().evaluate(icData, referenceMeans.get(reference).doubleValue());
+		for (IRI reference : referenceStats.keySet()) {
+			double variance = new Variance().evaluate(icData, referenceStats.get(reference).getMean());
 			list.add(variance);
 			iResult.put(reference, variance);
 		}
@@ -106,7 +137,7 @@ public class OwlSimVariance {
 		
 		// Return top-N variances
 		
-		int iterSize = topn < list.size() ? topn : list.size();
+		int iterSize = n < list.size() ? n : list.size();
 		Map<String, Double> result = new LinkedHashMap<String, Double>();
 		for (int i = 0 ;i < iterSize ; i++) {
 			double varValue = list.get(i);
@@ -157,5 +188,80 @@ public class OwlSimVariance {
 		}
 		
 		return list;
-	}	
+	}
+	
+	public Map<IRI, Double> getSimplePValueTopN(Set<OWLClass> candidates, int n) throws OwlSimVarianceEntityReferenceNotFoundException {
+		// Create IC list for candidates provided
+		List<Double> icList = this.retrieveCandidatesIC(candidates);
+		double[] icData = new double[icList.size()];
+		for (int i = 0 ;i < icList.size(); i++) {
+			icData[i] = icList.get(i).doubleValue();
+		}
+
+		Map<IRI, Double> pValues = new HashMap<IRI, Double>();
+		List<Double> list = new ArrayList<Double>();
+		for (IRI refEntity : referenceStats.keySet()) {
+			double pValue = TestUtils.tTest(referenceStats.get(refEntity).getMean(), icData);
+			pValues.put(refEntity, pValue);
+			if (!list.contains(pValue)) {
+				list.add(pValue);
+			}
+		}
+		
+		Collections.sort(list);
+		int actualN = n > pValues.size() ? pValues.size() : n;
+		Map<IRI, Double> result = new HashMap<IRI, Double>();
+		
+		int count = 0;
+		for (double pValue : list) {
+			if (count == actualN) {
+				break;
+			}
+			for (IRI refEntity : pValues.keySet()) {
+				if (count == actualN) {
+					break;
+				}
+				
+				if (pValues.get(refEntity).doubleValue() == pValue) {
+					result.put(refEntity, pValue);
+					count++;
+				}
+			}
+		}
+		
+		return result;
+	}
+
+	//Sampling rate in IC values - e.g., 0.05
+	public ICDistribution getICDistribution(Set<OWLClass> candidates, IRI referenceEntity, double samplingRate) throws OwlSimVarianceEntityReferenceNotFoundException {
+		if (!referenceStats.containsKey(referenceEntity)) {
+			throw new OwlSimVarianceEntityReferenceNotFoundException(referenceEntity);
+		}
+
+		// Create IC list for candidates provided
+		List<Double> icList = this.retrieveCandidatesIC(candidates);
+		return new ICDistribution(icList, referenceStats.get(referenceEntity), samplingRate);
+	}
+	
+	public PValue getPValue(Set<OWLClass> candidates, IRI referenceEntity) throws OwlSimVarianceEntityReferenceNotFoundException {
+		if (!referenceStats.containsKey(referenceEntity)) {
+			throw new OwlSimVarianceEntityReferenceNotFoundException(referenceEntity);
+		}
+
+		// Create IC list for candidates provided
+		List<Double> icList = this.retrieveCandidatesIC(candidates);
+		double[] icData = new double[icList.size()];
+		for (int i = 0 ;i < icList.size(); i++) {
+			icData[i] = icList.get(i).doubleValue();
+		}
+
+		List<double[]> sets = new ArrayList<double[]>();
+		sets.add(icData);
+		sets.add(referenceStats.get(referenceEntity).getValues());
+
+		return new PValue(TestUtils.tTest(referenceStats.get(referenceEntity).getMean(), icData),
+				TestUtils.oneWayAnovaPValue(sets), 
+				TestUtils.kolmogorovSmirnovStatistic(icData, referenceStats.get(referenceEntity).getValues()));
+	}
+
 }
