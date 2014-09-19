@@ -15,10 +15,10 @@ public class ICDistribution {
 	private BasicStatistics basicReferenceStatistics;
 	private BasicStatistics basicCandidateStatistics;
 	
-	public ICDistribution(List<Double> icList,
+	public ICDistribution(double[] icData,
 			DescriptiveStatistics referenceStats, double samplingRate) {
 		DescriptiveStatistics candidateStats = new DescriptiveStatistics();
-		for (double d : icList) {
+		for (double d : icData) {
 			candidateStats.addValue(d);
 		}
 		this.samplingRate = samplingRate;
