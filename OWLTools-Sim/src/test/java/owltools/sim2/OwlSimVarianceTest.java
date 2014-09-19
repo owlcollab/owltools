@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
-import owltools.sim2.kb.OwlSimVariance;
+import owltools.sim2.kb.OWLSimReferenceBasedStatistics;
 import owltools.sim2.kb.PValue;
 
 public class OwlSimVarianceTest extends AbstractOWLSimTest {
@@ -40,9 +40,9 @@ public class OwlSimVarianceTest extends AbstractOWLSimTest {
 		} finally {
 			reasoner.dispose();
 		}
-
+		
 		// Source sourceOntol and g are used as background knowledge ... 
-		OwlSimVariance variance = new OwlSimVariance(owlsim, sourceOntol, g);
+		OWLSimReferenceBasedStatistics refBasedStats = new OWLSimReferenceBasedStatistics(owlsim, sourceOntol, g);
 		
 		IRI iri = IRI.create("http://purl.obolibrary.org/obo/MGI_101761");
 		
@@ -52,7 +52,7 @@ public class OwlSimVarianceTest extends AbstractOWLSimTest {
 			testClassesSet.add(this.getOBOClass(testClass));
 		}
 
-		double varValue = variance.getVariance(testClassesSet, iri);
+		double varValue = refBasedStats.getVariance(testClassesSet, iri);
 		LOG.info(varValue);
 
 		testClasses = new String[] {"MP:0000889", "MP:0002739"};
@@ -61,7 +61,7 @@ public class OwlSimVarianceTest extends AbstractOWLSimTest {
 			testClassesSet.add(this.getOBOClass(testClass));
 		}
 
-		varValue = variance.getVariance(testClassesSet, iri);
+		varValue = refBasedStats.getVariance(testClassesSet, iri);
 		LOG.info(varValue);
 
 	}
@@ -89,7 +89,7 @@ public class OwlSimVarianceTest extends AbstractOWLSimTest {
 		}
 
 		// Source sourceOntol and g are used as background knowledge ... 
-		OwlSimVariance variance = new OwlSimVariance(owlsim, sourceOntol, g);
+		OWLSimReferenceBasedStatistics refBasedStats = new OWLSimReferenceBasedStatistics(owlsim, sourceOntol, g);
 		
 		IRI iri = IRI.create("http://purl.obolibrary.org/obo/MGI_101761");
 		
@@ -99,7 +99,7 @@ public class OwlSimVarianceTest extends AbstractOWLSimTest {
 			testClassesSet.add(this.getOBOClass(testClass));
 		}
 
-		PValue pValue = variance.getPValue(testClassesSet, iri);
+		PValue pValue = refBasedStats.getPValue(testClassesSet, iri);
 		LOG.info(pValue.getSimplePValue());
 
 	}
