@@ -60,7 +60,7 @@ public class PropertyExtractorTest extends OWLToolsTestBasics {
 		OWLOntology pont = pe.extractPropertyOntology();
 		
 		
-		pw.saveOWL(pont, new OBOOntologyFormat(), "target/foo.obo", new OWLGraphWrapper(pont));
+		pw.saveOWL(pont, new OBOOntologyFormat(), "target/foo.obo");
 	}
 
 

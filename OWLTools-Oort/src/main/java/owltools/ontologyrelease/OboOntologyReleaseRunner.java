@@ -678,7 +678,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logInfo("expanding macros");
 			if (oortConfig.getMacroStrategy() == MacroStrategy.GCI) {
 				MacroExpansionGCIVisitor gciVisitor = 
-					new MacroExpansionGCIVisitor(mooncat.getOntology());
+					new MacroExpansionGCIVisitor(mooncat.getOntology(), mooncat.getManager());
 				gciOntology = gciVisitor.createGCIOntology();
 				logInfo("GCI Ontology has "+gciOntology.getAxiomCount()+" axioms");
 				gciVisitor.dispose();

@@ -7,20 +7,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
-import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
-import owltools.io.ParserWrapper;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.FrameMergeException;
+import org.obolibrary.oboformat.model.OBODoc;
+import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
+import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphWrapper;
+
 public class TaxonGraphTest extends OWLToolsTestBasics {
 	
-	OWLGraphWrapper gw;
+	OWLGraphWrapper gw = null;
 	
 	@Before
 	public void before() throws Exception {
@@ -30,9 +32,20 @@ public class TaxonGraphTest extends OWLToolsTestBasics {
 		files.add(getResource("ncbi_taxon_slim.obo").getAbsolutePath());
 		files.add(getResource("taxon_union_terms.obo").getAbsolutePath());
 
-		ParserWrapper pw = new ParserWrapper();
-
-		OWLOntology ont = pw.parseOBOFiles(files);
+		OBOFormatParser p = new OBOFormatParser();
+		Obo2Owl obo2Owl = new Obo2Owl();
+		OBODoc merged = null;
+		for(String file : files) {
+			OBODoc oboDoc = p.parse(file);
+			if (merged == null) {
+				merged = oboDoc;
+			}
+			else {
+				merged.mergeContents(oboDoc);
+			}
+		}
+		
+		OWLOntology ont = obo2Owl.convert(merged);
 		gw = new OWLGraphWrapper(ont);
 	}
 	

@@ -37,7 +37,7 @@ public class SpeciesMergeUtilTest extends OWLToolsTestBasics {
 		smu.suffix = "coelocanth";
 		smu.merge();
 		
-		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/speciesMergeOut.obo", graph);
+		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/speciesMergeOut.obo");
 		
 	}
 	
@@ -63,7 +63,7 @@ public class SpeciesMergeUtilTest extends OWLToolsTestBasics {
 		LOG.info("After: "+clsAfter.size());
 		assertEquals(95, clsBefore.size());
 		assertEquals(85, clsAfter.size());
-		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/flyMergeOut.obo", graph);
+		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/flyMergeOut.obo");
 	
 	}
 

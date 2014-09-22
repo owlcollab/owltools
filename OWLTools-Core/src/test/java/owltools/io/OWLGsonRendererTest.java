@@ -62,7 +62,7 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 			System.out.println(stringWriter.toString());
 			ParserWrapper pw = new ParserWrapper();
 			OWLOntologyFormat owlFormat = new OWLJSONFormat();
-			pw.saveOWL(wrapper.getSourceOntology(), owlFormat , "/tmp/foo.json", wrapper);
+			pw.saveOWL(wrapper.getSourceOntology(), owlFormat , "/tmp/foo.json");
 		}
 	}
 

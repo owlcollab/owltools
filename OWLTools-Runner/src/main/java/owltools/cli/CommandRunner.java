@@ -3032,7 +3032,7 @@ public class CommandRunner {
 
 				if (opts.hasArgs()) {
 					String outputFile = opts.nextOpt();
-					pw.saveOWL(g.getSourceOntology(), ofmt, outputFile, g);
+					pw.saveOWL(g.getSourceOntology(), ofmt, outputFile);
 					//pw.saveOWL(g.getSourceOntology(), opts.nextOpt());
 				}
 				else {
@@ -3710,7 +3710,7 @@ public class CommandRunner {
 				pvob.setCreateReflexiveClasses(isCreateReflexiveClasses);
 				OWLOntology avo = pvob.getAssertedViewOntology();
 				if (avFile != null)
-					pw.saveOWL(avo, avFile, g);
+					pw.saveOWL(avo, avFile);
 				if (noReasoner) {
 					pvob.setInferredViewOntology(pvob.getAssertedViewOntology());
 				}
@@ -3721,7 +3721,7 @@ public class CommandRunner {
 				}
 				// save
 				if (outFile != null)
-					pw.saveOWL(pvob.getInferredViewOntology(), outFile, g);
+					pw.saveOWL(pvob.getInferredViewOntology(), outFile);
 				else if (isReplace) {
 					g.setSourceOntology(pvob.getInferredViewOntology());
 				}

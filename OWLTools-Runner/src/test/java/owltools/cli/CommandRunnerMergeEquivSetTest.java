@@ -13,7 +13,6 @@ public class CommandRunnerMergeEquivSetTest extends AbstractCommandRunnerTest {
 	
 	@Test
 	public void testMergeEquivalent() throws Exception {
-		String obo = "http://purl.obolibrary.org/obo";
 		load("merge-equiv-test.obo");
 		
 		run("--reasoner elk");
@@ -25,7 +24,6 @@ public class CommandRunnerMergeEquivSetTest extends AbstractCommandRunnerTest {
 	
 	@Test
 	public void testMergeEquivalentUniqLabel() throws Exception {
-		String obo = "http://purl.obolibrary.org/obo";
 		load("merge-equiv-test.obo");
 		
 		run("--reasoner elk");

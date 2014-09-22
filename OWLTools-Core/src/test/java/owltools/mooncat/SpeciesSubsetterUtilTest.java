@@ -40,8 +40,8 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
 		smu.reasoner = reasoner;
 		smu.removeOtherSpecies();
 		
-		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/speciesSubset.obo", graph);
-		//p.saveOWL(smu.ont,  getResourceIRIString("target/speciesSubset.owl"), graph);
+		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/speciesSubset.obo");
+		//p.saveOWL(smu.ont,  getResourceIRIString("target/speciesSubset.owl"));
 		
 		assertNull(graph.getOWLClassByIdentifier("U:24"));
 	}

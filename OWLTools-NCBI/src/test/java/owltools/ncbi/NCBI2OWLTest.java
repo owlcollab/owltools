@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.junit.Test;
-
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -19,7 +18,6 @@ import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
-
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 
 import owltools.ncbi.NCBIOWL;
@@ -261,10 +259,7 @@ public class NCBI2OWLTest {
 	private String expandSynonym(String subject, String type, 
 			String property, String value) {
 		RDFXMLOntologyFormat format = OWLConverter.format;
-		// TODO: Why is "Annotation" always doubled?
 		return "AnnotationAssertion(Annotation(<" +
-			format.getIRI("oio:hasSynonymType").toString() + "> <" +
-			format.getIRI(type).toString() + ">) Annotation(<" +
 			format.getIRI("oio:hasSynonymType").toString() + "> <" +
 			format.getIRI(type).toString() + ">) <" +
 			format.getIRI(property) + "> <" +
@@ -324,7 +319,8 @@ public class NCBI2OWLTest {
 			List<String> values) {
 		List<String> results = new ArrayList<String>();
 		for (OWLAnnotationAssertionAxiom axiom : axioms) {
-			results.add(axiom.toString());
+			String string = axiom.toString();
+			results.add(string);
 		}
 		assertEquals("Compare sizes", values.size(), results.size());
 		java.util.Collections.sort(values);

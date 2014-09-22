@@ -512,7 +512,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 
 		if (out != null) {
-			pw.saveOWL(ontology,out,g);
+			pw.saveOWL(ontology,out);
 		}
 		if (isAddAsSupport) {
 			g.addSupportOntology(ontology);

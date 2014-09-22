@@ -1,31 +1,24 @@
 package owltools.io;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.obo.parser.OBOOntologyFormat;
-import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.Frame;
-import org.obolibrary.oboformat.model.FrameMergeException;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
-import org.obolibrary.oboformat.parser.OBOFormatParser;
-import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.OBODocNameProvider;
@@ -115,118 +108,23 @@ public class ParserWrapper {
 		}
 	}
 	
-	public OWLGraphWrapper parseToOWLGraph(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
+	public OWLGraphWrapper parseToOWLGraph(String iriString) throws OWLOntologyCreationException, IOException {
 		return new OWLGraphWrapper(parse(iriString));		
 	}
 	
 	@SuppressWarnings("deprecation")
-	public OWLGraphWrapper parseToOWLGraph(String iriString, boolean isMergeImportClosure) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
+	public OWLGraphWrapper parseToOWLGraph(String iriString, boolean isMergeImportClosure) throws OWLOntologyCreationException, IOException {
 		return new OWLGraphWrapper(parse(iriString), isMergeImportClosure);		
 	}
 
-	public OWLOntology parse(String iriString) throws OWLOntologyCreationException, IOException, OBOFormatParserException {
-		if (iriString.endsWith(".obo"))
-			return parseOBO(iriString);
-		if (iriString.endsWith(".owl") || iriString.endsWith(".omn") || iriString.endsWith(".ofn") || iriString.endsWith(".owx") || iriString.endsWith(".rdf") || iriString.endsWith(".ttl") || iriString.endsWith(".n3"))
-			return parseOWL(iriString);
-		if (isOboFile(iriString))
-			return parseOBO(iriString);
+	public OWLOntology parse(String iriString) throws OWLOntologyCreationException, IOException {
 		return parseOWL(iriString);
 	}
 	
-	/**
-	 * Check that the given source is an obo file. Assumes that IRIs are not OBO!
-	 * 
-	 * @param source
-	 * @return boolean
-	 * @throws IOException
-	 * @throws OWLOntologyCreationException
-	 * @throws OBOFormatParserException
-	 */
-	public boolean isOboFile(String source) throws IOException, OWLOntologyCreationException, OBOFormatParserException {
-		if (isIRI(source))
-			return false; // assume anything from web is owl by default
-	    BufferedReader in = 
-	    	new BufferedReader(new InputStreamReader(new FileInputStream(source)));
-	    	//new BufferedReader(new InputStreamReader(url.openStream(), OBOFormatConstants.DEFAULT_CHARACTER_ENCODING));
-	    boolean isOboFile = false;
-	    for (int i=0; i<100; i++) {
-	    	String line = in.readLine();
-	    	if (line != null && line.startsWith("format-version:"))
-	    		isOboFile = true;
-	    }
-	    return isOboFile;
-	}
-		
-	public OWLOntology parseOBO(String source) throws IOException, OWLOntologyCreationException, OBOFormatParserException {
-		OBOFormatParser p = new OBOFormatParser();
-		final String id;
-		if (isIRI(source)) {
-			IRI iri = IRI.create(source);
-			IRI mapped = checkIRIMappers(iri);
-			if (mapped != null) {
-				iri = mapped;
-				LOG.info("Parsing: "+source+" from: "+mapped);
-			}
-			else {
-				LOG.info("Parsing: "+source);
-			}
-			obodoc = p.parse(iri.toURI().toURL());
-			id = source;
-		}
-		else {
-			final File file = new File(source).getCanonicalFile();
-			LOG.info("Parsing from file: "+file.getAbsolutePath());
-			obodoc = p.parse(file);
-			String fileName = file.getName();
-			if (fileName.endsWith(".obo") || fileName.endsWith(".owl")) {
-				fileName = fileName.substring(0, fileName.length() - 4);
-			}
-			id = fileName;
-		}
-		if (obodoc == null) {
-			throw new IOException("Loading of ontology failed: "+source);
-		}
-		/*
-		 * This fixes an exception for ontologies without an declared id. 
-		 * Only by URL encoding the path it is guaranteed that a valid 
-		 * ontology id is generated.
-		 */
-		obodoc.addDefaultOntologyHeader(URLEncoder.encode(id, "UTF-8"));
-
-		Obo2Owl bridge = new Obo2Owl(manager);
-		OWLOntology ontology = bridge.convert(obodoc);
-		return ontology;
+	public OWLOntology parseOBO(String source) throws IOException, OWLOntologyCreationException {
+		return parseOWL(source);
 	}
 	
-	private IRI checkIRIMappers(final IRI iri) {
-		for(OWLOntologyIRIMapper mapper : mappers) {
-			IRI mapped = mapper.getDocumentIRI(iri);
-			if (mapped != null) {
-				return mapped;
-			}
-		}
-		return null;
-	}
-
-	public OWLOntology parseOBOFiles(List<String> files) throws IOException, OWLOntologyCreationException, OBOFormatParserException, FrameMergeException {
-		OBOFormatParser p = new OBOFormatParser();
-		OBODoc obodoc = null;
-		for (String f : files) {
-			LOG.info("Parsing file " +f);
-			if (obodoc == null)
-				obodoc = p.parse(f);
-			else {
-				OBODoc obodoc2 = p.parse(f);
-				obodoc.mergeContents(obodoc2);
-			}
-		}
-
-		Obo2Owl bridge = new Obo2Owl();
-		OWLOntology ontology = bridge.convert(obodoc);
-		return ontology;		
-	}
-
 	public OWLOntology parseOWL(String iriString) throws OWLOntologyCreationException {
 		IRI iri;
 		if (LOG.isDebugEnabled()) {
@@ -284,15 +182,15 @@ public class ParserWrapper {
 		return ont;
 	}
 
-	public void saveOWL(OWLOntology ont, String file, OWLGraphWrapper graph) throws OWLOntologyStorageException {
+	public void saveOWL(OWLOntology ont, String file) throws OWLOntologyStorageException {
 		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
-		saveOWL(ont, owlFormat, file, graph);
+		saveOWL(ont, owlFormat, file);
 	}
-	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file, OWLGraphWrapper graph) throws OWLOntologyStorageException {
+	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file) throws OWLOntologyStorageException {
 		if ((owlFormat instanceof OBOOntologyFormat) || (owlFormat instanceof OWLJSONFormat)) {
 			try {
 				FileOutputStream os = new FileOutputStream(new File(file));
-				saveOWL(ont, owlFormat, os, graph);
+				saveOWL(ont, owlFormat, os);
 			} catch (FileNotFoundException e) {
 				throw new OWLOntologyStorageException("Could not open file: "+file, e);
 			}
@@ -309,8 +207,11 @@ public class ParserWrapper {
 		}
 	}
 	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat,
-			OutputStream outputStream, OWLGraphWrapper graph) throws OWLOntologyStorageException {
-		if (owlFormat instanceof OBOOntologyFormat) {
+			OutputStream outputStream) throws OWLOntologyStorageException {
+		if (owlFormat instanceof OBOOntologyFormat && this.isCheckOboDoc == false) {
+			// special work-around for skipping the OBO validation before write
+			// see also OWL-API issue: https://github.com/owlcs/owlapi/issues/290
+			// see also saveOWL(OWLOntology, OWLOntologyFormat, String) for redundant code
 			Owl2Obo bridge = new Owl2Obo();
 			OBODoc doc;
 			BufferedWriter bw = null;
@@ -319,26 +220,12 @@ public class ParserWrapper {
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
 				oboWriter.setCheckStructure(isCheckOboDoc); 
 				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
-				if (graph != null) {
-					oboWriter.write(doc, bw, new OboAndOwlNameProvider(doc, graph));
-				}
-				else {
-					oboWriter.write(doc, bw);
-				}
-				
-			} catch (OWLOntologyCreationException e) {
-				throw new OWLOntologyStorageException("Could not create temporary OBO ontology.", e);
+				oboWriter.write(doc, bw);
 			} catch (IOException e) {
 				throw new OWLOntologyStorageException("Could not write ontology to output stream.", e);
 			}
 			finally {
-				if (bw != null) {
-					try {
-						bw.close();
-					} catch (IOException e) {
-						LOG.warn("Could not close writer.", e);
-					}
-				}
+				IOUtils.closeQuietly(bw);
 			}
 		}
 		else if (owlFormat instanceof OWLJSONFormat) {
@@ -351,13 +238,7 @@ public class ParserWrapper {
 				gr.flush();
 			}
 			finally {
-				if (bw != null) {
-					try {
-						bw.close();
-					} catch (IOException e) {
-						LOG.warn("Could not close writer.", e);
-					}
-				}
+				IOUtils.closeQuietly(bw);
 			}
 		}
 		else {

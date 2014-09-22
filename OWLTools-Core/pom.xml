@@ -70,7 +70,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bbop</groupId>
-			<artifactId>oboformat</artifactId>
+			<artifactId>oboformat-tools</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.ebi.interpro</groupId>

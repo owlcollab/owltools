@@ -68,7 +68,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bbop</groupId>
-			<artifactId>oboformat</artifactId>
+			<artifactId>oboformat-tools</artifactId>
 		</dependency>
 	</dependencies>
 </project>

@@ -77,10 +77,16 @@ public class ManchesterSyntaxTool {
 			if (name.length() < 2) {
 				return null;
 			}
-			name = trimQuotes(name);
-			OWLObject owlObject = graph.getOWLObjectByIdentifier(name);
-			if (owlObject == null) {
+			OWLObject owlObject;
+			if (name.charAt(0) == '\'') {
+				name = trimQuotes(name);
 				owlObject = graph.getOWLObjectByLabel(name);
+			}
+			else {
+				owlObject = graph.getOWLObjectByIdentifier(name);
+				if (owlObject == null) {
+					owlObject = graph.getOWLObjectByLabel(name);
+				}
 			}
 			if (owlObject != null) {
 				if (owlObject instanceof OWLClass) {

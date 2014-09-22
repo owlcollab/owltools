@@ -42,11 +42,10 @@ public class RestrictToELTest extends OWLToolsTestBasics {
 	@Test
 	public void testRetainOntologyId() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
-		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("simple-deprecated.owl"));
-		String ontologyId = "fribble";
-		assertEquals(ontologyId, g.getOntologyId());
+		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("pizza-2007-02-12.owl"));
+		assertEquals("http://www.co-ode.org/ontologies/pizza/pizza.owl", g.getOntologyId());
 		OWLGraphWrapper gEL = InferenceBuilder.enforceEL(g);
-		assertEquals(ontologyId+"-el", gEL.getOntologyId());
+		assertEquals("http://www.co-ode.org/ontologies/pizza/pizza-el.owl", gEL.getOntologyId());
 	}
 	
 	/**

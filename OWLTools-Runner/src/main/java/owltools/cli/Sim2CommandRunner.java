@@ -188,7 +188,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	public void saveSim(Opts opts) throws Exception {
 		opts.info("FILE",
 				"saves similarity results as an OWL ontology. Use after --sim or --sim-all");
-		pw.saveOWL(simOnt, opts.nextOpt(), g);
+		pw.saveOWL(simOnt, opts.nextOpt());
 	}
 
 	@CLIMethod("--merge-sim")

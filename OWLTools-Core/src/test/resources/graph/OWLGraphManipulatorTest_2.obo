@@ -38,6 +38,7 @@ is_a: overlaps ! overlaps
 id: in_deep_part_of
 name: in_deep_part_of
 namespace: uberon
+xref: FOO:0000001
 is_a: part_of ! part of
 
 [Typedef]
