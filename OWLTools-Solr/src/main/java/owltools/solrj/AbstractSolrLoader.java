@@ -148,6 +148,7 @@ public abstract class AbstractSolrLoader {
 			server.commit();
 			LOG.info("docs committed");
 		}
+		docs.clear();
 	}
 
 	protected void incrementalAddAndCommit() throws SolrServerException, IOException {
