@@ -1,11 +1,12 @@
 package owltools.gaf.parser;
 
+import gnu.trove.map.hash.THashMap;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -129,7 +130,7 @@ public class GpadGpiObjectsBuilder {
 	}
 	
 	private Map<String, Bioentity> loadBioentities(GpiParser parser, BioentityDocument document) throws IOException {
-		Map<String, Bioentity> entities = new HashMap<String, Bioentity>();
+		Map<String, Bioentity> entities = new THashMap<String, Bioentity>();
 		
 		while(parser.next()) {
 			// by default load everything

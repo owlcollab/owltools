@@ -569,7 +569,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// We should already have added the reasoner elsewhere on the commandline,
 		// So there should be real no extra overhead here.
 		EcoTools eco = new EcoTools(g, g.getReasoner(), true);
-		TaxonTools taxo = new TaxonTools(g, g.getReasoner(), true);
+		TaxonTools taxo = new TaxonTools(g.getReasoner(), true);
 		
 		List<String> files = opts.nextList();
 		for (String file : files) {

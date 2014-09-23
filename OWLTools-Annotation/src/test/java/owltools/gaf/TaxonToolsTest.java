@@ -23,7 +23,7 @@ import owltools.io.ParserWrapper;
 public class TaxonToolsTest extends OWLToolsTestBasics{
 
 	private static OWLGraphWrapper g;
-	private static OWLReasoner r;
+	private static OWLReasoner r = null;
 
 	@BeforeClass
 	public static void beforeClass() throws Exception {
@@ -32,7 +32,7 @@ public class TaxonToolsTest extends OWLToolsTestBasics{
 		ParserWrapper pw = new ParserWrapper();
 
 		//NOTE: Yes, the GO here is unnecessary, but we're trying to also catch a certain behavior
-		// where auxilery ontologies are not caught. The best wat to do that here is to load taxslim
+		// where auxiliary ontologies are not caught. The best way to do that here is to load taxslim
 		// second and then do the merge.
 		OWLOntology ont_main = pw.parse(getResourceIRIString("go_xp_predictor_test_subset.obo"));
 		OWLOntology ont_scnd = pw.parse(getResourceIRIString("taxslim.obo"));
@@ -51,11 +51,8 @@ public class TaxonToolsTest extends OWLToolsTestBasics{
 	
 	@AfterClass
 	public static void afterClass() throws Exception {
-		if (g != null) {
-			OWLReasoner reasoner = g.getReasoner();
-			if (reasoner != null) {
-				reasoner.dispose();
-			}
+		if (r != null) {
+			r.dispose();
 		}
 	}
 
@@ -78,7 +75,7 @@ public class TaxonToolsTest extends OWLToolsTestBasics{
 		///
 
 		// Create TaxonTools instance.
-		TaxonTools taxo = new TaxonTools(g, g.getReasoner(), true);
+		TaxonTools taxo = new TaxonTools(g.getReasoner(), true);
 		
 		// Taxon closure.
 		OWLClass taxonClass = g.getOWLClassByIdentifier("NCBITaxon:33511");

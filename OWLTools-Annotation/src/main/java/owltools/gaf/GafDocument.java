@@ -1,9 +1,10 @@
 package owltools.gaf;
 
+import gnu.trove.map.hash.THashMap;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class GafDocument{
 	 * @param documentPath
 	 */
 	public GafDocument(String id, String documentPath) {
-		this(id, documentPath, new HashMap<String, Bioentity>());
+		this(id, documentPath, new THashMap<String, Bioentity>());
 	}
 	
 	/**
@@ -123,7 +124,7 @@ public class GafDocument{
 	 * @see #getGeneAnnotations(String)
 	 */
 	public void index() {
-		annotationMap = new HashMap<String, List<GeneAnnotation>>();
+		annotationMap = new THashMap<String, List<GeneAnnotation>>();
 		for (GeneAnnotation a : getGeneAnnotations()) {
 			String eid = a.getBioentity();
 			List<GeneAnnotation> entities = annotationMap.get(eid);

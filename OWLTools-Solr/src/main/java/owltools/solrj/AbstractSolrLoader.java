@@ -64,9 +64,9 @@ public abstract class AbstractSolrLoader {
 	 * @param d
 	 * @param field
 	 * @param val
-	 * @return
+	 * @return true, if value was added to document
 	 */
-	public Boolean addFieldUnique(SolrInputDocument d, String field, String val) {
+	public boolean addFieldUnique(SolrInputDocument d, String field, String val) {
 		if (val == null)
 			return false;
 		Collection<Object> vals = d.getFieldValues(field);
@@ -82,7 +82,7 @@ public abstract class AbstractSolrLoader {
 	 * @param d
 	 * @param field
 	 * @param id
-	 * @return
+	 * @return label or null
 	 */
 	public String addLabelField(SolrInputDocument d, String field, String id) {
 		String retstr = null;
@@ -104,7 +104,7 @@ public abstract class AbstractSolrLoader {
 	 * @param d
 	 * @param field
 	 * @param ids
-	 * @return
+	 * @return labels
 	 */
 	public List<String> addLabelFields(SolrInputDocument d, String field, List<String> ids) {
 
@@ -143,9 +143,7 @@ public abstract class AbstractSolrLoader {
 			LOG.warn("Odd: apparently no documents to add?");
 		}else{
 			LOG.info("adding all docs...");
-			server.add(docs);
-			LOG.info("committing docs...");
-			server.commit();
+			addToServer(docs);
 			LOG.info("docs committed");
 		}
 		docs.clear();
@@ -155,13 +153,13 @@ public abstract class AbstractSolrLoader {
 		if( docs.isEmpty() ){
 			LOG.warn("Odd: apparently no documents to add?");
 		}else{
-			//LOG.info("adding some docs...");
-			server.add(docs);
-			//LOG.info("committing some docs...");
-			server.commit();
-			//LOG.info("some docs committed");
+			addToServer(docs);
 		}
 		docs.clear();
-		//LOG.info("added, committed, and purged some docs");
+	}
+
+	protected void addToServer(Collection<SolrInputDocument> docs) throws SolrServerException, IOException {
+		server.add(docs);
+		server.commit();
 	}
 }

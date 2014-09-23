@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -35,6 +36,7 @@ import owltools.panther.PANTHERTree;
  * This method is very non-generic and GO-specific, and does not use the YAML configuration files to make
  * things easy for mirroring a BBOP-JS constrained SOlr index.
  */
+@SuppressWarnings("deprecation")
 public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(GafSolrDocumentLoader.class);
@@ -46,11 +48,21 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	GafDocument gafDocument;
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
 	//int doc_limit_trigger = 1; // the number of documents to add before pushing out to solr
-	int current_doc_number;
+	int current_doc_number = 0;
 	
 	public GafSolrDocumentLoader(String url) throws MalformedURLException {
 		super(url);
-		current_doc_number = 0;
+	}
+	
+	/**
+	 * Use for test purposes.
+	 * 
+	 * @param server
+	 * @param triggerLimit
+	 */
+	protected GafSolrDocumentLoader(SolrServer server, int triggerLimit) {
+		super(server);
+		this.doc_limit_trigger = triggerLimit;
 	}
 
 	public GafDocument getGafDocument() {
@@ -346,70 +358,70 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 						  			               cls, graph, annotation_doc, bioentity_doc);
 				reg_map.putAll(curr_reg_map); // add to aggregate map
 				
-				///
-				/// Next, work on the evidence aggregate...
-				///
-				
-				// Bug/TODO: This is a bit os a slowdown since we're not reusing our work from above here anymore.
-				List<String> idIsapClosure = graph.getRelationIDClosure(cls, isap);
-				Map<String, String> isaPartofMap = graph.getRelationClosureMap(cls, isap);
-
-				// When we cycle, we'll also want to do some stuff to track all of the evidence codes we see.
-				List<String> aggEvIDClosure = new ArrayList<String>();
-				List<String> aggEvWiths = new ArrayList<String>();
-
-				// Cycle through and pick up all the associated bits for the terms in the closure.
-				SolrInputDocument ev_agg_doc = null;
-				for( String tid : idIsapClosure ){
-	
-					String tlabel = isaPartofMap.get(tid);				
-					//OWLObject c = graph.getOWLObjectByIdentifier(tid);
-	
-					// Only have to do the annotation evidence aggregate base once.
-					// Otherwise, just skip over and add the multi fields separately.
-					String evAggId = eid + "_:ev:_" + clsId;
-					if (evAggDocMap.containsKey(evAggId)) {
-						ev_agg_doc = evAggDocMap.get(evAggId);	
-					} else {
-						ev_agg_doc = new SolrInputDocument();
-						evAggDocMap.put(evAggId, ev_agg_doc);
-						ev_agg_doc.addField("id", evAggId);
-						ev_agg_doc.addField("document_category", "annotation_evidence_aggregate");
-						ev_agg_doc.addField("bioentity", eid);
-						ev_agg_doc.addField("bioentity_label", esym);
-						ev_agg_doc.addField("annotation_class", tid);
-						ev_agg_doc.addField("annotation_class_label", tlabel);
-						ev_agg_doc.addField("taxon", etaxid);
-						addLabelField(ev_agg_doc, "taxon_label", etaxid);
-
-						// Optionally, if there is enough taxon for a map, add the collections to the document.
-						if( jsonized_taxon_map != null ){
-							ev_agg_doc.addField("taxon_closure", taxIDClosure);
-							ev_agg_doc.addField("taxon_closure_label", taxLabelClosure);
-							ev_agg_doc.addField("taxon_closure_map", jsonized_taxon_map);
-						}
-
-						// Optionally, actually /add/ the PANTHER family data to the document.
-						if( ! pantherFamilyIDs.isEmpty() ){
-							ev_agg_doc.addField("panther_family", pantherFamilyIDs.get(0));			
-							ev_agg_doc.addField("panther_family_label", pantherFamilyLabels.get(0));
-						}
-					}
-	
-					// Drag in "with" (col 8), this time for ev_agg.
-					for (String wi : a.getWithInfos()) {
-						aggEvWiths.add(wi);
-					}
-	
-					// Make note for the evidence type closure.
-					aggEvIDClosure.add(a.getShortEvidence());					
-				}
-
-				// If there was actually a doc created/there, add the cumulative fields to it.
-				if( ev_agg_doc != null ){
-					addLabelFields(ev_agg_doc, "evidence_type_closure", aggEvIDClosure);
-					addLabelFields(ev_agg_doc, "evidence_with", aggEvWiths);
-				}
+//				///
+//				/// Next, work on the evidence aggregate...
+//				///
+//				
+//				// Bug/TODO: This is a bit os a slowdown since we're not reusing our work from above here anymore.
+//				List<String> idIsapClosure = graph.getRelationIDClosure(cls, isap);
+//				Map<String, String> isaPartofMap = graph.getRelationClosureMap(cls, isap);
+//
+//				// When we cycle, we'll also want to do some stuff to track all of the evidence codes we see.
+//				List<String> aggEvIDClosure = new ArrayList<String>();
+//				List<String> aggEvWiths = new ArrayList<String>();
+//
+//				// Cycle through and pick up all the associated bits for the terms in the closure.
+//				SolrInputDocument ev_agg_doc = null;
+//				for( String tid : idIsapClosure ){
+//	
+//					String tlabel = isaPartofMap.get(tid);				
+//					//OWLObject c = graph.getOWLObjectByIdentifier(tid);
+//	
+//					// Only have to do the annotation evidence aggregate base once.
+//					// Otherwise, just skip over and add the multi fields separately.
+//					String evAggId = eid + "_:ev:_" + clsId;
+//					if (evAggDocMap.containsKey(evAggId)) {
+//						ev_agg_doc = evAggDocMap.get(evAggId);	
+//					} else {
+//						ev_agg_doc = new SolrInputDocument();
+//						evAggDocMap.put(evAggId, ev_agg_doc);
+//						ev_agg_doc.addField("id", evAggId);
+//						ev_agg_doc.addField("document_category", "annotation_evidence_aggregate");
+//						ev_agg_doc.addField("bioentity", eid);
+//						ev_agg_doc.addField("bioentity_label", esym);
+//						ev_agg_doc.addField("annotation_class", tid);
+//						ev_agg_doc.addField("annotation_class_label", tlabel);
+//						ev_agg_doc.addField("taxon", etaxid);
+//						addLabelField(ev_agg_doc, "taxon_label", etaxid);
+//
+//						// Optionally, if there is enough taxon for a map, add the collections to the document.
+//						if( jsonized_taxon_map != null ){
+//							ev_agg_doc.addField("taxon_closure", taxIDClosure);
+//							ev_agg_doc.addField("taxon_closure_label", taxLabelClosure);
+//							ev_agg_doc.addField("taxon_closure_map", jsonized_taxon_map);
+//						}
+//
+//						// Optionally, actually /add/ the PANTHER family data to the document.
+//						if( ! pantherFamilyIDs.isEmpty() ){
+//							ev_agg_doc.addField("panther_family", pantherFamilyIDs.get(0));			
+//							ev_agg_doc.addField("panther_family_label", pantherFamilyLabels.get(0));
+//						}
+//					}
+//	
+//					// Drag in "with" (col 8), this time for ev_agg.
+//					for (String wi : a.getWithInfos()) {
+//						aggEvWiths.add(wi);
+//					}
+//	
+//					// Make note for the evidence type closure.
+//					aggEvIDClosure.add(a.getShortEvidence());					
+//				}
+//
+//				// If there was actually a doc created/there, add the cumulative fields to it.
+//				if( ev_agg_doc != null ){
+//					addLabelFields(ev_agg_doc, "evidence_type_closure", aggEvIDClosure);
+//					addLabelFields(ev_agg_doc, "evidence_with", aggEvWiths);
+//				}
 			}
 
 			// Let's piggyback on a little of the work above and cache the extra stuff that we'll be adding to the bioenity at the end
