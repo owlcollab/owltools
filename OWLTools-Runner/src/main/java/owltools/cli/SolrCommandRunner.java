@@ -47,6 +47,7 @@ import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
 import owltools.gaf.TaxonTools;
 import owltools.gaf.parser.GafObjectsBuilder;
+import owltools.gaf.parser.ParserListener;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.RelationSets;
 import owltools.graph.shunt.OWLShuntEdge;
@@ -563,6 +564,39 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-load-gafs")
 	public void loadGAFsSolr(Opts opts) throws Exception {
+		ParserListener lineCountReporter = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--report-line-count")) {
+				lineCountReporter = new ParserListener() {
+
+					@Override
+					public boolean reportWarnings() {
+						return false;
+					}
+
+					@Override
+					public void parsing(String line, int lineNumber) {
+						if (lineNumber % 100000 == 0) {
+							LOG.info("Parsing line count: "+lineNumber);
+						}
+					}
+
+					@Override
+					public void parserWarning(String message, String line, int lineNumber) {
+						// do nothing
+					}
+
+					@Override
+					public void parserError(String errorMessage, String line, int lineNumber) {
+						// do nothing
+					}
+				};
+			}
+			else
+				break;
+
+		}
+		
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 		
@@ -575,6 +609,9 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		for (String file : files) {
 			LOG.info("Parsing GAF: [" + file + "]");
 			GafObjectsBuilder builder = new GafObjectsBuilder();
+			if (lineCountReporter != null) {
+				builder.getParser().addParserListener(lineCountReporter);
+			}
 			gafdoc = builder.buildDocument(file);
 			loadGAFDoc(url, gafdoc, eco, taxo, pSet);
 			
