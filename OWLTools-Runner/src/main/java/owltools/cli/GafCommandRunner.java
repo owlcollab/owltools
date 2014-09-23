@@ -142,11 +142,15 @@ public class GafCommandRunner extends CommandRunner {
 		final String input = opts.nextOpt();
 		boolean createReport = false;
 		boolean noIEA = false;
+		int reportLineCounts = -1;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--createReport"))
 				createReport = true;
 			else if (opts.nextEq("--no-iea")) {
 				noIEA = true;
+			}
+			else if (opts.nextEq("--report-line-count")) {
+				reportLineCounts = 100000;
 			}
 			else
 				break;
@@ -194,6 +198,33 @@ public class GafCommandRunner extends CommandRunner {
 						return false;
 					}
 					return true;
+				}
+			});
+		}
+		if (reportLineCounts > 0) {
+			final int finalReportLineCounts = reportLineCounts;
+			builder.getParser().addParserListener(new ParserListener() {
+
+				@Override
+				public boolean reportWarnings() {
+					return false;
+				}
+
+				@Override
+				public void parsing(String line, int lineNumber) {
+					if (lineNumber % finalReportLineCounts == 0) {
+						LOG.info("Parsing line count: "+lineNumber);
+					}
+				}
+
+				@Override
+				public void parserWarning(String message, String line, int lineNumber) {
+					// do nothing
+				}
+
+				@Override
+				public void parserError(String errorMessage, String line, int lineNumber) {
+					// do nothing
 				}
 			});
 		}
