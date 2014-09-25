@@ -3,12 +3,15 @@ package owltools;
 import gnu.trove.set.hash.THashSet;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -16,6 +19,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import owltools.graph.AxiomAnnotationTools;
 
 public class RedundantInferences {
+	
+	private static final Logger LOG = Logger.getLogger(RedundantInferences.class);
 	
 	private RedundantInferences() {
 		// no instances allowed
@@ -31,6 +36,7 @@ public class RedundantInferences {
 	 * @return map of class to set of redundant axioms
 	 */
 	public static Map<OWLClass, Set<OWLSubClassOfAxiom>> findRedundantSubClassAxioms(Iterable<OWLClass> classes, OWLOntology ontology, OWLReasoner reasoner) {
+		int redundantAxiomsCounter = 0;
 		Map<OWLClass, Set<OWLSubClassOfAxiom>> allRedundantAxioms = new HashMap<OWLClass, Set<OWLSubClassOfAxiom>>();
 		for (final OWLClass cls : classes) {
 			Set<OWLSubClassOfAxiom> redundantAxioms = new THashSet<OWLSubClassOfAxiom>();
@@ -58,8 +64,13 @@ public class RedundantInferences {
 			// only add cls, if there is a redundant axiom
 			if (!redundantAxioms.isEmpty()) {
 				allRedundantAxioms.put(cls, redundantAxioms);
+				redundantAxiomsCounter += redundantAxioms.size();
 			}
 		}
+		if (redundantAxiomsCounter > 0) {
+			LOG.info("Found "+redundantAxiomsCounter+ " redundant axioms for "+allRedundantAxioms.size()+" classes.");	
+		}
+		
 		return allRedundantAxioms;
 	}
 	
@@ -81,7 +92,8 @@ public class RedundantInferences {
 				allAxioms.addAll(axioms.get(cls));
 			}
 			OWLOntologyManager manager = ontology.getOWLOntologyManager();
-			manager.removeAxioms(ontology, allAxioms);
+			List<OWLOntologyChange> changes = manager.removeAxioms(ontology, allAxioms);
+			LOG.info("Removed "+changes.size()+" redundant axioms.");
 		}
 		return axioms;
 		

@@ -131,6 +131,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.InferenceBuilder.OWLClassFilter;
+import owltools.RedundantInferences;
 import owltools.cli.tools.CLIMethod;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
@@ -4391,6 +4392,67 @@ public class CommandRunner {
 		else {
 			// assume owl
 			manager.saveOntology(outputOntology, targetFileIRI);
+		}
+	}
+	
+	@CLIMethod("--remove-redundant-inferred-super-classes")
+	public void removeRedundantInferredSuperClassAxioms(Opts opts) throws Exception {
+		String reportFile = null;
+		if (g == null) {
+			LOG.error("No current ontology loaded");
+			exit(-1);
+		}
+		if (reasoner == null) {
+			LOG.error("No reasoner available for the current ontology");
+			exit(-1);
+		}
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--report-file")) {
+				reportFile = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		LOG.info("Start finding and removing redundant and previously inferred super classes");
+		Map<OWLClass, Set<OWLSubClassOfAxiom>> allRedundantAxioms = RedundantInferences.removeRedundantSubClassAxioms(g.getSourceOntology(), reasoner);
+		
+		if (reportFile == null) {
+			LOG.warn("No report file available, skipping report.");
+		}
+		else {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(reportFile));
+			try {
+			List<OWLClass> sortedClasses = new ArrayList<OWLClass>(allRedundantAxioms.keySet());
+			Collections.sort(sortedClasses);
+			for (OWLClass cls : sortedClasses) {
+				Set<OWLSubClassOfAxiom> axioms = allRedundantAxioms.get(cls);
+				List<OWLClass> superClasses = new ArrayList<OWLClass>(axioms.size());
+				for(OWLSubClassOfAxiom axiom : axioms) {
+					OWLClass superClass = axiom.getSuperClass().asOWLClass();
+					superClasses.add(superClass);
+				}
+				Collections.sort(superClasses);
+				for (OWLClass superClass : superClasses) {
+					String subClassId = g.getIdentifier(cls);
+					String subClassLabel = g.getLabel(cls);
+					String superClassId = g.getIdentifier(superClass);
+					String superClassLabel = g.getLabel(superClass);
+					writer.append("REMOVE").append('\t').append(subClassId).append('\t');
+					if (subClassLabel != null) {
+						writer.append(subClassLabel);
+					}
+					writer.append('\t').append(superClassId).append('\t');
+					if (superClassLabel != null) {
+						writer.append(superClassLabel);
+					}
+					writer.append('\n');
+				}
+			}
+			}
+			finally {
+				IOUtils.closeQuietly(writer);
+			}
 		}
 	}
 	
