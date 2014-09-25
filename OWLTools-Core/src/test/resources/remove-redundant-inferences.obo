@@ -1,0 +1,18 @@
+format-version: 1.2
+ontology: foo
+
+[Term]
+id: FOO:0001
+
+[Term]
+id: FOO:0002
+is_a: FOO:0001
+
+[Term]
+id: FOO:0003
+is_a: FOO:0002
+
+[Term]
+id: FOO:0004
+is_a: FOO:0003 {is_inferred="true"}
+is_a: FOO:0002 {is_inferred="true"}
