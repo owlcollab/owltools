@@ -131,6 +131,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.InferenceBuilder.OWLClassFilter;
+import owltools.RedundantInferences.RedundantAxiom;
 import owltools.RedundantInferences;
 import owltools.cli.tools.CLIMethod;
 import owltools.gfx.GraphicsConfig;
@@ -4415,7 +4416,7 @@ public class CommandRunner {
 			}
 		}
 		LOG.info("Start finding and removing redundant and previously inferred super classes");
-		Map<OWLClass, Set<OWLSubClassOfAxiom>> allRedundantAxioms = RedundantInferences.removeRedundantSubClassAxioms(g.getSourceOntology(), reasoner);
+		Map<OWLClass, Set<RedundantAxiom>> allRedundantAxioms = RedundantInferences.removeRedundantSubClassAxioms(g.getSourceOntology(), reasoner);
 		
 		if (reportFile == null) {
 			LOG.warn("No report file available, skipping report.");
@@ -4426,11 +4427,14 @@ public class CommandRunner {
 			List<OWLClass> sortedClasses = new ArrayList<OWLClass>(allRedundantAxioms.keySet());
 			Collections.sort(sortedClasses);
 			for (OWLClass cls : sortedClasses) {
-				Set<OWLSubClassOfAxiom> axioms = allRedundantAxioms.get(cls);
-				List<OWLClass> superClasses = new ArrayList<OWLClass>(axioms.size());
-				for(OWLSubClassOfAxiom axiom : axioms) {
+				Set<RedundantAxiom> redundants = allRedundantAxioms.get(cls);
+				List<OWLClass> superClasses = new ArrayList<OWLClass>(redundants.size());
+				Map<OWLClass, Set<OWLClass>> intermediateClasses = new HashMap<OWLClass, Set<OWLClass>>();
+				for(RedundantAxiom redundant : redundants) {
+					OWLSubClassOfAxiom axiom = redundant.getAxiom();
 					OWLClass superClass = axiom.getSuperClass().asOWLClass();
 					superClasses.add(superClass);
+					intermediateClasses.put(superClass, redundant.getMoreSpecific());
 				}
 				Collections.sort(superClasses);
 				for (OWLClass superClass : superClasses) {
@@ -4440,11 +4444,20 @@ public class CommandRunner {
 					String superClassLabel = g.getLabel(superClass);
 					writer.append("REMOVE").append('\t').append(subClassId).append('\t');
 					if (subClassLabel != null) {
-						writer.append(subClassLabel);
+						writer.append('\'').append(subClassLabel).append('\'');
 					}
 					writer.append('\t').append(superClassId).append('\t');
 					if (superClassLabel != null) {
-						writer.append(superClassLabel);
+						writer.append('\'').append(superClassLabel).append('\'');
+					}
+					writer.append('\t').append("MORE SPECIFIC: ");
+					for(OWLClass moreSpecific : intermediateClasses.get(superClass)) {
+						String moreSpecificId = g.getIdentifier(moreSpecific);
+						String moreSpecificLabel = g.getLabel(moreSpecific);
+						writer.append('\t').append(moreSpecificId).append('\t');
+						if (moreSpecificLabel != null) {
+							writer.append('\'').append(moreSpecificLabel).append('\'');
+						}
 					}
 					writer.append('\n');
 				}

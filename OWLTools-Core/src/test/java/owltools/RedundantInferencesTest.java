@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import owltools.RedundantInferences.RedundantAxiom;
 import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
@@ -40,20 +41,25 @@ public class RedundantInferencesTest extends OWLToolsTestBasics {
 
 	@Test
 	public void test() throws Exception {
-		Map<OWLClass, Set<OWLSubClassOfAxiom>> redundantAxiomMap = RedundantInferences.removeRedundantSubClassAxioms(graph.getSourceOntology(), reasoner);
+		Map<OWLClass, Set<RedundantAxiom>> redundantAxiomMap = RedundantInferences.removeRedundantSubClassAxioms(graph.getSourceOntology(), reasoner);
 		assertNotNull(redundantAxiomMap);
 		assertEquals(1, redundantAxiomMap.size());
 		
 		OWLClass test1Sub = graph.getOWLClassByIdentifier("FOO:0004");
 		OWLClass test1Super = graph.getOWLClassByIdentifier("FOO:0002");
-		Set<OWLSubClassOfAxiom> redundantAxioms = redundantAxiomMap.get(test1Sub);
+		Set<RedundantAxiom> redundantAxioms = redundantAxiomMap.get(test1Sub);
 		assertEquals(1, redundantAxioms.size());
-		for (OWLSubClassOfAxiom owlAxiom : redundantAxioms) {
-			assertTrue(AxiomAnnotationTools.isMarkedAsInferredAxiom(owlAxiom));
-			assertEquals(test1Super, owlAxiom.getSuperClass());
-		}
-		
-		graph.getManager().saveOntology(graph.getSourceOntology(), System.err);
+		RedundantAxiom redundantAxiom = redundantAxioms.iterator().next();
+		OWLSubClassOfAxiom owlAxiom = redundantAxiom.getAxiom();
+		assertTrue(AxiomAnnotationTools.isMarkedAsInferredAxiom(owlAxiom));
+		assertEquals(test1Super, owlAxiom.getSuperClass());
+		Set<OWLClass> moreSpecific = redundantAxiom.getMoreSpecific();
+		assertEquals(1, moreSpecific.size());
+		OWLClass moreSpecificClass = moreSpecific.iterator().next();
+		assertEquals(graph.getOWLClassByIdentifier("FOO:0003"), moreSpecificClass);
+
+
+//		graph.getManager().saveOntology(graph.getSourceOntology(), System.err);
 	}
 
 }
