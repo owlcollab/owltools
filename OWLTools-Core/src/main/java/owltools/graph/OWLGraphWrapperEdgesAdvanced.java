@@ -16,6 +16,11 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
@@ -38,8 +43,19 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	}
 
 	// A cache of an arbitrary relationship closure for a certain object.
-	private Map<OWLObject,Map<List<String>,Map<String,String>>> mgrcmCache = null;
+	private LoadingCache<OWLObject, Map<List<String>,Map<String,String>>> cache = null;
+	private int cacheSize = 100000; // default size
+	
+	public void setEdgesAdvancedCacheSize(int size) {
+		this.cacheSize = size;
+	}
 
+	public long getCurrentEdgesAdvancedCacheSize() {
+		if (cache != null) {
+			return cache.size();
+		}
+		return 0;
+	}
 
 	/**
 	 * Convert a list of relationship IDs to a hash set of OWLObjectProperties.
@@ -48,8 +64,8 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @return property hash
 	 * @see #getRelationClosureMapEngine(OWLObject, List)
 	 */
-	public HashSet<OWLObjectProperty> relationshipIDsToPropertySet(List<String> relation_ids){
-		HashSet<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
+	public Set<OWLPropertyExpression> relationshipIDsToPropertySet(List<String> relation_ids){
+		Set<OWLPropertyExpression> props = new HashSet<OWLPropertyExpression>();
 		for( String rel_id : relation_ids ){
 			OWLObjectProperty oop = getOWLObjectPropertyByIdentifier(rel_id);
 			if( oop != null ){
@@ -72,7 +88,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @see #addStepwiseAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
 	 * @see #addTransitiveAncestorsToShuntGraph(OWLObject, OWLShuntGraph)
 	 */
-	public String classifyRelationship(OWLGraphEdge owlGraphEdge, OWLObject edgeDirector, Set<OWLObjectProperty> props){		
+	public String classifyRelationship(OWLGraphEdge owlGraphEdge, OWLObject edgeDirector, Set<? extends OWLPropertyExpression> props){		
 		String retval = null;
 		
 		OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
@@ -92,7 +108,9 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		}else if( qp.isIdentity() ){
 			retval = "identity";
 		}else{
-			System.out.println(owlGraphEdge);
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Skipping complex edge: "+owlGraphEdge);
+			}
 		}
 		
 		return retval;
@@ -116,8 +134,8 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		g.addNode(tn);
 
 		// NEW VERSION
-		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
-		for (OWLGraphEdge e : getOutgoingEdges(x)) {
+		Set<OWLPropertyExpression> props = relationshipIDsToPropertySet(rel_ids);
+		for (OWLGraphEdge e : getOutgoingEdges(x, props)) {
 			OWLObject target = e.getTarget();
 			String rel = classifyRelationship(e, target, props);
 
@@ -218,8 +236,8 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		g.addNode(tn);
 
 		// NEW VERSION
-		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
-		Set<OWLGraphEdge> oge = getOutgoingEdgesClosure(x);
+		Set<OWLPropertyExpression> props = relationshipIDsToPropertySet(rel_ids);
+		Set<OWLGraphEdge> oge = getOutgoingEdgesClosure(x, props);
 		for( OWLGraphEdge e : oge ){
 			OWLObject target = e.getTarget();
 			
@@ -317,7 +335,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		g.addNode(tn);
 		
 		// NEW VERSION
-		HashSet<OWLObjectProperty> props = relationshipIDsToPropertySet(rel_ids);
+		Set<OWLPropertyExpression> props = relationshipIDsToPropertySet(rel_ids);
 		for (OWLGraphEdge e : getIncomingEdges(x)) {
 			OWLObject source = e.getSource();
 			String rel = classifyRelationship(e, source, props);
@@ -508,24 +526,27 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 	 * @return map of ids to their displayable labels
 	 * @see #getRelationClosureMapEngine(OWLObject, List)
 	 */
-	public Map<String,String> getRelationClosureMap(OWLObject c, List<String> relation_ids){
+	public Map<String,String> getRelationClosureMap(OWLObject c, final List<String> relation_ids){
 
-		Map<String,String> retmap = new HashMap<String,String>();
+		// init cache
+		if (cache == null) {
+			cache = CacheBuilder.newBuilder()
+				.maximumSize(cacheSize)
+				.build(new CacheLoader<OWLObject, Map<List<String>,Map<String,String>>>() {
 
-		//private Map<OWLObject,Map<List<String>,Map<String,String>>> mgrcmCache = null;
-		if( mgrcmCache == null ){ // initialize the cache, if necessary
-				mgrcmCache = new HashMap<OWLObject,Map<List<String>,Map<String,String>>>();
-		}
-		if( mgrcmCache.containsKey(c) == false ){ // assemble level 1, if necessary
-			mgrcmCache.put(c, new HashMap<List<String>,Map<String,String>>());
-		}
-		if( mgrcmCache.get(c).containsKey(relation_ids) == false ){ // generate
-			retmap = getRelationClosureMapEngine(c, relation_ids);
-			mgrcmCache.get(c).put(relation_ids, retmap);
-		}else{ // return found
-			retmap = mgrcmCache.get(c).get(relation_ids);
+					@Override
+					public Map<List<String>, Map<String, String>> load(OWLObject key) {
+						return new HashMap<List<String>,Map<String,String>>();
+					}
+				});
 		}
 		
+		Map<List<String>, Map<String, String>> mgrcm = cache.getUnchecked(c);
+		Map<String,String> retmap = mgrcm.get(relation_ids);
+		if( retmap == null ){ // generate
+			retmap = getRelationClosureMapEngine(c, relation_ids);
+			mgrcm.put(relation_ids, retmap);
+		}
 		return retmap;
 	}
 
@@ -543,12 +564,9 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended {
 		Map<String,String> relation_map = new HashMap<String,String>(); // capture labels/ids
 
 		// Our relation collection.
-		HashSet<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
-		for( String rel_id : relation_ids ){
-			props.add(getOWLObjectPropertyByIdentifier(rel_id));
-		}
+		Set<OWLPropertyExpression> props = relationshipIDsToPropertySet(relation_ids);
 		
-		Set<OWLGraphEdge> edges = getOutgoingEdgesClosureReflexive(c);
+		Set<OWLGraphEdge> edges = getOutgoingEdgesClosureReflexive(c, props);
 		for (OWLGraphEdge owlGraphEdge : edges) {
 			OWLQuantifiedProperty qp = owlGraphEdge.getSingleQuantifiedProperty();
 			//if (qp.isSubClassOf() || partOfProperty.equals(qp.getProperty())) {

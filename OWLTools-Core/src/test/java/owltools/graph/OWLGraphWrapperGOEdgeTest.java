@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 
@@ -57,7 +58,7 @@ public class OWLGraphWrapperGOEdgeTest extends OWLToolsTestBasics {
 		///
 		
 		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
-		HashSet<OWLObjectProperty> props = g.relationshipIDsToPropertySet(rel_ids);
+		Set<OWLPropertyExpression> props = g.relationshipIDsToPropertySet(rel_ids);
 		
 		// Since neurogenesis.obo should only have is_a and part_of defined, there
 		// should just be the latter in there.
@@ -77,7 +78,7 @@ public class OWLGraphWrapperGOEdgeTest extends OWLToolsTestBasics {
 		OWLObject x = g.getOWLClassByIdentifier("GO:0022008");
 
 		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
-		HashSet<OWLObjectProperty> props = g.relationshipIDsToPropertySet(rel_ids);
+		Set<OWLPropertyExpression> props = g.relationshipIDsToPropertySet(rel_ids);
 		Set<OWLGraphEdge> oge = g.getOutgoingEdgesClosure(x); // over reports
 		for( OWLGraphEdge e : oge ){
 
@@ -113,7 +114,7 @@ public class OWLGraphWrapperGOEdgeTest extends OWLToolsTestBasics {
 		OWLObject x = g.getOWLClassByIdentifier("GO:0022008");
 
 		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
-		HashSet<OWLObjectProperty> props = g.relationshipIDsToPropertySet(rel_ids);
+		Set<OWLPropertyExpression> props = g.relationshipIDsToPropertySet(rel_ids);
 		Set<OWLGraphEdge> oge = g.getOutgoingEdgesClosure(x); // over reports?
 		for( OWLGraphEdge e : oge ){
 

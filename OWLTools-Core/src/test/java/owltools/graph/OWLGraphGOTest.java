@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.OWLToolsTestBasics;
 
@@ -32,13 +33,8 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 	static OWLGraphWrapper wrapper;
 
     @BeforeClass
-    public static void setUp() {
-    	try {
-    		wrapper = getOntologyWrapper("go.owl");
-		} catch (OWLOntologyCreationException e) {
-			// Really shouldn't be here in test land.
-			e.printStackTrace();
-		}
+    public static void setUp() throws Exception {
+    	wrapper = getOntologyWrapper("go.owl");
     }
 	
 	/*
@@ -232,7 +228,7 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 
 		// Rel set to properties.
 		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
-		HashSet<OWLObjectProperty> props = gw.relationshipIDsToPropertySet(rel_ids);
+		Set<OWLPropertyExpression> props = gw.relationshipIDsToPropertySet(rel_ids);
 
 		Set<OWLGraphEdge> oge = gw.getOutgoingEdgesClosure(saga);
 		for( OWLGraphEdge e : oge ){
