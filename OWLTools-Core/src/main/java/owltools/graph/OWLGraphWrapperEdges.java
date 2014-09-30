@@ -228,7 +228,23 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @return all edges that originate from source to nearest named object target
 	 */
 	public Set<OWLGraphEdge> getOutgoingEdges(OWLObject cls) {
-		Set<OWLGraphEdge> pEdges = getPrimitiveOutgoingEdges(cls);
+		return getOutgoingEdges(cls, null);
+	}
+	
+	/**
+	 * retrieves direct edges from a source
+	 * to the direct **named** target for a given set of properties
+	 * <ul>
+	 * <li>e.g. if (A SubClassOf B) then outgoing(A) = { &lt;A,sub,B&gt;}</li>
+	 * <li>e.g. if (A SubClassOf R some B) then outgoing(A) = { &lt;A, R-some, B&gt; }</li>
+	 * <li>e.g. if (A SubClassOf R some (R2 some B)) then outgoing(A) = { &lt;A, [R-some,R2-same], B&gt; }</li>
+	 * </ul>
+	 * @param cls source
+	 * @param props
+	 * @return all edges that originate from source to nearest named object target
+	 */
+	public Set<OWLGraphEdge> getOutgoingEdges(OWLObject cls, Set<OWLPropertyExpression> props) {
+		Set<OWLGraphEdge> pEdges = getPrimitiveOutgoingEdges(cls, props);
 		LOG.debug("primitive edges:"+cls+" --> "+pEdges);
 
 		Set<OWLGraphEdge> edges = new OWLGraphEdgeSet();
