@@ -3,6 +3,7 @@ package owltools.solrj;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -89,11 +90,13 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	public void load() throws SolrServerException, IOException {
 		gafDocument.index();
 		LOG.info("Iteratively loading: " + gafDocument.getDocumentPath());
-		for (Bioentity e : gafDocument.getBioentities()) {
+		Collection<Bioentity> bioentities = gafDocument.getBioentities();
+		final int bioentityCount = bioentities.size(); 
+		for (Bioentity e : bioentities) {
 			add(e);
 			current_doc_number++;
 			if( current_doc_number % doc_limit_trigger == 0 ){
-				LOG.info("Processed " + doc_limit_trigger + " bioentities at " + current_doc_number + " and committing...");
+				LOG.info("Processed " + doc_limit_trigger + " bioentities at " + current_doc_number + " of " + bioentityCount + " and committing...");
 				incrementalAddAndCommit();
 			}
 		}
