@@ -4,8 +4,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -23,8 +25,6 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	protected transient ConfigManager config = null;
 	protected transient OWLGraphWrapper graph = null;
 	
-	protected List<FlexDocument> docs = null;
-	
 	/**
 	 * More fun init.
 	 * 
@@ -34,7 +34,6 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 */
 	public FlexCollection(OWLGraphWrapper in_graph) {
 		graph = in_graph;
-		docs = new ArrayList<FlexDocument>();
 	}
 
 	/**
@@ -48,58 +47,11 @@ public class FlexCollection implements Iterable<FlexDocument> {
 		graph = in_graph;
 		config = aconf;
 
-		docs = new ArrayList<FlexDocument>();
-//		//GOlrConfig config = getConfig();
-//		LOG.info("Trying to load with config: " + config.id);
-
 		if( graph == null ){
 			LOG.info("ERROR? OWLGraphWrapper graph is not apparently defined...");
-		}else{
-			int c = 0;
-			int t = graph.getAllOWLObjects().size();
-			LOG.info("Loading collection with: " + t + " objects.");
-			for (OWLObject obj : graph.getAllOWLObjects()) {
-				docs.add(wring(obj, config));
-
-				// Status.
-				c++;
-				if( c % 1000 == 0 ){
-					LOG.info("Loaded: " + Integer.toString(c) + " of " + Integer.toString(t) + ".");
-				}
-			}	
 		}
 	}
 
-//	/**
-//	 * Try and pull out right OWLGraphWrapper function, one that takes an OWLObject and some (String?) args as an argument.
-//	 * 
-//	 * @param owlfunction
-//	 * @return
-//	 */
-//	private Method getOWLGraphWrapperMethod(String owlfunction, Object... function_additional_args){
-//
-//		// Gather all of our argument classes together for the method search.
-//		ArrayList<Class<?>> arg_classes = new ArrayList<Class<?>>();
-//		arg_classes.add(OWLObject.class); // this will always be the first argument
-//		for( Object o : function_additional_args){
-//			arg_classes.add(o.getClass());
-//		}
-//		
-//		// Try and hunt down our method.
-//		java.lang.reflect.Method method = null;
-//		try {
-//			method = graph.getClass().getMethod(owlfunction, (Class<?>[]) arg_classes.toArray());
-//		} catch (SecurityException e) {
-//			LOG.info("ERROR: apparently a security problem with: " + owlfunction);
-//			e.printStackTrace();
-//		} catch (NoSuchMethodException e) {
-//			LOG.info("ERROR: couldn't find method: " + owlfunction);
-//			e.printStackTrace();
-//		}
-//
-//		return method;
-//	}
-	
 	/**
 	 * Get properly formatted output from the OWLGraphWrapper.
 	 * 
@@ -108,7 +60,6 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 * @param function_sexpr "s-expression"
 	 * @return a (possibly null) string return value
 	 */
-	//private String getExtString(OWLObject oobj, ArrayList <String> function_sexpr){
 	public String getExtString(OWLObject oobj, List <String> function_sexpr){
 
 		String retval = null;
@@ -134,7 +85,6 @@ public class FlexCollection implements Iterable<FlexDocument> {
 
 			// Try to invoke said method.
 			try {
-				//java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, fargs.getClass());
 				java.lang.reflect.Method method = graph.getClass().getMethod(owlfunction, OWLObject.class, List.class);
 				if( method != null ){
 					retval = (String) method.invoke(graph, oobj, fargs);
@@ -168,7 +118,6 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	 * @return a (possibly empty) string list of returned values
 	 */
 	@SuppressWarnings("unchecked")
-	//private List<String> getExtStringList(OWLObject oobj, List <String> function_sexpr){
 	public List<String> getExtStringList(OWLObject oobj, List <String> function_sexpr){
 
 		List<String> retvals = new ArrayList<String>();
@@ -214,20 +163,6 @@ public class FlexCollection implements Iterable<FlexDocument> {
 		
 		return retvals;
 	}
-	
-//	/**
-//	 * Private helper to take care of the annoying busywork.
-//	 * 
-//	 * @param car
-//	 * @param cdr
-//	 * @return
-//	 */
-//	private List<String> joinLine(String car, String cdr) {
-//		List<String> c = new ArrayList<String>();
-//		c.add(car);
-//		c.add(cdr);
-//		return c;
-//	}
 	
 	/**
 	 * Main wrapping for adding ontology documents to GOlr.
@@ -289,6 +224,40 @@ public class FlexCollection implements Iterable<FlexDocument> {
 
 	@Override
 	public Iterator<FlexDocument> iterator() {
-		return docs.iterator();
+		final StopWatch timer = new StopWatch();
+		Set<OWLObject> allOWLObjects = graph.getAllOWLObjects();
+		final int totalCount = allOWLObjects.size();
+		timer.start();
+		final Iterator<OWLObject> objectIterator = allOWLObjects.iterator();
+		
+		return new Iterator<FlexDocument>() {
+			
+			int counter = 0;
+			
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+			
+			@Override
+			public FlexDocument next() {
+				OWLObject obj = objectIterator.next();
+				FlexDocument doc = wring(obj, config);
+				counter++;
+				if( counter % 1000 == 0 ){
+					long elapsed = timer.getTime();
+					long eta = ((long)totalCount-counter) * (elapsed/((long)counter));
+					LOG.info("Loaded: " + Integer.toString(counter) + " of " + Integer.toString(totalCount) 
+							+ ", elapsed: "+DurationFormatUtils.formatDurationHMS((elapsed))
+							+ ", eta: "+DurationFormatUtils.formatDurationHMS(eta));
+				}
+				return doc;
+			}
+			
+			@Override
+			public boolean hasNext() {
+				return objectIterator.hasNext();
+			}
+		};
 	}
 }

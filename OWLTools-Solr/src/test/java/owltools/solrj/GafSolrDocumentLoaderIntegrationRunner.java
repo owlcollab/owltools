@@ -68,6 +68,8 @@ public class GafSolrDocumentLoaderIntegrationRunner {
 			protected void addToServer(Collection<SolrInputDocument> docs)
 					throws SolrServerException, IOException {
 				solrCount += docs.size();
+				GafSolrDocumentLoaderIntegrationRunner.printMemoryStats();
+				System.out.println("Cache size: "+graph.getCurrentEdgesAdvancedCacheSize());
 			}
 			
 		};

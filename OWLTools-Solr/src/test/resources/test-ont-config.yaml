@@ -1,0 +1,206 @@
+####
+#### The ontology description file for GOlr and AmiGO.
+####
+id: ontology
+schema_generating: true
+description: Ontology classes for GO.
+display_name: Ontology
+document_category: ontology_class
+weight: 40
+boost_weights: annotation_class^3.0 annotation_class_label^5.5 description^1.0 comment^0.5 synonym^1.0 alternate_id^1.0 regulates_closure^1.0 regulates_closure_label^1.0
+result_weights: annotation_class^8.0 description^6.0 source^4.0 synonym^3.0 alternate_id^2.0
+filter_weights: source^4.0 subset^3.0 regulates_closure_label^1.0 is_obsolete^0.0
+fields:
+  - id: id
+    description: Term identifier.
+    display_name: Acc
+    type: string
+    property: [getIdentifier]
+  - id: annotation_class
+    description: Term identifier.
+    display_name: Term
+    type: string
+    property: [getIdentifier]
+  - id: annotation_class_label
+    description: Identifier.
+    display_name: Term
+    type: string
+    property: [getLabel]
+    searchable: true
+## Ever used with terms?
+# - id: descriptive_name
+#     description: Term description.
+#     display_name: Description
+#     type: string
+#     property: [descriptive_name]
+#    searchable: true
+  - id: description
+    description: "Term definition."
+    display_name: Definition
+    type: string
+    property: [getDef]
+    searchable: true
+  - id: source
+    description: "Term namespace."
+    display_name: Ontology source
+    type: string
+    property: [getNamespace]
+  - id: is_obsolete
+    description: Is the term obsolete?
+    display_name: Obsoletion
+    type: boolean
+    property: [getIsObsoleteBinaryString]
+  - id: comment
+    description: Term comment.
+    display_name: Comment
+    type: string
+    property: [getComment]
+    searchable: true
+## looks like single in OWLGraphWrapper API
+#    cardinality: multi
+  - id: synonym
+    description: Term synonyms.
+    display_name: Synonyms
+    type: string
+    property: [getOBOSynonymStrings]
+    cardinality: multi
+    searchable: true
+  - id: alternate_id
+    description: Alternate term identifier.
+    display_name: Alt ID
+    type: string
+    property: [getAnnotationPropertyValues, alt_id]
+    cardinality: multi
+  - id: replaced_by
+    description: Term that replaces this term.
+    display_name: Replaced By
+    type: string
+    property: [getAnnotationPropertyValues, replaced_by]
+    cardinality: multi
+  - id: consider
+    description: Others terms you might want to look at.
+    display_name: Consider
+    type: string
+    property: [getAnnotationPropertyValues, consider]
+    cardinality: multi
+  - id: subset
+    description: "Special use collections of terms."
+    display_name: Subset
+    type: string
+    property: [getSubsets]
+    cardinality: multi
+  - id: definition_xref
+    description: Definition cross-reference.
+    display_name: Def xref
+    type: string
+    property: [getDefXref]
+    cardinality: multi
+  - id: database_xref
+    description: Database cross-reference.
+    display_name: DB xref
+    type: string
+    property: [getXref]
+    cardinality: multi
+  - id: isa_partof_closure
+    description: "Ancestral terms (is_a/part_of)."
+    display_name: Is-a/part-of
+    type: string
+    cardinality: multi
+    property:
+      - "getRelationIDClosure"
+      - "BFO:0000050"
+  - id: isa_partof_closure_label
+    description: "Ancestral terms (is_a/part_of)."
+    display_name: Is-a/part-of
+    type: string
+    cardinality: multi
+    property:
+      - "getRelationLabelClosure"
+      - "BFO:0000050"
+    searchable: true
+  - id: regulates_closure
+    description: "Ancestral terms (regulates, occurs in, capable_of)."
+    display_name: Ancestor
+    type: string
+    cardinality: multi
+    property:
+      - "getRelationIDClosure"
+      - "BFO:0000050"
+      - "BFO:0000066"
+      - "RO:0002211"
+      - "RO:0002212"
+      - "RO:0002213"
+      - "RO:0002215"
+      - "RO:0002216"
+  - id: regulates_closure_label
+    description: "Ancestral terms (regulates, occurs in, capable_of)."
+    display_name: Ancestor
+    type: string
+    cardinality: multi
+    property:
+      - "getRelationLabelClosure"
+      - "BFO:0000050"
+      - "BFO:0000066"
+      - "RO:0002211"
+      - "RO:0002212"
+      - "RO:0002213"
+      - "RO:0002215"
+      - "RO:0002216"
+    searchable: true
+  - id: topology_graph_json
+    description: "JSON blob form of the local stepwise topology graph. Uses various relations (including regulates, occurs in, capable_of)."
+    display_name: Topology graph (JSON)
+    type: string
+    property:
+      - "getSegmentShuntGraphJSON"
+      - "BFO:0000050"
+      - "BFO:0000066"
+      - "RO:0002211"
+      - "RO:0002212"
+      - "RO:0002213"
+      - "RO:0002215"
+      - "RO:0002216"
+    indexed: false
+  - id: regulates_transitivity_graph_json
+    description: "JSON blob form of the local relation transitivity graph. Uses various relations (including regulates, occurs in, capable_of)."
+    display_name: Regulates transitivity graph (JSON)
+    type: string
+    property:
+      - "getLineageShuntGraphJSON"
+      - "BFO:0000050"
+      - "BFO:0000066"
+      - "RO:0002211"
+      - "RO:0002212"
+      - "RO:0002213"
+      - "RO:0002215"
+      - "RO:0002216"
+    indexed: false
+  - id: only_in_taxon
+    description: "Only in taxon."
+    display_name: Only in taxon
+    type: string
+    property: [getIdentifier]
+    searchable: true
+  - id: only_in_taxon_label
+    description: "Only in taxon label."
+    display_name: Only in taxon
+    type: string
+    property: [getLabel]
+    searchable: true
+  - id: only_in_taxon_closure
+    description: "Only in taxon closure."
+    display_name: Only in taxon (IDs)
+    type: string
+    cardinality: multi
+    property:
+      - "getRelationLabelClosure"
+      - "RO:0002160"
+  - id: only_in_taxon_closure_label
+    description: "Only in taxon label closure."
+    display_name: Only in taxon
+    type: string
+    cardinality: multi
+    property:
+      - "getRelationLabelClosure"
+      - "RO:0002160"
+    searchable: true

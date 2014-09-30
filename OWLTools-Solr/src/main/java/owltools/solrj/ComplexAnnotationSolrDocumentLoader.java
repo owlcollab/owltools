@@ -437,11 +437,11 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 			locMap.put(loc_id, loc_lbl);
 			
 			// Add closures to cache sets
-			List<String> loc_id_closure = currentGraph.getRelationIDClosure(cell_loc_cls, isap);
-			locClosureIDSet.addAll(loc_id_closure);
-			List<String> loc_label_closure = currentGraph.getRelationLabelClosure(cell_loc_cls, isap);
-			locClosureLabelSet.addAll(loc_label_closure);
 			Map<String, String> loc_closure_map = currentGraph.getRelationClosureMap(cell_loc_cls, isap);
+			List<String> loc_id_closure = new ArrayList<String>(loc_closure_map.keySet());
+			List<String> loc_label_closure = new ArrayList<String>(loc_closure_map.values());
+			locClosureIDSet.addAll(loc_id_closure);
+			locClosureLabelSet.addAll(loc_label_closure);
 			locClosureMap.putAll(loc_closure_map);
 		}
 		
@@ -479,8 +479,9 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 			OWLObject cls, SolrInputDocument solr_doc){
 		
 		// Add closures to doc; label and id.
-		List<String> idClosure = currentGraph.getRelationIDClosure(cls, relations);
-		List<String> labelClosure = currentGraph.getRelationLabelClosure(cls, relations);
+		Map<String, String> cmap = currentGraph.getRelationClosureMap(cls, relations);
+		List<String> idClosure = new ArrayList<String>(cmap.keySet());
+		List<String> labelClosure = new ArrayList<String>(cmap.values());
 		solr_doc.addField(closureName, idClosure);
 		solr_doc.addField(closureNameLabel, labelClosure);
 		for( String tid : idClosure){
@@ -488,7 +489,6 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 		}
 
 		// Compile closure maps to JSON.
-		Map<String, String> cmap = currentGraph.getRelationClosureMap(cls, relations);
 		if( ! cmap.isEmpty() ){
 			String jsonized_cmap = gson.toJson(cmap);
 			solr_doc.addField(closureMap, jsonized_cmap);

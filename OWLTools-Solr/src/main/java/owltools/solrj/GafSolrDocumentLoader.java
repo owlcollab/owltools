@@ -102,11 +102,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		LOG.info("Done.");
 	}
 
-//	private OWLObjectProperty getPartOfProperty() {
-//		OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier("BFO:0000050");
-//		return p;
-//	}
-
 	// Main wrapping for adding non-ontology documents to GOlr.
 	// Also see OntologySolrLoader.
 	private void add(Bioentity e) {
@@ -118,9 +113,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		String ename = e.getFullName();
 		String edbid = e.getDBID();
 		//LOG.info("Adding: " + eid + " " + esym);
-		
-//		// We'll need this for serializing later.
-//		Gson gson = new Gson();
 		
 		SolrInputDocument bioentity_doc = new SolrInputDocument();
 		
@@ -725,8 +717,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc){
 		
 		// Add closures to doc; label and id.
-		List<String> idClosure = graph.getRelationIDClosure(cls, relations);
-		List<String> labelClosure = graph.getRelationLabelClosure(cls, relations);
+		final Map<String, String> cmap = graph.getRelationClosureMap(cls, relations);
+		List<String> idClosure = new ArrayList<String>(cmap.keySet());
+		List<String> labelClosure = new ArrayList<String>(cmap.values());
+		
 		ann_doc.addField(closureName, idClosure);
 		ann_doc.addField(closureNameLabel, labelClosure);
 		for( String tid : idClosure){
@@ -737,7 +731,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		}
 
 		// Compile closure maps to JSON.
-		Map<String, String> cmap = graph.getRelationClosureMap(cls, relations);
 		if( ! cmap.isEmpty() ){
 			String jsonized_cmap = gson.toJson(cmap);
 			ann_doc.addField(closureMap, jsonized_cmap);
