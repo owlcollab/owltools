@@ -1,5 +1,7 @@
 package owltools.graph;
 
+import gnu.trove.set.hash.THashSet;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -267,7 +269,7 @@ public class OWLGraphWrapperBasic {
 	 * @return all named objects
 	 */
 	public Set<OWLObject> getAllOWLObjects() {
-		Set<OWLObject> obs = new HashSet<OWLObject>();
+		Set<OWLObject> obs = new THashSet<OWLObject>();
 		for (OWLOntology o : getAllOntologies()) {
 			obs.addAll(o.getClassesInSignature());
 			obs.addAll(o.getIndividualsInSignature());
@@ -283,7 +285,7 @@ public class OWLGraphWrapperBasic {
 	 * @return set of all {@link OWLClass}
 	 */
 	public Set<OWLClass> getAllOWLClasses() {
-		Set<OWLClass> owlClasses = new HashSet<OWLClass>();
+		Set<OWLClass> owlClasses = new THashSet<OWLClass>();
 		for (OWLOntology o : getAllOntologies()) {
 			owlClasses.addAll(o.getClassesInSignature());
 		}
@@ -299,7 +301,7 @@ public class OWLGraphWrapperBasic {
 	 * @return set of all {@link OWLSubClassOfAxiom}
 	 */
 	public Set<OWLSubClassOfAxiom> getAllOWLSubClassOfAxiomsForSubClass(OWLClass owlClass) {
-		Set<OWLSubClassOfAxiom> axioms = new HashSet<OWLSubClassOfAxiom>();
+		Set<OWLSubClassOfAxiom> axioms = new THashSet<OWLSubClassOfAxiom>();
 		for (OWLOntology o : getAllOntologies()) {
 			axioms.addAll(o.getSubClassAxiomsForSubClass(owlClass));
 		}
@@ -315,7 +317,7 @@ public class OWLGraphWrapperBasic {
 	 * @return set of all {@link OWLSubClassOfAxiom}
 	 */
 	public Set<OWLSubClassOfAxiom> getAllOWLSubClassOfAxiomsForSuperClass(OWLClass owlClass) {
-		Set<OWLSubClassOfAxiom> axioms = new HashSet<OWLSubClassOfAxiom>();
+		Set<OWLSubClassOfAxiom> axioms = new THashSet<OWLSubClassOfAxiom>();
 		for (OWLOntology o : getAllOntologies()) {
 			axioms.addAll(o.getSubClassAxiomsForSuperClass(owlClass));
 		}
