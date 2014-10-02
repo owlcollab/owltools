@@ -856,6 +856,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			switch (operation) {
 			case get:
 			case exportModel:
+			case exportModelLegacy:
 			case allModelIds:
 			case allModelMeta:
 			case search:
