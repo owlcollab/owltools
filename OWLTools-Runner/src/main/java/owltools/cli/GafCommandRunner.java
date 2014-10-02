@@ -2064,7 +2064,6 @@ public class GafCommandRunner extends CommandRunner {
 		String outputFileName = null;
 		List<String> defaultRefs = null;
 		boolean addLegoModelId = true;
-		OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-i|--input")) {
 				inputName = opts.nextOpt();
@@ -2087,7 +2086,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 
 		SimpleEcoMapper mapper = EcoMapperFactory.createSimple();
-		LegoToGeneAnnotationTranslator translator = new LegoToGeneAnnotationTranslator(g, reasonerFactory, mapper);
+		LegoToGeneAnnotationTranslator translator = new LegoToGeneAnnotationTranslator(g, reasoner, mapper);
 		GafDocument annotations = new GafDocument(null, null);
 		BioentityDocument entities = new BioentityDocument(null, null);
 

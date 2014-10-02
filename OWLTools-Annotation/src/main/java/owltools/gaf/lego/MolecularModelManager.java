@@ -31,7 +31,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
-import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -416,6 +415,20 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	public String exportModel(String modelId) throws OWLOntologyStorageException, UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		return exportModel(modelId, model);
+	}
+	
+	/**
+	 * Export the model (ABox) for the given modelId in a legacy format, such as GAF or GPAD.
+	 * 
+	 * @param modelId
+	 * @param format name or null for default
+	 * @return model data in legacy format
+	 * @throws UnknownIdentifierException 
+	 * @throws IOException
+	 */
+	public String exportModelLegacy(String modelId, String format) throws UnknownIdentifierException, IOException {
+		ModelContainer model = checkModelId(modelId);
+		return exportModelLegacy(modelId, model, format);
 	}
 	
 	/**

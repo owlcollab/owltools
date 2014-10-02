@@ -55,6 +55,7 @@ public interface M3BatchHandler {
 		generate("generate"),
 		generateBlank("generate-blank"),
 		exportModel("export"),
+		exportModelLegacy("export-legacy"),
 		importModel("import"),
 		storeModel("store"),
 		allModelIds("all-model-ids"),
@@ -102,6 +103,7 @@ public interface M3BatchHandler {
 		String db; // TODO deprecate db, should use taxonId instead
 		String taxonId;
 		String importModel;
+		String format;
 		
 		M3Expression[] expressions;
 		M3Pair[] values;

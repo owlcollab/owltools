@@ -530,6 +530,15 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			values.modelId = checkModelId(values.modelId, request);
 			export(response, values.modelId, userId);
 		}
+		else if (Operation.exportModelLegacy == operation) {
+			if (values.nonMeta) {
+				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
+				return "Export legacy model can only be combined with other meta operations.";
+			}
+			requireNotNull(request.arguments, "request.arguments");
+			values.modelId = checkModelId(values.modelId, request);
+			exportLegacy(response, values.modelId, request.arguments.format, userId);
+		}
 		else if (Operation.importModel == operation) {
 			values.nonMeta = true;
 			requireNotNull(request.arguments, "request.arguments");
@@ -735,6 +744,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		String exportModel = m3.exportModel(modelId);
 		initMetaResponse(response);
 		response.data.put(Operation.exportModel.getLbl(), exportModel);
+	}
+	
+	private void exportLegacy(M3BatchResponse response, String modelId, String format, String userId) throws UnknownIdentifierException, IOException {
+		String exportModel = m3.exportModelLegacy(modelId, format);
+		initMetaResponse(response);
+		response.data.put(Operation.exportModelLegacy.getLbl(), exportModel);
 	}
 	
 	private void save(M3BatchResponse response, String modelId, Collection<Pair<String,String>> annotations, String userId, UndoMetadata token) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {

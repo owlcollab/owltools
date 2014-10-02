@@ -31,7 +31,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.BioentityDocument;
@@ -65,7 +64,7 @@ public class LegoToGeneAnnotationTranslator {
 
 	private final SimpleEcoMapper mapper;
 	
-	public LegoToGeneAnnotationTranslator(OWLGraphWrapper graph, OWLReasonerFactory reasonerFactory, SimpleEcoMapper mapper) {
+	public LegoToGeneAnnotationTranslator(OWLGraphWrapper graph, OWLReasoner reasoner, SimpleEcoMapper mapper) {
 		this.mapper = mapper;
 		OWLDataFactory df = graph.getDataFactory();
 		partOf = OBOUpperVocabulary.BFO_part_of.getObjectProperty(df);
@@ -82,18 +81,9 @@ public class LegoToGeneAnnotationTranslator {
 		date = df.getOWLAnnotationProperty(LegoAnnotationType.date.getAnnotationProperty());
 		evidence = df.getOWLAnnotationProperty(LegoAnnotationType.evidence.getAnnotationProperty());
 		
-		OWLReasoner r = null;
-		try {
-			r = reasonerFactory.createReasoner(graph.getSourceOntology());
-			bpSet = getAllSubClasses(bp, graph, r, true);
-			mfSet = getAllSubClasses(mf, graph, r, true);
-			ccSet = getAllSubClasses(cc, graph, r, false);
-		}
-		finally {
-			if (r != null) {
-				r.dispose();
-			}
-		}
+		bpSet = getAllSubClasses(bp, graph, reasoner, true);
+		mfSet = getAllSubClasses(mf, graph, reasoner, true);
+		ccSet = getAllSubClasses(cc, graph, reasoner, false);
 	}
 	
 	private Set<OWLClass> getAllSubClasses(OWLClass cls, OWLGraphWrapper g, OWLReasoner r, boolean reflexive) {

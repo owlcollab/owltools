@@ -794,6 +794,54 @@ public class BatchModelHandlerTest {
 		assertTrue(resp1.message.contains("Insufficient"));
 	}
 	
+	@Test
+	public void testExportLegacy() throws Exception {
+		final String modelId = generateBlankModel();
+		
+		// create
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.individual.name();
+		batch1[0].operation = Operation.create.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+		batch1[0].arguments.subject = "GO:0008104"; // protein localization
+		batch1[0].arguments.expressions = new M3Expression[2];
+		batch1[0].arguments.expressions[0] = new M3Expression();
+		batch1[0].arguments.expressions[0].type = "svf";
+		batch1[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
+		batch1[0].arguments.expressions[0].literal = "MGI:MGI:00000";
+		
+		batch1[0].arguments.expressions[1] = new M3Expression();
+		batch1[0].arguments.expressions[1].type = "svf";
+		batch1[0].arguments.expressions[1].onProp = "BFO:0000050"; // part_of
+		batch1[0].arguments.expressions[1].literal = "happiness";
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, batch1, true);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		
+		
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].operation = Operation.exportModelLegacy.getLbl();
+		batch2[0].entity = Entity.model.name();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.modelId = modelId;
+//		batch2[0].arguments.format = "gpad"; // optional
+		
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2, true);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		Object exportString = response2.data.get(Operation.exportModelLegacy.getLbl());
+//		System.out.println("----------------");
+//		System.out.println(exportString);
+//		System.out.println("----------------");
+		assertNotNull(exportString);
+	}
+	
 	/**
 	 * @return modelId
 	 */
