@@ -829,13 +829,13 @@ public class BatchModelHandlerTest {
 		batch2[0].entity = Entity.model.name();
 		batch2[0].arguments = new M3Argument();
 		batch2[0].arguments.modelId = modelId;
-//		batch2[0].arguments.format = "gpad"; // optional
+//		batch2[0].arguments.format = "gpad"; // optional, default is gaf 
 		
 		M3BatchResponse response2 = handler.m3Batch(uid, intention, batch2, true);
 		assertEquals(uid, response2.uid);
 		assertEquals(intention, response2.intention);
 		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
-		Object exportString = response2.data.get(Operation.exportModelLegacy.getLbl());
+		Object exportString = response2.data.get(Operation.exportModel.getLbl());
 //		System.out.println("----------------");
 //		System.out.println(exportString);
 //		System.out.println("----------------");
