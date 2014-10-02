@@ -972,6 +972,98 @@ public class OWLGraphManipulatorTest
 		this.shouldFilterOrRemoveRelations(new HashSet<String>(), 
 				true, 17, true);
 	}
+
+    /**
+     * Test {@link UberonCommon#removeUnrelatedRelations(Collection, boolean)}
+     * @throws IOException 
+     * @throws OBOFormatParserException 
+     * @throws OWLOntologyCreationException 
+     */
+    @Test
+    public void shouldRemoveUnrelatedRelations() throws 
+    OWLOntologyCreationException, OBOFormatParserException, IOException {
+        ParserWrapper parserWrapper = new ParserWrapper();
+        OWLOntology ont = parserWrapper.parse(
+            this.getClass().getResource("/graph/rmUnrelatedRels.owl").getFile());
+        this.graphManipulator = new OWLGraphManipulator(new OWLGraphWrapper(ont));
+        OWLGraphWrapper wrapper = this.graphManipulator.getOwlGraphWrapper();
+        
+        this.graphManipulator.removeUnrelatedRelations(
+                new HashSet<String>(Arrays.asList("RO:0003001")));
+        
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003001"));
+        //sub-prop of RO:0003001
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("BFO:0000051"));
+        //sub-prop of RO:0003001
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003003"));
+        //generate RO:0003003 through chain of properties
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003004"));
+        //generate RO:0003003 through chain of properties
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0002202"));
+        //equivalent to BFO:0000051, child of RO:0003001
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003008"));
+
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003002"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003005"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003006"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003007"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003010"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003011"));
+        
+        parserWrapper = new ParserWrapper();
+        ont = parserWrapper.parse(
+                this.getClass().getResource("/graph/rmUnrelatedRels.owl").getFile());
+        this.graphManipulator = new OWLGraphManipulator(new OWLGraphWrapper(ont));
+        wrapper = this.graphManipulator.getOwlGraphWrapper();
+        
+        this.graphManipulator.removeUnrelatedRelations(
+                new HashSet<String>(Arrays.asList("RO:0003005")));
+
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003005"));
+        //generate RO:0003005 through chain of properties
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003006"));
+        //generate RO:0003005 through chain of properties
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003007"));
+        //sub-property of RO:0003007
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003009"));
+        //generate RO:0003007 through chain of properties
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003010"));
+        //generate RO:0003007 through chain of properties
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003011"));
+
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003002"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003001"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("BFO:0000051"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003003"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003004"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0002202"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003008"));
+    }
 	/**
 	 * Test the functionalities of 
 	 * {@link org.bgee.pipeline.uberon.OWLGraphManipulator#removeRelations(Collection, boolean)} 
