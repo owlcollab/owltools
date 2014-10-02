@@ -749,7 +749,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	private void exportLegacy(M3BatchResponse response, String modelId, String format, String userId) throws UnknownIdentifierException, IOException {
 		String exportModel = m3.exportModelLegacy(modelId, format);
 		initMetaResponse(response);
-		response.data.put(Operation.exportModelLegacy.getLbl(), exportModel);
+		response.data.put(Operation.exportModel.getLbl(), exportModel);
 	}
 	
 	private void save(M3BatchResponse response, String modelId, Collection<Pair<String,String>> annotations, String userId, UndoMetadata token) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
