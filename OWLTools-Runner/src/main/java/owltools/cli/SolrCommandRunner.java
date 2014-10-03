@@ -483,7 +483,6 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				
 			// Actual loading--iterate over our list and load individually.
 			for( String fname : caFiles ){
-				;
 				OWLReasoner currentReasoner = null;
 				OWLOntology ontology = null;
 
@@ -524,8 +523,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					}
 				} finally {
 					// Cleanup reasoner and ontology.
-					if (reasoner != null) {
-						reasoner.dispose();
+					if (currentReasoner != null) {
+						currentReasoner.dispose();
 					}
 					if (ontology != null) {
 						manager.removeOntology(ontology);
