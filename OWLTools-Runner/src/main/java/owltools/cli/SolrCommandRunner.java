@@ -447,8 +447,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					}
 				} finally {
 					// Cleanup reasoner and ontology.
-					if (reasoner != null) {
-						reasoner.dispose();
+					if (currentReasoner != null) {
+						currentReasoner.dispose();
 					}
 					if (ontology != null) {
 						manager.removeOntology(ontology);
