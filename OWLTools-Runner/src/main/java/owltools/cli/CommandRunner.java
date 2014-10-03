@@ -3945,6 +3945,51 @@ public class CommandRunner {
 					g.addSupportOntology(ont);
 				}
 			}
+			else if (opts.nextEq("--load-ontologies-as-imports")) {
+				opts.info("[ONT]+", "loads and adds the specified ontologies as imports");
+				List<String> ontologyList = opts.nextList();
+				if (ontologyList == null || ontologyList.isEmpty()) {
+					LOG.error("No ontologies specified for the command. At least one ontology is required.");
+					exit(-1);
+				}
+				
+				// create a new empty ontology if there is no previous graph
+				final OWLOntologyManager m;
+				final OWLOntology containerOntology;
+				if (g == null) {
+					m = pw.getManager();
+					containerOntology = m.createOntology(IRI.generateDocumentIRI());
+					g = new OWLGraphWrapper(containerOntology);
+				}
+				else {
+					m = g.getManager();
+					containerOntology = g.getSourceOntology();
+				}
+				final OWLDataFactory factory = m.getOWLDataFactory();
+				
+				for(String ont : ontologyList) {
+					// load ontology
+					OWLOntology owlOntology = pw.parse(ont);
+					// check for usable ontology ID and ontology IRI
+					OWLOntologyID ontologyID = owlOntology.getOntologyID();
+					if (ontologyID == null) {
+						LOG.error("The ontology: "+ont+" does not have a valid ontology ID");
+						exit(-1);
+					}
+					else {
+						IRI documentIRI = ontologyID.getDefaultDocumentIRI();
+						if (documentIRI == null) {
+							LOG.error("The ontology: "+ont+" does not have a valid document IRI");
+							exit(-1);
+						}else {
+							// add as import, instead of merge
+							OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(documentIRI);
+							OWLOntologyChange change = new AddImport(containerOntology, importDeclaration);
+							m.applyChange(change);
+						}
+					}
+				}
+			}
 			else {
 				// check first if there is a matching annotated method
 				// always check, to support introspection via '-h'
