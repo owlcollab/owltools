@@ -452,7 +452,11 @@ public class OWLGraphWrapperEdgesExtendedTest
         OWLClass cls8 = wrapper.getOWLClassByIdentifier("ID:8");
         OWLClass cls9 = wrapper.getOWLClassByIdentifier("ID:9");
         OWLClass cls10 = wrapper.getOWLClassByIdentifier("ID:10");
+        OWLClass cls11 = wrapper.getOWLClassByIdentifier("ID:11");
+        OWLClass cls16 = wrapper.getOWLClassByIdentifier("ID:16");
+        OWLClass cls17 = wrapper.getOWLClassByIdentifier("ID:17");
         OWLClass taxon1 = wrapper.getOWLClassByIdentifier("NCBITaxon:9606");
+        OWLClass taxon2 = wrapper.getOWLClassByIdentifier("NCBITaxon:10090");
         
         Set<OWLGraphEdge> expectedEdges = new HashSet<OWLGraphEdge>();
         expectedEdges.add(new OWLGraphEdge(cls9, cls10, developsFrom, Quantifier.SOME, 
@@ -477,6 +481,18 @@ public class OWLGraphWrapperEdgesExtendedTest
                 ont, null));
         assertEquals("Incorrect relation closure with GCIs retrieved", expectedEdges, 
                 wrapper.getOutgoingEdgesNamedClosureOverSupPropsWithGCI(cls8));
+        
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls17, cls16, partOf, Quantifier.SOME, 
+                ont, null));
+        expectedEdges.add(new OWLGraphEdge(cls17, cls11, partOf, Quantifier.SOME, 
+                ont, null));
+        expectedEdges.add(new OWLGraphEdge(cls17, cls11, partOf, Quantifier.SOME, 
+                ont, null, taxon1, partOf));
+        expectedEdges.add(new OWLGraphEdge(cls17, cls11, partOf, Quantifier.SOME, 
+                ont, null, taxon2, partOf));
+        assertEquals("Incorrect relation closure with GCIs retrieved", expectedEdges, 
+                wrapper.getOutgoingEdgesNamedClosureOverSupPropsWithGCI(cls17));
     }
 	
 	/**

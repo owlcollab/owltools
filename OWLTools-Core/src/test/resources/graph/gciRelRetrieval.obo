@@ -43,7 +43,18 @@ id: ID:9
 relationship: develops_from ID:10 {gci_filler="NCBITaxon:9606", gci_relation="part_of"}
 relationship: part_of ID:7
 
+[Term]
+id: ID:11
 
+[Term]
+id: ID:16
+relationship: part_of ID:11
+
+[Term]
+id: ID:17
+relationship: part_of ID:16
+relationship: part_of ID:11 {gci_relation="part_of", gci_filler="NCBITaxon:10090"} ! the indirect relation is more inclusive, this direct relation should be removed
+relationship: part_of ID:11 {gci_relation="part_of", gci_filler="NCBITaxon:9606"} ! the indirect relation is more inclusive, this direct relation should be removed
 
 [Typedef]
 id: overlaps

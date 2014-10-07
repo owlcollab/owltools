@@ -819,7 +819,10 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                     if (new HashSet<OWLQuantifiedProperty>(
                             ve.getQuantifiedPropertyList()).equals(
                                     new HashSet<OWLQuantifiedProperty>(
-                                            iteratedEdge.getQuantifiedPropertyList()))) {
+                                            iteratedEdge.getQuantifiedPropertyList())) && 
+                        //TODO: check whether gci fillers are sub class of one another
+                        ve.equalsGCI(iteratedEdge)) {
+                        
                         isEdgeVisited = true;
                     }
                 }
@@ -828,6 +831,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                 visitedMap.get(nuTarget).add(iteratedEdge);
             }
             if (isEdgeVisited) {
+                LOG.trace("Discarding edge because already visited");
                 continue;
             }
             visitedMap.get(nuTarget).add(iteratedEdge);
@@ -841,6 +845,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             for (OWLGraphEdge nextEdge: this.getOutgoingEdgesWithGCI(iteratedEdge.getTarget())) {
                 OWLGraphEdge combine = this.combineEdgePair(s, iteratedEdge, nextEdge, nextDist);
                 if (combine == null) {
+                    LOG.trace("Discarding edge because could not be combined");
                     continue;
                 }
                 walkAncestors.addLast(combine);
