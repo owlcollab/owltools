@@ -786,22 +786,20 @@ public class OWLGraphManipulatorTest
 			if (subRelRank == 0) {
 				//first relation should be fake_rel1 (reflexive method)
 				assertEquals("Incorrect order of sub-properties, 1st relation", 
-						fakeRel1, subRel.getSingleQuantifiedProperty().getProperty());
+				        "fake_rel1", this.graphManipulator.getOwlGraphWrapper().getIdentifier(
+				                subRel.getSingleQuantifiedProperty().getProperty()));
 			} else if (subRelRank == 1) {
 				//then fake_rel2
-				OWLObjectProperty fakeRel2 = this.graphManipulator.getOwlGraphWrapper().
-						getOWLObjectPropertyByIdentifier("fake_rel2");
 				assertEquals("Incorrect order of sub-properties, 2nd relation", 
-						fakeRel2, subRel.getSingleQuantifiedProperty().getProperty());
+				        "fake_rel2", this.graphManipulator.getOwlGraphWrapper().getIdentifier(
+                                subRel.getSingleQuantifiedProperty().getProperty()));
 			} else if (subRelRank == 2 || subRelRank == 3) {
 				//next relation should be either fake_rel3, or fake_rel4
-				OWLObjectProperty fakeRel3 = this.graphManipulator.getOwlGraphWrapper().
-						getOWLObjectPropertyByIdentifier("fake_rel3");
-				OWLObjectProperty fakeRel4 = this.graphManipulator.getOwlGraphWrapper().
-						getOWLObjectPropertyByIdentifier("fake_rel4");
 				assertTrue("Incorrect order of sub-properties, 3rd or 4th relation", 
-					(fakeRel3.equals(subRel.getSingleQuantifiedProperty().getProperty()) || 
-					fakeRel4.equals(subRel.getSingleQuantifiedProperty().getProperty())));
+					("fake_rel3".equals(this.graphManipulator.getOwlGraphWrapper().getIdentifier(
+			        subRel.getSingleQuantifiedProperty().getProperty())) || 
+			        "fake_rel4".equals(this.graphManipulator.getOwlGraphWrapper().getIdentifier(
+			                subRel.getSingleQuantifiedProperty().getProperty()))));
 			} else {
 				//should not be reached
 				throw new AssertionError("Incorrect number of sub-relations");

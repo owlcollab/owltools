@@ -816,9 +816,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                     //edges with different paths. Checking equality of visited 
                     //edges is too slow. So here, we make the QuantifiedProperties unique, 
                     //but we use each of them
-                    if (new HashSet<OWLQuantifiedProperty>(
+                    if (new LinkedHashSet<OWLQuantifiedProperty>(
                             ve.getQuantifiedPropertyList()).equals(
-                                    new HashSet<OWLQuantifiedProperty>(
+                                    new LinkedHashSet<OWLQuantifiedProperty>(
                                             iteratedEdge.getQuantifiedPropertyList())) && 
                         //TODO: check whether gci fillers are sub class of one another
                         ve.equalsGCI(iteratedEdge)) {
