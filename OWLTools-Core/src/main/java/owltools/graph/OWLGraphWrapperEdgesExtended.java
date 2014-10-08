@@ -1333,8 +1333,13 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     	//TODO: modify OWLGraphWrapperEdges so that it could be possible to obtain 
     	//edges incoming to owl:thing. This would be much cleaner to get the roots.
     	for (OWLOntology ont: this.getAllOntologies()) {
-			for (OWLClass cls: ont.getClassesInSignature()) {
-				if (this.isRealClass(cls) && this.getOutgoingEdgesWithGCI(cls).isEmpty()) {
+			cls: for (OWLClass cls: ont.getClassesInSignature()) {
+				if (this.isRealClass(cls)) {
+				    for (OWLGraphEdge edge: this.getOutgoingEdgesWithGCI(cls)) {
+				        if (!edge.getTarget().equals(cls)) {
+				            continue cls;
+				        }
+				    }
 					ontRoots.add(cls);
 				}
 			}
