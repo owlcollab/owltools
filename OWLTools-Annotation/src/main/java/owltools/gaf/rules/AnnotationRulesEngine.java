@@ -235,26 +235,26 @@ public class AnnotationRulesEngine {
 		
 		Map<String, String> ontologyVersions = null;
 		
-		AnnotationRulesEngineResult() {
+		public AnnotationRulesEngineResult() {
 			super();
 			typedViolations = new HashMap<ViolationType, Map<String,List<AnnotationRuleViolation>>>();
 			predictions = new ArrayList<Prediction>();
 			experimentalPredictions = new ArrayList<Prediction>();
 		}
 		
-		void addInferences(List<Prediction> predictions) {
+		public void addInferences(List<Prediction> predictions) {
 			if (predictions != null) {
 				this.predictions.addAll(predictions);
 			}
 		}
 		
-		void addExperimentalInferences(List<Prediction> predictions) {
+		public void addExperimentalInferences(List<Prediction> predictions) {
 			if (predictions != null) {
 				this.experimentalPredictions.addAll(predictions);
 			}
 		}
 		
-		void addViolations(Iterable<AnnotationRuleViolation> violations) {
+		public void addViolations(Iterable<AnnotationRuleViolation> violations) {
 			if (violations != null) {
 				for (AnnotationRuleViolation violation : violations) {
 					ViolationType type = violation.getType();

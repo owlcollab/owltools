@@ -130,90 +130,92 @@ public class AnnotationRulesReportWriter implements Closeable {
 		if (summaryWriter != null) {
 			summaryWriter.println("*GAF Validation Summary*");
 		}
-		List<ViolationType> types = result.getTypes();
-		if (types.isEmpty() && result.predictions.isEmpty()) {
-			writer.print("# No errors, warnings, or recommendations to report.");
-			if (summaryWriter != null) {
-				summaryWriter.println();
-				summaryWriter.println("No errors, warnings, recommendations, inferences, or predictions to report.");
-				summaryWriter.println();
-				printOntologySummary(result, summaryWriter);
+		if (writer != null) {
+			List<ViolationType> types = result.getTypes();
+			if (types.isEmpty() && result.predictions.isEmpty()) {
+				writer.print("# No errors, warnings, or recommendations to report.");
+				if (summaryWriter != null) {
+					summaryWriter.println();
+					summaryWriter.println("No errors, warnings, recommendations, inferences, or predictions to report.");
+					summaryWriter.println();
+					printOntologySummary(result, summaryWriter);
+				}
+				return;
 			}
-			return;
-		}
-		if (types.isEmpty()) {
-			writer.print("# No errors, warnings, or recommendations to report.");
-			if (summaryWriter != null) {
-				summaryWriter.println();
-				summaryWriter.println("No errors, warnings, or recommendations to report.");
-				summaryWriter.println();
-				printOntologySummary(result, summaryWriter);
+			if (types.isEmpty()) {
+				writer.print("# No errors, warnings, or recommendations to report.");
+				if (summaryWriter != null) {
+					summaryWriter.println();
+					summaryWriter.println("No errors, warnings, or recommendations to report.");
+					summaryWriter.println();
+					printOntologySummary(result, summaryWriter);
+				}
 			}
-		}
-		else {
-			writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
-			writer.println("#------------");
-			if (summaryWriter != null) {
-				summaryWriter.println("Errors are reported first.");
-				summaryWriter.println();
-			}
-			for(ViolationType type : types) {
-				Map<String, List<AnnotationRuleViolation>> violations = result.getViolations(type);
-				List<String> ruleIds = new ArrayList<String>(violations.keySet());
-				Collections.sort(ruleIds);
-				for (String ruleId : ruleIds) {
-					AnnotationRule rule = engine.getRule(ruleId);
-					List<AnnotationRuleViolation> violationList = violations.get(ruleId);
-					writer.print("# ");
-					writer.print(ruleId);
-					writer.print('\t');
-					printEscaped(rule.getName(), writer, true);
-					writer.print('\t');
-					writer.print(type.name());
-					writer.print("\tcount:\t");
-					writer.print(violationList.size());
-					writer.println();
-
-					if (summaryWriter != null) {
-						summaryWriter.print("For rule ");
-						summaryWriter.print(ruleId);
-						summaryWriter.print(" (http://www.geneontology.org/GO.annotation_qc.shtml#");
-						summaryWriter.print(ruleId);
-						summaryWriter.print(")\n ");
-						summaryWriter.print(rule.getName());
-						summaryWriter.print(", ");
-						if (violationList.size() == 1) {
-							summaryWriter.print("there is one violation with type ");
-						}
-						else {
-							summaryWriter.print("there are ");
-							summaryWriter.print(violationList.size());
-							summaryWriter.print(" violations with type ");
-						}
-						summaryWriter.print(type.name());
-						summaryWriter.print('.');
-						summaryWriter.println();
-						summaryWriter.println();
-					}
-					for (AnnotationRuleViolation violation : violationList) {
-						writer.print(violation.getLineNumber());
-						writer.print('\t');
+			else {
+				writer.println("#Line number\tRuleID\tViolationType\tMessage\tLine");
+				writer.println("#------------");
+				if (summaryWriter != null) {
+					summaryWriter.println("Errors are reported first.");
+					summaryWriter.println();
+				}
+				for(ViolationType type : types) {
+					Map<String, List<AnnotationRuleViolation>> violations = result.getViolations(type);
+					List<String> ruleIds = new ArrayList<String>(violations.keySet());
+					Collections.sort(ruleIds);
+					for (String ruleId : ruleIds) {
+						AnnotationRule rule = engine.getRule(ruleId);
+						List<AnnotationRuleViolation> violationList = violations.get(ruleId);
+						writer.print("# ");
 						writer.print(ruleId);
 						writer.print('\t');
+						printEscaped(rule.getName(), writer, true);
+						writer.print('\t');
 						writer.print(type.name());
-						writer.print('\t');
-						final String message = violation.getMessage();
-						printEscaped(message, writer, false);
-						writer.print('\t');
-						String annotationRow = violation.getAnnotationRow();
-						if (annotationRow != null) {
-							// do not escape the annotation row
-							// try to preserve the tab format to allow import into excel or similar
-							writer.print(annotationRow);
-						}
+						writer.print("\tcount:\t");
+						writer.print(violationList.size());
 						writer.println();
+
+						if (summaryWriter != null) {
+							summaryWriter.print("For rule ");
+							summaryWriter.print(ruleId);
+							summaryWriter.print(" (http://www.geneontology.org/GO.annotation_qc.shtml#");
+							summaryWriter.print(ruleId);
+							summaryWriter.print(")\n ");
+							summaryWriter.print(rule.getName());
+							summaryWriter.print(", ");
+							if (violationList.size() == 1) {
+								summaryWriter.print("there is one violation with type ");
+							}
+							else {
+								summaryWriter.print("there are ");
+								summaryWriter.print(violationList.size());
+								summaryWriter.print(" violations with type ");
+							}
+							summaryWriter.print(type.name());
+							summaryWriter.print('.');
+							summaryWriter.println();
+							summaryWriter.println();
+						}
+						for (AnnotationRuleViolation violation : violationList) {
+							writer.print(violation.getLineNumber());
+							writer.print('\t');
+							writer.print(ruleId);
+							writer.print('\t');
+							writer.print(type.name());
+							writer.print('\t');
+							final String message = violation.getMessage();
+							printEscaped(message, writer, false);
+							writer.print('\t');
+							String annotationRow = violation.getAnnotationRow();
+							if (annotationRow != null) {
+								// do not escape the annotation row
+								// try to preserve the tab format to allow import into excel or similar
+								writer.print(annotationRow);
+							}
+							writer.println();
+						}
+						writer.println("#------------");
 					}
-					writer.println("#------------");
 				}
 			}
 		}
