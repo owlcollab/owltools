@@ -101,11 +101,18 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 	
 	private Set<Prediction> getPredictedAnnotations(Map<String, Set<GeneAnnotation>> allAnnotations, GafDocument gafDoc, AnnotationPredictor predictor) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
-		
-		for (String id : allAnnotations.keySet()) {
+		Set<String> bioentities = allAnnotations.keySet();
+		int total = bioentities.size();
+		LOG.info("Start experimental prediction for "+total+" bioentities");
+		int count = 0;
+		for (String id : bioentities) {
+			count += 1;
 			Collection<GeneAnnotation> anns = allAnnotations.get(id);
 			Bioentity e = gafDoc.getBioentity(id);
 			predictions.addAll(predictor.predictForBioEntity(e, anns));
+			if (count % 1000 == 0) {
+				LOG.info("Current experimental prediction for "+count+" bioentities.");
+			}
 		}
 		return predictions;
 	}

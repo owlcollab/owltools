@@ -120,11 +120,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 					for (ExtensionExpression ext : group) {
 						String extClsString = ext.getCls();
 						String extRelString = ext.getRelation();
-						
-						OWLClass extCls = g.getOWLClassByIdentifier(extClsString);
-						if (extCls == null) {
-							continue;
-						}
+						OWLClass extCls = f.getOWLClass(g.getIRIByIdentifier(extClsString));
 						OWLObjectProperty extRel = g.getOWLObjectPropertyByIdentifier(extRelString);
 						if (extRel == null) {
 							continue;
