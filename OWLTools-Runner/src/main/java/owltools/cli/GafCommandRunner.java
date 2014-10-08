@@ -92,6 +92,7 @@ import owltools.gaf.rules.AnnotationRulesEngine;
 import owltools.gaf.rules.AnnotationRulesEngine.AnnotationRulesEngineResult;
 import owltools.gaf.rules.AnnotationRulesFactory;
 import owltools.gaf.rules.AnnotationRulesReportWriter;
+import owltools.gaf.rules.go.GoAnnotationExperimentalPredictionRule;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -1137,6 +1138,23 @@ public class GafCommandRunner extends CommandRunner {
 	public void setExperimentalGAFPredictionReportFile(Opts opts) {
 		if (opts.hasArgs()) {
 			experimentalGafPredictionReportFile = opts.nextOpt();
+		}
+	}
+	
+	@CLIMethod("--experimental-gaf-prediction")
+	public void createExperimentalPredictions(Opts opts) throws Exception {
+		GoAnnotationExperimentalPredictionRule experimentalPrediction = new GoAnnotationExperimentalPredictionRule(g);
+		List<Prediction> predictions = experimentalPrediction.getPredictedAnnotations(gafdoc, g);
+		System.out.println("Predictions: "+predictions.size());
+		AnnotationRulesEngineResult result = new AnnotationRulesEngineResult();
+		result.addExperimentalInferences(predictions);
+		ExtendAnnotationRulesReportWriter reportWriter = null;
+		try {
+			reportWriter = createReportWriter();
+			reportWriter.renderEngineResult(result, null);
+		}
+		finally {
+			IOUtils.closeQuietly(reportWriter);
 		}
 	}
 
