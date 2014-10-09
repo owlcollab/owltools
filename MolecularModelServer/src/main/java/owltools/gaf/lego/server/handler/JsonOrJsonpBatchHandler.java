@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -37,6 +38,8 @@ import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.UndoAwareMolecularModelManager.ChangeEvent;
 import owltools.gaf.lego.UndoAwareMolecularModelManager.UndoMetadata;
+import owltools.gaf.lego.server.external.ExternalLookupService;
+import owltools.gaf.lego.server.external.ExternalLookupService.LookupEntry;
 import owltools.gaf.lego.server.validation.BeforeSaveModelValidator;
 import owltools.util.ModelContainer;
 
@@ -54,17 +57,22 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	public static boolean USE_CREATION_DATE = true;
 	public static boolean ADD_INFERENCES = true;
 	public static boolean VALIDATE_BEFORE_SAVE = true;
+	public static boolean ENFORCE_EXTERNAL_VALIDATE = false;
 	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
 	private final UndoAwareMolecularModelManager m3;
 	private final Set<String> relevantRelations;
 	private final BeforeSaveModelValidator beforeSaveValidator;
+	private final ExternalLookupService externalLookupService;
 
-	public JsonOrJsonpBatchHandler(UndoAwareMolecularModelManager models, Set<String> relevantRelations) {
+	public JsonOrJsonpBatchHandler(UndoAwareMolecularModelManager models, 
+			Set<String> relevantRelations,
+			ExternalLookupService externalLookupService) {
 		super();
 		this.m3 = models;
 		this.relevantRelations = relevantRelations;
+		this.externalLookupService = externalLookupService;
 		this.beforeSaveValidator = new BeforeSaveModelValidator();
 	}
 
@@ -78,31 +86,38 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3BatchResponse m3BatchGet(String intention, String requestString) {
-		return m3Batch(null, intention, requestString, false);
+	public M3BatchResponse m3BatchGet(String intention, String packetId, String requestString) {
+		return m3Batch(null, intention, packetId, requestString, false);
 	}
 	
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3BatchResponse m3BatchGetPrivileged(String uid, String intention, String requestString) {
-		return m3Batch(uid, intention, requestString, true);
+	public M3BatchResponse m3BatchGetPrivileged(String uid, String intention, String packetId, String requestString) {
+		return m3Batch(uid, intention, packetId, requestString, true);
 	}
 
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3BatchResponse m3BatchPost(String intention, String requestString) {
-		return m3Batch(null, intention, requestString, false);
+	public M3BatchResponse m3BatchPost(String intention, String packetId, String requestString) {
+		return m3Batch(null, intention, packetId, requestString, false);
 	}
 	
 	@Override
 	@JSONP(callback = JSONP_DEFAULT_CALLBACK, queryParam = JSONP_DEFAULT_OVERWRITE)
-	public M3BatchResponse m3BatchPostPrivileged(String uid, String intention, String requestString) {
-		return m3Batch(uid, intention, requestString, true);
+	public M3BatchResponse m3BatchPostPrivileged(String uid, String intention, String packetId, String requestString) {
+		return m3Batch(uid, intention, packetId, requestString, true);
 	}
 
+	private static String checkPacketId(String packetId) {
+		if (packetId == null) {
+			packetId = PacketIdGenerator.generateId();
+		}
+		return packetId;
+	}
+	
 	@Override
-	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests, boolean isPrivileged) {
-		M3BatchResponse response = new M3BatchResponse(uid, intention);
+	public M3BatchResponse m3Batch(String uid, String intention, String packetId, M3Request[] requests, boolean isPrivileged) {
+		M3BatchResponse response = new M3BatchResponse(uid, intention, checkPacketId(packetId));
 		try {
 			return m3Batch(response, requests, uid, isPrivileged);
 		} catch (InsufficientPermissionsException e) {
@@ -115,8 +130,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 	}
 	
-	private M3BatchResponse m3Batch(String uid, String intention, String requestString, boolean isPrivileged) {
-		M3BatchResponse response = new M3BatchResponse(uid, intention);
+	private M3BatchResponse m3Batch(String uid, String intention, String packetId, String requestString, boolean isPrivileged) {
+		M3BatchResponse response = new M3BatchResponse(uid, intention, checkPacketId(packetId));
 		try {
 			Gson gson = gsonBuilder.create();
 			M3Request[] requests = gson.fromJson(requestString, type);
@@ -224,18 +239,17 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		final boolean isConsistent = reasoner.isConsistent();
 
 		// create response.data
+		MolecularModelJsonRenderer renderer = createModelRenderer(model, externalLookupService);
 		if (values.renderBulk) {
 			// render complete model
-			response.data = m3.getModelObject(values.modelId);
+			response.data = renderer.renderModel();
 			response.signal = M3BatchResponse.SIGNAL_REBUILD;
 			if (ADD_INFERENCES) {
-				MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
 				renderer.renderModelInferences(response.data, reasoner);
 			}
 		}
 		else {
 			// render individuals
-			MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
 			response.data = renderer.renderIndividuals(values.relevantIndividuals);
 			response.signal = M3BatchResponse.SIGNAL_MERGE;
 			if (ADD_INFERENCES) {
@@ -260,6 +274,42 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			response.message = "success";
 		}
 		return response;
+	}
+
+	/**
+	 * @param model
+	 * @param externalLookupService
+	 * @return renderer
+	 */
+	static MolecularModelJsonRenderer createModelRenderer(
+			final ModelContainer model, 
+			final ExternalLookupService externalLookupService) {
+		
+		MolecularModelJsonRenderer renderer;
+		if (externalLookupService != null) {
+			renderer = new MolecularModelJsonRenderer(model.getAboxOntology()) {
+
+				@Override
+				protected Object getLabel(OWLNamedObject i, String id) {
+					Object label = super.getLabel(i, id);
+					if (label == null ) {
+						// TODO get taxon for now take the first one
+						// externalLookupService.lookup(id, taxon);
+						List<LookupEntry> lookup = externalLookupService.lookup(id);
+						if (lookup != null && !lookup.isEmpty()) {
+							LookupEntry entry = lookup.iterator().next();
+							label = entry.label;
+						}
+					}
+					return label;
+				}
+
+			};
+		}
+		else {
+			renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
+		}
+		return renderer;
 	}
 
 	/**
@@ -302,7 +352,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 			if (request.arguments.expressions != null) {
 				for(M3Expression expression : request.arguments.expressions) {
-					OWLClassExpression cls = M3ExpressionParser.parse(values.modelId, expression, m3);
+					OWLClassExpression cls = parseM3Expression(expression, values);
 					m3.addTypeNonReasoning(values.modelId, individualPair.getKey(), cls, token);
 				}
 			}
@@ -322,7 +372,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 			if (request.arguments.expressions != null) {
 				for(M3Expression expression : request.arguments.expressions) {
-					OWLClassExpression cls = M3ExpressionParser.parse(values.modelId, expression, m3);
+					OWLClassExpression cls = parseM3Expression(expression, values);
 					m3.addTypeNonReasoning(values.modelId, individual1Pair.getKey(), cls, token);
 				}
 			}
@@ -346,7 +396,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
 			for(M3Expression expression : request.arguments.expressions) {
-				OWLClassExpression cls = M3ExpressionParser.parse(values.modelId, expression, m3);
+				OWLClassExpression cls = parseM3Expression(expression, values);
 				// TODO evidence and contributor information for types
 				OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
 				values.relevantIndividuals.add(i);
@@ -359,7 +409,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
 			for(M3Expression expression : request.arguments.expressions) {
-				OWLClassExpression cls = M3ExpressionParser.parse(values.modelId, expression, m3);
+				OWLClassExpression cls = parseM3Expression(expression, values);
 				OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
 				values.relevantIndividuals.add(i);
 			}
@@ -391,6 +441,16 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			return "Unknown operation: "+operation;
 		}
 		return null;
+	}
+
+	private OWLClassExpression parseM3Expression(M3Expression expression, BatchHandlerValues values)
+			throws MissingParameterException, UnknownIdentifierException, OWLException {
+		if (ENFORCE_EXTERNAL_VALIDATE) {
+			return M3ExpressionParser.parse(values.modelId, expression, m3, externalLookupService);
+		}
+		else {
+			return M3ExpressionParser.parse(values.modelId, expression, m3, null);
+		}
 	}
 	
 	private String handleRequestForEdge(M3Request request, Operation operation, String userId, UndoMetadata token, BatchHandlerValues values) throws Exception {
@@ -691,8 +751,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			Map<String, String> modelMap = retMap.get(mid);
 			
 			// Iterate through the model's a.
-			ModelContainer m = m3.getModel(mid);
-			OWLOntology o = m.getAboxOntology();
+			OWLOntology o = m3.getModelAbox(mid);
 			Set<OWLAnnotation> annotations = o.getAnnotations();
 			for( OWLAnnotation an : annotations ){
 				

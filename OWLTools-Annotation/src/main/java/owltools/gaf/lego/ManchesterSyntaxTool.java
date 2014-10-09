@@ -1,5 +1,9 @@
 package owltools.gaf.lego;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
@@ -24,8 +28,9 @@ import owltools.graph.OWLGraphWrapper;
  */
 public class ManchesterSyntaxTool {
 
-	private OWLDataFactory dataFactory;
-	private OWLEntityChecker entityChecker;
+	private final OWLDataFactory dataFactory;
+	private final OWLEntityChecker entityChecker;
+	private final Map<String, OWLClass> createdClassesMap;
 
 	/**
 	 * Create new instance.
@@ -36,7 +41,15 @@ public class ManchesterSyntaxTool {
 	public ManchesterSyntaxTool(OWLGraphWrapper graph, boolean createClasses) {
 		super();
 		this.dataFactory = graph.getDataFactory();
-		entityChecker = new AdvancedEntityChecker(graph, createClasses);
+		createdClassesMap = new HashMap<String, OWLClass>();
+		entityChecker = new AdvancedEntityChecker(graph, createClasses, createdClassesMap);
+	}
+
+	/**
+	 * @return the createdClasses
+	 */
+	public Map<String, OWLClass> getCreatedClasses() {
+		return Collections.unmodifiableMap(createdClassesMap);
 	}
 
 	/**
@@ -66,11 +79,14 @@ public class ManchesterSyntaxTool {
 
 		private final OWLGraphWrapper graph;
 		private final boolean createClasses;
+		private final Map<String, OWLClass> createdClassesMap;
 
-		AdvancedEntityChecker(OWLGraphWrapper graph, boolean createClasses) {
+		AdvancedEntityChecker(OWLGraphWrapper graph, boolean createClasses, 
+				Map<String, OWLClass> createdClassesMap) {
 			super();
 			this.graph = graph;
 			this.createClasses = createClasses;
+			this.createdClassesMap = createdClassesMap;
 		}
 
 		public OWLClass getOWLClass(String name) {
@@ -105,13 +121,24 @@ public class ManchesterSyntaxTool {
 				}
 				OWLClass c = null;
 				if (createClasses) {
-					c = graph.getDataFactory().getOWLClass(iri);
+					String id = graph.getIdentifier(iri);
+					c = createdClassesMap.get(id);
+					if (c == null) {
+						c = graph.getDataFactory().getOWLClass(iri);
+						createdClassesMap.put(name, c);
+					}
 				}
 				return c;
 			}
 			else {
 				if (createClasses && !StringUtils.contains(name, ' ')) {
-					return graph.getDataFactory().getOWLClass(graph.getIRIByIdentifier(name));
+					OWLClass c = createdClassesMap.get(name);
+					if (c == null) {
+						IRI iri = graph.getIRIByIdentifier(name);
+						c = graph.getDataFactory().getOWLClass(iri);
+						createdClassesMap.put(name, c);
+					}
+					return c;
 				}
 			}
 			return null;

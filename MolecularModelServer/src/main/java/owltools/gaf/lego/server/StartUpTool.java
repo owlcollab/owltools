@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,10 +13,13 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.semanticweb.owlapi.model.IRI;
 
 import owltools.cli.Opts;
-import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
+import owltools.gaf.lego.server.external.CombinedExternalLookupService;
+import owltools.gaf.lego.server.external.ExternalLookupService;
+import owltools.gaf.lego.server.external.ProteinToolService;
 import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler;
 import owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler;
 import owltools.graph.OWLGraphWrapper;
@@ -40,6 +42,7 @@ public class StartUpTool {
 		String proteinOntologyFolder = null; // optional
 		List<String> additionalImports = new ArrayList<String>();
 		List<String> obsoleteImports = new ArrayList<String>();
+		ExternalLookupService lookupService = null;
 
 		// right now we are using the relation names to select as subset of relations
 		// later this might be done as an annotation property in OWL
@@ -56,11 +59,9 @@ public class StartUpTool {
 				"starts with",
 				"ends with"));
 		
-		boolean allowBatch = true;
-		
 		// provide a map from db name to taxonId
 		// used to resolve a protain ontology (if available)
-		Map<String, String> dbToTaxon = ProteinTools.getDefaultDbToTaxon();
+		// Map<String, String> dbToTaxon = ProteinTools.getDefaultDbToTaxon();
 		
 		// server configuration
 		int port = 6800; 
@@ -94,12 +95,6 @@ public class StartUpTool {
 			else if (opts.nextEq("--obsolete-import")) {
 				obsoleteImports.add(StringUtils.trim(opts.nextOpt()));
 			}
-			else if (opts.nextEq("--no-batch")) {
-				allowBatch = false;
-			}
-			else if (opts.nextEq("--allow-batch")) {
-				allowBatch = true;
-			}
 			else if (opts.nextEq("--set-relevant-relations")) {
 				relevantRelations.addAll(opts.nextList());
 			}
@@ -108,9 +103,6 @@ public class StartUpTool {
 			}
 			else if (opts.nextEq("--add-relevant-relation")) {
 				relevantRelations.add(opts.nextOpt());
-			}
-			else if (opts.nextEq("--allow-batch")) {
-				allowBatch = true;
 			}
 			else {
 				break;
@@ -130,13 +122,16 @@ public class StartUpTool {
 		}
 
 		
-		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, port, contextString, additionalImports, obsoleteImports, allowBatch, relevantRelations, dbToTaxon);
+		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, 
+				port, contextString, additionalImports, obsoleteImports, relevantRelations, 
+				lookupService);
 	}
 
 	public static void startUp(String ontology, String catalog, String modelFolder, 
 			String gafFolder, String proteinOntologyFolder, int port, String contextString, 
-			List<String> additionalImports, List<String> obsoleteImports, boolean allowBatch, Set<String> relevantRelations, 
-			Map<String, String> dbToTaxon) throws Exception {
+			List<String> additionalImports, List<String> obsoleteImports, Set<String> relevantRelations, 
+			ExternalLookupService lookupService) 
+			throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
 		ParserWrapper pw = new ParserWrapper();
@@ -156,15 +151,25 @@ public class StartUpTool {
 		models.addImports(additionalImports);
 		models.addObsoleteImports(obsoleteImports);
 		if (proteinOntologyFolder != null) {
-			models.setPathToProteinFiles(proteinOntologyFolder);
+			ProteinToolService proteinService = new ProteinToolService(proteinOntologyFolder);
+			if (lookupService != null) {
+				lookupService = new CombinedExternalLookupService(Arrays.<ExternalLookupService>asList(lookupService));
+			}
+			else {
+				lookupService = proteinService;
+			}
+			Set<IRI> additionalObsoletes = proteinService.getOntologyIRIs();
+			if (additionalObsoletes != null) {
+				models.addObsoleteImportIRIs(additionalObsoletes);
+			}
 		}
-		models.setDbToTaxon(dbToTaxon);
 		
-		Server server = startUp(models, port, contextString, allowBatch, relevantRelations);
+		Server server = startUp(models, port, contextString, relevantRelations, lookupService);
 		server.join();
 	}
 	
-	public static Server startUp(UndoAwareMolecularModelManager models, int port, String contextString, boolean allowBatch, Set<String> relevantRelations)
+	public static Server startUp(UndoAwareMolecularModelManager models, int port, String contextString, 
+			Set<String> relevantRelations, ExternalLookupService lookupService)
 			throws Exception {
 		LOGGER.info("Setup Jetty config.");
 		// Configuration: Use an already existing handler instance
@@ -173,10 +178,8 @@ public class StartUpTool {
 		resourceConfig.register(GsonMessageBodyHandler.class);
 		resourceConfig.register(RequireJsonpFilter.class);
 		//resourceConfig.register(AuthorizationRequestFilter.class);
-		if (allowBatch) {
-			JsonOrJsonpBatchHandler batchHandler = new JsonOrJsonpBatchHandler(models, relevantRelations);
-			resourceConfig = resourceConfig.registerInstances(batchHandler);
-		}
+		JsonOrJsonpBatchHandler batchHandler = new JsonOrJsonpBatchHandler(models, relevantRelations, lookupService);
+		resourceConfig = resourceConfig.registerInstances(batchHandler);
 		JsonOrJsonpModelHandler defaultModelHandler = new JsonOrJsonpModelHandler(models);
 		resourceConfig = resourceConfig.registerInstances(defaultModelHandler);
 

@@ -293,8 +293,9 @@ public class MolecularModelJsonRenderer {
 	 */
 	public Map<Object, Object> renderObject(OWLNamedIndividual i) {
 		Map<Object, Object> iObj = new HashMap<Object, Object>();
-		iObj.put(KEY.id, getId(i, graph));
-		iObj.put(KEY.label, getLabel(i));
+		String id = getId(i, graph);
+		iObj.put(KEY.id, id);
+		iObj.put(KEY.label, getLabel(i, id));
 		
 		List<Object> typeObjs = new ArrayList<Object>();		
 		for (OWLClassExpression x : i.getTypes(ont)) {
@@ -363,8 +364,9 @@ public class MolecularModelJsonRenderer {
 	 */
 	public Map<Object, Object> renderObject(OWLObjectProperty p) {
 		Map<Object, Object> iObj = new HashMap<Object, Object>();
-		iObj.put(KEY.id, getId(p, graph));
-		iObj.put(KEY.label, getLabel(p));
+		String id = getId(p, graph);
+		iObj.put(KEY.id, id);
+		iObj.put(KEY.label, getLabel(p, id));
 		
 		iObj.put(KEY.type, "ObjectProperty");
 		return iObj;
@@ -415,18 +417,19 @@ public class MolecularModelJsonRenderer {
 		}
 	}
 
-	private Object getLabel(OWLNamedObject i) {
+	protected Object getLabel(OWLNamedObject i, String id) {
 		return graph.getLabel(i);
 	}
 	
 	private Object getAtom(OWLNamedObject i) {
 		Map<Object, Object> xObj = new HashMap<Object, Object>();
 		
+		String id = getId(i, graph);
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("atom: "+i+" "+getId(i, graph));
+			LOG.debug("atom: "+i+" "+id);
 		}
-		xObj.put(KEY.id, getId(i, graph));
-		xObj.put(KEY.label, getLabel(i));
+		xObj.put(KEY.id, id);
+		xObj.put(KEY.label, getLabel(i, id));
 		String type = null;
 		if (i instanceof OWLNamedIndividual) {
 			type = "NamedIndividual";

@@ -169,7 +169,9 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 	private String renderJSON(String modelId) throws UnknownIdentifierException {
 
-		Map<Object, Object> obj = mmm.getModelObject(modelId);
+		ModelContainer model = mmm.getModel(modelId);
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
+		Map<Object, Object> obj = renderer.renderModel();
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 		String js = gson.toJson(obj);

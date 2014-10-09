@@ -16,6 +16,8 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -43,6 +45,8 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.RemoveAxiom;
@@ -165,6 +169,17 @@ public abstract class CoreMolecularModelManager<METADATA> {
 			for (String obsolete : obsoletes) {
 				obsoleteImports.add(IRI.create(obsolete));
 			}
+		}
+	}
+	
+	/**
+	 * Mark the given imports as obsolete.
+	 * 
+	 * @param obsoleteImports
+	 */
+	public void addObsoleteImportIRIs(Collection<IRI> obsoleteImports) {
+		if (obsoleteImports != null) {
+			this.obsoleteImports.addAll(obsoleteImports);
 		}
 	}
 	
@@ -365,6 +380,35 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		}
 		return modelMap.get(id);
 	}
+	
+	/**
+	 * Retrieve the abox ontology. May skip loading the imports.
+	 * This method is mostly intended to read metadata from a model.
+	 * 
+	 * @param id
+	 * @return abox, maybe without any imports loaded
+	 */
+	public OWLOntology getModelAbox(String id) {
+		ModelContainer model = modelMap.get(id);
+		if (model != null) {
+			return model.getAboxOntology();
+		}
+		OWLOntology abox = null;
+		try {
+			abox = loadModelABox(id);
+		} catch (OWLOntologyCreationException e) {
+			LOG.info("Could not load model with id: "+id, e);
+		}
+		return abox;
+	}
+	
+	/**
+	 * @param modelId
+	 * @return ontology
+	 * @throws OWLOntologyCreationException
+	 */
+	protected abstract OWLOntology loadModelABox(String modelId) throws OWLOntologyCreationException;
+	
 	/**
 	 * @param id
 	 */
@@ -971,6 +1015,51 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	protected void addToHistory(String modelId, ModelContainer model, 
 			List<OWLOntologyChange> appliedChanges, METADATA metadata) {
 		// do nothing, for now
+	}
+	
+	protected OWLOntology loadOntologyIRI(final IRI sourceIRI, boolean minimal) throws OWLOntologyCreationException {
+		// silence the OBO parser in the OWL-API
+		java.util.logging.Logger.getLogger("org.obolibrary").setLevel(java.util.logging.Level.SEVERE);
+		
+		// load model from source
+		OWLOntologyDocumentSource source = new IRIDocumentSource(sourceIRI);
+		if (minimal == false) {
+			// add the obsolete imports to the ignored imports
+			OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
+			for(IRI obsoleteImport : obsoleteImports) {
+				config = config.addIgnoredImport(obsoleteImport);
+			}
+			
+			OWLOntology abox = graph.getManager().loadOntologyFromOntologyDocument(source, config);
+			return abox;
+		}
+		else {
+			// only load the model, skip imports
+			// approach: return an empty ontology IRI for any IRI mapping request using.
+			final OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+			final Set<IRI> emptyOntologies = new HashSet<IRI>();
+			m.addIRIMapper(new OWLOntologyIRIMapper() {
+				
+				@Override
+				public IRI getDocumentIRI(IRI ontologyIRI) {
+					
+					// quick check:
+					// do nothing for the original IRI and known empty ontologies
+					if (sourceIRI.equals(ontologyIRI) || emptyOntologies.contains(ontologyIRI)) {
+						return null;
+					}
+					emptyOntologies.add(ontologyIRI);
+					try {
+						OWLOntology emptyOntology = m.createOntology(ontologyIRI);
+						return emptyOntology.getOntologyID().getDefaultDocumentIRI();
+					} catch (OWLOntologyCreationException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			});
+			OWLOntology minimalAbox = m.loadOntologyFromOntologyDocument(source);
+			return minimalAbox;
+		}
 	}
 	
 	/**

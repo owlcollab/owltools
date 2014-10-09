@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -431,18 +430,6 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return exportModelLegacy(modelId, model, format);
 	}
 	
-	/**
-	 * @param modelId
-	 * @return Map object ready for Gson
-	 * @throws UnknownIdentifierException
-	 */
-	public Map<Object, Object> getModelObject(String modelId) throws UnknownIdentifierException {
-		ModelContainer mod = checkModelId(modelId);
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
-		return renderer.renderModel();
-	}
-
-	
 	private OWLNamedIndividual getIndividual(String indId, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(indId, graph);
@@ -683,11 +670,13 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		addEnabledBy(modelId, model, individual, clsExpr);
 	}
 
+	@Deprecated
 	private OWLClassExpression parseClassExpression(String expression, ModelContainer model) throws OWLException {
 		OWLGraphWrapper g = new OWLGraphWrapper(model.getAboxOntology());
 		return parseClassExpression(expression, g);
 	}
 	
+	@Deprecated
 	public static OWLClassExpression parseClassExpression(String expression, OWLGraphWrapper g) throws OWLException {
 		try {
 			ManchesterSyntaxTool syntaxTool = new ManchesterSyntaxTool(g, true);

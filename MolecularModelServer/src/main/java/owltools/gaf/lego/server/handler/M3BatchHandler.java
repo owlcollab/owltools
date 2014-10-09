@@ -140,6 +140,7 @@ public interface M3BatchHandler {
 	}
 	
 	public static class M3BatchResponse {
+		final String packet_id; // generated or pass-through
 		final String uid; // pass-through
 		/*
 		 * pass-through; model:
@@ -185,10 +186,12 @@ public interface M3BatchHandler {
 		/**
 		 * @param uid
 		 * @param intention
+		 * @param packet_id
 		 */
-		public M3BatchResponse(String uid, String intention) {
+		public M3BatchResponse(String uid, String intention, String packet_id) {
 			this.uid = uid;
 			this.intention = intention;
+			this.packet_id = packet_id;
 		}
 		
 	}
@@ -199,16 +202,18 @@ public interface M3BatchHandler {
 	 * 
 	 * @param uid user id, JSONP relevant
 	 * @param intention JSONP relevant
+	 * @param packetId response relevant, may be null
 	 * @param requests batch request
 	 * @param isPrivileged true, if the access is privileged
 	 * @return response object, never null
 	 */
-	public M3BatchResponse m3Batch(String uid, String intention, M3Request[] requests, boolean isPrivileged);
+	public M3BatchResponse m3Batch(String uid, String intention, String packetId, M3Request[] requests, boolean isPrivileged);
 	
 	/**
 	 * Jersey REST method for POST with three form parameters.
 	 * 
 	 * @param intention JSONP relevant
+	 * @param packetId
 	 * @param requests JSON string of the batch request
 	 * @return response convertible to JSON(P)
 	 */
@@ -217,6 +222,7 @@ public interface M3BatchHandler {
 	@Consumes("application/x-www-form-urlencoded")
 	public M3BatchResponse m3BatchPost(
 			@FormParam("intention") String intention,
+			@FormParam("packet-id") String packetId,
 			@FormParam("requests") String requests);
 	
 	/**
@@ -224,6 +230,7 @@ public interface M3BatchHandler {
 	 * 
 	 * @param uid user id, JSONP relevant
 	 * @param intention JSONP relevant
+	 * @param packetId
 	 * @param requests JSON string of the batch request
 	 * @return response convertible to JSON(P)
 	 */
@@ -233,6 +240,7 @@ public interface M3BatchHandler {
 	public M3BatchResponse m3BatchPostPrivileged(
 			@FormParam("uid") String uid,
 			@FormParam("intention") String intention,
+			@FormParam("packet-id") String packetId,
 			@FormParam("requests") String requests);
 	
 	
@@ -240,6 +248,7 @@ public interface M3BatchHandler {
 	 * Jersey REST method for GET with three query parameters.
 	 * 
 	 * @param intention JSONP relevant
+	 * @param packetId 
 	 * @param requests JSON string of the batch request
 	 * @return response convertible to JSON(P)
 	 */
@@ -247,6 +256,7 @@ public interface M3BatchHandler {
 	@GET
 	public M3BatchResponse m3BatchGet(
 			@QueryParam("intention") String intention,
+			@QueryParam("packet-id") String packetId,
 			@QueryParam("requests") String requests);
 	
 	/**
@@ -254,6 +264,7 @@ public interface M3BatchHandler {
 	 * 
 	 * @param uid user id, JSONP relevant
 	 * @param intention JSONP relevant
+	 * @param packetId 
 	 * @param requests JSON string of the batch request
 	 * @return response convertible to JSON(P)
 	 */
@@ -262,5 +273,6 @@ public interface M3BatchHandler {
 	public M3BatchResponse m3BatchGetPrivileged(
 			@QueryParam("uid") String uid,
 			@QueryParam("intention") String intention,
+			@QueryParam("packet-id") String packetId,
 			@QueryParam("requests") String requests);
 }

@@ -34,15 +34,12 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import owltools.gaf.GafDocument;
-import owltools.gaf.bioentities.ProteinTools;
 import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
-import owltools.io.CatalogXmlIRIMapper;
 import owltools.util.ModelContainer;
 
 /**
@@ -59,9 +56,6 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 	Map<String, GafDocument> dbToGafdoc = new HashMap<String, GafDocument>();
 	String pathToGafs = "gene-associations";
 	String pathToOWLFiles = "owl-models";
-	String pathToProteinFiles = null;
-	Map<String, String> dbToTaxon = null;
-	OWLOntologyIRIMapper proteinMapper = null;
 	
 	GafObjectsBuilder builder = new GafObjectsBuilder();
 	// WARNING: Do *NOT* switch to functional syntax until the OWL-API has fixed a bug.
@@ -105,44 +99,6 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		this.pathToOWLFiles = pathToOWLFiles;
 	}
 	
-	/**
-	 * @param pathToProteinFiles
-	 * @throws IOException 
-	 */
-	public synchronized void setPathToProteinFiles(String pathToProteinFiles) throws IOException {
-		setPathToProteinFiles(pathToProteinFiles, "catalog-v001.xml");
-	}
-	
-	/**
-	 * @param pathToProteinFiles
-	 * @param catalogXML
-	 * @throws IOException 
-	 */
-	public synchronized void setPathToProteinFiles(String pathToProteinFiles, String catalogXML) throws IOException {
-		if (proteinMapper != null) {
-			graph.getManager().removeIRIMapper(proteinMapper);
-		}
-		this.pathToProteinFiles = pathToProteinFiles;
-		proteinMapper = new CatalogXmlIRIMapper(new File(pathToProteinFiles, catalogXML));
-		graph.getManager().addIRIMapper(proteinMapper);
-	}
-	
-	public String getPathToProteinFiles() {
-		return pathToProteinFiles;
-	}
-	
-	/**
-	 * @return the dbToTaxon
-	 */
-	public Map<String, String> getDbToTaxon() {
-		return dbToTaxon;
-	}
-	/**
-	 * @param dbToTaxon the dbToTaxon to set
-	 */
-	public void setDbToTaxon(Map<String, String> dbToTaxon) {
-		this.dbToTaxon = dbToTaxon;
-	}
 	/**
 	 * loads/register a Gaf document
 	 * 
@@ -228,7 +184,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 			abox = m.createOntology(iri);
 			
 			// setup model ontology to import the source ontology and other imports
-			createImports(abox, tbox.getOntologyID(), db, metadata);
+			createImports(abox, tbox.getOntologyID(), metadata);
 			
 			// create generator
 			model = new ModelContainer(tbox, abox);
@@ -269,32 +225,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		return modelId;
 	}
 
-	private void createImports(OWLOntology ont, OWLOntologyID tboxId, String db, METADATA metadata) throws OWLOntologyCreationException {
-		String taxonId = mapDbToTaxonId(db);
-		createImportsWithTaxon(ont, tboxId, taxonId, metadata);
-	}
-
-	/**
-	 * @param db
-	 * @return taxon id or null
-	 */
-	private String mapDbToTaxonId(String db) {
-		String taxonId = null;
-		// check for protein ontology
-		if (db != null && pathToProteinFiles != null && proteinMapper != null) {
-			taxonId = null;
-			if (dbToTaxon != null) {
-				taxonId = dbToTaxon.get(db);
-			}
-			if (taxonId == null) {
-				// fallback
-				taxonId = db;
-			}
-		}
-		return taxonId;
-	}
-	
-	private void createImportsWithTaxon(OWLOntology ont, OWLOntologyID tboxId, String taxonId, METADATA metadata) throws OWLOntologyCreationException {
+	private void createImports(OWLOntology ont, OWLOntologyID tboxId, METADATA metadata) throws OWLOntologyCreationException {
 		OWLOntologyManager m = ont.getOWLOntologyManager();
 		OWLDataFactory f = m.getOWLDataFactory();
 		
@@ -318,17 +249,6 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 				}
 			}
 			m.applyChange(new AddImport(ont, importDeclaration));
-		}
-		
-		// check for protein ontology
-		if (taxonId != null && pathToProteinFiles != null && proteinMapper != null) {
-			IRI proteinIRI = ProteinTools.createProteinOntologyIRI(taxonId);
-			IRI mapped = proteinMapper.getDocumentIRI(proteinIRI);
-			if (mapped != null) {
-				OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(proteinIRI);
-				m.loadOntology(proteinIRI);
-				m.applyChange(new AddImport(ont, importDeclaration));
-			}
 		}
 	}
 	
@@ -371,7 +291,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 			abox = m.createOntology(aBoxIRI);
 	
 			// add imports to T-Box and additional ontologies via IRI
-			createImports(abox, tbox.getOntologyID(), db, metadata);
+			createImports(abox, tbox.getOntologyID(), metadata);
 			
 			// generate model
 			model = new ModelContainer(tbox, abox);
@@ -423,7 +343,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 			abox = m.createOntology(aBoxIRI);
 	
 			// add imports to T-Box and additional ontologies via IRI
-			createImportsWithTaxon(abox, tbox.getOntologyID(), taxonId, metadata);
+			createImports(abox, tbox.getOntologyID(), metadata);
 			
 			// generate model
 			model = new ModelContainer(tbox, abox);
@@ -682,9 +602,17 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		}
 		File modelFile = getOwlModelFile(modelId);
 		IRI sourceIRI = IRI.create(modelFile);
-		OWLOntology abox = graph.getManager().loadOntologyFromOntologyDocument(sourceIRI);
+		OWLOntology abox = loadOntologyIRI(sourceIRI, false);
 		ModelContainer model = addModel(modelId, abox);
 		updateImports(modelId, model);
+	}
+
+	@Override
+	protected OWLOntology loadModelABox(String modelId) throws OWLOntologyCreationException {
+		File modelFile = getOwlModelFile(modelId);
+		IRI sourceIRI = IRI.create(modelFile);
+		OWLOntology abox = loadOntologyIRI(sourceIRI, true);
+		return abox;
 	}
 
 	private File getOwlModelFile(String modelId) {
