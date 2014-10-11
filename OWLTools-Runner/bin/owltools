@@ -18,7 +18,7 @@ CLASSPATH_RELATIVE=owltools-runner-all.jar
 # failure message will make a little more sense.
 # JAVAPATH="java"
 
-if [ "`uname -o`" = "Cygwin" ]
+if [ "`uname`" = "Cygwin" ]
 then
     PATH_SEP=";"
 else
@@ -32,11 +32,11 @@ CMDARGS=" "
 PATH_TO_ME=`which $0`;
 PATH_TO_ME=`echo $PATH_TO_ME | sed -e "s/\(.*\)\/.*/\1/g"`
 
-if [ "`uname -o`" = "Cygwin" ]
+if [ "`uname`" = "Cygwin" ]
 then
-    LAUNCHER_DIR="$PATH_TO_ME"
-else
     LAUNCHER_DIR="`cygpath --mixed $PATH_TO_ME`"
+else
+    LAUNCHER_DIR="$PATH_TO_ME"
 fi
 
 
@@ -76,7 +76,7 @@ do
     DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$ARG | grep -v ontologyrelease`
     for CP_ENTRY in $DEREFERENCED_CLASSPATH
     do
-        if [ "`uname -o`" = "Cygwin" ]
+        if [ "`uname`" = "Cygwin" ]
         then
             CP_ENTRY="`cygpath --mixed \"$CP_ENTRY\"`"
         fi
