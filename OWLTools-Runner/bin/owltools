@@ -18,7 +18,12 @@ CLASSPATH_RELATIVE=owltools-runner-all.jar
 # failure message will make a little more sense.
 # JAVAPATH="java"
 
-PATH_SEP=":"
+if [ "`uname -o`" = "Cygwin" ]
+then
+    PATH_SEP=";"
+else
+    PATH_SEP=":"
+fi
 
 JAVAARGS=" "
 CMDARGS=" "
@@ -26,6 +31,14 @@ CMDARGS=" "
 # Remove the name of this script from the end of the path
 PATH_TO_ME=`which $0`;
 PATH_TO_ME=`echo $PATH_TO_ME | sed -e "s/\(.*\)\/.*/\1/g"`
+
+if [ "`uname -o`" = "Cygwin" ]
+then
+    LAUNCHER_DIR="$PATH_TO_ME"
+else
+    LAUNCHER_DIR="`cygpath --mixed $PATH_TO_ME`"
+fi
+
 
 # Just the name of the script.
 SCRIPTNAME=`echo $PATH_TO_ME | sed -e "s/.*\/\(.*\)/\1/g"`
@@ -63,6 +76,10 @@ do
     DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$ARG | grep -v ontologyrelease`
     for CP_ENTRY in $DEREFERENCED_CLASSPATH
     do
+        if [ "`uname -o`" = "Cygwin" ]
+        then
+            CP_ENTRY="`cygpath --mixed \"$CP_ENTRY\"`"
+        fi
 	if [ -z "$CLASSPATH" ]
 	then
 	    CLASSPATH="$CP_ENTRY"
@@ -102,7 +119,7 @@ then
 fi
 
 ## Assemble and run the final command.
-CMD="$JAVAPATH -Xms2048M -DentityExpansionLimit=2048000 -Djava.awt.headless=true -Djava.library.path=$PATH_TO_ME/../lib -classpath $CLASSPATH -DlauncherDir=$PATH_TO_ME $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
+CMD="\"$JAVAPATH\" -Xms2048M -DentityExpansionLimit=2048000 -Djava.awt.headless=true -classpath \"$CLASSPATH\" -DlauncherDir=\"$LAUNCHER_DIR\" $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
 
 ## DEBUG
 ## Let's see a little of the environment if we declare DEBUG=1.
