@@ -840,7 +840,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		System.out.println(g2.toJSON());
 	}
 	private OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException{
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		ParserWrapper pw = new ParserWrapper();
+		OWLOntologyManager manager = pw.getManager();
 		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(getTestResource(file));
 		return new OWLGraphWrapper(ontology);
 	}

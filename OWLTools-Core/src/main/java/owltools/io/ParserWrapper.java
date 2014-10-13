@@ -23,6 +23,8 @@ import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.OBODocNameProvider;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.io.OWLParserFactory;
+import org.semanticweb.owlapi.io.OWLParserFactoryRegistry;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -55,6 +57,7 @@ public class ParserWrapper {
 	
 	public ParserWrapper() {
 		manager = OWLManager.createOWLOntologyManager(); // persist?
+		removeOldOwlApiObo(manager);
 		OWLOntologyLoaderListener listener = new OWLOntologyLoaderListener() {
 
 			@Override
@@ -72,6 +75,23 @@ public class ParserWrapper {
 			}
 		};
 		manager.addOntologyLoaderListener(listener);
+	}
+	
+	/**
+	 * This will try to remove the old OBO parser from the OWL-API.
+	 * 
+	 * @param manager
+	 */
+	public static void removeOldOwlApiObo(OWLOntologyManager manager) {
+		synchronized (manager) {
+			OWLParserFactoryRegistry registry = OWLParserFactoryRegistry.getInstance();
+			List<OWLParserFactory> factories = new ArrayList<OWLParserFactory>(registry.getParserFactories());
+			for (OWLParserFactory parserFactory : factories) {
+				if (parserFactory.getClass().getName().equals("org.coode.owlapi.obo12.parser.OBO12ParserFactory")) {
+					registry.unregisterParserFactory(parserFactory);
+				}
+			}
+		}
 	}
 	
 	public OWLOntologyManager getManager() {

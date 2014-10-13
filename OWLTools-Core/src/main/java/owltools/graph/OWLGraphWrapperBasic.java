@@ -27,6 +27,8 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import owltools.io.ParserWrapper;
+
 /**
  * Basic methods for handling multiple {@link OWLOntology} objects as one graph.
  * Provide methods to add, remove, or merge support ontologies.
@@ -48,7 +50,8 @@ public class OWLGraphWrapperBasic {
 	
 	protected OWLGraphWrapperBasic(String iri) throws OWLOntologyCreationException {
 		super();
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		ParserWrapper pw = new ParserWrapper();
+		OWLOntologyManager manager = pw.getManager();
 		sourceOntology = manager.createOntology(IRI.create(iri));
 	}
 

@@ -5319,7 +5319,8 @@ public class CommandRunner {
 		// (optional) load previous slim in OWL.
 		// Check that all classes are also available in the new base ontology.
 		if (oldOwl != null) {
-			OWLOntologyManager tempManager = OWLManager.createOWLOntologyManager();
+			ParserWrapper pw = new ParserWrapper();
+			OWLOntologyManager tempManager = pw.getManager();
 			OWLOntology oldSlim = tempManager.loadOntologyFromOntologyDocument(new File(oldOwl));
 			OWLGraphWrapper oldSlimGraph = new OWLGraphWrapper(oldSlim);
 			Set<OWLClass> classes = oldSlim.getClassesInSignature();

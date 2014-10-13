@@ -47,6 +47,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty;
+import owltools.io.ParserWrapper;
 
 /**
  * Given one source ontology referencing one or more referenced ontologies
@@ -100,7 +101,8 @@ public class Mooncat {
 		super();
 		//this.ontology = g.getSourceOntology();
 		this.referencedOntologies = g.getSupportOntologySet();
-		this.manager = OWLManager.createOWLOntologyManager();
+		ParserWrapper pw = new ParserWrapper(); 
+		this.manager = pw.getManager();
 		this.dataFactory = manager.getOWLDataFactory();
 		this.graph = g;
 	}
