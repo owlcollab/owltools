@@ -1,0 +1,8 @@
+format-version: 1.2
+ontology: broken
+
+[Term]
+id: BROKEN:0000000
+name: broken one
+def: "broken one definition" FAILURE []
+
