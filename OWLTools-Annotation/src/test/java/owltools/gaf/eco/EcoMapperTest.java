@@ -52,9 +52,9 @@ public class EcoMapperTest {
 		single(mapper, g, "0000270", "IEP");
 		
 		single(mapper, g, "0000316", "IGI");
-		single(mapper, g, "0000320", "IKR"); // same as IMR ?
+		single(mapper, g, "0000320", "IKR"); // see also IMR
 		single(mapper, g, "0000315", "IMP");
-		single(mapper, g, "0000320", "IMR"); // same as IKR ?
+		single(mapper, g, "0000320", "IMR"); // yes, same as IKR, IMR is considered deprecated
 		single(mapper, g, "0000353", "IPI");
 		single(mapper, g, "0000321", "IRD");
 		single(mapper, g, "0000247", "ISA");
