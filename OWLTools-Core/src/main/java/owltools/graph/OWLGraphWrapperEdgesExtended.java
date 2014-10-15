@@ -42,7 +42,7 @@ import owltools.graph.OWLQuantifiedProperty.Quantifier;
  * to <code>OWLGraphWrapper</code> and parent classes.
  * 
  * @author Frederic Bastian
- * @version September 2014
+ * @version October 2014
  * @since November 2013
  *
  */
@@ -1059,12 +1059,31 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      *              including OBO GCI relations.
      * @return      A {@code Set} of {@code OWLGraphEdge}s outgoing from {@code s}, 
      *              including OBO GCI relations.
+     * @see #getOutgoingEdgesWithGCI(OWLObject, Set)
      * @see #getGCIOutgoingEdges(OWLClass)
      */
     public Set<OWLGraphEdge> getOutgoingEdgesWithGCI(OWLObject s) {
-        Set<OWLGraphEdge> edges = super.getOutgoingEdges(s);
+        return getOutgoingEdgesWithGCI(s, null);
+    }
+
+    /**
+     * Similar to {@link OWLGraphWrapperEdges#getOutgoingEdges(OWLObject, Set)}, but the returned 
+     * {@code Set} also includes OBO GCI outgoing edges (see 
+     * {@link #getGCIOutgoingEdges(OWLClass)}).
+     * 
+     * @param s             An {@code OWLObject} for which we want to retrieve outgoing edges, 
+     *                      including OBO GCI relations.
+     * @param overProps     A {@code Set} of {@code OWLPropertyExpression} allowing 
+     *                      to filter the {@code OWLGraphEdge}s returned.
+     * @return      A {@code Set} of {@code OWLGraphEdge}s outgoing from {@code s}, 
+     *              including OBO GCI relations.
+     * @see #getGCIOutgoingEdges(OWLClass)
+     */
+    public Set<OWLGraphEdge> getOutgoingEdgesWithGCI(OWLObject s, 
+            Set<OWLPropertyExpression> overProperties) {
+        Set<OWLGraphEdge> edges = super.getOutgoingEdges(s, overProperties);
         if (s instanceof OWLClass) {
-            edges.addAll(getGCIOutgoingEdges((OWLClass) s));
+            edges.addAll(getGCIOutgoingEdges((OWLClass) s, overProperties));
         }
         return edges;
     }
@@ -1329,22 +1348,39 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * 			the roots of any ontology.
      */
     public Set<OWLClass> getOntologyRoots() {
-    	Set<OWLClass> ontRoots = new HashSet<OWLClass>();
-    	//TODO: modify OWLGraphWrapperEdges so that it could be possible to obtain 
-    	//edges incoming to owl:thing. This would be much cleaner to get the roots.
-    	for (OWLOntology ont: this.getAllOntologies()) {
-			cls: for (OWLClass cls: ont.getClassesInSignature()) {
-				if (this.isRealClass(cls)) {
-				    for (OWLGraphEdge edge: this.getOutgoingEdgesWithGCI(cls)) {
-				        if (!edge.getTarget().equals(cls)) {
-				            continue cls;
-				        }
-				    }
-					ontRoots.add(cls);
-				}
-			}
-		}
-    	return ontRoots;
+    	return getOntologyRoots(null);
+    }
+    /**
+     * Return the <code>OWLClass</code>es root of any ontology over the specified 
+     * {@code OWLPropertyExpression}s (<code>OWLClass</code>es with no outgoing edges 
+     * of the specified type, as returned by 
+     * {OWLGraphWrapperEdges#getOutgoingEdgesWithGCI(OWLObject, Set)}), and not deprecated 
+     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false})).
+     * <p>
+     * Filtering roots using {@code overProperties} allow to ask question such as: 
+     * what are the roots of the ontology according only to {@code is_a} 
+     * and {@code part_of} relations.
+     * 
+     * @param overProps     A {@code Set} of {@code OWLPropertyExpression} allowing 
+     *                      to filter the roots returned.
+     * @return  A <code>Set</code> of <code>OWLClass</code>es that are 
+     *          the roots of any ontology over the provided {@code OWLPropertyExpression}s.
+     */
+    public Set<OWLClass> getOntologyRoots(Set<OWLPropertyExpression> overProperties) {
+        Set<OWLClass> ontRoots = new HashSet<OWLClass>();
+        for (OWLOntology ont: this.getAllOntologies()) {
+            cls: for (OWLClass cls: ont.getClassesInSignature()) {
+                if (this.isRealClass(cls)) {
+                    for (OWLGraphEdge edge: this.getOutgoingEdgesWithGCI(cls, overProperties)) {
+                        if (!edge.getTarget().equals(cls)) {
+                            continue cls;
+                        }
+                    }
+                    ontRoots.add(cls);
+                }
+            }
+        }
+        return ontRoots;
     }
     
     /**

@@ -31,7 +31,7 @@ import owltools.io.ParserWrapper;
 /**
  * Test of {@link OWLGraphWrapperEdgesExtended}.
  * @author Frederic Bastian
- * @version September 2014
+ * @version October 2014
  * @since November 2013
  *
  */
@@ -552,7 +552,8 @@ public class OWLGraphWrapperEdgesExtendedTest
 	}
 	
 	/**
-	 * Test {@link OWLGraphWrapperEdgesExtended#getOutgoingEdgesWithGCI(OWLObject)}
+	 * Test {@link OWLGraphWrapperEdgesExtended#getOutgoingEdgesWithGCI(OWLObject, Set)} 
+	 * and {@link OWLGraphWrapperEdgesExtended#getOutgoingEdgesWithGCI(OWLObject)}
 	 */
 	@Test
 	public void shouldGetOutgoingEdgesWithGCI() throws OWLOntologyCreationException, 
@@ -579,6 +580,14 @@ public class OWLGraphWrapperEdgesExtendedTest
                 ont, null));
         assertEquals("Incorrect outgoing edges with GCI retrieved", expectedEdges, 
                 wrapper.getOutgoingEdgesWithGCI(cls8));
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        //class with no GCI relations with filtering of properties
+        expectedEdges.add(new OWLGraphEdge(cls8, cls6, partOf, Quantifier.SOME, 
+                ont, null));
+        assertEquals("Incorrect outgoing edges with GCI retrieved", expectedEdges, 
+                wrapper.getOutgoingEdgesWithGCI(cls8, 
+                        new HashSet<OWLPropertyExpression>(Arrays.asList(partOf))));
+        
         //class with both a classical relation and a GCI relation
         expectedEdges = new HashSet<OWLGraphEdge>();
         expectedEdges.add(new OWLGraphEdge(cls9, cls7, partOf, Quantifier.SOME, 
@@ -587,6 +596,20 @@ public class OWLGraphWrapperEdgesExtendedTest
                 ont, null, taxon1, partOf));
         assertEquals("Incorrect outgoing edges with GCI retrieved", expectedEdges, 
                 wrapper.getOutgoingEdgesWithGCI(cls9));
+        
+        //class with both a classical relation and a GCI relation, with filtering of properties
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls9, cls10, developsFrom, Quantifier.SOME, 
+                ont, null, taxon1, partOf));
+        assertEquals("Incorrect outgoing edges with GCI retrieved", expectedEdges, 
+                wrapper.getOutgoingEdgesWithGCI(cls9, 
+                        new HashSet<OWLPropertyExpression>(Arrays.asList(developsFrom))));
+        expectedEdges = new HashSet<OWLGraphEdge>();
+        expectedEdges.add(new OWLGraphEdge(cls9, cls7, partOf, Quantifier.SOME, 
+                ont, null));
+        assertEquals("Incorrect outgoing edges with GCI retrieved", expectedEdges, 
+                wrapper.getOutgoingEdgesWithGCI(cls9, 
+                        new HashSet<OWLPropertyExpression>(Arrays.asList(partOf))));
 	}
     
     /**
@@ -864,20 +887,32 @@ public class OWLGraphWrapperEdgesExtendedTest
     }
 	
 	/**
-	 * Test {@link OWLGraphWrapperEdgesExtended#getOntologyRoots()}
+	 * Test {@link OWLGraphWrapperEdgesExtended#getOntologyRoots(Set)} and 
+	 * {@link OWLGraphWrapperEdgesExtended#getOntologyRoots()}.
 	 */
 	@Test
-	public void shouldGetOntologyRoots()
-	{
+	public void shouldGetOntologyRoots() {
 		//the ontology has 2 roots, FOO:0001 and FOO:0100
 	    //NCBITaxon are due to GCI relations
-		Set<OWLClass> roots = wrapper.getOntologyRoots();
-		assertTrue("Incorrect roots returned: " + roots, 
-				roots.size() == 4 && 
-				roots.contains(wrapper.getOWLClassByIdentifier("FOO:0001")) && 
-				roots.contains(wrapper.getOWLClassByIdentifier("FOO:0100")) && 
-                roots.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:9606")) && 
-                roots.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:10090")));
+	    Set<OWLClass> expectedRoots = new HashSet<OWLClass>(Arrays.asList(
+	            wrapper.getOWLClassByIdentifier("FOO:0001"), 
+	            wrapper.getOWLClassByIdentifier("FOO:0100"), 
+	            wrapper.getOWLClassByIdentifier("NCBITaxon:9606"), 
+	            wrapper.getOWLClassByIdentifier("NCBITaxon:10090")));
+		assertEquals("Incorrect roots returned", expectedRoots, wrapper.getOntologyRoots());
+		
+		expectedRoots = new HashSet<OWLClass>(Arrays.asList(
+                wrapper.getOWLClassByIdentifier("FOO:0001"), 
+                wrapper.getOWLClassByIdentifier("FOO:0100"), 
+                wrapper.getOWLClassByIdentifier("NCBITaxon:9606"), 
+                wrapper.getOWLClassByIdentifier("NCBITaxon:10090"), 
+                wrapper.getOWLClassByIdentifier("FOO:0012"), 
+                wrapper.getOWLClassByIdentifier("FOO:0007"), 
+                wrapper.getOWLClassByIdentifier("FOO:0008"), 
+                wrapper.getOWLClassByIdentifier("FOO:0009")));
+        assertEquals("Incorrect roots returned", expectedRoots, 
+                wrapper.getOntologyRoots(new HashSet<OWLPropertyExpression>(
+                    Arrays.asList(wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050")))));
 	}
     
     /**
