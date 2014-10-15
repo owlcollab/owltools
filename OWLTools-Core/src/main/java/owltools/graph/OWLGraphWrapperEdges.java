@@ -244,13 +244,16 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @return all edges that originate from source to nearest named object target
 	 */
 	public Set<OWLGraphEdge> getOutgoingEdges(OWLObject cls, Set<OWLPropertyExpression> props) {
-		Set<OWLGraphEdge> pEdges = getPrimitiveOutgoingEdges(cls, props);
+		Set<OWLGraphEdge> pEdges = getPrimitiveOutgoingEdges(cls);
 		LOG.debug("primitive edges:"+cls+" --> "+pEdges);
 
 		Set<OWLGraphEdge> edges = new OWLGraphEdgeSet();
 		for (OWLGraphEdge e : pEdges) {
 		    edges.addAll(primitiveEdgeToFullEdges(e));
 		}
+        if (props != null) {
+            filterEdges(edges, props);
+        }
 		LOG.debug("  all:"+cls+" --> "+edges);
 		return edges;
 	}
