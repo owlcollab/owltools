@@ -355,8 +355,7 @@ public class OWLGraphEdge {
      */
     public boolean isGCI() {
         return getGCIFiller() != null && 
-                getGCIRelation() != null && 
-                isSourceNamedObject();
+                getGCIRelation() != null;
     }
 
     /**
@@ -459,7 +458,7 @@ public class OWLGraphEdge {
 		return result;
 	}
 	
-	public boolean isEq(Object a, Object b) {
+	private boolean isEq(Object a, Object b) {
 		if (a == null && b == null)
 			return true;
 		if (a == null || b == null)
@@ -470,7 +469,7 @@ public class OWLGraphEdge {
 	
 	@Override
 	public boolean equals(Object e) {
-		return this.equals(e, false);
+		return this.equals(e, false, false);
 	}
 	
 	/**
@@ -483,13 +482,30 @@ public class OWLGraphEdge {
 	 *             without taking into account the {@code OWLOntology} they belong to.
 	 */
 	public boolean equalsIgnoreOntology(Object e) {
-	    return this.equals(e, true);
+	    return this.equals(e, true, false);
 	}
+    
+    /**
+     * Equals method ignoring the {@code OWLOntology} the {@code OWLGraphEdge}s compared 
+     * belong to, and ignoring their {@code gciFiller}s and {@code gciRelation}s 
+     * (as opposed to the {@link #equals()} method, that takes into account 
+     * everything for comparison).
+     * 
+     * @param e    the reference object with which to compare.
+     * @return     {@code true} if this edge is structurally equivalent to {@code e}, 
+     *             without taking into account the {@code OWLOntology} they belong to, 
+     *             nor their {@code gciFiller}s and {@code gciRelation}s.
+     */
+    public boolean equalsIgnoreOntologyAndGCI(Object e) {
+        return this.equals(e, true, true);
+    }
 	
 	/**
 	 * Checks that the {@code gciFiller} and {@code gciRelation} of this {@code OWLGraphEdge} 
 	 * an of {@code e} are equals.
 	 * 
+	 * @param e    An {@code OWLGraphEdge} for which we want to determine GCI equality 
+	 *             to this {@code OWLGraphEdge}.
 	 * @return {@code true} if {@code gciFiller} and {@code gciRelation} are equals.
 	 * @see #getGCIFiller()
 	 * @see #getGCIRelation()
@@ -502,19 +518,25 @@ public class OWLGraphEdge {
 	}
 
 	/**
-	 * Equals method allowing to define whether the {@link #ontology} attribute 
-	 * should be taken into account for comparison. Other attributes used in any case 
-	 * are {@link #source}, {@link #target}, and {@link #quantifiedPropertyList}.
+	 * Equals method allowing to define whether the {@link #ontology}, {@link #gciFiller} 
+	 * and {@link #gciRelation} attributes should be taken into account for comparison. 
+	 * Other attributes used in any case are {@link #source}, {@link #target}, 
+	 * and {@link #quantifiedPropertyList}.
 	 * 
 	 * @param e                the reference object with which to compare.
 	 * @param ignoreOntology   A {@code boolean} defining whether the ontology 
 	 *                         of the edges should be used for comparison. If {@code true}, 
 	 *                         they will not be taken into account. 
+     * @param ignoreGCI        A {@code boolean} defining whether the {@code gciFiller}s 
+     *                         and {@code gciRelation}s of the edges should be used 
+     *                         for comparison. If {@code true}, they will not be taken 
+     *                         into account. 
 	 * @return                 {@code true} if this edge is structurally equivalent 
 	 *                         to {@code e}, with or without taking into account 
-	 *                         the {@code OWLOntology} they belong to.
+	 *                         their {@code OWLOntology}s, {@code gciFiller}s 
+     *                         and {@code gciRelation}s .
 	 */
-	private boolean equals(Object e, boolean ignoreOntology) {
+	private boolean equals(Object e, boolean ignoreOntology, boolean ignoreGCI) {
 	    if(e == null || !(e instanceof OWLGraphEdge))
             return false;
         
@@ -523,7 +545,7 @@ public class OWLGraphEdge {
         return isEq(other.getSource(),getSource()) &&
                 isEq(other.getTarget(),getTarget()) &&
                 isEq(quantifiedPropertyList,other.getQuantifiedPropertyList()) &&
-                equalsGCI(other) && 
+                (ignoreGCI || equalsGCI(other)) && 
                 (ignoreOntology || isEq(ontology,other.getOntology()));
 	}
 }
