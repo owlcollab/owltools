@@ -91,14 +91,30 @@ id: FOO:0014
 name: subgraph4_root_subgraph2
 comment: term part of both the subgraph to remove, and a subgraph to keep, should NOT be removed. It is a sibling of the root of the subgraph to be removed, and also one of its descendant. Also, relation is_a to the root is redundant and should be removed by reduceRelations(). It should also be removed by reducePartOfAndSubClassOfRelations(). 
 is_a: FOO:0001 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! root
-is_a: FOO:0006 ! subgraph2_root
-is_a: FOO:0012
-is_a: FOO:0002 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! A
+is_a: FOO:0006 {gci_filler="NCBITaxon:1", gci_relation="part_of"} ! subgraph2_root
+relationship: part_of FOO:0012 {gci_filler="NCBITaxon:1", gci_relation="part_of"}
+is_a: FOO:0002 {gci_filler="NCBITaxon:1", gci_relation="part_of"} ! A
+is_a: FOO:0011
 
 [Term]
 id: FOO:0016
 name: F
 is_obsolete: true
+
+[Term]
+id: NCBITaxon:1
+
+[Term]
+id: NCBITaxon:7742
+is_a: NCBITaxon:1
+
+[Term]
+id: NCBITaxon:9606
+is_a: NCBITaxon:7742
+
+[Term]
+id: NCBITaxon:10090
+is_a: NCBITaxon:7742
 
 [Typedef]
 id: overlaps

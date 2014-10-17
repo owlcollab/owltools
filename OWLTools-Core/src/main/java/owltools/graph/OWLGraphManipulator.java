@@ -659,7 +659,8 @@ public class OWLGraphManipulator {
 	 * This method returns the number of such direct redundant relations removed. 
 	 * <p>
 	 * When combining the relations, they are also combined over super properties (see 
-	 * {@link OWLGraphWrapperEdgesExtended#combineEdgePairWithSuperProps(OWLGraphEdge, OWLGraphEdge)})
+	 * {@link OWLGraphWrapperEdgesExtended#combineEdgePairWithSuperPropsAndGCI(
+	 * OWLGraphEdge, OWLGraphEdge)})
 	 * <p>
 	 * Examples of relations considered redundant by this method:
 	 * <ul>
@@ -837,7 +838,8 @@ public class OWLGraphManipulator {
 	 * a is_a relation (because we prefer to keep the is_a relation)).
 	 * <p>
 	 * Note that relations are also combined over super properties (see 
-	 * {@link OWLGraphWrapperEdgesExtended#combineEdgePairWithSuperProps(OWLGraphEdge, OWLGraphEdge)}.
+	 * {@link OWLGraphWrapperEdgesExtended#combineEdgePairWithSuperPropsAndGCI(
+	 * OWLGraphEdge, OWLGraphEdge)}.
 	 * 
 	 * @param edgeToTest				The {@code OWLGraphEdge} to be checked 
 	 * 									for redundancy. 
@@ -878,26 +880,48 @@ public class OWLGraphManipulator {
 		    }
 			return false;
 		}
+
+        OWLGraphWrapper wrapper = this.getOwlGraphWrapper();
+		
+		//if they are completely unrelated GCI relations, 
+		//no way to have redundancy
+		if (!edgeToWalk.equalsGCI(edgeToTest) && 
+                !wrapper.hasFirstEdgeMoreGeneralGCIParams(edgeToWalk, edgeToTest)) {
+		    if (log.isTraceEnabled()) {
+                log.trace("Unrelated GCI parameters, cannot be redundant. " + 
+                        edgeToTest + " - " + edgeToWalk);
+            }
+		    return false;
+		}
 		
 		//then, check that the edges are not themselves redundant
 		if (edgeToTest.getTarget().equals(edgeToWalk.getTarget()) && 
-                edgeToTest.equalsGCI(edgeToWalk)) {
+		        (edgeToWalk.equalsGCI(edgeToTest) || 
+		                wrapper.hasFirstEdgeMoreGeneralGCIParams(edgeToWalk, edgeToTest))) {
 			//if we want to reduce over is_a/part_of relations
 			if (reducePartOfAndIsA) {
 				//then, we will consider edgeToTest redundant 
 				//only if edgeToTest is a part_of-like relation, 
-				//and edgeToWalk a is_a relation (because we prefer to keep the is_a relation)
+				//and edgeToWalk an is_a relation (because we prefer to keep the is_a relation, 
+			    //the part_of relation will be removed when edgeToWalk will be tested)
 				if (this.isAPartOfEdge(edgeToTest) && this.isASubClassOfEdge(edgeToWalk)) {
 					return true;
 				}
-		    //check that they are not identical edges from two different ontologies
-			} else if (edgeToWalk.equalsIgnoreOntology(edgeToTest)) {
+				//unless the part_of relation has more general GCI filler and relation
+				else if (this.isAPartOfEdge(edgeToWalk) && this.isASubClassOfEdge(edgeToTest) && 
+				        wrapper.hasFirstEdgeMoreGeneralGCIParams(edgeToWalk, edgeToTest)) {
+				    return true;
+				}
+		    //check that they are not identical edges from two different ontologies; 
+			//GCI parameters were already checked
+			} else if (edgeToWalk.equalsIgnoreOntologyAndGCI(edgeToTest)) {
 			    return true;
 			//otherwise, check that edgeToWalk is not a sub-relation of edgeToTest.
+			//GCI parameters were already checked.
 			} else {
 			    for (OWLGraphEdge subsume: this.getOwlGraphWrapper().
                         getOWLGraphEdgeSubsumers(edgeToWalk)) {
-			        if (subsume.equalsIgnoreOntology(edgeToTest)) {
+			        if (subsume.equalsIgnoreOntologyAndGCI(edgeToTest)) {
 			            return true;
 			        }
 			    }
@@ -928,6 +952,16 @@ public class OWLGraphManipulator {
 	    	    if (log.isTraceEnabled()) {
 	                log.trace("Current raw edge walked: " + nextEdge);
 	            }
+	            
+	            //if they are completely unrelated GCI relations, 
+	            //no way to have redundancy
+	            if (!nextEdge.equalsGCI(edgeToTest) && 
+	                    !wrapper.hasFirstEdgeMoreGeneralGCIParams(nextEdge, edgeToTest)) {
+	                if (log.isTraceEnabled()) {
+	                    log.trace("Unrelated GCI parameters, cannot be redundant, stop this walk.");
+	                }
+	                continue nextEdge;
+	            }
 
 	    	    //check that the target of nextEdge is not the source of edgeToTest. 
 	    	    //We had problem with reciprocal relations between terms, using relations 
@@ -957,7 +991,7 @@ public class OWLGraphManipulator {
 				}
 			    
 	    		OWLGraphEdge combine = 
-	    				this.getOwlGraphWrapper().combineEdgePairWithSuperProps(
+	    				this.getOwlGraphWrapper().combineEdgePairWithSuperPropsAndGCI(
 	    				        walkedEdge, nextEdge);
 	    		if (log.isTraceEnabled()) {
                     log.trace("Resulting combined edge: " + combine);
@@ -990,22 +1024,25 @@ public class OWLGraphManipulator {
 	    		//check if this combined relation (or one of its parent relations) 
 	    		//corresponds to edgeToTest; 
 	    		//in that case, it is redundant and should be removed
-	    		if (combine.getTarget().equals(edgeToTest.getTarget())) {
+	    		if (combine.getTarget().equals(edgeToTest.getTarget()) && 
+	    		        (edgeToTest.equalsGCI(combine) || 
+	    		            wrapper.hasFirstEdgeMoreGeneralGCIParams(combine, edgeToTest))) {
 	    			//if we want to reduce over is_a and part_of relations
 	    			if (reducePartOfAndIsA) {
 	    				//part_of/is_a redundancy
 	    				if (((this.isASubClassOfEdge(edgeToTest) && this.isAPartOfEdge(combine)) ||  
-	    					 (this.isASubClassOfEdge(combine)    && this.isAPartOfEdge(edgeToTest))) && 
-	    					edgeToTest.equalsGCI(combine)) {
+	    					 (this.isASubClassOfEdge(combine)    && this.isAPartOfEdge(edgeToTest)))) {
 	    					
 	    					return true;
 	    				}
-	    			} else if (edgeToTest.equalsIgnoreOntology(combine)) {
+	    		    //GCI parameters were already checked
+	    			} else if (edgeToTest.equalsIgnoreOntologyAndGCI(combine)) {
 	    			    return true;
 	    			} else {
 	    			    for (OWLGraphEdge subsumer: this.getOwlGraphWrapper().
                                     getOWLGraphEdgeSubsumers(combine)) {
-	    			        if (subsumer.equalsIgnoreOntology(edgeToTest)) {
+	                        //GCI parameters were already checked
+	    			        if (subsumer.equalsIgnoreOntologyAndGCI(edgeToTest)) {
 	    			            return true;
 	    			        }
 	    			    }
@@ -1033,7 +1070,8 @@ public class OWLGraphManipulator {
 	 * Remove the {@code OWLClass} with the OBO-style ID {@code classToRemoveId} 
 	 * from the ontology, and propagate its incoming edges to the targets 
 	 * of its outgoing edges. Each incoming edges are composed with each outgoing edges (see 
-	 * {@link OWLGraphWrapperEdgesExtended#combineEdgePairWithSuperProps(OWLGraphEdge, OWLGraphEdge)}).
+	 * {@link OWLGraphWrapperEdgesExtended#combineEdgePairWithSuperPropsAnGCI(
+	 * OWLGraphEdge, OWLGraphEdge)}).
 	 * <p>
 	 * This method returns the number of relations propagated and actually added 
 	 * to the ontology (propagated relations corresponding to a relation already 
@@ -1090,7 +1128,7 @@ public class OWLGraphManipulator {
     	        }
     	        //combine edges
     	        OWLGraphEdge combine = 
-    	                this.getOwlGraphWrapper().combineEdgePairWithSuperProps(
+    	                this.getOwlGraphWrapper().combineEdgePairWithSuperPropsAndGCI(
     	                        incomingEdge, outgoingEdge);
     	        //successfully combined
     	        if (combine != null && combine.getQuantifiedPropertyList().size() == 1) {
@@ -1695,6 +1733,7 @@ public class OWLGraphManipulator {
     		classesToDel.removeAll(toKeep);
     		if (log.isDebugEnabled()) {
     		    log.debug("OWLClasses to keep: " + toKeep);
+                log.debug("OWLClasses to remove: " + classesToDel);
     		}
     		for (OWLClass classRemoved: this.removeClasses(classesToDel)) {
                 classIdsRemoved.add(this.getOwlGraphWrapper().getIdentifier(classRemoved));

@@ -17,6 +17,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -489,6 +490,11 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * over super properties (see {@link #combinePropertyPairOverSuperProperties(
      * OWLQuantifiedProperty, OWLQuantifiedProperty)}, currently combines over 
      * 2 properties only). 
+     * <p>
+     * If one or both of the edges are GCI relations, and that their GCI fillers and/or 
+     * GCI relations are related (see {@link #hasFirstEdgeMoreGeneralGCIParams(OWLGraphEdge, 
+     * OWLGraphEdge)}), the combined returned edge will have the most restrictive 
+     * GCI filler and GCI relation. If they are not related, the edges will not be combined.
      * 
      * @param firstEdge		A <code>OWLGraphEdge</code> that is the first edge to combine, 
      * 						its source will be the source of the new edge
@@ -497,12 +503,13 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * @return 				A <code>OWLGraphEdge</code> resulting from the composition of 
      * 						<code>firstEdge</code> and <code>secondEdge</code>, 
      * 						with its <code>OWLQuantifiedProperty</code>s composed 
-     * 						in a regular way, but also over super properties. 
+     * 						in a regular way, but also over super properties, 
+     *                      and with the most restrictive GCI filler and GCI relation. 
      */
-    public OWLGraphEdge combineEdgePairWithSuperProps(OWLGraphEdge firstEdge, 
+    public OWLGraphEdge combineEdgePairWithSuperPropsAndGCI(OWLGraphEdge firstEdge, 
     		OWLGraphEdge secondEdge) {
     	OWLGraphEdge combine = 
-				this.combineEdgePair(
+				this.combineEdgePairWithGCI(
 						firstEdge.getSource(), firstEdge, secondEdge, 0);
 		
 		if (combine != null) {
@@ -519,7 +526,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
 					//create a combined edge
 					List<OWLQuantifiedProperty>  qps = new ArrayList<OWLQuantifiedProperty>();
 					qps.add(combinedQp);
-					combine = this.createMergedEdge(firstEdge.getSource(), firstEdge, secondEdge);
+					combine = this.createMergedEdgeWithGCI(firstEdge.getSource(), 
+					        firstEdge, secondEdge);
 					if (combine != null) {
 					    combine.setQuantifiedPropertyList(qps);
 					}
@@ -628,7 +636,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * except that only the {@code OWLGraphEdge}s going to a named target are returned, 
      * and that the list of connecting edge properties are not only combined using the 
      * composition rules as usual, but also over super properties (see for instance 
-     * {@link #combineEdgePairWithSuperProps(OWLGraphEdge, OWLGraphEdge}).
+     * {@link #combineEdgePairWithSuperPropsAndGCI(OWLGraphEdge, OWLGraphEdge}).
      * <p>
      * Also, redundant edges are filtered: if an edge is a sub-property of another one, 
      * only the most precise edge is returned. 
@@ -646,8 +654,11 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * Similar to {@link #getOutgoingEdgesNamedClosureOverSupProps(OWLObject)} but with 
      * the OBO GCI relations also taken into account.
      * <p>
-     * Note that GCI relations are not combined when their gci_filler or gci_relation 
-     * are different. To retrieve all ancestors of an object, using also GCI relations, 
+     * If both edges are GCI relations, and  their GCI fillers and/or 
+     * GCI relations are related (see {@link #hasFirstEdgeMoreGeneralGCIParams(OWLGraphEdge, 
+     * OWLGraphEdge)}), the combined returned edge will have the most restrictive 
+     * GCI filler and GCI relation. If they are not related, the edges will not be combined. 
+     * To retrieve all ancestors of an object, using also GCI relations, 
      * you should rather use {@link #getNamedAncestorsWithGCI(OWLObject)}.
      * 
      * @param s         See {@link #getOutgoingEdgesNamedClosureOverSupProps(OWLObject)}
@@ -820,8 +831,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                             ve.getQuantifiedPropertyList()).equals(
                                     new LinkedHashSet<OWLQuantifiedProperty>(
                                             iteratedEdge.getQuantifiedPropertyList())) && 
-                        //TODO: check whether gci fillers are sub class of one another
-                        ve.equalsGCI(iteratedEdge)) {
+                        (ve.equalsGCI(iteratedEdge) || 
+                                this.hasFirstEdgeMoreGeneralGCIParams(ve, iteratedEdge))) {
                         
                         isEdgeVisited = true;
                     }
@@ -843,7 +854,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             
             int nextDist = iteratedEdge.getDistance() + 1;
             for (OWLGraphEdge nextEdge: this.getOutgoingEdgesWithGCI(iteratedEdge.getTarget())) {
-                OWLGraphEdge combine = this.combineEdgePair(s, iteratedEdge, nextEdge, nextDist);
+                OWLGraphEdge combine = this.combineEdgePairWithGCI(s, iteratedEdge, 
+                        nextEdge, nextDist);
                 if (combine == null) {
                     LOG.trace("Discarding edge because could not be combined");
                     continue;
@@ -917,8 +929,15 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                         OWLGraphEdge primitiveEdge = new OWLGraphEdge(source, 
                                 ax.getSuperClass(), null, Quantifier.SUBCLASS_OF, o, ax, 
                                 filler, gciRel);
+                        if (LOG.isTraceEnabled()) {
+                            LOG.trace("Primitive edge retrieved from GCI axiom " + ax + 
+                                    ": " + primitiveEdge);
+                        }
                         //will expand ax.getSuperClass() until we reach a named object
                         Set<OWLGraphEdge> edges = primitiveEdgeToFullEdges(primitiveEdge);
+                        if (LOG.isTraceEnabled()) {
+                            LOG.trace("Expanded into: " + edges);
+                        }
                         
                         //store the edges associated to the "real" source (the OWLClass 
                         //in the OWLObjectIntersectionOf).
@@ -1039,6 +1058,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             cachedEdges = this.gciRelationBySource.get(obj);
         } else {
             cachedEdges = this.gciRelationByTarget.get(obj);
+        }
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("GCI edges retrieved for " + obj + ": " + cachedEdges);
         }
         if (cachedEdges != null) {
             //defensive copying
@@ -1257,6 +1279,247 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             }
         }
         return descendants;
+    }
+    
+    /**
+     * Same as {@link OWLGraphWrapperEdges#combineEdgePair(OWLObject, OWLGraphEdge, 
+     * OWLGraphEdge, int)} except that the GCI filler an GCI relation of the edges 
+     * are taken into account.
+     * <p>
+     * If both edges are GCI relations, and  their GCI fillers and/or 
+     * GCI relations are related (see {@link #hasFirstEdgeMoreGeneralGCIParams(OWLGraphEdge, 
+     * OWLGraphEdge)}), the combined returned edge will have the most restrictive 
+     * GCI filler and GCI relation. If they are not related, the edges will not be combined.
+     * 
+     * @param s             See {@code combineEdgePair} method.
+     * @param ne            See {@code combineEdgePair} method.
+     * @param extEdge       See {@code combineEdgePair} method.
+     * @param nextDist      See {@code combineEdgePair} method.
+     * @return              See {@code combineEdgePair} method.
+     * @see #combineEdgePair(OWLObject, OWLGraphEdge, OWLGraphEdge, int)
+     */
+    public OWLGraphEdge combineEdgePairWithGCI(OWLObject s, OWLGraphEdge ne, 
+            OWLGraphEdge extEdge, int nextDist) {
+        //System.out.println("combing edges: "+s+" // "+ne+ " * "+extEdge);
+        // Create an edge with no edge labels; we will fill the label in later.
+        OWLGraphEdge mergedEdge = this.createMergedEdgeWithGCI(s, ne, extEdge);
+        if (mergedEdge == null) 
+            return null;
+        if (this.combineEdgePair(mergedEdge, 
+                ne.getQuantifiedPropertyList(), extEdge.getQuantifiedPropertyList(), 
+                nextDist)) {
+            return mergedEdge;
+        }
+        return null;
+    }
+    
+    /**
+     * Create a new {@code OWLGraphEdge} going from {@code source}, to the target of 
+     * {@code targetEdge}, by merging the underling {@code OWLAxiom}s of {@code sourceEdge} 
+     * and {@code targetEdge} (as returned by {@link OWLGraphEdge#getAxioms()}), 
+     * and setting the {@code OWLOntology} of this new edge with the one of either 
+     * {@code sourceEdge} or {@code targetEdge}, as well as their gci_filler and gi_relation.
+     * {@code OWLQuantifiedProperty}s are not set. 
+     * <p>
+     * If both edges are GCI relations, and  their GCI fillers and/or 
+     * GCI relations are related (see {@link #hasFirstEdgeMoreGeneralGCIParams(OWLGraphEdge, 
+     * OWLGraphEdge)}), the combined returned edge will have the most restrictive 
+     * GCI filler and GCI relation. If they are not related, the edges will not be combined.
+     * 
+     * @param source       The {@code OWLObject} which this new edge will originate from.
+     * @param sourceEdge   The {@code OWLGraphEdge} to merge with {@code targetEdge}.
+     * @param targetEdge   The {@code OWLGraphEdge} going to the target of the new edge 
+     *                     created, and to be merged with {@code sourceEdge}.
+     * @return             A newly created {@code OWLGraphEdge}, 
+     *                     with no {@code OWLQuantifiedProperty} set.
+     */
+    private OWLGraphEdge createMergedEdgeWithGCI(OWLObject source, OWLGraphEdge sourceEdge, 
+            OWLGraphEdge targetEdge) {
+        
+        OWLClass gciFiller = null;
+        OWLObjectPropertyExpression gciRel= null;
+        if (sourceEdge.equalsGCI(targetEdge) || 
+                this.hasFirstEdgeMoreGeneralGCIParams(targetEdge, sourceEdge)) {
+            //use GCI filler and rel from sourceEdge if GCI parameters are equal, 
+            //of if GCI parameters of sourceEdge are more restrictive
+            gciFiller = sourceEdge.getGCIFiller();
+            gciRel = sourceEdge.getGCIRelation();
+        } else if (this.hasFirstEdgeMoreGeneralGCIParams(sourceEdge, targetEdge)) {
+            //or if the GCI params of targetEdge are more restrictive, use them 
+            gciFiller = targetEdge.getGCIFiller();
+            gciRel = targetEdge.getGCIRelation();
+        } else {
+            //otherwise, GCI params are not related and the edges cannot be combined
+            return null;
+        }
+        
+        //merges the underlying axioms of these edges
+        Set<OWLAxiom> axioms = new HashSet<OWLAxiom>(sourceEdge.getAxioms());
+        axioms.addAll(targetEdge.getAxioms());
+        
+        return new OWLGraphEdge(source, targetEdge.getTarget(), 
+                (sourceEdge.getOntology() != null ? 
+                        sourceEdge.getOntology() : targetEdge.getOntology()), 
+                axioms, gciFiller, gciRel);
+    }
+    
+    /**
+     * Determines whether the GCI parameters of the GCI relation {@code firstEdge}
+     * are more general than the GCI parameters of the GCI relation {@code otherEdge}. 
+     * <p>
+     * Note that if the GCI parameters ({@link OWLGraphEdge#getGCIFiller()} and 
+     * {@link OWLGraphEdge#getGCIRelation()}) of {@code firstEdge} and of {@code otherEdge} 
+     * are equal, this method will return {@code false} (use 
+     * {@link OWLGraphEdge#equalsGCI(OWLGraphEdge)} instead). As a result, 
+     * this method will also return {@code false} if none of the arguments are GCI relations.
+     * <p>
+     * For this method to return {@code true}, one of the parameters of {@code firstEdge} 
+     * has to be more general than the same parameter of {@code otherEdge}, while 
+     * the other parameter of {@code firstEdge} is equal or more general than 
+     * the same parameter of {@code otherEdge}. 
+     * <p>
+     * Note that the order of the parameters is important (if 
+     * {@code hasFirstEdgeMoreGeneralGCI(edge1, edge2)} returns {@code true}, 
+     * {@code hasFirstEdgeMoreGeneralGCI(edge2, edge1)} will return {@code false}).
+     * 
+     * @param firstEdge An {@code OWLGraphEdge} for which we want to determine whether 
+     *                  its GCI parameters are more general than those of {@code otherEdge}.
+     * @param otherEdge An {@code OWLGraphEdge} for which we want to determine GCI parameter 
+     *                  inclusion into those of {@code firstEdge}.
+     * @return     {@code true} if {@code firstEdge} has more general GCI parameters 
+     *             than those of {@code otherEdge}.
+     */
+    public boolean hasFirstEdgeMoreGeneralGCIParams(OWLGraphEdge firstEdge, 
+            OWLGraphEdge otherEdge) {
+        if (firstEdge == null || otherEdge == null) 
+            return false;
+        if (firstEdge.equalsGCI(otherEdge)) 
+            return false;
+        //if first edge is not a GCI, otherEdge has to be a GCI (previous equalsGCI test).
+        //so, first edge is more general in any case.
+        if (!firstEdge.isGCI()) 
+            return true;
+        //same logic the other way around
+        if (!otherEdge.isGCI())
+            return false;
+        
+        //at this point, both firstEdge and otherEdge are GCI relations, 
+        //but with different gci fillers and/or gci relations. Throw AssertionErrors,  
+        //as the logic afterwards is completely based on these assertions, and we blindly 
+        //return true at the end.
+        if (firstEdge.getGCIFiller() == null || firstEdge.getGCIRelation() == null || 
+                otherEdge.getGCIFiller() == null || otherEdge.getGCIRelation() == null) 
+            throw new AssertionError("GCI parameters of the compared edges cannot be null " +
+            		"at this point. First edge: " + firstEdge + " - Other edge: " + otherEdge);
+        if (firstEdge.getGCIFiller().equals(otherEdge.getGCIFiller()) && 
+                firstEdge.getGCIRelation().equals(otherEdge.getGCIRelation()))
+            throw new AssertionError("GCI fillers and relations of the compared edges " +
+            		"cannot be both equal at this point. First edge: " + firstEdge + 
+            		" - Other edge: " + otherEdge);
+        
+        //Check whether the gci filler and/or relation of firstEdge is equal to 
+        //or more general than the gci filler and/or relation of otherEdge
+        
+        if (!firstEdge.getGCIRelation().equals(otherEdge.getGCIRelation()) && 
+                !this.getSuperPropertyClosureOf(otherEdge.getGCIRelation()).contains(
+                        firstEdge.getGCIRelation())) 
+            return false;
+            
+        if (!firstEdge.getGCIFiller().equals(otherEdge.getGCIFiller()) && 
+                !this.getAncestorsThroughIsA(otherEdge.getGCIFiller()).contains(
+                        firstEdge.getGCIFiller())) 
+            return false;
+        
+        return true;
+    }
+    
+
+    
+    /**
+     * Retrieve {@code OWLClass} ancestors of {@code x} only using "is_a" relations 
+     * ({@code SubClassOf}).
+     * 
+     * @param x An {@code OWLObject} for which we want to retrieve {@code OWLClass} ancestors 
+     *          through "is_a" relations, even indirect.
+     * @return  A {@code Set} of {@code OWLClass}es that are the ancestors of {@code x} 
+     *          through "is_a" relations.
+     * @see #getDescendantsThroughIsA(OWLObject)
+     */
+    public Set<OWLClass> getAncestorsThroughIsA(OWLObject x) {
+        return this.getRelativesThroughIsA(x, true);
+    }
+    /**
+     * Retrieve {@code OWLClass} descendants of {@code x} only using "is_a" relations 
+     * ({@code SubClassOf}).
+     * 
+     * @param x An {@code OWLObject} for which we want to retrieve {@code OWLClass} descendants 
+     *          through "is_a" relations, even indirect.
+     * @return  A {@code Set} of {@code OWLClass}es that are the descendants of {@code x} 
+     *          through "is_a" relations.
+     * @see #getAncestorsThroughIsA(OWLObject)
+     */
+    public Set<OWLClass> getDescendantsThroughIsA(OWLObject x) {
+        return this.getRelativesThroughIsA(x, false);
+    }
+    /**
+     * Retrieve {@code OWLClass} ancestors or descendants of {@code x} only using "is_a" 
+     * relations ({@code SubClassOf). If {@code ancestors} is {@code true}, ancestors 
+     * will be retrieved, otherwise, decendants will be retrieved. 
+     * 
+     * @param x         An {@code OWLObject} for which we want to retrieve 
+     *                  {@code OWLClass} ancestors or descendants through "is_a" relations, 
+     *                  even indirect.
+     * @param ancestors A {@code boolean} defining whether ancestors or descendants 
+     *                  should be retrieved. If {@code true}, ancestors will be retrieved, 
+     *                  otherwise, descendants. 
+     * @return  A {@code Set} of {@code OWLClass}es that are the ancestors or descendants 
+     *          of {@code x} through "is_a" relations.
+     */
+    private Set<OWLClass> getRelativesThroughIsA(OWLObject x, boolean ancestors) {
+        
+        Set<OWLClass> relatives = new HashSet<OWLClass>();
+        //protect against cycles
+        Set<OWLObject> visited = new HashSet<OWLObject>();
+        //avoid recursivity by using a Deque
+        Deque<OWLObject> walkAncestors = new ArrayDeque<OWLObject>();
+        //seed the Deque with the starting OWLObject
+        walkAncestors.addFirst(x);
+        OWLObject iteratedRelative;
+        while ((iteratedRelative = walkAncestors.pollFirst()) != null) {
+            Set<OWLGraphEdge> edges = new HashSet<OWLGraphEdge>();
+            if (ancestors) {
+                edges = this.getOutgoingEdgesWithGCI(iteratedRelative);
+            } else {
+                edges = this.getIncomingEdgesWithGCI(iteratedRelative);
+            }
+            for (OWLGraphEdge edge: edges) {
+                //if not an is_a relation, continue
+                if (edge.getSingleQuantifiedProperty().getProperty() != null || 
+                        !edge.getSingleQuantifiedProperty().isSubClassOf()) {
+                    continue;
+                }
+                
+                OWLObject relative = null;
+                if (ancestors) {
+                    relative = edge.getTarget();
+                } else {
+                    relative = edge.getSource();
+                }
+                        
+                //protect against cycles
+                if (visited.contains(relative)) {
+                    continue;
+                }
+                visited.add(relative);
+                //we only want OWLClasses
+                if (relative instanceof OWLClass) {
+                    relatives.add((OWLClass) relative);
+                }
+                walkAncestors.addLast(relative);
+            }
+        }
+        
+        return relatives;
     }
     
     @Override

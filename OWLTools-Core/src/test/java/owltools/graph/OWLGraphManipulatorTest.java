@@ -296,7 +296,7 @@ public class OWLGraphManipulatorTest
         }
 				
 		//4 relations should have been removed
-		assertEquals("Incorrect number of relations removed", 2, relsRemoved);
+		assertEquals("Incorrect number of relations removed", 4, relsRemoved);
 		//check that it corresponds to the number of axioms removed
 		assertEquals("Returned value does not correspond to the number of axioms removed", 
 				relsRemoved, axiomCountBefore - axiomCountAfter);
@@ -339,20 +339,36 @@ public class OWLGraphManipulatorTest
 				(OWLClassExpression) this.graphManipulator.getOwlGraphWrapper().
 				edgeToTargetExpression(checkEdge));
 		assertFalse("Incorrect relation removed", ont.containsAxiom(axiom));
-		
-		//FOO:0014 is_a FOO:0001 not redundant because is a GCI
-		//(FOO:0014 is_a FOO:0006 is_a FOO:0001)
-		source = 
-				this.graphManipulator.getOwlGraphWrapper().getOWLClassByIdentifier("FOO:0014");
-		checkEdge = new OWLGraphEdge(source, root, ont, 
+        
+        //FOO:0014 is_a FOO:0001 redundant
+        //(FOO:0014 is_a {gci_relation} FOO:0006 is_a FOO:0001)
+        source = 
+                this.graphManipulator.getOwlGraphWrapper().getOWLClassByIdentifier("FOO:0014");
+        checkEdge = new OWLGraphEdge(source, root, null, Quantifier.SUBCLASS_OF, ont, 
                 null, this.graphManipulator.getOwlGraphWrapper().
                 getOWLClassByIdentifier("NCBITaxon:9606"), partOf);
-		axiom = factory.getOWLSubClassOfAxiom(
-		        (OWLClassExpression) this.graphManipulator.getOwlGraphWrapper().
+        axiom = factory.getOWLSubClassOfAxiom(
+                (OWLClassExpression) this.graphManipulator.getOwlGraphWrapper().
                 edgeToSourceExpression(checkEdge), 
-				(OWLClassExpression) this.graphManipulator.getOwlGraphWrapper().
-				edgeToTargetExpression(checkEdge));
-		assertTrue("Incorrect relation removed", ont.containsAxiom(axiom));
+                (OWLClassExpression) this.graphManipulator.getOwlGraphWrapper().
+                edgeToTargetExpression(checkEdge));
+        assertFalse("Incorrect relation removed", ont.containsAxiom(axiom));
+        
+        //FOO:0014 is_a FOO:0002 redundant
+        //(FOO:0014 is_a FOO:0011 is_a FOO:0002)
+        source = 
+                this.graphManipulator.getOwlGraphWrapper().getOWLClassByIdentifier("FOO:0014");
+        checkEdge = new OWLGraphEdge(source, 
+                this.graphManipulator.getOwlGraphWrapper().getOWLClassByIdentifier("FOO:0002"), 
+                null, Quantifier.SUBCLASS_OF, ont, 
+                null, this.graphManipulator.getOwlGraphWrapper().
+                getOWLClassByIdentifier("NCBITaxon:1"), partOf);
+        axiom = factory.getOWLSubClassOfAxiom(
+                (OWLClassExpression) this.graphManipulator.getOwlGraphWrapper().
+                edgeToSourceExpression(checkEdge), 
+                (OWLClassExpression) this.graphManipulator.getOwlGraphWrapper().
+                edgeToTargetExpression(checkEdge));
+        assertFalse("Incorrect relation removed", ont.containsAxiom(axiom));
 		
 		//FOO:0015 part_of FOO:0001 not redundant, because not a GCI
 		//(FOO:0014 is_a FOO:0004 part_of FOO:0002 part_of FOO:0001)
@@ -949,11 +965,11 @@ public class OWLGraphManipulatorTest
 	public void shouldFilterRelationsWithNonOboId()
 	{
 		//filter relations to keep only is_a and transformation_of relations
-		//16 OWLClassAxioms should be removed
-        //(because 2 is_a relations are GCI using a part_of filler, 
+		//18 OWLClassAxioms should be removed
+        //(because 3 is_a relations are GCI using a part_of filler, 
         //so they will be also removed)
 		this.shouldFilterOrRemoveRelations(Arrays.asList("http://semanticscience.org/resource/SIO_000657"), 
-				true, 16, true);
+				true, 18, true);
 	}	
 	/**
 	 * Test the functionalities of 
@@ -964,11 +980,11 @@ public class OWLGraphManipulatorTest
 	public void shouldFilterAllRelations()
 	{
 		//filter relations to keep only is_a relations
-		//17 OWLClassAxioms should be removed 
-	    //(because 2 is_a relations are GCI using a part_of filler, 
+		//19 OWLClassAxioms should be removed 
+	    //(because 3 is_a relations are GCI using a part_of filler, 
 	    //so they will be also removed)
 		this.shouldFilterOrRemoveRelations(new HashSet<String>(), 
-				true, 17, true);
+				true, 19, true);
 	}
 
     /**
@@ -1071,11 +1087,11 @@ public class OWLGraphManipulatorTest
 	public void shouldRemoveRelations()
 	{
 		//remove part_of and develops_from relations
-		//14 OWLClassAxioms should be removed
-        //(because 2 is_a relations are GCI using a part_of filler, 
+		//16 OWLClassAxioms should be removed
+        //(because 3 is_a relations are GCI using a part_of filler, 
         //so they will be also removed)
 		this.shouldFilterOrRemoveRelations(Arrays.asList("BFO:0000050", "RO:0002202"), 
-			false, 14, false);
+			false, 16, false);
 	}
 	/**
 	 * Test the functionalities of 
@@ -1218,7 +1234,8 @@ public class OWLGraphManipulatorTest
 		toKeep.add("FOO:0014");
 		
 		Set<String> expectedClassesRemoved = new HashSet<String>(Arrays.asList("FOO:0100", 
-		        "FOO:0016", "FOO:0009", "FOO:0010", "NCBITaxon:10090", "NCBITaxon:9606"));
+		        "FOO:0016", "FOO:0010", "NCBITaxon:10090", "NCBITaxon:9606", 
+		        "NCBITaxon:7742", "NCBITaxon:1"));
 		Set<String> classesRemoved = this.graphManipulator.filterSubgraphs(toKeep);
 		
 		//The test ontology is designed so that 7 classes should have been removed
@@ -1350,12 +1367,11 @@ public class OWLGraphManipulatorTest
 		//FOO:0011 is also not exclusively part of a subgraph to remove and should be removed, 
 		//but it is also a descendant of FOO:0009, so at the end it will be kept
         Set<String> expectedClassesRemoved = new HashSet<String>(
-                Arrays.asList("FOO:0006", "FOO:0008", "FOO:0007", "FOO:0012", 
-                        "FOO:0014"));
+                Arrays.asList("FOO:0006", "FOO:0008", "FOO:0007", "FOO:0012"));
         Set<String> classesRemoved = this.graphManipulator.removeSubgraphs(toRemove, false, 
 		        Arrays.asList("FOO:0009"));
 
-		//The test ontology is designed so that 6 classes should have been removed
+		//The test ontology is designed so that 4 classes should have been removed
         assertEquals("Incorrect classes removed", expectedClassesRemoved, classesRemoved);
 		//test that these classes were actually removed from the ontology
 		allClasses = new HashSet<OWLClass>();

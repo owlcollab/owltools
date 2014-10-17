@@ -31,7 +31,7 @@ relationship: part_of ID:5
 [Term]
 id: ID:10
 relationship: develops_from ID:6 {gci_filler="NCBITaxon:10090", gci_relation="part_of"}
-relationship: develops_from ID:5 {gci_filler="NCBITaxon:9606", gci_relation="part_of"}
+relationship: develops_from ID:5 {gci_filler="NCBITaxon:7742", gci_relation="part_of"}
 
 [Term]
 id: ID:8
@@ -55,6 +55,21 @@ id: ID:17
 relationship: part_of ID:16
 relationship: part_of ID:11 {gci_relation="part_of", gci_filler="NCBITaxon:10090"} ! the indirect relation is more inclusive, this direct relation should be removed
 relationship: part_of ID:11 {gci_relation="part_of", gci_filler="NCBITaxon:9606"} ! the indirect relation is more inclusive, this direct relation should be removed
+
+[Term]
+id: NCBITaxon:1
+
+[Term]
+id: NCBITaxon:7742
+is_a: NCBITaxon:1
+
+[Term]
+id: NCBITaxon:9606
+is_a: NCBITaxon:7742
+
+[Term]
+id: NCBITaxon:10090
+is_a: NCBITaxon:7742
 
 [Typedef]
 id: overlaps

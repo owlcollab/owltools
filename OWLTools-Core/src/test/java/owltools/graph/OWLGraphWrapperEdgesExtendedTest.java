@@ -298,31 +298,88 @@ public class OWLGraphWrapperEdgesExtendedTest
 	}
 	
 	/**
-	 * Test {@link OWLGraphWrapperEdgesExtended#combineEdgePairWithSuperProps(OWLGraphEdge, OWLGraphEdge)}.
+	 * Test {@link OWLGraphWrapperEdgesExtended#combineEdgePairWithSuperPropsAndGCI(
+	 * OWLGraphEdge, OWLGraphEdge)}.
 	 */
 	@Test
-	public void shouldCombineEdgePairWithSuperProps()
+	public void shouldCombineEdgePairWithSuperPropsAndGCI()
 	{
 		OWLOntology ont = wrapper.getSourceOntology();
-		OWLClass source = 
-				wrapper.getOWLClassByIdentifier("FOO:0001");
-		OWLClass target = 
-				wrapper.getOWLClassByIdentifier("FOO:0002");
-		OWLClass target2 = 
-				wrapper.getOWLClassByIdentifier("FOO:0003");
-		OWLObjectProperty overlaps = 
-				wrapper.getOWLObjectPropertyByIdentifier("RO:0002131");
-		OWLObjectProperty partOf = 
-				wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050");
+		OWLClass source = wrapper.getOWLClassByIdentifier("FOO:0001");
+		OWLClass target = wrapper.getOWLClassByIdentifier("FOO:0002");
+		OWLClass target2 = wrapper.getOWLClassByIdentifier("FOO:0003");
+		OWLClass rootTaxon = wrapper.getOWLClassByIdentifier("NCBITaxon:1");
+        OWLClass taxon1 = wrapper.getOWLClassByIdentifier("NCBITaxon:9606");
+        OWLClass taxon2 = wrapper.getOWLClassByIdentifier("NCBITaxon:10090");
+		OWLObjectProperty overlaps = wrapper.getOWLObjectPropertyByIdentifier("RO:0002131");
+		OWLObjectProperty partOf = wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050");
+		
+		//combine over super props with no GCI
 		OWLGraphEdge edge1 = new OWLGraphEdge(source, target, overlaps, 
 				Quantifier.SOME, ont);
 		OWLGraphEdge edge2 = new OWLGraphEdge(target, target2, partOf, 
 				Quantifier.SOME, ont);
 		OWLGraphEdge expectedEdge = new OWLGraphEdge(source, target2, overlaps, 
 				Quantifier.SOME, ont);
-		
 		assertEquals("Incorrect combined relation", expectedEdge, 
-				wrapper.combineEdgePairWithSuperProps(edge1, edge2));
+				wrapper.combineEdgePairWithSuperPropsAndGCI(edge1, edge2));
+		
+		//with identical GCI
+		edge1 = new OWLGraphEdge(source, target, overlaps, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        edge2 = new OWLGraphEdge(target, target2, partOf, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        expectedEdge = new OWLGraphEdge(source, target2, overlaps, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        assertEquals("Incorrect combined relation", expectedEdge, 
+                wrapper.combineEdgePairWithSuperPropsAndGCI(edge1, edge2));
+        
+        //with different but related GCI fillers
+        edge1 = new OWLGraphEdge(source, target, overlaps, 
+                Quantifier.SOME, ont, null, rootTaxon, partOf);
+        edge2 = new OWLGraphEdge(target, target2, partOf, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        expectedEdge = new OWLGraphEdge(source, target2, overlaps, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        assertEquals("Incorrect combined relation", expectedEdge, 
+                wrapper.combineEdgePairWithSuperPropsAndGCI(edge1, edge2));
+        
+        //with different but related GCI relations
+        edge1 = new OWLGraphEdge(source, target, overlaps, 
+                Quantifier.SOME, ont, null, taxon1, overlaps);
+        edge2 = new OWLGraphEdge(target, target2, partOf, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        expectedEdge = new OWLGraphEdge(source, target2, overlaps, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        assertEquals("Incorrect combined relation", expectedEdge, 
+                wrapper.combineEdgePairWithSuperPropsAndGCI(edge1, edge2));
+        
+        //with different but related GCI fillers and relations
+        edge1 = new OWLGraphEdge(source, target, overlaps, 
+                Quantifier.SOME, ont, null, rootTaxon, overlaps);
+        edge2 = new OWLGraphEdge(target, target2, partOf, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        expectedEdge = new OWLGraphEdge(source, target2, overlaps, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        assertEquals("Incorrect combined relation", expectedEdge, 
+                wrapper.combineEdgePairWithSuperPropsAndGCI(edge1, edge2));
+        
+        //with different, related GCI fillers and relations, but not in the same direction
+        edge1 = new OWLGraphEdge(source, target, overlaps, 
+                Quantifier.SOME, ont, null, taxon1, overlaps);
+        edge2 = new OWLGraphEdge(target, target2, partOf, 
+                Quantifier.SOME, ont, null, rootTaxon, partOf);
+        assertNull("Incorrect combined relation", 
+                wrapper.combineEdgePairWithSuperPropsAndGCI(edge1, edge2));
+        
+        //with different and unrelated GCI fillers
+        edge1 = new OWLGraphEdge(source, target, overlaps, 
+                Quantifier.SOME, ont, null, taxon1, partOf);
+        edge2 = new OWLGraphEdge(target, target2, partOf, 
+                Quantifier.SOME, ont, null, taxon2, partOf);
+        assertNull("Incorrect combined relation", 
+                wrapper.combineEdgePairWithSuperPropsAndGCI(edge1, edge2));
+		
 	}
 	
 	/**
@@ -771,38 +828,6 @@ public class OWLGraphWrapperEdgesExtendedTest
     }
 	
 	/**
-	 * Test {@link OWLGraphEdge#equalsGCI(OWLGraphEdge)}
-	 */
-	@Test
-	public void testEqualsGCI() throws OWLOntologyCreationException, 
-	OBOFormatParserException, IOException {
-	    ParserWrapper parserWrapper = new ParserWrapper();
-        OWLOntology ont = parserWrapper.parse(this.getClass().getResource(
-                "/graph/gciRelRetrieval.obo").getFile());
-        OWLGraphWrapper wrapper = new OWLGraphWrapper(ont);
-        
-        OWLObjectProperty partOf = wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050");
-        OWLObjectProperty developsFrom = wrapper.getOWLObjectPropertyByIdentifier("RO:0002202");
-        OWLClass cls1 = wrapper.getOWLClassByIdentifier("ID:1");
-        OWLClass cls2 = wrapper.getOWLClassByIdentifier("ID:2");
-        OWLClass taxon1 = wrapper.getOWLClassByIdentifier("NCBITaxon:9606");
-        OWLClass taxon2 = wrapper.getOWLClassByIdentifier("NCBITaxon:10090");
-        
-        assertTrue("Incorrect value returned by equalsGCI", 
-                new OWLGraphEdge(cls2, cls1, ont, null, taxon1, partOf).equalsGCI(
-                new OWLGraphEdge(cls1, cls2, 
-                        ont, null, taxon1, partOf)));
-        assertFalse("Incorrect value returned by equalsGCI", 
-                new OWLGraphEdge(cls2, cls1, ont, null, taxon1, partOf).equalsGCI(
-                new OWLGraphEdge(cls2, cls1, 
-                        ont, null, taxon2, partOf)));
-        assertFalse("Incorrect value returned by equalsGCI", 
-                new OWLGraphEdge(cls2, cls1, ont, null, taxon1, developsFrom).equalsGCI(
-                new OWLGraphEdge(cls2, cls1, 
-                        ont, null, taxon1, partOf)));
-	}
-	
-	/**
 	 * Test {@link OWLGraphWrapperEdgesExtended#edgeToSourceExpression(OWLGraphEdge)}
 	 */
 	@Test
@@ -872,7 +897,7 @@ public class OWLGraphWrapperEdgesExtendedTest
 	@Test
 	public void shouldGetAllOWLClasses()
 	{
-		assertEquals("Incorrect Set of OWLClasses returned", 17, 
+		assertEquals("Incorrect Set of OWLClasses returned", 19, 
 				wrapper.getAllOWLClasses().size());
 	}
     
@@ -882,7 +907,7 @@ public class OWLGraphWrapperEdgesExtendedTest
     @Test
     public void shouldGetAllOWLClassesFromSource()
     {
-        assertEquals("Incorrect Set of OWLClasses returned", 16, 
+        assertEquals("Incorrect Set of OWLClasses returned", 18, 
                 wrapper.getAllOWLClassesFromSource().size());
     }
 	
@@ -897,15 +922,13 @@ public class OWLGraphWrapperEdgesExtendedTest
 	    Set<OWLClass> expectedRoots = new HashSet<OWLClass>(Arrays.asList(
 	            wrapper.getOWLClassByIdentifier("FOO:0001"), 
 	            wrapper.getOWLClassByIdentifier("FOO:0100"), 
-	            wrapper.getOWLClassByIdentifier("NCBITaxon:9606"), 
-	            wrapper.getOWLClassByIdentifier("NCBITaxon:10090")));
+	            wrapper.getOWLClassByIdentifier("NCBITaxon:1"))); 
 		assertEquals("Incorrect roots returned", expectedRoots, wrapper.getOntologyRoots());
 		
 		expectedRoots = new HashSet<OWLClass>(Arrays.asList(
                 wrapper.getOWLClassByIdentifier("FOO:0001"), 
                 wrapper.getOWLClassByIdentifier("FOO:0100"), 
-                wrapper.getOWLClassByIdentifier("NCBITaxon:9606"), 
-                wrapper.getOWLClassByIdentifier("NCBITaxon:10090"), 
+                wrapper.getOWLClassByIdentifier("NCBITaxon:1"), 
                 wrapper.getOWLClassByIdentifier("FOO:0012"), 
                 wrapper.getOWLClassByIdentifier("FOO:0007"), 
                 wrapper.getOWLClassByIdentifier("FOO:0008"), 
@@ -925,12 +948,11 @@ public class OWLGraphWrapperEdgesExtendedTest
         //FOO:0012, FOO:0013, FOO:0014 and FOO:0015, an the taxon due to GCIs
         Set<OWLClass> leaves = wrapper.getOntologyLeaves();
         assertTrue("Incorrect leaves returned: " + leaves, 
-                leaves.size() == 9 && 
+                leaves.size() == 8 && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0100")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0003")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0005")) && 
-                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) && 
-                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) &&  
+                leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) &&  
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0015")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:9606")) && 
@@ -946,10 +968,11 @@ public class OWLGraphWrapperEdgesExtendedTest
 		Set<OWLClass> descendants = wrapper.getOWLClassDescendants(
 				wrapper.getOWLClassByIdentifier("FOO:0007"));
 		assertTrue("Incorrect descendants returned: " + descendants, 
-				descendants.size() == 3 && 
+				descendants.size() == 4 && 
 				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) && 
 				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) && 
-				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0009")) );
+				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0009")) && 
+                descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) );
 	}
 	
 	/**
@@ -997,4 +1020,135 @@ public class OWLGraphWrapperEdgesExtendedTest
 				ancestors.contains(wrapper.getOWLClassByIdentifier("FOO:0006")) && 
 				ancestors.contains(wrapper.getOWLClassByIdentifier("FOO:0001")) );
 	}
+	
+
+    
+    /**
+     * Test the method {@link OWLGraphWrapperEdgesExtended#getAncestorsThroughIsA(OWLObject)} and 
+     * {@link OWLGraphWrapperEdgesExtended#getDescendantsThroughIsA(OWLObject)}
+     * @throws IOException 
+     * @throws OBOFormatParserException 
+     * @throws OWLOntologyCreationException 
+     */
+    @Test
+    public void shouldGetIsARelatives() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
+        ParserWrapper parserWrapper = new ParserWrapper();
+        OWLOntology ont = parserWrapper.parse(OWLGraphWrapperEdgesExtendedTest.class.getResource(
+                "/graph/is_a_ancestors_test.obo").getFile());
+        OWLGraphWrapper wrapper = new OWLGraphWrapper(ont);
+        
+        OWLClass cls1 = wrapper.getOWLClassByIdentifier("FOO:0001");
+        OWLClass cls2 = wrapper.getOWLClassByIdentifier("FOO:0002");
+        OWLClass cls3 = wrapper.getOWLClassByIdentifier("FOO:0003");
+        OWLClass cls4 = wrapper.getOWLClassByIdentifier("FOO:0004");
+        
+        Set<OWLClass> expectedAncestors = new HashSet<OWLClass>();
+        expectedAncestors.add(cls2);
+        expectedAncestors.add(cls1);
+        assertEquals("Incorrect ancestors through is_a returned", expectedAncestors, 
+                wrapper.getAncestorsThroughIsA(cls3));
+        expectedAncestors = new HashSet<OWLClass>();
+        assertEquals("Incorrect ancestors through is_a returned", expectedAncestors, 
+                wrapper.getAncestorsThroughIsA(cls4));
+        
+        Set<OWLClass> expectedDescendants = new HashSet<OWLClass>();
+        expectedDescendants.add(cls2);
+        expectedDescendants.add(cls3);
+        assertEquals("Incorrect desendants through is_a returned", expectedDescendants, 
+                wrapper.getDescendantsThroughIsA(cls1));
+    }
+    
+    /**
+     * Test {@link OWLGraphWrapperEdgesExtended#hasFirstEdgeMoreGeneralGCIParams(OWLGraphEdge, 
+     * OWLGraphEdge)}.
+     */
+    @Test
+    public void testHasFirstEdgeMoreGeneralGCIParams() throws OWLOntologyCreationException, 
+        IOException {
+        ParserWrapper parserWrapper = new ParserWrapper();
+        OWLOntology ont = parserWrapper.parse(OWLGraphWrapperEdgesExtendedTest.class.getResource(
+                "/graph/gciRelRetrieval.obo").getFile());
+        OWLGraphWrapper wrapper = new OWLGraphWrapper(ont);
+
+        OWLObjectProperty overlaps = wrapper.getOWLObjectPropertyByIdentifier("RO:0002131");
+        OWLObjectProperty partOf = wrapper.getOWLObjectPropertyByIdentifier("BFO:0000050");
+        OWLObjectProperty developsFrom = wrapper.getOWLObjectPropertyByIdentifier("RO:0002202");
+        OWLClass source = wrapper.getOWLClassByIdentifier("ID:2");
+        OWLClass target = wrapper.getOWLClassByIdentifier("ID:1");
+        OWLClass rootTaxon = wrapper.getOWLClassByIdentifier("NCBITaxon:1");
+        OWLClass taxon1 = wrapper.getOWLClassByIdentifier("NCBITaxon:9606");
+        OWLClass taxon2 = wrapper.getOWLClassByIdentifier("NCBITaxon:10090");
+        
+        //identical GCI parameters
+        OWLGraphEdge edge1 = new OWLGraphEdge(source, target, null, Quantifier.SUBCLASS_OF, 
+                ont, null, taxon1, partOf);
+        OWLGraphEdge edge2 = new OWLGraphEdge(source, target, partOf, Quantifier.SOME, 
+                ont, null, taxon1, partOf);
+        assertFalse("Equal GCI parameters seen as more general", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
+        assertFalse("Equal GCI parameters seen as more general", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+        
+        //no GCI parameters for both edge
+        edge1 = new OWLGraphEdge(source, target, null, Quantifier.SUBCLASS_OF, 
+                ont, null, null, null);
+        edge2 = new OWLGraphEdge(source, target, partOf, Quantifier.SOME, 
+                ont, null, null, null);
+        assertFalse("Equal GCI parameters seen as more general", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
+        assertFalse("Equal GCI parameters seen as more general", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+        
+        //unrelated GCI fillers
+        edge1 = new OWLGraphEdge(source, target, null, Quantifier.SUBCLASS_OF, 
+                ont, null, taxon1, partOf);
+        edge2 = new OWLGraphEdge(source, target, null, Quantifier.SUBCLASS_OF, 
+                ont, null, taxon2, partOf);
+        assertFalse("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
+        assertFalse("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+        
+        //unrelated GCI relations
+        edge1 = new OWLGraphEdge(source, target, null, Quantifier.SUBCLASS_OF, 
+                ont, null, taxon1, partOf);
+        edge2 = new OWLGraphEdge(source, target, null, Quantifier.SUBCLASS_OF, 
+                ont, null, taxon1, developsFrom);
+        assertFalse("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
+        assertFalse("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+        
+        //if edge2 is not a GCI relation, should be seen as more general
+        edge2 = new OWLGraphEdge(source, target, partOf, Quantifier.SOME, 
+                ont, null, null, null);
+        assertFalse("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
+        assertTrue("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+        
+        //more general GCI filler
+        edge2 = new OWLGraphEdge(source, target, partOf, Quantifier.SOME, 
+                ont, null, rootTaxon, partOf);
+        assertFalse("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
+        assertTrue("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+        
+        //more general GCI relation
+        edge2 = new OWLGraphEdge(source, target, partOf, Quantifier.SOME, 
+                ont, null, taxon1, overlaps);
+        assertFalse("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
+        assertTrue("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+        
+        //both more general GCI filler and relation
+        edge2 = new OWLGraphEdge(source, target, partOf, Quantifier.SOME, 
+                ont, null, rootTaxon, overlaps);
+        assertFalse("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
+        assertTrue("GCI parameter inclusion error", 
+                wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+    }
 }
