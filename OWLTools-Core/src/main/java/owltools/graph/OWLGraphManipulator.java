@@ -214,6 +214,7 @@ public class OWLGraphManipulator {
      *   <li>{@link #convertEquivalentClassesToSuperClasses()}
      *   <li>{@link #splitSubClassAxioms()}
      *   <li>{@link #removeOWLObjectUnionOfs()}
+     *   <li>{@link #removeObsoleteClassRels()}
      * </ol>
      * 
      * @throws OWLOntologyCreationException     If an error occurred while merging 
@@ -225,7 +226,7 @@ public class OWLGraphManipulator {
      * @see #convertEquivalentClassesToSuperClasses()
      * @see #splitSubClassAxioms()
      * @see #removeOWLObjectUnionOfs()
-     * @see #removeObsoleteClasses()
+     * @see #removeObsoleteClassRels()
      */
     private void performDefaultModifications() {
         this.mergeImportClosure();
@@ -233,6 +234,7 @@ public class OWLGraphManipulator {
         this.convertEquivalentClassesToSuperClasses();
         this.splitSubClassAxioms();
         this.removeOWLObjectUnionOfs();
+        this.removeObsoleteClassRels();
         
         //check that all operations worked properly
         if (log.isEnabledFor(Level.WARN)) {
@@ -565,6 +567,32 @@ public class OWLGraphManipulator {
         this.triggerWrapperUpdate();
         log.info("Done removing OWLObjectUnionOfs");
     }
+    
+    /**
+     * Remove all relations incoming to or outgoing from obsolete classes. This is  
+     * because we need to keep obsolete classes in the ontology for valuable replaced_by 
+     * annotations, yet we do not want their relations to interfere with relation reduction, 
+     * etc (obsolete classes should have no relations, but it often happen 
+     * that they have some).
+     * 
+     * @see #performDefaultModifications()
+     */
+    private void removeObsoleteClassRels() {
+        log.info("Removing all relations incoming to or outgoing from obsolete classes...");
+        
+        for (OWLOntology ont : this.getOwlGraphWrapper().getAllOntologies()) {
+            for (OWLClass cls: ont.getClassesInSignature()) {
+                if (this.getOwlGraphWrapper().isObsolete(cls) || 
+                        this.getOwlGraphWrapper().getIsObsolete(cls)) {
+                    Set<OWLGraphEdge> edges = this.getOwlGraphWrapper().getOutgoingEdges(cls);
+                    edges.addAll(this.getOwlGraphWrapper().getIncomingEdges(cls));
+                    this.removeEdges(edges);
+                }
+            }
+        }
+        
+        log.info("Done removing relations of obsolete classes.");
+    }
 
 	//*********************************
 	//    MAKE BASIC ONTOLOGY EXAMPLE
@@ -758,6 +786,11 @@ public class OWLGraphManipulator {
 		        log.info("Start examining class " + classIndex + "/" + 
 		                allClasses.size() + " " + iterateClass + "...");
 		    }
+		    //do not reduce relations for obsolete classes
+		    if (!this.getOwlGraphWrapper().isRealClass(iterateClass)) {
+		        log.trace("Obsolete class, discarded");
+		        continue;
+		    }
 		    
 		    Set<OWLGraphEdge> outgoingEdges = 
 		            this.getOwlGraphWrapper().getOutgoingEdgesWithGCI(iterateClass);
@@ -778,6 +811,11 @@ public class OWLGraphManipulator {
 		            log.trace("Start testing edge for redundancy " + edgeIndex + 
 		                    "/" + outgoingEdgesCount + " " + outgoingEdgeToTest);
 		        }
+		        //do not reduce relations to obsolete classes
+	            if (!this.getOwlGraphWrapper().isRealClass(outgoingEdgeToTest.getTarget())) {
+	                log.trace("Edge going to obsolete class, discarded");
+	                continue;
+	            }
 		        
 		        boolean isRedundant = false;
 		        for (OWLGraphEdge outgoingEdgeToWalk: outgoingEdges) {
@@ -859,6 +897,10 @@ public class OWLGraphManipulator {
 	 */
 	private boolean areEdgesRedudant(OWLGraphEdge edgeToTest, OWLGraphEdge edgeToWalk, 
 			boolean reducePartOfAndIsA) throws IllegalArgumentException {
+	    if (log.isTraceEnabled()) {
+	        log.trace("Edge tested for reundancy: " + edgeToTest + 
+	                " - Edge starting the walk: " + edgeToWalk);
+	    }
 		//TODO: try to see from the beginning that there is no way 
 		//edgeToTest and edgeToWalk are redundant. 
 		//(it should be based on the actual chain rules, not hardcoded). 
@@ -882,6 +924,16 @@ public class OWLGraphManipulator {
 		}
 
         OWLGraphWrapper wrapper = this.getOwlGraphWrapper();
+        
+        //do not reduce relations to obsolete classes
+        if (!this.getOwlGraphWrapper().isRealClass(edgeToTest.getTarget())) {
+            log.trace("Edge to test going to obsolete class, discarded");
+            return false;
+        }
+        if (!this.getOwlGraphWrapper().isRealClass(edgeToWalk.getTarget())) {
+            log.trace("Edge to walk going to obsolete class, discarded");
+            return false;
+        }
 		
 		//if they are completely unrelated GCI relations, 
 		//no way to have redundancy
@@ -894,10 +946,9 @@ public class OWLGraphManipulator {
 		    return false;
 		}
 		
-		//then, check that the edges are not themselves redundant
-		if (edgeToTest.getTarget().equals(edgeToWalk.getTarget()) && 
-		        (edgeToWalk.equalsGCI(edgeToTest) || 
-		                wrapper.hasFirstEdgeMoreGeneralGCIParams(edgeToWalk, edgeToTest))) {
+		//then, check that the edges are not themselves redundant. 
+		//GCI params already checked
+		if (edgeToTest.getTarget().equals(edgeToWalk.getTarget())) {
 			//if we want to reduce over is_a/part_of relations
 			if (reducePartOfAndIsA) {
 				//then, we will consider edgeToTest redundant 
@@ -953,6 +1004,11 @@ public class OWLGraphManipulator {
 	                log.trace("Current raw edge walked: " + nextEdge);
 	            }
 	            
+	    	    //do not reduce relations to obsolete classes
+	            if (!this.getOwlGraphWrapper().isRealClass(nextEdge.getTarget())) {
+	                log.trace("Edge going to obsolete class, discarded");
+	                continue nextEdge;
+	            }
 	            //if they are completely unrelated GCI relations, 
 	            //no way to have redundancy
 	            if (!nextEdge.equalsGCI(edgeToTest) && 

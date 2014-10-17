@@ -1618,7 +1618,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * {@code OWLPropertyExpression}s (<code>OWLClass</code>es with no outgoing edges 
      * of the specified type, as returned by 
      * {OWLGraphWrapperEdges#getOutgoingEdgesWithGCI(OWLObject, Set)}), and not deprecated 
-     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false})).
+     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}); 
+     * edges going to obsolete classes are not taken into account).
      * <p>
      * Filtering roots using {@code overProperties} allow to ask question such as: 
      * what are the roots of the ontology according only to {@code is_a} 
@@ -1635,7 +1636,11 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             cls: for (OWLClass cls: ont.getClassesInSignature()) {
                 if (this.isRealClass(cls)) {
                     for (OWLGraphEdge edge: this.getOutgoingEdgesWithGCI(cls, overProperties)) {
-                        if (!edge.getTarget().equals(cls)) {
+                        //if the edge does not go to the class itself (cycle), and 
+                        //does not go to an obsolete class, it is a valid edge 
+                        //and cls is not a root, continue.
+                        if (!edge.getTarget().equals(cls) && 
+                                this.isRealClass(edge.getTarget())) {
                             continue cls;
                         }
                     }
@@ -1650,16 +1655,27 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * Return the <code>OWLClass</code>es leaves of any ontology 
      * (<code>OWLClass</code>es with no incoming edges as returned by 
      * {OWLGraphWrapperEdges#getIncomingEdgesWithGCI(OWLObject)}), and not deprecated 
-     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false})
+     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}; 
+     * edges incoming from an obsolete class are not considered)
      * 
      * @return  A <code>Set</code> of <code>OWLClass</code>es that are 
      *          the leaves of any ontology.
      */
+    //TODO: DRY, almost same code as getOntologyRoots
     public Set<OWLClass> getOntologyLeaves() {
         Set<OWLClass> ontLeaves = new HashSet<OWLClass>();
         for (OWLOntology ont: this.getAllOntologies()) {
-            for (OWLClass cls: ont.getClassesInSignature()) {
-                if (this.isRealClass(cls) && this.getIncomingEdgesWithGCI(cls).isEmpty()) {
+            cls: for (OWLClass cls: ont.getClassesInSignature()) {
+                if (this.isRealClass(cls)) {
+                    for (OWLGraphEdge edge: this.getIncomingEdgesWithGCI(cls)) {
+                        //if the edge does not come from the class itself (cycle), and 
+                        //does not come from an obsolete class, it is a valid edge 
+                        //and cls is not a leaf, continue.
+                        if (!edge.getSource().equals(cls) && 
+                                this.isRealClass(edge.getSource())) {
+                            continue cls;
+                        }
+                    }
                     ontLeaves.add(cls);
                 }
             }
@@ -1772,7 +1788,7 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * @return          {@code true} if {@code object} is an {@code OWLClass} that is not 
      *                  owl:thing, nor owl:nothing, and is not deprecated.
      */
-    private boolean isRealClass(OWLObject object) {
+    public boolean isRealClass(OWLObject object) {
         return (object instanceof OWLClass) && 
                 !isObsolete(object) && !getIsObsolete(object) && 
                 !object.isTopEntity() && !object.isBottomEntity();

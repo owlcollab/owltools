@@ -967,12 +967,15 @@ public class OWLGraphWrapperEdgesExtendedTest
 	{
 		Set<OWLClass> descendants = wrapper.getOWLClassDescendants(
 				wrapper.getOWLClassByIdentifier("FOO:0007"));
+		//FOO:0100 is included through relation through obsolete class, 
+		//is this valid?
 		assertTrue("Incorrect descendants returned: " + descendants, 
-				descendants.size() == 4 && 
+				descendants.size() == 5 && 
 				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0010")) && 
 				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0011")) && 
 				descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0009")) && 
-                descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) );
+                descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) && 
+                descendants.contains(wrapper.getOWLClassByIdentifier("FOO:0100")) );
 	}
 	
 	/**

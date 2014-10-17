@@ -134,6 +134,7 @@ public class OWLGraphManipulatorTest
         
         //get objects needed for following tests
         OWLDataFactory factory = ont.getOWLOntologyManager().getOWLDataFactory();
+        OWLGraphWrapper wrapper = this.graphManipulator.getOwlGraphWrapper();
         OWLClass root = 
                 this.graphManipulator.getOwlGraphWrapper().getOWLClassByIdentifier("FOO:0001");
         OWLClass clsA = 
@@ -208,6 +209,18 @@ public class OWLGraphManipulatorTest
                 0, ont.getAxioms(clsJ).size());
         assertEquals("Incorrect axioms generated: " + ont.getAxioms(clsG), 
                 0, ont.getAxioms(clsG).size());
+        
+        //test that relations of obsolete classes were removed, but not the obsolete classes 
+        //themselves
+        assertNotNull("Obsolete class incorrectly removed", 
+                wrapper.getOWLClassByIdentifier("FOO:0012"));
+        assertNotNull("Obsolete class incorrectly removed", 
+                wrapper.getOWLClassByIdentifier("FOO:0013"));
+        assertTrue("Outgoing edge of obsolete class not removed", wrapper.getOutgoingEdges(
+                        wrapper.getOWLClassByIdentifier("FOO:0012")).isEmpty());
+        assertTrue("Incoming edge of obsolete class not removed", wrapper.getIncomingEdges(
+                wrapper.getOWLClassByIdentifier("FOO:0012")).isEmpty());
+        
 	}
 	
     /**

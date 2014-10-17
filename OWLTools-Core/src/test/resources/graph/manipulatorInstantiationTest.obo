@@ -10,6 +10,7 @@ name: root
 id: FOO:0002
 name: A
 relationship: part_of FOO:0001 ! root
+is_a: FOO:0012 ! test removal of relations to obsolete classes
 
 [Term]
 id: FOO:0003
@@ -72,14 +73,14 @@ equivalent_to: FOO:0008 ! G
 [Term]
 id: FOO:0012
 name: K
-comment: test removal of obsolete classes
+comment: test removal of relations of obsolete classes
 is_obsolete: true
 is_a: FOO:0001 ! root
 
 [Term]
 id: FOO:0013
 name: L
-comment: test removal of obsolete classes
+comment: test removal of relations of obsolete classes
 is_obsolete: true
 
 [Typedef]

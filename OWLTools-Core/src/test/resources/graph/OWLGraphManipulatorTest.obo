@@ -12,6 +12,7 @@ name: root
 id: FOO:0100
 comment: test for the method removeSubgraphs, this root should not be renoved. 
 name: root2
+is_a: FOO:0016 ! relation to obsolete class should not change anything
 
 [Term]
 id: FOO:0002
@@ -94,12 +95,15 @@ is_a: FOO:0001 {gci_filler="NCBITaxon:9606", gci_relation="part_of"} ! root
 is_a: FOO:0006 {gci_filler="NCBITaxon:1", gci_relation="part_of"} ! subgraph2_root
 relationship: part_of FOO:0012 {gci_filler="NCBITaxon:1", gci_relation="part_of"}
 is_a: FOO:0002 {gci_filler="NCBITaxon:1", gci_relation="part_of"} ! A
-is_a: FOO:0011
+is_a: FOO:0011 ! this relation will not be reduced through FOO:0016, as FOO:0016 is deprecated
+is_a: FOO:0016
 
 [Term]
 id: FOO:0016
 name: F
 is_obsolete: true
+is_a: FOO:0011
+is_a: FOO:0005
 
 [Term]
 id: NCBITaxon:1
