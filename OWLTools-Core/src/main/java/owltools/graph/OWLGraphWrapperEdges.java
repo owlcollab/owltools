@@ -1466,29 +1466,65 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	public OWLGraphEdge combineEdgePair(OWLObject s, OWLGraphEdge ne, OWLGraphEdge extEdge, int nextDist) {
 		//System.out.println("combing edges: "+s+" // "+ne+ " * "+extEdge);
 		// Create an edge with no edge labels; we will fill the label in later.
-		OWLGraphEdge nu = this.createMergedEdge(s, ne, extEdge);
-		if (nu == null)
-		    return null;
-		List<OWLQuantifiedProperty> qpl1 = new Vector<OWLQuantifiedProperty>(ne.getQuantifiedPropertyList());
-		List<OWLQuantifiedProperty> qpl2 = new Vector<OWLQuantifiedProperty>(extEdge.getQuantifiedPropertyList());
-
-		while (qpl1.size() > 0 && qpl2.size() > 0) {
-			OWLQuantifiedProperty combinedQP = combinedQuantifiedPropertyPair(qpl1.get(qpl1.size()-1),qpl2.get(0));
-			if (combinedQP == null)
-				break;
-			if (isExcluded(combinedQP)) {
-				return null;
-			}
-			qpl1.set(qpl1.size()-1, combinedQP);
-			if (combinedQP.isIdentity())
-				qpl1.subList(qpl1.size()-1,qpl1.size()).clear();
-			qpl2.subList(0, 1).clear();
-		}
-		qpl1.addAll(qpl2);
-		nu.setQuantifiedPropertyList(qpl1);
-		nu.setDistance(nextDist);
-		return nu;
+	    OWLGraphEdge mergedEdge = this.createMergedEdge(s, ne, extEdge);
+	    if (mergedEdge == null) 
+	        return null;
+	    if (this.combineEdgePair(mergedEdge, 
+	            ne.getQuantifiedPropertyList(), extEdge.getQuantifiedPropertyList(), 
+	            nextDist)) {
+	        return mergedEdge;
+	    }
+	    return null;
 	}
+	
+	/**
+	 * Combine the {@code OWLQuantifiedProperty} {@code List}s {@code neQp} and 
+	 * {@code extEdgeQp} and assigned the resulting {@code OWLQuantifiedProperty}s 
+	 * to {@code mergedEdge}. If the {@code OWLQuantifiedProperty}s could be 
+	 * properly combined, {@code mergedEdge} will be modified as a result 
+	 * of the call to this method, and the method will return {@code true}. 
+	 * If the {@code OWLQuantifiedProperty}s could not be combined, 
+	 * this method returns {@code false}, and {@code mergedEdge} is not be modified.
+	 * <p>
+	 * This method is notably used by {@link #combineEdgePair(OWLObject, OWLGraphEdge, 
+	 * OWLGraphEdge, int)}, and was created so that this part of the logic could be used 
+	 * on extending Java classes. 
+	 * 
+	 * @param mergedEdge   An {@code OWLGraphEdge} whose {@code OWLQuantifiedProperty}s 
+     *                     will be defined by merging {@code neQp} and {@code extEdgeQp}.
+     * @param neQp         A {@code List} of {@code OWLQuantifiedProperty}s to be combined 
+     *                     with {@code extEdgeQp}.
+     * @param extEdgeQp    A {@code List} of {@code OWLQuantifiedProperty}s to be combined 
+     *                     with {@code neQp}.
+     * @param nextDist     The distance to assign to {@code mergedEdge} by calling 
+     *                     {@code OWLGraphEdge#setDistance(int)}.
+	 * @return             {@code true} if {@code neQp} and {@code extEdgeQp} could be combined 
+	 *                     and {@code mergedEdge} modified as a result.
+	 */
+	protected boolean combineEdgePair(OWLGraphEdge mergedEdge, List<OWLQuantifiedProperty> neQp, 
+	        List<OWLQuantifiedProperty>  extEdgeQp, int nextDist) {
+        if (mergedEdge == null)
+            return false;
+        List<OWLQuantifiedProperty> qpl1 = new Vector<OWLQuantifiedProperty>(neQp);
+        List<OWLQuantifiedProperty> qpl2 = new Vector<OWLQuantifiedProperty>(extEdgeQp);
+
+        while (qpl1.size() > 0 && qpl2.size() > 0) {
+            OWLQuantifiedProperty combinedQP = combinedQuantifiedPropertyPair(qpl1.get(qpl1.size()-1),qpl2.get(0));
+            if (combinedQP == null)
+                break;
+            if (isExcluded(combinedQP)) {
+                return false;
+            }
+            qpl1.set(qpl1.size()-1, combinedQP);
+            if (combinedQP.isIdentity())
+                qpl1.subList(qpl1.size()-1,qpl1.size()).clear();
+            qpl2.subList(0, 1).clear();
+        }
+        qpl1.addAll(qpl2);
+        mergedEdge.setQuantifiedPropertyList(qpl1);
+        mergedEdge.setDistance(nextDist);
+        return true;
+    }
 
 	/**
 	 *  combine [srcEdge + tgtEdge]
@@ -1552,11 +1588,12 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @return             A newly created {@code OWLGraphEdge}, 
 	 *                     with no {@code OWLQuantifiedProperty} set.
 	 */
-	protected OWLGraphEdge createMergedEdge(OWLObject source, OWLGraphEdge sourceEdge, 
+	private OWLGraphEdge createMergedEdge(OWLObject source, OWLGraphEdge sourceEdge, 
 	        OWLGraphEdge targetEdge) {
-	    //if sourceEdge and targetEdge are both GCIs, but with different gci_filler 
-	    //or gci_relation, cannot be combined
-	    //TODO: combine fillers and relations using least common ancestor
+	    //if sourceEdge and targetEdge have different gci_filler 
+	    //or gci_relation, cannot be combined. For a combination using relations 
+	    //between OWLClasses for fillers and between OWLObjectProperties for gci relations, 
+	    //see OWLGraphEdgesExtended#createMergedEdgeWithGCI
 	    if (sourceEdge.isGCI() && targetEdge.isGCI() && !sourceEdge.equalsGCI(targetEdge)) {
 	        return null;
 	    }
