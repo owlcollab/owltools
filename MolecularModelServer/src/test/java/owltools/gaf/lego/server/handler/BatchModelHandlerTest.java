@@ -871,6 +871,152 @@ public class BatchModelHandlerTest {
 		assertNotNull(exportString);
 	}
 	
+	@Test
+	public void testUndoRedo() throws Exception {
+		final String modelId = generateBlankModel();
+
+		// create
+		M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.individual.name();
+		batch1[0].operation = Operation.create.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+		batch1[0].arguments.subject = "GO:0008104"; // protein localization
+		batch1[0].arguments.expressions = new M3Expression[2];
+		batch1[0].arguments.expressions[0] = new M3Expression();
+		batch1[0].arguments.expressions[0].type = "svf";
+		batch1[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
+		batch1[0].arguments.expressions[0].literal = "UniProtKB:P0000";
+
+		batch1[0].arguments.expressions[1] = new M3Expression();
+		batch1[0].arguments.expressions[1].type = "svf";
+		batch1[0].arguments.expressions[1].onProp = "BFO:0000050"; // part_of
+		batch1[0].arguments.expressions[1].literal = "'apoptotic process'";
+
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+
+
+		List<Map<Object, Object>> iObjs1 = (List) response1.data.get(KEY_INDIVIDUALS);
+		assertEquals(1, iObjs1.size());
+		Map<Object, Object> individual1 = iObjs1.get(0);
+		assertNotNull(individual1);
+		final String individualId = (String) individual1.get(MolecularModelJsonRenderer.KEY.id);
+		assertNotNull(individualId);
+
+		List<Map<Object, Object>> types1 = (List) individual1.get(MolecularModelJsonRenderer.KEY.type);
+		assertEquals(3, types1.size());
+		String apopId = null;
+		for(Map<Object, Object> e : types1) {
+			Object cType = e.get(MolecularModelJsonRenderer.KEY.type);
+			if (MolecularModelJsonRenderer.VAL.Restriction.equals(cType)) {
+				Map<Object, Object> svf = (Map<Object, Object>) e.get(MolecularModelJsonRenderer.KEY.someValuesFrom);
+				String id = (String) svf.get(MolecularModelJsonRenderer.KEY.id);
+				if (id.equals("GO:0006915")) {
+					apopId = id;
+					break;
+				}
+			}
+		}
+		assertNotNull(apopId);
+		
+		// check undo redo list
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.model.name();
+		batch2[0].operation = Operation.getUndoRedo.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.modelId = modelId;
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		List<Object> undo2 = (List<Object>) response2.data.get("undo");
+		List<Object> redo2 = (List<Object>) response2.data.get("redo");
+		assertTrue(undo2.size() > 1);
+		assertTrue(redo2.isEmpty());
+
+		// delete
+		M3Request[] batch3 = new M3Request[1];
+		batch3[0] = new M3Request();
+		batch3[0].entity = Entity.individual.name();
+		batch3[0].operation = Operation.removeType.getLbl();
+		batch3[0].arguments = new M3Argument();
+		batch3[0].arguments.modelId = modelId;
+		batch3[0].arguments.individual = individualId;
+
+		batch3[0].arguments.expressions = new M3Expression[1];
+		batch3[0].arguments.expressions[0] = new M3Expression();
+		batch3[0].arguments.expressions[0].type = "svf";
+		batch3[0].arguments.expressions[0].onProp = "BFO:0000050"; // part_of
+		batch3[0].arguments.expressions[0].literal = apopId;
+
+
+		M3BatchResponse response3 = handler.m3Batch(uid, intention, packetId, batch3, true);
+		assertEquals(uid, response3.uid);
+		assertEquals(intention, response3.intention);
+		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
+
+		List<Map<Object, Object>> iObjs3 = (List) response3.data.get(KEY_INDIVIDUALS);
+		assertEquals(1, iObjs3.size());
+		Map<Object, Object> individual3 = iObjs3.get(0);
+		assertNotNull(individual3);
+		List<Map<Object, Object>> types3 = (List) individual3.get(MolecularModelJsonRenderer.KEY.type);
+		assertEquals(2, types3.size());
+		
+		// check undo redo list
+		M3Request[] batch4 = new M3Request[1];
+		batch4[0] = new M3Request();
+		batch4[0].entity = Entity.model.name();
+		batch4[0].operation = Operation.getUndoRedo.getLbl();
+		batch4[0].arguments = new M3Argument();
+		batch4[0].arguments.modelId = modelId;
+		
+		M3BatchResponse response4 = handler.m3Batch(uid, intention, packetId, batch4, true);
+		assertEquals(uid, response4.uid);
+		assertEquals(intention, response4.intention);
+		assertEquals(response4.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response4.message_type);
+		List<Object> undo4 = (List<Object>) response4.data.get("undo");
+		List<Object> redo4 = (List<Object>) response4.data.get("redo");
+		assertTrue(undo4.size() > 1);
+		assertTrue(redo4.isEmpty());
+		
+		// undo
+		M3Request[] batch5 = new M3Request[1];
+		batch5[0] = new M3Request();
+		batch5[0].entity = Entity.model.name();
+		batch5[0].operation = Operation.undo.getLbl();
+		batch5[0].arguments = new M3Argument();
+		batch5[0].arguments.modelId = modelId;
+		
+		M3BatchResponse response5 = handler.m3Batch(uid, intention, packetId, batch5, true);
+		assertEquals(uid, response5.uid);
+		assertEquals(intention, response5.intention);
+		assertEquals(response5.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response5.message_type);
+
+		
+		// check undo redo list
+		M3Request[] batch6 = new M3Request[1];
+		batch6[0] = new M3Request();
+		batch6[0].entity = Entity.model.name();
+		batch6[0].operation = Operation.getUndoRedo.getLbl();
+		batch6[0].arguments = new M3Argument();
+		batch6[0].arguments.modelId = modelId;
+		
+		M3BatchResponse response6 = handler.m3Batch(uid, intention, packetId, batch6, true);
+		assertEquals(uid, response6.uid);
+		assertEquals(intention, response6.intention);
+		assertEquals(response6.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response6.message_type);
+		List<Object> undo6 = (List<Object>) response6.data.get("undo");
+		List<Object> redo6 = (List<Object>) response6.data.get("redo");
+		assertTrue(undo6.size() > 1);
+		assertTrue(redo6.size() == 1);
+		
+	}
+	
 	/**
 	 * @return modelId
 	 */

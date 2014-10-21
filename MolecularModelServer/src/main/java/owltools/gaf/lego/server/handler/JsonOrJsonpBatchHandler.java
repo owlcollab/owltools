@@ -674,11 +674,15 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 		else if (Operation.undo == operation) {
 			values.nonMeta = true;
+			requireNotNull(request.arguments, "request.arguments");
+			values.modelId = checkModelId(values.modelId, request);
 			m3.undo(values.modelId, userId);
 			values.renderBulk = true;
 		}
 		else if (Operation.redo == operation) {
 			values.nonMeta = true;
+			requireNotNull(request.arguments, "request.arguments");
+			values.modelId = checkModelId(values.modelId, request);
 			m3.redo(values.modelId, userId);
 			values.renderBulk = true;
 		}
@@ -687,6 +691,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 				return operation+" cannot be combined with other operations.";
 			}
+			requireNotNull(request.arguments, "request.arguments");
+			values.modelId = checkModelId(values.modelId, request);
 			getCurrentUndoRedoForModel(response, values.modelId, userId);
 		}
 		else {
