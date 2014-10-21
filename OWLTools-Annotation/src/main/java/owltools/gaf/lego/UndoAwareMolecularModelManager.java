@@ -172,6 +172,10 @@ public class UndoAwareMolecularModelManager extends MolecularModelManager<UndoMe
 
 	@Override
 	protected void addToHistory(String modelId, ModelContainer model, List<OWLOntologyChange> appliedChanges, UndoMetadata metadata) {
+		if (appliedChanges == null || appliedChanges.isEmpty()) {
+			// do nothing
+			return;
+		}
 		UndoRedo undoRedo;
 		synchronized (allChanges) {
 			undoRedo = allChanges.get(modelId);
