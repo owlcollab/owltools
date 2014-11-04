@@ -1,0 +1,475 @@
+format-version: 1.2
+ontology: owlapi:ontology:ont0
+
+[Term]
+id: GO:0002020
+name: protease binding
+is_a: GO:0019899 ! enzyme binding
+
+[Term]
+id: GO:0003674
+name: molecular_function
+
+[Term]
+id: GO:0003824
+name: catalytic activity
+is_a: GO:0003674 ! molecular_function
+relationship: part_of GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0004857
+name: enzyme inhibitor activity
+is_a: GO:0030234 ! enzyme regulator activity
+relationship: part_of GO:0043086 ! negative regulation of catalytic activity
+
+[Term]
+id: GO:0005488
+name: binding
+is_a: GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0005515
+name: protein binding
+is_a: GO:0005488 ! binding
+intersection_of: GO:0005488 ! binding
+intersection_of: has_input CHEBI:36080
+
+[Term]
+id: GO:0006508
+name: proteolysis
+is_a: GO:0019538 ! protein metabolic process
+
+[Term]
+id: GO:0008150
+name: biological_process
+
+[Term]
+id: GO:0008152
+name: metabolic process
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0008233
+name: peptidase activity
+is_a: GO:0016787 ! hydrolase activity
+relationship: part_of GO:0006508 ! proteolysis
+
+[Term]
+id: GO:0009892
+name: negative regulation of metabolic process
+is_a: GO:0019222 ! regulation of metabolic process
+is_a: GO:0048519 ! negative regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0008152 ! metabolic process
+relationship: negatively_regulates GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0009987
+name: cellular process
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0010466
+name: negative regulation of peptidase activity
+is_a: GO:0045861 ! negative regulation of proteolysis
+is_a: GO:0051346 ! negative regulation of hydrolase activity
+is_a: GO:0052547 ! regulation of peptidase activity
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0008233 ! peptidase activity
+relationship: negatively_regulates GO:0008233 ! peptidase activity
+
+[Term]
+id: GO:0010467
+name: gene expression
+is_a: GO:0043170 ! macromolecule metabolic process
+
+[Term]
+id: GO:0010468
+name: regulation of gene expression
+is_a: GO:0060255 ! regulation of macromolecule metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0010467 ! gene expression
+relationship: regulates GO:0010467 ! gene expression
+
+[Term]
+id: GO:0010605
+name: negative regulation of macromolecule metabolic process
+is_a: GO:0009892 ! negative regulation of metabolic process
+is_a: GO:0060255 ! regulation of macromolecule metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0043170 ! macromolecule metabolic process
+relationship: negatively_regulates GO:0043170 ! macromolecule metabolic process
+
+[Term]
+id: GO:0010629
+name: negative regulation of gene expression
+is_a: GO:0010468 ! regulation of gene expression
+is_a: GO:0010605 ! negative regulation of macromolecule metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0010467 ! gene expression
+relationship: negatively_regulates GO:0010467 ! gene expression
+
+[Term]
+id: GO:0010955
+name: negative regulation of protein processing
+is_a: GO:0070613 ! regulation of protein processing
+is_a: GO:1903318 ! negative regulation of protein maturation
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0016485 ! protein processing
+relationship: negatively_regulates GO:0016485 ! protein processing
+
+[Term]
+id: GO:0016485
+name: protein processing
+is_a: GO:0051604 ! protein maturation
+intersection_of: GO:0008152 ! metabolic process
+intersection_of: has_input PR:000000001
+
+[Term]
+id: GO:0016787
+name: hydrolase activity
+is_a: GO:0003824 ! catalytic activity
+
+[Term]
+id: GO:0019222
+name: regulation of metabolic process
+is_a: GO:0050789 ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0008152 ! metabolic process
+relationship: regulates GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0019538
+name: protein metabolic process
+is_a: GO:0043170 ! macromolecule metabolic process
+is_a: GO:0044238 ! primary metabolic process
+intersection_of: GO:0008152 ! metabolic process
+intersection_of: has_participant CHEBI:36080
+
+[Term]
+id: GO:0019899
+name: enzyme binding
+is_a: GO:0005515 ! protein binding
+
+[Term]
+id: GO:0030162
+name: regulation of proteolysis
+is_a: GO:0051246 ! regulation of protein metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0006508 ! proteolysis
+relationship: regulates GO:0006508 ! proteolysis
+
+[Term]
+id: GO:0030234
+name: enzyme regulator activity
+is_a: GO:0003674 ! molecular_function
+relationship: has_part GO:0019899 ! enzyme binding
+relationship: part_of GO:0050790 ! regulation of catalytic activity
+relationship: regulates GO:0003824 ! catalytic activity
+
+[Term]
+id: GO:0030414
+name: peptidase inhibitor activity
+is_a: GO:0004857 ! enzyme inhibitor activity
+is_a: GO:0061134 ! peptidase regulator activity
+relationship: negatively_regulates GO:0008233 ! peptidase activity
+relationship: part_of GO:0010466 ! negative regulation of peptidase activity
+
+[Term]
+id: GO:0031323
+name: regulation of cellular metabolic process
+is_a: GO:0019222 ! regulation of metabolic process
+is_a: GO:0050794 ! regulation of cellular process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0044237 ! cellular metabolic process
+relationship: regulates GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0031324
+name: negative regulation of cellular metabolic process
+is_a: GO:0009892 ! negative regulation of metabolic process
+is_a: GO:0031323 ! regulation of cellular metabolic process
+is_a: GO:0048523 ! negative regulation of cellular process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0044237 ! cellular metabolic process
+relationship: negatively_regulates GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0032268
+name: regulation of cellular protein metabolic process
+is_a: GO:0031323 ! regulation of cellular metabolic process
+is_a: GO:0051246 ! regulation of protein metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0044267 ! cellular protein metabolic process
+relationship: regulates GO:0044267 ! cellular protein metabolic process
+
+[Term]
+id: GO:0032269
+name: negative regulation of cellular protein metabolic process
+is_a: GO:0031324 ! negative regulation of cellular metabolic process
+is_a: GO:0032268 ! regulation of cellular protein metabolic process
+is_a: GO:0051248 ! negative regulation of protein metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0044267 ! cellular protein metabolic process
+relationship: negatively_regulates GO:0044267 ! cellular protein metabolic process
+
+[Term]
+id: GO:0043086
+name: negative regulation of catalytic activity
+is_a: GO:0009892 ! negative regulation of metabolic process
+is_a: GO:0044092 ! negative regulation of molecular function
+is_a: GO:0050790 ! regulation of catalytic activity
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0003824 ! catalytic activity
+relationship: negatively_regulates GO:0003824 ! catalytic activity
+
+[Term]
+id: GO:0043170
+name: macromolecule metabolic process
+is_a: GO:0071704 ! organic substance metabolic process
+intersection_of: GO:0008152 ! metabolic process
+intersection_of: has_participant CHEBI:33694
+
+[Term]
+id: GO:0044092
+name: negative regulation of molecular function
+is_a: GO:0065009 ! regulation of molecular function
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0003674 ! molecular_function
+relationship: negatively_regulates GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0044237
+name: cellular metabolic process
+is_a: GO:0008152 ! metabolic process
+is_a: GO:0009987 ! cellular process
+
+[Term]
+id: GO:0044238
+name: primary metabolic process
+is_a: GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0044260
+name: cellular macromolecule metabolic process
+is_a: GO:0043170 ! macromolecule metabolic process
+is_a: GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0044267
+name: cellular protein metabolic process
+is_a: GO:0019538 ! protein metabolic process
+is_a: GO:0044260 ! cellular macromolecule metabolic process
+
+[Term]
+id: GO:0045861
+name: negative regulation of proteolysis
+is_a: GO:0010955 ! negative regulation of protein processing
+is_a: GO:0030162 ! regulation of proteolysis
+is_a: GO:0032269 ! negative regulation of cellular protein metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0006508 ! proteolysis
+relationship: negatively_regulates GO:0006508 ! proteolysis
+
+[Term]
+id: GO:0048519
+name: negative regulation of biological process
+is_a: GO:0050789 ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0008150 ! biological_process
+relationship: negatively_regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0048523
+name: negative regulation of cellular process
+is_a: GO:0048519 ! negative regulation of biological process
+is_a: GO:0050794 ! regulation of cellular process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0009987 ! cellular process
+relationship: negatively_regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0050789
+name: regulation of biological process
+is_a: GO:0065007 ! biological regulation
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0008150 ! biological_process
+relationship: regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0050790
+name: regulation of catalytic activity
+is_a: GO:0019222 ! regulation of metabolic process
+is_a: GO:0065009 ! regulation of molecular function
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0003824 ! catalytic activity
+relationship: regulates GO:0003824 ! catalytic activity
+
+[Term]
+id: GO:0050794
+name: regulation of cellular process
+is_a: GO:0050789 ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0009987 ! cellular process
+relationship: regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0051246
+name: regulation of protein metabolic process
+is_a: GO:0060255 ! regulation of macromolecule metabolic process
+is_a: GO:0080090 ! regulation of primary metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0019538 ! protein metabolic process
+relationship: regulates GO:0019538 ! protein metabolic process
+
+[Term]
+id: GO:0051248
+name: negative regulation of protein metabolic process
+is_a: GO:0010605 ! negative regulation of macromolecule metabolic process
+is_a: GO:0051246 ! regulation of protein metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0019538 ! protein metabolic process
+relationship: negatively_regulates GO:0019538 ! protein metabolic process
+
+[Term]
+id: GO:0051336
+name: regulation of hydrolase activity
+is_a: GO:0050790 ! regulation of catalytic activity
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0016787 ! hydrolase activity
+relationship: regulates GO:0016787 ! hydrolase activity
+
+[Term]
+id: GO:0051346
+name: negative regulation of hydrolase activity
+is_a: GO:0043086 ! negative regulation of catalytic activity
+is_a: GO:0051336 ! regulation of hydrolase activity
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0016787 ! hydrolase activity
+relationship: negatively_regulates GO:0016787 ! hydrolase activity
+
+[Term]
+id: GO:0051604
+name: protein maturation
+is_a: GO:0019538 ! protein metabolic process
+relationship: part_of GO:0010467 ! gene expression
+
+[Term]
+id: GO:0052547
+name: regulation of peptidase activity
+is_a: GO:0030162 ! regulation of proteolysis
+is_a: GO:0051336 ! regulation of hydrolase activity
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0008233 ! peptidase activity
+relationship: regulates GO:0008233 ! peptidase activity
+
+[Term]
+id: GO:0060255
+name: regulation of macromolecule metabolic process
+is_a: GO:0019222 ! regulation of metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0043170 ! macromolecule metabolic process
+relationship: regulates GO:0043170 ! macromolecule metabolic process
+
+[Term]
+id: GO:0061134
+name: peptidase regulator activity
+is_a: GO:0030234 ! enzyme regulator activity
+relationship: has_part GO:0002020 ! protease binding
+relationship: part_of GO:0052547 ! regulation of peptidase activity
+relationship: regulates GO:0008233 ! peptidase activity
+
+[Term]
+id: GO:0065007
+name: biological regulation
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0065009
+name: regulation of molecular function
+is_a: GO:0065007 ! biological regulation
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0003674 ! molecular_function
+relationship: regulates GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0070613
+name: regulation of protein processing
+is_a: GO:1903317 ! regulation of protein maturation
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0016485 ! protein processing
+relationship: regulates GO:0016485 ! protein processing
+
+[Term]
+id: GO:0071704
+name: organic substance metabolic process
+is_a: GO:0008152 ! metabolic process
+intersection_of: GO:0008152 ! metabolic process
+intersection_of: has_participant CHEBI:50860
+
+[Term]
+id: GO:0080090
+name: regulation of primary metabolic process
+is_a: GO:0019222 ! regulation of metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0044238 ! primary metabolic process
+relationship: regulates GO:0044238 ! primary metabolic process
+
+[Term]
+id: GO:1903317
+name: regulation of protein maturation
+is_a: GO:0010468 ! regulation of gene expression
+is_a: GO:0051246 ! regulation of protein metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0051604 ! protein maturation
+relationship: regulates GO:0051604 ! protein maturation
+
+[Term]
+id: GO:1903318
+name: negative regulation of protein maturation
+is_a: GO:0010629 ! negative regulation of gene expression
+is_a: GO:0051248 ! negative regulation of protein metabolic process
+is_a: GO:1903317 ! regulation of protein maturation
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0051604 ! protein maturation
+relationship: negatively_regulates GO:0051604 ! protein maturation
+
+[Typedef]
+id: has_input
+name: has input
+xref: RO:0002233
+is_a: has_participant ! has participant
+
+[Typedef]
+id: has_part
+name: has_part
+xref: BFO:0000051
+is_transitive: true
+is_a: overlaps
+
+[Typedef]
+id: has_participant
+name: has participant
+xref: RO:0000057
+
+[Typedef]
+id: negatively_regulates
+name: negatively regulates
+xref: RO:0002212
+is_a: regulates ! regulates
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+is_transitive: true
+is_a: overlaps
+
+[Typedef]
+id: regulates
+name: regulates
+xref: RO:0002211
+is_a: causally_related_to
+is_a: causally_upstream_of_or_within
+is_a: functionally_related_to
+
