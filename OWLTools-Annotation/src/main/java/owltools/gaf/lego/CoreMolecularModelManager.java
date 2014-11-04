@@ -46,7 +46,6 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.RemoveAxiom;
@@ -84,7 +83,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	final OWLGraphWrapper graph;
 	final Map<String, ModelContainer> modelMap = new HashMap<String, ModelContainer>();
 	Set<IRI> additionalImports;
-	final Set<IRI> obsoleteImports = new HashSet<IRI>();
+	final Map<IRI, OWLOntology> obsoleteOntologies = new HashMap<IRI, OWLOntology>();
 	private volatile SimpleEcoMapper simpleEcoMapper = null;
 
 	// TODO: Temporarily for keeping instances unique (search for "unique" below).
@@ -167,7 +166,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	public void addObsoleteImports(Iterable<String> obsoletes) {
 		if (obsoletes != null) {
 			for (String obsolete : obsoletes) {
-				obsoleteImports.add(IRI.create(obsolete));
+				addObsoleteImport(IRI.create(obsolete));
 			}
 		}
 	}
@@ -179,7 +178,21 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 */
 	public void addObsoleteImportIRIs(Collection<IRI> obsoleteImports) {
 		if (obsoleteImports != null) {
-			this.obsoleteImports.addAll(obsoleteImports);
+			for (IRI obsoleteImport : obsoleteImports) {
+				addObsoleteImport(obsoleteImport);
+			}
+		}
+	}
+	
+	private void addObsoleteImport(IRI obsoleteImport) {
+		// add mapper to provide empty ontologies for obsolete imports
+		final OWLOntologyManager m = graph.getManager();
+		try {
+			OWLOntology empty = m.createOntology(obsoleteImport);
+			obsoleteOntologies.put(obsoleteImport, empty);
+		} catch (OWLOntologyCreationException e) {
+			// ignore for now, just log as warning
+			LOG.warn("Could not create empty dummy ontology for obsolete import: "+obsoleteImport, e);
 		}
 	}
 	
@@ -1025,12 +1038,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		OWLOntologyDocumentSource source = new IRIDocumentSource(sourceIRI);
 		if (minimal == false) {
 			// add the obsolete imports to the ignored imports
-			OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
-			for(IRI obsoleteImport : obsoleteImports) {
-				config = config.addIgnoredImport(obsoleteImport);
-			}
-			
-			OWLOntology abox = graph.getManager().loadOntologyFromOntologyDocument(source, config);
+			OWLOntology abox = graph.getManager().loadOntologyFromOntologyDocument(source);
 			return abox;
 		}
 		else {
@@ -1070,7 +1078,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 * @param model
 	 * @see #additionalImports
 	 * @see #addImports(Iterable)
-	 * @see #obsoleteImports
+	 * @see #obsoleteOntologies
 	 * @see #addObsoleteImports(Iterable)
 	 */
 	public void updateImports(String modelId, ModelContainer model) {
@@ -1085,7 +1093,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		Set<OWLImportsDeclaration> importsDeclarations = aboxOntology.getImportsDeclarations();
 		for (OWLImportsDeclaration decl : importsDeclarations) {
 			IRI iri = decl.getIRI();
-			if (obsoleteImports.contains(iri)) {
+			if (obsoleteOntologies.containsKey(iri)) {
 				changes.add(new RemoveImport(aboxOntology, decl));
 			}
 			else {
