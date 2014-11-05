@@ -1,5 +1,5 @@
 format-version: 1.2
-ontology: owlapi:ontology:ont0
+ontology: test-topology
 
 [Term]
 id: GO:0002020
@@ -457,6 +457,7 @@ id: negatively_regulates
 name: negatively regulates
 xref: RO:0002212
 is_a: regulates ! regulates
+transitive_over: part_of ! part_of
 
 [Typedef]
 id: part_of
@@ -469,7 +470,5 @@ is_a: overlaps
 id: regulates
 name: regulates
 xref: RO:0002211
-is_a: causally_related_to
-is_a: causally_upstream_of_or_within
-is_a: functionally_related_to
+transitive_over: part_of ! part_of
 
