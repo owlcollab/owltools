@@ -32,7 +32,6 @@
 						<!-- May exclude because they use GO; they take a while to run. -->
 <!-- 						<exclude>owltools/graph/OWLGraphShuntTest.java</exclude> --><!-- I ran into a funny case where I needed to know this... -->
 						<exclude>owltools/graph/OWLGraphManipulatorTest.java</exclude> 	
-						<exclude>owltools/graph/OWLGraphGOTest.java</exclude> 	
 						<exclude>owltools/graph/DLLikeQueryTest.java</exclude>
 						<exclude>owltools/graph/AncestorsTest.java</exclude>
 						<exclude>owltools/gfx/DrawOmmatidiumTest.java</exclude>

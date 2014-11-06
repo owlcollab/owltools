@@ -243,7 +243,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @param props
 	 * @return all edges that originate from source to nearest named object target
 	 */
-	public Set<OWLGraphEdge> getOutgoingEdges(OWLObject cls, Set<OWLPropertyExpression> props) {
+	public Set<OWLGraphEdge> getOutgoingEdges(OWLObject cls, Set<? extends OWLPropertyExpression> props) {
 		Set<OWLGraphEdge> pEdges = getPrimitiveOutgoingEdges(cls);
 		LOG.debug("primitive edges:"+cls+" --> "+pEdges);
 
@@ -332,7 +332,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	public Set<OWLGraphEdge> getPrimitiveOutgoingEdges(OWLObject s) {
 		return getPrimitiveOutgoingEdges(s, null);
 	}
-	public Set<OWLGraphEdge> getPrimitiveOutgoingEdges(OWLObject s, Set<OWLPropertyExpression> overProperties) {
+	public Set<OWLGraphEdge> getPrimitiveOutgoingEdges(OWLObject s, Set<? extends OWLPropertyExpression> overProperties) {
 		profiler.startTaskNotify("getPrimitiveOutgoingEdges");
 		Set<OWLGraphEdge> edges = new OWLGraphEdgeSet();
 		for (OWLOntology o : getAllOntologies()) {
@@ -446,7 +446,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		 filterEdges(edges, null);
 		
 	}
-	protected void filterEdges(Set<OWLGraphEdge> edges, Set<OWLPropertyExpression> overProperties) {
+	protected void filterEdges(Set<OWLGraphEdge> edges, Set<? extends OWLPropertyExpression> overProperties) {
 		Set<OWLGraphEdge> rmEdges = new OWLGraphEdgeSet();
 		for (OWLGraphEdge e : edges) {
 			if (overProperties != null) {
@@ -806,7 +806,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @param overProperties
 	 * @return
 	 */
-	public Set<OWLGraphEdge> getOutgoingEdgesClosure(OWLObject s, Set<OWLPropertyExpression> overProperties) {
+	public Set<OWLGraphEdge> getOutgoingEdgesClosure(OWLObject s, Set<? extends OWLPropertyExpression> overProperties) {
 		synchronized (edgeCacheMutex) {
 			// never use cache if a property list is specified (in future we may have one
 			// cache per property set)
@@ -916,7 +916,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	 * @param props
 	 * @return
 	 */
-	public Set<OWLGraphEdge> getOutgoingEdgesClosureReflexive(OWLObject s, Set<OWLPropertyExpression> props) {
+	public Set<OWLGraphEdge> getOutgoingEdgesClosureReflexive(OWLObject s, Set<? extends OWLPropertyExpression> props) {
 		Set<OWLGraphEdge> edges = getOutgoingEdgesClosure(s, props);
 		edges.add(new OWLGraphEdge(s,s,null,Quantifier.IDENTITY,getSourceOntology()));
 		return edges;

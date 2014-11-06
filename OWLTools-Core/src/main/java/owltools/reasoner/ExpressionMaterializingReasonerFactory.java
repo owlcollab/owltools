@@ -10,10 +10,10 @@ import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 
 public class ExpressionMaterializingReasonerFactory implements OWLReasonerFactory {
 
-	OWLReasoner wrappedReasoner;
-    public ExpressionMaterializingReasonerFactory(OWLReasoner reasoner) {
+	OWLReasonerFactory factory;
+    public ExpressionMaterializingReasonerFactory(OWLReasonerFactory factory) {
 		super();
-		wrappedReasoner = reasoner;
+		this.factory = factory;
 	}
 
 	public String getReasonerName() {
@@ -29,14 +29,12 @@ public class ExpressionMaterializingReasonerFactory implements OWLReasonerFactor
     }
 
     public OWLReasoner createNonBufferingReasoner(OWLOntology ontology, OWLReasonerConfiguration config) throws IllegalConfigurationException {
-        ExpressionMaterializingReasoner r = new ExpressionMaterializingReasoner(ontology, config, BufferingMode.NON_BUFFERING);
-        r.setWrappedReasoner(wrappedReasoner);
+        ExpressionMaterializingReasoner r = new ExpressionMaterializingReasoner(ontology, factory, config, BufferingMode.NON_BUFFERING);
         return r;
     }
 
     public OWLReasoner createReasoner(OWLOntology ontology, OWLReasonerConfiguration config) throws IllegalConfigurationException {
-    	ExpressionMaterializingReasoner r = new ExpressionMaterializingReasoner(ontology, config, BufferingMode.BUFFERING);
-        r.setWrappedReasoner(wrappedReasoner);
+    	ExpressionMaterializingReasoner r = new ExpressionMaterializingReasoner(ontology, factory, config, BufferingMode.BUFFERING);
         return r;
     }
 }

@@ -1912,18 +1912,11 @@ public class CommandRunner {
 						if (reasoner != null) {
 							LOG.error("Reasoner should NOT be set prior to creating EMR - unsetting");
 						}
-						xr = new ExpressionMaterializingReasoner(g.getSourceOntology());	
+						xr = new ExpressionMaterializingReasoner(g.getSourceOntology(), createReasonerFactory(reasonerName));	
 						LOG.info("materializing... [doing this before initializing reasoner]");					
 						xr.materializeExpressions();
 						LOG.info("set extended reasoner: "+xr);
-					}
-					if (reasoner == null) {
-						reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
-						LOG.info("created reasoner: "+reasoner);
-					}
-					if (xr != null) {
-						xr.setWrappedReasoner(reasoner);
-						reasoner = xr;					
+						reasoner = xr;
 					}
 					if (isIndividuals) {
 						for (OWLNamedIndividual r : reasoner.getInstances(ce, false).getFlattened()) {
@@ -5447,7 +5440,7 @@ public class CommandRunner {
 			reasonerFactory = new GraphReasonerFactory();			
 		}
 		else if (reasonerName.equals("mexr")) {
-			reasonerFactory = new ExpressionMaterializingReasonerFactory(reasoner);
+			reasonerFactory = new ExpressionMaterializingReasonerFactory(reasonerFactory);
 		}
 		else if (reasonerName.equals("jfact")) {
 			reasonerFactory = new JFactFactory();

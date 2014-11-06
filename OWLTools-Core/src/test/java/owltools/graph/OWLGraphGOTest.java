@@ -2,30 +2,21 @@ package owltools.graph;
 
 import static org.junit.Assert.*;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import owltools.OWLToolsTestBasics;
+import owltools.graph.shunt.OWLShuntGraph;
+import owltools.graph.shunt.OWLShuntNode;
+import owltools.io.ParserWrapper;
 
 public class OWLGraphGOTest extends OWLToolsTestBasics {
 	
@@ -111,7 +102,7 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 		
 		// 
 		OWLObject x3 = wrapper.getOWLClassByIdentifier("GO:0022008");
-		Map<String, String> closure_map = wrapper.getIsaPartofClosureMap(x3);
+		Map<String, String> closure_map = wrapper.getRelationClosureMap(x3, RelationSets.getRelationSet(RelationSets.ISA_PARTOF));
 		
 		
 		// And make sure they are the right ones.
@@ -145,52 +136,18 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 	 * where is seems to be dropping a bunch of the expected nodes in one case: GO:0000124.
 	 * https://github.com/kltm/amigo/issues/52
 	 */
-	//@Test
-	@Ignore("we should add this once getOutgoingEdgesClosure is fixed") @Test
+	@Test
 	public void testClosureTruth() throws Exception{
 		
 		HashSet<String> ids = closureTestRunner(wrapper, true);
 
-		//LOG.info("unfiltered tally: " + unfiltered_tally);
-		//LOG.info("\"correctness\" filtered tally: " + filtered_tally);
 		LOG.info("remainder: " + ids.size());
 		for( String id : ids ){
 			LOG.info("remainder id: " + id);
 		}
-		//assertEquals("have 24 ids in closure", 24, filtered_tally);
 		assertEquals("the correct 24 entities were in the closure", 0, ids.size());
 	}
 
-	/*
-	 * The idea here is to make sure that nonDeterministicTestRunner is deterministic.
-	 * We discovered that it sometimes gives a different answer, so we're seeing that it's
-	 * at least consistant (even if not correct).
-	 * 
-	 * BUG: This function here DOES NOT catch the error, but it will hopefully slow the testing down enough that you
-	 * come here and start looking into this again.
-	 * 
-	 * To reiterate -- this was failing, with witnesses, but only in repeated uses of restarting the VM (e.g. a new debug run in Eclipse)
-	 */
-	@Ignore("NOT a real test, but a placeholder, see comments") @Test
-	public void testGraphDeterminism() throws Exception{
-
-		
-		int last_run = -1;
-		for( int x = 1; x <= 10; x++ ){
-			OWLGraphWrapper newWrapper = getOntologyWrapper("go.owl");
-			HashSet<String> ndr = closureTestRunner(newWrapper, false);
-			LOG.info("run with (" + x + "): " + ndr);
-			if( last_run == -1 ){
-				last_run = ndr.size();
-			}else{
-				assertEquals("this answer should always be the same", last_run, ndr);				
-			}
-		}		
-	}
-
-	// The runner for one of our more problematic test cases.
-	// Sometimes returns 18, 30, 40, 42...a lot of things.
-	// Most often get 18, should be 24.
 	private HashSet<String> closureTestRunner(OWLGraphWrapper gw, boolean runAssertionsP){
 		
 		// The nodes we should have.
@@ -220,61 +177,26 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 		ids.add("GO:0005622");
 		ids.add("GO:0005654");
 
-		//int unfiltered_tally = 0;
-		//int filtered_tally = 0;
-
 		OWLObject saga = gw.getOWLClassByIdentifier("GO:0000124");
 		String topicID = gw.getIdentifier(saga);
-
-		// Rel set to properties.
+		
 		List<String> rel_ids = RelationSets.getRelationSet(RelationSets.COMMON);
-		Set<OWLPropertyExpression> props = gw.relationshipIDsToPropertySet(rel_ids);
-
-		Set<OWLGraphEdge> oge = gw.getOutgoingEdgesClosure(saga);
-		for( OWLGraphEdge e : oge ){
-			OWLObject target = e.getTarget();
-			
-			String rel = gw.classifyRelationship(e, target, props);
-			LOG.info("id: " + gw.getIdentifier(target) + ", " + rel);
-
-			//unfiltered_tally++;
-
-			if( rel != null ){
-				//LOG.info("relation: " + rel);
-
-				// Placeholders.
-				String objectID = null;
-				
-				if( rel == "simplesubclass" ){
-					objectID = gw.getIdentifier(target);
-				}else if( rel == "typesubclass" ){
-					OWLObjectSomeValuesFrom some = (OWLObjectSomeValuesFrom)target;
-					OWLClassExpression clsexp = some.getFiller();
-					OWLClass cls = clsexp.asOWLClass();
-					objectID = gw.getIdentifier(cls);
-				}
-
-				//LOG.info("\t" + objectID);
-
-				// Only add when subject, object, and relation are properly defined.
-				if(	topicID != null && ! topicID.equals("") &&
-					objectID != null &&	! objectID.equals("") ){
-
-					// Remainder set removal.
-					ids.remove(topicID);
-					ids.remove(objectID);
-					
-					//filtered_tally++;
-				}
-			}
+		OWLShuntGraph graphSegment = new OWLShuntGraph();
+		graphSegment = gw.addTransitiveAncestorsToShuntGraph(saga, graphSegment, rel_ids);
+		
+		assertTrue(graphSegment.nodes.size() >= ids.size());
+		
+		for(OWLShuntNode node : graphSegment.nodes) {
+			ids.remove(node.id);
 		}
+		ids.remove(topicID);
 		
 		return ids;	
 	}
 	
-	private static OWLGraphWrapper getOntologyWrapper(String file) throws OWLOntologyCreationException{
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(getResource(file));
-		return new OWLGraphWrapper(ontology);
+	private static OWLGraphWrapper getOntologyWrapper(String file) throws Exception{
+		ParserWrapper pw = new ParserWrapper();
+		OWLGraphWrapper graph = pw.parseToOWLGraph(getResourceIRIString(file));
+		return graph;
 	}
 }

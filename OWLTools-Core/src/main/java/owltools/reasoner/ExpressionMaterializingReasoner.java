@@ -1,6 +1,7 @@
 package owltools.reasoner;
 
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -19,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -26,7 +28,10 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.reasoner.AxiomNotInProfileException;
 import org.semanticweb.owlapi.reasoner.BufferingMode;
@@ -40,6 +45,7 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerConfiguration;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.ReasonerInterruptedException;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.reasoner.TimeOutException;
@@ -68,56 +74,92 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 
 	private OWLReasoner wrappedReasoner;
 
-	private OWLDataFactory dataFactory;
-	private OWLOntology ontology;
-	OWLOntologyManager manager;
-	private Map<OWLObjectProperty,OWLClass> pxMap;
-	Set<OWLObjectProperty> cachedProperties;
-	//private Map<OWLClass,OWLObjectProperty> xpMap;
-	private Map<OWLClass,OWLObjectSomeValuesFrom> cxMap;
+	private final OWLDataFactory dataFactory;
+	private final OWLOntology rootOntology;
+	private final OWLOntology expandedOntology;
+	final OWLOntologyManager manager;
+	final Set<OWLObjectProperty> cachedProperties;
+	private final Map<OWLClass,OWLObjectSomeValuesFrom> cxMap;
 
 
-	protected ExpressionMaterializingReasoner(OWLOntology rootOntology,
+	protected ExpressionMaterializingReasoner(OWLOntology rootOntology, 
+			OWLReasonerFactory reasonerFactory,
 			OWLReasonerConfiguration configuration, BufferingMode bufferingMode) {
 		super(rootOntology, configuration, bufferingMode);
 		try {
-			this.ontology = rootOntology;
-			manager = ontology.getOWLOntologyManager();
+			this.rootOntology = rootOntology;
+			manager = rootOntology.getOWLOntologyManager();
 			dataFactory = manager.getOWLDataFactory();
+			expandedOntology = createExpandedOntologyStub(rootOntology);
+			if (BufferingMode.NON_BUFFERING == bufferingMode) {
+				wrappedReasoner = reasonerFactory.createReasoner(expandedOntology, configuration);	
+			}
+			else {
+				wrappedReasoner = reasonerFactory.createNonBufferingReasoner(expandedOntology, configuration);
+			}
+			
+			
 		} catch (UnknownOWLOntologyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Could not setup reasoner", e);
+		} catch (OWLOntologyCreationException e) {
+			throw new RuntimeException("Could not setup reasoner", e);
 		}
 		cachedProperties = new HashSet<OWLObjectProperty>();
 		cxMap = new HashMap<OWLClass, OWLObjectSomeValuesFrom>();
 	}
 
+	/**
+	 * @param rootOntology
+	 * @return ontology
+	 * @throws OWLOntologyCreationException
+	 */
+	private OWLOntology createExpandedOntologyStub(OWLOntology rootOntology)
+			throws OWLOntologyCreationException {
+		OWLOntology expandedOntology = manager.createOntology(IRI.generateDocumentIRI());
+		IRI rootOntologyIRI;
+		OWLOntologyID rootId = rootOntology.getOntologyID();
+		if (rootId == null) {
+			rootOntologyIRI = IRI.generateDocumentIRI();
+			manager.applyChange(new SetOntologyID(rootOntology, rootOntologyIRI));
+		}
+		else {
+			if (rootId.isAnonymous()) {
+				rootOntologyIRI = IRI.generateDocumentIRI();
+				manager.applyChange(new SetOntologyID(rootOntology, rootOntologyIRI));
+			}
+			else {
+				rootOntologyIRI = rootId.getOntologyIRI();
+			}
+		}
+		AddImport ai = new AddImport(expandedOntology, 
+				dataFactory.getOWLImportsDeclaration(rootOntologyIRI));
+		manager.applyChange(ai);
+		return expandedOntology;
+	}
+
 	public ExpressionMaterializingReasoner(OWLOntology ont) {
-		this(ont, new SimpleConfiguration(), BufferingMode.BUFFERING);
+		this(ont, new ElkReasonerFactory());
+	}
+	
+	public ExpressionMaterializingReasoner(OWLOntology ont, OWLReasonerFactory reasonerFactory) {
+		this(ont, new ElkReasonerFactory(), new SimpleConfiguration(), BufferingMode.BUFFERING);
+	}
+	
+	public ExpressionMaterializingReasoner(OWLOntology ont, OWLReasonerFactory reasonerFactory, BufferingMode bufferingMode) {
+		this(ont, new ElkReasonerFactory(), new SimpleConfiguration(), bufferingMode);
 	}
 
 	public OWLReasoner getWrappedReasoner() {
 		return wrappedReasoner;
 	}
 
-
-
-	public void setWrappedReasoner(OWLReasoner wrappedReasoner) {
-		if (wrappedReasoner == null) {
-			ElkReasonerFactory reasonerFactory = new ElkReasonerFactory();	
-			wrappedReasoner = reasonerFactory.createReasoner(ontology);
-		}
-		this.wrappedReasoner = wrappedReasoner;
-	}
-
-
-	public void materializeExpressions(OWLOntology ontology) {
-		this.ontology = ontology;
-		materializeExpressions();
-	}
-
 	public void materializeExpressions() {
-		for (OWLObjectProperty p : ontology.getObjectPropertiesInSignature()) {
+		for (OWLObjectProperty p : rootOntology.getObjectPropertiesInSignature()) {
+			materializeExpressions(p);
+		}
+	}
+	public void materializeExpressions(Collection<OWLObjectProperty> properties) {
+		for (OWLObjectProperty p : properties) {
 			materializeExpressions(p);
 		}
 	}
@@ -125,27 +167,40 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 		if (cachedProperties.contains(p))
 			return;
 		LOG.info("Materializing "+p+" SOME ?x");
-		//pxMap = new HashMap<OWLObjectProperty,OWLClass>();
 		int n=0;
-		for (OWLClass baseClass : ontology.getClassesInSignature()) {
+		for (OWLClass baseClass : rootOntology.getClassesInSignature()) {
 			// only materialize for non-helper classes
 			if (cxMap.containsKey(baseClass))
 				continue;
 			OWLObjectSomeValuesFrom x = dataFactory.getOWLObjectSomeValuesFrom(p, baseClass);
-			IRI xciri = IRI.create(baseClass.getIRI().toString()+"--"+p.getIRI().toString());
+			IRI xciri = IRI.create(baseClass.getIRI()+"__"+saveIRItoString(p.getIRI()));
 			OWLClass xc = dataFactory.getOWLClass(xciri);
 			OWLEquivalentClassesAxiom eca = dataFactory.getOWLEquivalentClassesAxiom(xc, x);
-			//pxMap.put(p, xc);
+			String lbl = p.getIRI().getShortForm()+" "+baseClass.getIRI().getShortForm();
+			manager.addAxiom(expandedOntology, dataFactory.getOWLAnnotationAssertionAxiom(xciri, dataFactory.getOWLAnnotation(dataFactory.getRDFSLabel(), dataFactory.getOWLLiteral(lbl))));
 			cxMap.put(xc, x);
 			//LOG.info("Materializing: "+eca);
-			manager.addAxiom(ontology, eca);
+			manager.addAxiom(expandedOntology, eca);
 			//LOG.info("  ADDED:"+eca);
-			manager.addAxiom(ontology, dataFactory.getOWLDeclarationAxiom(xc));
+			manager.addAxiom(expandedOntology, dataFactory.getOWLDeclarationAxiom(xc));
 			n++;
 		}
 		flush();
 		LOG.info("Cached = "+n);
 		cachedProperties.add(p);
+	}
+	
+	private CharSequence saveIRItoString(IRI iri) {
+		StringBuilder sb = new StringBuilder();
+		String s = iri.toString();
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == ':' || c == '/') {
+				c = '_';
+			}
+			sb.append(c);
+		}
+		return sb;
 	}
 
 	/**

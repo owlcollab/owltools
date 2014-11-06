@@ -12,6 +12,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.reasoner.BufferingMode;
 import org.semanticweb.owlapi.reasoner.ClassExpressionNotInProfileException;
 import org.semanticweb.owlapi.reasoner.FreshEntitiesException;
 import org.semanticweb.owlapi.reasoner.InconsistentOntologyException;
@@ -56,10 +57,8 @@ public class ExtendedReasonerTest extends AbstractReasonerTest {
 	public void testQuery() throws Exception{
 		g =  getOntologyWrapper("extended-reasoner-test.omn");
 		parser = new ManchesterSyntaxTool(g.getSourceOntology(), g.getSupportOntologySet());
-		reasoner = new ExpressionMaterializingReasoner(g.getSourceOntology());
-		ElkReasonerFactory rf = new ElkReasonerFactory();
-		OWLReasoner wr = rf.createNonBufferingReasoner(g.getSourceOntology());
-		((ExpressionMaterializingReasoner) reasoner).setWrappedReasoner(wr);
+		reasoner = new ExpressionMaterializingReasoner(g.getSourceOntology(),
+				new ElkReasonerFactory(), BufferingMode.NON_BUFFERING);
 		reasoner.flush();
 		IRI  piri;
 		piri = IRI.create("http://x.org/part_of");
