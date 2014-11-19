@@ -1,0 +1,127 @@
+Prefix: owl: <http://www.w3.org/2002/07/owl#>
+Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix: xml: <http://www.w3.org/XML/1998/namespace>
+Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>
+Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+
+Ontology: <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015>
+
+Import: <http://purl.obolibrary.org/obo/eco.owl>
+Import: <http://purl.obolibrary.org/obo/ro.owl>
+Import: <http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl>
+Import: <http://purl.obolibrary.org/obo/go.owl>
+
+Annotations: 
+    <http://purl.org/dc/elements/1.1/source> "PMID:24368792"^^xsd:string,
+    <http://purl.org/dc/elements/1.1/contributor> "GOC:tb"^^xsd:string
+
+AnnotationProperty: <http://geneontology.org/lego/evidence>
+
+    
+AnnotationProperty: <http://purl.org/dc/elements/1.1/contributor>
+
+    
+AnnotationProperty: <http://purl.org/dc/elements/1.1/source>
+
+    
+Datatype: xsd:string
+
+    
+ObjectProperty: <http://purl.obolibrary.org/obo/BFO_0000066>
+
+    
+ObjectProperty: <http://purl.obolibrary.org/obo/BFO_0000050>
+
+    
+ObjectProperty: <http://purl.obolibrary.org/obo/RO_0002333>
+
+    
+Class: <http://purl.obolibrary.org/obo/PO_0009010>
+
+    
+Class: <http://purl.obolibrary.org/obo/GO_0016118>
+
+    
+Class: <http://purl.obolibrary.org/obo/GO_0010150>
+
+    
+Class: <http://purl.obolibrary.org/obo/PO_0001040>
+
+    
+Class: <http://purl.obolibrary.org/obo/TAIR_locus%3A2134796>
+
+    
+Class: <http://purl.obolibrary.org/obo/GO_0003674>
+
+    
+Individual: <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015-GO-0016118-5362b2ed0000036>
+
+    Annotations: 
+        <http://geneontology.org/lego/evidence> <http://purl.obolibrary.org/obo/ECO_0000015>,
+        <http://purl.org/dc/elements/1.1/source> "PMID:24368792"^^xsd:string,
+        <http://purl.org/dc/elements/1.1/contributor> "GOC:tb"^^xsd:string
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0016118>,
+        <http://purl.obolibrary.org/obo/BFO_0000066> some <http://purl.obolibrary.org/obo/PO_0009010>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015-GO-0003674-5362b2ed0000030>
+
+    Annotations: 
+        <http://geneontology.org/lego/evidence> <http://purl.obolibrary.org/obo/ECO_0000008>,
+        <http://purl.org/dc/elements/1.1/source> "PMID:24368792"^^xsd:string,
+        <http://purl.org/dc/elements/1.1/contributor> "GOC:tb"^^xsd:string
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/BFO_0000050> some <http://purl.obolibrary.org/obo/PO_0001040>,
+        <http://purl.obolibrary.org/obo/BFO_0000066> some <http://purl.obolibrary.org/obo/PO_0009010>,
+        <http://purl.obolibrary.org/obo/GO_0003674>,
+        <http://purl.obolibrary.org/obo/RO_0002333> some <http://purl.obolibrary.org/obo/TAIR_locus%3A2134796>
+    
+    Facts:  
+     
+     Annotations: <http://geneontology.org/lego/evidence> <http://purl.obolibrary.org/obo/ECO_0000033>, 
+                 <http://purl.org/dc/elements/1.1/source> "PMID:24368792"^^xsd:string,
+                 <http://purl.org/dc/elements/1.1/contributor> "GOC:tb"^^xsd:string
+                 
+                 <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015-GO-0016118-5362b2ed0000036>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015-GO-0016118-5362b2ed0000039>
+
+    Annotations: 
+        <http://geneontology.org/lego/evidence> <http://purl.obolibrary.org/obo/ECO_0000015>,
+        <http://purl.org/dc/elements/1.1/source> "PMID:24368792"^^xsd:string,
+        <http://purl.org/dc/elements/1.1/contributor> "GOC:tb"^^xsd:string
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0016118>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015-GO-0010150-5362b2ed0000037>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015-GO-0010150-5362b2ed0000037>
+
+    Annotations: 
+        <http://geneontology.org/lego/evidence> <http://purl.obolibrary.org/obo/ECO_0000015>,
+        <http://purl.org/dc/elements/1.1/source> "PMID:24368792"^^xsd:string,
+        <http://purl.org/dc/elements/1.1/contributor> "GOC:tb"^^xsd:string
+    
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0010150>
+    
+    
+Individual: <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015-GO-0003674-5362b2ed0000038>
+
+    Types: 
+        <http://purl.obolibrary.org/obo/GO_0003674>,
+        <http://purl.obolibrary.org/obo/RO_0002333> some <http://purl.obolibrary.org/obo/TAIR_locus%3A2134796>
+    
+    Facts:  
+     <http://purl.obolibrary.org/obo/BFO_0000050>  <http://purl.obolibrary.org/obo/gomodel_tair-5362b2ed0000015-GO-0016118-5362b2ed0000039>
+    
+    

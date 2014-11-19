@@ -252,12 +252,22 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	
 	OWLNamedIndividual createIndividual(String modelId, ModelContainer model, OWLClass c, Set<OWLAnnotation> annotations, boolean flushReasoner, METADATA metadata) {
 		LOG.info("Creating individual of type: "+c);
+		Pair<OWLNamedIndividual, Set<OWLAxiom>> pair = createIndividual(modelId, model, c, annotations);
+		addAxioms(modelId, model, pair.getRight(), flushReasoner, metadata);
+		return pair.getLeft();
+	}
+	
+	public static Pair<OWLNamedIndividual, Set<OWLAxiom>> createIndividual(String modelId, ModelContainer model, OWLClassExpression ce, Set<OWLAnnotation> annotations) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
-		String cid = graph.getIdentifier(c).replaceAll(":","-"); // e.g. GO-0123456
-
-		// Make something unique to tag onto the generated IDs.
-		String iid = generateId(modelId, "-", cid, "-");
-		LOG.info("  new OD: "+iid);
+		String iid;
+		if (ce instanceof OWLClass) {
+			String cid = graph.getIdentifier(ce).replaceAll(":","-"); // e.g. GO-0123456
+			// Make something unique to tag onto the generated IDs.
+			iid = generateId(modelId, "-", cid, "-");
+		}
+		else {
+			iid = generateId(modelId, "-");
+		}
 
 		IRI iri = MolecularModelJsonRenderer.getIRI(iid, graph);
 		OWLDataFactory f = model.getOWLDataFactory();
@@ -274,9 +284,12 @@ public abstract class CoreMolecularModelManager<METADATA> {
 			}
 		}
 		
-		addAxioms(modelId, model, axioms, flushReasoner, metadata);
-		addType(modelId, model, i, c, flushReasoner, metadata);
-		return i;
+		OWLClassAssertionAxiom typeAxiom = createType(model, i, ce);
+		if (typeAxiom != null) {
+			axioms.add(typeAxiom);
+		}
+		
+		return Pair.of(i, axioms);
 	}
 	
 	/**
@@ -678,8 +691,19 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	 */
 	void addType(String modelId, ModelContainer model, OWLIndividual i, 
 			OWLClassExpression c, boolean flushReasoner, METADATA metadata) {
-		OWLClassAssertionAxiom axiom = model.getOWLDataFactory().getOWLClassAssertionAxiom(c,i);
+		OWLClassAssertionAxiom axiom = createType(model, i, c);
 		addAxiom(modelId, model, axiom, flushReasoner, metadata);
+	}
+
+	/**
+	 * @param model
+	 * @param i
+	 * @param c
+	 * @return axiom
+	 */
+	public static OWLClassAssertionAxiom createType(ModelContainer model, OWLIndividual i, OWLClassExpression c) {
+		OWLClassAssertionAxiom axiom = model.getOWLDataFactory().getOWLClassAssertionAxiom(c,i);
+		return axiom;
 	}
 
 	/**
@@ -835,6 +859,21 @@ public abstract class CoreMolecularModelManager<METADATA> {
 
 	void addFact(String modelId, ModelContainer model, OWLObjectPropertyExpression p,
 			OWLIndividual i, OWLIndividual j, Set<OWLAnnotation> annotations, boolean flushReasoner, METADATA metadata) {
+		OWLObjectPropertyAssertionAxiom axiom = createFact(model, p, i,	j, annotations);
+		addAxiom(modelId, model, axiom, flushReasoner, metadata);
+	}
+
+	/**
+	 * @param model
+	 * @param p
+	 * @param i
+	 * @param j
+	 * @param annotations
+	 * @return axiom
+	 */
+	public static OWLObjectPropertyAssertionAxiom createFact(ModelContainer model,
+			OWLObjectPropertyExpression p, OWLIndividual i, OWLIndividual j,
+			Set<OWLAnnotation> annotations) {
 		OWLDataFactory f = model.getOWLDataFactory();
 		final OWLObjectPropertyAssertionAxiom axiom;
 		if (annotations != null && !annotations.isEmpty()) {
@@ -843,7 +882,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		else {
 			axiom = f.getOWLObjectPropertyAssertionAxiom(p, i, j);
 		}
-		addAxiom(modelId, model, axiom, flushReasoner, metadata);
+		return axiom;
 	}
 
 	public void removeFact(String modelId, OWLObjectPropertyExpression p,
