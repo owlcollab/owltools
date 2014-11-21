@@ -1918,6 +1918,11 @@ public class CommandRunner {
 						LOG.info("set extended reasoner: "+xr);
 						reasoner = xr;
 					}
+					else {
+						if (reasoner == null) {
+							reasoner = createReasoner(g.getSourceOntology(), reasonerName, g.getManager());
+						}
+					}
 					if (isIndividuals) {
 						for (OWLNamedIndividual r : reasoner.getInstances(ce, false).getFlattened()) {
 							//results.add(r);
