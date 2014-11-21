@@ -20,7 +20,6 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -154,18 +153,25 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 
 	public void materializeExpressions() {
-		for (OWLObjectProperty p : rootOntology.getObjectPropertiesInSignature()) {
-			materializeExpressions(p);
-		}
+		materializeExpressions(rootOntology.getObjectPropertiesInSignature());
 	}
 	public void materializeExpressions(Collection<OWLObjectProperty> properties) {
 		for (OWLObjectProperty p : properties) {
+			if (cachedProperties.contains(p)){
+				continue;
+			}
 			materializeExpressions(p);
 		}
+		flush();
 	}
 	public void materializeExpressions(OWLObjectProperty p) {
 		if (cachedProperties.contains(p))
 			return;
+		materializeExpressionsInternal(p);
+		flush();
+	}
+	
+	private void materializeExpressionsInternal(OWLObjectProperty p) {
 		LOG.info("Materializing "+p+" SOME ?x");
 		int n=0;
 		for (OWLClass baseClass : rootOntology.getClassesInSignature()) {
@@ -185,7 +191,6 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 			manager.addAxiom(expandedOntology, dataFactory.getOWLDeclarationAxiom(xc));
 			n++;
 		}
-		flush();
 		LOG.info("Cached = "+n);
 		cachedProperties.add(p);
 	}
@@ -223,7 +228,7 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 		Set<OWLClassExpression> ces = new HashSet<OWLClassExpression>();
 		wrappedReasoner.flush();
 		for (OWLClass c : wrappedReasoner.getSuperClasses(ce, direct).getFlattened()) {
-			LOG.info("SC:"+c);
+			//LOG.info("SC:"+c);
 			if (cxMap.containsKey(c)) {
 				ces.add(cxMap.get(c));
 			}

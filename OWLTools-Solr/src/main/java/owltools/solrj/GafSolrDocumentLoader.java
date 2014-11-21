@@ -720,6 +720,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc){
 		
 		// Add closures to doc; label and id.
+		graph.addPropertyIdsForMaterialization(relations);
 		final Map<String, String> cmap = graph.getRelationClosureMap(cls, relations);
 		List<String> idClosure = new ArrayList<String>(cmap.keySet());
 		List<String> labelClosure = new ArrayList<String>(cmap.values());

@@ -51,6 +51,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	}
 	
 	private volatile ExpressionMaterializingReasoner reasoner = null;
+	private volatile boolean isSynchronized = false;
 
 	// A cache of an arbitrary relationship closure for a certain object.
 	private LoadingCache<OWLObject, Map<List<String>,Map<String,String>>> cache = null;
@@ -67,10 +68,39 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		return 0;
 	}
 	
+	private final Set<OWLObjectProperty> materializationPropertySet = new HashSet<OWLObjectProperty>();
+	
+	public synchronized void addPropertyForMaterialization(OWLObjectProperty p) {
+		boolean add = materializationPropertySet.add(p);
+		if (add) {
+			isSynchronized = false;
+		}
+	}
+	
+	public synchronized void addPropertiesForMaterialization(Iterable<OWLObjectProperty> properties) {
+		for (OWLObjectProperty p : properties) {
+			addPropertyForMaterialization(p);
+		}
+	}
+	
+	public synchronized void addPropertyIdsForMaterialization(Iterable<String> propertyIds) {
+		for (String propertyId : propertyIds) {
+			OWLObjectProperty p = getOWLObjectPropertyByIdentifier(propertyId);
+			if (p != null) {
+				addPropertyForMaterialization(p);
+			}
+		}
+	}
+	
 	private synchronized ExpressionMaterializingReasoner getMaterializingReasoner() {
 		if (reasoner == null) {
 			reasoner = new ExpressionMaterializingReasoner(getSourceOntology());
-			reasoner.materializeExpressions();
+			reasoner.materializeExpressions(materializationPropertySet);
+			isSynchronized = true;
+		}
+		else if (isSynchronized == false) {
+			reasoner.materializeExpressions(materializationPropertySet);
+			isSynchronized = true;
 		}
 		return reasoner;
 	}
@@ -80,6 +110,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		if (reasoner != null) {
 			reasoner.dispose();
 			reasoner = null;
+			isSynchronized = false;
 		}
 	}
 
@@ -273,7 +304,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 
 	private void addTransitiveAncestorsToShuntGraph(final OWLClass cls, final String topicID, 
 			final OWLShuntGraph g, final Set<OWLObjectProperty> props) {
-		
+		addPropertiesForMaterialization(props);
 		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
 		Set<OWLClassExpression> classExpressions = materializingReasoner.getSuperClassExpressions(cls, false);
 		for (OWLClassExpression ce : classExpressions) {
@@ -330,7 +361,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	
 	private void addTransitiveAncestorsToShuntGraph(final OWLObjectProperty p, final String topicID, 
 			final OWLShuntGraph g, final Set<OWLObjectProperty> props) {
-		
+		addPropertiesForMaterialization(props);
 		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
 		Set<OWLObjectPropertyExpression> superExpressions = materializingReasoner.getSuperObjectProperties(p, false).getFlattened();
 		for (OWLObjectPropertyExpression pe : superExpressions) {
@@ -634,6 +665,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	
 	private void addIdLabelClosure(OWLClass c, boolean reflexive, 
 			final Set<OWLObjectProperty> props, final Map<String,String> relation_map) {
+		addPropertiesForMaterialization(props);
 		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
 		Set<OWLClassExpression> classExpressions = materializingReasoner.getSuperClassExpressions(c, false);
 		for (OWLClassExpression ce : classExpressions) {
@@ -667,6 +699,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	
 	private void addIdLabelClosure(OWLObjectProperty p, boolean reflexive, 
 			final Set<OWLObjectProperty> props, final Map<String,String> relation_map) {
+		addPropertiesForMaterialization(props);
 		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
 		Set<OWLObjectPropertyExpression> superProperties = materializingReasoner.getSuperObjectProperties(p, false).getFlattened();
 		for (OWLObjectPropertyExpression pe : superProperties) {
