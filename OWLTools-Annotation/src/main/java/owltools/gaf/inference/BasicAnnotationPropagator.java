@@ -118,9 +118,12 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		OWLClass cc = graph.getOWLClassByIdentifier("GO:0005575"); // cellular_component
 		
 		OWLObjectProperty part_of = graph.getOWLObjectPropertyByIdentifier("part_of");
+		if (part_of == null) {
+			LOG.warn("Could not find relation by id 'part_of'.");
+		}
 		OWLObjectProperty occurs_in = graph.getOWLObjectPropertyByIdentifier("occurs_in");
 		if (occurs_in == null) {
-			LOG.warn("Could not find relation 'occurs_in'.");
+			LOG.warn("Could not find relation by id 'occurs_in'.");
 		}
 		
 		
