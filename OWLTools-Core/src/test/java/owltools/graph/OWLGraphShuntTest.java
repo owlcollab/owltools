@@ -88,8 +88,7 @@ public class OWLGraphShuntTest extends OWLToolsTestBasics {
 		LOG.info("lineage: " + wrapper.getLineageShuntGraphJSON(c, rel_ids));
 
 		// Total on edges.
-		// TODO: I'm getting an extra edge here. 
-		assertEquals("e??", g.hasEdge(new OWLShuntEdge("GO:0022008", "GO:0007399", "is_a")), true); // this should be FALSE!
+		assertEquals("e??", g.hasEdge(new OWLShuntEdge("GO:0022008", "GO:0007399", "is_a")), false); // this should be FALSE!
 		// assertEquals("edge count okay", 12, g.edges.size()); // needs to be 12, not 13 with this edge above here
 	}
 	
