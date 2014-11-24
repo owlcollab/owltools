@@ -49,6 +49,7 @@ import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * A Renderer that takes a MolecularModel (an OWL ABox) and generates Map objects
@@ -72,6 +73,8 @@ public class MolecularModelJsonRenderer {
 
 	private final OWLOntology ont;
 	private final OWLGraphWrapper graph;
+	
+	private boolean includeObjectPropertyValues = true;
 
 	/**
 	 * JSON-LD keywords for elements of different vocabularies:
@@ -301,13 +304,15 @@ public class MolecularModelJsonRenderer {
 		for (OWLClassExpression x : i.getTypes(ont)) {
 			typeObjs.add(renderObject(x));
 		}
-		Map<OWLObjectPropertyExpression, Set<OWLIndividual>> pvs = i.getObjectPropertyValues(ont);
-		for (OWLObjectPropertyExpression p : pvs.keySet()) {
-			List<Object> valObjs = new ArrayList<Object>();
-			for (OWLIndividual v : pvs.get(p)) {
-				valObjs.add(getAtom((OWLNamedObject) v));
+		if (includeObjectPropertyValues) {
+			Map<OWLObjectPropertyExpression, Set<OWLIndividual>> pvs = i.getObjectPropertyValues(ont);
+			for (OWLObjectPropertyExpression p : pvs.keySet()) {
+				List<Object> valObjs = new ArrayList<Object>();
+				for (OWLIndividual v : pvs.get(p)) {
+					valObjs.add(getAtom((OWLNamedObject) v));
+				}
+				iObj.put(getId((OWLNamedObject) p, graph), valObjs);
 			}
-			iObj.put(getId((OWLNamedObject) p, graph), valObjs);
 		}
 		iObj.put(KEY.type, typeObjs);
 		List<Object> anObjs = new ArrayList<Object>();
@@ -444,6 +449,12 @@ public class MolecularModelJsonRenderer {
 		return xObj;
 	}
 
+	/**
+	 * @param includeObjectPropertyValues the includeObjectPropertyValues to set
+	 */
+	public void setIncludeObjectPropertyValues(boolean includeObjectPropertyValues) {
+		this.includeObjectPropertyValues = includeObjectPropertyValues;
+	}
 
 	/**
 	 * @param i
@@ -600,9 +611,27 @@ public class MolecularModelJsonRenderer {
 	private static final Gson gson = new Gson();
 	
 	public static String renderToJson(OWLOntology ont) {
+		return renderToJson(ont, false);
+	}
+	
+	public static String renderToJson(OWLOntology ont, boolean allIndividuals) {
+		return renderToJson(ont, allIndividuals, false);
+	}
+	
+	public static String renderToJson(OWLOntology ont, boolean allIndividuals, boolean prettyPrint) {
 		MolecularModelJsonRenderer r = new MolecularModelJsonRenderer(ont);
+		if (allIndividuals) {
+			r.includeObjectPropertyValues = false;
+		}
 		Map<Object, Object> obj = r.renderModel();
-		return gson.toJson(obj);
+		if (prettyPrint) {
+			GsonBuilder builder = new GsonBuilder();
+			Gson gson = builder.setPrettyPrinting().create();
+			return gson.toJson(obj);
+		}
+		else {
+			return gson.toJson(obj);
+		}
 	}
 
 }

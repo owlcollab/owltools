@@ -71,7 +71,7 @@ import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
 import owltools.gaf.lego.GafToLegoTranslator;
 import owltools.gaf.lego.LegoModelGenerator;
-import owltools.gaf.lego.LegoToGeneAnnotationTranslator;
+import owltools.gaf.lego.legacy.LegoToGeneAnnotationTranslator;
 import owltools.gaf.metadata.AnnotationDocumentMetadata;
 import owltools.gaf.owl.AnnotationExtensionFolder;
 import owltools.gaf.owl.AnnotationExtensionUnfolder;

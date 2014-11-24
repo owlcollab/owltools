@@ -1,32 +1,22 @@
-package owltools.gaf.lego;
+package owltools.gaf.lego.legacy;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.obolibrary.obo2owl.Owl2Obo;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -42,29 +32,29 @@ import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
-public class LegoToGeneAnnotationTranslator {
+abstract class AbstractLegoTranslator {
 
-	private final OWLObjectProperty partOf;
-	private final OWLObjectProperty occursIn;
-	private final OWLObjectProperty enabledBy;
+	protected final OWLObjectProperty partOf;
+	protected final OWLObjectProperty occursIn;
+	protected final OWLObjectProperty enabledBy;
 	
-	private final OWLAnnotationProperty source;
-	private final OWLAnnotationProperty contributor;
-	private final OWLAnnotationProperty date;
-	private final OWLAnnotationProperty evidence;
+	protected final OWLAnnotationProperty source;
+	protected final OWLAnnotationProperty contributor;
+	protected final OWLAnnotationProperty date;
+	protected final OWLAnnotationProperty evidence;
 	
-	private final OWLClass mf;
-	private final Set<OWLClass> mfSet;
+	protected final OWLClass mf;
+	protected final Set<OWLClass> mfSet;
 	
-	private final OWLClass cc;
-	private final Set<OWLClass> ccSet;
+	protected final OWLClass cc;
+	protected final Set<OWLClass> ccSet;
 	
-	private final OWLClass bp;
-	private final Set<OWLClass> bpSet;
+	protected final OWLClass bp;
+	protected final Set<OWLClass> bpSet;
 
-	private final SimpleEcoMapper mapper;
+	protected final SimpleEcoMapper mapper;
 	
-	public LegoToGeneAnnotationTranslator(OWLGraphWrapper graph, OWLReasoner reasoner, SimpleEcoMapper mapper) {
+	protected AbstractLegoTranslator(OWLGraphWrapper graph, OWLReasoner reasoner, SimpleEcoMapper mapper) {
 		this.mapper = mapper;
 		OWLDataFactory df = graph.getDataFactory();
 		partOf = OBOUpperVocabulary.BFO_part_of.getObjectProperty(df);
@@ -86,7 +76,7 @@ public class LegoToGeneAnnotationTranslator {
 		ccSet = getAllSubClasses(cc, graph, reasoner, false);
 	}
 	
-	private Set<OWLClass> getAllSubClasses(OWLClass cls, OWLGraphWrapper g, OWLReasoner r, boolean reflexive) {
+	protected static Set<OWLClass> getAllSubClasses(OWLClass cls, OWLGraphWrapper g, OWLReasoner r, boolean reflexive) {
 		Set<OWLClass> allSubClasses = r.getSubClasses(cls, false).getFlattened();
 		Iterator<OWLClass> it = allSubClasses.iterator();
 		while (it.hasNext()) {
@@ -102,13 +92,13 @@ public class LegoToGeneAnnotationTranslator {
 	}
 
 	
-	private static class Entry<T> {
+	protected static class Entry<T> {
 		T value;
 		Metadata metadata;
 		// TODO multi-species interactions
 	}
 	
-	private static class Metadata {
+	protected static class Metadata {
 		OWLClass evidence = null;
 		String assignedBy = null;
 		String date = null;
@@ -144,7 +134,7 @@ public class LegoToGeneAnnotationTranslator {
 		}
 	}
 
-	private class Summary {
+	protected class Summary {
 		
 		Set<Entry<OWLClass>> activities = null;
 		Set<Entry<OWLObjectSomeValuesFrom>> activityExpressions = null;
@@ -159,6 +149,18 @@ public class LegoToGeneAnnotationTranslator {
 				activities = addAnnotation(cls, metadata , activities);
 			}
 			else if (isBp(cls)) {
+				processes = addAnnotation(cls, metadata, processes);
+			}
+		}
+		
+		void addMf(OWLClass cls, Metadata metadata) {
+			if (isMf(cls)) {
+				activities = addAnnotation(cls, metadata , activities);
+			}
+		}
+		
+		void addBp(OWLClass cls, Metadata metadata) {
+			if (isBp(cls)) {
 				processes = addAnnotation(cls, metadata, processes);
 			}
 		}
@@ -221,185 +223,20 @@ public class LegoToGeneAnnotationTranslator {
 		}
 	}
 	
-	private boolean isMf(OWLClass cls) {
+	protected boolean isMf(OWLClass cls) {
 		return mfSet.contains(cls);
 	}
 	
-	private boolean isBp(OWLClass cls) {
+	protected boolean isBp(OWLClass cls) {
 		return bpSet.contains(cls);
 	}
 	
-	private boolean isCc(OWLClass cls) {
+	protected boolean isCc(OWLClass cls) {
 		return ccSet.contains(cls);
 	}
 	
-	public void translate(OWLOntology modelAbox, GafDocument annotations, BioentityDocument entities, List<String> additionalRefs) {
-		final OWLGraphWrapper modelGraph = new OWLGraphWrapper(modelAbox);
-		final OWLDataFactory f = modelGraph.getDataFactory();
-		Set<OWLNamedIndividual> individuals = modelAbox.getIndividualsInSignature();
-		
-		// create initial summaries
-		Map<OWLNamedIndividual, Summary> summaries = new HashMap<OWLNamedIndividual, Summary>();
-		for (OWLNamedIndividual individual : individuals) {
-			Summary summary = new Summary();
-			summaries.put(individual, summary);
-
-			Metadata metadata = extractMetadata(individual, modelGraph, additionalRefs);
-			
-			Set<OWLClassAssertionAxiom> assertionAxioms = modelAbox.getClassAssertionAxioms(individual);
-			for (OWLClassAssertionAxiom axiom : assertionAxioms) {
-				OWLClassExpression ce = axiom.getClassExpression();
-				if (!ce.isAnonymous()) {
-					if (!ce.isBottomEntity() && !ce.isOWLNothing() && !ce.isOWLThing() && !ce.isTopEntity()) {
-						summary.addMfOrBp(ce.asOWLClass(), metadata);
-					}
-				}
-				else if (ce instanceof OWLObjectSomeValuesFrom) {
-					OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom) ce;
-					OWLObjectPropertyExpression p = svf.getProperty();
-					OWLClassExpression filler = svf.getFiller();
-					if (occursIn.equals(p)) {
-						summary.addCc(filler, metadata);
-					}
-					else if (enabledBy.equals(p)) {
-						if (filler instanceof OWLClass) {
-							summary.entity = (OWLClass) filler;
-							summary.entityType = getEntityType(summary.entity, modelGraph);
-							summary.entityTaxon = getEntityTaxon(summary.entity, modelGraph);
-							// TODO multi-species
-						}
-					}
-					else {
-						if (filler instanceof OWLClass) {
-							OWLClass cls = (OWLClass) filler;
-							summary.addExpression(p, cls, metadata, f);
-						}
-					}
-				}
-			}
-		}
-		
-		
-		// extract process and other infos
-		for(OWLNamedIndividual individual : summaries.keySet()) {
-			Summary summary = summaries.get(individual);
-			if (summary.entity != null) {
-				Set<OWLObjectPropertyAssertionAxiom> axioms = modelAbox.getObjectPropertyAssertionAxioms(individual);
-				for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
-					Metadata metadata = extractMetadata(axiom.getAnnotations(), modelGraph, additionalRefs);
-					OWLIndividual object = axiom.getObject();
-					OWLObjectPropertyExpression property = axiom.getProperty();
-					if (partOf.equals(property)) {
-						Summary objectSummary = summaries.get(object);
-						if (objectSummary != null) {
-							summary.addProcesses(objectSummary.processes, metadata);
-							// only add locations from the process, if there are no ones already present.
-							if (summary.locations == null || summary.locations.isEmpty()) {
-								summary.addLocations(objectSummary.locations);
-							}
-						}
-					}
-					else if (property instanceof OWLObjectProperty) {
-						Summary objectSummary = summaries.get(object);
-						if (objectSummary != null) {
-							// handle as additional information
-							if (objectSummary.activities != null) {
-								summary.addExpression(property, objectSummary.activities, f);
-							}
-							else {
-								summary.addExpression(property, objectSummary.processes, f);
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		// report
-		for(OWLNamedIndividual individual : summaries.keySet()) {
-			Summary summary = summaries.get(individual);
-			if (summary.entity != null) {
-				addAnnotations(modelGraph, summary, annotations, entities);
-			}
-		}
-	}
-
+	public abstract void translate(OWLOntology modelAbox, GafDocument annotations, BioentityDocument entities, List<String> additionalRefs);
 	
-	private Metadata extractMetadata(OWLNamedIndividual individual, OWLGraphWrapper modelGraph, List<String> additionalRefs) {
-		Metadata metadata = new Metadata();
-		Set<OWLAnnotationAssertionAxiom> assertionAxioms = modelGraph.getSourceOntology().getAnnotationAssertionAxioms(individual.getIRI());
-		for (OWLAnnotationAssertionAxiom axiom : assertionAxioms) {
-			OWLAnnotationProperty currentProperty = axiom.getProperty();
-			OWLAnnotationValue value = axiom.getValue();
-			extractMetadata(currentProperty, value, metadata, modelGraph, additionalRefs);
-		}
-		if (metadata.sources == null && additionalRefs != null) {
-			metadata.sources = new HashSet<String>(additionalRefs);
-		}
-		return metadata;
-	}
-	
-	private void extractMetadata(OWLAnnotationProperty p, OWLAnnotationValue v, Metadata metadata,
-			OWLGraphWrapper modelGraph, List<String> additionalRefs)
-	{
-		if (this.evidence.equals(p)) {
-			if (v instanceof IRI) {
-				IRI iri = (IRI) v;
-				metadata.evidence = modelGraph.getOWLClass(iri);
-			}
-			else if (v instanceof OWLLiteral) {
-				String literal = ((OWLLiteral) v).getLiteral();
-				if (StringUtils.startsWith(literal, OBOUpperVocabulary.OBO)) {
-					IRI iri = IRI.create(literal);
-					metadata.evidence = modelGraph.getOWLClass(iri);
-				}
-				else {
-					metadata.evidence = modelGraph.getOWLClassByIdentifier(literal);
-				}
-			}
-		}
-		else if (this.contributor.equals(p)) {
-			if (v instanceof OWLLiteral) {
-				metadata.assignedBy = ((OWLLiteral) v).getLiteral();
-			}
-		}
-		else if (this.date.equals(p)) {
-			if (v instanceof OWLLiteral) {
-				metadata.date = ((OWLLiteral) v).getLiteral();
-			}
-		}
-		else if (this.source.equals(p)) {
-			if (v instanceof OWLLiteral) {
-				String sourceValue = ((OWLLiteral) v).getLiteral();
-				if (metadata.sources == null) {
-					metadata.sources = new HashSet<String>();
-				}
-				metadata.sources.add(sourceValue);
-			}
-		}
-		if (additionalRefs != null) {
-			if (metadata.sources == null) {
-				metadata.sources = new HashSet<String>();
-			}
-			metadata.sources.addAll(additionalRefs);
-		}
-	}
-	
-	private Metadata extractMetadata(Collection<OWLAnnotation> annotations, OWLGraphWrapper modelGraph, List<String> additionalRefs) {
-		Metadata metadata = new Metadata();
-		if (annotations != null && !annotations.isEmpty()) {
-			for (OWLAnnotation owlAnnotation : annotations) {
-				OWLAnnotationProperty currentProperty = owlAnnotation.getProperty();
-				OWLAnnotationValue value = owlAnnotation.getValue();
-				extractMetadata(currentProperty, value, metadata, modelGraph, additionalRefs);
-			}
-		}
-		if (metadata.sources == null && additionalRefs != null) {
-			metadata.sources = new HashSet<String>(additionalRefs);
-		}
-		return metadata;
-	}
-
 	/**
 	 * Get the type of an enabled by entity, e.g. gene, protein
 	 * 
@@ -407,7 +244,7 @@ public class LegoToGeneAnnotationTranslator {
 	 * @param entity 
 	 * @return type
 	 */
-	String getEntityType(OWLClass entity, OWLGraphWrapper modelGraph) {
+	protected String getEntityType(OWLClass entity, OWLGraphWrapper modelGraph) {
 		String id = modelGraph.getIdentifier(entity);
 		if (id.startsWith("UniProtKB")) {
 			return "protein"; // TODO
@@ -415,7 +252,7 @@ public class LegoToGeneAnnotationTranslator {
 		return "gene";
 	}
 	
-	String getEntityTaxon(OWLClass entity, OWLGraphWrapper modelGraph) {
+	protected String getEntityTaxon(OWLClass entity, OWLNamedIndividual individual, OWLGraphWrapper modelGraph) {
 		return null; // TODO
 	}
 	
@@ -426,7 +263,7 @@ public class LegoToGeneAnnotationTranslator {
 		return Pair.of(annotations, entities);
 	}
 
-	private GeneAnnotation createAnnotation(Entry<OWLClass> e, Bioentity entity, String Aspect, OWLGraphWrapper g, Collection<OWLObjectSomeValuesFrom> c16) {
+	protected GeneAnnotation createAnnotation(Entry<OWLClass> e, Bioentity entity, String Aspect, OWLGraphWrapper g, Collection<OWLObjectSomeValuesFrom> c16) {
 		GeneAnnotation annotation = new GeneAnnotation();
 		annotation.setBioentityObject(entity);
 		annotation.setBioentity(entity.getId());
@@ -475,7 +312,7 @@ public class LegoToGeneAnnotationTranslator {
 		return annotation;
 	}
 	
-	private String getRelId(OWLObjectPropertyExpression p, OWLGraphWrapper graph) {
+	protected String getRelId(OWLObjectPropertyExpression p, OWLGraphWrapper graph) {
 		String relId = null;
 		for(OWLOntology ont : graph.getAllOntologies()) {
 			relId = Owl2Obo.getIdentifierFromObject(p, ont, null);
@@ -486,23 +323,42 @@ public class LegoToGeneAnnotationTranslator {
 		return relId;
 	}
 	
-	private Bioentity createBioentity(OWLClass entityCls, String entityType, String taxon, OWLGraphWrapper g) {
+	protected Bioentity createBioentity(OWLClass entityCls, String entityType, String taxon, OWLGraphWrapper g) {
 		Bioentity bioentity = new Bioentity();
-		String id = g.getIdentifier(entityCls);
+		BioentityStrings strings = getBioentityStrings(entityCls, entityType, taxon, g);
+		String id = strings.id;
 		bioentity.setId(id);
-		String geneLbl = g.getLabel(entityCls);
-		String[] split = StringUtils.split(id, ":", 2);
-		if (split.length == 2) {
-			bioentity.setDb(split[0]);
+		if (strings.db != null) {
+			bioentity.setDb(strings.db);
 		}
-		bioentity.setSymbol(geneLbl);
-		bioentity.setTypeCls(entityType);
+		bioentity.setSymbol(strings.symbol);
+		bioentity.setTypeCls(strings.type);
 		bioentity.setNcbiTaxonId(taxon);
 		// TODO more bioentity content
 		return bioentity;
 	}
 	
-	private void addAnnotations(OWLGraphWrapper modelGraph,
+	protected static class BioentityStrings {
+		String id;
+		String db;
+		String symbol;
+		String type;
+	}
+	
+	protected BioentityStrings getBioentityStrings(OWLClass entityCls, String entityType, String taxon, OWLGraphWrapper g) {
+		BioentityStrings strings = new BioentityStrings();
+		strings.id = g.getIdentifier(entityCls);
+		strings.db = null;
+		String[] split = StringUtils.split(strings.id, ":", 2);
+		if (split.length == 2) {
+			strings.db = split[0];
+		}
+		strings.symbol = g.getLabel(entityCls);
+		strings.type = entityType;
+		return strings;
+	}
+
+	protected void addAnnotations(OWLGraphWrapper modelGraph,
 			Summary summary, 
 			GafDocument annotations, BioentityDocument entities) 
 	{

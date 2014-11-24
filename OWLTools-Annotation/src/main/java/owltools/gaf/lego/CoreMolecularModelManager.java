@@ -60,6 +60,7 @@ import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.SimpleEcoMapper;
 import owltools.gaf.io.GafWriter;
 import owltools.gaf.io.GpadWriter;
+import owltools.gaf.lego.legacy.LegoToGeneAnnotationTranslator;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
