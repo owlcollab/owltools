@@ -16,7 +16,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
@@ -28,7 +27,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -64,6 +62,7 @@ import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
+import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
@@ -81,9 +80,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
-import org.semanticweb.owlapi.model.OWLAnnotationSubjectVisitor;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -128,7 +125,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
-import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
+import org.semanticweb.owlapi.util.OWLEntityVisitorAdapter;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -4515,19 +4512,29 @@ public class CommandRunner {
 		}
 	}
 	
-	@CLIMethod("--remove-tagged-entities")
-	public void removeTaggedEntities(Opts opts) throws Exception {
-		opts.info("IRI","Removes all classes, individuals and object properties that are marked with the given IRI");
-		String iriString = opts.nextOpt();
-		if (iriString == null || iriString.isEmpty()) {
-			System.err.println("An IRI is required for this function.");
+	@CLIMethod("--remove-subset-entities")
+	public void removeSubsetEntities(Opts opts) throws Exception {
+		opts.info("[SUBSET]+","Removes all classes, individuals and object properties that are in the specific subset(s)");
+		List<String> subSets = opts.nextList();
+		if (subSets == null || subSets.isEmpty()) {
+			System.err.println("At least one subset is required for this function.");
 			exit(-1);
 		}
-		IRI iri = IRI.create(iriString);
-		OWLAnnotationProperty removeTag = g.getOWLAnnotationProperty(iri);
+		// create annotation values to match
+		Set<OWLAnnotationValue> values = new HashSet<OWLAnnotationValue>();
+		OWLDataFactory f = g.getDataFactory();
+		for(String subSet : subSets) {
+			// subset as plain string
+			values.add(f.getOWLLiteral(subSet));
+			// subset as IRI
+			values.add(IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"#"+subSet));
+		}
 		
-		// collect all tagged objects 
-		final Set<OWLObject> entities = Mooncat.findTaggedEntities(Collections.singleton(removeTag), g);
+		// get annotation property for subset
+		OWLAnnotationProperty p = g.getAnnotationProperty(OboFormatTag.TAG_SUBSET.getTag());
+		
+		// collect all objects in the given subset
+		final Set<OWLObject> entities = Mooncat.findTaggedEntities(p, values, g);
 		LOG.info("Found "+entities.size()+" tagged objects.");
 		
 		if (entities.isEmpty() == false) {
@@ -4542,6 +4549,91 @@ public class CommandRunner {
 		}
 	}
 	
+	/**
+	 * Simple helper to create a subset tag for matching entities, allows to specify exceptions
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--create-subset-tags")
+	public void createSubsetTags(Opts opts) throws Exception {
+		opts.info("[-s|--source SOURCE] -n|--subset SUBSET_NAME -p PREFIX [-e|--exception EXCEPTION]", "Create subset tags for all classes and properties, which match the id prefix (OBO style). Specifiy exceptions to skip entities.");
+		String source = null;
+		String subset = null;
+		String prefix = null;
+		final Set<String> matchExceptions = new HashSet<String>();
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-s|--source")) {
+				source = opts.nextOpt();
+			}
+			else if (opts.nextEq("-n|--subset")) {
+				subset = opts.nextOpt();
+			}
+			else if (opts.nextEq("-p|--prefix")) {
+				prefix = opts.nextOpt();
+			}
+			else if (opts.nextEq("-e|--exception")) {
+				matchExceptions.add(opts.nextOpt());
+			}
+			else {
+				break;
+			}
+		}
+		if (subset == null) {
+			throw new RuntimeException("A subset is required.");
+		}
+		if (prefix == null) {
+			throw new RuntimeException("A prefix is required.");
+		}
+	
+		final Set<OWLEntity> signature;
+		if (source != null) {
+			ParserWrapper newPw = new ParserWrapper();
+			newPw.addIRIMappers(pw.getIRIMappers());
+			final OWLOntology sourceOntology = newPw.parse(source);
+			signature = sourceOntology.getSignature(true);
+		}
+		else {
+			signature = new HashSet<OWLEntity>();
+			for (OWLOntology o : g.getAllOntologies()) {
+				signature.addAll(o.getSignature());
+			}
+		}
+		final Set<IRI> upperLevelIRIs = new HashSet<IRI>();
+		final String matchPrefix = prefix;
+		for (OWLEntity owlEntity : signature) {
+			owlEntity.accept(new OWLEntityVisitorAdapter(){
+	
+				@Override
+				public void visit(OWLClass cls) {
+					String id = Owl2Obo.getIdentifier(cls.getIRI());
+					if (id.startsWith(matchPrefix) && !matchExceptions.contains(id)) {
+						upperLevelIRIs.add(cls.getIRI());
+					}
+				}
+	
+				@Override
+				public void visit(OWLObjectProperty property) {
+					String id = Owl2Obo.getIdentifier(property.getIRI());
+					if (id.startsWith(matchPrefix) && !matchExceptions.contains(id)) {
+						upperLevelIRIs.add(property.getIRI());
+					}
+				}
+			});
+		}
+		
+		final OWLOntologyManager m = g.getManager();
+		final OWLDataFactory f = g.getDataFactory();
+		final OWLAnnotationProperty p = g.getAnnotationProperty(OboFormatTag.TAG_SUBSET.getTag());
+		final OWLAnnotation annotation = f.getOWLAnnotation(p, IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"#"+subset));
+		for (IRI iri : upperLevelIRIs) {
+			OWLAnnotationAssertionAxiom ax = f.getOWLAnnotationAssertionAxiom(iri, annotation);
+			m.addAxiom(g.getSourceOntology(), ax);
+		}
+		
+	}
+
+
 	@CLIMethod("--verify-changes")
 	public void verifyChanges(Opts opts) throws Exception {
 		String previousInput = null;
@@ -5096,7 +5188,7 @@ public class CommandRunner {
 			}
 		}
 	}
-
+	
 	/**
 	 * Retain only subclass of axioms and intersection of axioms if they contain
 	 * a class in it's signature of a given set of parent terms.

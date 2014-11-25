@@ -999,8 +999,8 @@ public class Mooncat {
 		}
 	}
 	
-	public static Set<OWLObject> findTaggedEntities(Set<OWLAnnotationProperty> tags, final OWLGraphWrapper graph) {
-		if (tags.isEmpty()) {
+	public static Set<OWLObject> findTaggedEntities(OWLAnnotationProperty p, Set<OWLAnnotationValue> values, final OWLGraphWrapper graph) {
+		if (p == null || values == null || values.isEmpty()) {
 			return Collections.emptySet();
 		}
 		final Set<OWLObject> entities = new HashSet<OWLObject>();
@@ -1008,7 +1008,7 @@ public class Mooncat {
 		for (OWLOntology ontology : allOntologies) {
 			Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAxioms(AxiomType.ANNOTATION_ASSERTION);
 			for (OWLAnnotationAssertionAxiom axiom : axioms) {
-				if (tags.contains(axiom.getProperty())) {
+				if (p.equals(axiom.getProperty()) && values.contains(axiom.getValue())) {
 					axiom.getSubject().accept(new OWLAnnotationSubjectVisitor(){
 
 						@Override
