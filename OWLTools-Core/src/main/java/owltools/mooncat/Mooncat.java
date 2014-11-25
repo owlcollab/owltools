@@ -1,5 +1,7 @@
 package owltools.mooncat;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -9,7 +11,6 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -17,7 +18,9 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
+import org.semanticweb.owlapi.model.OWLAnnotationSubjectVisitor;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -40,9 +43,13 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
+
+import com.google.common.collect.Sets;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -991,6 +998,81 @@ public class Mooncat {
 			ont.getOWLOntologyManager().removeAxioms(ont, rmAxioms);
 		}
 	}
+	
+	public static Set<OWLObject> findTaggedEntities(Set<OWLAnnotationProperty> tags, final OWLGraphWrapper graph) {
+		if (tags.isEmpty()) {
+			return Collections.emptySet();
+		}
+		final Set<OWLObject> entities = new HashSet<OWLObject>();
+		Set<OWLOntology> allOntologies = graph.getAllOntologies();
+		for (OWLOntology ontology : allOntologies) {
+			Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAxioms(AxiomType.ANNOTATION_ASSERTION);
+			for (OWLAnnotationAssertionAxiom axiom : axioms) {
+				if (tags.contains(axiom.getProperty())) {
+					axiom.getSubject().accept(new OWLAnnotationSubjectVisitor(){
+
+						@Override
+						public void visit(IRI iri) {
+							OWLObject owlObject = graph.getOWLObject(iri);
+							if (owlObject != null) {
+								entities.add(owlObject);
+							}
+						}
+
+						@Override
+						public void visit(OWLAnonymousIndividual individual) {
+							// do nothing
+						}
+					});
+				}
+			}
+		}
+		return entities;
+	}
+	
+	public static List<RemoveAxiom> findRelatedAxioms(final Set<OWLObject> entities, final OWLGraphWrapper graph) {
+		if (entities.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<RemoveAxiom> changes = new ArrayList<RemoveAxiom>();
+
+		for(final OWLOntology ont : graph.getAllOntologies()) {
+			final Set<OWLAxiom> toRemove = new HashSet<OWLAxiom>();
+			// find all annotations
+			for(final OWLObject obj : entities) {
+				obj.accept(new OWLObjectVisitorAdapter(){
+
+					@Override
+					public void visit(OWLClass cls) {
+						toRemove.addAll(ont.getAnnotationAssertionAxioms(cls.getIRI()));
+					}
+
+					@Override
+					public void visit(OWLObjectProperty property) {
+						toRemove.addAll(ont.getAnnotationAssertionAxioms(property.getIRI()));
+					}
+
+					@Override
+					public void visit(OWLNamedIndividual individual) {
+						toRemove.addAll(ont.getAnnotationAssertionAxioms(individual.getIRI()));
+					}
+				});
+			};
+			// find all axioms that use one of the entities in its signature
+			for(OWLAxiom axiom : ont.getAxioms()) {
+				Set<OWLEntity> signature = axiom.getSignature();
+				if (Sets.intersection(signature, entities).isEmpty() == false){
+					toRemove.add(axiom);
+				};
+			}
+			if (toRemove.isEmpty() == false) {
+				for (OWLAxiom axiom : toRemove) {
+					changes.add(new RemoveAxiom(ont, axiom));
+				}
+			}
+		}
+		return changes;
+	}
 
 	/**
 	 * For every pair X DisjointWith Y, generate an axiom
@@ -1110,7 +1192,7 @@ public class Mooncat {
 	 * propagated over from the graph
 	 * 
 	 * @param subset
-	 * @return
+	 * @return map
 	 */
 	public Map<OWLObject,Set<OWLObject>> createSubsetMap(Set<OWLObject> subset) {
 		Map<OWLObject, Set<OWLObject>> ssm = new HashMap<OWLObject,Set<OWLObject>>();

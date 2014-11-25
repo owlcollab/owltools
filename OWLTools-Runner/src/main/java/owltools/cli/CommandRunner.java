@@ -81,7 +81,9 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
+import org.semanticweb.owlapi.model.OWLAnnotationSubjectVisitor;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -126,6 +128,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
+import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -4508,6 +4511,33 @@ public class CommandRunner {
 			}
 			finally {
 				IOUtils.closeQuietly(writer);
+			}
+		}
+	}
+	
+	@CLIMethod("--remove-tagged-entities")
+	public void removeTaggedEntities(Opts opts) throws Exception {
+		opts.info("IRI","Removes all classes, individuals and object properties that are marked with the given IRI");
+		String iriString = opts.nextOpt();
+		if (iriString == null || iriString.isEmpty()) {
+			System.err.println("An IRI is required for this function.");
+			exit(-1);
+		}
+		IRI iri = IRI.create(iriString);
+		OWLAnnotationProperty removeTag = g.getOWLAnnotationProperty(iri);
+		
+		// collect all tagged objects 
+		final Set<OWLObject> entities = Mooncat.findTaggedEntities(Collections.singleton(removeTag), g);
+		LOG.info("Found "+entities.size()+" tagged objects.");
+		
+		if (entities.isEmpty() == false) {
+			final List<RemoveAxiom> changes = Mooncat.findRelatedAxioms(entities, g);
+			if (changes.isEmpty() == false) {
+				LOG.info("applying changes to ontology, count: "+changes.size());
+				g.getManager().applyChanges(changes);
+			}
+			else {
+				LOG.info("No axioms found for removal.");
 			}
 		}
 	}
