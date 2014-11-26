@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -483,6 +484,7 @@ public class BatchModelHandlerTest {
 	}
 	
 	@Test
+	@Ignore("This test takes way to loong to execute.")
 	public void testCreateModelFromGAF() throws Exception {
 		models.dispose();
 		
