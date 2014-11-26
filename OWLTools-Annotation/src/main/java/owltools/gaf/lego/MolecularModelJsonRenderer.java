@@ -511,7 +511,7 @@ public class MolecularModelJsonRenderer {
 		return IRI.create(fullIRI);
 	}
 	
-	public static List<Map<Object, Object>> renderRelations(MolecularModelManager<?> mmm, Set<String> relevantRelations) throws OWLOntologyCreationException {
+	public static List<Map<Object, Object>> renderRelations(MolecularModelManager<?> mmm, Set<OWLObjectProperty> importantRelations) throws OWLOntologyCreationException {
 		/* [{
 		 *   id: {String}
 		 *   label: {String}
@@ -571,7 +571,7 @@ public class MolecularModelJsonRenderer {
 			Map<Object, Object> entry = new HashMap<Object, Object>();
 			entry.put("id", identifier);
 			entry.put("label", label);
-			if (relevantRelations != null && (relevantRelations.contains(label) || (relevantRelations.contains(identifier)))) {
+			if (importantRelations != null && (importantRelations.contains(p))) {
 				entry.put("relevant", "true");
 			}
 			relList.add(entry);
@@ -584,6 +584,7 @@ public class MolecularModelJsonRenderer {
 	}
 	
 	public static List<Map<Object, Object>> renderEvidences(OWLOntologyManager manager) throws OWLException, IOException {
+		// TODO remove the hard coded ECO dependencies
 		OntologyMapperPair<EcoMapper> pair = EcoMapperFactory.createEcoMapper(manager);
 		final OWLGraphWrapper graph = pair.getGraph();
 		final EcoMapper mapper = pair.getMapper();

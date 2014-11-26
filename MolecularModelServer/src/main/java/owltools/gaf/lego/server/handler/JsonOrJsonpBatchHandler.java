@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -62,16 +63,16 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
 	private final UndoAwareMolecularModelManager m3;
-	private final Set<String> relevantRelations;
+	private final Set<OWLObjectProperty> importantRelations;
 	private final BeforeSaveModelValidator beforeSaveValidator;
 	private final ExternalLookupService externalLookupService;
 
 	public JsonOrJsonpBatchHandler(UndoAwareMolecularModelManager models, 
-			Set<String> relevantRelations,
+			Set<OWLObjectProperty> importantRelations,
 			ExternalLookupService externalLookupService) {
 		super();
 		this.m3 = models;
-		this.relevantRelations = relevantRelations;
+		this.importantRelations = importantRelations;
 		this.externalLookupService = externalLookupService;
 		this.beforeSaveValidator = new BeforeSaveModelValidator();
 	}
@@ -794,7 +795,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	}
 
 	private void getRelations(M3BatchResponse response, String userId) throws OWLOntologyCreationException {
-		List<Map<Object,Object>> relList = MolecularModelJsonRenderer.renderRelations(m3, relevantRelations);
+		List<Map<Object,Object>> relList = MolecularModelJsonRenderer.renderRelations(m3, importantRelations);
 		initMetaResponse(response);
 		response.data.put(Entity.relations.name(), relList);
 	}

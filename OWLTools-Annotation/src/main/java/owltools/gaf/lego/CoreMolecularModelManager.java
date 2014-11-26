@@ -55,7 +55,6 @@ import org.semanticweb.owlapi.model.SetOntologyID;
 
 import owltools.gaf.BioentityDocument;
 import owltools.gaf.GafDocument;
-import owltools.gaf.eco.EcoMapper;
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.SimpleEcoMapper;
 import owltools.gaf.io.GafWriter;
@@ -125,9 +124,6 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	protected void init() throws OWLOntologyCreationException {
 		// set default imports
 		additionalImports = new HashSet<IRI>();
-		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/ro.owl"));
-		additionalImports.add(IRI.create("http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl"));
-		additionalImports.add(EcoMapper.ECO_PURL_IRI);
 	}
 
 

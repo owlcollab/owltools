@@ -22,8 +22,13 @@ GO_SVN=${1%/}
 # use catalog xml and PURLs
 java "-Xmx$MINERVA_MEMORY" -jar m3-server.jar \
 -c "$GO_SVN"/ontology/extensions/catalog-v001.xml \
--g http://purl.obolibrary.org/obo/go.owl \
--i http://purl.obolibrary.org/obo/go/extensions/x-disjoint.owl \
+-g http://purl.obolibrary.org/obo/go/extensions/go-lego.owl \
+--obsolete-import http://purl.obolibrary.org/obo/go.owl \
+--obsolete-import http://purl.obolibrary.org/obo/go/extensions/x-disjoint.owl \
+--obsolete-import http://purl.obolibrary.org/obo/ro.owl \
+--obsolete-import http://purl.obolibrary.org/obo/go/extensions/ro_pending.owl \
+--obsolete-import http://purl.obolibrary.org/obo/eco.owl \
+--set-important-relation-parent http://purl.obolibrary.org/obo/LEGOREL_0000000 \
 -f "$GO_SVN"/experimental/lego/server/owl-models \
 --gaf-folder "$GO_SVN"/gene-associations \
 -p "$GO_SVN"/experimental/lego/server/protein/subset \

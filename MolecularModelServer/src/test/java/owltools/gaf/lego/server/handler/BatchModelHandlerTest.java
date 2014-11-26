@@ -5,8 +5,6 @@ import static owltools.gaf.lego.MolecularModelJsonRenderer.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.gaf.lego.ManchesterSyntaxTool;
@@ -25,6 +24,7 @@ import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
+import owltools.gaf.lego.server.StartUpTool;
 import owltools.gaf.lego.server.external.CombinedExternalLookupService;
 import owltools.gaf.lego.server.external.ExternalLookupService;
 import owltools.gaf.lego.server.external.ExternalLookupService.LookupEntry;
@@ -53,12 +53,15 @@ public class BatchModelHandlerTest {
 	
 	private static JsonOrJsonpBatchHandler handler = null;
 	private static UndoAwareMolecularModelManager models = null;
-
+	private static Set<OWLObjectProperty> importantRelations = null;
+	
 	private static final String uid = "test-user";
 	private static final String intention = "test-intention";
 	private static final String packetId = "foo-packet-id";
 
 	private static ExternalLookupService lookupService;
+
+	
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -66,14 +69,18 @@ public class BatchModelHandlerTest {
 	}
 
 	static void init(ParserWrapper pw) throws OWLOntologyCreationException, IOException {
-		OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go.owl");
+		final OWLGraphWrapper graph = pw.parseToOWLGraph("http://purl.obolibrary.org/obo/go/extensions/go-lego.owl");
+		final OWLObjectProperty legorelParent = StartUpTool.getRelation("http://purl.obolibrary.org/obo/LEGOREL_0000000", graph);
+		assertNotNull(legorelParent);
+		importantRelations = StartUpTool.getAssertedSubProperties(legorelParent, graph);
+		assertFalse(importantRelations.isEmpty());
+		
 		models = new UndoAwareMolecularModelManager(graph);
-		models.addImports(Arrays.asList("http://purl.obolibrary.org/obo/go/extensions/x-disjoint.owl"));
 		models.setPathToGafs("src/test/resources/gaf");
 		ProteinToolService proteinService = new ProteinToolService("src/test/resources/ontology/protein/subset");
 		models.addObsoleteImportIRIs(proteinService.getOntologyIRIs());
 		lookupService = new CombinedExternalLookupService(proteinService, createTestProteins());
-		handler = new JsonOrJsonpBatchHandler(models, Collections.singleton("part_of"), lookupService);
+		handler = new JsonOrJsonpBatchHandler(models, importantRelations, lookupService);
 		JsonOrJsonpBatchHandler.ADD_INFERENCES = true;
 		JsonOrJsonpBatchHandler.USE_CREATION_DATE = true;
 		JsonOrJsonpBatchHandler.USE_USER_ID = true;
@@ -353,11 +360,15 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response.intention);
 		assertEquals(M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
 		final List<Map<String, Object>> relations = (List)((Map) response.data).get("relations");
+		final OWLGraphWrapper tbox = models.getGraph();
+		final OWLObjectProperty part_of = tbox.getOWLObjectPropertyByIdentifier("part_of");
+		assertNotNull(part_of);
+		final String partOfJsonId = MolecularModelJsonRenderer.getId(part_of, tbox);
 		boolean hasPartOf = false;
 		for (Map<String, Object> map : relations) {
 			String id = (String)map.get("id");
 			assertNotNull(id);
-			if ("part_of".equals(id)) {
+			if (partOfJsonId.equals(id)) {
 				assertEquals("true", map.get("relevant"));
 				hasPartOf = true;
 			}

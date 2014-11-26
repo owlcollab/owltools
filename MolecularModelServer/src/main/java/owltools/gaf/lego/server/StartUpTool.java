@@ -14,6 +14,11 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 
 import owltools.cli.Opts;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
@@ -39,25 +44,13 @@ public class StartUpTool {
 		String catalog = null;
 		String modelFolder = null;
 		String gafFolder = null; // optional
-		String proteinOntologyFolder = null; // optional
-		List<String> additionalImports = new ArrayList<String>();
+		String proteinOntologyFolder = null; // optional, should be replaced by external lookup service
 		List<String> obsoleteImports = new ArrayList<String>();
 		ExternalLookupService lookupService = null;
 
-		// right now we are using the relation names to select as subset of relations
-		// later this might be done as an annotation property in OWL
-		Set<String> relevantRelations = new HashSet<String>();
-		// relations marked as important
-		relevantRelations.addAll(Arrays.asList(
-				"part_of",
-				"enabled_by",
-				"directly activates",
-				"directly provides input for", // weaker than 'directly activates'
-				"occurs in",
-				"has input",
-				"has output",
-				"starts with",
-				"ends with"));
+		// The subset of highly relevant relations is configured using super property
+		// all direct children (asserted) are considered important
+		String importantRelationParent = null;
 		
 		// provide a map from db name to taxonId
 		// used to resolve a protain ontology (if available)
@@ -90,19 +83,26 @@ public class StartUpTool {
 				port = Integer.parseInt(opts.nextOpt());
 			}
 			else if (opts.nextEq("-i|--import|--additional-import")) {
-				additionalImports.add(StringUtils.trim(opts.nextOpt()));
+				System.err.println("-i|--import|--additional-import is no longer supported, all imports are expected to be in the source ontology '-g|--graph'");
+				System.exit(-1);
 			}
 			else if (opts.nextEq("--obsolete-import")) {
 				obsoleteImports.add(StringUtils.trim(opts.nextOpt()));
 			}
 			else if (opts.nextEq("--set-relevant-relations")) {
-				relevantRelations.addAll(opts.nextList());
+				System.err.println("--set-relevant-relations is no longer supported, use '--set-important-relation-parent' instead");
+				System.exit(-1);
 			}
 			else if (opts.nextEq("--add-relevant-relations")) {
-				relevantRelations.addAll(opts.nextList());
+				System.err.println("--add-relevant-relations is no longer supported, use '--set-important-relation-parent' instead");
+				System.exit(-1);
 			}
 			else if (opts.nextEq("--add-relevant-relation")) {
-				relevantRelations.add(opts.nextOpt());
+				System.err.println("--add-relevant-relation is no longer supported, use '--set-important-relation-parent' instead");
+				System.exit(-1);
+			}
+			else if (opts.nextEq("--set-important-relation-parent")) {
+				importantRelationParent = opts.nextOpt();
 			}
 			else {
 				break;
@@ -123,13 +123,61 @@ public class StartUpTool {
 
 		
 		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, 
-				port, contextString, additionalImports, obsoleteImports, relevantRelations, 
+				port, contextString, obsoleteImports, importantRelationParent,
 				lookupService);
+	}
+	
+	/**
+	 * Try to resolve the given string into an {@link OWLObjectProperty}.
+	 * 
+	 * @param rel
+	 * @param g
+	 * @return property or null
+	 */
+	public static OWLObjectProperty getRelation(String rel, OWLGraphWrapper g) {
+		if (rel == null || rel.isEmpty()) {
+			return null;
+		}
+		if (rel.startsWith("http://")) {
+			IRI iri = IRI.create(rel);
+			return g.getDataFactory().getOWLObjectProperty(iri);
+		}
+		// try to find property
+		OWLObjectProperty p = g.getOWLObjectPropertyByIdentifier(rel);
+		if (p == null) {
+			// could not find by id, search by label
+			OWLObject owlObject = g.getOWLObjectByLabel(rel);
+			if (owlObject instanceof OWLObjectProperty) {
+				p = (OWLObjectProperty) owlObject;
+			}
+		}
+		return p;
+	}
+	
+	/**
+	 * Find all asserted direct sub properties of the parent property.
+	 * 
+	 * @param parent
+	 * @param g
+	 * @return set
+	 */
+	public static Set<OWLObjectProperty> getAssertedSubProperties(OWLObjectProperty parent, OWLGraphWrapper g) {
+		Set<OWLObjectProperty> properties = new HashSet<OWLObjectProperty>();
+		for(OWLOntology ont : g.getAllOntologies()) {
+			Set<OWLSubObjectPropertyOfAxiom> axioms = ont.getObjectSubPropertyAxiomsForSuperProperty(parent);
+			for (OWLSubObjectPropertyOfAxiom axiom : axioms) {
+				OWLObjectPropertyExpression subProperty = axiom.getSubProperty();
+				if (subProperty instanceof OWLObjectProperty) {
+					properties.add(subProperty.asOWLObjectProperty());
+				}
+			}
+		}
+		return properties;
 	}
 
 	public static void startUp(String ontology, String catalog, String modelFolder, 
 			String gafFolder, String proteinOntologyFolder, int port, String contextString, 
-			List<String> additionalImports, List<String> obsoleteImports, Set<String> relevantRelations, 
+			List<String> obsoleteImports, String importantRelationParent,
 			ExternalLookupService lookupService) 
 			throws Exception {
 		// load ontology
@@ -140,16 +188,38 @@ public class StartUpTool {
 			pw.addIRIMapper(new CatalogXmlIRIMapper(catalog));
 		}
 		OWLGraphWrapper graph = pw.parseToOWLGraph(ontology);
+		
+		// try to get important relations
+		Set<OWLObjectProperty> importantRelations = null;
+		if (importantRelationParent != null) {
+			// try to find parent property
+			OWLObjectProperty parentProperty = getRelation(importantRelationParent, graph);
+			if (parentProperty != null) {
+				// find all asserted direct sub properties of the parent property
+				importantRelations = getAssertedSubProperties(parentProperty, graph);
+				if (importantRelations.isEmpty()) {
+					LOGGER.warn("Could not find any asserted sub properties for parent: "+importantRelationParent);
+				}
+			}
+			else {
+				LOGGER.warn("Could not find a property for rel: "+importantRelationParent);
+			}
+		}
 
 		// create model manager
 		LOGGER.info("Start initializing MMM");
 		UndoAwareMolecularModelManager models = new UndoAwareMolecularModelManager(graph);
+		// set folder to  models
 		models.setPathToOWLFiles(modelFolder);
+		
+		// optional: set folder to GAFs for seeding models
 		if (gafFolder != null) {
 			models.setPathToGafs(gafFolder);
 		}
-		models.addImports(additionalImports);
+		// configure obsolete imports for clean up of existing models
 		models.addObsoleteImports(obsoleteImports);
+		
+		// configure protein name lookup using the deprecated organism specific protein ontologies
 		if (proteinOntologyFolder != null) {
 			ProteinToolService proteinService = new ProteinToolService(proteinOntologyFolder);
 			if (lookupService != null) {
@@ -164,12 +234,13 @@ public class StartUpTool {
 			}
 		}
 		
-		Server server = startUp(models, port, contextString, relevantRelations, lookupService);
+		// start server
+		Server server = startUp(models, port, contextString, importantRelations, lookupService);
 		server.join();
 	}
 	
 	public static Server startUp(UndoAwareMolecularModelManager models, int port, String contextString, 
-			Set<String> relevantRelations, ExternalLookupService lookupService)
+			Set<OWLObjectProperty> relevantRelations, ExternalLookupService lookupService)
 			throws Exception {
 		LOGGER.info("Setup Jetty config.");
 		// Configuration: Use an already existing handler instance
