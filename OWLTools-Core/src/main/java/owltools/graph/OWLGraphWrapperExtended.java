@@ -505,12 +505,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		if (isReset)
 			altIdMap = null;
 		if (altIdMap == null) {
-			altIdMap = new HashMap<String,OWLObject>();
-			for (OWLObject obj : getAllOWLObjects()) {
-				for (String id : getAltIds(obj)) {
-					altIdMap.put(id, obj);
-				}
-			}
+			altIdMap = getAllOWLObjectsByAltId();
 		}
 		return altIdMap;
 	}
