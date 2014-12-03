@@ -81,6 +81,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	private static Logger LOG = Logger.getLogger(CoreMolecularModelManager.class);
 
 	final OWLGraphWrapper graph;
+	private final IRI tboxIRI;
 	final Map<String, ModelContainer> modelMap = new HashMap<String, ModelContainer>();
 	Set<IRI> additionalImports;
 	final Map<IRI, OWLOntology> obsoleteOntologies = new HashMap<IRI, OWLOntology>();
@@ -115,7 +116,27 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	public CoreMolecularModelManager(OWLGraphWrapper graph) throws OWLOntologyCreationException {
 		super();
 		this.graph = graph;
+		tboxIRI = getTboxIRI(graph);
 		init();
+	}
+	
+	/**
+	 * Executed before the init call {@link #init()}.
+	 * 
+	 * @param graph
+	 * @return IRI, never null
+	 * @throws OWLOntologyCreationException
+	 */
+	protected IRI getTboxIRI(OWLGraphWrapper graph) throws OWLOntologyCreationException {
+		OWLOntology tbox = graph.getSourceOntology();
+		OWLOntologyID ontologyID = tbox.getOntologyID();
+		if (ontologyID != null) {
+			IRI ontologyIRI = ontologyID.getOntologyIRI();
+			if (ontologyIRI != null) {
+				return ontologyIRI;
+			}
+		}
+		throw new OWLOntologyCreationException("No ontology id available for tbox. An ontology IRI is required for the import into the abox.");
 	}
 
 	/**
@@ -194,7 +215,10 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	}
 	
 	public Collection<IRI> getImports() {
-		return Collections.unmodifiableCollection(additionalImports);
+		Set<IRI> allImports = new HashSet<IRI>();
+		allImports.add(tboxIRI);
+		allImports.addAll(additionalImports);
+		return allImports;
 	}
 
 	/**
@@ -1121,11 +1145,16 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		updateImports(model);
 	}
 	
-	private void updateImports(final ModelContainer model) {
-		final OWLOntology aboxOntology = model.getAboxOntology();
+	private void updateImports(ModelContainer model) {
+		updateImports(model.getAboxOntology(), tboxIRI, additionalImports, obsoleteOntologies);
+	}
+	
+	static void updateImports(final OWLOntology aboxOntology, IRI tboxIRI, Set<IRI> additionalImports, Map<IRI, OWLOntology> obsoleteOntologies) {
 		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		
-		Set<IRI> missingImports = new HashSet<IRI>(additionalImports);
+		Set<IRI> missingImports = new HashSet<IRI>();
+		missingImports.add(tboxIRI);
+		missingImports.addAll(additionalImports);
 		Set<OWLImportsDeclaration> importsDeclarations = aboxOntology.getImportsDeclarations();
 		for (OWLImportsDeclaration decl : importsDeclarations) {
 			IRI iri = decl.getIRI();
