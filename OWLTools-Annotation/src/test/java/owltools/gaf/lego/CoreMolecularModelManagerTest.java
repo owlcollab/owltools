@@ -2,9 +2,7 @@ package owltools.gaf.lego;
 
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
@@ -31,10 +29,10 @@ public class CoreMolecularModelManagerTest {
 		final IRI obs1 = IRI.generateDocumentIRI();
 		final IRI obs2 = IRI.generateDocumentIRI();
 		final IRI obs3 = IRI.generateDocumentIRI();
-		final Map<IRI, OWLOntology> obsoletes = new HashMap<IRI, OWLOntology>();
-		obsoletes.put(obs1, m.createOntology(obs1));
-		obsoletes.put(obs2, m.createOntology(obs2));
-		obsoletes.put(obs3, m.createOntology(obs3));
+		final Set<IRI> obsoletes = new HashSet<IRI>();
+		obsoletes.add(obs1); m.createOntology(obs1);
+		obsoletes.add(obs2); m.createOntology(obs2);
+		obsoletes.add(obs3); m.createOntology(obs3);
 		
 		// setup additional
 		final IRI add1 = IRI.generateDocumentIRI();

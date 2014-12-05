@@ -85,6 +85,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	final Map<String, ModelContainer> modelMap = new HashMap<String, ModelContainer>();
 	Set<IRI> additionalImports;
 	final Map<IRI, OWLOntology> obsoleteOntologies = new HashMap<IRI, OWLOntology>();
+	final Set<IRI> obsoleteImports = new HashSet<IRI>();
 	private volatile SimpleEcoMapper simpleEcoMapper = null;
 
 	// TODO: Temporarily for keeping instances unique (search for "unique" below).
@@ -203,14 +204,21 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	}
 	
 	private void addObsoleteImport(IRI obsoleteImport) {
-		// add mapper to provide empty ontologies for obsolete imports
+		// complete list
+		obsoleteImports.add(obsoleteImport);
+		
+		// check if we need to create an empty importer
 		final OWLOntologyManager m = graph.getManager();
-		try {
-			OWLOntology empty = m.createOntology(obsoleteImport);
-			obsoleteOntologies.put(obsoleteImport, empty);
-		} catch (OWLOntologyCreationException e) {
-			// ignore for now, just log as warning
-			LOG.warn("Could not create empty dummy ontology for obsolete import: "+obsoleteImport, e);
+		OWLOntology obsoleteOntology = m.getOntology(obsoleteImport);
+		if (obsoleteOntology == null) {
+			try {
+				// add mapper to provide empty ontologies for obsolete imports
+				OWLOntology empty = m.createOntology(obsoleteImport);
+				obsoleteOntologies.put(obsoleteImport, empty);
+			} catch (OWLOntologyCreationException e) {
+				// ignore for now, just log as warning
+				LOG.warn("Could not create empty dummy ontology for obsolete import: "+obsoleteImport, e);
+			}
 		}
 	}
 	
@@ -1146,10 +1154,10 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	}
 	
 	private void updateImports(ModelContainer model) {
-		updateImports(model.getAboxOntology(), tboxIRI, additionalImports, obsoleteOntologies);
+		updateImports(model.getAboxOntology(), tboxIRI, additionalImports, obsoleteImports);
 	}
 	
-	static void updateImports(final OWLOntology aboxOntology, IRI tboxIRI, Set<IRI> additionalImports, Map<IRI, OWLOntology> obsoleteOntologies) {
+	static void updateImports(final OWLOntology aboxOntology, IRI tboxIRI, Set<IRI> additionalImports, Set<IRI> obsoleteImports) {
 		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		
 		Set<IRI> missingImports = new HashSet<IRI>();
@@ -1158,7 +1166,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		Set<OWLImportsDeclaration> importsDeclarations = aboxOntology.getImportsDeclarations();
 		for (OWLImportsDeclaration decl : importsDeclarations) {
 			IRI iri = decl.getIRI();
-			if (obsoleteOntologies.containsKey(iri)) {
+			if (obsoleteImports.contains(iri)) {
 				changes.add(new RemoveImport(aboxOntology, decl));
 			}
 			else {
