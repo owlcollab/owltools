@@ -69,7 +69,6 @@ import org.semanticweb.owlapi.util.Version;
 public class ExpressionMaterializingReasoner extends OWLReasonerBase implements OWLExtendedReasoner {
 
 	private static Logger LOG = Logger.getLogger(ExpressionMaterializingReasoner.class);
-	private static final Version version = new Version(1, 0, 0, 0);
 
 	private OWLReasoner wrappedReasoner;
 
@@ -141,11 +140,11 @@ public class ExpressionMaterializingReasoner extends OWLReasonerBase implements 
 	}
 	
 	public ExpressionMaterializingReasoner(OWLOntology ont, OWLReasonerFactory reasonerFactory) {
-		this(ont, new ElkReasonerFactory(), new SimpleConfiguration(), BufferingMode.BUFFERING);
+		this(ont, reasonerFactory, BufferingMode.BUFFERING);
 	}
 	
 	public ExpressionMaterializingReasoner(OWLOntology ont, OWLReasonerFactory reasonerFactory, BufferingMode bufferingMode) {
-		this(ont, new ElkReasonerFactory(), new SimpleConfiguration(), bufferingMode);
+		this(ont, reasonerFactory, new SimpleConfiguration(), bufferingMode);
 	}
 
 	public OWLReasoner getWrappedReasoner() {
