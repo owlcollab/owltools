@@ -80,7 +80,7 @@ public class GpadGpiObjectsBuilder {
 
 	public Pair<BioentityDocument, GafDocument> loadGpadGpi(File gpad, File gpi) throws IOException {
 		// 1. load GPI
-		BioentityDocument entities = new BioentityDocument(gpi.getName(), gpi.getCanonicalPath());
+		BioentityDocument entities = new BioentityDocument(gpi.getName());
 		Map<String,Bioentity> mappings = loadGPI(getInputStream(gpi), entities);
 		
 		// create annotation document with bioentities
@@ -208,7 +208,7 @@ public class GpadGpiObjectsBuilder {
 				BuilderTools.handleTaxonPrefix(parser.getTaxon()), db);
 
 		BuilderTools.addSynonyms(parser.getDB_Object_Synonym(), entity);
-		entity.setParentObjectId(parser.getParent_Object_ID());
+		entity.setGeneId(parser.getParent_Object_ID());
 		BuilderTools.addXrefs(parser.getDB_Xref(), entity);
 		BuilderTools.addProperties(parser.getGene_Product_Properties(), entity);
 		return entity;
@@ -260,7 +260,7 @@ public class GpadGpiObjectsBuilder {
 		}
 		else {
 			// check for iso form
-			final String parentObjectId = StringUtils.trimToNull(entity.getParentObjectId());
+			final String parentObjectId = StringUtils.trimToNull(entity.getGeneId());
 			if (parentObjectId != null) {
 				ga.setBioentity(parentObjectId);
 				ga.setGeneProductForm(bioentityId);

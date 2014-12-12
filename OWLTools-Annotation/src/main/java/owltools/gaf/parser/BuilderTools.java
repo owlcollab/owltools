@@ -12,13 +12,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.TaxonTools;
 
 public class BuilderTools {
 
 	static String handleTaxonPrefix(String s) {
 		if (s != null && !s.isEmpty()) {
 			int colPos = s.indexOf(':');
-			StringBuilder sb = new StringBuilder("NCBITaxon:");
+			StringBuilder sb = new StringBuilder(TaxonTools.NCBI);
 			if (colPos > 0) {
 				sb.append(s.substring(colPos+1));
 			}

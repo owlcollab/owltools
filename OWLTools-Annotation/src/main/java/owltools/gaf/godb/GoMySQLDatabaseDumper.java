@@ -1,35 +1,24 @@
 package owltools.gaf.godb;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLNamedObject;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLProperty;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.TaxonTools;
 import owltools.gaf.parser.BuilderTools;
-//import owltools.gaf.WithInfo;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.graph.OWLQuantifiedProperty;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.*;
+
+//import owltools.gaf.WithInfo;
 
 /**
  * implements DatabaseDumper for GO MySQL db
@@ -116,7 +105,7 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 		Set<OWLClass> objs = new HashSet<OWLClass>();
 		for ( OWLClass c : graph.getAllOWLClasses() ) {
 			String id = graph.getIdentifier(c);
-			if (id.startsWith("NCBITaxon:")) {
+			if (id.startsWith(TaxonTools.NCBI)) {
 				continue;
 			}
 			objs.add(c);
@@ -194,7 +183,7 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 	}
 	// TODO
 	/**
-	 * @param termStream
+	 * @param s
 	 * @param obj
 	 * @throws ReferentialIntegrityException
 	 * @throws IOException 
@@ -407,7 +396,7 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 
 		for (OWLClass c : graph.getAllOWLClasses()) {
 			String id = graph.getIdentifier(c);
-			if (id.startsWith("NCBITaxon:")) {
+			if (id.startsWith(TaxonTools.NCBI)) {
 				taxIds.add(id);
 			}
 		}
@@ -422,7 +411,7 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 	}
 
 	private OWLObject getSpeciesObject(String taxId) {
-		//String oboClsId = "NCBITaxon:"+taxId;
+		//String oboClsId = TaxonTools.TAXON_DB+taxId;
 		OWLObject obj = graph.getOWLClassByIdentifier(taxId);
 		LOG.info("Species obj = "+obj);
 		return obj;
@@ -466,7 +455,7 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 
 		dumpRow(s,
 				id,
-				taxId.replace("NCBITaxon:", ""),
+				taxId.replace(TaxonTools.NCBI, ""),
 				common_name,
 				lineage_string,
 				genus,

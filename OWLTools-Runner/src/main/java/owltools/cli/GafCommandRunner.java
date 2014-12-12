@@ -2106,7 +2106,7 @@ public class GafCommandRunner extends CommandRunner {
 		SimpleEcoMapper mapper = EcoMapperFactory.createSimple();
 		LegoToGeneAnnotationTranslator translator = new LegoToGeneAnnotationTranslator(g, reasoner, mapper);
 		GafDocument annotations = new GafDocument(null, null);
-		BioentityDocument entities = new BioentityDocument(null, null);
+		BioentityDocument entities = new BioentityDocument(null);
 
 		File inputFile = new File(inputName).getCanonicalFile();
 		OWLOntologyManager m = g.getManager();

@@ -1,15 +1,15 @@
 package owltools.gaf.io;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.gaf.TaxonTools;
 import owltools.gaf.parser.BuilderTools;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * General utility to write a {@link GafDocument} or {@link GeneAnnotation}.
@@ -155,11 +155,11 @@ public abstract class AbstractGafWriter  {
 	private String createTaxonString(GeneAnnotation ann, Bioentity e) {
 		StringBuilder sb = new StringBuilder();
 		if (e != null) {
-			sb.append(StringUtils.replace(e.getNcbiTaxonId(), "NCBITaxon:", "taxon:"));
+			sb.append(StringUtils.replace(e.getNcbiTaxonId(), TaxonTools.NCBI, TaxonTools.TAXON_PREFIX));
 			Pair<String, String> actsOnTaxonId = ann.getActsOnTaxonId();
 			if (actsOnTaxonId != null && actsOnTaxonId.getLeft() != null) {
 				String taxId = BuilderTools.removePrefix(actsOnTaxonId.getLeft(), ':');
-				sb.append('|').append("taxon:").append(taxId);
+				sb.append('|').append(TaxonTools.TAXON_PREFIX).append(taxId);
 			}
 		}
 		return sb.toString();

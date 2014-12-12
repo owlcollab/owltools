@@ -6,18 +6,16 @@ import java.util.List;
 public class BioentityDocument {
 
 	private final String id;
-	private final String documentPath;
 
-	private List<Bioentity> bioentities;
+	protected List<Bioentity> bioentities;
 	private final List<String> comments = new ArrayList<String>();
 	
-	public BioentityDocument(String id, String documentPath) {
-		this(id, documentPath, new ArrayList<Bioentity>());
+	public BioentityDocument(String id) {
+		this(id, new ArrayList<Bioentity>());
 	}
 	
-	public BioentityDocument(String id, String documentPath, List<Bioentity> bioentities) {
+	public BioentityDocument(String id, List<Bioentity> bioentities) {
 		this.id = id;
-		this.documentPath = documentPath;
 		this.bioentities = bioentities;
 	}
 	
@@ -28,15 +26,6 @@ public class BioentityDocument {
 		return id;
 	}
 
-	/**
-	 * Retrieve the source path for this document
-	 * 
-	 * @return path or null.
-	 */
-	public String getDocumentPath() {
-		return documentPath;
-	}
-	
 	/**
 	 * Add a {@link Bioentity} object to the document.
 	 * 

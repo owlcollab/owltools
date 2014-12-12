@@ -141,7 +141,7 @@ public class GpiWriter {
 		sep();
 		
 		// c8 Parent_Object_ID
-		print(bioentity.getParentObjectId());
+		print(bioentity.getGeneId());
 		sep();
 		
 		// c9 DB_Xrefs

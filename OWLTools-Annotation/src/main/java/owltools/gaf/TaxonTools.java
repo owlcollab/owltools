@@ -1,13 +1,13 @@
 package owltools.gaf;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Methods to simplify the work with the taxons. 
@@ -18,6 +18,9 @@ public class TaxonTools {
 	
 	private final OWLReasoner reasoner;
 	private final boolean disposeReasonerP;
+	
+	public final static String NCBI = "NCBITaxon:";
+	public static final String TAXON_PREFIX = "taxon:";
 	
 	/**
 	 * Create an instance for the given reasoner.
@@ -31,7 +34,7 @@ public class TaxonTools {
 	 */
 	public TaxonTools (OWLReasoner reasoner, boolean disposeReasoner) throws UnknownOWLOntologyException, OWLOntologyCreationException {
 
-		// This has bitten me, so let's try and bew specific...
+		// This has bitten me, so let's try and be specific...
 		if( reasoner == null ){ throw new Error("No reasoner was specified for use with the TaxonTools. Add a reasoner for the command line"); }
 		
 		this.reasoner = reasoner;

@@ -15,6 +15,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 
 import owltools.OWLToolsTestBasics;
+import owltools.gaf.TaxonTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
@@ -35,8 +36,8 @@ public class ClassTaxonMatrixTest extends OWLToolsTestBasics {
 		all = new OWLGraphWrapper(pw.parseOWL(IRI.create("http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl")));
 		OWLOntology go = all.getManager().loadOntology(IRI.create("http://purl.obolibrary.org/obo/go.owl"));
 		classes = go.getClassesInSignature();
-		rat = all.getOWLClassByIdentifier("NCBITaxon:10114");
-		yeast = all.getOWLClassByIdentifier("NCBITaxon:4932");
+		rat = all.getOWLClassByIdentifier(TaxonTools.NCBI + "10114");
+		yeast = all.getOWLClassByIdentifier(TaxonTools.NCBI + "4932");
 	}
 	
 	@Test

@@ -78,7 +78,7 @@ public class TaxonToolsTest extends OWLToolsTestBasics{
 		TaxonTools taxo = new TaxonTools(g.getReasoner(), true);
 		
 		// Taxon closure.
-		OWLClass taxonClass = g.getOWLClassByIdentifier("NCBITaxon:33511");
+		OWLClass taxonClass = g.getOWLClassByIdentifier(TaxonTools.NCBI + "33511");
 		
 		// Hopefully we're just getting one here.
 		assertTrue("Got the taxon class", taxonClass != null);
@@ -86,7 +86,7 @@ public class TaxonToolsTest extends OWLToolsTestBasics{
 		//IRI taxIRI = taxonClass.getIRI();
 		//assertEquals("http://purl.obolibrary.org/obo/???_???", taxIRI.toString());
 		String taxId = g.getIdentifier(taxonClass);
-		assertEquals("NCBITaxon:33511", taxId);
+		assertEquals(TaxonTools.NCBI + "33511", taxId);
 
 		String taxLabel = g.getLabel(taxonClass);
 		assertEquals("Deuterostomia", taxLabel);

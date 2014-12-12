@@ -1,5 +1,9 @@
 package owltools.gaf.parser;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import owltools.gaf.*;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -8,15 +12,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-
-import owltools.gaf.AnnotationSource;
-import owltools.gaf.Bioentity;
-import owltools.gaf.ExtensionExpression;
-import owltools.gaf.GafDocument;
-import owltools.gaf.GeneAnnotation;
 
 
 /**
@@ -106,8 +101,6 @@ public class GafObjectsBuilder {
 		
 		this.docId = docId;
 		this.documentPath = path;
-
-		LOG.info("Building document: [" + fileName + "] @ [" + path + "]");
 		
 		parser.parse(fileName);
 		
@@ -213,7 +206,6 @@ public class GafObjectsBuilder {
 		
 		String db = parser.getDb();
 		
-		// "NCBITaxon:"
 		Bioentity entity = new Bioentity(id, symbol, fullName, typeCls, ncbiTaxonId, db);
 		
 		// Handle parsing out the synonyms separately.
@@ -243,8 +235,10 @@ public class GafObjectsBuilder {
 		// handle composite qualifiers
 		final String qualifierString = parser.getQualifier();
 		ga.setIsContributesTo(qualifierString.contains("contributes_to"));
+		ga.setIsColocatesWith(qualifierString.contains("colocalizes_with"));
 		ga.setIsIntegralTo(qualifierString.contains("integral_to"));
 		ga.setIsNegated(qualifierString.contains("NOT"));
+		ga.setIsCut(qualifierString.contains("CUT"));
 		
 		// handle relation and aspect
 		String relation = null;
@@ -282,7 +276,7 @@ public class GafObjectsBuilder {
 		List<List<ExtensionExpression>> extensionExpressionList = BuilderTools.parseExtensionExpression(extensionExpression);
 		ga.setExtensionExpressions(extensionExpressionList);
 		
-		// set source
+		// set source, which oddly is the file name or URL
 		AnnotationSource source = new AnnotationSource(parser.getCurrentRow(), parser.getLineNumber(), documentId);
 		ga.setSource(source);
 		

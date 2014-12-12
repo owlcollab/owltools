@@ -1,23 +1,17 @@
 package org.bbop.golr.java;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.io.IOUtils;
-
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
 
 public class RetrieveGolrAnnotations {
 	
@@ -28,7 +22,7 @@ public class RetrieveGolrAnnotations {
 	
 	private final String server;
 
-	RetrieveGolrAnnotations(String server) {
+	public RetrieveGolrAnnotations(String server) {
 		this.server = server;
 	}
 	
@@ -41,10 +35,12 @@ public class RetrieveGolrAnnotations {
 			if (entity == null) {
 				entity = new Bioentity();
 				entity.setId(bioentityId);
-				entity.setFullName(golrDocument.bioentity_label);
+				entity.setSymbol(golrDocument.bioentity_label);
+				entity.setFullName(golrDocument.bioentity_name);
 				entity.setNcbiTaxonId(golrDocument.taxon);
 				entity.setTypeCls(golrDocument.type);
 				entity.setDb(golrDocument.source); // TODO check is that the correct mapping
+				entity.setSynonyms(golrDocument.synonym);
 				entities.put(bioentityId, entity);
 				document.addBioentity(entity);
 			}
@@ -69,7 +65,34 @@ public class RetrieveGolrAnnotations {
 	}
 
 	public List<GolrAnnotationDocument> getGolrAnnotationsForGene(String id) throws IOException {
-		final String url = createGolrString(id, "bioentity", "annotation", 0, PAGINATION_CHUNK_SIZE);
+		List<String[]> tagvalues = new ArrayList<String[]>();
+		String [] tagvalue = new String[2];
+		tagvalue[0] = "bioentity";
+		tagvalue[1] = id;
+		tagvalues.add(tagvalue);
+		final List<GolrAnnotationDocument> documents = getGolrAnnotations(tagvalues);
+		return documents;
+	}
+	
+	public List<GolrAnnotationDocument> getGolrAnnotationsForSynonym(String source, String synonym) throws IOException {
+		List<String[]> tagvalues = new ArrayList<String[]>();
+		String [] param1 = new String[2];
+		param1[0] = "source";
+		param1[1] = source;
+		tagvalues.add(param1);
+		String [] param2 = new String[2];
+		param2[0] = "synonym";
+		param2[1] = synonym;
+		tagvalues.add(param2);
+		
+		final List<GolrAnnotationDocument> documents = getGolrAnnotations(tagvalues);
+
+		return documents;
+	}
+	
+	public List<GolrAnnotationDocument> getGolrAnnotations(List<String []> tagvalues) throws IOException {
+		JSON_INDENT_FLAG = true;
+		final String url = createGolrString(tagvalues, "annotation", 0, PAGINATION_CHUNK_SIZE);
 		final String jsonString = getJsonStringFromUrl(url);
 		final GolrResponse response = parseGolrResponse(jsonString);
 		final List<GolrAnnotationDocument> documents = new ArrayList<GolrAnnotationDocument>(response.numFound);
@@ -83,7 +106,7 @@ public class RetrieveGolrAnnotations {
 			}
 			end = end * PAGINATION_CHUNK_SIZE;
 			while (start <= end) {
-				String urlPagination = createGolrString(id, "bioentity", "annotation", start, PAGINATION_CHUNK_SIZE);
+				String urlPagination = createGolrString(tagvalues, "annotation", start, PAGINATION_CHUNK_SIZE);
 				String jsonStringPagination = getJsonStringFromUrl(urlPagination);
 				GolrResponse responsePagination = parseGolrResponse(jsonStringPagination);
 				documents.addAll(Arrays.asList(responsePagination.docs));
@@ -93,9 +116,7 @@ public class RetrieveGolrAnnotations {
 		return documents;
 	}
 	
-	
-	
-	String createGolrString(String id, String field, String category, int start, int pagination) {
+	String createGolrString(List<String []> tagvalues, String category, int start, int pagination) {
 		StringBuilder sb = new StringBuilder(server);
 		sb.append("/select?defType=edismax&qt=standard&wt=json");
 		if (JSON_INDENT_FLAG) {
@@ -108,7 +129,9 @@ public class RetrieveGolrAnnotations {
 		sb.append("&rows=").append(pagination);
 		sb.append("&start=").append(start);
 		sb.append("&fq=document_category:\"").append(category).append("\"");
-		sb.append("&fq=").append(field).append(":\"").append(id).append("\"");
+		for (String [] tagvalue : tagvalues) {
+			sb.append("&fq=").append(tagvalue[0]).append(":\"").append(tagvalue[1]).append("\"");
+		}
 		return sb.toString();
 	}
 	
