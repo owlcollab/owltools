@@ -115,7 +115,7 @@ public class Bioentity{
 	}
 
 	public void setNcbiTaxonId(String ncbiTaxonId) {
-		if (ncbiTaxonId.startsWith("NCBITaxon"))
+		if (ncbiTaxonId != null && ncbiTaxonId.startsWith("NCBITaxon"))
 			this.ncbiTaxonId = ncbiTaxonId.substring(4).toLowerCase();
 		else
 			this.ncbiTaxonId = ncbiTaxonId;
