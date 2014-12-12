@@ -258,7 +258,7 @@ abstract class AbstractLegoTranslator {
 	
 	public Pair<GafDocument, BioentityDocument> translate(String id, OWLOntology modelAbox, List<String> additionalReferences) {
 		final GafDocument annotations = new GafDocument(id, null);
-		final BioentityDocument entities = new BioentityDocument(id, null);
+		final BioentityDocument entities = new BioentityDocument(id);
 		translate(modelAbox, annotations, entities, additionalReferences);
 		return Pair.of(annotations, entities);
 	}
