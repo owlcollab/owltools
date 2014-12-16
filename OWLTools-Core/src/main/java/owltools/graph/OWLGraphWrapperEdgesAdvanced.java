@@ -717,7 +717,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 				
 				@Override
 				public void visit(OWLObjectProperty property) {
-					if (property.isBuiltIn()) {
+					if (property.isBuiltIn() == false) {
 						final String id = getIdentifier(property);
 						final String label = getLabelOrDisplayId(property);
 						relation_map.put(id, label);
