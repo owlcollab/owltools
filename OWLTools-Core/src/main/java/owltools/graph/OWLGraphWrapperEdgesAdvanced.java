@@ -658,7 +658,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 			addIdLabelClosure((OWLClass) obj, true, props, relation_map);
 		}
 		else if (obj instanceof OWLObjectProperty) {
-			addIdLabelClosure((OWLObjectProperty) obj, true, props, relation_map);
+			addIdLabelClosure((OWLObjectProperty) obj, true, relation_map);
 		}
 		return relation_map;
 	}
@@ -697,12 +697,12 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		}
 	}
 	
-	private void addIdLabelClosure(OWLObjectProperty p, boolean reflexive, 
-			final Set<OWLObjectProperty> props, final Map<String,String> relation_map) {
-		addPropertiesForMaterialization(props);
-		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
-		Set<OWLObjectPropertyExpression> superProperties = materializingReasoner.getSuperObjectProperties(p, false).getFlattened();
-		for (OWLObjectPropertyExpression pe : superProperties) {
+	private void addIdLabelClosure(OWLObjectProperty p, boolean reflexive,
+			final Map<String,String> relation_map) {
+		// using the graph walker instead of a reasoner: ELK does not implement getSuperProperties()
+		Set<OWLObjectPropertyExpression> closure = getSuperPropertyClosureOf(p);
+		closure.add(p);
+		for (OWLObjectPropertyExpression pe : closure) {
 			pe.accept(new OWLPropertyExpressionVisitor() {
 				
 				@Override
