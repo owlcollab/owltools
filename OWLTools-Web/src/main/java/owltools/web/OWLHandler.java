@@ -738,19 +738,68 @@ public class OWLHandler {
 		response.getWriter().write(jsonStr);
 	}
 
-	public void getAttributeInformationProfileCommand() throws IOException, OWLOntologyCreationException, OWLOntologyStorageException, UnknownOWLClassException {
+	/*
+	 * That code is weird!!!!!
+	 * 
+	 * The idea is to guard an expensive initialization with a status.
+	 */
+	private enum InitStatus {
+		never,
+		busy,
+		done
+	}
+	private static volatile InitStatus status = InitStatus.never;
+	private static final Object MUTEX = new Object();
+	
+	public void getAttributeInformationProfileCommand() throws Exception {
 		if (isHelp()) {
 			info("Attribute Profile Information");
 			return;
 		}
-		headerText();
 		OwlSim sos = getOWLSim();
 		Set<OWLClass> atts = this.resolveClassList(Param.a);
 		Set<OWLClass> roots = this.resolveClassList(Param.r);
-
 		SimJSONEngine sj = new SimJSONEngine(graph,sos);
-		String jsonStr = sj.getAttributeInformationProfile(atts,roots);
+		// check for init of slow stuff
+		if (status != InitStatus.done) {
+			synchronized (MUTEX) {
+				if (status == InitStatus.busy) {
+					// option busy -> send error back, do nothing
+					response.sendError(HttpServletResponse.SC_REQUEST_TIMEOUT, "Server is currently initializing.");
+					return; // exit!!!!
+				}
+				else if (status == InitStatus.never) {
+					// option not done -> do it now, set info for busy
+					status = InitStatus.busy;
+				}
+			} // end synchronized
+		}
+		String jsonStr;
+		try {
+			// this is the normal calculation, which as a side effect also does the init
+			jsonStr = sj.getAttributeInformationProfile(atts,roots);
+		}
+		catch (Exception e) {
+			// in case of error during the init: reset
+			synchronized (MUTEX) {
+				if (status == InitStatus.busy) {
+					status = InitStatus.never;
+				}
+			}
+			throw e;
+		}
+		finally {
+			// all is well
+			synchronized (MUTEX) {
+				if (status == InitStatus.busy) {
+					status = InitStatus.done;
+				}
+			}
+			
+		}
+		// send result
 		LOG.info("Finished getAttributeInformationProfileCommand");
+		headerText();
 		response.setContentType("application/json");
 		response.getWriter().write(jsonStr);
 	}
