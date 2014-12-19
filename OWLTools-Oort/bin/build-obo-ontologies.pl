@@ -713,6 +713,7 @@ sub get_ont_info {
          pr => {
              infallible => 1,
              method => 'obo2owl',
+             oort_args => '--no-reasoner',  ## PR now too big
              source_url => 'ftp://ftp.pir.georgetown.edu/databases/ontology/pro_obo/pro.obo',
          },
          gro => {
