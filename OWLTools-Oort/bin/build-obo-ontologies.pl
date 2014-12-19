@@ -768,7 +768,7 @@ sub get_ont_info {
          ncbitaxon => {
              infallible => 1,
              method => 'archive',
-             path => 'archive',
+             path => 'archive/src/ontology',
              source_url => 'http://build.berkeleybop.org/job/build-ncbitaxon/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
          exo => {
@@ -840,7 +840,7 @@ sub get_ont_info {
          pato => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'http://pato.googlecode.com/svn/trunk/quality.obo',
+             source_url => 'https://raw.githubusercontent.com/gkoutos/pato/master/src/ontology/pato.obo',
          },
          pco => {
              method => 'owl2obo',
@@ -852,7 +852,7 @@ sub get_ont_info {
              source_url => 'http://gemina.cvs.sourceforge.net/*checkout*/gemina/Gemina/ontologies/transmission_process.obo',
          },
          xao => {
-             infallible => 1,
+             infallible => 0,     ## can't build simple obo
              method => 'obo2owl',
              source_url => 'https://xenopus-anatomy-ontology.googlecode.com/svn/trunk/current-release/xenopus_anatomy.obo',
          },
@@ -954,7 +954,7 @@ sub get_ont_info {
          fbdv => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/developmental/animal_development/fly/fly_development.obo',
+             source_url => 'http://svn.code.sf.net/p/fbbtdv/code/fbdv/releases/latest/fbdv.obo'
          },
          cvdo => {
              method => 'owl2obo',
