@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
@@ -483,11 +484,14 @@ public class OWLServerSimSearchTest {
 			uriBuilder.addParameter("a", id);
 
 			//get at least one ancestor of each class
-			OWLClass r = (OWLClass) g.getAncestors(c).iterator().next();
-			uriBuilder.addParameter("r", g.getIdentifier(r));
-			i++;
-			if (i >= n)
-				break;
+			Set<OWLObject> ancestors = g.getAncestors(c);
+			if (!ancestors.isEmpty()) {
+				OWLClass r = (OWLClass) ancestors.iterator().next();
+				uriBuilder.addParameter("r", g.getIdentifier(r));
+				i++;
+				if (i >= n)
+					break;
+			}
 		}
 
 		
