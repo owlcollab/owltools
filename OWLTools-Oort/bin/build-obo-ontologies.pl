@@ -707,8 +707,9 @@ sub get_ont_info {
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/fish/medaka_ontology.obo',
          },
          hom => {
-             method => 'obo2owl',
-             source_url => 'http://bgee.unil.ch/download/homology_ontology.obo',
+             method => 'vcs',
+             system => 'git',
+             checkout => 'git clone https://github.com/BgeeDB/homology-ontology.git',
          },
          pr => {
              infallible => 1,
