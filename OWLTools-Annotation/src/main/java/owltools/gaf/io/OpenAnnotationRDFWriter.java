@@ -64,7 +64,7 @@ public class OpenAnnotationRDFWriter {
 
 	final String oa = "http://www.w3.org/ns/oa#";
 	final String dc = "http://purl.org/dc/elements/1.1/";
-	final String idorg = "http://identifiers.org/";
+	final String idot = "http://identifiers.org/";
 
 	/**
 	 * Creates a new writer, using the default output format (turtle)
@@ -136,7 +136,7 @@ public class OpenAnnotationRDFWriter {
 	public void createModel(GafDocument gdoc) {
 		model = ModelFactory.createDefaultModel();
 		model.setNsPrefix("oa", oa);
-		model.setNsPrefix("id", idorg);
+		model.setNsPrefix("id", idot);
 		model.setNsPrefix("GO", OBOUpperVocabulary.OBO + "GO_");
 
 		addHeaderInfo(gdoc);
@@ -359,7 +359,7 @@ public class OpenAnnotationRDFWriter {
 		String uri;
 		if (uriBase == null) {
 			//uri = OBOUpperVocabulary.OBO + pfx +"_" + frag;
-			uri = idorg + pfx + ":" + frag;
+			uri = idot + pfx + ":" + frag;
 		}
 		else {
 			uri = uriBase + frag;
