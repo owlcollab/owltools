@@ -33,3 +33,18 @@ is_a: Y:2
 id: Y:4
 is_a: Y:3
 
+[Term]
+id: Z:1
+
+[Term]
+id: Z:2
+is_a: Z:1
+
+[Term]
+id: Z:3
+is_a: Z:2
+
+[Term]
+id: Z:4
+is_a: Z:3
+
