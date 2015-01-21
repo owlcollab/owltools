@@ -2,6 +2,7 @@ package owltools.mooncat;
 
 import static org.junit.Assert.*;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -55,6 +56,8 @@ public class SpeciesMergeUtilTest extends OWLToolsTestBasics {
 		smu.taxClass = graph.getOWLClassByIdentifier("NCBITaxon:7227");
 		smu.reasoner = reasoner;
 		smu.suffix = "fly";
+		smu.includedProperties = Collections.singleton(smu.viewProperty);
+		//smu.includedProperties = Collections.singleton(graph.getOWLObjectPropertyByIdentifier("BFO:0000051"));
 		smu.merge();
 		
 		Set<OWLClass> clsAfter = smu.ont.getClassesInSignature();
