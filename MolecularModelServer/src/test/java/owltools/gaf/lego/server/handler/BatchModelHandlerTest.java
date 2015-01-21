@@ -48,21 +48,19 @@ import com.google.gson.GsonBuilder;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class BatchModelHandlerTest {
-	
+
 	@Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-	
+	public TemporaryFolder folder = new TemporaryFolder();
+
 	private static JsonOrJsonpBatchHandler handler = null;
 	private static UndoAwareMolecularModelManager models = null;
 	private static Set<OWLObjectProperty> importantRelations = null;
-	
+
 	private static final String uid = "test-user";
 	private static final String intention = "test-intention";
 	private static final String packetId = "foo-packet-id";
 
 	private static ExternalLookupService lookupService;
-
-	
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -88,7 +86,7 @@ public class BatchModelHandlerTest {
 		JsonOrJsonpBatchHandler.VALIDATE_BEFORE_SAVE = true;
 		JsonOrJsonpBatchHandler.ENFORCE_EXTERNAL_VALIDATE = true;
 	}
-	
+
 	private static ExternalLookupService createTestProteins() {
 		List<LookupEntry> testEntries = new ArrayList<LookupEntry>();
 		testEntries.add(new LookupEntry("UniProtKB:P0000", "P0000", "protein", "fake-taxon-id"));
@@ -107,7 +105,7 @@ public class BatchModelHandlerTest {
 			models.dispose();
 		}
 	}
-	
+
 	@Test
 	public void test() throws Exception {
 		final String modelId = generateBlankModel();
@@ -251,7 +249,7 @@ public class BatchModelHandlerTest {
 		assertNotNull(ce);
 		System.out.println(ce);
 	}
-	
+
 	@Test(expected=UnknownIdentifierException.class)
 	public void testParseComplexFail() throws Exception {
 		final String modelId = models.generateBlankModel(null, null);
@@ -263,7 +261,7 @@ public class BatchModelHandlerTest {
 		
 		M3ExpressionParser.parse(modelId, expression, models, lookupService);
 	}
-	
+
 	@Test
 	public void testModelAnnotations() throws Exception {
 		assertTrue(JsonOrJsonpBatchHandler.USE_CREATION_DATE);
@@ -336,7 +334,7 @@ public class BatchModelHandlerTest {
 		final Map<Object, Object> data = renderer.renderModel();
 		return data;
 	}
-	
+
 	@Test
 	public void testMultipleMeta() throws Exception {
 		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
@@ -433,7 +431,7 @@ public class BatchModelHandlerTest {
 		assertEquals(proteinId, svf.get(KEY.id));
 		assertEquals(proteinLabel, svf.get(KEY.label));
 	}
-	
+
 	@Test
 	public void testCreateBlankModelFromGAF() throws Exception {
 		models.dispose();
@@ -670,8 +668,9 @@ public class BatchModelHandlerTest {
 		assertEquals(1, foundIds.size());
 		assertTrue(foundIds.contains(modelId));
 	}
-	
+
 	@Test
+	@Deprecated
 	public void testCreateModelAndIndividualBatch() throws Exception {
 		M3Request[] batch = new M3Request[2];
 		batch[0] = new M3Request();
@@ -695,7 +694,7 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response.intention);
 		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
 	}
-	
+
 	@Test
 	public void testInconsistentModel() throws Exception {
 		models.dispose();
@@ -1028,6 +1027,144 @@ public class BatchModelHandlerTest {
 		assertTrue(undo6.size() > 1);
 		assertTrue(redo6.size() == 1);
 		
+	}
+
+	@Test
+	public void testVariables1() throws Exception {
+		/*
+		 * TASK: create three individuals (mf,bp,cc) and a directed relation
+		 * between the new instances
+		 */
+		final String modelId = generateBlankModel();
+		final M3Request[] batch = new M3Request[5];
+		batch[0] = new M3Request();
+		batch[0].entity = Entity.individual.name();
+		batch[0].operation = Operation.create.getLbl();
+		batch[0].arguments = new M3Argument();
+		batch[0].arguments.modelId = modelId;
+		batch[0].arguments.subject = "GO:0003674"; // molecular function
+		batch[0].arguments.assignToVariable = "mf";
+
+		batch[1] = new M3Request();
+		batch[1].entity = Entity.individual.name();
+		batch[1].operation = Operation.create.getLbl();
+		batch[1].arguments = new M3Argument();
+		batch[1].arguments.modelId = modelId;
+		batch[1].arguments.subject = "GO:0008150"; // biological process
+		batch[1].arguments.assignToVariable = "bp";
+
+		batch[2] = new M3Request();
+		batch[2].entity = Entity.edge.name();
+		batch[2].operation = Operation.add.getLbl();
+		batch[2].arguments = new M3Argument();
+		batch[2].arguments.modelId = modelId;
+		batch[2].arguments.subject = "mf";
+		batch[2].arguments.predicate = "BFO:0000050"; // part_of
+		batch[2].arguments.object = "bp";
+
+		batch[3] = new M3Request();
+		batch[3].entity = Entity.individual.name();
+		batch[3].operation = Operation.create.getLbl();
+		batch[3].arguments = new M3Argument();
+		batch[3].arguments.modelId = modelId;
+		batch[3].arguments.subject = "GO:0005575"; // cellular component
+		batch[3].arguments.assignToVariable = "cc";
+
+		batch[4] = new M3Request();
+		batch[4].entity = Entity.edge.name();
+		batch[4].operation = Operation.add.getLbl();
+		batch[4].arguments = new M3Argument();
+		batch[4].arguments.modelId = modelId;
+		batch[4].arguments.subject = "mf";
+		batch[4].arguments.predicate = "BFO:0000066"; // occurs_in
+		batch[4].arguments.object = "cc";
+
+		M3BatchResponse response = handler.m3Batch(uid, intention, packetId, batch, true);
+		assertEquals(uid, response.uid);
+		assertEquals(intention, response.intention);
+		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+
+		List<Map<Object, Object>> iObjs = (List) response.data.get(KEY_INDIVIDUALS);
+		assertEquals(3, iObjs.size());
+		String mf = null;
+		String bp = null;
+		String cc = null;
+		for (Map<Object, Object> iObj : iObjs) {
+			String id = (String) iObj.get(MolecularModelJsonRenderer.KEY.id);
+			assertNotNull(id);
+			List<Map<Object, Object>> types = (List) iObj.get(MolecularModelJsonRenderer.KEY.type);
+			assertNotNull(types);
+			assertEquals(1, types.size());
+			Map<Object, Object> typeObj = types.get(0);
+			String typeId = (String) typeObj.get(MolecularModelJsonRenderer.KEY.id);
+			assertNotNull(typeId);
+			if ("GO:0003674".equals(typeId)) {
+				mf = id;
+			}
+			else if ("GO:0008150".equals(typeId)) {
+				bp = id;
+			}
+			else if ("GO:0005575".equals(typeId)) {
+				cc = id;
+			}
+		}
+		assertNotNull(mf);
+		assertNotNull(bp);
+		assertNotNull(cc);
+		
+		List<Map<Object, Object>> facts = (List) response.data.get(KEY_FACTS);
+		assertEquals(2, facts.size());
+		boolean mfbp = false;
+		boolean mfcc = false;
+		for (Map<Object, Object> fact : facts) {
+			String subject = (String) fact.get(MolecularModelJsonRenderer.KEY.subject);
+			String property = (String) fact.get(MolecularModelJsonRenderer.KEY.property);
+			String object = (String) fact.get(MolecularModelJsonRenderer.KEY.object);
+			assertNotNull(subject);
+			assertNotNull(property);
+			assertNotNull(object);
+			if (mf.equals(subject) && "BFO:0000050".equals(property) && bp.equals(object)) {
+				mfbp = true;
+			}
+			if (mf.equals(subject) && "BFO:0000066".equals(property) && cc.equals(object)) {
+				mfcc = true;
+			}
+		}
+		assertTrue(mfbp);
+		assertTrue(mfcc);
+	}
+
+	@Test
+	public void testVariables2() throws Exception {
+		/*
+		 * TASK: try to use an undefined variable
+		 */
+		final String modelId = generateBlankModel();
+		final M3Request[] batch = new M3Request[2];
+		batch[0] = new M3Request();
+		batch[0].entity = Entity.individual.name();
+		batch[0].operation = Operation.create.getLbl();
+		batch[0].arguments = new M3Argument();
+		batch[0].arguments.modelId = modelId;
+		batch[0].arguments.subject = "GO:0003674"; // molecular function
+		batch[0].arguments.assignToVariable = "mf";
+
+		batch[1] = new M3Request();
+		batch[1].entity = Entity.edge.name();
+		batch[1].operation = Operation.add.getLbl();
+		batch[1].arguments = new M3Argument();
+		batch[1].arguments.modelId = modelId;
+		batch[1].arguments.subject = "mf";
+		batch[1].arguments.predicate = "BFO:0000050"; // part_of
+		batch[1].arguments.object = "foo";
+
+		M3BatchResponse response = handler.m3Batch(uid, intention, packetId, batch, true);
+		assertEquals(uid, response.uid);
+		assertEquals(intention, response.intention);
+		assertEquals("The operation should fail with an unknown identifier exception", 
+				M3BatchResponse.MESSAGE_TYPE_ERROR, response.message_type);
+		assertTrue(response.message, response.message.contains("UnknownIdentifierException"));
+		assertTrue(response.message, response.message.contains("foo")); // unknown
 	}
 	
 	/**

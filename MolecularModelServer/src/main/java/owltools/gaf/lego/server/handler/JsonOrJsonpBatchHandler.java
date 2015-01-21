@@ -78,7 +78,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	}
 
 	private final GsonBuilder gsonBuilder = new GsonBuilder();
-	private final Type type = new TypeToken<M3Request[]>(){
+	private final Type requestType = new TypeToken<M3Request[]>(){
 
 		// generated
 		private static final long serialVersionUID = 5452629810143143422L;
@@ -135,7 +135,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		M3BatchResponse response = new M3BatchResponse(uid, intention, checkPacketId(packetId));
 		try {
 			Gson gson = gsonBuilder.create();
-			M3Request[] requests = gson.fromJson(requestString, type);
+			M3Request[] requests = gson.fromJson(requestString, requestType);
 			return m3Batch(response, requests, uid, isPrivileged);
 		} catch (Exception e) {
 			return error(response, "Could not successfully handle batch request.", e);
@@ -152,6 +152,24 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		boolean renderModelAnnotations = false;
 		boolean nonMeta = false;
 		String modelId = null;
+		Map<String, Pair<String, OWLNamedIndividual>> individualVariables = new HashMap<String, Pair<String, OWLNamedIndividual>>();
+		
+		public boolean notVariable(String id) {
+			return individualVariables.containsKey(id) == false;
+		}
+		
+		public String getVariableValueId(String id) throws UnknownIdentifierException {
+			if (individualVariables.containsKey(id)) {
+				Pair<String, OWLNamedIndividual> pair = individualVariables.get(id);
+				if (pair == null) {
+					throw new UnknownIdentifierException("Variable "+id+" has a null value.");
+				}
+				return pair.getKey();
+			}
+			else {
+				return id;
+			}
+		}
 	}
 	
 	private M3BatchResponse m3Batch(M3BatchResponse response, M3Request[] requests, String userId, boolean isPrivileged) throws InsufficientPermissionsException, Exception {
@@ -338,9 +356,21 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		// get info, no modification
 		if (Operation.get == operation) {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
-			OWLNamedIndividual i = m3.getNamedIndividual(values.modelId, request.arguments.individual);
-			values.relevantIndividuals.add(i);
-			
+			// check for that the request.arguments.individual is not a variable
+			if (values.notVariable(request.arguments.individual)) {
+				OWLNamedIndividual i = m3.getNamedIndividual(values.modelId, request.arguments.individual);
+				values.relevantIndividuals.add(i);
+				if (request.arguments.assignToVariable != null) {
+					values.individualVariables.put(request.arguments.assignToVariable, 
+							Pair.of(request.arguments.individual, i));
+				}
+			}
+			else {
+				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
+				if (pair != null) {
+					values.relevantIndividuals.add(pair.getRight());
+				}
+			}
 		}
 		// create from class
 		else if (Operation.create == operation) {
@@ -348,8 +378,17 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			// optional: expressions, values
 			requireNotNull(request.arguments.subject, "request.arguments.subject");
 			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
-			Pair<String, OWLNamedIndividual> individualPair = m3.createIndividualNonReasoning(values.modelId, request.arguments.subject, annotations, token);
-			values.relevantIndividuals.add(individualPair.getValue());
+			Pair<String, OWLNamedIndividual> individualPair;
+			if (values.notVariable(request.arguments.individual)) {
+				individualPair = m3.createIndividualNonReasoning(values.modelId, request.arguments.subject, annotations, token);
+				values.relevantIndividuals.add(individualPair.getValue());
+				if (request.arguments.assignToVariable != null) {
+					values.individualVariables.put(request.arguments.assignToVariable, individualPair);
+				}
+			}
+			else {
+				individualPair = values.individualVariables.get(request.arguments.individual);
+			}
 
 			if (request.arguments.expressions != null) {
 				for(M3Expression expression : request.arguments.expressions) {
@@ -362,6 +401,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		// create individuals for subject and object,
 		// add object as fact to subject with given property
 		else if (Operation.createComposite == operation) {
+			// TODO remove operation and throw error
 			// required: subject, predicate, object
 			// optional: expressions, values
 			requireNotNull(request.arguments.subject, "request.arguments.subject");
@@ -387,7 +427,14 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		else if (Operation.remove == operation){
 			// required: modelId, individual
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
-			m3.deleteIndividual(values.modelId, request.arguments.individual, token);
+			if (values.notVariable(request.arguments.individual)) {
+				m3.deleteIndividual(values.modelId, request.arguments.individual, token);
+			}
+			else {
+				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
+				m3.deleteIndividual(values.modelId, pair.getKey(), token);
+			}
+			
 			addContributor(values.modelId, userId, token, m3);
 			values.renderBulk = true;
 		}				
@@ -399,8 +446,20 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			for(M3Expression expression : request.arguments.expressions) {
 				OWLClassExpression cls = parseM3Expression(expression, values);
 				// TODO evidence and contributor information for types
-				OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
-				values.relevantIndividuals.add(i);
+				if (values.notVariable(request.arguments.individual)) {
+					OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
+					values.relevantIndividuals.add(i);
+
+					if (request.arguments.assignToVariable != null) {
+						values.individualVariables.put(request.arguments.assignToVariable, 
+								Pair.of(request.arguments.individual, i));
+					}
+				}
+				else {
+					Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
+					OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, pair.getKey(), cls, token);
+					values.relevantIndividuals.add(i);
+				}
 			}
 			addContributor(values.modelId, userId, token, m3);
 		}
@@ -411,8 +470,20 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
 			for(M3Expression expression : request.arguments.expressions) {
 				OWLClassExpression cls = parseM3Expression(expression, values);
-				OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
-				values.relevantIndividuals.add(i);
+				if (values.notVariable(request.arguments.individual)) {
+					OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
+					values.relevantIndividuals.add(i);
+
+					if (request.arguments.assignToVariable != null) {
+						values.individualVariables.put(request.arguments.assignToVariable, 
+								Pair.of(request.arguments.individual, i));
+					}
+				}
+				else {
+					Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
+					OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, pair.getKey(), cls, token);
+					values.relevantIndividuals.add(i);
+				}
 			}
 			addContributor(values.modelId, userId, token, m3);
 		}
@@ -422,9 +493,23 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
-			OWLNamedIndividual i = m3.addAnnotations(values.modelId, request.arguments.individual,
-					extract(request.arguments.values, userId, false), token);
-			values.relevantIndividuals.add(i);
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+			if(values.notVariable(request.arguments.individual)) {
+				OWLNamedIndividual i = m3.addAnnotations(values.modelId, request.arguments.individual,
+						annotations, token);
+				values.relevantIndividuals.add(i);
+
+				if (request.arguments.assignToVariable != null) {
+					values.individualVariables.put(request.arguments.assignToVariable, 
+							Pair.of(request.arguments.individual, i));
+				}
+			}
+			else {
+				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
+				OWLNamedIndividual i = m3.addAnnotations(values.modelId, pair.getKey(),
+						annotations, token);
+				values.relevantIndividuals.add(i);
+			}
 			addContributor(values.modelId, userId, token, m3);
 		}
 		// remove annotation
@@ -433,9 +518,23 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
-			OWLNamedIndividual i = m3.removeAnnotations(values.modelId, request.arguments.individual,
-					extract(request.arguments.values, null, false), token);
-			values.relevantIndividuals.add(i);
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, null, false);
+			if(values.notVariable(request.arguments.individual)) {
+				OWLNamedIndividual i = m3.removeAnnotations(values.modelId, request.arguments.individual,
+						annotations, token);
+				values.relevantIndividuals.add(i);
+
+				if (request.arguments.assignToVariable != null) {
+					values.individualVariables.put(request.arguments.assignToVariable, 
+							Pair.of(request.arguments.individual, i));
+				}
+			}
+			else {
+				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
+				OWLNamedIndividual i = m3.removeAnnotations(values.modelId, pair.getKey(),
+						annotations, token);
+				values.relevantIndividuals.add(i);
+			}
 			addContributor(values.modelId, userId, token, m3);
 		}
 		else {
@@ -462,21 +561,23 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		requireNotNull(request.arguments.subject, "request.arguments.subject");
 		requireNotNull(request.arguments.predicate, "request.arguments.predicate");
 		requireNotNull(request.arguments.object, "request.arguments.object");
-
+		// check for variables
+		final String subject = values.getVariableValueId(request.arguments.subject);
+		final String object = values.getVariableValueId(request.arguments.object);
+		
 		// add edge
 		if (Operation.add == operation){
 			// optional: values
 			List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(values.modelId,
-					request.arguments.predicate, request.arguments.subject,
-					request.arguments.object, extract(request.arguments.values, userId, true), token);
+					request.arguments.predicate, subject, object,
+					extract(request.arguments.values, userId, true), token);
 			values.relevantIndividuals.addAll(individuals);
 			addContributor(values.modelId, userId, token, m3);
 		}
 		// remove edge
 		else if (Operation.remove == operation){
 			List<OWLNamedIndividual> individuals = m3.removeFactNonReasoning(values.modelId,
-					request.arguments.predicate, request.arguments.subject,
-					request.arguments.object, token);
+					request.arguments.predicate, subject, object, token);
 			values.relevantIndividuals.addAll(individuals);
 			addContributor(values.modelId, userId, token, m3);
 		}
@@ -485,8 +586,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
 			List<OWLNamedIndividual> individuals = m3.addAnnotations(values.modelId,
-					request.arguments.predicate, request.arguments.subject,
-					request.arguments.object, extract(request.arguments.values, userId, false), token);
+					request.arguments.predicate, subject, object,
+					extract(request.arguments.values, userId, false), token);
 			values.relevantIndividuals.addAll(individuals);
 		}
 		// remove annotation
@@ -494,8 +595,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
 			List<OWLNamedIndividual> individuals = m3.removeAnnotations(values.modelId,
-					request.arguments.predicate, request.arguments.subject,
-					request.arguments.object, extract(request.arguments.values, null, false), token);
+					request.arguments.predicate, subject, object,
+					extract(request.arguments.values, null, false), token);
 			values.relevantIndividuals.addAll(individuals);
 		}
 		else {

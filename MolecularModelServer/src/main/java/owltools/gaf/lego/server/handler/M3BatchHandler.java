@@ -45,7 +45,8 @@ public interface M3BatchHandler {
 	public static enum Operation {
 		get("get"),
 		create("create"),
-		createComposite("create-composite"), // aka create annaton
+		@Deprecated // hard coded assumptions about the data model, use variables instead
+		createComposite("create-composite"), // aka create annaton 
 		addType("add-type"),
 		removeType("remove-type"),
 		add("add"),
@@ -104,6 +105,7 @@ public interface M3BatchHandler {
 		String taxonId;
 		String importModel;
 		String format;
+		String assignToVariable;
 		
 		M3Expression[] expressions;
 		M3Pair[] values;

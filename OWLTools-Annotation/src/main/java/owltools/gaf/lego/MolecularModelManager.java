@@ -433,7 +433,13 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	private OWLNamedIndividual getIndividual(String indId, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(indId, graph);
-		return model.getOWLDataFactory().getOWLNamedIndividual(iri);
+		// check that individual is actually declared
+		boolean containsIRI = model.getAboxOntology().containsEntityInSignature(iri);
+		if (containsIRI == false) {
+			return null;
+		}
+		OWLNamedIndividual individual = model.getOWLDataFactory().getOWLNamedIndividual(iri);
+		return individual;
 	}
 	private OWLClass getClass(String cid, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
