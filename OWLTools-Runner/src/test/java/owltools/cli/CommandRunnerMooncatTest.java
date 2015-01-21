@@ -40,6 +40,11 @@ public class CommandRunnerMooncatTest extends AbstractCommandRunnerTest {
 		
 	}
 
+	@Test
+	public void testMakeSuperSlim() throws Exception {
+		load("super-slim-test.obo");
+		run("--make-super-slim X,Y -o -f obo target/super-slim.obo");	
+	}
 
 
 	@Test
