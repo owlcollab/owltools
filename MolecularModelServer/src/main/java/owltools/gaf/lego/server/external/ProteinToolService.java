@@ -63,6 +63,7 @@ public class ProteinToolService implements ExternalLookupService {
 					}
 					
 				}
+				g.close();
 			} catch (OWLOntologyCreationException e) {
 				throw new IOException("Could not load IRI: "+ontologyIri, e);
 			}
