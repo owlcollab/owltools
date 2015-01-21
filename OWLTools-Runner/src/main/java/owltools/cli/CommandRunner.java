@@ -5567,6 +5567,10 @@ public class CommandRunner {
 			reasonerFactory = new GraphReasonerFactory();			
 		}
 		else if (reasonerName.equals("mexr")) {
+			if (reasonerFactory == null) {
+				// set default to ELK
+				reasonerFactory = new ElkReasonerFactory();
+			}
 			reasonerFactory = new ExpressionMaterializingReasonerFactory(reasonerFactory);
 		}
 		else if (reasonerName.equals("jfact")) {
