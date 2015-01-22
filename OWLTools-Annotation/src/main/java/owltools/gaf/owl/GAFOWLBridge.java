@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.lang.model.element.AnnotationValue;
-
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.owlapi.model.IRI;
@@ -39,7 +37,6 @@ public class GAFOWLBridge {
 	private OWLOntology targetOntology;
 	protected OWLGraphWrapper graph;
 	private Map<Vocab,IRI> vocabMap = new HashMap<Vocab,IRI>();
-	private Map<String,OWLObjectProperty> shorthandMap = new HashMap<String,OWLObjectProperty>();
 
 	public enum BioentityMapping { NONE, CLASS_EXPRESSION, NAMED_CLASS, INDIVIDUAL };
 
@@ -58,10 +55,7 @@ public class GAFOWLBridge {
 	}
 
 	public GAFOWLBridge(OWLGraphWrapper g) {
-		graph = g;
-		targetOntology = g.getSourceOntology();
-		addVocabMapDefaults();
-		makeShorthandMap();
+		this(g, g.getSourceOntology());
 	}
 
 	/**
@@ -79,9 +73,9 @@ public class GAFOWLBridge {
 	 * @param tgtOnt
 	 */
 	public GAFOWLBridge(OWLGraphWrapper g, OWLOntology tgtOnt) {
-		this(g);
+		graph = g;
 		targetOntology = tgtOnt;
-		makeShorthandMap();
+		addVocabMapDefaults();
 	}
 
 	private void addVocabMapDefaults() {
@@ -354,11 +348,7 @@ public class GAFOWLBridge {
 				}
 			}
 
-			// experimental: annotation assertions
-			if (false) {
-				// TODO
-				AnnotationValue v;
-			}
+			// TODO experimental: annotation assertions
 		}
 		addAxioms(axioms);
 	}
@@ -409,23 +399,8 @@ public class GAFOWLBridge {
 		}
 	}
 
-	private void makeShorthandMap() {
-		OWLAnnotationProperty shp = 
-				graph.getDataFactory().getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#shorthand"));
-		for (OWLOntology o : graph.getAllOntologies()) {
-			for (OWLObjectProperty q : o.getObjectPropertiesInSignature(true)) {
-				String v = graph.getAnnotationValue(q, shp);
-				if (v != null)
-					shorthandMap.put(v, q);
-			}
-		}
-	}
-
-
 	protected OWLObjectProperty getObjectPropertyByShorthand(String id) {
-		if (shorthandMap.containsKey(id)) {
-			return shorthandMap.get(id);
-		}
+		// the graph method also looks at the shorthand information
 		OWLObjectProperty p = graph.getOWLObjectPropertyByIdentifier(id);
 		return p;
 	}
