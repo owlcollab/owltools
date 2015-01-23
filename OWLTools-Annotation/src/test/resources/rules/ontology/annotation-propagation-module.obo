@@ -1,0 +1,1166 @@
+format-version: 1.2
+ontology: annotation-propagation-module
+property_value: http://purl.org/dc/elements/1.1/source http://purl.obolibrary.org/obo/go/2013-05-03/go.owl
+
+[Term]
+id: GO:0003674
+name: molecular_function
+namespace: molecular_function
+alt_id: GO:0005554
+def: "Elemental activities, such as catalysis or binding, describing the actions of a gene product at the molecular level. A given gene product may exhibit one or more molecular functions." [GOC:go_curators]
+comment: Note that, in addition to forming the root of the molecular function ontology, this term is recommended for use for the annotation of gene products whose molecular function is unknown. Note that when this term is used for annotation, it indicates that no information was available about the molecular function of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "molecular function" EXACT []
+synonym: "molecular function unknown" NARROW []
+disjoint_from: GO:0005575 ! cellular_component
+disjoint_from: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0004871
+name: signal transducer activity
+namespace: molecular_function
+alt_id: GO:0005062
+alt_id: GO:0009369
+alt_id: GO:0009370
+def: "Conveys a signal across a cell to trigger a change in cell function or state. A signal is a physical entity or change in state that is used to transfer information in order to trigger a response." [GOC:go_curators]
+comment: Ligands do NOT have the molecular function 'signal transducer activity'.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "hematopoietin/interferon-class (D200-domain) cytokine receptor signal transducer activity" NARROW []
+synonym: "quorum sensing response regulator activity" NARROW []
+synonym: "quorum sensing signal generator activity" NARROW []
+is_a: GO:0060089 ! molecular transducer activity
+relationship: part_of GO:0007165 ! signal transduction
+
+[Term]
+id: GO:0004872
+name: receptor activity
+namespace: molecular_function
+alt_id: GO:0019041
+def: "Combining with an extracellular or intracellular messenger to initiate a change in cell activity." [GOC:ceb, ISBN:0198506732]
+subset: goslim_metagenomics
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "receptor guanylate cyclase activity" NARROW []
+synonym: "viral antireceptor activity" NARROW []
+is_a: GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0005575
+name: cellular_component
+namespace: cellular_component
+alt_id: GO:0008372
+def: "The part of a cell or its extracellular environment in which a gene product is located. A gene product may be located in one or more parts of a cell and its location may be as specific as a particular macromolecular complex, that is, a stable, persistent association of macromolecules that function together." [GOC:go_curators]
+comment: Note that, in addition to forming the root of the cellular component ontology, this term is recommended for use for the annotation of gene products whose cellular component is unknown. Note that when this term is used for annotation, it indicates that no information was available about the cellular component of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "cellular component" EXACT []
+synonym: "cellular component unknown" NARROW []
+xref: NIF_Subcellular:sao1337158144
+disjoint_from: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0005622
+name: intracellular
+namespace: cellular_component
+def: "The living contents of a cell; the matter contained within (but not including) the plasma membrane, usually taken to exclude large vacuoles and masses of secretory or ingested material. In eukaryotes it includes the nucleus and cytoplasm." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "internal to cell" EXACT []
+synonym: "nucleocytoplasm" RELATED [GOC:mah]
+synonym: "protoplasm" EXACT []
+synonym: "protoplast" RELATED [GOC:mah]
+xref: Wikipedia:Intracellular
+is_a: GO:0044464 ! cell part
+
+[Term]
+id: GO:0005623
+name: cell
+namespace: cellular_component
+def: "The basic structural and functional unit of all organisms. Includes the plasma membrane and any external encapsulating structures such as the cell wall and cell envelope." [GOC:go_curators]
+subset: goslim_generic
+subset: goslim_plant
+subset: gosubset_prok
+xref: NIF_Subcellular:sao1813327414
+xref: Wikipedia:Cell_(biology)
+is_a: GO:0005575 ! cellular_component
+
+[Term]
+id: GO:0006412
+name: translation
+namespace: biological_process
+alt_id: GO:0006416
+alt_id: GO:0006453
+alt_id: GO:0043037
+def: "The cellular metabolic process in which a protein is formed, using the sequence of a mature mRNA molecule to specify the sequence of amino acids in a polypeptide chain. Translation is mediated by the ribosome, and begins with the formation of a ternary complex between aminoacylated initiator methionine tRNA, GTP, and initiation factor 2, which subsequently associates with the small subunit of the ribosome and an mRNA. Translation ends with the release of a polypeptide chain from the ribosome." [GOC:go_curators]
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "protein anabolism" EXACT []
+synonym: "protein biosynthesis" EXACT []
+synonym: "protein biosynthetic process" EXACT [GOC:curators]
+synonym: "protein formation" EXACT []
+synonym: "protein synthesis" EXACT []
+synonym: "protein translation" EXACT []
+xref: Reactome:REACT_100338 "Translation, Sus scrofa"
+xref: Reactome:REACT_100851 "Translation, Saccharomyces cerevisiae"
+xref: Reactome:REACT_101045 "Translation, Dictyostelium discoideum"
+xref: Reactome:REACT_101324 "Translation, Canis familiaris"
+xref: Reactome:REACT_1014 "Translation, Homo sapiens"
+xref: Reactome:REACT_103420 "Translation, Plasmodium falciparum"
+xref: Reactome:REACT_105544 "Translation, Arabidopsis thaliana"
+xref: Reactome:REACT_29980 "Translation, Bos taurus"
+xref: Reactome:REACT_33559 "Translation, Rattus norvegicus"
+xref: Reactome:REACT_77710 "Translation, Drosophila melanogaster"
+xref: Reactome:REACT_79784 "Translation, Danio rerio"
+xref: Reactome:REACT_81734 "Translation, Schizosaccharomyces pombe"
+xref: Reactome:REACT_81833 "Translation, Caenorhabditis elegans"
+xref: Reactome:REACT_82171 "Translation, Xenopus tropicalis"
+xref: Reactome:REACT_83429 "Translation, Taeniopygia guttata"
+xref: Reactome:REACT_83530 "Translation, Gallus gallus"
+xref: Reactome:REACT_86996 "Translation, Oryza sativa"
+xref: Reactome:REACT_95535 "Translation, Mus musculus"
+xref: Reactome:REACT_96394 "Translation, Escherichia coli"
+xref: Wikipedia:Translation_(genetics)
+is_a: GO:0034645 ! cellular macromolecule biosynthetic process
+is_a: GO:0044267 ! cellular protein metabolic process
+relationship: part_of GO:0010467 ! gene expression
+
+[Term]
+id: GO:0006415
+name: translational termination
+namespace: biological_process
+alt_id: GO:0006443
+alt_id: GO:0006456
+def: "The process resulting in the release of a polypeptide chain from the ribosome, usually in response to a termination codon (UAA, UAG, or UGA in the universal genetic code)." [GOC:hjd, ISBN:019879276X]
+subset: gosubset_prok
+synonym: "protein synthesis termination" BROAD []
+synonym: "translation termination" EXACT []
+synonym: "translational complex disassembly" EXACT []
+xref: Reactome:REACT_100227 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Taeniopygia guttata"
+xref: Reactome:REACT_100585 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Dictyostelium discoideum"
+xref: Reactome:REACT_100730 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Danio rerio"
+xref: Reactome:REACT_1034 "Eukaryotic Translation Termination, Saccharomyces cerevisiae"
+xref: Reactome:REACT_103749 "Eukaryotic Translation Termination, Oryza sativa"
+xref: Reactome:REACT_104420 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Caenorhabditis elegans"
+xref: Reactome:REACT_104616 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Taeniopygia guttata"
+xref: Reactome:REACT_106326 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Plasmodium falciparum"
+xref: Reactome:REACT_107138 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Schizosaccharomyces pombe"
+xref: Reactome:REACT_107171 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Danio rerio"
+xref: Reactome:REACT_107771 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Oryza sativa"
+xref: Reactome:REACT_107964 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Schizosaccharomyces pombe"
+xref: Reactome:REACT_109127 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Caenorhabditis elegans"
+xref: Reactome:REACT_109494 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Plasmodium falciparum"
+xref: Reactome:REACT_110009 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Mus musculus"
+xref: Reactome:REACT_112381 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Gallus gallus"
+xref: Reactome:REACT_112559 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Rattus norvegicus"
+xref: Reactome:REACT_112632 "Eukaryotic Translation Termination, Rattus norvegicus"
+xref: Reactome:REACT_113540 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Gallus gallus"
+xref: Reactome:REACT_114287 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Gallus gallus"
+xref: Reactome:REACT_114807 "Eukaryotic Translation Termination, Gallus gallus"
+xref: Reactome:REACT_1152 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Saccharomyces cerevisiae"
+xref: Reactome:REACT_115292 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Rattus norvegicus"
+xref: Reactome:REACT_1654 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Homo sapiens"
+xref: Reactome:REACT_1986 "Eukaryotic Translation Termination, Homo sapiens"
+xref: Reactome:REACT_227 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Homo sapiens"
+xref: Reactome:REACT_28115 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Canis familiaris"
+xref: Reactome:REACT_28238 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Xenopus tropicalis"
+xref: Reactome:REACT_28773 "Eukaryotic Translation Termination, Danio rerio"
+xref: Reactome:REACT_29257 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Drosophila melanogaster"
+xref: Reactome:REACT_31194 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Canis familiaris"
+xref: Reactome:REACT_31222 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Oryza sativa"
+xref: Reactome:REACT_32804 "Eukaryotic Translation Termination, Drosophila melanogaster"
+xref: Reactome:REACT_33545 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Dictyostelium discoideum"
+xref: Reactome:REACT_34123 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Mus musculus"
+xref: Reactome:REACT_34462 "Eukaryotic Translation Termination, Saccharomyces cerevisiae"
+xref: Reactome:REACT_389 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Homo sapiens"
+xref: Reactome:REACT_393 "GTP bound eRF3:eRF1 complex binds the peptidyl-tRNA:mRNA:Ribosome complex, Saccharomyces cerevisiae"
+xref: Reactome:REACT_716 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Saccharomyces cerevisiae"
+xref: Reactome:REACT_78279 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Arabidopsis thaliana"
+xref: Reactome:REACT_78389 "Eukaryotic Translation Termination, Schizosaccharomyces pombe"
+xref: Reactome:REACT_78823 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Dictyostelium discoideum"
+xref: Reactome:REACT_80339 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Xenopus tropicalis"
+xref: Reactome:REACT_81067 "Eukaryotic Translation Termination, Canis familiaris"
+xref: Reactome:REACT_81196 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Arabidopsis thaliana"
+xref: Reactome:REACT_81882 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Caenorhabditis elegans"
+xref: Reactome:REACT_83324 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Xenopus tropicalis"
+xref: Reactome:REACT_83432 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Drosophila melanogaster"
+xref: Reactome:REACT_84537 "Eukaryotic Translation Termination, Plasmodium falciparum"
+xref: Reactome:REACT_84840 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Plasmodium falciparum"
+xref: Reactome:REACT_84975 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Arabidopsis thaliana"
+xref: Reactome:REACT_86647 "Eukaryotic Translation Termination, Xenopus tropicalis"
+xref: Reactome:REACT_86888 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Taeniopygia guttata"
+xref: Reactome:REACT_87882 "Eukaryotic Translation Termination, Dictyostelium discoideum"
+xref: Reactome:REACT_88395 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Canis familiaris"
+xref: Reactome:REACT_88662 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Danio rerio"
+xref: Reactome:REACT_91109 "GTP Hydrolysis by eRF3 bound to the eRF1:mRNA:polypeptide:80S Ribosome complex, Oryza sativa"
+xref: Reactome:REACT_92456 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Schizosaccharomyces pombe"
+xref: Reactome:REACT_92895 "Eukaryotic Translation Termination, Taeniopygia guttata"
+xref: Reactome:REACT_93205 "Eukaryotic Translation Termination, Caenorhabditis elegans"
+xref: Reactome:REACT_93556 "Eukaryotic Translation Termination, Mus musculus"
+xref: Reactome:REACT_94459 "GTP bound eRF3:eRF1 complex binds the peptidyl tRNA:mRNA:80S Ribosome complex, Drosophila melanogaster"
+xref: Reactome:REACT_94463 "Eukaryotic Translation Termination, Arabidopsis thaliana"
+xref: Reactome:REACT_97483 "Polypeptide release from the eRF3-GDP:eRF1:mRNA:80S Ribosome complex, Mus musculus"
+is_a: GO:0043624 ! cellular protein complex disassembly
+relationship: part_of GO:0006412 ! translation
+
+[Term]
+id: GO:0006417
+name: regulation of translation
+namespace: biological_process
+alt_id: GO:0006445
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways resulting in the formation of proteins by the translation of mRNA." [GOC:isa_complete]
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "regulation of protein anabolism" EXACT []
+synonym: "regulation of protein biosynthesis" EXACT []
+synonym: "regulation of protein formation" EXACT []
+synonym: "regulation of protein synthesis" EXACT []
+is_a: GO:0010608 ! posttranscriptional regulation of gene expression
+is_a: GO:0032268 ! regulation of cellular protein metabolic process
+is_a: GO:2000112 ! regulation of cellular macromolecule biosynthetic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0006412 ! translation
+relationship: regulates GO:0006412 ! translation
+
+[Term]
+id: GO:0006449
+name: regulation of translational termination
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of translational termination." [GOC:go_curators]
+subset: gosubset_prok
+is_a: GO:0006417 ! regulation of translation
+is_a: GO:0043244 ! regulation of protein complex disassembly
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0006415 ! translational termination
+relationship: regulates GO:0006415 ! translational termination
+
+[Term]
+id: GO:0007154
+name: cell communication
+namespace: biological_process
+def: "Any process that mediates interactions between a cell and its surroundings. Encompasses interactions such as signaling or attachment between one cell and another cell, between a cell and an extracellular matrix, or between a cell and any other aspect of its environment." [GOC:mah]
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+xref: Wikipedia:Cell_signaling
+is_a: GO:0044763 ! single-organism cellular process
+
+[Term]
+id: GO:0007165
+name: signal transduction
+namespace: biological_process
+alt_id: GO:0023033
+def: "The cellular process in which a signal is conveyed to trigger a change in the activity or state of a cell. Signal transduction begins with reception of a signal (e.g. a ligand binding to a receptor or receptor activation by a stimulus such as light), or for signal transduction in the absence of ligand, signal-withdrawal or the activity of a constitutively active receptor. Signal transduction ends with regulation of a downstream cellular process, e.g. regulation of transcription or regulation of a metabolic process. Signal transduction covers signaling from receptors located on the surface of the cell and signaling via molecules located within the cell. For signaling between cells, signal transduction is restricted to events at and within the receiving cell." [GOC:go_curators, GOC:mtg_signaling_feb11]
+comment: Note that signal transduction is defined broadly to include a ligand interacting with a receptor, downstream signaling steps and a response being triggered. A change in form of the signal in every step is not necessary. Note that in many cases the end of this process is regulation of the initiation of transcription. Note that specific transcription factors may be annotated to this term, but core/general transcription machinery such as RNA polymerase should not.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "signaling cascade" NARROW []
+synonym: "signaling pathway" RELATED []
+synonym: "signalling cascade" NARROW []
+synonym: "signalling pathway" RELATED [GOC:mah]
+xref: Reactome:REACT_100624 "EGFR interacts with phospholipase C-gamma, Gallus gallus"
+xref: Reactome:REACT_102354 "EGFR interacts with phospholipase C-gamma, Canis familiaris"
+xref: Reactome:REACT_112130 "EGFR interacts with phospholipase C-gamma, Oryza sativa"
+xref: Reactome:REACT_112549 "EGFR interacts with phospholipase C-gamma, Arabidopsis thaliana"
+xref: Reactome:REACT_113151 "EGFR interacts with phospholipase C-gamma, Mycobacterium tuberculosis"
+xref: Reactome:REACT_113601 "EGFR interacts with phospholipase C-gamma, Drosophila melanogaster"
+xref: Reactome:REACT_113964 "EGFR interacts with phospholipase C-gamma, Bos taurus"
+xref: Reactome:REACT_114657 "EGFR interacts with phospholipase C-gamma, Dictyostelium discoideum"
+xref: Reactome:REACT_114690 "EGFR interacts with phospholipase C-gamma, Saccharomyces cerevisiae"
+xref: Reactome:REACT_114820 "EGFR interacts with phospholipase C-gamma, Sus scrofa"
+xref: Reactome:REACT_114910 "EGFR interacts with phospholipase C-gamma, Caenorhabditis elegans"
+xref: Reactome:REACT_115037 "EGFR interacts with phospholipase C-gamma, Plasmodium falciparum"
+xref: Reactome:REACT_115147 "EGFR interacts with phospholipase C-gamma, Schizosaccharomyces pombe"
+xref: Reactome:REACT_12478 "EGFR interacts with phospholipase C-gamma, Homo sapiens"
+xref: Reactome:REACT_31232 "EGFR interacts with phospholipase C-gamma, Rattus norvegicus"
+xref: Reactome:REACT_78535 "EGFR interacts with phospholipase C-gamma, Xenopus tropicalis"
+xref: Reactome:REACT_89740 "EGFR interacts with phospholipase C-gamma, Taeniopygia guttata"
+xref: Reactome:REACT_93680 "EGFR interacts with phospholipase C-gamma, Danio rerio"
+xref: Reactome:REACT_98872 "EGFR interacts with phospholipase C-gamma, Mus musculus"
+xref: Wikipedia:Signal_transduction
+is_a: GO:0050794 ! regulation of cellular process
+is_a: GO:0051716 ! cellular response to stimulus
+relationship: part_of GO:0007154 ! cell communication
+relationship: part_of GO:0044700 ! single organism signaling
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_pombe
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "biological process" EXACT []
+synonym: "biological process unknown" NARROW []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+
+[Term]
+id: GO:0008152
+name: metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways, including anabolism and catabolism, by which living organisms transform chemical substances. Metabolic processes typically transform small molecules, but also include macromolecular processes such as DNA repair and replication, and protein synthesis and degradation." [GOC:go_curators, ISBN:0198547684]
+comment: Note that metabolic processes do not include single functions or processes such as protein-protein interactions, protein-nucleic acids, nor receptor-ligand interactions.
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "metabolic process resulting in cell growth" NARROW []
+synonym: "metabolism" EXACT []
+synonym: "metabolism resulting in cell growth" NARROW []
+xref: Wikipedia:Metabolism
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0009058
+name: biosynthetic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the formation of substances; typically the energy-requiring part of metabolism in which simpler substances are transformed into more complex ones." [GOC:curators, ISBN:0198547684]
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "anabolism" EXACT []
+synonym: "biosynthesis" EXACT []
+synonym: "formation" EXACT []
+synonym: "synthesis" EXACT []
+xref: Wikipedia:Anabolism
+is_a: GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0009059
+name: macromolecule biosynthetic process
+namespace: biological_process
+alt_id: GO:0043284
+def: "The chemical reactions and pathways resulting in the formation of a macromolecule, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass." [CHEBI:33694, GOC:mah]
+subset: gosubset_prok
+synonym: "biopolymer biosynthetic process" EXACT [GOC:mtg_chebi_dec09]
+synonym: "macromolecule anabolism" EXACT []
+synonym: "macromolecule biosynthesis" EXACT []
+synonym: "macromolecule formation" EXACT []
+synonym: "macromolecule synthesis" EXACT []
+is_a: GO:0043170 ! macromolecule metabolic process
+is_a: GO:1901576 ! organic substance biosynthetic process
+
+[Term]
+id: GO:0009881
+name: photoreceptor activity
+namespace: molecular_function
+def: "The function of absorbing and responding to incidental electromagnetic radiation, particularly visible light. The response may involve a change in conformation." [GOC:ai, GOC:go_curators]
+subset: gosubset_prok
+synonym: "blue-sensitive opsin" NARROW []
+synonym: "green-sensitive opsin" NARROW []
+synonym: "long-wave-sensitive opsin" NARROW []
+synonym: "opsin" NARROW []
+synonym: "red-sensitive opsin" NARROW []
+synonym: "short-wave-sensitive opsin" NARROW []
+synonym: "UV-sensitive opsin" NARROW []
+synonym: "violet-sensitive opsin" NARROW []
+is_a: GO:0038023 ! signaling receptor activity
+
+[Term]
+id: GO:0009889
+name: regulation of biosynthetic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways resulting in the formation of substances." [GOC:go_curators]
+subset: gosubset_prok
+synonym: "regulation of anabolism" EXACT []
+synonym: "regulation of biosynthesis" EXACT []
+synonym: "regulation of formation" EXACT []
+synonym: "regulation of synthesis" EXACT []
+is_a: GO:0019222 ! regulation of metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0009058 ! biosynthetic process
+relationship: regulates GO:0009058 ! biosynthetic process
+
+[Term]
+id: GO:0009966
+name: regulation of signal transduction
+namespace: biological_process
+alt_id: GO:0035466
+def: "Any process that modulates the frequency, rate or extent of signal transduction." [GOC:sm]
+subset: gosubset_prok
+synonym: "regulation of signaling pathway" RELATED []
+synonym: "regulation of signalling pathway" RELATED [GOC:mah]
+is_a: GO:0010646 ! regulation of cell communication
+is_a: GO:0023051 ! regulation of signaling
+is_a: GO:0048583 ! regulation of response to stimulus
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0007165 ! signal transduction
+relationship: regulates GO:0007165 ! signal transduction
+
+[Term]
+id: GO:0009987
+name: cellular process
+namespace: biological_process
+alt_id: GO:0008151
+alt_id: GO:0050875
+def: "Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators, GOC:isa_complete]
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "cell growth and/or maintenance" NARROW []
+synonym: "cell physiology" EXACT []
+synonym: "cellular physiological process" EXACT []
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0010467
+name: gene expression
+namespace: biological_process
+def: "The process in which a gene's sequence is converted into a mature gene product or products (proteins or RNA). This includes the production of an RNA transcript as well as any processing to produce a mature RNA product or an mRNA (for protein-coding genes) and the translation of that mRNA into protein. Some protein processing events may be included when they are required to form an active form of a product from an inactive precursor form." [GOC:dph, GOC:tb]
+subset: gosubset_prok
+xref: Reactome:REACT_100537 "Gene Expression, Xenopus tropicalis"
+xref: Reactome:REACT_101147 "Gene Expression, Danio rerio"
+xref: Reactome:REACT_101952 "Gene Expression, Sus scrofa"
+xref: Reactome:REACT_105649 "Gene Expression, Drosophila melanogaster"
+xref: Reactome:REACT_108313 "Gene Expression, Caenorhabditis elegans"
+xref: Reactome:REACT_29068 "Gene Expression, Escherichia coli"
+xref: Reactome:REACT_34240 "Gene Expression, Staphylococcus aureus N315"
+xref: Reactome:REACT_71 "Gene Expression, Homo sapiens"
+xref: Reactome:REACT_78136 "Gene Expression, Mus musculus"
+xref: Reactome:REACT_78959 "Gene Expression, Taeniopygia guttata"
+xref: Reactome:REACT_79662 "Gene Expression, Plasmodium falciparum"
+xref: Reactome:REACT_85241 "Gene Expression, Oryza sativa"
+xref: Reactome:REACT_85359 "Gene Expression, Gallus gallus"
+xref: Reactome:REACT_86357 "Gene Expression, Canis familiaris"
+xref: Reactome:REACT_89816 "Gene Expression, Mycobacterium tuberculosis"
+xref: Reactome:REACT_91657 "Gene Expression, Arabidopsis thaliana"
+xref: Reactome:REACT_91965 "Gene Expression, Rattus norvegicus"
+xref: Reactome:REACT_93586 "Gene Expression, Dictyostelium discoideum"
+xref: Reactome:REACT_93968 "Gene Expression, Bos taurus"
+xref: Reactome:REACT_94814 "Gene Expression, Schizosaccharomyces pombe"
+xref: Reactome:REACT_98256 "Gene Expression, Saccharomyces cerevisiae"
+xref: Wikipedia:Gene_expression
+is_a: GO:0043170 ! macromolecule metabolic process
+
+[Term]
+id: GO:0010468
+name: regulation of gene expression
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of gene expression. Gene expression is the process in which a gene's coding sequence is converted into a mature gene product or products (proteins or RNA). This includes the production of an RNA transcript as well as any processing to produce a mature RNA product or an mRNA (for protein-coding genes) and the translation of that mRNA into protein. Some protein processing events may be included when they are required to form an active form of a product from an inactive precursor form." [GOC:dph, GOC:tb]
+subset: gosubset_prok
+synonym: "regulation of gene product expression" RELATED [GOC:curators]
+synonym: "regulation of protein expression" NARROW [GOC:curators]
+xref: Wikipedia:Regulation_of_gene_expression
+is_a: GO:0060255 ! regulation of macromolecule metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0010467 ! gene expression
+relationship: regulates GO:0010467 ! gene expression
+
+[Term]
+id: GO:0010469
+name: regulation of receptor activity
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of receptor activity. Receptor activity is when a molecule combines with an extracellular or intracellular messenger to initiate a change in cell activity." [GOC:dph, GOC:tb]
+is_a: GO:0009966 ! regulation of signal transduction
+is_a: GO:0065009 ! regulation of molecular function
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0004872 ! receptor activity
+relationship: regulates GO:0004872 ! receptor activity
+
+[Term]
+id: GO:0010556
+name: regulation of macromolecule biosynthetic process
+namespace: biological_process
+def: "Any process that modulates the rate, frequency or extent of the chemical reactions and pathways resulting in the formation of a macromolecule, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass." [GOC:dph, GOC:tb]
+subset: gosubset_prok
+is_a: GO:0009889 ! regulation of biosynthetic process
+is_a: GO:0060255 ! regulation of macromolecule metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0009059 ! macromolecule biosynthetic process
+relationship: regulates GO:0009059 ! macromolecule biosynthetic process
+
+[Term]
+id: GO:0010608
+name: posttranscriptional regulation of gene expression
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of gene expression after the production of an RNA transcript." [GOC:dph, GOC:tb]
+is_a: GO:0010468 ! regulation of gene expression
+
+[Term]
+id: GO:0010646
+name: regulation of cell communication
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of cell communication. Cell communication is the process that mediates interactions between a cell and its surroundings. Encompasses interactions such as signaling or attachment between one cell and another cell, between a cell and an extracellular matrix, or between a cell and any other aspect of its environment." [GOC:dph, GOC:tb]
+is_a: GO:0050794 ! regulation of cellular process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0007154 ! cell communication
+relationship: regulates GO:0007154 ! cell communication
+
+[Term]
+id: GO:0016043
+name: cellular component organization
+namespace: biological_process
+alt_id: GO:0044235
+alt_id: GO:0071842
+def: "A process that results in the assembly, arrangement of constituent parts, or disassembly of a cellular component." [GOC:ai, GOC:jl, GOC:mah]
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "cell organisation" EXACT []
+synonym: "cell organization and biogenesis" RELATED [GOC:mah]
+synonym: "cellular component organisation at cellular level" EXACT [GOC:mah]
+synonym: "cellular component organisation in other organism" EXACT [GOC:mah]
+synonym: "cellular component organization at cellular level" EXACT []
+synonym: "cellular component organization in other organism" EXACT []
+is_a: GO:0071840 ! cellular component organization or biogenesis
+
+[Term]
+id: GO:0019222
+name: regulation of metabolic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways within a cell or an organism." [GOC:go_curators]
+subset: gosubset_prok
+synonym: "regulation of metabolism" EXACT []
+is_a: GO:0050789 ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0008152 ! metabolic process
+relationship: regulates GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0019538
+name: protein metabolic process
+namespace: biological_process
+alt_id: GO:0006411
+def: "The chemical reactions and pathways involving a specific protein, rather than of proteins in general. Includes protein modification." [GOC:ma]
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "protein metabolic process and modification" EXACT []
+synonym: "protein metabolism" EXACT []
+synonym: "protein metabolism and modification" EXACT []
+xref: Wikipedia:Protein_metabolism
+is_a: GO:0043170 ! macromolecule metabolic process
+is_a: GO:0044238 ! primary metabolic process
+
+[Term]
+id: GO:0022411
+name: cellular component disassembly
+namespace: biological_process
+alt_id: GO:0071845
+def: "A cellular process that results in the breakdown of a cellular component." [GOC:isa_complete]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "cell structure disassembly" EXACT []
+synonym: "cellular component disassembly at cellular level" EXACT []
+is_a: GO:0016043 ! cellular component organization
+is_a: GO:0044763 ! single-organism cellular process
+
+[Term]
+id: GO:0023019
+name: signal transduction involved in regulation of gene expression
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of gene expression as a consequence of a process in which a signal is released and/or conveyed from one location to another." [GOC:mtg_signal]
+synonym: "regulation of gene expression as a consequence of signal transmission" RELATED [GOC:bf]
+is_a: GO:0007165 ! signal transduction
+intersection_of: GO:0007165 ! signal transduction
+intersection_of: part_of GO:0010468 ! regulation of gene expression
+relationship: part_of GO:0010468 ! regulation of gene expression
+creation_date: 2010-02-16T09:30:50Z
+
+[Term]
+id: GO:0023051
+name: regulation of signaling
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of a signaling process." [GOC:mtg_signal]
+synonym: "regulation of signaling process" RELATED [GOC:bf]
+synonym: "regulation of signalling process" RELATED [GOC:mah]
+is_a: GO:0050789 ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0023052 ! signaling
+relationship: regulates GO:0044700 ! single organism signaling
+creation_date: 2010-02-16T09:30:50Z
+
+[Term]
+id: GO:0023052
+name: signaling
+namespace: biological_process
+alt_id: GO:0023046
+def: "The entirety of a process in which information is transmitted within a biological system. This process begins with an active signal and ends when a cellular response has been triggered." [GOC:mtg_signal, GOC:mtg_signaling_feb11, GOC:signaling]
+comment: Note that a signal is any variable property or parameter that serves to convey information, and may be a physical entity such as a gene product or small molecule, a photon, or a change in state such as movement or voltage change.
+subset: goslim_pombe
+subset: goslim_yeast
+synonym: "biological signaling" EXACT []
+synonym: "signaling process" EXACT []
+synonym: "signalling" EXACT []
+synonym: "signalling process" RELATED [GOC:mah]
+is_a: GO:0008150 ! biological_process
+creation_date: 2010-02-16T09:30:50Z
+
+[Term]
+id: GO:0031323
+name: regulation of cellular metabolic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways by which individual cells transform chemical substances." [GOC:mah]
+subset: gosubset_prok
+synonym: "regulation of cellular metabolism" EXACT []
+is_a: GO:0019222 ! regulation of metabolic process
+is_a: GO:0050794 ! regulation of cellular process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0044237 ! cellular metabolic process
+relationship: regulates GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0031326
+name: regulation of cellular biosynthetic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways resulting in the formation of substances, carried out by individual cells." [GOC:mah]
+subset: gosubset_prok
+synonym: "regulation of cellular anabolism" EXACT []
+synonym: "regulation of cellular biosynthesis" EXACT []
+synonym: "regulation of cellular formation" EXACT []
+synonym: "regulation of cellular synthesis" EXACT []
+is_a: GO:0009889 ! regulation of biosynthetic process
+is_a: GO:0031323 ! regulation of cellular metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0044249 ! cellular biosynthetic process
+relationship: regulates GO:0044249 ! cellular biosynthetic process
+
+[Term]
+id: GO:0032268
+name: regulation of cellular protein metabolic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways involving a protein, occurring at the level of an individual cell." [GOC:mah]
+subset: gosubset_prok
+synonym: "regulation of cellular protein metabolism" EXACT []
+is_a: GO:0031323 ! regulation of cellular metabolic process
+is_a: GO:0051246 ! regulation of protein metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0044267 ! cellular protein metabolic process
+relationship: regulates GO:0044267 ! cellular protein metabolic process
+
+[Term]
+id: GO:0032984
+name: macromolecular complex disassembly
+namespace: biological_process
+alt_id: GO:0034623
+def: "The disaggregation of a macromolecular complex into its constituent components." [GOC:mah]
+subset: gosubset_prok
+synonym: "cellular macromolecular complex disassembly" EXACT []
+synonym: "cellular macromolecule complex disassembly" EXACT []
+synonym: "macromolecule complex disassembly" EXACT []
+is_a: GO:0022411 ! cellular component disassembly
+is_a: GO:0043933 ! macromolecular complex subunit organization
+
+[Term]
+id: GO:0034645
+name: cellular macromolecule biosynthetic process
+namespace: biological_process
+alt_id: GO:0034961
+def: "The chemical reactions and pathways resulting in the formation of a macromolecule, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass, carried out by individual cells." [CHEBI:33694, GOC:mah]
+synonym: "cellular biopolymer biosynthetic process" EXACT [GOC:mtg_chebi_dec09]
+synonym: "cellular macromolecule anabolism" EXACT [GOC:mah]
+synonym: "cellular macromolecule biosynthesis" EXACT [GOC:mah]
+synonym: "cellular macromolecule formation" EXACT [GOC:mah]
+synonym: "cellular macromolecule synthesis" EXACT [GOC:mah]
+is_a: GO:0009059 ! macromolecule biosynthetic process
+is_a: GO:0044249 ! cellular biosynthetic process
+is_a: GO:0044260 ! cellular macromolecule metabolic process
+
+[Term]
+id: GO:0035556
+name: intracellular signal transduction
+namespace: biological_process
+alt_id: GO:0007242
+alt_id: GO:0023013
+alt_id: GO:0023034
+def: "The process in which a signal is passed on to downstream components within the cell, which become activated themselves to further propagate the signal and finally trigger a change in the function or state of the cell." [GOC:signaling, ISBN:3527303782]
+synonym: "intracellular signal transduction pathway" NARROW []
+synonym: "intracellular signaling cascade" EXACT []
+synonym: "intracellular signaling chain" EXACT [ISBN:3527303782]
+synonym: "intracellular signaling pathway" RELATED []
+synonym: "signal transduction via intracellular signaling cascade" RELATED []
+synonym: "signal transmission via intracellular cascade" NARROW []
+is_a: GO:0007165 ! signal transduction
+intersection_of: GO:0007165 ! signal transduction
+intersection_of: occurs_in GO:0005622 ! intracellular
+created_by: rfoulger
+creation_date: 2010-05-14T01:14:37Z
+
+[Term]
+id: GO:0038023
+name: signaling receptor activity
+namespace: molecular_function
+def: "Receiving a signal and transmitting the signal in the cell to initiate a change in cell activity. A signal is a physical entity or change in state that is used to transfer information in order to trigger a response." [GOC:bf, GOC:signaling]
+comment: Note that this term and its child terms are intended for receptors that are directly coupled to a signal transduction pathway. This term should therefore not be used to annotate decoy receptors and other proteins that bind a signal but do not pass the signal on. This term can be used to annotate dependence receptors that transduce a signal when a ligand is withdrawn (in this case, signal withdrawal is considered to be the initiating signal), or receptors that signal at a basal level in the absence of a bound agonist. For receptors that mediate transport of a substance into the cell by receptor-mediated endocytosis, consider instead the term 'cargo receptor activity ; GO:0038024' and its children.
+synonym: "receptor activity involved in signal transduction" EXACT [GOC:bf]
+synonym: "signalling receptor activity" EXACT [GOC:mah]
+is_a: GO:0004871 ! signal transducer activity
+is_a: GO:0004872 ! receptor activity
+intersection_of: GO:0004872 ! receptor activity
+intersection_of: part_of GO:0007165 ! signal transduction
+created_by: rfoulger
+creation_date: 2011-08-01T02:45:27Z
+
+[Term]
+id: GO:0043170
+name: macromolecule metabolic process
+namespace: biological_process
+alt_id: GO:0043283
+def: "The chemical reactions and pathways involving macromolecules, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass." [CHEBI:33694, GOC:mah]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "biopolymer metabolic process" EXACT [GOC:mtg_chebi_dec09]
+synonym: "macromolecule metabolism" EXACT []
+is_a: GO:0071704 ! organic substance metabolic process
+
+[Term]
+id: GO:0043241
+name: protein complex disassembly
+namespace: biological_process
+def: "The disaggregation of a protein complex into its constituent components. Protein complexes may have other associated non-protein prosthetic groups, such as nucleic acids, metal ions or carbohydrate groups." [GOC:jl]
+subset: gosubset_prok
+is_a: GO:0032984 ! macromolecular complex disassembly
+is_a: GO:0071822 ! protein complex subunit organization
+
+[Term]
+id: GO:0043244
+name: regulation of protein complex disassembly
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of protein complex disassembly, the disaggregation of a protein complex into its constituent components." [GOC:jl]
+subset: gosubset_prok
+is_a: GO:0051128 ! regulation of cellular component organization
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0043241 ! protein complex disassembly
+relationship: regulates GO:0043241 ! protein complex disassembly
+
+[Term]
+id: GO:0043624
+name: cellular protein complex disassembly
+namespace: biological_process
+def: "The disaggregation of a protein complex into its constituent components, occurring at the level of an individual cell. Protein complexes may have other associated non-protein prosthetic groups, such as nucleic acids, metal ions or carbohydrate groups." [GOC:jl]
+subset: gosubset_prok
+is_a: GO:0043241 ! protein complex disassembly
+
+[Term]
+id: GO:0043933
+name: macromolecular complex subunit organization
+namespace: biological_process
+alt_id: GO:0034600
+alt_id: GO:0034621
+def: "Any process in which macromolecules aggregate, disaggregate, or are modified, resulting in the formation, disassembly, or alteration of a macromolecular complex." [GOC:mtg_mpo]
+subset: gosubset_prok
+synonym: "cellular macromolecular complex organization" EXACT []
+synonym: "cellular macromolecular complex subunit organisation" EXACT [GOC:curators]
+synonym: "cellular macromolecular complex subunit organization" EXACT []
+synonym: "macromolecular complex organization" EXACT []
+synonym: "macromolecular complex subunit organisation" EXACT [GOC:curators]
+is_a: GO:0016043 ! cellular component organization
+
+[Term]
+id: GO:0044237
+name: cellular metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways by which individual cells transform chemical substances." [GOC:go_curators]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "cellular metabolism" EXACT []
+synonym: "intermediary metabolism" RELATED [GOC:mah]
+is_a: GO:0008152 ! metabolic process
+is_a: GO:0009987 ! cellular process
+
+[Term]
+id: GO:0044238
+name: primary metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving those compounds which are formed as a part of the normal anabolic and catabolic processes. These processes take place in most, if not all, cells of the organism." [GOC:go_curators, http://www.metacyc.org]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "primary metabolism" EXACT []
+is_a: GO:0008152 ! metabolic process
+
+[Term]
+id: GO:0044249
+name: cellular biosynthetic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the formation of substances, carried out by individual cells." [GOC:jl]
+subset: gosubset_prok
+synonym: "cellular anabolism" EXACT []
+synonym: "cellular biosynthesis" EXACT []
+synonym: "cellular formation" EXACT []
+synonym: "cellular synthesis" EXACT []
+is_a: GO:0009058 ! biosynthetic process
+is_a: GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0044260
+name: cellular macromolecule metabolic process
+namespace: biological_process
+alt_id: GO:0034960
+def: "The chemical reactions and pathways involving macromolecules, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass, as carried out by individual cells." [CHEBI:33694, GOC:mah]
+subset: gosubset_prok
+synonym: "cellular biopolymer metabolic process" EXACT [GOC:mtg_chebi_dec09]
+synonym: "cellular macromolecule metabolism" EXACT []
+is_a: GO:0043170 ! macromolecule metabolic process
+is_a: GO:0044237 ! cellular metabolic process
+
+[Term]
+id: GO:0044267
+name: cellular protein metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving a specific protein, rather than of proteins in general, occurring at the level of an individual cell. Includes cellular protein modification." [GOC:jl]
+subset: gosubset_prok
+synonym: "cellular protein metabolism" EXACT []
+xref: Reactome:REACT_101554 "Metabolism of proteins, Gallus gallus"
+xref: Reactome:REACT_102155 "Metabolism of proteins, Arabidopsis thaliana"
+xref: Reactome:REACT_105825 "Metabolism of proteins, Dictyostelium discoideum"
+xref: Reactome:REACT_106151 "Metabolism of proteins, Xenopus tropicalis"
+xref: Reactome:REACT_108005 "Metabolism of proteins, Bos taurus"
+xref: Reactome:REACT_109022 "Metabolism of proteins, Schizosaccharomyces pombe"
+xref: Reactome:REACT_17015 "Metabolism of proteins, Homo sapiens"
+xref: Reactome:REACT_32904 "Metabolism of proteins, Canis familiaris"
+xref: Reactome:REACT_34473 "Metabolism of proteins, Taeniopygia guttata"
+xref: Reactome:REACT_80561 "Metabolism of proteins, Escherichia coli"
+xref: Reactome:REACT_81994 "Metabolism of proteins, Sus scrofa"
+xref: Reactome:REACT_82523 "Metabolism of proteins, Danio rerio"
+xref: Reactome:REACT_85873 "Metabolism of proteins, Saccharomyces cerevisiae"
+xref: Reactome:REACT_86658 "Metabolism of proteins, Drosophila melanogaster"
+xref: Reactome:REACT_89852 "Metabolism of proteins, Rattus norvegicus"
+xref: Reactome:REACT_91052 "Metabolism of proteins, Caenorhabditis elegans"
+xref: Reactome:REACT_93132 "Metabolism of proteins, Mus musculus"
+xref: Reactome:REACT_96466 "Metabolism of proteins, Plasmodium falciparum"
+xref: Reactome:REACT_99179 "Metabolism of proteins, Oryza sativa"
+is_a: GO:0019538 ! protein metabolic process
+is_a: GO:0044260 ! cellular macromolecule metabolic process
+
+[Term]
+id: GO:0044424
+name: intracellular part
+namespace: cellular_component
+def: "Any constituent part of the living contents of a cell; the matter contained within (but not including) the plasma membrane, usually taken to exclude large vacuoles and masses of secretory or ingested material. In eukaryotes it includes the nucleus and cytoplasm." [GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_annotate
+subset: gosubset_prok
+is_a: GO:0044464 ! cell part
+intersection_of: GO:0005575 ! cellular_component
+intersection_of: part_of GO:0005622 ! intracellular
+relationship: part_of GO:0005622 ! intracellular
+
+[Term]
+id: GO:0044464
+name: cell part
+namespace: cellular_component
+def: "Any constituent part of a cell, the basic structural and functional unit of all organisms." [GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_annotate
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "protoplast" RELATED [GOC:mah]
+is_a: GO:0005575 ! cellular_component
+intersection_of: GO:0005575 ! cellular_component
+intersection_of: part_of GO:0005623 ! cell
+relationship: part_of GO:0005623 ! cell
+
+[Term]
+id: GO:0044699
+name: single-organism process
+namespace: biological_process
+def: "A biological process that involves only one organism." [GOC:jl]
+synonym: "single organism process" EXACT []
+is_a: GO:0008150 ! biological_process
+created_by: janelomax
+creation_date: 2012-09-19T15:05:24Z
+
+[Term]
+id: GO:0044700
+name: single organism signaling
+namespace: biological_process
+def: "A signaling process occurring within a single organism." [GOC:jl]
+is_a: GO:0023052 ! signaling
+is_a: GO:0044699 ! single-organism process
+created_by: janelomax
+creation_date: 2012-09-19T15:12:49Z
+
+[Term]
+id: GO:0044763
+name: single-organism cellular process
+namespace: biological_process
+def: "Any process that is carried out at the cellular level, occurring within a single organism." [GOC:jl]
+is_a: GO:0009987 ! cellular process
+is_a: GO:0044699 ! single-organism process
+created_by: janelomax
+creation_date: 2012-12-11T16:56:55Z
+
+[Term]
+id: GO:0048583
+name: regulation of response to stimulus
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of a response to a stimulus. Response to stimulus is a change in state or activity of a cell or an organism (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus." [GOC:jid]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate
+subset: gosubset_prok
+is_a: GO:0050789 ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0050896 ! response to stimulus
+relationship: regulates GO:0050896 ! response to stimulus
+
+[Term]
+id: GO:0050789
+name: regulation of biological process
+namespace: biological_process
+alt_id: GO:0050791
+def: "Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule." [GOC:ai, GOC:go_curators]
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: gosubset_prok
+synonym: "regulation of physiological process" EXACT []
+is_a: GO:0065007 ! biological regulation
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0008150 ! biological_process
+relationship: regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0050794
+name: regulation of cellular process
+namespace: biological_process
+alt_id: GO:0051244
+def: "Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators]
+subset: gosubset_prok
+synonym: "regulation of cellular physiological process" EXACT []
+is_a: GO:0050789 ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0009987 ! cellular process
+relationship: regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0050896
+name: response to stimulus
+namespace: biological_process
+alt_id: GO:0051869
+def: "Any process that results in a change in state or activity of a cell or an organism (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus and ends with a change in state or activity or the cell or organism." [GOC:ai, GOC:bf]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "physiological response to stimulus" EXACT []
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0051128
+name: regulation of cellular component organization
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of a process involved in the formation, arrangement of constituent parts, or disassembly of cell structures, including the plasma membrane and any external encapsulating structures such as the cell wall and cell envelope." [GOC:ai]
+subset: gosubset_prok
+synonym: "regulation of cell organisation" RELATED [GOC:mah]
+synonym: "regulation of cell organization" RELATED [GOC:mah]
+synonym: "regulation of cellular component organisation" EXACT [GOC:curators]
+synonym: "regulation of cellular component organization and biogenesis" RELATED [GOC:mah]
+is_a: GO:0050794 ! regulation of cellular process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0016043 ! cellular component organization
+relationship: regulates GO:0016043 ! cellular component organization
+
+[Term]
+id: GO:0051246
+name: regulation of protein metabolic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways involving a protein." [GOC:ai]
+subset: gosubset_prok
+synonym: "regulation of protein metabolism" EXACT []
+is_a: GO:0060255 ! regulation of macromolecule metabolic process
+is_a: GO:0080090 ! regulation of primary metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0019538 ! protein metabolic process
+relationship: regulates GO:0019538 ! protein metabolic process
+
+[Term]
+id: GO:0051716
+name: cellular response to stimulus
+namespace: biological_process
+def: "Any process that results in a change in state or activity of a cell (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus by a cell and ends with a change in state or activity or the cell." [GOC:bf, GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate
+subset: gosubset_prok
+is_a: GO:0044763 ! single-organism cellular process
+is_a: GO:0050896 ! response to stimulus
+
+[Term]
+id: GO:0060089
+name: molecular transducer activity
+namespace: molecular_function
+def: "The molecular function that accepts an input of one form and creates an output of a different form." [GOC:mtg_MIT_16mar07]
+subset: goslim_pir
+subset: gosubset_prok
+is_a: GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0060255
+name: regulation of macromolecule metabolic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways involving macromolecules, any molecule of high relative molecular mass, the structure of which essentially comprises the multiple repetition of units derived, actually or conceptually, from molecules of low relative molecular mass." [GOC:dph, GOC:tb]
+subset: gosubset_prok
+is_a: GO:0019222 ! regulation of metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0043170 ! macromolecule metabolic process
+relationship: regulates GO:0043170 ! macromolecule metabolic process
+
+[Term]
+id: GO:0065007
+name: biological regulation
+namespace: biological_process
+def: "Any process that modulates a measurable attribute of any biological process, quality or function." [GOC:dph, GOC:isa_complete, GOC:mah, GOC:pr, GOC:vw]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "regulation" BROAD []
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0065009
+name: regulation of molecular function
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of a molecular function, an elemental biological activity occurring at the molecular level, such as catalysis or binding." [GOC:isa_complete]
+subset: gosubset_prok
+synonym: "regulation of a molecular function" EXACT []
+is_a: GO:0065007 ! biological regulation
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0003674 ! molecular_function
+relationship: regulates GO:0003674 ! molecular_function
+
+[Term]
+id: GO:0071704
+name: organic substance metabolic process
+namespace: biological_process
+def: "The chemical reactions and pathways involving an organic substance, any molecular entity containing carbon." [CHEBI:50860, GOC:mah]
+synonym: "organic molecular entity metabolic process" EXACT []
+synonym: "organic molecular entity metabolism" EXACT []
+synonym: "organic substance metabolism" EXACT []
+is_a: GO:0008152 ! metabolic process
+created_by: midori
+creation_date: 2010-03-08T03:32:18Z
+
+[Term]
+id: GO:0071822
+name: protein complex subunit organization
+namespace: biological_process
+def: "Any process in which macromolecules aggregate, disaggregate, or are modified, resulting in the formation, disassembly, or alteration of a protein complex." [GOC:mah]
+synonym: "protein complex subunit organisation" EXACT [GOC:mah]
+is_a: GO:0043933 ! macromolecular complex subunit organization
+created_by: midori
+creation_date: 2010-09-08T10:01:42Z
+
+[Term]
+id: GO:0071840
+name: cellular component organization or biogenesis
+namespace: biological_process
+alt_id: GO:0071841
+def: "A process that results in the biosynthesis of constituent macromolecules, assembly, arrangement of constituent parts, or disassembly of a cellular component." [GOC:mah]
+synonym: "cellular component organisation or biogenesis" EXACT [GOC:mah]
+synonym: "cellular component organisation or biogenesis at cellular level" EXACT [GOC:mah]
+synonym: "cellular component organization or biogenesis at cellular level" EXACT []
+is_a: GO:0008150 ! biological_process
+created_by: midori
+creation_date: 2010-09-10T01:39:16Z
+
+[Term]
+id: GO:0080090
+name: regulation of primary metabolic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of the chemical reactions and pathways within a cell or an organism involving those compounds formed as a part of the normal anabolic and catabolic processes. These processes take place in most, if not all, cells of the organism." [PMID:19211694]
+is_a: GO:0019222 ! regulation of metabolic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0044238 ! primary metabolic process
+relationship: regulates GO:0044238 ! primary metabolic process
+created_by: donghui
+creation_date: 2009-04-22T04:30:52Z
+
+[Term]
+id: GO:1901576
+name: organic substance biosynthetic process
+namespace: biological_process
+def: "The chemical reactions and pathways resulting in the formation of an organic substance, any molecular entity containing carbon." [GOC:pr, GOC:TermGenie]
+synonym: "organic molecular entity anabolism" EXACT [GOC:TermGenie]
+synonym: "organic molecular entity biosynthesis" EXACT [GOC:TermGenie]
+synonym: "organic molecular entity biosynthetic process" EXACT []
+synonym: "organic molecular entity formation" EXACT [GOC:TermGenie]
+synonym: "organic molecular entity synthesis" EXACT [GOC:TermGenie]
+synonym: "organic substance anabolism" EXACT []
+synonym: "organic substance biosynthesis" EXACT []
+synonym: "organic substance formation" EXACT []
+synonym: "organic substance synthesis" EXACT []
+is_a: GO:0009058 ! biosynthetic process
+is_a: GO:0071704 ! organic substance metabolic process
+created_by: pr
+creation_date: 2012-11-05T11:04:40Z
+
+[Term]
+id: GO:2000112
+name: regulation of cellular macromolecule biosynthetic process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of cellular macromolecule biosynthetic process." [GOC:obol]
+synonym: "regulation of cellular biopolymer biosynthetic process" EXACT [GOC:obol]
+synonym: "regulation of cellular macromolecule anabolism" EXACT [GOC:obol]
+synonym: "regulation of cellular macromolecule biosynthesis" EXACT [GOC:obol]
+synonym: "regulation of cellular macromolecule formation" EXACT [GOC:obol]
+synonym: "regulation of cellular macromolecule synthesis" EXACT [GOC:obol]
+is_a: GO:0010556 ! regulation of macromolecule biosynthetic process
+is_a: GO:0031326 ! regulation of cellular biosynthetic process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0034645 ! cellular macromolecule biosynthetic process
+relationship: regulates GO:0034645 ! cellular macromolecule biosynthetic process
+created_by: tanyaberardini
+creation_date: 2010-09-15T08:55:45Z
+
+[Typedef]
+id: occurs_in
+name: occurs in
+namespace: gene_ontology
+xref: BFO:0000066
+transitive_over: part_of ! part_of
+
+[Typedef]
+id: part_of
+name: part_of
+namespace: gene_ontology
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_transitive: true
+
+[Typedef]
+id: regulates
+name: regulates
+namespace: gene_ontology
+xref: RO:0002211
+transitive_over: part_of ! part_of
+

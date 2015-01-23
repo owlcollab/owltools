@@ -25,7 +25,7 @@ public class OWLGraphGOTest extends OWLToolsTestBasics {
 
     @BeforeClass
     public static void setUp() throws Exception {
-    	wrapper = getOntologyWrapper("go.owl");
+    	wrapper = getOntologyWrapper("go-module.obo");
     }
 	
 	/*

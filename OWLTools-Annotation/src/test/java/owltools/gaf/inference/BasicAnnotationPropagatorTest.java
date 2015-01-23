@@ -32,7 +32,7 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 	@Test
 	public void test1() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
-		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("rules/ontology/go.owl"));
+		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("rules/ontology/annotation-propagation-module.obo"));
 		ElkReasonerFactory f = new ElkReasonerFactory();
 		OWLReasoner reasoner = f.createReasoner(g.getSourceOntology());
 		

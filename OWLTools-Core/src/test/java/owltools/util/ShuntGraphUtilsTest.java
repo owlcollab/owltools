@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
@@ -20,10 +21,15 @@ import owltools.vocab.OBOUpperVocabulary;
 @SuppressWarnings("rawtypes")
 public class ShuntGraphUtilsTest extends OWLToolsTestBasics {
 
+	private static OWLGraphWrapper g = null;
+	
+	@BeforeClass
+	public static void beforeClass() throws Exception {
+		g = getGraph("go-saga-module.obo");
+	}
+
 	@Test
 	public void testSagaComplex() throws Exception {
-		final OWLGraphWrapper g = getGraph("go.owl");
-		
 		OWLObject focusObject = g.getOWLClassByIdentifier("GO:0000124"); // SAGA complex
 		Set<OWLPropertyExpression> props = new HashSet<OWLPropertyExpression>();
 		props.add(g.getOWLObjectProperty(OBOUpperVocabulary.BFO_part_of.getIRI()));
@@ -90,8 +96,6 @@ public class ShuntGraphUtilsTest extends OWLToolsTestBasics {
 
 	@Test
 	public void testSagaTypeComplexWithChildren() throws Exception {
-		final OWLGraphWrapper g = getGraph("go.owl");
-		
 		OWLObject focusObject = g.getOWLClassByIdentifier("GO:0070461"); // SAGA-type complex
 		Set<OWLPropertyExpression> props = new HashSet<OWLPropertyExpression>();
 		props.add(g.getOWLObjectProperty(OBOUpperVocabulary.BFO_part_of.getIRI()));
@@ -155,8 +159,6 @@ public class ShuntGraphUtilsTest extends OWLToolsTestBasics {
 	
 	@Test
 	public void testSagaTypeComplexWithoutChildren() throws Exception {
-		final OWLGraphWrapper g = getGraph("go.owl");
-		
 		OWLObject focusObject = g.getOWLClassByIdentifier("GO:0070461"); // SAGA-type complex
 		Set<OWLPropertyExpression> props = new HashSet<OWLPropertyExpression>();
 		props.add(g.getOWLObjectProperty(OBOUpperVocabulary.BFO_part_of.getIRI()));

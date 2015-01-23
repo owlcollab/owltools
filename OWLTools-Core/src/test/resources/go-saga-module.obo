@@ -1,0 +1,369 @@
+format-version: 1.2
+ontology: go-saga-module
+property_value: http://purl.org/dc/elements/1.1/source http://purl.obolibrary.org/obo/go/2012-05-16/go.owl
+
+[Term]
+id: GO:0000123
+name: histone acetyltransferase complex
+namespace: cellular_component
+def: "A protein complex that possesses histone acetyltransferase activity." [GOC:mah]
+comment: Note that this term represents a location, not a function; the activity possessed by this complex is mentioned in the definition for the purpose of describing and distinguishing the complex. The function of this complex is represented by the molecular function term 'histone acetyltransferase activity ; GO:0004402'.
+synonym: "histone acetylase complex" EXACT []
+is_a: GO:0043234 ! protein complex
+is_a: GO:0044451 ! nucleoplasm part
+
+[Term]
+id: GO:0000124
+name: SAGA complex
+namespace: cellular_component
+def: "A SAGA-type histone acetyltransferase complex that contains Spt8 (in budding yeast) or a homolog thereof; additional polypeptides include Spt group, consisting of Spt7, Spt3, and Spt20/Ada5, which interact with the TATA-binding protein (TBP); the Ada group, consisting of Ada1, Ada2, Ada3, Ada4/Gcn5, and Ada5/Spt20, which is functionally linked to the nucleosomal HAT activity; Tra1, an ATM/PI-3 kinase-related protein that targets DNA-bound activators for recruitment to promoters; the TBP-associated factor (TAF) proteins, consisting of Taf5, Taf6, Taf9, Taf10, and Taf12, which mediate nucleosomal HAT activity and are thought to help recruit the basal transcription machinery." [PMID:10637607, PMID:17337012]
+synonym: "Spt-Ada-Gcn5-acetyltransferase complex" EXACT []
+is_a: GO:0016585 ! chromatin remodeling complex
+is_a: GO:0070461 ! SAGA-type complex
+relationship: has_part GO:0071819 ! DUBm complex
+
+[Term]
+id: GO:0000125
+name: PCAF complex
+namespace: cellular_component
+def: "A large multiprotein complex that possesses histone acetyltransferase activity and is involved in regulation of transcription. The composition is similar to that of the SAGA complex, but includes fewer Spt and Ada proteins, and more TAFs." [PMID:10637607]
+comment: See also the cellular component term 'SAGA complex ; GO:0000124'.
+synonym: "PCAF histone acetylase-associated complex" EXACT []
+synonym: "SPT3-TAF9-PCAF acetylase complex" EXACT [GOC:rl, PMID:18838386]
+is_a: GO:0070461 ! SAGA-type complex
+
+[Term]
+id: GO:0005575
+name: cellular_component
+namespace: cellular_component
+alt_id: GO:0008372
+def: "The part of a cell or its extracellular environment in which a gene product is located. A gene product may be located in one or more parts of a cell and its location may be as specific as a particular macromolecular complex, that is, a stable, persistent association of macromolecules that function together." [GOC:go_curators]
+comment: Note that, in addition to forming the root of the cellular component ontology, this term is recommended for use for the annotation of gene products whose cellular component is unknown. Note that when this term is used for annotation, it indicates that no information was available about the cellular component of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "cellular component" EXACT []
+synonym: "cellular component unknown" NARROW []
+xref: NIF_Subcellular:sao1337158144
+
+[Term]
+id: GO:0005622
+name: intracellular
+namespace: cellular_component
+def: "The living contents of a cell; the matter contained within (but not including) the plasma membrane, usually taken to exclude large vacuoles and masses of secretory or ingested material. In eukaryotes it includes the nucleus and cytoplasm." [ISBN:0198506732]
+subset: goslim_generic
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "internal to cell" EXACT []
+synonym: "nucleocytoplasm" RELATED [GOC:mah]
+synonym: "protoplasm" EXACT []
+synonym: "protoplast" RELATED [GOC:mah]
+xref: Wikipedia:Intracellular
+is_a: GO:0044464 ! cell part
+
+[Term]
+id: GO:0005623
+name: cell
+namespace: cellular_component
+def: "The basic structural and functional unit of all organisms. Includes the plasma membrane and any external encapsulating structures such as the cell wall and cell envelope." [GOC:go_curators]
+subset: goslim_generic
+subset: goslim_plant
+subset: gosubset_prok
+xref: NIF_Subcellular:sao1813327414
+xref: Wikipedia:Cell_(biology)
+is_a: GO:0005575 ! cellular_component
+
+[Term]
+id: GO:0005634
+name: nucleus
+namespace: cellular_component
+def: "A membrane-bounded organelle of eukaryotic cells in which chromosomes are housed and replicated. In most cells, the nucleus contains all of the cell's chromosomes except the organellar chromosomes, and is the site of RNA synthesis and processing. In some species, or in specialized cell types, RNA metabolism or DNA replication may be absent." [GOC:go_curators]
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_yeast
+synonym: "cell nucleus" EXACT []
+xref: NIF_Subcellular:sao1702920020
+xref: Wikipedia:Cell_nucleus
+is_a: GO:0043231 ! intracellular membrane-bounded organelle
+
+[Term]
+id: GO:0005654
+name: nucleoplasm
+namespace: cellular_component
+def: "That part of the nuclear content other than the chromosomes or the nucleolus." [GOC:ma, ISBN:0124325653]
+subset: goslim_generic
+subset: goslim_plant
+xref: NIF_Subcellular:sao661522542
+xref: Wikipedia:Nucleoplasm
+is_a: GO:0044428 ! nuclear part
+relationship: part_of GO:0031981 ! nuclear lumen
+
+[Term]
+id: GO:0005667
+name: transcription factor complex
+namespace: cellular_component
+def: "A protein complex, distinct from RNA polymerase, that associates with DNA at promoters or at cis-acting regulatory sequences, by direct binding or by interaction with other DNA-binding polypeptides or complexes, and regulates transcription." [GOC:mah]
+subset: goslim_metagenomics
+subset: goslim_pir
+is_a: GO:0043234 ! protein complex
+is_a: GO:0044451 ! nucleoplasm part
+
+[Term]
+id: GO:0016585
+name: chromatin remodeling complex
+namespace: cellular_component
+alt_id: GO:0005679
+def: "Any complex that mediates dynamic changes in eukaryotic chromatin." [GOC:mah]
+subset: goslim_pir
+synonym: "chromatin remodelling complex" EXACT []
+synonym: "nucleosome remodeling complex" EXACT []
+is_a: GO:0043234 ! protein complex
+is_a: GO:0044428 ! nuclear part
+
+[Term]
+id: GO:0016591
+name: DNA-directed RNA polymerase II, holoenzyme
+namespace: cellular_component
+def: "Large protein complex composed of the RNA polymerase core complex and a variety of other proteins including transcription factor complexes TFIIA, D, E, F, and H which are required for promoter recognition, and the Mediator subcomplex. Catalyzes the synthesis of eukaryotic pre-mRNA." [GOC:jl, PMID:15196470, Wikipedia:Rna_polymerase_ii]
+subset: goslim_pir
+is_a: GO:0043234 ! protein complex
+is_a: GO:0044451 ! nucleoplasm part
+
+[Term]
+id: GO:0030914
+name: STAGA complex
+namespace: cellular_component
+def: "A large multiprotein complex that possesses histone acetyltransferase and is involved in regulation of transcription. The composition is similar to that of the SAGA complex; for example, the human complex contains the transcription-transformation cofactor TRRAP, hGCN5L acetylase, novel human ADA-like and SPT-like cofactors, and a subset of TAFs." [PMID:11564863]
+comment: See also the cellular component term 'SAGA complex ; GO:0000124'.
+synonym: "SPT3-TAF9-GCN5 acetylase complex" EXACT [GOC:rl, PMID:18838386]
+synonym: "STAGA coactivator complex" EXACT []
+is_a: GO:0070461 ! SAGA-type complex
+
+[Term]
+id: GO:0031974
+name: membrane-enclosed lumen
+namespace: cellular_component
+def: "The enclosed volume within a sealed membrane or between two sealed membranes. Encompasses the volume enclosed by the membranes of a particular organelle, e.g. endoplasmic reticulum lumen, or the space between the two lipid bilayers of a double membrane surrounding an organelle, e.g. nuclear envelope lumen." [GOC:add, GOC:mah]
+is_a: GO:0005575 ! cellular_component
+
+[Term]
+id: GO:0031981
+name: nuclear lumen
+namespace: cellular_component
+def: "The volume enclosed by the nuclear inner membrane." [GOC:mah, GOC:pz]
+is_a: GO:0044428 ! nuclear part
+is_a: GO:0070013 ! intracellular organelle lumen
+
+[Term]
+id: GO:0032991
+name: macromolecular complex
+namespace: cellular_component
+def: "A stable assembly of two or more macromolecules, i.e. proteins, nucleic acids, carbohydrates or lipids, in which the constituent parts function together." [GOC:mah]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "macromolecule complex" EXACT []
+is_a: GO:0005575 ! cellular_component
+
+[Term]
+id: GO:0033276
+name: transcription factor TFTC complex
+namespace: cellular_component
+def: "A protein complex that does not contain either a TATA-binding protein (TBP) or a TBP-like factor, but is composed of several TAFIIs and other proteins, including a histone acetyltransferase. This complex is able to nucleate transcription initiation by RNA polymerase II, can mediate transcriptional activation, and has histone acetyltransferase activity." [PMID:10373431, PMID:9603525]
+is_a: GO:0005667 ! transcription factor complex
+is_a: GO:0070461 ! SAGA-type complex
+relationship: part_of GO:0016591 ! DNA-directed RNA polymerase II, holoenzyme
+
+[Term]
+id: GO:0043226
+name: organelle
+namespace: cellular_component
+def: "Organized structure of distinctive morphology and function. Includes the nucleus, mitochondria, plastids, vacuoles, vesicles, ribosomes and the cytoskeleton, and prokaryotic structures such as anammoxosomes and pirellulosomes. Excludes the plasma membrane." [GOC:go_curators]
+subset: goslim_generic
+subset: goslim_pir
+subset: gosubset_prok
+xref: NIF_Subcellular:sao1539965131
+xref: Wikipedia:Organelle
+is_a: GO:0005575 ! cellular_component
+
+[Term]
+id: GO:0043227
+name: membrane-bounded organelle
+namespace: cellular_component
+def: "Organized structure of distinctive morphology and function, bounded by a single or double lipid bilayer membrane. Includes the nucleus, mitochondria, plastids, vacuoles, and vesicles. Excludes the plasma membrane." [GOC:go_curators]
+subset: gosubset_prok
+synonym: "membrane-enclosed organelle" EXACT []
+xref: NIF_Subcellular:sao414196390
+is_a: GO:0043226 ! organelle
+
+[Term]
+id: GO:0043229
+name: intracellular organelle
+namespace: cellular_component
+def: "Organized structure of distinctive morphology and function, occurring within the cell. Includes the nucleus, mitochondria, plastids, vacuoles, vesicles, ribosomes and the cytoskeleton. Excludes the plasma membrane." [GOC:go_curators]
+subset: goslim_pir
+subset: gosubset_prok
+is_a: GO:0043226 ! organelle
+is_a: GO:0044424 ! intracellular part
+
+[Term]
+id: GO:0043231
+name: intracellular membrane-bounded organelle
+namespace: cellular_component
+def: "Organized structure of distinctive morphology and function, bounded by a single or double lipid bilayer membrane and occurring within the cell. Includes the nucleus, mitochondria, plastids, vacuoles, and vesicles. Excludes the plasma membrane." [GOC:go_curators]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "intracellular membrane-enclosed organelle" EXACT []
+is_a: GO:0043227 ! membrane-bounded organelle
+is_a: GO:0043229 ! intracellular organelle
+
+[Term]
+id: GO:0043233
+name: organelle lumen
+namespace: cellular_component
+def: "The internal volume enclosed by the membranes of a particular organelle; includes the volume enclosed by a single organelle membrane, e.g. endoplasmic reticulum lumen, or the volume enclosed by the innermost of the two lipid bilayers of an organelle envelope, e.g. nuclear lumen." [GOC:jl, GOC:mah]
+is_a: GO:0031974 ! membrane-enclosed lumen
+is_a: GO:0044422 ! organelle part
+
+[Term]
+id: GO:0043234
+name: protein complex
+namespace: cellular_component
+def: "Any macromolecular complex composed of two or more polypeptide subunits, which may or may not be identical. Protein complexes may have other associated non-protein prosthetic groups, such as nucleotides, metal ions or other small molecules." [GOC:go_curators]
+subset: goslim_generic
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "protein-protein complex" EXACT []
+xref: Wikipedia:Protein_complex
+is_a: GO:0032991 ! macromolecular complex
+
+[Term]
+id: GO:0044422
+name: organelle part
+namespace: cellular_component
+def: "Any constituent part of an organelle, an organized structure of distinctive morphology and function. Includes constituent parts of the nucleus, mitochondria, plastids, vacuoles, vesicles, ribosomes and the cytoskeleton, but excludes the plasma membrane." [GOC:jl]
+subset: gosubset_prok
+is_a: GO:0005575 ! cellular_component
+intersection_of: GO:0005575 ! cellular_component
+intersection_of: part_of GO:0043226 ! organelle
+relationship: part_of GO:0043226 ! organelle
+
+[Term]
+id: GO:0044424
+name: intracellular part
+namespace: cellular_component
+def: "Any constituent part of the living contents of a cell; the matter contained within (but not including) the plasma membrane, usually taken to exclude large vacuoles and masses of secretory or ingested material. In eukaryotes it includes the nucleus and cytoplasm." [GOC:jl]
+subset: gosubset_prok
+is_a: GO:0044464 ! cell part
+intersection_of: GO:0005575 ! cellular_component
+intersection_of: part_of GO:0005622 ! intracellular
+relationship: part_of GO:0005622 ! intracellular
+
+[Term]
+id: GO:0044428
+name: nuclear part
+namespace: cellular_component
+def: "Any constituent part of the nucleus, a membrane-bounded organelle of eukaryotic cells in which chromosomes are housed and replicated." [GOC:jl]
+synonym: "nucleus component" EXACT []
+is_a: GO:0044446 ! intracellular organelle part
+intersection_of: GO:0005575 ! cellular_component
+intersection_of: part_of GO:0005634 ! nucleus
+relationship: part_of GO:0005634 ! nucleus
+
+[Term]
+id: GO:0044446
+name: intracellular organelle part
+namespace: cellular_component
+def: "A constituent part of an intracellular organelle, an organized structure of distinctive morphology and function, occurring within the cell. Includes constituent parts of the nucleus, mitochondria, plastids, vacuoles, vesicles, ribosomes and the cytoskeleton but excludes the plasma membrane." [GOC:jl]
+subset: gosubset_prok
+is_a: GO:0044422 ! organelle part
+is_a: GO:0044424 ! intracellular part
+relationship: part_of GO:0043229 ! intracellular organelle
+
+[Term]
+id: GO:0044451
+name: nucleoplasm part
+namespace: cellular_component
+def: "Any constituent part of the nucleoplasm, that part of the nuclear content other than the chromosomes or the nucleolus." [GOC:jl]
+is_a: GO:0044428 ! nuclear part
+intersection_of: GO:0005575 ! cellular_component
+intersection_of: part_of GO:0005654 ! nucleoplasm
+relationship: part_of GO:0005654 ! nucleoplasm
+
+[Term]
+id: GO:0044464
+name: cell part
+namespace: cellular_component
+def: "Any constituent part of a cell, the basic structural and functional unit of all organisms." [GOC:jl]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "protoplast" RELATED [GOC:mah]
+is_a: GO:0005575 ! cellular_component
+intersection_of: GO:0005575 ! cellular_component
+intersection_of: part_of GO:0005623 ! cell
+relationship: part_of GO:0005623 ! cell
+
+[Term]
+id: GO:0046695
+name: SLIK (SAGA-like) complex
+namespace: cellular_component
+def: "A SAGA-type histone acetyltransferase complex that contains Rtg2 and a smaller form of Spt7 than the fungal SAGA complex, and lacks Spt8. The complex is involved in the yeast retrograde response pathway, which is important for gene expression changes during mitochondrial dysfunction." [PMID:12101232, PMID:12186975, PMID:17337012]
+comment: See also the cellular component term 'SAGA complex ; GO:0000124'.
+synonym: "SAGA (alt) complex" EXACT []
+synonym: "SALSA complex" EXACT []
+synonym: "SLIK/SALSA complex" EXACT []
+is_a: GO:0070461 ! SAGA-type complex
+relationship: has_part GO:0071819 ! DUBm complex
+
+[Term]
+id: GO:0070013
+name: intracellular organelle lumen
+namespace: cellular_component
+def: "An organelle lumen that is part of an intracellular organelle." [GOC:mah]
+is_a: GO:0043233 ! organelle lumen
+is_a: GO:0044446 ! intracellular organelle part
+
+[Term]
+id: GO:0070461
+name: SAGA-type complex
+namespace: cellular_component
+def: "A histone acetyltransferase complex that acetylates nucleosomal H3 and H2B and is required for the expression of a subset of Pol II-transcribed genes. The budding yeast complex includes the acetyltransferase Gcn5p, several proteins of the Spt and Ada families, and several TBP-associate proteins (TAFs); analogous complexes in other species have analogous compositions, and usually contain homologs of the yeast proteins." [GOC:mah, PMID:10637607, PMID:17337012]
+synonym: "SAGA family complex" EXACT [PMID:17337012]
+is_a: GO:0000123 ! histone acetyltransferase complex
+
+[Term]
+id: GO:0071819
+name: DUBm complex
+namespace: cellular_component
+def: "A protein complex that forms part of SAGA-type complexes SAGA and SLIK, and mediates deubiquitination of histone H2B. In S. cerevisiae, the DUBm consists of the proteins Ubp8p, Sgf11p, Sus1p, and Sgf73p." [PMID:19226466, PMID:20395473]
+synonym: "deubiquitinating module" EXACT [GOC:jp, PMID:20395473]
+synonym: "deubiquitination module" EXACT [PMID:19226466]
+synonym: "SAGA DUBm complex" NARROW [GOC:jp]
+is_a: GO:0043234 ! protein complex
+is_a: GO:0044451 ! nucleoplasm part
+created_by: midori
+creation_date: 2010-09-07T11:19:28Z
+
+[Typedef]
+id: has_part
+name: has_part
+xref: BFO:0000051
+xref: OBO_REL:has_part
+is_transitive: true
+
+[Typedef]
+id: part_of
+name: part_of
+xref: BFO:0000050
+xref: OBO_REL:part_of
+is_transitive: true
+
