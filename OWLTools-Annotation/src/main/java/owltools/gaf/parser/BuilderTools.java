@@ -1,18 +1,13 @@
 package owltools.gaf.parser;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.TaxonTools;
+
+import java.util.*;
 
 public class BuilderTools {
 
@@ -292,11 +287,23 @@ public class BuilderTools {
 			}
 			sb.append("contributes_to");
 		}
+		if (ann.isColocatesWith()) {
+			if (sb.length() > 0) {
+				sb.append('|');
+			}
+			sb.append("colocates_with");
+		}
 		if (ann.isIntegralTo()) {
 			if (sb.length() > 0) {
 				sb.append('|');
 			}
 			sb.append("integral_to");
+		}
+		if (ann.isCut()) {
+			if (sb.length() > 0) {
+				sb.append('|');
+			}
+			sb.append("CUT");
 		}
 		return sb.toString();
 	}
@@ -313,13 +320,19 @@ public class BuilderTools {
 		if (ann.isContributesTo()) {
 			qualifiers.add("contributes_to");
 		}
+		if (ann.isColocatesWith()) {
+			qualifiers.add("colocates_with");
+		}
 		if (ann.isIntegralTo()) {
 			qualifiers.add("integral_to");
+		}
+		if (ann.isCut()) {
+			qualifiers.add("CUT");
 		}
 		if (qualifiers.isEmpty()) {
 			return null;	
 		}
-		return StringUtils.join(qualifiers, '|');
+	return StringUtils.join(qualifiers, '|');
 	}
 	
 	public static String buildReferenceIdsString(List<String> referenceIds) {

@@ -1,12 +1,11 @@
 package owltools.gaf.parser;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import owltools.gaf.parser.AbstractAnnotationFileParser.ReadState;
+
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -16,12 +15,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-
-import owltools.gaf.parser.AbstractAnnotationFileParser.ReadState;
 
 /**
  * 
@@ -291,14 +284,15 @@ public class GAFParser {
 		
 		InputStream is = null;
 		
-		if(file.startsWith("http://")){
+		if(file.startsWith("http://")) {
 			URL url = new URL(file);
 			is = url.openStream();
 			LOG.info("Open stream as URL");
-		}else if(file.startsWith("file:/")){
+		} else if(file.startsWith("file:/")) {
 			is = new FileInputStream(new File(new URI(file)));
 			LOG.info("Open stream as file URI");
-		}else{
+		} else {
+
 			is = new FileInputStream(file);
 			LOG.info("Open stream as file");
 		}

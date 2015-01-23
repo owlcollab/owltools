@@ -1,6 +1,7 @@
 package owltools.gaf;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +40,8 @@ public class Bioentity{
 
 	private boolean is_leaf = true;
 	private boolean pruned;
+
+	private static Logger log = Logger.getLogger(Bioentity.class);
 
 	// --Commented out by Inspection (12/9/14, 9:32 AM):private static final String NODE_TYPE_DUPLICATION="1>0";
 
@@ -358,11 +361,9 @@ public class Bioentity{
 		}
 	}
 
-// --Commented out by Inspection START (12/9/14, 9:32 AM):
-//	public String getSpeciesLabel() {
-//		return (species_label == null ? "" : species_label);
-//	}
-// --Commented out by Inspection STOP (12/9/14, 9:32 AM)
+	public String getSpeciesLabel() {
+		return (species_label == null ? "" : species_label);
+	}
 
 	public void addSpeciesLabel(String species) {
 		species.trim();
@@ -380,10 +381,10 @@ public class Bioentity{
 	}
 
 	public void addAnnotation(GeneAnnotation assoc) {
-		if (annotations == null) {
-			annotations = new ArrayList<GeneAnnotation>();
+		if (annotations == null) annotations = new ArrayList<GeneAnnotation>();
+		if (!annotations.add(assoc)) {
+			log.info ("Unable to add annotation");
 		}
-		annotations.add(assoc);
 	}
 	
 	public List<Pair<String, String>> getProperties() {

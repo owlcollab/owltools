@@ -427,6 +427,10 @@ public class GeneAnnotation {
 		this.qualifier_flags = qualifiers;
 	}
 
+	public int getQualifiers() {
+		return qualifier_flags;
+	}
+
 	public boolean isMRC() {
 		return is_MRC;
 	}
