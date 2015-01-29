@@ -57,6 +57,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.bbop</groupId>
+			<artifactId>golr-client</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 			<version>7.5.4.v20111024</version>
@@ -74,7 +79,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.2.5</version>
+			<version>4.3.6</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
