@@ -3,14 +3,28 @@ package org.bbop.golr.java;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.bbop.golr.java.RetrieveGolrAnnotations.GolrAnnotationExtension.GolrAnnotationExtensionEntry.GolrAnnotationExtensionRelation;
+
 import owltools.gaf.Bioentity;
+import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 public class RetrieveGolrAnnotations {
@@ -26,9 +40,14 @@ public class RetrieveGolrAnnotations {
 		this.server = server;
 	}
 	
-	public GafDocument convert(List<GolrAnnotationDocument> golrAnnotationDocuments) {
+	public GafDocument convert(List<GolrAnnotationDocument> golrAnnotationDocuments) throws IOException {
 		Map<String, Bioentity> entities = new HashMap<String, Bioentity>();
 		GafDocument document = new GafDocument(null, null);
+		convert(golrAnnotationDocuments, entities, document);
+		return document;
+	}
+	
+	public void convert(List<GolrAnnotationDocument> golrAnnotationDocuments, Map<String, Bioentity> entities, GafDocument document) throws IOException {
 		for (GolrAnnotationDocument golrDocument : golrAnnotationDocuments) {
 			String bioentityId = golrDocument.bioentity;
 			Bioentity entity = entities.get(bioentityId);
@@ -59,9 +78,51 @@ public class RetrieveGolrAnnotations {
 			if (golrDocument.evidence_with != null) {
 				annotation.setWithInfos(golrDocument.evidence_with);
 			}
+			handleAnnotationExtension(annotation, golrDocument);
 			document.addGeneAnnotation(annotation);
 		}
-		return document;
+	}
+	
+	protected void handleAnnotationExtension(GeneAnnotation annotation, GolrAnnotationDocument document) throws IOException {
+		if (document.annotation_extension_json != null && 
+				document.annotation_extension_json.isEmpty() == false){
+			List<List<ExtensionExpression>> expressions = annotation.getExtensionExpressions();
+			if (expressions == null) {
+				expressions = new ArrayList<List<ExtensionExpression>>(document.annotation_extension_json.size());
+			}
+			for(String json : document.annotation_extension_json) {
+				try {
+					GolrAnnotationExtension extension = GSON.fromJson(json, GolrAnnotationExtension.class);
+					if (extension != null && extension.relationship != null) {
+						// WARNING the Golr c16 model is lossy! There is no distinction between disjunction and conjunction in Golr-c16
+						// add all as disjunction
+						String relation = extractRelation(extension);
+						if (relation != null) {
+							ExtensionExpression ee = new ExtensionExpression(relation, extension.relationship.id);
+							expressions.add(Collections.singletonList(ee));
+						}
+					}
+					
+				} catch (JsonSyntaxException e) {
+					throw new IOException("Could not parse annotation extension: "+json, e);
+				}
+			}
+			annotation.setExtensionExpressions(expressions);
+		};
+	}
+	
+	private String extractRelation(GolrAnnotationExtension extension) {
+		StringBuilder sb = new StringBuilder();
+		for(GolrAnnotationExtensionRelation rel : extension.relationship.relation) {
+			if (sb.length() > 0) {
+				sb.append(" o ");
+			}
+			sb.append(rel.id);
+		}
+		if (sb.length() > 0) {
+			return sb.toString();
+		}
+		return null;
 	}
 
 	public List<GolrAnnotationDocument> getGolrAnnotationsForGene(String id) throws IOException {
@@ -92,8 +153,8 @@ public class RetrieveGolrAnnotations {
 	
 	public List<GolrAnnotationDocument> getGolrAnnotations(List<String []> tagvalues) throws IOException {
 		JSON_INDENT_FLAG = true;
-		final String url = createGolrString(tagvalues, "annotation", 0, PAGINATION_CHUNK_SIZE);
-		final String jsonString = getJsonStringFromUrl(url);
+		final URI uri = createGolrRequest(tagvalues, "annotation", 0, PAGINATION_CHUNK_SIZE);
+		final String jsonString = getJsonStringFromUri(uri);
 		final GolrResponse response = parseGolrResponse(jsonString);
 		final List<GolrAnnotationDocument> documents = new ArrayList<GolrAnnotationDocument>(response.numFound);
 		documents.addAll(Arrays.asList(response.docs));
@@ -106,8 +167,8 @@ public class RetrieveGolrAnnotations {
 			}
 			end = end * PAGINATION_CHUNK_SIZE;
 			while (start <= end) {
-				String urlPagination = createGolrString(tagvalues, "annotation", start, PAGINATION_CHUNK_SIZE);
-				String jsonStringPagination = getJsonStringFromUrl(urlPagination);
+				URI uriPagination = createGolrRequest(tagvalues, "annotation", start, PAGINATION_CHUNK_SIZE);
+				String jsonStringPagination = getJsonStringFromUri(uriPagination);
 				GolrResponse responsePagination = parseGolrResponse(jsonStringPagination);
 				documents.addAll(Arrays.asList(responsePagination.docs));
 				start += PAGINATION_CHUNK_SIZE;
@@ -116,33 +177,76 @@ public class RetrieveGolrAnnotations {
 		return documents;
 	}
 	
-	String createGolrString(List<String []> tagvalues, String category, int start, int pagination) {
-		StringBuilder sb = new StringBuilder(server);
-		sb.append("/select?defType=edismax&qt=standard&wt=json");
-		if (JSON_INDENT_FLAG) {
-			sb.append("&indent=on");
+	URI createGolrRequest(List<String []> tagvalues, String category, int start, int pagination) throws IOException {
+		try {
+			URIBuilder builder = new URIBuilder(server);
+			builder.setPath("/select");
+			builder.addParameter("defType", "edismax");
+			builder.addParameter("qt", "standard");
+			builder.addParameter("wt", "json");
+			if (JSON_INDENT_FLAG) {
+				builder.addParameter("indent","on");
+			}
+			builder.addParameter("fl","*,score");
+			builder.addParameter("facet","false");
+			builder.addParameter("json.nl","arrarr");
+			builder.addParameter("q","*:*");
+			builder.addParameter("rows", Integer.toString(pagination));
+			builder.addParameter("start", Integer.toString(start));
+			builder.addParameter("fq", "document_category:\""+category+"\"");
+			for (String [] tagvalue : tagvalues) {
+				if (tagvalue.length == 2) {
+					builder.addParameter("fq", tagvalue[0]+":\""+tagvalue[1]+"\"");
+				}
+				else if (tagvalue.length > 2) {
+					// if there is more than one value, assume that this is an OR query
+					StringBuilder value = new StringBuilder();
+					value.append(tagvalue[0]).append(":(");
+					for (int i = 1; i < tagvalue.length; i++) {
+						if (i > 1) {
+							value.append(" OR ");
+						}
+						value.append('"').append(tagvalue[i]).append('"');
+					}
+					value.append(')');
+					builder.addParameter("fq", value.toString());
+				}
+			}
+			return builder.build();
+		} catch (URISyntaxException e) {
+			throw new IOException("Could not build URI for Golr request", e);
 		}
-		sb.append("&fl=*,score");
-		sb.append("&facet=false");
-		sb.append("&json.nl=arrarr");
-		sb.append("&q=*:*");
-		sb.append("&rows=").append(pagination);
-		sb.append("&start=").append(start);
-		sb.append("&fq=document_category:\"").append(category).append("\"");
-		for (String [] tagvalue : tagvalues) {
-			sb.append("&fq=").append(tagvalue[0]).append(":\"").append(tagvalue[1]).append("\"");
-		}
-		return sb.toString();
 	}
 	
-	protected String getJsonStringFromUrl(String urlString) throws IOException {
+	protected String getJsonStringFromUri(URI uri) throws IOException {
+		logRequest(uri);
+		HttpGet get = new HttpGet(uri);
+		CloseableHttpClient httpclient = null;
+		CloseableHttpResponse response = null;
 		try {
-			URL url = new URL(urlString);
-			String content = IOUtils.toString(url.openStream());
-			return content;
-		} catch (MalformedURLException e) {
-			throw new IOException(e);
+			httpclient = HttpClients.createDefault();
+			response = httpclient.execute(get);
+		    StatusLine statusLine = response.getStatusLine();
+	        if (statusLine.getStatusCode() > 200) {
+	            throw new HttpResponseException(
+	                    statusLine.getStatusCode(),
+	                    statusLine.getReasonPhrase());
+	        }
+	        HttpEntity entity = response.getEntity();
+		    if (entity != null) {
+		    	String content = EntityUtils.toString(entity);
+		        return content;
+		    }
+		    throw new ClientProtocolException("Response contains no content");
+		} finally {
+		    IOUtils.closeQuietly(response);
+		    IOUtils.closeQuietly(httpclient);
 		}
+	}
+	
+	protected void logRequest(URI uri) {
+		// do nothing
+		// hook to implement logging of requests
 	}
 	
 	static class GolrEnvelope {
@@ -180,9 +284,26 @@ public class RetrieveGolrAnnotations {
 		String bioentity_isoform;
 		String panther_family;
 		String panther_family_label;
+		List<String> annotation_extension_json;
 		List<String> synonym;
 		List<String> evidence_with;
 		List<String> reference;
+	}
+
+	public static class GolrAnnotationExtension {
+		
+		GolrAnnotationExtensionEntry relationship;
+		
+		public static class GolrAnnotationExtensionEntry {
+			List<GolrAnnotationExtensionRelation> relation; // list represents a property chain
+			String id;
+			String label;
+			
+			public static class GolrAnnotationExtensionRelation {
+				String id;
+				String label;
+			}
+		}
 	}
 
 	protected GolrResponse parseGolrResponse(String response) throws IOException {

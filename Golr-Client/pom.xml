@@ -31,5 +31,10 @@
 			<artifactId>OWLTools-Annotation</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.3.6</version>
+		</dependency>
 	</dependencies>
 </project>
