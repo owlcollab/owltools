@@ -304,6 +304,22 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		}
 		deleteIndividual(modelId, model, i, true, metadata);
 	}
+	/**
+	 * Deletes an individual
+	 * 
+	 * @param modelId
+	 * @param iid
+	 * @param metadata
+	 * @throws UnknownIdentifierException
+	 */
+	public void deleteIndividualNonReasoning(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		deleteIndividual(modelId, model, i, false, metadata);
+	}
 	
 	public void addAnnotations(String modelId, Collection<Pair<String, String>> pairs, METADATA metadata)
 			throws UnknownIdentifierException {
