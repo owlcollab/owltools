@@ -10,8 +10,10 @@ import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -21,7 +23,6 @@ import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
-import owltools.reasoner.ExpressionMaterializingReasoner;
 
 /**
  * Test case for owltools bug https://code.google.com/p/owltools/issues/detail?id=105
@@ -53,7 +54,7 @@ public class TransitivityGraphTest {
 				"RO:0002215", "RO:0002216");
 		Set<OWLObjectProperty> props = graph.relationshipIDsToPropertySet(propIds);
 		
-		ExpressionMaterializingReasoner r = new ExpressionMaterializingReasoner(graph.getSourceOntology());
+		ExpressionMaterializingReasoner r = new ExpressionMaterializingReasoner(graph.getSourceOntology(), new ElkReasonerFactory());
 		Logger.getLogger(ExpressionMaterializingReasoner.class).setLevel(Level.ERROR);
 		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
 		r.materializeExpressions(props);

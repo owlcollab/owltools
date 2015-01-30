@@ -3,21 +3,17 @@ package owltools.io;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.geneontology.reasoner.OWLExtendedReasoner;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLNamedObject;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.reasoner.ExpressionMaterializingReasoner;
-import owltools.reasoner.OWLExtendedReasoner;
 
 /**
  

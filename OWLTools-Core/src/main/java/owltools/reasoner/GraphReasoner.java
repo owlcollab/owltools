@@ -4,6 +4,7 @@ package owltools.reasoner;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.geneontology.reasoner.OWLExtendedReasoner;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;

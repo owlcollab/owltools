@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import java.util.Set;
 
+import org.geneontology.reasoner.ExpressionMaterializingReasoner;
+import org.geneontology.reasoner.OWLExtendedReasoner;
 import org.junit.Test;
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -16,7 +18,6 @@ import org.semanticweb.owlapi.reasoner.BufferingMode;
 import org.semanticweb.owlapi.reasoner.ClassExpressionNotInProfileException;
 import org.semanticweb.owlapi.reasoner.FreshEntitiesException;
 import org.semanticweb.owlapi.reasoner.InconsistentOntologyException;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.ReasonerInterruptedException;
 import org.semanticweb.owlapi.reasoner.TimeOutException;
 

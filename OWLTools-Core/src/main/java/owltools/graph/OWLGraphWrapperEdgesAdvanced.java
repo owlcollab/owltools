@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.geneontology.reasoner.ExpressionMaterializingReasoner;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
@@ -25,14 +27,13 @@ import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLPropertyExpressionVisitor;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
 import owltools.graph.shunt.OWLShuntNode;
-import owltools.reasoner.ExpressionMaterializingReasoner;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
  * @see OWLGraphWrapper
@@ -94,7 +95,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	
 	private synchronized ExpressionMaterializingReasoner getMaterializingReasoner() {
 		if (reasoner == null) {
-			reasoner = new ExpressionMaterializingReasoner(getSourceOntology());
+			reasoner = new ExpressionMaterializingReasoner(getSourceOntology(), new ElkReasonerFactory());
 			reasoner.materializeExpressions(materializationPropertySet);
 			isSynchronized = true;
 		}
