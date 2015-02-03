@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>OWLTools-Parent</artifactId>
 		<groupId>org.bbop</groupId>
-		<version>0.2.1-SNAPSHOT</version>
+		<version>0.2.1</version>
 		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
 	</parent>
 
