@@ -10,7 +10,8 @@
 	<description>OWLTools (aka OWL2LS - OWL2 Life Sciences) is convenience java API on top of the OWL API.</description>
 	<inceptionYear>2010</inceptionYear>
 	<scm>
-		<url>https://owltools.googlecode.com/svn/trunk/</url>
+		<url>https://github.com/owlcollab/owltools</url>
+		<connection>scm:git:git://github.com/owlcollab/owltools</connection>
 	</scm>
 	<issueManagement>
 		<url>http://code.google.com/p/owltools/issues/list</url>
