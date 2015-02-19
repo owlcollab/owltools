@@ -1020,11 +1020,11 @@ sub get_ont_info {
          },
          ddanat => {
              method => 'obo2owl',
-             source_url => 'http://dictybase.org/db/cgi-bin/dictyBase/download/download.pl?area=pheno_ontology&ID=dicty_anatomy.obo',
+             source_url => 'https://raw.githubusercontent.com/dictyBase/migration-data/master/ontologies/dicty_anatomy.obo'
          },
          ddpheno => {
              method => 'obo2owl',
-             source_url => 'http://dictybase.org/db/cgi-bin/dictyBase/download/download.pl?area=pheno_ontology&ID=dicty_phenotypes.obo',
+             source_url => 'https://raw.githubusercontent.com/dictyBase/migration-data/master/ontologies/dicty_phenotypes.obo',
          },
          ero => {
              method => 'owl2obo',

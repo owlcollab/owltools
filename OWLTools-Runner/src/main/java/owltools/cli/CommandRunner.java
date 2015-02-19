@@ -695,7 +695,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--make-species-subset")) {
-				opts.info("-t TAXCLASS","Creates a composite/merged species ontology");
+				opts.info("-t TAXCLASS","Creates a taxon-specific ontology");
 				OWLObjectProperty viewProperty = null;
 				OWLClass taxClass = null;
 				String suffix = null;
@@ -829,7 +829,7 @@ public class CommandRunner {
 			}
 			else if (opts.nextEq("--export-parents")) {
 				opts.info("[-p LIST] [-o OUTPUTFILENAME]",
-						"saves a table of all direct inferred parents by property");
+						"saves a table of all direct inferred parents by property using ExtendedReasoner");
 				String out = null;
 				List<OWLObjectProperty> props = null;
 				OWLObjectProperty gciProperty = null;

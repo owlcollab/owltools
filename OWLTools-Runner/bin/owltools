@@ -119,7 +119,7 @@ then
 fi
 
 ## Assemble and run the final command.
-CMD="\"$JAVAPATH\" -Xms2048M -DentityExpansionLimit=2048000 -Djava.awt.headless=true -classpath \"$CLASSPATH\" -DlauncherDir=\"$LAUNCHER_DIR\" $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
+CMD="\"$JAVAPATH\" -Xms2048M -DentityExpansionLimit=4086000 -Djava.awt.headless=true -classpath \"$CLASSPATH\" -DlauncherDir=\"$LAUNCHER_DIR\" $JAVAARGS owltools.cli.CommandLineInterface $CMDARGS"
 
 ## DEBUG
 ## Let's see a little of the environment if we declare DEBUG=1.
