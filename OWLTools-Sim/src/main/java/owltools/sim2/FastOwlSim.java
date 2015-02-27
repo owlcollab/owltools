@@ -370,7 +370,9 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 			getInformationContentForAttribute(c);
 			getInformationContentForAttribute(classIndex.get(c));
 		}
+		LOG.info("Done computing ICs for all classes");
 		this.assignDefaultInformationContentForAllClasses();
+		LOG.info("Done assigning default IC");
 
 		this.computeSystemStats();
 
