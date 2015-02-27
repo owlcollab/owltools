@@ -3,14 +3,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.bbop</groupId>
 	<artifactId>OWLTools-Parent</artifactId>
-	<version>0.2.1-SNAPSHOT</version>
+	<version>0.2.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>OWLTools-Parent</name>
 	<url>http://code.google.com/p/owltools/</url>
 	<description>OWLTools (aka OWL2LS - OWL2 Life Sciences) is convenience java API on top of the OWL API.</description>
 	<inceptionYear>2010</inceptionYear>
 	<scm>
-		<url>https://owltools.googlecode.com/svn/trunk/</url>
+		<url>https://github.com/owlcollab/owltools</url>
+		<connection>scm:git:git://github.com/owlcollab/owltools</connection>
 	</scm>
 	<issueManagement>
 		<url>http://code.google.com/p/owltools/issues/list</url>
@@ -76,6 +77,11 @@
 				<configuration>
 					<argLine>-Xmx2200M</argLine>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>2.1</version>
 			</plugin>
 		</plugins>
 		<pluginManagement>

@@ -6,9 +6,14 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+<<<<<<< HEAD
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
 		<attributes>
 			<attribute name="optional" value="true"/>
+=======
+	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources">
+		<attributes>
+>>>>>>> 2be4a07c0ad02f9bd0f3ff8698296fa038b00d74
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
