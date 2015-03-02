@@ -24,25 +24,41 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLNaryBooleanClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyCharacteristicAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.util.MinimalModelGenerator;
 
+/**
+ * Fairly hacky md renderer
+ * 
+ * 
+ * @author cjm
+ *
+ */
 public class MarkdownRenderer {
 
 	private static Logger LOG = Logger.getLogger(MarkdownRenderer.class);
+	public int MAX_REFERENCING_AXIOMS = 1000;
 
 	OWLOntology ontology;
 	String directoryPath = "target/.";
@@ -56,16 +72,131 @@ public class MarkdownRenderer {
 	public void render(OWLOntology o) throws IOException {
 		ontology = o;
 		FileUtils.forceMkdir(new File(directoryPath));
+
+		// note: each object gets rendered to its own file;
+		// if editing be careful; each render(..) operation sets the global filehandle io
+		// object, and is expected to close it when finished
 		for (OWLClass c : o.getClassesInSignature()) {
 			render(c);
 		}
+		for (OWLObjectProperty p : o.getObjectPropertiesInSignature()) {
+			render(p);
+		}
+		for (OWLAnnotationProperty p : o.getAnnotationPropertiesInSignature()) {
+			render(p);
+		}
+
+		tellToIndex();
+		renderSection("Ontology");
+		renderTagValue("OID", o.getOntologyID().getOntologyIRI());
+		renderTagValue("Version", o.getOntologyID().getVersionIRI());
+
+		renderSection("Classes");
+		for (OWLClass c : o.getClassesInSignature()) {
+			renderTagValue("", getMarkdownLink(c,""));
+		}
+		renderSection("ObjectProperties");
+		for (OWLObjectProperty p : o.getObjectPropertiesInSignature()) {
+			renderTagValue("", getMarkdownLink(p,""));
+		}
+		renderSection("AnnotationProperties");
+		for (OWLAnnotationProperty p : o.getAnnotationPropertiesInSignature()) {
+			renderTagValue("", getMarkdownLink(p,""));
+		}
+		told();
 	}
 
 	public void renderAbout(OWLClass c) throws IOException {
 		Set<OWLAxiom> axioms = ontology.getReferencingAxioms(c, true);
-		
+
+	}
+
+	private void renderGenericAnnotations(OWLNamedObject c) {
+		Set<OWLAnnotationAssertionAxiom> annotationAxioms = 
+				ontology.getAnnotationAssertionAxioms(c.getIRI());
+		renderGenericAnnotations(annotationAxioms);
+	}
+
+	private void renderGenericAnnotations(Set<OWLAnnotationAssertionAxiom> annotationAxioms ) {
+		renderSection("Other Annotations");
+
+		Set<OWLAnnotationProperty> props = new HashSet<OWLAnnotationProperty>();
+		for (OWLAnnotationAssertionAxiom aaa : annotationAxioms) {
+			props.add(aaa.getProperty());
+		}
+		List<OWLAnnotationProperty> lProp = new ArrayList<OWLAnnotationProperty>(props);
+		Collections.sort(lProp);
+		for (OWLAnnotationProperty prop : lProp) {
+			if (prop.getIRI().equals(Obo2OWLVocabulary.IRI_OIO_hasOboNamespace.getIRI())) {
+				continue;
+			}
+			if (prop.getIRI().getFragment().equals("id")) {
+				continue;
+			}
+			List<String> vs = new ArrayList<String>();
+			for (OWLAnnotationAssertionAxiom aaa : annotationAxioms) {
+				if (aaa.getProperty().equals(prop)) {
+					vs.add(generateText(aaa.getValue()));
+				}
+			}	
+			renderTagValues(generateText(prop), vs);
+		}
+	}
+	private void renderControlledAnnotations(OWLNamedObject c) {
+		Set<OWLAnnotationAssertionAxiom> annotationAxioms = 
+				ontology.getAnnotationAssertionAxioms(c.getIRI());
+		renderAnnotationAxiom("Label", OWLRDFVocabulary.RDFS_LABEL.getIRI(), annotationAxioms);
+		renderAnnotationAxiom("Definition", Obo2OWLVocabulary.IRI_IAO_0000115.getIRI(), annotationAxioms);
+		renderAnnotationAxiom("Comment", OWLRDFVocabulary.RDFS_COMMENT.getIRI(), annotationAxioms);
+
+		renderSection("Synonyms");
+
+		renderAnnotationAxioms("", 
+				Obo2OWLVocabulary.IRI_OIO_hasExactSynonym.getIRI(), 
+				annotationAxioms);
+		renderAnnotationAxioms("", 
+				Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym.getIRI(), 
+				annotationAxioms);
+		renderAnnotationAxioms("", 
+				Obo2OWLVocabulary.IRI_OIO_hasNarrowSynonym.getIRI(), 
+				annotationAxioms);
+		renderAnnotationAxioms("", 
+				Obo2OWLVocabulary.IRI_OIO_hasRelatedSynonym.getIRI(), 
+				annotationAxioms);
+
+		renderSection("Cross-references");
+
+		renderAnnotationAxioms("", 
+				Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI(), 
+				annotationAxioms);
+
+		renderSection("Subsets");
+
+		renderAnnotationAxioms("", 
+				Obo2OWLVocabulary.IRI_OIO_inSubset.getIRI(), 
+				annotationAxioms);		
 	}
 	
+	private void renderUsage(Set<OWLAxiom> refAxs) {
+		List<String> axstrs = new ArrayList<String>();
+
+
+		renderSection("Usage");
+		int n = 0;
+		for (OWLAxiom ax : refAxs) {
+			axstrs.add(generateText(ax));
+			n++;
+			if (n > MAX_REFERENCING_AXIOMS) {
+				renderTagValue("", "...TRUNCATED REMAINING AXIOMS");
+			}
+		}
+		Collections.sort(axstrs);
+		for (String axstr : axstrs) {
+			renderTagValue("", axstr);
+		}
+
+	}
+
 	public void render(OWLClass c) throws IOException {
 		IRI iri = c.getIRI();
 		String id = getId(c);
@@ -83,36 +214,7 @@ public class MarkdownRenderer {
 
 			renderTagValue("IRI", iri);
 
-			renderAnnotationAxiom("Label", OWLRDFVocabulary.RDFS_LABEL.getIRI(), annotationAxioms);
-			renderAnnotationAxiom("Definition", Obo2OWLVocabulary.IRI_IAO_0000115.getIRI(), annotationAxioms);
-			renderAnnotationAxiom("Comment", OWLRDFVocabulary.RDFS_COMMENT.getIRI(), annotationAxioms);
-
-			renderSection("Synonyms");
-
-			renderAnnotationAxioms("", 
-					Obo2OWLVocabulary.IRI_OIO_hasExactSynonym.getIRI(), 
-					annotationAxioms);
-			renderAnnotationAxioms("", 
-					Obo2OWLVocabulary.IRI_OIO_hasBroadSynonym.getIRI(), 
-					annotationAxioms);
-			renderAnnotationAxioms("", 
-					Obo2OWLVocabulary.IRI_OIO_hasNarrowSynonym.getIRI(), 
-					annotationAxioms);
-			renderAnnotationAxioms("", 
-					Obo2OWLVocabulary.IRI_OIO_hasRelatedSynonym.getIRI(), 
-					annotationAxioms);
-
-			renderSection("Cross-references");
-
-			renderAnnotationAxioms("", 
-					Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI(), 
-					annotationAxioms);
-
-			renderSection("Subsets");
-
-			renderAnnotationAxioms("", 
-					Obo2OWLVocabulary.IRI_OIO_inSubset.getIRI(), 
-					annotationAxioms);
+			renderControlledAnnotations(c);
 
 			renderSection("Superclasses");
 
@@ -165,9 +267,8 @@ public class MarkdownRenderer {
 				renderTagValue("", generateText(x));
 			}
 
-
 			renderSection("Other Logical Axioms");
-			
+
 			List<String> axstrs = new ArrayList<String>();
 			for (OWLAxiom ax : logicalAxioms) {
 				axstrs.add(generateText(ax));
@@ -177,31 +278,12 @@ public class MarkdownRenderer {
 				renderTagValue("", axstr);
 			}
 
-			renderSection("Other Annotations");
+			renderGenericAnnotations(c);
 
-			Set<OWLAnnotationProperty> props = new HashSet<OWLAnnotationProperty>();
-			for (OWLAnnotationAssertionAxiom aaa : annotationAxioms) {
-				props.add(aaa.getProperty());
-			}
-			List<OWLAnnotationProperty> lProp = new ArrayList<OWLAnnotationProperty>(props);
-			Collections.sort(lProp);
-			for (OWLAnnotationProperty prop : lProp) {
-				if (prop.getIRI().equals(Obo2OWLVocabulary.IRI_OIO_hasOboNamespace.getIRI())) {
-					continue;
-				}
-				if (prop.getIRI().getFragment().equals("id")) {
-					continue;
-				}
-				List<String> vs = new ArrayList<String>();
-				for (OWLAnnotationAssertionAxiom aaa : annotationAxioms) {
-					if (aaa.getProperty().equals(prop)) {
-						vs.add(generateText(aaa.getValue()));
-					}
-				}	
-				renderTagValues(generateText(prop), vs);
-			}
+
 			
-			renderSection("Usage");
+			renderUsage(ontology.getReferencingAxioms(c));
+			
 
 
 			renderSection("External Comments");
@@ -216,6 +298,121 @@ public class MarkdownRenderer {
 		}
 	}
 
+	public void render(OWLObjectProperty p) throws IOException {
+		IRI iri = p.getIRI();
+		String id = getId(p);
+
+		try {
+			tell(id);
+
+			Set<OWLObjectPropertyAxiom> logicalAxioms = 
+					ontology.getAxioms(p);
+
+			renderSection("Class : "+getLabel(p));
+
+			renderTagValue("IRI", iri);
+
+			renderControlledAnnotations(p);
+
+
+			Set<OWLObjectPropertyExpression> sups = new HashSet<OWLObjectPropertyExpression>();
+			Set<OWLObjectPropertyExpression> subs = new HashSet<OWLObjectPropertyExpression>();
+
+			for (OWLObjectPropertyAxiom ax : logicalAxioms) {
+				if (ax instanceof OWLSubObjectPropertyOfAxiom) {
+					OWLSubObjectPropertyOfAxiom scax = (OWLSubObjectPropertyOfAxiom)ax;
+					OWLObjectPropertyExpression sup = scax.getSuperProperty();
+					OWLObjectPropertyExpression sub = scax.getSubProperty();
+					if (sub.equals(p)) {
+						sups.add(sup);
+					}
+					if (sup.equals(p)) {
+						subs.add(sub);
+					}
+				}
+			}
+
+			renderSection("SuperProperties");
+			for (OWLObjectPropertyExpression pe : sups) {
+				renderTagValue("", getMarkdownLink(pe));
+			}
+			renderSection("SubProperties");
+			for (OWLObjectPropertyExpression pe : subs) {
+				renderTagValue("", pe);
+			}
+
+			renderSection("Other Logical Axioms");
+
+			List<String> axstrs = new ArrayList<String>();
+			for (OWLAxiom ax : logicalAxioms) {
+				axstrs.add(generateText(ax));
+			}
+			Collections.sort(axstrs);
+			for (String axstr : axstrs) {
+				renderTagValue("", axstr);
+			}
+
+			renderGenericAnnotations(p);
+
+
+			renderUsage(ontology.getReferencingAxioms(p));
+
+			
+
+			renderSection("External Comments");
+		}
+		finally {
+			try {
+				told();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void render(OWLAnnotationProperty p) throws IOException {
+		IRI iri = p.getIRI();
+		String id = getId(p);
+
+		try {
+			tell(id);
+
+
+			renderSection("Class : "+getLabel(p));
+
+			renderTagValue("IRI", iri);
+
+			renderControlledAnnotations(p);
+
+			renderSection("SuperProperties");
+			for (OWLAnnotationProperty pe : p.getSuperProperties(ontology)) {
+				renderTagValue("", getMarkdownLink(pe));
+			}
+			renderSection("SubProperties");
+			for (OWLAnnotationProperty pe : p.getSubProperties(ontology)) {
+				renderTagValue("", getMarkdownLink(pe));
+			}
+
+			renderSection("Other Logical Axioms");
+
+			renderGenericAnnotations(p);
+
+
+			renderUsage(ontology.getReferencingAxioms(p));
+			
+
+			renderSection("External Comments");
+		}
+		finally {
+			try {
+				told();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 	private String getId(OWLNamedObject ob) {
 		String id = ob.getIRI().toString();
 		id = id.replaceAll(".*/", "");
@@ -256,6 +453,14 @@ public class MarkdownRenderer {
 				);
 	}
 
+	private void tellToIndex() throws IOException {
+		String path = directoryPath; 
+		FileUtils.forceMkdir(new File(path));
+		// todo - make configurable
+		io = new PrintStream(
+				FileUtils.openOutputStream(new File(path + "/index.md")) 
+				);
+	}
 	private void renderAnnotationAxioms(String tag, IRI piri,
 			Set<OWLAnnotationAssertionAxiom> annotationAxioms) {
 
@@ -340,6 +545,9 @@ public class MarkdownRenderer {
 		else if (x instanceof IRI) {
 			return x.toString();
 		}
+		else if (x instanceof OWLDeclarationAxiom) {
+			return "-";
+		}
 		else if (x instanceof OWLAnnotation) {
 			OWLAnnotation a = (OWLAnnotation)x;
 			return (generateText(a.getProperty()) + " = " + generateText(a.getValue()));
@@ -361,20 +569,65 @@ public class MarkdownRenderer {
 			return generateText(svf.getProperty()) + " some " + generateText(svf.getFiller());
 		}
 		else if (x instanceof OWLObjectAllValuesFrom) {
-			OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)x;
+			OWLObjectAllValuesFrom svf = (OWLObjectAllValuesFrom)x;
 			return generateText(svf.getProperty()) + " only " + generateText(svf.getFiller());
+		}
+		else if (x instanceof OWLAxiom) {
+			// TODO - render axiom annotations
+			if (x instanceof OWLSubClassOfAxiom) {
+				OWLSubClassOfAxiom ax = (OWLSubClassOfAxiom)x;
+				return generateText(ax.getSubClass()) + " SubClassOf " + generateText(ax.getSuperClass());
+			}
+			else if (x instanceof OWLSubObjectPropertyOfAxiom) {
+				OWLSubObjectPropertyOfAxiom ax = (OWLSubObjectPropertyOfAxiom)x;
+				return generateText(ax.getSubProperty()) + " SubPropertyOf " + generateText(ax.getSuperProperty());
+			}
+			else if (x instanceof OWLInverseObjectPropertiesAxiom) {
+				OWLInverseObjectPropertiesAxiom ax = (OWLInverseObjectPropertiesAxiom)x;
+				return generateText(ax.getFirstProperty()) + " InverseOf " + generateText(ax.getSecondProperty());
+			}
+			else if (x instanceof OWLObjectPropertyCharacteristicAxiom) {
+				OWLObjectPropertyCharacteristicAxiom ax = (OWLObjectPropertyCharacteristicAxiom)x;
+				return ax.getAxiomType() + " " + generateText(ax.getProperty());
+			}
+			else if (x instanceof OWLObjectPropertyDomainAxiom) {
+				OWLObjectPropertyDomainAxiom ax = (OWLObjectPropertyDomainAxiom)x;
+				return generateText(ax.getProperty()) + " Domain " + generateText(ax.getDomain());
+			}
+			else if (x instanceof OWLObjectPropertyRangeAxiom) {
+				OWLObjectPropertyRangeAxiom ax = (OWLObjectPropertyRangeAxiom)x;
+				return generateText(ax.getProperty()) + " Range " + generateText(ax.getRange());
+			}
+			else if (x instanceof OWLAnnotationAssertionAxiom) {
+				OWLAnnotationAssertionAxiom ax = (OWLAnnotationAssertionAxiom)x;
+				return generateText(ax.getSubject()) + " " + generateText(ax.getProperty()) +
+						" " + generateText(ax.getValue());
+			}
+			else {
+				LOG.warn("Using default for unhandled axiom type "+x+" "+x.getClass());
+			}
 		}
 		else {
 			LOG.warn("Using default for "+x+" "+x.getClass());
 			// TODO
-			
+
 		}
 		return x.toString();
 	}
 
-	private String getMarkdownLink(OWLNamedObject s) {
-		String id = getId(s);
-		return "["+getLabelOrId(s)+"](../../"+getRelativePath(id)+"/"+id+".md)";
+	private String getMarkdownLink(OWLObject s) {
+		return getMarkdownLink(s, "../../");
+	}
+
+	private String getMarkdownLink(OWLObject obj, String pathToRoot) {
+		if (obj instanceof OWLNamedObject) {
+			OWLNamedObject s = (OWLNamedObject)obj;
+			String id = getId(s);
+			return "["+getLabelOrId(s)+"]("+pathToRoot+getRelativePath(id)+"/"+id+".md)";
+		}
+		else {
+			return generateText(obj);
+		}
 	}
 
 	private String getRelativePath(String id) {
