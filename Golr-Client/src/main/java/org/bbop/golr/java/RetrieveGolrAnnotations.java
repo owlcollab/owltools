@@ -35,9 +35,15 @@ public class RetrieveGolrAnnotations {
 	private static final Gson GSON = new GsonBuilder().create();
 	
 	private final String server;
+	private int retryCount;
 
 	public RetrieveGolrAnnotations(String server) {
+		this(server, 3);
+	}
+	
+	public RetrieveGolrAnnotations(String server, int retryCount) {
 		this.server = server;
+		this.retryCount = retryCount;
 	}
 	
 	public GafDocument convert(List<GolrAnnotationDocument> golrAnnotationDocuments) throws IOException {
@@ -220,33 +226,95 @@ public class RetrieveGolrAnnotations {
 	
 	protected String getJsonStringFromUri(URI uri) throws IOException {
 		logRequest(uri);
+		return getJsonStringFromUri(uri, retryCount);
+	}
+	
+	protected String getJsonStringFromUri(URI uri, int retryCount) throws IOException {
 		HttpGet get = new HttpGet(uri);
 		CloseableHttpClient httpclient = null;
 		CloseableHttpResponse response = null;
+		String content = null;
+		IOException error = null;
 		try {
 			httpclient = HttpClients.createDefault();
-			response = httpclient.execute(get);
-		    StatusLine statusLine = response.getStatusLine();
-	        if (statusLine.getStatusCode() > 200) {
-	            throw new HttpResponseException(
-	                    statusLine.getStatusCode(),
-	                    statusLine.getReasonPhrase());
-	        }
-	        HttpEntity entity = response.getEntity();
-		    if (entity != null) {
-		    	String content = EntityUtils.toString(entity);
-		        return content;
-		    }
-		    throw new ClientProtocolException("Response contains no content");
+			try {
+				response = httpclient.execute(get);
+			}
+			catch (IOException exception) {
+				error = exception;
+			}
+			if (error == null) {
+				final StatusLine statusLine = response.getStatusLine();
+				if (statusLine.getStatusCode() > 200) {
+					error = new HttpResponseException(
+							statusLine.getStatusCode(),
+							statusLine.getReasonPhrase());
+				}
+				else {
+					HttpEntity entity = response.getEntity();
+					if (entity != null) {
+						try {
+							content = EntityUtils.toString(entity);
+						} catch (IOException e) {
+							error = e;
+						}
+					}
+					else {
+						error = new ClientProtocolException("Response contains no content");
+					}
+				}
+			}
 		} finally {
-		    IOUtils.closeQuietly(response);
-		    IOUtils.closeQuietly(httpclient);
+			IOUtils.closeQuietly(response);
+			IOUtils.closeQuietly(httpclient);
+		}
+		if (error != null) {
+			if (retryCount > 0) {
+				int remaining = retryCount - 1;
+				logRetry(uri, error, remaining);
+				defaultRandomWait();
+				return getJsonStringFromUri(uri, remaining);
+			}
+			logRequestError(uri, error);
+			throw error;
+		}
+		if (content == null) {
+			error = new ClientProtocolException("Response contains no content");
+			logRequestError(uri, error);
+			throw error;
+		}
+		return content;
+	}
+	
+	private void defaultRandomWait() {
+		// wait a random interval between 400 and 1500 ms
+		randomWait(400, 1500);
+	}
+
+	private void randomWait(int min, int max) {
+		Random random = new Random(System.currentTimeMillis());
+		long wait = min + random.nextInt((max - min));
+		try {
+			Thread.sleep(wait);
+		} catch (InterruptedException exception) {
+			// ignore
 		}
 	}
+
 	
 	protected void logRequest(URI uri) {
 		// do nothing
 		// hook to implement logging of requests
+	}
+	
+	protected void logRequestError(URI uri, IOException exception) {
+		// do nothing
+		// hook to implement logging of request errors
+	}
+	
+	protected void logRetry(URI uri, IOException exception, int remaining) {
+		// do nothing
+		// hook to implement logging of a retry
 	}
 	
 	static class GolrEnvelope {
