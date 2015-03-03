@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
@@ -186,7 +187,8 @@ public class RetrieveGolrAnnotations {
 	URI createGolrRequest(List<String []> tagvalues, String category, int start, int pagination) throws IOException {
 		try {
 			URIBuilder builder = new URIBuilder(server);
-			builder.setPath("/select");
+			String currentPath = StringUtils.trimToEmpty(builder.getPath());
+			builder.setPath(currentPath+"/select");
 			builder.addParameter("defType", "edismax");
 			builder.addParameter("qt", "standard");
 			builder.addParameter("wt", "json");
