@@ -9,12 +9,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bbop.golr.java.RetrieveGolrAnnotations.GolrAnnotationExtension.GolrAnnotationExtensionEntry.GolrAnnotationExtensionRelation;
 
@@ -37,6 +39,7 @@ public class RetrieveGolrAnnotations {
 	
 	private final String server;
 	private int retryCount;
+	private final CloseableHttpClient httpclient;
 
 	public RetrieveGolrAnnotations(String server) {
 		this(server, 3);
@@ -45,6 +48,17 @@ public class RetrieveGolrAnnotations {
 	public RetrieveGolrAnnotations(String server, int retryCount) {
 		this.server = server;
 		this.retryCount = retryCount;
+		HttpClientBuilder builder = HttpClientBuilder.create();
+		// diss-allow automatic retry, we use a custom wait period
+		builder.setRetryHandler(new HttpRequestRetryHandler() {
+			
+			@Override
+			public boolean retryRequest(IOException exception, int executionCount,
+					HttpContext context) {
+				return false;
+			}
+		});
+		httpclient = builder.build();
 	}
 	
 	public GafDocument convert(List<GolrAnnotationDocument> golrAnnotationDocuments) throws IOException {
@@ -233,12 +247,10 @@ public class RetrieveGolrAnnotations {
 	
 	protected String getJsonStringFromUri(URI uri, int retryCount) throws IOException {
 		HttpGet get = new HttpGet(uri);
-		CloseableHttpClient httpclient = null;
 		CloseableHttpResponse response = null;
 		String content = null;
 		IOException error = null;
 		try {
-			httpclient = HttpClients.createDefault();
 			try {
 				response = httpclient.execute(get);
 			}
@@ -268,7 +280,6 @@ public class RetrieveGolrAnnotations {
 			}
 		} finally {
 			IOUtils.closeQuietly(response);
-			IOUtils.closeQuietly(httpclient);
 		}
 		if (error != null) {
 			if (retryCount > 0) {
