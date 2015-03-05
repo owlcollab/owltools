@@ -299,12 +299,12 @@ public class RetrieveGolrAnnotations {
 		return content;
 	}
 	
-	private void defaultRandomWait() {
+	protected void defaultRandomWait() {
 		// wait a random interval between 400 and 1500 ms
 		randomWait(400, 1500);
 	}
 
-	private void randomWait(int min, int max) {
+	protected void randomWait(int min, int max) {
 		Random random = new Random(System.currentTimeMillis());
 		long wait = min + random.nextInt((max - min));
 		try {
