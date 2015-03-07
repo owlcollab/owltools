@@ -27,13 +27,15 @@ public class GolrSeedingDataProvider implements SeedingDataProvider {
 	private final Set<OWLClass> locationRoots;
 	private Set<String> evidenceRestriction = null;
 	private Set<String> taxonRestriction;
+	private final Set<String> blackList;
 	
-	public GolrSeedingDataProvider(String golrServer, OWLGraphWrapper graph, OWLReasoner reasoner, Set<OWLClass> locationRoots, Set<String> evidenceRestriction, Set<String> taxonRestriction) {
+	public GolrSeedingDataProvider(String golrServer, OWLGraphWrapper graph, OWLReasoner reasoner, Set<OWLClass> locationRoots, Set<String> evidenceRestriction, Set<String> taxonRestriction, Set<String> blackList) {
 		this.graph = graph;
 		this.reasoner = reasoner;
 		this.evidenceRestriction = evidenceRestriction;
 		this.locationRoots = locationRoots;
 		this.taxonRestriction = taxonRestriction;
+		this.blackList = blackList;
 		golr = new RetrieveGolrAnnotations(golrServer) {
 			@Override
 			protected void logRequest(URI uri) {
@@ -90,6 +92,9 @@ public class GolrSeedingDataProvider implements SeedingDataProvider {
 			List<GeneAnnotation> annotations = doc.getGeneAnnotations();
 			if (annotations != null && !annotations.isEmpty()) {
 				for (GeneAnnotation annotation : annotations) {
+					if(blackList.contains(annotation.getCls())) {
+						continue;
+					}
 					String bioentityId = annotation.getBioentity();
 					Bioentity bioentity = map.get(bioentityId);
 					if (bioentity != null) {
