@@ -209,7 +209,30 @@ public class RetrieveGolrAnnotations {
 			if (JSON_INDENT_FLAG) {
 				builder.addParameter("indent","on");
 			}
-			builder.addParameter("fl","*,score");
+			// explicit list of fields, avoid "*" retrieval of unused fields
+			builder.addParameter("fl",StringUtils.join(Arrays.asList(
+					"source",
+					"bioentity",
+					"bioentity_internal_id",
+					"bioentity_label",
+					"bioentity_name",
+					"annotation_class",
+					"annotation_class_label",
+					"evidence_type",
+					"aspect",
+					"type",
+					"taxon",
+					"taxon_label",
+					"date",
+					"assigned_by",
+					"bioentity_isoform",
+					"panther_family",
+					"panther_family_label",
+					"annotation_extension_json",
+					"synonym",
+					"evidence_with",
+					"reference"), 
+					','));
 			builder.addParameter("facet","false");
 			builder.addParameter("json.nl","arrarr");
 			builder.addParameter("q","*:*");
