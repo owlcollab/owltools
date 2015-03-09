@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,8 +50,9 @@ public class BioChebiGenerator {
 	 * Create the GCIs for BioChEBI. Add the axioms into the given ontology.
 	 * 
 	 * @param ontology
+	 * @param ignoredClasses
 	 */
-	public void expand(OWLOntology ontology) {
+	public void expand(OWLOntology ontology, Set<OWLClass> ignoredClasses) {
 		final OWLOntologyManager manager = ontology.getOWLOntologyManager();
 		final OWLDataFactory factory = manager.getOWLDataFactory();
 		
@@ -85,6 +87,9 @@ public class BioChebiGenerator {
 			// get content for GCI
 			OWLClassExpression y = some.getFiller();
 			OWLClass x = subCE.asOWLClass();
+			if (ignoredClasses.contains(x)) {
+				continue;
+			}
 			for (OWLObjectProperty createProperty : expansions) {
 				OWLClassExpression ce1 = factory.getOWLObjectSomeValuesFrom(createProperty, x);
 				OWLClassExpression ce2 = factory.getOWLObjectSomeValuesFrom(createProperty, y);
@@ -131,16 +136,16 @@ public class BioChebiGenerator {
 	 * Create the GCIs for BioChEBI. Use the given ontology file as template.
 	 * 
 	 * @param bioChebiTemplateFile
+	 * @param ignoredSubset optional subset for ignored classes
 	 * @return ontology
 	 * @throws OWLOntologyCreationException
 	 */
-	public static OWLOntology createBioChebi(File bioChebiTemplateFile) throws OWLOntologyCreationException {
+	public static OWLOntology createBioChebi(File bioChebiTemplateFile, String ignoredSubset) throws OWLOntologyCreationException {
 		// load
 		ParserWrapper pw = new ParserWrapper();
 		OWLOntology ontology = pw.parseOWL(IRI.create(bioChebiTemplateFile));
 		
-		OWLGraphWrapper graph = new OWLGraphWrapper(ontology);
-		createBioChebi(graph);
+		createBioChebi(new OWLGraphWrapper(ontology), ignoredSubset);
 		return ontology;
 	}
 	
@@ -148,8 +153,30 @@ public class BioChebiGenerator {
 	 * Create the GCIs for BioChEBI. Add the axioms into the given ontology graph.
 	 * 
 	 * @param graph
+	 * @param ignoredSubset optional subset for ignored classes
+	 * @throws OWLOntologyCreationException
 	 */
-	public static void createBioChebi(OWLGraphWrapper graph) {
+	public static void createBioChebi(OWLGraphWrapper graph, String ignoredSubset) throws OWLOntologyCreationException {
+		Set<OWLClass> ignoredClasses = null;
+		if (ignoredSubset != null) {
+			ignoredClasses = new HashSet<OWLClass>();
+			for(OWLClass cls : graph.getAllOWLClasses()) {
+				List<String> subsets = graph.getSubsets(cls);
+				if (subsets.contains(ignoredSubset)) {
+					ignoredClasses.add(cls);
+				}
+			}
+		}
+		createBioChebi(graph, ignoredClasses);
+	}
+	
+	/**
+	 * Create the GCIs for BioChEBI. Add the axioms into the given ontology graph.
+	 * 
+	 * @param graph
+	 * @param ignoredClasses options set of ignored classes
+	 */
+	public static void createBioChebi(OWLGraphWrapper graph, Set<OWLClass> ignoredClasses) {
 		// find properties
 		Set<OWLObjectProperty> searchProperties = getPropertiesByLabels(graph, 
 				"is conjugate acid of", 
@@ -162,7 +189,7 @@ public class BioChebiGenerator {
 				"http://purl.obolibrary.org/obo/RO_0002340",     // imports
 				"http://purl.obolibrary.org/obo/RO_0002345",     // exports
 				"http://purl.obolibrary.org/obo/RO_0002332"      // regulates level of
-				); 
+				);
 
 		// create GCI expansion map
 		Map<OWLObjectProperty, Set<OWLObjectProperty>> expansionMap = new HashMap<OWLObjectProperty, Set<OWLObjectProperty>>();
@@ -171,7 +198,8 @@ public class BioChebiGenerator {
 		}
 		BioChebiGenerator generator = new BioChebiGenerator(expansionMap);
 		OWLOntology ontology = graph.getSourceOntology();
-		generator.expand(ontology);
+		
+		generator.expand(ontology, ignoredClasses);
 	}
 	
 	/**
@@ -181,8 +209,7 @@ public class BioChebiGenerator {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		
-		OWLOntology ontology = createBioChebi(new File("src/main/resources/bio-chebi-input.owl"));
+		OWLOntology ontology = createBioChebi(new File("src/main/resources/bio-chebi-input.owl"), "no_conj_equiv");
 		
 		// save
 		File outFile = new File("bio-chebi.owl");
