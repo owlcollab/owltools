@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
@@ -49,7 +50,45 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import owltools.util.MinimalModelGenerator;
 
 /**
- * Fairly hacky md renderer
+ * Fairly hacky md renderer, geared towards storing md in github.
+ * 
+ * Generates ones page per Object (so far just classes, OPs and APs), plus
+ * an index page.
+ * 
+ * The idea is to store the md in github and make use of github's automatic
+ * rendering. To avoid large flat directories we use a directory structure,
+ * first divided by ontology ID space (warning: OBO hardcode alert), and then
+ * by the last two digits (or other characters) of the ID. For example:
+ * 
+ * https://github.com/obophenotype/cephalopod-ontology/blob/master/src/ontology/md/CEPH/59/CEPH_0000259.md
+ * 
+ * It's not really clear at all whether this is a good idea. There are some nice aspects:
+ * 
+ * - the ontology is searchable via github search
+ * - we have another fallback diff mechanism (the rendered md is generally sorted to avoid spurious diffs)
+ * - it seems to be easier to customize and much less work than making a bona fide web interface
+ * - localized docs, e.g. for forked repos
+ * - universal md currency. E.g. easy to paste into tracker items on github
+ * - possibly extensible to some future framework that allows web-based editing...
+ * 
+ * Some bad aspects
+ * 
+ *  - everything is very wired to github
+ *  - the rendering is incomplete. So far the rule is if it's an axiom type I care about it will probably be rendered
+ *  - until the rendering procedure is stable spurious diffs will be generated
+ *  - it's just a bit peculiar
+ *  - ultimately pointless will be subsumed into the Ultimate web ontology framework that has all the features of Protege, a Wiki and GitHub, .. WebProtege?
+ *  
+ * Existing features:
+ * 
+ * is semi-aware of some OBO annotation properties; renders synonyms in a special section
+ * 
+ * aware of depictions (see http://douroucouli.wordpress.com/2012/07/03/45/)
+ * Example: https://github.com/obophenotype/cephalopod-ontology/blob/master/src/ontology/md/CEPH/30/CEPH_0000130.md
+ * 
+ * Manchester-esque recursive rendering of some axioms and expressions (falls back to ofn)
+ * 
+ * 
  * 
  * 
  * @author cjm
@@ -204,6 +243,8 @@ public class MarkdownRenderer {
 		try {
 			tell(id);
 
+			Set<IRI> imgs = new HashSet<IRI>();
+			
 			Set<OWLClassAxiom> logicalAxioms = 
 					ontology.getAxioms(c);
 			Set<OWLAnnotationAssertionAxiom> annotationAxioms = 
@@ -213,17 +254,49 @@ public class MarkdownRenderer {
 			renderSection("Class : "+getLabel(c));
 
 			renderTagValue("IRI", iri);
+			
+			for (OWLAxiom ax : ontology.getReferencingAxioms(c)) {
+				if (ax instanceof OWLClassAssertionAxiom) {
+					LOG.info("Inspecting CAX:"+ax);
+					// try and extract depiction axioms
+					OWLClassAssertionAxiom cax = (OWLClassAssertionAxiom)ax;
+					if (cax.getClassExpression() instanceof OWLObjectSomeValuesFrom) {
+						OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)(cax.getClassExpression());
+						if (!svf.getProperty().isAnonymous()) {
+							OWLObjectProperty p = (OWLObjectProperty)svf.getProperty();
+							LOG.info("SVF CAX:"+cax);
+							if (p.getIRI().equals(IRI.create("http://xmlns.com/foaf/0.1/depicts"))) {
+								if (!cax.getIndividual().isAnonymous()) {
+									imgs .add(cax.getIndividual().asOWLNamedIndividual().getIRI());
+									LOG.info("Extracted img:"+imgs);
+								}
+							}
+						}
+					}
+				}
+
+			}
+			
+			if (imgs.size() > 0) {
+				renderSection("Depictions");
+				for (IRI img : imgs) {
+					render("![Depiction]("+img+")");
+				}
+			}
+
 
 			renderControlledAnnotations(c);
 
-			renderSection("Superclasses");
-
+			
+			// extracting superclasses
 			Set<OWLClassAxiom> lConsumed  = new HashSet<OWLClassAxiom>();
 			List<OWLClassExpression> lEquiv = new ArrayList<OWLClassExpression>();
 			List<OWLClass> lSuper = new ArrayList<OWLClass>();
 			Map<OWLObjectPropertyExpression,List<OWLClassExpression>> mParents =
 					new HashMap<OWLObjectPropertyExpression,List<OWLClassExpression>>();
 			for (OWLClassAxiom ax : logicalAxioms) {
+				//LOG.info("LAX:"+ax);
+
 				if (ax instanceof OWLSubClassOfAxiom) {
 					OWLSubClassOfAxiom scax = (OWLSubClassOfAxiom)ax;
 					OWLClassExpression sup = scax.getSuperClass();
@@ -245,11 +318,16 @@ public class MarkdownRenderer {
 					lEquiv.addAll(((OWLEquivalentClassesAxiom)ax).getClassExpressionsMinus(c));
 					lConsumed.add(ax);
 				}
+				else {
+					// will be rendered later
+				}
 			}
 			logicalAxioms.removeAll(lConsumed);
 
+			renderSection("Superclasses");
 			renderObjectTagValues("", lSuper);		
 
+			
 			List<OWLObjectPropertyExpression> plist = 
 					new ArrayList<OWLObjectPropertyExpression>(mParents.keySet());
 			Collections.sort(plist);
@@ -602,6 +680,22 @@ public class MarkdownRenderer {
 				OWLAnnotationAssertionAxiom ax = (OWLAnnotationAssertionAxiom)x;
 				return generateText(ax.getSubject()) + " " + generateText(ax.getProperty()) +
 						" " + generateText(ax.getValue());
+			}
+			else if (x instanceof OWLClassAssertionAxiom) {
+				OWLClassAssertionAxiom ax = (OWLClassAssertionAxiom)x;
+				return generateText(ax.getIndividual()) + " InstanceOf" + generateText(ax.getClassExpression());
+			}
+			else if (x instanceof OWLEquivalentClassesAxiom) {
+				OWLEquivalentClassesAxiom ax = (OWLEquivalentClassesAxiom)x;
+				StringBuffer sb = null;
+				for (OWLClassExpression cex : ax.getClassExpressions()) {
+					if (sb == null)
+						sb = new StringBuffer("");
+					else
+						sb.append(" == ");
+					sb.append(generateText(cex));
+				}
+				return sb.toString();
 			}
 			else {
 				LOG.warn("Using default for unhandled axiom type "+x+" "+x.getClass());
