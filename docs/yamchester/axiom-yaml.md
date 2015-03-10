@@ -87,3 +87,9 @@ this type neutral? E.g. SomeValuesFrom (aka "some" in manchester) vs
 ObjectSomeValuesFrom. I think I slightly prefer manchester style vocab
 here and inference of the axiom type (but does this come with
 penalties...?).
+
+## Caveats
+
+Obviously this is most appropriate to an application that is OWL
+aware. Making use of an OWL-level representation in order to say draw
+existential graphs or search by synonyms is kind of awkward.
