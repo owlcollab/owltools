@@ -673,6 +673,11 @@ public class Mooncat {
 				rmAxioms.addAll(ont.getReferencingAxioms(obj));
 			}
 		}
+		for (OWLObjectProperty obj : ont.getObjectPropertiesInSignature()) {
+			if (isDangling(ont, obj)) {
+				rmAxioms.addAll(ont.getReferencingAxioms(obj));
+			}
+		}
 		return rmAxioms;
 	}
 

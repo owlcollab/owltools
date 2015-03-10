@@ -3174,7 +3174,7 @@ public class CommandRunner {
 				m.removeSubsetClasses(cset, isRemoveDangling);
 			}
 			else if (opts.nextEq("--extract-subset")) {
-				opts.info("SUBSET", "Keeps a subset (aka slim) from an ontology");
+				opts.info("SUBSET", "Extract a subset (aka slim) from an ontology, storing subset in place of existing ontology");
 				String subset = opts.nextOpt();
 				Set<OWLClass> cset = g.getOWLClassesInSubset(subset);
 				LOG.info("Removing "+cset.size()+" classes");
