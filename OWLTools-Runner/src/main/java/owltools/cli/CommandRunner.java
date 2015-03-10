@@ -4838,12 +4838,16 @@ public class CommandRunner {
 		final String chebiPURL = "http://purl.obolibrary.org/obo/chebi.owl";
 		String chebiFile = null;
 		String output = null;
+		String ignoredSubset = "no_conj_equiv";
 		while (opts.hasOpts()) {
 			if (opts.nextEq("-o|--output")) {
 				output = opts.nextOpt();
 			}
 			else if (opts.nextEq("-c|--chebi-file")) {
 				chebiFile = opts.nextOpt();
+			}
+			else if (opts.nextEq("-i|--ignored-subset")) {
+				ignoredSubset = opts.nextOpt();
 			}
 			else {
 				break;
@@ -4874,7 +4878,8 @@ public class CommandRunner {
 			}
 			g = new OWLGraphWrapper(pw.getManager().loadOntologyFromOntologyDocument(stream));
 		}
-		BioChebiGenerator.createBioChebi(g);
+		
+		BioChebiGenerator.createBioChebi(g, ignoredSubset);
 		if (output != null) {
 			OWLOntology ontology = g.getSourceOntology();
 			File outFile = new File(output);

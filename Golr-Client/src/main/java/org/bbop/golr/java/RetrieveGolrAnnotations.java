@@ -5,15 +5,18 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bbop.golr.java.RetrieveGolrAnnotations.GolrAnnotationExtension.GolrAnnotationExtensionEntry.GolrAnnotationExtensionRelation;
 
@@ -35,9 +38,27 @@ public class RetrieveGolrAnnotations {
 	private static final Gson GSON = new GsonBuilder().create();
 	
 	private final String server;
+	private int retryCount;
+	private final CloseableHttpClient httpclient;
 
 	public RetrieveGolrAnnotations(String server) {
+		this(server, 3);
+	}
+	
+	public RetrieveGolrAnnotations(String server, int retryCount) {
 		this.server = server;
+		this.retryCount = retryCount;
+		HttpClientBuilder builder = HttpClientBuilder.create();
+		// diss-allow automatic retry, we use a custom wait period
+		builder.setRetryHandler(new HttpRequestRetryHandler() {
+			
+			@Override
+			public boolean retryRequest(IOException exception, int executionCount,
+					HttpContext context) {
+				return false;
+			}
+		});
+		httpclient = builder.build();
 	}
 	
 	public GafDocument convert(List<GolrAnnotationDocument> golrAnnotationDocuments) throws IOException {
@@ -180,14 +201,38 @@ public class RetrieveGolrAnnotations {
 	URI createGolrRequest(List<String []> tagvalues, String category, int start, int pagination) throws IOException {
 		try {
 			URIBuilder builder = new URIBuilder(server);
-			builder.setPath("/select");
+			String currentPath = StringUtils.trimToEmpty(builder.getPath());
+			builder.setPath(currentPath+"/select");
 			builder.addParameter("defType", "edismax");
 			builder.addParameter("qt", "standard");
 			builder.addParameter("wt", "json");
 			if (JSON_INDENT_FLAG) {
 				builder.addParameter("indent","on");
 			}
-			builder.addParameter("fl","*,score");
+			// explicit list of fields, avoid "*" retrieval of unused fields
+			builder.addParameter("fl",StringUtils.join(Arrays.asList(
+					"source",
+					"bioentity",
+					"bioentity_internal_id",
+					"bioentity_label",
+					"bioentity_name",
+					"annotation_class",
+					"annotation_class_label",
+					"evidence_type",
+					"aspect",
+					"type",
+					"taxon",
+					"taxon_label",
+					"date",
+					"assigned_by",
+					"bioentity_isoform",
+					"panther_family",
+					"panther_family_label",
+					"annotation_extension_json",
+					"synonym",
+					"evidence_with",
+					"reference"), 
+					','));
 			builder.addParameter("facet","false");
 			builder.addParameter("json.nl","arrarr");
 			builder.addParameter("q","*:*");
@@ -220,33 +265,92 @@ public class RetrieveGolrAnnotations {
 	
 	protected String getJsonStringFromUri(URI uri) throws IOException {
 		logRequest(uri);
+		return getJsonStringFromUri(uri, retryCount);
+	}
+	
+	protected String getJsonStringFromUri(URI uri, int retryCount) throws IOException {
 		HttpGet get = new HttpGet(uri);
-		CloseableHttpClient httpclient = null;
 		CloseableHttpResponse response = null;
+		String content = null;
+		IOException error = null;
 		try {
-			httpclient = HttpClients.createDefault();
-			response = httpclient.execute(get);
-		    StatusLine statusLine = response.getStatusLine();
-	        if (statusLine.getStatusCode() > 200) {
-	            throw new HttpResponseException(
-	                    statusLine.getStatusCode(),
-	                    statusLine.getReasonPhrase());
-	        }
-	        HttpEntity entity = response.getEntity();
-		    if (entity != null) {
-		    	String content = EntityUtils.toString(entity);
-		        return content;
-		    }
-		    throw new ClientProtocolException("Response contains no content");
+			try {
+				response = httpclient.execute(get);
+			}
+			catch (IOException exception) {
+				error = exception;
+			}
+			if (error == null) {
+				final StatusLine statusLine = response.getStatusLine();
+				if (statusLine.getStatusCode() > 200) {
+					error = new HttpResponseException(
+							statusLine.getStatusCode(),
+							statusLine.getReasonPhrase());
+				}
+				else {
+					HttpEntity entity = response.getEntity();
+					if (entity != null) {
+						try {
+							content = EntityUtils.toString(entity);
+						} catch (IOException e) {
+							error = e;
+						}
+					}
+					else {
+						error = new ClientProtocolException("Response contains no content");
+					}
+				}
+			}
 		} finally {
-		    IOUtils.closeQuietly(response);
-		    IOUtils.closeQuietly(httpclient);
+			IOUtils.closeQuietly(response);
+		}
+		if (error != null) {
+			if (retryCount > 0) {
+				int remaining = retryCount - 1;
+				logRetry(uri, error, remaining);
+				defaultRandomWait();
+				return getJsonStringFromUri(uri, remaining);
+			}
+			logRequestError(uri, error);
+			throw error;
+		}
+		if (content == null) {
+			error = new ClientProtocolException("Response contains no content");
+			logRequestError(uri, error);
+			throw error;
+		}
+		return content;
+	}
+	
+	protected void defaultRandomWait() {
+		// wait a random interval between 400 and 1500 ms
+		randomWait(400, 1500);
+	}
+
+	protected void randomWait(int min, int max) {
+		Random random = new Random(System.currentTimeMillis());
+		long wait = min + random.nextInt((max - min));
+		try {
+			Thread.sleep(wait);
+		} catch (InterruptedException exception) {
+			// ignore
 		}
 	}
+
 	
 	protected void logRequest(URI uri) {
 		// do nothing
 		// hook to implement logging of requests
+	}
+	
+	protected void logRequestError(URI uri, IOException exception) {
+		// do nothing
+		// hook to implement logging of request errors
+	}
+	
+	protected void logRetry(URI uri, IOException exception, int remaining) {
+		// do nothing
+		// hook to implement logging of a retry
 	}
 	
 	static class GolrEnvelope {
