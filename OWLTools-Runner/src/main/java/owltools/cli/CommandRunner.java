@@ -4365,6 +4365,16 @@ public class CommandRunner {
 	 */
 	@CLIMethod("--create-part-of")
 	public void createPartOfLinks(Opts opts) throws Exception {
+		if (g == null) {
+			LOG.error("No source ontology available.");
+			exit(-1);
+			return;
+		}
+		if (reasoner == null) {
+			LOG.error("No resoner available.");
+			exit(-1);
+			return;
+		}
 		String goRef = "GO_REF:0000090";
 		String annotationIRIString = "http://purl.org/dc/terms/source";
 		String targetFileName = null;
@@ -4387,6 +4397,7 @@ public class CommandRunner {
 		if (targetFileName == null) {
 			LOG.error("No target-file as output was specified.");
 			exit(-1);
+			return;
 		}
 		final File targetFile = new File(targetFileName);
 		final IRI targetFileIRI = IRI.create(targetFile);
@@ -4413,30 +4424,22 @@ public class CommandRunner {
 		OWLAnnotation sourceAnnotation = factory.getOWLAnnotation(property, factory.getOWLLiteral(goRef));
 
 		LinkMaker maker = new LinkMaker(g, reasoner);
-		LinkMakerResult result = maker.makeLinks(patterns, sourceAnnotation);
+		LinkMakerResult result = maker.makeLinks(patterns, sourceAnnotation, false);
 
 		LOG.info("Predictions size: "+result.getPredictions().size());
+		OWLPrettyPrinter pp = getPrettyPrinter();
+		for (OWLAxiom ax : result.getPredictions()) {
+			LOG.info(pp.render(ax));
+		}
 		LOG.info("Existing size: "+result.getExisiting().size());
 		LOG.info("Modified size: "+result.getModified().size());
 
-		ParserWrapper pw = new ParserWrapper();
-		OWLOntology outputOntology = pw.parse(targetFileIRI.toString());
-		OWLOntologyManager manager = outputOntology.getOWLOntologyManager();
-		manager.removeAxioms(outputOntology, result.getExisiting());
-		manager.addAxioms(outputOntology, result.getModified());
-		manager.addAxioms(outputOntology, result.getPredictions());
+		OWLOntologyManager manager = g.getManager();
+		manager.removeAxioms(g.getSourceOntology(), result.getExisiting());
+		manager.addAxioms(g.getSourceOntology(), result.getModified());
+		manager.addAxioms(g.getSourceOntology(), result.getPredictions());
 
-		if (targetFileName.endsWith(".obo")) {
-			// handle as obo
-			Owl2Obo owl2Obo = new Owl2Obo();
-			OBODoc outputOBO = owl2Obo.convert(outputOntology);
-			OBOFormatWriter writer = new OBOFormatWriter();
-			writer.write(outputOBO, targetFileName);
-		}
-		else {
-			// assume owl
-			manager.saveOntology(outputOntology, targetFileIRI);
-		}
+		manager.saveOntology(g.getSourceOntology(), targetFileIRI);
 	}
 	
 	@CLIMethod("--remove-redundant-inferred-super-classes")

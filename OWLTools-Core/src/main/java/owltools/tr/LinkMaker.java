@@ -149,7 +149,7 @@ public class LinkMaker {
 	 * @param sourceAnnotation
 	 * @return result
 	 */
-	public LinkMakerResult makeLinks(List<LinkPattern> patterns, OWLAnnotation sourceAnnotation) {
+	public LinkMakerResult makeLinks(List<LinkPattern> patterns, OWLAnnotation sourceAnnotation, boolean updateExisting) {
 		final Set<OWLAxiom> resultAxioms = new HashSet<OWLAxiom>();
 		final Set<OWLAxiom> existingAxioms = new HashSet<OWLAxiom>();
 		final Set<OWLAxiom> modified = new HashSet<OWLAxiom>();
@@ -170,17 +170,19 @@ public class LinkMaker {
 								resultAxioms.add(a);
 							}
 							else {
-								existingAxioms.add(existing);
-								Set<OWLAnnotation> existingAnnotations = existing.getAnnotations();
-								if (existingAnnotations.contains(sourceAnnotation)) {
-									modified.add(existing);
-								}
-								else {
-									Set<OWLAnnotation> mergedAnnotations = new HashSet<OWLAnnotation>();
-									mergedAnnotations.add(sourceAnnotation);
-									mergedAnnotations.addAll(existingAnnotations);
-									OWLSubClassOfAxiom mod = f.getOWLSubClassOfAxiom(currentSubClass, someValuesFrom, mergedAnnotations);
-									modified.add(mod);
+								if (updateExisting) {
+									existingAxioms.add(existing);
+									Set<OWLAnnotation> existingAnnotations = existing.getAnnotations();
+									if (existingAnnotations.contains(sourceAnnotation)) {
+										modified.add(existing);
+									}
+									else {
+										Set<OWLAnnotation> mergedAnnotations = new HashSet<OWLAnnotation>();
+										mergedAnnotations.add(sourceAnnotation);
+										mergedAnnotations.addAll(existingAnnotations);
+										OWLSubClassOfAxiom mod = f.getOWLSubClassOfAxiom(currentSubClass, someValuesFrom, mergedAnnotations);
+										modified.add(mod);
+									}
 								}
 							}
 						}
