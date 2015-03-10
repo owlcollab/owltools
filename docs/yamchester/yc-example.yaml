@@ -1,0 +1,81 @@
+context:
+  obo: http://purl.obolibrary.org/obo/
+  BFO: obo:BFO_
+  FOO: obo:FOO_
+  part_of: BFO:0000050
+ontologies:
+  - id: obo:foo.owl
+    imports: [obo:foo/imports/bar.owl, obo:foo/imports/foz.owl]
+    Annotations:
+      title: demo ontology
+
+    objects:
+      - a: owl:Class
+        id: FOO:0000001
+        label: first class
+        SubClassOf:
+          - a: FOO:0000002  # second class
+          - part_of:
+              a: FOO:0000003
+          - part_of:
+              a: FOO:0000004
+              if:   ## example of a GCI
+                - part_of: { a: NCBITaxon:7227 }
+        EquivalentTo:
+          - and:
+              - a: FOO:0000002
+              - part_of:
+                  a: FOO:0000003
+                  
+        ## Semantically identical to the above; implicit AND.. but what if there are multiple part-ofs or genii
+        EquivalentTo:
+          - a: FOO:0000002
+            part_of:
+              a: FOO:0000003
+
+        Annotations:
+          comment:
+            v: this is a comment string
+            a: xsd:string
+
+      - a: owl:Class
+        id: ANAT:0000001
+        label: tooth
+        SubClassOf:
+          - in_taxon:
+              a: Taxon:0000001  ## vertebrates
+          - in_taxon:
+              not:
+                a: Taxon:0000002  ## Aves
+        Annotations:
+          comment: teeth are only in invertebrates
+
+    axioms:
+      - id: z
+  - id: obo:foo/imports/bar.owl
+    objects:
+      - a: owl:Class
+        id: BAR:0000001
+        label: 
+          v: first class
+          a: xsd:string
+          Annotations:
+            - comment: I made this label
+        SubClassOf:
+          - a: BAR:0000002  # second class 
+            Annotations:
+              - comment: an annotation axiom on a SubClassOf axiom
+          - part_of:
+              a: BAR:0000003
+              Annotations:
+                - comment: an annotation axiom on a SubClassOf axiom, with the superclass being a class expression
+          - part_of:
+              a: BAR:0000004
+              if:   ## example of a GCI
+                - part_of: { a: NCBITaxon:7227 }
+              Annotations:
+                - comment: an annotation axiom on a GCI
+        Annotations:
+          comment:
+            v: this is a comment string
+            a: xsd:string

@@ -1,0 +1,146 @@
+{
+   "context" : {
+      "part_of" : "BFO:0000050",
+      "obo" : "http://purl.obolibrary.org/obo/",
+      "BFO" : "obo:BFO_",
+      "FOO" : "obo:FOO_"
+   },
+   "ontologies" : [
+      {
+         "objects" : [
+            {
+               "a" : "owl:Class",
+               "SubClassOf" : [
+                  {
+                     "a" : "FOO:0000002"
+                  },
+                  {
+                     "part_of" : {
+                        "a" : "FOO:0000003"
+                     }
+                  },
+                  {
+                     "part_of" : {
+                        "a" : "FOO:0000004",
+                        "if" : [
+                           {
+                              "part_of" : {
+                                 "a" : "NCBITaxon:7227"
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ],
+               "label" : "first class",
+               "id" : "FOO:0000001",
+               "Annotations" : {
+                  "comment" : {
+                     "a" : "xsd:string",
+                     "v" : "this is a comment string"
+                  }
+               },
+               "EquivalentTo" : [
+                  {
+                     "and" : [
+                        {
+                           "a" : "FOO:0000002"
+                        },
+                        {
+                           "part_of" : {
+                              "a" : "FOO:0000003"
+                           }
+                        }
+                     ]
+                  }
+               ]
+            }
+         ],
+         "imports" : [
+            "obo:foo/imports/bar.owl",
+            "obo:foo/imports/foz.owl"
+         ],
+         "id" : "obo:foo.owl",
+         "axioms" : [
+            {
+               "id" : "z"
+            }
+         ],
+         "Annotations" : {
+            "title" : "demo ontology"
+         }
+      },
+      {
+         "objects" : [
+            {
+               "a" : "owl:Class",
+               "SubClassOf" : [
+                  {
+                     "a" : "BAR:0000002",
+                     "Annotations" : [
+                        {
+                           "comment" : "an annotation axiom on a SubClassOf axiom"
+                        }
+                     ]
+                  },
+                  {
+                     "part_of" : {
+                        "a" : "BAR:0000003",
+                        "Annotations" : [
+                           {
+                              "comment" : "an annotation axiom on a SubClassOf axiom, with the superclass being a class expression"
+                           }
+                        ]
+                     }
+                  },
+                  {
+                     "part_of" : {
+                        "a" : "BAR:0000004",
+                        "Annotations" : [
+                           {
+                              "comment" : "an annotation axiom on a GCI"
+                           }
+                        ],
+                        "if" : [
+                           {
+                              "part_of" : {
+                                 "a" : "NCBITaxon:7227"
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ],
+               "label" : {
+                  "a" : "xsd:string",
+                  "v" : "first class",
+                  "Annotations" : [
+                     {
+                        "comment" : "I made this label"
+                     }
+                  ]
+               },
+               "id" : "BAR:0000001",
+               "Annotations" : {
+                  "comment" : {
+                     "a" : "xsd:string",
+                     "v" : "this is a comment string"
+                  }
+               },
+               "EquivalentTo" : [
+                  {
+                     "a" : [
+                        {
+                           "part_of" : {
+                              "a" : "BAR:0000003"
+                           }
+                        }
+                     ]
+                  }
+               ]
+            }
+         ],
+         "id" : "obo:foo/imports/bar.owl"
+      }
+   ]
+}
