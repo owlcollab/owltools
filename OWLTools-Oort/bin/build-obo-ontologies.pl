@@ -856,7 +856,7 @@ sub get_ont_info {
          xao => {
              infallible => 0,     ## can't build simple obo
              method => 'obo2owl',
-             source_url => 'https://xenopus-anatomy-ontology.googlecode.com/svn/trunk/current-release/xenopus_anatomy.obo',
+             source_url => 'ftp://ftp.xenbase.org/pub/XenopusAnatomyOntology/xenopus_anatomy.obo',
          },
          mat => {
              method => 'obo2owl',

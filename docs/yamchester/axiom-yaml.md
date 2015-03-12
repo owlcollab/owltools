@@ -82,8 +82,9 @@ YMMV.
 
 With this in mind, the specification of axiom-yaml could be almost
 generated automatically using the OWL2 spec. The type ("a") is axiom
-or expression type, the keys are the names given in the BNF. TBD: make
-this type neutral? E.g. SomeValuesFrom (aka "some" in manchester) vs
+or expression type, the keys are the names given in the BNF (or the
+names of the implict variables in the owlapi). TBD: make this type
+neutral? E.g. SomeValuesFrom (aka "some" in manchester) vs
 ObjectSomeValuesFrom. I think I slightly prefer manchester style vocab
 here and inference of the axiom type (but does this come with
 penalties...?).
