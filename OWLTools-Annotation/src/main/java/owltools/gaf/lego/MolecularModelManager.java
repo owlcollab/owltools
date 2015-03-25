@@ -274,8 +274,23 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		if (cls == null) {
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
+		return createIndividualNonReasoning(modelId, cls, annotations, metadata);
+	}
+	
+	/**
+	 * Shortcut for {@link CoreMolecularModelManager#createIndividual}.
+	 * 
+	 * @param modelId
+	 * @param ce
+	 * @param annotations
+	 * @param metadata
+	 * @return id and created individual
+	 * @throws UnknownIdentifierException 
+	 */
+	public Pair<String, OWLNamedIndividual> createIndividualNonReasoning(String modelId, OWLClassExpression ce, Collection<Pair<String, String>> annotations, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
 		Set<OWLAnnotation> owlAnnotations = createAnnotations(annotations, model);
-		OWLNamedIndividual i = createIndividual(modelId, model, cls, owlAnnotations, false, metadata);
+		OWLNamedIndividual i = createIndividual(modelId, model, ce, owlAnnotations, false, metadata);
 		return Pair.of(MolecularModelJsonRenderer.getId(i.getIRI()), i);
 	}
 

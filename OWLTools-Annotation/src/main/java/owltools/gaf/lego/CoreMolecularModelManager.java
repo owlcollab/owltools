@@ -270,18 +270,18 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	/**
 	 * @param modelId
 	 * @param model
-	 * @param c
+	 * @param ce
 	 * @param metadata
 	 * @return individual
 	 */
-	public OWLNamedIndividual createIndividual(String modelId, ModelContainer model, OWLClass c, METADATA metadata) {
-		OWLNamedIndividual individual = createIndividual(modelId, model, c, null, true, metadata);
+	public OWLNamedIndividual createIndividual(String modelId, ModelContainer model, OWLClassExpression ce, METADATA metadata) {
+		OWLNamedIndividual individual = createIndividual(modelId, model, ce, null, true, metadata);
 		return individual;
 	}
 	
-	OWLNamedIndividual createIndividual(String modelId, ModelContainer model, OWLClass c, Set<OWLAnnotation> annotations, boolean flushReasoner, METADATA metadata) {
-		LOG.info("Creating individual of type: "+c);
-		Pair<OWLNamedIndividual, Set<OWLAxiom>> pair = createIndividual(modelId, model, c, annotations);
+	OWLNamedIndividual createIndividual(String modelId, ModelContainer model, OWLClassExpression ce, Set<OWLAnnotation> annotations, boolean flushReasoner, METADATA metadata) {
+		LOG.info("Creating individual of type: "+ce);
+		Pair<OWLNamedIndividual, Set<OWLAxiom>> pair = createIndividual(modelId, model, ce, annotations);
 		addAxioms(modelId, model, pair.getRight(), flushReasoner, metadata);
 		return pair.getLeft();
 	}
