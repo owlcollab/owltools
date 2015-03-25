@@ -44,6 +44,7 @@ public interface M3BatchHandler {
 	
 	public static enum Operation {
 		get("get"),
+		@Deprecated // use add instead
 		create("create"),
 		@Deprecated // hard coded assumptions about the data model, use variables instead
 		createComposite("create-composite"), // aka create annaton 

@@ -224,6 +224,28 @@ public class BatchModelHandlerTest {
 	}
 	
 	@Test
+	public void testAddIndividual() throws Exception {
+		final String modelId = generateBlankModel();
+		
+		// create one individuals
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.individual.name();
+		batch2[0].operation = Operation.add.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.modelId = modelId;
+		batch2[0].arguments.expressions = new M3Expression[1];
+		batch2[0].arguments.expressions[0] = new M3Expression();
+		batch2[0].arguments.expressions[0].type = "class";
+		batch2[0].arguments.expressions[0].literal = "GO:0006915"; // apoptotic process
+		
+		M3BatchResponse resp = handler.m3Batch(uid, intention, packetId, batch2, true);
+		assertEquals(resp.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp.message_type);
+		List<Map<Object, Object>> iObjs = (List) resp.data.get(KEY_INDIVIDUALS);
+		assertEquals(1, iObjs.size());
+	}
+	
+	@Test
 	public void testParseComplex() throws Exception {
 		String modelId = models.generateBlankModel(null, null);
 		ModelContainer model = models.getModel(modelId);

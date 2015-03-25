@@ -372,8 +372,48 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 			}
 		}
+		// create individual (look-up variable first) and add type
+		else if (Operation.add == operation) {
+			// required: expression
+			// optional: more expressions, values
+			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+			Pair<String, OWLNamedIndividual> individualPair;
+			List<OWLClassExpression> clsExpressions = new ArrayList<OWLClassExpression>(request.arguments.expressions.length);
+			for(M3Expression expression : request.arguments.expressions) {
+				OWLClassExpression cls = parseM3Expression(expression, values);
+				clsExpressions.add(cls);
+			}
+			if (values.notVariable(request.arguments.individual)) {
+				if (clsExpressions.isEmpty() == false) {
+					// create individual for given class expression
+					OWLClassExpression head = clsExpressions.get(0);
+					individualPair = m3.createIndividualNonReasoning(values.modelId, head, annotations, token);
+					// add to render list and set variable
+					values.relevantIndividuals.add(individualPair.getValue());
+					if (request.arguments.assignToVariable != null) {
+						values.individualVariables.put(request.arguments.assignToVariable, individualPair);
+					}
+					// add types for the remaining expessions
+					if (clsExpressions.size() > 1) {
+						List<OWLClassExpression> tail = clsExpressions.subList(1, clsExpressions.size());
+						for (OWLClassExpression ce : tail) {
+							m3.addTypeNonReasoning(values.modelId, individualPair.getKey(), ce, token);
+						}
+					}
+				}
+			}
+			else {
+				individualPair = values.individualVariables.get(request.arguments.individual);
+				for (OWLClassExpression clsExpression : clsExpressions) {
+					m3.addTypeNonReasoning(values.modelId, individualPair.getKey(), clsExpression, token);
+				}
+			}
+			addContributor(values.modelId, userId, token, m3);
+		}
 		// create from class
 		else if (Operation.create == operation) {
+			// TODO remove operation and throw error
 			// required: subject
 			// optional: expressions, values
 			requireNotNull(request.arguments.subject, "request.arguments.subject");
