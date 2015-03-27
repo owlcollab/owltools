@@ -114,7 +114,7 @@ public class GafCommandRunnerTest extends AbstractCommandRunnerTest {
 		String slimpath = getResource("gaf/test.ids").getAbsolutePath();
 		String ugaf = "target/unmapped.gaf";
 		run("--map2slim --idfile "+slimpath+" -u "+ugaf);
-		String opath = "target/map2slim-output-ids.gaf";
+		String opath = "target/map2slim-output-ids-fallthough.gaf";
 		run("--write-gaf "+opath);
 		
 		
