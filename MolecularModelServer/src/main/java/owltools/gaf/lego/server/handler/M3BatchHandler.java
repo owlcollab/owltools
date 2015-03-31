@@ -117,7 +117,7 @@ public interface M3BatchHandler {
 		String value;
 	}
 	
-	public static class M3Expression {
+	public static class M3Expression { // TODO unify field names with renderer
 		String type; // class, svf, intersection, union
 		String onProp;
 		String literal;
