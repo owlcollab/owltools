@@ -106,6 +106,13 @@ public class BatchModelHandlerTest {
 		}
 	}
 
+	private static void setExpressionClass(M3Argument arg, String cls) {
+		arg.expressions = new M3Expression[1];
+		arg.expressions[0] = new M3Expression();
+		arg.expressions[0].type = "class";
+		arg.expressions[0].literal = cls;
+	}
+	
 	@Test
 	public void test() throws Exception {
 		final String modelId = generateBlankModel();
@@ -1061,18 +1068,18 @@ public class BatchModelHandlerTest {
 		final M3Request[] batch = new M3Request[5];
 		batch[0] = new M3Request();
 		batch[0].entity = Entity.individual.name();
-		batch[0].operation = Operation.create.getLbl();
+		batch[0].operation = Operation.add.getLbl();
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
-		batch[0].arguments.subject = "GO:0003674"; // molecular function
+		setExpressionClass(batch[0].arguments, "GO:0003674"); // molecular function
 		batch[0].arguments.assignToVariable = "mf";
 
 		batch[1] = new M3Request();
 		batch[1].entity = Entity.individual.name();
-		batch[1].operation = Operation.create.getLbl();
+		batch[1].operation = Operation.add.getLbl();
 		batch[1].arguments = new M3Argument();
 		batch[1].arguments.modelId = modelId;
-		batch[1].arguments.subject = "GO:0008150"; // biological process
+		setExpressionClass(batch[1].arguments, "GO:0008150"); // biological process
 		batch[1].arguments.assignToVariable = "bp";
 
 		batch[2] = new M3Request();
@@ -1086,10 +1093,10 @@ public class BatchModelHandlerTest {
 
 		batch[3] = new M3Request();
 		batch[3].entity = Entity.individual.name();
-		batch[3].operation = Operation.create.getLbl();
+		batch[3].operation = Operation.add.getLbl();
 		batch[3].arguments = new M3Argument();
 		batch[3].arguments.modelId = modelId;
-		batch[3].arguments.subject = "GO:0005575"; // cellular component
+		setExpressionClass(batch[3].arguments, "GO:0005575"); // cellular component
 		batch[3].arguments.assignToVariable = "cc";
 
 		batch[4] = new M3Request();
@@ -1165,10 +1172,10 @@ public class BatchModelHandlerTest {
 		final M3Request[] batch = new M3Request[2];
 		batch[0] = new M3Request();
 		batch[0].entity = Entity.individual.name();
-		batch[0].operation = Operation.create.getLbl();
+		batch[0].operation = Operation.add.getLbl();
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
-		batch[0].arguments.subject = "GO:0003674"; // molecular function
+		setExpressionClass(batch[0].arguments, "GO:0003674"); // molecular function
 		batch[0].arguments.assignToVariable = "mf";
 
 		batch[1] = new M3Request();
