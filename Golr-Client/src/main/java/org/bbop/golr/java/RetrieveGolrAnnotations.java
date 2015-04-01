@@ -40,12 +40,17 @@ public class RetrieveGolrAnnotations {
 	private final String server;
 	private int retryCount;
 	private final CloseableHttpClient httpclient;
+	
+	/*
+	 * This flag indicates that missing c16 data, due to malformed JSON is acceptable. 
+	 */
+	private final boolean ignoreC16ParseErrors;
 
 	public RetrieveGolrAnnotations(String server) {
-		this(server, 3);
+		this(server, 3, false);
 	}
 	
-	public RetrieveGolrAnnotations(String server, int retryCount) {
+	public RetrieveGolrAnnotations(String server, int retryCount, boolean ignoreC16ParseErrors) {
 		this.server = server;
 		this.retryCount = retryCount;
 		HttpClientBuilder builder = HttpClientBuilder.create();
@@ -59,6 +64,7 @@ public class RetrieveGolrAnnotations {
 			}
 		});
 		httpclient = builder.build();
+		this.ignoreC16ParseErrors = ignoreC16ParseErrors;
 	}
 	
 	public GafDocument convert(List<GolrAnnotationDocument> golrAnnotationDocuments) throws IOException {
@@ -112,14 +118,21 @@ public class RetrieveGolrAnnotations {
 				expressions = new ArrayList<List<ExtensionExpression>>(document.annotation_extension_json.size());
 			}
 			for(String json : document.annotation_extension_json) {
-				GolrAnnotationExtension extension = GSON.fromJson(json, GolrAnnotationExtension.class);
-				if (extension != null && extension.relationship != null) {
-					// WARNING the Golr c16 model is lossy! There is no distinction between disjunction and conjunction in Golr-c16
-					// add all as disjunction
-					String relation = extractRelation(extension);
-					if (relation != null) {
-						ExtensionExpression ee = new ExtensionExpression(relation, extension.relationship.id);
-						expressions.add(Collections.singletonList(ee));
+				try {
+					GolrAnnotationExtension extension = GSON.fromJson(json, GolrAnnotationExtension.class);
+					if (extension != null && extension.relationship != null) {
+						// WARNING the Golr c16 model is lossy! There is no distinction between disjunction and conjunction in Golr-c16
+						// add all as disjunction
+						String relation = extractRelation(extension);
+						if (relation != null) {
+							ExtensionExpression ee = new ExtensionExpression(relation, extension.relationship.id);
+							expressions.add(Collections.singletonList(ee));
+						}
+					}
+				} catch (JsonSyntaxException e) {
+					// when the ignore flag is set, the user has decided that incomplete c16 data is better than no data.
+					if (ignoreC16ParseErrors == false) {
+						throw e;
 					}
 				}
 			}
