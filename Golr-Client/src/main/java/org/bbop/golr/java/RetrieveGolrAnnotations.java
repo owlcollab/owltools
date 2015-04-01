@@ -40,12 +40,17 @@ public class RetrieveGolrAnnotations {
 	private final String server;
 	private int retryCount;
 	private final CloseableHttpClient httpclient;
+	
+	/*
+	 * This flag indicates that missing c16 data, due to malformed JSON is acceptable. 
+	 */
+	private final boolean ignoreC16ParseErrors;
 
 	public RetrieveGolrAnnotations(String server) {
-		this(server, 3);
+		this(server, 3, false);
 	}
 	
-	public RetrieveGolrAnnotations(String server, int retryCount) {
+	public RetrieveGolrAnnotations(String server, int retryCount, boolean ignoreC16ParseErrors) {
 		this.server = server;
 		this.retryCount = retryCount;
 		HttpClientBuilder builder = HttpClientBuilder.create();
@@ -59,6 +64,7 @@ public class RetrieveGolrAnnotations {
 			}
 		});
 		httpclient = builder.build();
+		this.ignoreC16ParseErrors = ignoreC16ParseErrors;
 	}
 	
 	public GafDocument convert(List<GolrAnnotationDocument> golrAnnotationDocuments) throws IOException {
@@ -68,7 +74,7 @@ public class RetrieveGolrAnnotations {
 		return document;
 	}
 	
-	public void convert(List<GolrAnnotationDocument> golrAnnotationDocuments, Map<String, Bioentity> entities, GafDocument document) throws IOException {
+	public void convert(List<GolrAnnotationDocument> golrAnnotationDocuments, Map<String, Bioentity> entities, GafDocument document) throws IOException, JsonSyntaxException {
 		for (GolrAnnotationDocument golrDocument : golrAnnotationDocuments) {
 			String bioentityId = golrDocument.bioentity;
 			Bioentity entity = entities.get(bioentityId);
@@ -104,7 +110,7 @@ public class RetrieveGolrAnnotations {
 		}
 	}
 	
-	protected void handleAnnotationExtension(GeneAnnotation annotation, GolrAnnotationDocument document) throws IOException {
+	protected void handleAnnotationExtension(GeneAnnotation annotation, GolrAnnotationDocument document) throws JsonSyntaxException {
 		if (document.annotation_extension_json != null && 
 				document.annotation_extension_json.isEmpty() == false){
 			List<List<ExtensionExpression>> expressions = annotation.getExtensionExpressions();
@@ -123,9 +129,11 @@ public class RetrieveGolrAnnotations {
 							expressions.add(Collections.singletonList(ee));
 						}
 					}
-					
 				} catch (JsonSyntaxException e) {
-					throw new IOException("Could not parse annotation extension: "+json, e);
+					// when the ignore flag is set, the user has decided that incomplete c16 data is better than no data.
+					if (ignoreC16ParseErrors == false) {
+						throw e;
+					}
 				}
 			}
 			annotation.setExtensionExpressions(expressions);
