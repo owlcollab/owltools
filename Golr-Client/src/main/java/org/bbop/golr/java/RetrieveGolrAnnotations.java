@@ -153,6 +153,18 @@ public class RetrieveGolrAnnotations {
 		}
 		return null;
 	}
+	
+	public List<GolrAnnotationDocument> getGolrAnnotationsForGenes(List<String> ids) throws IOException {
+		List<String[]> tagvalues = new ArrayList<String[]>();
+		String [] tagvalue = new String[ids.size() + 1];
+		tagvalue[0] = "bioentity";
+		for (int i = 0; i < ids.size(); i++) {
+			tagvalue[i+1] = ids.get(i);
+		}
+		tagvalues.add(tagvalue);
+		final List<GolrAnnotationDocument> documents = getGolrAnnotations(tagvalues);
+		return documents;
+	}
 
 	public List<GolrAnnotationDocument> getGolrAnnotationsForGene(String id) throws IOException {
 		List<String[]> tagvalues = new ArrayList<String[]>();
