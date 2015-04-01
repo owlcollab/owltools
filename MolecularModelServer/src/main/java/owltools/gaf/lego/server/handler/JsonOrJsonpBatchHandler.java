@@ -394,7 +394,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 					if (request.arguments.assignToVariable != null) {
 						values.individualVariables.put(request.arguments.assignToVariable, individualPair);
 					}
-					// add types for the remaining expessions
+					// add types for the remaining expressions
 					if (clsExpressions.size() > 1) {
 						List<OWLClassExpression> tail = clsExpressions.subList(1, clsExpressions.size());
 						for (OWLClassExpression ce : tail) {
