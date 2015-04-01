@@ -28,7 +28,7 @@ import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.eco.SimpleEcoMapper;
-import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
+import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -66,10 +66,10 @@ abstract class AbstractLegoTranslator {
 		
 		enabledBy = OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(df);
 		
-		source = df.getOWLAnnotationProperty(LegoAnnotationType.source.getAnnotationProperty());
-		contributor = df.getOWLAnnotationProperty(LegoAnnotationType.contributor.getAnnotationProperty());
-		date = df.getOWLAnnotationProperty(LegoAnnotationType.date.getAnnotationProperty());
-		evidence = df.getOWLAnnotationProperty(LegoAnnotationType.evidence.getAnnotationProperty());
+		source = df.getOWLAnnotationProperty(AnnotationShorthand.source.getAnnotationProperty());
+		contributor = df.getOWLAnnotationProperty(AnnotationShorthand.contributor.getAnnotationProperty());
+		date = df.getOWLAnnotationProperty(AnnotationShorthand.date.getAnnotationProperty());
+		evidence = df.getOWLAnnotationProperty(AnnotationShorthand.evidence.getAnnotationProperty());
 		
 		bpSet = getAllSubClasses(bp, graph, reasoner, true);
 		mfSet = getAllSubClasses(mf, graph, reasoner, true);

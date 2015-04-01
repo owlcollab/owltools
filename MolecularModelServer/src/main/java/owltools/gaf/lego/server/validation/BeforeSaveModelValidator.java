@@ -10,8 +10,8 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
+import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
-import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.util.ModelContainer;
 
@@ -32,14 +32,14 @@ public class BeforeSaveModelValidator {
 		Set<OWLAnnotation> annotations = aboxOntology.getAnnotations();
 		for (OWLAnnotation annotation : annotations) {
 			OWLAnnotationProperty p = annotation.getProperty();
-			LegoAnnotationType legoType = LegoAnnotationType.getLegoType(p.getIRI());
+			AnnotationShorthand legoType = AnnotationShorthand.getShorthand(p.getIRI());
 			if (legoType != null) {
 				// check for title
-				if (LegoAnnotationType.title.equals(legoType)) {
+				if (AnnotationShorthand.title.equals(legoType)) {
 					hasTitle = true;
 				}
 				// check for contributor
-				else if (LegoAnnotationType.contributor.equals(legoType)) {
+				else if (AnnotationShorthand.contributor.equals(legoType)) {
 					hasContributor = true;
 				}
 			}

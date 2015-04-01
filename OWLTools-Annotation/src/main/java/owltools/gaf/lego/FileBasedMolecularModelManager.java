@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
@@ -22,6 +20,7 @@ import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -394,7 +393,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 	 * @throws OWLOntologyCreationException
 	 * @throws IOException 
 	 */
-	public void saveAllModels(Collection<Pair<String, String>> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
+	public void saveAllModels(Set<OWLAnnotation> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
 		for (Entry<String, ModelContainer> entry : modelMap.entrySet()) {
 			saveModel(entry.getKey(), entry.getValue(), annotations, metadata);
 		}
@@ -412,7 +411,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 	 * @throws OWLOntologyCreationException 
 	 * @throws IOException
 	 */
-	public void saveModel(String modelId, ModelContainer m, Collection<Pair<String, String>> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
+	public void saveModel(String modelId, ModelContainer m, Set<OWLAnnotation> annotations, METADATA metadata) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException {
 		final OWLOntology ont = m.getAboxOntology();
 		final OWLOntologyManager manager = ont.getOWLOntologyManager();
 		
@@ -450,7 +449,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 	}
 
 	private void saveToFile(final OWLOntology ont, final OWLOntologyManager manager,
-			final File outfile, final Collection<Pair<String,String>> annotations, METADATA metadata)
+			final File outfile, final Set<OWLAnnotation> annotations, METADATA metadata)
 			throws OWLOntologyStorageException {
 		// check that the annotations contain relevant meta data
 		final Set<OWLAxiom> metadataAxioms = new HashSet<OWLAxiom>();

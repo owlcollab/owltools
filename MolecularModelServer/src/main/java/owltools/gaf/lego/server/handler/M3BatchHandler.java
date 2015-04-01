@@ -9,6 +9,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
+import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
+
 @Path("/")
 
 public interface M3BatchHandler {
@@ -62,7 +64,6 @@ public interface M3BatchHandler {
 		storeModel("store"),
 		allModelIds("all-model-ids"),
 		allModelMeta("all-model-meta"),
-		search("search"),
 		updateImports("update-imports"),
 		
 		// undo operations for models
@@ -115,6 +116,18 @@ public interface M3BatchHandler {
 	public static class M3Pair {
 		String key;
 		String value;
+		
+		public static M3Pair[] singleton(String key, String value) {
+			M3Pair[] p = new M3Pair[1];
+			p[0] = new M3Pair();
+			p[0].key = key;
+			p[0].value = value;
+			return p;
+		}
+		
+		public static M3Pair[] singleton(AnnotationShorthand key, String value) {
+			return singleton(key.name(), value);
+		}
 	}
 	
 	public static class M3Expression { // TODO unify field names with renderer

@@ -1134,6 +1134,12 @@ public class BatchModelHandlerTest {
 		assertEquals(uid, response.uid);
 		assertEquals(intention, response.intention);
 		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String json = gson.toJson(response.data);
+		System.out.println("-----------");
+		System.out.println(json);
+		System.out.println("-----------");
 	}
 	
 	@Test

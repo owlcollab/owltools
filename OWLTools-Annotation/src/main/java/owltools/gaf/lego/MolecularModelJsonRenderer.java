@@ -1,6 +1,8 @@
 package owltools.gaf.lego;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,6 +20,8 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
+import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
@@ -39,11 +43,11 @@ import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.gaf.eco.EcoMapper;
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
-import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
 import owltools.vocab.OBOUpperVocabulary;
@@ -115,6 +119,55 @@ public class MolecularModelJsonRenderer {
 		Restriction,
 		someValueFrom
 	}
+	
+	public enum AnnotationShorthand {
+	
+	comment(OWLRDFVocabulary.RDFS_COMMENT.getIRI()), // arbitrary String
+	evidence(IRI.create("http://geneontology.org/lego/evidence")), // eco class iri
+	date(IRI.create("http://purl.org/dc/elements/1.1/date")), // arbitrary string at the moment, define date format?
+	// DC recommends http://www.w3.org/TR/NOTE-datetime, one example format is YYYY-MM-DD
+	source(IRI.create("http://purl.org/dc/elements/1.1/source")), // arbitrary string, such as PMID:000000
+	contributor(IRI.create("http://purl.org/dc/elements/1.1/contributor")), // who contributed to the annotation
+	title(IRI.create("http://purl.org/dc/elements/1.1/title")); // title (of the model)
+	
+	private final IRI annotationProperty;
+	
+	AnnotationShorthand(IRI annotationProperty) {
+		this.annotationProperty = annotationProperty;
+	}
+	
+	public IRI getAnnotationProperty() {
+		return annotationProperty;
+	}
+	
+	
+	public static AnnotationShorthand getShorthand(IRI iri) {
+		for (AnnotationShorthand type : AnnotationShorthand.values()) {
+			if (type.annotationProperty.equals(iri)) {
+				return type;
+			}
+		}
+		return null;
+	}
+	
+	public static AnnotationShorthand getShorthand(String name) {
+		for (AnnotationShorthand type : AnnotationShorthand.values()) {
+			if (type.name().equals(name)) {
+				return type;
+			}
+		}
+		return null;
+	}
+	}
+	
+	public static final ThreadLocal<DateFormat> AnnotationTypeDateFormat = new ThreadLocal<DateFormat>(){
+
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("yyyy-MM-dd");
+		}
+		
+	};
 	
 	/**
 	 * @param model
@@ -210,17 +263,15 @@ public class MolecularModelJsonRenderer {
 		List<Object> anObjs = new ArrayList<Object>();
 		for (OWLAnnotation annotation : annotations) {
 			OWLAnnotationProperty p = annotation.getProperty();
-			LegoAnnotationType legoType = LegoAnnotationType.getLegoType(p.getIRI());
-			if (legoType != null) {
-				OWLAnnotationValue v = annotation.getValue();
-				if (LegoAnnotationType.evidence.equals(legoType)) {
-					IRI iri = (IRI) v;
-					anObjs.add(Collections.singletonMap(legoType.name(), getId(iri)));
+			AnnotationShorthand annotationShorthand = AnnotationShorthand.getShorthand(p.getIRI());
+			if (annotationShorthand != null) {
+				final String stringValue = getAnnotationStringValue(annotation.getValue());
+				if (stringValue != null) {
+					anObjs.add(Collections.singletonMap(annotationShorthand.name(), stringValue));
 				}
-				else {
-					OWLLiteral literal = (OWLLiteral) v;
-					anObjs.add(Collections.singletonMap(legoType.name(), literal.getLiteral()));
-				}
+			}
+			else {
+				// TODO render without the use of the shorthand
 			}
 		}
 		return anObjs;
@@ -319,23 +370,42 @@ public class MolecularModelJsonRenderer {
 		Set<OWLAnnotationAssertionAxiom> annotationAxioms = ont.getAnnotationAssertionAxioms(i.getIRI());
 		for (OWLAnnotationAssertionAxiom ax : annotationAxioms) {
 			OWLAnnotationProperty p = ax.getProperty();
-			LegoAnnotationType legoType = LegoAnnotationType.getLegoType(p.getIRI());
-			if (legoType != null) {
-				OWLAnnotationValue v = ax.getValue();
-				if (LegoAnnotationType.evidence.equals(legoType)) {
-					IRI iri = (IRI) v;
-					anObjs.add(Collections.singletonMap(legoType.name(), getId(iri)));
+			AnnotationShorthand annotationShorthand = AnnotationShorthand.getShorthand(p.getIRI());
+			if (annotationShorthand != null) {
+				final String stringValue = getAnnotationStringValue(ax.getValue());
+				if (stringValue != null) {
+					anObjs.add(Collections.singletonMap(annotationShorthand.name(), stringValue));
 				}
-				else {
-					OWLLiteral literal = (OWLLiteral) v;
-					anObjs.add(Collections.singletonMap(legoType.name(), literal.getLiteral()));
-				}
+			}
+			else {
+				// TODO render non-shorthand annotations
 			}
 		}
 		if (!anObjs.isEmpty()) {
 			iObj.put(KEY.annotations, anObjs);
 		}
 		return iObj;
+	}
+	
+	public static String getAnnotationStringValue(OWLAnnotationValue v) {
+		final String stringValue = v.accept(new OWLAnnotationValueVisitorEx<String>() {
+
+			@Override
+			public String visit(IRI iri) {
+				return getId(iri);
+			}
+
+			@Override
+			public String visit(OWLAnonymousIndividual individual) {
+				return null; // Do nothing
+			}
+
+			@Override
+			public String visit(OWLLiteral literal) {
+				return literal.getLiteral();
+			}
+		});
+		return stringValue;
 	}
 	
 	/**
@@ -504,6 +574,22 @@ public class MolecularModelJsonRenderer {
 		if (id.indexOf(':') < 0) {
 			return graph.getIRIByIdentifier(id);
 		}
+		if(id.startsWith(OBOUpperVocabulary.OBO) ){
+			return IRI.create(id);
+		}
+		String fullIRI = OBOUpperVocabulary.OBO + StringUtils.replaceOnce(id, ":", "_");
+		return IRI.create(fullIRI);
+	}
+	
+	/**
+	 * Inverse method to {@link #getId} for IRIs only!
+	 * 
+	 * @param id
+	 * @return IRI
+	 * 
+	 * @see MolecularModelJsonRenderer#getId
+	 */
+	public static IRI getIRI(String id) {
 		if(id.startsWith(OBOUpperVocabulary.OBO) ){
 			return IRI.create(id);
 		}
