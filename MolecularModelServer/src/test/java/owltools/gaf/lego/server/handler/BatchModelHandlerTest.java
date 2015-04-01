@@ -21,8 +21,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.gaf.lego.ManchesterSyntaxTool;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
+import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
-import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.server.StartUpTool;
@@ -138,10 +138,10 @@ public class BatchModelHandlerTest {
 		
 		batch2[0].arguments.values = new M3Pair[2];
 		batch2[0].arguments.values[0] = new M3Pair();
-		batch2[0].arguments.values[0].key = LegoAnnotationType.comment.name();
+		batch2[0].arguments.values[0].key = AnnotationShorthand.comment.name();
 		batch2[0].arguments.values[0].value = "comment 1";
 		batch2[0].arguments.values[1] = new M3Pair();
-		batch2[0].arguments.values[1].key = LegoAnnotationType.comment.name();
+		batch2[0].arguments.values[1].key = AnnotationShorthand.comment.name();
 		batch2[0].arguments.values[1].value = "comment 2";
 		
 		batch2[1] = new M3Request();
@@ -315,10 +315,10 @@ public class BatchModelHandlerTest {
 
 		batch1[0].arguments.values = new M3Pair[2];
 		batch1[0].arguments.values[0] = new M3Pair();
-		batch1[0].arguments.values[0].key = LegoAnnotationType.comment.name();
+		batch1[0].arguments.values[0].key = AnnotationShorthand.comment.name();
 		batch1[0].arguments.values[0].value = "comment 1";
 		batch1[0].arguments.values[1] = new M3Pair();
-		batch1[0].arguments.values[1].key = LegoAnnotationType.comment.name();
+		batch1[0].arguments.values[1].key = AnnotationShorthand.comment.name();
 		batch1[0].arguments.values[1].value = "comment 2";
 		
 		M3BatchResponse resp1 = handler.m3Batch(uid, intention, packetId, batch1, true);
@@ -341,7 +341,7 @@ public class BatchModelHandlerTest {
 
 		batch2[0].arguments.values = new M3Pair[1];
 		batch2[0].arguments.values[0] = new M3Pair();
-		batch2[0].arguments.values[0].key = LegoAnnotationType.comment.name();
+		batch2[0].arguments.values[0].key = AnnotationShorthand.comment.name();
 		batch2[0].arguments.values[0].value = "comment 1";
 
 		M3BatchResponse resp2 = handler.m3Batch(uid, intention, packetId, batch2, true);
@@ -646,58 +646,6 @@ public class BatchModelHandlerTest {
 		assertEquals(2, types2.size());
 	}
 	
-	@Test
-	public void testModelSearch() throws Exception {
-		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
-		models.dispose();
-
-		final String modelId = generateBlankModel();
-		
-		// create
-		M3Request[] batch1 = new M3Request[1];
-		batch1[0] = new M3Request();
-		batch1[0].entity = Entity.individual.name();
-		batch1[0].operation = Operation.create.getLbl();
-		batch1[0].arguments = new M3Argument();
-		batch1[0].arguments.modelId = modelId;
-		batch1[0].arguments.subject = "GO:0008104"; // protein localization
-		batch1[0].arguments.expressions = new M3Expression[2];
-		batch1[0].arguments.expressions[0] = new M3Expression();
-		batch1[0].arguments.expressions[0].type = "svf";
-		batch1[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
-		batch1[0].arguments.expressions[0].literal = "UniProtKB:P0000";
-		
-		batch1[0].arguments.expressions[1] = new M3Expression();
-		batch1[0].arguments.expressions[1].type = "svf";
-		batch1[0].arguments.expressions[1].onProp = "BFO:0000050"; // part_of
-		batch1[0].arguments.expressions[1].literal = "GO:0006915";
-		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
-		assertEquals(uid, response1.uid);
-		assertEquals(intention, response1.intention);
-		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
-	
-		// search
-		M3Request[] batch2 = new M3Request[1];
-		batch2[0] = new M3Request();
-		batch2[0].entity = Entity.model.name();
-		batch2[0].operation = Operation.search.getLbl();
-		batch2[0].arguments = new M3Argument();
-		batch2[0].arguments.values = new M3Pair[1];
-		batch2[0].arguments.values[0] = new M3Pair();
-		batch2[0].arguments.values[0].key = "id";
-		batch2[0].arguments.values[0].value = "GO:0008104";
-		
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
-		assertEquals(uid, response2.uid);
-		assertEquals(intention, response2.intention);
-		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
-		
-		Set<String> foundIds = (Set<String>) response2.data.get("model_ids");
-		assertEquals(1, foundIds.size());
-		assertTrue(foundIds.contains(modelId));
-	}
-
 	@Test
 	@Deprecated
 	public void testCreateModelAndIndividualBatch() throws Exception {
@@ -1088,9 +1036,15 @@ public class BatchModelHandlerTest {
 		// blank model
 		final String modelId = generateBlankModel();
 		List<M3Request> batch = new ArrayList<M3Request>();
-
+		
+		// evidence
+		M3Request r = addIndividual(modelId, "ECO:0000000"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var";
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.source, "PMID:000000");
+		batch.add(r);
+		
 		// activity/mf
-		M3Request r = addIndividual(modelId, "GO:0003674"); // molecular function
+		r = addIndividual(modelId, "GO:0003674"); // molecular function
 		r.arguments.assignToVariable = "mf";
 		batch.add(r);
 
@@ -1111,16 +1065,22 @@ public class BatchModelHandlerTest {
 		
 		// relations
 		// activity -> gene
-		batch.add(addEdge(modelId, "mf", "RO:0002333", "gene")); // enabled_by
+		r = addEdge(modelId, "mf", "RO:0002333", "gene"); // enabled_by
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var");
+		batch.add(r); 
 		
 		// activity -> process
-		batch.add(addEdge(modelId, "mf", "BFO:0000050", "bp")); // part_of
+		r = addEdge(modelId, "mf", "BFO:0000050", "bp"); // part_of
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var");
+		batch.add(r); // part_of
 		
 		// activity -> cc
-		batch.add(addEdge(modelId, "mf", "BFO:0000066", "cc")); // occurs_in
+		r = addEdge(modelId, "mf", "BFO:0000066", "cc"); // occurs_in
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var");
+		batch.add(r);
 		
 		/*
-		 * Annoying work-around until the external validation is more stable
+		 * Test for annoying work-around until the external validation is more stable
 		 */
 		boolean defaultIdPolicy = handler.CHECK_LITERAL_IDENTIFIERS;
 		M3BatchResponse response;
@@ -1135,11 +1095,6 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response.intention);
 		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
 		
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String json = gson.toJson(response.data);
-		System.out.println("-----------");
-		System.out.println(json);
-		System.out.println("-----------");
 	}
 	
 	@Test
