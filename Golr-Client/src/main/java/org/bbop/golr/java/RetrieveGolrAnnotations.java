@@ -68,7 +68,7 @@ public class RetrieveGolrAnnotations {
 		return document;
 	}
 	
-	public void convert(List<GolrAnnotationDocument> golrAnnotationDocuments, Map<String, Bioentity> entities, GafDocument document) throws IOException {
+	public void convert(List<GolrAnnotationDocument> golrAnnotationDocuments, Map<String, Bioentity> entities, GafDocument document) throws IOException, JsonSyntaxException {
 		for (GolrAnnotationDocument golrDocument : golrAnnotationDocuments) {
 			String bioentityId = golrDocument.bioentity;
 			Bioentity entity = entities.get(bioentityId);
@@ -104,7 +104,7 @@ public class RetrieveGolrAnnotations {
 		}
 	}
 	
-	protected void handleAnnotationExtension(GeneAnnotation annotation, GolrAnnotationDocument document) throws IOException {
+	protected void handleAnnotationExtension(GeneAnnotation annotation, GolrAnnotationDocument document) throws JsonSyntaxException {
 		if (document.annotation_extension_json != null && 
 				document.annotation_extension_json.isEmpty() == false){
 			List<List<ExtensionExpression>> expressions = annotation.getExtensionExpressions();
@@ -112,20 +112,15 @@ public class RetrieveGolrAnnotations {
 				expressions = new ArrayList<List<ExtensionExpression>>(document.annotation_extension_json.size());
 			}
 			for(String json : document.annotation_extension_json) {
-				try {
-					GolrAnnotationExtension extension = GSON.fromJson(json, GolrAnnotationExtension.class);
-					if (extension != null && extension.relationship != null) {
-						// WARNING the Golr c16 model is lossy! There is no distinction between disjunction and conjunction in Golr-c16
-						// add all as disjunction
-						String relation = extractRelation(extension);
-						if (relation != null) {
-							ExtensionExpression ee = new ExtensionExpression(relation, extension.relationship.id);
-							expressions.add(Collections.singletonList(ee));
-						}
+				GolrAnnotationExtension extension = GSON.fromJson(json, GolrAnnotationExtension.class);
+				if (extension != null && extension.relationship != null) {
+					// WARNING the Golr c16 model is lossy! There is no distinction between disjunction and conjunction in Golr-c16
+					// add all as disjunction
+					String relation = extractRelation(extension);
+					if (relation != null) {
+						ExtensionExpression ee = new ExtensionExpression(relation, extension.relationship.id);
+						expressions.add(Collections.singletonList(ee));
 					}
-					
-				} catch (JsonSyntaxException e) {
-					throw new IOException("Could not parse annotation extension: "+json, e);
 				}
 			}
 			annotation.setExtensionExpressions(expressions);
