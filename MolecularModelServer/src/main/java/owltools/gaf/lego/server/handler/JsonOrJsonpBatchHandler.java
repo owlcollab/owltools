@@ -59,6 +59,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	public static boolean ADD_INFERENCES = true;
 	public static boolean VALIDATE_BEFORE_SAVE = true;
 	public static boolean ENFORCE_EXTERNAL_VALIDATE = false;
+	public boolean CHECK_LITERAL_IDENTIFIERS = true; // TODO remove the temp work-around
 	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
@@ -585,11 +586,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 	private OWLClassExpression parseM3Expression(M3Expression expression, BatchHandlerValues values)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
+		M3ExpressionParser p = new M3ExpressionParser(CHECK_LITERAL_IDENTIFIERS);
 		if (ENFORCE_EXTERNAL_VALIDATE) {
-			return M3ExpressionParser.parse(values.modelId, expression, m3, externalLookupService);
+			return p.parse(values.modelId, expression, m3, externalLookupService);
 		}
 		else {
-			return M3ExpressionParser.parse(values.modelId, expression, m3, null);
+			return p.parse(values.modelId, expression, m3, null);
 		}
 	}
 	

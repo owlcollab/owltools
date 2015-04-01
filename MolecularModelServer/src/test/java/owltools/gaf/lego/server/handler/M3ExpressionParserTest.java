@@ -36,20 +36,20 @@ public class M3ExpressionParserTest {
 	@Test(expected=MissingParameterException.class)
 	public void testMissing0() throws Exception {
 		M3Expression expression = null;
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test(expected=MissingParameterException.class)
 	public void testMissing1() throws Exception {
 		M3Expression expression = new M3Expression();
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test(expected=MissingParameterException.class)
 	public void testMissing2() throws Exception {
 		M3Expression expression = new M3Expression();
 		expression.type = M3ExpressionType.clazz.getLbl();
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test(expected=MissingParameterException.class)
@@ -57,7 +57,7 @@ public class M3ExpressionParserTest {
 		M3Expression expression = new M3Expression();
 		expression.type = M3ExpressionType.svf.getLbl();
 		expression.literal = "GO:0005623"; // cell
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test(expected=MissingParameterException.class)
@@ -65,7 +65,7 @@ public class M3ExpressionParserTest {
 		M3Expression expression = new M3Expression();
 		expression.type = M3ExpressionType.svf.getLbl();
 		expression.onProp = "BFO:0000066"; // occurs_in
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test
@@ -75,7 +75,7 @@ public class M3ExpressionParserTest {
 		expression.type = M3ExpressionType.clazz.getLbl();
 		expression.literal = "GO:0006915";
 		
-		OWLClassExpression ce = M3ExpressionParser.parse(graph, expression, proteinService);
+		OWLClassExpression ce = new M3ExpressionParser().parse(graph, expression, proteinService);
 		assertEquals(graph.getOWLClassByIdentifier("GO:0006915"), ce);
 	}
 	
@@ -86,7 +86,7 @@ public class M3ExpressionParserTest {
 		expression.type = M3ExpressionType.clazz.getLbl();
 		expression.literal = "FO:0006915";
 		
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test
@@ -97,7 +97,7 @@ public class M3ExpressionParserTest {
 		expression.onProp = "BFO:0000066"; // occurs_in
 		expression.literal = "GO:0005623"; // cell
 		
-		OWLClassExpression ce = M3ExpressionParser.parse(graph, expression, proteinService);
+		OWLClassExpression ce = new M3ExpressionParser().parse(graph, expression, proteinService);
 		assertNotNull(ce);
 	}
 	
@@ -109,7 +109,7 @@ public class M3ExpressionParserTest {
 		expression.onProp = "BFO:0000066"; // occurs_in
 		expression.literal = "FO:0005623"; // error
 		
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test(expected=UnknownIdentifierException.class)
@@ -120,7 +120,7 @@ public class M3ExpressionParserTest {
 		expression.onProp = "FFO:0000066"; // error
 		expression.literal = "GO:0005623"; // cell
 		
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test
@@ -131,7 +131,7 @@ public class M3ExpressionParserTest {
 		expression.onProp = "RO:0002333"; // enabled_by
 		expression.literal = "('has part' some UniProtKB:F1NGQ9) or ('has part' some UniProtKB:F1NH29)";
 		
-		OWLClassExpression ce = M3ExpressionParser.parse(graph, expression, proteinService);
+		OWLClassExpression ce = new M3ExpressionParser().parse(graph, expression, proteinService);
 		assertNotNull(ce);
 	}
 	
@@ -143,7 +143,7 @@ public class M3ExpressionParserTest {
 		expression.onProp = "RO:0002333"; // enabled_by
 		expression.literal = "('has part' some UniProtKB:F000F1) or ('has part' some UniProtKB:F000F2)";
 		
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test
@@ -154,7 +154,7 @@ public class M3ExpressionParserTest {
 		expression.onProp = "BFO:0000066"; // occurs_in
 		expression.literal = "'has part' some GO:0005791"; // rough endoplasmic reticulum
 		
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test
@@ -165,7 +165,7 @@ public class M3ExpressionParserTest {
 		expression.onProp = "BFO:0000066"; // occurs_in
 		expression.literal = "'has part' some 'rough endoplasmic reticulum'"; // GO:0005791
 		
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
 	@Test(expected=UnknownIdentifierException.class)
@@ -176,7 +176,7 @@ public class M3ExpressionParserTest {
 		expression.onProp = "BFO:0000066"; // occurs_in
 		expression.literal = "'has part' some FO:0005791"; // error
 		
-		M3ExpressionParser.parse(graph, expression, proteinService);
+		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 
 }

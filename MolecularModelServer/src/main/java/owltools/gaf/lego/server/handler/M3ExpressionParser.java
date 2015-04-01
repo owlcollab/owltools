@@ -25,8 +25,18 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
 
 public class M3ExpressionParser {
+	
+	private final boolean checkLiteralIds;
+	
+	M3ExpressionParser(boolean checkLiteralIds) {
+		this.checkLiteralIds = checkLiteralIds;
+	}
+	
+	M3ExpressionParser() {
+		this(true);
+	}
 
-	static OWLClassExpression parse(String modelId, M3Expression expression, 
+	OWLClassExpression parse(String modelId, M3Expression expression, 
 			MolecularModelManager<?> m3,
 			ExternalLookupService externalLookupService)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
@@ -35,7 +45,7 @@ public class M3ExpressionParser {
 		return parse(g, expression, externalLookupService);
 	}
 	
-	static OWLClassExpression parse(OWLGraphWrapper g, M3Expression expression,
+	OWLClassExpression parse(OWLGraphWrapper g, M3Expression expression,
 			ExternalLookupService externalLookupService)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
 		if (expression == null) {
@@ -48,9 +58,15 @@ public class M3ExpressionParser {
 			if (expression.literal == null) {
 				throw new MissingParameterException("Missing literal for expression of type 'class'");
 			}
-			OWLClass cls = g.getOWLClassByIdentifier(expression.literal);
-			if (cls == null) {
+			OWLClass cls;
+			if (checkLiteralIds) {
+				cls = g.getOWLClassByIdentifier(expression.literal);
+				if (cls == null) {
 					throw new UnknownIdentifierException("Could not retrieve a class for literal: "+expression.literal);
+				}
+			}
+			else {
+				cls = createClass(expression.literal, g);
 			}
 			return cls;
 		}
@@ -72,14 +88,18 @@ public class M3ExpressionParser {
 					ce = parseClassExpression(expression.literal, g, true , externalLookupService);
 				}
 				else {
-					ce = g.getOWLClassByIdentifier(expression.literal);
-					if (ce == null) {
-						if (externalLookupService != null) {
-							List<LookupEntry> lookup = externalLookupService.lookup(expression.literal);
-							if (lookup == null || lookup.isEmpty()) {
-								throw new UnknownIdentifierException("Could not validate the id: "+expression.literal);
+					if (checkLiteralIds){
+						ce = g.getOWLClassByIdentifier(expression.literal);
+						if (ce == null) {
+							if (externalLookupService != null) {
+								List<LookupEntry> lookup = externalLookupService.lookup(expression.literal);
+								if (lookup == null || lookup.isEmpty()) {
+									throw new UnknownIdentifierException("Could not validate the id: "+expression.literal);
+								}
 							}
-						}
+							ce = createClass(expression.literal, g);
+						}}
+					else {
 						ce = createClass(expression.literal, g);
 					}
 				}
@@ -100,7 +120,7 @@ public class M3ExpressionParser {
 		}
 	}
 	
-	private static OWLClassExpression parse(OWLGraphWrapper g, M3Expression[] expressions, 
+	private OWLClassExpression parse(OWLGraphWrapper g, M3Expression[] expressions, 
 			ExternalLookupService externalLookupService, M3ExpressionType type)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
 		if (expressions.length == 0) {
@@ -120,18 +140,18 @@ public class M3ExpressionParser {
 		return g.getDataFactory().getOWLObjectIntersectionOf(clsExpressions);
 	}
 	
-	private static OWLClass createClass(String id, OWLGraphWrapper g) {
+	private OWLClass createClass(String id, OWLGraphWrapper g) {
 		IRI iri = g.getIRIByIdentifier(id);
 		return g.getDataFactory().getOWLClass(iri);
 	}
 	
-	static OWLClassExpression parseClassExpression(String expression, OWLGraphWrapper g, 
+	OWLClassExpression parseClassExpression(String expression, OWLGraphWrapper g, 
 			boolean createClasses, ExternalLookupService externalLookupService) 
 			throws OWLException, UnknownIdentifierException {
 		try {
 			ManchesterSyntaxTool syntaxTool = new ManchesterSyntaxTool(g, createClasses);
 			OWLClassExpression clsExpr = syntaxTool.parseManchesterExpression(expression);
-			if (externalLookupService != null) {
+			if (checkLiteralIds && externalLookupService != null) {
 				Map<String, OWLClass> createdClasses = syntaxTool.getCreatedClasses();
 				for (Entry<String, OWLClass> createdEntry : createdClasses.entrySet()) {
 					String id = createdEntry.getKey();

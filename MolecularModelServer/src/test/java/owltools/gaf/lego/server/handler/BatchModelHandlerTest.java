@@ -274,7 +274,7 @@ public class BatchModelHandlerTest {
 		expression.onProp = "RO:0002333"; // enabled_by
 		expression.literal = "('has part' some UniProtKB:F1NGQ9) or ('has part' some UniProtKB:F1NH29)";
 		
-		OWLClassExpression ce = M3ExpressionParser.parse(modelId, expression, models, lookupService);
+		OWLClassExpression ce = new M3ExpressionParser().parse(modelId, expression, models, lookupService);
 		assertNotNull(ce);
 		System.out.println(ce);
 	}
@@ -288,7 +288,7 @@ public class BatchModelHandlerTest {
 		expression.onProp = "RO:0002333"; // enabled_by
 		expression.literal = "('has part' some UniProtKB:F000F1) or ('has part' some UniProtKB:F000F2)";
 		
-		M3ExpressionParser.parse(modelId, expression, models, lookupService);
+		new M3ExpressionParser().parse(modelId, expression, models, lookupService);
 	}
 
 	@Test
@@ -1058,6 +1058,84 @@ public class BatchModelHandlerTest {
 		
 	}
 
+	private static M3Request addIndividual(String modelId, String cls) {
+		M3Request r = new M3Request();
+		r.entity = Entity.individual.name();
+		r.operation = Operation.add.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		setExpressionClass(r.arguments, cls);
+		return r;
+	}
+	
+	private static M3Request addEdge(String modelId, String sub, String pred, String obj) {
+		M3Request r = new M3Request();
+		r.entity = Entity.edge.name();
+		r.operation = Operation.add.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		r.arguments.subject = sub;
+		r.arguments.predicate = pred;
+		r.arguments.object = obj;
+		return r;
+	}
+	
+	@Test
+	public void testAllIndividualUseCase() throws Exception {
+		/*
+		 * Create a full set of individuals for an activity diagram of a gene.
+		 */
+		// blank model
+		final String modelId = generateBlankModel();
+		List<M3Request> batch = new ArrayList<M3Request>();
+
+		// activity/mf
+		M3Request r = addIndividual(modelId, "GO:0003674"); // molecular function
+		r.arguments.assignToVariable = "mf";
+		batch.add(r);
+
+		// process
+		r = addIndividual(modelId, "GO:0008150"); // biological process
+		r.arguments.assignToVariable = "bp";
+		batch.add(r);
+
+		// location/cc
+		r = addIndividual(modelId, "GO:0005575"); // cellular component
+		r.arguments.assignToVariable = "cc";
+		batch.add(r);
+
+		// gene
+		r = addIndividual(modelId, "MGI:000000"); // fake gene (not in the test set of known genes!)
+		r.arguments.assignToVariable = "gene";
+		batch.add(r);
+		
+		// relations
+		// activity -> gene
+		batch.add(addEdge(modelId, "mf", "RO:0002333", "gene")); // enabled_by
+		
+		// activity -> process
+		batch.add(addEdge(modelId, "mf", "BFO:0000050", "bp")); // part_of
+		
+		// activity -> cc
+		batch.add(addEdge(modelId, "mf", "BFO:0000066", "cc")); // occurs_in
+		
+		/*
+		 * Annoying work-around until the external validation is more stable
+		 */
+		boolean defaultIdPolicy = handler.CHECK_LITERAL_IDENTIFIERS;
+		M3BatchResponse response;
+		try {
+			handler.CHECK_LITERAL_IDENTIFIERS = false;
+			response = handler.m3Batch(uid, intention, packetId, batch.toArray(new M3Request[batch.size()]), true);
+		}
+		finally {
+			handler.CHECK_LITERAL_IDENTIFIERS = defaultIdPolicy;
+		}
+		assertEquals(uid, response.uid);
+		assertEquals(intention, response.intention);
+		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+	}
+	
 	@Test
 	public void testVariables1() throws Exception {
 		/*
