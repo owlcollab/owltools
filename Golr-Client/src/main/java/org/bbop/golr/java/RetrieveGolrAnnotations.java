@@ -6,18 +6,7 @@ import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 import org.bbop.golr.java.RetrieveGolrAnnotations.GolrAnnotationExtension.GolrAnnotationExtensionEntry.GolrAnnotationExtensionRelation;
 
 import owltools.gaf.Bioentity;
@@ -26,8 +15,11 @@ import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 
 public class RetrieveGolrAnnotations {
@@ -39,7 +31,6 @@ public class RetrieveGolrAnnotations {
 	
 	private final String server;
 	private int retryCount;
-	private final CloseableHttpClient httpclient;
 	
 	/*
 	 * This flag indicates that missing c16 data, due to malformed JSON is acceptable. 
@@ -53,17 +44,6 @@ public class RetrieveGolrAnnotations {
 	public RetrieveGolrAnnotations(String server, int retryCount, boolean ignoreC16ParseErrors) {
 		this.server = server;
 		this.retryCount = retryCount;
-		HttpClientBuilder builder = HttpClientBuilder.create();
-		// diss-allow automatic retry, we use a custom wait period
-		builder.setRetryHandler(new HttpRequestRetryHandler() {
-			
-			@Override
-			public boolean retryRequest(IOException exception, int executionCount,
-					HttpContext context) {
-				return false;
-			}
-		});
-		httpclient = builder.build();
 		this.ignoreC16ParseErrors = ignoreC16ParseErrors;
 	}
 	
@@ -289,57 +269,102 @@ public class RetrieveGolrAnnotations {
 	}
 	
 	protected String getJsonStringFromUri(URI uri, int retryCount) throws IOException {
-		HttpGet get = new HttpGet(uri);
-		CloseableHttpResponse response = null;
-		String content = null;
-		IOException error = null;
+		final URL url = uri.toURL();
+		final HttpURLConnection connection;
+		InputStream response = null;
+		// setup and open (actual connection)
 		try {
-			try {
-				response = httpclient.execute(get);
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setInstanceFollowRedirects(true);
+			response = connection.getInputStream(); // opens the connection to the server
+		}
+		catch (IOException e) {
+			IOUtils.closeQuietly(response);
+			return retryRequest(uri, e, retryCount);
+		}
+		// check status code
+		final int status;
+		try {
+			status = connection.getResponseCode();
+		} catch (IOException e) {
+			IOUtils.closeQuietly(response);
+			return retryRequest(uri, e, retryCount);
+		}
+		// handle unexpected status code
+		if (status != 200) {
+			// try to check error stream
+			String errorMsg = getErrorMsg(connection);
+			
+			// construct message for exception
+			StringBuilder sb = new StringBuilder("Unexpected HTTP status code: "+status);
+			
+			if (errorMsg != null) {
+				sb.append(" Details: ");
+				sb.append(errorMsg);
 			}
-			catch (IOException exception) {
-				error = exception;
-			}
-			if (error == null) {
-				final StatusLine statusLine = response.getStatusLine();
-				if (statusLine.getStatusCode() > 200) {
-					error = new HttpResponseException(
-							statusLine.getStatusCode(),
-							statusLine.getReasonPhrase());
+			IOException e = new IOException(sb.toString());
+			return retryRequest(uri, e, retryCount);
+		}
+		
+		// try to detect charset
+		String contentType = connection.getHeaderField("Content-Type");
+		String charset = null;
+
+		if (contentType != null) {
+			for (String param : contentType.replace(" ", "").split(";")) {
+				if (param.startsWith("charset=")) {
+					charset = param.split("=", 2)[1];
+					break;
 				}
-				else {
-					HttpEntity entity = response.getEntity();
-					if (entity != null) {
-						try {
-							content = EntityUtils.toString(entity);
-						} catch (IOException e) {
-							error = e;
-						}
-					}
-					else {
-						error = new ClientProtocolException("Response contains no content");
-					}
-				}
 			}
-		} finally {
+		}
+
+		// get string response from stream
+		String json;
+		try {
+			if (charset != null) {
+				json = IOUtils.toString(response, charset);
+			}
+			else {
+				json = IOUtils.toString(response);
+			}
+		} catch (IOException e) {
+			return retryRequest(uri, e, retryCount);
+		}
+		finally {
 			IOUtils.closeQuietly(response);
 		}
-		if (error != null) {
-			if (retryCount > 0) {
-				int remaining = retryCount - 1;
-				logRetry(uri, error, remaining);
-				defaultRandomWait();
-				return getJsonStringFromUri(uri, remaining);
+		return json;
+	}
+
+	protected String retryRequest(URI uri, IOException e, int retryCount) throws IOException {
+		if (retryCount > 0) {
+			int remaining = retryCount - 1;
+			defaultRandomWait();
+			logRetry(uri, e, remaining);
+			return getJsonStringFromUri(uri, remaining);
+		}
+		logRequestError(uri, e);
+		throw e;
+	}
+	
+	private static String getErrorMsg(HttpURLConnection connection) {
+		String errorMsg = null;
+		InputStream errorStream = null;
+		try {
+			errorStream = connection.getErrorStream();
+			if (errorStream != null) {
+				errorMsg =IOUtils.toString(errorStream);
 			}
-			logRequestError(uri, error);
-			throw error;
+			errorMsg = StringUtils.trimToNull(errorMsg);
 		}
-		if (content == null) {
-			error = new ClientProtocolException("Response contains no content");
-			logRequestError(uri, error);
-			throw error;
+		catch (IOException e) {
+			// ignore errors, while trying to retrieve the error message
 		}
-		return content;
+		finally {
+			IOUtils.closeQuietly(errorStream);
+		}
+		return errorMsg;
 	}
 	
 	protected void defaultRandomWait() {
