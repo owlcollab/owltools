@@ -157,14 +157,20 @@ public class RetrieveGolrAnnotations {
 	}
 	
 	public List<GolrAnnotationDocument> getGolrAnnotationsForSynonym(String source, String synonym) throws IOException {
+		return getGolrAnnotationsForSynonym(source, Collections.singletonList(synonym));
+	}
+	
+	public List<GolrAnnotationDocument> getGolrAnnotationsForSynonym(String source, List<String> synonyms) throws IOException {
 		List<String[]> tagvalues = new ArrayList<String[]>();
 		String [] param1 = new String[2];
 		param1[0] = "source";
 		param1[1] = source;
 		tagvalues.add(param1);
-		String [] param2 = new String[2];
+		String [] param2 = new String[synonyms.size() + 1];
 		param2[0] = "synonym";
-		param2[1] = synonym;
+		for (int i = 0; i < synonyms.size(); i++) {
+			param2[i+1] = synonyms.get(i);
+		}
 		tagvalues.add(param2);
 		
 		final List<GolrAnnotationDocument> documents = getGolrAnnotations(tagvalues);
