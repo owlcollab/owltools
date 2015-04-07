@@ -218,34 +218,53 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	}
 	
 	/**
-	 * Deletes an individual
+	 * Deletes an individual and return all IRIs used as an annotation value
 	 * 
 	 * @param modelId
 	 * @param iid
 	 * @param metadata
+	 * @return IRIs
 	 * @throws UnknownIdentifierException
 	 */
-	public void deleteIndividual(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
+	public Set<IRI> deleteIndividual(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
 		}
-		deleteIndividual(modelId, model, i, true, metadata);
+		return deleteIndividual(modelId, model, i, true, metadata);
 	}
 	/**
-	 * Deletes an individual
+	 * Deletes an individual and return all IRIs used as an annotation value
 	 * 
 	 * @param modelId
 	 * @param iid
 	 * @param metadata
+	 * @return IRIs
 	 * @throws UnknownIdentifierException
 	 */
-	public void deleteIndividualNonReasoning(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
+	public Set<IRI> deleteIndividualNonReasoning(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		return deleteIndividual(modelId, model, i, false, metadata);
+	}
+	
+	/**
+	 * Deletes an individual
+	 * 
+	 * @param modelId
+	 * @param iri
+	 * @param metadata
+	 * @throws UnknownIdentifierException
+	 */
+	public void deleteIndividualNonReasoning(String modelId, IRI iri, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLNamedIndividual i = getIndividual(iri, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iri);
 		}
 		deleteIndividual(modelId, model, i, false, metadata);
 	}
@@ -374,6 +393,9 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	private OWLNamedIndividual getIndividual(String indId, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
 		IRI iri = MolecularModelJsonRenderer.getIRI(indId, graph);
+		return getIndividual(iri, model);
+	}
+	private OWLNamedIndividual getIndividual(IRI iri, ModelContainer model) {
 		// check that individual is actually declared
 		boolean containsIRI = model.getAboxOntology().containsEntityInSignature(iri);
 		if (containsIRI == false) {
@@ -794,7 +816,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return Arrays.asList(individual1, individual2);
 	}
 	
-	public List<OWLNamedIndividual> removeFactNonReasoning(String modelId, String pid,
+	public Pair<List<OWLNamedIndividual>, Set<IRI>> removeFactNonReasoning(String modelId, String pid,
 			String iid, String jid, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		OWLObjectProperty property = getObjectProperty(pid, model);
@@ -809,8 +831,8 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		if (individual2 == null) {
 			throw new UnknownIdentifierException("Could not find a individual for id: "+jid);
 		}
-		removeFact(modelId, model, property, individual1, individual2, false, metadata);
-		return Arrays.asList(individual1, individual2);
+		Set<IRI> iriSet = removeFact(modelId, model, property, individual1, individual2, false, metadata);
+		return Pair.of(Arrays.asList(individual1, individual2), iriSet);
 	}
 
 	public List<OWLNamedIndividual> addAnnotations(String modelId, String pid, 
