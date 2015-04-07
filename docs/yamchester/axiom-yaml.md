@@ -94,3 +94,4 @@ penalties...?).
 Obviously this is most appropriate to an application that is OWL
 aware. Making use of an OWL-level representation in order to say draw
 existential graphs or search by synonyms is kind of awkward.
+

@@ -496,7 +496,7 @@ sub get_ont_info {
          cteno => {
              method => 'vcs',
              system => 'git',
-             checkout => 'git clone https://github.com/cmungall/ctenophore-ontology.git',
+             checkout => 'git clone https://github.com/obophenotype/ctenophore-ontology.git',
              path => 'src/ontology',
          },
          ehdaa2 => {
@@ -518,9 +518,9 @@ sub get_ont_info {
          },
          poro => {
              infallible => 1,
-             method => 'vcs',
-             system => 'svn',
-             checkout => 'svn co http://porifera-ontology.googlecode.com/svn/trunk/src/ontology',
+             system => 'git',
+             checkout => 'git clone https://github.com/obophenotype/porifera-ontology.git',
+             path => 'src/ontology',
          },
          #nbo => {
          #    notes => 'SWITCH',
@@ -542,8 +542,8 @@ sub get_ont_info {
          bspo => {
              infallible => 1,
              method => 'vcs',
-             system => 'svn',
-             checkout => 'svn co http://biological-spatial-ontology.googlecode.com/svn/trunk/src/ontology',
+             system => 'git',
+             checkout => 'git clone https://github.com/obophenotype/biological-spatial-ontology.git',
          },
 
          hao => {
@@ -587,8 +587,8 @@ sub get_ont_info {
          envo => {
              infallible => 1,
              method => 'vcs',
-             system => 'svn',
-             checkout => 'svn co http://envo.googlecode.com/svn/trunk/src/envo',
+             system => 'git',
+             checkout => 'git clone https://github.com/EnvironmentOntology/envo.git',
              email_cc => 'cjmungall@lbl.gov',
          },
          gaz => {
@@ -618,7 +618,7 @@ sub get_ont_info {
          zfs => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/zfs/zfs.obo',
+             source_url => 'https://raw.githubusercontent.com/obophenotype/developmental-stage-ontologies/master/src/zfs/zfs.obo'
          },
 
          upheno => {
@@ -630,20 +630,20 @@ sub get_ont_info {
          hsapdv => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/hsapdv/hsapdv.obo',
+             source_url => 'https://raw.githubusercontent.com/obophenotype/developmental-stage-ontologies/master/src/hsapdv/hsapdv.obo',
          },
          mmusdv => {
              #infallible => 1,
              method => 'obo2owl',
-             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/mmusdv/mmusdv.obo',
+             source_url => 'https://raw.githubusercontent.com/obophenotype/developmental-stage-ontologies/master/src/mmusdv/mmusdv.obo',
          },
          pdumdv => {
              method => 'obo2owl',
-             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/pdumdv/pdumdv.obo',
+             source_url => 'https://raw.githubusercontent.com/obophenotype/developmental-stage-ontologies/master/src/pdumdv/pdumdv.obo',
          },
          olatdv => {
              method => 'obo2owl',
-             source_url => 'https://developmental-stage-ontologies.googlecode.com/svn/trunk/src/olatdv/olatdv.obo',
+             source_url => 'https://raw.githubusercontent.com/obophenotype/developmental-stage-ontologies/master/src/olatdv/olatdv.obo',
          },
          rs => {
              method => 'obo2owl',
@@ -712,7 +712,7 @@ sub get_ont_info {
              checkout => 'git clone https://github.com/BgeeDB/homology-ontology.git',
          },
          pr => {
-             infallible => 1,
+             infallible => 0,
              method => 'obo2owl',
              oort_args => '--no-reasoner',  ## PR now too big
              source_url => 'ftp://ftp.pir.georgetown.edu/databases/ontology/pro_obo/pro.obo',
@@ -768,7 +768,7 @@ sub get_ont_info {
              source_url => 'http://sourceforge.net/p/diseaseontology/code/HEAD/tree/trunk/HumanDO.obo?format=raw',
          },
          ncbitaxon => {
-             infallible => 1,
+             infallible => 0,
              method => 'archive',
              path => 'archive/src/ontology',
              source_url => 'http://build.berkeleybop.org/job/build-ncbitaxon/lastSuccessfulBuild/artifact/*zip*/archive.zip',
@@ -842,7 +842,7 @@ sub get_ont_info {
          pato => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'https://raw.githubusercontent.com/gkoutos/pato/master/src/ontology/pato.obo',
+             source_url => 'https://raw.githubusercontent.com/obophenotype/pato/master/src/ontology/pato.obo',
          },
          pco => {
              method => 'owl2obo',
@@ -871,7 +871,7 @@ sub get_ont_info {
              source_url => 'http://bips.u-strasbg.fr/LBGI/MAO/mao.obo',
          },
          wbphenotype => {
-             infallible => 1,
+             infallible => 0,
              method => 'obo2owl',
              source_url => 'http://tazendra.caltech.edu/~azurebrd/cgi-bin/forms/phenotype_ontology_obo.cgi',
          },
@@ -954,7 +954,7 @@ sub get_ont_info {
          #    source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/anatomy/gross_anatomy/animal_gross_anatomy/human/human-dev-anat-abstract.obo',
          #},
          fbdv => {
-             infallible => 1,
+             infallible => 0,
              method => 'obo2owl',
              source_url => 'http://svn.code.sf.net/p/fbbtdv/code/fbdv/releases/latest/fbdv.obo'
          },
@@ -1033,10 +1033,6 @@ sub get_ont_info {
          rex => {
              method => 'obo2owl',
              source_url => 'http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/physicochemical/rex.obo',
-         },
-         zfs => {
-             method => 'obo2owl',
-             source_url => 'http://developmental-stage-ontologies.googlecode.com/svn/trunk/src/zfs/zfs.obo',
          },
          idomal => {
              method => 'obo2owl',
