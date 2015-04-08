@@ -35,7 +35,7 @@ import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.gaf.lego.CoreMolecularModelManager;
-import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
+import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
 import owltools.util.ModelContainer;
 
 public class LegoModelVersionConverter {
@@ -141,7 +141,7 @@ public class LegoModelVersionConverter {
 			final EvidenceTriple triple = new EvidenceTriple();
 			for(OWLAnnotationAssertionAxiom axiom : axioms) {
 				OWLAnnotationProperty property = axiom.getProperty();
-				if (LegoAnnotationType.evidence.getAnnotationProperty().equals(property.getIRI())) {
+				if (AnnotationShorthand.evidence.getAnnotationProperty().equals(property.getIRI())) {
 					OWLAnnotationValue value = axiom.getValue();
 					value.accept(new OWLAnnotationValueVisitor() {
 						
@@ -162,15 +162,15 @@ public class LegoModelVersionConverter {
 					});
 					changes.add(new RemoveAxiom(abox, axiom));
 				}
-				else if(LegoAnnotationType.contributor.getAnnotationProperty().equals(property.getIRI())) {
+				else if(AnnotationShorthand.contributor.getAnnotationProperty().equals(property.getIRI())) {
 					// keep and propagate
 					triple.contributors.add(axiom.getAnnotation());
 				}
-				else if(LegoAnnotationType.date.getAnnotationProperty().equals(property.getIRI())) {
+				else if(AnnotationShorthand.date.getAnnotationProperty().equals(property.getIRI())) {
 					// keep and propagate
 					triple.contributors.add(axiom.getAnnotation());
 				}
-				else if(LegoAnnotationType.comment.getAnnotationProperty().equals(property.getIRI())) {
+				else if(AnnotationShorthand.comment.getAnnotationProperty().equals(property.getIRI())) {
 					// keep only 
 				}
 				else {
@@ -186,7 +186,7 @@ public class LegoModelVersionConverter {
 			final EvidenceTriple triple = new EvidenceTriple();
 			for (OWLAnnotation annotation : annotations) {
 				OWLAnnotationProperty property = annotation.getProperty();
-				if (LegoAnnotationType.evidence.getAnnotationProperty().equals(property.getIRI())) {
+				if (AnnotationShorthand.evidence.getAnnotationProperty().equals(property.getIRI())) {
 					OWLAnnotationValue value = annotation.getValue();
 					value.accept(new OWLAnnotationValueVisitor() {
 						
@@ -206,13 +206,13 @@ public class LegoModelVersionConverter {
 						}
 					});
 				}
-				else if(LegoAnnotationType.contributor.getAnnotationProperty().equals(property.getIRI())) {
+				else if(AnnotationShorthand.contributor.getAnnotationProperty().equals(property.getIRI())) {
 					triple.contributors.add(annotation);
 				}
-				else if(LegoAnnotationType.date.getAnnotationProperty().equals(property.getIRI())) {
+				else if(AnnotationShorthand.date.getAnnotationProperty().equals(property.getIRI())) {
 					triple.contributors.add(annotation);
 				}
-				else if(LegoAnnotationType.comment.getAnnotationProperty().equals(property.getIRI())) {
+				else if(AnnotationShorthand.comment.getAnnotationProperty().equals(property.getIRI())) {
 					triple.contributors.add(annotation);
 				}
 				else {
@@ -246,7 +246,7 @@ public class LegoModelVersionConverter {
 				evidenceIndividuals.add(evidenceIndividual.getIRI());
 				OWLAnnotationValue value = evidenceIndividual.getIRI();
 				OWLAnnotation a = f.getOWLAnnotation(
-						f.getOWLAnnotationProperty(LegoAnnotationType.evidence.getAnnotationProperty()), 
+						f.getOWLAnnotationProperty(AnnotationShorthand.evidence.getAnnotationProperty()), 
 						value);
 				changes.add(new AddAxiom(abox, f.getOWLAnnotationAssertionAxiom(individual.getIRI(), a)));
 			}
@@ -283,7 +283,7 @@ public class LegoModelVersionConverter {
 				for(IRI ecoIRI : triple.ecoIRIs) {
 					OWLNamedIndividual evidenceIndividual = individualCache.getIndividual(ecoIRI, triple.evidenceAnnotations);
 					newAnnotations.add(f.getOWLAnnotation(
-							f.getOWLAnnotationProperty(LegoAnnotationType.evidence.getAnnotationProperty()), 
+							f.getOWLAnnotationProperty(AnnotationShorthand.evidence.getAnnotationProperty()), 
 							evidenceIndividual.getIRI()));
 				}
 				// create new axiom

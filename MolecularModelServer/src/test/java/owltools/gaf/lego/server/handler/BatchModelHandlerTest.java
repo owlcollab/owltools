@@ -21,8 +21,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import owltools.gaf.lego.ManchesterSyntaxTool;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
+import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
-import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.server.StartUpTool;
@@ -106,6 +106,13 @@ public class BatchModelHandlerTest {
 		}
 	}
 
+	private static void setExpressionClass(M3Argument arg, String cls) {
+		arg.expressions = new M3Expression[1];
+		arg.expressions[0] = new M3Expression();
+		arg.expressions[0].type = "class";
+		arg.expressions[0].literal = cls;
+	}
+	
 	@Test
 	public void test() throws Exception {
 		final String modelId = generateBlankModel();
@@ -131,10 +138,10 @@ public class BatchModelHandlerTest {
 		
 		batch2[0].arguments.values = new M3Pair[2];
 		batch2[0].arguments.values[0] = new M3Pair();
-		batch2[0].arguments.values[0].key = LegoAnnotationType.comment.name();
+		batch2[0].arguments.values[0].key = AnnotationShorthand.comment.name();
 		batch2[0].arguments.values[0].value = "comment 1";
 		batch2[0].arguments.values[1] = new M3Pair();
-		batch2[0].arguments.values[1].key = LegoAnnotationType.comment.name();
+		batch2[0].arguments.values[1].key = AnnotationShorthand.comment.name();
 		batch2[0].arguments.values[1].value = "comment 2";
 		
 		batch2[1] = new M3Request();
@@ -224,6 +231,28 @@ public class BatchModelHandlerTest {
 	}
 	
 	@Test
+	public void testAddIndividual() throws Exception {
+		final String modelId = generateBlankModel();
+		
+		// create one individuals
+		M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.individual.name();
+		batch2[0].operation = Operation.add.getLbl();
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.modelId = modelId;
+		batch2[0].arguments.expressions = new M3Expression[1];
+		batch2[0].arguments.expressions[0] = new M3Expression();
+		batch2[0].arguments.expressions[0].type = "class";
+		batch2[0].arguments.expressions[0].literal = "GO:0006915"; // apoptotic process
+		
+		M3BatchResponse resp = handler.m3Batch(uid, intention, packetId, batch2, true);
+		assertEquals(resp.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp.message_type);
+		List<Map<Object, Object>> iObjs = (List) resp.data.get(KEY_INDIVIDUALS);
+		assertEquals(1, iObjs.size());
+	}
+	
+	@Test
 	public void testParseComplex() throws Exception {
 		String modelId = models.generateBlankModel(null, null);
 		ModelContainer model = models.getModel(modelId);
@@ -245,7 +274,7 @@ public class BatchModelHandlerTest {
 		expression.onProp = "RO:0002333"; // enabled_by
 		expression.literal = "('has part' some UniProtKB:F1NGQ9) or ('has part' some UniProtKB:F1NH29)";
 		
-		OWLClassExpression ce = M3ExpressionParser.parse(modelId, expression, models, lookupService);
+		OWLClassExpression ce = new M3ExpressionParser().parse(modelId, expression, models, lookupService);
 		assertNotNull(ce);
 		System.out.println(ce);
 	}
@@ -259,7 +288,7 @@ public class BatchModelHandlerTest {
 		expression.onProp = "RO:0002333"; // enabled_by
 		expression.literal = "('has part' some UniProtKB:F000F1) or ('has part' some UniProtKB:F000F2)";
 		
-		M3ExpressionParser.parse(modelId, expression, models, lookupService);
+		new M3ExpressionParser().parse(modelId, expression, models, lookupService);
 	}
 
 	@Test
@@ -286,10 +315,10 @@ public class BatchModelHandlerTest {
 
 		batch1[0].arguments.values = new M3Pair[2];
 		batch1[0].arguments.values[0] = new M3Pair();
-		batch1[0].arguments.values[0].key = LegoAnnotationType.comment.name();
+		batch1[0].arguments.values[0].key = AnnotationShorthand.comment.name();
 		batch1[0].arguments.values[0].value = "comment 1";
 		batch1[0].arguments.values[1] = new M3Pair();
-		batch1[0].arguments.values[1].key = LegoAnnotationType.comment.name();
+		batch1[0].arguments.values[1].key = AnnotationShorthand.comment.name();
 		batch1[0].arguments.values[1].value = "comment 2";
 		
 		M3BatchResponse resp1 = handler.m3Batch(uid, intention, packetId, batch1, true);
@@ -312,7 +341,7 @@ public class BatchModelHandlerTest {
 
 		batch2[0].arguments.values = new M3Pair[1];
 		batch2[0].arguments.values[0] = new M3Pair();
-		batch2[0].arguments.values[0].key = LegoAnnotationType.comment.name();
+		batch2[0].arguments.values[0].key = AnnotationShorthand.comment.name();
 		batch2[0].arguments.values[0].value = "comment 1";
 
 		M3BatchResponse resp2 = handler.m3Batch(uid, intention, packetId, batch2, true);
@@ -617,58 +646,6 @@ public class BatchModelHandlerTest {
 		assertEquals(2, types2.size());
 	}
 	
-	@Test
-	public void testModelSearch() throws Exception {
-		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
-		models.dispose();
-
-		final String modelId = generateBlankModel();
-		
-		// create
-		M3Request[] batch1 = new M3Request[1];
-		batch1[0] = new M3Request();
-		batch1[0].entity = Entity.individual.name();
-		batch1[0].operation = Operation.create.getLbl();
-		batch1[0].arguments = new M3Argument();
-		batch1[0].arguments.modelId = modelId;
-		batch1[0].arguments.subject = "GO:0008104"; // protein localization
-		batch1[0].arguments.expressions = new M3Expression[2];
-		batch1[0].arguments.expressions[0] = new M3Expression();
-		batch1[0].arguments.expressions[0].type = "svf";
-		batch1[0].arguments.expressions[0].onProp = "RO:0002333"; // enabled_by
-		batch1[0].arguments.expressions[0].literal = "UniProtKB:P0000";
-		
-		batch1[0].arguments.expressions[1] = new M3Expression();
-		batch1[0].arguments.expressions[1].type = "svf";
-		batch1[0].arguments.expressions[1].onProp = "BFO:0000050"; // part_of
-		batch1[0].arguments.expressions[1].literal = "GO:0006915";
-		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
-		assertEquals(uid, response1.uid);
-		assertEquals(intention, response1.intention);
-		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
-	
-		// search
-		M3Request[] batch2 = new M3Request[1];
-		batch2[0] = new M3Request();
-		batch2[0].entity = Entity.model.name();
-		batch2[0].operation = Operation.search.getLbl();
-		batch2[0].arguments = new M3Argument();
-		batch2[0].arguments.values = new M3Pair[1];
-		batch2[0].arguments.values[0] = new M3Pair();
-		batch2[0].arguments.values[0].key = "id";
-		batch2[0].arguments.values[0].value = "GO:0008104";
-		
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
-		assertEquals(uid, response2.uid);
-		assertEquals(intention, response2.intention);
-		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
-		
-		Set<String> foundIds = (Set<String>) response2.data.get("model_ids");
-		assertEquals(1, foundIds.size());
-		assertTrue(foundIds.contains(modelId));
-	}
-
 	@Test
 	@Deprecated
 	public void testCreateModelAndIndividualBatch() throws Exception {
@@ -1029,6 +1006,263 @@ public class BatchModelHandlerTest {
 		
 	}
 
+	private static M3Request addIndividual(String modelId, String cls) {
+		M3Request r = new M3Request();
+		r.entity = Entity.individual.name();
+		r.operation = Operation.add.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		setExpressionClass(r.arguments, cls);
+		return r;
+	}
+	
+	private static M3Request removeIndividual(String modelId, String individual) {
+		M3Request r = new M3Request();
+		r.entity = Entity.individual.name();
+		r.operation = Operation.remove.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		r.arguments.individual = individual;
+		return r;
+	}
+	
+	private static M3Request addEdge(String modelId, String sub, String pred, String obj) {
+		M3Request r = new M3Request();
+		r.entity = Entity.edge.name();
+		r.operation = Operation.add.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		r.arguments.subject = sub;
+		r.arguments.predicate = pred;
+		r.arguments.object = obj;
+		return r;
+	}
+	
+	private static M3Request deleteEdge(String modelId, String sub, String pred, String obj) {
+		M3Request r = new M3Request();
+		r.entity = Entity.edge.name();
+		r.operation = Operation.remove.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		r.arguments.subject = sub;
+		r.arguments.predicate = pred;
+		r.arguments.object = obj;
+		return r;
+	}
+	
+	@Test
+	public void testAllIndividualEvidenceDelete() throws Exception {
+		/*
+		 * create three individuals, two facts and two evidence individuals
+		 */
+		// blank model
+		final String modelId = generateBlankModel();
+		final List<M3Request> batch1 = new ArrayList<M3Request>();
+		
+		// evidence1
+		M3Request r = addIndividual(modelId, "ECO:0000000"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var1";
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.source, "PMID:000000");
+		batch1.add(r);
+
+		// evidence2
+		r = addIndividual(modelId, "ECO:0000001"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var2";
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.source, "PMID:000001");
+		batch1.add(r);
+
+		// activity/mf
+		r = addIndividual(modelId, "GO:0003674"); // molecular function
+		r.arguments.assignToVariable = "mf";
+		batch1.add(r);
+
+		// process
+		r = addIndividual(modelId, "GO:0008150"); // biological process
+		r.arguments.assignToVariable = "bp";
+		batch1.add(r);
+
+		// location/cc
+		r = addIndividual(modelId, "GO:0005575"); // cellular component
+		r.arguments.assignToVariable = "cc";
+		batch1.add(r);
+
+		// activity -> process
+		r = addEdge(modelId, "mf", "BFO:0000050", "bp"); // part_of
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var1");
+		batch1.add(r); // part_of
+		
+		// activity -> cc
+		r = addEdge(modelId, "mf", "BFO:0000066", "cc"); // occurs_in
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var2");
+		batch1.add(r);
+		
+		final M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1.toArray(new M3Request[batch1.size()]), true);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		
+		// find individuals
+		List<Map<Object, Object>> iObjs1 = (List) response1.data.get(KEY_INDIVIDUALS);
+		assertEquals(5, iObjs1.size());
+		String evidence1 = null;
+		String evidence2 = null;
+		String mf = null;
+		String bp = null;
+		String cc = null;
+		for (Map<Object, Object> iObj : iObjs1) {
+			String id = (String) iObj.get(MolecularModelJsonRenderer.KEY.id);
+			assertNotNull(id);
+			List<Map<Object, Object>> types = (List) iObj.get(MolecularModelJsonRenderer.KEY.type);
+			assertNotNull(types);
+			assertEquals(1, types.size());
+			Map<Object, Object> typeObj = types.get(0);
+			String typeId = (String) typeObj.get(MolecularModelJsonRenderer.KEY.id);
+			assertNotNull(typeId);
+			if ("GO:0003674".equals(typeId)) {
+				mf = id;
+			}
+			else if ("GO:0008150".equals(typeId)) {
+				bp = id;
+			}
+			else if ("GO:0005575".equals(typeId)) {
+				cc = id;
+			}
+			else if ("ECO:0000000".equals(typeId)) {
+				evidence1 = id;
+			}
+			else if ("ECO:0000001".equals(typeId)) {
+				evidence2 = id;
+			}
+		}
+		assertNotNull(evidence1);
+		assertNotNull(evidence2);
+		assertNotNull(mf);
+		assertNotNull(bp);
+		assertNotNull(cc);
+		
+		// two edges
+		List<Map<Object, Object>> facts1 = (List) response1.data.get(KEY_FACTS);
+		assertEquals(2, facts1.size());
+		
+		/*
+		 * delete one fact and expect that the associated evidence is also deleted
+		 */
+		// delete: mf -part_of-> bp 
+		r = deleteEdge(modelId, mf, "BFO:0000050", bp);
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, new M3Request[]{r}, true);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		
+		List<Map<Object, Object>> iObjs2 = (List) response2.data.get(KEY_INDIVIDUALS);
+		assertEquals(2, iObjs2.size()); // should return the two individuals affected
+		
+		// get the whole model to check global counts
+		checkCounts(modelId, 4, 1);
+		
+		/*
+		 * delete one individuals of an fact and expect a cascading delete, including the evidence
+		 */
+		r = removeIndividual(modelId, cc);
+		M3BatchResponse response3 = handler.m3Batch(uid, intention, packetId, new M3Request[]{r}, true);
+		assertEquals(uid, response3.uid);
+		assertEquals(intention, response3.intention);
+		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
+		
+		List<Map<Object, Object>> iObjs3 = (List) response3.data.get(KEY_INDIVIDUALS);
+		assertEquals(2, iObjs3.size());
+		List<Map<Object, Object>> facts3 = (List) response3.data.get(KEY_FACTS);
+		assertEquals(0, facts3.size());
+		
+		checkCounts(modelId, 2, 0);
+	}
+	
+	private void checkCounts(String modelId, int individuals, int facts) {
+		M3Request r = new M3Request();
+		r.entity = Entity.model.name();
+		r.operation = Operation.get.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		final M3BatchResponse response = handler.m3Batch(uid, intention, packetId, new M3Request[]{r }, true);
+		assertEquals(uid, response.uid);
+		assertEquals(intention, response.intention);
+		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+		List<Map<Object, Object>> iObjs = (List) response.data.get(KEY_INDIVIDUALS);
+		assertEquals(individuals, iObjs.size());
+		List<Map<Object, Object>> factsObjs = (List) response.data.get(KEY_FACTS);
+		assertEquals(facts, factsObjs.size());
+	}
+	
+	@Test
+	public void testAllIndividualUseCase() throws Exception {
+		/*
+		 * Create a full set of individuals for an activity diagram of a gene.
+		 */
+		// blank model
+		final String modelId = generateBlankModel();
+		List<M3Request> batch = new ArrayList<M3Request>();
+		
+		// evidence
+		M3Request r = addIndividual(modelId, "ECO:0000000"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var";
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.source, "PMID:000000");
+		batch.add(r);
+		
+		// activity/mf
+		r = addIndividual(modelId, "GO:0003674"); // molecular function
+		r.arguments.assignToVariable = "mf";
+		batch.add(r);
+
+		// process
+		r = addIndividual(modelId, "GO:0008150"); // biological process
+		r.arguments.assignToVariable = "bp";
+		batch.add(r);
+
+		// location/cc
+		r = addIndividual(modelId, "GO:0005575"); // cellular component
+		r.arguments.assignToVariable = "cc";
+		batch.add(r);
+
+		// gene
+		r = addIndividual(modelId, "MGI:000000"); // fake gene (not in the test set of known genes!)
+		r.arguments.assignToVariable = "gene";
+		batch.add(r);
+		
+		// relations
+		// activity -> gene
+		r = addEdge(modelId, "mf", "RO:0002333", "gene"); // enabled_by
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var");
+		batch.add(r); 
+		
+		// activity -> process
+		r = addEdge(modelId, "mf", "BFO:0000050", "bp"); // part_of
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var");
+		batch.add(r); // part_of
+		
+		// activity -> cc
+		r = addEdge(modelId, "mf", "BFO:0000066", "cc"); // occurs_in
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var");
+		batch.add(r);
+		
+		/*
+		 * Test for annoying work-around until the external validation is more stable
+		 */
+		boolean defaultIdPolicy = handler.CHECK_LITERAL_IDENTIFIERS;
+		M3BatchResponse response;
+		try {
+			handler.CHECK_LITERAL_IDENTIFIERS = false;
+			response = handler.m3Batch(uid, intention, packetId, batch.toArray(new M3Request[batch.size()]), true);
+		}
+		finally {
+			handler.CHECK_LITERAL_IDENTIFIERS = defaultIdPolicy;
+		}
+		assertEquals(uid, response.uid);
+		assertEquals(intention, response.intention);
+		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+		
+		
+	}
+	
 	@Test
 	public void testVariables1() throws Exception {
 		/*
@@ -1039,18 +1273,18 @@ public class BatchModelHandlerTest {
 		final M3Request[] batch = new M3Request[5];
 		batch[0] = new M3Request();
 		batch[0].entity = Entity.individual.name();
-		batch[0].operation = Operation.create.getLbl();
+		batch[0].operation = Operation.add.getLbl();
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
-		batch[0].arguments.subject = "GO:0003674"; // molecular function
+		setExpressionClass(batch[0].arguments, "GO:0003674"); // molecular function
 		batch[0].arguments.assignToVariable = "mf";
 
 		batch[1] = new M3Request();
 		batch[1].entity = Entity.individual.name();
-		batch[1].operation = Operation.create.getLbl();
+		batch[1].operation = Operation.add.getLbl();
 		batch[1].arguments = new M3Argument();
 		batch[1].arguments.modelId = modelId;
-		batch[1].arguments.subject = "GO:0008150"; // biological process
+		setExpressionClass(batch[1].arguments, "GO:0008150"); // biological process
 		batch[1].arguments.assignToVariable = "bp";
 
 		batch[2] = new M3Request();
@@ -1064,10 +1298,10 @@ public class BatchModelHandlerTest {
 
 		batch[3] = new M3Request();
 		batch[3].entity = Entity.individual.name();
-		batch[3].operation = Operation.create.getLbl();
+		batch[3].operation = Operation.add.getLbl();
 		batch[3].arguments = new M3Argument();
 		batch[3].arguments.modelId = modelId;
-		batch[3].arguments.subject = "GO:0005575"; // cellular component
+		setExpressionClass(batch[3].arguments, "GO:0005575"); // cellular component
 		batch[3].arguments.assignToVariable = "cc";
 
 		batch[4] = new M3Request();
@@ -1143,10 +1377,10 @@ public class BatchModelHandlerTest {
 		final M3Request[] batch = new M3Request[2];
 		batch[0] = new M3Request();
 		batch[0].entity = Entity.individual.name();
-		batch[0].operation = Operation.create.getLbl();
+		batch[0].operation = Operation.add.getLbl();
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
-		batch[0].arguments.subject = "GO:0003674"; // molecular function
+		setExpressionClass(batch[0].arguments, "GO:0003674"); // molecular function
 		batch[0].arguments.assignToVariable = "mf";
 
 		batch[1] = new M3Request();

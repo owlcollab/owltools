@@ -1,7 +1,6 @@
 package owltools.annotation.lego.generate;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,8 +11,11 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
@@ -22,6 +24,7 @@ import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 import owltools.gaf.Bioentity;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.lego.MolecularModelJsonRenderer;
+import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
@@ -47,11 +50,12 @@ public class ModelSeeding<METADATA> {
 		
 		final String modelId = manager.generateBlankModel(null, metadata);
 		final ModelContainer model = manager.getModel(modelId);
+		final OWLDataFactory f = model.getOWLDataFactory();
 		final OWLGraphWrapper modelGraph = new OWLGraphWrapper(model.getAboxOntology());
 		final Relations relations = setupRelations(modelGraph);
 		
 		// create bp
-		Collection<Pair<String, String>> bpAnnotations = null;
+		Set<OWLAnnotation> bpAnnotations = null;
 		final Pair<String, OWLNamedIndividual> bpIndividual = manager.createIndividualNonReasoning(modelId, bp, bpAnnotations , metadata);
 		
 		// create gene products
@@ -64,7 +68,7 @@ public class ModelSeeding<METADATA> {
 			final OWLClass gpClass = modelGraph.getDataFactory().getOWLClass(gpIRI);
 			model.addAxiom(modelGraph.getDataFactory().getOWLDeclarationAxiom(gpClass));
 			
-			Collection<Pair<String, String>> gpAnnotations = generateAnnotations(source);
+			Set<OWLAnnotation> gpAnnotations = generateAnnotations(source, f);
 			Pair<String, OWLNamedIndividual> gpIndividual = manager.createIndividualNonReasoning(modelId, gp.getId(), gpAnnotations, metadata);
 			gpIndividuals.put(gp, gpIndividual);
 		}
@@ -83,7 +87,7 @@ public class ModelSeeding<METADATA> {
 			Map<String, List<GeneAnnotation>> mfGroups = removeRedundants(groupByCls(functionAnnotations), modelGraph);
 			for(Entry<String, List<GeneAnnotation>> mfGroup : mfGroups.entrySet()) {
 				String mf = mfGroup.getKey();
-				Collection<Pair<String, String>> mfAnnotations = generateAnnotations(mfGroup.getValue());
+				Set<OWLAnnotation> mfAnnotations = generateAnnotations(mfGroup.getValue(), f);
 				Pair<String, OWLNamedIndividual> mfIndividual = manager.createIndividualNonReasoning(modelId, mf, mfAnnotations , metadata);
 				mfIndividualList.add(mfIndividual);
 				manager.addFactNonReasoning(modelId, relations.enabled_by_id, mfIndividual.getKey(), gpIndividual.getKey(), mfAnnotations, metadata);
@@ -120,7 +124,7 @@ public class ModelSeeding<METADATA> {
 			Map<String, List<GeneAnnotation>> locationGroups = removeRedundants(groupByCls(locationAnnotations), modelGraph);
 			for(Entry<String, List<GeneAnnotation>> locationGroup : locationGroups.entrySet()) {
 				String location = locationGroup.getKey();
-				Collection<Pair<String, String>> source = generateAnnotations(locationGroup.getValue());
+				Set<OWLAnnotation> source = generateAnnotations(locationGroup.getValue(), f);
 				Pair<String, OWLNamedIndividual> locationIndividual = manager.createIndividualNonReasoning(modelId, location, source, metadata);
 				for(Pair<String, OWLNamedIndividual> relevantMfIndividual : relevantMfIndividuals) {
 					manager.addFactNonReasoning(modelId, relations.occurs_in_id, relevantMfIndividual.getKey(), locationIndividual.getKey(), source, metadata);
@@ -241,14 +245,14 @@ public class ModelSeeding<METADATA> {
 		return redundantFree;
 	}
 	
-	private Collection<Pair<String, String>> generateAnnotations(List<GeneAnnotation> source) {
-		List<Pair<String,String>> pairs = null;
-		if (source != null && !source.isEmpty()) {
-			pairs = new ArrayList<Pair<String,String>>(source.size());
+	private Set<OWLAnnotation> generateAnnotations(List<GeneAnnotation> source, OWLDataFactory f) {
+		Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
+		if (source != null) {
 			for (GeneAnnotation annotation : source) {
-				pairs.add(Pair.of("source", annotation.toString()));
+				OWLAnnotationProperty p = f.getOWLAnnotationProperty(AnnotationShorthand.source.getAnnotationProperty());
+				annotations.add(f.getOWLAnnotation(p, f.getOWLLiteral(annotation.toString())));
 			}
 		}
-		return pairs;
+		return annotations;
 	}
 }

@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,8 +19,10 @@ import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -32,9 +33,9 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.gaf.lego.MolecularModelJsonRenderer;
+import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelJsonRenderer.KEY;
 import owltools.gaf.lego.MolecularModelManager;
-import owltools.gaf.lego.MolecularModelManager.LegoAnnotationType;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
 import owltools.gaf.lego.UndoAwareMolecularModelManager.ChangeEvent;
@@ -59,6 +60,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 	public static boolean ADD_INFERENCES = true;
 	public static boolean VALIDATE_BEFORE_SAVE = true;
 	public static boolean ENFORCE_EXTERNAL_VALIDATE = false;
+	public boolean CHECK_LITERAL_IDENTIFIERS = true; // TODO remove the temp work-around
 	
 	private static final Logger logger = Logger.getLogger(JsonOrJsonpBatchHandler.class);
 	
@@ -372,12 +374,52 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				}
 			}
 		}
+		// create individual (look-up variable first) and add type
+		else if (Operation.add == operation) {
+			// required: expression
+			// optional: more expressions, values
+			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, true, values, values.modelId);
+			Pair<String, OWLNamedIndividual> individualPair;
+			List<OWLClassExpression> clsExpressions = new ArrayList<OWLClassExpression>(request.arguments.expressions.length);
+			for(M3Expression expression : request.arguments.expressions) {
+				OWLClassExpression cls = parseM3Expression(expression, values);
+				clsExpressions.add(cls);
+			}
+			if (values.notVariable(request.arguments.individual)) {
+				if (clsExpressions.isEmpty() == false) {
+					// create individual for given class expression
+					OWLClassExpression head = clsExpressions.get(0);
+					individualPair = m3.createIndividualNonReasoning(values.modelId, head, annotations, token);
+					// add to render list and set variable
+					values.relevantIndividuals.add(individualPair.getValue());
+					if (request.arguments.assignToVariable != null) {
+						values.individualVariables.put(request.arguments.assignToVariable, individualPair);
+					}
+					// add types for the remaining expressions
+					if (clsExpressions.size() > 1) {
+						List<OWLClassExpression> tail = clsExpressions.subList(1, clsExpressions.size());
+						for (OWLClassExpression ce : tail) {
+							m3.addTypeNonReasoning(values.modelId, individualPair.getKey(), ce, token);
+						}
+					}
+				}
+			}
+			else {
+				individualPair = values.individualVariables.get(request.arguments.individual);
+				for (OWLClassExpression clsExpression : clsExpressions) {
+					m3.addTypeNonReasoning(values.modelId, individualPair.getKey(), clsExpression, token);
+				}
+			}
+			addContributor(values.modelId, userId, token, m3);
+		}
 		// create from class
 		else if (Operation.create == operation) {
+			// TODO remove operation and throw error
 			// required: subject
 			// optional: expressions, values
 			requireNotNull(request.arguments.subject, "request.arguments.subject");
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, true, values, values.modelId);
 			Pair<String, OWLNamedIndividual> individualPair;
 			if (values.notVariable(request.arguments.individual)) {
 				individualPair = m3.createIndividualNonReasoning(values.modelId, request.arguments.subject, annotations, token);
@@ -407,7 +449,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.subject, "request.arguments.subject");
 			requireNotNull(request.arguments.predicate, "request.arguments.predicate");
 			requireNotNull(request.arguments.object, "request.arguments.object");
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, true, values, values.modelId);
 			Pair<String, OWLNamedIndividual> individual1Pair = m3.createIndividualNonReasoning(values.modelId, request.arguments.subject, annotations, token);
 			values.relevantIndividuals.add(individual1Pair.getValue());
 
@@ -427,14 +469,15 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		else if (Operation.remove == operation){
 			// required: modelId, individual
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
+			Set<IRI> annotationIRIs;
 			if (values.notVariable(request.arguments.individual)) {
-				m3.deleteIndividual(values.modelId, request.arguments.individual, token);
+				annotationIRIs = m3.deleteIndividual(values.modelId, request.arguments.individual, token);
 			}
 			else {
 				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
-				m3.deleteIndividual(values.modelId, pair.getKey(), token);
+				annotationIRIs = m3.deleteIndividual(values.modelId, pair.getKey(), token);
 			}
-			
+			handleRemovedAnnotationIRIs(annotationIRIs, values.modelId, token);
 			addContributor(values.modelId, userId, token, m3);
 			values.renderBulk = true;
 		}				
@@ -493,7 +536,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, false, values, values.modelId);
 			if(values.notVariable(request.arguments.individual)) {
 				OWLNamedIndividual i = m3.addAnnotations(values.modelId, request.arguments.individual,
 						annotations, token);
@@ -518,7 +561,8 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, null, false);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, false, values, values.modelId);
+			Set<IRI> usedIRIs = MolecularModelManager.extractIRIValues(annotations);
 			if(values.notVariable(request.arguments.individual)) {
 				OWLNamedIndividual i = m3.removeAnnotations(values.modelId, request.arguments.individual,
 						annotations, token);
@@ -535,6 +579,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 						annotations, token);
 				values.relevantIndividuals.add(i);
 			}
+			handleRemovedAnnotationIRIs(usedIRIs, values.modelId, token);
 			addContributor(values.modelId, userId, token, m3);
 		}
 		else {
@@ -542,14 +587,23 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 		return null;
 	}
+	
+	private void handleRemovedAnnotationIRIs(Set<IRI> iriSets, String modelId, UndoMetadata token) throws UnknownIdentifierException {
+		if (iriSets != null) {
+			for (IRI iri : iriSets) {
+				m3.deleteIndividualNonReasoning(modelId, iri, token);
+			}
+		}
+	}
 
 	private OWLClassExpression parseM3Expression(M3Expression expression, BatchHandlerValues values)
 			throws MissingParameterException, UnknownIdentifierException, OWLException {
+		M3ExpressionParser p = new M3ExpressionParser(CHECK_LITERAL_IDENTIFIERS);
 		if (ENFORCE_EXTERNAL_VALIDATE) {
-			return M3ExpressionParser.parse(values.modelId, expression, m3, externalLookupService);
+			return p.parse(values.modelId, expression, m3, externalLookupService);
 		}
 		else {
-			return M3ExpressionParser.parse(values.modelId, expression, m3, null);
+			return p.parse(values.modelId, expression, m3, null);
 		}
 	}
 	
@@ -570,15 +624,16 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			// optional: values
 			List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(values.modelId,
 					request.arguments.predicate, subject, object,
-					extract(request.arguments.values, userId, true), token);
+					extract(request.arguments.values, userId, true, values, values.modelId), token);
 			values.relevantIndividuals.addAll(individuals);
 			addContributor(values.modelId, userId, token, m3);
 		}
 		// remove edge
 		else if (Operation.remove == operation){
-			List<OWLNamedIndividual> individuals = m3.removeFactNonReasoning(values.modelId,
+			Pair<List<OWLNamedIndividual>, Set<IRI>> pair = m3.removeFactNonReasoning(values.modelId,
 					request.arguments.predicate, subject, object, token);
-			values.relevantIndividuals.addAll(individuals);
+			values.relevantIndividuals.addAll(pair.getLeft());
+			handleRemovedAnnotationIRIs(pair.getRight(), values.modelId, token);
 			addContributor(values.modelId, userId, token, m3);
 		}
 		// add annotation
@@ -587,17 +642,19 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 
 			List<OWLNamedIndividual> individuals = m3.addAnnotations(values.modelId,
 					request.arguments.predicate, subject, object,
-					extract(request.arguments.values, userId, false), token);
+					extract(request.arguments.values, userId, false, values, values.modelId), token);
 			values.relevantIndividuals.addAll(individuals);
 		}
 		// remove annotation
 		else if (Operation.removeAnnotation == operation){
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, false, values, values.modelId);
+			Set<IRI> iriSet = MolecularModelManager.extractIRIValues(annotations);
 			List<OWLNamedIndividual> individuals = m3.removeAnnotations(values.modelId,
-					request.arguments.predicate, subject, object,
-					extract(request.arguments.values, null, false), token);
+					request.arguments.predicate, subject, object, annotations, token);
 			values.relevantIndividuals.addAll(individuals);
+			handleRemovedAnnotationIRIs(iriSet, values.modelId, token);
 		}
 		else {
 			return "Unknown operation: "+operation;
@@ -628,7 +685,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			values.renderBulk = true;
 			values.modelId = m3.generateModel(request.arguments.subject, request.arguments.db, token);
 			
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, true);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, true, values, values.modelId);
 			if (annotations != null) {
 				m3.addAnnotations(values.modelId, annotations, token);
 			}
@@ -640,14 +697,10 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			// db and taxonId are both optional
 			String db = null;
 			String taxonId = null;
-			Collection<Pair<String, String>> annotations = null;
+			
 			if (request.arguments != null) {
 				db = request.arguments.db;
 				taxonId = request.arguments.taxonId;
-				annotations = extract(request.arguments.values, userId, true);
-			}
-			else {
-				annotations = extract(null, userId, true);
 			}
 			if (taxonId != null) {
 				values.modelId = m3.generateBlankModelWithTaxon(taxonId, token);
@@ -656,6 +709,13 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				values.modelId = m3.generateBlankModel(db, token);
 			}
 			
+			Set<OWLAnnotation> annotations = null;
+			if (request.arguments != null) {
+				annotations = extract(request.arguments.values, userId, true, values, values.modelId);
+			}
+			else {
+				annotations = extract(null, userId, true, values, values.modelId);
+			}
 			if (annotations != null) {
 				m3.addAnnotations(values.modelId, annotations, token);
 			}
@@ -666,7 +726,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments, "request.arguments");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 			values.modelId = checkModelId(values.modelId, request);
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, false, values, values.modelId);
 			if (annotations != null) {
 				m3.addAnnotations(values.modelId, annotations, token);
 			}
@@ -677,7 +737,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments, "request.arguments");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 			values.modelId = checkModelId(values.modelId, request);
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, null, false);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, false, values, values.modelId);
 			if (annotations != null) {
 				m3.removeAnnotations(values.modelId, annotations, token);
 			}
@@ -707,7 +767,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.importModel, "request.arguments.importModel");
 			values.modelId = m3.importModel(request.arguments.importModel);
 			
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, false, values, values.modelId);
 			if (annotations != null) {
 				m3.addAnnotations(values.modelId, annotations, token);
 			}
@@ -717,7 +777,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		else if (Operation.storeModel == operation) {
 			requireNotNull(request.arguments, "request.arguments");
 			values.modelId = checkModelId(values.modelId, request);
-			Collection<Pair<String, String>> annotations = extract(request.arguments.values, userId, false);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, false, values, values.modelId);
 			if (VALIDATE_BEFORE_SAVE) {
 				List<String> issues = beforeSaveValidator.validateBeforeSave(values.modelId, m3);
 				if (issues != null && !issues.isEmpty()) {
@@ -748,31 +808,6 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 				return operation+" cannot be combined with other operations.";
 			}
 			getAllModelMeta(response, userId);
-		}
-		else if (Operation.search == operation) {
-			if (values.nonMeta) {
-				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-				return operation+" cannot be combined with other operations.";
-			}
-			requireNotNull(request.arguments, "request.arguments");
-			requireNotNull(request.arguments.values, "request.arguments.values");
-			Collection<Pair<String, String>> extractedValues = extract(request.arguments.values, null, false);
-			List<String> searchIds = new ArrayList<String>();
-			if (extractedValues != null) {
-				for (Pair<String, String> pair : extractedValues) {
-					String key = pair.getKey();
-					String val = pair.getValue();
-					if ("id".equals(key) && val != null) {
-						searchIds.add(val);
-					}
-				}
-			}
-			if (!searchIds.isEmpty()) {
-				searchModels(response, searchIds, userId);
-			}
-			else {
-				return "No query identifiers found in the request.";
-			}
 		}
 		else if (Operation.undo == operation) {
 			values.nonMeta = true;
@@ -862,16 +897,13 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			OWLOntology o = m3.getModelAbox(mid);
 			Set<OWLAnnotation> annotations = o.getAnnotations();
 			for( OWLAnnotation an : annotations ){
-				
-				// See if we can match them up.
-				for( LegoAnnotationType anntype : LegoAnnotationType.values() ){
-					IRI foo = anntype.getAnnotationProperty();
-					IRI bar = an.getProperty().getIRI();
-					if( foo.equals(bar) ){
-						OWLAnnotationValue v = an.getValue();
-						modelMap.put(anntype.toString(), v.toString());
-					}
-				}				
+				// see if the annotation is a shorthand
+				AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(an.getProperty().getIRI());
+				if (shorthand != null) {
+					// add shorthand and string value
+					modelMap.put(shorthand.name(), 
+							MolecularModelJsonRenderer.getAnnotationStringValue(an.getValue()));
+				}
 			}
 		}
 
@@ -889,12 +921,6 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 	}
 	
-	private void searchModels(M3BatchResponse response, List<String> ids, String userId) throws IOException {
-		Set<String> allModelIds = m3.searchModels(ids);
-		initMetaResponse(response);
-		response.data.put("model_ids", allModelIds);
-	}
-
 	private void getRelations(M3BatchResponse response, String userId) throws OWLOntologyCreationException {
 		List<Map<Object,Object>> relList = MolecularModelJsonRenderer.renderRelations(m3, importantRelations);
 		initMetaResponse(response);
@@ -919,17 +945,27 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		response.data.put(Operation.exportModel.getLbl(), exportModel);
 	}
 	
-	private void save(M3BatchResponse response, String modelId, Collection<Pair<String,String>> annotations, String userId, UndoMetadata token) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
+	private void save(M3BatchResponse response, String modelId, Set<OWLAnnotation> annotations, String userId, UndoMetadata token) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
 		m3.saveModel(modelId, annotations, token);
 		initMetaResponse(response);
 	}
 	
 	private void addContributor(String modelId, String userId, UndoMetadata token, MolecularModelManager<UndoMetadata> m3) throws UnknownIdentifierException {
 		if (USE_USER_ID && userId != null) {
-			Collection<Pair<String, String>> pairs = new ArrayList<Pair<String,String>>(1);
-			pairs.add(Pair.of(LegoAnnotationType.contributor.name(), userId));
-			m3.addAnnotations(modelId, pairs, token);
+			Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
+			final OWLDataFactory f = m3.getOWLDataFactory(modelId);
+			annotations.add(create(f, AnnotationShorthand.contributor, userId));
+			m3.addAnnotations(modelId, annotations, token);
 		}
+	}
+	
+	private static OWLAnnotation create(OWLDataFactory f, AnnotationShorthand s, String literal) {
+		return create(f, s, f.getOWLLiteral(literal));
+	}
+	
+	private static OWLAnnotation create(OWLDataFactory f, AnnotationShorthand s, OWLAnnotationValue v) {
+		final OWLAnnotationProperty p = f.getOWLAnnotationProperty(s.getAnnotationProperty());
+		return f.getOWLAnnotation(p, v);
 	}
 
 
@@ -957,28 +993,45 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		return modelId;
 	}
 	
-	private Collection<Pair<String, String>> extract(M3Pair[] values, String userId, boolean addDate) {
-		Collection<Pair<String, String>> result = null;
-		if (values != null && values.length > 0) {
-			result = new ArrayList<Pair<String,String>>();
+	private Set<OWLAnnotation> extract(M3Pair[] values, String userId, boolean addDate, BatchHandlerValues batchValues, String modelId) throws UnknownIdentifierException {
+		Set<OWLAnnotation> result = new HashSet<OWLAnnotation>();
+		OWLDataFactory f = m3.getOWLDataFactory(modelId);
+		if (values != null) {
 			for (M3Pair m3Pair : values) {
 				if (m3Pair.key != null && m3Pair.value != null) {
-					result.add(Pair.of(m3Pair.key, m3Pair.value));
+					AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(m3Pair.key);
+					if (shorthand != null) {
+						if (AnnotationShorthand.evidence == shorthand) {
+							OWLAnnotationValue evidenceValue;
+							if (batchValues.individualVariables.containsKey(m3Pair.value)) {
+								Pair<String, OWLNamedIndividual> pair = batchValues.individualVariables.get(m3Pair.value);
+								if (pair == null) {
+									throw new UnknownIdentifierException("Variable "+m3Pair.value+" has a null value.");
+								}
+								evidenceValue = pair.getRight().getIRI();
+							}
+							else {
+								evidenceValue = MolecularModelJsonRenderer.getIRI(m3Pair.value);
+							}
+							result.add(create(f, shorthand, evidenceValue));
+						}
+						else {
+							result.add(create(f, shorthand, m3Pair.value));
+						}
+					}
+					else {
+						IRI pIRI = IRI.create(m3Pair.key);
+						result.add(f.getOWLAnnotation(f.getOWLAnnotationProperty(pIRI), f.getOWLLiteral(m3Pair.value)));
+					}
 				}
 			}
 		}
 		if (USE_USER_ID && userId != null) {
-			if (result == null) {
-				result = new ArrayList<Pair<String,String>>(2);
-			}
-			result.add(Pair.of(LegoAnnotationType.contributor.name(), userId));
+			result.add(create(f, AnnotationShorthand.contributor, userId));
 		}
 		if (USE_CREATION_DATE && addDate) {
-			if (result == null) {
-				result = new ArrayList<Pair<String,String>>(1);
-			}
-			String dateString = MolecularModelManager.LegoAnnotationTypeDateFormat.get().format(new Date());
-			result.add(Pair.of(LegoAnnotationType.date.name(), dateString));
+			String dateString = MolecularModelJsonRenderer.AnnotationTypeDateFormat.get().format(new Date());
+			result.add(create(f, AnnotationShorthand.date, dateString));
 		}
 		return result;
 	}
@@ -1026,7 +1079,6 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			case exportModelLegacy:
 			case allModelIds:
 			case allModelMeta:
-			case search:
 				// positive list, all other operation require a privileged call
 				break;
 			default :

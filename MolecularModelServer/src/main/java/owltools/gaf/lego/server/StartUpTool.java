@@ -47,6 +47,7 @@ public class StartUpTool {
 		String proteinOntologyFolder = null; // optional, should be replaced by external lookup service
 		List<String> obsoleteImports = new ArrayList<String>();
 		ExternalLookupService lookupService = null;
+		boolean checkLiteralIds = true;
 
 		// The subset of highly relevant relations is configured using super property
 		// all direct children (asserted) are considered important
@@ -104,6 +105,9 @@ public class StartUpTool {
 			else if (opts.nextEq("--set-important-relation-parent")) {
 				importantRelationParent = opts.nextOpt();
 			}
+			else if (opts.nextEq("--skip-class-id-validation")) {
+				checkLiteralIds = false;
+			}
 			else {
 				break;
 			}
@@ -124,7 +128,7 @@ public class StartUpTool {
 		
 		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, 
 				port, contextString, obsoleteImports, importantRelationParent,
-				lookupService);
+				lookupService, checkLiteralIds);
 	}
 	
 	/**
@@ -178,7 +182,7 @@ public class StartUpTool {
 	public static void startUp(String ontology, String catalog, String modelFolder, 
 			String gafFolder, String proteinOntologyFolder, int port, String contextString, 
 			List<String> obsoleteImports, String importantRelationParent,
-			ExternalLookupService lookupService) 
+			ExternalLookupService lookupService, boolean checkLiteralIds) 
 			throws Exception {
 		// load ontology
 		LOGGER.info("Start loading ontology: "+ontology);
@@ -235,12 +239,12 @@ public class StartUpTool {
 		}
 		
 		// start server
-		Server server = startUp(models, port, contextString, importantRelations, lookupService);
+		Server server = startUp(models, port, contextString, importantRelations, lookupService, checkLiteralIds);
 		server.join();
 	}
 	
 	public static Server startUp(UndoAwareMolecularModelManager models, int port, String contextString, 
-			Set<OWLObjectProperty> relevantRelations, ExternalLookupService lookupService)
+			Set<OWLObjectProperty> relevantRelations, ExternalLookupService lookupService, boolean checkLiteralIds)
 			throws Exception {
 		LOGGER.info("Setup Jetty config.");
 		// Configuration: Use an already existing handler instance
@@ -250,6 +254,7 @@ public class StartUpTool {
 		resourceConfig.register(RequireJsonpFilter.class);
 		//resourceConfig.register(AuthorizationRequestFilter.class);
 		JsonOrJsonpBatchHandler batchHandler = new JsonOrJsonpBatchHandler(models, relevantRelations, lookupService);
+		batchHandler.CHECK_LITERAL_IDENTIFIERS = checkLiteralIds;
 		resourceConfig = resourceConfig.registerInstances(batchHandler);
 		JsonOrJsonpModelHandler defaultModelHandler = new JsonOrJsonpModelHandler(models);
 		resourceConfig = resourceConfig.registerInstances(defaultModelHandler);
