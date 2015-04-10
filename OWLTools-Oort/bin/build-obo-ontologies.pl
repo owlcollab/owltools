@@ -842,7 +842,7 @@ sub get_ont_info {
          pato => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'https://raw.githubusercontent.com/obophenotype/pato/master/src/ontology/pato.obo',
+             source_url => 'https://raw.githubusercontent.com/obophenotype/pato/master/pato.obo',
          },
          pco => {
              method => 'owl2obo',
