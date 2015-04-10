@@ -517,10 +517,11 @@ sub get_ont_info {
              checkout => 'svn co http://phenotype-ontologies.googlecode.com/svn/trunk/src/ontology/vt',
          },
          poro => {
+             method => 'vcs',
              infallible => 1,
              system => 'git',
              checkout => 'git clone https://github.com/obophenotype/porifera-ontology.git',
-             path => 'src/ontology',
+             path => '.',
          },
          #nbo => {
          #    notes => 'SWITCH',
@@ -544,6 +545,7 @@ sub get_ont_info {
              method => 'vcs',
              system => 'git',
              checkout => 'git clone https://github.com/obophenotype/biological-spatial-ontology.git',
+             path => 'src/ontology',
          },
 
          hao => {
@@ -589,6 +591,7 @@ sub get_ont_info {
              method => 'vcs',
              system => 'git',
              checkout => 'git clone https://github.com/EnvironmentOntology/envo.git',
+             path => 'src/envo',
              email_cc => 'cjmungall@lbl.gov',
          },
          gaz => {
