@@ -128,7 +128,9 @@ public class MolecularModelJsonRenderer {
 	// DC recommends http://www.w3.org/TR/NOTE-datetime, one example format is YYYY-MM-DD
 	source(IRI.create("http://purl.org/dc/elements/1.1/source")), // arbitrary string, such as PMID:000000
 	contributor(IRI.create("http://purl.org/dc/elements/1.1/contributor")), // who contributed to the annotation
-	title(IRI.create("http://purl.org/dc/elements/1.1/title")); // title (of the model)
+	title(IRI.create("http://purl.org/dc/elements/1.1/title")), // title (of the model)
+	deprecated(OWLRDFVocabulary.OWL_DEPRECATED.getIRI()); // model annotation to indicate deprecated models
+	
 	
 	private final IRI annotationProperty;
 	
