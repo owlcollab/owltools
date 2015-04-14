@@ -1401,6 +1401,54 @@ public class BatchModelHandlerTest {
 		assertTrue(response.message, response.message.contains("foo")); // unknown
 	}
 	
+	@Test
+	public void testDeprecatedModel() throws Exception {
+		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
+		models.dispose();
+		
+		final String modelId1 = generateBlankModel();
+		final String modelId2 = generateBlankModel();
+		
+		// add deprecated annotation to model 2
+		final M3Request[] batch1 = new M3Request[]{new M3Request()};
+		batch1[0].entity = Entity.model.name();
+		batch1[0].operation = Operation.addAnnotation.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId2;
+		batch1[0].arguments.values = new M3Pair[1];
+		batch1[0].arguments.values[0] = new M3Pair();
+		batch1[0].arguments.values[0].key = AnnotationShorthand.deprecated.name();
+		batch1[0].arguments.values[0].value = Boolean.TRUE.toString();
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		
+		
+		final M3Request[] batch2 = new M3Request[]{new M3Request()};
+		batch2[0].entity = Entity.model.name();
+		batch2[0].operation = Operation.allModelMeta.getLbl();
+		
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		
+		Map<String,Map<String,String>> map = (Map<String, Map<String, String>>) response2.data.get("models_meta");
+		assertEquals(2, map.size());
+		// model 1
+		Map<String, String> modelData = map.get(modelId1);
+		assertNotNull(modelData);
+		assertFalse(modelData.containsKey(AnnotationShorthand.deprecated.name()));
+		
+		// model 2, deprecated
+		modelData = map.get(modelId2);
+		assertNotNull(modelData);
+		assertTrue(modelData.containsKey(AnnotationShorthand.deprecated.name()));
+		assertEquals("true", modelData.get(AnnotationShorthand.deprecated.name()));
+	}
+	
 	/**
 	 * @return modelId
 	 */

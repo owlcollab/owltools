@@ -142,16 +142,16 @@ public class Bioentity{
 		this.db = db;
 	}
 
-	public void addSynonym(String syn) {
+	public void addSynonym(String synonym) {
 		if (this.synonyms == null) {
 			this.synonyms = new ArrayList<String>();
 		}
-		boolean addit = this.symbol == null || (!this.symbol.equals(syn));
+        boolean addit = synonym != null && synonym.length() > 0;
 		for (String s : synonyms) {
-			addit &= !s.equals(syn);
+			addit &= !s.equalsIgnoreCase(synonym);
 		}
 		if (addit)
-			this.synonyms.add(syn);
+			this.synonyms.add(synonym);
 	}
 
 	/*
