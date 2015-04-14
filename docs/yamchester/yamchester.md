@@ -87,7 +87,9 @@ The two styles can be mixed to some extent. For example, some key
 vocabulary terms in a fixed style may be given special status: label,
 for example.
 
-The remainded of this doc assumes flexible-schema-style.
+The remainded of this doc assumes flexible-schema-style, but ideas
+could be mined for a controlled-style. However, it seems if going for
+controlled style an 
 
 ## Prefixes and Context
 
@@ -238,6 +240,7 @@ An extra level of indirection is allowed, to specify more properties:
 
 And annotations on annotations can be introduced here
 
+(note: if we are going dowm this route then we may as well commit to controlled schema)
 
 ## Axioms
 

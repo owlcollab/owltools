@@ -519,6 +519,19 @@ public class CommandRunner {
 					g.getManager().applyChange(ri);
 				}
 			}
+			else if (opts.nextEq("--remove-import-declaration")) {
+				opts.info("IRI", "Removes a specific import");
+				String rmImport = opts.nextOpt();
+				Set<OWLImportsDeclaration> oids = g.getSourceOntology().getImportsDeclarations();
+				for (OWLImportsDeclaration oid : oids) {
+					LOG.info("Testing "+oid.getIRI().toString()+" == "+rmImport);
+					if (oid.getIRI().toString().equals(rmImport)) {
+						RemoveImport ri = new RemoveImport(g.getSourceOntology(), oid);
+						LOG.info(ri);
+						g.getManager().applyChange(ri);
+					}
+				}
+			}
 			else if (opts.nextEq("--add-imports-declarations")) {
 				List<String> importsIRIs = opts.nextList();
 				for (String importIRI : importsIRIs) {
@@ -2245,7 +2258,7 @@ public class CommandRunner {
 				OWLDataFactory df = g.getDataFactory();
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-p|--modal-property")) {
-						 p = resolveObjectProperty(opts.nextOpt());
+						p = resolveObjectProperty(opts.nextOpt());
 						opts.info("CLASS", "if set will add equivalence axioms to CLASS");
 						//c = this.resolveClass(opts.nextOpt());
 					}
@@ -2261,7 +2274,7 @@ public class CommandRunner {
 						for (OWLClassExpression x : ((OWLObjectIntersectionOf)ce).getOperands()) {
 							if (x instanceof OWLObjectSomeValuesFrom) {
 								OWLObjectSomeValuesFrom svf = ((OWLObjectSomeValuesFrom)x);
-								
+
 							}
 						}
 					}
@@ -3106,7 +3119,7 @@ public class CommandRunner {
 					String[] idparts = id.split(":");
 					String idspace = idparts[0];
 					if (idspaces.contains(idspace)) {
-						
+
 						cs.addAll(reasoner.getEquivalentClasses(c).getEntities());
 						cs.addAll(reasoner.getSuperClasses(c, false).getFlattened());
 					}
@@ -3950,7 +3963,7 @@ public class CommandRunner {
 					LOG.error("No ontologies specified for the command. At least one ontology is required.");
 					exit(-1);
 				}
-				
+
 				// create a new empty ontology if there is no previous graph
 				final OWLOntologyManager m;
 				final OWLOntology containerOntology;
@@ -3964,7 +3977,7 @@ public class CommandRunner {
 					containerOntology = g.getSourceOntology();
 				}
 				final OWLDataFactory factory = m.getOWLDataFactory();
-				
+
 				for(String ont : ontologyList) {
 					// load ontology
 					OWLOntology owlOntology = pw.parse(ont);
@@ -4441,7 +4454,7 @@ public class CommandRunner {
 
 		manager.saveOntology(g.getSourceOntology(), targetFileIRI);
 	}
-	
+
 	@CLIMethod("--remove-redundant-inferred-super-classes")
 	public void removeRedundantInferredSuperClassAxioms(Opts opts) throws Exception {
 		String reportFile = null;
@@ -4463,58 +4476,58 @@ public class CommandRunner {
 		}
 		LOG.info("Start finding and removing redundant and previously inferred super classes");
 		Map<OWLClass, Set<RedundantAxiom>> allRedundantAxioms = RedundantInferences.removeRedundantSubClassAxioms(g.getSourceOntology(), reasoner);
-		
+
 		if (reportFile == null) {
 			LOG.warn("No report file available, skipping report.");
 		}
 		else {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(reportFile));
 			try {
-			List<OWLClass> sortedClasses = new ArrayList<OWLClass>(allRedundantAxioms.keySet());
-			Collections.sort(sortedClasses);
-			for (OWLClass cls : sortedClasses) {
-				Set<RedundantAxiom> redundants = allRedundantAxioms.get(cls);
-				List<OWLClass> superClasses = new ArrayList<OWLClass>(redundants.size());
-				Map<OWLClass, Set<OWLClass>> intermediateClasses = new HashMap<OWLClass, Set<OWLClass>>();
-				for(RedundantAxiom redundant : redundants) {
-					OWLSubClassOfAxiom axiom = redundant.getAxiom();
-					OWLClass superClass = axiom.getSuperClass().asOWLClass();
-					superClasses.add(superClass);
-					intermediateClasses.put(superClass, redundant.getMoreSpecific());
-				}
-				Collections.sort(superClasses);
-				for (OWLClass superClass : superClasses) {
-					String subClassId = g.getIdentifier(cls);
-					String subClassLabel = g.getLabel(cls);
-					String superClassId = g.getIdentifier(superClass);
-					String superClassLabel = g.getLabel(superClass);
-					writer.append("REMOVE").append('\t').append(subClassId).append('\t');
-					if (subClassLabel != null) {
-						writer.append('\'').append(subClassLabel).append('\'');
+				List<OWLClass> sortedClasses = new ArrayList<OWLClass>(allRedundantAxioms.keySet());
+				Collections.sort(sortedClasses);
+				for (OWLClass cls : sortedClasses) {
+					Set<RedundantAxiom> redundants = allRedundantAxioms.get(cls);
+					List<OWLClass> superClasses = new ArrayList<OWLClass>(redundants.size());
+					Map<OWLClass, Set<OWLClass>> intermediateClasses = new HashMap<OWLClass, Set<OWLClass>>();
+					for(RedundantAxiom redundant : redundants) {
+						OWLSubClassOfAxiom axiom = redundant.getAxiom();
+						OWLClass superClass = axiom.getSuperClass().asOWLClass();
+						superClasses.add(superClass);
+						intermediateClasses.put(superClass, redundant.getMoreSpecific());
 					}
-					writer.append('\t').append(superClassId).append('\t');
-					if (superClassLabel != null) {
-						writer.append('\'').append(superClassLabel).append('\'');
-					}
-					writer.append('\t').append("MORE SPECIFIC: ");
-					for(OWLClass moreSpecific : intermediateClasses.get(superClass)) {
-						String moreSpecificId = g.getIdentifier(moreSpecific);
-						String moreSpecificLabel = g.getLabel(moreSpecific);
-						writer.append('\t').append(moreSpecificId).append('\t');
-						if (moreSpecificLabel != null) {
-							writer.append('\'').append(moreSpecificLabel).append('\'');
+					Collections.sort(superClasses);
+					for (OWLClass superClass : superClasses) {
+						String subClassId = g.getIdentifier(cls);
+						String subClassLabel = g.getLabel(cls);
+						String superClassId = g.getIdentifier(superClass);
+						String superClassLabel = g.getLabel(superClass);
+						writer.append("REMOVE").append('\t').append(subClassId).append('\t');
+						if (subClassLabel != null) {
+							writer.append('\'').append(subClassLabel).append('\'');
 						}
+						writer.append('\t').append(superClassId).append('\t');
+						if (superClassLabel != null) {
+							writer.append('\'').append(superClassLabel).append('\'');
+						}
+						writer.append('\t').append("MORE SPECIFIC: ");
+						for(OWLClass moreSpecific : intermediateClasses.get(superClass)) {
+							String moreSpecificId = g.getIdentifier(moreSpecific);
+							String moreSpecificLabel = g.getLabel(moreSpecific);
+							writer.append('\t').append(moreSpecificId).append('\t');
+							if (moreSpecificLabel != null) {
+								writer.append('\'').append(moreSpecificLabel).append('\'');
+							}
+						}
+						writer.append('\n');
 					}
-					writer.append('\n');
 				}
-			}
 			}
 			finally {
 				IOUtils.closeQuietly(writer);
 			}
 		}
 	}
-	
+
 	@CLIMethod("--remove-subset-entities")
 	public void removeSubsetEntities(Opts opts) throws Exception {
 		opts.info("[SUBSET]+","Removes all classes, individuals and object properties that are in the specific subset(s)");
@@ -4532,14 +4545,14 @@ public class CommandRunner {
 			// subset as IRI
 			values.add(IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+"#"+subSet));
 		}
-		
+
 		// get annotation property for subset
 		OWLAnnotationProperty p = g.getAnnotationProperty(OboFormatTag.TAG_SUBSET.getTag());
-		
+
 		// collect all objects in the given subset
 		final Set<OWLObject> entities = Mooncat.findTaggedEntities(p, values, g);
 		LOG.info("Found "+entities.size()+" tagged objects.");
-		
+
 		if (entities.isEmpty() == false) {
 			final List<RemoveAxiom> changes = Mooncat.findRelatedAxioms(entities, g);
 			if (changes.isEmpty() == false) {
@@ -4551,7 +4564,7 @@ public class CommandRunner {
 			}
 		}
 	}
-	
+
 	/**
 	 * Simple helper to create a subset tag for matching entities, allows to specify exceptions
 	 * 
@@ -4588,7 +4601,7 @@ public class CommandRunner {
 		if (prefix == null) {
 			throw new RuntimeException("A prefix is required.");
 		}
-	
+
 		final Set<OWLEntity> signature;
 		if (source != null) {
 			ParserWrapper newPw = new ParserWrapper();
@@ -4606,7 +4619,7 @@ public class CommandRunner {
 		final String matchPrefix = prefix;
 		for (OWLEntity owlEntity : signature) {
 			owlEntity.accept(new OWLEntityVisitorAdapter(){
-	
+
 				@Override
 				public void visit(OWLClass cls) {
 					String id = Owl2Obo.getIdentifier(cls.getIRI());
@@ -4614,7 +4627,7 @@ public class CommandRunner {
 						upperLevelIRIs.add(cls.getIRI());
 					}
 				}
-	
+
 				@Override
 				public void visit(OWLObjectProperty property) {
 					String id = Owl2Obo.getIdentifier(property.getIRI());
@@ -4624,7 +4637,7 @@ public class CommandRunner {
 				}
 			});
 		}
-		
+
 		final OWLOntologyManager m = g.getManager();
 		final OWLDataFactory f = g.getDataFactory();
 		final OWLAnnotationProperty p = g.getAnnotationProperty(OboFormatTag.TAG_SUBSET.getTag());
@@ -4633,7 +4646,7 @@ public class CommandRunner {
 			OWLAnnotationAssertionAxiom ax = f.getOWLAnnotationAssertionAxiom(iri, annotation);
 			m.addAxiom(g.getSourceOntology(), ax);
 		}
-		
+
 	}
 
 
@@ -4678,13 +4691,13 @@ public class CommandRunner {
 					pw.addIRIMapper(mapper);
 				}
 			}
-			
+
 			// load previous
 			IRI previousIRI = IRI.create(new File(previousInput).getCanonicalFile());
 			final OWLGraphWrapper previous = pw.parseToOWLGraph(previousIRI.toString());
-			
+
 			LOG.info("Start verifying changes.");
-			
+
 			// create (filtered) class ids and labels, obsolete, alt_ids
 			// prev
 			final Map<String, String> previousIdLabels = Maps.newHashMap();
@@ -4692,14 +4705,14 @@ public class CommandRunner {
 			final Set<String> previousAltIds = Sets.newHashSet();
 			extractClassInfo(previous, previousIdLabels, previousObsoletes,
 					previousAltIds, idFilterPrefix);
-			
+
 			// current
 			final Map<String, String> currentIdLabels = Maps.newHashMap();
 			final Set<String> currentObsoletes = Sets.newHashSet();
 			final Set<String> currentAltIds = Sets.newHashSet();
 			extractClassInfo(g, currentIdLabels, currentObsoletes,
 					currentAltIds, idFilterPrefix);
-			
+
 			// check that all ids are also in the current ontology
 			boolean hasErrors = false;
 			// normal ids
@@ -4715,7 +4728,7 @@ public class CommandRunner {
 				else if (checkMissingLabels && currentAltIds.contains(previousId)) {
 					// this id has been merged into another class
 					// optional: check that all primary labels of merged terms are still in the merged term
-					
+
 					final OWLObject currentObject = g.getOWLObjectByAltId(previousId);
 					final String currentLbl = g.getLabel(currentObject);
 					final String previousLbl = previousIdLabels.get(previousId);
@@ -4743,14 +4756,14 @@ public class CommandRunner {
 			if (!missingIds.isEmpty()) {
 				Collections.sort(missingIds);
 			}
-			
+
 			// alt_ids
 			final List<String> missingAltIds = Lists.newArrayList(Sets.difference(previousAltIds, currentAltIds));
 			if (!missingAltIds.isEmpty()) {
 				Collections.sort(missingAltIds);
 				hasErrors = true;
 			}
-			
+
 			// obsolete
 			final List<String> missingObsoletes = Lists.newArrayList(Sets.difference(previousObsoletes, currentObsoletes));
 			if (!missingObsoletes.isEmpty()) {
@@ -4798,7 +4811,7 @@ public class CommandRunner {
 				finally {
 					IOUtils.closeQuietly(writer);
 				}
-				
+
 				exit(-1);
 			}
 		}
@@ -4835,7 +4848,7 @@ public class CommandRunner {
 			}
 		}
 	}
-	
+
 	@CLIMethod("--create-biochebi")
 	public void createBioChebi(Opts opts) throws Exception {
 		final String chebiPURL = "http://purl.obolibrary.org/obo/chebi.owl";
@@ -4881,7 +4894,7 @@ public class CommandRunner {
 			}
 			g = new OWLGraphWrapper(pw.getManager().loadOntologyFromOntologyDocument(stream));
 		}
-		
+
 		BioChebiGenerator.createBioChebi(g, ignoredSubset);
 		if (output != null) {
 			OWLOntology ontology = g.getSourceOntology();
@@ -4958,7 +4971,7 @@ public class CommandRunner {
 		FileOutputStream out = new FileOutputStream(ofn);
 		IOUtils.write(w.toString(), out);
 	}
-	
+
 	@CLIMethod("--extract-annotation-value")
 	public void extractAnnotationValue(Opts opts) throws Exception {
 		String delimiter = "\t";
@@ -4966,7 +4979,7 @@ public class CommandRunner {
 		boolean addLabel = true;
 		OWLAnnotationProperty valueProperty = null;
 		String output = null;
-		
+
 		final OWLDataFactory f = g.getDataFactory();
 		final OWLAnnotationProperty rdfsLabel = f.getRDFSLabel();
 
@@ -5006,11 +5019,11 @@ public class CommandRunner {
 			for(OWLClass cls : g.getAllOWLClasses()) {
 				final String id = g.getIdentifier(cls);
 				if (idPrefix != null && !id.startsWith(idPrefix)) {
-						continue;
+					continue;
 				}
 				String label = null;
 				String propertyValue = null;
-				
+
 				Set<OWLAnnotationAssertionAxiom> allAnnotationAxioms = new HashSet<OWLAnnotationAssertionAxiom>();
 				for(OWLOntology ont : allOntologies) {
 					allAnnotationAxioms.addAll(ont.getAnnotationAssertionAxioms(cls.getIRI()));
@@ -5041,7 +5054,7 @@ public class CommandRunner {
 						}
 					}
 				}
-				
+
 				// write the information
 				StringBuilder sb = new StringBuilder();
 				if (addLabel) {
@@ -5063,7 +5076,7 @@ public class CommandRunner {
 			}
 			LOG.info("Finished extraction, sorting output.");
 			Collections.sort(lines);
-			
+
 			File outputFile = new File(output).getCanonicalFile();
 			LOG.info("Write extracted properties to file: "+outputFile.getPath());
 			BufferedWriter writer = null;
@@ -5077,7 +5090,7 @@ public class CommandRunner {
 				IOUtils.closeQuietly(writer);
 			}
 		}
-		
+
 	}
 
 	/**
@@ -5196,7 +5209,7 @@ public class CommandRunner {
 			}
 		}
 	}
-	
+
 	/**
 	 * Retain only subclass of axioms and intersection of axioms if they contain
 	 * a class in it's signature of a given set of parent terms.
@@ -5563,7 +5576,7 @@ public class CommandRunner {
 		}
 		return reasoner;
 	}
-	
+
 	private OWLReasonerFactory createReasonerFactory(String reasonerName) {
 		OWLReasonerFactory reasonerFactory = null;
 		if (reasonerName == null || reasonerName.equals("factpp"))

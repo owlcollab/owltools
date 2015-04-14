@@ -60,6 +60,24 @@ public class RetrieveGolrAnnotationsTest {
 	}
 	
 	@Test
+	public void testGetGolrAnnotationsForSynonym() throws Exception {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr") {
+
+			@Override
+			protected void logRequest(URI uri) {
+				System.out.println(uri);
+			}
+			
+		};
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForSynonym("TAIR", "AT1G12520");
+		assertNotNull(annotations);
+		for (GolrAnnotationDocument document : annotations) {
+			System.out.println(document.bioentity+"  "+document.annotation_class);
+		}
+		System.out.println(annotations.size());
+	}
+	
+	@Test
 	public void testGetAnnotationsForGene() throws Exception {
 		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org");
 		List<GolrAnnotationDocument> golrDocuments = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");

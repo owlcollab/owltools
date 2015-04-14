@@ -469,14 +469,15 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		else if (Operation.remove == operation){
 			// required: modelId, individual
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
+			Set<IRI> annotationIRIs;
 			if (values.notVariable(request.arguments.individual)) {
-				m3.deleteIndividual(values.modelId, request.arguments.individual, token);
+				annotationIRIs = m3.deleteIndividual(values.modelId, request.arguments.individual, token);
 			}
 			else {
 				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
-				m3.deleteIndividual(values.modelId, pair.getKey(), token);
+				annotationIRIs = m3.deleteIndividual(values.modelId, pair.getKey(), token);
 			}
-			
+			handleRemovedAnnotationIRIs(annotationIRIs, values.modelId, token);
 			addContributor(values.modelId, userId, token, m3);
 			values.renderBulk = true;
 		}				
@@ -561,6 +562,7 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
 			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, false, values, values.modelId);
+			Set<IRI> usedIRIs = MolecularModelManager.extractIRIValues(annotations);
 			if(values.notVariable(request.arguments.individual)) {
 				OWLNamedIndividual i = m3.removeAnnotations(values.modelId, request.arguments.individual,
 						annotations, token);
@@ -577,12 +579,21 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 						annotations, token);
 				values.relevantIndividuals.add(i);
 			}
+			handleRemovedAnnotationIRIs(usedIRIs, values.modelId, token);
 			addContributor(values.modelId, userId, token, m3);
 		}
 		else {
 			return "Unknown operation: "+operation;
 		}
 		return null;
+	}
+	
+	private void handleRemovedAnnotationIRIs(Set<IRI> iriSets, String modelId, UndoMetadata token) throws UnknownIdentifierException {
+		if (iriSets != null) {
+			for (IRI iri : iriSets) {
+				m3.deleteIndividualNonReasoning(modelId, iri, token);
+			}
+		}
 	}
 
 	private OWLClassExpression parseM3Expression(M3Expression expression, BatchHandlerValues values)
@@ -619,9 +630,10 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		}
 		// remove edge
 		else if (Operation.remove == operation){
-			List<OWLNamedIndividual> individuals = m3.removeFactNonReasoning(values.modelId,
+			Pair<List<OWLNamedIndividual>, Set<IRI>> pair = m3.removeFactNonReasoning(values.modelId,
 					request.arguments.predicate, subject, object, token);
-			values.relevantIndividuals.addAll(individuals);
+			values.relevantIndividuals.addAll(pair.getLeft());
+			handleRemovedAnnotationIRIs(pair.getRight(), values.modelId, token);
 			addContributor(values.modelId, userId, token, m3);
 		}
 		// add annotation
@@ -637,10 +649,12 @@ public class JsonOrJsonpBatchHandler implements M3BatchHandler {
 		else if (Operation.removeAnnotation == operation){
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, false, values, values.modelId);
+			Set<IRI> iriSet = MolecularModelManager.extractIRIValues(annotations);
 			List<OWLNamedIndividual> individuals = m3.removeAnnotations(values.modelId,
-					request.arguments.predicate, subject, object,
-					extract(request.arguments.values, null, false, values, values.modelId), token);
+					request.arguments.predicate, subject, object, annotations, token);
 			values.relevantIndividuals.addAll(individuals);
+			handleRemovedAnnotationIRIs(iriSet, values.modelId, token);
 		}
 		else {
 			return "Unknown operation: "+operation;

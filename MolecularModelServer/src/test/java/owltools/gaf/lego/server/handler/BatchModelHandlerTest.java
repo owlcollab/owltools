@@ -1016,6 +1016,16 @@ public class BatchModelHandlerTest {
 		return r;
 	}
 	
+	private static M3Request removeIndividual(String modelId, String individual) {
+		M3Request r = new M3Request();
+		r.entity = Entity.individual.name();
+		r.operation = Operation.remove.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		r.arguments.individual = individual;
+		return r;
+	}
+	
 	private static M3Request addEdge(String modelId, String sub, String pred, String obj) {
 		M3Request r = new M3Request();
 		r.entity = Entity.edge.name();
@@ -1026,6 +1036,161 @@ public class BatchModelHandlerTest {
 		r.arguments.predicate = pred;
 		r.arguments.object = obj;
 		return r;
+	}
+	
+	private static M3Request deleteEdge(String modelId, String sub, String pred, String obj) {
+		M3Request r = new M3Request();
+		r.entity = Entity.edge.name();
+		r.operation = Operation.remove.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		r.arguments.subject = sub;
+		r.arguments.predicate = pred;
+		r.arguments.object = obj;
+		return r;
+	}
+	
+	@Test
+	public void testAllIndividualEvidenceDelete() throws Exception {
+		/*
+		 * create three individuals, two facts and two evidence individuals
+		 */
+		// blank model
+		final String modelId = generateBlankModel();
+		final List<M3Request> batch1 = new ArrayList<M3Request>();
+		
+		// evidence1
+		M3Request r = addIndividual(modelId, "ECO:0000000"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var1";
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.source, "PMID:000000");
+		batch1.add(r);
+
+		// evidence2
+		r = addIndividual(modelId, "ECO:0000001"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var2";
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.source, "PMID:000001");
+		batch1.add(r);
+
+		// activity/mf
+		r = addIndividual(modelId, "GO:0003674"); // molecular function
+		r.arguments.assignToVariable = "mf";
+		batch1.add(r);
+
+		// process
+		r = addIndividual(modelId, "GO:0008150"); // biological process
+		r.arguments.assignToVariable = "bp";
+		batch1.add(r);
+
+		// location/cc
+		r = addIndividual(modelId, "GO:0005575"); // cellular component
+		r.arguments.assignToVariable = "cc";
+		batch1.add(r);
+
+		// activity -> process
+		r = addEdge(modelId, "mf", "BFO:0000050", "bp"); // part_of
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var1");
+		batch1.add(r); // part_of
+		
+		// activity -> cc
+		r = addEdge(modelId, "mf", "BFO:0000066", "cc"); // occurs_in
+		r.arguments.values = M3Pair.singleton(AnnotationShorthand.evidence, "evidence-var2");
+		batch1.add(r);
+		
+		final M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1.toArray(new M3Request[batch1.size()]), true);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		
+		// find individuals
+		List<Map<Object, Object>> iObjs1 = (List) response1.data.get(KEY_INDIVIDUALS);
+		assertEquals(5, iObjs1.size());
+		String evidence1 = null;
+		String evidence2 = null;
+		String mf = null;
+		String bp = null;
+		String cc = null;
+		for (Map<Object, Object> iObj : iObjs1) {
+			String id = (String) iObj.get(MolecularModelJsonRenderer.KEY.id);
+			assertNotNull(id);
+			List<Map<Object, Object>> types = (List) iObj.get(MolecularModelJsonRenderer.KEY.type);
+			assertNotNull(types);
+			assertEquals(1, types.size());
+			Map<Object, Object> typeObj = types.get(0);
+			String typeId = (String) typeObj.get(MolecularModelJsonRenderer.KEY.id);
+			assertNotNull(typeId);
+			if ("GO:0003674".equals(typeId)) {
+				mf = id;
+			}
+			else if ("GO:0008150".equals(typeId)) {
+				bp = id;
+			}
+			else if ("GO:0005575".equals(typeId)) {
+				cc = id;
+			}
+			else if ("ECO:0000000".equals(typeId)) {
+				evidence1 = id;
+			}
+			else if ("ECO:0000001".equals(typeId)) {
+				evidence2 = id;
+			}
+		}
+		assertNotNull(evidence1);
+		assertNotNull(evidence2);
+		assertNotNull(mf);
+		assertNotNull(bp);
+		assertNotNull(cc);
+		
+		// two edges
+		List<Map<Object, Object>> facts1 = (List) response1.data.get(KEY_FACTS);
+		assertEquals(2, facts1.size());
+		
+		/*
+		 * delete one fact and expect that the associated evidence is also deleted
+		 */
+		// delete: mf -part_of-> bp 
+		r = deleteEdge(modelId, mf, "BFO:0000050", bp);
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, new M3Request[]{r}, true);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		
+		List<Map<Object, Object>> iObjs2 = (List) response2.data.get(KEY_INDIVIDUALS);
+		assertEquals(2, iObjs2.size()); // should return the two individuals affected
+		
+		// get the whole model to check global counts
+		checkCounts(modelId, 4, 1);
+		
+		/*
+		 * delete one individuals of an fact and expect a cascading delete, including the evidence
+		 */
+		r = removeIndividual(modelId, cc);
+		M3BatchResponse response3 = handler.m3Batch(uid, intention, packetId, new M3Request[]{r}, true);
+		assertEquals(uid, response3.uid);
+		assertEquals(intention, response3.intention);
+		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.message_type);
+		
+		List<Map<Object, Object>> iObjs3 = (List) response3.data.get(KEY_INDIVIDUALS);
+		assertEquals(2, iObjs3.size());
+		List<Map<Object, Object>> facts3 = (List) response3.data.get(KEY_FACTS);
+		assertEquals(0, facts3.size());
+		
+		checkCounts(modelId, 2, 0);
+	}
+	
+	private void checkCounts(String modelId, int individuals, int facts) {
+		M3Request r = new M3Request();
+		r.entity = Entity.model.name();
+		r.operation = Operation.get.getLbl();
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		final M3BatchResponse response = handler.m3Batch(uid, intention, packetId, new M3Request[]{r }, true);
+		assertEquals(uid, response.uid);
+		assertEquals(intention, response.intention);
+		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+		List<Map<Object, Object>> iObjs = (List) response.data.get(KEY_INDIVIDUALS);
+		assertEquals(individuals, iObjs.size());
+		List<Map<Object, Object>> factsObjs = (List) response.data.get(KEY_FACTS);
+		assertEquals(facts, factsObjs.size());
 	}
 	
 	@Test
@@ -1094,6 +1259,7 @@ public class BatchModelHandlerTest {
 		assertEquals(uid, response.uid);
 		assertEquals(intention, response.intention);
 		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.message_type);
+		
 		
 	}
 	
@@ -1233,6 +1399,54 @@ public class BatchModelHandlerTest {
 				M3BatchResponse.MESSAGE_TYPE_ERROR, response.message_type);
 		assertTrue(response.message, response.message.contains("UnknownIdentifierException"));
 		assertTrue(response.message, response.message.contains("foo")); // unknown
+	}
+	
+	@Test
+	public void testDeprecatedModel() throws Exception {
+		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
+		models.dispose();
+		
+		final String modelId1 = generateBlankModel();
+		final String modelId2 = generateBlankModel();
+		
+		// add deprecated annotation to model 2
+		final M3Request[] batch1 = new M3Request[]{new M3Request()};
+		batch1[0].entity = Entity.model.name();
+		batch1[0].operation = Operation.addAnnotation.getLbl();
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId2;
+		batch1[0].arguments.values = new M3Pair[1];
+		batch1[0].arguments.values[0] = new M3Pair();
+		batch1[0].arguments.values[0].key = AnnotationShorthand.deprecated.name();
+		batch1[0].arguments.values[0].value = Boolean.TRUE.toString();
+		
+		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.message_type);
+		
+		
+		final M3Request[] batch2 = new M3Request[]{new M3Request()};
+		batch2[0].entity = Entity.model.name();
+		batch2[0].operation = Operation.allModelMeta.getLbl();
+		
+		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.message_type);
+		
+		Map<String,Map<String,String>> map = (Map<String, Map<String, String>>) response2.data.get("models_meta");
+		assertEquals(2, map.size());
+		// model 1
+		Map<String, String> modelData = map.get(modelId1);
+		assertNotNull(modelData);
+		assertFalse(modelData.containsKey(AnnotationShorthand.deprecated.name()));
+		
+		// model 2, deprecated
+		modelData = map.get(modelId2);
+		assertNotNull(modelData);
+		assertTrue(modelData.containsKey(AnnotationShorthand.deprecated.name()));
+		assertEquals("true", modelData.get(AnnotationShorthand.deprecated.name()));
 	}
 	
 	/**
