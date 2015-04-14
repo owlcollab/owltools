@@ -3000,7 +3000,7 @@ public class CommandRunner {
 				ics.save(dir, catfile);
 			}
 			else if (opts.nextEq("-o|--output")) {
-				opts.info("FILE", "writes source ontology.");
+				opts.info("[-f FORMAT] [--prefix PREFIX URI]* FILE", "writes source ontology.");
 				OWLOntologyFormat ofmt = new RDFXMLOntologyFormat();
 
 				String ontURIStr = "";
@@ -3034,6 +3034,7 @@ public class CommandRunner {
 						}
 					}
 					else if (opts.nextEq("--prefix")) {
+						opts.info("PREFIX URIBASE","use PREFIX as prefix. Note: specify this sub-arg AFTER -f");
 						ofmt.asPrefixOWLOntologyFormat().setPrefix(opts.nextOpt(), opts.nextOpt());
 					}
 					else {

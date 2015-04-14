@@ -581,9 +581,10 @@ sub get_ont_info {
          #    source_url => 'http://build.berkeleybop.org/job/build-bio-attributes/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          #},
          oba => {
+             infallible => 0,
              method => 'archive',
-             path => 'archive/main/',   # <-- this will be changed later
-             source_url => 'http://build.berkeleybop.org/job/build-bio-attributes/lastSuccessfulBuild/artifact/*zip*/archive.zip',
+             path => 'archive/src/ontology',
+             source_url => 'http://build.berkeleybop.org/job/build-oba/lastSuccessfulBuild/artifact/*zip*/archive.zip',
          },
 
          envo => {
