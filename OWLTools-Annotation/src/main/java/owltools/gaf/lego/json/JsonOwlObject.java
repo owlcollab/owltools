@@ -26,7 +26,7 @@ public final class JsonOwlObject extends JsonAnnotatedObject {
 	public String id;
 	public String label;
 	public JsonOwlObject[] expressions; // union, intersection
-	public String onProperty;
+	public String property;
 	public JsonOwlObject filler;
 
 	static JsonOwlObject createCls(String id, String label) {
@@ -66,7 +66,7 @@ public final class JsonOwlObject extends JsonAnnotatedObject {
 	public static JsonOwlObject createSvf(String prop, JsonOwlObject filler) {
 		JsonOwlObject json = new JsonOwlObject();
 		json.type = JsonOwlObjectType.SomeValueFrom;
-		json.onProperty = prop;
+		json.property = prop;
 		json.filler = filler;
 		return json;
 	}

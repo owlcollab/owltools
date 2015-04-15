@@ -78,12 +78,12 @@ public class M3ExpressionParser {
 			return cls;
 		}
 		else if (JsonOwlObjectType.SomeValueFrom == expression.type) {
-			if (expression.onProperty == null) {
+			if (expression.property == null) {
 				throw new MissingParameterException("Missing onProperty for expression of type 'svf'");
 			}
-			OWLObjectProperty p = g.getOWLObjectPropertyByIdentifier(expression.onProperty);
+			OWLObjectProperty p = g.getOWLObjectPropertyByIdentifier(expression.property);
 			if (p == null) {
-				throw new UnknownIdentifierException("Could not find a property for: "+expression.onProperty);
+				throw new UnknownIdentifierException("Could not find a property for: "+expression.property);
 			}
 			if (expression.filler != null) {
 				OWLClassExpression ce = parse(g, expression.filler, externalLookupService);

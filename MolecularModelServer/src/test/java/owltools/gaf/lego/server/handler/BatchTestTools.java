@@ -94,7 +94,7 @@ public class BatchTestTools {
 	static JsonOwlObject createSvf(String prop, String filler) {
 		JsonOwlObject json = new JsonOwlObject();
 		json.type = JsonOwlObjectType.SomeValueFrom;
-		json.onProperty = prop;
+		json.property = prop;
 		json.filler = new JsonOwlObject();
 		json.filler.type = JsonOwlObjectType.Class;
 		json.filler.id = filler;
