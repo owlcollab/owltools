@@ -35,7 +35,7 @@ import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.gaf.lego.CoreMolecularModelManager;
-import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
+import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.util.ModelContainer;
 
 public class LegoModelVersionConverter {

@@ -9,10 +9,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
-import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
+import owltools.gaf.lego.json.JsonAnnotation;
+import owltools.gaf.lego.json.JsonOwlObject;
 
 @Path("/")
-
 public interface M3BatchHandler {
 
 	public static class M3Request {
@@ -46,10 +46,6 @@ public interface M3BatchHandler {
 	
 	public static enum Operation {
 		get("get"),
-		@Deprecated // use add instead
-		create("create"),
-		@Deprecated // hard coded assumptions about the data model, use variables instead
-		createComposite("create-composite"), // aka create annaton 
 		addType("add-type"),
 		removeType("remove-type"),
 		add("add"),
@@ -109,50 +105,8 @@ public interface M3BatchHandler {
 		String format;
 		String assignToVariable;
 		
-		M3Expression[] expressions;
-		M3Pair[] values;
-	}
-	
-	public static class M3Pair {
-		String key;
-		String value;
-		
-		public static M3Pair[] singleton(String key, String value) {
-			M3Pair[] p = new M3Pair[1];
-			p[0] = new M3Pair();
-			p[0].key = key;
-			p[0].value = value;
-			return p;
-		}
-		
-		public static M3Pair[] singleton(AnnotationShorthand key, String value) {
-			return singleton(key.name(), value);
-		}
-	}
-	
-	public static class M3Expression { // TODO unify field names with renderer
-		String type; // class, svf, intersection, union
-		String onProp;
-		String literal;
-		M3Expression[] expressions;
-	}
-	
-	public static enum M3ExpressionType {
-		
-		clazz("class"), 
-		svf("svf"),
-		intersection("intersection"),
-		union("union");
-		
-		private final String lbl;
-		
-		private M3ExpressionType(String lbl) {
-			this.lbl = lbl;
-		}
-		
-		public String getLbl() {
-			return lbl;
-		}
+		JsonOwlObject[] expressions;
+		JsonAnnotation[] values;
 	}
 	
 	public static class M3BatchResponse {
@@ -188,16 +142,24 @@ public interface M3BatchHandler {
 		//Map<String, Object> commentary = null;
 		String commentary;
 		
-		/*
-		 * {
-		 * 	 inconsistent_p: boolean
-		 * 	 modelId: String
-		 *   relations: [] (optional)
-		 *   individuals: []
-		 *   ...
-		 * }
-		 */
-		Map<Object, Object> data;
+		Map<ResponseDataKey, Object> data;
+		
+		public static enum ResponseDataKey {
+			id,
+			inconsistent_p,
+			annotations,
+			facts,
+			individuals,
+			properties,
+			individuals_i,
+			undo,
+			redo,
+			model_ids,
+			models_meta,
+			relations,
+			evidence,
+			exportModel
+		}
 
 		/**
 		 * @param uid

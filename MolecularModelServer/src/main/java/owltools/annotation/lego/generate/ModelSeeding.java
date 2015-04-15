@@ -23,8 +23,8 @@ import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.lego.MolecularModelJsonRenderer;
-import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
+import owltools.gaf.lego.IdStringManager;
+import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
@@ -64,7 +64,7 @@ public class ModelSeeding<METADATA> {
 			List<GeneAnnotation> source = geneProducts.get(gp);
 			
 			// explicitly create OWL class for gene product
-			final IRI gpIRI = MolecularModelJsonRenderer.getIRI(gp.getId(), modelGraph);
+			final IRI gpIRI = IdStringManager.getIRI(gp.getId(), modelGraph);
 			final OWLClass gpClass = modelGraph.getDataFactory().getOWLClass(gpIRI);
 			model.addAxiom(modelGraph.getDataFactory().getOWLDeclarationAxiom(gpClass));
 			

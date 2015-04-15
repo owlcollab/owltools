@@ -26,7 +26,6 @@ import owltools.gaf.lego.server.external.CombinedExternalLookupService;
 import owltools.gaf.lego.server.external.ExternalLookupService;
 import owltools.gaf.lego.server.external.ProteinToolService;
 import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler;
-import owltools.gaf.lego.server.handler.JsonOrJsonpModelHandler;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
@@ -256,8 +255,6 @@ public class StartUpTool {
 		JsonOrJsonpBatchHandler batchHandler = new JsonOrJsonpBatchHandler(models, relevantRelations, lookupService);
 		batchHandler.CHECK_LITERAL_IDENTIFIERS = checkLiteralIds;
 		resourceConfig = resourceConfig.registerInstances(batchHandler);
-		JsonOrJsonpModelHandler defaultModelHandler = new JsonOrJsonpModelHandler(models);
-		resourceConfig = resourceConfig.registerInstances(defaultModelHandler);
 
 		// setup jetty server port and context path
 		Server server = new Server(port);

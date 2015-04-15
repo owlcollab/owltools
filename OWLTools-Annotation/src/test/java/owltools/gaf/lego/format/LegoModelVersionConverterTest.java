@@ -3,11 +3,9 @@ package owltools.gaf.lego.format;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
@@ -15,8 +13,8 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import owltools.gaf.lego.MolecularModelJsonRenderer;
 import owltools.gaf.lego.MolecularModelManager;
+import owltools.gaf.lego.json.MolecularModelJsonRenderer;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 import owltools.util.ModelContainer;

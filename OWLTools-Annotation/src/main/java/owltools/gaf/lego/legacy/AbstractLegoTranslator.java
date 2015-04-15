@@ -28,7 +28,7 @@ import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.eco.SimpleEcoMapper;
-import owltools.gaf.lego.MolecularModelJsonRenderer.AnnotationShorthand;
+import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 

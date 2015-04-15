@@ -169,7 +169,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 			throw new UnknownIdentifierException("Could not find a class for id: "+cid);
 		}
 		OWLNamedIndividual individual = createIndividual(modelId, model, cls, annotations , true, metadata);
-		return Pair.of(MolecularModelJsonRenderer.getId(individual.getIRI()), individual);
+		return Pair.of(IdStringManager.getId(individual.getIRI()), individual);
 	}
 	
 	
@@ -205,7 +205,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	public Pair<String, OWLNamedIndividual> createIndividualNonReasoning(String modelId, OWLClassExpression ce, Set<OWLAnnotation> annotations, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = createIndividual(modelId, model, ce, annotations, false, metadata);
-		return Pair.of(MolecularModelJsonRenderer.getId(i.getIRI()), i);
+		return Pair.of(IdStringManager.getId(i.getIRI()), i);
 	}
 
 	public OWLNamedIndividual getNamedIndividual(String modelId, String iid) throws UnknownIdentifierException {
@@ -392,7 +392,7 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	
 	private OWLNamedIndividual getIndividual(String indId, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
-		IRI iri = MolecularModelJsonRenderer.getIRI(indId, graph);
+		IRI iri = IdStringManager.getIRI(indId, graph);
 		return getIndividual(iri, model);
 	}
 	private OWLNamedIndividual getIndividual(IRI iri, ModelContainer model) {
@@ -409,18 +409,18 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return getClass(cid, graph);
 	}
 	private OWLClass getClass(String cid, OWLGraphWrapper graph) {
-		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
+		IRI iri = IdStringManager.getIRI(cid, graph);
 		return graph.getOWLClass(iri);
 	}
 	@Deprecated
 	private OWLClass getGeneClass(String cid, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
-		IRI iri = MolecularModelJsonRenderer.getIRI(cid, graph);
+		IRI iri = IdStringManager.getIRI(cid, graph);
 		return model.getOWLDataFactory().getOWLClass(iri);
 	}
 	private OWLObjectProperty getObjectProperty(String pid, ModelContainer model) {
 		OWLGraphWrapper graph = new OWLGraphWrapper(model.getAboxOntology());
-		IRI iri = MolecularModelJsonRenderer.getIRI(pid, graph);
+		IRI iri = IdStringManager.getIRI(pid, graph);
 		return graph.getOWLObjectProperty(iri);
 	}
 	

@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -19,11 +17,10 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
+import owltools.gaf.lego.json.JsonModel;
+import owltools.gaf.lego.json.MolecularModelJsonRenderer;
 import owltools.io.ParserWrapper;
 import owltools.util.ModelContainer;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 @SuppressWarnings("deprecation")
 public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
@@ -78,14 +75,11 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 
 		// todo - add a test that results in an inconsistency
 
-		List<Map<Object, Object>> objs = mmm.getIndividualObjects(modelId);
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
+		JsonModel obj = renderer.renderModel();
 
-		String js = gson.toJson(objs);
+		String js = MolecularModelJsonRenderer.renderToJson(obj, true);
 		LOG.info("INDS:" + js);
-
-		//		LOG.info(mmm.generateDot(modelId));
-		//		LOG.info(mmm.generateImage(modelId)); // problematic due to missing dot application
 
 		String q = "'molecular_function'";
 		inds = mmm.getIndividualsByQuery(modelId, q);
@@ -170,11 +164,7 @@ public class MolecularModelManagerTest extends AbstractLegoModelGeneratorTest {
 	private String renderJSON(String modelId) throws UnknownIdentifierException {
 
 		ModelContainer model = mmm.getModel(modelId);
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
-		Map<Object, Object> obj = renderer.renderModel();
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-		String js = gson.toJson(obj);
+		String js = MolecularModelJsonRenderer.renderToJson(model.getAboxOntology(), true, true);
 		return js;
 	}
 

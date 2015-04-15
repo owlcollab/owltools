@@ -25,7 +25,6 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
@@ -178,7 +177,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		// create empty ontology
 		// use model id as ontology IRI
 		OWLOntologyManager m = graph.getManager();
-		IRI iri = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		IRI iri = IdStringManager.getIRI(modelId, graph);
 		try {
 			abox = m.createOntology(iri);
 			
@@ -282,7 +281,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 
 		// create empty ontology, use model id as ontology IRI
 		final OWLOntologyManager m = graph.getManager();
-		IRI aBoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		IRI aBoxIRI = IdStringManager.getIRI(modelId, graph);
 		final OWLOntology tbox = graph.getSourceOntology();
 		OWLOntology abox = null;
 		ModelContainer model = null;
@@ -334,7 +333,7 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 
 		// create empty ontology, use model id as ontology IRI
 		final OWLOntologyManager m = graph.getManager();
-		IRI aBoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		IRI aBoxIRI = IdStringManager.getIRI(modelId, graph);
 		final OWLOntology tbox = graph.getSourceOntology();
 		OWLOntology abox = null;
 		ModelContainer model = null;
@@ -370,18 +369,18 @@ public class FileBasedMolecularModelManager<METADATA> extends CoreMolecularModel
 		return sb.toString();
 	}
 
-	public String generateDerivedModel(String sourceModelId, METADATA metadata) throws OWLOntologyCreationException, IOException, URISyntaxException {
-		LOG.info("Generating derived model from "+sourceModelId);
-		ModelContainer sourceModel = this.getModel(sourceModelId); 
-		String modelId = this.generateBlankModel(null, metadata);
-		ModelContainer model = this.getModel(modelId);
-		// TODO - populate, adding metadata
-		Set<OWLNamedIndividual> sourceInds = this.getIndividuals(sourceModelId);
-		for (OWLNamedIndividual sourceInd : sourceInds) {
-			// clone sourceInd
-		}
-		return modelId;
-	}
+//	public String generateDerivedModel(String sourceModelId, METADATA metadata) throws OWLOntologyCreationException, IOException, URISyntaxException {
+//		LOG.info("Generating derived model from "+sourceModelId);
+//		ModelContainer sourceModel = this.getModel(sourceModelId); 
+//		String modelId = this.generateBlankModel(null, metadata);
+//		ModelContainer model = this.getModel(modelId);
+//		// TODO - populate, adding metadata
+//		Set<OWLNamedIndividual> sourceInds = this.getIndividuals(sourceModelId);
+//		for (OWLNamedIndividual sourceInd : sourceInds) {
+//			// clone sourceInd
+//		}
+//		return modelId;
+//	}
 	
 	/**
 	 * Save all models to disk. The optional annotations may be used to set saved_by and other meta data. 

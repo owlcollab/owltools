@@ -254,23 +254,6 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	}
 
 	/**
-	 * Only use for testing.
-	 * 
-	 * @param modelId
-	 * @return List of key-val pairs ready for Gson
-	 */
-	List<Map<Object, Object>> getIndividualObjects(String modelId) {
-		ModelContainer mod = getModel(modelId);
-		MolecularModelJsonRenderer renderer = new MolecularModelJsonRenderer(mod.getAboxOntology());
-		OWLOntology ont = mod.getAboxOntology();
-		List<Map<Object, Object>> objs = new ArrayList<Map<Object, Object>>();
-		for (OWLNamedIndividual i : ont.getIndividualsInSignature()) {
-			objs.add(renderer.renderObject(i));
-		}
-		return objs;
-	}
-	
-	/**
 	 * @param modelId
 	 * @param model
 	 * @param ce
@@ -301,7 +284,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 			iid = generateId(modelId, "-");
 		}
 
-		IRI iri = MolecularModelJsonRenderer.getIRI(iid, graph);
+		IRI iri = IdStringManager.getIRI(iid, graph);
 		OWLDataFactory f = model.getOWLDataFactory();
 		OWLNamedIndividual i = f.getOWLNamedIndividual(iri);
 		
@@ -612,7 +595,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		final OWLOntologyManager manager = aBox.getOWLOntologyManager();
 		
 		// make sure the exported ontology has an ontologyId and that it maps to the modelId
-		final IRI expectedABoxIRI = MolecularModelJsonRenderer.getIRI(modelId, graph);
+		final IRI expectedABoxIRI = IdStringManager.getIRI(modelId, graph);
 		OWLOntologyID ontologyID = aBox.getOntologyID();
 		if (ontologyID == null) {
 			manager.applyChange(new SetOntologyID(aBox, expectedABoxIRI));
@@ -663,7 +646,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		catch (OWLOntologyAlreadyExistsException e) {
 			// exception is thrown if there is an ontology with the same ID already in memory 
 			OWLOntologyID id = e.getOntologyID();
-			String existingModelId = MolecularModelJsonRenderer.getId(id.getOntologyIRI());
+			String existingModelId = IdStringManager.getId(id.getOntologyIRI());
 
 			// remove the existing memory model
 			unlinkModel(existingModelId);
@@ -678,7 +661,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		if (ontologyId != null) {
 			IRI iri = ontologyId.getOntologyIRI();
 			if (iri != null) {
-				modelId = MolecularModelJsonRenderer.getId(iri);
+				modelId = IdStringManager.getId(iri);
 			}
 		}
 		if (modelId == null) {
