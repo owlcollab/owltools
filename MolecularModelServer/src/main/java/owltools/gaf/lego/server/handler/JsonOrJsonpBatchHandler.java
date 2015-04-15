@@ -30,8 +30,6 @@ import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.ResponseD
 import owltools.util.ModelContainer;
 
 import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHandler {
 
@@ -54,7 +52,6 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		super(models, importantRelations, externalLookupService);
 	}
 
-	private final GsonBuilder gsonBuilder = new GsonBuilder();
 	private final Type requestType = new TypeToken<M3Request[]>(){
 
 		// generated
@@ -136,8 +133,7 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 	private M3BatchResponse m3Batch(String uid, String intention, String packetId, String requestString, boolean isPrivileged) {
 		M3BatchResponse response = new M3BatchResponse(uid, intention, checkPacketId(packetId));
 		try {
-			Gson gson = gsonBuilder.create();
-			M3Request[] requests = gson.fromJson(requestString, requestType);
+			M3Request[] requests = MolecularModelJsonRenderer.parseFromJson(requestString, requestType);
 			return m3Batch(response, requests, uid, isPrivileged);
 		} catch (Exception e) {
 			return error(response, "Could not successfully handle batch request.", e);

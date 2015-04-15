@@ -573,5 +573,16 @@ public class MolecularModelJsonRenderer {
 		String json = gson.toJson(model);
 		return json;
 	}
+	
+	public static <T> T parseFromJson(String json, Class<T> type) {
+		Gson gson = JsonOwlObjectTypeHandler.createBuilder().create();
+		T result = gson.fromJson(json, type);
+		return result;
+	}
+
+	public static <T> T[] parseFromJson(String requestString, Type requestType) {
+		Gson gson = JsonOwlObjectTypeHandler.createBuilder().create();
+		return gson.fromJson(requestString, requestType);
+	}
 
 }
