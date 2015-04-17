@@ -413,6 +413,28 @@ abstract class OperationsImpl {
 			m3.updateImports(values.modelId);
 			values.renderBulk = true;
 		}
+		// add an empty model
+		else if (Operation.add == operation) {
+			values.nonMeta = true;
+			values.renderBulk = true;
+			
+			Set<OWLAnnotation> annotations = null;
+			if (request.arguments != null && request.arguments.taxonId != null) {
+				values.modelId = m3.generateBlankModelWithTaxon(request.arguments.taxonId, token);
+				annotations = extract(request.arguments.values, userId, true, values, values.modelId);
+			}
+			else {
+				values.modelId = m3.generateBlankModel(null, token);
+				annotations = extract(null, userId, true, values, values.modelId);
+			}
+			
+			if (annotations != null) {
+				m3.addAnnotations(values.modelId, annotations, token);
+			}
+			addContributor(values.modelId, userId, token, m3);
+		}
+		// TODO remove and update test cases
+		// TODO split seeding into separate command
 		else if (Operation.generate == operation) {
 			values.nonMeta = true;
 			requireNotNull(request.arguments, "request.arguments");
@@ -427,6 +449,7 @@ abstract class OperationsImpl {
 			}
 			addContributor(values.modelId, userId, token, m3);
 		}
+		// TODO remove
 		else if (Operation.generateBlank == operation) {
 			values.nonMeta = true;
 			values.renderBulk = true;

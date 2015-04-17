@@ -375,9 +375,8 @@ public class BatchModelHandlerTest {
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
 		batch1[0].entity = Entity.model.name();
-		batch1[0].operation = Operation.generateBlank.getLbl();
+		batch1[0].operation = Operation.add.getLbl();
 		batch1[0].arguments = new M3Argument();
-		batch1[0].arguments.db = "goa_chicken";
 		
 		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
 		assertEquals(uid, response1.uid);
@@ -428,15 +427,14 @@ public class BatchModelHandlerTest {
 	}
 
 	@Test
-	public void testCreateBlankModelFromGAF() throws Exception {
+	public void testAddBlankModel() throws Exception {
 		models.dispose();
 		
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
 		batch1[0].entity = Entity.model.name();
-		batch1[0].operation = Operation.generateBlank.getLbl();
+		batch1[0].operation = Operation.add.getLbl();
 		batch1[0].arguments = new M3Argument();
-		batch1[0].arguments.db = "goa_chicken";
 		
 		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
 		assertEquals(uid, response1.uid);
@@ -447,9 +445,8 @@ public class BatchModelHandlerTest {
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
 		batch2[0].entity = Entity.model.name();
-		batch2[0].operation = Operation.generateBlank.getLbl();
+		batch2[0].operation = Operation.add.getLbl();
 		batch2[0].arguments = new M3Argument();
-		batch2[0].arguments.db = "goa_chicken";
 		
 		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
 		assertEquals(uid, response2.uid);
@@ -462,9 +459,8 @@ public class BatchModelHandlerTest {
 		M3Request[] batch3 = new M3Request[1];
 		batch3[0] = new M3Request();
 		batch3[0].entity = Entity.model.name();
-		batch3[0].operation = Operation.generateBlank.getLbl();
+		batch3[0].operation = Operation.add.getLbl();
 		batch3[0].arguments = new M3Argument();
-		batch3[0].arguments.db = "jcvi";
 		
 		M3BatchResponse response3 = handler.m3Batch(uid, intention, packetId, batch3, true);
 		assertEquals(uid, response3.uid);
@@ -478,6 +474,8 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	@Ignore("This test takes way to loong to execute.")
+	@Deprecated
+	// This should be separated into a separate test for seeding
 	public void testCreateModelFromGAF() throws Exception {
 		models.dispose();
 		
@@ -698,7 +696,7 @@ public class BatchModelHandlerTest {
 		M3Request[] batch = new M3Request[1];
 		batch[0] = new M3Request();
 		batch[0].entity = Entity.model.name();
-		batch[0].operation = Operation.generateBlank.getLbl();
+		batch[0].operation = Operation.add.getLbl();
 		M3BatchResponse resp1 = handler.m3Batch(uid, intention, packetId, batch, false);
 		assertEquals(M3BatchResponse.MESSAGE_TYPE_ERROR, resp1.messageType);
 		assertTrue(resp1.message.contains("Insufficient"));

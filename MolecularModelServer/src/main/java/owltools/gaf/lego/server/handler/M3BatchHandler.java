@@ -56,7 +56,11 @@ public interface M3BatchHandler {
 		remove("remove"),
 		addAnnotation("add-annotation"),
 		removeAnnotation("remove-annotation"),
+		
+		@Deprecated
 		generate("generate"),
+		
+		@Deprecated
 		generateBlank("generate-blank"),
 		exportModel("export"),
 		exportModelLegacy("export-legacy"),

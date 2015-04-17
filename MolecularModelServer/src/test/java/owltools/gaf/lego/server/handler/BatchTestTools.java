@@ -185,7 +185,7 @@ public class BatchTestTools {
 		M3Request[] batch = new M3Request[1];
 		batch[0] = new M3Request();
 		batch[0].entity = Entity.model.name();
-		batch[0].operation = Operation.generateBlank.getLbl();
+		batch[0].operation = Operation.add.getLbl();
 		M3BatchResponse resp = handler.m3Batch(BatchModelHandlerTest.uid, BatchModelHandlerTest.intention, null, batch, true);
 		assertEquals(resp.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp.messageType);
 		assertNotNull(resp.packetId);
