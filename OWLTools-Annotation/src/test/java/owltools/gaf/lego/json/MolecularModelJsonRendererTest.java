@@ -52,27 +52,27 @@ public class MolecularModelJsonRendererTest {
 
 	@Test
 	public void testSimpleClass() throws Exception {
-		testSimpleClassExpression(g.getOWLClassByIdentifier("GO:0000003"));
+		testSimpleClassExpression(g.getOWLClassByIdentifier("GO:0000003"), "class");
 	}
 	
 	@Test
 	public void testSimpleSVF() throws Exception {
 		OWLObjectSomeValuesFrom svf = f.getOWLObjectSomeValuesFrom(g.getOWLObjectPropertyByIdentifier("BFO:0000050"), g.getOWLClassByIdentifier("GO:0000003"));
-		testSimpleClassExpression(svf);
+		testSimpleClassExpression(svf, "svf");
 	}
 	
 	@Test
 	public void testSimpleUnion() throws Exception {
 		OWLObjectSomeValuesFrom svf = f.getOWLObjectSomeValuesFrom(g.getOWLObjectPropertyByIdentifier("BFO:0000050"), g.getOWLClassByIdentifier("GO:0000003"));
 		OWLClass cls = g.getOWLClassByIdentifier("GO:0000122");
-		testSimpleClassExpression(f.getOWLObjectUnionOf(cls, svf));
+		testSimpleClassExpression(f.getOWLObjectUnionOf(cls, svf), "union");
 	}
 	
 	@Test
 	public void testSimpleIntersection() throws Exception {
 		OWLObjectSomeValuesFrom svf = f.getOWLObjectSomeValuesFrom(g.getOWLObjectPropertyByIdentifier("BFO:0000050"), g.getOWLClassByIdentifier("GO:0000003"));
 		OWLClass cls = g.getOWLClassByIdentifier("GO:0000122");
-		testSimpleClassExpression(f.getOWLObjectIntersectionOf(cls, svf));
+		testSimpleClassExpression(f.getOWLObjectIntersectionOf(cls, svf), "intersection");
 	}
 	
 	@Test
@@ -101,7 +101,7 @@ public class MolecularModelJsonRendererTest {
 		MolecularModelJsonRenderer r = new MolecularModelJsonRenderer(o);
 		
 		JsonOwlIndividual jsonOwlIndividualOriginal = r.renderObject(ni1);
-		assertEquals(2, jsonOwlIndividualOriginal.annotations.size());
+		assertEquals(2, jsonOwlIndividualOriginal.annotations.length);
 		
 		String json = MolecularModelJsonRenderer.renderToJson(jsonOwlIndividualOriginal, true);
 		
@@ -111,7 +111,7 @@ public class MolecularModelJsonRendererTest {
 		assertEquals(jsonOwlIndividualOriginal, jsonOwlIndividualParse);
 	}
 	
-	private void testSimpleClassExpression(OWLClassExpression ce) throws Exception {
+	private void testSimpleClassExpression(OWLClassExpression ce, String expectedJsonType) throws Exception {
 		// setup test model/ontology
 		OWLOntology o = m.createOntology();
 		OWLImportsDeclaration importDeclaration = f.getOWLImportsDeclaration(g.getSourceOntology().getOntologyID().getOntologyIRI());
@@ -131,6 +131,7 @@ public class MolecularModelJsonRendererTest {
 		JsonOwlIndividual jsonOwlIndividualOriginal = r.renderObject(ni1);
 		
 		String json = MolecularModelJsonRenderer.renderToJson(jsonOwlIndividualOriginal, true);
+		assertTrue(json, json.contains("\"type\": \""+expectedJsonType+"\""));
 		
 		JsonOwlIndividual jsonOwlIndividualParse = MolecularModelJsonRenderer.parseFromJson(json, JsonOwlIndividual.class);
 		
@@ -212,7 +213,7 @@ public class MolecularModelJsonRendererTest {
 				return g.getDataFactory().getOWLObjectIntersectionOf(clsExpressions);
 			}
 			else {
-				throw new UnknownIdentifierException("Unsupported expression type: "+type.getLbl());
+				throw new UnknownIdentifierException("Unsupported expression type: "+type);
 			}
 		}
 		

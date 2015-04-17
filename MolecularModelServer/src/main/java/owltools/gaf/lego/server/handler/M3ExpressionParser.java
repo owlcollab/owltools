@@ -125,7 +125,7 @@ public class M3ExpressionParser {
 			return g.getDataFactory().getOWLObjectIntersectionOf(clsExpressions);
 		}
 		else {
-			throw new UnknownIdentifierException("Unsupported expression type: "+type.getLbl());
+			throw new UnknownIdentifierException("Unsupported expression type: "+type);
 		}
 	}
 	

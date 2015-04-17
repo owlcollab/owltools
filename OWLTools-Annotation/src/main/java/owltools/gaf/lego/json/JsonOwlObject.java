@@ -3,24 +3,26 @@ package owltools.gaf.lego.json;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.gson.annotations.SerializedName;
+
 public final class JsonOwlObject extends JsonAnnotatedObject {
 	
 	public static enum JsonOwlObjectType {
-		SomeValueFrom("svf"),
-		ObjectProperty("property"),
-		Class("class"),
-		IntersectionOf("intersection"),
-		UnionOf("union");
+		@SerializedName("svf")
+		SomeValueFrom,
 		
-		private final String lbl;
+		@SerializedName("property")
+		ObjectProperty,
 		
-		private JsonOwlObjectType(String lbl) {
-			this.lbl = lbl;
-		}
+		@SerializedName("class")
+		Class,
 		
-		public String getLbl() {
-			return lbl;
-		}
+		@SerializedName("intersection")
+		IntersectionOf,
+		
+		@SerializedName("union")
+		UnionOf
+		
 	}
 	
 	public JsonOwlObject.JsonOwlObjectType type;

@@ -1,19 +1,25 @@
 package owltools.gaf.lego.json;
 
-import java.util.List;
+import java.util.Arrays;
+
 
 abstract class JsonAnnotatedObject {
-	public List<JsonAnnotation> annotations;
+	public JsonAnnotation[] annotations;
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((annotations == null) ? 0 : annotations.hashCode());
+		result = prime * result + Arrays.hashCode(annotations);
 		return result;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -26,13 +32,10 @@ abstract class JsonAnnotatedObject {
 			return false;
 		}
 		JsonAnnotatedObject other = (JsonAnnotatedObject) obj;
-		if (annotations == null) {
-			if (other.annotations != null) {
-				return false;
-			}
-		} else if (!annotations.equals(other.annotations)) {
+		if (!Arrays.equals(annotations, other.annotations)) {
 			return false;
 		}
 		return true;
 	}
+
 }

@@ -3,9 +3,7 @@ package owltools.gaf.lego.server.handler;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +24,7 @@ import owltools.gaf.lego.json.JsonOwlIndividual;
 import owltools.gaf.lego.json.MolecularModelJsonRenderer;
 import owltools.gaf.lego.server.external.ExternalLookupService;
 import owltools.gaf.lego.server.external.ExternalLookupService.LookupEntry;
-import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.ResponseDataKey;
+import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.ResponseData;
 import owltools.util.ModelContainer;
 
 import com.google.common.reflect.TypeToken;
@@ -229,52 +227,52 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		final boolean isConsistent = reasoner.isConsistent();
 
 		// create response.data
-		response.data = new HashMap<ResponseDataKey, Object>();
+		response.data = new ResponseData();
 		MolecularModelJsonRenderer renderer = createModelRenderer(model, externalLookupService);
 		if (values.renderBulk) {
 			// render complete model
 			JsonModel jsonModel = renderer.renderModel();
-			initMap(jsonModel, response.data, values.renderModelAnnotations);
+			initResponseData(jsonModel, response.data, values.renderModelAnnotations);
 			response.signal = M3BatchResponse.SIGNAL_REBUILD;
 			if (ADD_INFERENCES) {
-				response.data.put(ResponseDataKey.individuals_i, renderer.renderModelInferences(reasoner));
+				response.data.individualsInferred = renderer.renderModelInferences(reasoner);
 			}
 		}
 		else {
 			// render individuals
 			Pair<JsonOwlIndividual[],JsonOwlFact[]> pair = renderer.renderIndividuals(values.relevantIndividuals);
-			response.data.put(ResponseDataKey.individuals, pair.getLeft());
-			response.data.put(ResponseDataKey.facts, pair.getRight());
+			response.data.individuals = pair.getLeft();
+			response.data.facts = pair.getRight();
 			response.signal = M3BatchResponse.SIGNAL_MERGE;
 			if (ADD_INFERENCES) {
-				response.data.put(ResponseDataKey.individuals_i, renderer.renderInferences(values.relevantIndividuals, reasoner));
+				response.data.individualsInferred = renderer.renderInferences(values.relevantIndividuals, reasoner);
 			}
 			// add model annotations
 			if (values.renderModelAnnotations) {
-				List<JsonAnnotation> anObjs = MolecularModelJsonRenderer.renderModelAnnotations(model.getAboxOntology());
-				response.data.put(ResponseDataKey.annotations, anObjs);
+				JsonAnnotation[] anObjs = MolecularModelJsonRenderer.renderModelAnnotations(model.getAboxOntology());
+				response.data.annotations = anObjs;
 			}
 		}
 		
 		// add other infos to data
-		response.data.put(ResponseDataKey.id, values.modelId);
+		response.data.id = values.modelId;
 		if (!isConsistent) {
-			response.data.put(ResponseDataKey.inconsistent_p, Boolean.TRUE);
+			response.data.inconsistentFlag =  Boolean.TRUE;
 		}
 		// These are required for an "okay" response.
-		response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
+		response.messageType = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
 		if( response.message == null ){
 			response.message = "success";
 		}
 		return response;
 	}
 
-	public static void initMap(JsonModel jsonModel, Map<ResponseDataKey, Object> map, boolean addAnnotations) {
-		map.put(ResponseDataKey.individuals, jsonModel.individuals);
-		map.put(ResponseDataKey.facts, jsonModel.facts);
-		map.put(ResponseDataKey.properties, jsonModel.properties);
+	public static void initResponseData(JsonModel jsonModel, ResponseData data, boolean addAnnotations) {
+		data.individuals = jsonModel.individuals;
+		data.facts = jsonModel.facts;
+		data.properties = jsonModel.properties;
 		if (addAnnotations) {
-			map.put(ResponseDataKey.annotations, jsonModel.annotations);
+			data.annotations = jsonModel.annotations;
 		}
 	}
 	
@@ -335,7 +333,7 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 	 * commentary is now to be a string, not an unknown multi-leveled object.
 	 */
 	private M3BatchResponse error(M3BatchResponse state, String msg, Throwable e) {
-		state.message_type = "error";
+		state.messageType = "error";
 		state.message = msg;
 		if (e != null) {
 

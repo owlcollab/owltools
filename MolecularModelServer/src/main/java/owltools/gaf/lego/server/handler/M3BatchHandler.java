@@ -1,7 +1,5 @@
 package owltools.gaf.lego.server.handler;
 
-import java.util.Map;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -9,8 +7,14 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
+import com.google.gson.annotations.SerializedName;
+
 import owltools.gaf.lego.json.JsonAnnotation;
+import owltools.gaf.lego.json.JsonEvidenceInfo;
+import owltools.gaf.lego.json.JsonOwlFact;
+import owltools.gaf.lego.json.JsonOwlIndividual;
 import owltools.gaf.lego.json.JsonOwlObject;
+import owltools.gaf.lego.json.JsonRelationInfo;
 
 @Path("/")
 public interface M3BatchHandler {
@@ -94,15 +98,23 @@ public interface M3BatchHandler {
 	}
 	
 	public static class M3Argument {
+		
+		 @SerializedName("model-id")
 		String modelId;
 		String subject;
 		String object;
 		String predicate;
 		String individual;
 		String db; // TODO deprecate db, should use taxonId instead
+		
+		@SerializedName("taxon-id")
 		String taxonId;
+		
+		@SerializedName("import-model")
 		String importModel;
 		String format;
+		
+		@SerializedName("assign-to-variable")
 		String assignToVariable;
 		
 		JsonOwlObject[] expressions;
@@ -110,7 +122,8 @@ public interface M3BatchHandler {
 	}
 	
 	public static class M3BatchResponse {
-		final String packet_id; // generated or pass-through
+		@SerializedName("packet-id")
+		final String packetId; // generated or pass-through
 		final String uid; // pass-through
 		/*
 		 * pass-through; model:
@@ -131,7 +144,8 @@ public interface M3BatchHandler {
 		/*
 		 * "error", "success", //"warning"
 		 */
-		String message_type;
+		@SerializedName("message-type")
+		String messageType;
 		/*
 		 * "e.g.: server done borked"
 		 */
@@ -142,34 +156,50 @@ public interface M3BatchHandler {
 		//Map<String, Object> commentary = null;
 		String commentary;
 		
-		Map<ResponseDataKey, Object> data;
+		ResponseData data;
 		
-		public static enum ResponseDataKey {
-			id,
-			inconsistent_p,
-			annotations,
-			facts,
-			individuals,
-			properties,
-			individuals_i,
-			undo,
-			redo,
-			model_ids,
-			models_meta,
-			relations,
-			evidence,
-			exportModel
+		public static class ResponseData {
+			public String id;
+			
+			@SerializedName("inconsistent-p")
+			public Boolean inconsistentFlag;
+			
+			public JsonAnnotation[] annotations;
+			
+			public JsonOwlFact[] facts;
+			
+			public JsonOwlIndividual[] individuals;
+			
+			public JsonOwlObject[] properties;
+			@SerializedName("individuals-i")
+			public JsonOwlIndividual[] individualsInferred;
+			
+			public Object undo;
+			public Object redo;
+			
+			@SerializedName("model-ids")
+			public Object modelIds;
+			
+			@SerializedName("models-meta")
+			public Object modelsMeta;
+			
+			public JsonRelationInfo[] relations;
+			
+			public JsonEvidenceInfo[] evidence;
+			
+			@SerializedName("export-model")
+			public String exportModel;
 		}
 
 		/**
 		 * @param uid
 		 * @param intention
-		 * @param packet_id
+		 * @param packetId
 		 */
-		public M3BatchResponse(String uid, String intention, String packet_id) {
+		public M3BatchResponse(String uid, String intention, String packetId) {
 			this.uid = uid;
 			this.intention = intention;
-			this.packet_id = packet_id;
+			this.packetId = packetId;
 		}
 		
 	}

@@ -50,19 +50,11 @@ import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.gaf.lego.IdStringManager;
 import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
-import owltools.gaf.lego.json.JsonOwlObject.JsonOwlObjectType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 
 /**
  * A Renderer that takes a MolecularModel (an OWL ABox) and generates Map objects
@@ -150,8 +142,8 @@ public class MolecularModelJsonRenderer {
 		}
 		json.properties  = pObjs.toArray(new JsonOwlObject[pObjs.size()]);
 
-		List<JsonAnnotation> anObjs = renderAnnotations(ont.getAnnotations());
-		if (!anObjs.isEmpty()) {
+		JsonAnnotation[] anObjs = renderAnnotations(ont.getAnnotations());
+		if (anObjs != null && anObjs.length > 0) {
 			json.annotations = anObjs;
 		}
 		
@@ -174,12 +166,12 @@ public class MolecularModelJsonRenderer {
 		return inferences;
 	}
 	
-	public static List<JsonAnnotation> renderModelAnnotations(OWLOntology ont) {
-		List<JsonAnnotation> anObjs = renderAnnotations(ont.getAnnotations());
+	public static JsonAnnotation[] renderModelAnnotations(OWLOntology ont) {
+		JsonAnnotation[] anObjs = renderAnnotations(ont.getAnnotations());
 		return anObjs;
 	}
 	
-	private static List<JsonAnnotation> renderAnnotations(Set<OWLAnnotation> annotations) {
+	private static JsonAnnotation[] renderAnnotations(Set<OWLAnnotation> annotations) {
 		List<JsonAnnotation> anObjs = new ArrayList<JsonAnnotation>();
 		for (OWLAnnotation annotation : annotations) {
 			OWLAnnotationProperty p = annotation.getProperty();
@@ -194,7 +186,7 @@ public class MolecularModelJsonRenderer {
 				// TODO render without the use of the shorthand
 			}
 		}
-		return anObjs;
+		return anObjs.toArray(new JsonAnnotation[anObjs.size()]);
 	}
 	
 	public Pair<JsonOwlIndividual[], JsonOwlFact[]> renderIndividuals(Collection<OWLNamedIndividual> individuals) {
@@ -295,7 +287,9 @@ public class MolecularModelJsonRenderer {
 				// TODO render non-shorthand annotations
 			}
 		}
-		json.annotations = anObjs;
+		if (anObjs.isEmpty() == false) {
+			json.annotations = anObjs.toArray(new JsonAnnotation[anObjs.size()]);
+		}
 		return json;
 	}
 	
@@ -338,8 +332,8 @@ public class MolecularModelJsonRenderer {
 		fact.property = IdStringManager.getId(property, graph);
 		fact.object = IdStringManager.getId(object, graph);
 		
-		List<JsonAnnotation> anObjs = renderAnnotations(opa.getAnnotations());
-		if (!anObjs.isEmpty()) {
+		JsonAnnotation[] anObjs = renderAnnotations(opa.getAnnotations());
+		if (anObjs != null && anObjs.length > 0) {
 			fact.annotations = anObjs;
 		}
 		return fact;
@@ -517,36 +511,6 @@ public class MolecularModelJsonRenderer {
 		return relList;
 	}
 
-	static class JsonOwlObjectTypeHandler implements JsonSerializer<JsonOwlObjectType>, JsonDeserializer<JsonOwlObjectType> {
-
-		static GsonBuilder createBuilder() {
-			GsonBuilder builder = new GsonBuilder();
-			builder.registerTypeAdapter(JsonOwlObjectType.class, new JsonOwlObjectTypeHandler());
-			return builder;
-		}
-		
-		@Override
-		public JsonOwlObjectType deserialize(JsonElement json, Type typeOfT,
-				JsonDeserializationContext context) throws JsonParseException {
-			if (json.isJsonPrimitive()) {
-				String s = json.getAsString();
-				for (JsonOwlObjectType jsonType : JsonOwlObjectType.values()) {
-					if (jsonType.getLbl().equals(s)) {
-						return jsonType;
-					}
-				}
-			}
-			return null;
-		}
-
-		@Override
-		public JsonElement serialize(JsonOwlObjectType src, Type typeOfSrc,
-				JsonSerializationContext context) {
-			return new JsonPrimitive(src.getLbl());
-		}
-		
-	}
-	
 	public static String renderToJson(OWLOntology ont) {
 		return renderToJson(ont, false);
 	}
@@ -565,7 +529,7 @@ public class MolecularModelJsonRenderer {
 	}
 	
 	public static String renderToJson(Object model, boolean prettyPrint) {
-		GsonBuilder builder = JsonOwlObjectTypeHandler.createBuilder();
+		GsonBuilder builder = new GsonBuilder();
 		if (prettyPrint) {
 			builder = builder.setPrettyPrinting();
 		}
@@ -575,13 +539,13 @@ public class MolecularModelJsonRenderer {
 	}
 	
 	public static <T> T parseFromJson(String json, Class<T> type) {
-		Gson gson = JsonOwlObjectTypeHandler.createBuilder().create();
+		Gson gson = new GsonBuilder().create();
 		T result = gson.fromJson(json, type);
 		return result;
 	}
 
 	public static <T> T[] parseFromJson(String requestString, Type requestType) {
-		Gson gson = JsonOwlObjectTypeHandler.createBuilder().create();
+		Gson gson = new GsonBuilder().create();
 		return gson.fromJson(requestString, requestType);
 	}
 

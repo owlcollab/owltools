@@ -38,7 +38,7 @@ import owltools.gaf.lego.json.JsonRelationInfo;
 import owltools.gaf.lego.json.MolecularModelJsonRenderer;
 import owltools.gaf.lego.server.external.ExternalLookupService;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse;
-import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.ResponseDataKey;
+import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.ResponseData;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Request;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Operation;
 import owltools.gaf.lego.server.validation.BeforeSaveModelValidator;
@@ -594,8 +594,8 @@ abstract class OperationsImpl {
 			// TODO add a summary of the change? axiom count?
 			redos.add(data);
 		}
-		response.data.put(ResponseDataKey.undo, undos);
-		response.data.put(ResponseDataKey.redo, redos);
+		response.data.undo = undos;
+		response.data.redo = redos;
 	}
 	
 	private void getAllModelIds(M3BatchResponse response, String userId) throws IOException {
@@ -606,7 +606,7 @@ abstract class OperationsImpl {
 
 		initMetaResponse(response);
 		
-		response.data.put(ResponseDataKey.model_ids, allModelIds);
+		response.data.modelIds = allModelIds;
 		//response.data.put("models_memory", memoryModelIds);
 		//response.data.put("models_stored", storedModelIds);
 		//response.data.put("models_scratch", scratchModelIds);
@@ -645,14 +645,14 @@ abstract class OperationsImpl {
 
 		// Sending the actual response.
 		initMetaResponse(response);
-		response.data.put(ResponseDataKey.models_meta, retMap);
+		response.data.modelsMeta = retMap;
 	}
 	
 	private void initMetaResponse(M3BatchResponse response) {
 		if (response.data == null) {
-			response.data = new HashMap<ResponseDataKey, Object>();
-			response.message_type = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
-			response.message = "success: " + response.data.size();
+			response.data = new ResponseData();
+			response.messageType = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
+			response.message = "success: 0";
 			response.signal = M3BatchResponse.SIGNAL_META;
 		}
 	}
@@ -667,7 +667,9 @@ abstract class OperationsImpl {
 	void getRelations(M3BatchResponse response, String userId) throws OWLOntologyCreationException {
 		List<JsonRelationInfo> relList = MolecularModelJsonRenderer.renderRelations(m3, importantRelations);
 		initMetaResponse(response);
-		response.data.put(ResponseDataKey.relations, relList);
+		if (relList != null) {
+			response.data.relations = relList.toArray(new JsonRelationInfo[relList.size()]);
+		}
 	}
 	
 	/**
@@ -681,19 +683,22 @@ abstract class OperationsImpl {
 	void getEvidence(M3BatchResponse response, String userId) throws OWLException, IOException {
 		List<JsonEvidenceInfo> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
 		initMetaResponse(response);
-		response.data.put(ResponseDataKey.evidence, evidencesList);
+		if (evidencesList != null) {
+			response.data.evidence = evidencesList.toArray(new JsonEvidenceInfo[evidencesList.size()]);	
+		}
+		
 	}
 	
 	private void export(M3BatchResponse response, String modelId, String userId) throws OWLOntologyStorageException, UnknownIdentifierException {
 		String exportModel = m3.exportModel(modelId);
 		initMetaResponse(response);
-		response.data.put(ResponseDataKey.exportModel, exportModel);
+		response.data.exportModel = exportModel;
 	}
 	
 	private void exportLegacy(M3BatchResponse response, String modelId, String format, String userId) throws UnknownIdentifierException, IOException {
 		String exportModel = m3.exportModelLegacy(modelId, format);
 		initMetaResponse(response);
-		response.data.put(ResponseDataKey.exportModel, exportModel);
+		response.data.exportModel = exportModel;
 	}
 	
 	private void save(M3BatchResponse response, String modelId, Set<OWLAnnotation> annotations, String userId, UndoMetadata token) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
