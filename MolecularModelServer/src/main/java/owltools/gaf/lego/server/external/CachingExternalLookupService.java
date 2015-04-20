@@ -2,10 +2,13 @@ package owltools.gaf.lego.server.external;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.ExecutionError;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 public class CachingExternalLookupService implements ExternalLookupService {
 	
@@ -19,8 +22,12 @@ public class CachingExternalLookupService implements ExternalLookupService {
 				.build(new CacheLoader<String, List<LookupEntry>>() {
 
 					@Override
-					public List<LookupEntry> load(String key) {
-						return CachingExternalLookupService.this.service.lookup(key);
+					public List<LookupEntry> load(String key) throws Exception {
+						List<LookupEntry> lookup = CachingExternalLookupService.this.service.lookup(key);
+						if (lookup == null) {
+							throw new Exception("No legal value for key.");
+						}
+						return lookup;
 					}
 				});
 	}
@@ -35,7 +42,15 @@ public class CachingExternalLookupService implements ExternalLookupService {
 	
 	@Override
 	public List<LookupEntry> lookup(String id) {
-		return cache.getUnchecked(id);
+		try {
+			return cache.get(id);
+		} catch (ExecutionException e) {
+			return null;
+		} catch (UncheckedExecutionException e) {
+			return null;
+		} catch (ExecutionError e) {
+			return null;
+		}
 	}
 
 	@Override

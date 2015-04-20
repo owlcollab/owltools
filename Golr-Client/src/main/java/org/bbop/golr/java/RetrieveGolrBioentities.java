@@ -68,16 +68,16 @@ public class RetrieveGolrBioentities extends AbstractRetrieveGolr {
 	
 	public static class GolrBioentityDocument {
 		
-		String document_category;
-		String id;
-		String bioentity;
-		String bioentity_label;
-		String bioentity_name;
-		String source;
-		String type;
-		String taxon;
-		String taxon_label;
-		List<String> synonym;
+		public String document_category;
+		public String id;
+		public String bioentity;
+		public String bioentity_label;
+		public String bioentity_name;
+		public String source;
+		public String type;
+		public String taxon;
+		public String taxon_label;
+		public List<String> synonym;
 		
 		static List<String> getRelevantFields() {
 			// explicit list of fields, avoid "*" retrieval of unused fields

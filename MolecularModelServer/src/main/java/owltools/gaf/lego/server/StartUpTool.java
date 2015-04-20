@@ -22,8 +22,10 @@ import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 
 import owltools.cli.Opts;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
+import owltools.gaf.lego.server.external.CachingExternalLookupService;
 import owltools.gaf.lego.server.external.CombinedExternalLookupService;
 import owltools.gaf.lego.server.external.ExternalLookupService;
+import owltools.gaf.lego.server.external.GolrExternalLookupService;
 import owltools.gaf.lego.server.external.ProteinToolService;
 import owltools.gaf.lego.server.handler.JsonOrJsonpBatchHandler;
 import owltools.graph.OWLGraphWrapper;
@@ -45,6 +47,7 @@ public class StartUpTool {
 		String gafFolder = null; // optional
 		String proteinOntologyFolder = null; // optional, should be replaced by external lookup service
 		List<String> obsoleteImports = new ArrayList<String>();
+		int golrCacheSize = 100000;
 		ExternalLookupService lookupService = null;
 		boolean checkLiteralIds = true;
 
@@ -107,6 +110,14 @@ public class StartUpTool {
 			else if (opts.nextEq("--skip-class-id-validation")) {
 				checkLiteralIds = false;
 			}
+			else if (opts.nextEq("--golr-cache-size")) {
+				String sizeString = opts.nextOpt();
+				golrCacheSize = Integer.parseInt(sizeString);
+			}
+			else if (opts.nextEq("--golr-labels")) {
+				String golrUrl = opts.nextOpt();
+				lookupService = new GolrExternalLookupService(golrUrl);
+			}
 			else {
 				break;
 			}
@@ -124,6 +135,10 @@ public class StartUpTool {
 			contextString = "/"+contextPrefix;
 		}
 
+		// wrap the Golr service with a cache
+		if (lookupService != null) {
+			lookupService = new CachingExternalLookupService(lookupService, golrCacheSize);
+		}
 		
 		startUp(ontology, catalog, modelFolder, gafFolder, proteinOntologyFolder, 
 				port, contextString, obsoleteImports, importantRelationParent,
