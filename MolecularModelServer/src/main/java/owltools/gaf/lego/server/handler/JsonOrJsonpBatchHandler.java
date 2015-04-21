@@ -1,16 +1,16 @@
 package owltools.gaf.lego.server.handler;
 
+import static owltools.gaf.lego.server.handler.OperationsTools.*;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
-import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -23,7 +23,6 @@ import owltools.gaf.lego.json.JsonOwlFact;
 import owltools.gaf.lego.json.JsonOwlIndividual;
 import owltools.gaf.lego.json.MolecularModelJsonRenderer;
 import owltools.gaf.lego.server.external.ExternalLookupService;
-import owltools.gaf.lego.server.external.ExternalLookupService.LookupEntry;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.ResponseData;
 import owltools.util.ModelContainer;
 
@@ -274,59 +273,6 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		if (addAnnotations) {
 			data.annotations = jsonModel.annotations;
 		}
-	}
-	
-	/**
-	 * @param model
-	 * @param externalLookupService
-	 * @return renderer
-	 */
-	static MolecularModelJsonRenderer createModelRenderer(
-			final ModelContainer model, 
-			final ExternalLookupService externalLookupService) {
-		
-		MolecularModelJsonRenderer renderer;
-		if (externalLookupService != null) {
-			renderer = new MolecularModelJsonRenderer(model.getAboxOntology()) {
-
-				@Override
-				protected String getLabel(OWLNamedObject i, String id) {
-					String label = super.getLabel(i, id);
-					if (label == null ) {
-						// TODO get taxon for now take the first one
-						// externalLookupService.lookup(id, taxon);
-						List<LookupEntry> lookup = externalLookupService.lookup(id);
-						if (lookup != null && !lookup.isEmpty()) {
-							LookupEntry entry = lookup.iterator().next();
-							label = entry.label;
-						}
-					}
-					return label;
-				}
-
-			};
-		}
-		else {
-			renderer = new MolecularModelJsonRenderer(model.getAboxOntology());
-		}
-		return renderer;
-	}
-
-	/**
-	 * Normalize the userId.
-	 * 
-	 * @param userId
-	 * @return normalized id or null
-	 */
-	private String normalizeUserId(String userId) {
-		if (userId != null) {
-			userId = StringUtils.trimToNull(userId);
-			// quick hack, may be removed once all users are required to have a user id.
-			if ("anonymous".equalsIgnoreCase(userId)) {
-				return null;
-			}
-		}
-		return userId;
 	}
 	
 	/*

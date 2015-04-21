@@ -1035,7 +1035,7 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		}
 	}
 	
-	void addAxiom(String modelId, ModelContainer model, OWLAxiom axiom, 
+	public void addAxiom(String modelId, ModelContainer model, OWLAxiom axiom, 
 			boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
 		List<OWLOntologyChange> changes = Collections.<OWLOntologyChange>singletonList(new AddAxiom(ont, axiom));

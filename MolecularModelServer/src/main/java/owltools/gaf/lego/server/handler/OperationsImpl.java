@@ -1,5 +1,7 @@
 package owltools.gaf.lego.server.handler;
 
+import static owltools.gaf.lego.server.handler.OperationsTools.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -813,25 +815,6 @@ abstract class OperationsImpl {
 			result.add(create(f, AnnotationShorthand.date, dateString));
 		}
 		return result;
-	}
-
-	void requireNotNull(Object value, String msg) throws MissingParameterException {
-		if (value == null) {
-			throw new MissingParameterException("Expected non-null value for: "+msg);
-		}
-	}
-	
-	static class MissingParameterException extends Exception {
-
-		private static final long serialVersionUID = 4362299465121954598L;
-
-		/**
-		 * @param message
-		 */
-		MissingParameterException(String message) {
-			super(message);
-		}
-		
 	}
 	
 	static class MultipleModelIdsParameterException extends Exception {

@@ -13,7 +13,7 @@ import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.json.JsonOwlObject;
 import owltools.gaf.lego.json.JsonOwlObject.JsonOwlObjectType;
 import owltools.gaf.lego.server.external.ProteinToolService;
-import owltools.gaf.lego.server.handler.OperationsImpl.MissingParameterException;
+import owltools.gaf.lego.server.handler.OperationsTools.MissingParameterException;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 

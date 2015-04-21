@@ -317,7 +317,7 @@ public class BatchModelHandlerTest {
 	 */
 	private JsonModel renderModel(final String modelId) {
 		final ModelContainer model = models.getModel(modelId);
-		final MolecularModelJsonRenderer renderer = JsonOrJsonpBatchHandler.createModelRenderer(model, lookupService);
+		final MolecularModelJsonRenderer renderer = OperationsTools.createModelRenderer(model, lookupService);
 		JsonModel data = renderer.renderModel();
 		return data;
 	}

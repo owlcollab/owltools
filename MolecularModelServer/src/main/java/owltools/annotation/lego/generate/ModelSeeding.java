@@ -42,14 +42,18 @@ public class ModelSeeding<METADATA> {
 		reasoner.setIncludeImports(true);
 	}
 
-	public Pair<String, ModelContainer> seedModel(MolecularModelManager<METADATA> manager, String bp, final METADATA metadata) throws Exception {
+	public Pair<String,ModelContainer> seedModel(MolecularModelManager<METADATA> manager, String bp, final METADATA metadata) throws Exception {
+		String modelId = manager.generateBlankModelWithTaxon(null, metadata);
+		ModelContainer model = manager.getModel(modelId);
+		return Pair.of(modelId, model);
+	}
+	
+	public void seedModel(String modelId, ModelContainer model, MolecularModelManager<METADATA> manager, String bp, final METADATA metadata) throws Exception {
 		final Map<Bioentity, List<GeneAnnotation>> geneProducts = dataProvider.getGeneProducts(bp);
 		if (geneProducts.isEmpty()) {
 			throw new Exception("No gene products found for the given process id: "+bp);
 		}
 		
-		final String modelId = manager.generateBlankModel(null, metadata);
-		final ModelContainer model = manager.getModel(modelId);
 		final OWLDataFactory f = model.getOWLDataFactory();
 		final OWLGraphWrapper modelGraph = new OWLGraphWrapper(model.getAboxOntology());
 		final Relations relations = setupRelations(modelGraph);
@@ -66,7 +70,7 @@ public class ModelSeeding<METADATA> {
 			// explicitly create OWL class for gene product
 			final IRI gpIRI = IdStringManager.getIRI(gp.getId(), modelGraph);
 			final OWLClass gpClass = modelGraph.getDataFactory().getOWLClass(gpIRI);
-			model.addAxiom(modelGraph.getDataFactory().getOWLDeclarationAxiom(gpClass));
+			manager.addAxiom(modelId, model, modelGraph.getDataFactory().getOWLDeclarationAxiom(gpClass), false, metadata);
 			
 			Set<OWLAnnotation> gpAnnotations = generateAnnotations(source, f);
 			Pair<String, OWLNamedIndividual> gpIndividual = manager.createIndividualNonReasoning(modelId, gp.getId(), gpAnnotations, metadata);
@@ -135,8 +139,6 @@ public class ModelSeeding<METADATA> {
 		
 		// add relations
 		// TODO
-		
-		return Pair.of(modelId, model);
 	}
 	
 	static class Relations {
