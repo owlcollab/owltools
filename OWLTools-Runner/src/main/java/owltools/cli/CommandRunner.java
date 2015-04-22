@@ -4318,7 +4318,7 @@ public class CommandRunner {
 
 	@CLIMethod("--assert-inferred-subclass-axioms")
 	public void assertInferredSubClassAxioms(Opts opts) throws Exception {
-		opts.info("[--removeRedundant] [--keepRedundant] [--markIsInferred] [--useIsInferred] [--ignoreNonInferredForRemove] [--allowEquivalencies] [--reportProfile]",
+		opts.info("[--removeRedundant] [--keepRedundant] [--always-assert-super-classes] [--markIsInferred] [--useIsInferred] [--ignoreNonInferredForRemove] [--allowEquivalencies] [--reportProfile]",
 				"Adds SubClassOf axioms for all entailed direct SubClasses not already asserted");
 		boolean removeRedundant = true;
 		boolean checkConsistency = true; 
@@ -4352,6 +4352,8 @@ public class CommandRunner {
 				reportFile = opts.nextOpt();
 			}
 			else if (opts.nextEq("--always-assert-super-classes")) {
+				opts.info("", "if specified, always assert a superclass, " +
+							"even if there exists an equivalence axiom is trivially entails in in solation");	
 				alwaysAssertSuperClasses = true;
 			}
 			else {
