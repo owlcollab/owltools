@@ -90,6 +90,7 @@ public class AssertInferenceTool {
 		boolean runInferences = true;
 		boolean removeUnsupportedInferences = false;
 		boolean removeUnsupportedRegulationInferences = false; 
+		boolean alwaysAssertSuperClasses = false;
 		List<String> inputs = new ArrayList<String>();
 		String outputFileName = null;
 		String outputFileFormat = null;
@@ -179,6 +180,9 @@ public class AssertInferenceTool {
 				String catalog = opts.nextOpt();
 				pw.addIRIMapper(new CatalogXmlIRIMapper(catalog));
 			}
+			else if (opts.nextEq("--always-assert-super-classes")) {
+				alwaysAssertSuperClasses = true;
+			}
 			else {
 				inputs.add(opts.nextOpt());
 			}
@@ -249,7 +253,9 @@ public class AssertInferenceTool {
 							};
 						}
 						// assert inferences
-						assertInferences(graph, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant, filter, reportWriter);
+						assertInferences(graph, removeRedundant, checkConsistency, useIsInferred,
+								ignoreNonInferredForRemove, checkConsistency, checkForPotentialRedundant,
+								alwaysAssertSuperClasses, filter, reportWriter);
 					}
 					
 					if (verifyExistingInferences) {
@@ -489,6 +495,7 @@ public class AssertInferenceTool {
 	 * @param checkConsistency
 	 * @param useIsInferred 
 	 * @param ignoreNonInferredForRemove
+	 * @param alwaysAssertSuperClasses
 	 * @param filter
 	 * @param reportWriter (optional)
 	 * @throws InconsistentOntologyException 
@@ -497,16 +504,18 @@ public class AssertInferenceTool {
 	 * @throws OWLOntologyCreationException 
 	 */
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
-			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove, 
+			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove,
+			boolean alwaysAssertSuperClasses,
 			OWLClassFilter filter, BufferedWriter reportWriter) 
 			throws InconsistentOntologyException, IOException, OWLOntologyCreationException, OWLOntologyStorageException
 	{
-		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true, true, filter, reportWriter);
+		assertInferences(graph,removeRedundant,checkConsistency,useIsInferred,ignoreNonInferredForRemove, true, true, alwaysAssertSuperClasses, filter, reportWriter);
 	}
 	
 	public static void assertInferences(OWLGraphWrapper graph, boolean removeRedundant, 
 			boolean checkConsistency, boolean useIsInferred, boolean ignoreNonInferredForRemove,
 			boolean checkForNamedClassEquivalencies, boolean checkForPotentialRedundant,
+			boolean alwaysAssertSuperClasses,
 			OWLClassFilter filter, BufferedWriter reportWriter) 
 			throws InconsistentOntologyException, IOException, OWLOntologyCreationException, OWLOntologyStorageException
 	{
@@ -524,7 +533,7 @@ public class AssertInferenceTool {
 		try {
 			logger.info("Start building inferences");
 			// assert inferences
-			List<OWLAxiom> inferences = builder.buildInferences(false);
+			List<OWLAxiom> inferences = builder.buildInferences(alwaysAssertSuperClasses);
 			
 			logger.info("Finished building inferences");
 			

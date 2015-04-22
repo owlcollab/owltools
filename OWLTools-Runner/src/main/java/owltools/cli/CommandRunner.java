@@ -3125,7 +3125,7 @@ public class CommandRunner {
 						cs.addAll(reasoner.getSuperClasses(c, false).getFlattened());
 					}
 				}
-				AssertInferenceTool.assertInferences(g, false, false, false, true, false, false, null, null);
+				AssertInferenceTool.assertInferences(g, false, false, false, true, false, false, false, null, null);
 				Mooncat m = new Mooncat(g);
 				m.removeSubsetComplementClasses(cs, true);
 				if (isTempReasoner) {
@@ -4326,6 +4326,7 @@ public class CommandRunner {
 		boolean ignoreNonInferredForRemove = false;
 		boolean checkForNamedClassEquivalencies = true;
 		boolean checkForPotentialRedundant = false;
+		boolean alwaysAssertSuperClasses = false;
 		String reportFile = null;
 
 		while (opts.hasOpts()) {
@@ -4350,6 +4351,9 @@ public class CommandRunner {
 			else if (opts.nextEq("--reportFile")) {
 				reportFile = opts.nextOpt();
 			}
+			else if (opts.nextEq("--always-assert-super-classes")) {
+				alwaysAssertSuperClasses = true;
+			}
 			else {
 				break;
 			}
@@ -4360,7 +4364,7 @@ public class CommandRunner {
 		}
 		OWLClassFilter filter = null;
 		try {
-			AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies, checkForPotentialRedundant, filter, reportWriter);
+			AssertInferenceTool.assertInferences(g, removeRedundant, checkConsistency, useIsInferred, ignoreNonInferredForRemove, checkForNamedClassEquivalencies, checkForPotentialRedundant, alwaysAssertSuperClasses, filter, reportWriter);
 		}
 		finally {
 			IOUtils.closeQuietly(reportWriter);
