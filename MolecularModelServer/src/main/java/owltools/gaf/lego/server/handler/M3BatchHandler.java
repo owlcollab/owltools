@@ -85,9 +85,6 @@ public interface M3BatchHandler {
 		String predicate;
 		String individual;
 		
-		@Deprecated
-		String db; // TODO deprecate db, should use taxonId instead
-		
 		@SerializedName("taxon-id")
 		String taxonId;
 		
