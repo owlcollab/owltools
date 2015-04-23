@@ -24,8 +24,8 @@ public class BatchTestTools {
 
 	static M3Request addIndividual(String modelId, String cls, JsonOwlObject...expressions) {
 		M3Request r = new M3Request();
-		r.entity = Entity.individual.name();
-		r.operation = Operation.add.getLbl();
+		r.entity = Entity.individual;
+		r.operation = Operation.add;
 		r.arguments = new M3Argument();
 		r.arguments.modelId = modelId;
 		BatchTestTools.setExpressionClass(r.arguments, cls);
@@ -43,8 +43,8 @@ public class BatchTestTools {
 
 	static M3Request removeIndividual(String modelId, String individual) {
 		M3Request r = new M3Request();
-		r.entity = Entity.individual.name();
-		r.operation = Operation.remove.getLbl();
+		r.entity = Entity.individual;
+		r.operation = Operation.remove;
 		r.arguments = new M3Argument();
 		r.arguments.modelId = modelId;
 		r.arguments.individual = individual;
@@ -53,8 +53,8 @@ public class BatchTestTools {
 
 	static M3Request addEdge(String modelId, String sub, String pred, String obj) {
 		M3Request r = new M3Request();
-		r.entity = Entity.edge.name();
-		r.operation = Operation.add.getLbl();
+		r.entity = Entity.edge;
+		r.operation = Operation.add;
 		r.arguments = new M3Argument();
 		r.arguments.modelId = modelId;
 		r.arguments.subject = sub;
@@ -65,8 +65,8 @@ public class BatchTestTools {
 
 	static M3Request deleteEdge(String modelId, String sub, String pred, String obj) {
 		M3Request r = new M3Request();
-		r.entity = Entity.edge.name();
-		r.operation = Operation.remove.getLbl();
+		r.entity = Entity.edge;
+		r.operation = Operation.remove;
 		r.arguments = new M3Argument();
 		r.arguments.modelId = modelId;
 		r.arguments.subject = sub;
@@ -145,7 +145,8 @@ public class BatchTestTools {
 	static JsonRelationInfo[] responseRelations(M3BatchResponse response) {
 		assertNotNull(response);
 		assertNotNull(response.data);
-		return response.data.relations;
+		assertNotNull(response.data.meta);
+		return response.data.meta.relations;
 	}
 	
 	static Boolean responseInconsistent(M3BatchResponse response) {
@@ -158,20 +159,23 @@ public class BatchTestTools {
 	static Map<String,Map<String,String>> responseModelsMeta(M3BatchResponse response) {
 		assertNotNull(response);
 		assertNotNull(response.data);
-		return (Map<String,Map<String,String>>) response.data.modelsMeta;
+		assertNotNull(response.data.meta);
+		return (Map<String,Map<String,String>>) response.data.meta.modelsMeta;
 	}
 	
 	static JsonEvidenceInfo[] responseEvidences(M3BatchResponse response) {
 		assertNotNull(response);
 		assertNotNull(response.data);
-		return response.data.evidence;
+		assertNotNull(response.data.meta);
+		return response.data.meta.evidence;
 	}
 	
 	@SuppressWarnings("unchecked")
 	static Set<String> responseModelsIds(M3BatchResponse response) {
 		assertNotNull(response);
 		assertNotNull(response.data);
-		return (Set<String>) response.data.modelIds;
+		assertNotNull(response.data.meta);
+		return (Set<String>) response.data.meta.modelIds;
 	}
 	
 	static String responseExport(M3BatchResponse response) {
@@ -184,8 +188,8 @@ public class BatchTestTools {
 		// create blank model
 		M3Request[] batch = new M3Request[1];
 		batch[0] = new M3Request();
-		batch[0].entity = Entity.model.name();
-		batch[0].operation = Operation.add.getLbl();
+		batch[0].entity = Entity.model;
+		batch[0].operation = Operation.add;
 		M3BatchResponse resp = handler.m3Batch(BatchModelHandlerTest.uid, BatchModelHandlerTest.intention, null, batch, true);
 		assertEquals(resp.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, resp.messageType);
 		assertNotNull(resp.packetId);

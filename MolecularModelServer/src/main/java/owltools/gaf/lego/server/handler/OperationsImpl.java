@@ -26,8 +26,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
-import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.gaf.lego.IdStringManager;
+import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
@@ -40,9 +40,11 @@ import owltools.gaf.lego.json.JsonRelationInfo;
 import owltools.gaf.lego.json.MolecularModelJsonRenderer;
 import owltools.gaf.lego.server.external.ExternalLookupService;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse;
+import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.MetaResponse;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.ResponseData;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Request;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Operation;
+import owltools.gaf.lego.server.handler.OperationsTools.MissingParameterException;
 import owltools.gaf.lego.server.validation.BeforeSaveModelValidator;
 
 /**
@@ -435,53 +437,6 @@ abstract class OperationsImpl {
 			}
 			addContributor(values.modelId, userId, token, m3);
 		}
-		// TODO remove and update test cases
-		// TODO split seeding into separate command
-		else if (Operation.generate == operation) {
-			values.nonMeta = true;
-			requireNotNull(request.arguments, "request.arguments");
-			requireNotNull(request.arguments.db, "request.arguments.db");
-			requireNotNull(request.arguments.subject, "request.arguments.subject");
-			values.renderBulk = true;
-			values.modelId = m3.generateModel(request.arguments.subject, request.arguments.db, token);
-			
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, true, values, values.modelId);
-			if (annotations != null) {
-				m3.addAnnotations(values.modelId, annotations, token);
-			}
-			addContributor(values.modelId, userId, token, m3);
-		}
-		// TODO remove
-		else if (Operation.generateBlank == operation) {
-			values.nonMeta = true;
-			values.renderBulk = true;
-			// db and taxonId are both optional
-			String db = null;
-			String taxonId = null;
-			
-			if (request.arguments != null) {
-				db = request.arguments.db;
-				taxonId = request.arguments.taxonId;
-			}
-			if (taxonId != null) {
-				values.modelId = m3.generateBlankModelWithTaxon(taxonId, token);
-			}
-			else {
-				values.modelId = m3.generateBlankModel(db, token);
-			}
-			
-			Set<OWLAnnotation> annotations = null;
-			if (request.arguments != null) {
-				annotations = extract(request.arguments.values, userId, true, values, values.modelId);
-			}
-			else {
-				annotations = extract(null, userId, true, values, values.modelId);
-			}
-			if (annotations != null) {
-				m3.addAnnotations(values.modelId, annotations, token);
-			}
-			addContributor(values.modelId, userId, token, m3);
-		}
 		else if (Operation.addAnnotation == operation) {
 			values.nonMeta = true;
 			requireNotNull(request.arguments, "request.arguments");
@@ -556,20 +511,6 @@ abstract class OperationsImpl {
 			}
 			save(response, values.modelId, annotations, userId, token);
 		}
-		else if (Operation.allModelIds == operation) {
-			if (values.nonMeta) {
-				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-				return operation+" cannot be combined with other operations.";
-			}
-			getAllModelIds(response, userId);
-		}
-		else if (Operation.allModelMeta == operation) {
-			if (values.nonMeta) {
-				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-				return operation+" cannot be combined with other operations.";
-			}
-			getAllModelMeta(response, userId);
-		}
 		else if (Operation.undo == operation) {
 			values.nonMeta = true;
 			requireNotNull(request.arguments, "request.arguments");
@@ -623,32 +564,49 @@ abstract class OperationsImpl {
 		response.data.redo = redos;
 	}
 	
-	private void getAllModelIds(M3BatchResponse response, String userId) throws IOException {
-		Set<String> allModelIds = m3.getAvailableModelIds();
-		//Set<String> scratchModelIds = mmm.getScratchModelIds();
-		//Set<String> storedModelIds = mmm.getStoredModelIds();
-		//Set<String> memoryModelIds = mmm.getCurrentModelIds();
-
-		initMetaResponse(response);
-		
-		response.data.modelIds = allModelIds;
-		//response.data.put("models_memory", memoryModelIds);
-		//response.data.put("models_stored", storedModelIds);
-		//response.data.put("models_scratch", scratchModelIds);
+	private void initMetaResponse(M3BatchResponse response) {
+		if (response.data == null) {
+			response.data = new ResponseData();
+			response.messageType = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
+			response.message = "success: 0";
+			response.signal = M3BatchResponse.SIGNAL_META;
+		}
 	}
 	
-	/*
-	 * A newer version of getAllModelIds that tries to supply additional meta information like labels.
-	 * Meant to eventually completely replace it.
+	/**
+	 * Handle the request for the meta properties.
 	 * 
-	 * TODO/BUG: Will obviously clobber top-level properties with more than one entry.
+	 * @param response
+	 * @param userId
+	 * @throws IOException 
+	 * @throws OWLException 
 	 */
-	private void getAllModelMeta(M3BatchResponse response, String userId) throws IOException {
-
+	void getMeta(M3BatchResponse response, String userId) throws IOException, OWLException {
+		// init
+		initMetaResponse(response);
+		if (response.data.meta == null) {
+			response.data.meta = new MetaResponse();
+		}
+		
+		// relations
+		final List<JsonRelationInfo> relList = MolecularModelJsonRenderer.renderRelations(m3, importantRelations);
+		if (relList != null) {
+			response.data.meta.relations = relList.toArray(new JsonRelationInfo[relList.size()]);
+		}
+		
+		// evidence
+		final List<JsonEvidenceInfo> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
+		if (evidencesList != null) {
+			response.data.meta.evidence = evidencesList.toArray(new JsonEvidenceInfo[evidencesList.size()]);	
+		}
+		
+		// model ids
+		final Set<String> allModelIds = m3.getAvailableModelIds();
+		response.data.meta.modelIds = allModelIds;
+		
 		Map<String,Map<String,String>> retMap = new HashMap<String, Map<String,String>>();
-			
-		// Jimmy out what information we can cycling directly through all the models.
-		Set<String> allModelIds = m3.getAvailableModelIds();
+		
+		// get model annotations
 		for( String mid : allModelIds ){
 
 			retMap.put(mid, new HashMap<String,String>());
@@ -665,54 +623,14 @@ abstract class OperationsImpl {
 					modelMap.put(shorthand.name(), 
 							MolecularModelJsonRenderer.getAnnotationStringValue(an.getValue()));
 				}
+				else {
+					// TODO handle non short hand annotations?
+				}
 			}
 		}
-
-		// Sending the actual response.
-		initMetaResponse(response);
-		response.data.modelsMeta = retMap;
+		response.data.meta.modelsMeta = retMap;
 	}
 	
-	private void initMetaResponse(M3BatchResponse response) {
-		if (response.data == null) {
-			response.data = new ResponseData();
-			response.messageType = M3BatchResponse.MESSAGE_TYPE_SUCCESS;
-			response.message = "success: 0";
-			response.signal = M3BatchResponse.SIGNAL_META;
-		}
-	}
-	
-	/**
-	 * Handle the request for the relation properties.
-	 * 
-	 * @param response
-	 * @param userId
-	 * @throws OWLOntologyCreationException
-	 */
-	void getRelations(M3BatchResponse response, String userId) throws OWLOntologyCreationException {
-		List<JsonRelationInfo> relList = MolecularModelJsonRenderer.renderRelations(m3, importantRelations);
-		initMetaResponse(response);
-		if (relList != null) {
-			response.data.relations = relList.toArray(new JsonRelationInfo[relList.size()]);
-		}
-	}
-	
-	/**
-	 * Handle the request for the evidence classes.
-	 * 
-	 * @param response
-	 * @param userId
-	 * @throws OWLException
-	 * @throws IOException
-	 */
-	void getEvidence(M3BatchResponse response, String userId) throws OWLException, IOException {
-		List<JsonEvidenceInfo> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
-		initMetaResponse(response);
-		if (evidencesList != null) {
-			response.data.evidence = evidencesList.toArray(new JsonEvidenceInfo[evidencesList.size()]);	
-		}
-		
-	}
 	
 	private void export(M3BatchResponse response, String modelId, String userId) throws OWLOntologyStorageException, UnknownIdentifierException {
 		String exportModel = m3.exportModel(modelId);

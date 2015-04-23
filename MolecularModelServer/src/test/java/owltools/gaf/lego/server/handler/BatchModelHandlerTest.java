@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -118,8 +117,8 @@ public class BatchModelHandlerTest {
 		batch.add(r);
 		
 		r = new M3Request();
-		r.entity = Entity.individual.name();
-		r.operation = Operation.addType.getLbl();
+		r.entity = Entity.individual;
+		r.operation = Operation.addType;
 		r.arguments = new M3Argument();
 		r.arguments.modelId = modelId;
 		r.arguments.individual = "i1";
@@ -128,8 +127,8 @@ public class BatchModelHandlerTest {
 		batch.add(r);
 		
 		r = new M3Request();
-		r.entity = Entity.individual.name();
-		r.operation = Operation.addType.getLbl();
+		r.entity = Entity.individual;
+		r.operation = Operation.addType;
 		r.arguments = new M3Argument();
 		r.arguments.modelId = modelId;
 		r.arguments.individual = "i1";
@@ -168,8 +167,8 @@ public class BatchModelHandlerTest {
 		// create fact
 		M3Request[] batch3 = new M3Request[1];
 		batch3[0] = new M3Request();
-		batch3[0].entity = Entity.edge.name();
-		batch3[0].operation = Operation.add.getLbl();
+		batch3[0].entity = Entity.edge;
+		batch3[0].operation = Operation.add;
 		batch3[0].arguments = new M3Argument();
 		batch3[0].arguments.modelId = modelId;
 		batch3[0].arguments.subject = individual1;
@@ -182,8 +181,8 @@ public class BatchModelHandlerTest {
 		// delete complex expression type
 		M3Request[] batch4 = new M3Request[1];
 		batch4[0] = new M3Request();
-		batch4[0].entity = Entity.individual.name();
-		batch4[0].operation = Operation.removeType.getLbl();
+		batch4[0].entity = Entity.individual;
+		batch4[0].operation = Operation.removeType;
 		batch4[0].arguments = new M3Argument();
 		batch4[0].arguments.modelId = modelId;
 		batch4[0].arguments.individual = individual1;
@@ -236,8 +235,8 @@ public class BatchModelHandlerTest {
 		// create one individuals
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
-		batch2[0].entity = Entity.individual.name();
-		batch2[0].operation = Operation.add.getLbl();
+		batch2[0].entity = Entity.individual;
+		batch2[0].operation = Operation.add;
 		batch2[0].arguments = new M3Argument();
 		batch2[0].arguments.modelId = modelId;
 		batch2[0].arguments.expressions = new JsonOwlObject[1];
@@ -267,8 +266,8 @@ public class BatchModelHandlerTest {
 		// create annotations
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
-		batch1[0].entity = Entity.model.name();
-		batch1[0].operation = Operation.addAnnotation.getLbl();
+		batch1[0].entity = Entity.model;
+		batch1[0].operation = Operation.addAnnotation;
 		batch1[0].arguments = new M3Argument();
 		batch1[0].arguments.modelId = modelId;
 
@@ -292,8 +291,8 @@ public class BatchModelHandlerTest {
 		// remove one annotation
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
-		batch2[0].entity = Entity.model.name();
-		batch2[0].operation = Operation.removeAnnotation.getLbl();
+		batch2[0].entity = Entity.model;
+		batch2[0].operation = Operation.removeAnnotation;
 		batch2[0].arguments = new M3Argument();
 		batch2[0].arguments.modelId = modelId;
 
@@ -327,19 +326,11 @@ public class BatchModelHandlerTest {
 		models.setPathToOWLFiles(folder.newFolder().getCanonicalPath());
 		models.dispose();
 		
-		M3Request[] requests = new M3Request[3];
-		// get relations
+		M3Request[] requests = new M3Request[1];
+		// get meta
 		requests[0] = new M3Request();
-		requests[0].entity = Entity.relations.name();
-		requests[0].operation = Operation.get.getLbl();
-		// get evidences
-		requests[1] = new M3Request();
-		requests[1].entity = Entity.evidence.name();
-		requests[1].operation = Operation.get.getLbl();
-		// get model ids
-		requests[2] = new M3Request();
-		requests[2].entity = Entity.model.name();
-		requests[2].operation = Operation.allModelIds.getLbl();
+		requests[0].entity = Entity.meta;
+		requests[0].operation = Operation.get;
 		
 		M3BatchResponse response = handler.m3Batch(uid, intention, packetId, requests, true);
 		assertEquals(uid, response.uid);
@@ -374,8 +365,8 @@ public class BatchModelHandlerTest {
 		
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
-		batch1[0].entity = Entity.model.name();
-		batch1[0].operation = Operation.add.getLbl();
+		batch1[0].entity = Entity.model;
+		batch1[0].operation = Operation.add;
 		batch1[0].arguments = new M3Argument();
 		
 		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
@@ -397,8 +388,8 @@ public class BatchModelHandlerTest {
 		batch2[0].arguments.assignToVariable = "i1";
 		
 		batch2[1] = new M3Request();
-		batch2[1].entity = Entity.individual.name();
-		batch2[1].operation = Operation.addType.getLbl();
+		batch2[1].entity = Entity.individual;
+		batch2[1].operation = Operation.addType;
 		batch2[1].arguments = new M3Argument();
 		batch2[1].arguments.modelId = modelId;
 		batch2[1].arguments.individual = "i1";
@@ -432,8 +423,8 @@ public class BatchModelHandlerTest {
 		
 		M3Request[] batch1 = new M3Request[1];
 		batch1[0] = new M3Request();
-		batch1[0].entity = Entity.model.name();
-		batch1[0].operation = Operation.add.getLbl();
+		batch1[0].entity = Entity.model;
+		batch1[0].operation = Operation.add;
 		batch1[0].arguments = new M3Argument();
 		
 		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
@@ -444,8 +435,8 @@ public class BatchModelHandlerTest {
 		
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
-		batch2[0].entity = Entity.model.name();
-		batch2[0].operation = Operation.add.getLbl();
+		batch2[0].entity = Entity.model;
+		batch2[0].operation = Operation.add;
 		batch2[0].arguments = new M3Argument();
 		
 		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
@@ -458,64 +449,9 @@ public class BatchModelHandlerTest {
 		
 		M3Request[] batch3 = new M3Request[1];
 		batch3[0] = new M3Request();
-		batch3[0].entity = Entity.model.name();
-		batch3[0].operation = Operation.add.getLbl();
+		batch3[0].entity = Entity.model;
+		batch3[0].operation = Operation.add;
 		batch3[0].arguments = new M3Argument();
-		
-		M3BatchResponse response3 = handler.m3Batch(uid, intention, packetId, batch3, true);
-		assertEquals(uid, response3.uid);
-		assertEquals(intention, response3.intention);
-		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.messageType);
-		final String modelId3 = BatchTestTools.responseId(response3);
-		
-		assertNotEquals(modelId1, modelId3);
-		assertNotEquals(modelId2, modelId3);
-	}
-	
-	@Test
-	@Ignore("This test takes way to loong to execute.")
-	@Deprecated
-	// This should be separated into a separate test for seeding
-	public void testCreateModelFromGAF() throws Exception {
-		models.dispose();
-		
-		M3Request[] batch1 = new M3Request[1];
-		batch1[0] = new M3Request();
-		batch1[0].entity = Entity.model.name();
-		batch1[0].operation = Operation.generate.getLbl();
-		batch1[0].arguments = new M3Argument();
-		batch1[0].arguments.db = "goa_chicken";
-		batch1[0].arguments.subject = "GO:0004637";
-		
-		M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
-		assertEquals(uid, response1.uid);
-		assertEquals(intention, response1.intention);
-		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.messageType);
-		final String modelId1 = BatchTestTools.responseId(response1);
-		
-		M3Request[] batch2 = new M3Request[1];
-		batch2[0] = new M3Request();
-		batch2[0].entity = Entity.model.name();
-		batch2[0].operation = Operation.generate.getLbl();
-		batch2[0].arguments = new M3Argument();
-		batch2[0].arguments.db = "goa_chicken";
-		batch2[0].arguments.subject = "GO:0005509";
-		
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
-		assertEquals(uid, response2.uid);
-		assertEquals(intention, response2.intention);
-		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.messageType);
-		final String modelId2 = BatchTestTools.responseId(response2);
-		
-		assertNotEquals(modelId1, modelId2);
-		
-		M3Request[] batch3 = new M3Request[1];
-		batch3[0] = new M3Request();
-		batch3[0].entity = Entity.model.name();
-		batch3[0].operation = Operation.generate.getLbl();
-		batch3[0].arguments = new M3Argument();
-		batch3[0].arguments.db = "jcvi";
-		batch3[0].arguments.subject = "GO:0003887";
 		
 		M3BatchResponse response3 = handler.m3Batch(uid, intention, packetId, batch3, true);
 		assertEquals(uid, response3.uid);
@@ -566,8 +502,8 @@ public class BatchModelHandlerTest {
 		// delete
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
-		batch2[0].entity = Entity.individual.name();
-		batch2[0].operation = Operation.removeType.getLbl();
+		batch2[0].entity = Entity.individual;
+		batch2[0].operation = Operation.removeType;
 		batch2[0].arguments = new M3Argument();
 		batch2[0].arguments.modelId = modelId;
 		batch2[0].arguments.individual = individual1.id;
@@ -681,8 +617,8 @@ public class BatchModelHandlerTest {
 		// try to save
 		M3Request[] batch = new M3Request[1];
 		batch[0] = new M3Request();
-		batch[0].entity = Entity.model.name();
-		batch[0].operation = Operation.storeModel.getLbl();
+		batch[0].entity = Entity.model;
+		batch[0].operation = Operation.storeModel;
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
 		M3BatchResponse resp1 = handler.m3Batch(uid, intention, packetId, batch, true);
@@ -695,8 +631,8 @@ public class BatchModelHandlerTest {
 	public void testPrivileged() throws Exception {
 		M3Request[] batch = new M3Request[1];
 		batch[0] = new M3Request();
-		batch[0].entity = Entity.model.name();
-		batch[0].operation = Operation.add.getLbl();
+		batch[0].entity = Entity.model;
+		batch[0].operation = Operation.add;
 		M3BatchResponse resp1 = handler.m3Batch(uid, intention, packetId, batch, false);
 		assertEquals(M3BatchResponse.MESSAGE_TYPE_ERROR, resp1.messageType);
 		assertTrue(resp1.message.contains("Insufficient"));
@@ -720,8 +656,8 @@ public class BatchModelHandlerTest {
 		
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
-		batch2[0].operation = Operation.exportModelLegacy.getLbl();
-		batch2[0].entity = Entity.model.name();
+		batch2[0].operation = Operation.exportModelLegacy;
+		batch2[0].entity = Entity.model;
 		batch2[0].arguments = new M3Argument();
 		batch2[0].arguments.modelId = modelId;
 //		batch2[0].arguments.format = "gpad"; // optional, default is gaf 
@@ -776,8 +712,8 @@ public class BatchModelHandlerTest {
 		// check undo redo list
 		M3Request[] batch2 = new M3Request[1];
 		batch2[0] = new M3Request();
-		batch2[0].entity = Entity.model.name();
-		batch2[0].operation = Operation.getUndoRedo.getLbl();
+		batch2[0].entity = Entity.model;
+		batch2[0].operation = Operation.getUndoRedo;
 		batch2[0].arguments = new M3Argument();
 		batch2[0].arguments.modelId = modelId;
 		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
@@ -792,8 +728,8 @@ public class BatchModelHandlerTest {
 		// delete
 		M3Request[] batch3 = new M3Request[1];
 		batch3[0] = new M3Request();
-		batch3[0].entity = Entity.individual.name();
-		batch3[0].operation = Operation.removeType.getLbl();
+		batch3[0].entity = Entity.individual;
+		batch3[0].operation = Operation.removeType;
 		batch3[0].arguments = new M3Argument();
 		batch3[0].arguments.modelId = modelId;
 		batch3[0].arguments.individual = individualId;
@@ -814,8 +750,8 @@ public class BatchModelHandlerTest {
 		// check undo redo list
 		M3Request[] batch4 = new M3Request[1];
 		batch4[0] = new M3Request();
-		batch4[0].entity = Entity.model.name();
-		batch4[0].operation = Operation.getUndoRedo.getLbl();
+		batch4[0].entity = Entity.model;
+		batch4[0].operation = Operation.getUndoRedo;
 		batch4[0].arguments = new M3Argument();
 		batch4[0].arguments.modelId = modelId;
 		
@@ -831,8 +767,8 @@ public class BatchModelHandlerTest {
 		// undo
 		M3Request[] batch5 = new M3Request[1];
 		batch5[0] = new M3Request();
-		batch5[0].entity = Entity.model.name();
-		batch5[0].operation = Operation.undo.getLbl();
+		batch5[0].entity = Entity.model;
+		batch5[0].operation = Operation.undo;
 		batch5[0].arguments = new M3Argument();
 		batch5[0].arguments.modelId = modelId;
 		
@@ -845,8 +781,8 @@ public class BatchModelHandlerTest {
 		// check undo redo list
 		M3Request[] batch6 = new M3Request[1];
 		batch6[0] = new M3Request();
-		batch6[0].entity = Entity.model.name();
-		batch6[0].operation = Operation.getUndoRedo.getLbl();
+		batch6[0].entity = Entity.model;
+		batch6[0].operation = Operation.getUndoRedo;
 		batch6[0].arguments = new M3Argument();
 		batch6[0].arguments.modelId = modelId;
 		
@@ -990,8 +926,8 @@ public class BatchModelHandlerTest {
 	
 	private void checkCounts(String modelId, int individuals, int facts) {
 		M3Request r = new M3Request();
-		r.entity = Entity.model.name();
-		r.operation = Operation.get.getLbl();
+		r.entity = Entity.model;
+		r.operation = Operation.get;
 		r.arguments = new M3Argument();
 		r.arguments.modelId = modelId;
 		final M3BatchResponse response = handler.m3Batch(uid, intention, packetId, new M3Request[]{r }, true);
@@ -1083,24 +1019,24 @@ public class BatchModelHandlerTest {
 		final String modelId = generateBlankModel();
 		final M3Request[] batch = new M3Request[5];
 		batch[0] = new M3Request();
-		batch[0].entity = Entity.individual.name();
-		batch[0].operation = Operation.add.getLbl();
+		batch[0].entity = Entity.individual;
+		batch[0].operation = Operation.add;
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
 		BatchTestTools.setExpressionClass(batch[0].arguments, "GO:0003674"); // molecular function
 		batch[0].arguments.assignToVariable = "mf";
 
 		batch[1] = new M3Request();
-		batch[1].entity = Entity.individual.name();
-		batch[1].operation = Operation.add.getLbl();
+		batch[1].entity = Entity.individual;
+		batch[1].operation = Operation.add;
 		batch[1].arguments = new M3Argument();
 		batch[1].arguments.modelId = modelId;
 		BatchTestTools.setExpressionClass(batch[1].arguments, "GO:0008150"); // biological process
 		batch[1].arguments.assignToVariable = "bp";
 
 		batch[2] = new M3Request();
-		batch[2].entity = Entity.edge.name();
-		batch[2].operation = Operation.add.getLbl();
+		batch[2].entity = Entity.edge;
+		batch[2].operation = Operation.add;
 		batch[2].arguments = new M3Argument();
 		batch[2].arguments.modelId = modelId;
 		batch[2].arguments.subject = "mf";
@@ -1108,16 +1044,16 @@ public class BatchModelHandlerTest {
 		batch[2].arguments.object = "bp";
 
 		batch[3] = new M3Request();
-		batch[3].entity = Entity.individual.name();
-		batch[3].operation = Operation.add.getLbl();
+		batch[3].entity = Entity.individual;
+		batch[3].operation = Operation.add;
 		batch[3].arguments = new M3Argument();
 		batch[3].arguments.modelId = modelId;
 		BatchTestTools.setExpressionClass(batch[3].arguments, "GO:0005575"); // cellular component
 		batch[3].arguments.assignToVariable = "cc";
 
 		batch[4] = new M3Request();
-		batch[4].entity = Entity.edge.name();
-		batch[4].operation = Operation.add.getLbl();
+		batch[4].entity = Entity.edge;
+		batch[4].operation = Operation.add;
 		batch[4].arguments = new M3Argument();
 		batch[4].arguments.modelId = modelId;
 		batch[4].arguments.subject = "mf";
@@ -1187,16 +1123,16 @@ public class BatchModelHandlerTest {
 		final String modelId = generateBlankModel();
 		final M3Request[] batch = new M3Request[2];
 		batch[0] = new M3Request();
-		batch[0].entity = Entity.individual.name();
-		batch[0].operation = Operation.add.getLbl();
+		batch[0].entity = Entity.individual;
+		batch[0].operation = Operation.add;
 		batch[0].arguments = new M3Argument();
 		batch[0].arguments.modelId = modelId;
 		BatchTestTools.setExpressionClass(batch[0].arguments, "GO:0003674"); // molecular function
 		batch[0].arguments.assignToVariable = "mf";
 
 		batch[1] = new M3Request();
-		batch[1].entity = Entity.edge.name();
-		batch[1].operation = Operation.add.getLbl();
+		batch[1].entity = Entity.edge;
+		batch[1].operation = Operation.add;
 		batch[1].arguments = new M3Argument();
 		batch[1].arguments.modelId = modelId;
 		batch[1].arguments.subject = "mf";
@@ -1222,8 +1158,8 @@ public class BatchModelHandlerTest {
 		
 		// add deprecated annotation to model 2
 		final M3Request[] batch1 = new M3Request[]{new M3Request()};
-		batch1[0].entity = Entity.model.name();
-		batch1[0].operation = Operation.addAnnotation.getLbl();
+		batch1[0].entity = Entity.model;
+		batch1[0].operation = Operation.addAnnotation;
 		batch1[0].arguments = new M3Argument();
 		batch1[0].arguments.modelId = modelId2;
 		batch1[0].arguments.values = new JsonAnnotation[1];
@@ -1238,8 +1174,8 @@ public class BatchModelHandlerTest {
 		
 		
 		final M3Request[] batch2 = new M3Request[]{new M3Request()};
-		batch2[0].entity = Entity.model.name();
-		batch2[0].operation = Operation.allModelMeta.getLbl();
+		batch2[0].entity = Entity.meta;
+		batch2[0].operation = Operation.get;
 		
 		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
 		assertEquals(uid, response2.uid);

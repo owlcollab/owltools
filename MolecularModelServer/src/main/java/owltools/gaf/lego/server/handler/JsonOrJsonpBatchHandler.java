@@ -7,7 +7,6 @@ import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
@@ -147,14 +146,10 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		final BatchHandlerValues values = new BatchHandlerValues();
 		for (M3Request request : requests) {
 			requireNotNull(request, "request");
-			final Entity entity = Entity.get(StringUtils.trimToNull(request.entity));
-			if (entity == null) {
-				throw new MissingParameterException("No valid value for entity type: "+request.entity);
-			}
-			final Operation operation = Operation.get(StringUtils.trimToNull(request.operation));
-			if (operation == null) {
-				throw new MissingParameterException("No valid value for operation type: "+request.operation);
-			}
+			requireNotNull(request.entity, "entity");
+			requireNotNull(request.operation, "operation");
+			final Entity entity = request.entity;
+			final Operation operation = request.operation;
 			checkPermissions(entity, operation, isPrivileged);
 
 			// individual
@@ -178,27 +173,14 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
-			// relations
-			else if (Entity.relations == entity) {
+			// meta (e.g. relations, model ids, evidence)
+			else if (Entity.meta == entity) {
 				if (Operation.get == operation){
 					if (values.nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Get Relations can only be combined with other meta operations.", null);
 					}
-					getRelations(response, userId);
-				}
-				else {
-					return error(response, "Unknown operation: "+operation, null);
-				}
-			}
-			// evidence
-			else if (Entity.evidence == entity) {
-				if (Operation.get == operation){
-					if (values.nonMeta) {
-						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-						return error(response, "Get Evidences can only be combined with other meta operations.", null);
-					}
-					getEvidence(response, userId);
+					getMeta(response, userId);
 				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
@@ -310,12 +292,10 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 			case get:
 			case exportModel:
 			case exportModelLegacy:
-			case allModelIds:
-			case allModelMeta:
 				// positive list, all other operation require a privileged call
 				break;
 			default :
-				throw new InsufficientPermissionsException("Insufficient permissions for the operation "+operation.getLbl()+" on entity: "+entity);
+				throw new InsufficientPermissionsException("Insufficient permissions for the operation "+operation+" on entity: "+entity);
 			}
 		}
 	}
