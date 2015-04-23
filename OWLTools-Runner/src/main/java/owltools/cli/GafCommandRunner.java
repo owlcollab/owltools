@@ -490,6 +490,8 @@ public class GafCommandRunner extends CommandRunner {
 		bridge.setGenerateIndividuals(!isSkipIndividuals);
 		if (bioentityMapping != null) {
 			bridge.setBioentityMapping(bioentityMapping);
+			// bioentity mapping setting are only evaluated for non basic a box translation
+			bridge.setBasicAboxMapping(false); 
 		}
 		LOG.info("Start converting GAF to OWL");
 		bridge.translate(gafdoc);
