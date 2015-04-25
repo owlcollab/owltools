@@ -213,20 +213,22 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		if (values.renderBulk) {
 			// render complete model
 			JsonModel jsonModel = renderer.renderModel();
-			initResponseData(jsonModel, response.data, values.renderModelAnnotations);
+			initResponseData(jsonModel, response.data);
 			response.signal = M3BatchResponse.SIGNAL_REBUILD;
 			if (ADD_INFERENCES) {
 				response.data.individualsInferred = renderer.renderModelInferences(reasoner);
 			}
 		}
 		else {
-			// render individuals
-			Pair<JsonOwlIndividual[],JsonOwlFact[]> pair = renderer.renderIndividuals(values.relevantIndividuals);
-			response.data.individuals = pair.getLeft();
-			response.data.facts = pair.getRight();
 			response.signal = M3BatchResponse.SIGNAL_MERGE;
-			if (ADD_INFERENCES) {
-				response.data.individualsInferred = renderer.renderInferences(values.relevantIndividuals, reasoner);
+			// render individuals
+			if (values.relevantIndividuals.isEmpty() == false) {
+				Pair<JsonOwlIndividual[],JsonOwlFact[]> pair = renderer.renderIndividuals(values.relevantIndividuals);
+				response.data.individuals = pair.getLeft();
+				response.data.facts = pair.getRight();
+				if (ADD_INFERENCES) {
+					response.data.individualsInferred = renderer.renderInferences(values.relevantIndividuals, reasoner);
+				}
 			}
 			// add model annotations
 			if (values.renderModelAnnotations) {
@@ -248,13 +250,11 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		return response;
 	}
 
-	public static void initResponseData(JsonModel jsonModel, ResponseData data, boolean addAnnotations) {
+	public static void initResponseData(JsonModel jsonModel, ResponseData data) {
 		data.individuals = jsonModel.individuals;
 		data.facts = jsonModel.facts;
 		data.properties = jsonModel.properties;
-		if (addAnnotations) {
-			data.annotations = jsonModel.annotations;
-		}
+		data.annotations = jsonModel.annotations;
 	}
 	
 	/*
