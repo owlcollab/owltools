@@ -1,10 +1,8 @@
 package owltools.gaf.lego.format;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -19,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAnnotationValueVisitor;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -39,98 +38,6 @@ import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.util.ModelContainer;
 
 public class LegoModelVersionConverter {
-	
-	static class EvidenceIndividualCache {
-		
-		static class EvidenceEntry {
-			final IRI evidenceIRI;
-			final Set<OWLAnnotation> evidenceAnnotations;
-			
-			EvidenceEntry(IRI evidenceIRI, Set<OWLAnnotation> evidenceAnnotations) {
-				this.evidenceIRI = evidenceIRI;
-				this.evidenceAnnotations = evidenceAnnotations;
-			}
-
-			@Override
-			public int hashCode() {
-				final int prime = 31;
-				int result = 1;
-				result = prime
-						* result
-						+ ((evidenceAnnotations == null) ? 0
-								: evidenceAnnotations.hashCode());
-				result = prime * result
-						+ ((evidenceIRI == null) ? 0 : evidenceIRI.hashCode());
-				return result;
-			}
-
-			@Override
-			public boolean equals(Object obj) {
-				if (this == obj) {
-					return true;
-				}
-				if (obj == null) {
-					return false;
-				}
-				if (getClass() != obj.getClass()) {
-					return false;
-				}
-				EvidenceEntry other = (EvidenceEntry) obj;
-				if (evidenceAnnotations == null) {
-					if (other.evidenceAnnotations != null) {
-						return false;
-					}
-				} else if (!evidenceAnnotations
-						.equals(other.evidenceAnnotations)) {
-					return false;
-				}
-				if (evidenceIRI == null) {
-					if (other.evidenceIRI != null) {
-						return false;
-					}
-				} else if (!evidenceIRI.equals(other.evidenceIRI)) {
-					return false;
-				}
-				return true;
-			}
-		}
-	
-		private final OWLOntology abox;
-		private final ModelContainer model;
-		private final String modelId;
-		private final List<OWLOntologyChange> changes;
-		private final OWLDataFactory f;
-
-		private final Map<EvidenceEntry, OWLNamedIndividual> individuals = new HashMap<EvidenceEntry, OWLNamedIndividual>();
-
-		EvidenceIndividualCache(OWLOntology abox, ModelContainer model,
-				String modelId, List<OWLOntologyChange> changes) {
-			this.abox = abox;
-			this.model = model;
-			this.modelId = modelId;
-			this.changes = changes;
-			f = abox.getOWLOntologyManager().getOWLDataFactory();
-		}
-		
-		OWLNamedIndividual getIndividual(IRI ecoIRI, Set<OWLAnnotation> evidenceAnnotations) {
-			EvidenceEntry entry = new EvidenceEntry(ecoIRI, evidenceAnnotations);
-			OWLNamedIndividual individual = individuals.get(entry);
-			if (individual == null) {
-				OWLClassExpression ce = f.getOWLClass(ecoIRI);
-				Pair<OWLNamedIndividual, Set<OWLAxiom>> evidenceIndividualPair = CoreMolecularModelManager.createIndividual(modelId, model, ce, null);
-				individual = evidenceIndividualPair.getLeft();
-				for(OWLAxiom newAxiom : evidenceIndividualPair.getRight()) {
-					changes.add(new AddAxiom(abox, newAxiom));
-				}
-				IRI individualIRI = individual.getIRI();
-				for(OWLAnnotation evidenceAnnotation : evidenceAnnotations) {
-					changes.add(new AddAxiom(abox, f.getOWLAnnotationAssertionAxiom(individualIRI, evidenceAnnotation)));
-				}
-				individuals.put(entry, individual);
-			}
-			return individual;
-		}
-	}
 	
 	static class EvidenceTriple {
 		final Set<IRI> ecoIRIs = new HashSet<IRI>();
@@ -230,7 +137,7 @@ public class LegoModelVersionConverter {
 		final List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		final Set<OWLNamedIndividual> individuals = abox.getIndividualsInSignature();
 		final Set<OWLObjectPropertyAssertionAxiom> propertyAssertionAxioms = abox.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
-		final EvidenceIndividualCache individualCache = new EvidenceIndividualCache(abox, model, modelId, changes);
+//		final EvidenceIndividualCache individualCache = new EvidenceIndividualCache(abox, model, modelId, changes);
 		
 		// update all relevant axioms pertaining to only one individual
 		for (final OWLNamedIndividual individual : individuals) {
@@ -242,7 +149,7 @@ public class LegoModelVersionConverter {
 			// create individuals for ECO IRIs and link to existing individual
 			Set<IRI> evidenceIndividuals = new HashSet<IRI>();
 			for(IRI ecoIRI : triple.ecoIRIs) {
-				OWLNamedIndividual evidenceIndividual = individualCache.getIndividual(ecoIRI, triple.evidenceAnnotations);
+				OWLNamedIndividual evidenceIndividual = createEvidenceIndividual(ecoIRI, triple.evidenceAnnotations, modelId, model, changes);
 				evidenceIndividuals.add(evidenceIndividual.getIRI());
 				OWLAnnotationValue value = evidenceIndividual.getIRI();
 				OWLAnnotation a = f.getOWLAnnotation(
@@ -281,7 +188,7 @@ public class LegoModelVersionConverter {
 				// add annotations for new evidence individuals
 				Set<OWLAnnotation> newAnnotations = new HashSet<OWLAnnotation>(triple.contributors);
 				for(IRI ecoIRI : triple.ecoIRIs) {
-					OWLNamedIndividual evidenceIndividual = individualCache.getIndividual(ecoIRI, triple.evidenceAnnotations);
+					OWLNamedIndividual evidenceIndividual = createEvidenceIndividual(ecoIRI, triple.evidenceAnnotations, modelId, model, changes);
 					newAnnotations.add(f.getOWLAnnotation(
 							f.getOWLAnnotationProperty(AnnotationShorthand.evidence.getAnnotationProperty()), 
 							evidenceIndividual.getIRI()));
@@ -300,6 +207,22 @@ public class LegoModelVersionConverter {
 			m.applyChanges(changes);
 			model.getReasoner().flush();
 		}
+	}
+
+	static OWLNamedIndividual createEvidenceIndividual(IRI ecoIRI, Set<OWLAnnotation> evidenceAnnotations, String modelId, ModelContainer model, List<OWLOntologyChange> changes) {
+		OWLOntology abox = model.getAboxOntology();
+		OWLDataFactory f = model.getOWLDataFactory();
+		OWLClass c = f.getOWLClass(ecoIRI);
+		Pair<OWLNamedIndividual, Set<OWLAxiom>> evidenceIndividualPair = CoreMolecularModelManager.createIndividual(modelId, model, c, null);
+		OWLNamedIndividual individual = evidenceIndividualPair.getLeft();
+		for(OWLAxiom newAxiom : evidenceIndividualPair.getRight()) {
+			changes.add(new AddAxiom(abox, newAxiom));
+		}
+		IRI individualIRI = individual.getIRI();
+		for(OWLAnnotation evidenceAnnotation : evidenceAnnotations) {
+			changes.add(new AddAxiom(abox, f.getOWLAnnotationAssertionAxiom(individualIRI, evidenceAnnotation)));
+		}
+		return individual;
 	}
 
 	private Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(OWLOntology abox, OWLNamedIndividual individual) {
