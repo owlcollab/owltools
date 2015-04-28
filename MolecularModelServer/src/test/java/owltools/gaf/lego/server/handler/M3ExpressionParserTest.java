@@ -56,7 +56,9 @@ public class M3ExpressionParserTest {
 	public void testMissing3() throws Exception {
 		JsonOwlObject expression = new JsonOwlObject();
 		expression.type = JsonOwlObjectType.SomeValueFrom;
-		expression.property = "BFO:0000066"; // occurs_in
+		expression.property = new JsonOwlObject();
+		expression.property.type = JsonOwlObjectType.ObjectProperty;
+		expression.property.id = "BFO:0000066"; // occurs_in
 		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
 	
@@ -64,7 +66,9 @@ public class M3ExpressionParserTest {
 	public void testMissing4() throws Exception {
 		JsonOwlObject expression = new JsonOwlObject();
 		expression.type = JsonOwlObjectType.SomeValueFrom;
-		expression.property = "BFO:0000066"; // occurs_in
+		expression.property = new JsonOwlObject();
+		expression.property.type = JsonOwlObjectType.ObjectProperty;
+		expression.property.id = "BFO:0000066"; // occurs_in
 		expression.filler = new JsonOwlObject();
 		new M3ExpressionParser().parse(graph, expression, proteinService);
 	}
@@ -73,7 +77,9 @@ public class M3ExpressionParserTest {
 	public void testMissing5() throws Exception {
 		JsonOwlObject expression = new JsonOwlObject();
 		expression.type = JsonOwlObjectType.SomeValueFrom;
-		expression.property = "BFO:0000066"; // occurs_in
+		expression.property = new JsonOwlObject();
+		expression.property.type = JsonOwlObjectType.ObjectProperty;
+		expression.property.id = "BFO:0000066"; // occurs_in
 		expression.filler = new JsonOwlObject();
 		expression.filler.type = JsonOwlObjectType.Class;
 		new M3ExpressionParser().parse(graph, expression, proteinService);
@@ -83,7 +89,9 @@ public class M3ExpressionParserTest {
 	public void testMissing6() throws Exception {
 		JsonOwlObject expression = new JsonOwlObject();
 		expression.type = JsonOwlObjectType.SomeValueFrom;
-		expression.property = "BFO:0000066"; // occurs_in
+		expression.property = new JsonOwlObject();
+		expression.property.type = JsonOwlObjectType.ObjectProperty;
+		expression.property.id = "BFO:0000066"; // occurs_in
 		expression.filler = new JsonOwlObject();
 		expression.filler.id = "GO:0006915";
 		new M3ExpressionParser().parse(graph, expression, proteinService);
@@ -115,7 +123,9 @@ public class M3ExpressionParserTest {
 		
 		JsonOwlObject expression = new JsonOwlObject();
 		expression.type = JsonOwlObjectType.SomeValueFrom;
-		expression.property = "BFO:0000066"; // occurs_in
+		expression.property = new JsonOwlObject();
+		expression.property.type = JsonOwlObjectType.ObjectProperty;
+		expression.property.id = "BFO:0000066"; // occurs_in
 		expression.filler = new JsonOwlObject();
 		expression.filler.type = JsonOwlObjectType.Class;
 		expression.filler.id = "GO:0005623"; // cell
@@ -129,7 +139,9 @@ public class M3ExpressionParserTest {
 		
 		JsonOwlObject expression = new JsonOwlObject();
 		expression.type = JsonOwlObjectType.SomeValueFrom;
-		expression.property = "BFO:0000066"; // occurs_in
+		expression.property = new JsonOwlObject();
+		expression.property.type = JsonOwlObjectType.ObjectProperty;
+		expression.property.id = "BFO:0000066"; // occurs_in
 		expression.filler = new JsonOwlObject();
 		expression.filler.type = JsonOwlObjectType.Class;
 		expression.filler.id = "FO:0005623"; // error
@@ -142,7 +154,9 @@ public class M3ExpressionParserTest {
 		
 		JsonOwlObject expression = new JsonOwlObject();
 		expression.type = JsonOwlObjectType.SomeValueFrom;
-		expression.property = "FFO:0000066"; // error
+		expression.property = new JsonOwlObject();
+		expression.property.type = JsonOwlObjectType.ObjectProperty;
+		expression.property.id = "FFO:0000066"; // error
 		expression.filler = new JsonOwlObject();
 		expression.filler.type = JsonOwlObjectType.Class;
 		expression.filler.id = "GO:0005623"; // cell

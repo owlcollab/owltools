@@ -339,15 +339,18 @@ public class MolecularModelJsonRenderer {
 		return fact;
 	}
 
-	/**
-	 * @param p
-	 * @return Map to be passed to Gson
-	 */
 	public JsonOwlObject renderObject(OWLObjectProperty p) {
 		String id = IdStringManager.getId(p, graph);
 		String label = getLabel(p, id);
 		JsonOwlObject json = JsonOwlObject.createProperty(id, label);
 		return json;
+	}
+	
+	private JsonOwlObject renderObject(OWLObjectPropertyExpression p) {
+		if (p.isAnonymous()) {
+			return null;
+		}
+		return renderObject(p.asOWLObjectProperty());
 	}
 	/**
 	 * @param x
@@ -372,7 +375,7 @@ public class MolecularModelJsonRenderer {
 			}
 			else if (x instanceof OWLObjectSomeValuesFrom) {
 				OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)x;
-				String prop = renderObjectId(svf.getProperty());
+				JsonOwlObject prop = renderObject(svf.getProperty());
 				JsonOwlObject filler = renderObject(svf.getFiller());
 				if (prop != null && filler != null) {
 					json = JsonOwlObject.createSvf(prop, filler);
@@ -392,15 +395,6 @@ public class MolecularModelJsonRenderer {
 		String id = IdStringManager.getId(cls, graph);
 		JsonOwlObject json = JsonOwlObject.createCls(id, getLabel(cls, id));
 		return json;
-	}
-
-	private String renderObjectId(OWLObjectPropertyExpression px) {
-		if (px.isAnonymous()) {
-			return null; // TODO
-		}
-		else {
-			return IdStringManager.getId(px.asOWLObjectProperty(), graph);
-		}
 	}
 
 	protected String getLabel(OWLNamedObject i, String id) {

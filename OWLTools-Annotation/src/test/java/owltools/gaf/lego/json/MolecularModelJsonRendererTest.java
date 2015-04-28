@@ -168,9 +168,15 @@ public class MolecularModelJsonRendererTest {
 			}
 			else if (JsonOwlObjectType.SomeValueFrom == expression.type) {
 				if (expression.property == null) {
-					throw new Exception("Missing onProperty for expression of type 'svf'");
+					throw new Exception("Missing property for expression of type 'svf'");
 				}
-				OWLObjectProperty p = g.getOWLObjectPropertyByIdentifier(expression.property);
+				if (expression.property.type != JsonOwlObjectType.ObjectProperty) {
+					throw new Exception("Unexpected type for Property in 'svf': "+expression.property.type);
+				}
+				if (expression.property.id == null) {
+					throw new Exception("Missing property id for expression of type 'svf'");
+				}
+				OWLObjectProperty p = g.getOWLObjectPropertyByIdentifier(expression.property.id);
 				if (p == null) {
 					throw new UnknownIdentifierException("Could not find a property for: "+expression.property);
 				}

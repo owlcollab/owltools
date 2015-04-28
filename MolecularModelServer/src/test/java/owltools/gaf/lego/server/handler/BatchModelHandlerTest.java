@@ -135,7 +135,9 @@ public class BatchModelHandlerTest {
 		r.arguments.expressions = new JsonOwlObject[1];
 		r.arguments.expressions[0] = new JsonOwlObject();
 		r.arguments.expressions[0].type = JsonOwlObjectType.SomeValueFrom;
-		r.arguments.expressions[0].property = "RO:0002333"; // enabled_by
+		r.arguments.expressions[0].property = new JsonOwlObject();
+		r.arguments.expressions[0].property.type = JsonOwlObjectType.ObjectProperty;
+		r.arguments.expressions[0].property.id = "RO:0002333"; // enabled_by
 		// "GO:0043234 and (('has part' some UniProtKB:P0002) OR ('has part' some UniProtKB:P0003))";
 		r.arguments.expressions[0].filler = createComplexExpr();
 		batch.add(r);
@@ -189,7 +191,9 @@ public class BatchModelHandlerTest {
 		batch4[0].arguments.expressions = new JsonOwlObject[1];
 		batch4[0].arguments.expressions[0] = new JsonOwlObject();
 		batch4[0].arguments.expressions[0].type = JsonOwlObjectType.SomeValueFrom;
-		batch4[0].arguments.expressions[0].property = "RO:0002333"; // enabled_by
+		batch4[0].arguments.expressions[0].property = new JsonOwlObject();
+		batch4[0].arguments.expressions[0].property.type = JsonOwlObjectType.ObjectProperty;
+		batch4[0].arguments.expressions[0].property.id = "RO:0002333"; // enabled_by
 		// "GO:0043234 and (('has part' some UniProtKB:P0002) OR ('has part' some UniProtKB:P0003))";
 		batch4[0].arguments.expressions[0].filler = createComplexExpr();
 		
