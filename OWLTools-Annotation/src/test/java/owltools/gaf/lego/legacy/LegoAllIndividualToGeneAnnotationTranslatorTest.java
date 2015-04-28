@@ -71,7 +71,7 @@ public class LegoAllIndividualToGeneAnnotationTranslatorTest extends OWLToolsTes
 		// new conversion
 		// #1 convert model to all individuals
 		LegoModelVersionConverter converter = new LegoModelVersionConverter();
-		converter.convertLegoModelToAllIndividuals(model, modelId);
+		converter.convertLegoModelToAllIndividuals(model.getAboxOntology(), modelId);
 		
 		// #2 translate to legacy
 		LegoAllIndividualToGeneAnnotationTranslator newTranslator = 

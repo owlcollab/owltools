@@ -39,7 +39,7 @@ public class LegoModelVersionConverterTest {
 		Set<OWLNamedIndividual> allIndividualsOld = aboxOntology.getIndividualsInSignature();
 		
 		LegoModelVersionConverter converter = new LegoModelVersionConverter();
-		converter.convertLegoModelToAllIndividuals(model, modelId);
+		converter.convertLegoModelToAllIndividuals(model.getAboxOntology(), modelId);
 		
 		
 		Set<OWLNamedIndividual> allIndividualsNew = aboxOntology.getIndividualsInSignature();

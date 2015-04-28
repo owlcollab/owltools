@@ -35,7 +35,6 @@ import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import owltools.gaf.lego.CoreMolecularModelManager;
 import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
-import owltools.util.ModelContainer;
 
 public class LegoModelVersionConverter {
 	
@@ -130,14 +129,12 @@ public class LegoModelVersionConverter {
 		}
 	}
 	
-	public void convertLegoModelToAllIndividuals(final ModelContainer model, final String modelId) {
-		final OWLOntology abox = model.getAboxOntology();
+	public void convertLegoModelToAllIndividuals(final OWLOntology abox, final String modelId) {
 		final OWLOntologyManager m = abox.getOWLOntologyManager();
 		final OWLDataFactory f = m.getOWLDataFactory();
 		final List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 		final Set<OWLNamedIndividual> individuals = abox.getIndividualsInSignature();
 		final Set<OWLObjectPropertyAssertionAxiom> propertyAssertionAxioms = abox.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
-//		final EvidenceIndividualCache individualCache = new EvidenceIndividualCache(abox, model, modelId, changes);
 		
 		// update all relevant axioms pertaining to only one individual
 		for (final OWLNamedIndividual individual : individuals) {
@@ -149,7 +146,7 @@ public class LegoModelVersionConverter {
 			// create individuals for ECO IRIs and link to existing individual
 			Set<IRI> evidenceIndividuals = new HashSet<IRI>();
 			for(IRI ecoIRI : triple.ecoIRIs) {
-				OWLNamedIndividual evidenceIndividual = createEvidenceIndividual(ecoIRI, triple.evidenceAnnotations, modelId, model, changes);
+				OWLNamedIndividual evidenceIndividual = createEvidenceIndividual(ecoIRI, triple.evidenceAnnotations, modelId, abox, changes);
 				evidenceIndividuals.add(evidenceIndividual.getIRI());
 				OWLAnnotationValue value = evidenceIndividual.getIRI();
 				OWLAnnotation a = f.getOWLAnnotation(
@@ -167,12 +164,12 @@ public class LegoModelVersionConverter {
 					OWLClassExpression filler = svf.getFiller();
 					OWLObjectPropertyExpression property = svf.getProperty();
 					
-					Pair<OWLNamedIndividual,Set<OWLAxiom>> pair = CoreMolecularModelManager.createIndividual(modelId, model, filler, triple.contributors);
+					Pair<OWLNamedIndividual,Set<OWLAxiom>> pair = CoreMolecularModelManager.createIndividual(modelId, abox, filler, triple.contributors);
 					OWLNamedIndividual newIndividual = pair.getLeft();
 					for(OWLAxiom newAxiom : pair.getRight()) {
 						changes.add(new AddAxiom(abox, newAxiom));
 					}
-					changes.add(new AddAxiom(abox, CoreMolecularModelManager.createFact(model, property, individual, newIndividual, triple.contributors)));
+					changes.add(new AddAxiom(abox, CoreMolecularModelManager.createFact(f, property, individual, newIndividual, triple.contributors)));
 					changes.add(new RemoveAxiom(abox, axiom));
 				}
 			}
@@ -188,7 +185,7 @@ public class LegoModelVersionConverter {
 				// add annotations for new evidence individuals
 				Set<OWLAnnotation> newAnnotations = new HashSet<OWLAnnotation>(triple.contributors);
 				for(IRI ecoIRI : triple.ecoIRIs) {
-					OWLNamedIndividual evidenceIndividual = createEvidenceIndividual(ecoIRI, triple.evidenceAnnotations, modelId, model, changes);
+					OWLNamedIndividual evidenceIndividual = createEvidenceIndividual(ecoIRI, triple.evidenceAnnotations, modelId, abox, changes);
 					newAnnotations.add(f.getOWLAnnotation(
 							f.getOWLAnnotationProperty(AnnotationShorthand.evidence.getAnnotationProperty()), 
 							evidenceIndividual.getIRI()));
@@ -205,15 +202,13 @@ public class LegoModelVersionConverter {
 		
 		if (changes.isEmpty() == false) {
 			m.applyChanges(changes);
-			model.getReasoner().flush();
 		}
 	}
 
-	static OWLNamedIndividual createEvidenceIndividual(IRI ecoIRI, Set<OWLAnnotation> evidenceAnnotations, String modelId, ModelContainer model, List<OWLOntologyChange> changes) {
-		OWLOntology abox = model.getAboxOntology();
-		OWLDataFactory f = model.getOWLDataFactory();
+	static OWLNamedIndividual createEvidenceIndividual(IRI ecoIRI, Set<OWLAnnotation> evidenceAnnotations, String modelId, OWLOntology abox, List<OWLOntologyChange> changes) {
+		OWLDataFactory f = abox.getOWLOntologyManager().getOWLDataFactory();
 		OWLClass c = f.getOWLClass(ecoIRI);
-		Pair<OWLNamedIndividual, Set<OWLAxiom>> evidenceIndividualPair = CoreMolecularModelManager.createIndividual(modelId, model, c, null);
+		Pair<OWLNamedIndividual, Set<OWLAxiom>> evidenceIndividualPair = CoreMolecularModelManager.createIndividual(modelId, abox, c, null);
 		OWLNamedIndividual individual = evidenceIndividualPair.getLeft();
 		for(OWLAxiom newAxiom : evidenceIndividualPair.getRight()) {
 			changes.add(new AddAxiom(abox, newAxiom));
