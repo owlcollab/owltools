@@ -32,6 +32,7 @@ import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -69,6 +70,7 @@ import owltools.gaf.io.OpenAnnotationRDFWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
+import owltools.gaf.lego.GafToLegoIndividualTranslator;
 import owltools.gaf.lego.GafToLegoTranslator;
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.legacy.LegoToGeneAnnotationTranslator;
@@ -418,6 +420,48 @@ public class GafCommandRunner extends CommandRunner {
 
 	}
 
+	/**
+	 * Created to mimic the translation to OWL for GAF checks
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--gaf2owl-simple")
+	public void gaf2OwlSimple(Opts opts) throws Exception {
+		opts.info("-o FILE", "translates previously loaded GAF document into OWL, requires a loaded ontology to lookup ids");
+		String out = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o")) {
+				out = opts.nextOpt();
+			}
+			else
+				break;
+
+		}
+		if (g == null) {
+			LOG.error("An ontology is required.");
+			exit(-1);
+		}
+		else if (gafdoc == null) {
+			LOG.error("A GAF document is required.");
+			exit(-1);
+		}
+		else if (out == null) {
+			LOG.error("An output file is required.");
+			exit(-1);
+		}
+		LOG.info("Creating OWL represenation of annotations.");
+		GAFOWLBridge bridge = new GAFOWLBridge(g);
+		bridge.setGenerateIndividuals(false);
+		bridge.setBasicAboxMapping(false);
+		bridge.setBioentityMapping(BioentityMapping.CLASS_EXPRESSION);
+		bridge.setSkipNotAnnotations(true);
+		OWLOntology translated = bridge.translate(gafdoc);
+		File outputFile = new File(out);
+		OWLOntologyManager manager = translated.getOWLOntologyManager();
+		OWLOntologyFormat ontologyFormat= new OWLFunctionalSyntaxOntologyFormat();
+		manager.saveOntology(translated, ontologyFormat, IRI.create(outputFile));
+	}
 
 	@CLIMethod("--gaf2owl")
 	public void gaf2Owl(Opts opts) throws OWLException {
@@ -1373,6 +1417,78 @@ public class GafCommandRunner extends CommandRunner {
 			}
 			finally {
 				IOUtils.closeQuietly(outputStream);
+			}
+		}
+		else {
+			if (output == null) {
+				System.err.println("No output file was specified.");
+			}
+			if (g == null) {
+				System.err.println("No graph available for gaf-run-check.");
+			}
+			if (gafdoc == null) {
+				System.err.println("No loaded gaf available for gaf-run-check.");
+			}
+			exit(-1);
+			return;
+		}
+	}
+	
+	/**
+	 * Translate the GeneAnnotations into a lego all individual OWL representation.
+	 * 
+	 * Will merge the source ontology into the graph by default
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--gaf-lego-indivduals")
+	public void gaf2LegoIndivduals(Opts opts) throws Exception {
+		boolean addLineNumber = false;
+		boolean merge = true;
+		String output = null;
+		OWLOntologyFormat format = new RDFXMLOntologyFormat();
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o|--output")) {
+				output = opts.nextOpt();
+			}
+			else if (opts.nextEq("--format")) {
+				String formatString = opts.nextOpt();
+				if ("manchester".equalsIgnoreCase(formatString)) {
+					format = new ManchesterOWLSyntaxOntologyFormat();
+				}
+				else if ("functional".equalsIgnoreCase(formatString)) {
+					format = new OWLFunctionalSyntaxOntologyFormat();
+				}
+			}
+			else if (opts.nextEq("--add-line-number")) {
+				addLineNumber = true;
+			}
+			else if (opts.nextEq("--skip-merge")) {
+				merge = false;
+			}
+			else {
+				break;
+			}
+		}
+		if (g != null && gafdoc != null && output != null) {
+			GafToLegoIndividualTranslator tr = new GafToLegoIndividualTranslator(g, addLineNumber);
+			OWLOntology lego = tr.translate(gafdoc);
+
+			OWLGraphWrapper legoGraph = new OWLGraphWrapper(lego);
+			if (merge) {
+				legoGraph.mergeImportClosure(true);	
+			}
+			
+			OWLOntologyManager manager = legoGraph.getManager();
+			OutputStream outputStream = null;
+			try {
+				outputStream = new FileOutputStream(output);
+				manager.saveOntology(legoGraph.getSourceOntology(), format, outputStream);
+			}
+			finally {
+				IOUtils.closeQuietly(outputStream);
+				IOUtils.closeQuietly(legoGraph);
 			}
 		}
 		else {
