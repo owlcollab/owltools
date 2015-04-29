@@ -675,7 +675,9 @@ public class BatchModelHandlerTest {
 		assertEquals(intention, response6.intention);
 		assertEquals(response6.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response6.messageType);
 		
-		checkCounts(modelId, 1, 0);
+		M3BatchResponse response7 = checkCounts(modelId, 1, 0);
+		JsonOwlIndividual[] iObjs7 = BatchTestTools.responseIndividuals(response7);
+		assertEquals(bp, iObjs7[0].id); 
 	}
 	
 	@Test
