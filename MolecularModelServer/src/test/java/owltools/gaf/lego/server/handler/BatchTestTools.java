@@ -50,6 +50,17 @@ public class BatchTestTools {
 		r.arguments.individual = individual;
 		return r;
 	}
+	
+	static M3Request removeIndividualAnnotation(String modelId, String individual, AnnotationShorthand key, String value) {
+		M3Request r = new M3Request();
+		r.entity = Entity.individual;
+		r.operation = Operation.removeAnnotation;
+		r.arguments = new M3Argument();
+		r.arguments.modelId = modelId;
+		r.arguments.individual = individual;
+		r.arguments.values = singleAnnotation(key, value);
+		return r;
+	}
 
 	static M3Request addEdge(String modelId, String sub, String pred, String obj) {
 		M3Request r = new M3Request();

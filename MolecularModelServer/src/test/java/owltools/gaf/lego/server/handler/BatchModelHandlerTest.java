@@ -529,6 +529,156 @@ public class BatchModelHandlerTest {
 	}
 	
 	@Test
+	public void testDeleteEvidenceIndividuals() throws Exception {
+		models.dispose();
+		final String modelId = generateBlankModel();
+		
+		// setup model
+		// simple four individuals (mf, bp, 2 evidences) with a fact in between bp and mf 
+		final List<M3Request> batch1 = new ArrayList<M3Request>();
+		
+		// evidence1
+		M3Request r = BatchTestTools.addIndividual(modelId, "ECO:0000000"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var1";
+		r.arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.source, "PMID:000000");
+		batch1.add(r);
+
+		// evidence2
+		r = BatchTestTools.addIndividual(modelId, "ECO:0000001"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var2";
+		r.arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.source, "PMID:000001");
+		batch1.add(r);
+		
+		// evidence3
+		r = BatchTestTools.addIndividual(modelId, "ECO:0000002"); // evidence from ECO
+		r.arguments.assignToVariable = "evidence-var3";
+		r.arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.source, "PMID:000002");
+		batch1.add(r);
+		
+		// activity/mf
+		r = BatchTestTools.addIndividual(modelId, "GO:0003674"); // molecular function
+		r.arguments.assignToVariable = "mf";
+		r.arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.evidence, "evidence-var1");
+		batch1.add(r);
+
+		// process
+		r = BatchTestTools.addIndividual(modelId, "GO:0008150"); // biological process
+		r.arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.evidence, "evidence-var3");
+		r.arguments.assignToVariable = "bp";
+		batch1.add(r);
+
+		// activity -> process
+		r = BatchTestTools.addEdge(modelId, "mf", "BFO:0000050", "bp"); // part_of
+		r.arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.evidence, "evidence-var2");
+		batch1.add(r); // part_of
+		
+		final M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1.toArray(new M3Request[batch1.size()]), true);
+		assertEquals(uid, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.messageType);
+		
+		// find individuals
+		JsonOwlIndividual[] iObjs1 = BatchTestTools.responseIndividuals(response1);
+		assertEquals(5, iObjs1.length);
+		String evidence1 = null;
+		String evidence2 = null;
+		String evidence3 = null;
+		String mf = null;
+		String bp = null;
+		for (JsonOwlIndividual iObj : iObjs1) {
+			String id = iObj.id;
+			assertNotNull(id);
+			JsonOwlObject[] types = iObj.type;
+			assertNotNull(types);
+			assertEquals(1, types.length);
+			JsonOwlObject typeObj = types[0];
+			String typeId = typeObj.id;
+			assertNotNull(typeId);
+			if ("GO:0003674".equals(typeId)) {
+				mf = id;
+			}
+			else if ("GO:0008150".equals(typeId)) {
+				bp = id;
+			}
+			else if ("ECO:0000000".equals(typeId)) {
+				evidence1 = id;
+			}
+			else if ("ECO:0000001".equals(typeId)) {
+				evidence2 = id;
+			}
+			else if ("ECO:0000002".equals(typeId)) {
+				evidence3 = id;
+			}
+		}
+		assertNotNull(evidence1);
+		assertNotNull(evidence2);
+		assertNotNull(evidence3);
+		assertNotNull(mf);
+		assertNotNull(bp);
+		
+		// one edge
+		JsonOwlFact[] facts1 = BatchTestTools.responseFacts(response1);
+		assertEquals(1, facts1.length);
+		assertEquals(3, facts1[0].annotations.length); // evidence, date, contributor
+		
+		// remove fact evidence
+		final List<M3Request> batch2 = new ArrayList<M3Request>();
+		r = BatchTestTools.removeIndividual(modelId, evidence2);
+		batch2.add(r);
+		
+		final M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2.toArray(new M3Request[batch2.size()]), true);
+		assertEquals(uid, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.messageType);
+		
+		final M3BatchResponse response3 = checkCounts(modelId, 4, 1);
+		JsonOwlFact[] factsObjs = BatchTestTools.responseFacts(response3);
+		assertEquals(2, factsObjs[0].annotations.length); // date and contributor remain
+		
+		// delete bp evidence instance
+		final List<M3Request> batch4 = new ArrayList<M3Request>();
+		r = BatchTestTools.removeIndividual(modelId, evidence3);
+		batch4.add(r);
+		
+		final M3BatchResponse response4 = handler.m3Batch(uid, intention, packetId, batch4.toArray(new M3Request[batch4.size()]), true);
+		assertEquals(uid, response4.uid);
+		assertEquals(intention, response4.intention);
+		assertEquals(response4.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response4.messageType);
+		
+		final M3BatchResponse response5 = checkCounts(modelId, 3, 1);
+		JsonOwlIndividual[] indivdualObjs5 = BatchTestTools.responseIndividuals(response5);
+		boolean found = false;
+		for (JsonOwlIndividual iObj : indivdualObjs5) {
+			String id = iObj.id;
+			assertNotNull(id);
+			JsonOwlObject[] types = iObj.type;
+			assertNotNull(types);
+			assertEquals(1, types.length);
+			JsonOwlObject typeObj = types[0];
+			String typeId = typeObj.id;
+			assertNotNull(typeId);
+			if ("GO:0008150".equals(typeId)) {
+				found = true;
+				assertTrue(iObj.annotations.length == 2); // date and contributor remain
+			}
+		}
+		assertTrue(found);
+		
+		
+		// delete mf instance -> delete also mf evidence instance and fact
+		final List<M3Request> batch6 = new ArrayList<M3Request>();
+		r = BatchTestTools.removeIndividual(modelId, mf);
+		batch6.add(r);
+		
+		final M3BatchResponse response6 = handler.m3Batch(uid, intention, packetId, batch6.toArray(new M3Request[batch6.size()]), true);
+		assertEquals(uid, response6.uid);
+		assertEquals(intention, response6.intention);
+		assertEquals(response6.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response6.messageType);
+		
+		checkCounts(modelId, 1, 0);
+	}
+	
+	@Test
 	public void testInconsistentModel() throws Exception {
 		models.dispose();
 		
@@ -928,7 +1078,7 @@ public class BatchModelHandlerTest {
 		checkCounts(modelId, 2, 0);
 	}
 	
-	private void checkCounts(String modelId, int individuals, int facts) {
+	private M3BatchResponse checkCounts(String modelId, int individuals, int facts) {
 		M3Request r = new M3Request();
 		r.entity = Entity.model;
 		r.operation = Operation.get;
@@ -942,6 +1092,7 @@ public class BatchModelHandlerTest {
 		assertEquals(individuals, iObjs.length);
 		JsonOwlFact[] factsObjs = BatchTestTools.responseFacts(response);
 		assertEquals(facts, factsObjs.length);
+		return response;
 	}
 	
 	@Test

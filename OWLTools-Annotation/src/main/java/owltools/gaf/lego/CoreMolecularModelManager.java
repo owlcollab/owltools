@@ -321,9 +321,12 @@ public abstract class CoreMolecularModelManager<METADATA> {
 	}
 	
 	/**
-	 * Deletes an individual and return all IRIs used as an annotation value
+	 * Deletes an individual and return all IRIs used as an annotation value.
+	 * Also tries to delete all annotations (OWLObjectPropertyAssertionAxiom
+	 * annotations and OWLAnnotationAssertionAxiom) with the individual IRI as
+	 * value.
 	 * 
-	 * @param modelId 
+	 * @param modelId
 	 * @param model
 	 * @param i
 	 * @param flushReasoner
@@ -348,12 +351,32 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		
 		// OWLObjectPropertyAssertionAxiom
 		Set<OWLObjectPropertyAssertionAxiom> allAssertions = ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
+		Set<OWLAxiom> addAxioms = new HashSet<OWLAxiom>();
+		final IRI iIRI = i.getIRI();
 		for (OWLObjectPropertyAssertionAxiom ax : allAssertions) {
 			if (toRemoveAxioms.contains(ax) == false) {
 				Set<OWLNamedIndividual> currentIndividuals = ax.getIndividualsInSignature();
 				if (currentIndividuals.contains(i)) {
 					extractIRIValues(ax.getAnnotations(), usedIRIs);
 					toRemoveAxioms.add(ax);
+					continue;
+				}
+				// check annotations for deleted individual IRI
+				Set<OWLAnnotation> annotations = ax.getAnnotations();
+				Set<OWLAnnotation> removeAnnotations = new HashSet<OWLAnnotation>();
+				for (OWLAnnotation annotation : annotations) {
+					if (iIRI.equals(annotation.getValue())) {
+						removeAnnotations.add(annotation);
+					}
+				}
+				// if there is an annotations that needs to be removed, 
+				// recreate axiom with cleaned annotation set
+				if (removeAnnotations.isEmpty() == false) {
+					annotations.removeAll(removeAnnotations);
+					toRemoveAxioms.add(ax);
+					addAxioms.add(model.getOWLDataFactory().
+							getOWLObjectPropertyAssertionAxiom(
+									ax.getProperty(), ax.getSubject(), ax.getObject(), annotations));
 				}
 			}
 		}
@@ -364,8 +387,20 @@ public abstract class CoreMolecularModelManager<METADATA> {
 			toRemoveAxioms.add(axiom);	
 		}
 		
+		// search for all annotations which use individual IRI as value
+		Set<OWLAnnotationAssertionAxiom> axioms = ont.getAxioms(AxiomType.ANNOTATION_ASSERTION);
+		for (OWLAnnotationAssertionAxiom ax : axioms) {
+			if (toRemoveAxioms.contains(ax) == false) {
+				if (iIRI.equals(ax.getValue())) {
+					toRemoveAxioms.add(ax);
+				}
+			}
+		}
 		
 		removeAxioms(modelId, model, toRemoveAxioms, flushReasoner, metadata);
+		if (addAxioms.isEmpty() == false) {
+			addAxioms(modelId, model, addAxioms, flushReasoner, metadata);
+		}
 		
 		return usedIRIs;
 	}
