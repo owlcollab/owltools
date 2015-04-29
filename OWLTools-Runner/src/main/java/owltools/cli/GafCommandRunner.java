@@ -1446,6 +1446,7 @@ public class GafCommandRunner extends CommandRunner {
 	public void gaf2LegoIndivduals(Opts opts) throws Exception {
 		boolean addLineNumber = false;
 		boolean merge = true;
+		boolean minimize = false;
 		String output = null;
 		OWLOntologyFormat format = new RDFXMLOntologyFormat();
 		while (opts.hasOpts()) {
@@ -1467,6 +1468,9 @@ public class GafCommandRunner extends CommandRunner {
 			else if (opts.nextEq("--skip-merge")) {
 				merge = false;
 			}
+			else if (opts.nextEq("-m|--minimize")) {
+				minimize = true;
+			}
 			else {
 				break;
 			}
@@ -1474,21 +1478,30 @@ public class GafCommandRunner extends CommandRunner {
 		if (g != null && gafdoc != null && output != null) {
 			GafToLegoIndividualTranslator tr = new GafToLegoIndividualTranslator(g, addLineNumber);
 			OWLOntology lego = tr.translate(gafdoc);
-
-			OWLGraphWrapper legoGraph = new OWLGraphWrapper(lego);
+			
 			if (merge) {
-				legoGraph.mergeImportClosure(true);	
+				new OWLGraphWrapper(lego).mergeImportClosure(true);	
+			}
+			if (minimize) {
+				final OWLOntologyManager m = lego.getOWLOntologyManager();
+				
+				SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, lego, ModuleType.BOT);
+				Set<OWLEntity> sig = new HashSet<OWLEntity>(lego.getIndividualsInSignature());
+				Set<OWLAxiom> moduleAxioms = sme.extract(sig);
+				
+				OWLOntology module = m.createOntology(IRI.generateDocumentIRI());
+				m.addAxioms(module, moduleAxioms);
+				lego = module;
 			}
 			
-			OWLOntologyManager manager = legoGraph.getManager();
+			OWLOntologyManager manager = lego.getOWLOntologyManager();
 			OutputStream outputStream = null;
 			try {
 				outputStream = new FileOutputStream(output);
-				manager.saveOntology(legoGraph.getSourceOntology(), format, outputStream);
+				manager.saveOntology(lego, format, outputStream);
 			}
 			finally {
 				IOUtils.closeQuietly(outputStream);
-				IOUtils.closeQuietly(legoGraph);
 			}
 		}
 		else {
