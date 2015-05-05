@@ -277,6 +277,14 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		}
 	}
 	
+	public void updateAnnotation(String modelId, OWLAnnotation annotation, METADATA metadata)
+			throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		if (annotation != null) {
+			updateAnnotation(modelId, model, annotation, metadata);
+		}
+	}
+	
 	public OWLNamedIndividual addAnnotations(String modelId, String iid, 
 			Set<OWLAnnotation> annotations, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
@@ -286,6 +294,19 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		}
 		if (annotations != null && !annotations.isEmpty()) {
 			addAnnotations(modelId, model, i.getIRI(), annotations, metadata);
+		}
+		return i;
+	}
+	
+	public OWLNamedIndividual updateAnnotation(String modelId, String iid, 
+			OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		if (annotation != null) {
+			updateAnnotation(modelId, model, i.getIRI(), annotation, metadata);
 		}
 		return i;
 	}
@@ -851,6 +872,26 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
 		}
 		addAnnotations(modelId, model, property, individual1, individual2, annotations, false, metadata);
+
+		return Arrays.asList(individual1, individual2);
+	}
+	
+	public List<OWLNamedIndividual> updateAnnotation(String modelId, String pid, 
+			String iid, String jid, OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLObjectProperty property = getObjectProperty(pid, model);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
+		}
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (1) for id: "+iid);
+		}
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
+		}
+		updateAnnotation(modelId, model, property, individual1, individual2, annotation, false, metadata);
 
 		return Arrays.asList(individual1, individual2);
 	}

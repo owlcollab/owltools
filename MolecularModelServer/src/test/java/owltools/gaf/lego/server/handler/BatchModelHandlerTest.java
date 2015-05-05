@@ -11,7 +11,6 @@ import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -1478,7 +1477,6 @@ public class BatchModelHandlerTest {
 	}
 	
 	@Test
-	@Ignore("Incomplete test and implementation")
 	public void testUpdateDateAnnotation() throws Exception {
 		/*
 		 * test that the last modification date is update for every change of an
@@ -1524,6 +1522,7 @@ public class BatchModelHandlerTest {
 			assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.messageType);
 			
 			// find fact and date annotation
+			String prevDate = null;
 			{
 				JsonOwlFact[] responseFacts = BatchTestTools.responseFacts(response1);
 				assertEquals(1, responseFacts.length);
@@ -1534,8 +1533,33 @@ public class BatchModelHandlerTest {
 					}
 				}
 				assertEquals(1, dates.size());
-				assertEquals("2", dates.iterator().next()); // 0 -> mf, 1 -> bp
+				prevDate = dates.iterator().next();
+				assertNotNull(prevDate);
 			}
+			String mf = null;
+			String bp = null;
+			{
+				JsonOwlIndividual[] responseIndividuals = BatchTestTools.responseIndividuals(response1);
+				assertEquals(2, responseIndividuals.length);
+				for (JsonOwlIndividual iObj : responseIndividuals) {
+					String id = iObj.id;
+					assertNotNull(id);
+					JsonOwlObject[] types = iObj.type;
+					assertNotNull(types);
+					assertEquals(1, types.length);
+					JsonOwlObject typeObj = types[0];
+					String typeId = typeObj.id;
+					assertNotNull(typeId);
+					if ("GO:0003674".equals(typeId)) {
+						mf = id;
+					}
+					else if ("GO:0008150".equals(typeId)) {
+						bp = id;
+					}
+				}
+			}
+			assertNotNull(mf);
+			assertNotNull(bp);
 			
 			// add comment to fact
 			final M3Request[] batch2 = new M3Request[1];
@@ -1543,9 +1567,10 @@ public class BatchModelHandlerTest {
 			batch2[0].entity = Entity.edge;
 			batch2[0].operation = Operation.addAnnotation;
 			batch2[0].arguments = new M3Argument();
-			batch2[0].arguments.subject = "mf";
+			batch2[0].arguments.modelId = modelId;
+			batch2[0].arguments.subject = mf;
 			batch2[0].arguments.predicate = "BFO:0000050"; // part_of
-			batch2[0].arguments.object = "bp";
+			batch2[0].arguments.object = bp;
 			batch2[0].arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.comment, "foo");
 			
 			M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
@@ -1564,7 +1589,10 @@ public class BatchModelHandlerTest {
 					}
 				}
 				assertEquals(1, dates.size());
-				assertEquals("3", dates.iterator().next());
+				String currentDate = dates.iterator().next();
+				assertNotNull(currentDate);
+				assertNotEquals(prevDate, currentDate);
+				prevDate = currentDate;
 			}
 			
 			// remove comment from fact
@@ -1573,9 +1601,10 @@ public class BatchModelHandlerTest {
 			batch3[0].entity = Entity.edge;
 			batch3[0].operation = Operation.removeAnnotation;
 			batch3[0].arguments = new M3Argument();
-			batch3[0].arguments.subject = "mf";
+			batch3[0].arguments.modelId = modelId;
+			batch3[0].arguments.subject = mf;
 			batch3[0].arguments.predicate = "BFO:0000050"; // part_of
-			batch3[0].arguments.object = "bp";
+			batch3[0].arguments.object = bp;
 			batch3[0].arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.comment, "foo");
 			
 			M3BatchResponse response3 = handler.m3Batch(uid, intention, packetId, batch3, true);
@@ -1594,47 +1623,106 @@ public class BatchModelHandlerTest {
 					}
 				}
 				assertEquals(1, dates.size());
-				assertEquals("4", dates.iterator().next());
+				String currentDate = dates.iterator().next();
+				assertNotNull(currentDate);
+				assertNotEquals(prevDate, currentDate);
+				prevDate = currentDate;
 			}
 			
 			
 			// test update with add/remove type of an individual
 			// find individual and date annotation
 			
-			JsonOwlIndividual[] individuals1 = BatchTestTools.responseIndividuals(response1);
-			assertEquals(2, individuals1.length);
-			String mf = null;
-			final Set<String> dates1 = new HashSet<String>();
-			for (JsonOwlIndividual individual : individuals1) {
-				String id = individual.id;
-				assertNotNull(id);
-				JsonOwlObject[] types = individual.type;
-				assertNotNull(types);
-				assertEquals(1, types.length);
-				JsonOwlObject typeObj = types[0];
-				String typeId = typeObj.id;
-				assertNotNull(typeId);
-				if ("GO:0003674".equals(typeId)) {
-					mf = id;
-					for(JsonAnnotation annotation : individual.annotations) {
-						if (AnnotationShorthand.date.name().equals(annotation.key)) {
-							dates1.add(annotation.value);
+			String individualId = null;
+			{
+				JsonOwlIndividual[] individuals1 = BatchTestTools.responseIndividuals(response1);
+				assertEquals(2, individuals1.length);
+				final Set<String> dates = new HashSet<String>();
+				for (JsonOwlIndividual individual : individuals1) {
+					individualId = individual.id;
+					assertNotNull(individualId);
+					JsonOwlObject[] types = individual.type;
+					assertNotNull(types);
+					assertEquals(1, types.length);
+					JsonOwlObject typeObj = types[0];
+					String typeId = typeObj.id;
+					assertNotNull(typeId);
+					if ("GO:0003674".equals(typeId)) {
+						for(JsonAnnotation annotation : individual.annotations) {
+							if (AnnotationShorthand.date.name().equals(annotation.key)) {
+								dates.add(annotation.value);
+							}
 						}
 					}
 				}
+				assertEquals(1, dates.size());
+				prevDate = dates.iterator().next();
+				assertNotNull(prevDate);
 			}
-			assertNotNull(mf);
-			assertEquals(1, dates1.size());
-			assertEquals("0", dates1.iterator().next());
 			
 			// remove type
+			final M3Request[] batch4 = new M3Request[1];
+			batch4[0] = new M3Request();
+			batch4[0].entity = Entity.individual;
+			batch4[0].operation = Operation.removeType;
+			batch4[0].arguments = new M3Argument();
+			batch4[0].arguments.modelId = modelId;
+			batch4[0].arguments.individual = individualId;
+			BatchTestTools.setExpressionClass(batch4[0].arguments, "GO:0003674");
+			
+			M3BatchResponse response4 = handler.m3Batch(uid, intention, packetId, batch4, true);
+			assertEquals(uid, response4.uid);
+			assertEquals(intention, response4.intention);
+			assertEquals(response4.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response4.messageType);
 			
 			// find individual and compare date with prev
+			{
+				JsonOwlIndividual[] responseIndividuals = BatchTestTools.responseIndividuals(response4);
+				assertEquals(1, responseIndividuals.length);
+				final Set<String> dates = new HashSet<String>();
+				for(JsonAnnotation annotation : responseIndividuals[0].annotations) {
+					if (AnnotationShorthand.date.name().equals(annotation.key)) {
+						dates.add(annotation.value);
+					}
+				}
+				assertEquals(1, dates.size());
+				String currentDate = dates.iterator().next();
+				assertNotNull(currentDate);
+				assertNotEquals(prevDate, currentDate);
+				prevDate = currentDate;
+			}
 			
 			// add type
+			final M3Request[] batch5 = new M3Request[1];
+			batch5[0] = new M3Request();
+			batch5[0].entity = Entity.individual;
+			batch5[0].operation = Operation.addType;
+			batch5[0].arguments = new M3Argument();
+			batch5[0].arguments.modelId = modelId;
+			batch5[0].arguments.individual = individualId;
+			BatchTestTools.setExpressionClass(batch5[0].arguments, "GO:0003674");
+			
+			M3BatchResponse response5 = handler.m3Batch(uid, intention, packetId, batch5, true);
+			assertEquals(uid, response5.uid);
+			assertEquals(intention, response5.intention);
+			assertEquals(response5.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response5.messageType);
 			
 			// find individual and compare date with prev
-			
+			{
+				JsonOwlIndividual[] responseIndividuals = BatchTestTools.responseIndividuals(response5);
+				assertEquals(1, responseIndividuals.length);
+				final Set<String> dates = new HashSet<String>();
+				for(JsonAnnotation annotation : responseIndividuals[0].annotations) {
+					if (AnnotationShorthand.date.name().equals(annotation.key)) {
+						dates.add(annotation.value);
+					}
+				}
+				assertEquals(1, dates.size());
+				assertEquals(1, dates.size());
+				String currentDate = dates.iterator().next();
+				assertNotNull(currentDate);
+				assertNotEquals(prevDate, currentDate);
+			}
 		}
 		finally {
 			dateGenerator.useCounter = false;
