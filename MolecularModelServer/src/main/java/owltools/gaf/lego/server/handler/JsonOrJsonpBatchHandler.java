@@ -34,7 +34,6 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 	
 	
 	public static boolean USE_USER_ID = true;
-	public static boolean USE_CREATION_DATE = true;
 	public static boolean ADD_INFERENCES = true;
 	public static boolean VALIDATE_BEFORE_SAVE = true;
 	public static boolean ENFORCE_EXTERNAL_VALIDATE = false;
@@ -73,11 +72,6 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 	@Override
 	boolean useUserId() {
 		return USE_USER_ID;
-	}
-
-	@Override
-	boolean useCreationDate() {
-		return USE_CREATION_DATE;
 	}
 
 	@Override

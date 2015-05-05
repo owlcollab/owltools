@@ -78,8 +78,6 @@ abstract class OperationsImpl {
 	
 	abstract boolean useUserId();
 	
-	abstract boolean useCreationDate();
-
 	static class BatchHandlerValues {
 		
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
@@ -203,9 +201,11 @@ abstract class OperationsImpl {
 			// required: individual, expressions
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+			
+			Set<OWLAnnotation> annotations = createGeneratedAnnotations(values.modelId, userId);
+			
 			for(JsonOwlObject expression : request.arguments.expressions) {
 				OWLClassExpression cls = parseM3Expression(expression, values);
-				// TODO evidence and contributor information for types
 				if (values.notVariable(request.arguments.individual)) {
 					OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
 					values.relevantIndividuals.add(i);
@@ -214,11 +214,14 @@ abstract class OperationsImpl {
 						values.individualVariables.put(request.arguments.assignToVariable, 
 								Pair.of(request.arguments.individual, i));
 					}
+					
+					m3.addAnnotations(values.modelId, request.arguments.individual, annotations, token);
 				}
 				else {
 					Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
 					OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, pair.getKey(), cls, token);
 					values.relevantIndividuals.add(i);
+					m3.addAnnotations(values.modelId, pair.getLeft(), annotations, token);
 				}
 			}
 			addContributor(values.modelId, userId, token, m3);
@@ -228,6 +231,9 @@ abstract class OperationsImpl {
 			// required: individual, expressions
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+			
+			Set<OWLAnnotation> annotations = createGeneratedAnnotations(values.modelId, userId);
+			
 			for(JsonOwlObject expression : request.arguments.expressions) {
 				OWLClassExpression cls = parseM3Expression(expression, values);
 				if (values.notVariable(request.arguments.individual)) {
@@ -238,11 +244,13 @@ abstract class OperationsImpl {
 						values.individualVariables.put(request.arguments.assignToVariable, 
 								Pair.of(request.arguments.individual, i));
 					}
+					m3.addAnnotations(values.modelId, request.arguments.individual, annotations, token);
 				}
 				else {
 					Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
 					OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, pair.getKey(), cls, token);
 					values.relevantIndividuals.add(i);
+					m3.addAnnotations(values.modelId, pair.getLeft(), annotations, token);
 				}
 			}
 			addContributor(values.modelId, userId, token, m3);
@@ -725,14 +733,35 @@ abstract class OperationsImpl {
 				}
 			}
 		}
-		if (useUserId() && userId != null) {
-			result.add(create(f, AnnotationShorthand.contributor, userId));
-		}
-		if (useCreationDate() && addDate) {
-			String dateString = MolecularModelJsonRenderer.AnnotationTypeDateFormat.get().format(new Date());
-			result.add(create(f, AnnotationShorthand.date, dateString));
-		}
+		addGeneratedAnnotations(userId, addDate, result, f);
 		return result;
+	}
+	
+	private void addGeneratedAnnotations(String userId, boolean addDate, Set<OWLAnnotation> annotations, OWLDataFactory f) {
+		if (useUserId() && userId != null) {
+			annotations.add(create(f, AnnotationShorthand.contributor, userId));
+		}
+		if (addDate) {
+			String dateString = generateDateString();
+			annotations.add(create(f, AnnotationShorthand.date, dateString));
+		}
+	}
+
+	/**
+	 * separate method, intended to be overridden during test.
+	 * 
+	 * @return date string, never null
+	 */
+	protected String generateDateString() {
+		String dateString = MolecularModelJsonRenderer.AnnotationTypeDateFormat.get().format(new Date());
+		return dateString;
+	}
+	
+	private Set<OWLAnnotation> createGeneratedAnnotations(String modelId, String userId) {
+		Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
+		OWLDataFactory f = m3.getOWLDataFactory(modelId);
+		addGeneratedAnnotations(userId, true, annotations, f);
+		return annotations;
 	}
 	
 	static class MultipleModelIdsParameterException extends Exception {

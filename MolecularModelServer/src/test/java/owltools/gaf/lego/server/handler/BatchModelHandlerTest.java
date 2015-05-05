@@ -4,12 +4,14 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -52,6 +54,7 @@ public class BatchModelHandlerTest {
 	private static JsonOrJsonpBatchHandler handler = null;
 	private static UndoAwareMolecularModelManager models = null;
 	private static Set<OWLObjectProperty> importantRelations = null;
+	private final static DateGenerator dateGenerator = new DateGenerator();
 
 	static final String uid = "test-user";
 	static final String intention = "test-intention";
@@ -76,9 +79,20 @@ public class BatchModelHandlerTest {
 		ProteinToolService proteinService = new ProteinToolService("src/test/resources/ontology/protein/subset");
 		models.addObsoleteImportIRIs(proteinService.getOntologyIRIs());
 		lookupService = new CombinedExternalLookupService(proteinService, createTestProteins());
-		handler = new JsonOrJsonpBatchHandler(models, importantRelations, lookupService);
+		handler = new JsonOrJsonpBatchHandler(models, importantRelations, lookupService) {
+
+			@Override
+			protected String generateDateString() {
+				// hook for overriding the date generation with a custom counter
+				if (dateGenerator.useCounter) {
+					int count = dateGenerator.counter;
+					dateGenerator.counter += 1;
+					return Integer.toString(count);
+				}
+				return super.generateDateString();
+			}
+		};
 		JsonOrJsonpBatchHandler.ADD_INFERENCES = true;
-		JsonOrJsonpBatchHandler.USE_CREATION_DATE = true;
 		JsonOrJsonpBatchHandler.USE_USER_ID = true;
 		JsonOrJsonpBatchHandler.VALIDATE_BEFORE_SAVE = true;
 		JsonOrJsonpBatchHandler.ENFORCE_EXTERNAL_VALIDATE = true;
@@ -256,7 +270,6 @@ public class BatchModelHandlerTest {
 	
 	@Test
 	public void testModelAnnotations() throws Exception {
-		assertTrue(JsonOrJsonpBatchHandler.USE_CREATION_DATE);
 		assertTrue(JsonOrJsonpBatchHandler.USE_USER_ID);
 		
 		final String modelId = generateBlankModel();
@@ -1351,6 +1364,281 @@ public class BatchModelHandlerTest {
 		assertNotNull(modelData);
 		assertTrue(modelData.containsKey(AnnotationShorthand.deprecated.name()));
 		assertEquals("true", modelData.get(AnnotationShorthand.deprecated.name()));
+	}
+	
+	@Test
+	public void testAutoAnnotationsForAddType() throws Exception {
+		/*
+		 * test that if a type is added or removed from an individual also
+		 * updates the contributes annotation
+		 */
+		final String modelId = generateBlankModel();
+		// create individual
+		final M3Request[] batch1 = new M3Request[1];
+		batch1[0] = new M3Request();
+		batch1[0].entity = Entity.individual;
+		batch1[0].operation = Operation.add;
+		batch1[0].arguments = new M3Argument();
+		batch1[0].arguments.modelId = modelId;
+		BatchTestTools.setExpressionClass(batch1[0].arguments, "GO:0003674"); // molecular function
+		
+		String uid1 = "1";
+		M3BatchResponse response1 = handler.m3Batch(uid1, intention, packetId, batch1, true);
+		assertEquals(uid1, response1.uid);
+		assertEquals(intention, response1.intention);
+		assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.messageType);
+		
+		// find contributor
+		JsonOwlIndividual[] individuals1 = BatchTestTools.responseIndividuals(response1);
+		assertEquals(1, individuals1.length);
+		
+		final String id = individuals1[0].id;
+		
+		JsonAnnotation[] annotations1 = individuals1[0].annotations;
+		assertEquals(2, annotations1.length);
+		String contrib1 = null;
+		for (JsonAnnotation annotation : annotations1) {
+			if (AnnotationShorthand.contributor.name().equals(annotation.key)) {
+				contrib1 = annotation.value;
+			}
+		}
+		assertNotNull(contrib1);
+		assertEquals(uid1, contrib1);
+		
+		// remove type
+		final M3Request[] batch2 = new M3Request[1];
+		batch2[0] = new M3Request();
+		batch2[0].entity = Entity.individual;
+		batch2[0].operation = Operation.removeType;
+		batch2[0].arguments = new M3Argument();
+		batch2[0].arguments.modelId = modelId;
+		batch2[0].arguments.individual = id;
+		BatchTestTools.setExpressionClass(batch2[0].arguments, "GO:0003674"); // molecular function
+		
+		String uid2 = "2";
+		M3BatchResponse response2 = handler.m3Batch(uid2, intention, packetId, batch2, true);
+		assertEquals(uid2, response2.uid);
+		assertEquals(intention, response2.intention);
+		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.messageType);
+		
+		// find contributor and compare with prev
+		JsonOwlIndividual[] individuals2 = BatchTestTools.responseIndividuals(response2);
+		assertEquals(1, individuals2.length);
+		
+		JsonAnnotation[] annotations2 = individuals2[0].annotations;
+		assertEquals(3, annotations2.length);
+		Set<String> contribSet1 = new HashSet<String>();
+		for (JsonAnnotation annotation : annotations2) {
+			if (AnnotationShorthand.contributor.name().equals(annotation.key)) {
+				contribSet1.add(annotation.value);
+			}
+		}
+		assertEquals(2, contribSet1.size());
+		assertTrue(contribSet1.contains(uid1));
+		assertTrue(contribSet1.contains(uid2));
+		
+		// add type
+		final M3Request[] batch3 = new M3Request[1];
+		batch3[0] = new M3Request();
+		batch3[0].entity = Entity.individual;
+		batch3[0].operation = Operation.addType;
+		batch3[0].arguments = new M3Argument();
+		batch3[0].arguments.modelId = modelId;
+		batch3[0].arguments.individual = id;
+		BatchTestTools.setExpressionClass(batch3[0].arguments, "GO:0003674"); // molecular function
+		
+		String uid3 = "3";
+		M3BatchResponse response3 = handler.m3Batch(uid3, intention, packetId, batch3, true);
+		assertEquals(uid3, response3.uid);
+		assertEquals(intention, response3.intention);
+		assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.messageType);
+		
+		// find contributor and compare with prev
+		JsonOwlIndividual[] individuals3 = BatchTestTools.responseIndividuals(response3);
+		assertEquals(1, individuals3.length);
+		
+		JsonAnnotation[] annotations3 = individuals3[0].annotations;
+		assertEquals(4, annotations3.length);
+		Set<String> contribSet2 = new HashSet<String>();
+		for (JsonAnnotation annotation : annotations3) {
+			if (AnnotationShorthand.contributor.name().equals(annotation.key)) {
+				contribSet2.add(annotation.value);
+			}
+		}
+		assertEquals(3, contribSet2.size());
+		assertTrue(contribSet2.contains(uid1));
+		assertTrue(contribSet2.contains(uid2));
+		assertTrue(contribSet2.contains(uid3));
+	}
+	
+	static class DateGenerator {
+		
+		boolean useCounter = false;
+		int counter = 0;
+	}
+	
+	@Test
+	@Ignore("Incomplete test and implementation")
+	public void testUpdateDateAnnotation() throws Exception {
+		/*
+		 * test that the last modification date is update for every change of an
+		 * individual or fact
+		 */
+		try {
+			dateGenerator.counter = 0;
+			dateGenerator.useCounter = true;
+			
+			// test update with add/remove annotation of a fact
+			final String modelId = generateBlankModel();
+			
+			// setup initial fact with two individuals
+			final M3Request[] batch1 = new M3Request[3];
+			batch1[0] = new M3Request();
+			batch1[0].entity = Entity.individual;
+			batch1[0].operation = Operation.add;
+			batch1[0].arguments = new M3Argument();
+			batch1[0].arguments.modelId = modelId;
+			BatchTestTools.setExpressionClass(batch1[0].arguments, "GO:0003674"); // molecular function
+			batch1[0].arguments.assignToVariable = "mf";
+
+			batch1[1] = new M3Request();
+			batch1[1].entity = Entity.individual;
+			batch1[1].operation = Operation.add;
+			batch1[1].arguments = new M3Argument();
+			batch1[1].arguments.modelId = modelId;
+			BatchTestTools.setExpressionClass(batch1[1].arguments, "GO:0008150"); // biological process
+			batch1[1].arguments.assignToVariable = "bp";
+
+			batch1[2] = new M3Request();
+			batch1[2].entity = Entity.edge;
+			batch1[2].operation = Operation.add;
+			batch1[2].arguments = new M3Argument();
+			batch1[2].arguments.modelId = modelId;
+			batch1[2].arguments.subject = "mf";
+			batch1[2].arguments.predicate = "BFO:0000050"; // part_of
+			batch1[2].arguments.object = "bp";
+			
+			M3BatchResponse response1 = handler.m3Batch(uid, intention, packetId, batch1, true);
+			assertEquals(uid, response1.uid);
+			assertEquals(intention, response1.intention);
+			assertEquals(response1.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response1.messageType);
+			
+			// find fact and date annotation
+			{
+				JsonOwlFact[] responseFacts = BatchTestTools.responseFacts(response1);
+				assertEquals(1, responseFacts.length);
+				Set<String> dates = new HashSet<String>();
+				for(JsonAnnotation ann : responseFacts[0].annotations) {
+					if (AnnotationShorthand.date.name().equals(ann.key)) {
+						dates.add(ann.value);
+					}
+				}
+				assertEquals(1, dates.size());
+				assertEquals("2", dates.iterator().next()); // 0 -> mf, 1 -> bp
+			}
+			
+			// add comment to fact
+			final M3Request[] batch2 = new M3Request[1];
+			batch2[0] = new M3Request();
+			batch2[0].entity = Entity.edge;
+			batch2[0].operation = Operation.addAnnotation;
+			batch2[0].arguments = new M3Argument();
+			batch2[0].arguments.subject = "mf";
+			batch2[0].arguments.predicate = "BFO:0000050"; // part_of
+			batch2[0].arguments.object = "bp";
+			batch2[0].arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.comment, "foo");
+			
+			M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch2, true);
+			assertEquals(uid, response2.uid);
+			assertEquals(intention, response2.intention);
+			assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.messageType);
+			
+			// find fact and compare date with prev
+			{
+				JsonOwlFact[] responseFacts = BatchTestTools.responseFacts(response2);
+				assertEquals(1, responseFacts.length);
+				Set<String> dates = new HashSet<String>();
+				for(JsonAnnotation ann : responseFacts[0].annotations) {
+					if (AnnotationShorthand.date.name().equals(ann.key)) {
+						dates.add(ann.value);
+					}
+				}
+				assertEquals(1, dates.size());
+				assertEquals("3", dates.iterator().next());
+			}
+			
+			// remove comment from fact
+			final M3Request[] batch3 = new M3Request[1];
+			batch3[0] = new M3Request();
+			batch3[0].entity = Entity.edge;
+			batch3[0].operation = Operation.removeAnnotation;
+			batch3[0].arguments = new M3Argument();
+			batch3[0].arguments.subject = "mf";
+			batch3[0].arguments.predicate = "BFO:0000050"; // part_of
+			batch3[0].arguments.object = "bp";
+			batch3[0].arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.comment, "foo");
+			
+			M3BatchResponse response3 = handler.m3Batch(uid, intention, packetId, batch3, true);
+			assertEquals(uid, response3.uid);
+			assertEquals(intention, response3.intention);
+			assertEquals(response3.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response3.messageType);
+			
+			// find fact and compare date with prev
+			{
+				JsonOwlFact[] responseFacts = BatchTestTools.responseFacts(response3);
+				assertEquals(1, responseFacts.length);
+				Set<String> dates = new HashSet<String>();
+				for(JsonAnnotation ann : responseFacts[0].annotations) {
+					if (AnnotationShorthand.date.name().equals(ann.key)) {
+						dates.add(ann.value);
+					}
+				}
+				assertEquals(1, dates.size());
+				assertEquals("4", dates.iterator().next());
+			}
+			
+			
+			// test update with add/remove type of an individual
+			// find individual and date annotation
+			
+			JsonOwlIndividual[] individuals1 = BatchTestTools.responseIndividuals(response1);
+			assertEquals(2, individuals1.length);
+			String mf = null;
+			final Set<String> dates1 = new HashSet<String>();
+			for (JsonOwlIndividual individual : individuals1) {
+				String id = individual.id;
+				assertNotNull(id);
+				JsonOwlObject[] types = individual.type;
+				assertNotNull(types);
+				assertEquals(1, types.length);
+				JsonOwlObject typeObj = types[0];
+				String typeId = typeObj.id;
+				assertNotNull(typeId);
+				if ("GO:0003674".equals(typeId)) {
+					mf = id;
+					for(JsonAnnotation annotation : individual.annotations) {
+						if (AnnotationShorthand.date.name().equals(annotation.key)) {
+							dates1.add(annotation.value);
+						}
+					}
+				}
+			}
+			assertNotNull(mf);
+			assertEquals(1, dates1.size());
+			assertEquals("0", dates1.iterator().next());
+			
+			// remove type
+			
+			// find individual and compare date with prev
+			
+			// add type
+			
+			// find individual and compare date with prev
+			
+		}
+		finally {
+			dateGenerator.useCounter = false;
+		}
 	}
 	
 	/**
