@@ -1750,7 +1750,7 @@ public class BatchModelHandlerTest {
 			r.arguments.values = BatchTestTools.singleAnnotation(AnnotationShorthand.evidence, "evidence-var2");
 			batch1.add(r);
 
-			M3BatchResponse response1 = executeBatch(batch1);
+			M3BatchResponse response1 = executeBatch(batch1, "FOO:1");
 			
 			// find all the individual ids
 			// find date for mf
@@ -1796,22 +1796,26 @@ public class BatchModelHandlerTest {
 				assertNotNull(bp);
 			}
 			
-			// delete evidence1 and expect a date update for mf
+			// delete evidence1 and expect a date update and contrib for mf
 			
 			final List<M3Request> batch2 = new ArrayList<M3Request>();
 			r = BatchTestTools.removeIndividual(modelId, evidence1);
 			batch2.add(r);
 			
 			{
-				M3BatchResponse response2 = executeBatch(batch2);
+				M3BatchResponse response2 = executeBatch(batch2, "FOO:2");
 				
 				JsonOwlIndividual[] individuals = BatchTestTools.responseIndividuals(response2);
 				Set<String> currentDates = new HashSet<String>();
+				Set<String> contrib = new HashSet<String>();
 				for (JsonOwlIndividual individual : individuals) {
 					if (mf.equals(individual.id)) {
 						for(JsonAnnotation annotation : individual.annotations) {
 							if (AnnotationShorthand.date.name().equals(annotation.key)) {
 								currentDates.add(annotation.value);
+							}
+							else if (AnnotationShorthand.contributor.name().equals(annotation.key)) {
+								contrib.add(annotation.value);
 							}
 						}
 					}
@@ -1819,26 +1823,38 @@ public class BatchModelHandlerTest {
 				assertEquals(1, currentDates.size());
 				assertFalse(currentDates.contains(dateMf)); // prev Date
 				dateMf = currentDates.iterator().next();
+				
+				assertEquals(2, contrib.size());
+				assertTrue(contrib.contains("FOO:1"));
+				assertTrue(contrib.contains("FOO:2"));
 			}
 			
-			// delete evidence2 and expect a date update for fact
+			// delete evidence2 and expect a date update and contrib for fact
 			
 			final List<M3Request> batch3 = new ArrayList<M3Request>();
 			r = BatchTestTools.removeIndividual(modelId, evidence2);
 			batch3.add(r);
 			
 			{
-				M3BatchResponse response3 = executeBatch(batch3);
+				M3BatchResponse response3 = executeBatch(batch3, "FOO:3");
 				JsonOwlFact[] facts = BatchTestTools.responseFacts(response3);
 				assertEquals(1, facts.length);
 				Set<String> currentDates = new HashSet<String>();
+				Set<String> contrib = new HashSet<String>();
 				for(JsonAnnotation annotation : facts[0].annotations) {
 					if (AnnotationShorthand.date.name().equals(annotation.key)) {
 						currentDates.add(annotation.value);
 					}
+					else if (AnnotationShorthand.contributor.name().equals(annotation.key)) {
+						contrib.add(annotation.value);
+					}
 				}
 				assertEquals(1, currentDates.size());
 				assertFalse(currentDates.contains(dateMf)); // prev Date
+				
+				assertEquals(2, contrib.size());
+				assertTrue(contrib.contains("FOO:1"));
+				assertTrue(contrib.contains("FOO:3"));
 			}
 		}
 		finally {
@@ -1846,12 +1862,16 @@ public class BatchModelHandlerTest {
 		}
 	}
 
-	private M3BatchResponse executeBatch(final List<M3Request> batch) {
-		M3BatchResponse response2 = handler.m3Batch(uid, intention, packetId, batch.toArray(new M3Request[batch.size()]), true);
-		assertEquals(uid, response2.uid);
-		assertEquals(intention, response2.intention);
-		assertEquals(response2.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response2.messageType);
-		return response2;
+	private M3BatchResponse executeBatch(List<M3Request> batch) {
+		return executeBatch(batch, uid);
+	}
+	
+	private M3BatchResponse executeBatch(List<M3Request> batch, String uid) {
+		M3BatchResponse response = handler.m3Batch(uid, intention, packetId, batch.toArray(new M3Request[batch.size()]), true);
+		assertEquals(uid, response.uid);
+		assertEquals(intention, response.intention);
+		assertEquals(response.message, M3BatchResponse.MESSAGE_TYPE_SUCCESS, response.messageType);
+		return response;
 	}
 	
 	/**

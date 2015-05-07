@@ -1085,6 +1085,11 @@ public abstract class CoreMolecularModelManager<METADATA> {
 				break;
 			}
 		}
+		addAnnotations(modelId, model, toModify, annotations, flushReasoner, metadata);
+	}
+	
+	void addAnnotations(String modelId, ModelContainer model, OWLObjectPropertyAssertionAxiom toModify,
+			Set<OWLAnnotation> annotations, boolean flushReasoner, METADATA metadata) {
 		if (toModify != null) {
 			Set<OWLAnnotation> combindedAnnotations = new HashSet<OWLAnnotation>(annotations);
 			combindedAnnotations.addAll(toModify.getAnnotations());
@@ -1107,9 +1112,10 @@ public abstract class CoreMolecularModelManager<METADATA> {
 		updateAnnotation(modelId, model, toModify, update, flushReasoner, metadata);
 	}
 	
-	void updateAnnotation(String modelId, ModelContainer model, 
+	OWLObjectPropertyAssertionAxiom updateAnnotation(String modelId, ModelContainer model, 
 			OWLObjectPropertyAssertionAxiom toModify, OWLAnnotation update,
 			boolean flushReasoner, METADATA metadata) {
+		OWLObjectPropertyAssertionAxiom newAxiom = null;
 		if (toModify != null) {
 			Set<OWLAnnotation> combindedAnnotations = new HashSet<OWLAnnotation>();
 			OWLAnnotationProperty target = update.getProperty();
@@ -1119,11 +1125,12 @@ public abstract class CoreMolecularModelManager<METADATA> {
 				}
 			}
 			combindedAnnotations.add(update);
-			modifyAnnotations(toModify, combindedAnnotations, modelId, model, flushReasoner, metadata);
+			newAxiom = modifyAnnotations(toModify, combindedAnnotations, modelId, model, flushReasoner, metadata);
 		}
+		return newAxiom;
 	}
 	
-	void removeAnnotations(String modelId, ModelContainer model, OWLObjectPropertyExpression p,
+	OWLObjectPropertyAssertionAxiom removeAnnotations(String modelId, ModelContainer model, OWLObjectPropertyExpression p,
 			OWLNamedIndividual i, OWLNamedIndividual j, Set<OWLAnnotation> annotations,
 			boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
@@ -1135,23 +1142,27 @@ public abstract class CoreMolecularModelManager<METADATA> {
 				break;
 			}
 		}
+		OWLObjectPropertyAssertionAxiom newAxiom = null;
 		if (toModify != null) {
 			Set<OWLAnnotation> combindedAnnotations = new HashSet<OWLAnnotation>(toModify.getAnnotations());
 			combindedAnnotations.removeAll(annotations);
-			modifyAnnotations(toModify, combindedAnnotations, modelId, model, flushReasoner, metadata);
+			newAxiom = modifyAnnotations(toModify, combindedAnnotations, modelId, model, flushReasoner, metadata);
 		}
+		return newAxiom;
 	}
 	
-	private void modifyAnnotations(OWLObjectPropertyAssertionAxiom axiom, 
+	private OWLObjectPropertyAssertionAxiom modifyAnnotations(OWLObjectPropertyAssertionAxiom axiom, 
 			Set<OWLAnnotation> replacement, 
 			String modelId, ModelContainer model, boolean flushReasoner, METADATA metadata) {
 		OWLOntology ont = model.getAboxOntology();
 		OWLDataFactory f = model.getOWLDataFactory();
 		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>(2);
 		changes.add(new RemoveAxiom(ont, axiom));
-		OWLAxiom newAxiom = f.getOWLObjectPropertyAssertionAxiom(axiom.getProperty(), axiom.getSubject(), axiom.getObject(), replacement);
+		OWLObjectPropertyAssertionAxiom newAxiom = 
+				f.getOWLObjectPropertyAssertionAxiom(axiom.getProperty(), axiom.getSubject(), axiom.getObject(), replacement);
 		changes.add(new AddAxiom(ont, newAxiom));
 		applyChanges(modelId, model, changes, flushReasoner, metadata);
+		return newAxiom;
 	}
 	
 	public void addAxiom(String modelId, ModelContainer model, OWLAxiom axiom, 

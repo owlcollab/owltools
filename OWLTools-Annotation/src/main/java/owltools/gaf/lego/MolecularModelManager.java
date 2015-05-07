@@ -299,6 +299,14 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return i;
 	}
 	
+	public void addAnnotations(String modelId, IRI subject, 
+			Set<OWLAnnotation> annotations, METADATA metadata) throws UnknownIdentifierException {
+		if (annotations != null && !annotations.isEmpty()) {
+			ModelContainer model = checkModelId(modelId);
+			addAnnotations(modelId, model, subject, annotations, metadata);
+		}
+	}
+	
 	public OWLNamedIndividual updateAnnotation(String modelId, String iid, 
 			OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
@@ -885,6 +893,13 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return Arrays.asList(individual1, individual2);
 	}
 	
+	public void addAnnotations(String modelId, Set<OWLObjectPropertyAssertionAxiom> axioms, Set<OWLAnnotation> annotations, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
+			addAnnotations(modelId, model, axiom, annotations, false, metadata);	
+		}
+	}
+	
 	public List<OWLNamedIndividual> updateAnnotation(String modelId, String pid, 
 			String iid, String jid, OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
@@ -905,11 +920,17 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return Arrays.asList(individual1, individual2);
 	}
 	
-	public void updateAnnotation(String modelId, Set<OWLObjectPropertyAssertionAxiom> axioms, OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+	public Set<OWLObjectPropertyAssertionAxiom> updateAnnotation(String modelId, Set<OWLObjectPropertyAssertionAxiom> axioms, OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
+		Set<OWLObjectPropertyAssertionAxiom> newAxioms = new HashSet<OWLObjectPropertyAssertionAxiom>();
 		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
-			updateAnnotation(modelId, model, axiom, annotation, false, metadata);	
+			OWLObjectPropertyAssertionAxiom newAxiom = 
+					updateAnnotation(modelId, model, axiom, annotation, false, metadata);
+			if (newAxiom != null) {
+				newAxioms.add(newAxiom);
+			}
 		}
+		return newAxioms;
 	}
 	
 	public List<OWLNamedIndividual> removeAnnotations(String modelId, String pid, 

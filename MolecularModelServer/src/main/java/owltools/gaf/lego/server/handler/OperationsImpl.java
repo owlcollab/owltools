@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -192,7 +193,7 @@ abstract class OperationsImpl {
 			
 			DeleteInformation dInfo = m3.deleteIndividual(values.modelId, individual, token);
 			handleRemovedAnnotationIRIs(dInfo.usedIRIs, values.modelId, token);
-			updateDate(dInfo, values.modelId, token, m3);
+			updateAnnotationsForDelete(dInfo, values.modelId, userId, token, m3);
 			updateModelAnnotations(values.modelId, userId, token, m3);
 			values.renderBulk = true;
 		}				
@@ -728,13 +729,20 @@ abstract class OperationsImpl {
 		m3.updateAnnotation(modelId, individual, createDateAnnotation(f), token);
 	}
 	
-	private void updateDate(DeleteInformation info, String modelId, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {
+	private void updateAnnotationsForDelete(DeleteInformation info, String modelId, String userId, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {
 		final OWLDataFactory f = m3.getOWLDataFactory(modelId);
 		final OWLAnnotation annotation = createDateAnnotation(f);
+		final Set<OWLAnnotation> generated = new HashSet<OWLAnnotation>();
+		addGeneratedAnnotations(userId, generated, f);
 		for(IRI subject : info.touched) {
 			m3.updateAnnotation(modelId, subject, annotation, token);
+			m3.addAnnotations(modelId, subject, generated, token);
 		}
-		m3.updateAnnotation(modelId, info.updated, annotation, token);
+		if (info.updated.isEmpty() == false) {
+			Set<OWLObjectPropertyAssertionAxiom> newAxioms = 
+					m3.updateAnnotation(modelId, info.updated, annotation, token);
+			m3.addAnnotations(modelId, newAxioms, generated, token);
+		}
 	}
 	
 	private void updateDate(String modelId, String predicate, String subject, String object, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {
