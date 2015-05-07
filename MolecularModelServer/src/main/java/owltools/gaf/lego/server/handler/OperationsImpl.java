@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
+import owltools.gaf.lego.CoreMolecularModelManager.DeleteInformation;
 import owltools.gaf.lego.IdStringManager;
 import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
@@ -187,15 +188,11 @@ abstract class OperationsImpl {
 		else if (Operation.remove == operation){
 			// required: modelId, individual
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
-			Set<IRI> annotationIRIs;
-			if (values.notVariable(request.arguments.individual)) {
-				annotationIRIs = m3.deleteIndividual(values.modelId, request.arguments.individual, token);
-			}
-			else {
-				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
-				annotationIRIs = m3.deleteIndividual(values.modelId, pair.getKey(), token);
-			}
-			handleRemovedAnnotationIRIs(annotationIRIs, values.modelId, token);
+			String individual = values.getVariableValueId(request.arguments.individual);
+			
+			DeleteInformation dInfo = m3.deleteIndividual(values.modelId, individual, token);
+			handleRemovedAnnotationIRIs(dInfo.usedIRIs, values.modelId, token);
+			updateDate(dInfo, values.modelId, token, m3);
 			updateModelAnnotations(values.modelId, userId, token, m3);
 			values.renderBulk = true;
 		}				
@@ -729,6 +726,15 @@ abstract class OperationsImpl {
 	private void updateDate(String modelId, String individual, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {
 		final OWLDataFactory f = m3.getOWLDataFactory(modelId);
 		m3.updateAnnotation(modelId, individual, createDateAnnotation(f), token);
+	}
+	
+	private void updateDate(DeleteInformation info, String modelId, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {
+		final OWLDataFactory f = m3.getOWLDataFactory(modelId);
+		final OWLAnnotation annotation = createDateAnnotation(f);
+		for(IRI subject : info.touched) {
+			m3.updateAnnotation(modelId, subject, annotation, token);
+		}
+		m3.updateAnnotation(modelId, info.updated, annotation, token);
 	}
 	
 	private void updateDate(String modelId, String predicate, String subject, String object, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {

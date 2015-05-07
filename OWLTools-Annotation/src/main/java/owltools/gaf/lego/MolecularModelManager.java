@@ -27,6 +27,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -223,10 +224,10 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @param modelId
 	 * @param iid
 	 * @param metadata
-	 * @return IRIs
+	 * @return delete information
 	 * @throws UnknownIdentifierException
 	 */
-	public Set<IRI> deleteIndividual(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
+	public DeleteInformation deleteIndividual(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
@@ -240,10 +241,10 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @param modelId
 	 * @param iid
 	 * @param metadata
-	 * @return IRIs
+	 * @return delete information
 	 * @throws UnknownIdentifierException
 	 */
-	public Set<IRI> deleteIndividualNonReasoning(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
+	public DeleteInformation deleteIndividualNonReasoning(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
@@ -309,6 +310,14 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 			updateAnnotation(modelId, model, i.getIRI(), annotation, metadata);
 		}
 		return i;
+	}
+	
+	public void updateAnnotation(String modelId, IRI subject, 
+			OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		if (annotation != null) {
+			updateAnnotation(modelId, model, subject, annotation, metadata);
+		}
 	}
 	
 	public OWLNamedIndividual removeAnnotations(String modelId, String iid,
@@ -894,6 +903,13 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		updateAnnotation(modelId, model, property, individual1, individual2, annotation, false, metadata);
 
 		return Arrays.asList(individual1, individual2);
+	}
+	
+	public void updateAnnotation(String modelId, Set<OWLObjectPropertyAssertionAxiom> axioms, OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
+			updateAnnotation(modelId, model, axiom, annotation, false, metadata);	
+		}
 	}
 	
 	public List<OWLNamedIndividual> removeAnnotations(String modelId, String pid, 
