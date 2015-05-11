@@ -6,7 +6,7 @@
 	<version>0.2.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>OWLTools-Parent</name>
-	<url>http://code.google.com/p/owltools/</url>
+	<url>https://github.com/owlcollab/owltools</url>
 	<description>OWLTools (aka OWL2LS - OWL2 Life Sciences) is convenience java API on top of the OWL API.</description>
 	<inceptionYear>2010</inceptionYear>
 	<scm>
@@ -14,7 +14,7 @@
 		<connection>scm:git:git://github.com/owlcollab/owltools</connection>
 	</scm>
 	<issueManagement>
-		<url>http://code.google.com/p/owltools/issues/list</url>
+		<url>https://github.com/owlcollab/owltools/issues</url>
 	</issueManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
