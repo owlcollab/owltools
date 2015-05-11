@@ -47,6 +47,7 @@
 					<excludes>
 						<!-- exclude due to use of external servers, which may not be available -->
 						<exclude>owltools/gaf/lego/server/external/GolrExternalLookupService.java</exclude>
+						<exclude>owltools/gaf/lego/server/handler/SeedHandlerTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>

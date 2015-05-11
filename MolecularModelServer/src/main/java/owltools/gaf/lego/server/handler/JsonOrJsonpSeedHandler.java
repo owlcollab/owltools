@@ -138,6 +138,7 @@ public class JsonOrJsonpSeedHandler implements M3SeedHandler {
 		
 		// render result
 		// create response.data
+		response.messageType = SeedResponse.MESSAGE_TYPE_SUCCESS;
 		response.data = new SeedResponseData();
 		reasoner.flush();
 		response.data.inconsistentFlag = reasoner.isConsistent();
