@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.util.OWLEntityRemover;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -154,7 +155,6 @@ public class SpeciesSubsetterUtil {
 		m.removeDanglingAxioms();
 		*/
 		
-		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		if (rootClass == null)
 			rootClass = fac.getOWLThing();
 		//rootClass = graph.getOWLClassByIdentifier("UBERON:0001062");
@@ -171,13 +171,12 @@ public class SpeciesSubsetterUtil {
 		reasoner.flush();
 		Set<OWLClass> ucs = reasoner.getEquivalentClasses(fac.getOWLNothing()).getEntities();
 		LOG.info("UCS: "+ucs.size());
+		OWLEntityRemover remover = new OWLEntityRemover(mgr, graph.getAllOntologies());
 		for (OWLClass uc : ucs) {
-			LOG.info("Removing: "+uc+" "+graph.getLabel(uc));
-			rmAxioms.addAll(ont.getAxioms(uc));
-			rmAxioms.add(fac.getOWLDeclarationAxiom(uc));
-			rmAxioms.addAll(ont.getAnnotationAssertionAxioms(uc.getIRI()));
+			LOG.debug("Removing: "+uc+" "+graph.getLabel(uc));
+			uc.accept(remover);
 		}
-		mgr.removeAxioms(ont, rmAxioms);
+		mgr.applyChanges(remover.getChanges());
 	}
 	
 	/**
