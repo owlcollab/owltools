@@ -1722,9 +1722,11 @@ public class GafCommandRunner extends CommandRunner {
 	}
 
 
+	@Deprecated
 	@CLIMethod("--visualize-lego")
 	public void visualizeLego(Opts opts) throws Exception {
 		opts.info("[--owl OWLFILE] [-o OUTFOTFILE]", "");
+		LOG.error("The '--visualize-lego' method is deprecated. The dot writer is not compatible with the all-individual approach.");
 		// TODO
 		OWLOntology ont = null;
 		String dotOutputFile = null;
@@ -1753,6 +1755,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 
+	@Deprecated
 	public void writeLego(OWLOntology ontology, final String output, String name) throws Exception {
 		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
 

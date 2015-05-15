@@ -27,6 +27,7 @@ import owltools.io.OWLPrettyPrinter;
 /**
  * Rudimentary implementation of a DOT writer for the LEGO annotations in OWL.
  */
+@Deprecated
 public abstract class LegoDotWriter implements LegoRenderer {
 
 	private static final String MF_COLOR = "lightblue";

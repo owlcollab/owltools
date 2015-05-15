@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
 
+@Deprecated
 public class LegoUnitTools extends LegoTools {
 	
 	public LegoUnitTools(OWLGraphWrapper graph, OWLReasoner reasoner) {

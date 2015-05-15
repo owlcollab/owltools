@@ -1,10 +1,6 @@
 package owltools.gaf.lego;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,12 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.geneontology.lego.dot.LegoDotWriter;
-import org.geneontology.lego.dot.LegoRenderer;
-import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -33,7 +24,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
@@ -1015,152 +1005,6 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	public void updateImports(String modelId) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		updateImports(modelId, model);
-	}
-	
-	@Deprecated
-	protected abstract class LegoStringDotRenderer extends LegoDotWriter {
-		public LegoStringDotRenderer(OWLGraphWrapper graph, OWLReasoner reasoner) {
-			super(graph, reasoner);
-			// TODO Auto-generated constructor stub
-		}
-
-		public StringBuffer sb = new StringBuffer();
-		
-	}
-	
-	/**
-	 * For testing purposes - may be obsoleted with rendering moved to client
-	 * 
-	 * @param modelId
-	 * @return dot string
-	 * @throws IOException
-	 * @throws UnExpectedStructureException
-	 * @throws UnknownIdentifierException
-	 */
-	@Deprecated
-	public String generateDot(String modelId) throws IOException, UnExpectedStructureException, UnknownIdentifierException {
-		ModelContainer m = checkModelId(modelId);
-		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
-	
-		LegoStringDotRenderer renderer = 
-				new LegoStringDotRenderer(graph, m.getReasoner()) {
-
-
-			@Override
-			protected void open() throws IOException {
-				// do nothing
-			}
-
-			@Override
-			protected void close() {
-				// do nothing
-			}
-
-			@Override
-			protected void appendLine(CharSequence line) throws IOException {
-				//System.out.println(line);
-				sb.append(line).append('\n');
-			}
-		};
-		renderer.render(individuals, modelId, true);
-		return renderer.sb.toString();
-	}
-	
-	/**
-	 * @param modelId
-	 * @return png File
-	 * @throws IOException 
-	 * @throws UnExpectedStructureException 
-	 * @throws InterruptedException 
-	 * @throws UnknownIdentifierException 
-	 */
-	@Deprecated
-	public File generateImage(String modelId) throws IOException, UnExpectedStructureException, InterruptedException, UnknownIdentifierException {
-		final File dotFile = File.createTempFile("LegoAnnotations", ".dot");
-		final File pngFile = File.createTempFile("LegoAnnotations", ".png");
-
-		ModelContainer m = checkModelId(modelId);
-		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
-		OWLReasoner reasoner = m.getReasoner();
-		String dotPath = "/opt/local/bin/dot"; // TODO
-		try {
-			// Step 1: render dot file
-			LegoRenderer dotWriter = new LegoDotWriter(graph, reasoner) {
-				
-				private PrintWriter writer = null;
-				
-				@Override
-				protected void open() throws IOException {
-					writer = new PrintWriter(dotFile);
-				}
-				
-				@Override
-				protected void appendLine(CharSequence line) throws IOException {
-					writer.println(line);
-				}
-
-				@Override
-				protected void close() {
-					IOUtils.closeQuietly(writer);
-				}
-				
-			};
-			dotWriter.render(individuals, null, true);
-			
-			// Step 2: render png file using graphiz (i.e. dot)
-			Runtime r = Runtime.getRuntime();
-
-			final String in = dotFile.getAbsolutePath();
-			final String out = pngFile.getAbsolutePath();
-			
-			Process process = r.exec(dotPath + " " + in + " -Tpng -q -o " + out);
-
-			process.waitFor();
-			
-			return pngFile;
-		} finally {
-			// delete temp files, do not rely on deleteOnExit
-			FileUtils.deleteQuietly(dotFile);
-			FileUtils.deleteQuietly(pngFile);
-		}
-	
-	}
-
-	/**
-	 * @param ontology
-	 * @param output
-	 * @param modelId
-	 * @throws Exception
-	 */
-	@Deprecated
-	public void writeLego(OWLOntology ontology, final String output, String modelId) throws Exception {
-
-		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
-
-
-		LegoRenderer renderer = 
-				new LegoDotWriter(graph, checkModelId(modelId).getReasoner()) {
-
-			BufferedWriter fileWriter = null;
-
-			@Override
-			protected void open() throws IOException {
-				fileWriter = new BufferedWriter(new FileWriter(new File(output)));
-			}
-
-			@Override
-			protected void close() {
-				IOUtils.closeQuietly(fileWriter);
-			}
-
-			@Override
-			protected void appendLine(CharSequence line) throws IOException {
-				//System.out.println(line);
-				fileWriter.append(line).append('\n');
-			}
-		};
-		renderer.render(individuals, modelId, true);
-
 	}
 	
 }

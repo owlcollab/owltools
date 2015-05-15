@@ -30,6 +30,7 @@ import owltools.io.OWLPrettyPrinter;
  * data. The edges are relations between the individuals and usually have edge
  * label.
  */
+@Deprecated
 public class LegoShuntGraphTool {
 
 	private static final String MF_COLOR = "lightblue";  // molecular function
