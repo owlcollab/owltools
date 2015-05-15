@@ -1,11 +1,14 @@
 package owltools.io;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
@@ -19,6 +22,9 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 
 public class OWLGsonRendererTest extends OWLToolsTestBasics {
+	
+	@Rule
+	public TemporaryFolder folder= new TemporaryFolder();
 
 	private static final boolean RENDER_FLAG = true;
 
@@ -62,7 +68,8 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 			System.out.println(stringWriter.toString());
 			ParserWrapper pw = new ParserWrapper();
 			OWLOntologyFormat owlFormat = new OWLJSONFormat();
-			pw.saveOWL(wrapper.getSourceOntology(), owlFormat , "/tmp/foo.json");
+			File foo = folder.newFile("foo.json");
+			pw.saveOWL(wrapper.getSourceOntology(), owlFormat , foo.getAbsolutePath());
 		}
 	}
 
