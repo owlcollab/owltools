@@ -6,6 +6,12 @@ DIRNAME=`dirname $0`
 # Wildcards are allowed
 CLASSPATH_RELATIVE=owltools-runner-all.jar
 
+## Check for Cygwin, use grep for a case-insensitive search
+IS_CYGWIN="FALSE"
+if uname | grep -iq cygwin; then
+    IS_CYGWIN="TRUE"
+fi
+
 # If literal classpath values are needed, uncomment the line below
 # This can be useful if the classpath contains URLs
 # CLASSPATH_LITERAL=""
@@ -18,7 +24,7 @@ CLASSPATH_RELATIVE=owltools-runner-all.jar
 # failure message will make a little more sense.
 # JAVAPATH="java"
 
-if [ "`uname`" = "Cygwin" ]
+if [ $IS_CYGWIN = "TRUE" ]
 then
     PATH_SEP=";"
 else
@@ -32,7 +38,7 @@ CMDARGS=" "
 PATH_TO_ME=`which $0`;
 PATH_TO_ME=`echo $PATH_TO_ME | sed -e "s/\(.*\)\/.*/\1/g"`
 
-if [ "`uname`" = "Cygwin" ]
+if [ $IS_CYGWIN = "TRUE" ]
 then
     LAUNCHER_DIR="`cygpath --mixed $PATH_TO_ME`"
 else
@@ -76,7 +82,7 @@ do
     DEREFERENCED_CLASSPATH=`ls -1 -L $PATH_TO_ME/$ARG | grep -v ontologyrelease`
     for CP_ENTRY in $DEREFERENCED_CLASSPATH
     do
-        if [ "`uname`" = "Cygwin" ]
+        if [ $IS_CYGWIN = "TRUE" ]
         then
             CP_ENTRY="`cygpath --mixed \"$CP_ENTRY\"`"
         fi
