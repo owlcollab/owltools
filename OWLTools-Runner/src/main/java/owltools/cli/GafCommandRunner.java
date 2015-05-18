@@ -919,6 +919,40 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 
+	protected int preCheckOntology(String inConsistentMsg, String unsatisfiableMsg) {
+		// pre-check: only try to load ontology iff:
+		// * ontology is consistent 
+		// * no unsatisfiable classes
+		OWLReasoner currentReasoner = reasoner;
+		boolean disposeReasoner = false;
+		try {
+			if (currentReasoner == null) {
+				disposeReasoner = true;
+				currentReasoner = new ElkReasonerFactory().createReasoner(g.getSourceOntology());
+			}
+			boolean consistent = currentReasoner.isConsistent();
+			if (consistent == false) {
+				LOG.error(inConsistentMsg);
+				return -1;
+			}
+			Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
+			if (unsatisfiable.isEmpty() == false) {
+				LOG.error(unsatisfiableMsg);
+				OWLPrettyPrinter prettyPrinter = getPrettyPrinter();
+				for (OWLClass owlClass : unsatisfiable) {
+					LOG.error("Unsatisfiable: "+prettyPrinter.render(owlClass));
+				}
+				return -1;
+			}
+		}
+		finally {
+			if (disposeReasoner && currentReasoner != null) {
+				currentReasoner.dispose();
+			}
+		}
+		return 0;
+	}
+	
 	@CLIMethod("--gaf-run-checks")
 	public void runGAFChecks(Opts opts) throws Exception {
 		boolean predictAnnotations = gafPredictionFile != null;
@@ -933,7 +967,15 @@ public class GafCommandRunner extends CommandRunner {
 				elkLogger = Logger.getLogger("org.semanticweb.elk");
 				elkLogLevel = elkLogger.getLevel();
 				elkLogger.setLevel(Level.ERROR);
-
+				
+				// pre-check ontology
+				int code = preCheckOntology("Can't validate with an inconsistent ontology", 
+						"Can't validate with an ontology with unsatisfiable classes");
+				if (code != 0) {
+					exit(code);
+					return;
+				}
+				
 				if (eco == null) {
 					eco = EcoMapperFactory.createTraversingEcoMapper(pw).getMapper();
 				}

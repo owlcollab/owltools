@@ -1,14 +1,11 @@
 package owltools.cli;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -18,16 +15,13 @@ import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.apache.solr.common.SolrException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -56,12 +50,10 @@ import owltools.graph.shunt.OWLShuntNode;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
 import owltools.panther.PANTHERForest;
-import owltools.panther.PANTHERTree;
 import owltools.solrj.ComplexAnnotationSolrDocumentLoader;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
 import owltools.solrj.OntologyGeneralSolrDocumentLoader;
-import owltools.solrj.OntologySolrLoader;
 import owltools.solrj.OptimizeSolrDocumentLoader;
 import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
 import owltools.solrj.PANTHERSolrDocumentLoader;
@@ -237,6 +229,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 //		}
 //	}
 	
+	
+	
 	/**
 	 * Flexible loader for ontologies--uses the YAML config to find loading functions.
 	 * 
@@ -245,6 +239,13 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-load-ontology")
 	public void flexLoadOntologySolr(Opts opts) throws Exception {
+		// pre-check ontology
+		int code = preCheckOntology("Can't process an inconsistent ontology for solr", 
+				"Can't process an ontology with unsatisfiable classes for solr");
+		if (code != 0) {
+			exit(code);
+			return;
+		}
 
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);				
