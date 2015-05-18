@@ -919,6 +919,27 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 
+	/**
+	 * Similar method to '--run-reasoner', but not only checks for unsatisfiable
+	 * classes, but also checks first for a consistent ontology.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--ontology-pre-check")
+	public void runOntologyPreCheck(Opts opts) throws Exception {
+		if (g == null) {
+			LOG.error("The ontology needs to be loaded first.");
+			exit(-1);
+			return;
+		}
+		int code = preCheckOntology("The ontology is inconsistent.", "There are unsatisfiable classes.");
+		if (code != 0) {
+			exit(-1);
+			return;
+		}
+	}
+	
 	protected int preCheckOntology(String inConsistentMsg, String unsatisfiableMsg) {
 		// pre-check: only try to load ontology iff:
 		// * ontology is consistent 
