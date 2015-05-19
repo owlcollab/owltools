@@ -3066,7 +3066,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--sic|--slurp-import-closure")) {
 				opts.info("[-d DIR] [-c CATALOG-OUT]","Saves local copy of import closure. Assumes sourceontology has imports");
 				String dir = ".";
-				String catfile = null;
+				String catfile = "catalog-v001.xml";
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-d")) {
 						dir = opts.nextOpt();
