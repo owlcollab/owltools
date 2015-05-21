@@ -2527,6 +2527,7 @@ public class CommandRunner {
 				boolean isRemoveUnsatisfiable = false;
 				boolean showExplanation = false;
 				String unsatisfiableModule = null;
+				boolean traceModuleAxioms = false; // related to unsatisfiableModule
 
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
@@ -2557,6 +2558,9 @@ public class CommandRunner {
 						opts.info("", "create a module for the unsatisfiable classes.");
 						unsatisfiableModule = opts.nextOpt();
 					}
+					else if (opts.nextEq("--trace-module-axioms")) {
+						traceModuleAxioms = true;
+					}
 					else {
 						break;
 					}
@@ -2571,7 +2575,7 @@ public class CommandRunner {
 					int n = 0;
 					Set<OWLClass> unsats = new HashSet<OWLClass>();
 					LOG.info("Finding unsatisfiable classes");
-					Set<OWLClass> unsatisfiableClasses = reasoner.getEquivalentClasses(g.getDataFactory().getOWLNothing()).getEntitiesMinusBottom();
+					Set<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
 					ExplanationGenerator explanationGenerator = null;
 					if (showExplanation) {
 						OWLReasonerFactory factory = createReasonerFactory(reasonerName);
@@ -2607,6 +2611,9 @@ public class CommandRunner {
 						Set<OWLEntity> seeds = new HashSet<OWLEntity>(unsatisfiableClasses);
 						Set<OWLAxiom> axioms = sme.extract(seeds);
 						OWLOntology module = m.createOntology();
+						if (traceModuleAxioms) {
+							axioms = traceAxioms(axioms, g, module.getOWLOntologyManager().getOWLDataFactory());
+						}
 						m.addAxioms(module, axioms);
 						File moduleFile = new File(unsatisfiableModule).getCanonicalFile();
 						m.saveOntology(module, IRI.create(moduleFile));
@@ -4150,6 +4157,33 @@ public class CommandRunner {
 			}
 		}
 	}
+
+	static Set<OWLAxiom> traceAxioms(Set<OWLAxiom> axioms, OWLGraphWrapper g, OWLDataFactory df) {
+		final OWLAnnotationProperty p = df.getOWLAnnotationProperty(IRI.create("http://trace.module/source-ont"));
+		final Set<OWLOntology> ontologies = g.getSourceOntology().getImportsClosure();
+		final Set<OWLAxiom> traced = new HashSet<OWLAxiom>();
+		for (OWLAxiom axiom : axioms) {
+			Set<OWLOntology> hits = new HashSet<OWLOntology>();
+			for(OWLOntology ont : ontologies) {
+				if (ont.containsAxiom(axiom)) {
+					hits.add(ont);
+				}
+			}
+			if (hits.isEmpty()) {
+				traced.add(axiom);
+			}
+			else {
+				Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>(axiom.getAnnotations());
+				for (OWLOntology hit : hits) {
+					OWLOntologyID id = hit.getOntologyID();
+					annotations.add(df.getOWLAnnotation(p, id.getOntologyIRI()));
+				}
+				traced.add(AxiomAnnotationTools.changeAxiomAnnotations(axiom, annotations, df));
+			}
+		}
+		return traced;
+	}
+
 
 	private MinimalModelGenerator getMinimalModelGenerator(boolean isCreateNewAbox) throws OWLOntologyCreationException {
 
