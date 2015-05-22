@@ -1,6 +1,7 @@
 package owltools.yaml.golrconfig;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class GOlrField {
 
@@ -14,6 +15,7 @@ public class GOlrField {
 	public String required;
 	public String cardinality;
 	public ArrayList <String> property;
+	public Map<String,Object> property_config; // generic configuration map
 	public String boost_weights;
 	public String result_weights;
 	public String filter_weights;
@@ -21,6 +23,7 @@ public class GOlrField {
 	public String indexed;
 	// The processing steps to apply to that property--not yet used
 	public ArrayList<String> transform;
+	
 
 	// Define the defaults for optional fields.
 	public GOlrField() {

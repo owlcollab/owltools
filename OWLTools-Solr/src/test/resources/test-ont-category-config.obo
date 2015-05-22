@@ -1,0 +1,14 @@
+format-version: 1.2
+default-namespace: b
+ontology: b
+
+[Term]
+id: B:0000001
+
+[Term]
+id: GO:0000002
+namespace: go_namespace
+
+[Term]
+id: CL:0000003
+

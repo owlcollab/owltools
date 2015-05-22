@@ -114,26 +114,26 @@ public class OWLGraphFlexTest {
 		FlexCollection fc = new FlexCollection(g);
 		
 		// Small closure on a3, over just is_a.
-		List<String> ans_t1 = fc.getExtStringList(a3, isa);
+		List<String> ans_t1 = fc.getExtStringList(a3, isa, null);
 		assertTrue("In is_a closure: A:0000001", ans_t1.contains("A:0000001"));
 		assertFalse("/Not/ in is_a closure: A:0000002", ans_t1.contains("A:0000002"));
 		assertTrue("In is_a closure: A:0000003", ans_t1.contains("A:0000003"));
 
 		// Small closure on a3, over is_a/part_of.
-		List<String> ans_t2 = fc.getExtStringList(a3, isa_partof);
+		List<String> ans_t2 = fc.getExtStringList(a3, isa_partof, null);
 		assertTrue("In is_a/part_of closure: A:0000001", ans_t2.contains("A:0000001"));
 		assertFalse("/Not/ in is_a/part_of closure: A:0000002", ans_t2.contains("A:0000002"));
 		assertTrue("In is_a/part_of closure: A:0000003", ans_t2.contains("A:0000003"));
 
 		// Small closure on a4, over is_a.
-		List<String> ans_t3 = fc.getExtStringList(a4, isa);
+		List<String> ans_t3 = fc.getExtStringList(a4, isa, null);
 		assertTrue("In is_a closure: A:0000001", ans_t3.contains("A:0000001"));
 		assertFalse("/Not/ in is_a closure: A:0000002", ans_t3.contains("A:0000002"));
 		assertTrue("In is_a closure: A:0000003", ans_t3.contains("A:0000003"));
 		assertTrue("In is_a closure: A:0000004", ans_t3.contains("A:0000004"));
 		
 		// Small closure on a4, over is_a/part_of.
-		List<String> ans_t4 = fc.getExtStringList(a4, isa_partof);
+		List<String> ans_t4 = fc.getExtStringList(a4, isa_partof, null);
 		assertTrue("In is_a/part_of closure: A:0000001", ans_t4.contains("A:0000001"));
 		assertTrue("In is_a/part_of closure: A:0000002", ans_t4.contains("A:0000002"));
 		assertTrue("In is_a/part_of closure: A:0000003", ans_t4.contains("A:0000003"));
