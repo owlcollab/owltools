@@ -128,6 +128,7 @@ public class GafCommandRunner extends CommandRunner {
 	private String gafReportFile = null;
 	private String gafPredictionFile = null;
 	private String gafPredictionReportFile = null;
+	private String gafTaxonModule = "go-taxon-rule-unsatisfiable-module.owl";
 	private String experimentalGafPredictionFile = null;
 	private String experimentalGafPredictionReportFile = null;
 
@@ -1001,8 +1002,7 @@ public class GafCommandRunner extends CommandRunner {
 					eco = EcoMapperFactory.createTraversingEcoMapper(pw).getMapper();
 				}
 				LOG.info("Start validating GAF");
-
-				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco, true);
+				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco, gafTaxonModule);
 				ruleEngine = new AnnotationRulesEngine(rulesFactory, predictAnnotations, experimentalPredictAnnotations);
 
 				result = ruleEngine.validateAnnotations(gafdoc);
@@ -1233,6 +1233,13 @@ public class GafCommandRunner extends CommandRunner {
 	public void setGAFPredictionReportFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafPredictionReportFile = opts.nextOpt();
+		}
+	}
+	
+	@CLIMethod("--gaf-validation-unsatisfiable-module")
+	public void setGAFTaxonModule(Opts opts) {
+		if (opts.hasArgs()) {
+			gafTaxonModule = opts.nextOpt();
 		}
 	}
 

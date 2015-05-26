@@ -23,7 +23,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 
 	private final Map<String, AnnotationRule> namedRules;
 	
-	public GoAnnotationRulesFactoryImpl(ParserWrapper parserWrapper, boolean createOntologyModules) {
+	public GoAnnotationRulesFactoryImpl(ParserWrapper parserWrapper, String taxonModule) {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
 				"http://www.geneontology.org/doc/GO.xrf_abbs",
 				parserWrapper,
@@ -32,21 +32,21 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 					"http://purl.obolibrary.org/obo/go/extensions/gorel.owl"
 				),
 				"http://purl.obolibrary.org/obo/eco.owl",
-				createOntologyModules);
+				taxonModule);
 	}
 	
 	@Deprecated
 	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, ParserWrapper p, String go, String gorel, String eco) {
-		this(qcfile, xrfabbslocation, getGO(p, Arrays.asList(go, gorel)), getEco(p, eco).getMapper(), false);
+		this(qcfile, xrfabbslocation, getGO(p, Arrays.asList(go, gorel)), getEco(p, eco).getMapper(), null);
 	}
 	
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, ParserWrapper p, List<String> ont, String eco, boolean createOntologyModules) {
-		this(qcfile, xrfabbslocation, getGO(p, ont), getEco(p, eco).getMapper(), createOntologyModules);
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, ParserWrapper p, List<String> ont, String eco, String taxonModule) {
+		this(qcfile, xrfabbslocation, getGO(p, ont), getEco(p, eco).getMapper(), taxonModule);
 	}
 	
-	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, TraversingEcoMapper eco, boolean createOntologyModules) {
+	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, TraversingEcoMapper eco, String taxonModule) {
 		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
-				"http://www.geneontology.org/doc/GO.xrf_abbs", graph, eco, createOntologyModules);
+				"http://www.geneontology.org/doc/GO.xrf_abbs", graph, eco, taxonModule);
 	}
 
 	@Override
@@ -63,16 +63,16 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		
 	}
 
-	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, TraversingEcoMapper eco, boolean createOntologyModules) {
+	public GoAnnotationRulesFactoryImpl(String qcfile, String xrfabbslocation, OWLGraphWrapper graph, TraversingEcoMapper eco, String taxonModule) {
 		super(qcfile, graph);
 		logger.info("Start preparing ontology checks");
 		namedRules = new HashMap<String, AnnotationRule>();
 		namedRules.put(BasicChecksRule.PERMANENT_JAVA_ID,  new BasicChecksRule(xrfabbslocation, eco));
-		String taxonModuleFile = null;
-		if (createOntologyModules) {
-			taxonModuleFile = "go-taxon-rule-unsatisfiable-module.owl";
-		}
-		namedRules.put(GoAnnotationTaxonRule.PERMANENT_JAVA_ID, new GoAnnotationTaxonRule(graph, taxonModuleFile));
+//		String taxonModuleFile = null;
+//		if (createOntologyModules) {
+//			taxonModuleFile = "go-taxon-rule-unsatisfiable-module.owl";
+//		}
+		namedRules.put(GoAnnotationTaxonRule.PERMANENT_JAVA_ID, new GoAnnotationTaxonRule(graph, taxonModule));
 		namedRules.put(GoClassReferenceAnnotationRule.PERMANENT_JAVA_ID, new GoClassReferenceAnnotationRule(graph, "GO:","CL:"));
 		namedRules.put(GenericReasonerValidationCheck.PERMANENT_JAVA_ID, new GenericReasonerValidationCheck());
 		namedRules.put(GoNoISSProteinBindingRule.PERMANENT_JAVA_ID, new GoNoISSProteinBindingRule(eco));
