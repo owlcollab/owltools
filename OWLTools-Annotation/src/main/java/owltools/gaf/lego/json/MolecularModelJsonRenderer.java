@@ -128,10 +128,12 @@ public class MolecularModelJsonRenderer {
 		Set<OWLObjectProperty> usedProps = new HashSet<OWLObjectProperty>();
 		
 		List<JsonOwlFact> aObjs = new ArrayList<JsonOwlFact>();
-		for (OWLObjectPropertyAssertionAxiom opa : 
-			ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
-			aObjs.add(renderObject(opa));
-			usedProps.addAll(opa.getObjectPropertiesInSignature());
+		for (OWLObjectPropertyAssertionAxiom opa : ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
+			JsonOwlFact fact = renderObject(opa);
+			if (fact != null) {
+				aObjs.add(fact);
+				usedProps.addAll(opa.getObjectPropertiesInSignature());
+			}
 		}
 		json.facts = aObjs.toArray(new JsonOwlFact[aObjs.size()]);
 
@@ -210,7 +212,10 @@ public class MolecularModelJsonRenderer {
 		}
 		List<JsonOwlFact> aObjs = new ArrayList<JsonOwlFact>();
 		for (OWLObjectPropertyAssertionAxiom opa : opAxioms) {
-			aObjs.add(renderObject(opa));
+			JsonOwlFact fact = renderObject(opa);
+			if (fact != null) {
+				aObjs.add(fact);
+			}
 		}
 		
 		return Pair.of(iObjs.toArray(new JsonOwlIndividual[iObjs.size()]), 
@@ -323,18 +328,21 @@ public class MolecularModelJsonRenderer {
 		OWLObjectProperty property;
 		OWLNamedIndividual object;
 
-		subject = (OWLNamedIndividual) opa.getSubject();
-		property = (OWLObjectProperty) opa.getProperty();
-		object = (OWLNamedIndividual) opa.getObject();
-
-		JsonOwlFact fact = new JsonOwlFact();
-		fact.subject = IdStringManager.getId(subject, graph);
-		fact.property = IdStringManager.getId(property, graph);
-		fact.object = IdStringManager.getId(object, graph);
-		
-		JsonAnnotation[] anObjs = renderAnnotations(opa.getAnnotations());
-		if (anObjs != null && anObjs.length > 0) {
-			fact.annotations = anObjs;
+		JsonOwlFact fact = null;
+		if (opa.getSubject().isNamed() && opa.getObject().isNamed() && opa.getProperty().isAnonymous() == false) {
+			subject = (OWLNamedIndividual) opa.getSubject();
+			property = (OWLObjectProperty) opa.getProperty();
+			object = (OWLNamedIndividual) opa.getObject();
+	
+			fact = new JsonOwlFact();
+			fact.subject = IdStringManager.getId(subject, graph);
+			fact.property = IdStringManager.getId(property, graph);
+			fact.object = IdStringManager.getId(object, graph);
+			
+			JsonAnnotation[] anObjs = renderAnnotations(opa.getAnnotations());
+			if (anObjs != null && anObjs.length > 0) {
+				fact.annotations = anObjs;
+			}
 		}
 		return fact;
 	}
