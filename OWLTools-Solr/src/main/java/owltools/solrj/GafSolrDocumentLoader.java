@@ -45,6 +45,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	EcoTools eco = null;
 	TaxonTools taxo = null;
 	PANTHERForest pset = null;
+	String taxonSubsetName = "model_slim";
+	
 
 	GafDocument gafDocument;
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
@@ -85,6 +87,14 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	public void setPANTHERSet(PANTHERForest inPSet) {
 		this.pset = inPSet;
 	}
+	
+	public void setTaxonSubsetName(String taxonSubsetName) {
+		this.taxonSubsetName = taxonSubsetName;
+	}
+	
+	public void clearTaxonSubsetName() {
+		this.taxonSubsetName = null;
+	}
 
 	@Override
 	public void load() throws SolrServerException, IOException {
@@ -105,6 +115,104 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		LOG.info("Done.");
 	}
 
+	/**
+	 * Helper class to hold taxon specific information.
+	 */
+	private class TaxonDetails {
+		
+		final String taxId;
+		String taxLbl = null;
+		
+		List<String> taxIDClosure = new ArrayList<String>();
+		List<String> taxLabelClosure = new ArrayList<String>();
+		Map<String,String> taxonClosureMap = new HashMap<String,String>();
+		
+		// subset reflexive closure
+		List<String> taxSubsetIDClosure = new ArrayList<String>();
+		List<String> taxSubsetLabelClosure = new ArrayList<String>();
+		Map<String,String> taxonSubsetClosureMap = new HashMap<String,String>();
+		
+		private TaxonDetails(String taxId) {
+			this.taxId = taxId;
+		}
+		
+		private void addToSolrDocument(SolrInputDocument bioentity_doc) {
+			bioentity_doc.addField("taxon", taxId);
+			
+			if(taxLbl != null) {
+				bioentity_doc.addField("taxon_label", taxLbl);
+			}
+			
+			if (taxonClosureMap.isEmpty() == false) {
+				bioentity_doc.addField("taxon_closure", taxIDClosure);
+				bioentity_doc.addField("taxon_closure_label", taxLabelClosure);
+				bioentity_doc.addField("taxon_closure_map", gson.toJson(taxonClosureMap));
+			}
+
+			if (taxonSubsetClosureMap.isEmpty() == false) {
+				bioentity_doc.addField("taxon_closure_subset", taxSubsetIDClosure);
+				bioentity_doc.addField("taxon_closure_subset_label", taxSubsetLabelClosure);
+				bioentity_doc.addField("taxon_closure_subset_map", gson.toJson(taxonSubsetClosureMap));
+			}
+		}
+	}
+	
+	/**
+	 * This method will create one or two closures for any given taxon id:
+	 * <ol>
+	 * <li>Normal reflexive closure with all ancestors</li>
+	 * <li>IF {@link #taxonSubsetName} not null: intersection of the closure
+	 * with the subset, plus the taxon itself</li>
+	 * </ol>
+	 * 
+	 * @param taxonId
+	 * @return details
+	 */
+	private TaxonDetails createTaxonDetails(final String taxonId) {
+		final TaxonDetails details = new TaxonDetails(taxonId);
+		
+		// Add taxon_closure and taxon_closure_label.
+		final OWLClass taxCls = graph.getOWLClassByIdentifier(taxonId);
+		if (taxCls == null) {
+			// do nothing for unknown ids
+			if (LOG.isInfoEnabled()) {
+				LOG.info("Skipping taxon closures for unknown id: "+taxonId);
+			}
+			return details;
+		}
+		String taxonLbl = graph.getLabel(taxCls);
+		details.taxLbl = taxonLbl;
+		Set<OWLClass> taxAncestors = taxo.getAncestors(taxCls, false); // make non-reflexive on purpose
+		
+		// Collect information: ids, labels, and mapping for full taxon and subset
+		
+		// handle self (aka reflexive)
+		details.taxIDClosure.add(taxonId);
+		details.taxLabelClosure.add(taxonLbl);
+		details.taxonClosureMap.put(taxonId, taxonLbl);
+
+		details.taxSubsetIDClosure.add(taxonId);
+		details.taxSubsetLabelClosure.add(taxonLbl);
+		details.taxonSubsetClosureMap.put(taxonId, taxonLbl);
+		
+		// handle ancestor closure
+		for( OWLClass ts : taxAncestors ){
+			String tid = graph.getIdentifier(ts);
+			String tlbl = graph.getLabel(ts);
+			details.taxIDClosure.add(tid);
+			details.taxLabelClosure.add(tlbl);
+			details.taxonClosureMap.put(tid, tlbl);
+			
+			List<String> subsets = graph.getSubsets(ts);
+			if (taxonSubsetName != null && subsets.contains(taxonSubsetName)) {
+				details.taxSubsetIDClosure.add(tid);
+				details.taxSubsetLabelClosure.add(tlbl);
+				details.taxonSubsetClosureMap.put(tid, tlbl);
+			}
+		}
+		return details;
+	}
+	
 	// Main wrapping for adding non-ontology documents to GOlr.
 	// Also see OntologySolrLoader.
 	private void add(Bioentity e) {
@@ -137,32 +245,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		
 		// Various taxon and taxon closure calculations, including map.
 		String etaxid = e.getNcbiTaxonId();
-		bioentity_doc.addField("taxon", etaxid);
-		addLabelField(bioentity_doc, "taxon_label", etaxid);
-		// Add taxon_closure and taxon_closure_label.
-		OWLClass tcls = graph.getOWLClassByIdentifier(etaxid);
-		Set<OWLClass> taxSuper = taxo.getAncestors(tcls, true);
-		// Collect information: ids and labels.
-		List<String> taxIDClosure = new ArrayList<String>();
-		List<String> taxLabelClosure = new ArrayList<String>();
-		Map<String,String> taxon_closure_map = new HashMap<String,String>();
-		for( OWLClass ts : taxSuper ){
-			String tid = graph.getIdentifier(ts);
-			String tlbl = graph.getLabel(ts);
-			taxIDClosure.add(tid);
-			taxLabelClosure.add(tlbl);
-			taxon_closure_map.put(tid, tlbl);
-		}
-		// Compile closure map to JSON and add to the document.
-		String jsonized_taxon_map = null;
-		if( ! taxon_closure_map.isEmpty() ){
-			jsonized_taxon_map = gson.toJson(taxon_closure_map);
-		}
-		// Optionally, if there is enough taxon for a map, add the collections to the document.
-		if( jsonized_taxon_map != null ){
-			bioentity_doc.addField("taxon_closure", taxIDClosure);
-			bioentity_doc.addField("taxon_closure_label", taxLabelClosure);
-			bioentity_doc.addField("taxon_closure_map", jsonized_taxon_map);
+		TaxonDetails taxonDetails = null;
+		if (etaxid != null) {
+			taxonDetails = createTaxonDetails(etaxid);
+			taxonDetails.addToSolrDocument(bioentity_doc);
 		}
 
 		// Optionally, pull information from the PANTHER file set.
@@ -256,10 +342,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("bioentity_isoform", a.getGeneProductForm()); // Col. 17
 			
 			// Optionally, if there is enough taxon for a map, add the collections to the document.
-			if( jsonized_taxon_map != null ){
-				annotation_doc.addField("taxon_closure", taxIDClosure);
-				annotation_doc.addField("taxon_closure_label", taxLabelClosure);
-				annotation_doc.addField("taxon_closure_map", jsonized_taxon_map);
+			if( taxonDetails != null ){
+				taxonDetails.addToSolrDocument(annotation_doc);
 			}
 
 			// Optionally, actually /add/ the PANTHER family data to the document.
