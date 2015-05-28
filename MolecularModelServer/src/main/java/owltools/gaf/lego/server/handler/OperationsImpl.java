@@ -606,15 +606,9 @@ abstract class OperationsImpl {
 			OWLOntology o = m3.getModelAbox(mid);
 			Set<OWLAnnotation> annotations = o.getAnnotations();
 			for( OWLAnnotation an : annotations ){
-				// see if the annotation is a shorthand
-				AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(an.getProperty().getIRI());
-				if (shorthand != null) {
-					// add shorthand and string value
-					modelMap.put(shorthand.name(), 
-							MolecularModelJsonRenderer.getAnnotationStringValue(an.getValue()));
-				}
-				else {
-					// TODO handle non short hand annotations?
+				Pair<String,String> pair = JsonAnnotation.createSimplePair(an);
+				if (pair != null) {
+					modelMap.put(pair.getKey(), pair.getValue());
 				}
 			}
 		}
@@ -677,31 +671,32 @@ abstract class OperationsImpl {
 		Set<OWLAnnotation> result = new HashSet<OWLAnnotation>();
 		OWLDataFactory f = m3.getOWLDataFactory(modelId);
 		if (values != null) {
-			for (JsonAnnotation m3Pair : values) {
-				if (m3Pair.key != null && m3Pair.value != null) {
-					AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(m3Pair.key);
+			for (JsonAnnotation jsonAnn : values) {
+				if (jsonAnn.key != null && jsonAnn.value != null) {
+					AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(jsonAnn.key);
 					if (shorthand != null) {
 						if (AnnotationShorthand.evidence == shorthand) {
 							OWLAnnotationValue evidenceValue;
-							if (batchValues.individualVariables.containsKey(m3Pair.value)) {
-								Pair<String, OWLNamedIndividual> pair = batchValues.individualVariables.get(m3Pair.value);
+							if (batchValues.individualVariables.containsKey(jsonAnn.value)) {
+								Pair<String, OWLNamedIndividual> pair = batchValues.individualVariables.get(jsonAnn.value);
 								if (pair == null) {
-									throw new UnknownIdentifierException("Variable "+m3Pair.value+" has a null value.");
+									throw new UnknownIdentifierException("Variable "+jsonAnn.value+" has a null value.");
 								}
 								evidenceValue = pair.getRight().getIRI();
 							}
 							else {
-								evidenceValue = IdStringManager.getIRI(m3Pair.value);
+								evidenceValue = IdStringManager.getIRI(jsonAnn.value);
 							}
 							result.add(create(f, shorthand, evidenceValue));
 						}
 						else {
-							result.add(create(f, shorthand, m3Pair.value));
+							result.add(create(f, shorthand, jsonAnn.createAnnotationValue(f)));
 						}
 					}
 					else {
-						IRI pIRI = IRI.create(m3Pair.key);
-						result.add(f.getOWLAnnotation(f.getOWLAnnotationProperty(pIRI), f.getOWLLiteral(m3Pair.value)));
+						IRI pIRI = IRI.create(jsonAnn.key);
+						OWLAnnotationValue annotationValue = jsonAnn.createAnnotationValue(f);
+						result.add(f.getOWLAnnotation(f.getOWLAnnotationProperty(pIRI), annotationValue));
 					}
 				}
 			}

@@ -18,16 +18,11 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLIndividualAxiom;
-import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -48,7 +43,6 @@ import owltools.gaf.eco.EcoMapper;
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.gaf.lego.IdStringManager;
-import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
@@ -176,16 +170,9 @@ public class MolecularModelJsonRenderer {
 	private static JsonAnnotation[] renderAnnotations(Set<OWLAnnotation> annotations) {
 		List<JsonAnnotation> anObjs = new ArrayList<JsonAnnotation>();
 		for (OWLAnnotation annotation : annotations) {
-			OWLAnnotationProperty p = annotation.getProperty();
-			AnnotationShorthand annotationShorthand = AnnotationShorthand.getShorthand(p.getIRI());
-			if (annotationShorthand != null) {
-				final String stringValue = getAnnotationStringValue(annotation.getValue());
-				if (stringValue != null) {
-					anObjs.add(JsonAnnotation.create(annotationShorthand.name(), stringValue));
-				}
-			}
-			else {
-				// TODO render without the use of the shorthand
+			JsonAnnotation json = JsonAnnotation.create(annotation.getProperty(), annotation.getValue());
+			if (json != null) {
+				anObjs.add(json);
 			}
 		}
 		return anObjs.toArray(new JsonAnnotation[anObjs.size()]);
@@ -277,46 +264,18 @@ public class MolecularModelJsonRenderer {
 //			}
 //		}
 		json.type = typeObjs.toArray(new JsonOwlObject[typeObjs.size()]);
-		List<JsonAnnotation> anObjs = new ArrayList<JsonAnnotation>();
+		final List<JsonAnnotation> anObjs = new ArrayList<JsonAnnotation>();
 		Set<OWLAnnotationAssertionAxiom> annotationAxioms = ont.getAnnotationAssertionAxioms(i.getIRI());
 		for (OWLAnnotationAssertionAxiom ax : annotationAxioms) {
-			OWLAnnotationProperty p = ax.getProperty();
-			AnnotationShorthand annotationShorthand = AnnotationShorthand.getShorthand(p.getIRI());
-			if (annotationShorthand != null) {
-				final String stringValue = getAnnotationStringValue(ax.getValue());
-				if (stringValue != null) {
-					anObjs.add(JsonAnnotation.create(annotationShorthand.name(), stringValue));
-				}
-			}
-			else {
-				// TODO render non-shorthand annotations
+			JsonAnnotation jsonAnn = JsonAnnotation.create(ax.getProperty(), ax.getValue());
+			if (jsonAnn != null) {
+				anObjs.add(jsonAnn);
 			}
 		}
 		if (anObjs.isEmpty() == false) {
 			json.annotations = anObjs.toArray(new JsonAnnotation[anObjs.size()]);
 		}
 		return json;
-	}
-	
-	public static String getAnnotationStringValue(OWLAnnotationValue v) {
-		final String stringValue = v.accept(new OWLAnnotationValueVisitorEx<String>() {
-
-			@Override
-			public String visit(IRI iri) {
-				return IdStringManager.getId(iri);
-			}
-
-			@Override
-			public String visit(OWLAnonymousIndividual individual) {
-				return null; // Do nothing
-			}
-
-			@Override
-			public String visit(OWLLiteral literal) {
-				return literal.getLiteral();
-			}
-		});
-		return stringValue;
 	}
 	
 	/**
