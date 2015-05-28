@@ -57,12 +57,13 @@ public class TableToAxiomConverter {
 	public class Config {
 		public boolean isOboIdentifiers = true;
 		public boolean isSwitchSubjectObject = false;
+		public boolean isObjectLiteral = true;
 		public AxiomType<?> axiomType;
 		public OWLClass individualsType = null;
 		public IRI property = null;
 		public String defaultCol1 = null;
 		public String defaultCol2 = null;
-		
+
 		public Map<OWLClass,OWLClass> classMap = new HashMap<OWLClass,OWLClass>();
 		public Map<Integer,String> iriPrefixMap = new HashMap<Integer,String>();
 
@@ -185,12 +186,24 @@ public class TableToAxiomConverter {
 			axs.add(df.getOWLDeclarationAxiom(e));
 			ax = df.getOWLEquivalentClassesAxiom(c, e);
 		}
+		else if (config.axiomType.equals(AxiomType.DISJOINT_CLASSES)) {
+			OWLClass c = resolveClass(sub);
+			OWLClass e = resolveClass(obj);
+			axs.add(df.getOWLDeclarationAxiom(c));
+			axs.add(df.getOWLDeclarationAxiom(e));
+			ax = df.getOWLDisjointClassesAxiom(c, e);
+		}
 		else if (config.axiomType.equals(AxiomType.ANNOTATION_ASSERTION)) {
-			if (true) {
-				//axs.add(df.getOWLDeclarationAxiom(resolveClass(sub)));
+			//axs.add(df.getOWLDeclarationAxiom(resolveClass(sub)));
+			if (config.isObjectLiteral) {
+				ax = df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(config.property), 
+						resolveIRI(sub), literal(obj));
 			}
-			ax = df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(config.property), 
-					resolveIRI(sub), literal(obj));
+			else {
+				ax = df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(config.property), 
+						resolveIRI(sub), resolveIRI(obj));
+				
+			}
 		}
 		else if (config.axiomType.equals(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
 			ax = df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty(config.property), 
@@ -220,7 +233,7 @@ public class TableToAxiomConverter {
 	private OWLAnnotationValue literal(String obj) {
 		return graph.getDataFactory().getOWLLiteral(obj);
 	}
-	
+
 	private IRI resolveIRI(String id) {
 		IRI iri;
 		if (config.isOboIdentifiers && !id.startsWith("http:/")) {
@@ -242,7 +255,7 @@ public class TableToAxiomConverter {
 		else
 			return c;
 	}
-	
+
 	// translates id to IRI if required.
 	// always returns an OWLIndividual, even if not previously declared
 	private OWLIndividual resolveIndividual(String id) {
@@ -250,7 +263,7 @@ public class TableToAxiomConverter {
 		OWLIndividual c= graph.getDataFactory().getOWLNamedIndividual(iri);
 		return c;
 	}
-	
+
 
 	/*
 	private OWLIndividual xxxresolveIndividual(String id) {
@@ -266,7 +279,7 @@ public class TableToAxiomConverter {
 			ind = graph.getDataFactory().getOWLNamedIndividual(iri);
 		return ind;
 	}
-	*/
+	 */
 
 	public void buildClassMap(OWLGraphWrapper g) {
 		IRI x = Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI();

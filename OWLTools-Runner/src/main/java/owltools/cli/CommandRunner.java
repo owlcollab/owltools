@@ -3357,7 +3357,7 @@ public class CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--parse-tsv")) {
-				opts.info("[-s] [-p PROPERTY] [-a AXIOMTYPE] [-t INDIVIDUALSTYPE] FILE", "parses a tabular file to OWL axioms");
+				opts.info("[-s] [-l] [--comment] [-m] [-p PROPERTY] [-a AXIOMTYPE] [-t INDIVIDUALSTYPE] FILE", "parses a tabular file to OWL axioms");
 				TableToAxiomConverter ttac = new TableToAxiomConverter(g);
 				ttac.config.axiomType = AxiomType.CLASS_ASSERTION;
 				while (opts.hasOpts()) {
@@ -3385,6 +3385,9 @@ public class CommandRunner {
 					}
 					else if (opts.nextEq("--default2")) {
 						ttac.config.defaultCol2 = opts.nextOpt();
+					}
+					else if (opts.nextEq("--object-non-literal")) {
+						ttac.config.isObjectLiteral = false;
 					}
 					else if (opts.nextEq("--iri-prefix")) {
 						int col = 0;

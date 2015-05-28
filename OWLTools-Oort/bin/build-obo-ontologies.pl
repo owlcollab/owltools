@@ -860,7 +860,7 @@ sub get_ont_info {
          xao => {
              infallible => 0,     ## can't build simple obo
              method => 'obo2owl',
-             source_url => 'ftp://ftp.xenbase.org/pub/XenopusAnatomyOntology/xenopus_anatomy.obo',
+             source_url => 'https://raw.githubusercontent.com/xenopus-anatomy/xao/master/xenopus_anatomy.obo'
          },
          mat => {
              method => 'obo2owl',
@@ -1073,7 +1073,7 @@ sub get_ont_info {
          so => {
              notes => 'SWITCH',
              method => 'obo2owl',
-             source_url => 'https://sourceforge.net/p/song/svn/HEAD/tree/trunk/so-xp.obo?format=raw',
+             source_url => 'https://svn.code.sf.net/p/song/svn/trunk/so-xp.obo',
          },
          hp => {
              method => 'obo2owl',
