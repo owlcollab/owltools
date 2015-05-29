@@ -13,6 +13,8 @@ import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
+import com.google.gson.annotations.SerializedName;
+
 import owltools.gaf.lego.IdStringManager;
 import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 
@@ -22,6 +24,7 @@ public class JsonAnnotation {
 	
 	public String key;
 	public String value;
+	@SerializedName("value-type")
 	public String valueType; // optional, defaults to OWL string literal for null
 	
 	public static JsonAnnotation create(OWLAnnotationProperty p, OWLAnnotationValue value) {
