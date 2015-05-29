@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -14,8 +16,10 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
@@ -941,6 +945,40 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		removeAnnotations(modelId, model, property, individual1, individual2, annotations, false, metadata);
 
 		return Arrays.asList(individual1, individual2);
+	}
+	
+	public OWLNamedIndividual addDataProperties(String modelId, String iid,
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties, METADATA token) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		if (dataProperties != null && !dataProperties.isEmpty()) {
+			for(Entry<OWLDataProperty, Set<OWLLiteral>> entry : dataProperties.entrySet()) {
+				for(OWLLiteral literal : entry.getValue()) {
+					addDataProperty(modelId, model, i, entry.getKey(), literal, false, token);
+				}
+			}
+		}
+		return i;
+	}
+	
+	public OWLNamedIndividual removeDataProperties(String modelId, String iid,
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties, METADATA token) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		if (dataProperties != null && !dataProperties.isEmpty()) {
+			for(Entry<OWLDataProperty, Set<OWLLiteral>> entry : dataProperties.entrySet()) {
+				for(OWLLiteral literal : entry.getValue()) {
+					removeDataProperty(modelId, model, i, entry.getKey(), literal, false, token);
+				}
+			}
+		}
+		return i;
 	}
 	
 	/**

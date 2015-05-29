@@ -37,6 +37,8 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -542,6 +544,30 @@ public abstract class CoreMolecularModelManager<METADATA> {
 			changes.add(new RemoveOntologyAnnotation(aBox, annotation));
 		}
 		applyChanges(modelId, model, changes, false, metadata);
+	}
+	
+	public void addDataProperty(String modelId, ModelContainer model,
+			OWLNamedIndividual i, OWLDataProperty prop, OWLLiteral literal,
+			boolean flushReasoner, METADATA metadata) {
+		OWLAxiom axiom = model.getOWLDataFactory().getOWLDataPropertyAssertionAxiom(prop, i, literal);
+		addAxiom(modelId, model, axiom, flushReasoner, metadata);
+	}
+	
+	public void removeDataProperty(String modelId, ModelContainer model,
+			OWLNamedIndividual i, OWLDataProperty prop, OWLLiteral literal,
+			boolean flushReasoner, METADATA metadata) {
+		OWLAxiom toRemove = null;
+		Set<OWLDataPropertyAssertionAxiom> existing = model.getAboxOntology().getDataPropertyAssertionAxioms(i);
+		for (OWLDataPropertyAssertionAxiom ax : existing) {
+			if (prop.equals(ax.getProperty()) && literal.equals(ax.getObject())) {
+				toRemove = ax;
+				break;
+			}
+		}
+		
+		if (toRemove != null) {
+			removeAxiom(modelId, model, toRemove, flushReasoner, metadata);
+		}
 	}
 	
 	/**

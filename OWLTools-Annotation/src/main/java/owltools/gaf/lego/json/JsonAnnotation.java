@@ -8,7 +8,10 @@ import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import owltools.gaf.lego.IdStringManager;
 import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
@@ -29,6 +32,23 @@ public class JsonAnnotation {
 		}
 		// use full IRI strings for non-shorthand annotations
 		return create(p.getIRI().toString(), value, false);
+	}
+	
+	public static JsonAnnotation create(OWLDataProperty p, OWLLiteral value) {
+		String type = getType(value);
+		return create(p.getIRI().toString(), value.getLiteral(), type);
+	}
+	
+	private static String getType(OWLLiteral literal) {
+		OWLDatatype datatype = literal.getDatatype();
+		String type = null;
+		if (datatype.isString() || datatype.isRDFPlainLiteral()) {
+			// do nothing
+		}
+		else if (datatype.isBuiltIn()) {
+			type = datatype.getBuiltInDatatype().getPrefixedName();
+		}
+		return type;
 	}
 	
 	public static Pair<String, String> createSimplePair(OWLAnnotation an) {
@@ -82,7 +102,7 @@ public class JsonAnnotation {
 
 			@Override
 			public JsonAnnotation visit(OWLLiteral literal) {
-				return create(key, literal.getLiteral(), null);
+				return create(key, literal.getLiteral(), getType(literal));
 			}
 		});
 	}
@@ -109,10 +129,39 @@ public class JsonAnnotation {
 			annotationValue = IRI.create(value);
 		}
 		else {
-			annotationValue = f.getOWLLiteral(value);
+			annotationValue = createLiteralInternal(f);
 		}
 		return annotationValue;
 	}
+	
+	public OWLLiteral createLiteral(OWLDataFactory f) {
+		OWLLiteral literal = null;
+		if (isIRIValue() == false) {
+			literal = createLiteralInternal(f);
+		}
+		return literal;
+	}
+
+	private OWLLiteral createLiteralInternal(OWLDataFactory f) {
+		OWLLiteral literal;
+		OWL2Datatype datatype = null;
+		for(OWL2Datatype current : OWL2Datatype.values()) {
+			if (current.getPrefixedName().equalsIgnoreCase(valueType)
+					|| current.getShortForm().equalsIgnoreCase(valueType)) {
+				datatype = current;
+				break;
+			}
+		}
+		if (datatype != null) {
+			literal = f.getOWLLiteral(value, datatype);
+		}
+		else {
+			literal = f.getOWLLiteral(value);
+		}
+		return literal;
+	}
+	
+	
 
 	@Override
 	public int hashCode() {

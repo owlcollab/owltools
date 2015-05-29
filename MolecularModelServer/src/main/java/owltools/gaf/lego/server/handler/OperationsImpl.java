@@ -4,6 +4,7 @@ import static owltools.gaf.lego.server.handler.OperationsTools.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,7 +20,9 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLException;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
@@ -61,6 +64,7 @@ abstract class OperationsImpl {
 	final Set<OWLObjectProperty> importantRelations;
 	final BeforeSaveModelValidator beforeSaveValidator;
 	final ExternalLookupService externalLookupService;
+	final Set<IRI> dataPropertyIRIs;
 
 	OperationsImpl(UndoAwareMolecularModelManager models, 
 			Set<OWLObjectProperty> importantRelations,
@@ -70,6 +74,11 @@ abstract class OperationsImpl {
 		this.importantRelations = importantRelations;
 		this.externalLookupService = externalLookupService;
 		this.beforeSaveValidator = new BeforeSaveModelValidator();
+		Set<IRI> dataPropertyIRIs = new HashSet<IRI>();
+		for(OWLDataProperty p : m3.getOntology().getDataPropertiesInSignature(true)) {
+			dataPropertyIRIs.add(p.getIRI());
+		}
+		this.dataPropertyIRIs = Collections.unmodifiableSet(dataPropertyIRIs);
 	}
 
 	abstract boolean enforceExternalValidate();
@@ -149,6 +158,7 @@ abstract class OperationsImpl {
 			// optional: more expressions, values
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
 			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, values, values.modelId);
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties = extractDataProperties(request.arguments.values, values.modelId);
 			Pair<String, OWLNamedIndividual> individualPair = null;
 			List<OWLClassExpression> clsExpressions = new ArrayList<OWLClassExpression>(request.arguments.expressions.length);
 			for(JsonOwlObject expression : request.arguments.expressions) {
@@ -179,6 +189,9 @@ abstract class OperationsImpl {
 				for (OWLClassExpression clsExpression : clsExpressions) {
 					m3.addTypeNonReasoning(values.modelId, individualPair.getKey(), clsExpression, token);
 				}
+			}
+			if (dataProperties.isEmpty() == false) {
+				m3.addDataProperties(values.modelId, individualPair.getKey(), dataProperties, token);
 			}
 			if (individualPair != null) {
 				updateDate(values.modelId, individualPair.getKey(), token, m3);
@@ -248,12 +261,20 @@ abstract class OperationsImpl {
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
 			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, values, values.modelId);
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties = extractDataProperties(request.arguments.values, values.modelId);
 			String individual = values.getVariableValueId(request.arguments.individual);
 			
-			OWLNamedIndividual i = m3.addAnnotations(values.modelId, individual, annotations, token);
-			values.relevantIndividuals.add(i);
+			OWLNamedIndividual i = null;
+			if (annotations.isEmpty() == false) {
+				i = m3.addAnnotations(values.modelId, individual, annotations, token);
+				values.relevantIndividuals.add(i);
+			}
+			if (dataProperties.isEmpty() == false) {
+				i = m3.addDataProperties(values.modelId, individual, dataProperties, token);
+				values.relevantIndividuals.add(i);
+			}
 
-			if (request.arguments.assignToVariable != null) {
+			if (request.arguments.assignToVariable != null && i != null) {
 				values.individualVariables.put(request.arguments.assignToVariable, 
 						Pair.of(individual, i));
 			}
@@ -267,14 +288,22 @@ abstract class OperationsImpl {
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
 			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, values, values.modelId);
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties = extractDataProperties(request.arguments.values, values.modelId);
 			String individual = values.getVariableValueId(request.arguments.individual);
 			
 			Set<IRI> usedIRIs = MolecularModelManager.extractIRIValues(annotations);
-			OWLNamedIndividual i = m3.removeAnnotations(values.modelId, individual,
-					annotations, token);
-			values.relevantIndividuals.add(i);
+			
+			OWLNamedIndividual i = null;
+			if (annotations.isEmpty() == false) {
+				i = m3.removeAnnotations(values.modelId, individual, annotations, token);
+				values.relevantIndividuals.add(i);
+			}
+			if (dataProperties.isEmpty() == false) {
+				i = m3.removeDataProperties(values.modelId, individual, dataProperties, token);
+				values.relevantIndividuals.add(i);
+			}
 
-			if (request.arguments.assignToVariable != null) {
+			if (request.arguments.assignToVariable != null && i != null) {
 				values.individualVariables.put(request.arguments.assignToVariable, 
 						Pair.of(individual, i));
 			}
@@ -579,9 +608,16 @@ abstract class OperationsImpl {
 		}
 		
 		// relations
-		final List<JsonRelationInfo> relList = MolecularModelJsonRenderer.renderRelations(m3, importantRelations);
+		Pair<List<JsonRelationInfo>, List<JsonRelationInfo>> propPair = MolecularModelJsonRenderer.renderProperties(m3, importantRelations);
+		final List<JsonRelationInfo> relList = propPair.getLeft();
 		if (relList != null) {
 			response.data.meta.relations = relList.toArray(new JsonRelationInfo[relList.size()]);
+		}
+		
+		// data properties
+		final List<JsonRelationInfo> propList = propPair.getRight();
+		if (propList != null) {
+			response.data.meta.dataProperties = propList.toArray(new JsonRelationInfo[propList.size()]);
 		}
 		
 		// evidence
@@ -695,13 +731,45 @@ abstract class OperationsImpl {
 					}
 					else {
 						IRI pIRI = IRI.create(jsonAnn.key);
-						OWLAnnotationValue annotationValue = jsonAnn.createAnnotationValue(f);
-						result.add(f.getOWLAnnotation(f.getOWLAnnotationProperty(pIRI), annotationValue));
+						if (dataPropertyIRIs.contains(pIRI) == false) {
+							OWLAnnotationValue annotationValue = jsonAnn.createAnnotationValue(f);
+							result.add(f.getOWLAnnotation(f.getOWLAnnotationProperty(pIRI), annotationValue));
+						}
 					}
 				}
 			}
 		}
 		addGeneratedAnnotations(userId, result, f);
+		return result;
+	}
+	
+	private Map<OWLDataProperty, Set<OWLLiteral>> extractDataProperties(JsonAnnotation[] values, String modelId) {
+		Map<OWLDataProperty, Set<OWLLiteral>> result = new HashMap<OWLDataProperty, Set<OWLLiteral>>();
+		
+		if (values != null && values.length > 0) {
+			OWLDataFactory f = m3.getOWLDataFactory(modelId);
+			for (JsonAnnotation jsonAnn : values) {
+				if (jsonAnn.key != null && jsonAnn.value != null) {
+					AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(jsonAnn.key);
+					if (shorthand == null) {
+						IRI pIRI = IRI.create(jsonAnn.key);
+						if (dataPropertyIRIs.contains(pIRI)) {
+							OWLLiteral literal = jsonAnn.createLiteral(f);
+							if (literal != null) {
+								OWLDataProperty property = f.getOWLDataProperty(pIRI);
+								Set<OWLLiteral> literals = result.get(property);
+								if (literals == null) {
+									literals = new HashSet<OWLLiteral>();
+									result.put(property, literals);
+								}
+								literals.add(literal);
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		return result;
 	}
 	

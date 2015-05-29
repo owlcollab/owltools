@@ -162,6 +162,13 @@ public class BatchTestTools {
 		return response.data.meta.relations;
 	}
 	
+	static JsonRelationInfo[] responseDataProperties(M3BatchResponse response) {
+		assertNotNull(response);
+		assertNotNull(response.data);
+		assertNotNull(response.data.meta);
+		return response.data.meta.dataProperties;
+	}
+	
 	static Boolean responseInconsistent(M3BatchResponse response) {
 		assertNotNull(response);
 		assertNotNull(response.data);
