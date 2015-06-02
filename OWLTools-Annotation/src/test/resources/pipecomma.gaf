@@ -1,0 +1,30 @@
+!GOC Validation Date: 01/19/2013 $
+!Submission Date: 1/19/2013
+!
+! The above ""Submission Date"" is when the annotation project provided"
+! this file to the Gene Ontology Consortium (GOC).  The ""GOC Validation"
+! Date"" indicates when this file was last changed as a result of a GOC"
+! validation and filtering process.  
+!
+! Note: The contents of this file may differ from that submitted to the
+! GOC. The identifiers and syntax of the file have been checked, rows of"
+! data not meeting the standards set by the GOC have been removed. This
+! file may also have annotations removed because the annotations for the
+! listed Taxonomy identifier are only allowed in a file provided by
+! another annotation project.  The original submitted file is available from:
+!  http://www.geneontology.org/gene-associations/submission/
+!
+! For information on which taxon are allowed in which files please see:														
+!  http://www.geneontology.org/GO.annotation.shtml#script														
+!														
+!gaf-version: 2.0														
+!Project_name: Saccharomyces Genome Database (SGD)														
+!URL: http://www.yeastgenome.org/														
+!Contact Email: sgd-helpdesk@lists.stanford.edu														
+!Funding: NHGRI of US National Institutes of Health, HG001315"														
+!Date: 01/19/2013 $														
+!														
+SGD	S000028468	SNR83		GO:0031429	SGD_REF:S000081894|PMID:15923376	IPI	SGD:S000002367|SGD:S000001131	C	H/ACA box small nucleolar RNA (snoRNA)	snR83|RUF3	gene	taxon:4932	20060908	SGD
+SGD	S000001695	SAC1		GO:0046856	SGD_REF:S000055623|PMID:10625610	IGI	SGD:S000005050|SGD:S000005635	P	Phosphatidylinositol phosphate (PtdInsP) phosphatase	YKL212W|RSD1|phosphatidylinositol-3-phosphatase SAC1	gene	taxon:4932	20080609	SGD
+SGD	S000001763	RHO4		GO:0090338	SGD_REF:S000073801|PMID:12810699	IGI	SGD:S000005215,SGD:S000001380	P	Non-essential small GTPase of the Rho/Rac family of Ras-like proteins	YKR055W	gene	taxon:4932	20100607	SGD
+SGD	S000000483	PAF1		GO:0001076	SGD_REF:S000114882|PMID:16581788	IPI	SGD:S000004470,SGD:S000003295	F	Component of the Paf1p complex involved in transcription elongation	YBR279W	gene	taxon:4932	20111028	SGD
