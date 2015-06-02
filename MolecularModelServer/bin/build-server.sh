@@ -1,4 +1,4 @@
 #!/bin/bash
 cd ../../OWLTools-Parent
-mvn clean install -am -pl ../MolecularModelServer -Dmaven.test.skip.exec=true
+mvn clean package -am -pl ../MolecularModelServer -DskipTests -Dmaven.javadoc.skip=true -Dsource.skip=true
 

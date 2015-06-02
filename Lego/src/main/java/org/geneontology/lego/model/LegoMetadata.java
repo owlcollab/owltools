@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 
+@Deprecated
 public class LegoMetadata {
 
 	private Set<String> dates = null;

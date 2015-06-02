@@ -20,8 +20,8 @@ import owltools.gaf.lego.json.JsonRelationInfo;
 public interface M3BatchHandler {
 
 	public static class M3Request {
-		String entity;
-		String operation;
+		Entity entity;
+		Operation operation;
 		M3Argument arguments;
 	}
 	
@@ -29,76 +29,51 @@ public interface M3BatchHandler {
 		individual,
 		edge,
 		model,
-		relations,
-		evidence;
-		
-		public static boolean match(Entity e, String s) {
-			return e.name().equals(s);
-		}
-		
-		public static Entity get(String s) {
-			if (s != null) {
-				for(Entity e : Entity.values()) {
-					if (e.name().equals(s)) {
-						return e;
-					}
-				}
-			}
-			return null;
-		}
+		meta;
 	}
 	
 	public static enum Operation {
-		get("get"),
-		addType("add-type"),
-		removeType("remove-type"),
-		add("add"),
-		remove("remove"),
-		addAnnotation("add-annotation"),
-		removeAnnotation("remove-annotation"),
+		// generic operations
+		get,
 		
-		@Deprecated
-		generate("generate"),
+		@SerializedName("add-type")
+		addType,
 		
-		@Deprecated
-		generateBlank("generate-blank"),
-		exportModel("export"),
-		exportModelLegacy("export-legacy"),
-		importModel("import"),
-		storeModel("store"),
-		allModelIds("all-model-ids"),
-		allModelMeta("all-model-meta"),
-		updateImports("update-imports"),
+		@SerializedName("remove-type")
+		removeType,
+		
+		add,
+		
+		remove,
+		
+		@SerializedName("add-annotation")
+		addAnnotation,
+		
+		@SerializedName("remove-annotation")
+		removeAnnotation,
+		
+		// model specific operations
+		@SerializedName("export")
+		exportModel,
+		
+		@SerializedName("export-legacy")
+		exportModelLegacy,
+		
+		@SerializedName("import")
+		importModel,
+		
+		@SerializedName("store")
+		storeModel,
+		
+		@SerializedName("update-imports")
+		updateImports,
 		
 		// undo operations for models
-		undo("undo"), // undo the latest op
-		redo("redo"), // redo the latest undo
-		getUndoRedo("get-undo-redo"); // get a list of all currently available undo and redo for a model
+		undo, // undo the latest op
+		redo, // redo the latest undo
+		@SerializedName("get-undo-redo")
+		getUndoRedo, // get a list of all currently available undo and redo for a model
 		
-		private final String lbl;
-		
-		private Operation(String lbl) {
-			this.lbl = lbl;
-		}
-		
-		public String getLbl() {
-			return lbl;
-		}
-		
-		public static boolean match(Operation op, String s) {
-			return op.lbl.equals(s);
-		}
-		
-		public static Operation get(String s) {
-			if (s != null) {
-				for(Operation op : Operation.values()) {
-					if (op.lbl.equals(s)) {
-						return op;
-					}
-				}
-			}
-			return null;
-		}
 	}
 	
 	public static class M3Argument {
@@ -109,9 +84,6 @@ public interface M3BatchHandler {
 		String object;
 		String predicate;
 		String individual;
-		
-		@Deprecated
-		String db; // TODO deprecate db, should use taxonId instead
 		
 		@SerializedName("taxon-id")
 		String taxonId;
@@ -183,18 +155,24 @@ public interface M3BatchHandler {
 			public Object undo;
 			public Object redo;
 			
+			@SerializedName("export-model")
+			public String exportModel;
+			
+			public MetaResponse meta;
+		}
+		
+		public static class MetaResponse {
+			public JsonRelationInfo[] relations;
+			
+			public JsonRelationInfo[] dataProperties;
+			
+			public JsonEvidenceInfo[] evidence;
+			
 			@SerializedName("model-ids")
 			public Object modelIds;
 			
 			@SerializedName("models-meta")
 			public Object modelsMeta;
-			
-			public JsonRelationInfo[] relations;
-			
-			public JsonEvidenceInfo[] evidence;
-			
-			@SerializedName("export-model")
-			public String exportModel;
 		}
 
 		/**

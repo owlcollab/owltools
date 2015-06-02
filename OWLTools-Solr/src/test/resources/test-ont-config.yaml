@@ -45,6 +45,20 @@ fields:
     display_name: Ontology source
     type: string
     property: [getNamespace]
+  - id: source_category
+    description: "Term category."
+    display_name: Category
+    type: string
+    property: [categorizeNamespace]
+    property_config:
+       use-fallback: false
+       use-namespace: ["GO"]
+       idspace-map:
+          MA: "mouse anatomy"
+          CL: "cell"
+          UBERON: "animal anatomy"
+          EMAP: "embryonic mouse"
+          CHEBI: "chemical"
   - id: is_obsolete
     description: Is the term obsolete?
     display_name: Obsoletion

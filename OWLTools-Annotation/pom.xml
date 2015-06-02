@@ -52,11 +52,6 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
-  		<dependency>
-  			<groupId>org.geneontology.lego</groupId>
-			<artifactId>Lego</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-  		</dependency>
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>jena-core</artifactId>

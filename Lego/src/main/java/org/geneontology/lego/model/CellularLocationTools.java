@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 import owltools.graph.OWLGraphWrapper;
 
+@Deprecated
 public class CellularLocationTools {
 
 	public static OWLClassExpression searchCellularLocation(OWLClassExpression cls, OWLGraphWrapper graph, Set<OWLObjectProperty> occurs_in) {

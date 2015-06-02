@@ -7,7 +7,6 @@ import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.JSONP;
@@ -35,7 +34,6 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 	
 	
 	public static boolean USE_USER_ID = true;
-	public static boolean USE_CREATION_DATE = true;
 	public static boolean ADD_INFERENCES = true;
 	public static boolean VALIDATE_BEFORE_SAVE = true;
 	public static boolean ENFORCE_EXTERNAL_VALIDATE = false;
@@ -74,11 +72,6 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 	@Override
 	boolean useUserId() {
 		return USE_USER_ID;
-	}
-
-	@Override
-	boolean useCreationDate() {
-		return USE_CREATION_DATE;
 	}
 
 	@Override
@@ -147,14 +140,10 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		final BatchHandlerValues values = new BatchHandlerValues();
 		for (M3Request request : requests) {
 			requireNotNull(request, "request");
-			final Entity entity = Entity.get(StringUtils.trimToNull(request.entity));
-			if (entity == null) {
-				throw new MissingParameterException("No valid value for entity type: "+request.entity);
-			}
-			final Operation operation = Operation.get(StringUtils.trimToNull(request.operation));
-			if (operation == null) {
-				throw new MissingParameterException("No valid value for operation type: "+request.operation);
-			}
+			requireNotNull(request.entity, "entity");
+			requireNotNull(request.operation, "operation");
+			final Entity entity = request.entity;
+			final Operation operation = request.operation;
 			checkPermissions(entity, operation, isPrivileged);
 
 			// individual
@@ -178,27 +167,14 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 					return error(response, "Unknown operation: "+operation, null);
 				}
 			}
-			// relations
-			else if (Entity.relations == entity) {
+			// meta (e.g. relations, model ids, evidence)
+			else if (Entity.meta == entity) {
 				if (Operation.get == operation){
 					if (values.nonMeta) {
 						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
 						return error(response, "Get Relations can only be combined with other meta operations.", null);
 					}
-					getRelations(response, userId);
-				}
-				else {
-					return error(response, "Unknown operation: "+operation, null);
-				}
-			}
-			// evidence
-			else if (Entity.evidence == entity) {
-				if (Operation.get == operation){
-					if (values.nonMeta) {
-						// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-						return error(response, "Get Evidences can only be combined with other meta operations.", null);
-					}
-					getEvidence(response, userId);
+					getMeta(response, userId);
 				}
 				else {
 					return error(response, "Unknown operation: "+operation, null);
@@ -231,20 +207,22 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		if (values.renderBulk) {
 			// render complete model
 			JsonModel jsonModel = renderer.renderModel();
-			initResponseData(jsonModel, response.data, values.renderModelAnnotations);
+			initResponseData(jsonModel, response.data);
 			response.signal = M3BatchResponse.SIGNAL_REBUILD;
 			if (ADD_INFERENCES) {
 				response.data.individualsInferred = renderer.renderModelInferences(reasoner);
 			}
 		}
 		else {
-			// render individuals
-			Pair<JsonOwlIndividual[],JsonOwlFact[]> pair = renderer.renderIndividuals(values.relevantIndividuals);
-			response.data.individuals = pair.getLeft();
-			response.data.facts = pair.getRight();
 			response.signal = M3BatchResponse.SIGNAL_MERGE;
-			if (ADD_INFERENCES) {
-				response.data.individualsInferred = renderer.renderInferences(values.relevantIndividuals, reasoner);
+			// render individuals
+			if (values.relevantIndividuals.isEmpty() == false) {
+				Pair<JsonOwlIndividual[],JsonOwlFact[]> pair = renderer.renderIndividuals(values.relevantIndividuals);
+				response.data.individuals = pair.getLeft();
+				response.data.facts = pair.getRight();
+				if (ADD_INFERENCES) {
+					response.data.individualsInferred = renderer.renderInferences(values.relevantIndividuals, reasoner);
+				}
 			}
 			// add model annotations
 			if (values.renderModelAnnotations) {
@@ -266,13 +244,11 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 		return response;
 	}
 
-	public static void initResponseData(JsonModel jsonModel, ResponseData data, boolean addAnnotations) {
+	public static void initResponseData(JsonModel jsonModel, ResponseData data) {
 		data.individuals = jsonModel.individuals;
 		data.facts = jsonModel.facts;
 		data.properties = jsonModel.properties;
-		if (addAnnotations) {
-			data.annotations = jsonModel.annotations;
-		}
+		data.annotations = jsonModel.annotations;
 	}
 	
 	/*
@@ -310,12 +286,10 @@ public class JsonOrJsonpBatchHandler extends OperationsImpl implements M3BatchHa
 			case get:
 			case exportModel:
 			case exportModelLegacy:
-			case allModelIds:
-			case allModelMeta:
 				// positive list, all other operation require a privileged call
 				break;
 			default :
-				throw new InsufficientPermissionsException("Insufficient permissions for the operation "+operation.getLbl()+" on entity: "+entity);
+				throw new InsufficientPermissionsException("Insufficient permissions for the operation "+operation+" on entity: "+entity);
 			}
 		}
 	}

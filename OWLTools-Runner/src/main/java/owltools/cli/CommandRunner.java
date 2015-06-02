@@ -1335,31 +1335,113 @@ public class CommandRunner {
 			else if (opts.nextEq("--add-obo-shorthand-to-properties")) {
 				Set<OWLObjectProperty> props = g.getSourceOntology().getObjectPropertiesInSignature(true);
 				OWLDataFactory df = g.getDataFactory();
-				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-				for (OWLObjectProperty prop : props) {
-					// Note: copied from PropertyExtractor - need to centralize code
-					String id = g.getLabel(prop);
-					if (id != null) {
-						id = id.replaceAll(" ", "_");
-						OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(
-								df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#shorthand")),
-								prop.getIRI(), 
-								df.getOWLLiteral(id));
-						axioms.add(ax);
-						LOG.info(ax);
-						String pid = Owl2Obo.getIdentifier(prop.getIRI());
-						axioms.add(
-								df.getOWLAnnotationAssertionAxiom(
-										df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasDbXref")),
-										prop.getIRI(), 
-										df.getOWLLiteral(pid))
-								);
+				Set<OWLAxiom> addAxioms = new HashSet<OWLAxiom>();
+				Set<OWLAxiom> removeAxioms = new HashSet<OWLAxiom>();
+				final String MODE_MISSING = "missing"; // add missing axioms
+				final String MODE_REPLACE = "replace"; // replace all axioms
+				final String MODE_ADD = "add"; // old mode, which is very broken
+				String mode = MODE_MISSING; // safe default, only add missing axioms
+				
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-m|--add-missing")) {
+						mode = MODE_MISSING;
+					}
+					else if (opts.nextEq("-r|--replace-all")) {
+						mode = MODE_REPLACE;
+					}
+					else if (opts.nextEq("--always-add")) {
+						// this models the old broken behavior, generally not recommended
+						mode = MODE_ADD;
 					}
 					else {
-						LOG.error("No label: "+prop);
+						break;
 					}
 				}
-				g.getManager().addAxioms(g.getSourceOntology(), axioms);
+				if (MODE_ADD.equals(mode)) {
+					LOG.warn("Using the always add mode is not recommended. Make an explicit choice by either add missing '-m' or replace all '-r' shorthand information.");
+				}
+				final OWLAnnotationProperty shorthandProperty = df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#shorthand"));
+				final OWLAnnotationProperty xrefProperty = df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasDbXref"));
+				
+				for (OWLObjectProperty prop : props) {
+					if (prop.isBuiltIn()) {
+						continue;
+					}
+					IRI entity = prop.getIRI();
+					// retrieve existing
+					Set<OWLAnnotationAssertionAxiom> annotationAxioms = g.getSourceOntology().getAnnotationAssertionAxioms(entity);
+					Set<OWLAnnotationAssertionAxiom> shorthandAxioms = new HashSet<OWLAnnotationAssertionAxiom>();
+					Set<OWLAnnotationAssertionAxiom> xrefAxioms = new HashSet<OWLAnnotationAssertionAxiom>();
+					for (OWLAnnotationAssertionAxiom axiom : annotationAxioms) {
+						OWLAnnotationProperty property = axiom.getProperty();
+						if (shorthandProperty.equals(property)) {
+							shorthandAxioms.add(axiom);
+						}
+						else if (xrefProperty.equals(property)) {
+							xrefAxioms.add(axiom);
+						}
+					}
+					
+					// check what needs to be added
+					boolean addShortHand = false;
+					boolean addXref = false;
+					
+					if (MODE_REPLACE.equals(mode)) {
+						// replace existing axioms
+						removeAxioms.addAll(shorthandAxioms);
+						removeAxioms.addAll(xrefAxioms);
+						addShortHand = true;
+						addXref = true;
+					}
+					else if (MODE_MISSING.equals(mode)) {
+						// add missing axioms
+						addShortHand = shorthandAxioms.isEmpty();
+						addXref = xrefAxioms.isEmpty();
+					}
+					else if (MODE_ADD.equals(mode)) {
+						// old broken mode: regardless of current axioms always add axioms
+						addShortHand = true;
+						addXref = true;
+					}
+					
+					// create required axioms
+					if (addShortHand) {
+						// shorthand
+						String id = g.getLabel(prop);
+						if (id != null) {
+							id = id.replaceAll(" ", "_");
+							OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(
+									shorthandProperty,
+									prop.getIRI(), 
+									df.getOWLLiteral(id));
+							addAxioms.add(ax);
+							LOG.info(ax);
+						}
+						else {
+							LOG.error("No label: "+prop);
+						}
+					}
+					if (addXref) {
+						// xref to OBO style ID
+						String pid = Owl2Obo.getIdentifier(prop.getIRI());
+						OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(
+								xrefProperty,
+								prop.getIRI(), 
+								df.getOWLLiteral(pid));
+						addAxioms.add(ax);
+						LOG.info(ax);
+					}
+					
+				}
+				// update axioms
+				if (removeAxioms.isEmpty() == false) {
+					LOG.info("Total axioms removed: "+removeAxioms.size());
+					g.getManager().addAxioms(g.getSourceOntology(), removeAxioms);
+				}
+				if (addAxioms.isEmpty() == false) {
+					LOG.info("Total axioms added: "+addAxioms.size());
+					g.getManager().addAxioms(g.getSourceOntology(), addAxioms);
+				}
 			}
 			else if (opts.nextEq("--extract-properties")) {
 				LOG.warn("Deprecated - use --extract-module");
@@ -2445,6 +2527,7 @@ public class CommandRunner {
 				boolean isRemoveUnsatisfiable = false;
 				boolean showExplanation = false;
 				String unsatisfiableModule = null;
+				boolean traceModuleAxioms = false; // related to unsatisfiableModule
 
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-r")) {
@@ -2475,6 +2558,9 @@ public class CommandRunner {
 						opts.info("", "create a module for the unsatisfiable classes.");
 						unsatisfiableModule = opts.nextOpt();
 					}
+					else if (opts.nextEq("--trace-module-axioms")) {
+						traceModuleAxioms = true;
+					}
 					else {
 						break;
 					}
@@ -2489,7 +2575,7 @@ public class CommandRunner {
 					int n = 0;
 					Set<OWLClass> unsats = new HashSet<OWLClass>();
 					LOG.info("Finding unsatisfiable classes");
-					Set<OWLClass> unsatisfiableClasses = reasoner.getEquivalentClasses(g.getDataFactory().getOWLNothing()).getEntitiesMinusBottom();
+					Set<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
 					ExplanationGenerator explanationGenerator = null;
 					if (showExplanation) {
 						OWLReasonerFactory factory = createReasonerFactory(reasonerName);
@@ -2525,6 +2611,9 @@ public class CommandRunner {
 						Set<OWLEntity> seeds = new HashSet<OWLEntity>(unsatisfiableClasses);
 						Set<OWLAxiom> axioms = sme.extract(seeds);
 						OWLOntology module = m.createOntology();
+						if (traceModuleAxioms) {
+							axioms = traceAxioms(axioms, g, module.getOWLOntologyManager().getOWLDataFactory());
+						}
 						m.addAxioms(module, axioms);
 						File moduleFile = new File(unsatisfiableModule).getCanonicalFile();
 						m.saveOntology(module, IRI.create(moduleFile));
@@ -2984,7 +3073,7 @@ public class CommandRunner {
 			else if (opts.nextEq("--sic|--slurp-import-closure")) {
 				opts.info("[-d DIR] [-c CATALOG-OUT]","Saves local copy of import closure. Assumes sourceontology has imports");
 				String dir = ".";
-				String catfile = null;
+				String catfile = "catalog-v001.xml";
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-d")) {
 						dir = opts.nextOpt();
@@ -4071,6 +4160,33 @@ public class CommandRunner {
 			}
 		}
 	}
+
+	static Set<OWLAxiom> traceAxioms(Set<OWLAxiom> axioms, OWLGraphWrapper g, OWLDataFactory df) {
+		final OWLAnnotationProperty p = df.getOWLAnnotationProperty(IRI.create("http://trace.module/source-ont"));
+		final Set<OWLOntology> ontologies = g.getSourceOntology().getImportsClosure();
+		final Set<OWLAxiom> traced = new HashSet<OWLAxiom>();
+		for (OWLAxiom axiom : axioms) {
+			Set<OWLOntology> hits = new HashSet<OWLOntology>();
+			for(OWLOntology ont : ontologies) {
+				if (ont.containsAxiom(axiom)) {
+					hits.add(ont);
+				}
+			}
+			if (hits.isEmpty()) {
+				traced.add(axiom);
+			}
+			else {
+				Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>(axiom.getAnnotations());
+				for (OWLOntology hit : hits) {
+					OWLOntologyID id = hit.getOntologyID();
+					annotations.add(df.getOWLAnnotation(p, id.getOntologyIRI()));
+				}
+				traced.add(AxiomAnnotationTools.changeAxiomAnnotations(axiom, annotations, df));
+			}
+		}
+		return traced;
+	}
+
 
 	private MinimalModelGenerator getMinimalModelGenerator(boolean isCreateNewAbox) throws OWLOntologyCreationException {
 

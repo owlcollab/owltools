@@ -6,6 +6,7 @@ import org.geneontology.lego.model.LegoMetadata;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 
+@Deprecated
 public class LegoUnit extends LegoMetadata {
 
 	private final IRI id;

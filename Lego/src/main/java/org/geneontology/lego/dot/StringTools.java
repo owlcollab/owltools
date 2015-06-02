@@ -1,5 +1,6 @@
 package org.geneontology.lego.dot;
 
+@Deprecated
 public class StringTools {
 
 	static CharSequence insertLineBrakes(String s, final int lineLength, final CharSequence insert) {

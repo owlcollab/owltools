@@ -1,38 +1,33 @@
 package owltools.gaf.lego;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.geneontology.lego.dot.LegoDotWriter;
-import org.geneontology.lego.dot.LegoRenderer;
-import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
@@ -223,10 +218,10 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @param modelId
 	 * @param iid
 	 * @param metadata
-	 * @return IRIs
+	 * @return delete information
 	 * @throws UnknownIdentifierException
 	 */
-	public Set<IRI> deleteIndividual(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
+	public DeleteInformation deleteIndividual(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
@@ -240,10 +235,10 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	 * @param modelId
 	 * @param iid
 	 * @param metadata
-	 * @return IRIs
+	 * @return delete information
 	 * @throws UnknownIdentifierException
 	 */
-	public Set<IRI> deleteIndividualNonReasoning(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
+	public DeleteInformation deleteIndividualNonReasoning(String modelId, String iid, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		OWLNamedIndividual i = getIndividual(iid, model);
 		if (i == null) {
@@ -277,6 +272,14 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		}
 	}
 	
+	public void updateAnnotation(String modelId, OWLAnnotation annotation, METADATA metadata)
+			throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		if (annotation != null) {
+			updateAnnotation(modelId, model, annotation, metadata);
+		}
+	}
+	
 	public OWLNamedIndividual addAnnotations(String modelId, String iid, 
 			Set<OWLAnnotation> annotations, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
@@ -288,6 +291,35 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 			addAnnotations(modelId, model, i.getIRI(), annotations, metadata);
 		}
 		return i;
+	}
+	
+	public void addAnnotations(String modelId, IRI subject, 
+			Set<OWLAnnotation> annotations, METADATA metadata) throws UnknownIdentifierException {
+		if (annotations != null && !annotations.isEmpty()) {
+			ModelContainer model = checkModelId(modelId);
+			addAnnotations(modelId, model, subject, annotations, metadata);
+		}
+	}
+	
+	public OWLNamedIndividual updateAnnotation(String modelId, String iid, 
+			OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		if (annotation != null) {
+			updateAnnotation(modelId, model, i.getIRI(), annotation, metadata);
+		}
+		return i;
+	}
+	
+	public void updateAnnotation(String modelId, IRI subject, 
+			OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		if (annotation != null) {
+			updateAnnotation(modelId, model, subject, annotation, metadata);
+		}
 	}
 	
 	public OWLNamedIndividual removeAnnotations(String modelId, String iid,
@@ -855,6 +887,46 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		return Arrays.asList(individual1, individual2);
 	}
 	
+	public void addAnnotations(String modelId, Set<OWLObjectPropertyAssertionAxiom> axioms, Set<OWLAnnotation> annotations, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
+			addAnnotations(modelId, model, axiom, annotations, false, metadata);	
+		}
+	}
+	
+	public List<OWLNamedIndividual> updateAnnotation(String modelId, String pid, 
+			String iid, String jid, OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLObjectProperty property = getObjectProperty(pid, model);
+		if (property == null) {
+			throw new UnknownIdentifierException("Could not find a property for id: "+pid);
+		}
+		OWLNamedIndividual individual1 = getIndividual(iid, model);
+		if (individual1 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (1) for id: "+iid);
+		}
+		OWLNamedIndividual individual2 = getIndividual(jid, model);
+		if (individual2 == null) {
+			throw new UnknownIdentifierException("Could not find a individual (2) for id: "+jid);
+		}
+		updateAnnotation(modelId, model, property, individual1, individual2, annotation, false, metadata);
+
+		return Arrays.asList(individual1, individual2);
+	}
+	
+	public Set<OWLObjectPropertyAssertionAxiom> updateAnnotation(String modelId, Set<OWLObjectPropertyAssertionAxiom> axioms, OWLAnnotation annotation, METADATA metadata) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		Set<OWLObjectPropertyAssertionAxiom> newAxioms = new HashSet<OWLObjectPropertyAssertionAxiom>();
+		for (OWLObjectPropertyAssertionAxiom axiom : axioms) {
+			OWLObjectPropertyAssertionAxiom newAxiom = 
+					updateAnnotation(modelId, model, axiom, annotation, false, metadata);
+			if (newAxiom != null) {
+				newAxioms.add(newAxiom);
+			}
+		}
+		return newAxioms;
+	}
+	
 	public List<OWLNamedIndividual> removeAnnotations(String modelId, String pid, 
 			String iid, String jid, Set<OWLAnnotation> annotations, METADATA metadata) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
@@ -873,6 +945,40 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 		removeAnnotations(modelId, model, property, individual1, individual2, annotations, false, metadata);
 
 		return Arrays.asList(individual1, individual2);
+	}
+	
+	public OWLNamedIndividual addDataProperties(String modelId, String iid,
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties, METADATA token) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		if (dataProperties != null && !dataProperties.isEmpty()) {
+			for(Entry<OWLDataProperty, Set<OWLLiteral>> entry : dataProperties.entrySet()) {
+				for(OWLLiteral literal : entry.getValue()) {
+					addDataProperty(modelId, model, i, entry.getKey(), literal, false, token);
+				}
+			}
+		}
+		return i;
+	}
+	
+	public OWLNamedIndividual removeDataProperties(String modelId, String iid,
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties, METADATA token) throws UnknownIdentifierException {
+		ModelContainer model = checkModelId(modelId);
+		OWLNamedIndividual i = getIndividual(iid, model);
+		if (i == null) {
+			throw new UnknownIdentifierException("Could not find a individual for id: "+iid);
+		}
+		if (dataProperties != null && !dataProperties.isEmpty()) {
+			for(Entry<OWLDataProperty, Set<OWLLiteral>> entry : dataProperties.entrySet()) {
+				for(OWLLiteral literal : entry.getValue()) {
+					removeDataProperty(modelId, model, i, entry.getKey(), literal, false, token);
+				}
+			}
+		}
+		return i;
 	}
 	
 	/**
@@ -937,152 +1043,6 @@ public class MolecularModelManager<METADATA> extends FileBasedMolecularModelMana
 	public void updateImports(String modelId) throws UnknownIdentifierException {
 		ModelContainer model = checkModelId(modelId);
 		updateImports(modelId, model);
-	}
-	
-	@Deprecated
-	protected abstract class LegoStringDotRenderer extends LegoDotWriter {
-		public LegoStringDotRenderer(OWLGraphWrapper graph, OWLReasoner reasoner) {
-			super(graph, reasoner);
-			// TODO Auto-generated constructor stub
-		}
-
-		public StringBuffer sb = new StringBuffer();
-		
-	}
-	
-	/**
-	 * For testing purposes - may be obsoleted with rendering moved to client
-	 * 
-	 * @param modelId
-	 * @return dot string
-	 * @throws IOException
-	 * @throws UnExpectedStructureException
-	 * @throws UnknownIdentifierException
-	 */
-	@Deprecated
-	public String generateDot(String modelId) throws IOException, UnExpectedStructureException, UnknownIdentifierException {
-		ModelContainer m = checkModelId(modelId);
-		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
-	
-		LegoStringDotRenderer renderer = 
-				new LegoStringDotRenderer(graph, m.getReasoner()) {
-
-
-			@Override
-			protected void open() throws IOException {
-				// do nothing
-			}
-
-			@Override
-			protected void close() {
-				// do nothing
-			}
-
-			@Override
-			protected void appendLine(CharSequence line) throws IOException {
-				//System.out.println(line);
-				sb.append(line).append('\n');
-			}
-		};
-		renderer.render(individuals, modelId, true);
-		return renderer.sb.toString();
-	}
-	
-	/**
-	 * @param modelId
-	 * @return png File
-	 * @throws IOException 
-	 * @throws UnExpectedStructureException 
-	 * @throws InterruptedException 
-	 * @throws UnknownIdentifierException 
-	 */
-	@Deprecated
-	public File generateImage(String modelId) throws IOException, UnExpectedStructureException, InterruptedException, UnknownIdentifierException {
-		final File dotFile = File.createTempFile("LegoAnnotations", ".dot");
-		final File pngFile = File.createTempFile("LegoAnnotations", ".png");
-
-		ModelContainer m = checkModelId(modelId);
-		Set<OWLNamedIndividual> individuals = getIndividuals(modelId);
-		OWLReasoner reasoner = m.getReasoner();
-		String dotPath = "/opt/local/bin/dot"; // TODO
-		try {
-			// Step 1: render dot file
-			LegoRenderer dotWriter = new LegoDotWriter(graph, reasoner) {
-				
-				private PrintWriter writer = null;
-				
-				@Override
-				protected void open() throws IOException {
-					writer = new PrintWriter(dotFile);
-				}
-				
-				@Override
-				protected void appendLine(CharSequence line) throws IOException {
-					writer.println(line);
-				}
-
-				@Override
-				protected void close() {
-					IOUtils.closeQuietly(writer);
-				}
-				
-			};
-			dotWriter.render(individuals, null, true);
-			
-			// Step 2: render png file using graphiz (i.e. dot)
-			Runtime r = Runtime.getRuntime();
-
-			final String in = dotFile.getAbsolutePath();
-			final String out = pngFile.getAbsolutePath();
-			
-			Process process = r.exec(dotPath + " " + in + " -Tpng -q -o " + out);
-
-			process.waitFor();
-			
-			return pngFile;
-		} finally {
-			// delete temp files, do not rely on deleteOnExit
-			FileUtils.deleteQuietly(dotFile);
-			FileUtils.deleteQuietly(pngFile);
-		}
-	
-	}
-
-	/**
-	 * @param ontology
-	 * @param output
-	 * @param modelId
-	 * @throws Exception
-	 */
-	@Deprecated
-	public void writeLego(OWLOntology ontology, final String output, String modelId) throws Exception {
-
-		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
-
-
-		LegoRenderer renderer = 
-				new LegoDotWriter(graph, checkModelId(modelId).getReasoner()) {
-
-			BufferedWriter fileWriter = null;
-
-			@Override
-			protected void open() throws IOException {
-				fileWriter = new BufferedWriter(new FileWriter(new File(output)));
-			}
-
-			@Override
-			protected void close() {
-				IOUtils.closeQuietly(fileWriter);
-			}
-
-			@Override
-			protected void appendLine(CharSequence line) throws IOException {
-				//System.out.println(line);
-				fileWriter.append(line).append('\n');
-			}
-		};
-		renderer.render(individuals, modelId, true);
-
 	}
 	
 }

@@ -32,6 +32,7 @@ import org.geneontology.lego.dot.LegoDotWriter;
 import org.geneontology.lego.dot.LegoRenderer;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -69,6 +70,7 @@ import owltools.gaf.io.OpenAnnotationRDFWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
+import owltools.gaf.lego.GafToLegoIndividualTranslator;
 import owltools.gaf.lego.GafToLegoTranslator;
 import owltools.gaf.lego.LegoModelGenerator;
 import owltools.gaf.lego.legacy.LegoToGeneAnnotationTranslator;
@@ -126,6 +128,7 @@ public class GafCommandRunner extends CommandRunner {
 	private String gafReportFile = null;
 	private String gafPredictionFile = null;
 	private String gafPredictionReportFile = null;
+	private String gafTaxonModule = "go-taxon-rule-unsatisfiable-module.owl";
 	private String experimentalGafPredictionFile = null;
 	private String experimentalGafPredictionReportFile = null;
 
@@ -418,6 +421,48 @@ public class GafCommandRunner extends CommandRunner {
 
 	}
 
+	/**
+	 * Created to mimic the translation to OWL for GAF checks
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--gaf2owl-simple")
+	public void gaf2OwlSimple(Opts opts) throws Exception {
+		opts.info("-o FILE", "translates previously loaded GAF document into OWL, requires a loaded ontology to lookup ids");
+		String out = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o")) {
+				out = opts.nextOpt();
+			}
+			else
+				break;
+
+		}
+		if (g == null) {
+			LOG.error("An ontology is required.");
+			exit(-1);
+		}
+		else if (gafdoc == null) {
+			LOG.error("A GAF document is required.");
+			exit(-1);
+		}
+		else if (out == null) {
+			LOG.error("An output file is required.");
+			exit(-1);
+		}
+		LOG.info("Creating OWL represenation of annotations.");
+		GAFOWLBridge bridge = new GAFOWLBridge(g);
+		bridge.setGenerateIndividuals(false);
+		bridge.setBasicAboxMapping(false);
+		bridge.setBioentityMapping(BioentityMapping.CLASS_EXPRESSION);
+		bridge.setSkipNotAnnotations(true);
+		OWLOntology translated = bridge.translate(gafdoc);
+		File outputFile = new File(out);
+		OWLOntologyManager manager = translated.getOWLOntologyManager();
+		OWLOntologyFormat ontologyFormat= new OWLFunctionalSyntaxOntologyFormat();
+		manager.saveOntology(translated, ontologyFormat, IRI.create(outputFile));
+	}
 
 	@CLIMethod("--gaf2owl")
 	public void gaf2Owl(Opts opts) throws OWLException {
@@ -490,6 +535,8 @@ public class GafCommandRunner extends CommandRunner {
 		bridge.setGenerateIndividuals(!isSkipIndividuals);
 		if (bioentityMapping != null) {
 			bridge.setBioentityMapping(bioentityMapping);
+			// bioentity mapping setting are only evaluated for non basic a box translation
+			bridge.setBasicAboxMapping(false); 
 		}
 		LOG.info("Start converting GAF to OWL");
 		bridge.translate(gafdoc);
@@ -873,6 +920,61 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 
+	/**
+	 * Similar method to '--run-reasoner', but not only checks for unsatisfiable
+	 * classes, but also checks first for a consistent ontology.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--ontology-pre-check")
+	public void runOntologyPreCheck(Opts opts) throws Exception {
+		if (g == null) {
+			LOG.error("The ontology needs to be loaded first.");
+			exit(-1);
+			return;
+		}
+		int code = preCheckOntology("The ontology is inconsistent.", "There are unsatisfiable classes.");
+		if (code != 0) {
+			exit(-1);
+			return;
+		}
+	}
+	
+	protected int preCheckOntology(String inConsistentMsg, String unsatisfiableMsg) {
+		// pre-check: only try to load ontology iff:
+		// * ontology is consistent 
+		// * no unsatisfiable classes
+		OWLReasoner currentReasoner = reasoner;
+		boolean disposeReasoner = false;
+		try {
+			if (currentReasoner == null) {
+				disposeReasoner = true;
+				currentReasoner = new ElkReasonerFactory().createReasoner(g.getSourceOntology());
+			}
+			boolean consistent = currentReasoner.isConsistent();
+			if (consistent == false) {
+				LOG.error(inConsistentMsg);
+				return -1;
+			}
+			Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
+			if (unsatisfiable.isEmpty() == false) {
+				LOG.error(unsatisfiableMsg);
+				OWLPrettyPrinter prettyPrinter = getPrettyPrinter();
+				for (OWLClass owlClass : unsatisfiable) {
+					LOG.error("Unsatisfiable: "+prettyPrinter.render(owlClass));
+				}
+				return -1;
+			}
+		}
+		finally {
+			if (disposeReasoner && currentReasoner != null) {
+				currentReasoner.dispose();
+			}
+		}
+		return 0;
+	}
+	
 	@CLIMethod("--gaf-run-checks")
 	public void runGAFChecks(Opts opts) throws Exception {
 		boolean predictAnnotations = gafPredictionFile != null;
@@ -887,13 +989,20 @@ public class GafCommandRunner extends CommandRunner {
 				elkLogger = Logger.getLogger("org.semanticweb.elk");
 				elkLogLevel = elkLogger.getLevel();
 				elkLogger.setLevel(Level.ERROR);
-
+				
+				// pre-check ontology
+				int code = preCheckOntology("Can't validate with an inconsistent ontology", 
+						"Can't validate with an ontology with unsatisfiable classes");
+				if (code != 0) {
+					exit(code);
+					return;
+				}
+				
 				if (eco == null) {
 					eco = EcoMapperFactory.createTraversingEcoMapper(pw).getMapper();
 				}
 				LOG.info("Start validating GAF");
-
-				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco, true);
+				AnnotationRulesFactory rulesFactory = new GoAnnotationRulesFactoryImpl(g, eco, gafTaxonModule);
 				ruleEngine = new AnnotationRulesEngine(rulesFactory, predictAnnotations, experimentalPredictAnnotations);
 
 				result = ruleEngine.validateAnnotations(gafdoc);
@@ -1124,6 +1233,13 @@ public class GafCommandRunner extends CommandRunner {
 	public void setGAFPredictionReportFile(Opts opts) {
 		if (opts.hasArgs()) {
 			gafPredictionReportFile = opts.nextOpt();
+		}
+	}
+	
+	@CLIMethod("--gaf-validation-unsatisfiable-module")
+	public void setGAFTaxonModule(Opts opts) {
+		if (opts.hasArgs()) {
+			gafTaxonModule = opts.nextOpt();
 		}
 	}
 
@@ -1387,6 +1503,91 @@ public class GafCommandRunner extends CommandRunner {
 			return;
 		}
 	}
+	
+	/**
+	 * Translate the GeneAnnotations into a lego all individual OWL representation.
+	 * 
+	 * Will merge the source ontology into the graph by default
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--gaf-lego-indivduals")
+	public void gaf2LegoIndivduals(Opts opts) throws Exception {
+		boolean addLineNumber = false;
+		boolean merge = true;
+		boolean minimize = false;
+		String output = null;
+		OWLOntologyFormat format = new RDFXMLOntologyFormat();
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-o|--output")) {
+				output = opts.nextOpt();
+			}
+			else if (opts.nextEq("--format")) {
+				String formatString = opts.nextOpt();
+				if ("manchester".equalsIgnoreCase(formatString)) {
+					format = new ManchesterOWLSyntaxOntologyFormat();
+				}
+				else if ("functional".equalsIgnoreCase(formatString)) {
+					format = new OWLFunctionalSyntaxOntologyFormat();
+				}
+			}
+			else if (opts.nextEq("--add-line-number")) {
+				addLineNumber = true;
+			}
+			else if (opts.nextEq("--skip-merge")) {
+				merge = false;
+			}
+			else if (opts.nextEq("-m|--minimize")) {
+				minimize = true;
+			}
+			else {
+				break;
+			}
+		}
+		if (g != null && gafdoc != null && output != null) {
+			GafToLegoIndividualTranslator tr = new GafToLegoIndividualTranslator(g, addLineNumber);
+			OWLOntology lego = tr.translate(gafdoc);
+			
+			if (merge) {
+				new OWLGraphWrapper(lego).mergeImportClosure(true);	
+			}
+			if (minimize) {
+				final OWLOntologyManager m = lego.getOWLOntologyManager();
+				
+				SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, lego, ModuleType.BOT);
+				Set<OWLEntity> sig = new HashSet<OWLEntity>(lego.getIndividualsInSignature());
+				Set<OWLAxiom> moduleAxioms = sme.extract(sig);
+				
+				OWLOntology module = m.createOntology(IRI.generateDocumentIRI());
+				m.addAxioms(module, moduleAxioms);
+				lego = module;
+			}
+			
+			OWLOntologyManager manager = lego.getOWLOntologyManager();
+			OutputStream outputStream = null;
+			try {
+				outputStream = new FileOutputStream(output);
+				manager.saveOntology(lego, format, outputStream);
+			}
+			finally {
+				IOUtils.closeQuietly(outputStream);
+			}
+		}
+		else {
+			if (output == null) {
+				System.err.println("No output file was specified.");
+			}
+			if (g == null) {
+				System.err.println("No graph available for gaf-run-check.");
+			}
+			if (gafdoc == null) {
+				System.err.println("No loaded gaf available for gaf-run-check.");
+			}
+			exit(-1);
+			return;
+		}
+	}
 
 	@CLIMethod("--generate-molecular-model")
 	public void generateMolecularModel(Opts opts) throws Exception {
@@ -1591,9 +1792,11 @@ public class GafCommandRunner extends CommandRunner {
 	}
 
 
+	@Deprecated
 	@CLIMethod("--visualize-lego")
 	public void visualizeLego(Opts opts) throws Exception {
 		opts.info("[--owl OWLFILE] [-o OUTFOTFILE]", "");
+		LOG.error("The '--visualize-lego' method is deprecated. The dot writer is not compatible with the all-individual approach.");
 		// TODO
 		OWLOntology ont = null;
 		String dotOutputFile = null;
@@ -1622,6 +1825,7 @@ public class GafCommandRunner extends CommandRunner {
 		}
 	}
 
+	@Deprecated
 	public void writeLego(OWLOntology ontology, final String output, String name) throws Exception {
 		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
 

@@ -6,6 +6,8 @@ import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import com.google.gson.annotations.SerializedName;
+
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -91,6 +93,11 @@ public class IdStringManager {
 	
 	public enum AnnotationShorthand {
 		
+		@SerializedName("layout-hint-x")
+		x(IRI.create("http://geneontology.org/lego/layout/hint/x")),
+		
+		@SerializedName("layout-hint-y")
+		y(IRI.create("http://geneontology.org/lego/layout/hint/y")),
 		comment(OWLRDFVocabulary.RDFS_COMMENT.getIRI()), // arbitrary String
 		evidence(IRI.create("http://geneontology.org/lego/evidence")), // eco class iri
 		date(IRI.create("http://purl.org/dc/elements/1.1/date")), // arbitrary string at the moment, define date format?

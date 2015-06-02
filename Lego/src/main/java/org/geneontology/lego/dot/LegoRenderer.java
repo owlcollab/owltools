@@ -6,6 +6,7 @@ import java.util.Collection;
 import org.geneontology.lego.model.LegoTools.UnExpectedStructureException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
+@Deprecated
 public interface LegoRenderer {
 
 	/**

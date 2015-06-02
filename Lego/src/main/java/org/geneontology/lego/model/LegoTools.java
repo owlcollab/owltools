@@ -32,6 +32,7 @@ import owltools.vocab.OBOUpperVocabulary;
  * @see LegoNode
  * @see LegoLink
  */
+@Deprecated
 public class LegoTools {
 	
 	protected final OWLGraphWrapper graph;

@@ -7,11 +7,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
@@ -888,6 +890,92 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		return ar.toArray(new String[ar.size()]);
 	}
 
-
+	public String categorizeNamespace(OWLObject c, Map<String, Object> configuration) {
+		String result = null;
+		if (c instanceof OWLNamedObject) {
+			Map<String, String> idspaceMappings = new HashMap<String, String>();
+			Set<String> useNamespace = new HashSet<String>();
+			boolean useFallback = true;
+			// configuration
+			if (configuration != null) {
+				// check mapped id spaces
+				Object mapped = configuration.get("idspace-map");
+				if (mapped != null && mapped instanceof Map<?, ?>) {
+					for(Entry<?, ?> entry : ((Map<?, ?>) mapped).entrySet()) {
+						idspaceMappings.put(entry.getKey().toString(), entry.getValue().toString());
+					}
+				}
+				
+				// check use namespace
+				Object useNamespaceConfig = configuration.get("use-namespace");
+				if (useNamespaceConfig != null && useNamespaceConfig instanceof Iterable<?>) {
+					for (Object o : (Iterable<?>)useNamespaceConfig) {
+						useNamespace.add(o.toString());
+					}
+				}
+				
+				// check use fallback
+				Object fallbackConfig = configuration.get("use-fallback");
+				if (fallbackConfig != null) {
+					String fallbackString = fallbackConfig.toString();
+					if (Boolean.FALSE.toString().equalsIgnoreCase(fallbackString)) {
+						useFallback = false;
+					}
+				}
+			}
+			result = categorizeObject((OWLNamedObject) c, idspaceMappings, useNamespace, useFallback);
+		}
+		return result;
+		
+	}
+	
+	/**
+	 * Create a category for a given named object. There are three options:
+	 * <ol>
+	 *  <li>use id space to lookup category string in the id space map</li>
+	 *  <li>use OBO namespace, if the is space is in useNamespace set</li>
+	 *  <li>fallback: use id space prefix (string before first colon)</li>
+	 * </ol>
+	 * 
+	 * @param named
+	 * @param idspaceMappings
+	 * @param useNamespace
+	 * @param useFallback if false ignore fall-back
+	 * @return category or null
+	 */
+	public String categorizeObject(OWLNamedObject named,  Map<String,String> idspaceMappings, 
+			Set<String> useNamespace, boolean useFallback){
+		String result = null;
+		String idSpace = getIdspace(named.getIRI());
+		if (idSpace != null) {
+			if (idspaceMappings.containsKey(idSpace)) {
+				result = idspaceMappings.get(idSpace);
+			}
+			else if (useNamespace.contains(idSpace)) {
+				result = getNamespace(named);
+			}
+			else if (useFallback){
+				result = idSpace;
+			}
+			// normalize
+			if (result != null) {
+				// replace backslash, dash, underscore, or slash with a whitespace
+				result = result.replaceAll("[\\-_/]", " ");
+			}
+		}
+		return result;
+	}
+	
+	private String getIdspace(IRI iri) {
+		String idSpace = null;
+		String identifier = getIdentifier(iri);
+		if (identifier != null) {
+			int colonPos = identifier.indexOf(':');
+			if (colonPos > 0) {
+				idSpace = identifier.substring(0, colonPos);
+			}
+		}
+		return idSpace;
+	}
 }
 

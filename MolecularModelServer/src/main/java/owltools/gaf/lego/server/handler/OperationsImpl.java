@@ -4,6 +4,7 @@ import static owltools.gaf.lego.server.handler.OperationsTools.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,15 +20,19 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLException;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
-import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
+import owltools.gaf.lego.CoreMolecularModelManager.DeleteInformation;
 import owltools.gaf.lego.IdStringManager;
+import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.gaf.lego.MolecularModelManager.UnknownIdentifierException;
 import owltools.gaf.lego.UndoAwareMolecularModelManager;
@@ -40,9 +45,11 @@ import owltools.gaf.lego.json.JsonRelationInfo;
 import owltools.gaf.lego.json.MolecularModelJsonRenderer;
 import owltools.gaf.lego.server.external.ExternalLookupService;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse;
+import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.MetaResponse;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3BatchResponse.ResponseData;
 import owltools.gaf.lego.server.handler.M3BatchHandler.M3Request;
 import owltools.gaf.lego.server.handler.M3BatchHandler.Operation;
+import owltools.gaf.lego.server.handler.OperationsTools.MissingParameterException;
 import owltools.gaf.lego.server.validation.BeforeSaveModelValidator;
 
 /**
@@ -57,6 +64,7 @@ abstract class OperationsImpl {
 	final Set<OWLObjectProperty> importantRelations;
 	final BeforeSaveModelValidator beforeSaveValidator;
 	final ExternalLookupService externalLookupService;
+	final Set<IRI> dataPropertyIRIs;
 
 	OperationsImpl(UndoAwareMolecularModelManager models, 
 			Set<OWLObjectProperty> importantRelations,
@@ -66,6 +74,11 @@ abstract class OperationsImpl {
 		this.importantRelations = importantRelations;
 		this.externalLookupService = externalLookupService;
 		this.beforeSaveValidator = new BeforeSaveModelValidator();
+		Set<IRI> dataPropertyIRIs = new HashSet<IRI>();
+		for(OWLDataProperty p : m3.getOntology().getDataPropertiesInSignature(true)) {
+			dataPropertyIRIs.add(p.getIRI());
+		}
+		this.dataPropertyIRIs = Collections.unmodifiableSet(dataPropertyIRIs);
 	}
 
 	abstract boolean enforceExternalValidate();
@@ -76,8 +89,6 @@ abstract class OperationsImpl {
 	
 	abstract boolean useUserId();
 	
-	abstract boolean useCreationDate();
-
 	static class BatchHandlerValues {
 		
 		final Set<OWLNamedIndividual> relevantIndividuals = new HashSet<OWLNamedIndividual>();
@@ -146,8 +157,9 @@ abstract class OperationsImpl {
 			// required: expression
 			// optional: more expressions, values
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, true, values, values.modelId);
-			Pair<String, OWLNamedIndividual> individualPair;
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, values, values.modelId);
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties = extractDataProperties(request.arguments.values, values.modelId);
+			Pair<String, OWLNamedIndividual> individualPair = null;
 			List<OWLClassExpression> clsExpressions = new ArrayList<OWLClassExpression>(request.arguments.expressions.length);
 			for(JsonOwlObject expression : request.arguments.expressions) {
 				OWLClassExpression cls = parseM3Expression(expression, values);
@@ -178,22 +190,24 @@ abstract class OperationsImpl {
 					m3.addTypeNonReasoning(values.modelId, individualPair.getKey(), clsExpression, token);
 				}
 			}
-			addContributor(values.modelId, userId, token, m3);
+			if (dataProperties.isEmpty() == false) {
+				m3.addDataProperties(values.modelId, individualPair.getKey(), dataProperties, token);
+			}
+			if (individualPair != null) {
+				updateDate(values.modelId, individualPair.getKey(), token, m3);
+			}
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		// remove individual (and all axioms using it)
 		else if (Operation.remove == operation){
 			// required: modelId, individual
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
-			Set<IRI> annotationIRIs;
-			if (values.notVariable(request.arguments.individual)) {
-				annotationIRIs = m3.deleteIndividual(values.modelId, request.arguments.individual, token);
-			}
-			else {
-				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
-				annotationIRIs = m3.deleteIndividual(values.modelId, pair.getKey(), token);
-			}
-			handleRemovedAnnotationIRIs(annotationIRIs, values.modelId, token);
-			addContributor(values.modelId, userId, token, m3);
+			String individual = values.getVariableValueId(request.arguments.individual);
+			
+			DeleteInformation dInfo = m3.deleteIndividual(values.modelId, individual, token);
+			handleRemovedAnnotationIRIs(dInfo.usedIRIs, values.modelId, token);
+			updateAnnotationsForDelete(dInfo, values.modelId, userId, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 			values.renderBulk = true;
 		}				
 		// add type / named class assertion
@@ -201,49 +215,44 @@ abstract class OperationsImpl {
 			// required: individual, expressions
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+			
+			Set<OWLAnnotation> annotations = createGeneratedAnnotations(values.modelId, userId);
+			String individual = values.getVariableValueId(request.arguments.individual);
+			
 			for(JsonOwlObject expression : request.arguments.expressions) {
 				OWLClassExpression cls = parseM3Expression(expression, values);
-				// TODO evidence and contributor information for types
-				if (values.notVariable(request.arguments.individual)) {
-					OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
-					values.relevantIndividuals.add(i);
-
-					if (request.arguments.assignToVariable != null) {
-						values.individualVariables.put(request.arguments.assignToVariable, 
-								Pair.of(request.arguments.individual, i));
-					}
+				OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, individual, cls, token);
+				values.relevantIndividuals.add(i);
+				if (request.arguments.assignToVariable != null) {
+					values.individualVariables.put(request.arguments.assignToVariable, Pair.of(individual, i));
 				}
-				else {
-					Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
-					OWLNamedIndividual i = m3.addTypeNonReasoning(values.modelId, pair.getKey(), cls, token);
-					values.relevantIndividuals.add(i);
-				}
+				m3.addAnnotations(values.modelId, individual, annotations, token);
 			}
-			addContributor(values.modelId, userId, token, m3);
+			updateDate(values.modelId, individual, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		// remove type / named class assertion
 		else if (Operation.removeType == operation){
 			// required: individual, expressions
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.expressions, "request.arguments.expressions");
+			
+			Set<OWLAnnotation> annotations = createGeneratedAnnotations(values.modelId, userId);
+			String individual = values.getVariableValueId(request.arguments.individual);
+			
 			for(JsonOwlObject expression : request.arguments.expressions) {
 				OWLClassExpression cls = parseM3Expression(expression, values);
-				if (values.notVariable(request.arguments.individual)) {
-					OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, request.arguments.individual, cls, token);
-					values.relevantIndividuals.add(i);
+				OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, individual, cls, token);
+				values.relevantIndividuals.add(i);
 
-					if (request.arguments.assignToVariable != null) {
-						values.individualVariables.put(request.arguments.assignToVariable, 
-								Pair.of(request.arguments.individual, i));
-					}
+				if (request.arguments.assignToVariable != null) {
+					values.individualVariables.put(request.arguments.assignToVariable, 
+							Pair.of(individual, i));
 				}
-				else {
-					Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
-					OWLNamedIndividual i = m3.removeTypeNonReasoning(values.modelId, pair.getKey(), cls, token);
-					values.relevantIndividuals.add(i);
-				}
+				m3.addAnnotations(values.modelId, individual, annotations, token);
 			}
-			addContributor(values.modelId, userId, token, m3);
+			updateDate(values.modelId, individual, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		// add annotation
 		else if (Operation.addAnnotation == operation){
@@ -251,24 +260,26 @@ abstract class OperationsImpl {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, false, values, values.modelId);
-			if(values.notVariable(request.arguments.individual)) {
-				OWLNamedIndividual i = m3.addAnnotations(values.modelId, request.arguments.individual,
-						annotations, token);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, values, values.modelId);
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties = extractDataProperties(request.arguments.values, values.modelId);
+			String individual = values.getVariableValueId(request.arguments.individual);
+			
+			OWLNamedIndividual i = null;
+			if (annotations.isEmpty() == false) {
+				i = m3.addAnnotations(values.modelId, individual, annotations, token);
 				values.relevantIndividuals.add(i);
+			}
+			if (dataProperties.isEmpty() == false) {
+				i = m3.addDataProperties(values.modelId, individual, dataProperties, token);
+				values.relevantIndividuals.add(i);
+			}
 
-				if (request.arguments.assignToVariable != null) {
-					values.individualVariables.put(request.arguments.assignToVariable, 
-							Pair.of(request.arguments.individual, i));
-				}
+			if (request.arguments.assignToVariable != null && i != null) {
+				values.individualVariables.put(request.arguments.assignToVariable, 
+						Pair.of(individual, i));
 			}
-			else {
-				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
-				OWLNamedIndividual i = m3.addAnnotations(values.modelId, pair.getKey(),
-						annotations, token);
-				values.relevantIndividuals.add(i);
-			}
-			addContributor(values.modelId, userId, token, m3);
+			updateDate(values.modelId, individual, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		// remove annotation
 		else if (Operation.removeAnnotation == operation){
@@ -276,26 +287,29 @@ abstract class OperationsImpl {
 			requireNotNull(request.arguments.individual, "request.arguments.individual");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, false, values, values.modelId);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, values, values.modelId);
+			Map<OWLDataProperty, Set<OWLLiteral>> dataProperties = extractDataProperties(request.arguments.values, values.modelId);
+			String individual = values.getVariableValueId(request.arguments.individual);
+			
 			Set<IRI> usedIRIs = MolecularModelManager.extractIRIValues(annotations);
-			if(values.notVariable(request.arguments.individual)) {
-				OWLNamedIndividual i = m3.removeAnnotations(values.modelId, request.arguments.individual,
-						annotations, token);
+			
+			OWLNamedIndividual i = null;
+			if (annotations.isEmpty() == false) {
+				i = m3.removeAnnotations(values.modelId, individual, annotations, token);
 				values.relevantIndividuals.add(i);
-
-				if (request.arguments.assignToVariable != null) {
-					values.individualVariables.put(request.arguments.assignToVariable, 
-							Pair.of(request.arguments.individual, i));
-				}
 			}
-			else {
-				Pair<String, OWLNamedIndividual> pair = values.individualVariables.get(request.arguments.individual);
-				OWLNamedIndividual i = m3.removeAnnotations(values.modelId, pair.getKey(),
-						annotations, token);
+			if (dataProperties.isEmpty() == false) {
+				i = m3.removeDataProperties(values.modelId, individual, dataProperties, token);
 				values.relevantIndividuals.add(i);
+			}
+
+			if (request.arguments.assignToVariable != null && i != null) {
+				values.individualVariables.put(request.arguments.assignToVariable, 
+						Pair.of(individual, i));
 			}
 			handleRemovedAnnotationIRIs(usedIRIs, values.modelId, token);
-			addContributor(values.modelId, userId, token, m3);
+			updateDate(values.modelId, individual, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		else {
 			return "Unknown operation: "+operation;
@@ -348,11 +362,12 @@ abstract class OperationsImpl {
 		// add edge
 		if (Operation.add == operation){
 			// optional: values
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, values, values.modelId);
+			addDateAnnotation(annotations, m3.getOWLDataFactory(values.modelId));
 			List<OWLNamedIndividual> individuals = m3.addFactNonReasoning(values.modelId,
-					request.arguments.predicate, subject, object,
-					extract(request.arguments.values, userId, true, values, values.modelId), token);
+					request.arguments.predicate, subject, object, annotations, token);
 			values.relevantIndividuals.addAll(individuals);
-			addContributor(values.modelId, userId, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		// remove edge
 		else if (Operation.remove == operation){
@@ -360,7 +375,7 @@ abstract class OperationsImpl {
 					request.arguments.predicate, subject, object, token);
 			values.relevantIndividuals.addAll(pair.getLeft());
 			handleRemovedAnnotationIRIs(pair.getRight(), values.modelId, token);
-			addContributor(values.modelId, userId, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		// add annotation
 		else if (Operation.addAnnotation == operation){
@@ -368,19 +383,23 @@ abstract class OperationsImpl {
 
 			List<OWLNamedIndividual> individuals = m3.addAnnotations(values.modelId,
 					request.arguments.predicate, subject, object,
-					extract(request.arguments.values, userId, false, values, values.modelId), token);
+					extract(request.arguments.values, userId, values, values.modelId), token);
 			values.relevantIndividuals.addAll(individuals);
+			updateDate(values.modelId, request.arguments.predicate, subject, object, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		// remove annotation
 		else if (Operation.removeAnnotation == operation){
 			requireNotNull(request.arguments.values, "request.arguments.values");
 
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, false, values, values.modelId);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, values, values.modelId);
 			Set<IRI> iriSet = MolecularModelManager.extractIRIValues(annotations);
 			List<OWLNamedIndividual> individuals = m3.removeAnnotations(values.modelId,
 					request.arguments.predicate, subject, object, annotations, token);
 			values.relevantIndividuals.addAll(individuals);
 			handleRemovedAnnotationIRIs(iriSet, values.modelId, token);
+			updateDate(values.modelId, request.arguments.predicate, subject, object, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		else {
 			return "Unknown operation: "+operation;
@@ -423,74 +442,28 @@ abstract class OperationsImpl {
 			Set<OWLAnnotation> annotations = null;
 			if (request.arguments != null && request.arguments.taxonId != null) {
 				values.modelId = m3.generateBlankModelWithTaxon(request.arguments.taxonId, token);
-				annotations = extract(request.arguments.values, userId, true, values, values.modelId);
+				annotations = extract(request.arguments.values, userId, values, values.modelId);
 			}
 			else {
 				values.modelId = m3.generateBlankModel(null, token);
-				annotations = extract(null, userId, true, values, values.modelId);
+				annotations = extract(null, userId, values, values.modelId);
 			}
 			
 			if (annotations != null) {
 				m3.addAnnotations(values.modelId, annotations, token);
 			}
-			addContributor(values.modelId, userId, token, m3);
-		}
-		// TODO remove and update test cases
-		// TODO split seeding into separate command
-		else if (Operation.generate == operation) {
-			values.nonMeta = true;
-			requireNotNull(request.arguments, "request.arguments");
-			requireNotNull(request.arguments.db, "request.arguments.db");
-			requireNotNull(request.arguments.subject, "request.arguments.subject");
-			values.renderBulk = true;
-			values.modelId = m3.generateModel(request.arguments.subject, request.arguments.db, token);
-			
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, true, values, values.modelId);
-			if (annotations != null) {
-				m3.addAnnotations(values.modelId, annotations, token);
-			}
-			addContributor(values.modelId, userId, token, m3);
-		}
-		// TODO remove
-		else if (Operation.generateBlank == operation) {
-			values.nonMeta = true;
-			values.renderBulk = true;
-			// db and taxonId are both optional
-			String db = null;
-			String taxonId = null;
-			
-			if (request.arguments != null) {
-				db = request.arguments.db;
-				taxonId = request.arguments.taxonId;
-			}
-			if (taxonId != null) {
-				values.modelId = m3.generateBlankModelWithTaxon(taxonId, token);
-			}
-			else {
-				values.modelId = m3.generateBlankModel(db, token);
-			}
-			
-			Set<OWLAnnotation> annotations = null;
-			if (request.arguments != null) {
-				annotations = extract(request.arguments.values, userId, true, values, values.modelId);
-			}
-			else {
-				annotations = extract(null, userId, true, values, values.modelId);
-			}
-			if (annotations != null) {
-				m3.addAnnotations(values.modelId, annotations, token);
-			}
-			addContributor(values.modelId, userId, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 		}
 		else if (Operation.addAnnotation == operation) {
 			values.nonMeta = true;
 			requireNotNull(request.arguments, "request.arguments");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 			values.modelId = checkModelId(values.modelId, request);
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, false, values, values.modelId);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, values, values.modelId);
 			if (annotations != null) {
 				m3.addAnnotations(values.modelId, annotations, token);
 			}
+			updateModelAnnotations(values.modelId, userId, token, m3);
 			values.renderModelAnnotations = true;
 		}
 		else if (Operation.removeAnnotation == operation) {
@@ -498,10 +471,11 @@ abstract class OperationsImpl {
 			requireNotNull(request.arguments, "request.arguments");
 			requireNotNull(request.arguments.values, "request.arguments.values");
 			values.modelId = checkModelId(values.modelId, request);
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, false, values, values.modelId);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, null, values, values.modelId);
 			if (annotations != null) {
 				m3.removeAnnotations(values.modelId, annotations, token);
 			}
+			updateModelAnnotations(values.modelId, userId, token, m3);
 			values.renderModelAnnotations = true;
 		}
 		else if (Operation.exportModel == operation) {
@@ -528,17 +502,17 @@ abstract class OperationsImpl {
 			requireNotNull(request.arguments.importModel, "request.arguments.importModel");
 			values.modelId = m3.importModel(request.arguments.importModel);
 			
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, false, values, values.modelId);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, values, values.modelId);
 			if (annotations != null) {
 				m3.addAnnotations(values.modelId, annotations, token);
 			}
-			addContributor(values.modelId, userId, token, m3);
+			updateModelAnnotations(values.modelId, userId, token, m3);
 			values.renderBulk = true;
 		}
 		else if (Operation.storeModel == operation) {
 			requireNotNull(request.arguments, "request.arguments");
 			values.modelId = checkModelId(values.modelId, request);
-			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, false, values, values.modelId);
+			Set<OWLAnnotation> annotations = extract(request.arguments.values, userId, values, values.modelId);
 			if (validateBeforeSave()) {
 				List<String> issues = beforeSaveValidator.validateBeforeSave(values.modelId, m3);
 				if (issues != null && !issues.isEmpty()) {
@@ -555,20 +529,6 @@ abstract class OperationsImpl {
 				}
 			}
 			save(response, values.modelId, annotations, userId, token);
-		}
-		else if (Operation.allModelIds == operation) {
-			if (values.nonMeta) {
-				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-				return operation+" cannot be combined with other operations.";
-			}
-			getAllModelIds(response, userId);
-		}
-		else if (Operation.allModelMeta == operation) {
-			if (values.nonMeta) {
-				// can only be used with other "meta" operations in batch mode, otherwise it would lead to conflicts in the returned signal
-				return operation+" cannot be combined with other operations.";
-			}
-			getAllModelMeta(response, userId);
 		}
 		else if (Operation.undo == operation) {
 			values.nonMeta = true;
@@ -623,56 +583,6 @@ abstract class OperationsImpl {
 		response.data.redo = redos;
 	}
 	
-	private void getAllModelIds(M3BatchResponse response, String userId) throws IOException {
-		Set<String> allModelIds = m3.getAvailableModelIds();
-		//Set<String> scratchModelIds = mmm.getScratchModelIds();
-		//Set<String> storedModelIds = mmm.getStoredModelIds();
-		//Set<String> memoryModelIds = mmm.getCurrentModelIds();
-
-		initMetaResponse(response);
-		
-		response.data.modelIds = allModelIds;
-		//response.data.put("models_memory", memoryModelIds);
-		//response.data.put("models_stored", storedModelIds);
-		//response.data.put("models_scratch", scratchModelIds);
-	}
-	
-	/*
-	 * A newer version of getAllModelIds that tries to supply additional meta information like labels.
-	 * Meant to eventually completely replace it.
-	 * 
-	 * TODO/BUG: Will obviously clobber top-level properties with more than one entry.
-	 */
-	private void getAllModelMeta(M3BatchResponse response, String userId) throws IOException {
-
-		Map<String,Map<String,String>> retMap = new HashMap<String, Map<String,String>>();
-			
-		// Jimmy out what information we can cycling directly through all the models.
-		Set<String> allModelIds = m3.getAvailableModelIds();
-		for( String mid : allModelIds ){
-
-			retMap.put(mid, new HashMap<String,String>());
-			Map<String, String> modelMap = retMap.get(mid);
-			
-			// Iterate through the model's a.
-			OWLOntology o = m3.getModelAbox(mid);
-			Set<OWLAnnotation> annotations = o.getAnnotations();
-			for( OWLAnnotation an : annotations ){
-				// see if the annotation is a shorthand
-				AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(an.getProperty().getIRI());
-				if (shorthand != null) {
-					// add shorthand and string value
-					modelMap.put(shorthand.name(), 
-							MolecularModelJsonRenderer.getAnnotationStringValue(an.getValue()));
-				}
-			}
-		}
-
-		// Sending the actual response.
-		initMetaResponse(response);
-		response.data.modelsMeta = retMap;
-	}
-	
 	private void initMetaResponse(M3BatchResponse response) {
 		if (response.data == null) {
 			response.data = new ResponseData();
@@ -683,36 +593,64 @@ abstract class OperationsImpl {
 	}
 	
 	/**
-	 * Handle the request for the relation properties.
+	 * Handle the request for the meta properties.
 	 * 
 	 * @param response
 	 * @param userId
-	 * @throws OWLOntologyCreationException
+	 * @throws IOException 
+	 * @throws OWLException 
 	 */
-	void getRelations(M3BatchResponse response, String userId) throws OWLOntologyCreationException {
-		List<JsonRelationInfo> relList = MolecularModelJsonRenderer.renderRelations(m3, importantRelations);
+	void getMeta(M3BatchResponse response, String userId) throws IOException, OWLException {
+		// init
 		initMetaResponse(response);
-		if (relList != null) {
-			response.data.relations = relList.toArray(new JsonRelationInfo[relList.size()]);
-		}
-	}
-	
-	/**
-	 * Handle the request for the evidence classes.
-	 * 
-	 * @param response
-	 * @param userId
-	 * @throws OWLException
-	 * @throws IOException
-	 */
-	void getEvidence(M3BatchResponse response, String userId) throws OWLException, IOException {
-		List<JsonEvidenceInfo> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
-		initMetaResponse(response);
-		if (evidencesList != null) {
-			response.data.evidence = evidencesList.toArray(new JsonEvidenceInfo[evidencesList.size()]);	
+		if (response.data.meta == null) {
+			response.data.meta = new MetaResponse();
 		}
 		
+		// relations
+		Pair<List<JsonRelationInfo>, List<JsonRelationInfo>> propPair = MolecularModelJsonRenderer.renderProperties(m3, importantRelations);
+		final List<JsonRelationInfo> relList = propPair.getLeft();
+		if (relList != null) {
+			response.data.meta.relations = relList.toArray(new JsonRelationInfo[relList.size()]);
+		}
+		
+		// data properties
+		final List<JsonRelationInfo> propList = propPair.getRight();
+		if (propList != null) {
+			response.data.meta.dataProperties = propList.toArray(new JsonRelationInfo[propList.size()]);
+		}
+		
+		// evidence
+		final List<JsonEvidenceInfo> evidencesList = MolecularModelJsonRenderer.renderEvidences(m3);
+		if (evidencesList != null) {
+			response.data.meta.evidence = evidencesList.toArray(new JsonEvidenceInfo[evidencesList.size()]);	
+		}
+		
+		// model ids
+		final Set<String> allModelIds = m3.getAvailableModelIds();
+		response.data.meta.modelIds = allModelIds;
+		
+		Map<String,Map<String,String>> retMap = new HashMap<String, Map<String,String>>();
+		
+		// get model annotations
+		for( String mid : allModelIds ){
+
+			retMap.put(mid, new HashMap<String,String>());
+			Map<String, String> modelMap = retMap.get(mid);
+			
+			// Iterate through the model's a.
+			OWLOntology o = m3.getModelAbox(mid);
+			Set<OWLAnnotation> annotations = o.getAnnotations();
+			for( OWLAnnotation an : annotations ){
+				Pair<String,String> pair = JsonAnnotation.createSimplePair(an);
+				if (pair != null) {
+					modelMap.put(pair.getKey(), pair.getValue());
+				}
+			}
+		}
+		response.data.meta.modelsMeta = retMap;
 	}
+	
 	
 	private void export(M3BatchResponse response, String modelId, String userId) throws OWLOntologyStorageException, UnknownIdentifierException {
 		String exportModel = m3.exportModel(modelId);
@@ -729,15 +667,6 @@ abstract class OperationsImpl {
 	private void save(M3BatchResponse response, String modelId, Set<OWLAnnotation> annotations, String userId, UndoMetadata token) throws OWLOntologyStorageException, OWLOntologyCreationException, IOException, UnknownIdentifierException {
 		m3.saveModel(modelId, annotations, token);
 		initMetaResponse(response);
-	}
-	
-	private void addContributor(String modelId, String userId, UndoMetadata token, MolecularModelManager<UndoMetadata> m3) throws UnknownIdentifierException {
-		if (useUserId() && userId != null) {
-			Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
-			final OWLDataFactory f = m3.getOWLDataFactory(modelId);
-			annotations.add(create(f, AnnotationShorthand.contributor, userId));
-			m3.addAnnotations(modelId, annotations, token);
-		}
 	}
 	
 	private static OWLAnnotation create(OWLDataFactory f, AnnotationShorthand s, String literal) {
@@ -774,47 +703,141 @@ abstract class OperationsImpl {
 		return modelId;
 	}
 	
-	private Set<OWLAnnotation> extract(JsonAnnotation[] values, String userId, boolean addDate, BatchHandlerValues batchValues, String modelId) throws UnknownIdentifierException {
+	private Set<OWLAnnotation> extract(JsonAnnotation[] values, String userId, BatchHandlerValues batchValues, String modelId) throws UnknownIdentifierException {
 		Set<OWLAnnotation> result = new HashSet<OWLAnnotation>();
 		OWLDataFactory f = m3.getOWLDataFactory(modelId);
 		if (values != null) {
-			for (JsonAnnotation m3Pair : values) {
-				if (m3Pair.key != null && m3Pair.value != null) {
-					AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(m3Pair.key);
+			for (JsonAnnotation jsonAnn : values) {
+				if (jsonAnn.key != null && jsonAnn.value != null) {
+					AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(jsonAnn.key);
 					if (shorthand != null) {
 						if (AnnotationShorthand.evidence == shorthand) {
 							OWLAnnotationValue evidenceValue;
-							if (batchValues.individualVariables.containsKey(m3Pair.value)) {
-								Pair<String, OWLNamedIndividual> pair = batchValues.individualVariables.get(m3Pair.value);
+							if (batchValues.individualVariables.containsKey(jsonAnn.value)) {
+								Pair<String, OWLNamedIndividual> pair = batchValues.individualVariables.get(jsonAnn.value);
 								if (pair == null) {
-									throw new UnknownIdentifierException("Variable "+m3Pair.value+" has a null value.");
+									throw new UnknownIdentifierException("Variable "+jsonAnn.value+" has a null value.");
 								}
 								evidenceValue = pair.getRight().getIRI();
 							}
 							else {
-								evidenceValue = IdStringManager.getIRI(m3Pair.value);
+								evidenceValue = IdStringManager.getIRI(jsonAnn.value);
 							}
 							result.add(create(f, shorthand, evidenceValue));
 						}
 						else {
-							result.add(create(f, shorthand, m3Pair.value));
+							result.add(create(f, shorthand, jsonAnn.createAnnotationValue(f)));
 						}
 					}
 					else {
-						IRI pIRI = IRI.create(m3Pair.key);
-						result.add(f.getOWLAnnotation(f.getOWLAnnotationProperty(pIRI), f.getOWLLiteral(m3Pair.value)));
+						IRI pIRI = IRI.create(jsonAnn.key);
+						if (dataPropertyIRIs.contains(pIRI) == false) {
+							OWLAnnotationValue annotationValue = jsonAnn.createAnnotationValue(f);
+							result.add(f.getOWLAnnotation(f.getOWLAnnotationProperty(pIRI), annotationValue));
+						}
 					}
 				}
 			}
 		}
-		if (useUserId() && userId != null) {
-			result.add(create(f, AnnotationShorthand.contributor, userId));
-		}
-		if (useCreationDate() && addDate) {
-			String dateString = MolecularModelJsonRenderer.AnnotationTypeDateFormat.get().format(new Date());
-			result.add(create(f, AnnotationShorthand.date, dateString));
-		}
+		addGeneratedAnnotations(userId, result, f);
 		return result;
+	}
+	
+	private Map<OWLDataProperty, Set<OWLLiteral>> extractDataProperties(JsonAnnotation[] values, String modelId) {
+		Map<OWLDataProperty, Set<OWLLiteral>> result = new HashMap<OWLDataProperty, Set<OWLLiteral>>();
+		
+		if (values != null && values.length > 0) {
+			OWLDataFactory f = m3.getOWLDataFactory(modelId);
+			for (JsonAnnotation jsonAnn : values) {
+				if (jsonAnn.key != null && jsonAnn.value != null) {
+					AnnotationShorthand shorthand = AnnotationShorthand.getShorthand(jsonAnn.key);
+					if (shorthand == null) {
+						IRI pIRI = IRI.create(jsonAnn.key);
+						if (dataPropertyIRIs.contains(pIRI)) {
+							OWLLiteral literal = jsonAnn.createLiteral(f);
+							if (literal != null) {
+								OWLDataProperty property = f.getOWLDataProperty(pIRI);
+								Set<OWLLiteral> literals = result.get(property);
+								if (literals == null) {
+									literals = new HashSet<OWLLiteral>();
+									result.put(property, literals);
+								}
+								literals.add(literal);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	private void addGeneratedAnnotations(String userId, Set<OWLAnnotation> annotations, OWLDataFactory f) {
+		if (useUserId() && userId != null) {
+			annotations.add(create(f, AnnotationShorthand.contributor, userId));
+		}
+	}
+	
+	private void addDateAnnotation(Set<OWLAnnotation> annotations, OWLDataFactory f) {
+		annotations.add(createDateAnnotation(f));
+	}
+	
+	private OWLAnnotation createDateAnnotation(OWLDataFactory f) {
+		return create(f, AnnotationShorthand.date, generateDateString());
+	}
+
+	private void updateDate(String modelId, String individual, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {
+		final OWLDataFactory f = m3.getOWLDataFactory(modelId);
+		m3.updateAnnotation(modelId, individual, createDateAnnotation(f), token);
+	}
+	
+	private void updateAnnotationsForDelete(DeleteInformation info, String modelId, String userId, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {
+		final OWLDataFactory f = m3.getOWLDataFactory(modelId);
+		final OWLAnnotation annotation = createDateAnnotation(f);
+		final Set<OWLAnnotation> generated = new HashSet<OWLAnnotation>();
+		addGeneratedAnnotations(userId, generated, f);
+		for(IRI subject : info.touched) {
+			m3.updateAnnotation(modelId, subject, annotation, token);
+			m3.addAnnotations(modelId, subject, generated, token);
+		}
+		if (info.updated.isEmpty() == false) {
+			Set<OWLObjectPropertyAssertionAxiom> newAxioms = 
+					m3.updateAnnotation(modelId, info.updated, annotation, token);
+			m3.addAnnotations(modelId, newAxioms, generated, token);
+		}
+	}
+	
+	private void updateDate(String modelId, String predicate, String subject, String object, UndoMetadata token, UndoAwareMolecularModelManager m3) throws UnknownIdentifierException {
+		final OWLDataFactory f = m3.getOWLDataFactory(modelId);
+		m3.updateAnnotation(modelId, predicate, subject, object, createDateAnnotation(f), token);
+	}
+	
+	private void updateModelAnnotations(String modelId, String userId, UndoMetadata token, MolecularModelManager<UndoMetadata> m3) throws UnknownIdentifierException {
+		final OWLDataFactory f = m3.getOWLDataFactory(modelId);
+		if (useUserId() && userId != null) {
+			Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
+			annotations.add(create(f, AnnotationShorthand.contributor, userId));
+			m3.addAnnotations(modelId, annotations, token);
+		}
+		m3.updateAnnotation(modelId, createDateAnnotation(f), token);
+	}
+
+	/**
+	 * separate method, intended to be overridden during test.
+	 * 
+	 * @return date string, never null
+	 */
+	protected String generateDateString() {
+		String dateString = MolecularModelJsonRenderer.AnnotationTypeDateFormat.get().format(new Date());
+		return dateString;
+	}
+	
+	private Set<OWLAnnotation> createGeneratedAnnotations(String modelId, String userId) {
+		Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
+		OWLDataFactory f = m3.getOWLDataFactory(modelId);
+		addGeneratedAnnotations(userId, annotations, f);
+		return annotations;
 	}
 	
 	static class MultipleModelIdsParameterException extends Exception {

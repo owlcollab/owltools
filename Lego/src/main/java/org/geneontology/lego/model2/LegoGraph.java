@@ -7,6 +7,7 @@ import java.util.List;
 import org.geneontology.lego.model.LegoLink;
 import org.geneontology.lego.model.LegoNode;
 
+@Deprecated
 public class LegoGraph {
 	
 	// for display purposes only, that is a lossy model

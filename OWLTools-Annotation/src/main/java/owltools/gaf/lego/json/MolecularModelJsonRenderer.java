@@ -18,16 +18,13 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLIndividualAxiom;
-import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -48,7 +45,6 @@ import owltools.gaf.eco.EcoMapper;
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.EcoMapperFactory.OntologyMapperPair;
 import owltools.gaf.lego.IdStringManager;
-import owltools.gaf.lego.IdStringManager.AnnotationShorthand;
 import owltools.gaf.lego.MolecularModelManager;
 import owltools.graph.OWLGraphWrapper;
 import owltools.util.ModelContainer;
@@ -128,10 +124,12 @@ public class MolecularModelJsonRenderer {
 		Set<OWLObjectProperty> usedProps = new HashSet<OWLObjectProperty>();
 		
 		List<JsonOwlFact> aObjs = new ArrayList<JsonOwlFact>();
-		for (OWLObjectPropertyAssertionAxiom opa : 
-			ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
-			aObjs.add(renderObject(opa));
-			usedProps.addAll(opa.getObjectPropertiesInSignature());
+		for (OWLObjectPropertyAssertionAxiom opa : ont.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION)) {
+			JsonOwlFact fact = renderObject(opa);
+			if (fact != null) {
+				aObjs.add(fact);
+				usedProps.addAll(opa.getObjectPropertiesInSignature());
+			}
 		}
 		json.facts = aObjs.toArray(new JsonOwlFact[aObjs.size()]);
 
@@ -174,16 +172,9 @@ public class MolecularModelJsonRenderer {
 	private static JsonAnnotation[] renderAnnotations(Set<OWLAnnotation> annotations) {
 		List<JsonAnnotation> anObjs = new ArrayList<JsonAnnotation>();
 		for (OWLAnnotation annotation : annotations) {
-			OWLAnnotationProperty p = annotation.getProperty();
-			AnnotationShorthand annotationShorthand = AnnotationShorthand.getShorthand(p.getIRI());
-			if (annotationShorthand != null) {
-				final String stringValue = getAnnotationStringValue(annotation.getValue());
-				if (stringValue != null) {
-					anObjs.add(JsonAnnotation.create(annotationShorthand.name(), stringValue));
-				}
-			}
-			else {
-				// TODO render without the use of the shorthand
+			JsonAnnotation json = JsonAnnotation.create(annotation.getProperty(), annotation.getValue());
+			if (json != null) {
+				anObjs.add(json);
 			}
 		}
 		return anObjs.toArray(new JsonAnnotation[anObjs.size()]);
@@ -210,7 +201,10 @@ public class MolecularModelJsonRenderer {
 		}
 		List<JsonOwlFact> aObjs = new ArrayList<JsonOwlFact>();
 		for (OWLObjectPropertyAssertionAxiom opa : opAxioms) {
-			aObjs.add(renderObject(opa));
+			JsonOwlFact fact = renderObject(opa);
+			if (fact != null) {
+				aObjs.add(fact);
+			}
 		}
 		
 		return Pair.of(iObjs.toArray(new JsonOwlIndividual[iObjs.size()]), 
@@ -272,46 +266,27 @@ public class MolecularModelJsonRenderer {
 //			}
 //		}
 		json.type = typeObjs.toArray(new JsonOwlObject[typeObjs.size()]);
-		List<JsonAnnotation> anObjs = new ArrayList<JsonAnnotation>();
+		final List<JsonAnnotation> anObjs = new ArrayList<JsonAnnotation>();
 		Set<OWLAnnotationAssertionAxiom> annotationAxioms = ont.getAnnotationAssertionAxioms(i.getIRI());
 		for (OWLAnnotationAssertionAxiom ax : annotationAxioms) {
-			OWLAnnotationProperty p = ax.getProperty();
-			AnnotationShorthand annotationShorthand = AnnotationShorthand.getShorthand(p.getIRI());
-			if (annotationShorthand != null) {
-				final String stringValue = getAnnotationStringValue(ax.getValue());
-				if (stringValue != null) {
-					anObjs.add(JsonAnnotation.create(annotationShorthand.name(), stringValue));
-				}
-			}
-			else {
-				// TODO render non-shorthand annotations
+			JsonAnnotation jsonAnn = JsonAnnotation.create(ax.getProperty(), ax.getValue());
+			if (jsonAnn != null) {
+				anObjs.add(jsonAnn);
 			}
 		}
+		Set<OWLDataPropertyAssertionAxiom> dataPropertyAxioms = ont.getDataPropertyAssertionAxioms(i);
+		for (OWLDataPropertyAssertionAxiom ax : dataPropertyAxioms) {
+			OWLDataProperty property = ax.getProperty().asOWLDataProperty();
+			JsonAnnotation jsonAnn = JsonAnnotation.create(property, ax.getObject());
+			if (jsonAnn != null) {
+				anObjs.add(jsonAnn);
+			}
+		}
+		
 		if (anObjs.isEmpty() == false) {
 			json.annotations = anObjs.toArray(new JsonAnnotation[anObjs.size()]);
 		}
 		return json;
-	}
-	
-	public static String getAnnotationStringValue(OWLAnnotationValue v) {
-		final String stringValue = v.accept(new OWLAnnotationValueVisitorEx<String>() {
-
-			@Override
-			public String visit(IRI iri) {
-				return IdStringManager.getId(iri);
-			}
-
-			@Override
-			public String visit(OWLAnonymousIndividual individual) {
-				return null; // Do nothing
-			}
-
-			@Override
-			public String visit(OWLLiteral literal) {
-				return literal.getLiteral();
-			}
-		});
-		return stringValue;
 	}
 	
 	/**
@@ -323,31 +298,37 @@ public class MolecularModelJsonRenderer {
 		OWLObjectProperty property;
 		OWLNamedIndividual object;
 
-		subject = (OWLNamedIndividual) opa.getSubject();
-		property = (OWLObjectProperty) opa.getProperty();
-		object = (OWLNamedIndividual) opa.getObject();
-
-		JsonOwlFact fact = new JsonOwlFact();
-		fact.subject = IdStringManager.getId(subject, graph);
-		fact.property = IdStringManager.getId(property, graph);
-		fact.object = IdStringManager.getId(object, graph);
-		
-		JsonAnnotation[] anObjs = renderAnnotations(opa.getAnnotations());
-		if (anObjs != null && anObjs.length > 0) {
-			fact.annotations = anObjs;
+		JsonOwlFact fact = null;
+		if (opa.getSubject().isNamed() && opa.getObject().isNamed() && opa.getProperty().isAnonymous() == false) {
+			subject = (OWLNamedIndividual) opa.getSubject();
+			property = (OWLObjectProperty) opa.getProperty();
+			object = (OWLNamedIndividual) opa.getObject();
+	
+			fact = new JsonOwlFact();
+			fact.subject = IdStringManager.getId(subject, graph);
+			fact.property = IdStringManager.getId(property, graph);
+			fact.object = IdStringManager.getId(object, graph);
+			
+			JsonAnnotation[] anObjs = renderAnnotations(opa.getAnnotations());
+			if (anObjs != null && anObjs.length > 0) {
+				fact.annotations = anObjs;
+			}
 		}
 		return fact;
 	}
 
-	/**
-	 * @param p
-	 * @return Map to be passed to Gson
-	 */
 	public JsonOwlObject renderObject(OWLObjectProperty p) {
 		String id = IdStringManager.getId(p, graph);
 		String label = getLabel(p, id);
 		JsonOwlObject json = JsonOwlObject.createProperty(id, label);
 		return json;
+	}
+	
+	private JsonOwlObject renderObject(OWLObjectPropertyExpression p) {
+		if (p.isAnonymous()) {
+			return null;
+		}
+		return renderObject(p.asOWLObjectProperty());
 	}
 	/**
 	 * @param x
@@ -372,7 +353,7 @@ public class MolecularModelJsonRenderer {
 			}
 			else if (x instanceof OWLObjectSomeValuesFrom) {
 				OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)x;
-				String prop = renderObjectId(svf.getProperty());
+				JsonOwlObject prop = renderObject(svf.getProperty());
 				JsonOwlObject filler = renderObject(svf.getFiller());
 				if (prop != null && filler != null) {
 					json = JsonOwlObject.createSvf(prop, filler);
@@ -394,27 +375,12 @@ public class MolecularModelJsonRenderer {
 		return json;
 	}
 
-	private String renderObjectId(OWLObjectPropertyExpression px) {
-		if (px.isAnonymous()) {
-			return null; // TODO
-		}
-		else {
-			return IdStringManager.getId(px.asOWLObjectProperty(), graph);
-		}
-	}
-
 	protected String getLabel(OWLNamedObject i, String id) {
 		return graph.getLabel(i);
 	}
 	
-//	/**
-//	 * @param includeObjectPropertyValues the includeObjectPropertyValues to set
-//	 */
-//	public void setIncludeObjectPropertyValues(boolean includeObjectPropertyValues) {
-//		this.includeObjectPropertyValues = includeObjectPropertyValues;
-//	}
 
-	public static List<JsonRelationInfo> renderRelations(MolecularModelManager<?> mmm, Set<OWLObjectProperty> importantRelations) throws OWLOntologyCreationException {
+	public static Pair<List<JsonRelationInfo>,List<JsonRelationInfo>> renderProperties(MolecularModelManager<?> mmm, Set<OWLObjectProperty> importantRelations) throws OWLOntologyCreationException {
 		/* [{
 		 *   id: {String}
 		 *   label: {String}
@@ -452,15 +418,18 @@ public class MolecularModelJsonRenderer {
 	
 		// get all properties from all loaded ontologies
 		Set<OWLObjectProperty> properties = new HashSet<OWLObjectProperty>();
+		Set<OWLDataProperty> dataProperties = new HashSet<OWLDataProperty>();
 		Set<OWLOntology> allOntologies = wrapper.getAllOntologies();
 		for(OWLOntology o : allOntologies) {
 			properties.addAll(o.getObjectPropertiesInSignature());
+			dataProperties.addAll(o.getDataPropertiesInSignature());
 		}
 		
 		// sort properties
 		List<OWLObjectProperty> propertyList = new ArrayList<OWLObjectProperty>(properties);
+		List<OWLDataProperty> dataPropertyList = new ArrayList<OWLDataProperty>(dataProperties);
 		Collections.sort(propertyList);
-
+		Collections.sort(dataPropertyList);
 
 		// retrieve id and label for all properties
 		List<JsonRelationInfo> relList = new ArrayList<JsonRelationInfo>();
@@ -480,7 +449,20 @@ public class MolecularModelJsonRenderer {
 			}
 			relList.add(json);
 		}
-		return relList;
+		
+		// retrieve id and label for all data properties
+		List<JsonRelationInfo> dataList = new ArrayList<JsonRelationInfo>();
+		for(OWLDataProperty p : dataPropertyList) {
+			if(p.isBuiltIn()) {
+				continue;
+			}
+			JsonRelationInfo json = new JsonRelationInfo();
+			json.id = p.getIRI().toString();
+			json.label = wrapper.getLabelOrDisplayId(p);
+			dataList.add(json);
+		}
+		
+		return Pair.of(relList, dataList);
 	}
 	
 	public static List<JsonEvidenceInfo> renderEvidences(MolecularModelManager<?> mmm) throws OWLException, IOException {
@@ -510,7 +492,7 @@ public class MolecularModelJsonRenderer {
 		}
 		return relList;
 	}
-
+	
 	public static String renderToJson(OWLOntology ont) {
 		return renderToJson(ont, false);
 	}

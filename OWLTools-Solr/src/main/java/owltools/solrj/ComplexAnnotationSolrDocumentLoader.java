@@ -79,6 +79,7 @@ public class ComplexAnnotationSolrDocumentLoader extends AbstractSolrLoader {
 	
 	@Override
 	public void load() throws SolrServerException, IOException {
+		// TODO rewrite this whole thing, remove deprecated helpers and adapt for all-individual model
 		
 		LOG.info("Loading complex annotation documents...");
 		
