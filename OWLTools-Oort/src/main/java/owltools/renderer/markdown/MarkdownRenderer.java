@@ -2,7 +2,6 @@ package owltools.renderer.markdown;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,8 +45,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-
-import owltools.util.MinimalModelGenerator;
 
 /**
  * Fairly hacky md renderer, geared towards storing md in github.

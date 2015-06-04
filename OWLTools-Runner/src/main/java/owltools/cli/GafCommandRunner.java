@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,13 +26,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
-import org.geneontology.lego.dot.LegoDotWriter;
-import org.geneontology.lego.dot.LegoRenderer;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -49,7 +44,6 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.gaf.Bioentity;
@@ -70,24 +64,20 @@ import owltools.gaf.io.OpenAnnotationRDFWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter;
 import owltools.gaf.io.PseudoRdfXmlWriter.ProgressReporter;
 import owltools.gaf.io.XgmmlWriter;
-import owltools.gaf.lego.GafToLegoIndividualTranslator;
-import owltools.gaf.lego.GafToLegoTranslator;
-import owltools.gaf.lego.LegoModelGenerator;
-import owltools.gaf.lego.legacy.LegoToGeneAnnotationTranslator;
 import owltools.gaf.metadata.AnnotationDocumentMetadata;
 import owltools.gaf.owl.AnnotationExtensionFolder;
 import owltools.gaf.owl.AnnotationExtensionUnfolder;
 import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.owl.GAFOWLBridge.BioentityMapping;
 import owltools.gaf.owl.mapping.BasicABox;
+import owltools.gaf.parser.CommentListener;
 import owltools.gaf.parser.DefaultAspectProvider;
 import owltools.gaf.parser.GAFParser;
-import owltools.gaf.parser.CommentListener;
+import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.gaf.parser.GpadGpiObjectsBuilder;
 import owltools.gaf.parser.GpadGpiObjectsBuilder.AspectProvider;
 import owltools.gaf.parser.IssueListener;
 import owltools.gaf.parser.LineFilter;
-import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.gaf.parser.ParserListener;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.gaf.rules.AnnotationRulesEngine;
@@ -97,10 +87,8 @@ import owltools.gaf.rules.AnnotationRulesReportWriter;
 import owltools.gaf.rules.go.GoAnnotationExperimentalPredictionRule;
 import owltools.gaf.rules.go.GoAnnotationRulesFactoryImpl;
 import owltools.graph.OWLGraphEdge;
-import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.Mooncat;
-import owltools.util.ModelContainer;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
@@ -1446,421 +1434,77 @@ public class GafCommandRunner extends CommandRunner {
 
 	}
 
-	@CLIMethod("--gaf2lego")
-	public void gaf2Lego(Opts opts) throws Exception {
-		String output = null;
-		boolean minimize = false;
-		OWLOntologyFormat format = new RDFXMLOntologyFormat();
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-m|--minimize")) {
-				opts.info("", "If set, combine into one model");
-				minimize = true;
-			}
-			else if (opts.nextEq("-o|--output")) {
-				output = opts.nextOpt();
-			}
-			else if (opts.nextEq("--format")) {
-				String formatString = opts.nextOpt();
-				if ("manchester".equalsIgnoreCase(formatString)) {
-					format = new ManchesterOWLSyntaxOntologyFormat();
-				}
-			}
-			else {
-				break;
-			}
-		}
-		if (g != null && gafdoc != null && output != null) {
-			GafToLegoTranslator translator = new GafToLegoTranslator(g, null);
-			OWLOntology lego;
-			if (minimize) {
-				lego = translator.minimizedTranslate(gafdoc);
-			}
-			else {
-				lego = translator.translate(gafdoc);
-			}
-
-			OWLOntologyManager manager = lego.getOWLOntologyManager();
-			OutputStream outputStream = null;
-			try {
-				outputStream = new FileOutputStream(output);
-				manager.saveOntology(lego, format, outputStream);
-			}
-			finally {
-				IOUtils.closeQuietly(outputStream);
-			}
-		}
-		else {
-			if (output == null) {
-				System.err.println("No output file was specified.");
-			}
-			if (g == null) {
-				System.err.println("No graph available for gaf-run-check.");
-			}
-			if (gafdoc == null) {
-				System.err.println("No loaded gaf available for gaf-run-check.");
-			}
-			exit(-1);
-			return;
-		}
-	}
-	
-	/**
-	 * Translate the GeneAnnotations into a lego all individual OWL representation.
-	 * 
-	 * Will merge the source ontology into the graph by default
-	 * 
-	 * @param opts
-	 * @throws Exception
-	 */
-	@CLIMethod("--gaf-lego-indivduals")
-	public void gaf2LegoIndivduals(Opts opts) throws Exception {
-		boolean addLineNumber = false;
-		boolean merge = true;
-		boolean minimize = false;
-		String output = null;
-		OWLOntologyFormat format = new RDFXMLOntologyFormat();
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-o|--output")) {
-				output = opts.nextOpt();
-			}
-			else if (opts.nextEq("--format")) {
-				String formatString = opts.nextOpt();
-				if ("manchester".equalsIgnoreCase(formatString)) {
-					format = new ManchesterOWLSyntaxOntologyFormat();
-				}
-				else if ("functional".equalsIgnoreCase(formatString)) {
-					format = new OWLFunctionalSyntaxOntologyFormat();
-				}
-			}
-			else if (opts.nextEq("--add-line-number")) {
-				addLineNumber = true;
-			}
-			else if (opts.nextEq("--skip-merge")) {
-				merge = false;
-			}
-			else if (opts.nextEq("-m|--minimize")) {
-				minimize = true;
-			}
-			else {
-				break;
-			}
-		}
-		if (g != null && gafdoc != null && output != null) {
-			GafToLegoIndividualTranslator tr = new GafToLegoIndividualTranslator(g, addLineNumber);
-			OWLOntology lego = tr.translate(gafdoc);
-			
-			if (merge) {
-				new OWLGraphWrapper(lego).mergeImportClosure(true);	
-			}
-			if (minimize) {
-				final OWLOntologyManager m = lego.getOWLOntologyManager();
-				
-				SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, lego, ModuleType.BOT);
-				Set<OWLEntity> sig = new HashSet<OWLEntity>(lego.getIndividualsInSignature());
-				Set<OWLAxiom> moduleAxioms = sme.extract(sig);
-				
-				OWLOntology module = m.createOntology(IRI.generateDocumentIRI());
-				m.addAxioms(module, moduleAxioms);
-				lego = module;
-			}
-			
-			OWLOntologyManager manager = lego.getOWLOntologyManager();
-			OutputStream outputStream = null;
-			try {
-				outputStream = new FileOutputStream(output);
-				manager.saveOntology(lego, format, outputStream);
-			}
-			finally {
-				IOUtils.closeQuietly(outputStream);
-			}
-		}
-		else {
-			if (output == null) {
-				System.err.println("No output file was specified.");
-			}
-			if (g == null) {
-				System.err.println("No graph available for gaf-run-check.");
-			}
-			if (gafdoc == null) {
-				System.err.println("No loaded gaf available for gaf-run-check.");
-			}
-			exit(-1);
-			return;
-		}
-	}
-
-	@CLIMethod("--generate-molecular-model")
-	public void generateMolecularModel(Opts opts) throws Exception {
-		opts.info("[--dot FILE] [--owl FILE] [-s SEED-GENE-LIST] [-a] [-r] -p PROCESS", "Generates an activity network (aka lego) from existing GAF and ontology");
-		OWLClass processCls = null;
-		File owlOutputFile = null;
-		String dotOutputFile = null;
-		String pngOutputFile = null;
-		boolean isReplaceSourceOntology = false;
-		boolean isPrecomputePropertyClassCombinations = false;
-		boolean isExtractModule = false;
-		List<String> seedGenes = new ArrayList<String>();
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-p")) {
-				processCls = this.resolveClass(opts.nextOpt());
-			}
-			else if (opts.nextEq("-r|--replace")) {
-				isReplaceSourceOntology = true;
-			}
-			else if (opts.nextEq("-q|--quick")) {
-				isPrecomputePropertyClassCombinations = false;
-			}
-			else if (opts.nextEq("-x|--extract-module")) {
-				isExtractModule = true;
-			}
-			else if (opts.nextEq("-a|--all-relation-class-pairs")) {
-				isPrecomputePropertyClassCombinations = true;
-			}
-			else if (opts.nextEq("-s|--seed")) {
-				seedGenes = opts.nextList();
-			}
-			else if (opts.nextEq("-o|--dot")) {
-				dotOutputFile = opts.nextOpt();
-			}
-			else if (opts.nextEq("--png")) {
-				// TODO
-				pngOutputFile = opts.nextOpt();
-			}
-			else if (opts.nextEq("--owl")) {
-				owlOutputFile = opts.nextFile();
-			}
-			else {
-				break;
-			}
-		}
-		ModelContainer model = new ModelContainer(g.getSourceOntology(), new ElkReasonerFactory());
-		LegoModelGenerator ni = new LegoModelGenerator(model);
-		ni.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-		ni.initialize(gafdoc, g);
-
-		String p = g.getIdentifier(processCls);
-		seedGenes.addAll(ni.getGenes(processCls));
-
-		ni.buildNetwork(p, seedGenes);
 
 
-		OWLOntology ont = model.getAboxOntology();
-		if (isExtractModule) {
-			ni.extractModule();
-		}
-		if (owlOutputFile != null) {
-			FileOutputStream os = new FileOutputStream(owlOutputFile);
-			g.getManager().saveOntology(ont, os);
-		}
-		if (dotOutputFile != null) {
-			writeLego(ont, dotOutputFile, p);
-		}
-		if (isReplaceSourceOntology) {
-			g.setSourceOntology(model.getAboxOntology());
-		}
-	}
-
-	@CLIMethod("--fetch-candidate-process")
-	public void fetchCandidateProcess(Opts opts) throws Exception {
-		Double pvalThresh = 0.05;
-		Double pvalCorrectedThresh = 0.05;
-		Integer popSize = null;
-		boolean isDirect = false;
-		boolean isReflexive = false;
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-p")) {
-				pvalCorrectedThresh = Double.valueOf(opts.nextOpt());
-			}
-			else if (opts.nextEq("--pval-uncorrected")) {
-				pvalThresh = Double.valueOf(opts.nextOpt());
-			}
-			else if (opts.nextEq("--pop-size")) {
-				popSize = Integer.valueOf(opts.nextOpt());
-			}
-			else if (opts.nextEq("-d")) {
-				isDirect = true;
-			}
-			else if (opts.nextEq("-r")) {
-				isReflexive = true;
-			}
-			else {
-				break;
-			}
-		}
-		OWLClass disease = this.resolveClass(opts.nextOpt());
-
-		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
-		LOG.info("DISEASE: "+owlpp.render(disease));
-		ModelContainer model = new ModelContainer(g.getSourceOntology(), new ElkReasonerFactory());
-		LegoModelGenerator ni = new LegoModelGenerator(model);
-		ni.setPrecomputePropertyClassCombinations(false);
-
-		ni.initialize(gafdoc, g);
-		OWLClass nothing = g.getDataFactory().getOWLNothing();
-		Map<OWLClass, Double> smap = ni.fetchScoredCandidateProcesses(disease, popSize);
-		int MAX = 500;
-		int n=0;
-		for (Map.Entry<OWLClass, Double> e : smap.entrySet()) {
-			n++;
-			if (n > MAX) {
-				break;
-			}
-			Double score = e.getValue();
-			OWLClass c = e .getKey();
-			System.out.println("PROC\t"+owlpp.render(c)+"\t"+score);
-		}
-	}
-
-	@CLIMethod("--go-multi-enrichment")
-	public void goMultiEnrichment(Opts opts) throws Exception {
-		opts.info("P1 P2", "Generates an activity network (aka lego) from existing GAF and ontology");
-		Double pvalThresh = 0.05;
-		Double pvalCorrectedThresh = 0.05;
-		Integer popSize = null;
-		boolean isDirect = false;
-		boolean isReflexive = false;
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-p")) {
-				pvalCorrectedThresh = Double.valueOf(opts.nextOpt());
-			}
-			else if (opts.nextEq("--pval-uncorrected")) {
-				pvalThresh = Double.valueOf(opts.nextOpt());
-			}
-			else if (opts.nextEq("--pop-size")) {
-				popSize = Integer.valueOf(opts.nextOpt());
-			}
-			else if (opts.nextEq("-d")) {
-				isDirect = true;
-			}
-			else if (opts.nextEq("-r")) {
-				isReflexive = true;
-			}
-			else {
-				break;
-			}
-		}
-		OWLClass rc1 = this.resolveClass(opts.nextOpt());
-		OWLClass rc2 = this.resolveClass(opts.nextOpt());
-		ModelContainer model = new ModelContainer(g.getSourceOntology(), new ElkReasonerFactory());
-		LegoModelGenerator ni = new LegoModelGenerator(model);
-
-		ni.initialize(gafdoc, g);
-		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
-		OWLClass nothing = g.getDataFactory().getOWLNothing();
-		Set<OWLClass> sampleSet = model.getReasoner().getSubClasses(rc2, false).getFlattened();
-		sampleSet.remove(nothing);
-		if (isDirect) {
-			sampleSet = Collections.singleton(rc2);
-		}
-		if (isReflexive) {
-			sampleSet.add(rc2);
-		}
-
-		// calc correction factor
-		int numHypotheses = 0;
-		for (OWLClass c1 : model.getReasoner().getSubClasses(rc1, false).getFlattened()) {
-			if (c1.equals(nothing))
-				continue;
-			if (ni.getGenes(c1).size() < 2) {
-				continue;
-			}
-			for (OWLClass c2 : sampleSet) {
-				if (ni.getGenes(c2).size() < 2) {
-					continue;
-				}
-				numHypotheses++;
-			}
-		}
-
-
-		for (OWLClass c1 : model.getReasoner().getSubClasses(rc1, false).getFlattened()) {
-			if (c1.equals(nothing))
-				continue;
-			System.out.println("Sample: "+c1);
-			for (OWLClass c2 : sampleSet) {
-				if (c2.equals(nothing))
-					continue;
-				Double pval = ni.calculatePairwiseEnrichment(c1, c2, popSize);
-				if (pval == null || pval > pvalThresh)
-					continue;
-				Double pvalCorrected = pval * numHypotheses;
-				if (pvalCorrected == null || pvalCorrected > pvalCorrectedThresh)
-					continue;
-				System.out.println("enrich\t"+owlpp.render(c1)+"\t"+owlpp.render(c2)+"\t"+pval+"\t"+pvalCorrected);
-			}
-		}
-	}
-
-
-	@Deprecated
-	@CLIMethod("--visualize-lego")
-	public void visualizeLego(Opts opts) throws Exception {
-		opts.info("[--owl OWLFILE] [-o OUTFOTFILE]", "");
-		LOG.error("The '--visualize-lego' method is deprecated. The dot writer is not compatible with the all-individual approach.");
-		// TODO
-		OWLOntology ont = null;
-		String dotOutputFile = null;
-		String name = null;
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-o|--dot")) {
-				dotOutputFile = opts.nextOpt();
-			}
-			else if (opts.nextEq("--owl")) {
-				ont = pw.parseOWL(opts.nextOpt());
-			}
-			else if (opts.nextEq("-n|--name")) {
-				name = opts.nextOpt();
-			}
-			else {
-				break;
-			}
-		}
-		if (ont == null)
-			ont = g.getSourceOntology();
-
-		if (name == null)
-			name = ont.getOntologyID().toString();
-		if (dotOutputFile != null) {
-			writeLego(ont, dotOutputFile, name);
-		}
-	}
-
-	@Deprecated
-	public void writeLego(OWLOntology ontology, final String output, String name) throws Exception {
-		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
-
-		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
-
-		OWLReasonerFactory factory = new ElkReasonerFactory();
-
-		final OWLReasoner reasoner = factory.createReasoner(ontology);
-		try {
-			LegoRenderer renderer = new LegoDotWriter(g, reasoner) {
-
-				BufferedWriter fileWriter = null;
-
-				@Override
-				protected void open() throws IOException {
-					fileWriter = new BufferedWriter(new FileWriter(new File(output)));
-				}
-
-				@Override
-				protected void close() {
-					IOUtils.closeQuietly(fileWriter);
-				}
-
-				@Override
-				protected void appendLine(CharSequence line) throws IOException {
-					//System.out.println(line);
-					fileWriter.append(line).append('\n');
-				}
-			};
-			renderer.render(individuals, name, true);
-		}
-		finally {
-			reasoner.dispose();
-		}
-	}
+//	@Deprecated
+//	@CLIMethod("--visualize-lego")
+//	public void visualizeLego(Opts opts) throws Exception {
+//		opts.info("[--owl OWLFILE] [-o OUTFOTFILE]", "");
+//		LOG.error("The '--visualize-lego' method is deprecated. The dot writer is not compatible with the all-individual approach.");
+//		// TODO
+//		OWLOntology ont = null;
+//		String dotOutputFile = null;
+//		String name = null;
+//		while (opts.hasOpts()) {
+//			if (opts.nextEq("-o|--dot")) {
+//				dotOutputFile = opts.nextOpt();
+//			}
+//			else if (opts.nextEq("--owl")) {
+//				ont = pw.parseOWL(opts.nextOpt());
+//			}
+//			else if (opts.nextEq("-n|--name")) {
+//				name = opts.nextOpt();
+//			}
+//			else {
+//				break;
+//			}
+//		}
+//		if (ont == null)
+//			ont = g.getSourceOntology();
+//
+//		if (name == null)
+//			name = ont.getOntologyID().toString();
+//		if (dotOutputFile != null) {
+//			writeLego(ont, dotOutputFile, name);
+//		}
+//	}
+//
+//	@Deprecated
+//	public void writeLego(OWLOntology ontology, final String output, String name) throws Exception {
+//		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
+//
+//		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
+//
+//		OWLReasonerFactory factory = new ElkReasonerFactory();
+//
+//		final OWLReasoner reasoner = factory.createReasoner(ontology);
+//		try {
+//			LegoRenderer renderer = new LegoDotWriter(g, reasoner) {
+//
+//				BufferedWriter fileWriter = null;
+//
+//				@Override
+//				protected void open() throws IOException {
+//					fileWriter = new BufferedWriter(new FileWriter(new File(output)));
+//				}
+//
+//				@Override
+//				protected void close() {
+//					IOUtils.closeQuietly(fileWriter);
+//				}
+//
+//				@Override
+//				protected void appendLine(CharSequence line) throws IOException {
+//					//System.out.println(line);
+//					fileWriter.append(line).append('\n');
+//				}
+//			};
+//			renderer.render(individuals, name, true);
+//		}
+//		finally {
+//			reasoner.dispose();
+//		}
+//	}
 
 	@CLIMethod("--gaf-statistics-json")
 	public void generateJsonGafStatistics(Opts opts) throws Exception {
@@ -2278,91 +1922,5 @@ public class GafCommandRunner extends CommandRunner {
 		finally {
 			IOUtils.closeQuietly(pw);
 		}
-	}
-
-	@CLIMethod("--lego-to-gpad")
-	public void legoToAnnotations(Opts opts) throws Exception {
-		String inputName = null;
-		String outputFileName = null;
-		List<String> defaultRefs = null;
-		boolean addLegoModelId = true;
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-i|--input")) {
-				inputName = opts.nextOpt();
-			}
-			else if (opts.nextEq("-o|--output")) {
-				outputFileName = opts.nextOpt();
-			}
-			else if (opts.nextEq("--add-default-ref")) {
-				if (defaultRefs == null) {
-					defaultRefs = new ArrayList<String>();
-				}
-				defaultRefs.add(opts.nextOpt());
-			}
-			else if (opts.nextEq("--remove-lego-model-ids")) {
-				addLegoModelId = false;
-			}
-			else {
-				break;
-			}
-		}
-
-		SimpleEcoMapper mapper = EcoMapperFactory.createSimple();
-		LegoToGeneAnnotationTranslator translator = new LegoToGeneAnnotationTranslator(g, reasoner, mapper);
-		GafDocument annotations = new GafDocument(null, null);
-		BioentityDocument entities = new BioentityDocument(null);
-
-		File inputFile = new File(inputName).getCanonicalFile();
-		OWLOntologyManager m = g.getManager();
-		if (inputFile.isFile()) {
-			OWLOntology model = m.loadOntology(IRI.create(inputFile));
-			String modelId = StringUtils.stripEnd(inputFile.getName(), ".owl");
-			List<String> addtitionalRefs = handleRefs(defaultRefs, addLegoModelId, modelId);
-			translator.translate(model, annotations, entities, addtitionalRefs);	
-		}
-		else if (inputFile.isDirectory()) {
-			File[] files = inputFile.listFiles(new FilenameFilter() {
-
-				@Override
-				public boolean accept(File dir, String name) {
-					return StringUtils.trimToEmpty(name).toLowerCase().endsWith(".owl");
-				}
-			});
-			for (File file : files) {
-				String modelId = StringUtils.stripEnd(file.getName(), ".owl");
-				List<String> addtitionalRefs = handleRefs(defaultRefs, addLegoModelId, modelId);
-				OWLOntology model = m.loadOntology(IRI.create(file));
-				translator.translate(model, annotations, entities, addtitionalRefs);	
-			}
-		}
-
-		// write GPAD to avoid bioentity data issues
-		PrintWriter fileWriter = null;
-		try {
-			fileWriter = new PrintWriter(new File(outputFileName));
-			GpadWriter writer = new GpadWriter(fileWriter, 1.2d);
-			writer.write(annotations);
-		}
-		finally {
-			IOUtils.closeQuietly(fileWriter);	
-		}
-	}
-
-	List<String> handleRefs(List<String> defaultRefs, boolean addLegoModelId, String modelId) {
-		List<String> addtitionalRefs;
-		if (addLegoModelId) {
-			if (defaultRefs == null) {
-				addtitionalRefs = Collections.singletonList(modelId);
-			}
-			else {
-				addtitionalRefs = new ArrayList<String>(defaultRefs.size() + 1);
-				addtitionalRefs.addAll(defaultRefs);
-				addtitionalRefs.add(modelId);
-			}
-		}
-		else {
-			addtitionalRefs = defaultRefs;
-		}
-		return addtitionalRefs;
 	}
 }
