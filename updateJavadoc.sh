@@ -23,4 +23,5 @@ cd ../../..
 
 cp -r work/owltools/OWLTools-Parent/target/apidocs api
 
-
+# clean up work directory, just to be sure
+rm -rf work
