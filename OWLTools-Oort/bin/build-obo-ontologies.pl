@@ -447,8 +447,8 @@ sub get_ont_info {
          cl => {
              infallible => 1,
              method => 'vcs',
-             system => 'svn',
-             checkout => 'svn  --ignore-externals co http://cell-ontology.googlecode.com/svn/trunk/src/ontology',
+             system => 'git',
+             checkout => 'git clone https://github.com/obophenotype/cell-ontology.git',
              email_cc => 'cl_edit@googlegroups.com',
          },
          clo => {

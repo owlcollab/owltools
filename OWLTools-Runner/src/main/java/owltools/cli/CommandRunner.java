@@ -598,7 +598,7 @@ public class CommandRunner {
 					iri = Obo2OWLConstants.DEFAULT_IRI_PREFIX+iri;
 				}
 				g = new OWLGraphWrapper(iri);
-
+				
 				if (v != null) {
 					OWLOntologyID oid = new OWLOntologyID(IRI.create(iri), v);
 					SetOntologyID soid;
