@@ -2218,6 +2218,19 @@ public class CommandRunner {
 				}
 
 			}
+			else if (opts.nextEq("--remove-disjoints")) {
+				List<AxiomType<? extends OWLAxiom>> disjointTypes = new ArrayList<AxiomType<? extends OWLAxiom>>(); 
+				disjointTypes.add(AxiomType.DISJOINT_CLASSES);
+				disjointTypes.add(AxiomType.DISJOINT_UNION);
+				disjointTypes.add(AxiomType.DISJOINT_OBJECT_PROPERTIES);
+				disjointTypes.add(AxiomType.DISJOINT_DATA_PROPERTIES);
+				for(AxiomType<? extends OWLAxiom> axtype : disjointTypes) {
+					Set<? extends OWLAxiom> axioms = g.getSourceOntology().getAxioms(axtype);
+					if (axioms.isEmpty() == false) {
+						g.getManager().removeAxioms(g.getSourceOntology(), axioms);
+					}
+				}
+			}
 			else if (opts.nextEq("--abox-to-tbox")) {
 				ABoxUtils.translateABoxToTBox(g.getSourceOntology());
 			}
