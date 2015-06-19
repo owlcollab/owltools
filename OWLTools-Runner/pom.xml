@@ -101,20 +101,14 @@
 			<artifactId>OWLTools-Sim</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-   	    <dependency>
-           <groupId>com.github.jsonld-java</groupId>
-           <artifactId>jsonld-java-jena</artifactId>
-           <version>0.2</version>
-        </dependency>
-        <dependency>
+		<dependency>
+			<groupId>com.github.jsonld-java</groupId>
+			<artifactId>jsonld-java-jena</artifactId>
+			<version>0.2</version>
+		</dependency>
+		<dependency>
 			<groupId>rhino</groupId>
 			<artifactId>js</artifactId>
-		</dependency>
-		<!-- Needs to be removed soon, the LEGO project is deprecated -->
-		<dependency>
-			<groupId>org.geneontology.lego</groupId>
-			<artifactId>Lego</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

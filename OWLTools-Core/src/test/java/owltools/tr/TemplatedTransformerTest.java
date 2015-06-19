@@ -2,23 +2,16 @@ package owltools.tr;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderListener;
 
 import owltools.OWLToolsTestBasics;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.ParserWrapper;
-import owltools.util.MinimalModelGeneratorTest;
 
 public class TemplatedTransformerTest extends OWLToolsTestBasics {
 

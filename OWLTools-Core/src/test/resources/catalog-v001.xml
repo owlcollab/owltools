@@ -7,7 +7,4 @@
   <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/test-a.owl" uri="test-a.owl"/>
   <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/test-a2.owl" uri="test-a2.owl"/>
   <uri id="User Entered Import Resolution" name="http://purl.obolibrary.org/obo/test-b.owl" uri="test-b.owl"/>
-  <uri id="User Entered Import Resolution"
-       name="http://x.org/basic-tbox.owl"
-       uri="basic-tbox.omn"/>
 </catalog>

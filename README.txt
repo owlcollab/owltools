@@ -1,6 +1,6 @@
 For full documentation, see the Wiki:
 
- * http://code.google.com/p/owltools
+ * https://github.com/owlcollab/owltools/wiki
 
  == OWLTools Build Instructions ==
 

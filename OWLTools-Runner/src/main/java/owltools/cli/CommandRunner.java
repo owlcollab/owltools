@@ -187,9 +187,6 @@ import owltools.sim2.preprocessor.ABoxUtils;
 import owltools.tr.LinkMaker;
 import owltools.tr.LinkMaker.LinkMakerResult;
 import owltools.tr.LinkMaker.LinkPattern;
-import owltools.util.MinimalModelGenerator;
-import owltools.util.ModelContainer;
-import owltools.vocab.OBOUpperVocabulary;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
 import uk.ac.manchester.cs.jfact.JFactFactory;
@@ -250,7 +247,6 @@ public class CommandRunner {
 	public Set<OWLObject> owlObjectCachedSet = null;
 
 	Map<OWLClass,OWLClassExpression> queryExpressionMap = null;
-	MinimalModelGenerator mmg = null;
 
 	protected ParserWrapper pw = new ParserWrapper();
 
@@ -2222,153 +2218,24 @@ public class CommandRunner {
 				}
 
 			}
+			else if (opts.nextEq("--remove-disjoints")) {
+				List<AxiomType<? extends OWLAxiom>> disjointTypes = new ArrayList<AxiomType<? extends OWLAxiom>>(); 
+				disjointTypes.add(AxiomType.DISJOINT_CLASSES);
+				disjointTypes.add(AxiomType.DISJOINT_UNION);
+				disjointTypes.add(AxiomType.DISJOINT_OBJECT_PROPERTIES);
+				disjointTypes.add(AxiomType.DISJOINT_DATA_PROPERTIES);
+				for(AxiomType<? extends OWLAxiom> axtype : disjointTypes) {
+					Set<? extends OWLAxiom> axioms = g.getSourceOntology().getAxioms(axtype);
+					if (axioms.isEmpty() == false) {
+						g.getManager().removeAxioms(g.getSourceOntology(), axioms);
+					}
+				}
+			}
 			else if (opts.nextEq("--abox-to-tbox")) {
 				ABoxUtils.translateABoxToTBox(g.getSourceOntology());
 			}
 			else if (opts.nextEq("--make-default-abox")) {
 				ABoxUtils.makeDefaultIndividuals(g.getSourceOntology());
-			}
-			else if (opts.nextEq("--generate-minimal-model")) {
-				opts.info("[--no-collapse] [--no-reduce] [--reuse-tblox] [-x] [-a] [-s] CLASS", "Generates default/proto individuals for a class");
-				boolean isCollapse = true;
-				boolean isReduce = true;
-				boolean isExtractModule = false;
-				boolean isPrecomputePropertyClassCombinations = true;
-				boolean isCreateNewAbox = true;
-				boolean isAllIndividuals = false;
-				boolean isStrict = true;
-				Set<OWLObjectProperty> normProps = new HashSet<OWLObjectProperty>();
-				Set<OWLClass> preservedClassSet = null;
-				OWLClass c;
-				while (opts.hasOpts()) {
-					if (opts.nextEq("--no-collapse")) {
-						opts.info("", "if set, do not heuristically collapse individuals");
-						isCollapse = false;
-					}
-					else if (opts.nextEq("--no-reduce")) {
-						opts.info("", "if set, do not perform transitive reduction");
-						isReduce = false;
-					}
-					else if (opts.nextEq("--reuse-tbox")) {
-						opts.info("", "if set, place new individuals in the ontology");
-						isCreateNewAbox = false;
-					}
-					else if (opts.nextEq("-a|--all-individuals")) {
-						isAllIndividuals = true;
-					}
-					else if (opts.nextEq("-s|--is-strict")) {
-						isStrict = true;
-					}
-					else if (opts.nextEq("-x|--extract-module")) {
-						isExtractModule = true;
-					}
-					else if (opts.nextEq("-q|--quick")) {
-						isPrecomputePropertyClassCombinations = false;
-					}
-					else if (opts.nextEq("-p|--property")) {
-						normProps.add(this.resolveObjectProperty(opts.nextOpt()));
-					}
-					else if (opts.nextEq("-l|--plist")) {
-						normProps.addAll(this.resolveObjectPropertyList(opts));
-					}
-					else if (opts.nextEq("--lego")) {
-						preservedClassSet = new HashSet<OWLClass>();
-						preservedClassSet.add(g.getDataFactory().getOWLClass(OBOUpperVocabulary.GO_biological_process.getIRI()));
-						preservedClassSet.add(g.getDataFactory().getOWLClass(OBOUpperVocabulary.GO_molecular_function.getIRI()));
-					}
-
-					else {
-						break;
-					}
-				}
-				mmg = getMinimalModelGenerator(isCreateNewAbox);
-				if (isStrict) {
-					mmg.isStrict = true;
-				}
-				mmg.setPrecomputePropertyClassCombinations(isPrecomputePropertyClassCombinations);
-
-				if (isAllIndividuals) {
-					mmg.generateAllNecessaryIndividuals(isCollapse, isReduce);
-				}
-				else {
-					c = this.resolveClass(opts.nextOpt());
-					mmg.generateNecessaryIndividuals(c, isCollapse, isReduce);
-				}
-				for (OWLObjectProperty p : normProps) {
-					mmg.normalizeDirections(p);
-				}
-				if (preservedClassSet != null && preservedClassSet.size() > 0) {
-					mmg.anonymizeIndividualsNotIn(preservedClassSet);
-				}
-				if (isExtractModule) {
-					LOG.info("Extracting module");
-					mmg.extractModule();
-				}
-				g.setSourceOntology(mmg.getModel().getAboxOntology());
-			}
-			else if (opts.nextEq("--most-specific-class-expression|--msce")) {
-				opts.info("[-c CLASS] INDIVIDUAL", "Generates MSCE for an individual using MinimalModelGenerator");
-				mmg = getMinimalModelGenerator(false);
-				OWLNamedIndividual ind;
-				OWLClass c = null;
-				while (opts.hasOpts()) {
-					if (opts.nextEq("-c|--class")) {
-						opts.info("CLASS", "if set will add equivalence axioms to CLASS");
-						c = this.resolveClass(opts.nextOpt());
-					}
-					else {
-						break;
-					}
-				}
-				ind =  (OWLNamedIndividual) this.resolveEntity(opts);
-				OWLClassExpression ce = mmg.getMostSpecificClassExpression(ind);
-				owlpp = new OWLPrettyPrinter(g);
-
-				System.out.println(owlpp.render(ce));
-				System.out.println(ce);
-
-				if (c != null) {
-					OWLEquivalentClassesAxiom ax = g.getDataFactory().getOWLEquivalentClassesAxiom(c, ce);
-					g.getManager().addAxiom(g.getSourceOntology(), ax);
-				}
-			}
-			else if (opts.nextEq("--modalize")) {
-				opts.info("CLASS", "Take all instances of CLASS and make a generalized statement about them");
-				mmg = getMinimalModelGenerator(false);
-				OWLClass qc = null;
-				OWLObjectProperty p = null;
-				OWLDataFactory df = g.getDataFactory();
-				while (opts.hasOpts()) {
-					if (opts.nextEq("-p|--modal-property")) {
-						p = resolveObjectProperty(opts.nextOpt());
-						opts.info("CLASS", "if set will add equivalence axioms to CLASS");
-						//c = this.resolveClass(opts.nextOpt());
-					}
-					else {
-						break;
-					}
-				}
-				qc = this.resolveClass(opts.nextOpt());
-				Set<OWLNamedIndividual> inds = mmg.getModel().getReasoner().getInstances(qc, false).getFlattened();
-				for (OWLNamedIndividual ind : inds) {
-					OWLClassExpression ce = mmg.getMostSpecificClassExpression(ind);
-					if (ce instanceof OWLObjectIntersectionOf) {
-						for (OWLClassExpression x : ((OWLObjectIntersectionOf)ce).getOperands()) {
-							if (x instanceof OWLObjectSomeValuesFrom) {
-								OWLObjectSomeValuesFrom svf = ((OWLObjectSomeValuesFrom)x);
-
-							}
-						}
-					}
-					owlpp = new OWLPrettyPrinter(g);
-					Set<OWLClass> types = mmg.getModel().getReasoner().getTypes(ind, true).getFlattened();
-
-					System.out.println(owlpp.render(ce));
-					System.out.println(ce);
-					for (OWLClass c : types) {
-						df.getOWLSubClassOfAxiom(c, df.getOWLObjectSomeValuesFrom(p, ce));
-					}
-				}
 			}
 			else if (opts.nextEq("--tbox-to-abox")) {
 				OWLInAboxTranslator t = new OWLInAboxTranslator(g.getSourceOntology());
@@ -4188,23 +4055,6 @@ public class CommandRunner {
 	}
 
 
-	private MinimalModelGenerator getMinimalModelGenerator(boolean isCreateNewAbox) throws OWLOntologyCreationException {
-
-		if (mmg == null) {
-			OWLReasonerFactory rf = new ElkReasonerFactory();
-			if (isCreateNewAbox) {
-				ModelContainer model = new ModelContainer(g.getSourceOntology(), rf);
-				mmg = new MinimalModelGenerator(model);
-			}
-			else {
-				ModelContainer model = new ModelContainer(g.getSourceOntology(), g.getSourceOntology(), rf);
-				mmg = new MinimalModelGenerator(model);				
-			}
-		}
-		return mmg;
-	}
-
-
 	private Set<OWLClass> removeUnreachableAxioms(OWLOntology src,
 			Set<OWLClass> seedClasses) {
 		Stack<OWLClass> stack = new Stack<OWLClass>();
@@ -5754,12 +5604,6 @@ public class CommandRunner {
 		}
 		return reasonerFactory;
 	}
-
-	private void removeDangling() {
-		Mooncat m = new Mooncat(g);
-		m.removeDanglingAxioms();
-	}
-
 
 	private void catOntologies(Opts opts) throws OWLOntologyCreationException, IOException {
 		opts.info("[-r|--ref-ont ONT] [-i|--use-imports]", "Catenate ontologies taking only referenced subsets of supporting onts.\n"+
