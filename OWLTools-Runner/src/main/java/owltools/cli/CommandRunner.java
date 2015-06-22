@@ -4258,6 +4258,56 @@ public class CommandRunner extends CommandRunnerBase {
 		}
 	}
 	
+	@CLIMethod("--remove-redundant-superclass")
+	public void removeRedundantSubclasses(Opts opts) throws Exception {
+		if (g == null) {
+			LOG.error("No source ontology available.");
+			exit(-1);
+			return;
+		}
+		if (reasoner == null) {
+			LOG.error("No resoner available.");
+			exit(-1);
+			return;
+		}
+		if (reasoner.isConsistent() == false) {
+			LOG.error("Ontology is inconsistent.");
+			exit(-1);
+			return;
+		}
+		Set<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
+		if (unsatisfiableClasses.isEmpty() == false) {
+			LOG.error("Ontology contains unsatisfiable classes, count: "+unsatisfiableClasses.size());
+			for (OWLClass cls : unsatisfiableClasses) {
+				LOG.error("UNSAT:\t"+g.getIdentifier(cls)+"\t"+g.getLabel(cls));
+			}
+			exit(-1);
+			return;
+		}
+		final OWLOntology rootOntology = reasoner.getRootOntology();
+		final List<RemoveAxiom> changes = new ArrayList<RemoveAxiom>();
+		Set<OWLClass> allClasses = rootOntology.getClassesInSignature(false);
+		LOG.info("Check classes for redundant super class axioms, all OWL classes count: "+allClasses.size());
+		for(OWLClass cls : allClasses) {
+			final Set<OWLClass> directSuperClasses = reasoner.getSuperClasses(cls, true).getFlattened();
+			Set<OWLSubClassOfAxiom> subClassAxioms = rootOntology.getSubClassAxiomsForSubClass(cls);
+			for (final OWLSubClassOfAxiom subClassAxiom : subClassAxioms) {
+				subClassAxiom.getSuperClass().accept(new OWLClassExpressionVisitorAdapter(){
+
+					@Override
+					public void visit(OWLClass desc) {
+						if (directSuperClasses.contains(desc) == false) {
+							changes.add(new RemoveAxiom(rootOntology, subClassAxiom));
+						}
+					}
+				});
+			}
+		}
+		LOG.info("Found redundant axioms: "+changes.size());
+		List<OWLOntologyChange> result = rootOntology.getOWLOntologyManager().applyChanges(changes);
+		LOG.info("Removed axioms: "+result.size());
+	}
+
 	/**
 	 * GeneOntology specific function to create links between molecular
 	 * functions and their corresponding processes. This method uses the exact
