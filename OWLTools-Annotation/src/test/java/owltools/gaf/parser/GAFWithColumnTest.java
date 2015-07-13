@@ -68,6 +68,46 @@ public class GAFWithColumnTest extends OWLToolsTestBasics {
 	}
 	
 	@Test
+	public void testUnknown() throws Exception {
+		GafObjectsBuilder b = new GafObjectsBuilder();
+		final List<String> errors = new ArrayList<String>();
+		final List<String> warnings = new ArrayList<String>();
+		b.getParser().addParserListener(new ParserListener() {
+			
+			@Override
+			public boolean reportWarnings() {
+				return true;
+			}
+			
+			@Override
+			public void parsing(String line, int lineNumber) {
+				// ignore
+			}
+			
+			@Override
+			public void parserWarning(String message, String line, int lineNumber) {
+				warnings.add(message);
+			}
+			
+			@Override
+			public void parserError(String errorMessage, String line, int lineNumber) {
+				errors.add(errorMessage);
+			}
+		});
+		GafDocument doc = b.buildDocument(getResource("gene-associations/with-column/with_column_unknown.gaf"));
+		List<GeneAnnotation> annotations = doc.getGeneAnnotations();
+		assertEquals(1, annotations.size());
+		GeneAnnotation annotation = annotations.get(0);
+		assertFalse(annotation.isNegated());
+		assertFalse(annotation.isColocatesWith());
+		assertFalse(annotation.isContributesTo());
+		assertFalse(annotation.isCut());
+		assertFalse(annotation.isIntegralTo());
+		assertEquals(1, errors.size());
+		assertEquals(0, warnings.size());
+	}
+	
+	@Test
 	public void testDuplicate() throws Exception {
 		GafObjectsBuilder b = new GafObjectsBuilder();
 		final List<String> errors = new ArrayList<String>();
