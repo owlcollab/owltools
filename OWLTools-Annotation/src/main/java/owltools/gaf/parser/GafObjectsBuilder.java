@@ -1,9 +1,5 @@
 package owltools.gaf.parser;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import owltools.gaf.*;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -12,6 +8,15 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+
+import owltools.gaf.AnnotationSource;
+import owltools.gaf.Bioentity;
+import owltools.gaf.ExtensionExpression;
+import owltools.gaf.GafDocument;
+import owltools.gaf.GeneAnnotation;
 
 
 /**
@@ -232,13 +237,8 @@ public class GafObjectsBuilder {
 		ga.setAssignedBy(parser.getAssignedBy());
 		ga.setGeneProductForm(parser.getGeneProjectFormId());
 		
-		// handle composite qualifiers
-		final String qualifierString = parser.getQualifier();
-		ga.setIsContributesTo(qualifierString.contains("contributes_to"));
-		ga.setIsColocatesWith(qualifierString.contains("colocalizes_with"));
-		ga.setIsIntegralTo(qualifierString.contains("integral_to"));
-		ga.setIsNegated(qualifierString.contains("NOT"));
-		ga.setIsCut(qualifierString.contains("CUT"));
+		// handle qualifiers
+		BuilderTools.parseQualifiers(ga, parser.getQualifier(), parser);
 		
 		// handle relation and aspect
 		String relation = null;
@@ -252,9 +252,9 @@ public class GafObjectsBuilder {
 		else
 			relation = aspect;
 		
-		if (qualifierString.contains("contributes_to"))
+		if (ga.isContributesTo())
 			relation = "contributes_to";
-		if (qualifierString.contains("colocalizes_with"))
+		if (ga.isColocatesWith())
 			relation = "colocalizes_with";
 				
 		ga.setAspect(aspect);

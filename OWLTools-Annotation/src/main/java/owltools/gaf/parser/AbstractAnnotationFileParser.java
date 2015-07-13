@@ -12,7 +12,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-abstract class AbstractAnnotationFileParser implements Closeable {
+abstract class AbstractAnnotationFileParser implements Closeable, AnnotationParserMessages {
 	
 	private static final Logger LOG = Logger.getLogger(AbstractAnnotationFileParser.class);
 	
@@ -217,13 +217,15 @@ abstract class AbstractAnnotationFileParser implements Closeable {
 		}
 	}
 	
-	protected void fireParsingError(String message){
+	@Override
+	public void fireParsingError(String message){
 		for(ParserListener listner: parserListeners){
 			listner.parserError(message, this.currentRow, lineNumber);
 		}
 	}
 	
-	protected void fireParsingWarning(String message){
+	@Override
+	public void fireParsingWarning(String message){
 		for(ParserListener listner: parserListeners){
 			if (listner.reportWarnings()) {
 				listner.parserWarning(message, this.currentRow, lineNumber);
