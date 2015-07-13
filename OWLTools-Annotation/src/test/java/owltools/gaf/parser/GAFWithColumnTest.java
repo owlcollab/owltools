@@ -63,8 +63,8 @@ public class GAFWithColumnTest extends OWLToolsTestBasics {
 		assertTrue(annotation.isContributesTo());
 		assertFalse(annotation.isCut());
 		assertFalse(annotation.isIntegralTo());
-		assertEquals(1, errors.size());
-		assertEquals(0, warnings.size());
+		assertEquals(0, errors.size());
+		assertEquals(1, warnings.size());
 	}
 	
 	@Test

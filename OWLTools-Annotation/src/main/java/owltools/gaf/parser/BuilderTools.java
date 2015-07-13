@@ -165,7 +165,7 @@ public class BuilderTools {
 			Matcher matcher = relaxedPattern.matcher(qualifier);
 			if (matcher.find()) {
 				String group = matcher.group();
-				reporter.fireParsingError("Repairing qualifier '"+directMatch+"' from: "+group);
+				reporter.fireParsingWarning("Repairing qualifier '"+directMatch+"' from: "+group);
 				return true;
 			}
 			return false;
