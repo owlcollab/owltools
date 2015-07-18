@@ -258,11 +258,11 @@ public class BuilderTools {
 				String[] expressionStrings = StringUtils.split(groups[i], ',');
 				List<ExtensionExpression> expressions = new ArrayList<ExtensionExpression>(expressionStrings.length);
 				for (int j = 0; j < expressionStrings.length; j++) {
-					String token = expressionStrings[j];
+					String token = StringUtils.trimToEmpty(expressionStrings[j]);
 					int index = token.indexOf("(");
 					if(index > 0){
-						String relation = token.substring(0, index);
-						String cls = token.substring(index+1, token.length()-1);
+						String relation = StringUtils.trim(token.substring(0, index));
+						String cls = StringUtils.trim(token.substring(index+1, token.length()-1));
 						expressions.add(new ExtensionExpression(relation, cls));
 					}
 				}
