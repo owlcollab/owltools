@@ -1,6 +1,5 @@
 package owltools.gaf.species;
 
-import java.util.List;
 
 public class Species {
 
@@ -11,7 +10,8 @@ public class Species {
 	private String five_code;
 	
 	public String getLabel() {
-		label = (getGenus() + " " + getSpecies()).trim();
+		String suffix = (getSpecies() == null || getSpecies().trim().length() == 0) ? "" : " " + getSpecies().trim();
+		label = getGenus() + suffix;
 		return label;
 	}
 	public void setLabel(String label) {

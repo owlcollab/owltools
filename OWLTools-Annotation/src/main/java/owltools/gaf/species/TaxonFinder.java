@@ -83,11 +83,15 @@ public class TaxonFinder {
 	}
 
 	public static String getCode(String taxon_id) {
+		if (taxon_id.startsWith(TAXON_PREFIX)) {
+			taxon_id = taxon_id.substring(TAXON_PREFIX.length());
+		}
 		Species taxon = IDs2taxa.get(taxon_id);
 		if (taxon != null)
 			return taxon.getFive_code();
-		else
-			return null;
+		else {
+			return "";
+		}
 	}
 
 	private static void loadTaxaMapping() {

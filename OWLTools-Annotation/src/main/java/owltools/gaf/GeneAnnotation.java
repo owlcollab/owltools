@@ -37,6 +37,7 @@ public class GeneAnnotation {
 	private String ecoEvidenceCls;                                // GPAD only
 	private String shortEvidence = DEFAULT_STRING_VALUE;        // Col. 7
 	private String aspect = DEFAULT_STRING_VALUE;                // Col. 9
+    private String synonyms = DEFAULT_STRING_VALUE;              // Col. 11 synonyms
 	private Pair<String, String> actsOnTaxonId = null;            // Col. 13
 	private String lastUpdateDate = DEFAULT_STRING_VALUE;        // Col. 14 //TODO: convert it to date
 	private String assignedBy = DEFAULT_STRING_VALUE;            // Col. 15
@@ -48,7 +49,7 @@ public class GeneAnnotation {
 
 	private int qualifier_flags;
 	public static final int CONTRIBUTES_TO_MASK = 1;    // 2^^0    000...00000001
-	public static final int COLOCATES_WITH_MASK = 2;    // 2^^1    000...00000010
+	public static final int COLOCALIZES_MASK = 2;    // 2^^1    000...00000010
 	public static final int INTEGRAL_TO_MASK = 4;    // 2^^2    000...00000100
 	public static final int NOT_MASK = 8;    // 2^^3    000...00001000
 	public static final int CUT_MASK = 16;   // 2^^4    000...00010000
@@ -343,14 +344,14 @@ public class GeneAnnotation {
 	}
 
 	public boolean isColocatesWith() {
-		return (qualifier_flags & this.COLOCATES_WITH_MASK) == this.COLOCATES_WITH_MASK;
+		return (qualifier_flags & this.COLOCALIZES_MASK) == this.COLOCALIZES_MASK;
 	}
 
 	public void setIsColocatesWith(boolean isColocatesWith) {
 		if (isColocatesWith)
-			qualifier_flags |= this.COLOCATES_WITH_MASK;
+			qualifier_flags |= this.COLOCALIZES_MASK;
 		else
-			qualifier_flags &= ~this.COLOCATES_WITH_MASK;
+			qualifier_flags &= ~this.COLOCALIZES_MASK;
 		setChanged();
 	}
 

@@ -374,7 +374,7 @@ public class BuilderTools {
 			if (sb.length() > 0) {
 				sb.append('|');
 			}
-			sb.append("colocates_with");
+			sb.append("colocalizes_with");
 		}
 		if (ann.isIntegralTo()) {
 			if (sb.length() > 0) {
@@ -404,7 +404,7 @@ public class BuilderTools {
 			qualifiers.add("contributes_to");
 		}
 		if (ann.isColocatesWith()) {
-			qualifiers.add("colocates_with");
+			qualifiers.add("colocalizes_with");
 		}
 		if (ann.isIntegralTo()) {
 			qualifiers.add("integral_to");
