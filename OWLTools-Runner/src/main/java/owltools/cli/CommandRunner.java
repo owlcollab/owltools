@@ -528,6 +528,7 @@ public class CommandRunner extends CommandRunnerBase {
 				g.mergeImportClosure(isRmImports);
 			}
 			else if (opts.nextEq("--merge-support-ontologies")) {
+				opts.info("", "This will merge the support ontologies from the OWLGraphWrapper into the main ontology. This is usually required while working with a reasoner.");
 				for (OWLOntology ont : g.getSupportOntologySet())
 					g.mergeOntology(ont);
 				g.setSupportOntologySet(new HashSet<OWLOntology>());
