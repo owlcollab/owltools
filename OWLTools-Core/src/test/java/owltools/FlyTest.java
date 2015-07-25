@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -13,6 +14,7 @@ import owltools.io.ParserWrapper;
 public class FlyTest {
 
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testConvertXPs() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g =
