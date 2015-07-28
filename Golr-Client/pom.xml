@@ -21,6 +21,7 @@
 						<!-- exclude due to use of external servers, which may not be available -->
 						<exclude>org/bbop/golr/java/RetrieveGolrAnnotationsTest.java</exclude>
 						<exclude>org/bbop/golr/java/RetrieveGolrBioentitiesTest.java</exclude>
+						<exclude>org/bbop/golr/java/RetrieveGolrOntologyClassTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
