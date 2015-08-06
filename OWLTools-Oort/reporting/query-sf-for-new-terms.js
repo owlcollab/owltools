@@ -42,7 +42,7 @@ function main(args) {
 	
 	print("<h2>Summary for tickets from "+yesterday.toISOString()+" to "+today.toISOString()+"</h2>");
 	printNewTickets(newTickets, oname, trackername);
-	printUpdatedTickets(modTickets, oname, trackername);
+	//printUpdatedTickets(modTickets, oname, trackername);
 	
 }
 
