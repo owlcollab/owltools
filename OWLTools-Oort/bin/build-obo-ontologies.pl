@@ -750,7 +750,7 @@ sub get_ont_info {
              notes => 'switch to vcs',
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'http://evidenceontology.googlecode.com/svn/trunk/eco.obo',
+             source_url => 'https://raw.githubusercontent.com/evidenceontology/evidenceontology/master/eco.obo'
          },
          iev => {
              method => 'obo2owl',
@@ -846,7 +846,7 @@ sub get_ont_info {
          pato => {
              infallible => 1,
              method => 'obo2owl',
-             source_url => 'https://raw.githubusercontent.com/obophenotype/pato/master/pato.obo',
+             source_url => 'https://raw.githubusercontent.com/pato-ontology/pato/master/pato.obo',
          },
          pco => {
              method => 'owl2obo',

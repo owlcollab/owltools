@@ -99,6 +99,17 @@ public class MarkdownRenderer {
 	OWLOntology ontology;
 	String directoryPath = "target/.";
 	PrintStream io;
+	private int chunkLevel = 2;
+	
+	
+
+	public int getChunkLevel() {
+		return chunkLevel;
+	}
+
+	public void setChunkLevel(int chunkLevel) {
+		this.chunkLevel = chunkLevel;
+	}
 
 	public void render(OWLOntology o, String path) throws IOException {
 		directoryPath = path;
@@ -488,9 +499,19 @@ public class MarkdownRenderer {
 			}
 		}
 	}
+	
+	/**
+	 * TODO: rename getFragment?
+	 * 
+	 * Fetches the part after the "/"
+	 * 
+	 * @param object
+	 * @return
+	 */
 	private String getId(OWLNamedObject ob) {
 		String id = ob.getIRI().toString();
 		id = id.replaceAll(".*/", "");
+		id = id.replaceAll("#", "-");
 		return id;
 	}
 
@@ -707,27 +728,52 @@ public class MarkdownRenderer {
 	}
 
 	private String getMarkdownLink(OWLObject s) {
-		return getMarkdownLink(s, "../../");
+		String prefix = "../../";
+		if (chunkLevel == 1) {
+			prefix = "../";
+		}
+		else if (chunkLevel == 0) {
+			prefix = "";
+		}
+		return getMarkdownLink(s, prefix);
 	}
 
 	private String getMarkdownLink(OWLObject obj, String pathToRoot) {
 		if (obj instanceof OWLNamedObject) {
 			OWLNamedObject s = (OWLNamedObject)obj;
 			String id = getId(s);
-			return "["+getLabelOrId(s)+"]("+pathToRoot+getRelativePath(id)+"/"+id+".md)";
+			String rpath = pathToRoot+getRelativePath(id);
+			if (rpath.length() == 0) {
+				// everything is in same directory; no need for "/"
+				return "["+getLabelOrId(s)+"]("+id+".md)";
+			}
+			return "["+getLabelOrId(s)+"]("+rpath+"/"+id+".md)";
 		}
 		else {
 			return generateText(obj);
 		}
 	}
 
+	/**
+	 * @param id of format {IDSPACE}_{LOCALID}
+	 * @return path of form IDSPACE/CODE
+	 */
 	private String getRelativePath(String id) {
+		if (chunkLevel == 0) {
+			return "";
+		}
+		
+		// we assume OBO-style IRIs, which are of the form IDSPACE_LOCALID;
+		// these tr
 		int pos = id.indexOf("_");
 		String sp = null;
 		String num = id;
 		if (pos > -1) {
 			sp = id.substring(0, pos);
 			num = id.substring(pos+1);
+		}
+		if (chunkLevel == 1) {
+			return sp;
 		}
 
 		String code = id.substring(id.length()-2);
