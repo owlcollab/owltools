@@ -18,6 +18,21 @@
 	<build>
 		<plugins>
 			<plugin>
+				<!-- used to add ${buildNumber} -->
+				<!-- requires scm connection -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<version>1.1</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>create</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 	  			<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
@@ -35,6 +50,9 @@
 						</manifest>
 						<manifestEntries>
 							<owltools-build-timestamp>${maven.build.timestamp}</owltools-build-timestamp>
+							<!-- requires the buildnumber-maven-plugin -->
+							<git-revision-sha1>${buildNumber}</git-revision-sha1>
+							<git-revision-url>https://github.com/owlcollab/owltools/commit/${buildNumber}</git-revision-url>
 						</manifestEntries>
 					</archive>
 				</configuration>

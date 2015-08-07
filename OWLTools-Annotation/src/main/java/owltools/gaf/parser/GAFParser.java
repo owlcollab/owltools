@@ -21,7 +21,7 @@ import java.util.zip.GZIPInputStream;
  * @author Shahid Manzoor
  * 
  */
-public class GAFParser {
+public class GAFParser implements AnnotationParserMessages {
 
 	private static final String GAF_COMMENT = "!";
 	private static final String GAF_VERSION = GAF_COMMENT + "gaf-version:";
@@ -194,13 +194,15 @@ public class GAFParser {
 		}
 	}
 	
-	private void fireParsingError(String message){
+	@Override
+	public void fireParsingError(String message){
 		for(ParserListener listner: parserListeners){
 			listner.parserError(message, this.currentRow, lineNumber);
 		}
 	}
 	
-	private void fireParsingWarning(String message){
+	@Override
+	public void fireParsingWarning(String message){
 		for(ParserListener listner: parserListeners){
 			if (listner.reportWarnings()) {
 				listner.parserWarning(message, this.currentRow, lineNumber);

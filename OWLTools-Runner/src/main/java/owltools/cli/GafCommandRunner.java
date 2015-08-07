@@ -685,6 +685,7 @@ public class GafCommandRunner extends CommandRunner {
 
 	@CLIMethod("--gaf-term-counts")
 	public void gafTermCounts(Opts opts) {
+		opts.info("", "Calculate and print the annotation count for each class for the current ontology and annotations");
 		// TODO - ensure has_part and other relations are excluded
 		Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {

@@ -2,12 +2,15 @@ package owltools.gaf.parser;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.TaxonTools;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BuilderTools {
 
@@ -126,18 +129,98 @@ public class BuilderTools {
 	 * @param qualifierString
 	 * @return collection, never null
 	 */
-	public static List<String> parseCompositeQualifier(String qualifierString){
+	private static List<String> parseCompositeQualifier(String qualifierString){
 		List<String> qualifiers = Collections.emptyList();
 		if(qualifierString.length()>0){
 			qualifiers = new ArrayList<String>();
 			String tokens[] = qualifierString.split("[\\||,]");
 			for(String token: tokens){
-				qualifiers.add(token);
+				qualifiers.add(StringUtils.trim(token));
 			}
 		}
 		return qualifiers;
 	}
-
+	
+	private static enum WithColumnData {
+		
+		contributesTo("contributes_to", "(contributes[_ ]to)"),
+		colocalizesWith("colocalizes_with", "colocali[zs]es[_ ]with"),
+		integralTo("integral_to", "integral[_ ]to"),
+		not("NOT", "not"),
+		cut("CUT", "cut");
+		
+		final String directMatch;
+		final Pattern relaxedPattern;
+		
+		
+		WithColumnData(String directMatch, String relaxedPattern) {
+			this.directMatch = directMatch;
+			this.relaxedPattern = Pattern.compile(relaxedPattern, Pattern.CASE_INSENSITIVE);
+		}
+		
+		boolean matches(String qualifier, AnnotationParserMessages reporter) {
+			if (qualifier.equals(directMatch)) {
+				return true;
+			}
+			Matcher matcher = relaxedPattern.matcher(qualifier);
+			if (matcher.find()) {
+				String group = matcher.group();
+				reporter.fireParsingWarning("Repairing qualifier '"+directMatch+"' from: "+group);
+				return true;
+			}
+			return false;
+		}
+	}
+	
+	public static void parseQualifiers(GeneAnnotation ga, String qualifierString, AnnotationParserMessages reporter) {
+		List<String> qualifiers = parseCompositeQualifier(qualifierString);
+		List<String> unusedQualifiers = new ArrayList<String>();
+		for (String qualifier : qualifiers) {
+			boolean used = false;
+			if (WithColumnData.contributesTo.matches(qualifier, reporter)) {
+				if (ga.isContributesTo()) {
+					reporter.fireParsingWarning("Duplicate qualifier: "+qualifier);
+				}
+				ga.setIsContributesTo(true);
+				used = true;
+			}
+			else if (WithColumnData.colocalizesWith.matches(qualifier, reporter)) {
+				if (ga.isColocatesWith()) {
+					reporter.fireParsingWarning("Duplicate qualifier: "+qualifier);
+				}
+				ga.setIsColocatesWith(true);
+				used = true;
+			}
+			else if (WithColumnData.integralTo.matches(qualifier, reporter)) {
+				if (ga.isIntegralTo()) {
+					reporter.fireParsingWarning("Duplicate qualifier: "+qualifier);
+				}
+				ga.setIsIntegralTo(true);
+				used = true;
+			}
+			else if (WithColumnData.not.matches(qualifier, reporter)) {
+				if (ga.isNegated()) {
+					reporter.fireParsingWarning("Duplicate qualifier: "+qualifier);
+				}
+				ga.setIsNegated(true);
+				used = true;
+			}
+			else if (WithColumnData.cut.matches(qualifier, reporter)) {
+				if (ga.isCut()) {
+					reporter.fireParsingWarning("Duplicate qualifier: "+qualifier);
+				}
+				ga.setIsCut(true);
+				used = true;
+			}
+			if (used == false) {
+				unusedQualifiers.add(qualifier);
+			}
+		}
+		for (String unused : unusedQualifiers) {
+			reporter.fireParsingError("Unknown qualifier: "+unused);
+		}
+	}
+	
 	public static Pair<String, String> parseTaxonRelationshipPair(String source) {
 		source = StringUtils.trimToNull(source);
 		if (source != null) {
@@ -175,11 +258,11 @@ public class BuilderTools {
 				String[] expressionStrings = StringUtils.split(groups[i], ',');
 				List<ExtensionExpression> expressions = new ArrayList<ExtensionExpression>(expressionStrings.length);
 				for (int j = 0; j < expressionStrings.length; j++) {
-					String token = expressionStrings[j];
+					String token = StringUtils.trimToEmpty(expressionStrings[j]);
 					int index = token.indexOf("(");
 					if(index > 0){
-						String relation = token.substring(0, index);
-						String cls = token.substring(index+1, token.length()-1);
+						String relation = StringUtils.trim(token.substring(0, index));
+						String cls = StringUtils.trim(token.substring(index+1, token.length()-1));
 						expressions.add(new ExtensionExpression(relation, cls));
 					}
 				}
@@ -291,7 +374,7 @@ public class BuilderTools {
 			if (sb.length() > 0) {
 				sb.append('|');
 			}
-			sb.append("colocates_with");
+			sb.append("colocalizes_with");
 		}
 		if (ann.isIntegralTo()) {
 			if (sb.length() > 0) {
@@ -321,7 +404,7 @@ public class BuilderTools {
 			qualifiers.add("contributes_to");
 		}
 		if (ann.isColocatesWith()) {
-			qualifiers.add("colocates_with");
+			qualifiers.add("colocalizes_with");
 		}
 		if (ann.isIntegralTo()) {
 			qualifiers.add("integral_to");

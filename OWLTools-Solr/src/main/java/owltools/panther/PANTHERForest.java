@@ -1,46 +1,11 @@
 package owltools.panther;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.forester.io.parsers.nhx.NHXFormatException;
-import org.forester.io.parsers.nhx.NHXParser;
-import org.forester.io.parsers.util.PhylogenyParserException;
-import org.forester.phylogeny.Phylogeny;
-import org.forester.phylogeny.PhylogenyNode;
-import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
-import org.semanticweb.owlapi.reasoner.Node;
-import org.semanticweb.owlapi.reasoner.NodeSet;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
-
-import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapper.ISynonym;
-import owltools.graph.shunt.OWLShuntEdge;
-import owltools.graph.shunt.OWLShuntGraph;
-import owltools.graph.shunt.OWLShuntNode;
-import owltools.io.ParserWrapper;
+import java.util.*;
 
 /**
  * Methods to simplify the work with sets of PANTHER trees.
@@ -57,7 +22,7 @@ public class PANTHERForest {
 	public int fileCount = 0;
 	
 	/**
-	 * Create an instance for the given privitve array of files.
+	 * Create an instance for the given primitive array of files.
 	 * 
 	 * @param pantherDir
 	 * @throws IOException 

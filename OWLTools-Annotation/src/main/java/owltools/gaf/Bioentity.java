@@ -31,10 +31,10 @@ public class Bioentity{
 	private String persistantNodeID;
 
 	private Bioentity parent = null;
-	private List<Bioentity> children;
-	private List<Bioentity> originalChildrenOrder;
+	protected List<Bioentity> children;
 	private float distanceFromParent;
-	// --Commented out by Inspection (12/9/14, 9:32 AM):private float distanceFromRoot;
+	private float distanceFromRoot;
+
 	private String type;
 	private String paint_id;
 
@@ -43,9 +43,12 @@ public class Bioentity{
 
 	private static Logger log = Logger.getLogger(Bioentity.class);
 
-	// --Commented out by Inspection (12/9/14, 9:32 AM):private static final String NODE_TYPE_DUPLICATION="1>0";
+	private static final String NODE_TYPE_DUPLICATION="1>0";
+	private static final String NODE_TYPE_HORIZONTAL_TRANSFER="0>0";
 
 	public Bioentity(){
+		this.annotations = new ArrayList<GeneAnnotation>();
+		this.synonyms = new ArrayList<String>(); // start with something tolerable
 	}
 
 	public Bioentity(String id, String symbol, String fullName, String typeCls,
@@ -57,7 +60,6 @@ public class Bioentity{
 		this.typeCls = typeCls;
 		this.ncbiTaxonId = ncbiTaxonId;
 		this.db = db;
-		this.synonyms = new ArrayList<String>(); // start with something tolerable
 		this.is_leaf = true;
 	}
 
@@ -150,6 +152,8 @@ public class Bioentity{
 		for (String s : synonyms) {
 			addit &= !s.equalsIgnoreCase(synonym);
 		}
+        addit &= getLocalId() == null || !synonym.equalsIgnoreCase(getLocalId());
+        addit &= getSymbol() == null || !synonym.equalsIgnoreCase(getSymbol());
 		if (addit)
 			this.synonyms.add(synonym);
 	}
@@ -175,8 +179,8 @@ public class Bioentity{
 		return geneId;
 	}
 
-	public void setGeneId(String parentObjectId) {
-		this.geneId = parentObjectId;
+	public void setGeneId(String geneObjectId) {
+		this.geneId = geneObjectId;
 	}
 
 	public List<String> getDbXrefs() {
@@ -256,26 +260,20 @@ public class Bioentity{
 		distanceFromParent = dist;
 	}
 
-// --Commented out by Inspection START (12/9/14, 9:31 AM):
-//	public float getDistanceFromParent() {
-//		return distanceFromParent;
-//	}
-// --Commented out by Inspection STOP (12/9/14, 9:31 AM)
+	public float getDistanceFromParent() {
+		return distanceFromParent;
+	}
 
-// --Commented out by Inspection START (12/9/14, 9:31 AM):
-//	public void setDistanceFromRoot(float dist) {
-//		distanceFromRoot = dist;
-//	}
-// --Commented out by Inspection STOP (12/9/14, 9:31 AM)
+	public void setDistanceFromRoot(float dist) {
+		distanceFromRoot = dist;
+	}
 
-// --Commented out by Inspection START (12/9/14, 9:31 AM):
-//	public float getDistanceFromRoot() {
-//		return distanceFromRoot;
-//	}
-// --Commented out by Inspection STOP (12/9/14, 9:31 AM)
+	public float getDistanceFromRoot() {
+		return distanceFromRoot;
+	}
 
 	// Setter/Getter methods
-	private boolean initChildren(List<Bioentity> children) {
+	public boolean setChildren(List<Bioentity> children) {
 		if (children == null) {
 			this.children = null;
 			is_leaf = true;
@@ -290,66 +288,46 @@ public class Bioentity{
 		return true;
 	}
 
-	public boolean setChildren(List<Bioentity> children) {
-		if (null == originalChildrenOrder) {
-			if (initChildren(children)) {
-				setOriginalChildrenToCurrentChildren();
-				return true;
-			}
-		}
-		boolean returnVal = initChildren(children);
-		setOriginalChildrenToCurrentChildren();
-		return returnVal;
-	}
-
-	public List<Bioentity> getChildren() {
+    public List<Bioentity> getChildren() {
 		return children;
 	}
 
-// --Commented out by Inspection START (12/9/14, 9:31 AM):
-//	void getTermini(List<Bioentity> leaves) {
-//		if (leaves != null) {
-//			if (this.isTerminus())
-//				leaves.add(this);
-//			else
-//				for (int i = 0; i < children.size(); i++) {
-//					Bioentity child = children.get(i);
-//					child.getTermini(leaves);
-//				}
-//		}
-//	}
-// --Commented out by Inspection STOP (12/9/14, 9:31 AM)
-
-	public void setOriginalChildrenToCurrentChildren() {
-		if (children == null) {
-			return;
+	public void getTermini(List<Bioentity> leaves) {
+		if (leaves != null) {
+			if (this.isTerminus())
+				leaves.add(this);
+			else
+				for (int i = 0; i < children.size(); i++) {
+					Bioentity child = children.get(i);
+					child.getTermini(leaves);
+				}
 		}
-		if (originalChildrenOrder == null) {
-			originalChildrenOrder = new ArrayList<Bioentity> ();
-		}
-		originalChildrenOrder.clear();
-		originalChildrenOrder.addAll(children);
 	}
 
 	public void setType(String s) {
 		this.type = s;
 	}
 
-// --Commented out by Inspection START (12/9/14, 9:32 AM):
-//	public String getType() {
-//		return type;
-//	}
-// --Commented out by Inspection STOP (12/9/14, 9:32 AM)
+	public String getType() {
+		return type;
+	}
 
-// --Commented out by Inspection START (12/9/14, 9:32 AM):
-//	public boolean isDuplicationNode() {
-//		if (null == type) {
-//			return false;
-//		}
-//		int index = type.indexOf(NODE_TYPE_DUPLICATION);
-//		return index >= 0;
-//	}
-// --Commented out by Inspection STOP (12/9/14, 9:32 AM)
+	public boolean isDuplication() {
+		if (null == type) {
+			return false;
+		}
+		int index = type.indexOf(NODE_TYPE_DUPLICATION);
+		return index >= 0;
+	}
+
+	public boolean isHorizontalTransfer() {
+		if (null == type) {
+			return false;
+		}
+		int index = type.indexOf(NODE_TYPE_HORIZONTAL_TRANSFER);
+		return index >= 0;
+	}
+
 
 	public String getPaintId() {
 		return paint_id;
