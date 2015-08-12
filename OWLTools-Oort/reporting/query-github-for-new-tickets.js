@@ -42,41 +42,55 @@ function main(args) {
 	var modTickets = getUpdatedTickets(username, projectname, range);
 	
 	print("<h2>Summary for tickets from "+yesterday.toISOString()+" to "+today.toISOString()+"</h2>");
-	printNewTickets(newTickets, username, projectname);
-	printUpdatedTickets(modTickets, username, projectname);
+	var ids = {}; // track already used ids
+	printNewTickets(newTickets, username, projectname, ids);
+	printUpdatedTickets(modTickets, username, projectname, ids);
 	
 }
 
-function printNewTickets(tickets, username, projectname) {
-	printTickets(tickets, username, 'new', 'New', projectname);
+function printNewTickets(tickets, username, projectname, ids) {
+	printTickets(tickets, username, 'new', 'New', projectname, ids);
 }
 
-function printUpdatedTickets(tickets, username, projectname) {
-	printTickets(tickets, username, 'updated', 'Updated', projectname);
+function printUpdatedTickets(tickets, username, projectname, ids) {
+	printTickets(tickets, username, 'updated', 'Updated', projectname, ids);
 }
 
-function printTickets(tickets, username, type, typeUpperCase, projectname) {
+function printTickets(tickets, username, type, typeUpperCase, projectname, ids) {
 	print("<h3>"+typeUpperCase+" Tickets</h3>");
 	if (tickets !== undefined && tickets.length > 0) {
-		
-		if (tickets.length === 1) {
-			print("There is one "+type+" ticket.");
-		}
-		else {
-			print("There are "+tickets.length+" "+type+" tickets.");
-		}
+
+		var ticketCount = 0;
 		var body = "<ul>\n";
 		for (var k=0; k<tickets.length; k++) {
 			var ticket = tickets[k];
-
+			var alreadyUsed = ids[ticket.number];
+			if (alreadyUsed === true) {
+				// skip already used tickets
+				continue;
+			}
 			body += '<li>';
 			body += '<a href="'+ticket.html_url+'">' + ticket.number + '</a>';
 			body += " ";
 			body += makeHtmlSave(ticket.title);
 			body += '</li>\n';
+
+			ticketCount += 1;
+			ids[ticket.number] = true;
 		}
-		body += "</ul>"
+		if (tickets.length > 0) {
+			if (tickets.length === 1) {
+				print("There is one "+type+" ticket.");
+			}
+			else {
+				print("There are "+ticketCount+" "+type+" tickets.");
+			}
+			body += "</ul>"
 			print(body);
+		}
+		else {
+			print("<p>There have been no "+type+" tickets.</p>");
+		}
 	}else {
 		print("<p>There have been no "+type+" tickets.</p>");
 	}
@@ -97,12 +111,12 @@ function makeHtmlSave(s) {
 }
 
 function getNewTickets(username, projectname, range) {
-	// Example: https://api.github.com/search/issues?q=repo:geneontology/go-ontology+created:=>2015-08-05&type=Issues
+	// Example: https://api.github.com/search/issues?q=repo:geneontology/go-ontology+created:=>2015-08-05&type=Issues&per_page=100
 	return getTickets(username, projectname, range, 'created:=>');
 }
 
 function getUpdatedTickets(username, projectname, range) {
-	// Example: https://api.github.com/search/issues?q=repo:geneontology/go-ontology+updated:=>2015-08-05&type=Issues
+	// Example: https://api.github.com/search/issues?q=repo:geneontology/go-ontology+updated:=>2015-08-05&type=Issues&per_page=100
 	return getTickets(username, projectname, range, 'updated:=>');
 }
 
@@ -113,7 +127,7 @@ function getUpdatedTickets(username, projectname, range) {
  * TODO: handle pagination, maybe add a retry count
  */
 function getTickets(username, projectname, range, type) {
-	var url = 'https://api.github.com/search/issues?q=repo:'+username+'/'+projectname+'+'+type+range+'&type=Issues';
+	var url = 'https://api.github.com/search/issues?q=repo:'+username+'/'+projectname+'+'+type+range+'&type=Issues&per_page=100';
 	console.log(url);
 	var exchange = httpclient.get(url);
 	var payload = exchange.content;
