@@ -7,15 +7,23 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
@@ -37,7 +45,6 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	
 	private OWLReasoner reasoner = null;
 	private Set<OWLClass> relevantClasses;
-	private Map<OWLClassExpression, Set<OWLClass>> reasonerCache = new HashMap<OWLClassExpression, Set<OWLClass>>();
 
 	private boolean isInitialized = false;
 	private final boolean throwExceptions;
@@ -95,66 +102,194 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	}
 
 	@Override
-	public List<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
+	public List<Prediction> predictForBioEntities(Map<Bioentity, ? extends Collection<GeneAnnotation>> annMap) {
 		List<Prediction> predictions = new ArrayList<Prediction>();
 		final OWLGraphWrapper g = getGraph();
 		final OWLDataFactory f = g.getDataFactory();
+		final OWLOntologyManager m = g.getManager();
 		
-		for (GeneAnnotation ann : anns) {
-			String evidenceString = ann.getShortEvidence();
-			if ("ND".equals(evidenceString)) {
-				continue;
+		// step 0: generate a throw away ontology which imports the source ontology
+		final OWLOntology generatedContainer;
+		try {
+			generatedContainer = g.getManager().createOntology(IRI.generateDocumentIRI());
+			// import source
+			OWLOntology source = g.getSourceOntology();
+			OWLOntologyID sourceId = source.getOntologyID();
+			OWLImportsDeclaration sourceImportDeclaration = f.getOWLImportsDeclaration(sourceId.getOntologyIRI());
+			m.applyChange(new AddImport(generatedContainer, sourceImportDeclaration));
+		}
+		catch(Exception e) {
+			String msg = "Could not setup container ontology";
+			LOG.error(msg, e);
+			if (throwExceptions) {
+				throw new RuntimeException(msg, e);
 			}
-			String annotatedToClassString = ann.getCls();
-			OWLClass annotatedToClass = g.getOWLClassByIdentifier(annotatedToClassString);
-			if (annotatedToClass == null) {
-				LOG.warn("Skipping annotation for prediction. Could not find cls for id: "+annotatedToClassString);
-				continue;
-			}
-			Set<OWLClass> annotatedToSuperClasses = reasoner.getSuperClasses(annotatedToClass, false).getFlattened();
-			List<List<ExtensionExpression>> extensionExpressionGroups = ann.getExtensionExpressions();
-			if (extensionExpressionGroups != null && !extensionExpressionGroups.isEmpty()) {
-				Set<OWLClass> used = new HashSet<OWLClass>();
-				for (List<ExtensionExpression> group : extensionExpressionGroups) {
-					Set<OWLClassExpression> units = new HashSet<OWLClassExpression>();
-					for (ExtensionExpression ext : group) {
-						String extClsString = ext.getCls();
-						String extRelString = ext.getRelation();
-						OWLClass extCls = f.getOWLClass(g.getIRIByIdentifier(extClsString));
-						OWLObjectProperty extRel = g.getOWLObjectPropertyByIdentifier(extRelString);
-						if (extRel == null) {
+			return predictions;
+		}
+
+		OWLReasoner reasoner = null;
+		try {
+			// step 1: prepare ontology
+			final Map<OWLClass, PredicationDataContainer> sourceData = new HashMap<OWLClass, PredicationDataContainer>();
+			final Map<Bioentity, Set<OWLClass>> allExistingAnnotations = new HashMap<Bioentity, Set<OWLClass>>();
+			final Map<Bioentity, Set<OWLClass>> allGeneratedClasses = generateAxioms(generatedContainer, annMap, allExistingAnnotations, sourceData);
+			
+			// step 2: reasoner
+			reasoner = new ElkReasonerFactory().createReasoner(generatedContainer);
+			
+			
+			// step 3: find folded classes
+			BioentityLoop: for(Entry<Bioentity, Set<OWLClass>> entry : allGeneratedClasses.entrySet()) {
+				final Set<OWLClass> used = new HashSet<OWLClass>();
+				final Bioentity e = entry.getKey();
+				final Set<OWLClass> existing = allExistingAnnotations.get(e);
+				final Set<OWLClass> generatedClasses = entry.getValue();
+				
+				// step 3.1: check for direct equivalent classes
+				final Set<OWLClass> checkForDirectSuper = new HashSet<OWLClass>(generatedClasses);
+				for(OWLClass generated : generatedClasses) {
+					Set<OWLClass> equivalents = reasoner.getEquivalentClasses(generated).getEntitiesMinus(generated);
+					final PredicationDataContainer source = sourceData.get(generated);
+					for (OWLClass equivalentCls : equivalents) {
+						if (equivalentCls.isBottomEntity()) {
+							// if the class is unsatisfiable skip the bioentity, no safe prediction possible
+							LOG.warn("skipping folding prediction for '"+e.getId()+"' due unsatisfiable expression.");
+							break BioentityLoop;
+						}
+						if (generatedClasses.contains(equivalentCls)) {
 							continue;
 						}
-						units.add(f.getOWLObjectSomeValuesFrom(extRel, extCls));
+						if (relevantClasses.contains(equivalentCls) == false) {
+							continue;
+						}
+						checkForDirectSuper.remove(generated);
+						if (existing != null && existing.contains(equivalentCls)) {
+							continue;
+						}
+						if (used.add(equivalentCls) && source != null) {
+							Prediction prediction = getPrediction(source.ann, equivalentCls, e.getId(), source.ann.getCls());
+							prediction.setReason(generateReason(equivalentCls, source.cls, source.extensionExpression, source.expressions, source.evidence, g));
+							predictions.add(prediction);
+						}
 					}
-					if (units.isEmpty()) {
-						continue;
-					}
-					units.add(annotatedToClass);
-					final OWLClassExpression groupExpression = f.getOWLObjectIntersectionOf(units);
-					
-					Set<OWLClass> cached = handleInferences(annotatedToClass, groupExpression);
-					for (OWLClass c : cached) {
-						if (c.isBuiltIn()) {
+				}
+				
+				// step 3.2: check for direct super classes, 
+				// but only for classes which did not have a named relevant equivalent class 
+				for(OWLClass generated : checkForDirectSuper) {
+					Set<OWLClass> parents = reasoner.getSuperClasses(generated, true).getFlattened();
+					final PredicationDataContainer source = sourceData.get(generated);
+					for (OWLClass parent : parents) {
+						if (parent.isBuiltIn()) {
 							continue;
 						}
-						if (relevantClasses.contains(c) == false) {
+						if (generatedClasses.contains(parent)) {
 							continue;
 						}
-						if (c.equals(annotatedToClass) || annotatedToSuperClasses.contains(c)) {
+						if (relevantClasses.contains(parent) == false) {
 							continue;
 						}
-						boolean added = used.add(c);
-						if (added) {
-							Prediction prediction = getPrediction(ann, c, e.getId(), ann.getCls());
-							prediction.setReason(generateReason(c, annotatedToClass, groupExpression, group, evidenceString, g));
+						if (existing != null && existing.contains(parent)) {
+							continue;
+						}
+						if (used.add(parent) && source != null) {
+							Prediction prediction = getPrediction(source.ann, parent, e.getId(), source.ann.getCls());
+							prediction.setReason(generateReason(parent, source.cls, source.extensionExpression, source.expressions, source.evidence, g));
 							predictions.add(prediction);
 						}
 					}
 				}
 			}
+			return predictions;
+		} finally {
+			if (reasoner != null) {
+				reasoner.dispose();
+			}
+			if (generatedContainer != null) {
+				m.removeOntology(generatedContainer);
+			}
 		}
-		return predictions;
+	}
+	
+	private static class PredicationDataContainer {
+		final GeneAnnotation ann;
+		final OWLClass cls;
+		final List<ExtensionExpression> expressions;
+		final OWLClassExpression extensionExpression;
+		final String evidence;
+		
+		PredicationDataContainer(GeneAnnotation source, OWLClass annotatedCls, String evidence,
+				OWLClassExpression extensionExpression, List<ExtensionExpression> expressions) {
+			super();
+			this.ann = source;
+			this.cls = annotatedCls;
+			this.extensionExpression = extensionExpression;
+			this.expressions = expressions;
+			this.evidence = evidence;
+		}
+	}
+	
+	private Map<Bioentity, Set<OWLClass>> generateAxioms(OWLOntology generatedContainer, Map<Bioentity, ? extends Collection<GeneAnnotation>> annMap, Map<Bioentity, Set<OWLClass>> allExistingAnnotations, Map<OWLClass, PredicationDataContainer> sourceData) {
+		final OWLGraphWrapper g = getGraph();
+		final OWLDataFactory f = g.getDataFactory();
+		final OWLOntologyManager m = g.getManager();
+		
+		Map<Bioentity, Set<OWLClass>> allGeneratedClasses = new HashMap<Bioentity, Set<OWLClass>>();
+		for(Entry<Bioentity, ? extends Collection<GeneAnnotation>> entry : annMap.entrySet()) {
+			Set<OWLClass> generatedClasses = new HashSet<OWLClass>();
+			Set<OWLClass> existingAnnotations = new HashSet<OWLClass>();
+			Bioentity e = entry.getKey();
+			for (GeneAnnotation ann : entry.getValue()) {
+				// skip ND evidence annotations
+				String evidenceString = ann.getShortEvidence();
+				if ("ND".equals(evidenceString)) {
+					continue;
+				}
+				// parse annotation cls
+				String annotatedToClassString = ann.getCls();
+				OWLClass annotatedToClass = g.getOWLClassByIdentifier(annotatedToClassString);
+				if (annotatedToClass == null) {
+					LOG.warn("Skipping annotation for prediction. Could not find cls for id: "+annotatedToClassString);
+					continue;
+				}
+				// add annotation class (and its super classes as known annotation) 
+				existingAnnotations.add(annotatedToClass);
+				existingAnnotations.addAll(reasoner.getSuperClasses(annotatedToClass, false).getFlattened());
+				
+				// parse c16 expressions
+				List<List<ExtensionExpression>> extensionExpressionGroups = ann.getExtensionExpressions();
+				if (extensionExpressionGroups != null && !extensionExpressionGroups.isEmpty()) {
+					for (List<ExtensionExpression> group : extensionExpressionGroups) {
+						Set<OWLClassExpression> units = new HashSet<OWLClassExpression>();
+						for (ExtensionExpression ext : group) {
+							String extClsString = ext.getCls();
+							String extRelString = ext.getRelation();
+							OWLClass extCls = f.getOWLClass(g.getIRIByIdentifier(extClsString));
+							OWLObjectProperty extRel = g.getOWLObjectPropertyByIdentifier(extRelString);
+							if (extRel == null) {
+								continue;
+							}
+							units.add(f.getOWLObjectSomeValuesFrom(extRel, extCls));
+						}
+						if (units.isEmpty()) {
+							continue;
+						}
+						units.add(annotatedToClass);
+						final OWLClassExpression groupExpression = f.getOWLObjectIntersectionOf(units);
+						OWLClass generatedClass = f.getOWLClass(IRI.generateDocumentIRI());
+						OWLAxiom axiom = f.getOWLEquivalentClassesAxiom(generatedClass, groupExpression);
+						m.addAxiom(generatedContainer, axiom);
+						generatedClasses.add(generatedClass);
+						sourceData.put(generatedClass, new PredicationDataContainer(ann, annotatedToClass, evidenceString, groupExpression, group));
+					}
+				}
+			}
+			if (generatedClasses.isEmpty() == false) {
+				allGeneratedClasses.put(e, generatedClasses);
+				allExistingAnnotations.put(e, existingAnnotations);
+			}
+		}
+		return allGeneratedClasses;
 	}
 
 	private String generateReason(OWLClass foldedClass, OWLClass annotatedToClass, OWLClassExpression groupExpression, List<ExtensionExpression> expressions, String evidence, OWLGraphWrapper g) {
@@ -193,26 +328,6 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		return sb.toString();
 	}
 	
-	private Set<OWLClass> handleInferences(OWLClass annotatedToClass, OWLClassExpression groupExpression) {
-		Set<OWLClass> cached = reasonerCache.get(groupExpression);
-		if (cached == null) {
-			// first check that the ce is satisfiable,
-			if (reasoner.isSatisfiable(groupExpression)) {
-				// check for equivalent named classes
-				cached = reasoner.getEquivalentClasses(groupExpression).getEntitiesMinusBottom();
-				if(cached.isEmpty()) {
-					// if no equivalent named classes exist check for super classes
-					cached = reasoner.getSuperClasses(groupExpression, true).getFlattened();
-				}
-			}
-			else {
-				cached = Collections.emptySet();
-			}
-			reasonerCache.put(groupExpression, cached);
-		}
-		return cached;
-	}
-	
 	protected Prediction getPrediction(GeneAnnotation ann, OWLClass c, String bioentity, String with) {
 		GeneAnnotation annP = new GeneAnnotation(ann);
 		annP.setBioentity(bioentity);
@@ -228,11 +343,6 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		if (reasoner != null) {
 			reasoner.dispose();
 		}
-		if (reasonerCache != null) {
-			reasonerCache.clear();
-			reasonerCache = null;
-		}
-		
 	}
 
 }

@@ -1,7 +1,6 @@
 package owltools.gaf.rules.go;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +54,7 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 	public List<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		List<Prediction> predictions = new ArrayList<Prediction>();
 		
-		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
+		Map<Bioentity, Set<GeneAnnotation>> allAnnotations = new HashMap<Bioentity, Set<GeneAnnotation>>();
 		boolean hasC16Annotations = false;
 		
 		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
@@ -68,7 +67,7 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 			Set<GeneAnnotation> anns = allAnnotations.get(id);
 			if (anns == null) {
 				anns = new HashSet<GeneAnnotation>();
-				allAnnotations.put(id, anns);
+				allAnnotations.put(e, anns);
 			}
 			anns.add(annotation);
 		}
@@ -79,7 +78,8 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 			try {
 				predictor = new FoldBasedPredictor(gafDoc, source, false);
 				if (predictor.isInitialized()) {
-					Set<Prediction> foldBasedPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
+					LOG.info("Start experimental prediction for "+allAnnotations.size()+" bioentities");
+					List<Prediction> foldBasedPredictions = predictor.predictForBioEntities(allAnnotations);
 					if (foldBasedPredictions != null) {
 						predictions.addAll(foldBasedPredictions);
 					}
@@ -99,24 +99,6 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 		return predictions;
 	}
 	
-	private Set<Prediction> getPredictedAnnotations(Map<String, Set<GeneAnnotation>> allAnnotations, GafDocument gafDoc, AnnotationPredictor predictor) {
-		Set<Prediction> predictions = new HashSet<Prediction>();
-		Set<String> bioentities = allAnnotations.keySet();
-		int total = bioentities.size();
-		LOG.info("Start experimental prediction for "+total+" bioentities");
-		int count = 0;
-		for (String id : bioentities) {
-			count += 1;
-			Collection<GeneAnnotation> anns = allAnnotations.get(id);
-			Bioentity e = gafDoc.getBioentity(id);
-			predictions.addAll(predictor.predictForBioEntity(e, anns));
-			if (count % 1000 == 0) {
-				LOG.info("Current experimental prediction for "+count+" bioentities.");
-			}
-		}
-		return predictions;
-	}
-
 	@Override
 	public boolean isInferringAnnotations() {
 		return true;

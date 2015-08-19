@@ -1,7 +1,6 @@
 package owltools.gaf.rules.go;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,7 +55,7 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 	public List<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
 		List<Prediction> predictions = new ArrayList<Prediction>();
 		
-		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
+		Map<Bioentity, Set<GeneAnnotation>> allAnnotations = new HashMap<Bioentity, Set<GeneAnnotation>>();
 		
 		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
 			Bioentity e = annotation.getBioentityObject();
@@ -64,7 +63,7 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 			Set<GeneAnnotation> anns = allAnnotations.get(id);
 			if (anns == null) {
 				anns = new HashSet<GeneAnnotation>();
-				allAnnotations.put(id, anns);
+				allAnnotations.put(e, anns);
 			}
 			anns.add(annotation);
 		}
@@ -75,7 +74,7 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 			try {
 				predictor = new BasicAnnotationPropagator(gafDoc, source, false);
 				if (predictor.isInitialized()) {
-					Set<Prediction> basicPredictions = getPredictedAnnotations(allAnnotations, gafDoc, predictor);
+					List<Prediction> basicPredictions = predictor.predictForBioEntities(allAnnotations);
 					if (basicPredictions != null) {
 						predictions.addAll(basicPredictions);
 					}
@@ -94,17 +93,6 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		return predictions;
 	}
 	
-	private Set<Prediction> getPredictedAnnotations(Map<String, Set<GeneAnnotation>> allAnnotations, GafDocument gafDoc, AnnotationPredictor predictor) {
-		Set<Prediction> predictions = new HashSet<Prediction>();
-		
-		for (String id : allAnnotations.keySet()) {
-			Collection<GeneAnnotation> anns = allAnnotations.get(id);
-			Bioentity e = gafDoc.getBioentity(id);
-			predictions.addAll(predictor.predictForBioEntity(e, anns));
-		}
-		return predictions;
-	}
-
 	@Override
 	public boolean isInferringAnnotations() {
 		return true;

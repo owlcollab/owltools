@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -70,7 +71,15 @@ public class CompositionalClassPredictor extends AbstractAnnotationPredictor imp
 		return isInitialized;
 	}
 	@Override
-	public List<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
+	public List<Prediction> predictForBioEntities(Map<Bioentity, ? extends Collection<GeneAnnotation>> annMap) {
+		List<Prediction> allPredictions = new ArrayList<Prediction>();
+		for(Entry<Bioentity, ? extends Collection<GeneAnnotation>> entry : annMap.entrySet()) {
+			allPredictions.addAll(predictForBioEntity(entry.getKey(), entry.getValue()));
+		}
+		return allPredictions;
+	}
+	
+	private List<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> anns) {
 		Set<Prediction> predictions = new HashSet<Prediction>();
 		Set<OWLClass> aClasses = new HashSet<OWLClass>();
 		//LOG.info("collecting from:"+bioentity);
