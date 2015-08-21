@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -608,8 +609,16 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		}
 	}
 	
+	@Override
+	public List<Prediction> predictForBioEntities(Map<Bioentity, ? extends Collection<GeneAnnotation>> annMap) {
+		List<Prediction> allPredictions = new ArrayList<Prediction>();
+		for(Entry<Bioentity, ? extends Collection<GeneAnnotation>> entry : annMap.entrySet()) {
+			allPredictions.addAll(predictForBioEntity(entry.getKey(), entry.getValue()));
+		}
+		return allPredictions;
+	}
 
-	public List<Prediction> predictForBioEntity(Bioentity entity, Collection<GeneAnnotation> annotations) {
+	public List<Prediction> predictForBioEntity(Bioentity e, Collection<GeneAnnotation> annotations) {
 		OWLGraphWrapper g = getGraph();
 		AllPreditions allPredictions = new AllPreditions();
 		Map<String, List<GeneAnnotation>> annotationsByEvidence = new HashMap<String, List<GeneAnnotation>>();

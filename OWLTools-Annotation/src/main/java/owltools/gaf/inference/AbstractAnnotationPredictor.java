@@ -1,7 +1,7 @@
 package owltools.gaf.inference;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -110,12 +110,12 @@ public abstract class AbstractAnnotationPredictor implements AnnotationPredictor
 	public List<Prediction> predict(String bioentity) {
 		Collection<GeneAnnotation> anns = gafDocument.getGeneAnnotations(bioentity);
 		Bioentity e = gafDocument.getBioentity(bioentity);
-		return predictForBioEntity(e, anns);
+		return predictForBioEntities(Collections.singletonMap(e, anns));
 	}
 
 	@Override
 	public List<Prediction> getAllPredictions() {
-		Map<String, Set<GeneAnnotation>> allAnnotations = new HashMap<String, Set<GeneAnnotation>>();
+		Map<Bioentity, Set<GeneAnnotation>> allAnnotations = new HashMap<Bioentity, Set<GeneAnnotation>>();
 		
 		for(GeneAnnotation annotation : getGafDocument().getGeneAnnotations()) {
 			Bioentity e = annotation.getBioentityObject();
@@ -123,18 +123,12 @@ public abstract class AbstractAnnotationPredictor implements AnnotationPredictor
 			Set<GeneAnnotation> anns = allAnnotations.get(id);
 			if (anns == null) {
 				anns = new HashSet<GeneAnnotation>();
-				allAnnotations.put(id, anns);
+				allAnnotations.put(e, anns);
 			}
 			anns.add(annotation);
 		}
 		
-		List<Prediction> pset = new ArrayList<Prediction>();
-		for (String id : allAnnotations.keySet()) {
-			Bioentity e = gafDocument.getBioentity(id);
-			Collection<GeneAnnotation> anns = allAnnotations.get(id);
-			pset.addAll(predictForBioEntity(e, anns));
-		}
-		return pset;
+		return predictForBioEntities(allAnnotations);
 	}
 
 	@Override

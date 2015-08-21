@@ -78,7 +78,7 @@ public class RetrieveGolrOntologyClass extends AbstractRetrieveGolr {
 		public List<String> replaced_by;
 		public List<String> consider;
 		public List<String> synonym;
-		public String subset;
+		public List<String> subset;
 		public List<String> definition_xref;
 		public List<String> database_xref;
 		public List<String> isa_partof_closure;
