@@ -1,7 +1,7 @@
 For full documentation, 
 
  * [see the Wiki](https://github.com/owlcollab/owltools/wiki).
- * [see the java API docs](owlcollab.github.io/owltools)
+ * [see the java API docs](https://owlcollab.github.io/owltools)
 
 ## OWLTools Build Instructions
 
