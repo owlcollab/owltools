@@ -53892,6 +53892,7 @@ intersection_of: acts_on_population_of CL:0000066 ! epithelial cell
 [Term]
 id: CL:0000066 ! epithelial cell
 name: epithelial cell
+is_a: GO:0005623 ! cell
 
 [Term]
 id: CL:0000182 ! hepatocyte
