@@ -1,6 +1,7 @@
 package owltools.gaf.inference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,6 +13,8 @@ import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.geneontology.reasoner.ExpressionMaterializingReasoner;
+import org.geneontology.reasoner.ExpressionMaterializingReasonerFactory;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
@@ -21,17 +24,21 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
+import owltools.vocab.OBOUpperVocabulary;
 
 /**
  * Use a reasoner to find more specific named classes for annotations with extension expressions.
@@ -45,6 +52,10 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	
 	private OWLReasoner reasoner = null;
 	private Set<OWLClass> relevantClasses;
+	
+	private OWLObjectProperty partOf;
+	private OWLObjectProperty occursIn;
+	private Set<OWLObjectProperty> defaultProperties;
 
 	private boolean isInitialized = false;
 	private final boolean throwExceptions;
@@ -91,6 +102,11 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			relevantClasses.addAll(reasoner.getSubClasses(cc, false).getFlattened());
 		}
 		
+		// properties
+		partOf = OBOUpperVocabulary.BFO_part_of.getObjectProperty(getGraph().getDataFactory());
+		occursIn = OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(getGraph().getDataFactory());
+		defaultProperties = Collections.unmodifiableSet(new HashSet<OWLObjectProperty>(Arrays.asList(partOf, occursIn)));
+		
 		if (relevantClasses.isEmpty()) {
 			LOG.error("No valid classes found for fold based prediction folding.");
 			if (throwExceptions) {
@@ -103,7 +119,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 
 	@Override
 	public List<Prediction> predictForBioEntities(Map<Bioentity, ? extends Collection<GeneAnnotation>> annMap) {
-		List<Prediction> predictions = new ArrayList<Prediction>();
+		final List<Prediction> predictions = new ArrayList<Prediction>();
 		final OWLGraphWrapper g = getGraph();
 		final OWLDataFactory f = g.getDataFactory();
 		final OWLOntologyManager m = g.getManager();
@@ -127,7 +143,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			return predictions;
 		}
 
-		OWLReasoner reasoner = null;
+		ExpressionMaterializingReasoner reasoner = null;
 		try {
 			// step 1: prepare ontology
 			final Map<OWLClass, PredicationDataContainer> sourceData = new HashMap<OWLClass, PredicationDataContainer>();
@@ -135,7 +151,9 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			final Map<Bioentity, Set<OWLClass>> allGeneratedClasses = generateAxioms(generatedContainer, annMap, allExistingAnnotations, sourceData);
 			
 			// step 2: reasoner
-			reasoner = new ElkReasonerFactory().createReasoner(generatedContainer);
+			reasoner = new ExpressionMaterializingReasonerFactory(new ElkReasonerFactory()).createReasoner(generatedContainer);
+			reasoner.setIncludeImports(true);
+			reasoner.materializeExpressions(defaultProperties);
 			
 			
 			// step 3: find folded classes
@@ -174,12 +192,12 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 					}
 				}
 				
-				// step 3.2: check for direct super classes, 
-				// but only for classes which did not have a named relevant equivalent class 
-				for(OWLClass generated : checkForDirectSuper) {
+				// step 3.2: check for direct super classes (including default properties such as part_of and occurs_in), 
+				// but only for classes which did not have a named relevant equivalent class
+				for(final OWLClass generated : checkForDirectSuper) {
 					Set<OWLClass> parents = reasoner.getSuperClasses(generated, true).getFlattened();
 					final PredicationDataContainer source = sourceData.get(generated);
-					for (OWLClass parent : parents) {
+					for (final OWLClass parent : parents) {
 						if (parent.isBuiltIn()) {
 							continue;
 						}
@@ -197,6 +215,36 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 							prediction.setReason(generateReason(parent, source.cls, source.extensionExpression, source.expressions, source.evidence, g));
 							predictions.add(prediction);
 						}
+					}
+					// check also for occurs_in and part_of
+					Set<OWLClassExpression> superClassesExpressions = reasoner.getSuperClassExpressions(generated, true);
+					for (final OWLClassExpression ce : superClassesExpressions) {
+						ce.accept(new OWLClassExpressionVisitorAdapter(){
+
+							@Override
+							public void visit(OWLObjectSomeValuesFrom svf) {
+								OWLClassExpression superClsExpr = svf.getFiller();
+								OWLObjectPropertyExpression p = svf.getProperty();
+								if(defaultProperties.contains(p) && superClsExpr.isAnonymous() == false) {
+									final OWLClass cls = superClsExpr.asOWLClass();
+									if (cls.isBuiltIn()) {
+										return;
+									}
+									if (relevantClasses.contains(cls) == false) {
+										return;
+									}
+									if (existing != null && existing.contains(cls)) {
+										return;
+									}
+									if (used.add(cls) && source != null) {
+										Prediction prediction = getPrediction(source.ann, cls, e.getId(), source.ann.getCls());
+										prediction.setReason(generateReason(cls, source.cls, source.extensionExpression, source.expressions, source.evidence, g));
+										predictions.add(prediction);
+									}
+								}
+							}
+							
+						});
 					}
 				}
 			}

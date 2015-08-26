@@ -51,7 +51,7 @@ public class FoldBasedPredictorTest extends OWLToolsTestBasics{
 		for (Prediction pred : preds) {
 			LOG.info(pred);
 		}
-		assertTrue(preds.size() == 1);
+		assertEquals(1, preds.size());
 		 preds = fbp.getAllPredictions();
 		for (Prediction pred : preds) {
 			LOG.info(pred.render(owlpp));
