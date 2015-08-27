@@ -518,8 +518,9 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		final String gpLabel = getLabel(gpType, graph);
 		final String mfId = getId(mfType, graph);
 		final String mfLabel = getLabel(mfType, graph);
-		final Map<String, String> mfClosureLabel = graph.getRelationClosureMap(mfType, defaultClosureRelations);
-		final Set<String> mfClosure = mfClosureLabel.keySet();
+		final Map<String, String> mfClosureMap = graph.getRelationClosureMap(mfType, defaultClosureRelations);
+		final Set<String> mfClosure = mfClosureMap.keySet();
+		final Set<String> mfClosureLabel = new HashSet<String>(mfClosureMap.values());
 
 
 		doc.addField("document_category", "model_annotation");
@@ -647,13 +648,16 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    cardinality: multi
 		//    searchable: true
 		addField(doc, "function_class_closure_label", mfClosureLabel);
+		
+		addField(doc, "function_class_closure_map", mfClosureMap);
 
 		//## Process
 		if (bpType != null) {
 			final String bpId = getId(bpType, graph);
 			final String bpLabel = getId(bpType, graph);
-			final Map<String, String> bpClosureLabels = graph.getRelationClosureMap(bpType, defaultClosureRelations);
-			final Set<String> bpClosure = null;
+			final Map<String, String> bpClosureMap = graph.getRelationClosureMap(bpType, defaultClosureRelations);
+			final Set<String> bpClosure = bpClosureMap.keySet();
+			final Set<String> bpClosureLabels = new HashSet<String>(bpClosureMap.values());
 			//  - id: process_class
 			//    description: Process acc/ID.
 			//    display_name: Process
@@ -679,23 +683,26 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    cardinality: multi
 			//    searchable: true
 			addField(doc, "process_class_closure_label", bpClosureLabels);
+			
+			addField(doc, "process_class_closure_map", bpClosureMap);
 		}
 
 		//## Location
 		if (locations != null && !locations.isEmpty()) {
 			List<String> locationList = new ArrayList<String>();
 			List<String> locationLabelList = new ArrayList<String>();
-			Map<String, String> locationClosureLabels = new HashMap<String, String>();
+			Map<String, String> locationClosureMap = new HashMap<String, String>();
 			for(Entry<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> entry : locations.entrySet()) {
 				OWLClass location = entry.getKey();
 				String locationId = getId(location, graph);
 				String locationLabel = getLabel(location, graph);
 				locationList.add(locationId);
 				locationLabelList.add(locationLabel);
-				locationClosureLabels.putAll(graph.getRelationClosureMap(location, defaultClosureRelations));
+				locationClosureMap.putAll(graph.getRelationClosureMap(location, defaultClosureRelations));
 				ecoClass = processAnnotations(entry.getValue().getRight(), ecoClass, allReferences, allWiths, allComments, allContributors, allOtherAnnotationValues);
 			}
-			Set<String> locationClosure = locationClosureLabels.keySet();
+			Set<String> locationClosure = locationClosureMap.keySet();
+			Set<String> locationClosureLabels = new HashSet<String>(locationClosureMap.values());
 			//  - id: location_list
 			//    display_name: Location
 			//    type: string
@@ -719,6 +726,8 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    type: string
 			//    cardinality: multi
 			addField(doc, "location_list_closure_label", locationClosureLabels);
+			
+			addField(doc, "location_list_closure_map", locationClosureMap);
 		}
 		
 		// not used
@@ -737,9 +746,11 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//## Evidence and related
 		if (ecoClass != null) {
 			String evidenceId = getId(ecoClass, graph);
+			String evidenceLabel = getLabel(ecoClass, graph);
 			reasoner.getSuperClasses(ecoClass, false).getFlattened();
-			Map<String, String> evidenceClosureLabel = graph.getRelationClosureMap(ecoClass, defaultClosureRelations);
-			Set<String> evidenceClosure = evidenceClosureLabel.keySet();
+			Map<String, String> evidenceClosureMap = graph.getRelationClosureMap(ecoClass, defaultClosureRelations);
+			Set<String> evidenceClosure = evidenceClosureMap.keySet();
+			Set<String> evidenceClosureLabels = new HashSet<String>(evidenceClosureMap.values());
 			
 			//  - id: evidence_type
 			//    description: "Evidence type."
@@ -747,7 +758,8 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    type: string
 			addField(doc, "evidence_type", evidenceId);
 			
-			//label?
+			//label
+			addField(doc, "evidence_type_label", evidenceLabel);
 			
 			//  - id: evidence_type_closure
 			//    description: "All evidence (evidence closure) for this annotation"
@@ -755,6 +767,10 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    type: string
 			//    cardinality: multi
 			addField(doc, "evidence_type_closure", evidenceClosure);
+			
+			addField(doc, "evidence_type_closure_label", evidenceClosureLabels);
+			
+			addField(doc, "evidence_type_closure_map", evidenceClosureMap);
 			
 			//  - id: evidence_with
 			//    description: "Evidence with/from."
