@@ -434,7 +434,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			if (legoModelPrefix == null) {
 				details += " Missing lego model prefix";
 			}
-			LOG.warn("Lego environment not well defined--skipping: "+details);
+			LOG.error("Lego environment not well defined--skipping: "+details);
+			exit(-1);
 		}else{
 			LOG.info("Start Loading models, count: "+legoFiles.size());
 			// Ready the environment for every pass.
