@@ -561,6 +561,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    type: string
 		//    searchable: true
 		addField(doc, "model_label", title);
+		addField(doc, "model_label_searchable", title);
 
 		//  - id: model_url
 		//    display_name: model URL
@@ -578,6 +579,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    type: string
 		//    searchable: true
 		addField(doc, "model_date", modelDate);
+		addField(doc, "model_date_searchable", modelDate);
 
 		//## Gene Product
 		//  - id: enabled_by
@@ -589,6 +591,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    type: string
 		//    searchable: true
 		doc.addField("enabled_by_label",gpLabel);
+		doc.addField("enabled_by_label_searchable",gpLabel);
 
 		// Not used at the moment
 		//## PANTHER
@@ -635,6 +638,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    type: string
 		//    searchable: true
 		addField(doc, "function_class_label", mfLabel);
+		addField(doc, "function_class_label_searchable", mfLabel);
 
 		//  - id: function_class_closure
 		//    display_name: Function
@@ -648,6 +652,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    cardinality: multi
 		//    searchable: true
 		addField(doc, "function_class_closure_label", mfClosureLabel);
+		addField(doc, "function_class_closure_label_searchable", mfClosureLabel);
 		
 		addField(doc, "function_class_closure_map", mfClosureMap);
 
@@ -670,6 +675,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    type: string
 			//    searchable: true
 			addField(doc, "process_class_label", bpLabel);
+			addField(doc, "process_class_label_searchable", bpLabel);
 	
 			//  - id: process_class_closure
 			//    display_name: Process
@@ -683,6 +689,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    cardinality: multi
 			//    searchable: true
 			addField(doc, "process_class_closure_label", bpClosureLabels);
+			addField(doc, "process_class_closure_label_searchable", bpClosureLabels);
 			
 			addField(doc, "process_class_closure_map", bpClosureMap);
 		}
@@ -760,6 +767,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			
 			//label
 			addField(doc, "evidence_type_label", evidenceLabel);
+			addField(doc, "evidence_type_label_searchable", evidenceLabel);
 			
 			//  - id: evidence_type_closure
 			//    description: "All evidence (evidence closure) for this annotation"
@@ -769,6 +777,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			addField(doc, "evidence_type_closure", evidenceClosure);
 			
 			addField(doc, "evidence_type_closure_label", evidenceClosureLabels);
+			addField(doc, "evidence_type_closure_label_searchable", evidenceClosureLabels);
 			
 			addField(doc, "evidence_type_closure_map", evidenceClosureMap);
 			
@@ -778,6 +787,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    type: string
 			//    cardinality: multi
 			addField(doc, "evidence_with", allWiths);
+			addField(doc, "evidence_with_searchable", allWiths);
 			
 			//  - id: reference
 			//    description: "Database reference."
@@ -785,6 +795,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    type: string
 			//    cardinality: multi
 			addField(doc, "reference", allReferences);
+			addField(doc, "reference_searchable", allReferences);
 		}
 
 		//  - id: comment
@@ -793,6 +804,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    cardinality: multi
 		//    searchable: true
 		addField(doc, "comment", allComments);
+		addField(doc, "comment_searchable", allComments);
 		
 		//  - id: contributor
 		//    display_name: contributor
@@ -800,6 +812,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    cardinality: multi
 		//    searchable: true
 		addField(doc, "contributor", allContributors);
+		addField(doc, "contributor_searchable", allContributors);
 
 		//  - id: annotation_value
 		//    description: set of all literal values of all annotation assertions in model
