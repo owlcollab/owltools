@@ -87,20 +87,15 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		// add GO
 		// biological process
 		OWLClass bp = getGraph().getOWLClassByIdentifier("GO:0008150");
-		if (bp != null) {
-			relevantClasses.addAll(reasoner.getSubClasses(bp, false).getFlattened());
-		}
+		addRelevant(bp, reasoner, getGraph(), relevantClasses);
 		
 		// molecular function
 		OWLClass mf = getGraph().getOWLClassByIdentifier("GO:0003674");
-		if (mf != null) {
-			relevantClasses.addAll(reasoner.getSubClasses(mf, false).getFlattened());
-		}
+		addRelevant(mf, reasoner, getGraph(), relevantClasses);
+		
 		// cellular component
 		OWLClass cc = getGraph().getOWLClassByIdentifier("GO:0005575");
-		if (cc != null) {
-			relevantClasses.addAll(reasoner.getSubClasses(cc, false).getFlattened());
-		}
+		addRelevant(cc, reasoner, getGraph(), relevantClasses);
 		
 		// properties
 		partOf = OBOUpperVocabulary.BFO_part_of.getObjectProperty(getGraph().getDataFactory());
@@ -115,6 +110,19 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			return false;
 		}
 		return true;
+	}
+	
+	private static void addRelevant(OWLClass root, OWLReasoner r, OWLGraphWrapper g, Set<OWLClass> relevant) {
+		if (root != null) {
+			Set<OWLClass> candidates = r.getSubClasses(root, false).getFlattened();
+			for (OWLClass candidate : candidates) {
+				// hack to restric to GO ids!
+				String identifier = g.getIdentifier(candidate.getIRI());
+				if (identifier.startsWith("GO:")) {
+					relevant.add(candidate);
+				}
+			}
+		}
 	}
 
 	@Override
