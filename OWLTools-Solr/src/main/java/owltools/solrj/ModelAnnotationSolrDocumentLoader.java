@@ -659,7 +659,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//## Process
 		if (bpType != null) {
 			final String bpId = getId(bpType, graph);
-			final String bpLabel = getId(bpType, graph);
+			final String bpLabel = getLabel(bpType, graph);
 			final Map<String, String> bpClosureMap = graph.getRelationClosureMap(bpType, defaultClosureRelations);
 			final Set<String> bpClosure = bpClosureMap.keySet();
 			final Set<String> bpClosureLabels = new HashSet<String>(bpClosureMap.values());
