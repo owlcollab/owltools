@@ -15,7 +15,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
@@ -161,12 +167,34 @@ public class AnnotationRulesEngine {
 			OWLGraphWrapper translatedGraph = null;
 			if (buildTranslatedGraph) {
 				LOG.info("Creating OWL represenation of annotations.");
-				GAFOWLBridge bridge = new GAFOWLBridge(graph);
+				// create empty ontology
+				final OWLOntologyManager m = graph.getManager();
+				
+				OWLOntology translated = m.createOntology(IRI.generateDocumentIRI());
+				
+				// either try to import source or copy
+				final OWLOntology source = graph.getSourceOntology();
+				final OWLOntologyID sourceId = source.getOntologyID();
+				if (sourceId != null && sourceId.getDefaultDocumentIRI() != null) {
+					// use import
+					OWLDataFactory f = m.getOWLDataFactory();
+					m.applyChange(new AddImport(translated, f.getOWLImportsDeclaration(sourceId.getDefaultDocumentIRI())));
+					
+				}
+				else {
+					// copy top level ontology and imports
+					m.addAxioms(translated, source.getAxioms());
+					Set<OWLImportsDeclaration> importsDeclarations = source.getImportsDeclarations();
+					for (OWLImportsDeclaration importsDeclaration : importsDeclarations) {
+						m.applyChange(new AddImport(translated, importsDeclaration));
+					}
+				}
+				
+				GAFOWLBridge bridge = new GAFOWLBridge(graph, translated);
 				bridge.setGenerateIndividuals(false);
 				bridge.setBasicAboxMapping(false);
 				bridge.setBioentityMapping(BioentityMapping.NAMED_CLASS);
 				bridge.setSkipNotAnnotations(true);
-				OWLOntology translated = bridge.translate(doc);
 				translatedGraph = new OWLGraphWrapper(translated);
 			}
 			
