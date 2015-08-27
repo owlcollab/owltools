@@ -424,8 +424,19 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// Only proceed if our environment was well-defined.
 		if( legoCatalogs == null || legoFiles == null || legoModelPrefix == null ||
 				legoCatalogs.isEmpty() || legoFiles.isEmpty() ){
-			LOG.warn("Lego environment not well defined--skipping.");
+			String details = "";
+			if (legoCatalogs == null || legoCatalogs.isEmpty()) {
+				details += "Missing catalog";
+			}
+			if (legoFiles == null || legoFiles.isEmpty()) {
+				details += " Missing legoFiles";
+			}
+			if (legoModelPrefix == null) {
+				details += " Missing lego model prefix";
+			}
+			LOG.warn("Lego environment not well defined--skipping: "+details);
 		}else{
+			LOG.info("Start Loading models, count: "+legoFiles.size());
 			// Ready the environment for every pass.
 			ParserWrapper pw = new ParserWrapper();
 			// Add all of the catalogs.
@@ -477,6 +488,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					}
 				}
 			}
+			LOG.info("Finished loading models.");
 		}
 	}
 
