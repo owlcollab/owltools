@@ -754,7 +754,6 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		if (ecoClass != null) {
 			String evidenceId = getId(ecoClass, graph);
 			String evidenceLabel = getLabel(ecoClass, graph);
-			reasoner.getSuperClasses(ecoClass, false).getFlattened();
 			Map<String, String> evidenceClosureMap = graph.getRelationClosureMap(ecoClass, defaultClosureRelations);
 			Set<String> evidenceClosure = evidenceClosureMap.keySet();
 			Set<String> evidenceClosureLabels = new HashSet<String>(evidenceClosureMap.values());
@@ -832,6 +831,9 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				OWLAnnotationValue value = annotation.getValue();
 				if (evidence.equals(p)) {
 					OWLNamedIndividual relevant = findEvidenceIndividual(value);
+					if (eco == null) {
+						eco = findType(relevant);
+					}
 					if (relevant != null) {
 						Set<OWLAnnotationAssertionAxiom> axioms = model.getAnnotationAssertionAxioms(relevant.getIRI());
 						for (OWLAnnotationAssertionAxiom axiom : axioms) {
@@ -845,6 +847,18 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 								String withValue = getLiteralValue(axiom.getValue());
 								if (withValue != null) {
 									allWiths.add(withValue);
+								}
+							}
+							else if (contributor.equals(axiom.getProperty())) {
+								String contrib = getLiteralValue(axiom.getValue());
+								if (contrib != null) {
+									allContributors.add(contrib);
+								}
+							}
+							else if (comment.equals(axiom.getProperty())) {
+								String literal = getLiteralValue(axiom.getValue());
+								if (literal != null) {
+									allComments.add(literal);
 								}
 							}
 						}
@@ -877,6 +891,17 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			}
 		}
 		return eco;
+	}
+
+	private OWLClass findType(OWLNamedIndividual relevant) {
+		Set<OWLClassAssertionAxiom> axioms = model.getClassAssertionAxioms(relevant);
+		for (OWLClassAssertionAxiom axiom : axioms) {
+			OWLClassExpression ce = axiom.getClassExpression();
+			if (ce.isAnonymous() == false) {
+				return ce.asOWLClass();
+			}
+		}
+		return null;
 	}
 
 	private OWLNamedIndividual findEvidenceIndividual(OWLAnnotationValue value) {
