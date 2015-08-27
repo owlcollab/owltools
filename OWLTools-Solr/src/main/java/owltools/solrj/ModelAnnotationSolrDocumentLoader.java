@@ -771,12 +771,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			addField(doc, "reference", allReferences);
 		}
 
-		//  - id: comments
+		//  - id: comment
 		//    display_name: comment
 		//    type: string
 		//    cardinality: multi
 		//    searchable: true
-		addField(doc, "comments", allComments);
+		addField(doc, "comment", allComments);
 		
 		//  - id: contributor
 		//    display_name: contributor
@@ -785,12 +785,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    searchable: true
 		addField(doc, "contributor", allContributors);
 
-		//  - id: annotation_values
+		//  - id: annotation_value
 		//    description: set of all literal values of all annotation assertions in model
 		//    cardinality: multi
 		//    display_name: texts
 		//    type: string
-		addField(doc, "annotation_values", allOtherAnnotationValues);
+		addField(doc, "annotation_value", allOtherAnnotationValues);
 		return doc;
 	}
 	
