@@ -27,7 +27,12 @@ import org.apache.solr.common.SolrException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
+import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -452,17 +457,24 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				OWLOntology model = null;
 				try {
 					model = pw.parseOWL(IRI.create(legoFile));
-					currentReasoner = reasonerFactory.createReasoner(model);
-						
+					
+					//skip deprecated models
+					boolean isDeprecated = isDeprecated(model);
+					if (isDeprecated) {
+						LOG.warn("Skipping deprecated model: "+fname);
+						continue;
+					}
+					
 					// Some sanity checks--some of the genereated ones are problematic.
+					currentReasoner = reasonerFactory.createReasoner(model);
 					boolean consistent = currentReasoner.isConsistent();
 					if( consistent == false ){
-						LOG.info("Skip since inconsistent: " + fname);
+						LOG.warn("Skip since inconsistent: " + fname);
 						continue;
 					}
 					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
 					if (unsatisfiable.isEmpty() == false) {
-						LOG.info("Skip since unsatisfiable: " + fname);
+						LOG.warn("Skip since unsatisfiable: " + fname);
 						continue;
 					}
 					
@@ -491,6 +503,34 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			}
 			LOG.info("Finished loading models.");
 		}
+	}
+
+	private boolean isDeprecated(OWLOntology model) {
+		boolean isDeprecated = false;
+		for(OWLAnnotation modelAnnotation : model.getAnnotations()){
+			if(modelAnnotation.getProperty().isDeprecated()) {
+				OWLAnnotationValue value = modelAnnotation.getValue();
+				isDeprecated = value.accept(new OWLAnnotationValueVisitorEx<Boolean>() {
+
+					@Override
+					public Boolean visit(IRI iri) {
+						return false;
+					}
+
+					@Override
+					public Boolean visit(OWLAnonymousIndividual individual) {
+						return false;
+					}
+
+					@Override
+					public Boolean visit(OWLLiteral literal) {
+						String s = literal.getLiteral();
+						return s.equalsIgnoreCase("true");
+					}
+				});
+			}
+		}
+		return isDeprecated;
 	}
 
 	/**
