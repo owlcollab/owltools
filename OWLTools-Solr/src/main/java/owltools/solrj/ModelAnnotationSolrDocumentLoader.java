@@ -150,7 +150,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		String modelDate = null;
 		String title = null;
 		String state = null;
-		Set<String> modelComments = new HashSet<String>();
+		String modelComment = null;
 		Set<String> modelAnnotations = new HashSet<String>();
 		for(OWLAnnotation ann : model.getAnnotations()) {
 			OWLAnnotationProperty p = ann.getProperty();
@@ -173,7 +173,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 					modelId = literal;
 				}
 				else if (this.comment.equals(p)) {
-					modelComments.add(literal);
+					modelComment = literal;
 				}
 				else {
 					modelAnnotations.add(literal);
@@ -210,7 +210,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 											entry.getValue().getLeft(), entry.getKey(), entry.getValue().getRight(),
 											locations,
 											modelId, title, state, modelDate, modelUrl,
-											modelAnnotations, modelComments, shuntGraph);
+											modelAnnotations, modelComment, shuntGraph);
 									addDoc(doc);
 								}
 							}
@@ -221,7 +221,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 										null, null, null,
 										locations,
 										modelId, title, state, modelDate, modelUrl,
-										modelAnnotations, modelComments, shuntGraph);
+										modelAnnotations, modelComment, shuntGraph);
 								addDoc(doc);
 							}
 						}
@@ -489,7 +489,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	 * @param state
 	 * @param modelDate
 	 * @param modelUrl
-	 * @param modelComments
+	 * @param modelComment
 	 *
 	 * @return an input doc for add()
 	 */
@@ -499,9 +499,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			OWLNamedIndividual bp, OWLClass bpType, Set<OWLAnnotation> bpAnnotations,
 			Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> locations,
 			String modelId, String title, String state, String modelDate, String modelUrl, 
-			Set<String> modelAnnotations, Set<String> modelComments, OWLShuntGraph shuntGraph) {
+			Set<String> modelAnnotations, String modelComment, OWLShuntGraph shuntGraph) {
 
-		final Set<String> allComments = new HashSet<String>(modelComments);
+		final Set<String> allComments = new HashSet<String>(); // unused until schema can be fixed
+		if (modelComment != null) {
+			allComments.add(modelComment);
+		}
 		final Set<String> allOtherAnnotationValues = new HashSet<String>(modelAnnotations);
 		final Set<String> allContributors = new HashSet<String>();
 		OWLClass ecoClass = null; // Why do we only have one eco class, we have multiple annotations?
@@ -802,8 +805,8 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    type: string
 		//    cardinality: multi
 		//    searchable: true
-		addField(doc, "comment", allComments);
-		addField(doc, "comment_searchable", allComments);
+		addField(doc, "comment", modelComment);
+		addField(doc, "comment_searchable", modelComment);
 		
 		//  - id: contributor
 		//    display_name: contributor
