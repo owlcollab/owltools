@@ -2,10 +2,12 @@ package owltools.cli;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +17,7 @@ import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
@@ -24,7 +27,12 @@ import org.apache.solr.common.SolrException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
+import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -53,6 +61,7 @@ import owltools.panther.PANTHERForest;
 import owltools.solrj.ComplexAnnotationSolrDocumentLoader;
 import owltools.solrj.FlexSolrDocumentLoader;
 import owltools.solrj.GafSolrDocumentLoader;
+import owltools.solrj.ModelAnnotationSolrDocumentLoader;
 import owltools.solrj.OntologyGeneralSolrDocumentLoader;
 import owltools.solrj.OptimizeSolrDocumentLoader;
 import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
@@ -75,6 +84,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	private List<File> legoCatalogs = null;
 	private List<File> legoFiles = null;
 	private List<String> caFiles = null;
+	private String legoModelPrefix = null;
 
 	/**
 	 * Output (STDOUT) a XML segment to put into the Solr schema file after reading the YAML file.
@@ -357,6 +367,36 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			legoFiles.add(file);
 		}
 	}
+	
+	/**
+	 * Used for reading the lego files to be used for loading complex annotations.
+	 * 
+	 * @param opts
+	 * @throws Exception
+	 */
+	@CLIMethod("--read-model-folder")
+	public void processModelFolder(Opts opts) throws Exception {
+		legoFiles = new ArrayList<File>();
+		String modelFolderString = opts.nextOpt();
+		File modelFolder = new File(modelFolderString).getCanonicalFile();
+		File[] modelFiles = modelFolder.listFiles(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				return StringUtils.isAlphanumeric(name);
+			}
+		});
+		Arrays.sort(modelFiles);
+		for (File modelFile : modelFiles) {
+			LOG.info("Using file for Lego: " + modelFile);
+			legoFiles.add(modelFile);
+		}
+	}
+	
+	@CLIMethod("--read-model-url-prefix")
+	public void processModelUrlPrefix(Opts opts) throws Exception {
+		legoModelPrefix = opts.nextOpt();
+	}
 
 	/**
 	 * Used for reading the lego files to be used for loading complex annotations.
@@ -379,6 +419,118 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				caFiles.add(caloc);
 			}
 		}
+	}
+	
+	@CLIMethod("--solr-load-models")
+	public void loadModelAnnotations(Opts opts) throws Exception {
+		// Check to see if the global url has been set.
+		String url = sortOutSolrURL(globalSolrURL);
+
+		// Only proceed if our environment was well-defined.
+		if( legoCatalogs == null || legoFiles == null || legoModelPrefix == null ||
+				legoCatalogs.isEmpty() || legoFiles.isEmpty() ){
+			String details = "";
+			if (legoCatalogs == null || legoCatalogs.isEmpty()) {
+				details += "Missing catalog";
+			}
+			if (legoFiles == null || legoFiles.isEmpty()) {
+				details += " Missing legoFiles";
+			}
+			if (legoModelPrefix == null) {
+				details += " Missing lego model prefix";
+			}
+			LOG.error("Lego environment not well defined--skipping: "+details);
+			exit(-1);
+		}else{
+			LOG.info("Start Loading models, count: "+legoFiles.size());
+			// Ready the environment for every pass.
+			ParserWrapper pw = new ParserWrapper();
+			// Add all of the catalogs.
+			for( File legoCatalog : legoCatalogs ){
+				pw.addIRIMapper(new CatalogXmlIRIMapper(legoCatalog));
+			}
+			OWLOntologyManager manager = pw.getManager();
+			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+			for( File legoFile : legoFiles ){
+				String fname = legoFile.getName();
+				OWLReasoner currentReasoner = null;
+				OWLOntology model = null;
+				try {
+					model = pw.parseOWL(IRI.create(legoFile));
+					
+					//skip deprecated models
+					boolean isDeprecated = isDeprecated(model);
+					if (isDeprecated) {
+						LOG.warn("Skipping deprecated model: "+fname);
+						continue;
+					}
+					
+					// Some sanity checks--some of the genereated ones are problematic.
+					currentReasoner = reasonerFactory.createReasoner(model);
+					boolean consistent = currentReasoner.isConsistent();
+					if( consistent == false ){
+						LOG.warn("Skip since inconsistent: " + fname);
+						continue;
+					}
+					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
+					if (unsatisfiable.isEmpty() == false) {
+						LOG.warn("Skip since unsatisfiable: " + fname);
+						continue;
+					}
+					
+					ModelAnnotationSolrDocumentLoader loader = null;
+					try {
+						LOG.info("Trying complex annotation load of: " + fname);
+						String modelUrl = legoModelPrefix + fname;
+						loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl);
+						loader.load();
+					} catch (SolrServerException e) {
+						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
+						e.printStackTrace();
+					}
+					finally {
+						IOUtils.closeQuietly(loader);
+					}
+				} finally {
+					// Cleanup reasoner and ontology.
+					if (currentReasoner != null) {
+						currentReasoner.dispose();
+					}
+					if (model != null) {
+						manager.removeOntology(model);
+					}
+				}
+			}
+			LOG.info("Finished loading models.");
+		}
+	}
+
+	private boolean isDeprecated(OWLOntology model) {
+		boolean isDeprecated = false;
+		for(OWLAnnotation modelAnnotation : model.getAnnotations()){
+			if(modelAnnotation.getProperty().isDeprecated()) {
+				OWLAnnotationValue value = modelAnnotation.getValue();
+				isDeprecated = value.accept(new OWLAnnotationValueVisitorEx<Boolean>() {
+
+					@Override
+					public Boolean visit(IRI iri) {
+						return false;
+					}
+
+					@Override
+					public Boolean visit(OWLAnonymousIndividual individual) {
+						return false;
+					}
+
+					@Override
+					public Boolean visit(OWLLiteral literal) {
+						String s = literal.getLiteral();
+						return s.equalsIgnoreCase("true");
+					}
+				});
+			}
+		}
+		return isDeprecated;
 	}
 
 	/**

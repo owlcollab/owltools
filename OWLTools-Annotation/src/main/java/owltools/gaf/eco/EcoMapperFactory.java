@@ -3,8 +3,10 @@ package owltools.gaf.eco;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -331,12 +333,112 @@ public class EcoMapperFactory {
 		if (src.indexOf(':') > 0) {
 			// assume its an url
 			URL url = new URL(src);
-			return new InputStreamReader(url.openStream());
+			return loadUrl(url);
 		}
 		
 		// treat as file
 		File file = new File(src);
 		return new FileReader(file);
+	}
+	
+	private static Reader loadUrl(URL url) throws IOException {
+		final HttpURLConnection connection;
+		InputStream response = null;
+		// setup and open (actual connection)
+		try {
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setInstanceFollowRedirects(true); // warning does not follow redirects from http to https
+			response = connection.getInputStream(); // opens the connection to the server
+		}
+		catch (IOException e) {
+			IOUtils.closeQuietly(response);
+			throw e;
+		}
+		// check status code
+		final int status;
+		try {
+			status = connection.getResponseCode();
+		} catch (IOException e) {
+			IOUtils.closeQuietly(response);
+			throw e;
+		}
+		if (HttpURLConnection.HTTP_MOVED_PERM == status || HttpURLConnection.HTTP_MOVED_TEMP == status) {
+			String location;
+			try {
+				location = connection.getHeaderField("Location");
+			} finally {
+				IOUtils.closeQuietly(response);
+			}
+			if (location == null) {
+				throw new IOException("Could not follow redirect, missing header/no value for header 'Location'");
+			}
+			URL next = new URL(url, location);  // Deal with relative URLs
+			
+			return loadUrl(next);
+		}
+		// handle unexpected status code
+		if (status != 200) {
+			// try to check error stream
+			String errorMsg = getErrorMsg(connection);
+			
+			// construct message for exception
+			StringBuilder sb = new StringBuilder("Unexpected HTTP status code: "+status);
+			
+			if (errorMsg != null) {
+				sb.append(" Details: ");
+				sb.append(errorMsg);
+			}
+			throw new IOException(sb.toString());
+		}
+		
+		// try to detect charset
+		String contentType = connection.getHeaderField("Content-Type");
+		String charset = null;
+
+		if (contentType != null) {
+			for (String param : contentType.replace(" ", "").split(";")) {
+				if (param.startsWith("charset=")) {
+					charset = param.split("=", 2)[1];
+					break;
+				}
+			}
+		}
+
+		// get string response from stream
+		String string;
+		try {
+			if (charset != null) {
+				string = IOUtils.toString(response, charset);
+			}
+			else {
+				string = IOUtils.toString(response);
+			}
+		} catch (IOException e) {
+			throw e;
+		}
+		finally {
+			IOUtils.closeQuietly(response);
+		}
+		return new StringReader(string);
+	}
+	
+	private static String getErrorMsg(HttpURLConnection connection) {
+		String errorMsg = null;
+		InputStream errorStream = null;
+		try {
+			errorStream = connection.getErrorStream();
+			if (errorStream != null) {
+				errorMsg =IOUtils.toString(errorStream);
+			}
+			errorMsg = StringUtils.trimToNull(errorMsg);
+		}
+		catch (IOException e) {
+			// ignore errors, while trying to retrieve the error message
+		}
+		finally {
+			IOUtils.closeQuietly(errorStream);
+		}
+		return errorMsg;
 	}
 	
 	static TraversingEcoMapper createTraversingEcoMapper(Reader mappingsReader, OWLGraphWrapper eco, OWLReasoner reasoner, boolean disposeReasoner) throws IOException, OWLException {

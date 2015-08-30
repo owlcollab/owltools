@@ -1,18 +1,14 @@
 package owltools.gaf.owl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
@@ -51,27 +47,29 @@ public class FoldBasedPredictorTest extends OWLToolsTestBasics{
 		for (Prediction pred : preds) {
 			LOG.info(pred);
 		}
-		assertTrue(preds.size() == 1);
-		 preds = fbp.getAllPredictions();
+		assertEquals(1, preds.size());
+		// GO:0050673 'epithelial cell proliferation'
+		assertEquals("GO:0050673", preds.get(0).getGeneAnnotation().getCls());
+		
+		// TESTME2
+		preds = fbp.predict("MGI:TESTME2");
+		assertEquals(1, preds.size());
+		// GO:0050701 'interleukin-1 secretion'
+		assertEquals("GO:0050701", preds.get(0).getGeneAnnotation().getCls());
+		
+		// TESTME3
+		preds = fbp.predict("MGI:TESTME3");
+		assertEquals(1, preds.size());
+		// GO:0005623 'cell'
+		assertEquals("GO:0005623", preds.get(0).getGeneAnnotation().getCls());
+		
+		// check that only the expected predictions are here
+		preds = fbp.getAllPredictions();
+		assertEquals(3, preds.size());
 		for (Prediction pred : preds) {
 			LOG.info(pred.render(owlpp));
 		}
 		LOG.info("total preds: "+preds.size());
-		/*
-		OWLClass hcp = (OWLClass) 
-		g.getOWLObjectByLabel("cell proliferation acts_on_population_of some hepatocyte");
-		for (OWLClassExpression ex : hcp.getEquivalentClasses(g.getSourceOntology())) {
-			LOG.info("EC for HCP ="+ex);
-		}
-		for(OWLClass sc : fbp.reasoner.getSuperClasses(hcp, false).getFlattened()) {
-			LOG.info("SC ="+sc);
-		}
-		for(OWLClass ec : fbp.reasoner.getEquivalentClasses(hcp).getEntities()) {
-			String label = g.getLabel(ec);
-			LOG.info("hcp EQUIV_TO ="+ec+ " "+label);
-		}
-		*/
-		
 	}
 
 }

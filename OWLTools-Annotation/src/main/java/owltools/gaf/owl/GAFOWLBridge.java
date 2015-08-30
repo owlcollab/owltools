@@ -1,6 +1,8 @@
 package owltools.gaf.owl;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -156,7 +158,6 @@ public class GAFOWLBridge {
 	 * @return translated ontology
 	 */
 	public OWLOntology translate(GafDocument gafdoc) {
-
 		translateBioentities(gafdoc);
 		translateGeneAnnotations(gafdoc);
 
@@ -164,17 +165,45 @@ public class GAFOWLBridge {
 	}
 
 	private void translateGeneAnnotations(GafDocument gafdoc) {
-		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
-			translateGeneAnnotation(a);
+		List<GeneAnnotation> annotations = gafdoc.getGeneAnnotations();
+		int total = annotations.size();
+		int chunksize = total / 100;
+		if (chunksize < 1) {
+			chunksize = 1;
 		}
+		int currentCount = 0;
+		LOG.info("Start translating GeneAnnotations to OWL, count: "+total);
+		for (GeneAnnotation a : annotations) {
+			translateGeneAnnotation(a);
+			currentCount += 1;
+			if (currentCount % chunksize == 0) {
+				double percent = currentCount / (double) total;
+				LOG.info("GeneAnnotations to OWL progress: "+NumberFormat.getPercentInstance().format(percent));
+			}
+		}
+		LOG.info("Finished translating GeneAnnotations to OWL");
 
 	}
 
 
 	private void translateBioentities(GafDocument gafdoc) {
-		for (Bioentity e : gafdoc.getBioentities()) {
-			translateBioentity(e);
+		Collection<Bioentity> bioentities = gafdoc.getBioentities();
+		int total = bioentities.size();
+		int chunksize = total / 100;
+		if (chunksize < 1) {
+			chunksize = 1;
 		}
+		int currentCount = 0;
+		LOG.info("Translating Bioentities to OWL, count: "+total);
+		for (Bioentity e : bioentities) {
+			translateBioentity(e);
+			currentCount += 1;
+			if (currentCount % chunksize == 0) {
+				double percent = currentCount / (double) total;
+				LOG.info("Bioentities to OWL progress: "+NumberFormat.getPercentInstance().format(percent));
+			}
+		}
+		LOG.info("Finished translating Bioentities to OWL");
 	}
 
 	private String getAnnotationId(GeneAnnotation a) {

@@ -53,9 +53,13 @@ public abstract class AbstractSolrLoader {
 	}
 
 	public AbstractSolrLoader(String url) throws MalformedURLException {
-		super();
+		this(createDefaultServer(url));
+		
+	}
+	
+	public static final SolrServer createDefaultServer(String url) throws MalformedURLException {
 		LOG.info("Server at: " + url);
-		this.server = new CommonsHttpSolrServer(url);
+		return new CommonsHttpSolrServer(url);
 	}
 
 	/**

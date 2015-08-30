@@ -92,28 +92,27 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Start - Check for unsatisfiable classes");
 			}
-			Node<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses();
+			Set<OWLClass> unsatisfiableClasses = reasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
 			if (logger.isDebugEnabled()) {
 				logger.debug("Finished - Check for unsatisfiable classes");
 			}
-			if (unsatisfiableClasses != null) {
+			if (unsatisfiableClasses.isEmpty() == false) {
 				ExplanationGenerator explanationGen = null;
 				if (CREATE_EXPLANATIONS) {
 					explanationGen = new DefaultExplanationGenerator(graph.getManager(), factory, graph.getSourceOntology(), reasoner, null);
 				}
 				OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
-				Set<OWLClass> entities = unsatisfiableClasses.getEntitiesMinusBottom();
-				logger.info("Found unsatisfiable classes, count: "+entities.size()+" list: "+entities);
+				logger.info("Found unsatisfiable classes, count: "+unsatisfiableClasses.size()+" list: "+unsatisfiableClasses);
 				Set<AnnotationRuleViolation> violations = new HashSet<AnnotationRuleViolation>();
-				for (OWLClass c : entities) {
-					if (c.isBuiltIn()) {
+				for (OWLClass cls : unsatisfiableClasses) {
+					if (cls.isBuiltIn()) {
 						continue;
 					}
 					StringBuilder msgBuilder = new StringBuilder();
-					msgBuilder.append("unsatisfiable class: ").append(pp.render(c));
+					msgBuilder.append("unsatisfiable class: ").append(pp.render(cls));
 					if (CREATE_EXPLANATIONS) {
-						logger.info("Finding explanations for unsatisfiable class: "+pp.render(c));
-						Set<OWLAxiom> explanation = explanationGen.getExplanation(c);
+						logger.info("Finding explanations for unsatisfiable class: "+pp.render(cls));
+						Set<OWLAxiom> explanation = explanationGen.getExplanation(cls);
 						appendExplanation(explanation, msgBuilder, pp);
 					}
 					violations.add(new AnnotationRuleViolation(getRuleId(), msgBuilder.toString(), (GeneAnnotation) null, ViolationType.Warning));

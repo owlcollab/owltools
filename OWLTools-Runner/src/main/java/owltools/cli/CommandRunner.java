@@ -510,7 +510,7 @@ public class CommandRunner extends CommandRunnerBase {
 					iri = Obo2OWLConstants.DEFAULT_IRI_PREFIX+iri;
 				}
 				g = new OWLGraphWrapper(iri);
-
+				
 				if (v != null) {
 					OWLOntologyID oid = new OWLOntologyID(IRI.create(iri), v);
 					SetOntologyID soid;
@@ -1240,9 +1240,19 @@ public class CommandRunner extends CommandRunnerBase {
 				fileWriter.close();
 			}
 			else if (opts.nextEq("--ontology-to-markdown")) {
-				opts.info("DIR", "writes md from ontology");
+				opts.info("[-l LEVEL] DIR", "writes md from ontology");
+				int level = 2;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-l|--level")) {
+						level = Integer.parseInt(opts.nextOpt());
+					}
+					else
+						break;
+						
+				}
 				String dir = opts.nextOpt();
 				MarkdownRenderer mr = new MarkdownRenderer();
+				mr.setChunkLevel(level);
 				mr.render(g.getSourceOntology(), dir);
 			}
 			else if (opts.nextEq("--add-obo-shorthand-to-properties")) {

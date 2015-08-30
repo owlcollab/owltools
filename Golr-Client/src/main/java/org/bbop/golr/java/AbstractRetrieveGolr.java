@@ -91,7 +91,7 @@ public abstract class AbstractRetrieveGolr {
 		// setup and open (actual connection)
 		try {
 			connection = (HttpURLConnection) url.openConnection();
-			connection.setInstanceFollowRedirects(true);
+			connection.setInstanceFollowRedirects(true); // warning does not follow redirects from http to https
 			response = connection.getInputStream(); // opens the connection to the server
 		}
 		catch (IOException e) {
