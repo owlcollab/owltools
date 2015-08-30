@@ -1,32 +1,19 @@
 package owltools.gaf;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import owltools.gaf.parser.BuilderTools;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
+import owltools.gaf.parser.BuilderTools;
 
 /**
  * Representation of a gene annotation.
  */
 public class GeneAnnotation {
 
-	/**
-	 * Provide a thread-safe formatter for a GAF date.
-	 */
-	public static final ThreadLocal<DateFormat> GAF_Date_Format = new ThreadLocal<DateFormat>() {
-
-		@Override
-		protected DateFormat initialValue() {
-			return new SimpleDateFormat("yyyyMMdd");
-		}
-
-	};
 	private static final String DEFAULT_STRING_VALUE = "";
 
 	private String bioentity = DEFAULT_STRING_VALUE;            // used for c1 and c2
@@ -37,7 +24,6 @@ public class GeneAnnotation {
 	private String ecoEvidenceCls;                                // GPAD only
 	private String shortEvidence = DEFAULT_STRING_VALUE;        // Col. 7
 	private String aspect = DEFAULT_STRING_VALUE;                // Col. 9
-    private String synonyms = DEFAULT_STRING_VALUE;              // Col. 11 synonyms
 	private Pair<String, String> actsOnTaxonId = null;            // Col. 13
 	private String lastUpdateDate = DEFAULT_STRING_VALUE;        // Col. 14 //TODO: convert it to date
 	private String assignedBy = DEFAULT_STRING_VALUE;            // Col. 15
@@ -157,6 +143,11 @@ public class GeneAnnotation {
 		this.bioentityObject = ann.bioentityObject;
 		this.setIsColocatesWith(ann.isColocatesWith());
 		this.setIsContributesTo(ann.isContributesTo());
+		this.setIsIntegralTo(ann.isIntegralTo());
+		this.setIsNegated(ann.isNegated());
+		this.setIsCut(ann.isCut());
+		this.setDirectNot(ann.is_DirectNot);
+		this.setDirectMRC(ann.is_MRC);
 		this.cls = ann.cls;
 		this.referenceIds = copy(ann.referenceIds);
 		this.shortEvidence = ann.shortEvidence;
@@ -241,6 +232,17 @@ public class GeneAnnotation {
 		setChanged();
 	}
 
+	public void setReferenceIds(Collection<String> referenceIds) {
+		if (this.referenceIds == null) {
+			this.referenceIds = new ArrayList<String>(referenceIds);
+		} else {
+			this.referenceIds.clear();
+			this.referenceIds.addAll(referenceIds);
+		}
+		setChanged();
+		
+	}
+	
 	public String getEcoEvidenceCls() {
 		return ecoEvidenceCls;
 	}
@@ -279,15 +281,6 @@ public class GeneAnnotation {
 
 	public String getLastUpdateDate() {
 		return lastUpdateDate;
-	}
-
-	public void setLastUpdateDate(Date date) {
-		if (date != null) {
-			String dateString = GAF_Date_Format.get().format(date);
-			setLastUpdateDate(dateString);
-		} else {
-			setLastUpdateDate("");
-		}
 	}
 
 	public void setLastUpdateDate(String lastUpdateDate) {
@@ -332,63 +325,63 @@ public class GeneAnnotation {
 	}
 
 	public boolean isContributesTo() {
-		return (qualifier_flags & this.CONTRIBUTES_TO_MASK) == this.CONTRIBUTES_TO_MASK;
+		return (qualifier_flags & CONTRIBUTES_TO_MASK) == CONTRIBUTES_TO_MASK;
 	}
 
 	public void setIsContributesTo(boolean isContributesTo) {
 		if (isContributesTo)
-			qualifier_flags |= this.CONTRIBUTES_TO_MASK;
+			qualifier_flags |= CONTRIBUTES_TO_MASK;
 		else
-			qualifier_flags &= ~this.CONTRIBUTES_TO_MASK;
+			qualifier_flags &= ~CONTRIBUTES_TO_MASK;
 		setChanged();
 	}
 
 	public boolean isColocatesWith() {
-		return (qualifier_flags & this.COLOCALIZES_MASK) == this.COLOCALIZES_MASK;
+		return (qualifier_flags & COLOCALIZES_MASK) == COLOCALIZES_MASK;
 	}
 
 	public void setIsColocatesWith(boolean isColocatesWith) {
 		if (isColocatesWith)
-			qualifier_flags |= this.COLOCALIZES_MASK;
+			qualifier_flags |= COLOCALIZES_MASK;
 		else
-			qualifier_flags &= ~this.COLOCALIZES_MASK;
+			qualifier_flags &= ~COLOCALIZES_MASK;
 		setChanged();
 	}
 
 	public boolean isIntegralTo() {
-		return (qualifier_flags & this.INTEGRAL_TO_MASK) == this.INTEGRAL_TO_MASK;
+		return (qualifier_flags & INTEGRAL_TO_MASK) == INTEGRAL_TO_MASK;
 	}
 
 	public void setIsIntegralTo(boolean isIntegralTo) {
 		if (isIntegralTo)
-			qualifier_flags |= this.INTEGRAL_TO_MASK;
+			qualifier_flags |= INTEGRAL_TO_MASK;
 		else
-			qualifier_flags &= ~this.INTEGRAL_TO_MASK;
+			qualifier_flags &= ~INTEGRAL_TO_MASK;
 		setChanged();
 	}
 
 	public void setIsNegated(boolean isNegated) {
 		if (isNegated)
-			qualifier_flags |= this.NOT_MASK;
+			qualifier_flags |= NOT_MASK;
 		else
-			qualifier_flags &= ~this.NOT_MASK;
+			qualifier_flags &= ~NOT_MASK;
 		setChanged();
 	}
 
 	public boolean isNegated() {
-		return (qualifier_flags & this.NOT_MASK) == this.NOT_MASK;
+		return (qualifier_flags & NOT_MASK) == NOT_MASK;
 	}
 
 	public void setIsCut(boolean isCut) {
 		if (isCut)
-			qualifier_flags |= this.CUT_MASK;
+			qualifier_flags |= CUT_MASK;
 		else
-			qualifier_flags &= ~this.CUT_MASK;
+			qualifier_flags &= ~CUT_MASK;
 		setChanged();
 	}
 
 	public boolean isCut() {
-		return (qualifier_flags & this.CUT_MASK) == this.CUT_MASK;
+		return (qualifier_flags & CUT_MASK) == CUT_MASK;
 	}
 
 	public void setWithInfos(Collection<String> withInfoList) {

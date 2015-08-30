@@ -105,8 +105,8 @@ public class GAFParser implements AnnotationParserMessages {
 			}
 
 			lineNumber++;
-			if(DEBUG)
-				LOG.debug("Parsing Row: " +lineNumber + " -- " +currentRow);
+//			if(DEBUG)
+//				LOG.debug("Parsing Row: " +lineNumber + " -- " +currentRow);
 
 			final String trimmedLine = StringUtils.trimToEmpty(currentRow);
 			if (trimmedLine.length() == 0) {

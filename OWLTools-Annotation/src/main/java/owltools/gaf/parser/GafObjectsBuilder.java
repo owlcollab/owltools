@@ -157,6 +157,7 @@ public class GafObjectsBuilder {
 			if (load) {
 				Bioentity entity= parseBioEntity(parser);
 				entity = gafDocument.addBioentity(entity);
+
 				GeneAnnotation annotation = parseGeneAnnotation(parser, entity, docId);
 				gafDocument.addGeneAnnotation(annotation);
 			}
