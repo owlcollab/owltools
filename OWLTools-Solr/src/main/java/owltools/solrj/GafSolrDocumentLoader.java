@@ -332,8 +332,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("bioentity_name", ename); // Col. 10 (from bioentity above)
 			annotation_doc.addField("synonym", esynonyms); // Col. 11 (from bioentity above)
 			annotation_doc.addField("type", etype); // Col. 12 (from bioentity above)
-			annotation_doc.addField("taxon", etaxid); // Col. 13(?) (from bioentity above)
-			addLabelField(annotation_doc, "taxon_label", etaxid); // n/a
 			String adate = a.getLastUpdateDate();
 			annotation_doc.addField("date", adate);  // Col. 14
 			String assgnb = a.getAssignedBy();
