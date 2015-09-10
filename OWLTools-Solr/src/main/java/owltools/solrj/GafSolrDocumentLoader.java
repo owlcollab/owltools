@@ -150,9 +150,9 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 
 			if (taxonSubsetClosureMap.isEmpty() == false) {
-				bioentity_doc.addField("taxon_closure_subset", taxSubsetIDClosure);
-				bioentity_doc.addField("taxon_closure_subset_label", taxSubsetLabelClosure);
-				bioentity_doc.addField("taxon_closure_subset_map", gson.toJson(taxonSubsetClosureMap));
+				bioentity_doc.addField("taxon_subset_closure", taxSubsetIDClosure);
+				bioentity_doc.addField("taxon_subset_closure_label", taxSubsetLabelClosure);
+				bioentity_doc.addField("taxon_subset_closure_map", gson.toJson(taxonSubsetClosureMap));
 			}
 		}
 	}
