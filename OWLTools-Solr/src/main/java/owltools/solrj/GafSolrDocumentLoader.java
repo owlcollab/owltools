@@ -191,10 +191,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		details.taxLabelClosure.add(taxonLbl);
 		details.taxonClosureMap.put(taxonId, taxonLbl);
 
-		details.taxSubsetIDClosure.add(taxonId);
-		details.taxSubsetLabelClosure.add(taxonLbl);
-		details.taxonSubsetClosureMap.put(taxonId, taxonLbl);
-		
+		boolean taxonSubsetUsed = false;
+
 		// handle ancestor closure
 		for( OWLClass ts : taxAncestors ){
 			String tid = graph.getIdentifier(ts);
@@ -205,11 +203,21 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			
 			List<String> subsets = graph.getSubsets(ts);
 			if (taxonSubsetName != null && subsets.contains(taxonSubsetName)) {
+				taxonSubsetUsed = true;
 				details.taxSubsetIDClosure.add(tid);
 				details.taxSubsetLabelClosure.add(tlbl);
 				details.taxonSubsetClosureMap.put(tid, tlbl);
 			}
 		}
+		
+		// only add self, if taxon subset was ever used!
+		if (taxonSubsetUsed) {
+			details.taxSubsetIDClosure.add(taxonId);
+			details.taxSubsetLabelClosure.add(taxonLbl);
+			details.taxonSubsetClosureMap.put(taxonId, taxonLbl);
+		}
+
+		
 		return details;
 	}
 	

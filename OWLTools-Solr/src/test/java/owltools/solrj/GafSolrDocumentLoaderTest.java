@@ -45,6 +45,8 @@ public class GafSolrDocumentLoaderTest {
 		// ontology
 		graph = new OWLGraphWrapper(pw.parse("http://purl.obolibrary.org/obo/go.owl"));
 		graph.mergeOntology(pw.parse("http://purl.obolibrary.org/obo/go/extensions/gorel.owl"));
+		OWLOntology taxonOwl = pw.parseOWL(TaxonTools.TAXON_PURL);
+		graph.mergeOntology(taxonOwl);
 		loader.setGraph(graph);
 		
 		// eco
@@ -52,7 +54,6 @@ public class GafSolrDocumentLoaderTest {
 		loader.setEcoTools(ecoTools);
 		
 		// taxon information
-		OWLOntology taxonOwl = pw.parseOWL(TaxonTools.TAXON_PURL);
 		ElkReasonerFactory factory = new ElkReasonerFactory();
 		OWLReasoner taxonReasoner = factory.createReasoner(taxonOwl);
 		taxonTools = new TaxonTools(taxonReasoner, true);
