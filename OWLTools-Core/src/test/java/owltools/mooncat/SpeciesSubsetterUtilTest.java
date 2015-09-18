@@ -45,6 +45,52 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
 		
 		assertNull(graph.getOWLClassByIdentifier("U:24"));
 	}
+	
+	/**
+	 * Test {@link SpeciesSubsetterUtil#removeSpecies()}.
+	 */
+    @Test
+    public void testRemoveSpecies() throws Exception {
+        OWLOntology owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
+        OWLGraphWrapper graph = new OWLGraphWrapper(owlOntology);
+        OWLReasonerFactory rf = new ElkReasonerFactory();
+        OWLReasoner reasoner = rf.createReasoner(graph.getSourceOntology());
+        SpeciesSubsetterUtil smu = new SpeciesSubsetterUtil(graph);
+        smu.taxClass = graph.getOWLClassByIdentifier("T:2");
+        smu.reasoner = reasoner;
+        smu.removeSpecies();
+        
+        assertEquals("Incorrect number of classes", 10,  graph.getAllOWLClasses().size());
+        assertNull(graph.getOWLClassByIdentifier("U:21"));
+        assertNull(graph.getOWLClassByIdentifier("U:22"));
+        assertNull(graph.getOWLClassByIdentifier("U:23"));
+        assertNull(graph.getOWLClassByIdentifier("U:24"));
+        
+        owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
+        graph = new OWLGraphWrapper(owlOntology);
+        rf = new ElkReasonerFactory();
+        reasoner = rf.createReasoner(graph.getSourceOntology());
+        smu = new SpeciesSubsetterUtil(graph);
+        smu.taxClass = graph.getOWLClassByIdentifier("T:3");
+        smu.reasoner = reasoner;
+        smu.removeSpecies();
+        
+        assertEquals("Incorrect number of classes", 11,  graph.getAllOWLClasses().size());
+        assertNull(graph.getOWLClassByIdentifier("U:22"));
+        assertNull(graph.getOWLClassByIdentifier("U:23"));
+        assertNull(graph.getOWLClassByIdentifier("U:24"));
+        
+        owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
+        graph = new OWLGraphWrapper(owlOntology);
+        rf = new ElkReasonerFactory();
+        reasoner = rf.createReasoner(graph.getSourceOntology());
+        smu = new SpeciesSubsetterUtil(graph);
+        smu.taxClass = graph.getOWLClassByIdentifier("T:1");
+        smu.reasoner = reasoner;
+        smu.removeSpecies();
+        
+        assertEquals("Incorrect number of classes", 14,  graph.getAllOWLClasses().size());
+    }
 
 	/**
 	 * Test {@link SpeciesSubsetterUtil#explainTaxonConstraint(Set, Set)}.

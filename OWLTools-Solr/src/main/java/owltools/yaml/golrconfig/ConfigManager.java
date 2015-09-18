@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import org.apache.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
@@ -17,7 +18,11 @@ public class ConfigManager {
 	//private GOlrConfig config = null;
 	
 	private ArrayList<GOlrField> fields = new ArrayList<GOlrField>();
-	private HashMap<String, GOlrField> unique_fields = new HashMap<String, GOlrField>();
+	//unique_fields needs to be a LinkedHashMap, otherwise the order of the fields 
+	//retrieved from the configuration file will not be preserved, and the order of the fields 
+	//returned by getFields() will be random (originally, getFields was returning a List 
+	//by iterating the values of a HashMap, which are not returned as a List ...). 
+	private LinkedHashMap<String, GOlrField> unique_fields = new LinkedHashMap<String, GOlrField>();
 	private HashMap<String, ArrayList<String>> collected_comments = new HashMap<String, ArrayList<String>>();
 	
 	//private String searchable_extension = null;
