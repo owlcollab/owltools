@@ -3,6 +3,7 @@ package owltools.graph;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -976,6 +977,29 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 			}
 		}
 		return idSpace;
+	}
+	
+	
+	/**
+	 * Helper function for flex loader for un-used single string fields
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return always null
+	 */
+	public String getDummyString(OWLObject c, List<String> sargs) {
+		return null;
+	}
+	
+	/**
+	 * Helper function for flex loader for un-used single List of string fields
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return always an empty list
+	 */
+	public List<String> getDummyStrings(OWLObject c, List<String> sargs) {
+		return Collections.emptyList();
 	}
 }
 
