@@ -151,6 +151,35 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 
 	/**
+	 * gets all values of rdfs:comment for an OWLObject
+	 * 
+	 * @param c
+	 * @return comment of null
+	 */
+	public List<String> getComments(OWLObject c) {
+		OWLAnnotationProperty lap = getDataFactory().getRDFSComment(); 
+
+		return getAnnotationValues(c, lap);
+	}
+	
+	/**
+	 * gets all values of rdfs:comment for an OWLObject
+	 * <p>
+	 * This is a curried FlexLoader s-expression version of {@link #getComments(OWLObject)}.
+	 * 
+	 * @param c
+	 * @param sargs
+	 * @return comment of null
+	 * @see #getComment(OWLObject)
+	 */
+	public List<String> getComments(OWLObject c, List<String> sargs) {
+		OWLAnnotationProperty lap = getDataFactory().getRDFSComment();
+
+		return getAnnotationValues(c, lap);
+	}
+	
+	
+	/**
 	 * fetches the value of a single-valued annotation property for an OWLObject
 	 * <p>
 	 * TODO: provide a flag that determines behavior in the case of >1 value
