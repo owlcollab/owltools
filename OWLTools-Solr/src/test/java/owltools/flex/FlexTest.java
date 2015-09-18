@@ -32,7 +32,8 @@ public class FlexTest {
 	@Test
 	public void testFlexReflectionLoading() throws IOException, OWLOntologyCreationException, OBOFormatParserException{
 
-		String fstr = getResourceString("trivial.obo");
+		String fstr = FlexTest.class.
+                getResource("/trivial.obo").getFile();
 		//ParserWrapper pw = new ParserWrapper();
 		//OWLGraphWrapper g = pw.parseOBOFiles(files);
 
@@ -68,19 +69,13 @@ public class FlexTest {
 		assertTrue("Get label a1 alt_id AY:0000001", ans_t3.contains("AY:0000001"));
 	}
 	
-	// A little helper from Chris stolen from somewhere else...
-	protected static String getResourceString(String name) {
-		assertNotNull(name);
-		assertFalse(name.length() == 0);
-		// TODO: Replace this with a mechanism not relying on the relative path.
-		return "src/test/resources/" + name;
-	}
-	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFlexParseYaml() throws Exception {
-		final String yamlFile = getResourceString("test-ont-category-config.yaml");
-		final String ontFile = getResourceString("test-ont-category-config.obo");
+		final String yamlFile = FlexTest.class.
+                getResource("/test-ont-category-config.yaml").getFile();
+		final String ontFile = FlexTest.class.
+                getResource("/test-ont-category-config.obo").getFile();
 		ParserWrapper pw = new ParserWrapper();
 		OWLOntology ont = pw.parseOWL(IRI.create(new File(ontFile).getCanonicalFile()));
 		OWLGraphWrapper g = new OWLGraphWrapper(ont);
