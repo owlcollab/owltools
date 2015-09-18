@@ -28,6 +28,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLPropertyExpressionVisitor;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
 import owltools.graph.shunt.OWLShuntEdge;
@@ -1000,6 +1001,85 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	 */
 	public List<String> getDummyStrings(OWLObject c, List<String> sargs) {
 		return Collections.emptyList();
+	}
+
+	public Set<String> getOnlyInTaxon(OWLObject x, List<String> sargs) {
+		Set<OWLClass> classes = getOnlyInTaxonSvfClasses(x);
+		if (classes.isEmpty() == false) {
+			Set<String> ids = new HashSet<String>();
+			for(OWLClass cls : classes) {
+				ids.add(getIdentifier(cls));
+			}
+			return ids;
+		}
+		return Collections.emptySet();
+	}
+
+	public Set<String> getOnlyInTaxonLabels(OWLObject x, List<String> sargs) {
+		Set<OWLClass> classes = getOnlyInTaxonSvfClasses(x);
+		if (classes.isEmpty() == false) {
+			Set<String> labels = new HashSet<String>();
+			for(OWLClass cls : classes) {
+				labels.add(getLabelOrDisplayId(cls));
+			}
+			return labels;
+		}
+		return Collections.emptySet();
+	}
+	
+	private Set<OWLClass> getOnlyInTaxonSvfClasses(OWLObject x) {
+		if (x != null && x instanceof OWLClass) {
+			OWLClass c = (OWLClass) x;
+			IRI onlyInTaxonIRI = IRI.create("http://purl.obolibrary.org/obo/RO_0002160");
+			OWLObjectProperty onlyInTaxon = getDataFactory().getOWLObjectProperty(onlyInTaxonIRI);
+			return getSvfClasses(c, onlyInTaxon);
+		}
+		return Collections.emptySet();
+	}
+	
+	Set<OWLClass> getSvfClasses(OWLClass c, OWLObjectProperty p) {
+		Set<OWLSubClassOfAxiom> axioms = new HashSet<OWLSubClassOfAxiom>();
+		for(OWLOntology ont : getAllOntologies()) {
+			axioms.addAll(ont.getSubClassAxiomsForSubClass(c));
+		}
+		Set<OWLClass> superClasses = new HashSet<OWLClass>();
+		for (OWLSubClassOfAxiom axiom : axioms) {
+			OWLClassExpression expr = axiom.getSuperClass();
+			if (expr instanceof OWLObjectSomeValuesFrom) {
+				OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom) expr;
+				if (p.equals(svf.getProperty())) {
+					OWLClassExpression filler = svf.getFiller();
+					if (filler instanceof OWLClass) {
+						superClasses.add((OWLClass) filler);
+					}
+				}
+			}
+		}
+		return superClasses;
+	}
+
+	public Set<String> getOnlyInTaxonClosure(OWLObject x, List<String> relation_ids) {
+		Set<OWLClass> classes = getOnlyInTaxonSvfClasses(x);
+		if (classes.isEmpty() == false) {
+			Set<String> ids = new HashSet<String>();
+			for(OWLClass cls : classes) {
+				ids.addAll(getRelationIDClosure(cls, relation_ids));
+			}
+			return ids;
+		}
+		return Collections.emptySet();
+	}
+
+	public Set<String> getOnlyInTaxonClosureLabels(OWLObject x, List<String> relation_ids) {
+		Set<OWLClass> classes = getOnlyInTaxonSvfClasses(x);
+		if (classes.isEmpty() == false) {
+			Set<String> labels = new HashSet<String>();
+			for(OWLClass cls : classes) {
+				labels.addAll(getRelationLabelClosure(cls, relation_ids));
+			}
+			return labels;
+		}
+		return Collections.emptySet();
 	}
 }
 
