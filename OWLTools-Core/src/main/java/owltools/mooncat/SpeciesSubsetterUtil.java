@@ -136,48 +136,70 @@ public class SpeciesSubsetterUtil {
 	}
 
 
+	/**
+	 * Remove classes invalid for {@link taxClass} over {@link viewProperty}, 
+	 * related to {@code rootClass}.
+	 */
 	public void removeOtherSpecies() {
-		
-		MacroExpansionVisitor mev = new MacroExpansionVisitor(ont);
-		mev.expandAll();
-		
-		if (viewProperty == null) {
-			IRI iri = graph.getIRIByIdentifier("RO:0002162");
-			LOG.info("View property.IRI = "+iri);
-
-			viewProperty = fac.getOWLObjectProperty(iri);
-		}
-		LOG.info("View property = "+viewProperty);
-
-		/*
-		Mooncat m = new Mooncat(graph);
-		m.retainAxiomsInPropertySubset(graph.getSourceOntology(),props,null);
-		m.removeDanglingAxioms();
-		*/
-		
-		if (rootClass == null)
-			rootClass = fac.getOWLThing();
-		//rootClass = graph.getOWLClassByIdentifier("UBERON:0001062");
-		LOG.info("AE = "+rootClass);
-		LOG.info("TC = "+taxClass);
-		OWLClassExpression rx = fac.getOWLObjectSomeValuesFrom(viewProperty,
-				taxClass);
-		OWLSubClassOfAxiom qax = fac.getOWLSubClassOfAxiom(
-				rootClass, rx);
-		mgr.addAxiom(ont, qax);
-		LOG.info("Constraint: "+qax);
-		
-		// flush reasoner, otherwise changes made to the ontology are not used for reasoning
-		reasoner.flush();
-		Set<OWLClass> ucs = reasoner.getEquivalentClasses(fac.getOWLNothing()).getEntities();
-		LOG.info("UCS: "+ucs.size());
-		OWLEntityRemover remover = new OWLEntityRemover(mgr, graph.getAllOntologies());
-		for (OWLClass uc : ucs) {
-			LOG.debug("Removing: "+uc+" "+graph.getLabel(uc));
-			uc.accept(remover);
-		}
-		mgr.applyChanges(remover.getChanges());
+		this.remove(true);
 	}
+	
+	/**
+	 * Remove classes specific to {@link taxClass} over {@link viewProperty}. 
+	 * {@link rootClass} is not considered.
+	 */
+	public void removeSpecies() {
+	    this.remove(false);
+	}
+	
+	/**
+	 * @param otherSpecies If {@code true}, remove classes not valid in {@code taxClass}, 
+	 *                     if {@code false}, remove classes specific to {@code taxClass}.
+	 */
+    public void remove(boolean otherSpecies) {
+        
+        MacroExpansionVisitor mev = new MacroExpansionVisitor(ont);
+        mev.expandAll();
+        
+        if (viewProperty == null) {
+            IRI iri = graph.getIRIByIdentifier("RO:0002162");
+            LOG.info("View property.IRI = "+iri);
+
+            viewProperty = fac.getOWLObjectProperty(iri);
+        }
+        LOG.info("View property = "+viewProperty);
+
+        /*
+        Mooncat m = new Mooncat(graph);
+        m.retainAxiomsInPropertySubset(graph.getSourceOntology(),props,null);
+        m.removeDanglingAxioms();
+        */
+        
+        LOG.info("TC = "+taxClass);
+        OWLSubClassOfAxiom qax;
+        OWLClassExpression rx = fac.getOWLObjectSomeValuesFrom(viewProperty, taxClass);
+        if (otherSpecies) {
+            if (rootClass == null)
+                rootClass = fac.getOWLThing();
+            LOG.info("AE = "+rootClass);
+            qax = fac.getOWLSubClassOfAxiom(rootClass, rx);
+        } else {
+            qax = fac.getOWLSubClassOfAxiom(rx, fac.getOWLNothing());
+        }
+        mgr.addAxiom(ont, qax);
+        LOG.info("Constraint: "+qax);
+        
+        // flush reasoner, otherwise changes made to the ontology are not used for reasoning
+        reasoner.flush();
+        Set<OWLClass> ucs = reasoner.getEquivalentClasses(fac.getOWLNothing()).getEntities();
+        LOG.info("UCS: "+ucs.size());
+        OWLEntityRemover remover = new OWLEntityRemover(mgr, graph.getAllOntologies());
+        for (OWLClass uc : ucs) {
+            LOG.debug("Removing: "+uc+" "+graph.getLabel(uc));
+            uc.accept(remover);
+        }
+        mgr.applyChanges(remover.getChanges());
+    }
 	
 	/**
 	 * Removes from the {@code OWLOntology} wrapped into {@link #graph} the relations 
