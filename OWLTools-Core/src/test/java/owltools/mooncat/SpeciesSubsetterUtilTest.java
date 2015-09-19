@@ -52,6 +52,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
     @Test
     public void testRemoveSpecies() throws Exception {
         OWLOntology owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
+        OWLDataFactory fac = owlOntology.getOWLOntologyManager().getOWLDataFactory();
         OWLGraphWrapper graph = new OWLGraphWrapper(owlOntology);
         OWLReasonerFactory rf = new ElkReasonerFactory();
         OWLReasoner reasoner = rf.createReasoner(graph.getSourceOntology());
@@ -65,8 +66,11 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         assertNull(graph.getOWLClassByIdentifier("U:22"));
         assertNull(graph.getOWLClassByIdentifier("U:23"));
         assertNull(graph.getOWLClassByIdentifier("U:24"));
+        assertTrue("OWL:Nothing incorrecty removed", 
+                owlOntology.containsClassInSignature(fac.getOWLNothing().getIRI()));
         
         owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
+        fac = owlOntology.getOWLOntologyManager().getOWLDataFactory();
         graph = new OWLGraphWrapper(owlOntology);
         rf = new ElkReasonerFactory();
         reasoner = rf.createReasoner(graph.getSourceOntology());
@@ -79,8 +83,11 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         assertNull(graph.getOWLClassByIdentifier("U:22"));
         assertNull(graph.getOWLClassByIdentifier("U:23"));
         assertNull(graph.getOWLClassByIdentifier("U:24"));
+        assertTrue("OWL:Nothing incorrecty removed", 
+                owlOntology.containsClassInSignature(fac.getOWLNothing().getIRI()));
         
         owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
+        fac = owlOntology.getOWLOntologyManager().getOWLDataFactory();
         graph = new OWLGraphWrapper(owlOntology);
         rf = new ElkReasonerFactory();
         reasoner = rf.createReasoner(graph.getSourceOntology());
@@ -90,6 +97,8 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         smu.removeSpecies();
         
         assertEquals("Incorrect number of classes", 14,  graph.getAllOWLClasses().size());
+        assertTrue("OWL:Nothing incorrecty removed", 
+                owlOntology.containsClassInSignature(fac.getOWLNothing().getIRI()));
     }
 
 	/**

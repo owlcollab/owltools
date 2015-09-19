@@ -156,7 +156,7 @@ public class SpeciesSubsetterUtil {
 	 * @param otherSpecies If {@code true}, remove classes not valid in {@code taxClass}, 
 	 *                     if {@code false}, remove classes specific to {@code taxClass}.
 	 */
-    public void remove(boolean otherSpecies) {
+    private void remove(boolean otherSpecies) {
         
         MacroExpansionVisitor mev = new MacroExpansionVisitor(ont);
         mev.expandAll();
@@ -195,6 +195,12 @@ public class SpeciesSubsetterUtil {
         LOG.info("UCS: "+ucs.size());
         OWLEntityRemover remover = new OWLEntityRemover(mgr, graph.getAllOntologies());
         for (OWLClass uc : ucs) {
+            //avoid removing OWL:Nothing from the ontology, it is always removed 
+            //when otherSpecies is false. Also check OWL:Thing to be on the safe side.
+            if (uc.equals(fac.getOWLNothing()) || uc.equals(fac.getOWLThing())) {
+                LOG.debug("Skipping removal of OWL:Nothing/OWL:Thing");
+                continue;
+            }
             LOG.debug("Removing: "+uc+" "+graph.getLabel(uc));
             uc.accept(remover);
         }
