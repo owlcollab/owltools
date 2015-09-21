@@ -160,7 +160,6 @@ import owltools.io.GraphReader;
 import owltools.io.GraphRenderer;
 import owltools.io.ImportClosureSlurper;
 import owltools.io.InferredParentRenderer;
-import owltools.io.OWLJSONFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.ParserWrapper.OWLGraphWrapperNameProvider;
@@ -2905,9 +2904,6 @@ public class CommandRunner extends CommandRunnerBase {
 						}
 						else if (ofmtname.equals("xml") || ofmtname.equals("owx")) {
 							ofmt = new OWLXMLOntologyFormat();
-						}
-						else if (ofmtname.equals("ojs")) {
-							ofmt = new OWLJSONFormat();
 						}
 						else if (ofmtname.equals("obo")) {
 							if (opts.nextEq("-n|--no-check")) {

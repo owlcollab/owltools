@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -207,7 +206,7 @@ public class ParserWrapper {
 		saveOWL(ont, owlFormat, file);
 	}
 	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file) throws OWLOntologyStorageException {
-		if ((owlFormat instanceof OBOOntologyFormat) || (owlFormat instanceof OWLJSONFormat)) {
+		if (owlFormat instanceof OBOOntologyFormat) {
 			try {
 				FileOutputStream os = new FileOutputStream(new File(file));
 				saveOWL(ont, owlFormat, os);
@@ -243,19 +242,6 @@ public class ParserWrapper {
 				oboWriter.write(doc, bw);
 			} catch (IOException e) {
 				throw new OWLOntologyStorageException("Could not write ontology to output stream.", e);
-			}
-			finally {
-				IOUtils.closeQuietly(bw);
-			}
-		}
-		else if (owlFormat instanceof OWLJSONFormat) {
-			
-			BufferedWriter bw = null;
-			try {
-				bw = new BufferedWriter(new OutputStreamWriter(outputStream));
-				OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(outputStream));
-				gr.render(ont);
-				gr.flush();
 			}
 			finally {
 				IOUtils.closeQuietly(bw);

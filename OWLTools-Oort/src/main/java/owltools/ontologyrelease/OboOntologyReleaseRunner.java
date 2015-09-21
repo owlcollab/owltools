@@ -31,7 +31,7 @@ import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
-import org.obolibrary.owl.LabelFunctionalSyntaxOntologyStorer;
+import org.obolibrary.owl.LabelFunctionalSyntaxStorer;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -666,7 +666,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		final String version = handleVersion(ontologyId);
 
 		if (oortConfig.isWriteLabelOWL()) {
-			mooncat.getManager().addOntologyStorer(new LabelFunctionalSyntaxOntologyStorer());
+			mooncat.getManager().addOntologyStorer(new LabelFunctionalSyntaxStorer());
 		}
 		
 		// ----------------------------------------
@@ -678,7 +678,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logInfo("expanding macros");
 			if (oortConfig.getMacroStrategy() == MacroStrategy.GCI) {
 				MacroExpansionGCIVisitor gciVisitor = 
-					new MacroExpansionGCIVisitor(mooncat.getOntology(), mooncat.getManager());
+					new MacroExpansionGCIVisitor(mooncat.getOntology(), mooncat.getManager(), false);
 				gciOntology = gciVisitor.createGCIOntology();
 				logInfo("GCI Ontology has "+gciOntology.getAxiomCount()+" axioms");
 				gciVisitor.dispose();
