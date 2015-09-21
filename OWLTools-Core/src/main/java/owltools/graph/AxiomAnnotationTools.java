@@ -309,7 +309,7 @@ public class AxiomAnnotationTools {
 				 * if the property IRI is not in a predefined annotation property in 
 				 * Obo2Owl assume that it's not OBO-Basic
 				 */
-				if (Obo2Owl.annotationPropertyMap.containsValue(iri) == false) {
+				if (Obo2Owl.ANNOTATIONPROPERTYMAP.containsValue(iri) == false) {
 					// remove axiom annotation
 					changed = true;
 				}

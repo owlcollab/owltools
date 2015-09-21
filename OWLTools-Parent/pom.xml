@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.bbop</groupId>
 	<artifactId>OWLTools-Parent</artifactId>
-	<version>0.2.2-SNAPSHOT</version>
+	<version>0.2.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>OWLTools-Parent</name>
 	<url>https://github.com/owlcollab/owltools</url>
@@ -18,7 +18,7 @@
 	</issueManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<owlapi.version>3.5.1</owlapi.version>
+		<owlapi.version>3.5.3</owlapi.version>
 	</properties>
 
 	<profiles>
@@ -246,7 +246,7 @@
 			<dependency>
 				<groupId>org.bbop</groupId>
 				<artifactId>oboformat-tools</artifactId>
-				<version>0.6.0</version>
+				<version>0.6.2</version>
 			</dependency>
 			<dependency>
 				<groupId>uk.ac.ebi.interpro</groupId>

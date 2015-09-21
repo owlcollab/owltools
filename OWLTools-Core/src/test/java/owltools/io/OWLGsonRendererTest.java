@@ -1,7 +1,6 @@
 package owltools.io;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -15,7 +14,6 @@ import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphEdge;
@@ -58,22 +56,6 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 		}
 	}
 
-	@Test
-	public void testOnt() throws Exception{
-		OWLGraphWrapper  wrapper = getOBO2OWLOntologyWrapper("caro.obo");
-		final StringWriter stringWriter = new StringWriter();
-		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(stringWriter));
-		gr.render(wrapper.getSourceOntology());
-		if (RENDER_FLAG) {
-			System.out.println(stringWriter.toString());
-			ParserWrapper pw = new ParserWrapper();
-			OWLOntologyFormat owlFormat = new OWLJSONFormat();
-			File foo = folder.newFile("foo.json");
-			pw.saveOWL(wrapper.getSourceOntology(), owlFormat , foo.getAbsolutePath());
-		}
-	}
-
-	
 	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws Exception{
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(new BufferedReader(new FileReader(getResource(file))));

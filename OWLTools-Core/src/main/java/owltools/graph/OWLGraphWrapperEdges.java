@@ -1904,7 +1904,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	public List<OWLObjectProperty> expandRelationChain(OWLObjectProperty property) {
 		
 		// create the annotation property which marks sub property chain as a valid expansion for a property
-		IRI iri = IRI.create(Obo2Owl.IRI_PROP_isReversiblePropertyChain);
+		IRI iri = IRI.create(Obo2Owl.IRI_PROP_ISREVERSIBLEPROPERTYCHAIN);
 		final OWLAnnotationProperty prop = getDataFactory().getOWLAnnotationProperty(iri);
 		
 		// get all OWLSubPropertyChainOfAxiom from all ontologies in this graph for a given property 
