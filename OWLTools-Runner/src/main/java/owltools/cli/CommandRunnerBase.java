@@ -20,7 +20,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 
-abstract class CommandRunnerBase {
+public abstract class CommandRunnerBase {
 
 	private static Logger LOG = Logger.getLogger(CommandRunnerBase.class);
 
@@ -120,6 +120,23 @@ abstract class CommandRunnerBase {
 				break;
 			}
 		}
+	}
+	
+	@CLIMethod("--version")
+	public void printVersion(Opts opts) throws Exception {
+		printManifestEntry("git-revision-sha1", "UNKNOWN");
+		printManifestEntry("git-revision-url", "UNKNOWN");
+		printManifestEntry("git-branch", "UNKNOWN");
+		printManifestEntry("git-dirty", "UNKNOWN");
+	}
+	
+	private static String printManifestEntry(String key, String defaultValue) {
+		String value = owltools.version.VersionInfo.getManifestVersion(key);
+		if (value == null || value.isEmpty()) {
+			value = "UNKNOWN";
+		}
+		System.out.println(key+"\t"+value);
+		return value;
 	}
 
 	public void summarizeOntology(OWLOntology ont) {
