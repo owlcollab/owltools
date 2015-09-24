@@ -525,11 +525,11 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				q = OWLQuantifiedProperty.Quantifier.SOME;
 			}
 			else {
-				System.err.println("cannot handle negation:"+s);
+				LOG.error("cannot handle negation:"+s);
 			}
 		}
 		else {
-			System.err.println("cannot handle:"+s);
+		    LOG.error("cannot handle:"+s);
 		}
 		//provide a null OWLOntology, the actual OWLOntology will be obtained from 
 		//the first OWLGraphEdge created from the OWLAxiom leading to this OWLRestriction
@@ -753,13 +753,13 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 					return dataFactory.getOWLObjectHasValue(qp.getProperty(), 
 							dataFactory.getOWLNamedIndividual(((OWLNamedObject) x).getIRI()));
 				else {
-					System.err.println("warning: treating "+x+" as allvaluesfrom");
+				    LOG.error("warning: treating "+x+" as allvaluesfrom");
 					return dataFactory.getOWLObjectAllValuesFrom(qp.getProperty(), 
 							(OWLClassExpression) x);
 				}
 			}
 			else {
-				System.err.println("cannot handle:"+qp);
+			    LOG.error("cannot handle:"+qp);
 				// TODO
 				return null;
 			}
