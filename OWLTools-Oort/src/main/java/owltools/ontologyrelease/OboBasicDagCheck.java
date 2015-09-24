@@ -28,11 +28,20 @@ public class OboBasicDagCheck {
 
 			@Override
 			public List<OWLObject> getAdjacent(OWLObject source) {
-				Set<OWLObject> ancestors = graph.getAncestors(source);
+				// TODO replace getAncestors with other methods
+				//  getAncestors can be highly in-efficient and memory intensive!
+				Set<OWLObject> ancestors = graph.getAncestors(source); 
 				if (ancestors == null || ancestors.isEmpty()) {
 					return Collections.emptyList();
 				}
-				return new ArrayList<OWLObject>(ancestors);
+				// work-round: ancestors may contain null values, which breaks the tarjan implementation
+				List<OWLObject> list = new ArrayList<OWLObject>(ancestors.size());
+				for(OWLObject obj : ancestors) {
+					if (obj != null) {
+						list.add(obj);
+					}
+				}
+				return list;
 			}
 
 			@Override
