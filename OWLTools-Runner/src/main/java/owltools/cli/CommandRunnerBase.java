@@ -133,7 +133,7 @@ public abstract class CommandRunnerBase {
 	private static String printManifestEntry(String key, String defaultValue) {
 		String value = owltools.version.VersionInfo.getManifestVersion(key);
 		if (value == null || value.isEmpty()) {
-			value = "UNKNOWN";
+			value = defaultValue;
 		}
 		System.out.println(key+"\t"+value);
 		return value;
