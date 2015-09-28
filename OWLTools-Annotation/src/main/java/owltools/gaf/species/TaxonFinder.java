@@ -108,7 +108,11 @@ public class TaxonFinder {
 	}
 
 	private static void loadNCBITaxa() {
-		BufferedReader reader = ResourceLoader.inst().loadResource(NCBI_TAXA);
+		ResourceLoader loader = ResourceLoader.inst();
+		BufferedReader reader = loader.loadResource(NCBI_TAXA+".gz", true);
+		if (reader == null) {
+			reader = ResourceLoader.inst().loadResource(NCBI_TAXA);
+		}
 		if (reader != null) {
 			try {
 				String id_pair = reader.readLine();
@@ -244,7 +248,7 @@ public class TaxonFinder {
 			name = "Eremothecium gossypii";
 		} else if (lcName.equals("neucr")) {
 			name = "Neurospora crassa";
-		} else if (lcName.equals("schpo")) {
+		} else if (lcName.equals("schpo") || lcName.startsWith("schizosaccharomyces pombe 927")) {
 			name = "Schizosaccharomyces pombe";
 		} else if (lcName.equals("dicdi")) {
 			name = "Dictyostelium discoideum";

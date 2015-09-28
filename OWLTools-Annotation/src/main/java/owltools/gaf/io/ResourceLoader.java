@@ -21,8 +21,10 @@
 package owltools.gaf.io;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.log4j.Logger;
 
@@ -49,11 +51,23 @@ public class ResourceLoader {
 	}
 
 	public BufferedReader loadResource(String resource_name) {
+		return loadResource(resource_name, false);
+	}
+	
+	public BufferedReader loadResource(String resource_name, boolean useGzip) {
 		BufferedReader reader = null;
 		Class<?> c = this.getClass();
 		InputStream s = c.getResourceAsStream(resource_name);
 		if (s == null) {
 			s = ClassLoader.getSystemResourceAsStream(resource_name);
+		}
+		if (useGzip) {
+			try {
+				s = new GZIPInputStream(s);
+			} catch (IOException e) {
+				log.error("Problem accessing the resource as GZIP: "+resource_name, e);
+				return null;
+			}
 		}
 		if (s != null) {
 			reader = new BufferedReader(new InputStreamReader(s));
