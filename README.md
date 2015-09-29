@@ -9,7 +9,15 @@ The OWLTools use maven as a build tool.
 
 These instructions assume that a valid maven installation is available. The recommended maven version is 3.0.x, whereby x denotes the latest release for this branch. 
 
+Update: OWLTools also requires `git`. Only a proper clone via git, will allow the build to complete.
+
+During the build process, we extract the git version and branch information. These details (and the build date) will be added to the manifest of the jar. If the `.git` folder is not available the build process will fail.
+
 ### Building OWLTools
+
+#### Prerequiste: Get source from Git
+
+`git clone https://github.com/owlcollab/owltools.git`
 
 #### Option 1: Command line
 
