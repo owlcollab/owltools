@@ -29,6 +29,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.util.OWLEntityRemover;
 
 import owltools.graph.OWLGraphEdge;
+import owltools.graph.OWLGraphManipulator;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 
@@ -133,6 +134,9 @@ public class SpeciesSubsetterUtil {
         
         //remove relations generating incorrect taxon constraints
         this.removeDefaultAxioms();
+        //will expand never_in_taxon annotation property into EC axioms to OWL:Nothing
+        MacroExpansionVisitor mev = new MacroExpansionVisitor(ont);
+        mev.expandAll();
 	}
 
 
@@ -157,9 +161,6 @@ public class SpeciesSubsetterUtil {
 	 *                     if {@code false}, remove classes specific to {@code taxClass}.
 	 */
     private void remove(boolean otherSpecies) {
-        
-        MacroExpansionVisitor mev = new MacroExpansionVisitor(ont);
-        mev.expandAll();
         
         if (viewProperty == null) {
             IRI iri = graph.getIRIByIdentifier("RO:0002162");
@@ -283,6 +284,11 @@ public class SpeciesSubsetterUtil {
 	        LOG.info("Start explaining taxon constraints of classes " + clsIds + 
 	                " in taxa " + taxonIds); 
 	    }
+	    
+	    //first, we remove all relations not allowing to propagate in_taxon relations, 
+	    //to walk only relevant paths. 
+	    OWLGraphManipulator manip = new OWLGraphManipulator(graph, false);
+	    manip.removeUnrelatedRelations(Arrays.asList(IN_TAXON_ID));
         
         //get the requested taxa, and all their ancestors.
 	    //also, to replace a check for disjoint classes axioms between sibling taxa, 

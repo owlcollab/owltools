@@ -192,8 +192,25 @@ public class OWLGraphManipulator {
      *                                          ontology.
      */
     public OWLGraphManipulator(OWLGraphWrapper owlGraphWrapper) {
+        this(owlGraphWrapper, true);
+    }
+    /**
+     * Constructor providing the {@code OWLGraphWrapper} 
+     * wrapping the ontology on which modifications will be performed. 
+     * 
+     * @param owlGraphWrapper       The {@code OWLGraphWrapper} on which the operations 
+     *                              will be performed.
+     * @param performDefaultModifs  A {@code boolean} defining whether the ontology 
+     *                              should be simplified at instantiation.
+     * @throws OWLOntologyCreationException     If an error occurred while merging 
+     *                                          the imported ontologies into the source 
+     *                                          ontology.
+     */
+    public OWLGraphManipulator(OWLGraphWrapper owlGraphWrapper, boolean performDefaultModifs) {
         this.setOwlGraphWrapper(owlGraphWrapper);
-        this.performDefaultModifications();
+        if (performDefaultModifs) {
+            this.performDefaultModifications();
+        }
     }
 
     //*********************************
