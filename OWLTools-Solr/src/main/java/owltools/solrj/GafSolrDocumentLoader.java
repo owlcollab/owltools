@@ -672,20 +672,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 
 			// Final doc assembly; make the ID /really/ unique.
-			//annotation_doc.addField("id", eid +"_:_"+ comb_aqual +"_:_"+ clsId +"_:_"+ a_ev_type +"_:_"+ assgnb +"_:_"+ etaxid +"_:_"+ adate +"_:_"+ refIdList +"_:_"+ withList);
-			ArrayList<String> id_items = new ArrayList<String>();
-			id_items.add(eid); // 1, 2
-			id_items.add(comb_aqual); // 4
-			id_items.add(clsId); // 5
-			id_items.add(refIdList); // 6
-			id_items.add(a_ev_type); // 7
-			id_items.add(withList); // 8
-			id_items.add(etaxid); // 13 (technically dupe info)
-			id_items.add(adate); // 14
-			id_items.add(assgnb); // 15
-			id_items.add(BuilderTools.buildExtensionExpression(a.getExtensionExpressions())); // 16
-			String unique_ann_id = StringUtils.join(id_items, "_:_");
-			annotation_doc.addField("id", unique_ann_id);
+			// WARNING: We're relying on the current truth that the toString() method returns a nice concatenated version
+			// of the GAF line, which is fundamentally unique (or should be). If this changes, revert to what we were
+			// doing here pre-20150930, which was assembling out own unique line manually.
+			annotation_doc.addField("id", a.toString());
 			
 			// Finally add doc.
 			add(annotation_doc);
