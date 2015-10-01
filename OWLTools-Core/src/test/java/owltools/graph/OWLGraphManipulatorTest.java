@@ -1049,6 +1049,49 @@ public class OWLGraphManipulatorTest
         assertNull("Incorrect relation removed", 
                 wrapper.getOWLObjectPropertyByIdentifier("RO:0003011"));
         
+        
+        parserWrapper = new ParserWrapper();
+        ont = parserWrapper.parse(
+                this.getClass().getResource("/graph/rmUnrelatedRels.owl").getFile());
+        this.graphManipulator = new OWLGraphManipulator(new OWLGraphWrapper(ont));
+        wrapper = this.graphManipulator.getOwlGraphWrapper();
+        
+        this.graphManipulator.removeUnrelatedRelations(
+                new HashSet<String>(Arrays.asList("BFO:0000051")));
+
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("BFO:0000051"));
+        //super-prop of BFO:0000051
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003001"));
+        //equivalent to BFO:0000051
+        assertNotNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003008"));
+
+        //sub-prop of RO:0003001
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003003"));
+        //generate RO:0003003 through chain of properties
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003004"));
+        //generate RO:0003003 through chain of properties
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0002202"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003002"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003005"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003006"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003007"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003010"));
+        assertNull("Incorrect relation removed", 
+                wrapper.getOWLObjectPropertyByIdentifier("RO:0003011"));
+        
+        
+        
         parserWrapper = new ParserWrapper();
         ont = parserWrapper.parse(
                 this.getClass().getResource("/graph/rmUnrelatedRels.owl").getFile());

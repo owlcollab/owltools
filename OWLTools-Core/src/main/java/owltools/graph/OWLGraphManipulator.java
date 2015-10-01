@@ -1925,7 +1925,7 @@ public class OWLGraphManipulator {
             walkProps.addFirst(prop);
         }
         
-        //now, we retrieve all associated properties and sub-properties
+        //now, we retrieve all associated properties, sub- and super-properties
         Set<OWLObjectPropertyExpression> propsToConsider = 
                 new HashSet<OWLObjectPropertyExpression>();
         OWLObjectPropertyExpression iteratedProp;
@@ -1936,7 +1936,10 @@ public class OWLGraphManipulator {
             }
             
             propsToConsider.add(iteratedProp);
-            //we will also check all its children
+            //we keep the super-properties, but we don't examine them further 
+            //to get their sub-properties, etc. 
+            propsToConsider.addAll(wrapper.getSuperPropertyClosureOf(iteratedProp));
+            //we keep all the sub-properties, and will examine them to get their chained properties etc.
             walkProps.addAll(wrapper.getSubPropertyClosureOf(iteratedProp));
             
             //now, also consider equivalent relations and relations whose chain can generate 
