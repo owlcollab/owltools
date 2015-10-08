@@ -165,7 +165,8 @@ public class TaxonFinder {
     }
 
     private static void loadUniProtTaxa() {
-		BufferedReader reader = ResourceLoader.inst().loadResource(UNIPROT_TAXA);
+		ResourceLoader loader = ResourceLoader.inst();
+		BufferedReader reader = loader.loadResource(UNIPROT_TAXA);
 		if (reader != null) {
 			try {
 				String line = reader.readLine();
