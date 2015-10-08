@@ -525,11 +525,11 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				q = OWLQuantifiedProperty.Quantifier.SOME;
 			}
 			else {
-				LOG.error("cannot handle negation:"+s);
+				LOG.warn("cannot handle negation:"+s);
 			}
 		}
 		else {
-		    LOG.error("cannot handle:"+s);
+		    LOG.warn("cannot handle:"+s);
 		}
 		//provide a null OWLOntology, the actual OWLOntology will be obtained from 
 		//the first OWLGraphEdge created from the OWLAxiom leading to this OWLRestriction
@@ -759,7 +759,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				}
 			}
 			else {
-			    LOG.error("cannot handle:"+qp);
+			    LOG.warn("cannot handle:"+qp);
 				// TODO
 				return null;
 			}
@@ -1105,7 +1105,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 			}
 		}
 		else {
-			LOG.error("Cannot handle:"+t);
+			LOG.warn("Cannot handle:"+t);
 		}
 
 		return results;
