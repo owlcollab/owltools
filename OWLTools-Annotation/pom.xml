@@ -19,8 +19,6 @@
 				<configuration>
 					<excludes>
 						<exclude>owltools/gaf/GAFInferenceTest.java</exclude>
-						<!-- Ignored due to excessive run-time -->
-						<exclude>owltools/gaf/inference/ClassTaxonMatrixTest.java</exclude>
 						<!-- Ignored: currently failing -->
 						<exclude>owltools/gaf/rules/AnnotationRulesEngineSingleTest.java</exclude>
 						

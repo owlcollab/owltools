@@ -1,0 +1,48 @@
+Prefix: : <http://foo.bar/>
+Prefix: RO: <http://purl.obolibrary.org/obo/RO_>
+Prefix: only_in_taxon: <http://purl.obolibrary.org/obo/RO_0002160>
+Prefix: never_in_taxon: <http://purl.obolibrary.org/obo/RO_0002161>
+Prefix: part_of: <http://purl.obolibrary.org/obo/BFO_0000050>
+
+## Taxon test
+Ontology: <http://foo.bar/test.owl>
+
+ObjectProperty: never_in_taxon:
+ObjectProperty: only_in_taxon:
+ObjectProperty: part_of:
+
+## Taxonomy
+
+Class: :animal
+Class: :vertebrate SubClassOf: :animal
+Class: :mammal SubClassOf: :vertebrate
+Class: :mouse SubClassOf: :mammal
+Class: :human SubClassOf: :mammal
+Class: :bird SubClassOf: :vertebrate
+Class: :chicken SubClassOf: :bird
+
+## Ontology with taxon constraints
+
+Class: :hair
+  SubClassOf: only_in_taxon: some :mammal
+Class: :whisker SubClassOf: :hair
+  SubClassOf: never_in_taxon: some :human
+Class: :tip_of_whisker SubClassOf: part_of: some :whisker
+Class: :hair_root SubClassOf: part_of: some :hair
+
+## EXPECTED:
+## R = [SubClassOf, part_of]
+##
+## violation(whisker, human) = true
+## violation(whisker, mammal) = false
+## violation(whisker, vertebrate) = false
+## violation(whisker, chicken) = true
+## violation(tip_of_whisker, human) = true
+## violation(tip_of_whisker, mammal) = false
+## violation(tip_of_whisker, mouse) = false
+## violation(hair, chicken) = true
+## violation(hair_root, chicken) = true
+## violation(hair, bird) = true
+## violation(hair_root, bird) = true
+## violation(hair, vertebrate) = false
+## violation(hair_root, vertebrate) = false

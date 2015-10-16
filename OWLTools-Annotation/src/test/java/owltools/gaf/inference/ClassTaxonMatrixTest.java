@@ -5,13 +5,13 @@ import static org.junit.Assert.*;
 import java.io.BufferedWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 
 import owltools.OWLToolsTestBasics;
@@ -34,8 +34,13 @@ public class ClassTaxonMatrixTest extends OWLToolsTestBasics {
 		OWLOntologyIRIMapper mapper = new CatalogXmlIRIMapper("src/test/resources/rules/ontology/extensions/catalog-v001.xml");
 		pw.addIRIMapper(mapper);
 		all = new OWLGraphWrapper(pw.parseOWL(IRI.create("http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl")));
-		OWLOntology go = all.getManager().loadOntology(IRI.create("http://purl.obolibrary.org/obo/go.owl"));
-		classes = go.getClassesInSignature();
+		classes = new HashSet<OWLClass>();
+		for(OWLClass cls : all.getSourceOntology().getClassesInSignature(true)) {
+			String id = all.getIdentifier(cls);
+			if (id.startsWith("GO:")) {
+				classes.add(cls);
+			}
+		}
 		rat = all.getOWLClassByIdentifier(TaxonTools.NCBI + "10114");
 		yeast = all.getOWLClassByIdentifier(TaxonTools.NCBI + "4932");
 	}
@@ -51,17 +56,17 @@ public class ClassTaxonMatrixTest extends OWLToolsTestBasics {
 		
 		// test: writing does not throw any exceptions and is non-empty
 		String writtenMatrix = stringWriter.getBuffer().toString();
-		// System.out.println(writtenMatrix);
+		//System.out.println(writtenMatrix);
 		assertTrue(writtenMatrix.length() > 0); 
 		
-		// spindle pole body duplication in nuclear envelope
-		checkTerm(m, "GO:0007103", false, true); 
+		// spindle pole body organization
+		checkTerm(m, "GO:0051300", false, true);
 		
 		// plant-type cell wall cellulose metabolic process
 		checkTerm(m, "GO:0052541", false, false);
 		
-		// branching involved in mammary gland duct morphogenesis
-		checkTerm(m, "GO:0060444", true, false);
+		// mammary gland development
+		checkTerm(m, "GO:0030879", true, false);
 	}
 
 	

@@ -106,8 +106,6 @@ public class TaxonConstraintsEngine {
 				if (tp != null) {
 					String tpl = graph.getLabel(tp);
 					String tpid = graph.getIdentifier(tp);
-					if (tpl == null)
-						continue;
 					// DANGER WILL ROBINSON!
 					//  never_in_taxon may be encoded as a shortcut hasValue restriction,
 					//  which means the target will be an individual. Convert to class;
@@ -119,7 +117,7 @@ public class TaxonConstraintsEngine {
 						restrTaxon = graph.getOWLClass(te.getTarget());
 					}
 					// temp relation test hack until RO is stable
-					if (tpl.equals("only_in_taxon") || tpl.equals("only in taxon") || tpid.equals("RO:0002160")) {
+					if ("only_in_taxon".equals(tpl) || "only in taxon".equals(tpl) || tpid.equals("RO:0002160")) {
 						// specified taxon can potentially be a leaf taxon OR intermediate.
 						// if C only_in_taxon restrTaxon, then testTax must EITHER
 						//  * be a subclass of restrTaxon (typical case)
@@ -138,7 +136,7 @@ public class TaxonConstraintsEngine {
 							break;
 						}
 					}
-					else if (tpl.equals("never_in_taxon") || tpl.equals("never in taxon") || tpid.equals("RO:0002161")) {
+					else if ("never_in_taxon".equals(tpl) || "never in taxon".equals(tpl) || tpid.equals("RO:0002161")) {
 						// if C never_in_taxon taxonRestr, then testTax cannot be a subclass of restrTaxon 
 						if (taxAncs.contains(restrTaxon)) {
 							isInvalid = true;
