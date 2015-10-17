@@ -1,0 +1,157 @@
+ontology: go/test/chloroplast
+
+[Term]
+id: GO:0005575 ! cellular_component
+name: cellular_component
+
+[Term]
+id: GO:0005622 ! intracellular
+name: intracellular
+is_a: GO:0044464  ! cell part
+
+[Term]
+id: GO:0005623 ! cell
+name: cell
+is_a: GO:0005575  ! cellular_component
+relationship: only_in_taxon NCBITaxon:131567 {id="GOTAX:0000057"} ! cellular organisms
+
+[Term]
+id: GO:0005737 ! cytoplasm
+name: cytoplasm
+is_a: GO:0044424  ! intracellular part
+
+[Term]
+id: GO:0009507 ! chloroplast
+name: chloroplast
+is_a: GO:0009536  ! plastid
+relationship: never_in_taxon NCBITaxon:28009 {id="GOTAX:0000497"} ! Choanoflagellida
+relationship: never_in_taxon NCBITaxon:33208 {id="GOTAX:0000480"} ! Metazoa
+relationship: never_in_taxon NCBITaxon:4751 {id="GOTAX:0000496"} ! Fungi
+relationship: never_in_taxon NCBITaxon:554915 {id="GOTAX:0000498"} ! Amoebozoa
+
+[Term]
+id: GO:0009536 ! plastid
+name: plastid
+is_a: GO:0043231  ! intracellular membrane-bounded organelle
+is_a: GO:0044444  ! cytoplasmic part
+relationship: never_in_taxon NCBITaxon:2 {id="GOTAX:0000533"} ! Bacteria &lt;prokaryote&gt;
+relationship: never_in_taxon NCBITaxon:2157 {id="GOTAX:0000534"} ! Archaea
+relationship: never_in_taxon NCBITaxon:28009 {id="GOTAX:0000500"} ! Choanoflagellida
+relationship: never_in_taxon NCBITaxon:33208 {id="GOTAX:0000491"} ! Metazoa
+relationship: never_in_taxon NCBITaxon:4751 {id="GOTAX:0000499"} ! Fungi
+relationship: never_in_taxon NCBITaxon:554915 {id="GOTAX:0000501"} ! Amoebozoa
+
+[Term]
+id: GO:0043226 ! organelle
+name: organelle
+is_a: GO:0005575  ! cellular_component
+
+[Term]
+id: GO:0043227 ! membrane-bounded organelle
+name: membrane-bounded organelle
+is_a: GO:0043226  ! organelle
+
+[Term]
+id: GO:0043229 ! intracellular organelle
+name: intracellular organelle
+is_a: GO:0043226  ! organelle
+is_a: GO:0044424  ! intracellular part
+
+[Term]
+id: GO:0043231 ! intracellular membrane-bounded organelle
+name: intracellular membrane-bounded organelle
+is_a: GO:0043227  ! membrane-bounded organelle
+is_a: GO:0043229  ! intracellular organelle
+
+[Term]
+id: GO:0044424 ! intracellular part
+name: intracellular part
+is_a: GO:0044464  ! cell part
+relationship: part_of GO:0005622 ! intracellular
+
+[Term]
+id: GO:0044444 ! cytoplasmic part
+name: cytoplasmic part
+is_a: GO:0044424  ! intracellular part
+relationship: part_of GO:0005737 ! cytoplasm
+
+[Term]
+id: GO:0044464 ! cell part
+name: cell part
+is_a: GO:0005575  ! cellular_component
+relationship: part_of GO:0005623 ! cell
+
+[Term]
+id: NCBITaxon:1 ! root
+name: root
+
+[Term]
+id: NCBITaxon:131567 ! cellular organisms
+name: cellular organisms
+is_a: NCBITaxon:1  ! root
+
+[Term]
+id: NCBITaxon:2 ! Bacteria <prokaryote>
+name: Bacteria <prokaryote>
+is_a: NCBITaxon:131567  ! cellular organisms
+
+[Term]
+id: NCBITaxon:2157 ! Archaea
+name: Archaea
+is_a: NCBITaxon:131567  ! cellular organisms
+
+[Term]
+id: NCBITaxon:2759 ! Eukaryota
+name: Eukaryota
+is_a: NCBITaxon:131567  ! cellular organisms
+
+[Term]
+id: NCBITaxon:28009 ! Choanoflagellida
+name: Choanoflagellida
+is_a: NCBITaxon:33154  ! Opisthokonta
+
+[Term]
+id: NCBITaxon:33154 ! Opisthokonta
+name: Opisthokonta
+is_a: NCBITaxon:2759  ! Eukaryota
+
+[Term]
+id: NCBITaxon:33208 ! Metazoa
+name: Metazoa
+is_a: NCBITaxon:33154  ! Opisthokonta
+
+[Term]
+id: NCBITaxon:4751 ! Fungi
+name: Fungi
+is_a: NCBITaxon:33154  ! Opisthokonta
+
+[Term]
+id: NCBITaxon:554915 ! Amoebozoa
+name: Amoebozoa
+is_a: NCBITaxon:2759  ! Eukaryota
+
+[Typedef]
+id: never_in_taxon
+name: never_in_taxon
+namespace: external
+is_metadata_tag: true
+is_class_level: true
+xref: RO:0002161
+expand_assertion_to: "Class: ?X DisjointWith: RO_0002162 some ?Y" []
+
+[Typedef]
+id: only_in_taxon
+name: only in taxon
+namespace: external
+xref: RO:0002160
+is_a: in_taxon  ! in taxon
+
+[Typedef]
+id: part_of
+name: part of
+namespace: external
+is_transitive: true
+inverse_of: has_part  ! has_part
+xref: BFO:0000050
+is_a: overlaps  ! overlaps
+
