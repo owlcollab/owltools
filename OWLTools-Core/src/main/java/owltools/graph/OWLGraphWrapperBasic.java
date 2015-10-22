@@ -218,10 +218,7 @@ public class OWLGraphWrapperBasic {
 	}
 	public void mergeImportClosure(boolean isRemovedImportsDeclarations) throws OWLOntologyCreationException {
 		OWLOntologyManager manager = getManager();
-		//OWLOntologyID oid = sourceOntology.getOntologyID();
 		Set<OWLOntology> imports = sourceOntology.getImportsClosure();
-		//manager.removeOntology(sourceOntology);
-		//sourceOntology = manager.createOntology(oid);
 		for (OWLOntology o : imports) {
 			if (o.equals(sourceOntology))
 				continue;
