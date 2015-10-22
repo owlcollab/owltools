@@ -17,6 +17,8 @@ import owltools.graph.OWLGraphWrapper;
  */
 public class TableRenderer extends AbstractRenderer implements GraphRenderer {
 
+	public boolean isWriteHeader = false;
+	
 	public TableRenderer(PrintStream stream) {
 		super(stream);
 	}
@@ -27,6 +29,15 @@ public class TableRenderer extends AbstractRenderer implements GraphRenderer {
 	
 
 	public void render(OWLGraphWrapper g) {
+		
+		if (isWriteHeader) {
+			print("IRI");
+			sep();
+			print("label");
+			sep();
+			print("definition");
+			nl();
+		}
 		graph = g;
 		
 		Set<OWLObject> objs = new HashSet<OWLObject>(g.getSourceOntology().getClassesInSignature(false));
