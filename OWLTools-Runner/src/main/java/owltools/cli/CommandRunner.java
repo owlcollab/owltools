@@ -173,6 +173,7 @@ import owltools.mooncat.Mooncat;
 import owltools.mooncat.OWLInAboxTranslator;
 import owltools.mooncat.PropertyExtractor;
 import owltools.mooncat.PropertyViewOntologyBuilder;
+import owltools.mooncat.ProvenanceReasonerWrapper;
 import owltools.mooncat.QuerySubsetGenerator;
 import owltools.mooncat.SpeciesMergeUtil;
 import owltools.mooncat.SpeciesSubsetterUtil;
@@ -740,10 +741,18 @@ public class CommandRunner extends CommandRunnerBase {
 				gcw.render(g);				
 			}
 			else if (opts.nextEq("--export-table")) {
-				opts.info("OUTPUTFILENAME",
+				opts.info("[-c] OUTPUTFILENAME",
 						"saves the ontology in tabular format (PARTIALLY IMPLEMENTED)");
+				boolean isWriteHeader = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-c"))
+						opts.info("", "write column headers");
+					isWriteHeader = true;
+				}
 				String out = opts.nextOpt();
 				TableRenderer tr = new TableRenderer(out);
+				tr.isWriteHeader = isWriteHeader;
+						
 				tr.render(g);				
 			}
 			else if (opts.nextEq("--export-edge-table")) {
@@ -2312,6 +2321,11 @@ public class CommandRunner extends CommandRunnerBase {
 					System.out.println("Removing "+rmAxioms.size()+" axioms");
 					g.getManager().removeAxioms(ont, rmAxioms);
 				}
+			}
+			else if (opts.nextEq("--annotate-with-reasoner")) {
+				ProvenanceReasonerWrapper pr = new ProvenanceReasonerWrapper(g.getSourceOntology(), new ElkReasonerFactory());
+				pr.reason();		
+				
 			}
 			else if (opts.nextEq("--run-reasoner")) {
 				opts.info("[-r reasonername] [--assert-implied] [--indirect] [-u]", "infer new relationships");
