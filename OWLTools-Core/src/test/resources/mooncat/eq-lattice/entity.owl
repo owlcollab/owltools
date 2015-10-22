@@ -1,0 +1,55 @@
+Prefix: : <http://example.org/test/>
+
+Ontology: <http://example.org/test/entity.owl>
+
+Class: Anatomical_entity
+Class: Organ
+SubClassOf: Anatomical_entity
+
+Class: Brain
+SubClassOf: Organ
+
+Class: Bone
+SubClassOf: Organ
+
+Class: SkullBone
+SubClassOf: Bone
+
+Class: LimbBone
+SubClassOf: Bone
+
+Class: ForeLimbBone
+SubClassOf: LimbBone
+
+Class: HindLimbBone
+SubClassOf: LimbBone
+
+Class: Lung
+SubClassOf: Organ
+
+Class: LeftLung
+SubClassOf: Lung
+
+Class: RightLung
+SubClassOf: Lung
+
+Class: Cell
+SubClassOf: Anatomical_entity
+
+Class: ImmuneCell
+SubClassOf: Cell
+
+Class: TCell
+SubClassOf: ImmuneCell
+
+Class: BCell
+SubClassOf: ImmuneCell
+
+Class: Neuron
+SubClassOf: Cell
+
+Class: BrainNeuron
+SubClassOf: Neuron
+
+Class: CNSNeuron
+SubClassOf: Neuron

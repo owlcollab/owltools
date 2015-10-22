@@ -1,0 +1,23 @@
+Prefix: : <http://example.org/test/>
+
+Ontology: <http://example.org/test/quality.owl>
+
+## Simplification of PATO
+
+Class: quality
+
+Class: morphology
+SubClassOf: quality
+
+Class: shape
+SubClassOf: morphology
+
+Class: size
+SubClassOf: morphology
+
+Class: increasedSize
+SubClassOf: size
+
+
+Class: decreasedSize
+SubClassOf: size

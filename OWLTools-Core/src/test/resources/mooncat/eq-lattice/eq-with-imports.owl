@@ -1,0 +1,1915 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://example.org/test/auto#"
+     xml:base="http://example.org/test/auto"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:foo="http://geneontology.org/foo/"
+     xmlns:entity_quality="http://example.org/test/test/entity_quality/">
+    <owl:Ontology rdf:about="http://example.org/test/auto">
+        <owl:imports rdf:resource="http://example.org/test/entity.owl"/>
+        <owl:imports rdf:resource="http://example.org/test/quality.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://example.org/test/test/entity_quality/entity -->
+
+    <owl:AnnotationProperty rdf:about="http://example.org/test/test/entity_quality/entity"/>
+    
+
+
+    <!-- http://example.org/test/test/entity_quality/quality -->
+
+    <owl:AnnotationProperty rdf:about="http://example.org/test/test/entity_quality/quality"/>
+    
+
+
+    <!-- http://geneontology.org/foo/applies-pattern -->
+
+    <owl:AnnotationProperty rdf:about="http://geneontology.org/foo/applies-pattern"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000115 -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://example.org/test/inheres_in -->
+
+    <owl:ObjectProperty rdf:about="http://example.org/test/inheres_in"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://example.org/test/BCell -->
+
+    <owl:Class rdf:about="http://example.org/test/BCell"/>
+    
+
+
+    <!-- http://example.org/test/BCell-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/BCell-decreasedSize">
+        <rdfs:label>BCell decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in BCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BCell-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/BCell-increasedSize">
+        <rdfs:label>BCell increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in BCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BCell-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/BCell-morphology">
+        <rdfs:label>BCell morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in BCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BCell-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/BCell-shape">
+        <rdfs:label>BCell shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in BCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BCell-size -->
+
+    <owl:Class rdf:about="http://example.org/test/BCell-size">
+        <rdfs:label>BCell size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in BCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Bone -->
+
+    <owl:Class rdf:about="http://example.org/test/Bone"/>
+    
+
+
+    <!-- http://example.org/test/Bone-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Bone-decreasedSize">
+        <rdfs:label>Bone decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Bone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in Bone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Bone-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Bone-increasedSize">
+        <rdfs:label>Bone increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Bone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in Bone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Bone-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/Bone-morphology">
+        <rdfs:label>Bone morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Bone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in Bone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Bone-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/Bone-shape">
+        <rdfs:label>Bone shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Bone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in Bone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Bone-size -->
+
+    <owl:Class rdf:about="http://example.org/test/Bone-size">
+        <rdfs:label>Bone size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Bone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in Bone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Brain -->
+
+    <owl:Class rdf:about="http://example.org/test/Brain"/>
+    
+
+
+    <!-- http://example.org/test/Brain-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Brain-decreasedSize">
+        <rdfs:label>Brain decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Brain"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in Brain.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Brain-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Brain-increasedSize">
+        <rdfs:label>Brain increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Brain"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in Brain.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Brain-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/Brain-morphology">
+        <rdfs:label>Brain morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Brain"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in Brain.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Brain-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/Brain-shape">
+        <rdfs:label>Brain shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Brain"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in Brain.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Brain-size -->
+
+    <owl:Class rdf:about="http://example.org/test/Brain-size">
+        <rdfs:label>Brain size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Brain"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in Brain.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BrainNeuron -->
+
+    <owl:Class rdf:about="http://example.org/test/BrainNeuron"/>
+    
+
+
+    <!-- http://example.org/test/BrainNeuron-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/BrainNeuron-decreasedSize">
+        <rdfs:label>BrainNeuron decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BrainNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in BrainNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BrainNeuron-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/BrainNeuron-increasedSize">
+        <rdfs:label>BrainNeuron increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BrainNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in BrainNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BrainNeuron-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/BrainNeuron-morphology">
+        <rdfs:label>BrainNeuron morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BrainNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in BrainNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BrainNeuron-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/BrainNeuron-shape">
+        <rdfs:label>BrainNeuron shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BrainNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in BrainNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/BrainNeuron-size -->
+
+    <owl:Class rdf:about="http://example.org/test/BrainNeuron-size">
+        <rdfs:label>BrainNeuron size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/BrainNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in BrainNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/CNSNeuron -->
+
+    <owl:Class rdf:about="http://example.org/test/CNSNeuron"/>
+    
+
+
+    <!-- http://example.org/test/CNSNeuron-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/CNSNeuron-decreasedSize">
+        <rdfs:label>CNSNeuron decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/CNSNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in CNSNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/CNSNeuron-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/CNSNeuron-increasedSize">
+        <rdfs:label>CNSNeuron increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/CNSNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in CNSNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/CNSNeuron-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/CNSNeuron-morphology">
+        <rdfs:label>CNSNeuron morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/CNSNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in CNSNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/CNSNeuron-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/CNSNeuron-shape">
+        <rdfs:label>CNSNeuron shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/CNSNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in CNSNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/CNSNeuron-size -->
+
+    <owl:Class rdf:about="http://example.org/test/CNSNeuron-size">
+        <rdfs:label>CNSNeuron size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/CNSNeuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in CNSNeuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Cell -->
+
+    <owl:Class rdf:about="http://example.org/test/Cell"/>
+    
+
+
+    <!-- http://example.org/test/Cell-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Cell-decreasedSize">
+        <rdfs:label>Cell decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Cell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in Cell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Cell-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Cell-increasedSize">
+        <rdfs:label>Cell increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Cell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in Cell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Cell-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/Cell-morphology">
+        <rdfs:label>Cell morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Cell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in Cell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Cell-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/Cell-shape">
+        <rdfs:label>Cell shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Cell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in Cell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Cell-size -->
+
+    <owl:Class rdf:about="http://example.org/test/Cell-size">
+        <rdfs:label>Cell size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Cell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in Cell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ForeLimbBone -->
+
+    <owl:Class rdf:about="http://example.org/test/ForeLimbBone"/>
+    
+
+
+    <!-- http://example.org/test/ForeLimbBone-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/ForeLimbBone-decreasedSize">
+        <rdfs:label>ForeLimbBone decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ForeLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in ForeLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ForeLimbBone-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/ForeLimbBone-increasedSize">
+        <rdfs:label>ForeLimbBone increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ForeLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in ForeLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ForeLimbBone-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/ForeLimbBone-morphology">
+        <rdfs:label>ForeLimbBone morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ForeLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in ForeLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ForeLimbBone-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/ForeLimbBone-shape">
+        <rdfs:label>ForeLimbBone shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ForeLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in ForeLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ForeLimbBone-size -->
+
+    <owl:Class rdf:about="http://example.org/test/ForeLimbBone-size">
+        <rdfs:label>ForeLimbBone size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ForeLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in ForeLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/HindLimbBone -->
+
+    <owl:Class rdf:about="http://example.org/test/HindLimbBone"/>
+    
+
+
+    <!-- http://example.org/test/HindLimbBone-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/HindLimbBone-decreasedSize">
+        <rdfs:label>HindLimbBone decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/HindLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in HindLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/HindLimbBone-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/HindLimbBone-increasedSize">
+        <rdfs:label>HindLimbBone increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/HindLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in HindLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/HindLimbBone-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/HindLimbBone-morphology">
+        <rdfs:label>HindLimbBone morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/HindLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in HindLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/HindLimbBone-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/HindLimbBone-shape">
+        <rdfs:label>HindLimbBone shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/HindLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in HindLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/HindLimbBone-size -->
+
+    <owl:Class rdf:about="http://example.org/test/HindLimbBone-size">
+        <rdfs:label>HindLimbBone size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/HindLimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in HindLimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ImmuneCell -->
+
+    <owl:Class rdf:about="http://example.org/test/ImmuneCell"/>
+    
+
+
+    <!-- http://example.org/test/ImmuneCell-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/ImmuneCell-decreasedSize">
+        <rdfs:label>ImmuneCell decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ImmuneCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in ImmuneCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ImmuneCell-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/ImmuneCell-increasedSize">
+        <rdfs:label>ImmuneCell increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ImmuneCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in ImmuneCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ImmuneCell-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/ImmuneCell-morphology">
+        <rdfs:label>ImmuneCell morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ImmuneCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in ImmuneCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ImmuneCell-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/ImmuneCell-shape">
+        <rdfs:label>ImmuneCell shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ImmuneCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in ImmuneCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/ImmuneCell-size -->
+
+    <owl:Class rdf:about="http://example.org/test/ImmuneCell-size">
+        <rdfs:label>ImmuneCell size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/ImmuneCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in ImmuneCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LeftLung -->
+
+    <owl:Class rdf:about="http://example.org/test/LeftLung"/>
+    
+
+
+    <!-- http://example.org/test/LeftLung-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/LeftLung-decreasedSize">
+        <rdfs:label>LeftLung decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LeftLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in LeftLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LeftLung-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/LeftLung-increasedSize">
+        <rdfs:label>LeftLung increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LeftLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in LeftLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LeftLung-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/LeftLung-morphology">
+        <rdfs:label>LeftLung morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LeftLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in LeftLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LeftLung-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/LeftLung-shape">
+        <rdfs:label>LeftLung shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LeftLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in LeftLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LeftLung-size -->
+
+    <owl:Class rdf:about="http://example.org/test/LeftLung-size">
+        <rdfs:label>LeftLung size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LeftLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in LeftLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LimbBone -->
+
+    <owl:Class rdf:about="http://example.org/test/LimbBone"/>
+    
+
+
+    <!-- http://example.org/test/LimbBone-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/LimbBone-decreasedSize">
+        <rdfs:label>LimbBone decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in LimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LimbBone-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/LimbBone-increasedSize">
+        <rdfs:label>LimbBone increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in LimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LimbBone-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/LimbBone-morphology">
+        <rdfs:label>LimbBone morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in LimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LimbBone-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/LimbBone-shape">
+        <rdfs:label>LimbBone shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in LimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/LimbBone-size -->
+
+    <owl:Class rdf:about="http://example.org/test/LimbBone-size">
+        <rdfs:label>LimbBone size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/LimbBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in LimbBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Lung -->
+
+    <owl:Class rdf:about="http://example.org/test/Lung"/>
+    
+
+
+    <!-- http://example.org/test/Lung-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Lung-decreasedSize">
+        <rdfs:label>Lung decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Lung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in Lung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Lung-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Lung-increasedSize">
+        <rdfs:label>Lung increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Lung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in Lung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Lung-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/Lung-morphology">
+        <rdfs:label>Lung morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Lung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in Lung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Lung-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/Lung-shape">
+        <rdfs:label>Lung shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Lung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in Lung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Lung-size -->
+
+    <owl:Class rdf:about="http://example.org/test/Lung-size">
+        <rdfs:label>Lung size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Lung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in Lung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Neuron -->
+
+    <owl:Class rdf:about="http://example.org/test/Neuron"/>
+    
+
+
+    <!-- http://example.org/test/Neuron-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Neuron-decreasedSize">
+        <rdfs:label>Neuron decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Neuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in Neuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Neuron-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Neuron-increasedSize">
+        <rdfs:label>Neuron increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Neuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in Neuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Neuron-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/Neuron-morphology">
+        <rdfs:label>Neuron morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Neuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in Neuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Neuron-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/Neuron-shape">
+        <rdfs:label>Neuron shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Neuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in Neuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Neuron-size -->
+
+    <owl:Class rdf:about="http://example.org/test/Neuron-size">
+        <rdfs:label>Neuron size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Neuron"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in Neuron.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Organ -->
+
+    <owl:Class rdf:about="http://example.org/test/Organ"/>
+    
+
+
+    <!-- http://example.org/test/Organ-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Organ-decreasedSize">
+        <rdfs:label>Organ decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Organ"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in Organ.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Organ-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/Organ-increasedSize">
+        <rdfs:label>Organ increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Organ"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in Organ.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Organ-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/Organ-morphology">
+        <rdfs:label>Organ morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Organ"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in Organ.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Organ-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/Organ-shape">
+        <rdfs:label>Organ shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Organ"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in Organ.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/Organ-size -->
+
+    <owl:Class rdf:about="http://example.org/test/Organ-size">
+        <rdfs:label>Organ size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/Organ"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in Organ.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/RightLung -->
+
+    <owl:Class rdf:about="http://example.org/test/RightLung"/>
+    
+
+
+    <!-- http://example.org/test/RightLung-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/RightLung-decreasedSize">
+        <rdfs:label>RightLung decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/RightLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in RightLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/RightLung-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/RightLung-increasedSize">
+        <rdfs:label>RightLung increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/RightLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in RightLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/RightLung-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/RightLung-morphology">
+        <rdfs:label>RightLung morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/RightLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in RightLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/RightLung-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/RightLung-shape">
+        <rdfs:label>RightLung shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/RightLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in RightLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/RightLung-size -->
+
+    <owl:Class rdf:about="http://example.org/test/RightLung-size">
+        <rdfs:label>RightLung size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/RightLung"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in RightLung.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/SkullBone -->
+
+    <owl:Class rdf:about="http://example.org/test/SkullBone"/>
+    
+
+
+    <!-- http://example.org/test/SkullBone-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/SkullBone-decreasedSize">
+        <rdfs:label>SkullBone decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/SkullBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in SkullBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/SkullBone-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/SkullBone-increasedSize">
+        <rdfs:label>SkullBone increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/SkullBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in SkullBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/SkullBone-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/SkullBone-morphology">
+        <rdfs:label>SkullBone morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/SkullBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in SkullBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/SkullBone-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/SkullBone-shape">
+        <rdfs:label>SkullBone shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/SkullBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in SkullBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/SkullBone-size -->
+
+    <owl:Class rdf:about="http://example.org/test/SkullBone-size">
+        <rdfs:label>SkullBone size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/SkullBone"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in SkullBone.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/TCell -->
+
+    <owl:Class rdf:about="http://example.org/test/TCell"/>
+    
+
+
+    <!-- http://example.org/test/TCell-decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/TCell-decreasedSize">
+        <rdfs:label>TCell decreasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/decreasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/TCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any decreasedSize that inheres in TCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/TCell-increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/TCell-increasedSize">
+        <rdfs:label>TCell increasedSize</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/increasedSize"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/TCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any increasedSize that inheres in TCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/TCell-morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/TCell-morphology">
+        <rdfs:label>TCell morphology</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/morphology"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/TCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any morphology that inheres in TCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/TCell-shape -->
+
+    <owl:Class rdf:about="http://example.org/test/TCell-shape">
+        <rdfs:label>TCell shape</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/shape"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/TCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any shape that inheres in TCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/TCell-size -->
+
+    <owl:Class rdf:about="http://example.org/test/TCell-size">
+        <rdfs:label>TCell size</rdfs:label>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://example.org/test/size"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://example.org/test/inheres_in"/>
+                        <owl:someValuesFrom rdf:resource="http://example.org/test/TCell"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <obo:IAO_0000115>Any size that inheres in TCell.</obo:IAO_0000115>
+    </owl:Class>
+    
+
+
+    <!-- http://example.org/test/decreasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/decreasedSize"/>
+    
+
+
+    <!-- http://example.org/test/increasedSize -->
+
+    <owl:Class rdf:about="http://example.org/test/increasedSize"/>
+    
+
+
+    <!-- http://example.org/test/morphology -->
+
+    <owl:Class rdf:about="http://example.org/test/morphology"/>
+    
+
+
+    <!-- http://example.org/test/shape -->
+
+    <owl:Class rdf:about="http://example.org/test/shape"/>
+    
+
+
+    <!-- http://example.org/test/size -->
+
+    <owl:Class rdf:about="http://example.org/test/size"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 0.2.2-SNAPSHOT) http://owlapi.sourceforge.net -->
+
