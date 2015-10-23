@@ -50,6 +50,7 @@ public class RetrieveGolrAnnotationsTest {
 			System.out.println(document.bioentity+"  "+document.annotation_class);
 			if (document.qualifier != null) {
 				System.out.println(document.qualifier);
+				qualifierCounter += 1;
 			}
 		}
 		System.out.println(annotations.size());
