@@ -54,12 +54,12 @@ public class TaxonFinder {
 		if (species_name != null && species_name.length() > 0) {
 			if (!species_name.equals("root"))
 				species_name = species_name.substring(0, 1).toUpperCase() + species_name.substring(1);
-			taxon = taxa2IDs.get(species_name);
+			taxon = taxa2IDs.get(speciesNameHack(species_name));
 			if (taxon == null) {
-				taxon = taxa2IDs.get(species_name.toLowerCase());
+				taxon = taxa2IDs.get(species_name);
 			}
 			if (taxon == null) {
-				taxon = taxa2IDs.get(speciesNameHack(species_name));
+				taxon = taxa2IDs.get(species_name.toLowerCase());
 			}
 		}
 		if (taxon != null)
@@ -183,6 +183,7 @@ public class TaxonFinder {
                             System.err.println("Stop right here");
 
                         Species taxon = getSpecies(taxon_id, name);
+
                         taxon.setNcbi_taxon_id(taxon_id);
                         taxon.setFive_code(code);
                         taxon.setScientificName(name);
@@ -249,8 +250,10 @@ public class TaxonFinder {
 			name = "Eremothecium gossypii";
 		} else if (lcName.equals("neucr")) {
 			name = "Neurospora crassa";
-		} else if (lcName.equals("schpo") || lcName.startsWith("schizosaccharomyces pombe 927")) {
+		} else if (lcName.startsWith("schizosaccharomyces pombe 927")) {
 			name = "Schizosaccharomyces pombe";
+		} else if (lcName.startsWith("schpo")) {
+			name = "SCHPM";
 		} else if (lcName.equals("dicdi")) {
 			name = "Dictyostelium discoideum";
 		} else if (lcName.equals("aspergillus nidulans")) {

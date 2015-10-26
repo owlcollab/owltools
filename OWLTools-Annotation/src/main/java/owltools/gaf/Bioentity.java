@@ -120,6 +120,8 @@ public class Bioentity{
 	}
 
 	public void setNcbiTaxonId(String ncbiTaxonId) {
+		if (ncbiTaxonId.contains("284812")) 
+			log.info("Where is this happening");
 		if (ncbiTaxonId != null && ncbiTaxonId.startsWith("NCBITaxon"))
 			this.ncbiTaxonId = ncbiTaxonId.substring(4).toLowerCase();
 		else
