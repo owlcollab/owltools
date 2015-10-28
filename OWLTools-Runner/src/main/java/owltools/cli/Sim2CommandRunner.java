@@ -1579,7 +1579,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	// TODO
 	@CLIMethod("--enrichment-analysis")
 	public void owlsimEnrichmentAnalysis(Opts opts) throws Exception {
-		opts.info("", "performs enrichment on gene set. TODO");
+		opts.info("", "performs enrichment on gene set.");
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (owlsim == null) {
 			owlsim = getOwlSimFactory().createOwlSim(g.getSourceOntology());

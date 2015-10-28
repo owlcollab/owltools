@@ -2323,9 +2323,25 @@ public class CommandRunner extends CommandRunnerBase {
 				}
 			}
 			else if (opts.nextEq("--annotate-with-reasoner")) {
-				ProvenanceReasonerWrapper pr = new ProvenanceReasonerWrapper(g.getSourceOntology(), new ElkReasonerFactory());
+				opts.info("[-c OntologyIRI]", "annotated existing and inferred subClassOf axioms with source");
+				OWLOntology outputOntology = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-c||--create")) {
+						outputOntology = g.getManager().createOntology(IRI.create(opts.nextOpt()));
+					}
+					else {
+						break;
+					}
+				}
+				ProvenanceReasonerWrapper pr = 
+						new ProvenanceReasonerWrapper(g.getSourceOntology(), new ElkReasonerFactory());
+				if (outputOntology != null) {
+					pr.outputOntology = outputOntology;
+				}
 				pr.reason();		
-				
+				if (outputOntology != null) {
+					g.setSourceOntology(outputOntology);
+				}
 			}
 			else if (opts.nextEq("--run-reasoner")) {
 				opts.info("[-r reasonername] [--assert-implied] [--indirect] [-u]", "infer new relationships");

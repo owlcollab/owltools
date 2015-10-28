@@ -200,6 +200,7 @@ public class AssertInferenceTool {
 				graph.addSupportOntology(pw.parse(input));
 			}
 		}
+		graph.addImportsFromSupportOntologies();
 		
 		boolean useTemp = false;
 		if (outputFileName == null) {

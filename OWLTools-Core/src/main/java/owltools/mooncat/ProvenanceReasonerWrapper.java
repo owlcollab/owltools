@@ -22,14 +22,17 @@ public class ProvenanceReasonerWrapper {
 	private Logger LOG = Logger.getLogger(ProvenanceReasonerWrapper.class);
 
 	
-	OWLOntology ontology;
-	OWLReasonerFactory rf;
+	final OWLOntology ontology;
+	final OWLReasonerFactory rf;
 	Set<OWLEdge> edges ;
+	public OWLOntology outputOntology;
+	String SOURCE_PROPERTY_IRI = "http://purl.org/dc/elements/1.1/source";
 	
 	class OWLEdge {
 		public final OWLClass c;
 		public final OWLClass p;
 		Set<IRI> requires = new HashSet<IRI>();
+		boolean isJustified = true;
 		public OWLEdge(OWLClass c, OWLClass p) {
 			super();
 			this.c = c;
@@ -48,31 +51,43 @@ public class ProvenanceReasonerWrapper {
 		super();
 		this.ontology = ontology;
 		this.rf = rf;
+		outputOntology = ontology;
 	}
 
 	public void reason() throws OWLOntologyCreationException {
+		OWLOntologyManager m = getManager();
+		OWLDataFactory df = m.getOWLDataFactory();
+		OWLAnnotationProperty requiresAP = df.getOWLAnnotationProperty(IRI.create(SOURCE_PROPERTY_IRI));
+
 		OWLReasoner reasoner = rf.createReasoner(ontology);
 		edges = new HashSet<OWLEdge>();
 		for (OWLClass c : ontology.getClassesInSignature(false)) {
 			for (OWLClass p : reasoner.getSuperClasses(c, true).getFlattened()) {
-				OWLEdge e = new OWLEdge(c,p);
-				edges.add(e);
-				LOG.info("Edge: "+e);
+				
+				// only consider edges that could potentially be inferred
+				if (ontology.getEquivalentClassesAxioms(p).size() > 0) {
+					OWLEdge e = new OWLEdge(c,p);
+					edges.add(e);
+					LOG.info("Edge: "+e);
+				}
 			}
 		}
 		LOG.info("EDGES:"+edges.size());
+		for (OWLEdge e : edges) {
+			if (!isEdgeEntailed(e, ontology, reasoner)) {
+				e.isJustified = false;
+			}
+		}
 		reasoner.dispose();
 
 		for (OWLOntology leaveOutOntology : ontology.getImportsClosure()) {
 			reasonLeavingOneOut(leaveOutOntology);
 		}
 		
-		OWLOntologyManager m = getManager();
-		OWLDataFactory df = m.getOWLDataFactory();
+		// Annotate the edges
 		Set<OWLSubClassOfAxiom> scas = new HashSet<OWLSubClassOfAxiom>();
-		OWLAnnotationProperty requiresAP = df.getOWLAnnotationProperty(IRI.create("http://example.org/foo/requires"));
 		for (OWLEdge e : edges) {
-			LOG.info("FINAL EDGE: "+e+" REQUIRES: "+e.requires);
+			LOG.info("FINAL EDGE: "+e+" REQUIRES: "+e.requires+" JUSTIFIED: "+e.isJustified);
 			Set<OWLAnnotation> anns = new HashSet<OWLAnnotation>();
 			for (IRI r : e.requires) {
 				anns.add(df.getOWLAnnotation(requiresAP, r));
@@ -83,7 +98,7 @@ public class ProvenanceReasonerWrapper {
 		
 		// todo - make this configurable
 		LOG.info("Adding axioms: "+scas.size());
-		m.addAxioms(ontology, scas);
+		m.addAxioms(outputOntology, scas);
 	}
 
 	public void reasonLeavingOneOut(OWLOntology leaveOutOntology) throws OWLOntologyCreationException {
@@ -98,49 +113,54 @@ public class ProvenanceReasonerWrapper {
 				continue;
 			}
 			m.addAxioms(ont2, io.getAxioms());
-			/*
-			AddImport ai = 
-					new AddImport(ont2,
-							df.getOWLImportsDeclaration(io.getOntologyID().getOntologyIRI()));
-			m.applyChange(ai);
-			*/
 			
 		}
 		
 		OWLReasoner reasoner = rf.createReasoner(ont2);
 		for (OWLEdge e : edges) {
+			if (!e.isJustified) {
+				// there is no point checking unjustified edges;
+				// these are edges that when removed cannot be re-inferred using the entire ontology set.
+				// as reasoning is monotonic, removing imports cannot bring it back.
+				continue;
+			}
 			//LOG.info("Testing "+e); 
-
-			Set<OWLSubClassOfAxiom> scas = ont2.getSubClassAxiomsForSubClass(e.c);
-			Set<OWLSubClassOfAxiom> rmAxioms = new HashSet<OWLSubClassOfAxiom>();
-			for (OWLSubClassOfAxiom sca : scas) {
-				if (sca.getSuperClass().equals(e.p)) {
-					LOG.info("REMOVING: "+sca);
-					rmAxioms.add(sca);
-				}
-			}
-			if (rmAxioms.size() > 0) {
-				m.removeAxioms(ont2, rmAxioms);
-				reasoner.flush();
-			}
-			if (reasoner.getSuperClasses(e.c, false).containsEntity(e.p)) {
-				//LOG.info("Still has: "+e);
-			}
-			else {
+			if (!isEdgeEntailed(e, ont2, reasoner)) {
 				IRI req = leaveOutOntology.getOntologyID().getOntologyIRI();
 				LOG.info(e + " requires "+req);
 				e.requires.add(req);
-			}
-			if (rmAxioms.size() > 0) {
-				m.addAxioms(ont2, rmAxioms);
-				reasoner.flush();
+				
 			}
 		}
 		reasoner.dispose();
-		
 	}
 	
-	
+	public boolean isEdgeEntailed(OWLEdge e, OWLOntology currentOntology, OWLReasoner reasoner) {
+		OWLOntologyManager m = getManager();
+		OWLDataFactory df = m.getOWLDataFactory();
+
+		Set<OWLSubClassOfAxiom> scas = currentOntology.getSubClassAxiomsForSubClass(e.c);
+		Set<OWLSubClassOfAxiom> rmAxioms = new HashSet<OWLSubClassOfAxiom>();
+		for (OWLSubClassOfAxiom sca : scas) {
+			if (sca.getSuperClass().equals(e.p)) {
+				LOG.info("REMOVING: "+sca);
+				rmAxioms.add(sca);
+			}
+		}
+		boolean isEdgeAsserted = rmAxioms.size() > 0;
+		if (isEdgeAsserted) {
+			m.removeAxioms(currentOntology, rmAxioms);
+			reasoner.flush();
+		}
+		boolean isEntailed;
+		isEntailed = reasoner.getSuperClasses(e.c, false).containsEntity(e.p);
+		if (isEdgeAsserted) {
+			m.addAxioms(currentOntology, rmAxioms);
+			reasoner.flush();
+		}
+
+		return isEntailed;
+	}
 
 	public Set<OWLEdge> getEdges() {
 		return edges;
