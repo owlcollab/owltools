@@ -41,6 +41,24 @@ public class RetrieveGolrAnnotationsTest {
 	}
 	
 	@Test
+	public void testGetGolrAnnotationsForGeneWithQualifierProduction() throws Exception {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr");
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("SGD:S000003676");
+		assertNotNull(annotations);
+		int qualifierCounter = 0;
+		for (GolrAnnotationDocument document : annotations) {
+			System.out.println(document.bioentity+"  "+document.annotation_class);
+			if (document.qualifier != null) {
+				System.out.println(document.qualifier);
+				qualifierCounter += 1;
+			}
+		}
+		System.out.println(annotations.size());
+		assertTrue(annotations.size() > 10);
+		assertTrue(qualifierCounter > 0);
+	}
+	
+	@Test
 	public void testGetGolrAnnotationsForGenesProduction() throws Exception {
 		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr") {
 

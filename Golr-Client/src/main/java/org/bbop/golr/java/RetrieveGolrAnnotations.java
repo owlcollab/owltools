@@ -89,6 +89,25 @@ public class RetrieveGolrAnnotations extends AbstractRetrieveGolr{
 			if (golrDocument.evidence_with != null) {
 				annotation.setWithInfos(golrDocument.evidence_with);
 			}
+			if (golrDocument.qualifier != null) {
+				for (String qualifier : golrDocument.qualifier) {
+					if ("not".equalsIgnoreCase(qualifier)) {
+						annotation.setIsContributesTo(true);
+					}
+					else if ("contributes_to".equalsIgnoreCase(qualifier)) {
+						annotation.setIsContributesTo(true);
+					}
+					else if ("integral_to".equalsIgnoreCase(qualifier)) {
+						annotation.setIsIntegralTo(true);
+					}
+					else if ("colocalizes_with".equalsIgnoreCase(qualifier)) {
+						annotation.setIsColocatesWith(true);
+					}
+					else if ("cut".equalsIgnoreCase(qualifier)) {
+						annotation.setIsCut(true);
+					}
+				}
+			}
 			handleAnnotationExtension(annotation, golrDocument);
 			document.addGeneAnnotation(annotation);
 		}
@@ -234,10 +253,12 @@ public class RetrieveGolrAnnotations extends AbstractRetrieveGolr{
 		List<String> synonym;
 		List<String> evidence_with;
 		List<String> reference;
+		List<String> qualifier;
 		
 		static List<String> getRelevantFields() {
 			// explicit list of fields, avoid "*" retrieval of unused fields
 			return Arrays.asList("source",
+					"qualifier",
 					"bioentity",
 					"bioentity_internal_id",
 					"bioentity_label",

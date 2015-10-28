@@ -383,6 +383,14 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					comb_aqual = comb_aqual + "integral_to";
 					annotation_doc.addField("qualifier", "integral_to");
 				}
+				if (a.isColocatesWith()) {
+					comb_aqual = comb_aqual + "colocalizes_with";
+					annotation_doc.addField("qualifier", "colocalizes_with");
+				}
+				if (a.isCut()) {
+					comb_aqual = comb_aqual + "cut";
+					annotation_doc.addField("qualifier", "cut");
+				}
 			}
 			
 			// Drag in the reference (col 6)
