@@ -1,0 +1,1705 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.w3.org/2002/07/owl#"
+     xml:base="http://www.w3.org/2002/07/owl"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#">
+    <Ontology>
+        <dc:source rdf:resource="http://purl.obolibrary.org/obo/go/extensions/go-lego.owl"/>
+    </Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000111 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000111"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000112 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000112"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000114 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000114"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000115 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000116 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000116"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000117 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000117"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000118 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000118"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000119 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000119"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000232 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000232"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/IAO_0000589 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/IAO_0000589"/>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0001900 -->
+
+    <AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/RO_0001900"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#created_by -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#created_by"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#creation_date -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#creation_date"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasAlternativeId -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasAlternativeId"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasDbXref -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasDbXref"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasExactSynonym -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasOBONamespace -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasOBONamespace"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#id -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#id"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#inSubset -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#inSubset"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#is_inferred -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#is_inferred"/>
+    
+
+
+    <!-- http://www.geneontology.org/formats/oboInOwl#shorthand -->
+
+    <AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#shorthand"/>
+    
+
+
+    <!-- http://www.w3.org/2000/01/rdf-schema#comment -->
+
+    <AnnotationProperty rdf:about="http://www.w3.org/2000/01/rdf-schema#comment"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0000052 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0000052">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inheres in</rdfs:label>
+        <rdfs:label xml:lang="en">inheres in</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0000052</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inheres_in</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inheres_in</oboInOwl:id>
+        <obo:IAO_0000116 xml:lang="en">A dependent inheres in its bearer at all times for which the dependent exists.</obo:IAO_0000116>
+        <obo:IAO_0000115 xml:lang="en">a relation between a specifically dependent continuant (the dependent) and an independent continuant (the bearer), in which the dependent specifically depends on the bearer for its existence</obo:IAO_0000115>
+        <obo:IAO_0000111 xml:lang="en">inheres in</obo:IAO_0000111>
+        <obo:IAO_0000118 xml:lang="en">inheres_in</obo:IAO_0000118>
+        <obo:IAO_0000112 xml:lang="en">this fragility inheres in this vase</obo:IAO_0000112>
+        <obo:IAO_0000112 xml:lang="en">this red color inheres in this apple</obo:IAO_0000112>
+        <obo:RO_0001900 rdf:resource="http://purl.obolibrary.org/obo/RO_0001901"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002314"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002502"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/UPHENO_0000001"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0000053 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0000053">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bearer of</rdfs:label>
+        <rdfs:label xml:lang="en">bearer of</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0000053</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bearer_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bearer_of</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000116 xml:lang="en">A bearer can have many dependents, and its dependents can exist for different periods of time, but none of its dependents can exist when the bearer does not exist.</obo:IAO_0000116>
+        <obo:IAO_0000115 xml:lang="en">a relation between an independent continuant (the bearer) and a specifically dependent continuant (the dependent), in which the dependent specifically depends on the bearer for its existence</obo:IAO_0000115>
+        <obo:IAO_0000111 xml:lang="en">bearer of</obo:IAO_0000111>
+        <obo:IAO_0000118 xml:lang="en">bearer_of</obo:IAO_0000118>
+        <obo:IAO_0000118 xml:lang="en">is bearer of</obo:IAO_0000118>
+        <obo:IAO_0000112 xml:lang="en">this apple is bearer of this red color</obo:IAO_0000112>
+        <obo:IAO_0000112 xml:lang="en">this vase is bearer of this fragility</obo:IAO_0000112>
+        <rdfs:range rdf:resource="http://purl.obolibrary.org/obo/BFO_0000020"/>
+        <inverseOf rdf:resource="http://purl.obolibrary.org/obo/RO_0000052"/>
+        <obo:RO_0001900 rdf:resource="http://purl.obolibrary.org/obo/RO_0001901"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002211 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002211">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates</rdfs:label>
+        <rdfs:label xml:lang="en">regulates</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002211</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulates</oboInOwl:shorthand>
+        <obo:IAO_0000115>x regulates y if and only if the x is the realization of a function to exert an effect on the frequency, rate or extent of y</obo:IAO_0000115>
+        <obo:IAO_0000119>GO</obo:IAO_0000119>
+        <obo:IAO_0000117>Tanya Berardini</obo:IAO_0000117>
+        <obo:IAO_0000589>regulates (biological process to biological process)</obo:IAO_0000589>
+        <obo:IAO_0000117>Chris Mungall</obo:IAO_0000117>
+        <obo:IAO_0000117>David Hill</obo:IAO_0000117>
+        <rdfs:range rdf:resource="http://purl.obolibrary.org/obo/BFO_0000015"/>
+        <rdfs:domain rdf:resource="http://purl.obolibrary.org/obo/BFO_0000015"/>
+        <obo:IAO_0000114 rdf:resource="http://purl.obolibrary.org/obo/IAO_0000125"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002328"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002410"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002418"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002212 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002212">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negatively regulates</rdfs:label>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negatively_regulates</rdfs:label>
+        <rdfs:label xml:lang="en">negatively regulates</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002212</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negatively_regulates</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negatively_regulates</oboInOwl:id>
+        <obo:IAO_0000589>negatively regulates (process to process)</obo:IAO_0000589>
+        <obo:IAO_0000115>x negatively regulates y if and only if the progression of x reduces the frequency, rate or extent of y</obo:IAO_0000115>
+        <obo:IAO_0000114 rdf:resource="http://purl.obolibrary.org/obo/IAO_0000125"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002213 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002213">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positively regulates</rdfs:label>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positively_regulates</rdfs:label>
+        <rdfs:label xml:lang="en">positively regulates</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002213</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positively_regulates</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positively_regulates</oboInOwl:id>
+        <obo:IAO_0000589>positively regulates (process to process)</obo:IAO_0000589>
+        <obo:IAO_0000115>x positively regulates y if and only if the progression of x increases the frequency, rate or extent of y</obo:IAO_0000115>
+        <obo:IAO_0000114 rdf:resource="http://purl.obolibrary.org/obo/IAO_0000125"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002314 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002314">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inheres in part of</rdfs:label>
+        <rdfs:label xml:lang="en">inheres in part of</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002314</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inheres_in_part_of</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inheres_in_part_of</oboInOwl:shorthand>
+        <obo:IAO_0000117>Chris Mungall</obo:IAO_0000117>
+        <obo:IAO_0000115>q inheres in part of w if and only if there exists some p such that q inheres in p and p part of w.</obo:IAO_0000115>
+        <obo:IAO_0000116>Because part_of is transitive, inheres in is a sub-relation of inheres in part of</obo:IAO_0000116>
+        <obo:RO_0001900 rdf:resource="http://purl.obolibrary.org/obo/RO_0001901"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002502"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/UPHENO_0000001"/>
+        <obo:IAO_0000119 rdf:resource="http://www.ncbi.nlm.nih.gov/pubmed/20064205"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002328 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002328">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">functionally related to</rdfs:label>
+        <rdfs:label xml:lang="en">functionally related to</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002328</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">functionally_related_to</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">functionally_related_to</oboInOwl:shorthand>
+        <obo:IAO_0000117>Chris Mungall</obo:IAO_0000117>
+        <obo:IAO_0000232>This is a grouping relation that collects relations used for the purpose of connecting structure and function</obo:IAO_0000232>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002334 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002334">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulated by</rdfs:label>
+        <rdfs:label xml:lang="en">regulated by</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002334</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulated_by</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulated_by</oboInOwl:id>
+        <obo:IAO_0000589>regulated by (biological process to biological process)</obo:IAO_0000589>
+        <obo:IAO_0000115>inverse of regulates</obo:IAO_0000115>
+        <rdfs:domain rdf:resource="http://purl.obolibrary.org/obo/BFO_0000015"/>
+        <rdfs:range rdf:resource="http://purl.obolibrary.org/obo/BFO_0000015"/>
+        <inverseOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002328"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002410"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002427"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002335 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002335">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negatively regulated by</rdfs:label>
+        <rdfs:label xml:lang="en">negatively regulated by</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002335</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negatively_regulated_by</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negatively_regulated_by</oboInOwl:id>
+        <inverseOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002334"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002336 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002336">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positively regulated by</rdfs:label>
+        <rdfs:label xml:lang="en">positively regulated by</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002336</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positively_regulated_by</oboInOwl:shorthand>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positively_regulated_by</oboInOwl:id>
+        <inverseOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002334"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002410 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002410">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally related to</rdfs:label>
+        <rdfs:label xml:lang="en">causally related to</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002410</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally_related_to</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally_related_to</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000232>Do not use this relation directly. It is ended as a grouping for a diverse set of relations, all involving cause and effect.</obo:IAO_0000232>
+        <obo:IAO_0000117>Chris Mungall</obo:IAO_0000117>
+        <obo:IAO_0000115>This relation groups causal relations between material entities and causal relations between processes</obo:IAO_0000115>
+        <obo:IAO_0000232>Do not use this relation directly. It is intended as a grouping for a diverse set of relations, all involving cause and effect.</obo:IAO_0000232>
+        <obo:IAO_0000116>This branch of the ontology deals with causal relations between entities. It is divided into two branches: causal relations between occurrents/processes, and causal relations between material entities. We take an &apos;activity flow-centric approach&apos;, with the former as primary, and define causal relations between material entities in terms of causal relations between occurrents.
+
+To define causal relations in an activity-flow type network, we make use of 3 primitives:
+
+ * Temporal: how do the intervals of the two occurrents relate? 
+ * Is the causal relation regulatory?
+ * Is the influence positive or negative
+
+The first of these can be formalized in terms of the Allen Interval Algebra. Informally, the 3 bins we care about are &apos;direct&apos;, &apos;indirect&apos; or overlapping. Note that all causal relations should be classified under a RO temporal relation (see the branch under &apos;temporally related to&apos;). Note that all causal relations are temporal, but not all temporal relations are causal. Two occurrents can be related in time without being causally connected. We take causal influence to be primitive, elucidated as being such that has the upstream changed, some qualities of the donwstream would necessarily be modified.
+
+For the second, we consider a relationship to be regulatory if the system in which the activities occur is capable of altering the relationship to achieve some objective. This could include changing the rate of production of a molecule.
+
+For the third, we consider the effect of the upstream process on the output(s) of the downstream process. If the level of output is increased, or the rate of production of the output is increased, then the direction is increased. Direction can be positive, negative or neutral or capable of either direction. Two positives in succession yield a positive, two negatives in succession yield a positive, otherwise the default assumption is that the net effect is canceled and the influence is neutral.
+
+Each of these 3 primitives can be composed to yield a cross-product of different relation types.</obo:IAO_0000116>
+        <obo:IAO_0000115>p is causally related to q if and only if p or any part of p and q or any part of q are linked by a chain of events where each event pair is one of direct activation or direct inhibition. p may be upstream, downstream, part of or a container of q.</obo:IAO_0000115>
+        <rdfs:domain rdf:resource="http://purl.obolibrary.org/obo/BFO_0000015"/>
+        <rdfs:range rdf:resource="http://purl.obolibrary.org/obo/BFO_0000015"/>
+        <obo:IAO_0000114 rdf:resource="http://purl.obolibrary.org/obo/IAO_0000428"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002609"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002418 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002418">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally upstream of or within</rdfs:label>
+        <rdfs:label>causally upstream of or within</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002418</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally_upstream_of_or_within</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally_upstream_of_or_within</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000115>p &apos;causally upstream or within&apos; q iff (1) the end of p is before the end of q and (2) the execution of p exerts some causal influence over the outputs of q; i.e. if p was abolished or the outputs of p were to be modified, this would necessarily affect q.</obo:IAO_0000115>
+        <obo:IAO_0000116>We would like to make this disjoint with &apos;preceded by&apos;, but this is prohibited in OWL2</obo:IAO_0000116>
+        <obo:IAO_0000118>influences (processual)</obo:IAO_0000118>
+        <obo:IAO_0000117>Chris Mungall</obo:IAO_0000117>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002410"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002501"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002427 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002427">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally downstream of or within</rdfs:label>
+        <rdfs:label>causally downstream of or within</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002427</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally_downstream_of_or_within</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causally_downstream_of_or_within</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000117>Chris Mungall</obo:IAO_0000117>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002410"/>
+        <inverseOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002418"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002501"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002501 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002501">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causal relation between processes</rdfs:label>
+        <rdfs:label>causal relation between processes</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002501</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causal_relation_between_processes</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">causal_relation_between_processes</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000117>Chris Mungall</obo:IAO_0000117>
+        <obo:IAO_0000232>Do not use this relation directly. It is intended as a grouping for a diverse set of relations, all involving cause and effect.</obo:IAO_0000232>
+        <obo:IAO_0000115>p is causally related to q if and only if p or any part of p and q or any part of q are linked by a chain of events where each event pair is one of direct activation or direct inhibition. p may be upstream, downstream, part of or a container of q.</obo:IAO_0000115>
+        <obo:IAO_0000119>https://docs.google.com/document/d/1WxocTXZaGVhEV1n7NB86pCF3SUcBJh8bq4vQrVCkjSU/edit#</obo:IAO_0000119>
+        <rdfs:range rdf:resource="http://purl.obolibrary.org/obo/BFO_0000003"/>
+        <rdfs:domain rdf:resource="http://purl.obolibrary.org/obo/BFO_0000003"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/RO_0002410"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002502 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002502">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">depends on</rdfs:label>
+        <rdfs:label>depends_on</rdfs:label>
+        <rdfs:label>depends on</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002502</oboInOwl:hasDbXref>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">depends_on</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">depends_on</oboInOwl:shorthand>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <obo:IAO_0000117>Chris Mungall</obo:IAO_0000117>
+        <rdfs:seeAlso rdf:resource="http://purl.obolibrary.org/obo/BFO_0000169"/>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/UPHENO_0000001"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/RO_0002609 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002609">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">related via dependence to</rdfs:label>
+        <rdfs:label>related via dependence to</rdfs:label>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RO:0002609</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">external</oboInOwl:hasOBONamespace>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">related_via_dependence_to</oboInOwl:id>
+        <oboInOwl:shorthand rdf:datatype="http://www.w3.org/2001/XMLSchema#string">related_via_dependence_to</oboInOwl:shorthand>
+        <obo:IAO_0000115>A relationship that holds between two entities, where the relationship holds based on the presence or absence of statistical dependence relationship. The entities may be statistical variables, or they may be other kinds of entities such as diseases, chemical entities or processes.</obo:IAO_0000115>
+    </ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UPHENO_0000001 -->
+
+    <ObjectProperty rdf:about="http://purl.obolibrary.org/obo/UPHENO_0000001">
+        <rdfs:label>has phenotype affecting</rdfs:label>
+    </ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000002 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/BFO_0000002">
+        <rdfs:label xml:lang="en">continuant</rdfs:label>
+        <obo:IAO_0000115 xml:lang="en">An entity that exists in full at any time in which it exists at all, persists through time while maintaining its identity and has no temporal parts.</obo:IAO_0000115>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000003 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/BFO_0000003">
+        <rdfs:label xml:lang="en">occurrent</rdfs:label>
+        <obo:IAO_0000115 xml:lang="en">An entity that has temporal parts and that happens, unfolds or develops through time.</obo:IAO_0000115>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000015 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/BFO_0000015">
+        <rdfs:label xml:lang="en">process</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000003"/>
+        <obo:IAO_0000115 xml:lang="en">An occurrent that has temporal proper parts and for some time t, p s-depends_on some material entity at t.</obo:IAO_0000115>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/BFO_0000020 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/BFO_0000020">
+        <rdfs:label xml:lang="en">specifically dependent continuant</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000002"/>
+        <obo:IAO_0000115 xml:lang="en">A continuant that inheres in or is borne by other entities. Every instance of A requires some specific instance of B which must always be the same.</obo:IAO_0000115>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0008150 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0008150">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000015"/>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end.</obo:IAO_0000115>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0000004</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0007582</oboInOwl:hasAlternativeId>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0008150</oboInOwl:id>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.</rdfs:comment>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Wikipedia:Biological_process</oboInOwl:hasDbXref>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">physiological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_aspergillus"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_candida"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_chembl"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_generic"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_metagenomics"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_pir"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_plant"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_pombe"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_yeast"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+        <disjointUnionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0044699"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0051704"/>
+        </disjointUnionOf>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:go_curators</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:isa_complete</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <rdfs:comment>Every biological process is either a single-organism process or a multi-organism, but never both (GOC:mtg_obo_owl_Jan2013)</rdfs:comment>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#disjointUnionOf"/>
+        <annotatedTarget rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0044699"/>
+            <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0051704"/>
+        </annotatedTarget>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0009987 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0009987">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular process</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</obo:IAO_0000115>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0008151</oboInOwl:hasAlternativeId>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0009987</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0050875</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cell growth and/or maintenance</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cell physiology</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular physiological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_pir"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_plant"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:go_curators</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:isa_complete</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0022613 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0022613">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ribonucleoprotein complex biogenesis</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0044085"/>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a complex containing RNA and proteins. Includes the biosynthesis of the constituent RNA and protein molecules, and those macromolecular modifications that are involved in synthesis or assembly of the ribonucleoprotein complex.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0022613</oboInOwl:id>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RNA-protein complex biogenesis</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ribonucleoprotein complex biogenesis and assembly</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">RNA-protein complex biogenesis</annotatedTarget>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0022613"/>
+        <annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a complex containing RNA and proteins. Includes the biosynthesis of the constituent RNA and protein molecules, and those macromolecular modifications that are involved in synthesis or assembly of the ribonucleoprotein complex.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:isa_complete</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0022613"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ribonucleoprotein complex biogenesis and assembly</annotatedTarget>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0022613"/>
+        <annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0042254 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0042254">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ribosome biogenesis</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0022613"/>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits; includes transport to the sites of protein synthesis.</obo:IAO_0000115>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0007046</oboInOwl:hasAlternativeId>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0042254</oboInOwl:id>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Wikipedia:Ribosome_biogenesis</oboInOwl:hasDbXref>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasRelatedSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ribosomal chaperone activity</oboInOwl:hasRelatedSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ribosome biogenesis and assembly</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_aspergillus"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_candida"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_chembl"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_generic"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_pir"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_pombe"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits; includes transport to the sites of protein synthesis.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ma</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0042254"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0043900 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0043900">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulation of multi-organism process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0043900</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0043900"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0043900"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0043901 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0043901">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negative regulation of multi-organism process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0043900"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0048519"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that stops, prevents, or reduces the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0043901</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0043901"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0048519"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that stops, prevents, or reduces the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0043901"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0043900"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0043901"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0043902 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0043902">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positive regulation of multi-organism process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0043900"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0048518"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that activates or increases the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0043902</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that activates or increases the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0043902"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0043900"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0043902"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0043902"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0048518"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044085 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0044085">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular component biogenesis</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0071840"/>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component. Includes biosynthesis of constituent macromolecules, and those macromolecular modifications that are involved in synthesis or assembly of the cellular component.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0044085</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0071843</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular component biogenesis at cellular level</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component. Includes biosynthesis of constituent macromolecules, and those macromolecular modifications that are involved in synthesis or assembly of the cellular component.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044085"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044087 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0044087">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulation of cellular component biogenesis</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0044085"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0044085"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the frequency, rate or extent of cellular component biogenesis, a process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0044087</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the frequency, rate or extent of cellular component biogenesis, a process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044087"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044089 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0044089">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positive regulation of cellular component biogenesis</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0044085"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0044087"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0048518"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0044085"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that activates or increases the frequency, rate or extent of cellular component biogenesis, a process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0044089</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that activates or increases the frequency, rate or extent of cellular component biogenesis, a process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044089"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044089"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0048518"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0044087"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044089"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044699 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0044699">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">single-organism process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0008150"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002487"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002487"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <disjointWith rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+        <oboInOwl:creation_date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2012-09-19T15:05:24Z</oboInOwl:creation_date>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A biological process that involves only one organism.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0044699</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">janelomax</oboInOwl:created_by>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">single organism process</oboInOwl:hasExactSynonym>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044699"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+        <annotatedTarget>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002487"/>
+            </Restriction>
+        </annotatedTarget>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A biological process that involves only one organism.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044699"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044763 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0044763">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">single-organism cellular process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0009987"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002487"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0044699"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002487"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <oboInOwl:creation_date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2012-12-11T16:56:55Z</oboInOwl:creation_date>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that is carried out at the cellular level, occurring within a single organism.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0044763</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">janelomax</oboInOwl:created_by>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044763"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+        <annotatedTarget>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002487"/>
+            </Restriction>
+        </annotatedTarget>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that is carried out at the cellular level, occurring within a single organism.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044763"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0044764 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0044764">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">multi-organism cellular process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0009987"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002486"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002486"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <oboInOwl:creation_date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2012-12-11T17:00:50Z</oboInOwl:creation_date>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that is carried out at the cellular level which involves another organism of the same or different species.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0044764</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">janelomax</oboInOwl:created_by>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044764"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+        <annotatedTarget>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002486"/>
+            </Restriction>
+        </annotatedTarget>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that is carried out at the cellular level which involves another organism of the same or different species.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044764"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0044764"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0048518 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0048518">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positive regulation of biological process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that activates or increases the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</obo:IAO_0000115>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0043119</oboInOwl:hasAlternativeId>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0048518</oboInOwl:id>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activation of biological process</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positive regulation of physiological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">stimulation of biological process</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">up regulation of biological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">up-regulation of biological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">upregulation of biological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048518"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that activates or increases the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jid</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048518"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0048519 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0048519">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negative regulation of biological process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that stops, prevents, or reduces the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</obo:IAO_0000115>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0043118</oboInOwl:hasAlternativeId>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0048519</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">down regulation of biological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">down-regulation of biological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">downregulation of biological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibition of biological process</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negative regulation of physiological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048519"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that stops, prevents, or reduces the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jid</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048519"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0048522 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0048522">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positive regulation of cellular process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0048518"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0050794"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that activates or increases the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0048522</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0051242</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">activation of cellular process</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positive regulation of cellular physiological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">stimulation of cellular process</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">up regulation of cellular process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">up-regulation of cellular process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">upregulation of cellular process</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that activates or increases the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jid</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048522"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048522"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0050794"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0048518"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048522"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0048523 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0048523">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negative regulation of cellular process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0048519"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0050794"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that stops, prevents, or reduces the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0048523</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0051243</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">down regulation of cellular process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">down-regulation of cellular process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">downregulation of cellular process</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasNarrowSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">inhibition of cellular process</oboInOwl:hasNarrowSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negative regulation of cellular physiological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0048519"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048523"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that stops, prevents, or reduces the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jid</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048523"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0048523"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0050794"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0050789 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0050789">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulation of biological process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0065007"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0050789</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0050791</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulation of physiological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_aspergillus"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_candida"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0065007"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:ai</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:go_curators</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0050794 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0050794">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulation of cellular process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0009987"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0050794</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0051244</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulation of cellular physiological process</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:go_curators</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0050794"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0050789"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0050794"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0051704 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0051704">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">multi-organism process</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0008150"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002486"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002486"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A biological process which involves another organism of the same or different species.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0051704</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0051706</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">interaction between organisms</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">physiological interaction between organisms</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">physiological interaction with other organism</oboInOwl:hasExactSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_pir"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A biological process which involves another organism of the same or different species.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:jl</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0051704"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+        <annotatedTarget>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0000053"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PATO_0002486"/>
+            </Restriction>
+        </annotatedTarget>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0065007 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0065007">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological regulation</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates a measurable attribute of any biological process, quality or function.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0065007</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasBroadSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulation</oboInOwl:hasBroadSynonym>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#goslim_pir"/>
+        <oboInOwl:inSubset rdf:resource="http://purl.obolibrary.org/obo/go#gosubset_prok"/>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates a measurable attribute of any biological process, quality or function.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:dph</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:isa_complete</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:pr</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:vw</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0065007"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0071840 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0071840">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular component organization or biogenesis</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0008150"/>
+        <oboInOwl:creation_date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2010-09-10T01:39:16Z</oboInOwl:creation_date>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A process that results in the biosynthesis of constituent macromolecules, assembly, arrangement of constituent parts, or disassembly of a cellular component.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0071840</oboInOwl:id>
+        <oboInOwl:hasAlternativeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0071841</oboInOwl:hasAlternativeId>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular component organisation or biogenesis</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular component organisation or biogenesis at cellular level</oboInOwl:hasExactSynonym>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular component organization or biogenesis at cellular level</oboInOwl:hasExactSynonym>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">midori</oboInOwl:created_by>
+    </Class>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular component organisation or biogenesis at cellular level</annotatedTarget>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0071840"/>
+        <annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A process that results in the biosynthesis of constituent macromolecules, assembly, arrangement of constituent parts, or disassembly of a cellular component.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0071840"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:mah</oboInOwl:hasDbXref>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">cellular component organisation or biogenesis</annotatedTarget>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0071840"/>
+        <annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0090069 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0090069">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">regulation of ribosome biogenesis</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0042254"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0044087"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002211"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0042254"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <oboInOwl:creation_date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2009-09-11T10:32:17Z</oboInOwl:creation_date>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0090069</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tanyaberardini</oboInOwl:created_by>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0044087"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0090069"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that modulates the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:dph</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:tb</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0090069"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0090070 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0090070">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">positive regulation of ribosome biogenesis</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0042254"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0044089"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0090069"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002213"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0042254"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <oboInOwl:creation_date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2009-09-11T10:32:17Z</oboInOwl:creation_date>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that increases the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0090070</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tanyaberardini</oboInOwl:created_by>
+    </Class>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that increases the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:dph</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:tb</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0090070"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0044089"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0090070"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0090069"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0090070"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/GO_0090071 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/GO_0090071">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">negative regulation of ribosome biogenesis</rdfs:label>
+        <equivalentClass>
+            <Class>
+                <intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.obolibrary.org/obo/GO_0065007"/>
+                    <Restriction>
+                        <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+                        <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0042254"/>
+                    </Restriction>
+                </intersectionOf>
+            </Class>
+        </equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0048523"/>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0090069"/>
+        <rdfs:subClassOf>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/RO_0002212"/>
+                <someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0042254"/>
+            </Restriction>
+        </rdfs:subClassOf>
+        <oboInOwl:creation_date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2009-09-11T10:32:17Z</oboInOwl:creation_date>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that decreases the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits.</obo:IAO_0000115>
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GO:0090071</oboInOwl:id>
+        <oboInOwl:hasOBONamespace rdf:datatype="http://www.w3.org/2001/XMLSchema#string">biological_process</oboInOwl:hasOBONamespace>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tanyaberardini</oboInOwl:created_by>
+    </Class>
+    <Axiom>
+        <oboInOwl:is_inferred rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</oboInOwl:is_inferred>
+        <annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/GO_0090069"/>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0090071"/>
+        <annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+    </Axiom>
+    <Axiom>
+        <annotatedTarget rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Any process that decreases the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits.</annotatedTarget>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:dph</oboInOwl:hasDbXref>
+        <oboInOwl:hasDbXref rdf:datatype="http://www.w3.org/2001/XMLSchema#string">GOC:tb</oboInOwl:hasDbXref>
+        <annotatedSource rdf:resource="http://purl.obolibrary.org/obo/GO_0090071"/>
+        <annotatedProperty rdf:resource="http://purl.obolibrary.org/obo/IAO_0000115"/>
+    </Axiom>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0000001 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/PATO_0000001">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">quality</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000020"/>
+        <obo:IAO_0000589>quality (PATO)</obo:IAO_0000589>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0001236 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/PATO_0001236">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">process quality</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/PATO_0000001"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0002486 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/PATO_0002486">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">multi-organismal process quality</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/PATO_0001236"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/PATO_0002487 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/PATO_0002487">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">single organismal process quality</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/PATO_0001236"/>
+    </Class>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/UPHENO_0001001 -->
+
+    <Class rdf:about="http://purl.obolibrary.org/obo/UPHENO_0001001">
+        <rdfs:label xml:lang="en">Phenotype</rdfs:label>
+        <equivalentClass>
+            <Restriction>
+                <onProperty rdf:resource="http://purl.obolibrary.org/obo/UPHENO_0000001"/>
+                <someValuesFrom rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+            </Restriction>
+        </equivalentClass>
+    </Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 0.2.2-SNAPSHOT) http://owlapi.sourceforge.net -->
+
