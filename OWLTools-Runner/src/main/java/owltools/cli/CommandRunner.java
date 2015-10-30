@@ -519,6 +519,11 @@ public class CommandRunner extends CommandRunnerBase {
 					g.getManager().applyChange(soid);
 				}
 			}
+			else if (opts.nextEq("--merge-import")) {
+				opts.info("ONTOLOGY-IRI", "Ensure all axioms from the ontology are merged into the main ontology");
+				String iriString = opts.nextOpt();
+				g.mergeSpecificImport(IRI.create(iriString));
+			}
 			else if (opts.nextEq("--merge-import-closure") || opts.nextEq("--merge-imports-closure")) {
 				opts.info("[--ni]", "All axioms from ontologies in import closure are copied into main ontology");
 				boolean isRmImports = false;
